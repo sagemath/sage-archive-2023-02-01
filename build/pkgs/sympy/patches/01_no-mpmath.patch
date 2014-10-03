@@ -1,0 +1,4831 @@
+--- a/doc/src/modules/index.rst
++++ b/doc/src/modules/index.rst
+@@ -29,7 +29,6 @@
+    integrals/integrals.rst
+    logic.rst
+    matrices/index.rst
+-   Mpmath <mpmath/index.rst>
+    polys/index.rst
+    printing.rst
+    plotting.rst
+--- a/doc/src/modules/mpmath/basics.rst
++++ /dev/null
+@@ -1,227 +0,0 @@
+-Basic usage
+-===========================
+-
+-In interactive code examples that follow, it will be assumed that
+-all items in the ``mpmath`` namespace have been imported::
+-
+-    >>> from mpmath import *
+-
+-Importing everything can be convenient, especially when using mpmath interactively, but be
+-careful when mixing mpmath with other libraries! To avoid inadvertently overriding
+-other functions or objects, explicitly import only the needed objects, or use
+-the ``mpmath.`` or ``mp.`` namespaces::
+-
+-    from mpmath import sin, cos
+-    sin(1), cos(1)
+-
+-    import mpmath
+-    mpmath.sin(1), mpmath.cos(1)
+-
+-    from mpmath import mp    # mp context object -- to be explained
+-    mp.sin(1), mp.cos(1)
+-
+-
+-Number types
+-------------
+-
+-Mpmath provides the following numerical types:
+-
+-    +------------+----------------+
+-    | Class      | Description    |
+-    +============+================+
+-    | ``mpf``    | Real float     |
+-    +------------+----------------+
+-    | ``mpc``    | Complex float  |
+-    +------------+----------------+
+-    | ``matrix`` | Matrix         |
+-    +------------+----------------+
+-
+-The following section will provide a very short introduction to the types ``mpf`` and ``mpc``. Intervals and matrices are described further in the documentation chapters on interval arithmetic and matrices / linear algebra.
+-
+-The ``mpf`` type is analogous to Python's built-in ``float``. It holds a real number or one of the special values ``inf`` (positive infinity), ``-inf`` (negative infinity) and ``nan`` (not-a-number, indicating an indeterminate result). You can create ``mpf`` instances from strings, integers, floats, and other ``mpf`` instances:
+-
+-    >>> mpf(4)
+-    mpf('4.0')
+-    >>> mpf(2.5)
+-    mpf('2.5')
+-    >>> mpf("1.25e6")
+-    mpf('1250000.0')
+-    >>> mpf(mpf(2))
+-    mpf('2.0')
+-    >>> mpf("inf")
+-    mpf('+inf')
+-
+-The ``mpc`` type represents a complex number in rectangular form as a pair of ``mpf`` instances. It can be constructed from a Python ``complex``, a real number, or a pair of real numbers:
+-
+-    >>> mpc(2,3)
+-    mpc(real='2.0', imag='3.0')
+-    >>> mpc(complex(2,3)).imag
+-    mpf('3.0')
+-
+-You can mix ``mpf`` and ``mpc`` instances with each other and with Python numbers:
+-
+-    >>> mpf(3) + 2*mpf('2.5') + 1.0
+-    mpf('9.0')
+-    >>> mp.dps = 15      # Set precision (see below)
+-    >>> mpc(1j)**0.5
+-    mpc(real='0.70710678118654757', imag='0.70710678118654757')
+-
+-
+-Setting the precision
+----------------------
+-
+-Mpmath uses a global working precision; it does not keep track of the precision or accuracy of individual numbers. Performing an arithmetic operation or calling ``mpf()`` rounds the result to the current working precision. The working precision is controlled by a context object called ``mp``, which has the following default state:
+-
+-    >>> print mp
+-    Mpmath settings:
+-      mp.prec = 53                [default: 53]
+-      mp.dps = 15                 [default: 15]
+-      mp.trap_complex = False     [default: False]
+-
+-The term **prec** denotes the binary precision (measured in bits) while **dps** (short for *decimal places*) is the decimal precision. Binary and decimal precision are related roughly according to the formula ``prec = 3.33*dps``. For example, it takes a precision of roughly 333 bits to hold an approximation of pi that is accurate to 100 decimal places (actually slightly more than 333 bits is used).
+-
+-Changing either precision property of the ``mp`` object automatically updates the other; usually you just want to change the ``dps`` value:
+-
+-    >>> mp.dps = 100
+-    >>> mp.dps
+-    100
+-    >>> mp.prec
+-    336
+-
+-When the precision has been set, all ``mpf`` operations are carried out at that precision::
+-
+-    >>> mp.dps = 50
+-    >>> mpf(1) / 6
+-    mpf('0.16666666666666666666666666666666666666666666666666656')
+-    >>> mp.dps = 25
+-    >>> mpf(2) ** mpf('0.5')
+-    mpf('1.414213562373095048801688713')
+-
+-The precision of complex arithmetic is also controlled by the ``mp`` object:
+-
+-    >>> mp.dps = 10
+-    >>> mpc(1,2) / 3
+-    mpc(real='0.3333333333321', imag='0.6666666666642')
+-
+-There is no restriction on the magnitude of numbers. An ``mpf`` can for example hold an approximation of a large Mersenne prime:
+-
+-    >>> mp.dps = 15
+-    >>> print mpf(2)**32582657 - 1
+-    1.24575026015369e+9808357
+-
+-Or why not 1 googolplex:
+-
+-    >>> print mpf(10) ** (10**100)  # doctest:+ELLIPSIS
+-    1.0e+100000000000000000000000000000000000000000000000000...
+-
+-The (binary) exponent is stored exactly and is independent of the precision.
+-
+-Temporarily changing the precision
+-..................................
+-
+-It is often useful to change the precision during only part of a calculation. A way to temporarily increase the precision and then restore it is as follows:
+-
+-    >>> mp.prec += 2
+-    >>> # do_something()
+-    >>> mp.prec -= 2
+-
+-In Python 2.5, the ``with`` statement along with the mpmath functions ``workprec``, ``workdps``, ``extraprec`` and ``extradps`` can be used to temporarily change precision in a more safe manner:
+-
+-    >>> from __future__ import with_statement
+-    >>> with workdps(20):  # doctest: +SKIP
+-    ...     print mpf(1)/7
+-    ...     with extradps(10):
+-    ...         print mpf(1)/7
+-    ...
+-    0.14285714285714285714
+-    0.142857142857142857142857142857
+-    >>> mp.dps
+-    15
+-
+-The ``with`` statement ensures that the precision gets reset when exiting the block, even in the case that an exception is raised. (The effect of the ``with`` statement can be emulated in Python 2.4 by using a ``try/finally`` block.)
+-
+-The ``workprec`` family of functions can also be used as function decorators:
+-
+-    >>> @workdps(6)
+-    ... def f():
+-    ...     return mpf(1)/3
+-    ...
+-    >>> f()
+-    mpf('0.33333331346511841')
+-
+-
+-Some functions accept the ``prec`` and ``dps`` keyword arguments and this will override the global working precision. Note that this will not affect the precision at which the result is printed, so to get all digits, you must either use increase precision afterward when printing or use ``nstr``/``nprint``:
+-
+-    >>> mp.dps = 15
+-    >>> print exp(1)
+-    2.71828182845905
+-    >>> print exp(1, dps=50)      # Extra digits won't be printed
+-    2.71828182845905
+-    >>> nprint(exp(1, dps=50), 50)
+-    2.7182818284590452353602874713526624977572470937
+-
+-Finally, instead of using the global context object ``mp``, you can create custom contexts and work with methods of those instances instead of global functions. The working precision will be local to each context object:
+-
+-    >>> mp2 = mp.clone()
+-    >>> mp.dps = 10
+-    >>> mp2.dps = 20
+-    >>> print mp.mpf(1) / 3
+-    0.3333333333
+-    >>> print mp2.mpf(1) / 3
+-    0.33333333333333333333
+-
+-**Note**: the ability to create multiple contexts is a new feature that is only partially implemented. Not all mpmath functions are yet available as context-local methods. In the present version, you are likely to encounter bugs if you try mixing different contexts.
+-
+-Providing correct input
+------------------------
+-
+-Note that when creating a new ``mpf``, the value will at most be as accurate as the input. *Be careful when mixing mpmath numbers with Python floats*. When working at high precision, fractional ``mpf`` values should be created from strings or integers:
+-
+-    >>> mp.dps = 30
+-    >>> mpf(10.9)   # bad
+-    mpf('10.9000000000000003552713678800501')
+-    >>> mpf('10.9')  # good
+-    mpf('10.8999999999999999999999999999997')
+-    >>> mpf(109) / mpf(10)   # also good
+-    mpf('10.8999999999999999999999999999997')
+-    >>> mp.dps = 15
+-
+-(Binary fractions such as 0.5, 1.5, 0.75, 0.125, etc, are generally safe as input, however, since those can be represented exactly by Python floats.)
+-
+-Printing
+---------
+-
+-By default, the ``repr()`` of a number includes its type signature. This way ``eval`` can be used to recreate a number from its string representation:
+-
+-    >>> eval(repr(mpf(2.5)))
+-    mpf('2.5')
+-
+-Prettier output can be obtained by using ``str()`` or ``print``, which hide the ``mpf`` and ``mpc`` signatures and also suppress rounding artifacts in the last few digits:
+-
+-    >>> mpf("3.14159")
+-    mpf('3.1415899999999999')
+-    >>> print mpf("3.14159")
+-    3.14159
+-    >>> print mpc(1j)**0.5
+-    (0.707106781186548 + 0.707106781186548j)
+-
+-Setting the ``mp.pretty`` option will use the ``str()``-style output for ``repr()`` as well:
+-
+-    >>> mp.pretty = True
+-    >>> mpf(0.6)
+-    0.6
+-    >>> mp.pretty = False
+-    >>> mpf(0.6)
+-    mpf('0.59999999999999998')
+-
+-The number of digits with which numbers are printed by default is determined by the working precision. To specify the number of digits to show without changing the working precision, use :func:`mpmath.nstr` and :func:`mpmath.nprint`:
+-
+-    >>> a = mpf(1) / 6
+-    >>> a
+-    mpf('0.16666666666666666')
+-    >>> nstr(a, 8)
+-    '0.16666667'
+-    >>> nprint(a, 8)
+-    0.16666667
+-    >>> nstr(a, 50)
+-    '0.16666666666666665741480812812369549646973609924316'
+--- a/doc/src/modules/mpmath/calculus/approximation.rst
++++ /dev/null
+@@ -1,23 +0,0 @@
+-Function approximation
+-----------------------
+-
+-Taylor series (``taylor``)
+-..........................
+-
+-.. autofunction:: mpmath.taylor
+-
+-Pade approximation (``pade``)
+-.............................
+-
+-.. autofunction:: mpmath.pade
+-
+-Chebyshev approximation (``chebyfit``)
+-......................................
+-
+-.. autofunction:: mpmath.chebyfit
+-
+-Fourier series (``fourier``, ``fourierval``)
+-............................................
+-
+-.. autofunction:: mpmath.fourier
+-.. autofunction:: mpmath.fourierval
+--- a/doc/src/modules/mpmath/calculus/differentiation.rst
++++ /dev/null
+@@ -1,19 +0,0 @@
+-Differentiation
+----------------
+-
+-Numerical derivatives (``diff``, ``diffs``)
+-...........................................
+-
+-.. autofunction:: mpmath.diff
+-.. autofunction:: mpmath.diffs
+-
+-Composition of derivatives (``diffs_prod``, ``diffs_exp``)
+-..........................................................
+-
+-.. autofunction:: mpmath.diffs_prod
+-.. autofunction:: mpmath.diffs_exp
+-
+-Fractional derivatives / differintegration (``differint``)
+-............................................................
+-
+-.. autofunction:: mpmath.differint
+--- a/doc/src/modules/mpmath/calculus/index.rst
++++ /dev/null
+@@ -1,13 +0,0 @@
+-Numerical calculus
+-==================
+-
+-.. toctree::
+-   :maxdepth: 2
+-
+-   polynomials.rst
+-   optimization.rst
+-   sums_limits.rst
+-   differentiation.rst
+-   integration.rst
+-   odes.rst
+-   approximation.rst
+--- a/doc/src/modules/mpmath/calculus/integration.rst
++++ /dev/null
+@@ -1,31 +0,0 @@
+-Numerical integration (quadrature)
+-----------------------------------
+-
+-Standard quadrature (``quad``)
+-..............................
+-
+-.. autofunction:: mpmath.quad
+-
+-Oscillatory quadrature (``quadosc``)
+-....................................
+-
+-.. autofunction:: mpmath.quadosc
+-
+-Quadrature rules
+-................
+-
+-.. autoclass:: mpmath.calculus.quadrature.QuadratureRule
+-   :members:
+-
+-Tanh-sinh rule
+-~~~~~~~~~~~~~~
+-
+-.. autoclass:: mpmath.calculus.quadrature.TanhSinh
+-   :members:
+-
+-
+-Gauss-Legendre rule
+-~~~~~~~~~~~~~~~~~~~
+-
+-.. autoclass:: mpmath.calculus.quadrature.GaussLegendre
+-   :members:
+--- a/doc/src/modules/mpmath/calculus/odes.rst
++++ /dev/null
+@@ -1,7 +0,0 @@
+-Ordinary differential equations
+--------------------------------
+-
+-Solving the ODE initial value problem (``odefun``)
+-..................................................
+-
+-.. autofunction:: mpmath.odefun
+--- a/doc/src/modules/mpmath/calculus/optimization.rst
++++ /dev/null
+@@ -1,29 +0,0 @@
+-Root-finding and optimization
+------------------------------
+-
+-Root-finding (``findroot``)
+-...........................
+-
+-.. autofunction:: mpmath.findroot(f, x0, solver=Secant, tol=None, verbose=False, verify=True, **kwargs)
+-
+-Solvers
+-^^^^^^^
+-
+-.. autoclass:: mpmath.calculus.optimization.Secant
+-.. autoclass:: mpmath.calculus.optimization.Newton
+-.. autoclass:: mpmath.calculus.optimization.MNewton
+-.. autoclass:: mpmath.calculus.optimization.Halley
+-.. autoclass:: mpmath.calculus.optimization.Muller
+-.. autoclass:: mpmath.calculus.optimization.Bisection
+-.. autoclass:: mpmath.calculus.optimization.Illinois
+-.. autoclass:: mpmath.calculus.optimization.Pegasus
+-.. autoclass:: mpmath.calculus.optimization.Anderson
+-.. autoclass:: mpmath.calculus.optimization.Ridder
+-.. autoclass:: mpmath.calculus.optimization.ANewton
+-.. autoclass:: mpmath.calculus.optimization.MDNewton
+-
+-
+-.. Minimization and maximization (``findmin``, ``findmax``)
+-.. ........................................................
+-
+-.. (To be added.)
+--- a/doc/src/modules/mpmath/calculus/polynomials.rst
++++ /dev/null
+@@ -1,15 +0,0 @@
+-Polynomials
+------------
+-
+-See also :func:`taylor` and :func:`chebyfit` for
+-approximation of functions by polynomials.
+-
+-Polynomial evaluation (``polyval``)
+-...................................
+-
+-.. autofunction:: mpmath.polyval
+-
+-Polynomial roots (``polyroots``)
+-................................
+-
+-.. autofunction:: mpmath.polyroots
+--- a/doc/src/modules/mpmath/calculus/sums_limits.rst
++++ /dev/null
+@@ -1,67 +0,0 @@
+-Sums, products, limits and extrapolation
+-----------------------------------------
+-
+-The functions listed here permit approximation of infinite
+-sums, products, and other sequence limits.
+-Use :func:`mpmath.fsum` and :func:`mpmath.fprod`
+-for summation and multiplication of finite sequences.
+-
+-Summation
+-..........................................
+-
+-:func:`nsum`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.nsum
+-
+-:func:`sumem`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.sumem
+-
+-:func:`sumap`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.sumap
+-
+-Products
+-...............................
+-
+-:func:`nprod`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.nprod
+-
+-Limits (``limit``)
+-..................
+-
+-:func:`limit`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.limit
+-
+-Extrapolation
+-..........................................
+-
+-The following functions provide a direct interface to
+-extrapolation algorithms. :func:`nsum` and :func:`limit` essentially
+-work by calling the following functions with an increasing
+-number of terms until the extrapolated limit is accurate enough.
+-
+-The following functions may be useful to call directly if the
+-precise number of terms needed to achieve a desired accuracy is
+-known in advance, or if one wishes to study the convergence
+-properties of the algorithms.
+-
+-
+-:func:`richardson`
+-^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.richardson
+-
+-:func:`shanks`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.shanks
+-
+-:func:`levin`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.levin
+-
+-:func:`cohen_alt`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.cohen_alt
+-
+--- a/doc/src/modules/mpmath/functions/bessel.rst
++++ /dev/null
+@@ -1,185 +0,0 @@
+-Bessel functions and related functions
+---------------------------------------
+-
+-The functions in this section arise as solutions to various differential equations in physics, typically describing wavelike oscillatory behavior or a combination of oscillation and exponential decay or growth. Mathematically, they are special cases of the confluent hypergeometric functions `\,_0F_1`, `\,_1F_1` and `\,_1F_2` (see :doc:`hypergeometric`).
+-
+-
+-Bessel functions
+-...................................................
+-
+-:func:`besselj`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-
+-.. autofunction:: mpmath.besselj(n,x,derivative=0)
+-.. autofunction:: mpmath.j0(x)
+-.. autofunction:: mpmath.j1(x)
+-
+-:func:`bessely`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.bessely(n,x,derivative=0)
+-
+-:func:`besseli`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.besseli(n,x,derivative=0)
+-
+-:func:`besselk`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.besselk(n,x)
+-
+-
+-Bessel function zeros
+-...............................
+-
+-:func:`besseljzero`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.besseljzero(v,m,derivative=0)
+-
+-:func:`besselyzero`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.besselyzero(v,m,derivative=0)
+-
+-
+-Hankel functions
+-................
+-
+-:func:`hankel1`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hankel1(n,x)
+-
+-:func:`hankel2`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hankel2(n,x)
+-
+-
+-Kelvin functions
+-................
+-
+-:func:`ber`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.ber
+-
+-:func:`bei`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-
+-.. autofunction:: mpmath.bei
+-
+-:func:`ker`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.ker
+-
+-:func:`kei`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.kei
+-
+-
+-Struve functions
+-...................................................
+-
+-:func:`struveh`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.struveh
+-
+-:func:`struvel`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.struvel
+-
+-
+-Anger-Weber functions
+-...................................................
+-
+-:func:`angerj`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.angerj
+-
+-:func:`webere`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.webere
+-
+-
+-Lommel functions
+-...................................................
+-
+-:func:`lommels1`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.lommels1
+-
+-:func:`lommels2`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.lommels2
+-
+-Airy and Scorer functions
+-...............................................
+-
+-:func:`airyai`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.airyai(z, derivative=0, **kwargs)
+-
+-:func:`airybi`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.airybi(z, derivative=0, **kwargs)
+-
+-:func:`airyaizero`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.airyaizero(k, derivative=0)
+-
+-:func:`airybizero`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.airybizero(k, derivative=0, complex=0)
+-
+-:func:`scorergi`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.scorergi(z, **kwargs)
+-
+-:func:`scorerhi`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.scorerhi(z, **kwargs)
+-
+-
+-Coulomb wave functions
+-...............................................
+-
+-:func:`coulombf`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.coulombf(l,eta,z)
+-
+-:func:`coulombg`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.coulombg(l,eta,z)
+-
+-:func:`coulombc`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.coulombc(l,eta)
+-
+-Confluent U and Whittaker functions
+-...................................
+-
+-:func:`hyperu`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyperu(a, b, z)
+-
+-:func:`whitm`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.whitm(k,m,z)
+-
+-:func:`whitw`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.whitw(k,m,z)
+-
+-Parabolic cylinder functions
+-.................................
+-
+-:func:`pcfd`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.pcfd(n,z,**kwargs)
+-
+-:func:`pcfu`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.pcfu(a,z,**kwargs)
+-
+-:func:`pcfv`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.pcfv(a,z,**kwargs)
+-
+-:func:`pcfw`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.pcfw(a,z,**kwargs)
+--- a/doc/src/modules/mpmath/functions/constants.rst
++++ /dev/null
+@@ -1,85 +0,0 @@
+-Mathematical constants
+-----------------------
+-
+-Mpmath supports arbitrary-precision computation of various common (and less common) mathematical constants. These constants are implemented as lazy objects that can evaluate to any precision. Whenever the objects are used as function arguments or as operands in arithmetic operations, they automagically evaluate to the current working precision. A lazy number can be converted to a regular ``mpf`` using the unary ``+`` operator, or by calling it as a function::
+-
+-    >>> from mpmath import *
+-    >>> mp.dps = 15
+-    >>> pi
+-    <pi: 3.14159~>
+-    >>> 2*pi
+-    mpf('6.2831853071795862')
+-    >>> +pi
+-    mpf('3.1415926535897931')
+-    >>> pi()
+-    mpf('3.1415926535897931')
+-    >>> mp.dps = 40
+-    >>> pi
+-    <pi: 3.14159~>
+-    >>> 2*pi
+-    mpf('6.283185307179586476925286766559005768394338')
+-    >>> +pi
+-    mpf('3.141592653589793238462643383279502884197169')
+-    >>> pi()
+-    mpf('3.141592653589793238462643383279502884197169')
+-
+-Exact constants
+-...............
+-
+-The predefined objects :data:`j` (imaginary unit), :data:`inf` (positive infinity) and :data:`nan` (not-a-number) are shortcuts to :class:`mpc` and :class:`mpf` instances with these fixed values.
+-
+-Pi (``pi``)
+-....................................
+-
+-.. autoattribute:: mpmath.mp.pi
+-
+-Degree (``degree``)
+-....................................
+-
+-.. autoattribute:: mpmath.mp.degree
+-
+-Base of the natural logarithm (``e``)
+-.....................................
+-
+-.. autoattribute:: mpmath.mp.e
+-
+-Golden ratio (``phi``)
+-......................
+-
+-.. autoattribute:: mpmath.mp.phi
+-
+-
+-Euler's constant (``euler``)
+-............................
+-
+-.. autoattribute:: mpmath.mp.euler
+-
+-Catalan's constant (``catalan``)
+-................................
+-
+-.. autoattribute:: mpmath.mp.catalan
+-
+-Apery's constant (``apery``)
+-............................
+-
+-.. autoattribute:: mpmath.mp.apery
+-
+-Khinchin's constant (``khinchin``)
+-..................................
+-
+-.. autoattribute:: mpmath.mp.khinchin
+-
+-Glaisher's constant (``glaisher``)
+-..................................
+-
+-.. autoattribute:: mpmath.mp.glaisher
+-
+-Mertens constant (``mertens``)
+-..................................
+-
+-.. autoattribute:: mpmath.mp.mertens
+-
+-Twin prime constant (``twinprime``)
+-...................................
+-
+-.. autoattribute:: mpmath.mp.twinprime
+--- a/doc/src/modules/mpmath/functions/elliptic.rst
++++ /dev/null
+@@ -1,96 +0,0 @@
+-Elliptic functions
+-------------------
+-
+-.. automodule :: mpmath.functions.elliptic
+-
+-
+-Elliptic arguments
+-...................................................
+-
+-:func:`qfrom`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.qfrom(**kwargs)
+-
+-:func:`qbarfrom`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.qbarfrom(**kwargs)
+-
+-:func:`mfrom`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.mfrom(**kwargs)
+-
+-:func:`kfrom`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.kfrom(**kwargs)
+-
+-:func:`taufrom`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.taufrom(**kwargs)
+-
+-
+-Legendre elliptic integrals
+-...................................................
+-
+-:func:`ellipk`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.ellipk(m, **kwargs)
+-
+-:func:`ellipf`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.ellipf(phi, m)
+-
+-:func:`ellipe`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.ellipe(*args)
+-
+-:func:`ellippi`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.ellippi(*args)
+-
+-
+-Carlson symmetric elliptic integrals
+-...................................................
+-
+-:func:`elliprf`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.elliprf(x, y, z)
+-
+-:func:`elliprc`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.elliprc(x, y, pv=True)
+-
+-:func:`elliprj`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.elliprj(x, y, z, p)
+-
+-:func:`elliprd`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.elliprd(x, y, z)
+-
+-:func:`elliprg`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.elliprg(x, y, z)
+-
+-
+-Jacobi theta functions
+-......................
+-
+-:func:`jtheta`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.jtheta(n,z,q,derivative=0)
+-
+-
+-Jacobi elliptic functions
+-.................................................................
+-
+-:func:`ellipfun`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.ellipfun(kind,u=None,m=None,q=None,k=None,tau=None)
+-
+-
+-Modular functions
+-......................
+-
+-:func:`kleinj`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.kleinj(tau=None, **kwargs)
+--- a/doc/src/modules/mpmath/functions/expintegrals.rst
++++ /dev/null
+@@ -1,104 +0,0 @@
+-Exponential integrals and error functions
+------------------------------------------
+-
+-Exponential integrals give closed-form solutions to a large class of commonly occurring transcendental integrals that cannot be evaluated using elementary functions. Integrals of this type include those with an integrand of the form `t^a e^{t}` or `e^{-x^2}`, the latter giving rise to the Gaussian (or normal) probability distribution.
+-
+-The most general function in this section is the incomplete gamma function, to which all others can be reduced. The incomplete gamma function, in turn, can be expressed using hypergeometric functions (see :doc:`hypergeometric`).
+-
+-Incomplete gamma functions
+-..........................
+-
+-:func:`gammainc`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.gammainc(z, a=0, b=inf, regularized=False)
+-
+-
+-Exponential integrals
+-.....................
+-
+-:func:`ei`
+-^^^^^^^^^^
+-.. autofunction:: mpmath.ei(x, **kwargs)
+-
+-:func:`e1`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.e1(x, **kwargs)
+-
+-:func:`expint`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.expint(*args)
+-
+-
+-Logarithmic integral
+-....................
+-
+-:func:`li`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.li(x, **kwargs)
+-
+-
+-Trigonometric integrals
+-.......................
+-
+-:func:`ci`
+-^^^^^^^^^^
+-.. autofunction:: mpmath.ci(x, **kwargs)
+-
+-:func:`si`
+-^^^^^^^^^^
+-.. autofunction:: mpmath.si(x, **kwargs)
+-
+-
+-Hyperbolic integrals
+-....................
+-
+-:func:`chi`
+-^^^^^^^^^^^
+-.. autofunction:: mpmath.chi(x, **kwargs)
+-
+-:func:`shi`
+-^^^^^^^^^^^
+-.. autofunction:: mpmath.shi(x, **kwargs)
+-
+-
+-Error functions
+-...............
+-
+-:func:`erf`
+-^^^^^^^^^^^
+-.. autofunction:: mpmath.erf(x, **kwargs)
+-
+-:func:`erfc`
+-^^^^^^^^^^^^
+-.. autofunction:: mpmath.erfc(x, **kwargs)
+-
+-:func:`erfi`
+-^^^^^^^^^^^^
+-.. autofunction:: mpmath.erfi(x)
+-
+-:func:`erfinv`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.erfinv(x)
+-
+-The normal distribution
+-....................................................
+-
+-:func:`npdf`
+-^^^^^^^^^^^^
+-.. autofunction:: mpmath.npdf(x, mu=0, sigma=1)
+-
+-:func:`ncdf`
+-^^^^^^^^^^^^
+-.. autofunction:: mpmath.ncdf(x, mu=0, sigma=1)
+-
+-
+-Fresnel integrals
+-......................................................
+-
+-:func:`fresnels`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fresnels(x)
+-
+-:func:`fresnelc`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fresnelc(x)
+--- a/doc/src/modules/mpmath/functions/hyperbolic.rst
++++ /dev/null
+@@ -1,56 +0,0 @@
+-Hyperbolic functions
+---------------------
+-
+-Hyperbolic functions
+-....................
+-
+-:func:`cosh`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.cosh(x, **kwargs)
+-
+-:func:`sinh`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.sinh(x, **kwargs)
+-
+-:func:`tanh`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.tanh(x, **kwargs)
+-
+-:func:`sech`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.sech(x)
+-
+-:func:`csch`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.csch(x)
+-
+-:func:`coth`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.coth(x)
+-
+-Inverse hyperbolic functions
+-............................
+-
+-:func:`acosh`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.acosh(x, **kwargs)
+-
+-:func:`asinh`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.asinh(x, **kwargs)
+-
+-:func:`atanh`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.atanh(x, **kwargs)
+-
+-:func:`asech`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.asech(x)
+-
+-:func:`acsch`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.acsch(x)
+-
+-:func:`acoth`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.acoth(x)
+--- a/doc/src/modules/mpmath/functions/hypergeometric.rst
++++ /dev/null
+@@ -1,115 +0,0 @@
+-Hypergeometric functions
+-------------------------
+-
+-The functions listed in :doc:`expintegrals`, :doc:`bessel` and
+-:doc:`orthogonal`, and many other functions as well, are merely
+-particular instances of the generalized hypergeometric function `\,_pF_q`.
+-The functions listed in the following section enable efficient
+-direct evaluation of the underlying hypergeometric series, as
+-well as linear combinations, limits with respect to parameters,
+-and analytic continuations thereof. Extensions to twodimensional
+-series are also provided. See also the basic or q-analog of
+-the hypergeometric series in :doc:`qfunctions`.
+-
+-For convenience, most of the hypergeometric series of low order are
+-provided as standalone functions. They can equivalently be evaluated using
+-:func:`~mpmath.hyper`. As will be demonstrated in the respective docstrings,
+-all the ``hyp#f#`` functions implement analytic continuations and/or asymptotic
+-expansions with respect to the argument `z`, thereby permitting evaluation
+-for `z` anywhere in the complex plane. Functions of higher degree can be
+-computed via :func:`~mpmath.hyper`, but generally only in rapidly convergent
+-instances.
+-
+-Most hypergeometric and hypergeometric-derived functions accept optional
+-keyword arguments to specify options for :func:`hypercomb` or
+-:func:`hyper`. Some useful options are *maxprec*, *maxterms*,
+-*zeroprec*, *accurate_small*, *hmag*, *force_series*,
+-*asymp_tol* and *eliminate*. These options give control over what to
+-do in case of slow convergence, extreme loss of accuracy or
+-evaluation at zeros (these two cases cannot generally be
+-distinguished from each other automatically),
+-and singular parameter combinations.
+-
+-Common hypergeometric series
+-............................
+-
+-:func:`hyp0f1`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyp0f1(a, z)
+-
+-:func:`hyp1f1`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyp1f1(a, b, z)
+-
+-:func:`hyp1f2`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyp1f2(a1, b1, b2, z)
+-
+-:func:`hyp2f0`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyp2f0(a, b, z)
+-
+-:func:`hyp2f1`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyp2f1(a, b, c, z)
+-
+-:func:`hyp2f2`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyp2f2(a1, a2, b1, b2, z)
+-
+-:func:`hyp2f3`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyp2f3(a1, a2, b1, b2, b3, z)
+-
+-:func:`hyp3f2`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyp3f2(a1, a2, a3, b1, b2, z)
+-
+-Generalized hypergeometric functions
+-....................................
+-
+-:func:`hyper`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyper(a_s, b_s, z)
+-
+-:func:`hypercomb`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hypercomb
+-
+-Meijer G-function
+-...................................
+-
+-:func:`meijerg`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.meijerg(a_s,b_s,z,r=1,**kwargs)
+-
+-Bilateral hypergeometric series
+-...............................
+-
+-:func:`bihyper`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.bihyper(a_s,b_s,z,**kwargs)
+-
+-Hypergeometric functions of two variables
+-...............................................
+-
+-:func:`hyper2d`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyper2d(a,b,x,y,**kwargs)
+-
+-:func:`appellf1`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.appellf1(a,b1,b2,c,x,y,**kwargs)
+-
+-:func:`appellf2`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.appellf2(a,b1,b2,c1,c2,x,y,**kwargs)
+-
+-:func:`appellf3`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.appellf3(a1,a2,b1,b2,c,x,y,**kwargs)
+-
+-:func:`appellf4`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.appellf4(a,b,c1,c2,x,y,**kwargs)
+-
+--- a/doc/src/modules/mpmath/functions/index.rst
++++ /dev/null
+@@ -1,21 +0,0 @@
+-Mathematical functions
+-======================
+-
+-Mpmath implements the standard functions from Python's ``math`` and ``cmath`` modules, for both real and complex numbers and with arbitrary precision. Many other functions are also available in mpmath, including commonly-used variants of standard functions (such as the alternative trigonometric functions sec, csc, cot), but also a large number of "special functions" such as the gamma function, the Riemann zeta function, error functions, Bessel functions, etc.
+-
+-.. toctree::
+-   :maxdepth: 2
+-
+-   constants.rst
+-   powers.rst
+-   trigonometric.rst
+-   hyperbolic.rst
+-   gamma.rst
+-   expintegrals.rst
+-   bessel.rst
+-   orthogonal.rst
+-   hypergeometric.rst
+-   elliptic.rst
+-   zeta.rst
+-   numtheory.rst
+-   qfunctions.rst
+--- a/doc/src/modules/mpmath/functions/powers.rst
++++ /dev/null
+@@ -1,85 +0,0 @@
+-Powers and logarithms
+----------------------
+-
+-Nth roots
+-.........
+-
+-:func:`sqrt`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.sqrt(x, **kwargs)
+-
+-:func:`hypot`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hypot(x, y)
+-
+-:func:`cbrt`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.cbrt(x, **kwargs)
+-
+-:func:`root`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.root(z, n, k=0)
+-
+-:func:`unitroots`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.unitroots(n, primitive=False)
+-
+-
+-Exponentiation
+-..............
+-
+-:func:`exp`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.exp(x, **kwargs)
+-
+-:func:`power`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.power(x, y)
+-
+-:func:`expj`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.expj(x, **kwargs)
+-
+-:func:`expjpi`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.expjpi(x, **kwargs)
+-
+-:func:`expm1`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.expm1(x)
+-
+-:func:`powm1`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.powm1(x, y)
+-
+-
+-Logarithms
+-..........
+-
+-:func:`log`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.log(x, b=None)
+-
+-:func:`ln`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.ln(x, **kwargs)
+-
+-:func:`log10`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.log10(x)
+-
+-
+-Lambert W function
+-...................................................
+-
+-:func:`lambertw`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.lambertw(z, k=0)
+-
+-
+-Arithmetic-geometric mean
+-.......................................
+-
+-:func:`agm`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.agm(a, b=1)
+--- a/doc/src/modules/mpmath/functions/qfunctions.rst
++++ /dev/null
+@@ -1,29 +0,0 @@
+-q-functions
+--------------------------------------------
+-
+-q-Pochhammer symbol
+-..................................................
+-
+-:func:`qp`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.qp(a, q=None, n=None, **kwargs)
+-
+-
+-q-gamma and factorial
+-..................................................
+-
+-:func:`qgamma`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.qgamma(z, q, **kwargs)
+-
+-:func:`qfac`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.qfac(z, q, **kwargs)
+-
+-Hypergeometric q-series
+-..................................................
+-
+-:func:`qhyper`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.qhyper(a_s, b_s, q, z, **kwargs)
+-
+--- a/doc/src/modules/mpmath/functions/trigonometric.rst
++++ /dev/null
+@@ -1,117 +0,0 @@
+-Trigonometric functions
+------------------------
+-
+-Except where otherwise noted, the trigonometric functions
+-take a radian angle as input and the inverse trigonometric
+-functions return radian angles.
+-
+-The ordinary trigonometric functions are single-valued
+-functions defined everywhere in the complex plane
+-(except at the poles of tan, sec, csc, and cot).
+-They are defined generally via the exponential function,
+-e.g.
+-
+-.. math ::
+-
+-    \cos(x) = \frac{e^{ix} + e^{-ix}}{2}.
+-
+-The inverse trigonometric functions are multivalued,
+-thus requiring branch cuts, and are generally real-valued
+-only on a part of the real line. Definitions and branch cuts
+-are given in the documentation of each function.
+-The branch cut conventions used by mpmath are essentially
+-the same as those found in most standard mathematical software,
+-such as Mathematica and Python's own ``cmath`` libary (as of Python 2.6;
+-earlier Python versions implement some functions
+-erroneously).
+-
+-Degree-radian conversion
+-...........................................................
+-
+-:func:`degrees`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.degrees(x)
+-
+-:func:`radians`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.radians(x)
+-
+-Trigonometric functions
+-.......................
+-
+-:func:`cos`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.cos(x, **kwargs)
+-
+-:func:`sin`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.sin(x, **kwargs)
+-
+-:func:`tan`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.tan(x, **kwargs)
+-
+-:func:`sec`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.sec(x)
+-
+-:func:`csc`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.csc(x)
+-
+-:func:`cot`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.cot(x)
+-
+-Trigonometric functions with modified argument
+-........................................................
+-
+-:func:`cospi`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.cospi(x, **kwargs)
+-
+-:func:`sinpi`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.sinpi(x, **kwargs)
+-
+-Inverse trigonometric functions
+-................................................
+-
+-:func:`acos`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.acos(x, **kwargs)
+-
+-:func:`asin`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.asin(x, **kwargs)
+-
+-:func:`atan`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.atan(x, **kwargs)
+-
+-:func:`atan2`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.atan2(y, x)
+-
+-:func:`asec`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.asec(x)
+-
+-:func:`acsc`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.acsc(x)
+-
+-:func:`acot`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.acot(x)
+-
+-Sinc function
+-.............
+-
+-:func:`sinc`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.sinc(x)
+-
+-:func:`sincpi`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.sincpi(x)
+--- a/doc/src/modules/mpmath/functions/zeta.rst
++++ /dev/null
+@@ -1,104 +0,0 @@
+-Zeta functions, L-series and polylogarithms
+--------------------------------------------
+-
+-This section includes the Riemann zeta functions
+-and associated functions pertaining to analytic number theory.
+-
+-
+-Riemann and Hurwitz zeta functions
+-..................................................
+-
+-:func:`zeta`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.zeta(s,a=1,derivative=0)
+-
+-
+-Dirichlet L-series
+-..................................................
+-
+-:func:`altzeta`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.altzeta(s)
+-
+-:func:`dirichlet`
+-^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.dirichlet(s,chi,derivative=0)
+-
+-
+-Stieltjes constants
+-...................
+-
+-:func:`stieltjes`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.stieltjes(n,a=1)
+-
+-
+-Zeta function zeros
+-......................................
+-
+-These functions are used for the study of the Riemann zeta function
+-in the critical strip.
+-
+-:func:`zetazero`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.zetazero(n, verbose=False)
+-
+-:func:`nzeros`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.nzeros(t)
+-
+-:func:`siegelz`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.siegelz(t)
+-
+-:func:`siegeltheta`
+-^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.siegeltheta(t)
+-
+-:func:`grampoint`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.grampoint(n)
+-
+-:func:`backlunds`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.backlunds(t)
+-
+-
+-Lerch transcendent
+-................................
+-
+-:func:`lerchphi`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.lerchphi(z,s,a)
+-
+-
+-Polylogarithms and Clausen functions
+-.......................................
+-
+-:func:`polylog`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.polylog(s,z)
+-
+-:func:`clsin`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.clsin(s, z)
+-
+-:func:`clcos`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.clcos(s, z)
+-
+-:func:`polyexp`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.polyexp(s,z)
+-
+-
+-Zeta function variants
+-..........................
+-
+-:func:`primezeta`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.primezeta(s)
+-
+-:func:`secondzeta`
+-^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.secondzeta(s, a=0.015, **kwargs)
+--- a/doc/src/modules/mpmath/identification.rst
++++ /dev/null
+@@ -1,31 +0,0 @@
+-Number identification
+-=====================
+-
+-Most function in mpmath are concerned with producing approximations from exact mathematical formulas. It is also useful to consider the inverse problem: given only a decimal approximation for a number, such as 0.7320508075688772935274463, is it possible to find an exact formula?
+-
+-Subject to certain restrictions, such "reverse engineering" is indeed possible thanks to the existence of *integer relation algorithms*. Mpmath implements the PSLQ algorithm (developed by H. Ferguson), which is one such algorithm.
+-
+-Automated number recognition based on PSLQ is not a silver bullet. Any occurring transcendental constants (`\pi`, `e`, etc) must be guessed by the user, and the relation between those constants in the formula must be linear (such as `x = 3 \pi + 4 e`). More complex formulas can be found by combining PSLQ with functional transformations; however, this is only feasible to a limited extent since the computation time grows exponentially with the number of operations that need to be combined.
+-
+-The number identification facilities in mpmath are inspired by the `Inverse Symbolic Calculator <http://oldweb.cecm.sfu.ca/projects/ISC/ISCmain.html>`_ (ISC). The ISC is more powerful than mpmath, as it uses a lookup table of millions of precomputed constants (thereby mitigating the problem with exponential complexity).
+-
+-Constant recognition
+------------------------------------
+-
+-:func:`identify`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.identify
+-
+-Algebraic identification
+----------------------------------------
+-
+-:func:`findpoly`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.findpoly
+-
+-Integer relations (PSLQ)
+-----------------------------
+-
+-:func:`pslq`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.pslq
+--- a/doc/src/modules/mpmath/plots/bessely.py
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Bessel function of 2nd kind Y_n(x) on the real line for n=0,1,2,3
+-y0 = lambda x: bessely(0,x)
+-y1 = lambda x: bessely(1,x)
+-y2 = lambda x: bessely(2,x)
+-y3 = lambda x: bessely(3,x)
+-plot([y0,y1,y2,y3],[0,10],[-4,1])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/bessely_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Bessel function of 2nd kind Y_n(z) in the complex plane
+-cplot(lambda z: bessely(1,z), [-8,8], [-8,8], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/bi.py
++++ /dev/null
+@@ -1,5 +0,0 @@
+-# Airy function Bi(x), Bi'(x) and int_0^x Bi(t) dt on the real line
+-f = airybi
+-f_diff = lambda z: airybi(z, derivative=1)
+-f_int = lambda z: airybi(z, derivative=-1)
+-plot([f, f_diff, f_int], [-10,2], [-1,2])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/bi_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Airy function Bi(z) in the complex plane
+-cplot(airybi, [-8,8], [-8,8], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/chebyt.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Chebyshev polynomials T_n(x) on [-1,1] for n=0,1,2,3,4
+-f0 = lambda x: chebyt(0,x)
+-f1 = lambda x: chebyt(1,x)
+-f2 = lambda x: chebyt(2,x)
+-f3 = lambda x: chebyt(3,x)
+-f4 = lambda x: chebyt(4,x)
+-plot([f0,f1,f2,f3,f4],[-1,1])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/chebyu.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Chebyshev polynomials U_n(x) on [-1,1] for n=0,1,2,3,4
+-f0 = lambda x: chebyu(0,x)
+-f1 = lambda x: chebyu(1,x)
+-f2 = lambda x: chebyu(2,x)
+-f3 = lambda x: chebyu(3,x)
+-f4 = lambda x: chebyu(4,x)
+-plot([f0,f1,f2,f3,f4],[-1,1])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/coulombf.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Regular Coulomb wave functions -- equivalent to figure 14.3 in A&S
+-F1 = lambda x: coulombf(0,0,x)
+-F2 = lambda x: coulombf(0,1,x)
+-F3 = lambda x: coulombf(0,5,x)
+-F4 = lambda x: coulombf(0,10,x)
+-F5 = lambda x: coulombf(0,x/2,x)
+-plot([F1,F2,F3,F4,F5], [0,25], [-1.2,1.6])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/coulombf_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Regular Coulomb wave function in the complex plane
+-cplot(lambda z: coulombf(1,1,z), points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/coulombg.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Irregular Coulomb wave functions -- equivalent to figure 14.5 in A&S
+-F1 = lambda x: coulombg(0,0,x)
+-F2 = lambda x: coulombg(0,1,x)
+-F3 = lambda x: coulombg(0,5,x)
+-F4 = lambda x: coulombg(0,10,x)
+-F5 = lambda x: coulombg(0,x/2,x)
+-plot([F1,F2,F3,F4,F5], [0,30], [-2,2])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/coulombg_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Irregular Coulomb wave function in the complex plane
+-cplot(lambda z: coulombg(1,1,z), points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/ellipe.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Elliptic integral E(z,m) for some different m
+-f1 = lambda z: ellipe(z,-2)
+-f2 = lambda z: ellipe(z,-1)
+-f3 = lambda z: ellipe(z,0)
+-f4 = lambda z: ellipe(z,1)
+-f5 = lambda z: ellipe(z,2)
+-plot([f1,f2,f3,f4,f5], [0,pi], [0,4])
+--- a/doc/src/modules/mpmath/plots/ellipf.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Elliptic integral F(z,m) for some different m
+-f1 = lambda z: ellipf(z,-1)
+-f2 = lambda z: ellipf(z,-0.5)
+-f3 = lambda z: ellipf(z,0)
+-f4 = lambda z: ellipf(z,0.5)
+-f5 = lambda z: ellipf(z,1)
+-plot([f1,f2,f3,f4,f5], [0,pi], [0,4])
+--- a/doc/src/modules/mpmath/plots/ellipk.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Complete elliptic integrals K(m) and E(m)
+-plot([ellipk, ellipe], [-2,1], [0,3], points=600)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/ellippi.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Elliptic integral Pi(n,z,m) for some different n, m
+-f1 = lambda z: ellippi(0.9,z,0.9)
+-f2 = lambda z: ellippi(0.5,z,0.5)
+-f3 = lambda z: ellippi(-2,z,-0.9)
+-f4 = lambda z: ellippi(-0.5,z,0.5)
+-f5 = lambda z: ellippi(-1,z,0.5)
+-plot([f1,f2,f3,f4,f5], [0,pi], [0,4])
+--- a/doc/src/modules/mpmath/plots/gi.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Scorer function Gi(x) and Gi'(x) on the real line
+-plot([scorergi, diffun(scorergi)], [-10,10])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/gi_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Scorer function Gi(z) in the complex plane
+-cplot(scorergi, [-8,8], [-8,8], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/hankel1.py
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Hankel function H1_n(x) on the real line for n=0,1,2,3
+-h0 = lambda x: hankel1(0,x)
+-h1 = lambda x: hankel1(1,x)
+-h2 = lambda x: hankel1(2,x)
+-h3 = lambda x: hankel1(3,x)
+-plot([h0,h1,h2,h3],[0,6],[-2,1])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/hankel1_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Hankel function H1_n(z) in the complex plane
+-cplot(lambda z: hankel1(1,z), [-8,8], [-8,8], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/hankel2.py
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Hankel function H2_n(x) on the real line for n=0,1,2,3
+-h0 = lambda x: hankel2(0,x)
+-h1 = lambda x: hankel2(1,x)
+-h2 = lambda x: hankel2(2,x)
+-h3 = lambda x: hankel2(3,x)
+-plot([h0,h1,h2,h3],[0,6],[-1,2])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/hankel2_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Hankel function H2_n(z) in the complex plane
+-cplot(lambda z: hankel2(1,z), [-8,8], [-8,8], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/hermite.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Hermite polynomials H_n(x) on the real line for n=0,1,2,3,4
+-f0 = lambda x: hermite(0,x)
+-f1 = lambda x: hermite(1,x)
+-f2 = lambda x: hermite(2,x)
+-f3 = lambda x: hermite(3,x)
+-f4 = lambda x: hermite(4,x)
+-plot([f0,f1,f2,f3,f4],[-2,2],[-25,25])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/hi.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Scorer function Hi(x) and Hi'(x) on the real line
+-plot([scorerhi, diffun(scorerhi)], [-10,2], [0,2])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/hi_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Scorer function Hi(z) in the complex plane
+-cplot(scorerhi, [-8,8], [-8,8], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/ker.py
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Kelvin functions ker_n(x) and kei_n(x) on the real line for n=0,2
+-f0 = lambda x: ker(0,x)
+-f1 = lambda x: kei(0,x)
+-f2 = lambda x: ker(2,x)
+-f3 = lambda x: kei(2,x)
+-plot([f0,f1,f2,f3],[0,5],[-1,4])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/kleinj.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Klein J-function as function of the number-theoretic nome
+-fp.cplot(lambda q: fp.kleinj(qbar=q), [-1,1], [-1,1], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/kleinj2.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Klein J-function as function of the half-period ratio
+-fp.cplot(lambda t: fp.kleinj(tau=t), [-1,2], [0,1.5], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/laguerre.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Hermite polynomials L_n(x) on the real line for n=0,1,2,3,4
+-f0 = lambda x: laguerre(0,0,x)
+-f1 = lambda x: laguerre(1,0,x)
+-f2 = lambda x: laguerre(2,0,x)
+-f3 = lambda x: laguerre(3,0,x)
+-f4 = lambda x: laguerre(4,0,x)
+-plot([f0,f1,f2,f3,f4],[0,10],[-10,10])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/lambertw.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Branches 0 and -1 of the Lambert W function
+-plot([lambertw, lambda x: lambertw(x,-1)], [-2,2], [-5,2], points=2000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/lambertw_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Principal branch of the Lambert W function W(z)
+-cplot(lambertw, [-1,1], [-1,1], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/legendre.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Legendre polynomials P_n(x) on [-1,1] for n=0,1,2,3,4
+-f0 = lambda x: legendre(0,x)
+-f1 = lambda x: legendre(1,x)
+-f2 = lambda x: legendre(2,x)
+-f3 = lambda x: legendre(3,x)
+-f4 = lambda x: legendre(4,x)
+-plot([f0,f1,f2,f3,f4],[-1,1])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/lommels1.py
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Lommel function s_(u,v)(x) on the real line for a few different u,v
+-f1 = lambda x: lommels1(-1,2.5,x)
+-f2 = lambda x: lommels1(0,0.5,x)
+-f3 = lambda x: lommels1(0,6,x)
+-f4 = lambda x: lommels1(0.5,3,x)
+-plot([f1,f2,f3,f4], [0,20])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/lommels2.py
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Lommel function S_(u,v)(x) on the real line for a few different u,v
+-f1 = lambda x: lommels2(-1,2.5,x)
+-f2 = lambda x: lommels2(1.5,2,x)
+-f3 = lambda x: lommels2(2.5,1,x)
+-f4 = lambda x: lommels2(3.5,-0.5,x)
+-plot([f1,f2,f3,f4], [0,8], [-8,8])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/pcfd.py
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Parabolic cylinder function D_n(x) on the real line for n=0,1,2,3,4
+-d0 = lambda x: pcfd(0,x)
+-d1 = lambda x: pcfd(1,x)
+-d2 = lambda x: pcfd(2,x)
+-d3 = lambda x: pcfd(3,x)
+-d4 = lambda x: pcfd(4,x)
+-plot([d0,d1,d2,d3,d4],[-7,7])
+--- a/doc/src/modules/mpmath/plots/spherharm40.py
++++ /dev/null
+@@ -1,15 +0,0 @@
+-# Real part of spherical harmonic Y_(4,0)(theta,phi)
+-def Y(l,m):
+-    def g(theta,phi):
+-        R = abs(fp.re(fp.spherharm(l,m,theta,phi)))
+-        x = R*fp.cos(phi)*fp.sin(theta)
+-        y = R*fp.sin(phi)*fp.sin(theta)
+-        z = R*fp.cos(theta)
+-        return [x,y,z]
+-    return g
+-
+-fp.splot(Y(4,0), [0,fp.pi], [0,2*fp.pi], points=300)
+-# fp.splot(Y(4,0), [0,fp.pi], [0,2*fp.pi], points=300)
+-# fp.splot(Y(4,1), [0,fp.pi], [0,2*fp.pi], points=300)
+-# fp.splot(Y(4,2), [0,fp.pi], [0,2*fp.pi], points=300)
+-# fp.splot(Y(4,3), [0,fp.pi], [0,2*fp.pi], points=300)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/spherharm41.py
++++ /dev/null
+@@ -1,11 +0,0 @@
+-# Real part of spherical harmonic Y_(4,1)(theta,phi)
+-def Y(l,m):
+-    def g(theta,phi):
+-        R = abs(fp.re(fp.spherharm(l,m,theta,phi)))
+-        x = R*fp.cos(phi)*fp.sin(theta)
+-        y = R*fp.sin(phi)*fp.sin(theta)
+-        z = R*fp.cos(theta)
+-        return [x,y,z]
+-    return g
+-
+-fp.splot(Y(4,1), [0,fp.pi], [0,2*fp.pi], points=300)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/spherharm42.py
++++ /dev/null
+@@ -1,11 +0,0 @@
+-# Real part of spherical harmonic Y_(4,2)(theta,phi)
+-def Y(l,m):
+-    def g(theta,phi):
+-        R = abs(fp.re(fp.spherharm(l,m,theta,phi)))
+-        x = R*fp.cos(phi)*fp.sin(theta)
+-        y = R*fp.sin(phi)*fp.sin(theta)
+-        z = R*fp.cos(theta)
+-        return [x,y,z]
+-    return g
+-
+-fp.splot(Y(4,2), [0,fp.pi], [0,2*fp.pi], points=300)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/spherharm43.py
++++ /dev/null
+@@ -1,11 +0,0 @@
+-# Real part of spherical harmonic Y_(4,3)(theta,phi)
+-def Y(l,m):
+-    def g(theta,phi):
+-        R = abs(fp.re(fp.spherharm(l,m,theta,phi)))
+-        x = R*fp.cos(phi)*fp.sin(theta)
+-        y = R*fp.sin(phi)*fp.sin(theta)
+-        z = R*fp.cos(theta)
+-        return [x,y,z]
+-    return g
+-
+-fp.splot(Y(4,3), [0,fp.pi], [0,2*fp.pi], points=300)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/spherharm44.py
++++ /dev/null
+@@ -1,11 +0,0 @@
+-# Real part of spherical harmonic Y_(4,4)(theta,phi)
+-def Y(l,m):
+-    def g(theta,phi):
+-        R = abs(fp.re(fp.spherharm(l,m,theta,phi)))
+-        x = R*fp.cos(phi)*fp.sin(theta)
+-        y = R*fp.sin(phi)*fp.sin(theta)
+-        z = R*fp.cos(theta)
+-        return [x,y,z]
+-    return g
+-
+-fp.splot(Y(4,4), [0,fp.pi], [0,2*fp.pi], points=300)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plotting.rst
++++ /dev/null
+@@ -1,32 +0,0 @@
+-Plotting
+-========
+-
+-If `matplotlib <http://matplotlib.sourceforge.net/>`_ is available, the functions ``plot`` and ``cplot`` in mpmath can be used to plot functions respectively as x-y graphs and in the complex plane. Also, ``splot`` can be used to produce 3D surface plots.
+-
+-Function curve plots
+------------------------
+-
+-.. image:: plot.png
+-
+-Output of ``plot([cos, sin], [-4, 4])``
+-
+-.. autofunction:: mpmath.plot
+-
+-Complex function plots
+--------------------------
+-
+-.. image:: cplot.png
+-
+-Output of ``fp.cplot(fp.gamma, points=100000)``
+-
+-.. autofunction:: mpmath.cplot
+-
+-3D surface plots
+-----------------
+-
+-.. image:: splot.png
+-
+-Output of ``splot`` for the donut example.
+-
+-.. autofunction:: mpmath.splot
+-
+--- a/examples/advanced/autowrap_ufuncify.py
++++ b/examples/advanced/autowrap_ufuncify.py
+@@ -25,7 +25,7 @@
+ if not np:
+     sys.exit("Cannot import numpy. Exiting.")
+ 
+-import sympy.mpmath as mpmath
++import mpmath
+ from sympy.utilities.autowrap import ufuncify
+ from sympy.utilities.lambdify import implemented_function
+ from sympy import symbols, legendre, Plot, pprint
+--- a/examples/advanced/pidigits.py
++++ b/examples/advanced/pidigits.py
+@@ -6,8 +6,8 @@
+ computation of the digits of pi.
+ """
+ 
+-from sympy.mpmath import libmp, pi
+-from sympy.mpmath import functions as mpf_funs
++from mpmath import libmp, pi
++from mpmath import functions as mpf_funs
+ 
+ import math
+ from time import clock
+--- a/setup.py
++++ b/setup.py
+@@ -27,15 +27,11 @@
+ sympy@googlegroups.com and ask for help.
+ """
+ 
+-from distutils.core import setup
+-from distutils.core import Command
+-from distutils.command.build_scripts import build_scripts
++from distutils.core import setup, Command
+ import sys
+ import subprocess
+ import os
+ 
+-import sympy
+-
+ PY3 = sys.version_info[0] > 2
+ 
+ # Make sure I have the right Python version.
+@@ -70,11 +66,6 @@
+     'sympy.logic.utilities',
+     'sympy.matrices',
+     'sympy.matrices.expressions',
+-    'sympy.mpmath',
+-    'sympy.mpmath.calculus',
+-    'sympy.mpmath.functions',
+-    'sympy.mpmath.libmp',
+-    'sympy.mpmath.matrices',
+     'sympy.ntheory',
+     'sympy.parsing',
+     'sympy.physics',
+@@ -126,10 +117,7 @@
+         except ImportError:
+             print("In order to run the audit, you need to have PyFlakes installed.")
+             sys.exit(-1)
+-        # We don't want to audit external dependencies
+-        ext = ('mpmath',)
+-        dirs = (os.path.join(*d) for d in
+-               (m.split('.') for m in modules) if d[1] not in ext)
++        dirs = (os.path.join(*d) for d in (m.split('.') for m in modules))
+         warns = 0
+         for dir in dirs:
+             for filename in os.listdir(dir):
+@@ -181,7 +169,8 @@
+         pass
+ 
+     def run(self):
+-        sympy.utilities.runtests.run_all_tests()
++        from sympy.utilities import runtests
++        runtests.run_all_tests()
+ 
+ 
+ class run_benchmarks(Command):
+@@ -240,7 +229,6 @@
+     'sympy.logic.tests',
+     'sympy.matrices.expressions.tests',
+     'sympy.matrices.tests',
+-    'sympy.mpmath.tests',
+     'sympy.ntheory.tests',
+     'sympy.parsing.tests',
+     'sympy.physics.hep.tests',
+@@ -289,9 +277,11 @@
+ as simple as possible in order to be comprehensible and easily extensible.
+ SymPy is written entirely in Python and does not require any external libraries.'''
+ 
++exec(open('sympy/release.py').read())
++
+ setup_args = {
+     "name": 'sympy',
+-    "version": sympy.__version__,
++    "version": __version__,
+     "description": 'Computer algebra system (CAS) in Python',
+     "long_description": long_description,
+     "author": 'SymPy development team',
+--- a/sympy/combinatorics/permutations.py
++++ b/sympy/combinatorics/permutations.py
+@@ -9,7 +9,7 @@
+     has_dups, runs)
+ from sympy.polys.polytools import lcm
+ from sympy.matrices import zeros
+-from sympy.mpmath.libmp.libintmath import ifac
++from mpmath.libmp.libintmath import ifac
+ 
+ 
+ def _af_rmul(a, b):
+--- a/sympy/core/evalf.py
++++ b/sympy/core/evalf.py
+@@ -6,19 +6,19 @@
+ 
+ import math
+ 
+-import sympy.mpmath.libmp as libmp
+-from sympy.mpmath import make_mpc, make_mpf, mp, mpc, mpf, nsum, quadts, quadosc
+-from sympy.mpmath import inf as mpmath_inf
+-from sympy.mpmath.libmp import (from_int, from_man_exp, from_rational, fhalf,
++import mpmath.libmp as libmp
++from mpmath import make_mpc, make_mpf, mp, mpc, mpf, nsum, quadts, quadosc
++from mpmath import inf as mpmath_inf
++from mpmath.libmp import (from_int, from_man_exp, from_rational, fhalf,
+         fnan, fnone, fone, fzero, mpf_abs, mpf_add,
+         mpf_atan, mpf_atan2, mpf_cmp, mpf_cos, mpf_e, mpf_exp, mpf_log, mpf_lt,
+         mpf_mul, mpf_neg, mpf_pi, mpf_pow, mpf_pow_int, mpf_shift, mpf_sin,
+         mpf_sqrt, normalize, round_nearest, to_int, to_str)
+-from sympy.mpmath.libmp import bitcount as mpmath_bitcount
+-from sympy.mpmath.libmp.backend import MPZ
+-from sympy.mpmath.libmp.libmpc import _infs_nan
+-from sympy.mpmath.libmp.libmpf import dps_to_prec
+-from sympy.mpmath.libmp.gammazeta import mpf_bernoulli
++from mpmath.libmp import bitcount as mpmath_bitcount
++from mpmath.libmp.backend import MPZ
++from mpmath.libmp.libmpc import _infs_nan
++from mpmath.libmp.libmpf import dps_to_prec
++from mpmath.libmp.gammazeta import mpf_bernoulli
+ 
+ from .compatibility import SYMPY_INTS
+ from .sympify import sympify
+--- a/sympy/core/function.py
++++ b/sympy/core/function.py
+@@ -50,8 +50,8 @@
+ from sympy.utilities import default_sort_key
+ from sympy.utilities.iterables import uniq
+ 
+-from sympy import mpmath
+-import sympy.mpmath.libmp as mlib
++import mpmath
++import mpmath.libmp as mlib
+ 
+ import inspect
+ 
+@@ -453,7 +453,7 @@
+         try:
+             args = [arg._to_mpmath(prec + 5) for arg in self.args]
+             def bad(m):
+-                from sympy.mpmath import mpf, mpc
++                from mpmath import mpf, mpc
+                 # the precision of an mpf value is the last element
+                 # if that is 1 (and m[1] is not 1 which would indicate a
+                 # power of 2), then the eval failed; so check that none of
+@@ -1234,7 +1234,7 @@
+         When we can represent derivatives at a point, this should be folded
+         into the normal evalf. For now, we need a special method.
+         """
+-        from sympy import mpmath
++        import mpmath
+         from sympy.core.expr import Expr
+         if len(self.free_symbols) != 1 or len(self.variables) != 1:
+             raise NotImplementedError('partials and higher order derivatives')
+--- a/sympy/core/power.py
++++ b/sympy/core/power.py
+@@ -13,7 +13,7 @@
+ from sympy.core.logic import fuzzy_bool
+ from sympy.core.compatibility import as_int, xrange
+ 
+-from sympy.mpmath.libmp import sqrtrem as mpmath_sqrtrem
++from mpmath.libmp import sqrtrem as mpmath_sqrtrem
+ from sympy.utilities.iterables import sift
+ 
+ 
+--- a/sympy/core/tests/test_numbers.py
++++ b/sympy/core/tests/test_numbers.py
+@@ -6,9 +6,9 @@
+ from sympy.core.compatibility import long, u
+ from sympy.core.power import integer_nthroot
+ from sympy.core.numbers import igcd, ilcm, igcdex, seterr, _intcache, mpf_norm
+-from sympy.mpmath import mpf
++from mpmath import mpf
+ from sympy.utilities.pytest import XFAIL, slow, raises
+-from sympy import mpmath
++import mpmath
+ 
+ 
+ def test_integers_cache():
+@@ -1347,8 +1347,8 @@
+ 
+ @XFAIL
+ def test_mpmath_issues():
+-    from sympy.mpmath.libmp.libmpf import _normalize
+-    import sympy.mpmath.libmp as mlib
++    from mpmath.libmp.libmpf import _normalize
++    import mpmath.libmp as mlib
+     rnd = mlib.round_nearest
+     mpf = (0, long(0), -123, -1, 53, rnd)  # nan
+     assert _normalize(mpf, 53) != (0, long(0), 0, 0)
+@@ -1357,7 +1357,7 @@
+     mpf = (1, long(0), -789, -3, 53, rnd)  # -inf
+     assert _normalize(mpf, 53) != (0, long(0), 0, 0)
+ 
+-    from sympy.mpmath.libmp.libmpf import fnan
++    from mpmath.libmp.libmpf import fnan
+     assert mlib.mpf_eq(fnan, fnan)
+ 
+ 
+@@ -1388,7 +1388,7 @@
+ 
+ 
+ def test_3541():
+-    from sympy.mpmath.libmp.libmpf import (
++    from mpmath.libmp.libmpf import (
+         _normalize as mpf_normalize, finf, fninf, fzero)
+     # fnan is not included because Float no longer returns fnan,
+     # but otherwise, the same sort of test could apply
+--- a/sympy/core/tests/test_sets.py
++++ b/sympy/core/tests/test_sets.py
+@@ -2,7 +2,7 @@
+     GreaterThan, LessThan, Max, Min, And, Or, Eq, Ge, Le, Gt, Lt, Float,
+     FiniteSet, Intersection, imageset, I, true, false, ProductSet, E
+ )
+-from sympy.mpmath import mpi
++from mpmath import mpi
+ 
+ from sympy.utilities.pytest import raises
+ from sympy.utilities.pytest import raises, XFAIL
+--- a/sympy/core/tests/test_sympify.py
++++ b/sympy/core/tests/test_sympify.py
+@@ -11,7 +11,7 @@
+ from sympy.abc import _clash, _clash1, _clash2
+ from sympy.core.compatibility import exec_, HAS_GMPY
+ 
+-from sympy import mpmath
++import mpmath
+ 
+ 
+ def test_439():
+--- a/sympy/external/tests/test_numpy.py
++++ b/sympy/external/tests/test_numpy.py
+@@ -27,7 +27,7 @@
+         symarray, symbols, Integer)
+ import sympy
+ 
+-from sympy import mpmath
++import mpmath
+ from sympy.abc import x, y, z
+ from sympy.utilities.decorator import conserve_mpmath_dps
+ 
+--- a/sympy/functions/combinatorial/numbers.py
++++ b/sympy/functions/combinatorial/numbers.py
+@@ -15,8 +15,8 @@
+ from sympy.core.cache import cacheit
+ from sympy.functions.combinatorial.factorials import factorial
+ 
+-from sympy.mpmath import bernfrac
+-from sympy.mpmath.libmp import ifib as _ifib
++from mpmath import bernfrac
++from mpmath.libmp import ifib as _ifib
+ 
+ 
+ def _product(a, b):
+@@ -631,7 +631,7 @@
+         if m.is_odd:
+             return S.Zero
+         if m.is_Integer and m.is_nonnegative:
+-            from sympy.mpmath import mp
++            from mpmath import mp
+             m = m._to_mpmath(mp.prec)
+             res = mp.eulernum(m, exact=True)
+             return Integer(res)
+@@ -650,7 +650,7 @@
+         m = self.args[0]
+ 
+         if m.is_Integer and m.is_nonnegative:
+-            from sympy.mpmath import mp
++            from mpmath import mp
+             from sympy import Expr
+             m = m._to_mpmath(prec)
+             oprec = mp.prec
+--- a/sympy/functions/special/bessel.py
++++ b/sympy/functions/special/bessel.py
+@@ -706,8 +706,8 @@
+     from math import pi
+ 
+     if method == "sympy":
+-        from sympy.mpmath import besseljzero
+-        from sympy.mpmath.libmp.libmpf import dps_to_prec
++        from mpmath import besseljzero
++        from mpmath.libmp.libmpf import dps_to_prec
+         from sympy import Expr
+         prec = dps_to_prec(dps)
+         return [Expr._from_mpmath(besseljzero(S(n + 0.5)._to_mpmath(prec),
+@@ -1209,7 +1209,7 @@
+             raise ArgumentIndexError(self, argindex)
+ 
+     def _eval_evalf(self, prec):
+-        from sympy.mpmath import mp
++        from mpmath import mp
+         from sympy import Expr
+         z = self.args[0]._to_mpmath(prec)
+         oprec = mp.prec
+@@ -1367,7 +1367,7 @@
+             raise ArgumentIndexError(self, argindex)
+ 
+     def _eval_evalf(self, prec):
+-        from sympy.mpmath import mp
++        from mpmath import mp
+         from sympy import Expr
+         z = self.args[0]._to_mpmath(prec)
+         oprec = mp.prec
+--- a/sympy/functions/special/error_functions.py
++++ b/sympy/functions/special/error_functions.py
+@@ -1339,7 +1339,7 @@
+ 
+     We can even compute Soldner's constant by the help of mpmath:
+ 
+-    >>> from sympy.mpmath import findroot
++    >>> from mpmath import findroot
+     >>> findroot(li, 2)
+     1.45136923488338
+ 
+--- a/sympy/functions/special/gamma_functions.py
++++ b/sympy/functions/special/gamma_functions.py
+@@ -296,7 +296,7 @@
+                     return (cls(a + 1, x) + x**a * C.exp(-x))/a
+ 
+     def _eval_evalf(self, prec):
+-        from sympy.mpmath import mp
++        from mpmath import mp
+         from sympy import Expr
+         a = self.args[0]._to_mpmath(prec)
+         z = self.args[1]._to_mpmath(prec)
+@@ -397,7 +397,7 @@
+             raise ArgumentIndexError(self, argindex)
+ 
+     def _eval_evalf(self, prec):
+-        from sympy.mpmath import mp
++        from mpmath import mp
+         from sympy import Expr
+         a = self.args[0]._to_mpmath(prec)
+         z = self.args[1]._to_mpmath(prec)
+--- a/sympy/functions/special/hyper.py
++++ b/sympy/functions/special/hyper.py
+@@ -600,7 +600,8 @@
+         # (carefully so as not to loose the branch information), and evaluate
+         # G(z'**(1/r)) = G(z'**n) = G(z).
+         from sympy.functions import exp_polar, ceiling
+-        from sympy import mpmath, Expr
++        from sympy import Expr
++        import mpmath
+         z = self.argument
+         znum = self.argument._eval_evalf(prec)
+         if znum.has(exp_polar):
+--- a/sympy/functions/special/spherical_harmonics.py
++++ b/sympy/functions/special/spherical_harmonics.py
+@@ -217,7 +217,7 @@
+         # Note: works without this function by just calling
+         #       mpmath for Legendre polynomials. But using
+         #       the dedicated function directly is cleaner.
+-        from sympy.mpmath import mp
++        from mpmath import mp
+         from sympy import Expr
+         n = self.args[0]._to_mpmath(prec)
+         m = self.args[1]._to_mpmath(prec)
+--- a/sympy/matrices/matrices.py
++++ b/sympy/matrices/matrices.py
+@@ -1214,7 +1214,7 @@
+         """Solve the linear system Ax = rhs for x where A = self.
+ 
+         This is for symbolic matrices, for real or complex ones use
+-        sympy.mpmath.lu_solve or sympy.mpmath.qr_solve.
++        mpmath.lu_solve or mpmath.qr_solve.
+ 
+         See Also
+         ========
+@@ -1591,7 +1591,7 @@
+         to use QRsolve.
+ 
+         This is mainly for educational purposes and symbolic matrices, for real
+-        (or complex) matrices use sympy.mpmath.qr_solve.
++        (or complex) matrices use mpmath.qr_solve.
+ 
+         See Also
+         ========
+--- a/sympy/physics/quantum/constants.py
++++ b/sympy/physics/quantum/constants.py
+@@ -6,7 +6,7 @@
+ from sympy.core.singleton import Singleton
+ from sympy.core.compatibility import u, with_metaclass
+ from sympy.printing.pretty.stringpict import prettyForm
+-import sympy.mpmath.libmp as mlib
++import mpmath.libmp as mlib
+ 
+ #-----------------------------------------------------------------------------
+ # Constants
+--- a/sympy/physics/quantum/qubit.py
++++ b/sympy/physics/quantum/qubit.py
+@@ -24,7 +24,7 @@
+ from sympy.physics.quantum.matrixutils import (
+     numpy_ndarray, scipy_sparse_matrix
+ )
+-from sympy.mpmath.libmp.libintmath import bitcount
++from mpmath.libmp.libintmath import bitcount
+ 
+ __all__ = [
+     'Qubit',
+--- a/sympy/polys/numberfields.py
++++ b/sympy/polys/numberfields.py
+@@ -43,7 +43,7 @@
+ from sympy.simplify.simplify import _mexpand, _is_sum_surds
+ from sympy.ntheory import sieve
+ from sympy.ntheory.factor_ import divisors
+-from sympy.mpmath import pslq, mp
++from mpmath import pslq, mp
+ 
+ from sympy.core.compatibility import reduce
+ from sympy.core.compatibility import xrange
+--- a/sympy/polys/polytools.py
++++ b/sympy/polys/polytools.py
+@@ -47,7 +47,7 @@
+ from sympy.utilities import group, sift, public
+ 
+ import sympy.polys
+-import sympy.mpmath
++import mpmath
+ 
+ from sympy.polys.domains import FF, QQ
+ from sympy.polys.constructor import construct_domain
+@@ -3370,17 +3370,17 @@
+         coeffs = [coeff.evalf(n=n).as_real_imag()
+                   for coeff in f.all_coeffs()]
+ 
+-        dps = sympy.mpmath.mp.dps
+-        sympy.mpmath.mp.dps = n
++        dps = mpmath.mp.dps
++        mpmath.mp.dps = n
+ 
+         try:
+             try:
+-                coeffs = [sympy.mpmath.mpc(*coeff) for coeff in coeffs]
++                coeffs = [mpmath.mpc(*coeff) for coeff in coeffs]
+             except TypeError:
+                 raise DomainError(
+                     "numerical domain expected, got %s" % f.rep.dom)
+ 
+-            result = sympy.mpmath.polyroots(
++            result = mpmath.polyroots(
+                 coeffs, maxsteps=maxsteps, cleanup=cleanup, error=error)
+ 
+             if error:
+@@ -3390,7 +3390,7 @@
+ 
+             roots = list(map(sympify, sorted(roots, key=lambda r: (r.real, r.imag))))
+         finally:
+-            sympy.mpmath.mp.dps = dps
++            mpmath.mp.dps = dps
+ 
+         if error is not None:
+             return roots, sympify(error)
+--- a/sympy/polys/rootoftools.py
++++ b/sympy/polys/rootoftools.py
+@@ -25,8 +25,8 @@
+ 
+ from sympy.polys.domains import QQ
+ 
+-from sympy.mpmath import mp, mpf, mpc, findroot
+-from sympy.mpmath.libmp.libmpf import prec_to_dps
++from mpmath import mp, mpf, mpc, findroot
++from mpmath.libmp.libmpf import prec_to_dps
+ 
+ from sympy.utilities import lambdify, public
+ 
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -15,8 +15,8 @@
+ from .conventions import split_super_sub, requires_partial
+ from .precedence import precedence, PRECEDENCE
+ 
+-import sympy.mpmath.libmp as mlib
+-from sympy.mpmath.libmp import prec_to_dps
++import mpmath.libmp as mlib
++from mpmath.libmp import prec_to_dps
+ 
+ from sympy.core.compatibility import default_sort_key, xrange
+ from sympy.utilities.iterables import has_variety
+--- a/sympy/printing/str.py
++++ b/sympy/printing/str.py
+@@ -10,8 +10,8 @@
+ from .printer import Printer
+ from sympy.printing.precedence import precedence, PRECEDENCE
+ 
+-import sympy.mpmath.libmp as mlib
+-from sympy.mpmath.libmp import prec_to_dps
++import mpmath.libmp as mlib
++from mpmath.libmp import prec_to_dps
+ 
+ from sympy.utilities import default_sort_key
+ 
+--- a/sympy/simplify/simplify.py
++++ b/sympy/simplify/simplify.py
+@@ -33,7 +33,7 @@
+ from sympy.polys import (Poly, together, reduced, cancel, factor,
+     ComputationFailed, lcm, gcd)
+ 
+-import sympy.mpmath as mpmath
++import mpmath
+ 
+ 
+ def _mexpand(expr):
+--- a/sympy/solvers/solvers.py
++++ b/sympy/solvers/solvers.py
+@@ -47,7 +47,7 @@
+ from sympy.utilities.misc import filldedent
+ from sympy.utilities.iterables import uniq, generate_bell, flatten
+ 
+-from sympy.mpmath import findroot
++from mpmath import findroot
+ 
+ from sympy.solvers.polysys import solve_poly_system
+ from sympy.solvers.inequalities import reduce_inequalities
+@@ -2400,7 +2400,8 @@
+ 
+     >>> from sympy import Symbol, nsolve
+     >>> import sympy
+-    >>> sympy.mpmath.mp.dps = 15
++    >>> import mpmath
++    >>> mpmath.mp.dps = 15
+     >>> x1 = Symbol('x1')
+     >>> x2 = Symbol('x2')
+     >>> f1 = 3 * x1**2 - 2 * x2**2 - 1
+--- a/sympy/solvers/tests/test_numeric.py
++++ b/sympy/solvers/tests/test_numeric.py
+@@ -1,5 +1,5 @@
+ from sympy import Eq, Matrix, pi, sin, sqrt, Symbol, Integral, Piecewise, symbols
+-from sympy.mpmath import mnorm, mpf
++from mpmath import mnorm, mpf
+ from sympy.solvers import nsolve
+ from sympy.utilities.lambdify import lambdify
+ from sympy.utilities.pytest import raises, XFAIL
+--- a/sympy/statistics/distributions.py
++++ b/sympy/statistics/distributions.py
+@@ -213,7 +213,7 @@
+         # error function is not yet implemented in SymPy but can easily be
+         # computed numerically
+ 
+-        from sympy.mpmath import mpf, erfinv
++        from mpmath import mpf, erfinv
+ 
+         # calculate y = ierf(p) by solving erf(y) - p = 0
+         y = erfinv(mpf(p))
+--- a/sympy/statistics/tests/test_statistics.py
++++ b/sympy/statistics/tests/test_statistics.py
+@@ -3,7 +3,7 @@
+ 
+ from operator import abs
+ 
+-from sympy.mpmath import mp
++from mpmath import mp
+ 
+ from sympy.utilities.tests.test_pickling import check
+ 
+--- a/sympy/utilities/decorator.py
++++ b/sympy/utilities/decorator.py
+@@ -81,7 +81,7 @@
+     """After the function finishes, resets the value of mpmath.mp.dps to
+     the value it had before the function was run."""
+     import functools
+-    from sympy import mpmath
++    import mpmath
+ 
+     def func_wrapper():
+         dps = mpmath.mp.dps
+--- a/sympy/utilities/lambdify.py
++++ b/sympy/utilities/lambdify.py
+@@ -87,7 +87,7 @@
+ # Available modules:
+ MODULES = {
+     "math": (MATH, MATH_DEFAULT, MATH_TRANSLATIONS, ("from math import *",)),
+-    "mpmath": (MPMATH, MPMATH_DEFAULT, MPMATH_TRANSLATIONS, ("from sympy.mpmath import *",)),
++    "mpmath": (MPMATH, MPMATH_DEFAULT, MPMATH_TRANSLATIONS, ("from mpmath import *",)),
+     "numpy": (NUMPY, NUMPY_DEFAULT, NUMPY_TRANSLATIONS, ("import_module('numpy')",)),
+     "sympy": (SYMPY, SYMPY_DEFAULT, {}, (
+         "from sympy.functions import *",
+--- a/sympy/utilities/tests/test_lambdify.py
++++ b/sympy/utilities/tests/test_lambdify.py
+@@ -3,7 +3,7 @@
+     symbols, lambdify, sqrt, sin, cos, pi, atan, Rational, Float,
+     Matrix, Lambda, exp, Integral, oo, I, Abs, Function, true, false)
+ from sympy.printing.lambdarepr import LambdaPrinter
+-from sympy import mpmath
++import mpmath
+ from sympy.utilities.lambdify import implemented_function
+ from sympy.utilities.pytest import skip
+ from sympy.utilities.decorator import conserve_mpmath_dps
+--- a/sympy/utilities/runtests.py
++++ b/sympy/utilities/runtests.py
+@@ -551,8 +551,6 @@
+     blacklist = kwargs.get("blacklist", [])
+     split  = kwargs.get('split', None)
+     blacklist.extend([
+-        "doc/src/modules/mpmath",  # needs to be fixed upstream
+-        "sympy/mpmath",  # needs to be fixed upstream
+         "doc/src/modules/plotting.rst",  # generates live plots
+         "sympy/statistics",                # prints a deprecation
+         "doc/src/modules/statistics.rst",  # warning (the module is deprecated)
+--- a/sympy/utilities/tests/test_code_quality.py
++++ b/sympy/utilities/tests/test_code_quality.py
+@@ -141,9 +141,7 @@
+         "setupegg.py",
+     ]]
+     # Files to exclude from all tests
+-    exclude = set([
+-        "%(sep)smpmath%(sep)s" % sepd,
+-    ])
++    exclude = set()
+     # Files to exclude from the implicit import test
+     import_exclude = set([
+         # glob imports are allowed in top-level __init__.py:
+--- a/README.rst
++++ b/README.rst
+@@ -75,7 +75,13 @@
+ Installation
+ ------------
+ 
+-To install SymPy, simply run::
++SymPy has a hard dependency on the `mpmath <http://code.google.com/p/mpmath/>`
++library (version >= 0.17).  You should install it first, please refer to
++the mpmath installation guide:
++
++http://mpmath.googlecode.com/svn/trunk/doc/build/setup.html#download-and-installation
++
++To install SymPy itself, then simply run::
+ 
+     $ python setup.py install
+ 
+--- a/sympy/core/expr.py
++++ b/sympy/core/expr.py
+@@ -8,7 +8,7 @@
+ from .decorators import _sympifyit, call_highest_priority
+ from .cache import cacheit
+ from .compatibility import reduce, as_int, default_sort_key, xrange
+-from sympy.mpmath.libmp import mpf_log, prec_to_dps
++from mpmath.libmp import mpf_log, prec_to_dps
+ 
+ from collections import defaultdict
+ 
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -16,11 +16,11 @@
+ from sympy.core.compatibility import (
+     as_int, integer_types, long, string_types, with_metaclass, HAS_GMPY,
+     SYMPY_INTS)
+-import sympy.mpmath as mpmath
+-import sympy.mpmath.libmp as mlib
+-from sympy.mpmath.libmp import mpf_pow, mpf_pi, mpf_e, phi_fixed
+-from sympy.mpmath.ctx_mp import mpnumeric
+-from sympy.mpmath.libmp.libmpf import (
++import mpmath
++import mpmath.libmp as mlib
++from mpmath.libmp import mpf_pow, mpf_pi, mpf_e, phi_fixed
++from mpmath.ctx_mp import mpnumeric
++from mpmath.libmp.libmpf import (
+     finf as _mpf_inf, fninf as _mpf_ninf,
+     fnan as _mpf_nan, fzero as _mpf_zero, _normalize as mpf_normalize,
+     prec_to_dps)
+--- a/sympy/printing/repr.py
++++ b/sympy/printing/repr.py
+@@ -9,8 +9,8 @@
+ 
+ from sympy.core.function import AppliedUndef
+ from .printer import Printer
+-import sympy.mpmath.libmp as mlib
+-from sympy.mpmath.libmp import prec_to_dps, repr_dps
++import mpmath.libmp as mlib
++from mpmath.libmp import prec_to_dps, repr_dps
+ 
+ 
+ class ReprPrinter(Printer):
+--- a/sympy/ntheory/partitions_.py
++++ b/sympy/ntheory/partitions_.py
+@@ -1,6 +1,6 @@
+ from __future__ import print_function, division
+ 
+-from sympy.mpmath.libmp import (fzero,
++from mpmath.libmp import (fzero,
+     from_man_exp, from_int, from_rational,
+     fone, fhalf, bitcount, to_int, to_str, mpf_mul, mpf_div, mpf_sub,
+     mpf_add, mpf_sqrt, mpf_pi, mpf_cosh_sinh, pi_fixed, mpf_cos)
+--- a/sympy/polys/domains/groundtypes.py
++++ b/sympy/polys/domains/groundtypes.py
+@@ -69,7 +69,7 @@
+     gmpy_qdiv = None
+ 
+ 
+-import sympy.mpmath.libmp as mlib
++import mpmath.libmp as mlib
+ 
+ 
+ def python_sqrt(n):
+--- a/sympy/core/tests/test_evalf.py
++++ b/sympy/core/tests/test_evalf.py
+@@ -3,9 +3,9 @@
+                    sin, sqrt, sstr, Sum, sympify, S, integrate, atan, product)
+ from sympy.core.evalf import complex_accuracy, PrecisionExhausted, scaled_zero
+ from sympy.core.compatibility import long
+-from sympy.mpmath import inf, ninf, nan
++from mpmath import inf, ninf, nan
+ from sympy.abc import n, x, y
+-from sympy.mpmath.libmp.libmpf import from_float
++from mpmath.libmp.libmpf import from_float
+ from sympy.utilities.pytest import raises, XFAIL
+ 
+ 
+--- a/sympy/core/tests/test_wester.py
++++ b/sympy/core/tests/test_wester.py
+@@ -13,7 +13,7 @@
+     bernoulli, hyper, hyperexpand, besselj, asin, assoc_legendre, Function, re,
+     im, DiracDelta, chebyshevt, legendre_poly, polylog, series, O,
+     atan, sinh, cosh, tanh, floor, ceiling, solve, asinh, acot, csc, sec,
+-    LambertW, N, apart, sqrtdenest, factorial2, powdenest, Mul, S, mpmath, ZZ,
++    LambertW, N, apart, sqrtdenest, factorial2, powdenest, Mul, S, ZZ,
+     Poly, expand_func, E, Q, And, Or, Ne, Eq, Le, Lt,
+     ask, refine, AlgebraicNumber,
+     elliptic_e, elliptic_f, powsimp, hessian, wronskian, fibonacci, sign,
+@@ -24,7 +24,8 @@
+ from sympy.integrals.deltafunctions import deltaintegrate
+ from sympy.utilities.pytest import XFAIL, slow
+ from sympy.utilities.iterables import partitions
+-from sympy.mpmath import mpi, mpc
++import mpmath
++from mpmath import mpi, mpc
+ from sympy.matrices import Matrix, GramSchmidt, eye
+ from sympy.matrices.expressions.blockmatrix import BlockMatrix, block_collapse
+ from sympy.matrices.expressions import MatrixSymbol, ZeroMatrix
+--- a/sympy/polys/domains/mpelements.py
++++ b/sympy/polys/domains/mpelements.py
+@@ -4,11 +4,11 @@
+ 
+ from sympy.polys.domains.domainelement import DomainElement
+ 
+-from sympy.mpmath.ctx_mp_python import PythonMPContext, _mpf, _mpc, _constant
+-from sympy.mpmath.libmp import (MPZ_ONE, fzero, fone, finf, fninf, fnan,
++from mpmath.ctx_mp_python import PythonMPContext, _mpf, _mpc, _constant
++from mpmath.libmp import (MPZ_ONE, fzero, fone, finf, fninf, fnan,
+     round_nearest, mpf_mul, mpf_abs, mpf_lt, mpc_abs, repr_dps, int_types,
+     from_int, from_float, from_str, to_rational)
+-from sympy.mpmath.rational import mpq
++from mpmath.rational import mpq
+ 
+ from sympy.utilities import public
+ 
+--- a/sympy/polys/modulargcd.py
++++ b/sympy/polys/modulargcd.py
+@@ -7,7 +7,7 @@
+ from sympy.polys.domains import PolynomialRing
+ 
+ from sympy.core.compatibility import xrange
+-from sympy.mpmath import sqrt
++from mpmath import sqrt
+ from sympy import Dummy
+ import random
+ 
+--- a/sympy/liealgebras/weyl_group.py
++++ b/sympy/liealgebras/weyl_group.py
+@@ -3,7 +3,7 @@
+ from sympy.core import Basic, Rational
+ from sympy.core.numbers import igcd
+ from .cartan_type import CartanType
+-from sympy.mpmath import fac
++from mpmath import fac
+ from operator import itemgetter
+ from itertools import groupby
+ from sympy.matrices import Matrix, eye
+--- a/sympy/utilities/tests/diagnose_imports.py
++++ b/sympy/utilities/tests/diagnose_imports.py
+@@ -117,7 +117,7 @@
+         """Is module relevant for import checking?
+ 
+         Only imports between relevant modules will be checked."""
+-        return in_module(module, 'sympy') and not in_module(module, 'sympy.mpmath')
++        return in_module(module, 'sympy')
+ 
+     sorted_messages = []
+ 
+--- a/sympy/geometry/ellipse.py
++++ b/sympy/geometry/ellipse.py
+@@ -24,7 +24,7 @@
+ from .point import Point
+ from .line import LinearEntity, Line
+ from .util import _symbol, idiff
+-from sympy.mpmath import findroot as nroot
++from mpmath import findroot as nroot
+ 
+ 
+ import random
+--- a/doc/src/modules/mpmath/conf.py
++++ /dev/null
+@@ -1,137 +0,0 @@
+-# -*- coding: utf-8 -*-
+-#
+-# mpmath documentation build configuration file, created by
+-# sphinx-quickstart on Sun Apr 13 00:14:30 2008.
+-#
+-# This file is execfile()d with the current directory set to its containing dir.
+-#
+-# The contents of this file are pickled, so don't put values in the namespace
+-# that aren't pickleable (module imports are okay, they're removed automatically).
+-#
+-# All configuration values have a default value; values that are commented out
+-# serve to show the default value.
+-
+-import sys
+-
+-# If your extensions are in another directory, add it here.
+-sys.path.insert(0, '../..')
+-
+-# General configuration
+-# ---------------------
+-
+-# Add any Sphinx extension module names here, as strings. They can be extensions
+-# coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.pngmath']
+-
+-# Add any paths that contain templates here, relative to this directory.
+-templates_path = []
+-
+-# The suffix of source filenames.
+-source_suffix = '.txt'
+-
+-# The master toctree document.
+-master_doc = 'index'
+-
+-# General substitutions.
+-project = 'mpmath'
+-copyright = '2013, Fredrik Johansson'
+-
+-# The default replacements for |version| and |release|, also used in various
+-# other places throughout the built documents.
+-#
+-# The short X.Y version.
+-import mpmath
+-version = mpmath.__version__
+-# The full version, including alpha/beta/rc tags.
+-release = mpmath.__version__
+-
+-# There are two options for replacing |today|: either, you set today to some
+-# non-false value, then it is used:
+-#today = ''
+-# Else, today_fmt is used as the format for a strftime call.
+-today_fmt = '%B %d, %Y'
+-
+-# List of documents that shouldn't be included in the build.
+-#unused_docs = []
+-
+-# If true, '()' will be appended to :func: etc. cross-reference text.
+-#add_function_parentheses = True
+-
+-# If true, the current module name will be prepended to all description
+-# unit titles (such as .. function::).
+-#add_module_names = True
+-
+-# If true, sectionauthor and moduleauthor directives will be shown in the
+-# output. They are ignored by default.
+-#show_authors = False
+-
+-# The name of the Pygments (syntax highlighting) style to use.
+-pygments_style = 'sphinx'
+-
+-
+-# Options for HTML output
+-# -----------------------
+-
+-# The style sheet to use for HTML and HTML Help pages. A file of that name
+-# must exist either in Sphinx' static/ path, or in one of the custom paths
+-# given in html_static_path.
+-html_style = 'default.css'
+-
+-# Add any paths that contain custom static files (such as style sheets) here,
+-# relative to this directory. They are copied after the builtin static files,
+-# so a file named "default.css" will overwrite the builtin "default.css".
+-html_static_path = []
+-
+-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
+-# using the given strftime format.
+-html_last_updated_fmt = '%b %d, %Y'
+-
+-# If true, SmartyPants will be used to convert quotes and dashes to
+-# typographically correct entities.
+-#html_use_smartypants = True
+-
+-# Content template for the index page.
+-#html_index = ''
+-
+-# Custom sidebar templates, maps document names to template names.
+-#html_sidebars = {}
+-
+-# Additional templates that should be rendered to pages, maps page names to
+-# template names.
+-#html_additional_pages = {}
+-
+-# If false, no module index is generated.
+-#html_use_modindex = True
+-
+-# If true, the reST sources are included in the HTML build as _sources/<name>.
+-#html_copy_source = True
+-
+-# Output file base name for HTML help builder.
+-htmlhelp_basename = 'mpmathdoc'
+-
+-
+-# Options for LaTeX output
+-# ------------------------
+-
+-# The paper size ('letter' or 'a4').
+-#latex_paper_size = 'letter'
+-
+-# The font size ('10pt', '11pt' or '12pt').
+-#latex_font_size = '10pt'
+-
+-# Grouping the document tree into LaTeX files. List of tuples
+-# (source start file, target name, title, author, document class [howto/manual]).
+-latex_documents = [master_doc, 'main.tex', 'mpmath documentation',
+-                   'Fredrik Johansson \and mpmath contributors', 'manual']
+-
+-# Additional stuff for the LaTeX preamble.
+-#latex_preamble = ''
+-
+-# Documents to append as an appendix to all manuals.
+-#latex_appendices = []
+-
+-# If false, no module index is generated.
+-#latex_use_modindex = True
+-
+-default_role = 'math'
+-pngmath_dvipng_args = ['-gamma 1.5', '-D 110']
+--- a/doc/src/modules/mpmath/contexts.rst
++++ /dev/null
+@@ -1,306 +0,0 @@
+-Contexts
+-========
+-
+-High-level code in mpmath is implemented as methods on a "context object". The context implements arithmetic, type conversions and other fundamental operations. The context also holds settings such as precision, and stores cache data. A few different contexts (with a mostly compatible interface) are provided so that the high-level algorithms can be used with different implementations of the underlying arithmetic, allowing different features and speed-accuracy tradeoffs. Currently, mpmath provides the following contexts:
+-
+-  * Arbitrary-precision arithmetic (``mp``)
+-  * A faster Cython-based version of ``mp`` (used by default in Sage, and currently only available there)
+-  * Arbitrary-precision interval arithmetic (``iv``)
+-  * Double-precision arithmetic using Python's builtin ``float`` and ``complex`` types (``fp``)
+-
+-Most global functions in the global mpmath namespace are actually methods of the ``mp``
+-context. This fact is usually transparent to the user, but sometimes shows up in the
+-form of an initial parameter called "ctx" visible in the help for the function::
+-
+-    >>> import mpmath
+-    >>> help(mpmath.fsum)   # doctest:+SKIP
+-    Help on method fsum in module mpmath.ctx_mp_python:
+-    
+-    fsum(ctx, terms, absolute=False, squared=False) method of mpmath.ctx_mp.MPContext instance
+-        Calculates a sum containing a finite number of terms (for infinite
+-        series, see :func:`~mpmath.nsum`). The terms will be converted to
+-    ...
+-
+-The following operations are equivalent::
+-
+-    >>> mpmath.mp.dps = 15; mpmath.mp.pretty = False
+-    >>> mpmath.fsum([1,2,3])
+-    mpf('6.0')
+-    >>> mpmath.mp.fsum([1,2,3])
+-    mpf('6.0')
+-
+-The corresponding operation using the ``fp`` context::
+-
+-    >>> mpmath.fp.fsum([1,2,3])
+-    6.0
+-
+-Common interface
+-----------------
+-
+-``ctx.mpf`` creates a real number::
+-
+-    >>> from mpmath import mp, fp
+-    >>> mp.mpf(3)
+-    mpf('3.0')
+-    >>> fp.mpf(3)
+-    3.0
+-
+-``ctx.mpc`` creates a complex number::
+-
+-    >>> mp.mpc(2,3)
+-    mpc(real='2.0', imag='3.0')
+-    >>> fp.mpc(2,3)
+-    (2+3j)
+-
+-``ctx.matrix`` creates a matrix::
+-
+-    >>> mp.matrix([[1,0],[0,1]])
+-    matrix(
+-    [['1.0', '0.0'],
+-     ['0.0', '1.0']])
+-    >>> _[0,0]
+-    mpf('1.0')
+-    >>> fp.matrix([[1,0],[0,1]])
+-    matrix(
+-    [['1.0', '0.0'],
+-     ['0.0', '1.0']])
+-    >>> _[0,0]
+-    1.0
+-
+-``ctx.prec`` holds the current precision (in bits)::
+-
+-    >>> mp.prec
+-    53
+-    >>> fp.prec
+-    53
+-
+-``ctx.dps`` holds the current precision (in digits)::
+-
+-    >>> mp.dps
+-    15
+-    >>> fp.dps
+-    15
+-
+-``ctx.pretty`` controls whether objects should be pretty-printed automatically by :func:`repr`. Pretty-printing for ``mp`` numbers is disabled by default so that they can clearly be distinguished from Python numbers and so that ``eval(repr(x)) == x`` works::
+-
+-    >>> mp.mpf(3)
+-    mpf('3.0')
+-    >>> mpf = mp.mpf
+-    >>> eval(repr(mp.mpf(3)))
+-    mpf('3.0')
+-    >>> mp.pretty = True
+-    >>> mp.mpf(3)
+-    3.0
+-    >>> fp.matrix([[1,0],[0,1]])
+-    matrix(
+-    [['1.0', '0.0'],
+-     ['0.0', '1.0']])
+-    >>> fp.pretty = True
+-    >>> fp.matrix([[1,0],[0,1]])
+-    [1.0  0.0]
+-    [0.0  1.0]
+-    >>> fp.pretty = False
+-    >>> mp.pretty = False
+-
+-
+-Arbitrary-precision floating-point (``mp``)
+----------------------------------------------
+-
+-The ``mp`` context is what most users probably want to use most of the time, as it supports the most functions, is most well-tested, and is implemented with a high level of optimization. Nearly all examples in this documentation use ``mp`` functions.
+-
+-See :doc:`basics` for a description of basic usage.
+-
+-Arbitrary-precision interval arithmetic (``iv``)
+-------------------------------------------------
+-
+-The ``iv.mpf`` type represents a closed interval `[a,b]`; that is, the set `\{x : a \le x \le b\}`, where `a` and `b` are arbitrary-precision floating-point values, possibly `\pm \infty`. The ``iv.mpc`` type represents a rectangular complex interval `[a,b] + [c,d]i`; that is, the set `\{z = x+iy : a \le x \le b \land c \le y \le d\}`.
+-
+-Interval arithmetic provides rigorous error tracking. If `f` is a mathematical function and `\hat f` is its interval arithmetic version, then the basic guarantee of interval arithmetic is that `f(v) \subseteq \hat f(v)` for any input interval `v`. Put differently, if an interval represents the known uncertainty for a fixed number, any sequence of interval operations will produce an interval that contains what would be the result of applying the same sequence of operations to the exact number. The principal drawbacks of interval arithmetic are speed (``iv`` arithmetic is typically at least two times slower than ``mp`` arithmetic) and that it sometimes provides far too pessimistic bounds.
+-
+-.. note ::
+-
+-    The support for interval arithmetic in mpmath is still experimental, and many functions
+-    do not yet properly support intervals. Please use this feature with caution.
+-
+-Intervals can be created from single numbers (treated as zero-width intervals) or pairs of endpoint numbers. Strings are treated as exact decimal numbers. Note that a Python float like ``0.1`` generally does not represent the same number as its literal; use ``'0.1'`` instead::
+-
+-    >>> from mpmath import iv
+-    >>> iv.dps = 15; iv.pretty = False
+-    >>> iv.mpf(3)
+-    mpi('3.0', '3.0')
+-    >>> print iv.mpf(3)
+-    [3.0, 3.0]
+-    >>> iv.pretty = True
+-    >>> iv.mpf([2,3])
+-    [2.0, 3.0]
+-    >>> iv.mpf(0.1)   # probably not intended
+-    [0.10000000000000000555, 0.10000000000000000555]
+-    >>> iv.mpf('0.1')   # good, gives a containing interval
+-    [0.099999999999999991673, 0.10000000000000000555]
+-    >>> iv.mpf(['0.1', '0.2'])
+-    [0.099999999999999991673, 0.2000000000000000111]
+-
+-The fact that ``'0.1'`` results in an interval of nonzero width indicates that 1/10 cannot be represented using binary floating-point numbers at this precision level (in fact, it cannot be represented exactly at any precision).
+-
+-Intervals may be infinite or half-infinite::
+-
+-    >>> print 1 / iv.mpf([2, 'inf'])
+-    [0.0, 0.5]
+-
+-The equality testing operators ``==`` and ``!=`` check whether their operands are identical as intervals; that is, have the same endpoints. The ordering operators ``< <= > >=`` permit inequality testing using triple-valued logic: a guaranteed inequality returns ``True`` or ``False`` while an indeterminate inequality returns ``None``::
+-
+-    >>> iv.mpf([1,2]) == iv.mpf([1,2])
+-    True
+-    >>> iv.mpf([1,2]) != iv.mpf([1,2])
+-    False
+-    >>> iv.mpf([1,2]) <= 2
+-    True
+-    >>> iv.mpf([1,2]) > 0
+-    True
+-    >>> iv.mpf([1,2]) < 1
+-    False
+-    >>> iv.mpf([1,2]) < 2    # returns None
+-    >>> iv.mpf([2,2]) < 2
+-    False
+-    >>> iv.mpf([1,2]) <= iv.mpf([2,3])
+-    True
+-    >>> iv.mpf([1,2]) < iv.mpf([2,3])  # returns None
+-    >>> iv.mpf([1,2]) < iv.mpf([-1,0])
+-    False
+-
+-The ``in`` operator tests whether a number or interval is contained in another interval::
+-
+-    >>> iv.mpf([0,2]) in iv.mpf([0,10])
+-    True
+-    >>> 3 in iv.mpf(['-inf', 0])
+-    False
+-
+-Intervals have the properties ``.a``, ``.b`` (endpoints), ``.mid``, and ``.delta`` (width)::
+-
+-    >>> x = iv.mpf([2, 5])
+-    >>> x.a
+-    [2.0, 2.0]
+-    >>> x.b
+-    [5.0, 5.0]
+-    >>> x.mid
+-    [3.5, 3.5]
+-    >>> x.delta
+-    [3.0, 3.0]
+-
+-Some transcendental functions are supported::
+-
+-    >>> iv.dps = 15
+-    >>> mp.dps = 15
+-    >>> iv.mpf([0.5,1.5]) ** iv.mpf([0.5, 1.5])
+-    [0.35355339059327373086, 1.837117307087383633]
+-    >>> iv.exp(0)
+-    [1.0, 1.0]
+-    >>> iv.exp(['-inf','inf'])
+-    [0.0, +inf]
+-    >>>
+-    >>> iv.exp(['-inf',0])
+-    [0.0, 1.0]
+-    >>> iv.exp([0,'inf'])
+-    [1.0, +inf]
+-    >>> iv.exp([0,1])
+-    [1.0, 2.7182818284590455349]
+-    >>>
+-    >>> iv.log(1)
+-    [0.0, 0.0]
+-    >>> iv.log([0,1])
+-    [-inf, 0.0]
+-    >>> iv.log([0,'inf'])
+-    [-inf, +inf]
+-    >>> iv.log(2)
+-    [0.69314718055994528623, 0.69314718055994539725]
+-    >>>
+-    >>> iv.sin([100,'inf'])
+-    [-1.0, 1.0]
+-    >>> iv.cos(['-0.1','0.1'])
+-    [0.99500416527802570954, 1.0]
+-
+-Interval arithmetic is useful for proving inequalities involving irrational numbers.
+-Naive use of ``mp`` arithmetic may result in wrong conclusions, such as the following::
+-
+-    >>> mp.dps = 25
+-    >>> x = mp.exp(mp.pi*mp.sqrt(163))
+-    >>> y = mp.mpf(640320**3+744)
+-    >>> print x
+-    262537412640768744.0000001
+-    >>> print y
+-    262537412640768744.0
+-    >>> x > y
+-    True
+-
+-But the correct result is `e^{\pi \sqrt{163}} < 262537412640768744`, as can be
+-seen by increasing the precision::
+-
+-    >>> mp.dps = 50
+-    >>> print mp.exp(mp.pi*mp.sqrt(163))
+-    262537412640768743.99999999999925007259719818568888
+-
+-With interval arithmetic, the comparison returns ``None`` until the precision
+-is large enough for `x-y` to have a definite sign::
+-
+-    >>> iv.dps = 15
+-    >>> iv.exp(iv.pi*iv.sqrt(163)) > (640320**3+744)
+-    >>> iv.dps = 30
+-    >>> iv.exp(iv.pi*iv.sqrt(163)) > (640320**3+744)
+-    >>> iv.dps = 60
+-    >>> iv.exp(iv.pi*iv.sqrt(163)) > (640320**3+744)
+-    False
+-    >>> iv.dps = 15
+-
+-Fast low-precision arithmetic (``fp``)
+----------------------------------------------
+-
+-Although mpmath is generally designed for arbitrary-precision arithmetic, many of the high-level algorithms work perfectly well with ordinary Python ``float`` and ``complex`` numbers, which use hardware double precision (on most systems, this corresponds to 53 bits of precision). Whereas the global functions (which are methods of the ``mp`` object) always convert inputs to mpmath numbers, the ``fp`` object instead converts them to ``float`` or ``complex``, and in some cases employs basic functions optimized for double precision. When large amounts of function evaluations (numerical integration, plotting, etc) are required, and when ``fp`` arithmetic provides sufficient accuracy, this can give a significant speedup over ``mp`` arithmetic.
+-
+-To take advantage of this feature, simply use the ``fp`` prefix, i.e. write ``fp.func`` instead of ``func`` or ``mp.func``::
+-
+-    >>> u = fp.erfc(2.5)
+-    >>> print u
+-    0.000406952017445
+-    >>> type(u)
+-    <type 'float'>
+-    >>> mp.dps = 15
+-    >>> print mp.erfc(2.5)
+-    0.000406952017444959
+-    >>> fp.matrix([[1,2],[3,4]]) ** 2
+-    matrix(
+-    [['7.0', '10.0'],
+-     ['15.0', '22.0']])
+-    >>> 
+-    >>> type(_[0,0])
+-    <type 'float'>
+-    >>> print fp.quad(fp.sin, [0, fp.pi])    # numerical integration
+-    2.0
+-
+-The ``fp`` context wraps Python's ``math`` and ``cmath`` modules for elementary functions. It supports both real and complex numbers and automatically generates complex results for real inputs (``math`` raises an exception)::
+-
+-    >>> fp.sqrt(5)
+-    2.23606797749979
+-    >>> fp.sqrt(-5)
+-    2.23606797749979j
+-    >>> fp.sin(10)
+-    -0.5440211108893698
+-    >>> fp.power(-1, 0.25)
+-    (0.7071067811865476+0.7071067811865475j)
+-    >>> (-1) ** 0.25
+-    Traceback (most recent call last):
+-      ...
+-    ValueError: negative number cannot be raised to a fractional power
+-
+-The ``prec`` and ``dps`` attributes can be changed (for interface compatibility with the ``mp`` context) but this has no effect::
+-
+-    >>> fp.prec
+-    53
+-    >>> fp.dps
+-    15
+-    >>> fp.prec = 80
+-    >>> fp.prec
+-    53
+-    >>> fp.dps
+-    15
+-
+-Due to intermediate rounding and cancellation errors, results computed with ``fp`` arithmetic may be much less accurate than those computed with ``mp`` using an equivalent precision (``mp.prec = 53``), since the latter often uses increased internal precision. The accuracy is highly problem-dependent: for some functions, ``fp`` almost always gives 14-15 correct digits; for others, results can be accurate to only 2-3 digits or even completely wrong. The recommended use for ``fp`` is therefore to speed up large-scale computations where accuracy can be verified in advance on a subset of the input set, or where results can be verified afterwards.
+--- a/doc/src/modules/mpmath/functions/gamma.rst
++++ /dev/null
+@@ -1,112 +0,0 @@
+-Factorials and gamma functions
+-------------------------------
+-
+-Factorials and factorial-like sums and products are basic tools of combinatorics and number theory. Much like the exponential function is fundamental to differential equations and analysis in general, the factorial function (and its extension to complex numbers, the gamma function) is fundamental to difference equations and functional equations.
+-
+-A large selection of factorial-like functions is implemented in mpmath. All functions support complex arguments, and arguments may be arbitrarily large. Results are numerical approximations, so to compute *exact* values a high enough precision must be set manually::
+-
+-    >>> mp.dps = 15; mp.pretty = True
+-    >>> fac(100)
+-    9.33262154439442e+157
+-    >>> print int(_)    # most digits are wrong
+-    93326215443944150965646704795953882578400970373184098831012889540582227238570431
+-    295066113089288327277825849664006524270554535976289719382852181865895959724032
+-    >>> mp.dps = 160
+-    >>> fac(100)
+-    93326215443944152681699238856266700490715968264381621468592963895217599993229915
+-    608941463976156518286253697920827223758251185210916864000000000000000000000000.0
+-
+-The gamma and polygamma functions are closely related to :doc:`zeta`. See also :doc:`qfunctions` for q-analogs of factorial-like functions.
+-
+-
+-Factorials
+-..........
+-
+-:func:`factorial`/:func:`fac`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-
+-.. autofunction:: mpmath.factorial(x, **kwargs)
+-
+-:func:`fac2`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fac2(x)
+-
+-Binomial coefficients 
+-....................................................
+-
+-:func:`binomial`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.binomial(n,k)
+-
+-
+-Gamma function
+-..............
+-
+-:func:`gamma`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.gamma(x, **kwargs)
+-
+-:func:`rgamma`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.rgamma(x, **kwargs)
+-
+-:func:`gammaprod`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.gammaprod(a, b)
+-
+-:func:`loggamma`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.loggamma(x)
+-
+-
+-Rising and falling factorials
+-.............................
+-
+-:func:`rf`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.rf(x,n)
+-
+-:func:`ff`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.ff(x,n)
+-
+-Beta function
+-.............
+-
+-:func:`beta`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.beta(x,y)
+-
+-:func:`betainc`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.betainc(a,b,x1=0,x2=1,regularized=False)
+-
+-
+-Super- and hyperfactorials
+-..........................
+-
+-:func:`superfac`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.superfac(z)
+-
+-:func:`hyperfac`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hyperfac(z)
+-
+-:func:`barnesg`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.barnesg(z)
+-
+-
+-Polygamma functions and harmonic numbers
+-........................................
+-
+-:func:`psi`/:func:`digamma`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.psi(m, z)
+-
+-.. autofunction:: mpmath.digamma(z)
+-
+-:func:`harmonic`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.harmonic(z)
+--- a/doc/src/modules/mpmath/functions/numtheory.rst
++++ /dev/null
+@@ -1,93 +0,0 @@
+-Number-theoretical, combinatorial and integer functions
+--------------------------------------------------------
+-
+-For factorial-type functions, including binomial coefficients,
+-double factorials, etc., see the separate
+-section :doc:`gamma`.
+-
+-Fibonacci numbers
+-.................
+-
+-:func:`fibonacci`/:func:`fib`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fibonacci(n, **kwargs)
+-
+-
+-Bernoulli numbers and polynomials
+-.................................
+-
+-:func:`bernoulli`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.bernoulli(n)
+-
+-:func:`bernfrac`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.bernfrac(n)
+-
+-:func:`bernpoly`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.bernpoly(n,z)
+-
+-Euler numbers and polynomials
+-.................................
+-
+-:func:`eulernum`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.eulernum(n)
+-
+-:func:`eulerpoly`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.eulerpoly(n,z)
+-
+-
+-Bell numbers and polynomials
+-...........................................
+-
+-:func:`bell`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.bell(n,x)
+-
+-
+-Stirling numbers
+-...........................................
+-
+-:func:`stirling1`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.stirling1(n,k,exact=False)
+-
+-:func:`stirling2`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.stirling2(n,k,exact=False)
+-
+-
+-
+-Prime counting functions
+-........................
+-
+-:func:`primepi`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.primepi(x)
+-
+-:func:`primepi2`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.primepi2(x)
+-
+-:func:`riemannr`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.riemannr(x)
+-
+-
+-Cyclotomic polynomials
+-......................
+-
+-:func:`cyclotomic`
+-^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.cyclotomic(n,x)
+-
+-
+-Arithmetic functions
+-......................
+-
+-:func:`mangoldt`
+-^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.mangoldt(n)
+--- a/doc/src/modules/mpmath/functions/orthogonal.rst
++++ /dev/null
+@@ -1,79 +0,0 @@
+-Orthogonal polynomials
+-----------------------
+-
+-An orthogonal polynomial sequence is a sequence of polynomials `P_0(x), P_1(x), \ldots` of degree `0, 1, \ldots`, which are mutually orthogonal in the sense that 
+-
+-.. math ::
+-
+-    \int_S P_n(x) P_m(x) w(x) dx = 
+-    \begin{cases}
+-    c_n \ne 0 & \text{if $m = n$} \\
+-    0         & \text{if $m \ne n$}
+-    \end{cases}
+-
+-where `S` is some domain (e.g. an interval `[a,b] \in \mathbb{R}`) and `w(x)` is a fixed *weight function*. A sequence of orthogonal polynomials is determined completely by `w`, `S`, and a normalization convention (e.g. `c_n = 1`). Applications of orthogonal polynomials include function approximation and solution of differential equations.
+-
+-Orthogonal polynomials are sometimes defined using the differential equations they satisfy (as functions of `x`) or the recurrence relations they satisfy with respect to the order `n`. Other ways of defining orthogonal polynomials include differentiation formulas and generating functions. The standard orthogonal polynomials can also be represented as hypergeometric series (see :doc:`hypergeometric`), more specifically using the Gauss hypergeometric function `\,_2F_1` in most cases. The following functions are generally implemented using hypergeometric functions since this is computationally efficient and easily generalizes.
+-
+-For more information, see the `Wikipedia article on orthogonal polynomials <http://en.wikipedia.org/wiki/Orthogonal_polynomials>`_.
+-
+-Legendre functions
+-.......................................
+-
+-:func:`legendre`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.legendre(n, x)
+-
+-:func:`legenp`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.legenp(n, m, z, type=2)
+-
+-:func:`legenq`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.legenq(n, m, z, type=2)
+-
+-Chebyshev polynomials
+-.....................
+-
+-:func:`chebyt`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.chebyt(n, x)
+-
+-:func:`chebyu`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.chebyu(n, x)
+-
+-Jacobi polynomials
+-..................
+-
+-:func:`jacobi`
+-^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.jacobi(n, a, b, z)
+-
+-Gegenbauer polynomials
+-.....................................
+-
+-:func:`gegenbauer`
+-^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.gegenbauer(n, a, z)
+-
+-Hermite polynomials
+-.....................................
+-
+-:func:`hermite`
+-^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.hermite(n, z)
+-
+-Laguerre polynomials
+-.......................................
+-
+-:func:`laguerre`
+-^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.laguerre(n, a, z)
+-
+-Spherical harmonics
+-.....................................
+-
+-:func:`spherharm`
+-^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.spherharm(l, m, theta, phi)
+--- a/doc/src/modules/mpmath/general.rst
++++ /dev/null
+@@ -1,232 +0,0 @@
+-Utility functions
+-===============================================
+-
+-This page lists functions that perform basic operations
+-on numbers or aid general programming.
+-
+-Conversion and printing
+------------------------
+-
+-:func:`mpmathify` / :func:`convert`
+-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.mpmathify(x, strings=True)
+-
+-:func:`nstr`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.nstr(x, n=6, **kwargs)
+-
+-:func:`nprint`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.nprint(x, n=6, **kwargs)
+-
+-Arithmetic operations
+----------------------
+-
+-See also :func:`mpmath.sqrt`, :func:`mpmath.exp` etc., listed
+-in :doc:`functions/powers`
+-
+-:func:`fadd`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fadd
+-
+-:func:`fsub`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fsub
+-
+-:func:`fneg`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fneg
+-
+-:func:`fmul`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fmul
+-
+-:func:`fdiv`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fdiv
+-
+-:func:`fmod`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fmod(x, y)
+-
+-:func:`fsum`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fsum(terms, absolute=False, squared=False)
+-
+-:func:`fprod`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fprod(factors)
+-
+-:func:`fdot`
+-^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fdot(A, B=None, conjugate=False)
+-
+-Complex components
+-------------------
+-
+-:func:`fabs`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fabs(x)
+-
+-:func:`sign`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.sign(x)
+-
+-:func:`re`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.re(x)
+-
+-:func:`im`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.im(x)
+-
+-:func:`arg`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.arg(x)
+-
+-:func:`conj`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.conj(x)
+-
+-:func:`polar`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.polar(x)
+-
+-:func:`rect`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.rect(x)
+-
+-Integer and fractional parts
+------------------------------
+-
+-:func:`floor`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.floor(x)
+-
+-:func:`ceil`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.ceil(x)
+-
+-:func:`nint`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.nint(x)
+-
+-:func:`frac`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.frac(x)
+-
+-Tolerances and approximate comparisons
+---------------------------------------
+-
+-:func:`chop`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.chop(x, tol=None)
+-
+-:func:`almosteq`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.almosteq(s, t, rel_eps=None, abs_eps=None)
+-
+-Properties of numbers
+--------------------------------------
+-
+-:func:`isinf`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.isinf(x)
+-
+-:func:`isnan`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.isnan(x)
+-
+-:func:`isnormal`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.isnormal(x)
+-
+-:func:`isfinite`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.isfinite(x)
+-
+-:func:`isint`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.isint(x, gaussian=False)
+-
+-:func:`ldexp`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.ldexp(x, n)
+-
+-:func:`frexp`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.frexp(x, n)
+-
+-:func:`mag`
+-^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.mag(x)
+-
+-:func:`nint_distance`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.nint_distance(x)
+-
+-.. :func:`absmin`
+-.. ^^^^^^^^^^^^^^^^^^^^
+-.. .. autofunction:: mpmath.absmin(x)
+-.. .. autofunction:: mpmath.absmax(x)
+-
+-Number generation
+------------------
+-
+-:func:`fraction`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.fraction(p,q)
+-
+-:func:`rand`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.rand()
+-
+-:func:`arange`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.arange(*args)
+-
+-:func:`linspace`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.linspace(*args, **kwargs)
+-
+-Precision management
+---------------------
+-
+-:func:`autoprec`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.autoprec
+-
+-:func:`workprec`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.workprec
+-
+-:func:`workdps`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.workdps
+-
+-:func:`extraprec`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.extraprec
+-
+-:func:`extradps`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.extradps
+-
+-Performance and debugging
+-------------------------------------
+-
+-:func:`memoize`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.memoize
+-
+-:func:`maxcalls`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.maxcalls
+-
+-:func:`monitor`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.monitor
+-
+-:func:`timing`
+-^^^^^^^^^^^^^^^^^^^^^
+-.. autofunction:: mpmath.timing
+--- a/doc/src/modules/mpmath/index.rst
++++ /dev/null
+@@ -1,53 +0,0 @@
+-.. mpmath documentation master file, created by sphinx-quickstart on Fri Mar 28 13:50:14 2008.
+-   You can adapt this file completely to your liking, but it should at least
+-   contain the root `toctree` directive.
+-
+-Welcome to mpmath's documentation!
+-==================================
+-
+-Mpmath is a Python library for arbitrary-precision floating-point arithmetic.
+-For general information about mpmath, see the project website http://code.google.com/p/mpmath/
+-
+-These documentation pages include general information as well as docstring listing with extensive use of examples that can be run in the interactive Python interpreter. For quick access to the docstrings of individual functions, use the `index listing <genindex.html>`_, or type ``help(mpmath.function_name)`` in the Python interactive prompt.
+-
+-Introduction
+-------------
+-
+-.. toctree ::
+-   :maxdepth: 2
+-
+-   setup.rst
+-   basics.rst
+-
+-Basic features
+-----------------
+-
+-.. toctree ::
+-   :maxdepth: 2
+-
+-   contexts.rst
+-   general.rst
+-   plotting.rst
+-
+-Advanced mathematics
+---------------------
+-
+-On top of its support for arbitrary-precision arithmetic, mpmath
+-provides extensive support for transcendental functions, evaluation of sums, integrals, limits, roots, and so on.
+-
+-.. toctree ::
+-   :maxdepth: 2
+-
+-   functions/index.rst
+-   calculus/index.rst
+-   matrices.rst
+-   identification.rst
+-
+-End matter
+-----------
+-
+-.. toctree ::
+-   :maxdepth: 2
+-
+-   technical.rst
+-   references.rst
+--- a/doc/src/modules/mpmath/matrices.rst
++++ /dev/null
+@@ -1,541 +0,0 @@
+-Matrices
+-========
+-
+-Creating matrices
+------------------
+-
+-Basic methods
+-.............
+-
+-Matrices in mpmath are implemented using dictionaries. Only non-zero values are
+-stored, so it is cheap to represent sparse matrices.
+-
+-The most basic way to create one is to use the ``matrix`` class directly. You
+-can create an empty matrix specifying the dimensions::
+-
+-    >>> from mpmath import *
+-    >>> mp.dps = 15; mp.pretty = False
+-    >>> matrix(2)
+-    matrix(
+-    [['0.0', '0.0'],
+-     ['0.0', '0.0']])
+-    >>> matrix(2, 3)
+-    matrix(
+-    [['0.0', '0.0', '0.0'],
+-     ['0.0', '0.0', '0.0']])
+-
+-Calling ``matrix`` with one dimension will create a square matrix.
+-
+-To access the dimensions of a matrix, use the ``rows`` or ``cols`` keyword::
+-
+-    >>> A = matrix(3, 2)
+-    >>> A
+-    matrix(
+-    [['0.0', '0.0'],
+-     ['0.0', '0.0'],
+-     ['0.0', '0.0']])
+-    >>> A.rows
+-    3
+-    >>> A.cols
+-    2
+-
+-You can also change the dimension of an existing matrix. This will set the
+-new elements to 0. If the new dimension is smaller than before, the
+-concerning elements are discarded::
+-
+-    >>> A.rows = 2
+-    >>> A
+-    matrix(
+-    [['0.0', '0.0'],
+-     ['0.0', '0.0']])
+-
+-Internally ``convert`` is applied every time an element is set. This is
+-done using the syntax A[row,column], counting from 0::
+-
+-    >>> A = matrix(2)
+-    >>> A[1,1] = 1 + 1j
+-    >>> print A
+-    [0.0           0.0]
+-    [0.0  (1.0 + 1.0j)]
+-
+-A more comfortable way to create a matrix lets you use nested lists::
+-
+-    >>> matrix([[1, 2], [3, 4]])
+-    matrix(
+-    [['1.0', '2.0'],
+-     ['3.0', '4.0']])
+-
+-Advanced methods
+-................
+-
+-Convenient functions are available for creating various standard matrices::
+-
+-    >>> zeros(2)
+-    matrix(
+-    [['0.0', '0.0'],
+-     ['0.0', '0.0']])
+-    >>> ones(2)
+-    matrix(
+-    [['1.0', '1.0'],
+-     ['1.0', '1.0']])
+-    >>> diag([1, 2, 3]) # diagonal matrix
+-    matrix(
+-    [['1.0', '0.0', '0.0'],
+-     ['0.0', '2.0', '0.0'],
+-     ['0.0', '0.0', '3.0']])
+-    >>> eye(2) # identity matrix
+-    matrix(
+-    [['1.0', '0.0'],
+-     ['0.0', '1.0']])
+-
+-You can even create random matrices::
+-
+-    >>> randmatrix(2) # doctest:+SKIP
+-    matrix(
+-    [['0.53491598236191806', '0.57195669543302752'],
+-     ['0.85589992269513615', '0.82444367501382143']])
+-
+-Vectors
+-.......
+-
+-Vectors may also be represented by the ``matrix`` class (with rows = 1 or cols = 1).
+-For vectors there are some things which make life easier. A column vector can
+-be created using a flat list, a row vectors using an almost flat nested list::
+-
+-    >>> matrix([1, 2, 3])
+-    matrix(
+-    [['1.0'],
+-     ['2.0'],
+-     ['3.0']])
+-    >>> matrix([[1, 2, 3]])
+-    matrix(
+-    [['1.0', '2.0', '3.0']])
+-
+-Optionally vectors can be accessed like lists, using only a single index::
+-
+-    >>> x = matrix([1, 2, 3])
+-    >>> x[1]
+-    mpf('2.0')
+-    >>> x[1,0]
+-    mpf('2.0')
+-
+-Other
+-.....
+-
+-Like you probably expected, matrices can be printed::
+-
+-    >>> print randmatrix(3) # doctest:+SKIP
+-    [ 0.782963853573023  0.802057689719883  0.427895717335467]
+-    [0.0541876859348597  0.708243266653103  0.615134039977379]
+-    [ 0.856151514955773  0.544759264818486  0.686210904770947]
+-
+-Use ``nstr`` or ``nprint`` to specify the number of digits to print::
+-
+-    >>> nprint(randmatrix(5), 3) # doctest:+SKIP
+-    [2.07e-1  1.66e-1  5.06e-1  1.89e-1  8.29e-1]
+-    [6.62e-1  6.55e-1  4.47e-1  4.82e-1  2.06e-2]
+-    [4.33e-1  7.75e-1  6.93e-2  2.86e-1  5.71e-1]
+-    [1.01e-1  2.53e-1  6.13e-1  3.32e-1  2.59e-1]
+-    [1.56e-1  7.27e-2  6.05e-1  6.67e-2  2.79e-1]
+-
+-As matrices are mutable, you will need to copy them sometimes::
+-
+-    >>> A = matrix(2)
+-    >>> A
+-    matrix(
+-    [['0.0', '0.0'],
+-     ['0.0', '0.0']])
+-    >>> B = A.copy()
+-    >>> B[0,0] = 1
+-    >>> B
+-    matrix(
+-    [['1.0', '0.0'],
+-     ['0.0', '0.0']])
+-    >>> A
+-    matrix(
+-    [['0.0', '0.0'],
+-     ['0.0', '0.0']])
+-
+-Finally, it is possible to convert a matrix to a nested list. This is very useful,
+-as most Python libraries involving matrices or arrays (namely NumPy or SymPy)
+-support this format::
+-
+-    >>> B.tolist()
+-    [[mpf('1.0'), mpf('0.0')], [mpf('0.0'), mpf('0.0')]]
+-
+-
+-Matrix operations
+------------------
+-
+-You can add and substract matrices of compatible dimensions::
+-
+-    >>> A = matrix([[1, 2], [3, 4]])
+-    >>> B = matrix([[-2, 4], [5, 9]])
+-    >>> A + B
+-    matrix(
+-    [['-1.0', '6.0'],
+-     ['8.0', '13.0']])
+-    >>> A - B
+-    matrix(
+-    [['3.0', '-2.0'],
+-     ['-2.0', '-5.0']])
+-    >>> A + ones(3) # doctest:+ELLIPSIS
+-    Traceback (most recent call last):
+-      File "<stdin>", line 1, in <module>
+-      File "...", line 238, in __add__
+-        raise ValueError('incompatible dimensions for addition')
+-    ValueError: incompatible dimensions for addition
+-
+-It is possible to multiply or add matrices and scalars. In the latter case the
+-operation will be done element-wise::
+-
+-    >>> A * 2
+-    matrix(
+-    [['2.0', '4.0'],
+-     ['6.0', '8.0']])
+-    >>> A / 4
+-    matrix(
+-    [['0.25', '0.5'],
+-     ['0.75', '1.0']])
+-    >>> A - 1
+-    matrix(
+-    [['0.0', '1.0'],
+-     ['2.0', '3.0']])
+-
+-Of course you can perform matrix multiplication, if the dimensions are
+-compatible::
+-
+-    >>> A * B
+-    matrix(
+-    [['8.0', '22.0'],
+-     ['14.0', '48.0']])
+-    >>> matrix([[1, 2, 3]]) * matrix([[-6], [7], [-2]])
+-    matrix(
+-    [['2.0']])
+-
+-You can raise powers of square matrices::
+-
+-    >>> A**2
+-    matrix(
+-    [['7.0', '10.0'],
+-     ['15.0', '22.0']])
+-
+-Negative powers will calculate the inverse::
+-
+-    >>> A**-1
+-    matrix(
+-    [['-2.0', '1.0'],
+-     ['1.5', '-0.5']])
+-    >>> nprint(A * A**-1, 3)
+-    [      1.0  1.08e-19]
+-    [-2.17e-19       1.0]
+-
+-Matrix transposition is straightforward::
+-
+-    >>> A = ones(2, 3)
+-    >>> A
+-    matrix(
+-    [['1.0', '1.0', '1.0'],
+-     ['1.0', '1.0', '1.0']])
+-    >>> A.T
+-    matrix(
+-    [['1.0', '1.0'],
+-     ['1.0', '1.0'],
+-     ['1.0', '1.0']])
+-
+-
+-Norms
+-.....
+-
+-Sometimes you need to know how "large" a matrix or vector is. Due to their
+-multidimensional nature it's not possible to compare them, but there are
+-several functions to map a matrix or a vector to a positive real number, the
+-so called norms.
+-
+-.. autofunction :: mpmath.norm
+-
+-.. autofunction :: mpmath.mnorm
+-
+-
+-Linear algebra
+---------------
+-
+-Decompositions
+-..............
+-
+-.. autofunction :: mpmath.cholesky
+-
+-
+-Linear equations
+-................
+-
+-Basic linear algebra is implemented; you can for example solve the linear
+-equation system::
+-
+-      x + 2*y = -10
+-    3*x + 4*y =  10
+-
+-using ``lu_solve``::
+-
+-    >>> A = matrix([[1, 2], [3, 4]])
+-    >>> b = matrix([-10, 10])
+-    >>> x = lu_solve(A, b)
+-    >>> x
+-    matrix(
+-    [['30.0'],
+-     ['-20.0']])
+-
+-If you don't trust the result, use ``residual`` to calculate the residual ||A*x-b||::
+-
+-    >>> residual(A, x, b)
+-    matrix(
+-    [['3.46944695195361e-18'],
+-     ['3.46944695195361e-18']])
+-    >>> str(eps)
+-    '2.22044604925031e-16'
+-
+-As you can see, the solution is quite accurate. The error is caused by the
+-inaccuracy of the internal floating point arithmetic. Though, it's even smaller
+-than the current machine epsilon, which basically means you can trust the
+-result.
+-
+-If you need more speed, use NumPy, or use ``fp`` instead ``mp`` matrices
+-and methods::
+-
+-    >>> A = fp.matrix([[1, 2], [3, 4]])
+-    >>> b = fp.matrix([-10, 10])
+-    >>> fp.lu_solve(A, b)
+-    matrix(
+-    [['30.0'],
+-     ['-20.0']])
+-
+-``lu_solve`` accepts overdetermined systems. It is usually not possible to solve
+-such systems, so the residual is minimized instead. Internally this is done
+-using Cholesky decomposition to compute a least squares approximation. This means
+-that that ``lu_solve`` will square the errors. If you can't afford this, use
+-``qr_solve`` instead. It is twice as slow but more accurate, and it calculates
+-the residual automatically.
+-
+-
+-Matrix factorization
+-....................
+-
+-The function ``lu`` computes an explicit LU factorization of a matrix::
+-
+-    >>> P, L, U = lu(matrix([[0,2,3],[4,5,6],[7,8,9]]))
+-    >>> print P
+-    [0.0  0.0  1.0]
+-    [1.0  0.0  0.0]
+-    [0.0  1.0  0.0]
+-    >>> print L
+-    [              1.0                0.0  0.0]
+-    [              0.0                1.0  0.0]
+-    [0.571428571428571  0.214285714285714  1.0]
+-    >>> print U
+-    [7.0  8.0                9.0]
+-    [0.0  2.0                3.0]
+-    [0.0  0.0  0.214285714285714]
+-    >>> print P.T*L*U
+-    [0.0  2.0  3.0]
+-    [4.0  5.0  6.0]
+-    [7.0  8.0  9.0]
+-
+-The function ``qr`` computes a QR factorization of a matrix::
+-
+-    >>> A = matrix([[1, 2], [3, 4], [1, 1]])
+-    >>> Q, R = qr(A)
+-    >>> print Q
+-    [-0.301511344577764   0.861640436855329   0.408248290463863]
+-    [-0.904534033733291  -0.123091490979333  -0.408248290463863]
+-    [-0.301511344577764  -0.492365963917331   0.816496580927726]
+-    >>> print R
+-    [-3.3166247903554  -4.52267016866645]
+-    [             0.0  0.738548945875996]
+-    [             0.0                0.0]
+-    >>> print Q * R
+-    [1.0  2.0]
+-    [3.0  4.0]
+-    [1.0  1.0]
+-    >>> print chop(Q.T * Q)
+-    [1.0  0.0  0.0]
+-    [0.0  1.0  0.0]
+-    [0.0  0.0  1.0]
+-
+-
+-The singular value decomposition
+-................................
+-
+-The routines ``svd_r`` and ``svd_c`` compute the singular value decomposition
+-of a real or complex matrix A. ``svd`` is an unified interface calling
+-either ``svd_r`` or ``svd_c`` depending on whether *A* is real or complex.
+-
+-Given *A*, two orthogonal (*A* real) or unitary (*A* complex) matrices *U* and *V*
+-are calculated such that
+-
+-.. math ::
+-
+-       A = U S V, \quad U' U = 1, \quad V V' = 1
+-
+-where *S* is a suitable shaped matrix whose off-diagonal elements are zero.
+-Here ' denotes the hermitian transpose (i.e. transposition and complex
+-conjugation). The diagonal elements of *S* are the singular values of *A*,
+-i.e. the square roots of the eigenvalues of `A' A` or `A A'`.
+-
+-Examples::
+-
+-   >>> from mpmath import mp
+-   >>> A = mp.matrix([[2, -2, -1], [3, 4, -2], [-2, -2, 0]])
+-   >>> S = mp.svd_r(A, compute_uv = False)
+-   >>> print S
+-   [6.0]
+-   [3.0]
+-   [1.0]
+-   >>> U, S, V = mp.svd_r(A)
+-   >>> print mp.chop(A - U * mp.diag(S) * V)
+-   [0.0  0.0  0.0]
+-   [0.0  0.0  0.0]
+-   [0.0  0.0  0.0]
+-
+-
+-The Schur decomposition
+-.......................
+-
+-This routine computes the Schur decomposition of a square matrix *A*.
+-Given *A*, a unitary matrix *Q* is determined such that
+-
+-.. math ::
+-
+-      Q' A Q = R, \quad Q' Q = Q Q' = 1
+-
+-where *R* is an upper right triangular matrix. Here ' denotes the
+-hermitian transpose (i.e. transposition and conjugation).
+-
+-Examples::
+-
+-    >>> from mpmath import mp
+-    >>> A = mp.matrix([[3, -1, 2], [2, 5, -5], [-2, -3, 7]])
+-    >>> Q, R = mp.schur(A)
+-    >>> mp.nprint(R, 3) # doctest:+SKIP
+-    [2.0  0.417  -2.53]
+-    [0.0    4.0  -4.74]
+-    [0.0    0.0    9.0]
+-    >>> print(mp.chop(A - Q * R * Q.transpose_conj()))
+-    [0.0  0.0  0.0]
+-    [0.0  0.0  0.0]
+-    [0.0  0.0  0.0]
+-
+-
+-The eigenvalue problem
+-......................
+-
+-The routine ``eig`` solves the (ordinary) eigenvalue problem for a real or complex
+-square matrix *A*. Given *A*, a vector *E* and matrices *ER* and *EL* are calculated such that
+-
+-.. code ::
+-
+-              A ER[:,i] =         E[i] ER[:,i]
+-      EL[i,:] A         = EL[i,:] E[i]
+-
+-*E* contains the eigenvalues of *A*. The columns of *ER* contain the right eigenvectors
+-of *A* whereas the rows of *EL* contain the left eigenvectors.
+-
+-
+-Examples::
+-
+-    >>> from mpmath import mp
+-    >>> A = mp.matrix([[3, -1, 2], [2, 5, -5], [-2, -3, 7]])
+-    >>> E, ER = mp.eig(A)
+-    >>> print(mp.chop(A * ER[:,0] - E[0] * ER[:,0]))
+-    [0.0]
+-    [0.0]
+-    [0.0]
+-    >>> E, EL, ER = mp.eig(A,left = True, right = True)
+-    >>> E, EL, ER = mp.eig_sort(E, EL, ER)
+-    >>> mp.nprint(E)
+-    [2.0, 4.0, 9.0]
+-    >>> print(mp.chop(A * ER[:,0] - E[0] * ER[:,0]))
+-    [0.0]
+-    [0.0]
+-    [0.0]
+-    >>> print(mp.chop( EL[0,:] * A - EL[0,:] * E[0]))
+-    [0.0  0.0  0.0]
+-
+-
+-The symmetric eigenvalue problem
+-................................
+-
+-The routines ``eigsy`` and ``eighe`` solve the (ordinary) eigenvalue problem
+-for a real symmetric or complex hermitian square matrix *A*.
+-``eigh`` is an unified interface for this two functions calling either
+-``eigsy`` or ``eighe`` depending on whether *A* is real or complex.
+-
+-Given *A*, an orthogonal (*A* real) or unitary matrix *Q* (*A* complex) is
+-calculated which diagonalizes A:
+-
+-.. math ::
+-
+-        Q' A Q = \operatorname{diag}(E), \quad Q Q' = Q' Q = 1
+-
+-Here diag(*E*) a is diagonal matrix whose diagonal is *E*.
+-' denotes the hermitian transpose (i.e. ordinary transposition and
+-complex conjugation).
+-
+-The columns of *Q* are the eigenvectors of *A* and *E* contains the eigenvalues:
+-
+-.. code ::
+-
+-        A Q[:,i] = E[i] Q[:,i]
+-
+-Examples::
+-
+-    >>> from mpmath import mp
+-    >>> A = mp.matrix([[3, 2], [2, 0]])
+-    >>> E = mp.eigsy(A, eigvals_only = True)
+-    >>> print E
+-    [-1.0]
+-    [ 4.0]
+-    >>> A = mp.matrix([[1, 2], [2, 3]])
+-    >>> E, Q = mp.eigsy(A)                     # alternative: E, Q = mp.eigh(A)
+-    >>> print mp.chop(A * Q[:,0] - E[0] * Q[:,0])
+-    [0.0]
+-    [0.0]
+-    >>> A = mp.matrix([[1, 2 + 5j], [2 - 5j, 3]])
+-    >>> E, Q = mp.eighe(A)                     # alternative: E, Q = mp.eigh(A)
+-    >>> print mp.chop(A * Q[:,0] - E[0] * Q[:,0])
+-    [0.0]
+-    [0.0]
+-
+-
+-Interval and double-precision matrices
+---------------------------------------
+-
+-The ``iv.matrix`` and ``fp.matrix`` classes convert inputs
+-to intervals and Python floating-point numbers respectively.
+-
+-Interval matrices can be used to perform linear algebra operations
+-with rigorous error tracking::
+-
+-    >>> a = iv.matrix([['0.1','0.3','1.0'],
+-    ...                ['7.1','5.5','4.8'],
+-    ...                ['3.2','4.4','5.6']])
+-    >>>
+-    >>> b = iv.matrix(['4','0.6','0.5'])
+-    >>> c = iv.lu_solve(a, b)
+-    >>> print c
+-    [  [5.2582327113062393041, 5.2582327113062749951]]
+-    [[-13.155049396267856583, -13.155049396267821167]]
+-    [  [7.4206915477497212555, 7.4206915477497310922]]
+-    >>> print a*c
+-    [  [3.9999999999999866773, 4.0000000000000133227]]
+-    [[0.59999999999972430942, 0.60000000000027142733]]
+-    [[0.49999999999982236432, 0.50000000000018474111]]
+-
+-Matrix functions
+-----------------
+-
+-.. autofunction :: mpmath.expm
+-.. autofunction :: mpmath.cosm
+-.. autofunction :: mpmath.sinm
+-.. autofunction :: mpmath.sqrtm
+-.. autofunction :: mpmath.logm
+-.. autofunction :: mpmath.powm
+--- a/doc/src/modules/mpmath/plots/ai.py
++++ /dev/null
+@@ -1,5 +0,0 @@
+-# Airy function Ai(x), Ai'(x) and int_0^x Ai(t) dt on the real line
+-f = airyai
+-f_diff = lambda z: airyai(z, derivative=1)
+-f_int = lambda z: airyai(z, derivative=-1)
+-plot([f, f_diff, f_int], [-10,5])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/ai_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Airy function Ai(z) in the complex plane
+-cplot(airyai, [-8,8], [-8,8], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/ber.py
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Kelvin functions ber_n(x) and bei_n(x) on the real line for n=0,2
+-f0 = lambda x: ber(0,x)
+-f1 = lambda x: bei(0,x)
+-f2 = lambda x: ber(2,x)
+-f3 = lambda x: bei(2,x)
+-plot([f0,f1,f2,f3],[0,10],[-10,10])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/besseli.py
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Modified Bessel function I_n(x) on the real line for n=0,1,2,3
+-i0 = lambda x: besseli(0,x)
+-i1 = lambda x: besseli(1,x)
+-i2 = lambda x: besseli(2,x)
+-i3 = lambda x: besseli(3,x)
+-plot([i0,i1,i2,i3],[0,5],[0,5])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/besseli_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Modified Bessel function I_n(z) in the complex plane
+-cplot(lambda z: besseli(1,z), [-8,8], [-8,8], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/besselj.py
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Bessel function J_n(x) on the real line for n=0,1,2,3
+-j0 = lambda x: besselj(0,x)
+-j1 = lambda x: besselj(1,x)
+-j2 = lambda x: besselj(2,x)
+-j3 = lambda x: besselj(3,x)
+-plot([j0,j1,j2,j3],[0,14])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/besselj_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Bessel function J_n(z) in the complex plane
+-cplot(lambda z: besselj(1,z), [-8,8], [-8,8], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/besselk.py
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Modified Bessel function of 2nd kind K_n(x) on the real line for n=0,1,2,3
+-k0 = lambda x: besselk(0,x)
+-k1 = lambda x: besselk(1,x)
+-k2 = lambda x: besselk(2,x)
+-k3 = lambda x: besselk(3,x)
+-plot([k0,k1,k2,k3],[0,8],[0,5])
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/besselk_c.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Modified Bessel function of 2nd kind K_n(z) in the complex plane
+-cplot(lambda z: besselk(1,z), [-8,8], [-8,8], points=50000)
+\ No newline at end of file
+--- a/doc/src/modules/mpmath/plots/buildplots.py
++++ /dev/null
+@@ -1,28 +0,0 @@
+-import os.path
+-import glob
+-
+-try:
+-    import psyco
+-    psyco.full()
+-except ImportError:
+-    pass
+-
+-for f in glob.glob("*.py"):
+-    if "buildplots" in f or os.path.exists(f[:-3]+".png"):
+-        continue
+-    print "Processing", f
+-    code = open(f).readlines()
+-    code = ["from mpmath import *; mp.dps=5"] + code
+-    for i in range(len(code)):
+-        l = code[i].rstrip()
+-        if "cplot(" in l:
+-            l = l[:-1] + (", dpi=45, file='%s.png', verbose=True)" % f[:-3])
+-            code[i] = l
+-        elif "splot(" in l:
+-            l = l[:-1] + (", dpi=45, file='%s.png')" % f[:-3])
+-            code[i] = l
+-        elif "plot(" in l:
+-            l = l[:-1] + (", dpi=45, file='%s.png')" % f[:-3])
+-            code[i] = l
+-    code = "\n".join(code)
+-    exec code
+--- a/doc/src/modules/mpmath/references.rst
++++ /dev/null
+@@ -1,50 +0,0 @@
+-References
+-===================
+-
+-The following is a non-comprehensive list of works used in the development of mpmath
+-or cited for examples or mathematical definitions used in this documentation.
+-References not listed here can be found in the source code.
+-
+-.. [AbramowitzStegun] M Abramowitz & I Stegun. *Handbook of Mathematical Functions, 9th Ed.*, Tenth Printing, December 1972, with corrections (electronic copy: http://people.math.sfu.ca/~cbm/aands/)
+-
+-.. [Bailey] D H Bailey. "Tanh-Sinh High-Precision Quadrature", http://crd.lbl.gov/~dhbailey/dhbpapers/dhb-tanh-sinh.pdf
+-
+-.. [BenderOrszag] C M Bender & S A Orszag. *Advanced Mathematical Methods for
+-    Scientists and Engineers*, Springer 1999
+-
+-.. [BorweinBailey] J Borwein, D H Bailey & R Girgensohn. *Experimentation in Mathematics - Computational Paths to Discovery*, A K Peters, 2003
+-
+-.. [BorweinBorwein] J Borwein & P B Borwein. *Pi and the AGM: A Study in Analytic Number Theory and Computational Complexity*, Wiley 1987
+-
+-.. [BorweinZeta] P Borwein. "An Efficient Algorithm for the Riemann Zeta Function", http://www.cecm.sfu.ca/personal/pborwein/PAPERS/P155.pdf
+-
+-.. [CabralRosetti] L G Cabral-Rosetti & M A Sanchis-Lozano. "Appell Functions and the Scalar One-Loop Three-point Integrals in Feynman Diagrams". http://arxiv.org/abs/hep-ph/0206081
+-
+-.. [Carlson] B C Carlson. "Numerical computation of real or complex elliptic integrals". http://arxiv.org/abs/math/9409227v1
+-
+-.. [Corless] R M Corless et al. "On the Lambert W function", Adv. Comp. Math. 5 (1996) 329-359. http://www.apmaths.uwo.ca/~djeffrey/Offprints/W-adv-cm.pdf
+-
+-.. [DLMF] NIST Digital Library of Mathematical Functions. http://dlmf.nist.gov/
+-
+-.. [GradshteynRyzhik] I S Gradshteyn & I M Ryzhik, A Jeffrey & D Zwillinger (eds.), *Table of Integrals, Series and Products*, Seventh edition (2007), Elsevier
+-
+-.. [GravesMorris] P R Graves-Morris, D E Roberts & A Salam. "The epsilon algorithm and related topics", *Journal of Computational and Applied Mathematics*, Volume 122, Issue 1-2  (October 2000)
+-
+-.. [MPFR] The MPFR team. "The MPFR Library: Algorithms and Proofs", http://www.mpfr.org/algorithms.pdf
+-
+-.. [Slater] L J Slater. *Generalized Hypergeometric Functions*. Cambridge University Press, 1966
+-
+-.. [Spouge] J L Spouge. "Computation of the gamma, digamma, and trigamma functions", SIAM J. Numer. Anal. Vol. 31, No. 3, pp. 931-944, June 1994.
+-
+-.. [SrivastavaKarlsson] H M Srivastava & P W Karlsson. *Multiple Gaussian Hypergeometric Series*. Ellis Horwood, 1985.
+-
+-.. [Vidunas] R Vidunas. "Identities between Appell's and hypergeometric functions". http://arxiv.org/abs/0804.0655
+-
+-.. [Weisstein] E W Weisstein. *MathWorld*. http://mathworld.wolfram.com/
+-
+-.. [WhittakerWatson] E T Whittaker & G N Watson. *A Course of Modern Analysis*. 4th Ed. 1946
+-    Cambridge University Press
+-
+-.. [Wikipedia] *Wikipedia, the free encyclopedia*. http://en.wikipedia.org/wiki/Main_Page
+-
+-.. [WolframFunctions] Wolfram Research, Inc. *The Wolfram Functions Site*. http://functions.wolfram.com/
+--- a/doc/src/modules/mpmath/setup.rst
++++ /dev/null
+@@ -1,179 +0,0 @@
+-Setting up mpmath
+-=================
+-
+-Download and installation
+--------------------------
+-
+-Installer
+-.........
+-
+-The mpmath setup files can be downloaded from the `mpmath download page <http://code.google.com/p/mpmath/downloads/list>`_ or the `Python Package Index <http://pypi.python.org/pypi/mpmath/>`_. Download the source package (available as both .zip and .tar.gz), extract it, open the extracted directory, and run
+-
+-    ``python setup.py install``
+-
+-If you are using Windows, you can download the binary installer
+-
+-    ``mpmath-(version).win32.exe``
+-
+-from the mpmath website or the Python Package Index. Run the installer and follow the instructions.
+-
+-Using setuptools
+-................
+-
+-If you have `setuptools <http://pypi.python.org/pypi/setuptools>`_ installed, you can download and install mpmath in one step by running:
+-
+-    ``easy_install mpmath``
+-
+-or
+-
+-    ``python -m easy_install mpmath``
+-
+-If you have an old version of mpmath installed already, you may have to pass ``easy_install`` the ``-U`` flag to force an upgrade.
+-
+-
+-Debian/Ubuntu
+-.............
+-
+-Debian and Ubuntu users can install mpmath with
+-
+-    ``sudo apt-get install python-mpmath``
+-
+-See `debian <http://packages.debian.org/stable/python/python-mpmath>`_ and `ubuntu <https://launchpad.net/ubuntu/+source/mpmath>`_ package information; please verify that you are getting the latest version.
+-
+-OpenSUSE
+-........
+-
+-Mpmath is provided in the "Science" repository for all recent versions of `openSUSE <http://www.opensuse.org/en/>`_. To add this repository to the YAST software management tool, see http://en.opensuse.org/SDB:Add_package_repositories
+-
+-Look up http://download.opensuse.org/repositories/science/ for a list
+-of supported OpenSUSE versions and use http://download.opensuse.org/repositories/science/openSUSE_11.1/
+-(or accordingly for your OpenSUSE version) as the repository URL for YAST.
+-
+-Current development version
+-...........................
+-
+-See  http://code.google.com/p/mpmath/source/checkout for instructions on how to check out the mpmath Subversion repository. The source code can also be browsed online from the Google Code page.
+-
+-Checking that it works
+-......................
+-
+-After the setup has completed, you should be able to fire up the interactive Python interpreter and do the following::
+-
+-    >>> from mpmath import *
+-    >>> mp.dps = 50
+-    >>> print mpf(2) ** mpf('0.5')
+-    1.4142135623730950488016887242096980785696718753769
+-    >>> print 2*pi
+-    6.2831853071795864769252867665590057683943387987502
+-
+-*Note: if you have are upgrading mpmath from an earlier version, you may have to manually uninstall the old version or remove the old files.*
+-
+-Using gmpy (optional)
+----------------------
+-
+-By default, mpmath uses Python integers internally. If `gmpy <http://code.google.com/p/gmpy/>`_ version 1.03 or later is installed on your system, mpmath will automatically detect it and transparently use gmpy integers intead. This makes mpmath much faster, especially at high precision (approximately above 100 digits).
+-
+-To verify that mpmath uses gmpy, check the internal variable ``BACKEND`` is not equal to 'python':
+-
+-    >>> import mpmath.libmp
+-    >>> mpmath.libmp.BACKEND # doctest:+SKIP
+-    'gmpy'
+-
+-The gmpy mode can be disabled by setting the MPMATH_NOGMPY environment variable. Note that the mode cannot be switched during runtime; mpmath must be re-imported for this change to take effect.
+-
+-Running tests
+--------------
+-
+-It is recommended that you run mpmath's full set of unit tests to make sure everything works. The tests are located in the ``tests`` subdirectory of the main mpmath directory. They can be run in the interactive interpreter using the ``runtests()`` function::
+-
+-    import mpmath
+-    mpmath.runtests()
+-
+-Alternatively, they can be run from the ``tests`` directory via
+-
+-    ``python runtests.py``
+-
+-The tests should finish in about a minute. If you have `psyco <http://psyco.sourceforge.net/>`_ installed, the tests can also be run with
+-
+-    ``python runtests.py -psyco``
+-
+-which will cut the running time in half.
+-
+-If any test fails, please send a detailed bug report to the `mpmath issue tracker <http://code.google.com/p/sympy/issues/list>`_. The tests can also be run with `py.test <http://pylib.org/>`_. This will sometimes generate more useful information in case of a failure.
+-
+-To run the tests with support for gmpy disabled, use
+-
+-    ``python runtests.py -nogmpy``
+-
+-To enable extra diagnostics, use
+-
+-    ``python runtests.py -strict``
+-
+-Compiling the documentation
+----------------------------
+-
+-If you downloaded the source package, the text source for these documentation pages is included in the ``doc`` directory. The documentation can be compiled to pretty HTML using `Sphinx <http://sphinx.pocoo.org/>`_. Go to the ``doc`` directory and run
+-
+-    ``python build.py``
+-
+-You can also test that all the interactive examples in the documentation work by running
+-
+-    ``python run_doctest.py``
+-
+-and by running the individual ``.py`` files in the mpmath source.
+-
+-(The doctests may take several minutes.)
+-
+-Finally, some additional demo scripts are available in the ``demo`` directory included in the source package.
+-
+-Mpmath under SymPy
+---------------------
+-
+-Mpmath is available as a subpackage of `SymPy <http://sympy.org>`_. With SymPy installed, you can just do
+-
+-    ``import sympy.mpmath as mpmath``
+-
+-instead of ``import mpmath``. Note that the SymPy version of mpmath might not be the most recent. You can make a separate mpmath installation even if SymPy is installed; the two mpmath packages will not interfere with each other.
+-
+-Mpmath under Sage
+--------------------
+-
+-Mpmath is a standard package in `Sage <http://sagemath.org/>`_, in version 4.1 or later of Sage.
+-Mpmath is preinstalled a regular Python module, and can be imported as usual within Sage::
+-
+-    ----------------------------------------------------------------------
+-    | Sage Version 4.1, Release Date: 2009-07-09                         |
+-    | Type notebook() for the GUI, and license() for information.        |
+-    ----------------------------------------------------------------------
+-    sage: import mpmath
+-    sage: mpmath.mp.dps = 50
+-    sage: print mpmath.mpf(2) ** 0.5
+-    1.4142135623730950488016887242096980785696718753769
+-
+-The mpmath installation under Sage automatically use Sage integers for asymptotically fast arithmetic,
+-so there is no need to install GMPY::
+-
+-    sage: mpmath.libmp.BACKEND
+-    'sage'
+-
+-In Sage, mpmath can alternatively be imported via the interface library
+-``sage.libs.mpmath.all``. For example::
+-
+-    sage: import sage.libs.mpmath.all as mpmath
+-
+-This module provides a few extra conversion functions, including :func:`call`
+-which permits calling any mpmath function with Sage numbers as input, and getting 
+-Sage ``RealNumber`` or ``ComplexNumber`` instances
+-with the appropriate precision back::
+-
+-    sage: w = mpmath.call(mpmath.erf, 2+3*I, prec=100)   
+-    sage: w
+-    -20.829461427614568389103088452 + 8.6873182714701631444280787545*I
+-    sage: type(w)
+-    <type 'sage.rings.complex_number.ComplexNumber'>
+-    sage: w.prec()
+-    100
+-
+-See the help for ``sage.libs.mpmath.all`` for further information.
+-
+-
+--- a/doc/src/modules/mpmath/technical.rst
++++ /dev/null
+@@ -1,159 +0,0 @@
+-Precision and representation issues
+-===================================
+-
+-Most of the time, using mpmath is simply a matter of setting the desired precision and entering a formula. For verification purposes, a quite (but not always!) reliable technique is to calculate the same thing a second time at a higher precision and verifying that the results agree.
+-
+-To perform more advanced calculations, it is important to have some understanding of how mpmath works internally and what the possible sources of error are. This section gives an overview of arbitrary-precision binary floating-point arithmetic and some concepts from numerical analysis.
+-
+-The following concepts are important to understand:
+-
+-* The main sources of numerical errors are rounding and cancellation, which are due to the use of finite-precision arithmetic, and truncation or approximation errors, which are due to approximating infinite sequences or continuous functions by a finite number of samples.
+-* Errors propagate between calculations. A small error in the input may result in a large error in the output.
+-* Most numerical algorithms for complex problems (e.g. integrals, derivatives) give wrong answers for sufficiently ill-behaved input. Sometimes virtually the only way to get a wrong answer is to design some very contrived input, but at other times the chance of accidentally obtaining a wrong result even for reasonable-looking input is quite high.
+-* Like any complex numerical software, mpmath has implementation bugs. You should be reasonably suspicious about any results computed by mpmath, even those it claims to be able to compute correctly! If possible, verify results analytically, try different algorithms, and cross-compare with other software.
+-
+-Precision, error and tolerance
+-------------------------------
+-
+-The following terms are common in this documentation:
+-
+-- *Precision* (or *working precision*) is the precision at which floating-point arithmetic operations are performed.
+-- *Error* is the difference between a computed approximation and the exact result.
+-- *Accuracy* is the inverse of error.
+-- *Tolerance* is the maximum error (or minimum accuracy) desired in a result.
+-
+-Error and accuracy can be measured either directly, or logarithmically in bits or digits. Specifically, if a `\hat y` is an approximation for `y`, then 
+-
+-- (Direct) absolute error = `|\hat y - y|`
+-- (Direct) relative error = `|\hat y - y| |y|^{-1}`
+-- (Direct) absolute accuracy = `|\hat y - y|^{-1}`
+-- (Direct) relative accuracy = `|\hat y - y|^{-1} |y|`
+-- (Logarithmic) absolute error = `\log_b |\hat y - y|`
+-- (Logarithmic) relative error = `\log_b |\hat y - y| - \log_b |y|`
+-- (Logarithmic) absolute accuracy = `-\log_b |\hat y - y|`
+-- (Logarithmic) relative accuracy = `-\log_b |\hat y - y| + \log_b |y|`
+-
+-where `b = 2` and `b = 10` for bits and digits respectively. Note that:
+-
+-- The logarithmic error roughly equals the position of the first incorrect bit or digit
+-- The logarithmic accuracy roughly equals the number of correct bits or digits in the result
+-
+-These definitions also hold for complex numbers, using `|a+bi| = \sqrt{a^2+b^2}`.
+-
+-*Full accuracy* means that the accuracy of a result at least equals *prec*-1, i.e. it is correct except possibly for the last bit.
+-
+-Representation of numbers
+--------------------------
+-
+-Mpmath uses binary arithmetic. A binary floating-point number is a number of the form `man \times 2^{exp}` where both *man* (the *mantissa*) and *exp* (the *exponent*) are integers. Some examples of floating-point numbers are given in the following table.
+-
+-  +--------+----------+----------+
+-  | Number | Mantissa | Exponent |
+-  +========+==========+==========+
+-  |    3   |    3     |     0    |
+-  +--------+----------+----------+
+-  |   10   |    5     |     1    |
+-  +--------+----------+----------+
+-  |  -16   |   -1     |     4    |
+-  +--------+----------+----------+
+-  |  1.25  |    5     |    -2    |
+-  +--------+----------+----------+
+-
+-The representation as defined so far is not unique; one can always multiply the mantissa by 2 and subtract 1 from the exponent with no change in the numerical value. In mpmath, numbers are always normalized so that *man* is an odd number, with the exception of zero which is always taken to have *man = exp = 0*. With these conventions, every representable number has a unique representation. (Mpmath does not currently distinguish between positive and negative zero.)
+-
+-Simple mathematical operations are now easy to define. Due to uniqueness, equality testing of two numbers simply amounts to separately checking equality of the mantissas and the exponents. Multiplication of nonzero numbers is straightforward: `(m 2^e) \times (n 2^f) = (m n) \times 2^{e+f}`. Addition is a bit more involved: we first need to multiply the mantissa of one of the operands by a suitable power of 2 to obtain equal exponents.
+-
+-More technically, mpmath represents a floating-point number as a 4-tuple *(sign, man, exp, bc)* where *sign* is 0 or 1 (indicating positive vs negative) and the mantissa is nonnegative; *bc* (*bitcount*) is the size of the absolute value of the mantissa as measured in bits. Though redundant, keeping a separate sign field and explicitly keeping track of the bitcount significantly speeds up arithmetic (the bitcount, especially, is frequently needed but slow to compute from scratch due to the lack of a Python built-in function for the purpose).
+-
+-Contrary to popular belief, floating-point *numbers* do not come with an inherent "small uncertainty", although floating-point *arithmetic* generally is inexact. Every binary floating-point number is an exact rational number. With arbitrary-precision integers used for the mantissa and exponent, floating-point numbers can be added, subtracted and multiplied *exactly*. In particular, integers and integer multiples of 1/2, 1/4, 1/8, 1/16, etc. can be represented, added and multiplied exactly in binary floating-point arithmetic.
+-
+-Floating-point arithmetic is generally approximate because the size of the mantissa must be limited for efficiency reasons. The maximum allowed width (bitcount) of the mantissa is called the precision or *prec* for short. Sums and products of floating-point numbers are exact as long as the absolute value of the mantissa is smaller than `2^{prec}`. As soon as the mantissa becomes larger than this, it is truncated to contain at most *prec* bits (the exponent is incremented accordingly to preserve the magnitude of the number), and this operation introduces a rounding error. Division is also generally inexact; although we can add and multiply exactly by setting the precision high enough, no precision is high enough to represent for example 1/3 exactly (the same obviously applies for roots, trigonometric functions, etc).
+-
+-The special numbers ``+inf``, ``-inf`` and ``nan`` are represented internally by a zero mantissa and a nonzero exponent.
+-
+-Mpmath uses arbitrary precision integers for both the mantissa and the exponent, so numbers can be as large in magnitude as permitted by the computer's memory. Some care may be necessary when working with extremely large numbers. Although standard arithmetic operators are safe, it is for example futile to attempt to compute the exponential function of of `10^{100000}`. Mpmath does not complain when asked to perform such a calculation, but instead chugs away on the problem to the best of its ability, assuming that computer resources are infinite. In the worst case, this will be slow and allocate a huge amount of memory; if entirely impossible Python will at some point raise ``OverflowError: long int too large to convert to int``.
+-
+-For further details on how the arithmetic is implemented, refer to the mpmath source code. The basic arithmetic operations are found in the ``libmp`` directory; many functions there are commented extensively.
+-
+-Decimal issues
+---------------
+-
+-Mpmath uses binary arithmetic internally, while most interaction with the user is done via the decimal number system. Translating between binary and decimal numbers is a somewhat subtle matter; many Python novices run into the following "bug" (addressed in the `General Python FAQ <http://docs.python.org/faq/design.html#why-are-floating-point-calculations-so-inaccurate>`_)::
+-
+-    >>> 1.2 - 1.0
+-    0.19999999999999996
+-
+-Decimal fractions fall into the category of numbers that generally cannot be represented exactly in binary floating-point form. For example, none of the numbers 0.1, 0.01, 0.001 has an exact representation as a binary floating-point number. Although mpmath can approximate decimal fractions with any accuracy, it does not solve this problem for all uses; users who need *exact* decimal fractions should look at the ``decimal`` module in Python's standard library (or perhaps use fractions, which are much faster).
+-
+-With *prec* bits of precision, an arbitrary number can be approximated relatively to within `2^{-prec}`, or within `10^{-dps}` for *dps* decimal digits. The equivalent values for *prec* and *dps* are therefore related proportionally via the factor `C = \log(10)/\log(2)`, or roughly 3.32. For example, the standard (binary) precision in mpmath is 53 bits, which corresponds to a decimal precision of 15.95 digits.
+-
+-More precisely, mpmath uses the following formulas to translate between *prec* and *dps*::
+-
+-  dps(prec) = max(1, int(round(int(prec) / C - 1)))
+-
+-  prec(dps) = max(1, int(round((int(dps) + 1) * C)))
+-
+-Note that the dps is set 1 decimal digit lower than the corresponding binary precision. This is done to hide minor rounding errors and artifacts resulting from binary-decimal conversion. As a result, mpmath interprets 53 bits as giving 15 digits of decimal precision, not 16.
+-
+-The *dps* value controls the number of digits to display when printing numbers with :func:`str`, while the decimal precision used by :func:`repr` is set two or three digits higher. For example, with 15 dps we have::
+-
+-    >>> from mpmath import *
+-    >>> mp.dps = 15
+-    >>> str(pi)
+-    '3.14159265358979'
+-    >>> repr(+pi)
+-    "mpf('3.1415926535897931')"
+-
+-The extra digits in the output from ``repr`` ensure that ``x == eval(repr(x))`` holds, i.e. that numbers can be converted to strings and back losslessly.
+-
+-It should be noted that precision and accuracy do not always correlate when translating between binary and decimal. As a simple example, the number 0.1 has a decimal precision of 1 digit but is an infinitely accurate representation of 1/10. Conversely, the number `2^{-50}` has a binary representation with 1 bit of precision that is infinitely accurate; the same number can actually be represented exactly as a decimal, but doing so requires 35 significant digits::
+-
+-    0.00000000000000088817841970012523233890533447265625
+-
+-All binary floating-point numbers can be represented exactly as decimals (possibly requiring many digits), but the converse is false.
+-
+-Correctness guarantees
+-----------------------
+-
+-Basic arithmetic operations (with the ``mp`` context) are always performed with correct rounding. Results that can be represented exactly are guranteed to be exact, and results from single inexact operations are guaranteed to be the best possible rounded values. For higher-level operations, mpmath does not generally guarantee correct rounding. In general, mpmath only guarantees that it will use at least the user-set precision to perform a given calculation. *The user may have to manually set the working precision higher than the desired accuracy for the result, possibly much higher.*
+-
+-Functions for evaluation of transcendental functions, linear algebra operations, numerical integration, etc., usually automatically increase the working precision and use a stricter tolerance to give a correctly rounded result with high probability: for example, at 50 bits the temporary precision might be set to 70 bits and the tolerance might be set to 60 bits. It can often be assumed that such functions return values that have full accuracy, given inputs that are exact (or sufficiently precise approximations of exact values), but the user must exercise judgement about whether to trust mpmath.
+-
+-The level of rigor in mpmath covers the entire spectrum from "always correct by design" through "nearly always correct" and "handling the most common errors" to "just computing blindly and hoping for the best". Of course, a long-term development goal is to successively increase the rigor where possible. The following list might give an idea of the current state.
+-
+-Operations that are correctly rounded:
+-
+-* Addition, subtraction and multiplication of real and complex numbers.
+-* Division and square roots of real numbers.
+-* Powers of real numbers, assuming sufficiently small integer exponents (huge powers are rounded in the right direction, but possibly farther than necessary).
+-* Conversion from decimal to binary, for reasonably sized numbers (roughly between `10^{-100}` and `10^{100}`).
+-* Typically, transcendental functions for exact input-output pairs.
+-
+-Operations that should be fully accurate (however, the current implementation may be based on a heuristic error analysis):
+-
+-* Radix conversion (large or small numbers).
+-* Mathematical constants like `\pi`.
+-* Both real and imaginary parts of exp, cos, sin, cosh, sinh, log.
+-* Other elementary functions (the largest of the real and imaginary part).
+-* The gamma and log-gamma functions (the largest of the real and the imaginary part; both, when close to real axis).
+-* Some functions based on hypergeometric series (the largest of the real and imaginary part).
+-
+-Correctness of root-finding, numerical integration, etc. largely depends on the well-behavedness of the input functions. Specific limitations are sometimes noted in the respective sections of the documentation.
+-
+-Double precision emulation
+---------------------------
+-
+-On most systems, Python's ``float`` type represents an IEEE 754 *double precision* number, with a precision of 53 bits and rounding-to-nearest. With default precision (``mp.prec = 53``), the mpmath ``mpf`` type roughly emulates the behavior of the ``float`` type. Sources of incompatibility include the following:
+-
+-* In hardware floating-point arithmetic, the size of the exponent is restricted to a fixed range: regular Python floats have a range between roughly `10^{-300}` and `10^{300}`. Mpmath does not emulate overflow or underflow when exponents fall outside this range.
+-* On some systems, Python uses 80-bit (extended double) registers for floating-point operations. Due to double rounding, this makes the ``float`` type less accurate. This problem is only known to occur with Python versions compiled with GCC on 32-bit systems.
+-* Machine floats very close to the exponent limit round subnormally, meaning that they lose accuracy (Python may raise an exception instead of rounding a ``float`` subnormally).
+-* Mpmath is able to produce more accurate results for transcendental functions.
+-
+-Further reading
+----------------
+-
+-There are many excellent textbooks on numerical analysis and floating-point arithmetic. Some good web resources are:
+-
+-* `David Goldberg, What Every Computer Scientist Should Know About Floating-Point Arithmetic <http://www.cl.cam.ac.uk/teaching/1011/FPComp/floatingmath.pdf>`_
+-* `The Wikipedia article about numerical analysis  <http://en.wikipedia.org/wiki/Numerical_analysis>`_
+--- a/sympy/__init__.py
++++ b/sympy/__init__.py
+@@ -11,7 +11,7 @@
+ 
+ from __future__ import absolute_import, print_function
+ 
+-__version__ = "0.7.5"
++from sympy.release import __version__
+ 
+ import sys
+ if sys.version_info[0] == 2 and sys.version_info[1] < 6:
+--- /dev/null
++++ b/sympy/release.py
+@@ -0,0 +1 @@
++__version__ = "0.7.5"
+--- a/sympy/core/sets.py
++++ b/sympy/core/sets.py
+@@ -9,7 +9,7 @@
+ from sympy.core.numbers import Float
+ from sympy.core.compatibility import iterable, with_metaclass
+ 
+-from sympy.mpmath import mpi, mpf
++from mpmath import mpi, mpf
+ from sympy.logic.boolalg import And, Or, true, false
+ 
+ from sympy.utilities import default_sort_key

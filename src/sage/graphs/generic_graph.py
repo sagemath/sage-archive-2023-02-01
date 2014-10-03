@@ -710,15 +710,15 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Formats
 
-    def __copy__(self, implementation='c_graph', data_structure=None,
-                 sparse=None, immutable=None, weighted=None):
+    def __copy__(self, weighted=None, implementation='c_graph', data_structure=None,
+                 sparse=None, immutable=None):
         """
         Return a copy of the graph.
 
-        If ``weighted`` is passed and is not the weightedness of the
-        original, then the copy will not equal the original.
-
         INPUT:
+
+         - ``weighted`` boolean (default: `None`) -- weightedness for
+           the copy. Might change the equality class if not `None`.
 
          - ``implementation`` - string (default: 'c_graph') the implementation
            goes here.  Current options are only 'networkx' or 'c_graph'.
@@ -746,18 +746,6 @@ class GenericGraph(GenericGraph_pyx):
              ``immutable=False`` is used to copy an immutable graph, the data
              structure used is ``"sparse"`` unless anything else is specified.
 
-         - ``weighted`` (boolean) -- weightedness for the copy. Might
-           change the equality class.
-
-           * ``weighted=None`` (default) means that the graph and its
-             copy will behave the same way.
-
-           * ``weighted=True`` makes the copy weighted, making it
-             unequal to the original if the original is non-weighted.
-
-           * ``weighted=False`` makes the copy non-weighted, making it
-             unequal to the original if the original is weighted.
-
         .. NOTE::
 
             If the graph uses
@@ -774,6 +762,11 @@ class GenericGraph(GenericGraph_pyx):
            Please use this method only if you need to copy but change the
            underlying implementation or weightedness.  Otherwise simply
            do ``copy(g)`` instead of ``g.copy()``.
+
+        .. warning::
+
+           If ``weighted`` is passed and is not the weightedness of the
+           original, then the copy will not equal the original.
 
         EXAMPLES::
 

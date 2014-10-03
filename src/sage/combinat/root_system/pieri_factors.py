@@ -689,7 +689,7 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
 
     def __getitem__(self, support):
         r"""
-        Return the cyclicaly decreasing element associated with ``support``.
+        Return the cyclically decreasing element associated with ``support``.
 
         INPUT:
 

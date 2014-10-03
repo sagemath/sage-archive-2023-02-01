@@ -1,11 +1,7 @@
-include "sage/ext/cdefs.pxi"
-include "sage/libs/ntl/decl.pxi"
-include "sage/libs/flint/fmpz.pxi"
+from sage.libs.gmp.types cimport *
 include "sage/libs/flint/fmpz_mat.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
 
 cimport matrix_dense
-cimport sage.rings.integer
 from sage.rings.integer cimport Integer
 from sage.ext.mod_int cimport *
 
@@ -19,7 +15,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef fmpz_mat_t _matrix
     cdef object _pivots
     cdef int mpz_height(self, mpz_t height) except -1
-    cpdef double _log_avg_sq1(self) except -1.0
     cdef _mod_int_c(self, mod_int modulus)
     cdef _mod_two(self)
     cdef _zero_out_matrix(self)
@@ -28,7 +23,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cpdef _export_as_string(self, int base=?)
     cdef _init_linbox(self)
     cdef _dealloc_linbox(self)
-    cdef void reduce_entry_unsafe(self, Py_ssize_t i, Py_ssize_t j, Integer modulus)
     cdef set_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, const mpz_t value)
     cdef set_unsafe_si(self, Py_ssize_t i, Py_ssize_t j, const long long value)
     cdef get_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, mpz_t value)

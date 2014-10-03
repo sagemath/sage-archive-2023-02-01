@@ -751,11 +751,9 @@ ext_modules = [
 
     Extension('sage.libs.pari.pari_instance',
               sources = ["sage/libs/pari/pari_instance.pyx"],
-              language="c",
-              extra_compile_args = ["-std=c99",  "-D_XPG6"],
-              libraries = [ 'pari',  'gmp','flint'],
-              depends =  flint_depends),
-
+              extra_compile_args = ["-std=c99", "-D_XPG6"],
+              libraries = [ 'pari', 'gmp', 'flint'],
+              depends = flint_depends),
 
     Extension('sage.libs.ppl',
               sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc'],
@@ -1079,8 +1077,7 @@ ext_modules = [
               libraries = ['m4rie', 'm4ri', 'm'],
               depends = [SAGE_INC + "/m4rie/m4rie.h"],
               include_dirs = [SAGE_INC + '/m4rie'],
-              extra_compile_args = m4ri_extra_compile_args,
-              language="c"),
+              extra_compile_args = m4ri_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_dense',
               sources = ['sage/matrix/matrix_modn_dense.pyx'],
@@ -1116,7 +1113,6 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
-              language="c",
               extra_compile_args = ["-std=c99", "-D_XPG6"] + m4ri_extra_compile_args,
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
@@ -1320,7 +1316,7 @@ ext_modules = [
     Extension('sage.modular.modsym.apply',
               sources = ['sage/modular/modsym/apply.pyx'],
               libraries = ["flint", "gmp", "gmpxx", "m", "stdc++"],
-              extra_compile_args=["-std=c99",  "-D_XPG6"],
+              extra_compile_args=["-std=c99", "-D_XPG6"],
               depends = flint_depends),
 
     Extension('sage.modular.modsym.relation_matrix_pyx',
@@ -1529,7 +1525,7 @@ ext_modules = [
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
-              extra_compile_args=["-std=c99",  "-D_XPG6"],
+              extra_compile_args=["-std=c99", "-D_XPG6"],
               libraries = (['gsl', BLAS, BLAS2, 'pari', 'gmp', 'm'])),
 
     Extension('sage.rings.complex_interval',

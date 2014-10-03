@@ -362,9 +362,11 @@ class GenericGraph(GenericGraph_pyx):
         """
         Compare self and other.
 
-        For equality, must be in the same class, have the same settings for
-        loops, multiedges, weightedness, have same set of vertices, and same
-        (multi)set of arrows (taking labels into account if weighted).
+        For equality, must be in the same class, have the same settings
+        for loops, multiedges, and weightedness, have same set of
+        vertices and same (multi)set of arrows. When comparing the
+        arrows, labels are only taken into account if the graph is
+        considered weighted.
 
         Note that this is _not_ an isomorphism test.
 

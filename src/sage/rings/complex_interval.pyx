@@ -1347,7 +1347,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             return RIF(0).log()
         theta = self.argument()
         rho = abs(self)
-        if base is None or base is 'e':
+        if base is None or base == 'e':
             return ComplexIntervalFieldElement(self._parent, rho.log(), theta)
         else:
             from real_mpfr import RealNumber, RealField

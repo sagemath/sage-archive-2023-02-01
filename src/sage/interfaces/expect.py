@@ -1221,7 +1221,7 @@ If this all works, you can then make calls like:
 
         try:
             with gc_disabled():
-                if (split_lines is "nofile" and allow_use_file and
+                if (split_lines == "nofile" and allow_use_file and
                         self._eval_using_file_cutoff and len(code) > self._eval_using_file_cutoff):
                     return self._eval_line_using_file(code)
                 elif split_lines:

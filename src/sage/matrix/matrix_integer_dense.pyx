@@ -1838,7 +1838,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         nr = self._nrows
         nc = self._ncols
         n = nr if nr >= nc else nc
-        if algorithm is 'default':
+        if algorithm == 'default':
             if transformation: algorithm = 'padic'
             else:
                 if n <= 10: algorithm = 'pari0'

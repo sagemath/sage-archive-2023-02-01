@@ -31,6 +31,7 @@ class FormsElement(FormsRingElement):
         INPUT:
 
         - ``parent``     -- a modular form space
+
         - ``rat``        -- a rational function which corresponds to a
                             modular form in the modular form space
 
@@ -90,6 +91,8 @@ class FormsElement(FormsRingElement):
             sage: (x,y,z,d)=var("x,y,z,d")
             sage: QuasiModularForms(n=5, k=10, ep=-1)(x^3*z^3-y^3)
             21/(20*d)*q - 4977/(16000*d^2)*q^2 + 297829/(12800000*d^3)*q^3 + 27209679/(20480000000*d^4)*q^4 + O(q^5)
+            sage: QuasiModularForms(n=infinity, k=8, ep=1)(x*(x-y^2))
+            64*q + 512*q^2 + 768*q^3 - 4096*q^4 + O(q^5)
         """
 
         return self._qexp_repr()
@@ -106,6 +109,8 @@ class FormsElement(FormsRingElement):
             sage: (x,y,z,d)=var("x,y,z,d")
             sage: latex(QuasiModularForms(n=5, k=10, ep=-1)(x^3*z^3-y^3))
             f_{\rho}^{3} E_{2}^{3} -  f_{i}^{3}
+            sage: latex(QuasiModularForms(n=infinity, k=8, ep=1)(x*(x-y^2)))
+            - E_{4} f_{i}^{2} + E_{4}^{2}
         """
 
         return super(FormsElement, self)._latex_()
@@ -115,7 +120,9 @@ class FormsElement(FormsRingElement):
         Return the coordinate vector of ``self`` with
         respect to ``self.parent().gens()``.
 
-        Note: This uses the corresponding function of the
+        .. NOTE:
+
+        This uses the corresponding function of the
         parent. If the parent has not defined a coordinate
         vector function or a module for coordinate vectors
         then an exception is raised by the parent
@@ -146,8 +153,8 @@ class FormsElement(FormsRingElement):
         respect to ``self.parent().ambient_space().gens()``.
 
         The returned coordinate vector is an element
-        of ``self.parent().module()``.        
-        
+        of ``self.parent().module()``.
+
         Mote: This uses the corresponding function of the
         parent. If the parent has not defined a coordinate
         vector function or an ambient module for

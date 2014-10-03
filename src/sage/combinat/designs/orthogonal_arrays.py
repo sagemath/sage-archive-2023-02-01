@@ -756,6 +756,8 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
         sage: designs.orthogonal_arrays.largest_available_k(5,t=t) == t
         True
         sage: _ = designs.orthogonal_arrays.build(t,5,t)
+
+    Note to self: when 
     """
     assert n>=0, "n(={}) must be nonnegative".format(n)
 
@@ -955,15 +957,27 @@ def OA_build(k,n,t=2,resolvable=False):
 
     - ``k,n,t`` (integers) -- parameters of the orthogonal array.
 
-    - ``resolvable`` (boolean) -- whether to return resolvable
-      orthogonal arrays.
+    - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
+      resolvable. The `n` classes of the resolvable design are obtained as the
+      first `n` blocks, then the next `n` blocks, etc ... Set to ``False`` by
+      default.
 
     EXAMPLES::
 
-        sage: OA_7_50 = designs.orthogonal_arrays.build(7,50) # indirect doctest
+        sage: designs.orthogonal_arrays.build(3,3,resolvable=True) # indirect doctest
+        [[0, 0, 0],
+         [1, 2, 1],
+         [2, 1, 2],
+         [0, 2, 2],
+         [1, 1, 0],
+         [2, 0, 1],
+         [0, 1, 1],
+         [1, 0, 2],
+         [2, 2, 0]]
+        sage: OA_7_50 = designs.orthogonal_arrays.build(7,50)      # indirect doctest
 
     """
-    return orthogonal_array(k,n,t)
+    return orthogonal_array(k,n,t,resolvable=resolvable)
 
 
 def largest_available_k(n,t=2):

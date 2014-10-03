@@ -99,9 +99,12 @@ BalancedIncompleteBlockDesign = deprecated_function_alias(16446,
 
 from orthogonal_arrays import OATabThing as orthogonal_arrays
 
-# When this deprecated function is removed, one should also remove the
-# handling of the "existence" parameter in the function
-# orthogonal_arrays.orthogonal_array()
+# When this deprecated function is removed:
+#
+# a) remove the handling of the "existence" parameter in the function
+#    orthogonal_arrays.orthogonal_array()
+#
+# b) As well as the handling of k=None (same function)
 deprecated_callable_import(17034,
                            'sage.combinat.designs.orthogonal_arrays',
                            globals(),

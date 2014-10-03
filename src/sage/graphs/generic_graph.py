@@ -315,6 +315,8 @@ from sage.misc.superseded import deprecation, deprecated_function_alias
 class GenericGraph(GenericGraph_pyx):
     """
     Base class for graphs and digraphs.
+
+    .. automethod:: __eq__
     """
 
     # Nice defaults for plotting arrays of graphs (see sage.misc.functional.show)
@@ -360,15 +362,22 @@ class GenericGraph(GenericGraph_pyx):
 
     def __eq__(self, other):
         """
-        Compare self and other.
+        Compare self and other for equality.
 
-        For equality, must be in the same class, have the same settings
-        for loops, multiedges, and weightedness, have same set of
-        vertices and same (multi)set of arrows. When comparing the
-        arrows, labels are only taken into account if the graph is
-        considered weighted.
+        Do not call this method directly. That is, for ``G.__eq__(H)``
+        write ``G == H``.
 
-        Note that this is _not_ an isomorphism test.
+        Two graphs are considered equal if the following hold:
+         - they are either both directed, or both undirected;
+         - they have the same settings for loops, multiedges, and
+           weightedness;
+         - they have the same set of vertices;
+         - they have the same (multi)set of arrows/edges, where labels
+           of arrows/edges are taken into account if *and only if*
+           the graphs are considered weighted. See
+           :meth:`~GenericGraph.weighted`.
+
+        Note that this is *not* an isomorphism test.
 
         EXAMPLES::
 

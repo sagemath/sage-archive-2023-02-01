@@ -3440,7 +3440,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         80.  The check that the determinant of a squared matrix is a
         square is a sanity check that the result is probably correct::
 
-            sage: for s in [1..200]:  # long time (6s on sage.math, 2013)
+            sage: for s in [1..80]:  # long time (6s on sage.math, 2013)
             ...       M = random_matrix(ZZ, s)
             ...       d = (M*M).determinant()
             ...       assert d.is_square()

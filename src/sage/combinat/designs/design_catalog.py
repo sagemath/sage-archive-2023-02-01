@@ -97,7 +97,7 @@ from sage.misc.superseded import deprecated_function_alias, deprecated_callable_
 BalancedIncompleteBlockDesign = deprecated_function_alias(16446,
         balanced_incomplete_block_design)
 
-from orthogonal_arrays import OATabThing as orthogonal_arrays
+from orthogonal_arrays import OAMainFunctions as orthogonal_arrays
 
 # When this deprecated function is removed:
 #

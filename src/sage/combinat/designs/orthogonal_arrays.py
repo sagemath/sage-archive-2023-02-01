@@ -1,13 +1,17 @@
 r"""
 Orthogonal arrays
 
-This module gathers everything related to orthogonal arrays (or transversal
-designs). One can build an `OA(k,n)` (or check that it can be built) with
-:func:`orthogonal_array`::
+This module gathers some construction related to orthogonal arrays (or
+transversal designs). One can build an `OA(k,n)` (or check that it can be built)
+from the Sage console with ``designs.orthogonal_arrays.build``::
 
     sage: OA = designs.orthogonal_arrays.build(4,8)
 
-It defines the following functions:
+See also the modules :mod:`~sage.combinat.designs.orthogonal_arrays_build_recursive` or
+:mod:`~sage.combinat.designs.orthogonal_arrays_find_recursive` for recursive
+constructions.
+
+This module defines the following functions:
 
 .. csv-table::
     :class: contentstable
@@ -698,41 +702,6 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
         squares (see
         :func:`~sage.combinat.designs.latin_squares.mutually_orthogonal_latin_squares`).
 
-    EXAMPLES::
-
-        sage: designs.orthogonal_arrays.build(3,2)
-        [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]]
-
-        sage: designs.orthogonal_arrays.build(5,5)
-        [[0, 0, 0, 0, 0], [0, 1, 2, 3, 4], [0, 2, 4, 1, 3],
-         [0, 3, 1, 4, 2], [0, 4, 3, 2, 1], [1, 0, 4, 3, 2],
-         [1, 1, 1, 1, 1], [1, 2, 3, 4, 0], [1, 3, 0, 2, 4],
-         [1, 4, 2, 0, 3], [2, 0, 3, 1, 4], [2, 1, 0, 4, 3],
-         [2, 2, 2, 2, 2], [2, 3, 4, 0, 1], [2, 4, 1, 3, 0],
-         [3, 0, 2, 4, 1], [3, 1, 4, 2, 0], [3, 2, 1, 0, 4],
-         [3, 3, 3, 3, 3], [3, 4, 0, 1, 2], [4, 0, 1, 2, 3],
-         [4, 1, 3, 0, 2], [4, 2, 0, 3, 1], [4, 3, 2, 1, 0],
-         [4, 4, 4, 4, 4]]
-
-    What is the largest value of `k` for which Sage knows how to compute a
-    `OA(k,14,2)`?::
-
-        sage: designs.orthogonal_arrays.largest_available_k(14)
-        6
-
-    If you ask for an orthogonal array that does not exist, then the function
-    either raise an ``EmptySetError`` (if it knows that such an orthogonal array
-    does not exist) or a ``NotImplementedError``::
-
-        sage: designs.orthogonal_arrays.build(4,2)
-        Traceback (most recent call last):
-        ...
-        EmptySetError: There exists no OA(4,2) as k(=4)>n+t-1=3
-        sage: designs.orthogonal_arrays.build(12,20)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: I don't know how to build an OA(12,20)!
-
     TESTS:
 
     The special cases `n=0,1`::
@@ -756,8 +725,6 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
         sage: designs.orthogonal_arrays.largest_available_k(5,t=t) == t
         True
         sage: _ = designs.orthogonal_arrays.build(t,5,t)
-
-    Note to self: when 
     """
     assert n>=0, "n(={}) must be nonnegative".format(n)
 
@@ -1916,12 +1883,72 @@ def OA_from_wider_OA(OA,k):
         return OA
     return [L[:k] for L in OA]
 
-class OATabThing():
+class OAMainFunctions():
+    r"""
+    Functions related to orthogonal arrays.
+
+    An orthogonal array of parameters `k,n,t` is a matrix with `k` columns
+    filled with integers from `[n]` in such a way that for any `t` columns, each
+    of the `n^t` possible rows occurs exactly once. In particular, the matrix
+    has `n^t` rows.
+
+    For more information on orthogonal arrays, see
+    :wikipedia:`Orthogonal_array`.
+
+    From here you have access to:
+
+    - :func:`build(k,n,t=2) <OA_build>`: return an orthogonal array with the given
+      parameters.
+    - :func:`is_available(k,n,t=2) <OA_is_available>`: answer whether there is a
+      construction available in Sage for a given set of parameters.
+    - :func:`exists(k,n,t=2) <OA_exists>`: answer whether an orthogonal array with
+      these parameters exist.
+    - :func:`largest_available_k(n,t=2) <largest_available_k>`: return the
+      largest integer `k` such that Sage knows how to build an `OA(k,n)`.
+    - :func:`explain_construction(k,n,t=2) <explain_construction>`: return a
+      string that explains the construction that Sage uses to build an
+      `OA(k,n)`.
+
+    EXAMPLES::
+
+        sage: designs.orthogonal_arrays.build(3,2)
+        [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]]
+
+        sage: designs.orthogonal_arrays.build(5,5)
+        [[0, 0, 0, 0, 0], [0, 1, 2, 3, 4], [0, 2, 4, 1, 3],
+         [0, 3, 1, 4, 2], [0, 4, 3, 2, 1], [1, 0, 4, 3, 2],
+         [1, 1, 1, 1, 1], [1, 2, 3, 4, 0], [1, 3, 0, 2, 4],
+         [1, 4, 2, 0, 3], [2, 0, 3, 1, 4], [2, 1, 0, 4, 3],
+         [2, 2, 2, 2, 2], [2, 3, 4, 0, 1], [2, 4, 1, 3, 0],
+         [3, 0, 2, 4, 1], [3, 1, 4, 2, 0], [3, 2, 1, 0, 4],
+         [3, 3, 3, 3, 3], [3, 4, 0, 1, 2], [4, 0, 1, 2, 3],
+         [4, 1, 3, 0, 2], [4, 2, 0, 3, 1], [4, 3, 2, 1, 0],
+         [4, 4, 4, 4, 4]]
+
+    What is the largest value of `k` for which Sage knows how to compute a
+    `OA(k,14,2)`?::
+
+        sage: designs.orthogonal_arrays.largest_available_k(14)
+        6
+
+    If you ask for an orthogonal array that does not exist, then you will
+    either obtain an ``EmptySetError`` (if it knows that such an orthogonal array
+    does not exist) or a ``NotImplementedError``::
+
+        sage: designs.orthogonal_arrays.build(4,2)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: There exists no OA(4,2) as k(=4)>n+t-1=3
+        sage: designs.orthogonal_arrays.build(12,20)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build an OA(12,20)!
+    """
     def __init__(self,*args,**kwds):
         r"""
         There is nothing here.
 
-        EXAMPLE::
+        TESTS::
 
             sage: designs.orthogonal_arrays(4,5) # indirect doctest
             Traceback (most recent call last):

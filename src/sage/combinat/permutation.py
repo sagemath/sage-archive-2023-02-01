@@ -871,15 +871,20 @@ class Permutation(CombinatorialObject, Element):
             sage: p = Permutation([])
             sage: p.prev()
             False
+
+        Check that :trac:`16913` is fixed::
+
+            sage: Permutation([1,4,3,2]).prev()
+            [1, 4, 2, 3]
         """
 
         p = self[:]
         n = len(self)
         first = -1
 
-        #Starting from the beginning, find the first o such that
+        #Starting from the end, find the first o such that
         #p[o] > p[o+1]
-        for i in range(0, n-1):
+        for i in reversed(range(0, n-1)):
             if p[i] > p[i+1]:
                 first = i
                 break
@@ -889,7 +894,7 @@ class Permutation(CombinatorialObject, Element):
         if first == -1:
             return False
 
-        #Starting from the end, find the first j such that p[j] > p[first]
+        #Starting from the end, find the first j such that p[j] < p[first]
         j = n - 1
         while p[j] > p[first]:
             j -= 1

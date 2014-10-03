@@ -123,6 +123,7 @@ Sage example in ./recequadiff.tex, line 384::
 Sage example in ./recequadiff.tex, line 396::
 
   sage: plot(solve(ed, y)[0].subs_expr(c == 2).rhs(), x, -3, 3)
+  Graphics object consisting of 1 graphics primitive
 
 Sage example in ./recequadiff.tex, line 408::
 
@@ -130,6 +131,7 @@ Sage example in ./recequadiff.tex, line 408::
   sage: for k in range(1,20,2):
   ...       P += plot(solve(ed, y)[0].subs_expr(c==1+k/4).rhs(), x, -3, 3)
   sage: P
+  Graphics object consisting of 11 graphics primitives
 
 Sage example in ./recequadiff.tex, line 426::
 
@@ -139,6 +141,7 @@ Sage example in ./recequadiff.tex, line 426::
   ...           f = solve(ed,y)[j].subs_expr(c==2+0.25*k).rhs()
   ...           P += plot(f, x, -3, 3)
   sage: P
+  Graphics object consisting of 10 graphics primitives
 
 Sage example in ./recequadiff.tex, line 472::
 
@@ -179,6 +182,7 @@ Sage example in ./recequadiff.tex, line 535::
   sage: for k in range(-19,19,2):
   ...       P += plot(y(x).subs_expr(c == 1/k), x, 0, 3)
   sage: P
+  Graphics object consisting of 19 graphics primitives
 
 Sage example in ./recequadiff.tex, line 567::
 

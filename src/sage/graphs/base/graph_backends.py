@@ -664,7 +664,9 @@ class NetworkXDiGraphDeprecated(SageObject):
             sage: G.edges()
             [(1, 2), (2, 1), (2, 3)]
             sage: G.edges(data=True)
-            [(1, 2, {'weight': 7}), (2, 1, {8: {}, 7: {}}), (2, 3, {4: {}, 5: {}, 6: {}, 7: {}})]
+            [(1, 2, {'weight': 7}),
+             (2, 1, {7: {}, 8: {}}),
+             (2, 3, {4: {}, 5: {}, 6: {}, 7: {}})]
 
         """
         import networkx

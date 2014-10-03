@@ -1012,6 +1012,35 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         if len(rejects) != 0:
             return rejects
 
+    def tensor(self, *crystals, **options):
+        """
+        Return the tensor product of ``self`` with ``crystals``.
+
+        If ``crystals`` is a list of rigged configurations of the same
+        Cartan type, then this returns a new :class:`RiggedConfigurations`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[2,1],[1,3]])
+            sage: RC2 = RiggedConfigurations(['A', 3, 1], [[1,1], [3,3]])
+            sage: RC.tensor(RC2, RC2)
+            Rigged configurations of type ['A', 3, 1]
+             and factor(s) ((2, 1), (1, 3), (1, 1), (3, 3), (1, 1), (3, 3))
+
+            sage: K = crystals.KirillovReshetikhin(['A', 3, 1], 2, 2, model='KR')
+            sage: RC.tensor(K)
+            Full tensor product of the crystals
+             [Rigged configurations of type ['A', 3, 1] and factor(s) ((2, 1), (1, 3)),
+              Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and shape (2, 2)]
+        """
+        ct = self._cartan_type
+        if all(isinstance(B, RiggedConfigurations) and B.cartan_type() == ct for B in crystals):
+            dims = self.dims
+            for B in crystals:
+                dims += B.dims
+            return RiggedConfigurations(ct, dims)
+        return super(RiggedConfigurations, self).tensor(*crystals, **options)
+
     Element = KRRCSimplyLacedElement
 
 class RCNonSimplyLaced(RiggedConfigurations):

@@ -59,6 +59,7 @@ A 2-dimensional point configuration::
     sage: list(t)
     [(1, 3, 4), (2, 3, 4)]
     sage: t.plot(axes=False)
+    Graphics object consisting of 12 graphics primitives
     sage: list( p.triangulations() )
     [(<1,3,4>, <2,3,4>),
      (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>),
@@ -79,6 +80,7 @@ A 3-dimensional point configuration::
     sage: points = PointConfiguration(p)
     sage: triang = points.triangulate()
     sage: triang.plot(axes=False)
+    Graphics3d Object
 
 The standard example of a non-regular triangulation::
 
@@ -1533,7 +1535,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (((<0,1,3>, <0,2,3>), (<0,1,2>, <1,2,3>)),)
             sage: Tpos, Tneg = pc.bistellar_flips()[0]
             sage: Tpos.plot(axes=False)
+            Graphics object consisting of 11 graphics primitives
             sage: Tneg.plot(axes=False)
+            Graphics object consisting of 11 graphics primitives
 
         The 3d analog::
 
@@ -1548,6 +1552,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (((<0,1,3>, <0,2,3>), (<0,1,2>, <1,2,3>)),)
             sage: Tpos, Tneg = pc.bistellar_flips()[0]
             sage: Tpos.plot(axes=False)
+            Graphics3d Object
         """
         flips = []
         for C in self.circuits():

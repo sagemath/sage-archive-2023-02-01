@@ -129,9 +129,11 @@ class GraphicPrimitive(SageObject):
             2
             sage: Q = line([(-2,-4), (3,5)], thickness=4,zorder=1,hue=.5)
             sage: P+Q # blue line on top
+            Graphics object consisting of 2 graphics primitives
             sage: q=Q[0]
             sage: q.set_zorder(3)
             sage: P+Q # teal line on top
+            Graphics object consisting of 2 graphics primitives
             sage: q.options()['zorder']
             3
         """

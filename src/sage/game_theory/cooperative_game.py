@@ -158,7 +158,7 @@ class CooperativeGame(SageObject):
     To compute the Shapley value in Sage is simple::
 
         sage: letter_game.shapley_value()
-        {'A': 2, 'C': 35, 'B': 5}
+        {'A': 2, 'B': 5, 'C': 35}
 
     The following example implements a (trivial) 10 player characteristic
     function game with `v(c) = |c|` for all `c \in 2^{\Omega}`.
@@ -230,7 +230,7 @@ class CooperativeGame(SageObject):
         ....:                    ('B', 'A', 'C',): 42}
         sage: letter_game = CooperativeGame(letter_function)
         sage: letter_game.shapley_value()
-        {'A': 2, 'C': 35, 'B': 5}
+        {'A': 2, 'B': 5, 'C': 35}
         sage: letter_game.is_monotone()
         True
         sage: letter_game.is_superadditive()

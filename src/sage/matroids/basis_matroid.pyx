@@ -101,7 +101,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         sage: from sage.matroids.advanced import *
         sage: M = BasisMatroid()
         sage: M.groundset()
-        frozenset([])
+        frozenset()
         sage: M.full_rank()
         0
 

@@ -927,13 +927,18 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         return self.implicit_suffix_tree()
 
-    def number_of_factors(self,n=None):
+    def number_of_factors(self, n=None, algorithm='suffix tree'):
         r"""
         Counts the number of distinct factors of self.
 
         INPUT:
 
         -  ``n`` - an integer, or None.
+        - ``algorithm`` - string (default: ``'suffix tree'``), takes the
+          following values:
+
+          - ``'suffix tree'`` -- construct and use the suffix tree of the word
+          - ``'naive'`` -- algorithm uses a sliding window
 
         OUTPUT:
 
@@ -984,9 +989,14 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: map(blueberry.number_of_factors, range(10))
             [1, 6, 8, 7, 6, 5, 4, 3, 2, 1]
         """
-        return self.suffix_tree().number_of_factors(n)
+        if algorithm == 'suffix tree':
+            return self.suffix_tree().number_of_factors(n)
+        elif algorithm == 'naive':
+            return len(self.factor_set(n, algorithm='naive'))
+        else:
+            raise ValueError('Unknown algorithm (={})'.format(algorithm))
 
-    def factor_iterator(self,n=None):
+    def factor_iterator(self, n=None):
         r"""
         Generates distinct factors of ``self``.
 
@@ -1057,13 +1067,18 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         return self.suffix_tree().factor_iterator(n)
 
-    def factor_set(self, n=None):
+    def factor_set(self, n=None, algorithm='suffix tree'):
         r"""
         Returns the set of factors (of length n) of self.
 
         INPUT:
 
         - ``n`` - an integer or ``None`` (default: None).
+        - ``algorithm`` - string (default: ``'suffix tree'``), takes the
+          following values:
+
+          - ``'suffix tree'`` -- construct and use the suffix tree of the word
+          - ``'naive'`` -- algorithm uses a sliding window
 
         OUTPUT:
 
@@ -1074,8 +1089,9 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: w = Word('121')
-            sage: s = w.factor_set()
-            sage: sorted(s)
+            sage: sorted(w.factor_set())
+            [word: , word: 1, word: 12, word: 121, word: 2, word: 21]
+            sage: sorted(w.factor_set(algorithm='naive'))
             [word: , word: 1, word: 12, word: 121, word: 2, word: 21]
 
         ::
@@ -1108,8 +1124,31 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: Set(Word().factor_set())
             {word: }
+
+        ::
+
+            sage: w = Word(range(10), alphabet=range(10))
+            sage: S1 = w.factor_set(3, algorithm='suffix tree')
+            sage: S2 = w.factor_set(3, algorithm='naive')
+            sage: S1 == S2
+            True
         """
-        return Set(set(self.factor_iterator(n)))
+        if algorithm == 'suffix tree':
+            return Set(self.factor_iterator(n))
+        elif algorithm == 'naive':
+            if n is None:
+                S = set([self[0:0]])
+                for n in range(1, self.length()+1):
+                    for i in range(self.length()-n+1):
+                        S.add(self[i:i+n])
+                return Set(S)
+            else:
+                S = set()
+                for i in range(self.length()-n+1):
+                    S.add(self[i:i+n])
+                return Set(S)
+        else:
+            raise ValueError('Unknown algorithm (={})'.format(algorithm))
 
     def topological_entropy(self, n):
         r"""
@@ -3586,7 +3625,7 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Word('1231232').last_position_dict()
-            {'1': 3, '3': 5, '2': 6}
+            {'1': 3, '2': 6, '3': 5}
         """
         d = {}
         for (i, letter) in enumerate(self):
@@ -3900,17 +3939,17 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Word('21331233213231').return_words(Word('2'))
-            set([word: 213, word: 21331, word: 233])
+            {word: 213, word: 21331, word: 233}
             sage: Word().return_words(Word('213'))
-            set([])
+            set()
             sage: Word('121212').return_words(Word('1212'))
-            set([word: 12])
+            {word: 12}
 
         ::
 
-            sage: TM = words.ThueMorseWord()[:10000]
-            sage: TM.return_words(Word([0]))     # optional long time (1.34 s)
-            set([word: 0, word: 01, word: 011])
+            sage: TM = words.ThueMorseWord()[:1000]
+            sage: sorted(TM.return_words(Word([0])))
+            [word: 0, word: 01, word: 011]
 
         REFERENCES:
 
@@ -3942,9 +3981,9 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: sorted(s)
             [word: 2132, word: 213312, word: 2332]
             sage: Word('').complete_return_words(Word('213'))
-            set([])
+            set()
             sage: Word('121212').complete_return_words(Word('1212'))
-            set([word: 121212])
+            {word: 121212}
 
         REFERENCES:
 
@@ -4128,7 +4167,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word([2,1,4,2,3,4,2]).evaluation_dict()
             {1: 1, 2: 3, 3: 1, 4: 2}
             sage: Word('badbcdb').evaluation_dict()
-            {'a': 1, 'c': 1, 'b': 3, 'd': 2}
+            {'a': 1, 'b': 3, 'c': 1, 'd': 2}
             sage: Word().evaluation_dict()
             {}
 
@@ -5974,12 +6013,18 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Word(range(20)).colored_vector()
+            Graphics object consisting of 21 graphics primitives
             sage: Word(range(100)).colored_vector(0,0,10,1)
+            Graphics object consisting of 101 graphics primitives
             sage: Words(range(100))(range(10)).colored_vector()
+            Graphics object consisting of 11 graphics primitives
             sage: w = Word('abbabaab')
             sage: w.colored_vector()
+            Graphics object consisting of 9 graphics primitives
             sage: w.colored_vector(cmap='autumn')
+            Graphics object consisting of 9 graphics primitives
             sage: Word(range(20)).colored_vector(label='Rainbow')
+            Graphics object consisting of 23 graphics primitives
 
         When two words are defined under the same parent, same letters are
         mapped to same colors::
@@ -5988,13 +6033,16 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w = W(range(20))
             sage: y = W(range(10,20))
             sage: y.colored_vector(y=1, x=10) + w.colored_vector()
+            Graphics object consisting of 32 graphics primitives
 
         TESTS:
 
         The empty word::
 
             sage: Word().colored_vector()
+            Graphics object consisting of 1 graphics primitive
             sage: Word().colored_vector(label='empty')
+            Graphics object consisting of 3 graphics primitives
 
         Unknown cmap::
 

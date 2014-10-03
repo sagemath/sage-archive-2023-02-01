@@ -882,6 +882,222 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 n = _Partitions(n)
             return self(F.Eulerian(n, j, k).to_symmetric_function())
 
+        def gessel_reutenauer(self, lam):
+            r"""
+            Return the Gessel-Reutenauer symmetric function
+            corresponding to the partition ``lam`` written in the basis
+            ``self``.
+
+            Let `\lambda` be a partition. The *Gessel-Reutenauer
+            symmetric function* `\mathbf{GR}_\lambda` corresponding to
+            `\lambda` is the symmetric function denoted `L_\lambda` in
+            [GR1993]_ and in Exercise 7.89 of [STA]_. It can be defined
+            in several ways:
+
+            - It is the sum of the monomials `\mathbf{x}_w` over all
+              words `w` over the alphabet
+              `\left\{ 1, 2, 3, \ldots \right\}` which have CFL type
+              `\lambda`. Here, the monomial `\mathbf{x}_w` for a word
+              `w = \left(w_1, w_2, \ldots, w_k\right)` is defined as
+              `x_{w_1} x_{w_2} \cdots x_{w_k}`, and the *CFL type* of
+              a word `w` is defined as the partition obtained by
+              sorting (in decreasing order) the lengths of the factors
+              in the Lyndon factorization
+              (:meth:`sage.combinat.words.finite_word.FiniteWord_class.lyndon_factorization`)
+              of `w`. The fact that this power series
+              `\mathbf{GR}_\lambda` is symmetric is not obvious.
+
+            - It is the sum of the fundamental quasisymmetric
+              functions `F_{\operatorname{Des} \sigma}` over all
+              permutations `\sigma` which have cycle type `\lambda`.
+              See
+              :class:`sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Fundamental`
+              for the definition of fundamental quasisymmetric
+              functions, and
+              :meth:`sage.combinat.permutation.Permutation.cycle_type`
+              for that of cycle type. For a permutation `\sigma`, we
+              use `\operatorname{Des} \sigma` to denote the descent
+              composition
+              (:meth:`sage.combinat.permutation.Permutation.descents_composition`)
+              of `\sigma`. Again, this definition makes the symmetry
+              of `\mathbf{GR}_\lambda` far from obvious.
+
+            - For every positive integer `n`, we have
+
+              .. MATH::
+
+                  \mathbf{GR}_{\left(n\right)}
+                  = \frac{1}{n} \sum_{d \mid n} \mu(d) p_d^{n/d},
+
+              where `p_d` denotes the `d`-th power-sum symmetric
+              function. This `\mathbf{GR}_{\left(n\right)}` is also
+              denoted by `L_n`. Now, `\mathbf{GR}_\lambda` is defined
+              as the product
+              `h_{m_1} \left[L_1\right] \cdot h_{m_2} \left[L_2\right]
+              \cdot h_{m_3} \left[L_3\right] \cdots`,
+              where `m_i` denotes the multiplicity of the part `i` in
+              `\lambda`, and where the square brackets stand for
+              plethysm (:meth:`plethysm`). This definition makes
+              the symmetry (but not the integrality!) of
+              `\mathbf{GR}_\lambda` obvious.
+
+            The equivalences of these three definitions are proven in
+            [GR1993]_ Sections 2-3.
+
+            REFERENCES:
+
+            .. [GR1993] Ira M. Gessel, Christophe Reutenauer.
+               *Counting Permutations with Given Cycle Structure
+               and Descent Set*.
+               Journal of Combinatorial Theory, Series A, 64 (1993),
+               pp. 189--215.
+
+            EXAMPLES:
+
+            The first few values of `\mathbf{GR}_{(n)} = L_n`::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: h = Sym.h()
+                sage: h.gessel_reutenauer(1)
+                h[1]
+                sage: h.gessel_reutenauer(2)
+                h[1, 1] - h[2]
+                sage: h.gessel_reutenauer(3)
+                h[2, 1] - h[3]
+                sage: h.gessel_reutenauer(4)
+                h[2, 1, 1] - h[2, 2]
+                sage: h.gessel_reutenauer(5)
+                h[2, 1, 1, 1] - h[2, 2, 1] - h[3, 1, 1] + h[3, 2] + h[4, 1] - h[5]
+                sage: h.gessel_reutenauer(6)
+                h[2, 1, 1, 1, 1] - h[2, 2, 1, 1] - h[2, 2, 2] - 2*h[3, 1, 1, 1]
+                 + 5*h[3, 2, 1] - 2*h[3, 3] + h[4, 1, 1] - h[4, 2] - h[5, 1] + h[6]
+
+            Gessel-Reutenauer functions indexed by partitions::
+            
+                sage: h.gessel_reutenauer([2, 1])
+                h[1, 1, 1] - h[2, 1]
+                sage: h.gessel_reutenauer([2, 2])
+                h[1, 1, 1, 1] - 3*h[2, 1, 1] + 2*h[2, 2] + h[3, 1] - h[4]
+
+            The Gessel-Reutenauer functions are Schur-postive::
+
+                sage: s = Sym.s()
+                sage: s.gessel_reutenauer([2, 1])
+                s[1, 1, 1] + s[2, 1]
+                sage: s.gessel_reutenauer([2, 2, 1])
+                s[1, 1, 1, 1, 1] + s[2, 1, 1, 1] + s[2, 2, 1] + s[3, 2]
+
+            They do not form a basis, as the following example (from
+            [GR1993]_ p. 201) shows::
+
+                sage: s.gessel_reutenauer([4]) == s.gessel_reutenauer([2, 1, 1])
+                True
+
+            Of the above three equivalent definitions of
+            `\mathbf{GR}_\lambda`, we use the third one for
+            computations. Let us check that the second one gives the
+            same results::
+
+                sage: QSym = QuasiSymmetricFunctions(ZZ)
+                sage: F = QSym.F() # fundamental basis
+                sage: def GR_def2(lam): # `\mathbf{GR}_\lambda`
+                ....:     n = lam.size()
+                ....:     r = F.sum_of_monomials([sigma.descents_composition()
+                ....:                             for sigma in Permutations(n)
+                ....:                             if sigma.cycle_type() == lam])
+                ....:     return r.to_symmetric_function()
+                sage: all( GR_def2(lam) == h.gessel_reutenauer(lam)
+                ....:      for n in range(5) for lam in Partitions(n) )
+                True
+
+            And the first one, too (assuming symmetry)::
+
+                sage: m = Sym.m()
+                sage: def GR_def1(lam): # `\mathbf{GR}_\lambda`
+                ....:     n = lam.size()
+                ....:     Permus_mset = sage.combinat.permutation.Permutations_mset
+                ....:     def coeff_of_m_mu_in_result(mu):
+                ....:         words_to_check = Permus_mset([i for (i, l) in enumerate(mu)
+                ....:                                       for _ in range(l)])
+                ....:         return sum((1 for w in words_to_check if
+                ....:                     Partition(list(reversed(sorted([len(v) for v in Word(w).lyndon_factorization()]))))
+                ....:                     == lam))
+                ....:     r = m.sum_of_terms([(mu, coeff_of_m_mu_in_result(mu))
+                ....:                         for mu in Partitions(n)],
+                ....:                        distinct=True)
+                ....:     return r
+                sage: all( GR_def1(lam) == h.gessel_reutenauer(lam)
+                ....:      for n in range(5) for lam in Partitions(n) )
+                True
+
+            TESTS:
+
+            This works fine over other base rings::
+
+                sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+                sage: P = Sym.macdonald().P()
+                sage: h = Sym.h()
+                sage: P.gessel_reutenauer(3) == P(h.gessel_reutenauer(3))
+                True
+
+            .. NOTE::
+
+                The currently existing implementation of this function is
+                technically unsatisfactory. It distinguishes the case when the
+                base ring is a `\QQ`-algebra from the case
+                where it isn't. In the latter, it does a computation using
+                universal coefficients, again distinguishing the case when it is
+                able to compute the "corresponding" basis of the symmetric function
+                algebra over `\QQ` (using the ``corresponding_basis_over`` hack)
+                from the case when it isn't (in which case it transforms everything
+                into the Schur basis, which is slow).
+            """
+            if lam in sage.rings.integer_ring.IntegerRing():
+                lam = [lam]
+            lam = sage.combinat.partition.Partitions()(lam)
+            # We use [GR1993]_ Theorem 3.6 and work over `\QQ` to
+            # compute the Gessel-Reutenauer symmetric function.
+            if self.has_coerce_map_from(QQ):
+                # [GR1993]_ Theorem 3.6
+                m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
+                p = self.realization_of().power()
+                h = self.realization_of().complete()
+                partitions = p.basis().keys()
+                mu = sage.rings.arith.Moebius()
+                from sage.rings.arith import squarefree_divisors
+                def component(i, g): # == h_g[L_i]
+                    L_i = p.sum_of_terms([(partitions([d] * (i//d)), mu(d))
+                                          for d in squarefree_divisors(i)],
+                                         distinct=True) / i
+                    return p(h[g]).plethysm(L_i)
+                return self(p.prod((component(i, g) for i, g in m.items())))
+            else:
+                # comp_parent is the parent that is going to be used for
+                # computations. In most cases it will just be self.
+                comp_parent = self
+                # Now let's try to find out what basis self is in, and
+                # construct the corresponding basis of symmetric functions
+                # over QQ.
+                corresponding_parent_over_QQ = self.corresponding_basis_over(QQ)
+                if corresponding_parent_over_QQ is None:
+                    # This is the case where the corresponding basis
+                    # over QQ cannot be found. This can have two reasons:
+                    # Either the basis depends on variables (like the
+                    # Macdonald symmetric functions), or its basis_name()
+                    # is not identical to the name of the method on
+                    # SymmetricFunctions(QQ) that builds it. Either way,
+                    # give up looking for the corresponding parent, and
+                    # transform everything into the Schur basis (very
+                    # slow!) instead.
+                    comp_parent = self.realization_of().schur()
+                    from sage.combinat.sf.sf import SymmetricFunctions
+                    corresponding_parent_over_QQ = SymmetricFunctions(QQ).schur()
+                corresponding_result = corresponding_parent_over_QQ.gessel_reutenauer(lam)
+                comp_base_ring = comp_parent.base_ring()
+                result = comp_parent.sum_of_terms([(nu, comp_base_ring(c))
+                                                   for nu, c in corresponding_result])
+                return self(result)    # just in case comp_parent != self.
+
     class ElementMethods:
 
         def degree_negation(self):
@@ -2160,6 +2376,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         implemented only over base rings which are `\QQ`-algebras.
         (To compute outer plethysms over general binomial rings, change
         bases to the fraction field.)
+
+        The outer plethysm of `f` with `g` is commonly denoted by
+        `f \left[ g \right]` or by `f \circ g`. It is an algebra map
+        in `f`, but not (generally) in `g`.
 
         By default, the degree one elements are taken to be the
         generators for the ``self``'s base ring. This setting can be

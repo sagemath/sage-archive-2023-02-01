@@ -939,10 +939,6 @@ class GenericGraph(GenericGraph_pyx):
         elif sparse is False:
             data_structure = "dense"
 
-        # normalize weighted to None/True/False
-        if weighted is not None:
-            weighted = bool(weighted)
-
         # Immutable copy of an immutable graph ? return self !
         # (if okay for weightedness)
         if (getattr(self, '_immutable', False) and
@@ -961,7 +957,10 @@ class GenericGraph(GenericGraph_pyx):
                 data_structure = "sparse"
 
         from copy import copy
-        G = self.__class__(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, data_structure=data_structure)
+        G = self.__class__(self, name=self.name(), pos=copy(self._pos),
+                           boundary=copy(self._boundary), weighted=weighted,
+                           implementation=implementation,
+                           data_structure=data_structure)
 
         attributes_to_copy = ('_assoc', '_embedding')
         for attr in attributes_to_copy:
@@ -979,10 +978,6 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     setattr(G, attr, copy(old_attr))
 
-        if weighted is None:
-            G._weighted = self._weighted
-        else:
-            G._weighted = weighted # boolean by previous normalization
         return G
 
     copy = __copy__

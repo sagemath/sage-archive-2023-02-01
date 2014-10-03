@@ -802,6 +802,51 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         return not fmpz_mat_is_zero(self._matrix)
 
+
+    def _multiply_linbox(self, Matrix_integer_dense right):
+        """
+        Multiply matrices over ZZ using linbox.
+
+        .. warning::
+
+           This is very slow right now, i.e., linbox is very slow.
+
+        EXAMPLES::
+
+            sage: A = matrix(ZZ,2,3,range(6))
+            sage: A*A.transpose()
+            [ 5 14]
+            [14 50]
+            sage: A._multiply_linbox(A.transpose())
+            [ 5 14]
+            [14 50]
+        """
+        cdef int e
+        cdef long int i,j
+        cdef Matrix_integer_dense ans
+        cdef Matrix_integer_dense left = <Matrix_integer_dense>self
+
+        if self._nrows == right._nrows:
+            # self acts on the space of right
+            parent = right.parent()
+        if self._ncols == right._ncols:
+            # right acts on the space of self
+            parent = self.parent()
+        else:
+            parent = self.matrix_space(left._nrows, right._ncols)
+
+        right._init_linbox()
+        ans = self._new_uninitialized_matrix(parent.nrows(),parent.ncols())
+        ans._init_linbox()
+        left._init_linbox()
+        sig_on()
+        linbox.matrix_matrix_multiply(ans._rows, right._rows, right._nrows, right._ncols)
+        for i from 0 <= i < ans._nrows:
+            for j from 0 <= j < ans._ncols:
+                fmpz_set_mpz(fmpz_mat_entry(ans._matrix,i,j),ans._rows[i][j])
+        sig_off()
+        return ans
+
     def _multiply_classical(self, Matrix_integer_dense right):
         """
         EXAMPLE::
@@ -1268,6 +1313,49 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         fmpz_clear(x)
         sig_off()
         return 0   # no error occurred.
+
+    def _multiply_multi_modular(self, Matrix_integer_dense right):
+        """
+        Multiply this matrix by ``left`` using a multi modular algorithm.
+
+        EXAMPLES::
+
+            sage: M = Matrix(ZZ, 2, 3, range(5,11))
+            sage: N = Matrix(ZZ, 3, 2, range(15,21))
+            sage: M._multiply_multi_modular(N)
+            [310 328]
+            [463 490]
+            sage: M._multiply_multi_modular(-N)
+            [-310 -328]
+            [-463 -490]
+        """
+        cdef Integer h
+        cdef Matrix_integer_dense left = <Matrix_integer_dense>self
+        cdef mod_int *moduli
+        cdef int i, n, k
+        cdef object parent
+
+        nr = left._nrows
+        nc = right._ncols
+        snc = left._ncols
+
+
+        cdef Matrix_integer_dense result
+
+
+        h = left.height() * right.height() * left.ncols()
+        verbose('multiplying matrices of height %s and %s'%(left.height(),right.height()))
+        mm = MultiModularBasis(h)
+        res = left._reduce(mm)
+        res_right = right._reduce(mm)
+        k = len(mm)
+        for i in range(k):  # yes, I could do this with zip, but to conserve memory...
+            t = cputime()
+            res[i] *= res_right[i]
+            verbose('multiplied matrices modulo a prime (%s/%s)'%(i+1,k), t)
+        result = left.new_matrix(nr,nc)
+        _lift_crt(result, res, mm)  # changes result
+        return result
 
     def _mod_int(self, modulus):
         """

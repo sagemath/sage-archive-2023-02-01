@@ -543,6 +543,7 @@ class HyperbolicGeodesic(SageObject):
 
             ::
 
+            sage: H = HyperbolicPlane() # Remove before submitting XXX.
             sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import mobius_transform
             sage: R = H.PD().get_geodesic(-1,1).reflection_involution() 
             sage: mobius_transform(R.matrix(), 0) == 0

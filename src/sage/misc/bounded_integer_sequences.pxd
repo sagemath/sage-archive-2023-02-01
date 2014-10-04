@@ -35,7 +35,7 @@ cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2)
    # Is S1=S2+something? Does not check whether the sequences have the same
    # bound!
 
-cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start)
+cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start) except -2
    # Returns the position *in S1* of S2 as a subsequence of S1[start:], or -1
    # if S2 is not a subsequence. Does not check whether the sequences have the
    # same bound!

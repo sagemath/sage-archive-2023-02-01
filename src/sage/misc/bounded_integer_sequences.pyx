@@ -253,14 +253,19 @@ cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2):
     """
     return mpz_congruent_2exp_p(S1.data, S2.data, S2.bitsize)
 
-cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
+cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start) except -2:
     """
-    Tests if bounded integer sequence S1[start:] contains a sub-sequence S2
+    Tests if bounded integer sequence ``S1[start:]`` contains a sub-sequence ``S2``
 
     INPUT:
 
     - ``S1``, ``S2`` -- two bounded integer sequences
     - ``start`` -- integer, start index
+
+    OUTPUT:
+
+    Index ``i>=start`` such that ``S1[i:]`` starts with ``S2``, or ``-1`` if
+    ``S1`` does not contain ``S2``.
 
     ASSUMPTION:
 
@@ -324,7 +329,7 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
     # tmp may have trailing zeroes, and GMP can NOT cope with that!
     # Hence, we need to adjust the size later.
     (<__mpz_struct*>tmp)._mp_size = limb_size
-    for index from 0<=index<=S1.length-S2.length:
+    for index from start<=index<=S1.length-S2.length:
         limb_index = n>>times_mp_bits_per_limb
         # Adjust the number of limbs we are shifting
         bit_index  = n&mod_mp_bits_per_limb

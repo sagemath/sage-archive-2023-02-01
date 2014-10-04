@@ -1803,7 +1803,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         mpz_mul(result.d, self.d, right.d)
 
-        self.canonicalize()
+        result.canonicalize()
 
         return result
 
@@ -1858,7 +1858,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         mpz_mul(result.d, self.d, right.d)
 
-        self.canonicalize()
+        result.canonicalize()
 
         return result
 
@@ -1875,7 +1875,6 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
             sage: z._mul_(w)
             5*a^2 - 7/9*a + 9 + (-8/3*a^2 - 16/9*a)*i + (-6*a - 4)*j + (2*a^2 + 4/3*a)*k
         """
-
         # We use the following formula for multiplication:
         #
         #    Given two quaternion algebra elements
@@ -2005,7 +2004,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         mpz_mul(result.d, self.d, right.d)
 
-        self.canonicalize()
+        result.canonicalize()
 
         return result
 

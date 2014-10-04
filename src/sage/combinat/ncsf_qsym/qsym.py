@@ -11,9 +11,9 @@ REFERENCES:
    functions and the Solomon descent algebra*, J. Algebra **177** (1995),
    no. 3, 967-982. http://www.mat.uniroma1.it/people/malvenuto/Duality.pdf
 
-.. [Reiner2013] Victor Reiner, *Hopf algebras in combinatorics*,
-   17 January 2013.
-   http://www.math.umn.edu/~reiner/Classes/HopfComb.pdf
+.. [GriRei2014] Darij Grinberg, Victor Reiner,
+   *Hopf algebras in combinatorics*,
+   30 September 2014. :arxiv:`1409.8356v1`.
 
 .. [Mal1993] Claudia Malvenuto, *Produits et coproduits des fonctions
    quasi-symetriques et de l'algebre des descentes*,
@@ -147,7 +147,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     a bialgebra). These quasi-symmetric functions are actual polynomials
     then, not just power series.
 
-    Chapter 5 of [Reiner2013]_ and Section 11 of [HazWitt1]_ are devoted
+    Chapter 5 of [GriRei2014]_ and Section 11 of [HazWitt1]_ are devoted
     to quasi-symmetric functions, as are Malvenuto's thesis [Mal1993]_
     and part of Chapter 7 of [Sta-EC2]_.
 
@@ -411,13 +411,16 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: The relation with symmetric functions
 
-    The quasi-symmetric functions are a ring which contain the symmetric functions
-    as a subring.  The Monomial quasi-symmetric functions are related to the
-    monomial symmetric functions by
+    The quasi-symmetric functions are a ring which contain the
+    symmetric functions as a subring.  The Monomial quasi-symmetric
+    functions are related to the monomial symmetric functions by
 
     .. MATH::
 
-        m_\lambda = \sum_{\mathrm{sort}(I) = \lambda} M_I.
+        m_\lambda = \sum_{\operatorname{sort}(I) = \lambda} M_I
+
+    (where `\operatorname{sort}(I)` denotes the result of sorting
+    the entries of `I` in decreasing order).
 
     There are methods to test if an expression in the quasi-symmetric
     functions is a symmetric function and, if it is, send it to an
@@ -1640,8 +1643,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             the reduced Lyndon compositions (i. e., compositions
             which are Lyndon words and have the gcd of their entries
             equal to `1`) form a set of free polynomial generators
-            for `\mathrm{QSym}`. See [Haz2004]_ for a major part
-            of the proof.
+            for `\mathrm{QSym}`. See [GriRei2014]_, Chapter 6, for
+            the proof, and [Haz2004]_ for a major part of it.
 
             INPUT:
 
@@ -2718,13 +2721,15 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         largest term of the `n`-th shuffle power of a Lyndon word is
         the `n`-fold concatenation of this Lyndon word with
         itself, occurring `n!` times in that shuffle power. But this
-        can be deduced from Section 2 of [Rad1979]_.) More precisely,
-        he showed that `\mathrm{QSym}` is generated, as a free
-        commutative `\mathbf{k}`-algebra, by the elements
-        `\lambda^n(M_I)`, where `n` ranges over the positive integers,
-        and `I` ranges over all compositions which are Lyndon words
-        and whose entries have gcd `1`. Here, `\lambda^n` denotes the
-        `n`-th lambda operation as explained in
+        can be deduced from Section 2 of [Rad1979]_. See also
+        Chapter 6 of [GriRei2014]_, specifically Theorem 6.99, for a
+        complete proof.) More precisely, he showed that
+        `\mathrm{QSym}` is generated, as a free commutative
+        `\mathbf{k}`-algebra, by the elements `\lambda^n(M_I)`, where
+        `n` ranges over the positive integers, and `I` ranges over
+        all compositions which are Lyndon words and whose entries
+        have gcd `1`. Here, `\lambda^n` denotes the `n`-th lambda
+        operation as explained in
         :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Monomial.lambda_of_monomial`.
 
         Thus, products of these generators form a `\mathbf{k}`-module

@@ -903,7 +903,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
               a word `w` is defined as the partition obtained by
               sorting (in decreasing order) the lengths of the factors
               in the Lyndon factorization
-              (:meth:`sage.combinat.words.finite_word.FiniteWord_class.lyndon_factorization`)
+              (:meth:`~sage.combinat.words.finite_word.FiniteWord_class.lyndon_factorization`)
               of `w`. The fact that this power series
               `\mathbf{GR}_\lambda` is symmetric is not obvious.
 
@@ -914,11 +914,11 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
               :class:`sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Fundamental`
               for the definition of fundamental quasisymmetric
               functions, and
-              :meth:`sage.combinat.permutation.Permutation.cycle_type`
+              :meth:`~sage.combinat.permutation.Permutation.cycle_type`
               for that of cycle type. For a permutation `\sigma`, we
               use `\operatorname{Des} \sigma` to denote the descent
               composition
-              (:meth:`sage.combinat.permutation.Permutation.descents_composition`)
+              (:meth:`~sage.combinat.permutation.Permutation.descents_composition`)
               of `\sigma`. Again, this definition makes the symmetry
               of `\mathbf{GR}_\lambda` far from obvious.
 
@@ -1055,6 +1055,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             if lam in sage.rings.integer_ring.IntegerRing():
                 lam = [lam]
             lam = sage.combinat.partition.Partitions()(lam)
+            R = self.base_ring()
             # We use [GR1993]_ Theorem 3.6 and work over `\QQ` to
             # compute the Gessel-Reutenauer symmetric function.
             if self.has_coerce_map_from(QQ):
@@ -1066,7 +1067,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 mu = sage.rings.arith.Moebius()
                 from sage.rings.arith import squarefree_divisors
                 def component(i, g): # == h_g[L_i]
-                    L_i = p.sum_of_terms([(partitions([d] * (i//d)), mu(d))
+                    L_i = p.sum_of_terms([(partitions([d] * (i//d)), R(mu(d)))
                                           for d in squarefree_divisors(i)],
                                          distinct=True) / i
                     return p(h[g]).plethysm(L_i)
@@ -1097,6 +1098,225 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 result = comp_parent.sum_of_terms([(nu, comp_base_ring(c))
                                                    for nu, c in corresponding_result])
                 return self(result)    # just in case comp_parent != self.
+
+        def carlitz_shareshian_wachs(self, n, d, s, comparison=None):
+            r"""
+            Return the Carlitz-Shareshian-Wachs symmetric function
+            `X_{n, d, s}` (if ``comparison`` is ``None``), or
+            `U_{n, d, s}` (if ``comparison`` is ``-1``), or
+            `V_{n, d, s}` (if ``comparison`` is ``0``), or
+            `W_{n, d, s}` (if ``comparison`` is ``1``) written in the
+            basis ``self``. These functions are defined below.
+
+            The Carlitz-Shareshian-Wachs symmetric functions have been
+            introduced in [GriRei2014]_, Exercise 2.84, as
+            refinements of a certain particular case of chromatic
+            quasisymmetric functions defined by Shareshian and Wachs.
+            Their definitions are as follows:
+
+            Let `n`, `d` and `s` be three nonnegative integers. Let
+            `W(n, d, s)` denote the set of all `n`-tuples
+            `(w_1, w_2, \ldots, w_n)` of positive integers having the
+            property that there exist precisely `d` elements `i`
+            of `\left\{ 1, 2, \ldots, n-1 \right\}` satisfying
+            `w_i > w_{i+1}`, and precisely `s` elements `i` of
+            `\left\{ 1, 2, \ldots, n-1 \right\}` satisfying
+            `w_i = w_{i+1}`. For every
+            `w = (w_1, w_2, \ldots, w_n) \in W(n, d, s)`, let `x_w`
+            be the monomial `x_{w_1} x_{w_2} \cdots x_{w_n}`. We then
+            define the power series `X_{n, d, s}` by
+
+            .. MATH::
+
+                X_{n, d, s} = \sum_{w \in W(n, d, s)} x_w .
+
+            This is a symmetric function (according to
+            [GriRei2014]_, Exercise 2.84(b)), and for `s = 0` equals
+            the `t^d`-coefficient of the descent enumerator of Smirnov
+            words of length `n` (an example of a chromatic
+            quasisymmetric function which happens to be symmetric --
+            see [ShaWach2014]_, Example 2.5).
+
+            Assume that `n > 0`. Then, we can define three further
+            power series as follows:
+
+            .. MATH::
+
+                U_{n, d, s} = \sum_{w_1 < w_n} x_w ; \qquad
+                V_{n, d, s} = \sum_{w_1 = w_n} x_w ; \qquad
+                W_{n, d, s} = \sum_{w_1 > w_n} x_w ,
+
+            where all three sums range over
+            `w = (w_1, w_2, \ldots, w_n) \in W(n, d, s)`. These
+            three power series `U_{n, d, s}`, `V_{n, d, s}` and
+            `W_{n, d, s}` are symmetric functions as well
+            ([GriRei2014]_, Exercise 2.84(c)). Their sum is
+            `X_{n, d, s}`.
+
+            REFERENCES:
+
+            .. [ShaWach2014] John Shareshian, Michelle L. Wachs.
+               *Chromatic quasisymmetric functions*.
+               :arxiv:`1405.4629v1`.
+
+            EXAMPLES:
+
+            The power series `X_{n, d, s}`::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: m = Sym.m()
+                sage: m.carlitz_shareshian_wachs(3, 2, 1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 1)
+                m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 2, 0)
+                m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 2)
+                m[3]
+                sage: m.carlitz_shareshian_wachs(3, 1, 0)
+                4*m[1, 1, 1] + m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 1)
+                m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 0)
+                m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(5, 2, 2)
+                m[2, 2, 1] + m[3, 1, 1]
+                sage: m.carlitz_shareshian_wachs(1, 0, 0)
+                m[1]
+                sage: m.carlitz_shareshian_wachs(0, 0, 0)
+                m[]
+
+            The power series `U_{n, d, s}`::
+
+                sage: m.carlitz_shareshian_wachs(3, 2, 1, comparison=-1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 1, comparison=-1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 2, 0, comparison=-1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 0, 2, comparison=-1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 0, comparison=-1)
+                2*m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 1, comparison=-1)
+                m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 0, comparison=-1)
+                m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(5, 2, 2, comparison=-1)
+                0
+                sage: m.carlitz_shareshian_wachs(4, 2, 0, comparison=-1)
+                3*m[1, 1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(1, 0, 0, comparison=-1)
+                0
+
+            The power series `V_{n, d, s}`::
+
+                sage: m.carlitz_shareshian_wachs(3, 2, 1, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 1, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 2, 0, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 0, 2, comparison=0)
+                m[3]
+                sage: m.carlitz_shareshian_wachs(3, 1, 0, comparison=0)
+                m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 1, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 0, 0, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(5, 2, 2, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(4, 2, 0, comparison=0)
+                m[2, 1, 1]
+                sage: m.carlitz_shareshian_wachs(1, 0, 0, comparison=0)
+                m[1]
+
+            The power series `W_{n, d, s}`::
+
+                sage: m.carlitz_shareshian_wachs(3, 2, 1, comparison=1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 1, comparison=1)
+                m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 2, 0, comparison=1)
+                m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 2, comparison=1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 0, comparison=1)
+                2*m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 1, comparison=1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 0, 0, comparison=1)
+                0
+                sage: m.carlitz_shareshian_wachs(5, 2, 2, comparison=1)
+                m[2, 2, 1] + m[3, 1, 1]
+                sage: m.carlitz_shareshian_wachs(4, 2, 0, comparison=1)
+                8*m[1, 1, 1, 1] + 2*m[2, 1, 1] + m[2, 2]
+                sage: m.carlitz_shareshian_wachs(1, 0, 0, comparison=1)
+                0
+
+            TESTS:
+
+            This works fine over other base rings::
+
+                sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+                sage: P = Sym.macdonald().P()
+                sage: m = Sym.m()
+                sage: m.carlitz_shareshian_wachs(4, 1, 1)
+                4*m[2, 1, 1] + 2*m[2, 2] + 2*m[3, 1]
+                sage: P.carlitz_shareshian_wachs(4, 1, 1) == P(m.carlitz_shareshian_wachs(4, 1, 1))
+                True
+            """
+            # Stupid implementation.
+            R = self.base_ring()
+            m = self.realization_of().m()
+            Permus_mset = sage.combinat.permutation.Permutations_mset
+            # Defining a ``check_word`` function. This function will be used
+            # to check if an `n`-tuple `w` of positive integers belongs to
+            # `W(n, d, s)` and satisfies the additional requirement
+            # determined by ``comparison``.
+            # The ``comparison`` check has been factored out so that
+            # ``comparison`` needs not be called a myriad of times. Might
+            # be folly.
+            if comparison is None:
+                def check_word(w):
+                    if sum((1 for i in range(n-1) if w[i] > w[i+1])) != d:
+                        return False
+                    if sum((1 for i in range(n-1) if w[i] == w[i+1])) != s:
+                        return False
+                    return True
+            elif comparison == -1:
+                def check_word(w):
+                    if sum((1 for i in range(n-1) if w[i] > w[i+1])) != d:
+                        return False
+                    if sum((1 for i in range(n-1) if w[i] == w[i+1])) != s:
+                        return False
+                    return (w[0] < w[-1])
+            elif comparison == 0:
+                def check_word(w):
+                    if sum((1 for i in range(n-1) if w[i] > w[i+1])) != d:
+                        return False
+                    if sum((1 for i in range(n-1) if w[i] == w[i+1])) != s:
+                        return False
+                    return (w[0] == w[-1])
+            elif comparison == 1:
+                def check_word(w):
+                    if sum((1 for i in range(n-1) if w[i] > w[i+1])) != d:
+                        return False
+                    if sum((1 for i in range(n-1) if w[i] == w[i+1])) != s:
+                        return False
+                    return (w[0] > w[-1])
+            def coeff_of_m_mu_in_result(mu):
+                # Compute the coefficient of the monomial symmetric
+                # function ``m[mu]`` in the result.
+                words_to_check = Permus_mset([i for (i, l) in enumerate(mu)
+                                              for _ in range(l)])
+                return R(sum((1 for w in words_to_check if check_word(w))))
+            from sage.combinat.partition import Partitions_n
+            r = m.sum_of_terms([(mu, coeff_of_m_mu_in_result(mu))
+                                for mu in Partitions_n(n)],
+                               distinct=True)
+            return self(r)
 
     class ElementMethods:
 

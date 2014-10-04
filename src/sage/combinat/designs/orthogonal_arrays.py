@@ -857,13 +857,13 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
     # Constructions from the database III (Quasi-difference matrices)
     elif (may_be_available and
           (n,1) in QDM     and
-          any(kk>=k and mu<=lmbda and OA_is_available(k,u) for (_,lmbda,mu,u),(kk,_) in QDM[n,1].items())):
+          any(kk>=k and mu<=lmbda and (orthogonal_array(k,u,existence=True) is True) for (_,lmbda,mu,u),(kk,_) in QDM[n,1].items())):
         _OA_cache_set(k,n,True)
 
         for (nn,lmbda,mu,u),(kk,f) in QDM[n,1].items():
             if (kk>=k     and
                 mu<=lmbda and
-                OA_is_available(k,u)):
+                (orthogonal_array(k,u,existence=True) is True)):
                 if existence:
                     return True
                 elif explain_construction:
@@ -904,48 +904,6 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
         assert is_orthogonal_array(OA,k,n,t,verbose=1), "Sage built an incorrect OA({},{}) O_o".format(k,n)
 
     return OA
-
-def OA_build(k,n,t=2,resolvable=False):
-    r"""
-    Return an `OA(k,n)` of strength `t`
-
-    An orthogonal array of parameters `k,n,t` is a matrix with `k`
-    columns filled with integers from `[n]` in such a way that for any
-    `t` columns, each of the `n^t` possible rows occurs exactly
-    once. In particular, the matrix has `n^t` rows.
-
-    More general definitions sometimes involve a `\lambda` parameter, and we
-    assume here that `\lambda=1`.
-
-    For more information on orthogonal arrays, see
-    :wikipedia:`Orthogonal_array`.
-
-    INPUT:
-
-    - ``k,n,t`` (integers) -- parameters of the orthogonal array.
-
-    - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
-      resolvable. The `n` classes of the resolvable design are obtained as the
-      first `n` blocks, then the next `n` blocks, etc ... Set to ``False`` by
-      default.
-
-    EXAMPLES::
-
-        sage: designs.orthogonal_arrays.build(3,3,resolvable=True) # indirect doctest
-        [[0, 0, 0],
-         [1, 2, 1],
-         [2, 1, 2],
-         [0, 2, 2],
-         [1, 1, 0],
-         [2, 0, 1],
-         [0, 1, 1],
-         [1, 0, 2],
-         [2, 2, 0]]
-        sage: OA_7_50 = designs.orthogonal_arrays.build(7,50)      # indirect doctest
-
-    """
-    return orthogonal_array(k,n,t,resolvable=resolvable)
-
 
 def largest_available_k(n,t=2):
     r"""
@@ -990,73 +948,9 @@ def largest_available_k(n,t=2):
     else:
         k=t-1
 
-    while OA_is_available(k+1,n,t=t):
+    while orthogonal_array(k+1,n,t,existence=True) is True:
         k += 1
     return k
-
-def OA_is_available(k,n,t=2):
-    r"""
-    Return whether Sage can build an `OA(k,n)`.
-
-    INPUT:
-
-    - ``k,n,t`` (integers) -- parameters of the orthogonal array.
-
-    .. SEEALSO::
-
-        :func:`OA_exists`
-
-    EXAMPLE::
-
-        sage: designs.orthogonal_arrays.is_available(3,6) # indirect doctest
-        True
-        sage: designs.orthogonal_arrays.is_available(4,6) # indirect doctest
-        False
-    """
-    return orthogonal_array(k,n,t,existence=True) is True
-
-def OA_exists(k,n,t=2):
-    r"""
-    Return the existence status of an `OA(k,n)`
-
-    INPUT:
-
-    - ``k,n,t`` (integers) -- parameters of the orthogonal array.
-
-    .. WARNING::
-
-       The function does not only return booleans, but ``True``,
-       ``False``, or ``Unknown``.
-
-    .. SEEALSO::
-
-        :func:`OA_is_available`
-
-    EXAMPLE::
-
-        sage: designs.orthogonal_arrays.exists(3,6) # indirect doctest
-        True
-        sage: designs.orthogonal_arrays.exists(4,6) # indirect doctest
-        Unknown
-        sage: designs.orthogonal_arrays.exists(7,6) # indirect doctest
-        False
-    """
-    return orthogonal_array(k,n,t,existence=True)
-
-def explain_construction(k,n,t=2):
-    r"""
-    Return a string describing how to builds an `OA(k,n)`
-
-    INPUT:
-
-    - ``k,n,t`` (integers) -- parameters of the orthogonal array.
-
-    EXAMPLE::
-
-        sage: designs.orthogonal_arrays.explain_construction(9,565)
-        "Wilson's construction n=23.24+13 with master design OA(9+1,23)"
-    """
-    return orthogonal_array(k,n,t,explain_construction=True)
 
 def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=False):
     r"""
@@ -1897,15 +1791,15 @@ class OAMainFunctions():
 
     From here you have access to:
 
-    - :func:`build(k,n,t=2) <OA_build>`: return an orthogonal array with the given
+    - :meth:`build(k,n,t=2) <build>`: return an orthogonal array with the given
       parameters.
-    - :func:`is_available(k,n,t=2) <OA_is_available>`: answer whether there is a
+    - :meth:`is_available(k,n,t=2) <is_available>`: answer whether there is a
       construction available in Sage for a given set of parameters.
-    - :func:`exists(k,n,t=2) <OA_exists>`: answer whether an orthogonal array with
+    - :meth:`exists(k,n,t=2) <exists>`: answer whether an orthogonal array with
       these parameters exist.
-    - :func:`largest_available_k(n,t=2) <largest_available_k>`: return the
+    - :meth:`largest_available_k(n,t=2) <largest_available_k>`: return the
       largest integer `k` such that Sage knows how to build an `OA(k,n)`.
-    - :func:`explain_construction(k,n,t=2) <explain_construction>`: return a
+    - :meth:`explain_construction(k,n,t=2) <explain_construction>`: return a
       string that explains the construction that Sage uses to build an
       `OA(k,n)`.
 
@@ -1956,8 +1850,114 @@ class OAMainFunctions():
             RuntimeError: This is not a function but a class. You want to call the designs.orthogonal_arrays.* functions
         """
         raise RuntimeError("This is not a function but a class. You want to call the designs.orthogonal_arrays.* functions")
+
     largest_available_k  = staticmethod(largest_available_k)
-    explain_construction = staticmethod(explain_construction)
-    build                = staticmethod(OA_build)
-    exists               = staticmethod(OA_exists)
-    is_available         = staticmethod(OA_is_available)
+
+    @staticmethod
+    def explain_construction(k,n,t=2):
+        r"""
+        Return a string describing how to builds an `OA(k,n)`
+
+        INPUT:
+
+        - ``k,n,t`` (integers) -- parameters of the orthogonal array.
+
+        EXAMPLE::
+
+            sage: designs.orthogonal_arrays.explain_construction(9,565)
+            "Wilson's construction n=23.24+13 with master design OA(9+1,23)"
+        """
+        return orthogonal_array(k,n,t,explain_construction=True)
+
+    @staticmethod
+    def build(k,n,t=2,resolvable=False):
+        r"""
+        Return an `OA(k,n)` of strength `t`
+
+        An orthogonal array of parameters `k,n,t` is a matrix with `k`
+        columns filled with integers from `[n]` in such a way that for any
+        `t` columns, each of the `n^t` possible rows occurs exactly
+        once. In particular, the matrix has `n^t` rows.
+
+        More general definitions sometimes involve a `\lambda` parameter, and we
+        assume here that `\lambda=1`.
+
+        For more information on orthogonal arrays, see
+        :wikipedia:`Orthogonal_array`.
+
+        INPUT:
+
+        - ``k,n,t`` (integers) -- parameters of the orthogonal array.
+
+        - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
+          resolvable. The `n` classes of the resolvable design are obtained as the
+          first `n` blocks, then the next `n` blocks, etc ... Set to ``False`` by
+          default.
+
+        EXAMPLES::
+
+            sage: designs.orthogonal_arrays.build(3,3,resolvable=True) # indirect doctest
+            [[0, 0, 0],
+             [1, 2, 1],
+             [2, 1, 2],
+             [0, 2, 2],
+             [1, 1, 0],
+             [2, 0, 1],
+             [0, 1, 1],
+             [1, 0, 2],
+             [2, 2, 0]]
+            sage: OA_7_50 = designs.orthogonal_arrays.build(7,50)      # indirect doctest
+
+        """
+        return orthogonal_array(k,n,t,resolvable=resolvable)
+
+    @staticmethod
+    def exists(k,n,t=2):
+        r"""
+        Return the existence status of an `OA(k,n)`
+
+        INPUT:
+
+        - ``k,n,t`` (integers) -- parameters of the orthogonal array.
+
+        .. WARNING::
+
+           The function does not only return booleans, but ``True``,
+           ``False``, or ``Unknown``.
+
+        .. SEEALSO::
+
+            :meth:`is_available`
+
+        EXAMPLE::
+
+            sage: designs.orthogonal_arrays.exists(3,6) # indirect doctest
+            True
+            sage: designs.orthogonal_arrays.exists(4,6) # indirect doctest
+            Unknown
+            sage: designs.orthogonal_arrays.exists(7,6) # indirect doctest
+            False
+        """
+        return orthogonal_array(k,n,t,existence=True)
+
+    @staticmethod
+    def is_available(k,n,t=2):
+        r"""
+        Return whether Sage can build an `OA(k,n)`.
+
+        INPUT:
+
+        - ``k,n,t`` (integers) -- parameters of the orthogonal array.
+
+        .. SEEALSO::
+
+            :meth:`exists`
+
+        EXAMPLE::
+
+            sage: designs.orthogonal_arrays.is_available(3,6) # indirect doctest
+            True
+            sage: designs.orthogonal_arrays.is_available(4,6) # indirect doctest
+            False
+        """
+        return orthogonal_array(k,n,t,existence=True) is True

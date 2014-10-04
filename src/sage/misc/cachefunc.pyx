@@ -429,14 +429,14 @@ in some computations::
 If such objects defined a non-trivial hash function, this would break
 caching in many places. However, such objects should still be usable
 in caches. This can be achieved by defining an appropriate method
-``_cache_key``.
+``_cache_key``::
 
     sage: hash(b)
     Traceback (most recent call last):
     ...
     TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
     sage: @cached_method
-    ....: def f(x): return x==a
+    ....: def f(x): return x == a
     sage: f(b)
     True
     sage: f(c) # if b and c were hashable, this would return True
@@ -896,7 +896,7 @@ cdef class CachedFunction(object):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: @cached_function
             ....: def f(x): return x+x
@@ -905,7 +905,7 @@ cdef class CachedFunction(object):
             1 + O(2)
             sage: y = K(1,2); y
             1 + O(2^2)
-            sage: x==y
+            sage: x == y
             True
             sage: f(x) is f(x)
             True
@@ -974,7 +974,7 @@ cdef class CachedFunction(object):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: @cached_function
             ....: def f(x): return x
@@ -1020,7 +1020,7 @@ cdef class CachedFunction(object):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: @cached_function
             ....: def f(x): return x
@@ -1248,7 +1248,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1259,7 +1259,7 @@ cdef class WeakCachedFunction(CachedFunction):
             (1 + O(2^20))*t + 1 + O(2)
             sage: y = t + K(1,2); y
             (1 + O(2^20))*t + 1 + O(2^2)
-            sage: x==y
+            sage: x == y
             True
             sage: f(x) is f(x)
             True
@@ -1325,7 +1325,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1373,7 +1373,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1806,18 +1806,18 @@ cdef class CachedMethodCaller(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: K.<u> = Qq(4)
             sage: class A(object):
             ....:   @cached_method
             ....:   def f(self, x): return x+x
-            sage: a=A()
+            sage: a = A()
             sage: x = K(1,1); x
             1 + O(2)
             sage: y = K(1,2); y
             1 + O(2^2)
-            sage: x==y
+            sage: x == y
             True
             sage: a.f(x) is a.f(x)
             True

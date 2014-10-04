@@ -1458,12 +1458,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def green_function(self, P, v, **kwds):
         r"""
         Evaluates the local Green's function at the place ``v`` for ``P`` with ``N`` terms of the
-        series or, in dimension 1, to within a given error bound.  Must be over a number field
-        or order of a number field. Note that this is abosolute local greens function
+        series or to within a given error bound.  Must be over a number field
+        or order of a number field. Note that this is absolute local greens function
         so is scaled by the degree of the base field.
 
-        Use ``v=0`` for the archimedean place over `\QQ` or field embedding. Local places are prime ideals
-        for number fields or primes over `\QQ`. 
+        Use ``v=0`` for the archimedean place over `\QQ` or field embedding. Non-archimedean
+        places are prime ideals for number fields or primes over `\QQ`.
 
         ALGORITHM:
 
@@ -1477,7 +1477,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         kwds:
 
-        - ``N`` - positive integer. number of terms of the series to use
+        - ``N`` - positive integer. number of terms of the series to use, default: 10
 
         - ``prec`` - positive integer, float point or p-adic precision, default: 100
 
@@ -1504,9 +1504,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def canonical_height(self, P, **kwds):
         r"""
         Evaluates the (absolute) canonical height of ``self`` with respect to ``F``. Must be over number field
-        or order of a number field.
-        Specify either the number of terms of the series to evaluate
-        or, in dimension 1, the error bound required.
+        or order of a number field. Specify either the number of terms of the series to evaluate or
+        the error bound required.
 
         ALGORITHM:
 
@@ -1546,7 +1545,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-29/16*y^2,y^2]);
             sage: f.canonical_height(P.point([1,4]), error_bound=0.000001)
-            3.5711911601471793573322582827e-7
+            4.6394113279707749011644196028e-7
 
         ::
 
@@ -1627,7 +1626,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def local_height(self, v, prec=None):
         r"""
-        Returns the maximum of the local heights of the coefficients in any
+        Returns the maximum of the local height of the coefficients in any
         of the coordinate functions of ``self``.
 
         INPUT:
@@ -1674,6 +1673,49 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if K not in _NumberFields:
             raise TypeError("Must be over a Numberfield or a Numberfield Order")
         return max([K(c).local_height(v, prec) for f in self for c in f.coefficients()])
+
+    def local_height_arch(self, i, prec=None):
+        r"""
+        Returns the maximum of the local height at the ``i``-th infinite place of the coefficients in any
+        of the coordinate functions of ``self``.
+
+        INPUT:
+
+        - ``i`` -- an integer
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([1/1331*x^2+1/4000*y^2,210*x*y]);
+            sage: f.local_height_arch(0)
+            5.34710753071747
+
+        ::
+
+            sage: R.<z> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(z^2-2)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = Hom(P,P)
+            sage: f = H([2*x^2 + w/3*y^2,1/w*y^2])
+            sage: f.local_height_arch(1)
+            0.6931471805599453094172321214582
+        """
+        K = FractionField(self.domain().base_ring())
+        if K not in _NumberFields:
+            raise TypeError("Must be over a Numberfield or a Numberfield Order")
+        if K == QQ:
+            return max([K(c).local_height_arch(prec=prec) for f in self for c in f.coefficients()])
+        else:
+            return max([K(c).local_height_arch(i, prec=prec) for f in self for c in f.coefficients()])
+
 
     def height_difference_bound(self, prec=None):
         r"""

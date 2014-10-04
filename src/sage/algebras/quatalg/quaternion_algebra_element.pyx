@@ -1749,12 +1749,20 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         Add self and _right:
 
         EXAMPLES::
+
             sage: K.<a> = QQ[2^(1/3)]; Q.<i,j,k> = QuaternionAlgebra(K, -3, a)
             sage: z = a + i + (2/3)*a^3*j + (1+a)*k; w = a - i - (2/3)*a^3*j + (1/3+a)*k
             sage: type(z)
             <type 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_number_field'>
             sage: z._add_(w)
             2*a + (2*a + 4/3)*k
+
+        Check that the fix in :trac:`17099` is correct::
+
+            sage: K = NumberField(x**3 + x - 1, 'a')
+            sage: D.<i,j,k> = QuaternionAlgebra(K, -1, -3)
+            sage: j/3 + (2*j)/3 == j
+            True
         """
 
         #   Given two quaternion algebra elements
@@ -1807,10 +1815,6 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         return result
 
-
-
-
-
     cpdef ModuleElement _sub_(self, ModuleElement _right):
         """
         Subtract _right from self.
@@ -1823,7 +1827,6 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
             <type 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_number_field'>
             sage: z._sub_(w)
             2*i + 8/3*j + 2/3*k
-
         """
         # Implementation Note: To obtain _sub_, we simply replace every occurrence of
         # "add" in _add_ with "sub"; that is, we s/add/sub to get _sub_

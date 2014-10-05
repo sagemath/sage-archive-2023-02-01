@@ -542,14 +542,26 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
 
     def classical(self):
         """
-        If self is a Weyl group from an affine Cartan Type, this give
-        the classical parabolic subgroup of self.
+        If ``self`` is a Weyl group from an affine Cartan Type, this give
+        the classical parabolic subgroup of ``self``.
 
         Caveat: we assume that 0 is a special node of the Dynkin diagram
 
         TODO: extract parabolic subgroup method
+
+        EXAMPLES::
+
+            sage: G = WeylGroup(['A',3,1])
+            sage: G.classical()
+            Parabolic Subgroup of the Weyl Group of type ['A', 3, 1]
+             (as a matrix group acting on the root space)
+            sage: WeylGroup(['A',3]).classical()
+            Traceback (most recent call last):
+            ...
+            ValueError: classical subgroup only defined for affine types
         """
-        assert(self.cartan_type().is_affine())
+        if not self.cartan_type().is_affine():
+            raise ValueError("classical subgroup only defined for affine types")
         return ClassicalWeylSubgroup(self._domain, prefix=self._prefix)
 
     def bruhat_graph(self, x, y):
@@ -692,8 +704,8 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: WeylGroup(['B', 3, 1]).classical()._test_is_finite()
         """
         tester = self._tester(**options)
-        assert(not self.weyl_group(self._prefix).is_finite())
-        assert(self.is_finite())
+        tester.assertTrue(not self.weyl_group(self._prefix).is_finite())
+        tester.assertTrue(self.is_finite())
 
 class WeylGroupElement(MatrixGroupElement_gap):
     """
@@ -842,7 +854,8 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: s[1].action(alpha[0])
             alpha[0] + alpha[1]
         """
-        assert(v in self.domain())
+        if v not in self.domain():
+            raise ValueError("{} is not in the domain".format(v))
         return self.domain().from_vector(self.__matrix*v.to_vector())
 
 

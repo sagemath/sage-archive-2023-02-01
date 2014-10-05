@@ -101,7 +101,6 @@ Methods
 """
 
 from sage.rings.integer import Integer
-from sage.misc.superseded import deprecated_function_alias
 from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
@@ -1312,8 +1311,6 @@ class DiGraph(GenericGraph):
         """
         return iter(set(self._backend.iterator_in_nbrs(vertex)))
 
-    predecessor_iterator = deprecated_function_alias(7634, neighbor_in_iterator)
-
     def neighbors_in(self, vertex):
         """
         Returns the list of the in-neighbors of a given vertex.
@@ -1327,8 +1324,6 @@ class DiGraph(GenericGraph):
             [1, 4]
         """
         return list(self.neighbor_in_iterator(vertex))
-
-    predecessors = deprecated_function_alias(7634, neighbors_in)
 
     def neighbor_out_iterator(self, vertex):
         """
@@ -1347,8 +1342,6 @@ class DiGraph(GenericGraph):
         """
         return iter(set(self._backend.iterator_out_nbrs(vertex)))
 
-    successor_iterator = deprecated_function_alias(7634, neighbor_out_iterator)
-
     def neighbors_out(self, vertex):
         """
         Returns the list of the out-neighbors of a given vertex.
@@ -1362,8 +1355,6 @@ class DiGraph(GenericGraph):
             [1, 2, 3]
         """
         return list(self.neighbor_out_iterator(vertex))
-
-    successors = deprecated_function_alias(7634, neighbors_out)
 
     ### Degree functions
 

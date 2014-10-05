@@ -4558,9 +4558,6 @@ class Partition(CombinatorialObject, Element):
         return sum(abs(variable+c) for c in outside_contents)\
                        -sum(abs(variable+c) for c in inside_contents)
 
-from sage.misc.superseded import deprecated_function_alias
-Partition_class = deprecated_function_alias(13605, Partition)
-
 ##############
 # Partitions #
 ##############

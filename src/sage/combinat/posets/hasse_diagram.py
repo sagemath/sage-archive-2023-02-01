@@ -427,13 +427,9 @@ class HasseDiagram(DiGraph):
             sage: p.is_chain()
             False
         """
-        # Quick check: for |V| verts there must be |V|-1 edges.
-        if self.num_edges()+1 != self.num_verts():
-            return False
-        # Maximum in-degree and out-degree is 1
-        if any(d>1 for d in self.out_degree()):
-            return False
-        return all(d<=1 for d in self.in_degree())
+        return (self.num_edges()+1 == self.num_verts() and # Hasse Diagram is a tree
+                all(d<=1 for d in self.out_degree())   and # max outdegree is <= 1
+                all(d<=1 for d in self.in_degree()))       # max  indegree is <= 1
 
     def dual(self):
         """

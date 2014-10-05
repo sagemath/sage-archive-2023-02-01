@@ -40,6 +40,7 @@ from sage.libs.pari.all import pari
 
 roman_numeral = ["", "I", "II", "III", "IV", "V", "VI", "VII"]
 
+
 class ReductionData(SageObject):
     r"""
     Reduction data for a genus 2 curve.
@@ -163,7 +164,7 @@ class ReductionData(SageObject):
             yterm = ''
         else:
             yterm = '+ (%s)*y '%self.Q
-        s =  'Reduction data about this proper smooth genus 2 curve:\n'
+        s = 'Reduction data about this proper smooth genus 2 curve:\n'
         s += '\ty^2 %s= %s\n'%(yterm, self.P)
         s += 'A Minimal Equation (away from 2):\n\ty^2 = %s\n'%self.minimal_equation
         s += 'Minimal Discriminant (away from 2):  %s\n'%self.minimal_disc
@@ -179,6 +180,7 @@ class ReductionData(SageObject):
             s += 'p=%s\n%s\n'%(p, D[p])
         s = '\t' + '\n\t'.join(s.strip().split('\n'))
         return s
+
 
 def divisors_to_string(divs):
     """
@@ -220,6 +222,7 @@ def divisors_to_string(divs):
             n = 0
 
     return s or "(1)"
+
 
 class Genus2reduction(SageObject):
     r"""
@@ -540,10 +543,11 @@ class Genus2reduction(SageObject):
                              conductor, (minimal_disc % 2 == 0))
 
     def __reduce__(self):
-        return _reduce_load_Genus2reduction, tuple([])
+        return _reduce_load_genus2reduction, tuple([])
 
 # An instance
 genus2reduction = Genus2reduction()
+
 
 def _reduce_load_genus2reduction():
     return genus2reduction

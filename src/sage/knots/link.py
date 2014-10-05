@@ -355,7 +355,6 @@ class Link:
             oriented_gauss_code = self._oriented_gauss_code
             d_dic = {}
             if len(oriented_gauss_code[0]) > 1:
-                #d = [x for y in oriented_gauss_code[0] for x in y]
                 d = flatten(oriented_gauss_code[0])
                 for i, j in enumerate(d):
                     d_dic.update({j: [i + 1, i + 2]})

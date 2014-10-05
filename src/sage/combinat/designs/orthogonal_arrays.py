@@ -930,11 +930,13 @@ def largest_available_k(n,t=2):
         sage: designs.orthogonal_arrays.largest_available_k(-1)
         Traceback (most recent call last):
         ...
-        AssertionError: n(=-1) was expected to be >=0
+        ValueError: n(=-1) was expected to be >=0
     """
     from block_design import projective_plane
-    assert n>=0, "n(={}) was expected to be >=0".format(n)
-    assert t>=0, "t(={}) was expected to be >=0".format(t)
+    if n<0:
+        raise ValueError("n(={}) was expected to be >=0".format(n))
+    if t<0:
+        raise ValueError("t(={}) was expected to be >=0".format(t))
     if n == 0 or n == 1:
         from sage.rings.infinity import Infinity
         return Infinity

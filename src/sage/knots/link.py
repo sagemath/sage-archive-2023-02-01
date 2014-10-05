@@ -29,10 +29,10 @@ from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.functions.generalized import sign
 from sage.plot.line import line
 from sage.plot.bezier_path import bezier_path
+from sage.misc.flatten import flatten
 
 
 class Link:
-
     r"""
     The base class for Link.
 
@@ -40,22 +40,22 @@ class Link:
 
     - The different ways in which the input can be provided :
 
-      1. Braid
-      2. Oriented Gauss Code
-      3. Planar Diagram Code
+    1. Braid
+    2. Oriented Gauss Code
+    3. Planar Diagram Code
 
-      EXAMPLES::
+    EXAMPLES::
 
-          sage: B = BraidGroup(8)
-          sage: L = Link(B([1, 2, 1, -2,-1]))
-          sage: L
-          Link with 2 components represented by 5 crossings
-          sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-          sage: L
-          Knot represented by 7 crossings
-          sage: L = Link([[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
-          sage: L
-          Link with 2 components represented by 5 crossings
+        sage: B = BraidGroup(8)
+        sage: L = Link(B([1, 2, 1, -2,-1]))
+        sage: L
+        Link with 2 components represented by 5 crossings
+        sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
+        sage: L
+        Knot represented by 7 crossings
+        sage: L = Link([[1,8,2,7],[8,4,9,5],[3,9,4,10],[10,1,7,6],[5,3,6,2]])
+        sage: L
+        Link with 2 components represented by 5 crossings
     """
 
     def __init__(self, data):
@@ -137,7 +137,7 @@ class Link:
                 self._braid = None
 
             else:
-                flat = [x for y in data[0] for x in y]
+                flat = flatten(data[0])
                 a, b = max(flat), min(flat)
                 if 2 * len(data[1]) != len(flat) or set(range(b, a + 1)) - set([0]) != set(flat):
                     raise ValueError("Invalid Input: Data is not a valid Oriented Gauss Code")
@@ -355,7 +355,8 @@ class Link:
             oriented_gauss_code = self._oriented_gauss_code
             d_dic = {}
             if len(oriented_gauss_code[0]) > 1:
-                d = [x for y in oriented_gauss_code[0] for x in y]
+                #d = [x for y in oriented_gauss_code[0] for x in y]
+                d = flatten(oriented_gauss_code[0])
                 for i, j in enumerate(d):
                     d_dic.update({j: [i + 1, i + 2]})
                 # here we collect the final component in each gauss code
@@ -630,7 +631,7 @@ class Link:
             [-2, 1, 1, 4, 4, 6]
         """
         bc = self._braidwordcomponents_()
-        return [x for y in bc for x in y]
+        return flatten(bc)
 
     def _homology_generators_(self):
         r"""
@@ -1055,10 +1056,8 @@ class Link:
         """
         y = self.PD_code()
         x = deepcopy(y)
-        under = [[[i[0], 1], [i[2], -1]] for i in x]
-        under = [a for b in under for a in b]
-        over = [[[i[1], None], [i[3], None]] for i in x]
-        over = [a for b in over for a in b]
+        under = flatten([[[i[0], 1], [i[2], -1]] for i in x], max_level = 1)
+        over = flatten([[[i[1], None], [i[3], None]] for i in x], max_level = 1)
         for i in over:
             for j in under:
                 if i[0] == j[0]:
@@ -1142,11 +1141,10 @@ class Link:
                 x[1].append(j[1])
                 x[1].append(j[2])
             seifert_pairs.append(x)
-        flatten = [x for y in seifert_pairs for x in y]
-        flatten = [x for y in flatten for x in y]
+        flattened = flatten(seifert_pairs)
         dic = {}
-        for i in range(0, len(flatten), 2):
-            dic.update({flatten[i]: [flatten[i + 1]]})
+        for i in range(0, len(flattened), 2):
+            dic.update({flattened[i]: [flattened[i + 1]]})
         D = DiGraph(dic)
         d = D.all_simple_cycles()
         for i in d:
@@ -1717,7 +1715,7 @@ def _pd_error_(pd):
         if len(i) != 4:
             pd_error = True
     else:
-        flat = [x for y in pd for x in y]
+        flat = flatten(pd)
         set_flat = set(flat)
         for i in set_flat:
             if flat.count(i) != 2:

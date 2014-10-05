@@ -72,6 +72,7 @@ import operator
 
 from sage.combinat.finite_state_machine import Transducer
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 class TransducerGenerators(object):
     r"""
@@ -733,7 +734,7 @@ class TransducerGenerators(object):
                           with_final_word_out=[0])
 
     def Recursion(self, recursions, function, var, base,
-                  input_alphabet=None):
+                  input_alphabet=None, output_rings=[ZZ, QQ]):
         """
         Return a transducer realizing the given recursion when reading
         the digit expansion with base ``base``.
@@ -757,6 +758,13 @@ class TransducerGenerators(object):
           to be used as the input alphabet. If ``None`` and the base
           is an integer, ``input_alphabet`` is chosen to be
           ``range(base.abs())``.
+
+        - ``output_rings`` -- (default: ``[ZZ, QQ]``) a list of
+          rings. The output labels are coerced in the first ring of
+          the list in which they are contained. If they are not
+          contained in any ring, they remain in whatever ring they are
+          after parsing the recursions, typically the symbolic ring or
+          Python ``int``.
 
         OUTPUT:
 
@@ -785,6 +793,41 @@ class TransducerGenerators(object):
                 sage: T.transitions()
                 [Transition from (0, 0) to (0, 0): 0|0,
                  Transition from (0, 0) to (0, 0): 1|1]
+
+            As no ``output_rings`` have been specified, the output labels
+            are coerced into ``ZZ``::
+
+                sage: for t in T.transitions():
+                ....:     print t.word_out[0].parent()
+                Integer Ring
+                Integer Ring
+
+            In contrast, if ``output_rings`` is set to the empty list, the
+            results are not coerced::
+
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n) + 1,
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 0],
+                ....:     f, n, 2, output_rings=[])
+                sage: T.transitions()[0].word_out[0].parent()
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'int' object has no attribute 'parent'
+                sage: T.transitions()[1].word_out[0].parent()
+                Symbolic Ring
+
+            Finally, we use a somewhat questionable coercion::
+
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n) + 1,
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 0],
+                ....:     f, n, 2, output_rings=[GF(5)])
+                sage: for t in T.transitions():
+                ....:     print t.word_out[0], t.word_out[0].parent()
+                0 Finite Field of size 5
+                1 Finite Field of size 5
 
         -   The following example computes the Hamming weight of the
             non-adjacent form, cf. the :wikipedia:`Non-adjacent_form`. ::
@@ -1036,6 +1079,12 @@ class TransducerGenerators(object):
         def is_scalar(expression):
             return var not in expression.variables()
 
+        def coerce_output(output):
+            for ring in output_rings:
+                if output in ring:
+                    return ring(output)
+            return(output)
+
         def parse_equation(equation):
             if equation.operator() != operator.eq:
                 raise ValueError("%s is not an equation with ==."
@@ -1136,7 +1185,7 @@ class TransducerGenerators(object):
             assert equation == parsed_equation, \
                 "Parsing of %s failed for unknown reasons." % (equation,)
 
-            rule = Rule(K=K,r=r, k=k, s=s, t=t)
+            rule = Rule(K=K,r=r, k=k, s=s, t=coerce_output(t))
             rules.append(rule)
 
 

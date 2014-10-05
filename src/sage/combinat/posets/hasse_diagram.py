@@ -690,8 +690,6 @@ class HasseDiagram(DiGraph):
             sage: Q.is_graded()
             False
         """
-        from sage.misc.superseded import deprecation
-        deprecation(16998, 'This is just a copy of is_ranked(), and collides with definition of is_graded() on posets.py.')
         return self.is_ranked()
 
     def covers(self,x,y):

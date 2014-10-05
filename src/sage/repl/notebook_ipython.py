@@ -21,7 +21,7 @@ from sage.repl.interpreter import (
 
 
 # The directory where all Sage IPython Notebooks files are stored
-NOTEBOOK_DIR = os.path.join(DOT_SAGE, 'notebooks_ipy')
+NOTEBOOK_DIR = os.path.join(DOT_SAGE, 'notebooks_ipython')
 
 
 # The notebook Jinja2 templates and static files
@@ -45,7 +45,7 @@ DEFAULT_SAGE_NOTEBOOK_CONFIG = Config(
 
 
 class SageNotebookApp(NotebookApp):
-    name = u'sage-notebook-ipy'
+    name = u'sage-notebook-ipython'
     crash_handler_class = SageCrashHandler
 
     def load_config_file(self, *args, **kwds):
@@ -55,7 +55,7 @@ class SageNotebookApp(NotebookApp):
         EXAMPLES::
 
             sage: from sage.misc.temporary_file import tmp_dir
-            sage: from sage.repl.notebook_ipy import SageNotebookApp, NOTEBOOK_DIR
+            sage: from sage.repl.notebook_ipython import SageNotebookApp, NOTEBOOK_DIR
             sage: d = tmp_dir()
             sage: IPYTHONDIR = os.environ['IPYTHONDIR']
             sage: os.environ['IPYTHONDIR'] = d
@@ -83,7 +83,7 @@ class SageNotebookApp(NotebookApp):
 
         EXAMPLES::
 
-            sage: from sage.repl.notebook_ipy import SageNotebookApp
+            sage: from sage.repl.notebook_ipython import SageNotebookApp
             sage: d = tmp_dir()
             sage: IPYTHONDIR = os.environ['IPYTHONDIR']
             sage: os.environ['IPYTHONDIR'] = d
@@ -94,7 +94,7 @@ class SageNotebookApp(NotebookApp):
             2014-09-16 23:57:35.6 [SageNotebookApp] Created profile dir: 
             u'/home/vbraun/.sage/temp/desktop.localdomain/1490/dir_ZQupP5/profile_default'
             sage: app.kernel_argv
-            [u"--IPKernelApp.parent_appname='sage-notebook-ipy'",
+            [u"--IPKernelApp.parent_appname='sage-notebook-ipython'",
              '--profile-dir',
              u'/.../profile_default',
              u'--IPKernelApp.kernel_class=sage.repl.zmq_kernel.SageKernel',

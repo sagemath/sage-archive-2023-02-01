@@ -61,14 +61,14 @@ class NotebookIPython(object):
 
     def __init__(self, argv):
         self._make_notebook_dir()
-        from sage.repl.notebook_ipy import SageNotebookApp
+        from sage.repl.notebook_ipython import SageNotebookApp
         app = SageNotebookApp.instance()
         app.initialize(argv)
         app.start()
 
     def _make_notebook_dir(self):
         # The IPython notebook directory must exist
-        from sage.repl.notebook_ipy import NOTEBOOK_DIR
+        from sage.repl.notebook_ipython import NOTEBOOK_DIR
         if not os.path.exists(NOTEBOOK_DIR):
             os.makedirs(NOTEBOOK_DIR)
 

@@ -46,7 +46,6 @@ all-sage: \
      $(INST)/$(FLINTQS) \
      $(INST)/$(FPLLL) \
      $(INST)/$(FREETYPE) \
-     $(INST)/$(GENUS2REDUCTION) \
      $(INST)/$(GAP) \
      $(INST)/$(GD) \
      $(INST)/$(GDMODULE) \
@@ -284,9 +283,6 @@ $(INST)/$(LINBOX): $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(GIVARO) \
 
 $(INST)/$(IML): $(INST)/$(MPIR) $(INST)/$(GSL) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(IML) 2>&1" "tee -a $(SAGE_LOGS)/$(IML).log"
-
-$(INST)/$(GENUS2REDUCTION): $(INST)/$(PARI)
-	+$(PIPE) "$(SAGE_SPKG) $(GENUS2REDUCTION) 2>&1" "tee -a $(SAGE_LOGS)/$(GENUS2REDUCTION).log"
 
 $(INST)/$(PALP):
 	+$(PIPE) "$(SAGE_SPKG) $(PALP) 2>&1" "tee -a $(SAGE_LOGS)/$(PALP).log"

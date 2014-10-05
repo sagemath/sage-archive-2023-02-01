@@ -309,8 +309,7 @@ class HasseDiagram(DiGraph):
             sage: P(2) in P.minimal_elements()
             True
         """
-        indegs = self.in_degree(labels=True)
-        return [x for x in indegs if indegs[x]==0]
+        return self.sources()
 
     def maximal_elements(self):
         """
@@ -322,8 +321,7 @@ class HasseDiagram(DiGraph):
             sage: P.maximal_elements()
             [4]
         """
-        outdegs = self.out_degree(labels=True)
-        return [x for x,d in outdegs.iteritems() if d==0]
+        return self.sinks()
 
     def bottom(self):
         """
@@ -432,19 +430,9 @@ class HasseDiagram(DiGraph):
         # Quick check: for |V| verts there must be |V|-1 edges.
         if self.num_edges()+1 != self.num_verts():
             return False
-        # There is one minimum and all other vertices have out-degree 1
-        seen_0 = False
-        for d in self.out_degree():
-            if d == 1:
-                pass
-            elif d == 0:
-                if seen_0:
-                    return False
-                seen_0 = True
-            else:
-                return False
-
-        # Maximum in-degree is 1
+        # Maximum in-degree and out-degree is 1
+        if any(d>1 for d in self.out_degree()):
+            return False
         return all(d<=1 for d in self.in_degree())
 
     def dual(self):
@@ -702,6 +690,8 @@ class HasseDiagram(DiGraph):
             sage: Q.is_graded()
             False
         """
+        from sage.misc.superseded import deprecation
+        deprecation(16998, 'This is just a copy of is_ranked(), and collides with definition of is_graded() on posets.py.')
         return self.is_ranked()
 
     def covers(self,x,y):

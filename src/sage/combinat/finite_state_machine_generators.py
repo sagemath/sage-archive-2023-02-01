@@ -801,6 +801,8 @@ class TransducerGenerators(object):
                 ....:     print t.word_out[0].parent()
                 Integer Ring
                 Integer Ring
+                sage: T.states()[0].final_word_out[0].parent()
+                Integer Ring
 
             In contrast, if ``output_rings`` is set to the empty list, the
             results are not coerced::
@@ -815,6 +817,8 @@ class TransducerGenerators(object):
                 ...
                 AttributeError: 'int' object has no attribute 'parent'
                 sage: T.transitions()[1].word_out[0].parent()
+                Symbolic Ring
+                sage: T.states()[0].final_word_out[0].parent()
                 Symbolic Ring
 
             Finally, we use a somewhat questionable coercion::
@@ -1107,7 +1111,7 @@ class TransducerGenerators(object):
                                  "in %s." % (left_side.operands()[0],
                                             var))
             if polynomial_left in base_ring and is_scalar(right_side):
-                initial_values[polynomial_left] = right_side
+                initial_values[polynomial_left] = coerce_output(right_side)
                 return
 
             if polynomial_left.degree() != 1:

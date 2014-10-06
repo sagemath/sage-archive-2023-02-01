@@ -34,7 +34,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
     EXAMPLES::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: OA = designs.orthogonal_array(8,9)
+        sage: OA = designs.orthogonal_arrays.build(8,9)
         sage: is_orthogonal_array(OA,8,9)
         True
         sage: is_orthogonal_array(OA,8,10)

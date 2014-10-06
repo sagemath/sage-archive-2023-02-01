@@ -1118,6 +1118,12 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
     def __init__(self, points, blocks, K=None, lambd=1, check=True, copy=True,**kwds):
         r"""
         Constructor
+
+        EXAMPLE::
+
+            sage: designs.balanced_incomplete_block_design(13,3) # indirect doctest
+            (13,3,1)-Balanced Incomplete Block Design
+
         """
         try:
             int(points)
@@ -1141,6 +1147,9 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
         Returns a string describing the PBD
 
         EXAMPLES::
+
+            sage: designs.balanced_incomplete_block_design(13,3) # indirect doctest
+            (13,3,1)-Balanced Incomplete Block Design
         """
         return "Pairwise Balanced Design on {} points with sets of sizes in {}".format(self.num_points(),set(self.block_sizes()))
 

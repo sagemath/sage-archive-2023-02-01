@@ -94,7 +94,7 @@ def MOLS_10_2():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(2,10,existence=True)
+        sage: designs.orthogonal_arrays.is_available(2,10)
         True
     """
     from sage.matrix.constructor import Matrix
@@ -167,7 +167,7 @@ def MOLS_14_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(4,14,existence=True)
+        sage: designs.orthogonal_arrays.is_available(4,14)
         True
     """
     M = """
@@ -205,7 +205,7 @@ def MOLS_15_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(4,15,existence=True)
+        sage: designs.orthogonal_arrays.is_available(4,15)
         True
     """
     M = """
@@ -244,7 +244,7 @@ def MOLS_18_3():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(3,18,existence=True)
+        sage: designs.orthogonal_arrays.is_available(3,18)
         True
     """
     M = """
@@ -309,7 +309,7 @@ def OA_7_18():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,18,existence=True)
+        sage: designs.orthogonal_arrays.is_available(7,18)
         True
     """
     M = """
@@ -364,7 +364,7 @@ def OA_9_40():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(9,40,existence=True)
+        sage: designs.orthogonal_arrays.is_available(9,40)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -403,7 +403,7 @@ def OA_7_66():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,66,existence=True)
+        sage: designs.orthogonal_arrays.is_available(7,66)
         True
     """
 
@@ -443,7 +443,7 @@ def OA_7_68():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,68,existence=True)
+        sage: designs.orthogonal_arrays.is_available(7,68)
         True
     """
 
@@ -483,7 +483,7 @@ def OA_8_69():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(8,69,existence=True)
+        sage: designs.orthogonal_arrays.is_available(8,69)
         True
     """
     # base block of a (73,9,1) BIBD
@@ -556,7 +556,7 @@ def OA_7_74():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,74,existence=True)
+        sage: designs.orthogonal_arrays.is_available(7,74)
         True
     """
 
@@ -596,7 +596,7 @@ def OA_8_76():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(8,76,existence=True)
+        sage: designs.orthogonal_arrays.is_available(8,76)
         True
     """
     # base block of a (91,10,1) BIBD
@@ -664,7 +664,7 @@ def OA_11_80():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(11,80,existence=True)
+        sage: designs.orthogonal_arrays.is_available(11,80)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -706,7 +706,7 @@ def OA_15_112():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(15,112,existence=True)
+        sage: designs.orthogonal_arrays.is_available(15,112)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -756,7 +756,7 @@ def OA_9_120():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(9,120,existence=True)
+        sage: designs.orthogonal_arrays.is_available(9,120)
         True
     """
     from incidence_structures import IncidenceStructure
@@ -805,7 +805,7 @@ def OA_9_135():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(9,135,existence=True)
+        sage: designs.orthogonal_arrays.is_available(9,135)
         True
 
     As this orthogonal array requires a `(273,17,1)` cyclic difference set, we check that
@@ -885,7 +885,7 @@ def OA_11_160():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(11,160,existence=True)
+        sage: designs.orthogonal_arrays.is_available(11,160)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -928,7 +928,7 @@ def OA_16_176():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(16,176,existence=True)
+        sage: designs.orthogonal_arrays.is_available(16,176)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -987,7 +987,7 @@ def OA_11_185():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(11,185,existence=True)
+        sage: designs.orthogonal_arrays.is_available(11,185)
         True
 
     """
@@ -1063,7 +1063,7 @@ def OA_10_205():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,205,existence=True)
+        sage: designs.orthogonal_arrays.is_available(10,205)
         True
     """
     # Base block of a cyclic PG(2,4^2)
@@ -1127,7 +1127,7 @@ def OA_16_208():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(16,208,existence=True)
+        sage: designs.orthogonal_arrays.is_available(16,208)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1186,7 +1186,7 @@ def OA_15_224():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(15,224,existence=True)
+        sage: designs.orthogonal_arrays.is_available(15,224)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1237,7 +1237,7 @@ def OA_11_254():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(11,254,existence=True)
+        sage: designs.orthogonal_arrays.is_available(11,254)
         True
     """
 
@@ -1272,7 +1272,7 @@ def OA_20_352():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(20,352,existence=True)
+        sage: designs.orthogonal_arrays.is_available(20,352)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1331,7 +1331,7 @@ def OA_20_416():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(20,416,existence=True)
+        sage: designs.orthogonal_arrays.is_available(20,416)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1391,7 +1391,7 @@ def OA_20_544():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(20,544,existence=True)
+        sage: designs.orthogonal_arrays.is_available(20,544)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1455,7 +1455,7 @@ def OA_17_560():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(17,560,existence=True)
+        sage: designs.orthogonal_arrays.is_available(17,560)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField as GF
@@ -1519,7 +1519,7 @@ def OA_11_640():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(11,640,existence=True)
+        sage: designs.orthogonal_arrays.is_available(11,640)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1569,7 +1569,7 @@ def OA_10_796():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,796,existence=True)
+        sage: designs.orthogonal_arrays.is_available(10,796)
         True
     """
     from sage.combinat.designs.orthogonal_arrays import OA_relabel
@@ -1647,7 +1647,7 @@ def OA_10_469():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,469,existence=True)
+        sage: designs.orthogonal_arrays.is_available(10,469)
         True
     """
     from orthogonal_arrays_build_recursive import _reorder_matrix
@@ -1776,7 +1776,7 @@ def OA_10_520():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,520,existence=True)
+        sage: designs.orthogonal_arrays.is_available(10,520)
         True
     """
     return OA_520_plus_x(0)
@@ -1798,7 +1798,7 @@ def OA_12_522():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(12,522,existence=True)
+        sage: designs.orthogonal_arrays.is_available(12,522)
         True
     """
     return OA_520_plus_x(2)
@@ -1820,7 +1820,7 @@ def OA_14_524():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(14,524,existence=True)
+        sage: designs.orthogonal_arrays.is_available(14,524)
         True
     """
     return OA_520_plus_x(4)
@@ -1846,7 +1846,7 @@ def OA_15_896():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(15,896,existence=True)
+        sage: designs.orthogonal_arrays.is_available(15,896)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1893,7 +1893,7 @@ def OA_25_1262():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(25,1262,existence=True)
+        sage: designs.orthogonal_arrays.is_available(25,1262)
         True
     """
 

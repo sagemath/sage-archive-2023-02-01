@@ -677,12 +677,14 @@ class IncidenceStructure(object):
         A = self.incidence_matrix()
         return BipartiteGraph(A)
 
-    def relabel(self, perm):
+    def relabel(self, perm=None):
         r"""
         Relabel the ground set
 
-        - ``label`` (dictionary) -- associated every point of the ground set
-          with its image. All images must be distinct.
+        - ``perm`` (dictionary) -- associates every point of the ground set with
+          its image. All images must be distinct. When set to ``None`` (default)
+          the points are relabelled to `0,...,n-1` in the ordering given by
+          :meth:`ground_set`.
 
         EXAMPLES::
 
@@ -692,16 +694,25 @@ class IncidenceStructure(object):
             ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
             sage: print TD.blocks()[:3]
             [['a', 'f', 'k', 'p', 'u'], ['a', 'g', 'm', 's', 'y'], ['a', 'h', 'o', 'q', 'x']]
+
+        Relabel to integer points::
+
+            sage: TD.relabel()
+            sage: print TD.blocks()[:3]
+            [[0, 5, 10, 15, 20], [0, 6, 12, 18, 24], [0, 7, 14, 16, 23]]
         """
-        assert len(set(perm.values())) == len(perm)
+        if perm is not None:
+            if len(set(perm.values())) != len(perm):
+                raise ValueError("Two points are getting relabelled with the same name !")
 
-
-        self._points = [perm[x] for x in self._points]
-
-        if self._points == range(self.num_points()):
-            self._point_to_index  = None
+            self._points = [perm[x] for x in self._points]
+            if self._points == range(self.num_points()):
+                self._point_to_index  = None
+            else:
+                self._point_to_index = {v:i for i,v in enumerate(self._points)}
         else:
-            self._point_to_index = {v:i for i,v in enumerate(self._points)}
+            self._points = range(self.num_points())
+            self._point_to_index = None
 
     def __hash__(self):
         r"""

@@ -66,6 +66,7 @@ incoherent with the data structure.
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
+from functools import reduce
 
 
 # Unfortunately Cython forbids multiple inheritance. Therefore, we do not
@@ -641,7 +642,7 @@ class AbstractTree(object):
         stack = [self]
         while len(stack) > 0:
             node = stack[-1]
-            if node != None:
+            if node is not None:
                 # A "None" on the stack means that the node right before
                 # it on the stack has already been "exploded" into
                 # subtrees, and should not be exploded again, but instead
@@ -1300,7 +1301,7 @@ class AbstractTree(object):
                 # build all subtree matrices.
                 node, name = create_node(self)
                 edge = [name]
-                split = int(len(self) / 2)
+                split = len(self) // 2
                 # the left part
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)
@@ -1389,7 +1390,7 @@ class AbstractTree(object):
                 # build all subtree matrices.
                 node, name = create_node(self)
                 edge = [name]
-                split = int(len(self) / 2)
+                split = len(self) // 2
                 # the left part
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)

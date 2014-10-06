@@ -998,7 +998,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: B.gens_dict()
-            {'a': a, 'c': c, 'b': b, 'd': d}
+            {'a': a, 'b': b, 'c': c, 'd': d}
         """
         if self._gens_dict is not None:
             return self._gens_dict
@@ -3304,7 +3304,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: (x*y + x + y + 1).degree(x)
             1
         """
-        if x != None:
+        if x is not None:
             if self._pbpoly.set().multiplesOf((<BooleanPolynomial>x)._pbpoly.firstTerm()).isZero():
                 return 0
             else:
@@ -3811,7 +3811,7 @@ cdef class BooleanPolynomial(MPolynomial):
             raise ValueError, "polynomial must involve at most one variable"
 
         #construct ring if none
-        if R == None:
+        if R is None:
             if self.is_constant():
                 R = GF(2)['x']
             else:
@@ -5114,7 +5114,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                 sage: R.<x,y,z> = BooleanPolynomialRing()
                 sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
                 sage: I.variety()
-                [{y: 1, z: 0, x: 0}, {y: 1, z: 1, x: 1}]
+                [{z: 0, y: 1, x: 0}, {z: 1, y: 1, x: 1}]
 
         TESTS:
 
@@ -5132,7 +5132,8 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                         x1*x2 + x1*x6 + x2*x4 + x2*x5 + x2*x6 + x3*x6 + x4*x6 + x5*x6 + x5]
                  sage: I = R.ideal( polys )
                  sage: I.variety()
-                 [{x6: 0, x5: 0, x4: 0, x2: 0, x3: 0, x1: 0}, {x6: 1, x5: 0, x4: 0, x2: 1, x3: 1, x1: 1}]
+                 [{x6: 0, x5: 0, x4: 0, x3: 0, x2: 0, x1: 0},
+                  {x6: 1, x5: 0, x4: 0, x3: 1, x2: 1, x1: 1}]
 
                  sage: R = PolynomialRing(GF(2), 6, ['x%d'%(i+1) for i in range(6)], order='lex')
                  sage: I = R.ideal( polys )

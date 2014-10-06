@@ -21,6 +21,7 @@ AUTHORS:
 
 from padic_generic import pAdicGeneric
 from padic_base_generic import pAdicBaseGeneric
+from functools import reduce
 
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):

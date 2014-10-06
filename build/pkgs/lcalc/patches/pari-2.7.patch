@@ -1,0 +1,31 @@
+--- src/src/Lcommandline_elliptic.cc	2010-01-31 16:16:45.000000000 +0100
++++ src/src/Lcommandline_elliptic.cc	2011-05-10 17:08:10.000000000 +0200
+@@ -121,11 +121,11 @@
+ 
+ 
+     F = cgetg(6, t_VEC);
+-    F[1] = lgeti(BIGDEFAULTPREC);
+-    F[2] = lgeti(BIGDEFAULTPREC);
+-    F[3] = lgeti(BIGDEFAULTPREC);
+-    F[4] = lgeti(BIGDEFAULTPREC);
+-    F[5] = lgeti(BIGDEFAULTPREC);
++    F[1] = (long)cgeti(BIGDEFAULTPREC);
++    F[2] = (long)cgeti(BIGDEFAULTPREC);
++    F[3] = (long)cgeti(BIGDEFAULTPREC);
++    F[4] = (long)cgeti(BIGDEFAULTPREC);
++    F[5] = (long)cgeti(BIGDEFAULTPREC);
+ 
+     //gaffsg(a1,(GEN) F[1]);
+     //gaffsg(a2,(GEN) F[2]);
+diff -ru src/src/Lcommandline_elliptic.cc b/src/Lcommandline_elliptic.cc
+--- src/src/Lcommandline_elliptic.cc	2014-02-10 10:17:11.004419528 +0100
++++ b/src/Lcommandline_elliptic.cc	2014-02-10 10:20:37.757715491 +0100
+@@ -139,7 +139,7 @@
+     gaffect(strtoGEN(a4), (GEN) F[4]);
+     gaffect(strtoGEN(a6), (GEN) F[5]);
+ 
+-    E = initell(F,BIGDEFAULTPREC);
++    E = ellinit(F, NULL, BIGDEFAULTPREC);
+ 
+     C=globalreduction(E);
+ 

@@ -388,7 +388,7 @@ def ArithmeticSubgroup_Permutation(
          L=(1,2)(3,5,4)
          R=(1,2)(3,4,5)
     """
-    gens = filter(lambda x: x is not None, [S2,S3,L,R])
+    gens = [x for x in [S2,S3,L,R] if x is not None]
     if len(gens) == 0:
         S2 = S3 = L = R = ''
     elif len(gens) < 2:
@@ -1417,10 +1417,10 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
                 e.append((i,j))
 
         # build the quotient permutations
-        ss2 = [None]*(N/2)
-        ss3 = [None]*(N/2)
-        ll = [None]*(N/2)
-        rr = [None]*(N/2)
+        ss2 = [None]*(N//2)
+        ss3 = [None]*(N//2)
+        ll = [None]*(N//2)
+        rr = [None]*(N//2)
 
         s3 = self._S3
         l = self._L

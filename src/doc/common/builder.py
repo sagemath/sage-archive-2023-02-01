@@ -32,7 +32,23 @@ from sage.env import SAGE_DOC, SAGE_SRC
 #     SAGE_DOC, LANGUAGES, SPHINXOPTS, PAPER, OMIT,
 #     PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS
 # from build_options.py.
-execfile(os.path.join(SAGE_DOC, 'common' , 'build_options.py'))
+fpath = os.path.join(SAGE_DOC, 'common', 'build_options.py')
+exec(compile(open(fpath).read(), fpath, 'exec'))
+
+
+def delete_empty_directories(root_dir, verbose=True):
+    """
+    Delete all empty directories found under ``root_dir``
+
+    INPUT:
+
+    - ``root_dir`` -- string. A valid directory name.
+    """
+    for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
+        if not dirnames + filenames:
+            if verbose:
+                print('Deleting empty directory {0}'.format(dirpath))
+            os.rmdir(dirpath)
 
 
 def print_build_error():
@@ -91,7 +107,7 @@ def builder_helper(type):
         # Execute custom-sphinx-build.py
         sys.argv = [os.path.join(SAGE_DOC, 'common', 'custom-sphinx-build.py')]
         sys.argv.extend(build_command.split())
-        execfile(sys.argv[0])
+        eval(compile(open(sys.argv[0]).read(), sys.argv[0], 'exec'))
 
         # Print message about location of output:
         #   - by default if html output
@@ -1433,6 +1449,7 @@ if __name__ == '__main__':
     except ValueError:
         help_message_short(parser=parser, error=True)
         sys.exit(1)
+    delete_empty_directories(SAGE_DOC)
 
     # Set up module-wide logging.
     logger = setup_logger(options.verbose, options.color)
@@ -1465,9 +1482,6 @@ if __name__ == '__main__':
     mkdir(os.path.join(SAGE_DOC, 'common', 'static'))
 
     import sage.all
-
-    # Minimize GAP/libGAP RAM usage when we build the docs
-    set_gap_memory_pool_size(1)  # 1 MB
 
     # Set up Intersphinx cache
     C = IntersphinxCache()

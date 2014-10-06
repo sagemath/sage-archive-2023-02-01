@@ -468,7 +468,7 @@ def CPRFanoToricVariety(Delta=None,
         N(-1,  0)
         in 2-d lattice N
         sage: [cone.ambient_ray_indices() for cone in FTV.fan()]
-        [(0, 1), (1, 3), (2, 3), (2, 4), (0, 4)]
+        [(0, 1), (1, 3), (2, 3), (0, 4), (2, 4)]
 
     If charts are wrong, it should be detected::
 
@@ -490,20 +490,14 @@ def CPRFanoToricVariety(Delta=None,
         ...         coordinate_points=[0,1,2,3,4],
         ...         charts=bad_charts,
         ...         check=False)
-        sage: FTV.fan().rays()
-        N(-1,  1),
-        N( 1,  1),
-        N(-1, -1),
-        N( 1, -1),
-        N(-1,  0)
-        in 2-d lattice N
-        sage: [cone.ambient_ray_indices() for cone in FTV.fan()]
-        [(0, 1), (1, 3), (2, 3), (2, 4), (0, 4), (2, 4), (0, 4)]
+        Traceback (most recent call last):
+        ...
+        IndexError: list assignment index out of range
 
-    The last line shows two of the generating cones twice. While "everything
-    still works" in the sense "it does not crash," any work with such a
-    variety may lead to mathematically wrong results, so use ``check=False``
-    carefully!
+    In this case you still get an error message, but it is harder to figure out
+    what is going on. It may also happen that "everything will still work" in
+    the sense of not crashing, but work with such an invalid variety may lead to
+    mathematically wrong results, so use ``check=False`` carefully!
 
     Here are some other possible mistakes::
 

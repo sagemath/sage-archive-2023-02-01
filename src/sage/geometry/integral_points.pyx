@@ -501,14 +501,14 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
         sage: cube.Hrepresentation(2)
         An inequality (-1, 0, 0) x + 1 >= 0
         sage: rectangular_box_points([0]*3, [1]*3, cube, return_saturated=True)
-        (((0, 0, 0), frozenset([])),
-         ((0, 0, 1), frozenset([0])),
-         ((0, 1, 0), frozenset([1])),
-         ((0, 1, 1), frozenset([0, 1])),
-         ((1, 0, 0), frozenset([2])),
-         ((1, 0, 1), frozenset([0, 2])),
-         ((1, 1, 0), frozenset([1, 2])),
-         ((1, 1, 1), frozenset([0, 1, 2])))
+        (((0, 0, 0), frozenset()),
+         ((0, 0, 1), frozenset({0})),
+         ((0, 1, 0), frozenset({1})),
+         ((0, 1, 1), frozenset({0, 1})),
+         ((1, 0, 0), frozenset({2})),
+         ((1, 0, 1), frozenset({0, 2})),
+         ((1, 1, 0), frozenset({1, 2})),
+         ((1, 1, 1), frozenset({0, 1, 2})))
     """
     assert len(box_min)==len(box_max)
     assert not (count_only and return_saturated)
@@ -1322,11 +1322,11 @@ cdef class InequalityCollection:
             sage: ieqs.prepare_next_to_inner_loop([-1,0])
             sage: ieqs.prepare_inner_loop([-1,0])
             sage: ieqs.satisfied_as_equalities(-1)
-            frozenset([1])
+            frozenset({1})
             sage: ieqs.satisfied_as_equalities(0)
-            frozenset([0, 1])
+            frozenset({0, 1})
             sage: ieqs.satisfied_as_equalities(1)
-            frozenset([1])
+            frozenset({1})
         """
         cdef int i
         result = []

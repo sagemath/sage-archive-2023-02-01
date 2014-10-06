@@ -128,6 +128,7 @@ import copy_reg
 import os
 import subprocess
 import StringIO
+from functools import reduce
 
 
 data_location = os.path.join(SAGE_SHARE,'reflexive_polytopes')
@@ -423,7 +424,7 @@ def ReflexivePolytopes(dim):
     global _rp
     if dim not in [2, 3]:
         raise NotImplementedError("only 2- and 3-dimensional reflexive polytopes are available!")
-    if _rp[dim] == None:
+    if _rp[dim] is None:
         rp = read_all_polytopes(
             os.path.join(data_location, "reflexive_polytopes_%dd" % dim))
         for n, p in enumerate(rp):
@@ -1293,7 +1294,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         # facet is described by the 5th equation."
         # The next line sorts 0-dimensional faces to make these enumerations
         # more transparent.
-        self._faces[0].sort(cmp = lambda x,y: cmp(x._vertices[0], y._vertices[0]))
+        self._faces[0].sort(key=lambda x: x._vertices[0])
         self._faces.set_immutable()
 
     def _read_nef_partitions(self, data):
@@ -1727,11 +1728,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             IndexError: list index out of range
         """
         try:
-            if dim == None and codim == None:
+            if dim is None and codim is None:
                 return self._faces
-            elif dim != None and codim == None:
+            elif dim is not None and codim is None:
                 return self._faces[dim]
-            elif dim == None and codim != None:
+            elif dim is None and codim is not None:
                 return self._faces[self.dim()-codim]
             else:
                 raise ValueError("Both dim and codim are given!")
@@ -2099,7 +2100,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         dim = self.dim()
         if dim not in [2, 3]:
             raise NotImplementedError("only 2- and 3-dimensional polytopes can be indexed!")
-        if LatticePolytopeClass._rp_dict[dim] == None:
+        if LatticePolytopeClass._rp_dict[dim] is None:
             rp_dict = dict()
             for n, p in enumerate(ReflexivePolytopes(dim)):
                 rp_dict[p.normal_form_pc().matrix()] = n
@@ -2389,7 +2390,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.normal_form()
-            doctest:1: DeprecationWarning: normal_form() output will change,
+            doctest:...: DeprecationWarning: normal_form() output will change,
             please use normal_form_pc().column_matrix() instead
             or consider using normal_form_pc() directly!
             See http://trac.sagemath.org/15240 for details.
@@ -3074,6 +3075,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: c = lattice_polytope.cross_polytope(3).polar()
             sage: c.plot3d()
+            Graphics3d Object
 
         Plot without facets and points, shown without the frame::
 
@@ -3082,16 +3084,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Plot with facets of different colors::
 
             sage: c.plot3d(facet_colors=rainbow(c.nfacets(), 'rgbtuple'))
+            Graphics3d Object
 
         It is also possible to plot lower dimensional polytops in 3D (let's
         also change labels of vertices)::
 
             sage: lattice_polytope.cross_polytope(2).plot3d(vlabels=["A", "B", "C", "D"])
+            Graphics3d Object
 
         TESTS::
 
             sage: p = LatticePolytope([[0,0,0],[0,1,1],[1,0,1],[1,1,0]])
             sage: p.plot3d()
+            Graphics3d Object
         """
         dim = self.dim()
         amb_dim = self.ambient_dim()
@@ -3124,7 +3129,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 pplot += IndexFaceSet([self.traverse_boundary()],
                         vertices, opacity=facet_opacity, rgbcolor=facet_color)
             elif dim == 3:
-                if facet_colors != None:
+                if facet_colors is not None:
                     for i, f in enumerate(self.facets()):
                         pplot += IndexFaceSet([f.traverse_boundary()],
                             vertices, opacity=facet_opacity, rgbcolor=facet_colors[i])
@@ -3140,15 +3145,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                             thickness=edge_thickness, rgbcolor=edge_color)
         if show_vertices:
             pplot += point3d(vertices, size=vertex_size, rgbcolor=vertex_color)
-        if show_vindices == None:
+        if show_vindices is None:
             show_vindices = show_vertices
-        if show_pindices == None:
+        if show_pindices is None:
             show_pindices = show_points
         if show_vindices or show_pindices:
             # Compute the barycenter and shift text of labels away from it
             bc = 1/Integer(len(vertices)) * vector(QQ, sum(vertices))
         if show_vindices:
-            if vlabels == None:
+            if vlabels is None:
                 vlabels = range(len(vertices))
             for i,v in enumerate(vertices):
                 pplot += text3d(vlabels[i], bc+index_shift*(v-bc), rgbcolor=vindex_color)
@@ -3215,7 +3220,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.points()
-            doctest:1: DeprecationWarning: points() output will change,
+            doctest:...: DeprecationWarning: points() output will change,
             please use points_pc().column_matrix() instead or
             consider using points_pc() directly!
             See http://trac.sagemath.org/15240 for details.
@@ -3513,7 +3518,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if self.ambient_dim() != 3:
             raise NotImplementedError("skeleton view is implemented only in 3-d space")
-        if normal == None:
+        if normal is None:
             normal = [ZZ.random_element(20),ZZ.random_element(20),ZZ.random_element(20)]
         normal = matrix(QQ,3,1,list(normal))
         projectionm = normal.kernel().basis_matrix()
@@ -3615,7 +3620,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices()
-            doctest:1: DeprecationWarning: vertices() output will change,
+            doctest:...: DeprecationWarning: vertices() output will change,
             please use vertices_pc().column_matrix() instead or
             consider using vertices_pc() directly!
             See http://trac.sagemath.org/15240 for details.
@@ -5394,7 +5399,7 @@ def always_use_files(new_state=None):
     EXAMPLES::
 
         sage: lattice_polytope.always_use_files()
-        doctest:1: DeprecationWarning: using PALP via pipes is deprecated and
+        doctest:...: DeprecationWarning: using PALP via pipes is deprecated and
         will be removed, if you have a use case for this,
         please email Andrey Novoseltsev
         See http://trac.sagemath.org/15240 for details.        
@@ -5415,7 +5420,7 @@ def always_use_files(new_state=None):
                        " if you have a use case for this, please email Andrey "
                        "Novoseltsev")    
     global _always_use_files
-    if new_state != None:
+    if new_state is not None:
         _always_use_files = new_state
     return _always_use_files
 
@@ -5544,7 +5549,7 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
     This filters polytopes of dimension at least 4::
 
         sage: lattice_polytope.filter_polytopes(lambda p: p.dim() >= 4, polytopes)
-        doctest:1: DeprecationWarning: filter_polytopes is deprecated,
+        doctest:...: DeprecationWarning: filter_polytopes is deprecated,
         use standard tools instead
         See http://trac.sagemath.org/15240 for details.
         [2, 3, 4]
@@ -5571,7 +5576,7 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
                        "use standard tools instead")
     if subseq == []:
         return []
-    elif subseq == None:
+    elif subseq is None:
         subseq = range(len(polytopes))
     result = []
     for n in subseq:
@@ -5736,7 +5741,7 @@ def projective_space(dim):
     EXAMPLES: We construct 3- and 4-dimensional simplexes::
 
         sage: p = lattice_polytope.projective_space(3)
-        doctest:1: DeprecationWarning: this function is deprecated,
+        doctest:...: DeprecationWarning: this function is deprecated,
         perhaps toric_varieties.P(n) is what you are looking for?
         See http://trac.sagemath.org/15240 for details.        
         sage: p
@@ -6043,7 +6048,7 @@ def write_palp_matrix(m, ofile=None, comment="", format=None):
     """
     if is_PointCollection(m):
         m = m.column_matrix()
-    if format == None:
+    if format is None:
         n = max(len(str(m[i,j]))
                 for i in range(m.nrows()) for j in range(m.ncols()))
         format = "%" + str(n) + "d"

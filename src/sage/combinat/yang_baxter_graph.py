@@ -82,6 +82,7 @@ def YangBaxterGraph(partition=None, root=None, operators=None):
         sage: Y = YangBaxterGraph(root=(1,2,3,4), operators=swappers); Y
         Yang-Baxter graph with root vertex (1, 2, 3, 4)
         sage: Y.plot()
+        Graphics object consisting of 97 graphics primitives
 
     The Cayley graph of a finite group can be realized as a Yang-Baxter graph.
 
@@ -94,12 +95,14 @@ def YangBaxterGraph(partition=None, root=None, operators=None):
         sage: Y = YangBaxterGraph(root=G.identity(), operators=operators); Y
         Yang-Baxter graph with root vertex ()
         sage: Y.plot(edge_labels=False)
+        Graphics object consisting of 9 graphics primitives
 
         sage: G = SymmetricGroup(4)
         sage: operators = [left_multiplication_by(gen) for gen in G.gens()]
         sage: Y = YangBaxterGraph(root=G.identity(), operators=operators); Y
         Yang-Baxter graph with root vertex ()
         sage: Y.plot(edge_labels=False)
+        Graphics object consisting of 96 graphics primitives
 
     AUTHORS:
 
@@ -382,7 +385,9 @@ class YangBaxterGraph_generic(SageObject):
             sage: ops = [SwapIncreasingOperator(i) for i in range(4)]
             sage: Y = YangBaxterGraph(root=(1,0,2,1,0), operators=ops)
             sage: Y.plot()
+            Graphics object consisting of 16 graphics primitives
             sage: Y.plot(edge_labels=False)
+            Graphics object consisting of 11 graphics primitives
         """
         if "edge_labels" not in kwds:
             kwds["edge_labels"] = True
@@ -445,7 +450,9 @@ class YangBaxterGraph_generic(SageObject):
             ...       i = op.position()
             ...       return u[:i] + u[i:i+2][::-1] + u[i+2:]
             sage: Y.vertex_relabelling_dict((1,2,3,4), relabel_operator)
-            {(2, 0, 1, 0): (2, 1, 3, 4), (2, 1, 0, 0): (2, 3, 1, 4), (0, 2, 1, 0): (1, 2, 3, 4)}
+            {(0, 2, 1, 0): (1, 2, 3, 4),
+             (2, 0, 1, 0): (2, 1, 3, 4),
+             (2, 1, 0, 0): (2, 3, 1, 4)}
         """
         relabelling = {self._root:v}
         for (u,w,i) in self._edges_in_bfs():
@@ -687,9 +694,13 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
 
             sage: Y = YangBaxterGraph(partition=[3,1])
             sage: Y.vertex_relabelling_dict((1,2,3,4))
-            {(2, 0, 1, 0): (2, 1, 3, 4), (2, 1, 0, 0): (2, 3, 1, 4), (0, 2, 1, 0): (1, 2, 3, 4)}
+            {(0, 2, 1, 0): (1, 2, 3, 4),
+             (2, 0, 1, 0): (2, 1, 3, 4),
+             (2, 1, 0, 0): (2, 3, 1, 4)}
             sage: Y.vertex_relabelling_dict((4,3,2,1))
-            {(2, 0, 1, 0): (3, 4, 2, 1), (2, 1, 0, 0): (3, 2, 4, 1), (0, 2, 1, 0): (4, 3, 2, 1)}
+            {(0, 2, 1, 0): (4, 3, 2, 1),
+             (2, 0, 1, 0): (3, 4, 2, 1),
+             (2, 1, 0, 0): (3, 2, 4, 1)}
         """
         return super(YangBaxterGraph_partition, self).vertex_relabelling_dict(v, self._swap_operator)
 

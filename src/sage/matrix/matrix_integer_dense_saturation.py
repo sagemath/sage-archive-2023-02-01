@@ -134,7 +134,7 @@ def solve_system_with_difficult_last_row(B, A):
         else:
             break
     D = B.matrix_from_rows(range(C.nrows()-1))
-    N = D._rational_kernel_iml()
+    N = D._rational_kernel_flint()
     if N.ncols() != 1:
         verbose("Difficult solve quickly failed.  Using direct approach.")
         return B.solve_right(A)

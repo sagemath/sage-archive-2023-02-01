@@ -114,12 +114,12 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 7])
             sage: I = K.ideal(2, (a + 2*b + 3)/2)
             sage: I.pari_rhnf()
-            [[1, -2; 0, 1], [[2, 1; 0, 1], [1/2, 0; 0, 1/2]]]
+            [[1, -2; 0, 1], [[2, 1; 0, 1], 1/2]]
         """
         try:
             return self.__pari_rhnf
         except AttributeError:
-            nfzk = self.number_field().absolute_field('a').pari_zk()
+            nfzk = self.number_field().pari_nf().nf_subst('x').nf_get_zk()
             rnf = self.number_field().pari_rnf()
             L_hnf = self.absolute_ideal().pari_hnf()
             self.__pari_rhnf = rnf.rnfidealabstorel(nfzk * L_hnf)
@@ -485,7 +485,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
             sage: I = K.ideal(3, c)
             sage: J = I.ideal_below(); J
-            Fractional ideal (-b)
+            Fractional ideal (b)
             sage: J.number_field() == F
             True
         """

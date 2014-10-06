@@ -21,6 +21,7 @@ Basic Structures
    sage/structure/mutability
    sage/structure/sequence
    sage/structure/element_wrapper
+   sage/structure/indexed_generators
    sage/structure/global_options
 
    sage/sets/cartesian_product
@@ -38,6 +39,7 @@ Basic Structures
    sage/sets/non_negative_integers
    sage/sets/primes
    sage/sets/totally_ordered_finite_set
+   sage/sets/real_set
 
    sage/structure/parent
 

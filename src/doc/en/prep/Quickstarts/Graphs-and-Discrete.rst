@@ -34,6 +34,7 @@ Visualizing a graph is similar to plotting functions.
 
     sage: G = graphs.HeawoodGraph()
     sage: plot(G)
+    Graphics object consisting of 36 graphics primitives
 
 Defining your own graph is easy.  One way is the following.
 
@@ -48,6 +49,7 @@ Defining your own graph is easy.  One way is the following.
 
     sage: H=Graph({0:[1,2,3], 4:[0,2], 6:[1,2,3,4,5]})
     sage: plot(H)
+    Graphics object consisting of 18 graphics primitives
 
 Adjacency matrices, other graphs, and similar inputs are also recognized.
 
@@ -71,6 +73,7 @@ Pre\-defined graphs often come with "nice" layouts.
 
     sage: H.set_pos(H.layout_circular())
     sage: plot(H)
+    Graphics object consisting of 18 graphics primitives
 
 Vertices can be lots of things, for example the codewords of an
 error\-correcting code.
@@ -102,6 +105,7 @@ Edges can be labeled.
     ...       v = edge[1]
     ...       L.set_edge_label(u, v, u*v)
     sage: plot(L, edge_labels=True)
+    Graphics object consisting of 16 graphics primitives
 
 There are natural connections to other areas of mathematics.  Here we
 compute the automorphism group and eigenvalues of the skeleton of a
@@ -111,6 +115,7 @@ cube.
 
     sage: C = graphs.CubeGraph(3)
     sage: plot(C)
+    Graphics object consisting of 21 graphics primitives
 
 ::
 

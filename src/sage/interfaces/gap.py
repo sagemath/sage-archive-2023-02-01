@@ -262,10 +262,10 @@ def get_gap_memory_pool_size():
         return gap_memory_pool_size
     from sage.misc.memory_info import MemoryInfo
     mem = MemoryInfo()
-    suggested_size = max(int(mem.available_swap() / 10),
-                         int(mem.available_ram()  / 50))
+    suggested_size = max(mem.available_swap() // 10,
+                         mem.available_ram()  // 50)
     # Don't eat all address space if the user set ulimit -v
-    suggested_size = min(suggested_size, int(mem.virtual_memory_limit()/10))
+    suggested_size = min(suggested_size, mem.virtual_memory_limit()//10)
     # ~220MB is the minimum for long doctests
     suggested_size = max(suggested_size, 250 * 1024**2)
     return suggested_size
@@ -1080,7 +1080,7 @@ class Gap(Gap_generic):
         self.__use_workspace_cache = use_workspace_cache
         cmd, self.__make_workspace = gap_command(use_workspace_cache, server is None)
         cmd += " -b -p -T"
-        if max_workspace_size == None:
+        if max_workspace_size is None:
             max_workspace_size = _get_gap_memory_pool_size_MB()
         cmd += ' -o ' + str(max_workspace_size)
         cmd += ' -s ' + str(max_workspace_size)
@@ -1277,7 +1277,7 @@ class Gap(Gap_generic):
         line = Expect.eval(self, "? %s"%s)
         Expect.eval(self, "? 1")
         match = re.search("Page from (\d+)", line)
-        if match == None:
+        if match is None:
             print line
         else:
             (sline,) = match.groups()
@@ -1549,9 +1549,7 @@ class GapElement(GapElement_generic):
             (<function reduce_load at 0x...>, ())
             sage: f, args = _
             sage: f(*args)
-            Traceback (most recent call last):
-            ...
-            ValueError: The session in which this object was defined is no longer running.
+            <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
         """
         return reduce_load, ()  # default is an invalid object
 
@@ -1787,13 +1785,9 @@ def reduce_load():
 
         sage: from sage.interfaces.gap import reduce_load
         sage: reduce_load()
-        Traceback (most recent call last):
-        ...
-        ValueError: The session in which this object was defined is no longer running.
+        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
         sage: loads(dumps(gap(2)))
-        Traceback (most recent call last):
-        ...
-        ValueError: The session in which this object was defined is no longer running.
+        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
     """
     return GapElement(None, None)
 

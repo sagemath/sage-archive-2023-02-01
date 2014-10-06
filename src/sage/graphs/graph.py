@@ -63,7 +63,7 @@ graphs.
     :meth:`~Graph.is_half_transitive` | Returns true if self is a half-transitive graph.
     :meth:`~Graph.is_semi_symmetric` | Returns true if self is a semi-symmetric graph.
 
-**Connectivity and orientations:**
+**Connectivity, orientations, trees:**
 
 .. csv-table::
     :class: contentstable
@@ -75,6 +75,8 @@ graphs.
     :meth:`~Graph.bounded_outdegree_orientation` | Computes an orientation of ``self`` such that every vertex `v` has out-degree less than `b(v)`
     :meth:`~Graph.strong_orientation` | Returns a strongly connected orientation of the current graph.
     :meth:`~Graph.degree_constrained_subgraph` | Returns a degree-constrained subgraph.
+    :meth:`~Graph.bridges` | Returns the list of all bridges.
+    :meth:`~Graph.spanning_trees` | Returns the list of all spanning trees.
 
 **Clique-related methods:**
 
@@ -93,7 +95,7 @@ graphs.
     :meth:`~Graph.clique_maximum` | Returns the vertex set of a maximal order complete subgraph.
     :meth:`~Graph.cliques_maximum` | Returns the list of all maximum cliques
     :meth:`~Graph.cliques_maximal` | Returns the list of all maximal cliques
-
+    :meth:`~Graph.clique_polynomial` | Returns the clique polynomial
 
 **Algorithmically hard stuff:**
 
@@ -116,7 +118,7 @@ graphs.
     :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial of the graph.
     :meth:`~Graph.tutte_polynomial` | Returns the Tutte polynomial of the graph.
     :meth:`~Graph.is_perfect` | Tests whether the graph is perfect.
-
+    :meth:`~Graph.treewidth` | Computes the tree-width and provides a decomposition.
 
 
 **Leftovers:**
@@ -209,6 +211,7 @@ AUTHORS:
 
 - Alexandre P. Zuge (2013-07): added join operation.
 
+- Amritanshu Prasad (2014-08): added clique polynomial
 
 Graph Format
 ------------
@@ -523,12 +526,15 @@ Methods
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
+from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
 
 class Graph(GenericGraph):
@@ -562,11 +568,13 @@ class Graph(GenericGraph):
 
         sage: g = graphs.PetersenGraph()
         sage: g.plot()
+        Graphics object consisting of 26 graphics primitives
 
     or::
 
         sage: g = graphs.ChvatalGraph()
         sage: g.plot()
+        Graphics object consisting of 37 graphics primitives
 
     In order to obtain more information about these graph constructors, access
     the documentation using the command ``graphs.RandomGNP?``.
@@ -590,7 +598,8 @@ class Graph(GenericGraph):
     connected components with only two lines::
 
         sage: for component in g.connected_components():
-        ...      g.subgraph(component).plot()
+        ....:      g.subgraph(component).plot()
+        Graphics object consisting of 37 graphics primitives
 
 
     INPUT:
@@ -1751,7 +1760,7 @@ class Graph(GenericGraph):
 
             # split into groups of 6, and convert numbers to decimal, adding 63
             six_bits = ''
-            for i in range(len(s)/6):
+            for i in range(len(s)//6):
                 six_bits += chr( int( s[6*i:6*(i+1)], 2) + 63 )
             return ':' + generic_graph_pyx.N(n) + six_bits
 
@@ -1783,6 +1792,112 @@ class Graph(GenericGraph):
             False
         """
         return False
+
+    def bridges(self):
+        r"""
+        Returns a list of the bridges (or cut edges).
+
+        A bridge is an edge so that deleting it disconnects the graph.
+
+        .. NOTE::
+
+            This method assumes the graph is connected.
+
+        EXAMPLES::
+
+             sage: g = 2*graphs.PetersenGraph()
+             sage: g.add_edge(1,10)
+             sage: g.is_connected()
+             True
+             sage: g.bridges()
+             [(1, 10, None)]
+        """
+        gs = self.strong_orientation()
+        bridges = []
+        for scc in gs.strongly_connected_components():
+            bridges.extend(gs.edge_boundary(scc))
+        return bridges
+
+    def spanning_trees(self):
+        """
+        Returns a list of all spanning trees.
+
+        If the graph is disconnected, returns the empty list.
+
+        Uses the Read-Tarjan backtracking algorithm [RT75]_.
+
+        EXAMPLES::
+
+            sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)])
+            sage: len(G.spanning_trees())
+            8
+            sage: G.spanning_trees_count()
+            8
+            sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)])
+            sage: len(G.spanning_trees())
+            6
+            sage: G.spanning_trees_count()
+            6
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+            -- counts the number of spanning trees.
+
+        REFERENCES:
+
+        .. [RT75] Read, R. C. and Tarjan, R. E.
+          Bounds on Backtrack Algoritms for Listing Cycles, Paths, and Spanning Trees
+          Networks, Volume 5 (1975), numer 3, pages 237-252.
+        """
+
+        def _recursive_spanning_trees(G,forest):
+            """
+            Returns all the spanning trees of G containing forest
+            """
+            if not G.is_connected():
+                return []
+
+            if G.size() == forest.size():
+                return [forest.copy()]
+            else:
+                # Pick an edge e from G-forest
+                for e in G.edges():
+                    if not forest.has_edge(e):
+                        break
+
+                # 1) Recursive call with e removed from G
+                G.delete_edge(e)
+                trees = _recursive_spanning_trees(G,forest)
+                G.add_edge(e)
+
+                # 2) Recursive call with e include in forest
+                #
+                # e=xy links the CC (connected component) of forest containing x
+                # with the CC containing y. Any other edge which does that
+                # cannot be added to forest anymore, and B is the list of them
+                c1 = forest.connected_component_containing_vertex(e[0])
+                c2 = forest.connected_component_containing_vertex(e[1])
+                G.delete_edge(e)
+                B = G.edge_boundary(c1,c2,sort=False)
+                G.add_edge(e)
+
+                # Actual call
+                forest.add_edge(e)
+                G.delete_edges(B)
+                trees.extend(_recursive_spanning_trees(G,forest))
+                G.add_edges(B)
+                forest.delete_edge(e)
+
+                return trees
+
+        if self.is_connected():
+            forest = Graph([])
+            forest.add_vertices(self.vertices())
+            forest.add_edges(self.bridges())
+            return _recursive_spanning_trees(self,forest)
+        else:
+            return []
 
     ### Properties
     def is_tree(self, certificate=False, output='vertex'):
@@ -2494,6 +2609,215 @@ class Graph(GenericGraph):
         right = omega * (omega - 1) + sum(degree_sequence[omega + 1:])
 
         return left == right
+
+    def treewidth(self,k=None,certificate=False):
+        r"""
+        Computes the tree-width of `G` (and provides a decomposition)
+
+        INPUT:
+
+        - ``k`` (integer) -- the width to be considered. When ``k`` is an
+          integer, the method checks that the graph has treewidth `\leq k`. If
+          ``k`` is ``None`` (default), the method computes the optimal
+          tree-width.
+
+        - ``certificate`` -- whether to return the tree-decomposition itself.
+
+        OUTPUT:
+
+            ``g.treewidth()`` returns the treewidth of ``g``. When ``k`` is
+             specified, it returns ``False`` when no tree-decomposition of width
+             `\leq k` exists or ``True`` otherwise. When ``certificate=True``,
+             the tree-decomposition is also returned.
+
+        ALGORITHM:
+
+            This function virtually explores the graph of all pairs
+            ``(vertex_cut,cc)``, where ``vertex_cut`` is a vertex cut of the
+            graph of cardinality `\leq k+1`, and ``connected_component`` is a
+            connected component of the graph induced by ``G-vertex_cut``.
+
+            We deduce that the pair ``(vertex_cut,cc)`` is feasible with
+            tree-width `k` if ``cc`` is empty, or if a vertex ``v`` from
+            ``vertex_cut`` can be replaced with a vertex from ``cc``, such that
+            the pair ``(vertex_cut+v,cc-v)`` is feasible.
+
+        .. NOTE::
+
+            The implementation would be much faster if ``cc``, the argument of the
+            recursive function, was a bitset. It would also be very nice to not copy
+            the graph in order to compute connected components, for this is really a
+            waste of time.
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.graph_decompositions.vertex_separation.path_decomposition`
+            computes the pathwidth of a graph. See also the
+            :mod:`~sage.graphs.graph_decompositions.vertex_separation` module.
+
+        EXAMPLES:
+
+        The PetersenGraph has treewidth 4::
+
+            sage: graphs.PetersenGraph().treewidth()
+            4
+            sage: graphs.PetersenGraph().treewidth(certificate=True)
+            Graph on 7 vertices
+
+        The treewidth of a 2d grid is its smallest side::
+
+            sage: graphs.Grid2dGraph(2,5).treewidth()
+            2
+            sage: graphs.Grid2dGraph(3,5).treewidth()
+            3
+
+        TESTS::
+
+            sage: g = graphs.PathGraph(3)
+            sage: g.treewidth()
+            1
+            sage: g = 2*graphs.PathGraph(3)
+            sage: g.treewidth()
+            1
+            sage: g.treewidth(certificate=True)
+            Graph on 6 vertices
+            sage: g.treewidth(2)
+            True
+            sage: g.treewidth(1)
+            True
+            sage: Graph(1).treewidth()
+            1
+            sage: Graph(0).treewidth()
+            0
+            sage: graphs.PetersenGraph().treewidth(k=2)
+            False
+            sage: graphs.PetersenGraph().treewidth(k=6)
+            True
+            sage: graphs.PetersenGraph().treewidth(certificate=True).is_tree()
+            True
+            sage: graphs.PetersenGraph().treewidth(k=3,certificate=True)
+            False
+            sage: graphs.PetersenGraph().treewidth(k=4,certificate=True)
+            Graph on 7 vertices
+        """
+        from sage.misc.cachefunc import cached_function
+        from sage.sets.set import Set
+        g = self
+
+        # Stupid cases
+        if g.order() == 0:
+            if certificate: return Graph()
+            elif k is None: return 0
+            else:           return True
+
+        # Disconnected cases
+        if not g.is_connected():
+            if certificate is False:
+                if k is None:
+                    return max(cc.treewidth() for cc in g.connected_components_subgraphs())
+                else:
+                    return all(cc.treewidth(k) for cc in g.connected_components_subgraphs())
+            else:
+                return Graph(sum([cc.treewidth(certificate=True).edges(labels=False)
+                                  for cc in g.connected_components_subgraphs()],[]))
+
+        # Forcing k to be defined
+        if k is None:
+            for i in range(max(1,g.clique_number()-1,min(g.degree())),
+                           g.order()+1):
+                ans = g.treewidth(k=i, certificate=certificate)
+                if ans:
+                    return ans if certificate else i
+
+        # This is the recursion described in the method's documentation. All
+        # computations are cached, and depends on the pair ``cut,
+        # connected_component`` only.
+        #
+        # It returns either a boolean or the corresponding tree-decomposition, as a
+        # list of edges between vertex cuts (as it is done for the complete
+        # tree-decomposition at the end of the main function.
+        @cached_function
+        def rec(cut,cc):
+            # Easy cases
+            if len(cut) > k:
+                return False
+            if len(cc)+len(cut) <= k+1:
+                return [(cut,cut.union(cc))] if certificate else True
+
+            # The list of potential vertices that could be added to the current cut
+            extensions = {v for u in cut for v in g.neighbors(u) if v in cc}
+            for v in extensions:
+
+                # New cuts and connected components, with v respectively added and
+                # removed
+                cutv = cut.union([v])
+                ccv = cc.difference([v])
+
+                # The values returned by the recursive calls.
+                sons = []
+
+                # Removing v may have disconnected cc. We iterate on its connected
+                # components
+                for cci in g.subgraph(ccv).connected_components():
+
+                    # The recursive subcalls. We remove on-the-fly the vertices from
+                    # the cut which play no role in separating the connected
+                    # component from the rest of the graph.
+                    reduced_cut = frozenset([x for x in cutv if any(xx in cci for xx in g.neighbors(x))])
+                    son = rec(reduced_cut,frozenset(cci))
+                    if son is False:
+                        break
+
+                    if certificate:
+                        sons.extend(son)
+                        sons.append((cut,reduced_cut))
+
+                # Weird Python syntax which is useful once in a lifetime : if break
+                # was never called in the loop above, we return "sons".
+                else:
+                    return sons if certificate else True
+
+            return False
+
+        # Main call to rec function, i.e. rec({v},V-{v})
+        V = g.vertices()
+        v = frozenset([V.pop(0)])
+        TD = rec(v,frozenset(V))
+
+        if TD is False:
+            return False
+
+        if not certificate:
+            return True
+
+        # Building the Tree-Decomposition graph. Its vertices are cuts of the
+        # decomposition, and there is an edge from a cut C1 to a cut C2 if C2 is an
+        # immediate subcall of C1
+        G = Graph()
+        G.add_edges([(Set(x),Set(y)) for x,y in TD])
+
+        # The Tree-Decomposition contains a lot of useless nodes that we now remove.
+        prune_list = G.vertices()
+
+        for v in prune_list:
+            # We remove any vertex of degree 1 whose corresponding set is contained
+            # in the set represented by its unique neighbor.
+            if G.degree(v)==1:
+                v1 = G.neighbors(v)[0]
+                if v.issubset(v1):
+                    G.delete_vertex(v)
+                    prune_list.append(v1)
+
+            # We remove a vertex v with two neighbors v1,v2 if v1 is a subset of v
+            # and v is a subset of v2
+            elif G.degree(v) == 2:
+                v1,v2 = G.neighbors(v)
+                if ((v1.issubset(v)   and v.issubset(v2)) or
+                    (v1.issuperset(v) and v.issuperset(v2))):
+                    G.add_edge(v1,v2)
+                    G.delete_vertex(v)
+
+        return G
 
     def is_perfect(self, certificate = False):
         r"""
@@ -3359,7 +3683,7 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: graphs.CycleGraph(4).bipartite_sets()
-            (set([0, 2]), set([1, 3]))
+            ({0, 2}, {1, 3})
             sage: graphs.CycleGraph(5).bipartite_sets()
             Traceback (most recent call last):
             ...
@@ -3512,6 +3836,7 @@ class Graph(GenericGraph):
             sage: P = G.coloring(algorithm="DLX"); P
             [[1, 2, 3], [0, 5, 6], [4]]
             sage: G.plot(partition=P)
+            Graphics object consisting of 16 graphics primitives
             sage: H = G.coloring(hex_colors=True, algorithm="MILP")
             sage: for c in sorted(H.keys()):
             ...       print c, H[c]
@@ -3525,6 +3850,7 @@ class Graph(GenericGraph):
             #00ff00 [1, 2, 3]
             #ff0000 [0, 5, 6]
             sage: G.plot(vertex_colors=H)
+            Graphics object consisting of 16 graphics primitives
 
         TESTS::
 
@@ -3779,13 +4105,13 @@ class Graph(GenericGraph):
         try:
             p.solve(log = verbose)
             b = p.get_values(b)
-            mapping = dict([y[0] for y in filter(lambda x:x[1], b.items())])
+            mapping = dict(x[0] for x in b.items() if x[1])
             return mapping
 
         except MIPSolverException:
             return False
 
-    def fractional_chromatic_index(self, verbose_constraints = 0, verbose = 0):
+    def fractional_chromatic_index(self, solver = None, verbose_constraints = 0, verbose = 0):
         r"""
         Computes the fractional chromatic index of ``self``
 
@@ -3817,6 +4143,19 @@ class Graph(GenericGraph):
 
         INPUT:
 
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+          .. NOTE::
+
+              If you want exact results, i.e. a rational number, use
+              ``solver="PPL"``. This may be slower, though.
+
         - ``verbose_constraints`` -- whether to display which constraints are
           being generated.
 
@@ -3831,7 +4170,6 @@ class Graph(GenericGraph):
             just have to update the weights on the edges between each call to
             ``solve`` (and so avoiding the generation of all the constraints).
 
-
         EXAMPLE:
 
         The fractional chromatic index of a `C_5` is `5/2`::
@@ -3839,12 +4177,17 @@ class Graph(GenericGraph):
             sage: g = graphs.CycleGraph(5)
             sage: g.fractional_chromatic_index()
             2.5
+
+        With PPL::
+
+            sage: g.fractional_chromatic_index(solver="PPL")
+            5/2
         """
         self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram
 
         g = self.copy()
-        p = MixedIntegerLinearProgram(constraint_generation = True)
+        p = MixedIntegerLinearProgram(solver=solver, constraint_generation = True)
 
         # One variable per edge
         r = p.new_variable(nonnegative=True)
@@ -4424,7 +4767,7 @@ class Graph(GenericGraph):
             1.0
         """
         import networkx
-        if v==None:
+        if v is None:
             return networkx.degree_centrality(self.networkx_graph(copy=False))
         else:
             return networkx.degree_centrality(self.networkx_graph(copy=False))[v]
@@ -4499,8 +4842,8 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().to_directed()
             Petersen graph: Digraph on 10 vertices
         """
-        if sparse != None:
-            if data_structure != None:
+        if sparse is not None:
+            if data_structure is not None:
                 raise ValueError("The 'sparse' argument is an alias for "
                                  "'data_structure'. Please do not define both.")
             data_structure = "sparse" if sparse else "dense"
@@ -4960,6 +5303,10 @@ class Graph(GenericGraph):
 
              (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
+           - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+             package must be installed.
+
         .. NOTE::
 
             Currently only implemented for undirected graphs. Use to_undirected
@@ -4992,7 +5339,8 @@ class Graph(GenericGraph):
             sage: C.clique_maximum(algorithm = "BFS")
             Traceback (most recent call last):
             ...
-            NotImplementedError: Only 'MILP' and 'Cliquer' are supported.
+            NotImplementedError: Only 'MILP', 'Cliquer' and 'mcqd' are supported.
+
         """
         self._scream_if_not_simple(allow_multiple_edges=True)
         if algorithm=="Cliquer":
@@ -5000,8 +5348,14 @@ class Graph(GenericGraph):
             return max_clique(self)
         elif algorithm == "MILP":
             return self.complement().independent_set(algorithm = algorithm)
+        elif algorithm == "mcqd":
+            try:
+                from sage.graphs.mcqd import mcqd
+            except ImportError:
+                raise ImportError("Please install the mcqd package")
+            return mcqd(self)
         else:
-            raise NotImplementedError("Only 'MILP' and 'Cliquer' are supported.")
+            raise NotImplementedError("Only 'MILP', 'Cliquer' and 'mcqd' are supported.")
 
     def clique_number(self, algorithm="Cliquer", cliques=None):
         r"""
@@ -5017,15 +5371,21 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- the algorithm to be used :
 
-           - If ``algorithm = "Cliquer"`` - This wraps the C program Cliquer [NisOst2003]_.
+           - If ``algorithm = "Cliquer"`` - This wraps the C program Cliquer
+             [NisOst2003]_.
 
-           - If ``algorithm = "networkx"`` - This function is based on NetworkX's implementation
-             of the Bron and Kerbosch Algorithm [BroKer1973]_.
+           - If ``algorithm = "networkx"`` - This function is based on
+             NetworkX's implementation of the Bron and Kerbosch Algorithm
+             [BroKer1973]_.
 
            - If ``algorithm = "MILP"``, the problem is solved through a Mixed
              Integer Linear Program.
 
              (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
+
+           - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+             package must be installed.
 
         - ``cliques`` - an optional list of cliques that can be input if
           already computed. Ignored unless ``algorithm=="networkx"``.
@@ -5064,6 +5424,10 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: g.clique_number(algorithm="MILP")
             2
+            sage: for i in range(10):                                            # optional - mcqd
+            ...       g = graphs.RandomGNP(15,.5)                                # optional - mcqd
+            ...       if g.clique_number() != g.clique_number(algorithm="mcqd"): # optional - mcqd
+            ...           print "This is dead wrong !"                           # optional - mcqd
         """
         self._scream_if_not_simple(allow_loops=False)
         if algorithm=="Cliquer":
@@ -5074,8 +5438,14 @@ class Graph(GenericGraph):
             return networkx.graph_clique_number(self.networkx_graph(copy=False),cliques)
         elif algorithm == "MILP":
             return len(self.complement().independent_set(algorithm = algorithm))
+        elif algorithm == "mcqd":
+            try:
+                from sage.graphs.mcqd import mcqd
+            except ImportError:
+                raise ImportError("Please install the mcqd package")
+            return len(mcqd(self))
         else:
-            raise NotImplementedError("Only 'networkx' 'MILP' and 'Cliquer' are supported.")
+            raise NotImplementedError("Only 'networkx' 'MILP' 'Cliquer' and 'mcqd' are supported.")
 
     def cliques_number_of(self, vertices=None, cliques=None):
         """
@@ -5214,6 +5584,10 @@ class Graph(GenericGraph):
 
               (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
+           * If ``algorithm = "mcqd"`` - Uses the MCQD solver
+             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+             package must be installed.
+
         - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
           only the size of a maximum independent set is returned. Otherwise,
           a maximum independent set is returned as a list of vertices.
@@ -5240,9 +5614,9 @@ class Graph(GenericGraph):
 
         .. NOTE::
 
-            While Cliquer is usually (and by far) the most efficient of the two
-            implementations, the Mixed Integer Linear Program formulation
-            sometimes proves faster on very "symmetrical" graphs.
+            While Cliquer/MCAD are usually (and by far) the most efficient
+            implementations, the MILP formulation sometimes proves faster on
+            very "symmetrical" graphs.
 
         EXAMPLES:
 
@@ -5296,6 +5670,10 @@ class Graph(GenericGraph):
 
           - ``"MILP"`` will compute a minimum vertex cover through a mixed
             integer linear program.
+
+          - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+            (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+            package must be installed.
 
         - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
           only the size of a minimum vertex cover is returned. Otherwise,
@@ -5371,13 +5749,17 @@ class Graph(GenericGraph):
            ...       if g.size() != 0:
            ...           print "This thing is not a vertex cover !"
 
+        Testing mcqd::
+
+            sage: graphs.PetersenGraph().vertex_cover(algorithm="mcqd",value_only=True) # optional - mcqd
+            6
 
         Given a wrong algorithm::
 
             sage: graphs.PetersenGraph().vertex_cover(algorithm = "guess")
             Traceback (most recent call last):
             ...
-            ValueError: The algorithm must be either "Cliquer" or "MILP".
+            ValueError: The algorithm must be "Cliquer" "MILP" or "mcqd".
 
         REFERENCE:
 
@@ -5486,9 +5868,8 @@ class Graph(GenericGraph):
             size_cover_g = 0
             cover_g = []
 
-        elif algorithm == "Cliquer":
-            from sage.graphs.cliquer import max_clique
-            independent = max_clique(g.complement())
+        elif algorithm == "Cliquer" or algorithm == "mcqd":
+            independent = g.complement().clique_maximum(algorithm=algorithm)
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
@@ -5514,7 +5895,7 @@ class Graph(GenericGraph):
                 b = p.get_values(b)
                 cover_g = [v for v in g.vertices() if b[v] == 1]
         else:
-            raise ValueError("The algorithm must be either \"Cliquer\" or \"MILP\".")
+            raise ValueError("The algorithm must be \"Cliquer\" \"MILP\" or \"mcqd\".")
 
         #########################
         # Returning the results #
@@ -5595,7 +5976,7 @@ class Graph(GenericGraph):
 
         if algorithm=="cliquer":
             from sage.graphs.cliquer import clique_number
-            if vertices==None:
+            if vertices is None:
                 vertices=self
             value={}
             for v in vertices:
@@ -5689,6 +6070,35 @@ class Graph(GenericGraph):
         C._graph = self
         return C
 
+    def clique_polynomial(self, t = None):
+        """
+        Returns the clique polynomial of self.
+
+        This is the polynomial where the coefficient of `t^n` is the number of
+        cliques in the graph with `n` vertices. The constant term of the
+        clique polynomial is always taken to be one.
+
+        EXAMPLES::
+
+            sage: g = Graph()
+            sage: g.clique_polynomial()
+            1
+            sage: g = Graph({0:[1]})
+            sage: g.clique_polynomial()
+            t^2 + 2*t + 1
+            sage: g = graphs.CycleGraph(4)
+            sage: g.clique_polynomial()
+            4*t^2 + 4*t + 1
+
+        """
+        if t is None:
+            R = PolynomialRing(ZZ, 't')
+            t = R.gen()
+        number_of = [0]*(self.order() + 1)
+        for x in IndependentSets(self, complement = True):
+            number_of[len(x)] += 1
+        return sum([coeff*t**i for i,coeff in enumerate(number_of) if coeff])
+    
     ### Miscellaneous
 
     def cores(self, k = None, with_labels=False):
@@ -5819,7 +6229,7 @@ class Graph(GenericGraph):
         for v in verts:
 
             # If all the vertices have a degree larger than k, we can
-            # return our answer if k != None
+            # return our answer if k is not None
             if k is not None and core[v] >= k:
                 return verts[:vert_pos[v]], verts[vert_pos[v]:]
 
@@ -6248,6 +6658,7 @@ class Graph(GenericGraph):
             sage: g = graphs.CirculantGraph(24, [7, 11])
             sage: cl = g.two_factor_petersen()
             sage: g.plot(edge_colors={'black':cl[0], 'red':cl[1]})
+            Graphics object consisting of 73 graphics primitives
 
         """
         self._scream_if_not_simple()
@@ -6511,4 +6922,3 @@ def compare_edges(x, y):
             return 1
         else:
             return 0
-

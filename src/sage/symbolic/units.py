@@ -1414,14 +1414,14 @@ def convert_temperature(expr, target):
     """
     if len(expr.variables()) != 1:
         raise ValueError("Cannot convert")
-    elif target == None or unit_to_type[str(target)] == 'temperature':
+    elif target is None or unit_to_type[str(target)] == 'temperature':
         from sage.misc.all import sage_eval
         expr_temp = expr.variables()[0]
         coeff = expr/expr_temp
-        if target != None:
+        if target is not None:
             target_temp = target.variables()[0]
         a = sage_eval(unitdict['temperature'][str(expr_temp)], locals = {'x':coeff})
-        if  target == None or target_temp == units.temperature.kelvin:
+        if  target is None or target_temp == units.temperature.kelvin:
             return a[0]*units.temperature.kelvin
         elif target_temp == units.temperature.celsius or target_temp == units.temperature.centigrade:
             return a[1]*target_temp

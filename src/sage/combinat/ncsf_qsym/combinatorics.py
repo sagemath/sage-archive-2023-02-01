@@ -175,14 +175,9 @@ def compositions_order(n):
         sage: compositions_order(4)
         [[4], [3, 1], [1, 3], [2, 2], [2, 1, 1], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
     """
-    def _myorder(I,J):
-        pI = sorted(I, reverse=True)
-        pJ = sorted(J, reverse=True)
-        if pI == pJ:
-            return cmp(list(J), list(I))
-        else:
-            return cmp(pJ , pI)
-    return sorted(Compositions(n), cmp=_myorder)
+    def _keyfunction(I):
+        return sorted(I, reverse=True), list(I)
+    return sorted(Compositions(n), key=_keyfunction, reverse=True)
 
 def m_to_s_stat(R, I, K):
     r"""

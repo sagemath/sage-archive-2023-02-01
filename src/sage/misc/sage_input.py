@@ -3212,14 +3212,14 @@ class SageInputFormatter:
 
             sage: sif = SageInputFormatter()
             sage: sif._names, sif._dup_names
-            (set([]), {})
+            (set(), {})
             sage: sif.register_name('x')
             sage: sif.register_name('y')
             sage: sif._names, sif._dup_names
-            (set(['y', 'x']), {})
+            ({'x', 'y'}, {})
             sage: sif.register_name('x')
             sage: sif._names, sif._dup_names
-            (set(['y', 'x']), {'x': 0})
+            ({'x', 'y'}, {'x': 0})
         """
         if name is None: name = 'si'
 

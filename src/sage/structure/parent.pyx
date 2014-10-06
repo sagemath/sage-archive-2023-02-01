@@ -293,11 +293,11 @@ cdef class Parent(category_object.CategoryObject):
 
         - ``facade`` -- a parent, or tuple thereof, or ``True``
 
-        If ``facade`` is specified, then ``Sets().Facades()`` is added
+        If ``facade`` is specified, then ``Sets().Facade()`` is added
         to the categories of the parent. Furthermore, if ``facade`` is
         not ``True``, the internal attribute ``_facade_for`` is set
         accordingly for use by
-        :meth:`Sets.Facades.ParentMethods.facade_for`.
+        :meth:`Sets.Facade.ParentMethods.facade_for`.
 
         Internal invariants:
 
@@ -310,6 +310,17 @@ cdef class Parent(category_object.CategoryObject):
 
             Eventually, category should be
             :class:`~sage.categories.sets_cat.Sets` by default.
+
+
+        TESTS:
+
+        We check that the facade option is compatible with specifying
+        categories as a tuple::
+
+            sage: class MyClass(Parent): pass
+            sage: P = MyClass(facade = ZZ, category = (Monoids(), CommutativeAdditiveMonoids()))
+            sage: P.category()
+            Join of Category of monoids and Category of commutative additive monoids and Category of facade sets
 
         .. automethod:: __call__
         .. automethod:: _populate_coercion_lists_
@@ -326,6 +337,8 @@ cdef class Parent(category_object.CategoryObject):
         # (element_constructor would always be set by inheritance)
         # Then, all the element_constructor logic should be moved to init_coerce.
         CategoryObject.__init__(self, base = base)
+        if isinstance(category, (tuple, list)):
+            category = Category.join(category)
         if facade is not None and facade is not False:
             if isinstance(facade, Parent):
                 facade = (facade,)
@@ -333,12 +346,12 @@ cdef class Parent(category_object.CategoryObject):
                 assert isinstance(facade, tuple)
                 self._facade_for = facade
             if category is None:
-                category = Sets().Facades()
+                category = Sets().Facade()
             else:
                 if isinstance(category, (tuple,list)):
-                    category = Category.join(tuple(category) + (Sets().Facades(),))
+                    category = Category.join(tuple(category) + (Sets().Facade(),))
                 else:
-                    category = Category.join((category,Sets().Facades()))
+                    category = Category.join((category,Sets().Facade()))
         # Setting the categories is currently done in a separate
         # method to let some subclasses (like ParentsWithBase)
         # call it without calling the full constructor
@@ -766,7 +779,7 @@ cdef class Parent(category_object.CategoryObject):
         its categories, that is from ``EuclideanDomains().parent_class``::
 
             sage: ZZ._test_associativity
-            <bound method EuclideanDomains.parent_class._test_associativity of Integer Ring>
+            <bound method JoinCategory.parent_class._test_associativity of Integer Ring>
             sage: ZZ._test_associativity(verbose = True)
             sage: TestSuite(ZZ).run(verbose = True)
             running ._test_additive_associativity() . . . pass
@@ -787,13 +800,20 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_elements_eq_symmetric() . . . pass
             running ._test_elements_eq_transitive() . . . pass
             running ._test_elements_neq() . . . pass
+            running ._test_enumerated_set_contains() . . . pass
+            running ._test_enumerated_set_iter_cardinality() . . . pass
+            running ._test_enumerated_set_iter_list() . . .Enumerated set too big; skipping test; increase tester._max_runs
+             pass
             running ._test_eq() . . . pass
+            running ._test_euclidean_degree() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
             running ._test_prod() . . . pass
+            running ._test_quo_rem() . . . pass
             running ._test_some_elements() . . . pass
             running ._test_zero() . . . pass
+            running ._test_zero_divisors() . . . pass
 
             sage: Sets().example().sadfasdf
             Traceback (most recent call last):
@@ -849,13 +869,19 @@ cdef class Parent(category_object.CategoryObject):
             _test_elements_eq_symmetric
             _test_elements_eq_transitive
             _test_elements_neq
+            _test_enumerated_set_contains
+            _test_enumerated_set_iter_cardinality
+            _test_enumerated_set_iter_list
             _test_eq
+            _test_euclidean_degree
             _test_not_implemented_methods
             _test_one
             _test_pickling
             _test_prod
+            _test_quo_rem
             _test_some_elements
             _test_zero
+            _test_zero_divisors
             sage: F = GF(9,'a')
             sage: dir(F)
             [..., '__class__', ..., '_test_pickling', ..., 'extension', ...]
@@ -956,7 +982,7 @@ cdef class Parent(category_object.CategoryObject):
           column, or the meaning is lost.
 
         - ``'element_ascii_art'``: same but for the output of the
-          elements. Used in :mod:`sage.misc.displayhook`.
+          elements. Used in :mod:`sage.repl.display.formatter`.
 
         - ``'element_is_atomic'``: the elements print atomically, that
           is, parenthesis are not required when *printing* out any of
@@ -1090,7 +1116,7 @@ cdef class Parent(category_object.CategoryObject):
         it is a ring, from the point of view of categories::
 
             sage: MS.category()
-            Category of algebras over Rational Field
+            Category of algebras over quotient fields
             sage: MS in Rings()
             True
 
@@ -1280,6 +1306,8 @@ cdef class Parent(category_object.CategoryObject):
         else:
             return (<map.Map>mor)._call_(x)
 
+    # TODO: move this method in EnumeratedSets (.Finite?) as soon as
+    # all Sage enumerated sets are in this category
     def _list_from_iterator_cached(self):
         r"""
         Return a list of the elements of ``self``.
@@ -1317,14 +1345,14 @@ cdef class Parent(category_object.CategoryObject):
             sage: ZZ.list()
             Traceback (most recent call last):
             ...
-            ValueError: since it is infinite, cannot list Integer Ring
+            NotImplementedError: since it is infinite, cannot list Integer Ring
 
         This is the motivation for :trac:`10470` ::
 
             sage: (QQ^2).list()
             Traceback (most recent call last):
             ...
-            ValueError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
+            NotImplementedError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
 
         TESTS:
 
@@ -1383,11 +1411,20 @@ cdef class Parent(category_object.CategoryObject):
             pass
         # if known to be infinite, give up
         # if unsure, proceed (which will hang for an infinite set)
+        #
+        # TODO: The test below should really be:
+        #   if self in Sets().Infinite():
+        # However many infinite parents are not yet declared as such,
+        # which triggers some doctests failure; see e.g. matrix_space.py.
+        # For now we keep the current test as a workaround (see #16239).
+        infinite = False # We do it this way so we can raise a NotImplementedError
         try:
-            if not self.is_finite():
-                raise ValueError('since it is infinite, cannot list %s' % self )
+            if self in Sets().Infinite() or not self.is_finite():
+                infinite = True
         except (AttributeError, NotImplementedError):
             pass
+        if infinite:
+            raise NotImplementedError( 'since it is infinite, cannot list {}'.format(self) )
         the_list = list(self.__iter__())
         try:
             self._list = the_list
@@ -2266,16 +2303,13 @@ cdef class Parent(category_object.CategoryObject):
             Composite map:
               From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
               To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
-              Defn:   Composite map:
+              Defn:   Generic morphism:
                       From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
+                      To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
+                    then
+                      Generic morphism:
+                      From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
                       To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
-                      Defn:   Generic morphism:
-                              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
-                              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
-                            then
-                              Generic morphism:
-                              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
-                              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
                     then
                       Generic morphism:
                       From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
@@ -3139,10 +3173,21 @@ cdef class EltPair:
 
             sage: from sage.structure.parent import EltPair
             sage: a = EltPair(ZZ, QQ, "coerce")
-            sage: hash(a) == hash((ZZ, QQ, "coerce"))
+            sage: b = EltPair(ZZ, QQ, "coerce")
+            sage: hash(a) == hash(b)
             True
+
+        TESTS:
+
+        Verify that :trac:`16341` has been resolved::
+
+            sage: K.<a> = Qq(9)
+            sage: E=EllipticCurve_from_j(0).base_extend(K)
+            sage: E.get_action(ZZ)
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+
         """
-        return hash((self.x, self.y, self.tag))
+        return hash((id(self.x), id(self.y), id(self.tag)))
 
     def short_repr(self):
         return self.tag, hex(<long><void*>self.x), hex(<long><void*>self.y)

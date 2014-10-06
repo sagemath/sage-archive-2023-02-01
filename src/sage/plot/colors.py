@@ -864,7 +864,7 @@ class Color(object):
             sage: hex(Color(0.5, 1.0, 1.0, space='hsv'))
             '00ffff'
             sage: set([len(hex(Color(t, 1-t, t * t))) for t in srange(0, 1, 0.1)])
-            set([6])
+            {6}
         """
         return self.html_color()[1:]
 
@@ -1108,7 +1108,7 @@ class ColorsDict(dict):
             sage: from sage.plot.colors import ColorsDict
             sage: cols = ColorsDict()
             sage: set([(type(c), type(cols[c])) for c in cols])
-            set([(<type 'str'>, <class 'sage.plot.colors.Color'>)])
+            {(<type 'str'>, <class 'sage.plot.colors.Color'>)}
             sage: sorted(cols)
             ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', ...]
             sage: len(cols)
@@ -1192,6 +1192,7 @@ def hue(h, s=1, v=1):
         sage: for phi in xsrange(0, 2 * pi, 1 / pi):
         ...       p += plot(sin(x + phi), (x, -7, 7), rgbcolor = hue(phi))
         sage: p
+        Graphics object consisting of 20 graphics primitives
 
     INPUT:
 

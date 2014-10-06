@@ -369,9 +369,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: M.module()
             Vector space of dimension 36 over Rational Field
             sage: M.basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
+            <repr(<sage.structure.sequence.Sequence_generic at 0x...>) failed: NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general>
         """
         if hasattr(self, "__module"): return self.__module
         try:
@@ -727,7 +725,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             return self.__eisenstein_params
         except AttributeError:
             eps = self.character()
-            if eps == None:
+            if eps is None:
                 if arithgroup.is_Gamma1(self.group()):
                     eps = self.level()
                 else:

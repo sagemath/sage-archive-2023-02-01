@@ -717,7 +717,7 @@ framework. Here is a comprehensive list:
 
   For instance, here is part of the docstring from the ``regulator``
   method for rational elliptic curves, from the file
-  ``SAGE_ROOT/devel/sage/sage/schemes/elliptic_curves/ell_rational.py``::
+  ``SAGE_ROOT/src/sage/schemes/elliptic_curves/ell_rational.py``::
 
       sage: E = EllipticCurve([0, 0, 1, -1, 0])
       sage: E.regulator()        # long time (1 second)
@@ -766,7 +766,7 @@ framework. Here is a comprehensive list:
 
       sage: y = polygen(RDF, 'y')
       sage: p = (y - 10^16)*(y-10^(-13))*(y-2); p
-      y^3 - 1e+16*y^2 + 2e+16*y - 2000.0
+      y^3 - 1.0000000000000002e+16*y^2 + 2.0000000000001e+16*y - 2000.0
       sage: p.roots(multiplicities=False)[2]     # relative tol 1e-10
       10000000000000000
 
@@ -920,14 +920,14 @@ put ``.. linkall`` anywhere in the file, on a line by itself.  (For
 clarity, it might be best to put it near the top of the file.)  Then
 ``sage -t`` will act as if there were a ``.. link`` before each
 verbatim environment.  The file
-``SAGE_ROOT/devel/sage/doc/en/tutorial/interfaces.rst`` contains a
+``SAGE_ROOT/src/doc/en/tutorial/interfaces.rst`` contains a
 ``.. linkall`` directive, for example.
 
 You can also put ``.. skip`` right before a verbatim environment to
 have that example skipped when testing the file.  This goes in the
 same place as the ``.. link`` in the previous example.
 
-See the files in ``SAGE_ROOT/devel/sage/doc/en/tutorial/`` for many
+See the files in ``SAGE_ROOT/src/doc/en/tutorial/`` for many
 examples of how to include automated testing in ReST documentation for
 Sage.
 
@@ -948,7 +948,7 @@ Most people first become aware of the pickle_jar when their patch breaks the
 unpickling of one of the "standard" pickles in the pickle jar due to the
 failure of the doctest::
 
-    sage -t devel/sage-main/sage/structure/sage_object.pyx
+    sage -t src/sage/structure/sage_object.pyx
 
 When this happens an error message is printed which contains the following
 hints for fixing the uneatable pickle::

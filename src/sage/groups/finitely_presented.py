@@ -198,7 +198,7 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
         if not isinstance(x, GapElement):
             F = parent.free_group()
             free_element = F(x)
-            fp_family = parent.one().gap().FamilyObj()
+            fp_family = parent.gap().Identity().FamilyObj()
             x = libgap.ElementOfFpGroup(fp_family, free_element.gap())
         ElementLibGAP.__init__(self, parent, x)
 
@@ -219,10 +219,6 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
 
             sage: F.<a,b,c> = FreeGroup('a, b, c')
             sage: G = F.quotient([a*b*c/(b*c*a), a*b*c/(c*a*b)])
-            sage: G.__reduce__()
-            (<class 'sage.groups.finitely_presented.FinitelyPresentedGroup'>,
-             (Free Group on generators {a, b, c},
-             (a*b*c*a^-1*c^-1*b^-1, a*b*c*b^-1*a^-1*c^-1)))
             sage: G.inject_variables()
             Defining a, b, c
             sage: x = a*b*c
@@ -593,7 +589,7 @@ class RewritingSystem(object):
                 b^2*a^2    --->    1
 
             sage: k.rules()
-            {b^2*a^2: 1, a^3: 1}
+            {a^3: 1, b^2*a^2: 1}
             sage: k.make_confluent()
             sage: sorted(k.rules().items())
             [(a^-2, a), (a^-1*b^-1, a*b), (a^-1*b, b^-1), (a^2, a^-1),
@@ -775,32 +771,6 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         parent_gap = free_group.gap() / libgap([ rel.gap() for rel in relations])
         ParentLibGAP.__init__(self, parent_gap)
         Group.__init__(self)
-
-    def __reduce__(self):
-        """
-        Used in pickling.
-
-        TESTS::
-
-            sage: F = FreeGroup(4)
-            sage: F.inject_variables()
-            Defining x0, x1, x2, x3
-            sage: G = F.quotient([x0*x2, x3*x1*x3, x2*x1*x2])
-            sage: G.__reduce__()
-            (<class 'sage.groups.finitely_presented.FinitelyPresentedGroup'>,
-             (Free Group on generators {x0, x1, x2, x3},
-              (x0*x2, x3*x1*x3, x2*x1*x2)))
-
-            sage: F.<a,b,c> = FreeGroup()
-            sage: F.inject_variables()
-            Defining a, b, c
-            sage: G = F / [a*b*c/(b*c*a), a*b*c/(c*a*b)]
-            sage: G.__reduce__()
-            (<class 'sage.groups.finitely_presented.FinitelyPresentedGroup'>,
-             (Free Group on generators {a, b, c},
-              (a*b*c*a^-1*c^-1*b^-1, a*b*c*b^-1*a^-1*c^-1)))
-        """
-        return (FinitelyPresentedGroup, (self._free_group, self._relations))
 
     def _repr_(self):
         """
@@ -998,7 +968,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         from sage.combinat.permutation import Permutation
         from sage.groups.perm_gps.permgroup import PermutationGroup
         return PermutationGroup([
-                Permutation(coset_table[2*i]) for i in range(len(coset_table)/2)])
+                Permutation(coset_table[2*i]) for i in range(len(coset_table)//2)])
 
     def direct_product(self, H, reduced=False, new_names=True):
         r"""

@@ -252,6 +252,7 @@ class Arc(GraphicPrimitive):
         TESTS::
 
             sage: A = arc((1,1),3,4,pi/4,(pi,4*pi/3)); A
+            Graphics object consisting of 1 graphics primitive
         """
         import matplotlib.patches as patches
         from sage.plot.misc import get_matplotlib_linestyle
@@ -330,19 +331,24 @@ def arc(center, r1, r2=None, angle=0.0, sector=(0.0,2*pi), **options):
     `(\pi/4,3*\pi/4)`::
 
         sage: arc((0,0), 1, sector=(pi/4,3*pi/4))
+        Graphics object consisting of 1 graphics primitive
 
     Plot an arc of an ellipse between the angles 0 and `\pi/2`::
 
         sage: arc((2,3), 2, 1, sector=(0,pi/2))
+        Graphics object consisting of 1 graphics primitive
 
     Plot an arc of a rotated ellipse between the angles 0 and `\pi/2`::
 
         sage: arc((2,3), 2, 1, angle=pi/5, sector=(0,pi/2))
+        Graphics object consisting of 1 graphics primitive
 
     Plot an arc of an ellipse in red with a dashed linestyle::
 
         sage: arc((0,0), 2, 1, 0, (0,pi/2), linestyle="dashed", color="red")
+        Graphics object consisting of 1 graphics primitive
         sage: arc((0,0), 2, 1, 0, (0,pi/2), linestyle="--", color="red")
+        Graphics object consisting of 1 graphics primitive
 
     The default aspect ratio for arcs is 1.0::
 

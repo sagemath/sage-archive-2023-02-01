@@ -66,7 +66,7 @@ class NumberFieldHomset(RingHomset_generic):
         if x.parent() is self:
             return x
         if x.parent() == self:
-            return NumberFieldHomomorphism_im_gens(self, x.im_gens())
+            return NumberFieldHomomorphism_im_gens(self, x.im_gens(), check=False)
         raise TypeError
 
     def _an_element_(self):

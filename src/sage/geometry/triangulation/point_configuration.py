@@ -59,6 +59,7 @@ A 2-dimensional point configuration::
     sage: list(t)
     [(1, 3, 4), (2, 3, 4)]
     sage: t.plot(axes=False)
+    Graphics object consisting of 12 graphics primitives
     sage: list( p.triangulations() )
     [(<1,3,4>, <2,3,4>),
      (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>),
@@ -79,6 +80,7 @@ A 3-dimensional point configuration::
     sage: points = PointConfiguration(p)
     sage: triang = points.triangulate()
     sage: triang.plot(axes=False)
+    Graphics3d Object
 
 The standard example of a non-regular triangulation::
 
@@ -263,7 +265,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: PointConfiguration._have_TOPCOM()    # optional - TOPCOM
             True
         """
-        if PointConfiguration._have_TOPCOM_cached != None:
+        if PointConfiguration._have_TOPCOM_cached is not None:
             return PointConfiguration._have_TOPCOM_cached
 
         try:
@@ -302,7 +304,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         else:
             points = tuple( tuple(p)+(1,) for p in points )
             defined_affine = True
-        if star!=None and star not in ZZ:
+        if star is not None and star not in ZZ:
             star_point = tuple(star)
             if len(star_point)<len(points[0]):
                 star_point = tuple(star)+(1,)
@@ -338,10 +340,10 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         assert regular in [True, False, None], 'Unknown value: regular='+str(regular)
         self._regular = regular
-        if regular!=None and not PointConfiguration._have_TOPCOM():
+        if regular is not None and not PointConfiguration._have_TOPCOM():
            raise ValueError('You must install TOPCOM to test for regularity.')
 
-        assert star==None or star in ZZ, 'Unknown value: fine='+str(star)
+        assert star is None or star in ZZ, 'Unknown value: fine='+str(star)
         self._star = star
 
         PointConfiguration_base.__init__(self, points, defined_affine)
@@ -543,7 +545,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         else:
             s += ' not necessarily regular'
 
-        if self._star==None:
+        if self._star is None:
             s += '.'
         else:
             s += ', and star with center '+str(self.star_center())+'.'
@@ -666,7 +668,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             triangulation = [ [ QQ(t) for t in triangle.split(',') ]
                               for triangle in triangulation ]
 
-            if self._star!=None:
+            if self._star is not None:
                 o = self._star
                 if not all( t.count(o)>0 for t in triangulation):
                     continue
@@ -977,7 +979,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         else:
             if (self._connected!=True):
                 raise ValueError('Need TOPCOM to find disconnected triangulations.')
-            if (self._regular!=None):
+            if (self._regular is not None):
                 raise ValueError('Need TOPCOM to test for regularity.')
             ci = ConnectedTriangulationsIterator(self, star=self._star, fine=self._fine)
             for encoded_triangulation in ci:
@@ -1053,7 +1055,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 # either topcom did not return a triangulation or we filtered it out
                 pass
 
-        if self._connected and not self._fine and self._regular!=False and self._star==None:
+        if self._connected and not self._fine and self._regular!=False and self._star is None:
             return self.placing_triangulation()
 
         try:
@@ -1204,11 +1206,11 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: triangle.face_interior(codim=1)  # interior of facets
             (3,)
         """
-        assert not (dim!=None and codim!=None), "You cannot specify both dim and codim."
+        assert not (dim is not None and codim is not None), "You cannot specify both dim and codim."
 
-        if (dim!=None):
+        if (dim is not None):
             return self.face_interior()[self.convex_hull().dim()-dim]
-        if (codim!=None):
+        if (codim is not None):
             return self.face_interior()[codim]
 
         try:
@@ -1218,7 +1220,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         d = [ self.face_codimension(i) for i in range(0,self.n_points()) ]
 
-        return tuple( tuple(filter( lambda i: d[i]==codim, range(0,self.n_points())) )
+        return tuple( tuple(i for i in range(0,self.n_points()) if d[i]==codim )
                       for codim in range(0,self.dim()+1) )
 
 
@@ -1297,7 +1299,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             things so that the volume of the standard n-simplex is 1.
             See [GKZ]_ page 182.
         """
-        if (simplex==None):
+        if (simplex is None):
             return sum([ self.volume(s) for s in self.triangulate() ])
 
         #Form a matrix whose columns are the points of simplex
@@ -1533,7 +1535,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (((<0,1,3>, <0,2,3>), (<0,1,2>, <1,2,3>)),)
             sage: Tpos, Tneg = pc.bistellar_flips()[0]
             sage: Tpos.plot(axes=False)
+            Graphics object consisting of 11 graphics primitives
             sage: Tneg.plot(axes=False)
+            Graphics object consisting of 11 graphics primitives
 
         The 3d analog::
 
@@ -1548,6 +1552,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (((<0,1,3>, <0,2,3>), (<0,1,2>, <1,2,3>)),)
             sage: Tpos, Tneg = pc.bistellar_flips()[0]
             sage: Tpos.plot(axes=False)
+            Graphics3d Object
         """
         flips = []
         for C in self.circuits():

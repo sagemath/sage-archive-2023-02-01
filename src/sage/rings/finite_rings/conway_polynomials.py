@@ -141,7 +141,7 @@ class PseudoConwayLattice(SageObject):
 
             sage: PCL = PseudoConwayLattice(5, use_database=False)
             sage: PCL.polynomial(12)
-            x^12 + 2*x^11 + x^10 + 4*x^9 + 4*x^8 + 4*x^7 + x^6 + 4*x^5 + x^4 + 3*x + 2
+            x^12 + 4*x^11 + 2*x^10 + 4*x^9 + 2*x^8 + 2*x^7 + 4*x^6 + x^5 + 2*x^4 + 2*x^2 + x + 2
             sage: PCL.polynomial(6)
             x^6 + x^5 + 4*x^4 + 3*x^3 + 3*x^2 + 2*x + 2
             sage: PCL.polynomial(11)
@@ -156,6 +156,33 @@ class PseudoConwayLattice(SageObject):
                           for n in C.degrees(p)}
         else:
             self.nodes = {}
+
+    def __cmp__(self, other):
+        """
+        TEST::
+
+            sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
+            sage: PCL3 = PseudoConwayLattice(3)
+            sage: PCL5 = PseudoConwayLattice(5)
+            sage: PCL3 == PCL3
+            True
+            sage: PCL3 == PCL5
+            False
+            sage: PCL3 = PseudoConwayLattice(3, use_database=False)
+            sage: PCL5 = PseudoConwayLattice(5, use_database=False)
+            sage: PCL5 == PCL5
+            True
+            sage: PCL3 == PCL5
+            False
+
+        """
+        if self is other:
+            return 0
+        c = cmp(type(self), type(other))
+        if c != 0:
+            return c
+        return cmp((self.p, self.nodes),
+                   (other.p, other.nodes))
 
     def polynomial(self, n):
         r"""

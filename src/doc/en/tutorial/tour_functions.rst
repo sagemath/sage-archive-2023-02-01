@@ -128,21 +128,23 @@ Here are some common problems, with explanations:
        ...       else:
        ...           return x-2
 
-The issue: ``plot(h(x), 0, 4)`` plots the line `y=x-2`, not the
-multi-line function defined by ``h``.  The reason? In the command
-``plot(h(x), 0, 4)``, first ``h(x)`` is evaluated: this means plugging
-``x`` into the function ``h``, which means that ``x<2`` is evaluated.
 
-.. link
+The issue: ``plot(h(x), 0, 4)`` plots the line `y=x−2`, not the multi-line
+function defined by ``h``. The reason? In the command ``plot(h(x), 0, 4)``,
+first ``h(x)`` is evaluated: this means plugging the symbolic variable ``x``
+into the function ``h``. The inequality ``x < 2`` evaluates to ``False`` and
+hence ``h(x)`` evaluates to ``x - 2`` as it can be seen with
 
 ::
 
-       sage: type(x<2)
-       <type 'sage.symbolic.expression.Expression'>
+        sage: bool(x < 2)
+        False
+        sage: h(x)
+        x - 2
 
-When a symbolic equation is evaluated, as in the definition of ``h``,
-if it is not obviously true, then it returns False.  Thus ``h(x)``
-evaluates to ``x-2``, and this is the function that gets plotted.
+Note that here there are two different ``x``: the Python variable used to
+define the function ``h`` (which is local to its definition) and the symbolic
+variable ``x`` which is available on startup in Sage.
 
 The solution: don't use ``plot(h(x), 0, 4)``; instead, use
 

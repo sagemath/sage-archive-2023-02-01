@@ -747,6 +747,9 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             0.48647753726382832627633818586
             sage: print f.green_function(P([w,1]), K.ideal(17), error_bound=0.001)
             -0.70761163353747779889947530309
+
+        .. TODO:: Implement general p-adic extensions so that the flip trick can be used
+             for number fields.
         """
         N = kwds.get('N', 10)                     #Get number of iterates (if entered)
         err = kwds.get('error_bound', None)         #Get error bound (if entered)

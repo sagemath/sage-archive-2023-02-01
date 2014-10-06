@@ -1603,7 +1603,7 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
         sage: ics = [0.8, 0, 0, 1.22474487139159]
         sage: t = 100*pi
         sage: sol = desolve_mintides(f, ics, 0, t, t, 1e-12, 1e-12) # optional -tides
-        sage: sol # optional -tides # abs rel 1e-5
+        sage: sol # optional -tides # abs tol 1e-5
         [[0.000000000000000,
         0.800000000000000,
         0.000000000000000,
@@ -1705,7 +1705,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
         sage: z0 = 27
         sage: T = 15.586522107161747275678702092126960705284805489972439358895215783190198756258880854355851082660142374
         sage: sol = desolve_tides_mpfr(f, [x0, y0, z0],0 , T, T, 1e-100, 1e-100, 100) # optional - tides
-        sage: sol # optional -tides # abs rel 1e-50
+        sage: sol # optional -tides # abs tol 1e-50
         [[0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
         -13.7636106821342005250144010543616538641008648540923684535378642921202827747268115852940239346395038,
         -19.5787519424517955388380414460095588661142400534276438649791334295426354746147526415973165506704676,

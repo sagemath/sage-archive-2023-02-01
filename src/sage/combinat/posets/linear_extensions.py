@@ -46,11 +46,11 @@ class LinearExtensionOfPoset(ClonableArray):
     - ``linear_extension`` -- a list of the elements of `P`
     - ``poset`` -- the underlying poset `P`
 
-    .. seealso:: :class:`Poset`, :class:`LinearExtensionsOfPosets`
+    .. SEEALSO:: :class:`Poset`, :class:`LinearExtensionsOfPosets`
 
     EXAMPLES::
 
-        sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True, facade = False)
+        sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True, facade=False)
         sage: p = P.linear_extension([1,4,2,3]); p
         [1, 4, 2, 3]
         sage: p.parent()
@@ -59,7 +59,7 @@ class LinearExtensionOfPoset(ClonableArray):
         (1, 4, 2, 3)
 
     Following Schützenberger and later Haiman and
-    Malvenuto-Reutenauer, Stanley [Stanley2009]_ defined a promotion
+    Malvenuto-Reutenauer, Stanley [Stan2009]_ defined a promotion
     and evacuation operator on any finite poset `P` using operators
     `\tau_i` on the linear extensions of `P`::
 
@@ -78,13 +78,6 @@ class LinearExtensionOfPoset(ClonableArray):
         False
         sage: Q.cover_relations()
         [[1, 2], [1, 4], [3, 4]]
-
-    REFERENCES:
-
-        .. [Stanley2009] Richard Stanley,
-           *Promotion and evacuation*,
-           Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of Anders Björner,
-           Research Paper 9, 24 pp.
     """
 
     __metaclass__ = ClasscallMetaclass
@@ -167,6 +160,7 @@ class LinearExtensionOfPoset(ClonableArray):
         """
         return "\\mathtt{"+str(tuple(self))+"}"
 
+    # TODO: Deprecate?
     def to_poset(self):
         r"""
         Returns the poset associated to the linear extension ``self``.
@@ -213,7 +207,7 @@ class LinearExtensionOfPoset(ClonableArray):
         old = [P.unwrap(x) for x in self]
         new = [P.unwrap(x) for x in P]
         relabelling = dict(zip(old,new))
-        return P.relabel(relabelling).with_linear_extension(new)
+        return P.relabel(relabelling)#.with_linear_extension(new)
 
     def tau(self, i):
         r"""
@@ -226,7 +220,7 @@ class LinearExtensionOfPoset(ClonableArray):
         The operator `\tau_i` on a linear extension `\pi` of a poset
         `P` interchanges positions `i` and `i+1` if the result is
         again a linear extension of `P`, and otherwise acts
-        trivially. For more details, see [Stanley2009]_.
+        trivially. For more details, see [Stan2009]_.
 
         EXAMPLES::
 
@@ -285,7 +279,7 @@ class LinearExtensionOfPoset(ClonableArray):
         `\pi` is defined as `\pi \tau_i \tau_{i+1} \cdots \tau_{n-1}`, where `n` is the
         size of the linear extension (or size of the underlying poset).
 
-        For more details see [Stanley2009]_.
+        For more details see [Stan2009]_.
 
         .. seealso:: :meth:`tau`, :meth:`evacuation`
 
@@ -310,7 +304,7 @@ class LinearExtensionOfPoset(ClonableArray):
 
         Evacuation on a linear extension `\pi` of length `n` is defined as
         `\pi (\tau_1 \cdots \tau_{n-1}) (\tau_1 \cdots \tau_{n-2}) \cdots (\tau_1)`.
-        For more details see [Stanley2009]_.
+        For more details see [Stan2009]_.
 
         .. seealso:: :meth:`tau`, :meth:`promotion`
 

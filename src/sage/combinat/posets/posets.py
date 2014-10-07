@@ -2144,10 +2144,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         REFERENCES:
 
-            .. [Bj1980] Anders Björner,
-               *Shellable and Cohen-Macaulay partially ordered sets*,
-               Trans. Amer. Math. Soc. 260 (1980), 159-183,
-               :doi:`10.1090/S0002-9947-1980-0570784-2`
+        .. [Bj1980] Anders Björner,
+           *Shellable and Cohen-Macaulay partially ordered sets*,
+           Trans. Amer. Math. Soc. 260 (1980), 159-183,
+           :doi:`10.1090/S0002-9947-1980-0570784-2`
         """
         label_dict = { (a,b):f(a,b) for a,b in self.cover_relations_iterator() }
         if return_raising_chains:
@@ -2970,13 +2970,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.dual().__class__
             <class 'sage.combinat.posets.lattices.FiniteMeetSemilattice_with_category'>
         """
-        n = self.cardinality()
-        dual_hasse_digraph = DiGraph(self._hasse_diagram).reverse()
-        dual_hasse_digraph.relabel(lambda i: self._elements[n-i-1])
-
-        return self._dual_class(dual_hasse_digraph,
-                                category = self.category(),
-                                facade = self._is_facade)
+        #n = self.cardinality()
+        #dual_hasse_digraph = self.hasse_diagram().reverse()
+        #dual_hasse_digraph.relabel(lambda i: self._elements[n-i-1])
+        return self._dual_class(self.hasse_diagram().reverse(),
+                                category=self.category(),
+                                facade=self._is_facade)
 
     def relabel(self, relabelling):
         r"""
@@ -4024,10 +4023,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         local maximum. Place the label `n+1` at this vertex.  Finally,
         decrease all labels by `1`.
 
-        REFERENCES:
-
-        [Stan2009]_
-
         EXAMPLES::
 
             sage: P = Poset(([1,2], [[1,2]]), facade = False)
@@ -4082,7 +4077,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - Anne Schilling (2012-02-18)
         """
-        return self.linear_extension(self.linear_extension()).promotion(i).to_poset()
+        return self.linear_extension().promotion(i).to_poset()
 
     # TODO: Deprecate and move doc to LinearExtension
     def evacuation(self):
@@ -4158,7 +4153,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - Anne Schilling (2012-02-18)
         """
-        return self.linear_extension(self.linear_extension()).evacuation().to_poset()
+        return self.linear_extension().evacuation().to_poset()
 
     def is_slender(self):
         r"""

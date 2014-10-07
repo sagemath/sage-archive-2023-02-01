@@ -18,7 +18,7 @@ usage() {
     echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
     echo "  -h, -?              -- print this help message"
     echo "  -i [packages]       -- install the given Sage packages"
-    echo "  -inotebook [...]    -- start the *insecure* Sage notebook"
+    echo "  -inotebook [...]    -- start the *insecure* Sage notebook (deprecated)"
     echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
     echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
@@ -76,7 +76,7 @@ usage_advanced() {
     echo "                         'of sage --notebook --help for more details"
     echo "  -bn, -build-and-notebook [...] -- build the Sage library then start"
     echo "                         the Sage notebook"
-    echo "  -inotebook [...]    -- start the *insecure* Sage notebook"
+    echo "  -inotebook [...]    -- start the *insecure* Sage notebook (deprecated)"
     echo "  -n, -notebook [...] -- start the Sage notebook (options are the same"
     echo "                         as for the notebook command in Sage)"
 

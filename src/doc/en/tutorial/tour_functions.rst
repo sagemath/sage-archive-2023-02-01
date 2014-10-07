@@ -132,8 +132,8 @@ Here are some common problems, with explanations:
 The issue: ``plot(h(x), 0, 4)`` plots the line `y=x−2`, not the multi-line
 function defined by ``h``. The reason? In the command ``plot(h(x), 0, 4)``,
 first ``h(x)`` is evaluated: this means plugging the symbolic variable ``x``
-into the function ``h``. The inequality ``x < 2`` evaluates to ``False`` and
-hence ``h(x)`` evaluates to ``x - 2`` as it can be seen with
+into the function ``h``. So, the inequality ``x < 2`` evaluates to ``False`` first,
+and hence ``h(x)`` evaluates to ``x - 2``. This can be seen with
 
 ::
 

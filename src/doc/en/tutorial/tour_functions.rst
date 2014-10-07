@@ -129,7 +129,7 @@ Here are some common problems, with explanations:
        ...           return x-2
 
 
-The issue: ``plot(h(x), 0, 4)`` plots the line `y=x−2`, not the multi-line
+The issue: ``plot(h(x), 0, 4)`` plots the line `y=x-2`, not the multi-line
 function defined by ``h``. The reason? In the command ``plot(h(x), 0, 4)``,
 first ``h(x)`` is evaluated: this means plugging the symbolic variable ``x``
 into the function ``h``. So, the inequality ``x < 2`` evaluates to ``False`` first,

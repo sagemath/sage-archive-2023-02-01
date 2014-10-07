@@ -97,11 +97,18 @@ def make_parser():
                         help='show this help message and exit')
     parser.add_argument('--log', dest='log', default=None,
                         help='one of [DEBUG, INFO, ERROR, WARNING, CRITICAL]')
+    default = None
+    for name, launcher in notebook_launcher.items():
+        if launcher == notebook_launcher['default'] and name != 'default':
+            default = name
+    if default is None:
+        raise RuntimeError('default launcher is defined but not known under a specific name')
     parser.add_argument('--notebook',    # long style
                         '-n',            # short style
                         '-notebook',     # wtf style, we can't decide (legacy support)
                         dest='notebook', type=str, nargs='?', const='default',
-                        help='The notebook to run [{0}]'.format(notebook_names))
+                        help='The notebook to run [one of: {0}]. Default is {1}'.format(
+                            notebook_names, default))
     return parser
 
 

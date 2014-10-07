@@ -734,21 +734,48 @@ class Sets(Category_singleton):
             r"""
             Return the full subcategory of the facade objects of ``self``.
 
-            A *facade set* is a parent ``P`` whose elements actually belong to
-            some other parent::
+            .. _facade-sets:
 
-                sage: P = Sets().example(); P
-                Set of prime numbers (basic implementation)
-                sage: p = Sets().example().an_element(); p
-                47
-                sage: p in P
-                True
+            .. RUBRIC:: What is a facade set?
+
+            Recall that, in Sage, :ref:`sets are modelled by *parents*
+            <category-primer-parents-elements-categories>`, and their
+            elements know which distinguished set they belong to. For
+            example, the ring of integers `\ZZ` is modelled by the
+            parent :obj:`ZZ`, and integers know that they belong to
+            this set::
+
+                sage: ZZ
+                Integer Ring
+                sage: 42.parent()
+                Integer Ring
+
+            Sometimes, it is convenient to represent the elements of a
+            parent ``P`` by elements of some other parent. For
+            example, the elements of the set of prime numbers are
+            represented by plain integers::
+
+                sage: Primes()
+                Set of all prime numbers: 2, 3, 5, 7, ...
+                sage: p = Primes().an_element(); p
+                43
                 sage: p.parent()
                 Integer Ring
+
+            In this case, ``P`` is called a *facade set*.
+
+            This feature is advertised through the category of `P`::
+
+                sage: Primes().category()
+                Category of facade infinite enumerated sets
+                sage: Sets().Facade()
+                Category of facade sets
 
             Typical use cases include modeling a subset of an existing
             parent::
 
+                sage: Set([4,6,9])                    # random
+                {4, 6, 9}
                 sage: Sets().Facade().example()
                 An example of facade set: the monoid of positive integers
 
@@ -757,14 +784,16 @@ class Sets(Category_singleton):
                 sage: Sets().Facade().example("union")
                 An example of a facade set: the integers completed by +-infinity
 
-            or endowing a parent with more (or less!) structure::
+            or endowing an existing parent with more (or less!)
+            structure::
 
                 sage: Posets().example("facade")
                 An example of a facade poset: the positive integers ordered by divisibility
 
-            Let us consider one of the examples above in detail: the partially ordered
-            set `P` of positive integers w.r.t. divisibility order. There are two
-            options for representing its elements:
+            Let us investigate this last example in detail: let `P` be
+            set of positive integers partially ordered by
+            divisibility. There are two options for representing its
+            elements:
 
             1. as plain integers
             2. as integers, modified to be aware that their parent is `P`
@@ -797,7 +826,8 @@ class Sets(Category_singleton):
 
             .. SEEALSO::
 
-               ::
+               The following examples illustrate various ways to
+               implement subsets like the set of prime numbers::
 
                    sage: Sets().example("facade")
                    Set of prime numbers (facade implementation)
@@ -806,7 +836,7 @@ class Sets(Category_singleton):
                    sage: Sets().example("wrapper")
                    Set of prime numbers (wrapper implementation)
 
-            .. rubric:: Specifications
+            .. RUBRIC:: Specifications
 
             A parent which is a facade must either:
 
@@ -838,7 +868,7 @@ class Sets(Category_singleton):
             """
             return self._with_axiom('Facade')
 
-        Facades = Facade
+        Facades = deprecated_function_alias(17073, Facade)
 
     class ParentMethods:
 #         # currently overriden by the default implementation in sage.structure.Parent

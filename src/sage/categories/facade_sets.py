@@ -1,7 +1,7 @@
 r"""
 Facade Sets
 
-See :meth:`Sets.SubcategoryMethods.Facade` for background on facade sets.
+For background, see :ref:`What is a facade set? <facade-sets>`.
 """
 #*****************************************************************************
 #  Copyright (C) 2010-2011 Nicolas M. Thiery <nthiery at users.sf.net>

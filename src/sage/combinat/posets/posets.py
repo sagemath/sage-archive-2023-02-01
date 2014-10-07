@@ -728,7 +728,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             <class 'sage.combinat.posets.posets.FinitePoset_with_category'>
             sage: TestSuite(P).run()
 
-        See also the extensive tests in the class documentation
+        See also the extensive tests in the class documentation.
+
+        We check that :trac:`17059` is fixed::
+
+            sage: p = Poset()
+            sage: p is Poset(p, category=p.category())
+            True
         """
         assert isinstance(hasse_diagram, (FinitePoset, DiGraph))
         if isinstance(hasse_diagram, FinitePoset):
@@ -736,8 +742,6 @@ class FinitePoset(UniqueRepresentation, Parent):
                 elements = hasse_diagram._elements
             if category is None:
                 category = hasse_diagram.category()
-                if facade is False and category.is_subcategory(Sets().Facade()):
-                    category = category._without_axiom("Facade")
             if facade is None:
                 facade = hasse_diagram in Sets().Facade()
             hasse_diagram = hasse_diagram._hasse_diagram
@@ -748,6 +752,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             if facade is None:
                 facade = True
         elements = tuple(elements)
+        # Standardize the category by letting the Facade axiom be carried
+        #   by the facade variable
+        if category is not None and category.is_subcategory(Sets().Facade()):
+            category = category._without_axiom("Facade")
         category = Category.join([FinitePosets().or_subcategory(category), FiniteEnumeratedSets()])
         return super(FinitePoset, cls).__classcall__(cls, hasse_diagram = hasse_diagram, elements = elements,
                                                      category = category, facade = facade, key = key)
@@ -1643,7 +1651,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         ::
 
-            sage: [len([p for p in Posets(n) if p.is_incomparable_chain_free(((3, 1), (2, 2)))]) for n in range(6)]
+            sage: [len([p for p in Posets(n) if p.is_incomparable_chain_free(((3, 1), (2, 2)))]) for n in range(6)] # long time
             [1, 1, 2, 5, 14, 42]
 
         TESTS::

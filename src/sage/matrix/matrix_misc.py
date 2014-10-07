@@ -68,7 +68,7 @@ def row_reduced_form(M,ascend=True):
         sage: R.<t> = GF(3)['t']
         sage: K = FractionField(R)
         sage: import sage.matrix.matrix_misc
-        sage: sage.matrix.matrix_misc.weak_popov_form(matrix([[(t-1)^2/t],[(t-1)]]))
+        sage: sage.matrix.matrix_misc.row_reduced_form(matrix([[(t-1)^2/t],[(t-1)]]))
         (
         [          0]  [      t 2*t + 1]
         [(2*t + 1)/t], [      1       2], [-Infinity, 0]
@@ -76,7 +76,7 @@ def row_reduced_form(M,ascend=True):
 
     NOTES:
 
-    See docstring for weak_popov_form method of matrices for
+    See docstring for row_reduced_form method of matrices for
     more information.
     """
 

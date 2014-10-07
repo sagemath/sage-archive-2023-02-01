@@ -671,8 +671,10 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             sage: L._element_constructor_([4,3,2,1],check=False)
             [4, 3, 2, 1]
         """
+        if isinstance(lst, LinearExtensionOfPoset):
+            lst = list(lst)
         if not isinstance(lst, (list, tuple)):
-            raise TypeError("Input should be a list or tuple.")
+            raise TypeError("input should be a list or tuple")
         lst = map(self._poset, lst)
         if self._is_facade:
             return lst

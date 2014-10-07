@@ -307,6 +307,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         True
 
     Test that the coding line and doctest are preserved::
+
         sage: Fpy = open(script_py, "r")
         sage: Fpy.readline()
         '# -*- coding: utf-8 -*-\n'

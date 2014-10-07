@@ -1053,7 +1053,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             raise TypeError, "%s is neither an ideal of ZZ nor an integer"%prime
         if check and not p.is_prime():
             raise TypeError, "%s is not prime"%prime
-        from sage.rings.residue_field import ResidueField
+        from sage.rings.finite_rings.residue_field import ResidueField
         return ResidueField(p, names = None, check = check)
 
     def gens(self):

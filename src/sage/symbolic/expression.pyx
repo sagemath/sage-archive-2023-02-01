@@ -6560,6 +6560,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0.4).arccos()
             1.15927948072741
             sage: plot(lambda x: SR(x).arccos(), -1,1)
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -6611,6 +6612,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0.5).arctan()
             0.463647609000806
             sage: plot(lambda x: SR(x).arctan(), -20,20)
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -6882,6 +6884,7 @@ cdef class Expression(CommutativeRingElement):
             sage: maxima('tanh(1.0)')
             0.7615941559557649
             sage: plot(lambda x: SR(x).tanh(), -1, 1)
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -7161,6 +7164,7 @@ cdef class Expression(CommutativeRingElement):
             sage: math.log(0.5)
             -0.6931471805599453
             sage: plot(lambda x: SR(x).log(), 0.1,10)
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -7467,6 +7471,7 @@ cdef class Expression(CommutativeRingElement):
             sage: math.exp(0.5)
             1.6487212707001282
             sage: plot(lambda x: (SR(x).exp() - SR(-x).exp())/2 - SR(x).sinh(), -1, 1)
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -9341,10 +9346,8 @@ cdef class Expression(CommutativeRingElement):
             [x == 1/2*pi]
             sage: solve(cos(x)==0, x, to_poly_solve=True)
             [x == 1/2*pi]
-            
-            
             sage: solve(cos(x)==0, x, to_poly_solve='force')
-            [x == 1/2*pi + pi*z...]
+            [x == 1/2*pi + pi*z85]
 
         The same may also apply if a returned unsolved expression has a
         denominator, but the original one did not::
@@ -9847,16 +9850,19 @@ cdef class Expression(CommutativeRingElement):
         This displays a straight line::
 
             sage: sin(2).plot((x,0,3))
+            Graphics object consisting of 1 graphics primitive
 
         This draws a red oscillatory curve::
 
             sage: sin(x^2).plot((x,0,2*pi), rgbcolor=(1,0,0))
+            Graphics object consisting of 1 graphics primitive
 
         Another plot using the variable theta::
 
             sage: var('theta')
             theta
             sage: (cos(theta) - erf(theta)).plot((theta,-2*pi,2*pi))
+            Graphics object consisting of 1 graphics primitive
 
         A very thick green plot with a frame::
 
@@ -9865,6 +9871,7 @@ cdef class Expression(CommutativeRingElement):
         You can embed 2d plots in 3d space as follows::
 
             sage: plot(sin(x^2), (x,-pi, pi), thickness=2).plot3d(z = 1)
+            Graphics3d Object
 
         A more complicated family::
 
@@ -9874,6 +9881,7 @@ cdef class Expression(CommutativeRingElement):
         A plot involving the floor function::
 
             sage: plot(1.0 - x * floor(1/x), (x,0.00001,1.0))
+            Graphics object consisting of 1 graphics primitive
 
         Sage used to allow symbolic functions with "no arguments";
         this no longer works::
@@ -9886,11 +9894,13 @@ cdef class Expression(CommutativeRingElement):
         You should evaluate the function first::
 
             sage: plot(2*sin(x), -4, 4)
+            Graphics object consisting of 1 graphics primitive
 
         TESTS::
 
             sage: f(x) = x*(1 - x)
             sage: plot(f,0,1)
+            Graphics object consisting of 1 graphics primitive
         """
         from sage.symbolic.callable import is_CallableSymbolicExpression
         from sage.symbolic.ring import is_SymbolicVariable
@@ -9953,6 +9963,7 @@ cdef class Expression(CommutativeRingElement):
             sage: abs((I*10+1)^4)
             10201
             sage: plot(s)
+            Graphics object consisting of 1 graphics primitive
 
         Check that :trac:`15030` is fixed::
 
@@ -9960,6 +9971,7 @@ cdef class Expression(CommutativeRingElement):
             3.52985761682672
             sage: f = function('f', evalf_func=lambda self,x,parent: I*x)
             sage: plot(abs(f(x)), 0,5)
+            Graphics object consisting of 1 graphics primitive
         """
         from sage.ext.fast_callable import fast_callable
         return fast_callable(self, vars=vars, expect_one_var=True)

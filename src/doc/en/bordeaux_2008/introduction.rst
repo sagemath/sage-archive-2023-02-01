@@ -66,12 +66,14 @@ positive integer up to :math:`500`.
 ::
 
     sage: line([(n, len(factor(n))) for n in [1..500]])
+    Graphics object consisting of 1 graphics primitive
 
 
 And, this example draws a similar 3d plot::
 
     sage: v = [[len(factor(n*m)) for n in [1..15]] for m in [1..15]]
     sage: list_plot3d(v, interpolation_type='nn')
+    Graphics3d Object
 
 
 The Sage-Pari-Magma Ecosystem

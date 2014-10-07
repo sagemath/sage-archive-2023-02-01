@@ -938,7 +938,7 @@ cdef class FiniteField(Field):
         if is_FiniteField(R):
             if R is self:
                 return True
-            from sage.rings.residue_field import ResidueField_generic
+            from residue_field import ResidueField_generic
             if isinstance(R, ResidueField_generic):
                 return False
             if R.characteristic() == self.characteristic():

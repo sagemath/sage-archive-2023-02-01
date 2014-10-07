@@ -489,7 +489,7 @@ cdef class PowComputer_base(PowComputer_class):
             sage: PC._pow_mpz_t_top_test() #indirect doctest
             59049
         """
-        return self.top_power
+        return <mpz_srcptr>&(self.top_power[0])
 
     cdef mpz_srcptr pow_mpz_t_tmp(self, long n):
         """
@@ -502,11 +502,11 @@ cdef class PowComputer_base(PowComputer_class):
             81
         """
         if n <= self.cache_limit:
-            return self.small_powers[n]
+            return <mpz_srcptr>&(self.small_powers[n][0])
         if n == self.prec_cap:
-            return self.top_power
+            return <mpz_srcptr>&(self.top_power[0])
         mpz_pow_ui(self.temp_m, self.prime.value, n)
-        return self.temp_m
+        return <mpz_srcptr>&(self.temp_m[0])
 
 pow_comp_cache = {}
 cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec_cap, in_field):

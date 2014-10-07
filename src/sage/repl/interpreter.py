@@ -288,7 +288,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
             sage: shell = interface_shell_embed(maxima)
             sage: ift = shell.prefilter_manager.transformers[0]
             sage: ift.temporary_objects
-            set([])
+            set()
             sage: ift._sage_import_re.findall('sage(a) + maxima(b)')
             ['a', 'b']
         """
@@ -357,7 +357,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
             sage: ift.transform(r'sage(a)+4', False)
             'sage.misc.all.logstr("""8""")'
             sage: ift.temporary_objects
-            set([])
+            set()
             sage: shell = interface_shell_embed(gap)
             sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
             sage: ift.transform('2+2', False)
@@ -440,6 +440,11 @@ def get_test_shell():
     app = SageTerminalApp.instance(config=copy.deepcopy(DEFAULT_SAGE_CONFIG))
     if app.shell is None:
         app.initialize(argv=[])
+    # overwrite the default (console + graphics) formatter with the plain text one
+    import sage.repl.display.formatter as formatter
+    app.shell.display_formatter.formatters['text/plain'] = (
+        formatter.SagePlainTextFormatter(config=app.shell.config))
+    # No quit noise
     app.shell.verbose_quit = False
     return app.shell
 

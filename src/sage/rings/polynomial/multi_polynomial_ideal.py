@@ -937,12 +937,16 @@ class MPolynomialIdeal_singular_repr(
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: I = R.ideal([y^3 - x^2])
             sage: I.plot()        # cusp
+            Graphics object consisting of 1 graphics primitive
             sage: I = R.ideal([y^2 - x^2 - 1])
             sage: I.plot()        # hyperbola
+            Graphics object consisting of 1 graphics primitive
             sage: I = R.ideal([y^2 + x^2*(1/4) - 1])
             sage: I.plot()        # ellipse
+            Graphics object consisting of 1 graphics primitive
             sage: I = R.ideal([y^2-(x^2-1)*(x-2)])
             sage: I.plot()        # elliptic curve
+            Graphics object consisting of 1 graphics primitive
 
         Implicit plotting in 3-d::
 
@@ -3282,7 +3286,13 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             We test to make sure that pickling works with the cached Groebner basis::
 
             sage: loads(dumps(I)).__getstate__()
-            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Finite Field of size 32003, {'_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Finite Field of size 32003, '_cache__groebner_basis': {}, 'groebner_basis': Pickle of the cached method "groebner_basis", 'gens': Pickle of the cached method "gens", '_Ideal_generic__gens': (x^2 + x, y), '_gb_by_ordering': {'degrevlex': [x^2 + x, y]}})
+            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Finite Field of size 32003,
+             {'_Ideal_generic__gens': (x^2 + x, y),
+              '_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Finite Field of size 32003,
+              '_cache__groebner_basis': {},
+              '_gb_by_ordering': {'degrevlex': [x^2 + x, y]},
+              'gens': Pickle of the cached method "gens",
+              'groebner_basis': Pickle of the cached method "groebner_basis"})
 
         """
         # first check the type
@@ -4303,32 +4313,38 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: I = R.ideal([y^3 - x^2])
             sage: I.plot()                         # cusp
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: I = R.ideal([y^2 - x^2 - 1])
             sage: I.plot((x,-3, 3), (y, -2, 2))  # hyperbola
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: I = R.ideal([y^2 + x^2*(1/4) - 1])
             sage: I.plot()                         # ellipse
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: I = R.ideal([y^2-(x^2-1)*(x-2)])
             sage: I.plot()                         # elliptic curve
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: f = ((x+3)^3 + 2*(x+3)^2 - y^2)*(x^3 - y^2)*((x-3)^3-2*(x-3)^2-y^2)
             sage: I = R.ideal(f)
             sage: I.plot()                         # the Singular logo
+            Graphics object consisting of 1 graphics primitive
 
         This used to be trac #5267::
 
             sage: I = R.ideal([-x^2*y+1])
             sage: I.plot()
+            Graphics object consisting of 1 graphics primitive
 
         AUTHORS:
 

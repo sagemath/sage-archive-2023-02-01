@@ -111,11 +111,13 @@ EXAMPLES:
         sage: f(x) = Bessel(0)(x); f
         x |--> bessel_J(0, x)
         sage: plot(f, (x, 1, 10))
+        Graphics object consisting of 1 graphics primitive
 
     Visualize the Bessel Y function on the complex plane
     (set plot_points to a higher value to get more detail)::
 
         sage: complex_plot(bessel_Y(0, x), (-5, 5), (-5, 5), plot_points=20)
+        Graphics object consisting of 1 graphics primitive
 
     Evaluate a combination of Bessel functions::
 
@@ -273,7 +275,9 @@ class Function_Bessel_J(BuiltinFunction):
     Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_J(1,x), (x,0,5), color='blue')
+        Graphics object consisting of 1 graphics primitive
         sage: complex_plot(bessel_J(1, x), (-5, 5), (-5, 5), plot_points=20)
+        Graphics object consisting of 1 graphics primitive
 
     ALGORITHM:
 
@@ -425,7 +429,9 @@ class Function_Bessel_Y(BuiltinFunction):
     Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_Y(1,x), (x,0,5), color='blue')
+        Graphics object consisting of 1 graphics primitive
         sage: complex_plot(bessel_Y(1, x), (-5, 5), (-5, 5), plot_points=20)
+        Graphics object consisting of 1 graphics primitive
 
     ALGORITHM:
 
@@ -579,7 +585,9 @@ class Function_Bessel_I(BuiltinFunction):
     Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_I(1,x), (x,0,5), color='blue')
+        Graphics object consisting of 1 graphics primitive
         sage: complex_plot(bessel_I(1, x), (-5, 5), (-5, 5), plot_points=20)
+        Graphics object consisting of 1 graphics primitive
 
     ALGORITHM:
 
@@ -744,7 +752,9 @@ class Function_Bessel_K(BuiltinFunction):
     Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_K(1,x), (x,0,5), color='blue')
+        Graphics object consisting of 1 graphics primitive
         sage: complex_plot(bessel_K(1, x), (-5, 5), (-5, 5), plot_points=20)
+        Graphics object consisting of 1 graphics primitive
 
     ALGORITHM:
 
@@ -963,14 +973,17 @@ def Bessel(*args, **kwds):
         1
 
         sage: plot(f, (x,0,5))
+        Graphics object consisting of 1 graphics primitive
 
     Plotting::
 
         sage: f(x) = Bessel(0)(x); f
         x |--> bessel_J(0, x)
         sage: plot(f, (x, 1, 10))
+        Graphics object consisting of 1 graphics primitive
 
         sage: plot([ Bessel(i, 'J') for i in range(5) ], 2, 10)
+        Graphics object consisting of 5 graphics primitives
 
         sage: G = Graphics()
         sage: G += sum([ plot(Bessel(i), 0, 4*pi, rgbcolor=hue(sin(pi*i/10))) for i in range(5) ])

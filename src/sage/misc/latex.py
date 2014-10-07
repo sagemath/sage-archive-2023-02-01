@@ -2519,7 +2519,7 @@ def pretty_print_default(enable=True):
         'foo'
     """
     import sys
-    sys.displayhook.set_display('typeset' if enable else 'simple')
+    sys.displayhook.formatter.set_display('typeset' if enable else 'simple')
 
 
 common_varnames = ['alpha',

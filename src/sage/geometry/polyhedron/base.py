@@ -492,35 +492,55 @@ class Polyhedron_base(Element):
         By default, the wireframe is rendered in blue and the fill in green::
 
             sage: square.plot()
+            Graphics object consisting of 6 graphics primitives
             sage: point.plot()
+            Graphics object consisting of 1 graphics primitive
             sage: line.plot()
+            Graphics object consisting of 2 graphics primitives
             sage: cube.plot()
+            Graphics3d Object
             sage: hypercube.plot()
+            Graphics3d Object
 
         Draw the lines in red and nothing else::
 
             sage: square.plot(point=False, line='red', polygon=False)
+            Graphics object consisting of 4 graphics primitives
             sage: point.plot(point=False, line='red', polygon=False)
+            Graphics object consisting of 0 graphics primitives
             sage: line.plot(point=False, line='red', polygon=False)
+            Graphics object consisting of 1 graphics primitive
             sage: cube.plot(point=False, line='red', polygon=False)
+            Graphics3d Object
             sage: hypercube.plot(point=False, line='red', polygon=False)
+            Graphics3d Object
 
         Draw points in red, no lines, and a blue polygon::
 
             sage: square.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            Graphics object consisting of 2 graphics primitives
             sage: point.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            Graphics object consisting of 1 graphics primitive
             sage: line.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            Graphics object consisting of 1 graphics primitive
             sage: cube.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            Graphics3d Object
             sage: hypercube.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            Graphics3d Object
 
         If we instead use the ``fill`` and ``wireframe`` options, the
         coloring depends on the dimension of the object::
 
             sage: square.plot(fill='green', wireframe='red')
+            Graphics object consisting of 6 graphics primitives
             sage: point.plot(fill='green', wireframe='red')
+            Graphics object consisting of 1 graphics primitive
             sage: line.plot(fill='green', wireframe='red')
+            Graphics object consisting of 2 graphics primitives
             sage: cube.plot(fill='green', wireframe='red')
+            Graphics3d Object
             sage: hypercube.plot(fill='green', wireframe='red')
+            Graphics3d Object
 
         TESTS::
 
@@ -3062,6 +3082,7 @@ class Polyhedron_base(Element):
             sage: [len(x) for x in c5_20_fl.level_sets()] # long time
             [1, 20, 190, 580, 680, 272, 1]
             sage: polytopes.n_cube(2).face_lattice().plot()
+            Graphics object consisting of 27 graphics primitives
             sage: level_sets = polytopes.cross_polytope(2).face_lattice().level_sets()
             sage: print level_sets[0], level_sets[-1]
             [<>] [<0,1,2,3>]

@@ -118,10 +118,10 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f = 5 + w^1997 - w^10000; f
             7*w^10000 + w^1997 + 5
             sage: d = f.dict(); d
-            {0: 5, 10000: 7, 1997: 1}
+            {0: 5, 1997: 1, 10000: 7}
             sage: d[0] = 10
             sage: f.dict()
-            {0: 5, 10000: 7, 1997: 1}
+            {0: 5, 1997: 1, 10000: 7}
         """
         return dict(self.__coeffs)
 

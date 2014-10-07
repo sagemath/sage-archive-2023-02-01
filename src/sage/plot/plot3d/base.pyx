@@ -99,6 +99,7 @@ cdef class Graphics3d(SageObject):
             sage: S._graphics_()
             True
             sage: S  # also productes graphics
+            Graphics3d Object
             sage: [S, S]
             [Graphics3d Object, Graphics3d Object]
         """
@@ -124,6 +125,7 @@ cdef class Graphics3d(SageObject):
             sage: A = sphere((0,0,0), 1, color='red')
             sage: B = dodecahedron((2, 0, 0), color='yellow')
             sage: A+B
+            Graphics3d Object
 
         For convenience, we take 0 and ``None`` to be the additive identity::
 
@@ -136,6 +138,7 @@ cdef class Graphics3d(SageObject):
         having to provide an empty starting object::
 
             sage: sum(point3d((cos(n), sin(n), n)) for n in [0..10, step=.1])
+            Graphics3d Object
 
         A Graphics 3d object can also be added a 2d graphic object::
 
@@ -162,6 +165,7 @@ cdef class Graphics3d(SageObject):
             sage: S = sphere((0, 0, 0), 1)
             sage: S._set_extra_kwds({'aspect_ratio': [1, 2, 2]})
             sage: S
+            Graphics3d Object
         """
         self._extra_kwds = kwds
 
@@ -307,7 +311,9 @@ cdef class Graphics3d(SageObject):
         EXAMPLES::
 
             sage: icosahedron() + sum(icosahedron(opacity=0.25).translate(2*n, 0, 0) for n in [1..4])
+            Graphics3d Object
             sage: icosahedron() + sum(icosahedron(opacity=0.25).translate([-2*n, n, n^2]) for n in [1..4])
+            Graphics3d Object
 
         TESTS::
 
@@ -338,6 +344,7 @@ cdef class Graphics3d(SageObject):
 
             sage: G = sphere((0, 0, 0), 1)
             sage: G.scale(2)
+            Graphics3d Object
             sage: G.scale(1, 2, 1/2).show(aspect_ratio=1)
             sage: G.scale(2).bounding_box()
             ((-2.0, -2.0, -2.0), (2.0, 2.0, 2.0))
@@ -816,7 +823,7 @@ end_scene""" % (render_params.antialiasing,
         EXAMPLES::
 
             sage: sage.plot.plot3d.base.Graphics3d().texture_set()
-            set([])
+            set()
 
             sage: G = tetrahedron(color='red') + tetrahedron(color='yellow') + tetrahedron(color='red', opacity=0.5)
             sage: [t for t in G.texture_set() if t.color == colors.red] # we should have two red textures
@@ -1095,6 +1102,7 @@ end_scene""" % (render_params.antialiasing,
         This sphere will not have a frame around it::
 
             sage: sphere((0,0,0))
+            Graphics3d Object
 
         We change the default back::
 
@@ -1103,6 +1111,7 @@ end_scene""" % (render_params.antialiasing,
         Now this sphere is enclosed in a frame::
 
             sage: sphere((0,0,0))
+            Graphics3d Object
 
         EXAMPLES: We illustrate use of the ``aspect_ratio`` option::
 
@@ -1122,6 +1131,7 @@ end_scene""" % (render_params.antialiasing,
         from :func:`~sage.plot.plot.plot` are dealt with properly::
 
             sage: plot(vector([1,2,3]))
+            Graphics3d Object
 
         We use the 'canvas3d' backend from inside the notebook to get a view of
         the plot rendered inline using HTML canvas::
@@ -1357,6 +1367,7 @@ class Graphics3dGroup(Graphics3d):
         EXAMPLES::
 
             sage: sage.plot.plot3d.base.Graphics3dGroup([icosahedron(), dodecahedron(opacity=.5)])
+            Graphics3d Object
             sage: type(icosahedron() + dodecahedron(opacity=.5))
             <class 'sage.plot.plot3d.base.Graphics3dGroup'>
         """
@@ -1373,6 +1384,7 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = sum(tetrahedron(opacity=1-t/11).translate(t, 0, 0) for t in range(10))
             sage: G
+            Graphics3d Object
             sage: len(G.all)
             10
         """
@@ -1416,8 +1428,11 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = dodecahedron(color='red', opacity=.5) + icosahedron(color='blue')
             sage: G
+            Graphics3d Object
             sage: G.transform(scale=(2,1/2,1))
+            Graphics3d Object
             sage: G.transform(trans=(1,1,3))
+            Graphics3d Object
         """
         T = TransformGroup(self.all, **kwds)
         T._set_extra_kwds(self._extra_kwds)
@@ -1429,8 +1444,10 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = dodecahedron(color='red', opacity=.5) + icosahedron((3, 0, 0), color='blue')
             sage: G
+            Graphics3d Object
             sage: G.set_texture(color='yellow')
             sage: G
+            Graphics3d Object
         """
         for g in self.all:
             g.set_texture(**kwds)
@@ -1551,7 +1568,9 @@ class Graphics3dGroup(Graphics3d):
         EXAMPLES::
 
             sage: G = sum([circle((0, 0), t) for t in [1..10]], sphere()); G
+            Graphics3d Object
             sage: G.flatten()
+            Graphics3d Object
             sage: len(G.all)
             2
             sage: len(G.flatten().all)
@@ -1580,6 +1599,7 @@ class TransformGroup(Graphics3dGroup):
         EXAMPLES::
 
             sage: sage.plot.plot3d.base.TransformGroup([sphere()], trans=(1,2,3)) + point3d((0,0,0))
+            Graphics3d Object
 
         The are usually constructed implicitly::
 
@@ -1784,8 +1804,11 @@ class TransformGroup(Graphics3dGroup):
 
             sage: G = dodecahedron(color='red', opacity=.5) + icosahedron(color='blue')
             sage: G
+            Graphics3d Object
             sage: G.transform(scale=(2,1/2,1))
+            Graphics3d Object
             sage: G.transform(trans=(1,1,3))
+            Graphics3d Object
         """
         return Graphics3d.transform(self, **kwds)
 
@@ -1835,7 +1858,9 @@ cdef class PrimitiveObject(Graphics3d):
         EXAMPLES::
 
             sage: G = dodecahedron(color='red'); G
+            Graphics3d Object
             sage: G.set_texture(color='yellow'); G
+            Graphics3d Object
         """
         if not is_Texture(texture):
             texture = Texture(texture, **kwds)
@@ -1857,7 +1882,7 @@ cdef class PrimitiveObject(Graphics3d):
 
             sage: G = dodecahedron(color='red')
             sage: G.texture_set()
-            set([Texture(texture..., red, ff0000)])
+            {Texture(texture..., red, ff0000)}
         """
         return set([self.texture])
 

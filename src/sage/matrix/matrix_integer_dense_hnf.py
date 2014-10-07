@@ -851,7 +851,7 @@ def probable_hnf(A, include_zero_rows, proof):
         H = hnf_square(C, proof=proof)
     except NotImplementedError:
         # raise
-        # this signals that we must fallback to pari
+        # this signals that we must fallback to PARI
         verbose("generic random modular HNF algorithm failed -- we fall back to PARI")
         H = A.hermite_form(algorithm='pari', include_zero_rows=include_zero_rows, proof=proof)
         return H, H.pivots()
@@ -1180,7 +1180,7 @@ def sanity_checks(times=50, n=8, m=5, proof=True, stabilize=2, check_using_magma
                     print 'a = matrix(ZZ, %s, %s, %s)'%(a.nrows(), a.ncols(), a.list())
                     return
             else:
-                if hnf(a)[0] != a.echelon_form('pari'):
+                if hnf(a)[0] != a.echelon_form(algorithm = 'pari'):
                     print "bug computing hnf of a matrix"
                     print 'a = matrix(ZZ, %s, %s, %s)'%(a.nrows(), a.ncols(), a.list())
                     return

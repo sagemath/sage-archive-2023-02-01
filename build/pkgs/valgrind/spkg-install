@@ -6,24 +6,6 @@ if [ -z "$SAGE_LOCAL" ] ; then
     exit 1
 fi
 
-if [ "$UNAME" = "Linux" ]; then
-    echo "Good - Valgrind works on Linux"
-    if [ "`uname -p`" = "ia64" ]; then
-        echo >&2 "But it does not work on Itanium"
-        exit 1
-    fi
-else
-    if [ "$UNAME" = "Darwin" ] && [ -z "`uname -p | grep PPC`" ] && [ `uname -r | grep -Eo '^[0-9]+'` -ge 9 ];
-    then
-        echo "Good - Valgrind works on x86 and AMD64 Darwin 9.x or 10.x"
-    else
-        echo >&2 "Sorry, Valgrind only works on x86,AMD64,PPC32,PPC64,ARM Linux"
-        echo >&2 "and x86,AMD64 on Darwin 9.x/10.x"\
-            "(Mac OS X 10.5.x or later)"
-        exit 1
-    fi
-fi
-
 cd src/
 
 for patch in ../patches/*.patch; do

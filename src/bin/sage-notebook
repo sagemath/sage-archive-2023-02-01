@@ -29,10 +29,6 @@ class NotebookSageNB(object):
         OUTPUT:
     
         A python argspec: A pair consisting of a tuple and a dict.
-
-        EXAMPLES::
-
-            sage: 1+1
         """
         args = []
         kwds = dict()

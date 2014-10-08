@@ -543,7 +543,23 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
     elif cover_relations is True and not D.is_transitively_reduced():
         raise ValueError("Hasse diagram is not transitively reduced.")
 
-    return FinitePoset(D, category=category, facade=facade, key=key)
+    if linear_extension:
+        if elements is not None:
+            elements = list(elements)
+        else:
+            # Compute a linear extension of the poset (a topological sort).
+            try:
+                elements = D.topological_sort()
+            except Exception:
+                raise ValueError("Hasse diagram contains cycles.")
+        # Relabel using the linear_extension.
+        # So range(len(D)) becomes a linear extension of the poset.
+        rdict = dict([[elements[i],i] for i in range(len(elements))])
+        D.relabel(rdict)
+    else:
+        elements = None
+
+    return FinitePoset(D, elements=elements, category=category, facade=facade, key=key)
 
 class FinitePoset(UniqueRepresentation, Parent):
     r"""
@@ -719,6 +735,10 @@ class FinitePoset(UniqueRepresentation, Parent):
                 category = hasse_diagram.category()
             if facade is None:
                 facade = hasse_diagram in Sets().Facade()
+            if hasse_diagram._linear_extension:
+                elements = tuple(hasse_diagram._elements)
+            else:
+                elements = None
             relabel = {i:x for i,x in enumerate(hasse_diagram._elements)}
             hasse_diagram = hasse_diagram._hasse_diagram.relabel(relabel, inplace=False)
             hasse_diagram = hasse_diagram.copy(immutable=True)
@@ -728,21 +748,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             #    elements = hasse_diagram.vertices()
             if facade is None:
                 facade = True
-        #elements = tuple(elements)
-        if elements is not None:
-            print("deprecated")
-            #hasse_diagram = hasse_diagram.relabel(tuple(elements), inplace=False)
-            #hasse_diagram = hasse_diagram.copy(immutable=True)
+            if elements is not None:
+                elements = tuple(elements)
+                hasse_diagram = hasse_diagram.relabel(elements, inplace=False)
+                hasse_diagram = hasse_diagram.copy(immutable=True)
         # Standardize the category by letting the Facade axiom be carried
         #   by the facade variable
         if category is not None and category.is_subcategory(Sets().Facade()):
             category = category._without_axiom("Facade")
         category = Category.join([FinitePosets().or_subcategory(category), FiniteEnumeratedSets()])
-        return super(FinitePoset, cls).__classcall__(cls, hasse_diagram=hasse_diagram,
+        return super(FinitePoset, cls).__classcall__(cls, hasse_diagram=hasse_diagram, elements=elements,
                                                      category=category, facade=facade,
                                                      key=key)
 
-    def __init__(self, hasse_diagram, category, facade, key):
+    def __init__(self, hasse_diagram, elements, category, facade, key):
         """
         EXAMPLES::
 
@@ -792,13 +811,16 @@ class FinitePoset(UniqueRepresentation, Parent):
         See also the extensive tests in the class documentation.
         """
         Parent.__init__(self, category=category, facade=facade)
-
-        # Compute a linear extension of the poset (a topological sort).
-        try:
-            self._elements = tuple(hasse_diagram.topological_sort())
-        except Exception:
-            raise ValueError("Hasse diagram contains cycles")
-
+        if elements is None:
+            self._linear_extension = False
+            # Compute a linear extension of the poset (a topological sort).
+            try:
+                self._elements = tuple(hasse_diagram.topological_sort())
+            except Exception:
+                raise ValueError("Hasse diagram contains cycles")
+        else:
+            self._linear_extension = True
+            self._elements = elements
         # Relabel using the linear_extension.
         # So range(len(D)) becomes a linear extension of the poset.
         rdict = dict([[self._elements[i],i] for i in range(len(self._elements))])

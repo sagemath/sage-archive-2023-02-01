@@ -1054,7 +1054,7 @@ class BranchingRule(SageObject):
         """
         try:
             return self._f(x)
-        except:
+        except Exception:
             return self._f(x.to_vector())
 
     def __cmp__(self, other):
@@ -1289,7 +1289,7 @@ def branching_rule(Rtype, Stype, rule="default"):
         try:
             S = sage.combinat.root_system.weyl_characters.WeylCharacterRing(Stype.split("(")[0],style="coroots")
             chi = S(eval("("+Stype.split("(")[1]))
-        except:
+        except Exception:
             S = sage.combinat.root_system.weyl_characters.WeylCharacterRing(Stype.split(".")[0],style="coroots")
             chi= eval("S."+Stype.split(".")[1])
         return branching_rule_from_plethysm(chi, Rtype)

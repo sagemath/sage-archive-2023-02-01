@@ -281,7 +281,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Testing ``sage --preparse FILE`` and ``sage -t FILE``.  First create
     a file and preparse it::
 
-        sage: s = "# -*- coding: utf-8 -*-\n'''This is a test file.\nAnd I am its doctest'''\ndef my_add(a,b):\n    '''\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        '''\n    return a + b\n"
+        sage: s = "# -*- coding: utf-8 -*-\n'''This is a test file.\nAnd I am its doctest'''\ndef my_add(a):\n    '''\n    Add 2 to a.\n\n        EXAMPLES::\n\n            sage: my_add(2)\n            4\n        '''\n    return a + 2\n"
         sage: script = os.path.join(tmp_dir(), 'my_script.sage')
         sage: script_py = script + '.py'
         sage: F = open(script, 'w')

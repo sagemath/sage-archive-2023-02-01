@@ -42,7 +42,6 @@ from sage.groups.matrix_gps.group_element import MatrixGroupElement_gap
 from sage.rings.all import ZZ, QQ
 from sage.interfaces.gap import gap
 from sage.misc.cachefunc import cached_method, ClearCacheOnPickle
-from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.matrix.constructor import matrix, diagonal_matrix
@@ -439,17 +438,8 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             sage: G = WeylGroup(['A',3,1])
             sage: G.domain()
             Root space over the Rational Field of the Root system of type ['A', 3, 1]
-
-        This method used to be called ``lattice``::
-
-            sage: G.lattice()
-            doctest:...: DeprecationWarning: lattice is deprecated. Please use domain instead.
-            See http://trac.sagemath.org/8414 for details.
-            Root space over the Rational Field of the Root system of type ['A', 3, 1]
         """
         return self._domain
-
-    lattice = deprecated_function_alias(8414, domain)
 
     def simple_reflection(self, i):
         """

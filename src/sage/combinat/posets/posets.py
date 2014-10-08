@@ -132,7 +132,6 @@ import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
-from sage.misc.superseded import deprecated_function_alias
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -2460,8 +2459,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             5
         """
         return Integer(self._hasse_diagram.order())
-
-    size = deprecated_function_alias(8735, cardinality)
 
     def mobius_function(self,x,y):
         r"""

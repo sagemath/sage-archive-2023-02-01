@@ -397,8 +397,8 @@ class Animation(SageObject):
             sage: B.show()  # not tested
 
         """
-        p = plot.plot(frame)
-        p.save_image(filename, **kwds)
+        p = plot.plot(frame, **kwds)
+        p.save_image(filename)
 
 
     def png(self, dir=None):

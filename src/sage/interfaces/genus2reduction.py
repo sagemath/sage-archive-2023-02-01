@@ -486,7 +486,7 @@ class Genus2reduction(SageObject):
             A Minimal Equation (away from 2):
                     y^2 = x^6 + 18*x^3 + 36*x^2 - 27
             Minimal Discriminant (away from 2):  1520984142
-            Conductor (away from 2): 954
+            Conductor: 954
             Local Data:
                     p=2
                     (potential) stable reduction:  (II), j=1
@@ -539,8 +539,9 @@ class Genus2reduction(SageObject):
 
             local_data[p] = data
 
+        prime_to_2_conductor_only = (-1 in res[1].component(2))
         return ReductionData(res, P, Q, minimal_equation, minimal_disc, local_data,
-                             conductor, (minimal_disc % 2 == 0))
+                             conductor, prime_to_2_conductor_only)
 
     def __reduce__(self):
         return _reduce_load_genus2reduction, tuple([])

@@ -53,17 +53,10 @@ done
 
 echo "Configuring giac..."
 
-#    The reason of the --disable-pari in configure is that giac initializes the PARI library 
-#    and Sage also does the same thing, leading to conflicts with the cython interface giacpy.
-#      
-#    A typical symptom of this conflict is:
-#        - control-c after loading giacpy quits sage
-#        and other problems could appear such as (tested with sage 5.11)
-#        - next_prime(11**25) before and after loading giacpy.
-#
+
 #    --disable-gmpxx  (broken built)
 
-./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-pari --disable-gmpxx
+./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-gmpxx
 
 if [ $? -ne 0 ]; then
     exit 1

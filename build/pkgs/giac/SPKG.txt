@@ -42,4 +42,4 @@ GPLv3+ except the french html documentation which is freely redistributable
   * Some gcc 4.7.2 gives a seg fault when compiling giac, but earlier or later version
     should be fine.
     http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54986
-  * pari support has been disabled in spkg-install. (See the comments in spkg-install for details)
+  * pari support has been enabled in spkg-install. To allow this, giac have been patched to not always init pari. (See the comments in patches/README.txt for details)

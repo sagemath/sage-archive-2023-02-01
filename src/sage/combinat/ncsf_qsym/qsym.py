@@ -965,7 +965,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: F([]).internal_coproduct()
                     F[] # F[]
 
-                The implementations on the ``F`` and ``M`` bases play nicely
+                The implementations on the ``F`` and ``M`` bases agree
                 with each other::
 
                     sage: M = QuasiSymmetricFunctions(ZZ).M()
@@ -1354,6 +1354,153 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 F = parent.realization_of().F()
                 dct = {I.complement(): coeff for (I, coeff) in F(self)}
                 return parent(F._from_dict(dct))
+
+            def dendriform_less(self, other):
+                r"""
+                Return the result of applying the dendriform smaller
+                operation to the two quasi-symmetric functions ``self``
+                and ``other``.
+
+                The dendriform smaller operation is a binary operation,
+                denoted by `\prec` and written infix, on the ring of
+                quasi-symmetric functions. It can be defined as a
+                restriction of a binary operation (denoted by `\prec`
+                and written infix as well) on the ring of formal power
+                series `R[[x_1, x_2, x_3, \ldots]]`, which is defined
+                as follows: If `m` and `n` are two monomials in
+                `x_1, x_2, x_3, \ldots`, then we let `m \prec n` be
+                the product `mn` if the smallest positive integer `i`
+                for which `x_i` occurs in `m` is smaller than the
+                smallest positive integer `j` for which `x_j` occurs
+                in `n` (this is understood to be false when `m = 1`,
+                and true when `m \neq 1` and `n = 1`), and we let
+                `m \prec n` be `0` otherwise. Having thus defined
+                `\prec` on monomials, we extend `\prec` to a binary
+                operation on `R[[x_1, x_2, x_3, \ldots]]` by requiring
+                it to be continuous (in both inputs) and `R`-bilinear.
+                It is easily seen that `QSym \prec QSym \subseteq
+                QSym`, so that `\prec` restricts to a binary operation
+                on `QSym`.
+
+                .. SEEALSO::
+
+                    :meth:`dendriform_leq`
+
+                INPUT:
+
+                - ``other`` -- a quasi-symmetric function over the
+                  same base ring as ``self``
+
+                OUTPUT:
+
+                The quasi-symmetric function ``self`` `\prec`
+                ``other``, written in the basis of ``self``.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(QQ)
+                    sage: M = QSym.M()
+                    sage: M[2, 1].dendriform_less(M[1, 2])
+                    2*M[2, 1, 1, 2] + M[2, 1, 2, 1] + M[2, 1, 3] + M[2, 2, 2]
+                    sage: F = QSym.F()
+                    sage: F[2, 1].dendriform_less(F[1, 2])
+                    F[1, 1, 2, 1, 1] + F[1, 1, 2, 2] + F[1, 1, 3, 1] + F[1, 2, 1, 2] + F[1, 2, 2, 1]
+                     + F[1, 2, 3] + F[2, 1, 1, 2] + F[2, 1, 2, 1] + F[2, 1, 3] + F[2, 2, 2]
+
+                The operation `\prec` can be used to recursively
+                construct the dual immaculate basis: For every positive
+                integer `m` and every composition `I`, the dual
+                immaculate function `\operatorname{dI}_{[m, I]}` of the
+                composition `[m, I]` (this composition is `I` with `m`
+                prepended to it) is
+                `F_{[m]} \prec \operatorname{dI}_I`. ::
+
+                    sage: dI = QSym.dI()
+                    sage: dI(F[2]).dendriform_less(dI[1, 2])
+                    dI[2, 1, 2]
+                """
+                # Convert to the monomial basis, there do restricted
+                # shuffle product, then convert back to self.parent().
+                parent = self.parent()
+                M = parent.realization_of().M()
+                a = M(self)
+                b = M(other)
+                res = M.zero()
+                for I, I_coeff in a:
+                    if len(I) == 0:
+                        continue
+                    i_head = I[0]
+                    I_tail = Composition(I[1:])
+                    for J, J_coeff in b:
+                        shufpro = I_tail.shuffle_product(J, overlap=True)
+                        res += J_coeff * M.sum_of_monomials((Composition([i_head] + list(K)) for K in shufpro))
+                return parent(res)
+
+            def dendriform_leq(self, other):
+                r"""
+                Return the result of applying the dendriform
+                smaller-or-equal operation to the two quasi-symmetric
+                functions ``self`` and ``other``.
+
+                The dendriform smaller-or-equal operation is a binary
+                operation, denoted by `\preceq` and written infix, on
+                the ring of quasi-symmetric functions. It can be
+                defined as a restriction of a binary operation
+                (denoted by `\preceq` and written infix as well) on
+                the ring of formal power series
+                `R[[x_1, x_2, x_3, \ldots]]`, which is defined as
+                follows: If `m` and `n` are two monomials in
+                `x_1, x_2, x_3, \ldots`, then we let `m \preceq n` be
+                the product `mn` if the smallest positive integer `i`
+                for which `x_i` occurs in `m` is smaller or equal to
+                the smallest positive integer `j` for which `x_j`
+                occurs in `n` (this is understood to be false when
+                `m = 1` and `n \neq 1`, and true when `n = 1`), and we
+                let `m \preceq n` be `0` otherwise. Having thus
+                defined `\preceq` on monomials, we extend `\preceq` to
+                a binary operation on `R[[x_1, x_2, x_3, \ldots]]` by
+                requiring it to be continuous (in both inputs) and
+                `R`-bilinear. It is easily seen that
+                `QSym \preceq QSym \subseteq QSym`, so that `\preceq`
+                restricts to a binary operation on `QSym`.
+
+                This operation `\preceq` is related to the dendriform
+                smaller relation `\prec` (:meth:`dendriform_lesser`).
+                Namely, if we define a binary operation `\succ` on
+                `QSym` by `a \succ b = b \prec a`, then
+                `(QSym, \preceq, \succ)` is a dendriform `R`-algebra.
+                Thus, any `a, b \in QSym` satisfy
+                `a \preceq b = ab - b \prec a`.
+
+                .. SEEALSO::
+
+                    :meth:`dendriform_lesser`
+
+                INPUT:
+
+                - ``other`` -- a quasi-symmetric function over the
+                  same base ring as ``self``
+
+                OUTPUT:
+
+                The quasi-symmetric function ``self`` `\preceq`
+                ``other``, written in the basis of ``self``.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(QQ)
+                    sage: M = QSym.M()
+                    sage: M[2, 1].dendriform_leq(M[1, 2])
+                    2*M[2, 1, 1, 2] + M[2, 1, 2, 1] + M[2, 1, 3] + M[2, 2, 2]
+                     + M[3, 1, 2] + M[3, 2, 1] + M[3, 3]
+                    sage: F = QSym.F()
+                    sage: F[2, 1].dendriform_leq(F[1, 2])
+                    F[2, 1, 1, 2] + F[2, 1, 2, 1] + F[2, 1, 3] + F[2, 2, 1, 1]
+                     + 2*F[2, 2, 2] + F[2, 3, 1] + F[3, 1, 2] + F[3, 2, 1] + F[3, 3]
+                """
+                # This might be somewhat slow...
+                parent = self.parent()
+                return self * other - parent(other.dendriform_less(self))
 
             def expand(self, n, alphabet='x'):
                 r"""

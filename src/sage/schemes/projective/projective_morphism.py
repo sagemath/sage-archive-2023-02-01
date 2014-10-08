@@ -1700,7 +1700,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def multiplier(self, P, n, check=True):
         r"""
         Returns the multiplier of ``self`` at the `QQ`-rational point ``P`` of period ``n``.
-        ``self`` must be an endomorphism of projective space
+        ``self`` must be an endomorphism of projective space.
 
         INPUT:
 
@@ -1767,15 +1767,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Traceback (most recent call last):
             ...
             ValueError: (0 : 1) is not periodic of period 1
-
-        ..  TODO:: would be better to keep the dehomogenizations for reuse
         """
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if check:
             if self.nth_iterate(P, n) != P:
                 raise ValueError("%s is not periodic of period %s" % (P, n))
-        N = self.domain().dimension_relative()
+        N = self.domain().ambient_space().dimension_relative()
         l = identity_matrix(FractionField(self.codomain().base_ring()), N, N)
         Q = P
         Q.normalize_coordinates()

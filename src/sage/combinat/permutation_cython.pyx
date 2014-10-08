@@ -85,7 +85,7 @@ cdef int next_swap(int n, int *c, int *o):
         return -1
     s = -1
 
-    while 1:
+    while True:
         #state 4
         q = c[j] + o[j]
         if q == j:
@@ -162,7 +162,7 @@ def permutation_iterator_transposition_list(int n):
 
     try:
         T = PyList_New(N-1)
-    except StandardError:
+    except Exception:
         sage_free(c)
         raise MemoryError, "Failed to allocate memory in permutation_iterator_transposition_list"
 

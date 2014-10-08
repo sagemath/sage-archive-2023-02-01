@@ -174,7 +174,7 @@ class Polytopes():
 
         INPUT:
 
-        - ``dim_n`` -- The dimension of the cross-polytope, a positive
+        - ``dim_n`` -- The dimension of the simplex, a positive
           integer.
 
         - ``project`` -- Optional argument, whether to project
@@ -227,7 +227,7 @@ class Polytopes():
             g = RDF( (1 + sqrt(5))/2 )
             r12 = RDF( QQ(1)/2 )
         else:
-            raise ValueError, "field must be QQ or RDF."
+            raise ValueError("field must be QQ or RDF.")
         verts = [i([0,r12,g/2]) for i in AlternatingGroup(3)]
         verts = verts + [i([0,r12,-g/2]) for i in AlternatingGroup(3)]
         verts = verts + [i([0,-r12,g/2]) for i in AlternatingGroup(3)]
@@ -582,6 +582,7 @@ class Polytopes():
             sage: perm4
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 24 vertices
             sage: polytopes.permutahedron(5).show()    # long time
+            Graphics3d Object
         """
         verts = range(1,n+1)
         verts = Permutations(verts).list()

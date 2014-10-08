@@ -46,6 +46,7 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
+from functools import reduce
 
 class SetPartition(ClonableArray):
     """
@@ -313,6 +314,28 @@ class SetPartition(ClonableArray):
         """
         return self.__eq__(y) or self.__gt__(y)
 
+    def __cmp__(self, y):
+        """
+        Return the result of ``cmp``.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = P([[1], [2,3], [4]])
+            sage: B = SetPartition([[1,2,3], [4]])
+            sage: A < B
+            True
+            sage: cmp(A, B)
+            -1
+            sage: cmp(B, A)
+            1
+        """
+        if self < y:
+            return -1
+        if self > y:
+            return 1
+        return 0
+
     def __mul__(self, other):
         r"""
         The product of the set partitions ``self`` and ``other``.
@@ -367,7 +390,7 @@ class SetPartition(ClonableArray):
                 BintC = B.intersection(C)
                 if BintC:
                     new_composition.append(BintC)
-        return self.__class__(self.parent(), new_composition)
+        return SetPartition(new_composition)
 
     inf = __mul__
 
@@ -422,9 +445,9 @@ class SetPartition(ClonableArray):
         """
         res = Set(list(self))
         for p in t:
-            inters = Set(filter(lambda x: x.intersection(p) != Set([]), list(res)))
+            inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
             res = res.difference(inters).union(_set_union(inters))
-        return self.__class__(self.parent(), res)
+        return SetPartition(res)
 
     def pipe(self, other):
         r"""
@@ -819,8 +842,7 @@ class SetPartition(ClonableArray):
             [{}]
         """
         L = [SetPartitions(part) for part in self]
-        P = self.parent()
-        return [self.__class__(P, sum(map(list, x), [])) for x in CartesianProduct(*L)]
+        return [SetPartition(sum(map(list, x), [])) for x in CartesianProduct(*L)]
 
     def coarsenings(self):
         """
@@ -840,7 +862,6 @@ class SetPartition(ClonableArray):
             [{}]
         """
         SP = SetPartitions(len(self))
-        P = self.parent()
         def union(s):
             # Return the partition obtained by combining, for every
             # part of s, those parts of self which are indexed by
@@ -852,7 +873,7 @@ class SetPartition(ClonableArray):
                     cur = cur.union(self[i-1]) # -1 for indexing
                 ret.append(cur)
             return ret
-        return [self.__class__(P, union(s)) for s in SP]
+        return [SetPartition(union(s)) for s in SP]
 
     def strict_coarsenings(self):
         r"""
@@ -1033,7 +1054,7 @@ class SetPartitions(Parent, UniqueRepresentation):
                 return s
             if isinstance(s.parent(), SetPartitions):
                 return self.element_class(self, list(s))
-            raise ValueError("Cannot convert %s into an element of %s"%(s, self))
+            raise ValueError("cannot convert %s into an element of %s"%(s, self))
         return self.element_class(self, s)
 
     Element = SetPartition
@@ -1111,8 +1132,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         for p in s:
-            f = lambda z: z.intersection(p) != Set([])
-            if len(filter(f, list(t)) ) != 1:
+            if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
                 return False
         return True
 
@@ -1162,7 +1182,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         for p in t:
-            L = filter(lambda x: x.issubset(p), list(s))
+            L = [x for x in list(s) if x.issubset(p)]
             if sum(len(x) for x in L) != len(p) \
                     or any(max(L[i]) > min(L[i+1]) for i in range(len(L)-1)):
                 return False
@@ -1526,8 +1546,7 @@ def _listbloc(n, nbrepets, listint=None):
         yield Set([listint])
         return
 
-    l = list(listint)
-    l.sort()
+    l = sorted(listint)
     smallest = Set(l[:1])
     new_listint = Set(l[1:])
 
@@ -1573,14 +1592,14 @@ def inf(s,t):
         sage: sp2 = Set([Set([1,3]), Set([2,4])])
         sage: s = Set([ Set([2,4]), Set([3]), Set([1])]) #{{2, 4}, {3}, {1}}
         sage: sage.combinat.set_partition.inf(sp1, sp2) == s
-        doctest:1: DeprecationWarning: inf(s, t) is deprecated. Use s.inf(t) instead.
+        doctest:...: DeprecationWarning: inf(s, t) is deprecated. Use s.inf(t) instead.
         See http://trac.sagemath.org/14140 for details.
         True
     """
     from sage.misc.superseded import deprecation
     deprecation(14140, 'inf(s, t) is deprecated. Use s.inf(t) instead.')
     temp = [ss.intersection(ts) for ss in s for ts in t]
-    temp = filter(lambda x: x != Set([]), temp)
+    temp = [x for x in temp if x != Set([])]
     return Set(temp)
 
 def sup(s,t):
@@ -1593,7 +1612,7 @@ def sup(s,t):
         sage: sp2 = Set([Set([1,3]), Set([2,4])])
         sage: s = Set([ Set([1,2,3,4]) ])
         sage: sage.combinat.set_partition.sup(sp1, sp2) == s
-        doctest:1: DeprecationWarning: sup(s, t) is deprecated. Use s.sup(t) instead.
+        doctest:...: DeprecationWarning: sup(s, t) is deprecated. Use s.sup(t) instead.
         See http://trac.sagemath.org/14140 for details.
         True
     """
@@ -1601,7 +1620,7 @@ def sup(s,t):
     deprecation(14140, 'sup(s, t) is deprecated. Use s.sup(t) instead.')
     res = s
     for p in t:
-        inters = Set(filter(lambda x: x.intersection(p) != Set([]), list(res)))
+        inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
         res = res.difference(inters).union(_set_union(inters))
     return res
 
@@ -1613,7 +1632,7 @@ def standard_form(sp):
     EXAMPLES::
 
         sage: map(sage.combinat.set_partition.standard_form, SetPartitions(4, [2,2]))
-        doctest:1: DeprecationWarning: standard_form(sp) is deprecated. Use sp.standard_form() instead.
+        doctest:...: DeprecationWarning: standard_form(sp) is deprecated. Use sp.standard_form() instead.
         See http://trac.sagemath.org/14140 for details.
         [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
     """
@@ -1630,7 +1649,7 @@ def less(s, t):
 
         sage: z = SetPartitions(3).list()
         sage: sage.combinat.set_partition.less(z[0], z[1])
-        doctest:1: DeprecationWarning: less(s, t) is deprecated. Use SetPartitions.is_less_tan(s, t) instead.
+        doctest:...: DeprecationWarning: less(s, t) is deprecated. Use SetPartitions.is_less_tan(s, t) instead.
         See http://trac.sagemath.org/14140 for details.
         False
     """
@@ -1641,8 +1660,7 @@ def less(s, t):
     if s == t:
         return False
     for p in s:
-        f = lambda z: z.intersection(p) != Set([])
-        if len(filter(f, list(t)) ) != 1:
+        if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
             return False
     return True
 

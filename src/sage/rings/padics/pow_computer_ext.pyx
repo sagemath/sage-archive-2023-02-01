@@ -38,10 +38,12 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2008 David Roe <roed@math.harvard.edu>
+#       Copyright (C) 2008 David Roe <roed.math@gmail.com>
 #                          William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -507,13 +509,13 @@ cdef class PowComputer_ext(PowComputer_class):
 
         if cache_limit > 0:
             ZZ_construct(&(self.small_powers[1]))
-            mpz_to_ZZ(&(self.small_powers[1]), &prime.value)
+            mpz_to_ZZ(&(self.small_powers[1]), prime.value)
 
         sig_on()
         for i from 2 <= i <= cache_limit:
             ZZ_construct(&(self.small_powers[i]))
             ZZ_mul(self.small_powers[i], self.small_powers[i-1], self.small_powers[1])
-        mpz_to_ZZ(&self.top_power, &prime.value)
+        mpz_to_ZZ(&self.top_power, prime.value)
         ZZ_power(self.top_power, self.top_power, prec_cap)
         sig_off()
         mpz_init(self.temp_m)
@@ -583,7 +585,7 @@ cdef class PowComputer_ext(PowComputer_class):
         mpz_clear(self.temp_m)
         ZZ_destruct(&self.temp_z)
 
-    cdef mpz_t* pow_mpz_t_tmp(self, long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, long n):
         """
         Provides fast access to an mpz_t* pointing to self.prime^n.
 
@@ -611,12 +613,12 @@ cdef class PowComputer_ext(PowComputer_class):
             # Exception will be ignored by Cython
             raise ValueError("n must be positive")
         if n <= self.cache_limit:
-            ZZ_to_mpz(&self.temp_m, &(self.small_powers[n]))
+            ZZ_to_mpz(self.temp_m, &(self.small_powers[n]))
         elif n == self.prec_cap:
-            ZZ_to_mpz(&self.temp_m, &self.top_power)
+            ZZ_to_mpz(self.temp_m, &self.top_power)
         else:
             mpz_pow_ui(self.temp_m, self.prime.value, n)
-        return &self.temp_m
+        return <mpz_srcptr>address_of_mpz(self.temp_m)
 
     #def _pow_mpz_t_tmp_test(self, n):
     #    """
@@ -718,9 +720,9 @@ cdef class PowComputer_ext(PowComputer_class):
         return ans
 
 
-    cdef mpz_t* pow_mpz_t_top(self):
+    cdef mpz_srcptr pow_mpz_t_top(self):
         """
-        Returns self.prime^self.prec_cap as an mpz_t*.
+        Returns self.prime^self.prec_cap as an ``mpz_srcptr``.
 
         EXAMPLES::
 
@@ -728,8 +730,8 @@ cdef class PowComputer_ext(PowComputer_class):
             sage: PC._pow_mpz_t_top_test() #indirect doctest
             15625
         """
-        ZZ_to_mpz(&self.temp_m, &self.top_power)
-        return &self.temp_m
+        ZZ_to_mpz(self.temp_m, &self.top_power)
+        return <mpz_srcptr>address_of_mpz(self.temp_m)
 
     #def _pow_mpz_t_top_test(self):
     #    """
@@ -1135,11 +1137,11 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
     cdef int teichmuller_set_c (self, ZZ_pX_c* x, ZZ_pX_c* a, long absprec) except -1:
         r"""
         Sets x to the Teichmuller lift congruent to a modulo the
-        uniformizer, ie such that $x = a \mod \pi$ and $x^q = x \mod
-        \pi^{\mbox{absprec}}$.
+        uniformizer, ie such that `x = a \mod \pi` and
+        `x^q = x \mod \pi^{\mbox{absprec}}`.
 
-        If $a = 0 \mod \pi$ does nothing and returns 1.  Otherwise
-        returns 0.
+        If `a = 0 \mod \pi` this function does nothing and returns 1.
+        Otherwise returns 0.
 
         x should be created with context p^absprec.
 
@@ -1190,7 +1192,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         if self.e != 1:
             mpz_init(value)
             tmp = ZZ_p_rep(ZZ_pX_ConstTerm(a[0]))
-            ZZ_to_mpz(&value, &tmp)
+            ZZ_to_mpz(value, &tmp)
             if mpz_divisible_p(value, self.prime.value) != 0:
                 mpz_clear(value)
                 return 1
@@ -1222,7 +1224,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
                 mpz_mod(xnew, xnew, self.temp_m)
             mpz_clear(u)
             mpz_clear(xnew)
-            mpz_to_ZZ(&tmp, &value)
+            mpz_to_ZZ(&tmp, value)
             self.restore_context_capdiv(absprec)
             if ZZ_pX_IsZero(x[0]): # shortcut for the case x = 0
                 ZZ_pX_SetCoeff(x[0], 0, ZZ_to_ZZ_p(tmp))
@@ -1265,7 +1267,7 @@ cdef class PowComputer_ZZ_pX_FM(PowComputer_ZZ_pX):
     This class only caches a context and modulus for p^prec_cap.
 
     Designed for use with fixed modulus p-adic rings, in Eisenstein
-    and unramified extensions of $\mathbb{Z}_p$.
+    and unramified extensions of `\ZZ_p`.
     """
 
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
@@ -2240,7 +2242,7 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         elif n == self.prec_cap:
             return &self.top_mod
         else:
-            if self.modulus_dict.has_key(n):
+            if n in self.modulus_dict:
                 return &((<ntl_ZZ_pX_Modulus>self.modulus_dict[n]).x)
             else:
                 c = self.get_context(n)
@@ -2419,8 +2421,8 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
 
 def PowComputer_ext_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, prec_type = "small", ext_type = "u", shift_seed = None):
     r"""
-    Returns a PowComputer that caches the values $1, prime, prime^2, \ldots, prime^{C}$,
-    where $C$ is ``cache_limit``.
+    Returns a PowComputer that caches the values `1, p, p^2, \ldots, p^C`,
+    where `C` is ``cache_limit``.
 
     Once you create a PowComputer, merely call it to get values out.
     You can input any integer, even if it's outside of the precomputed range.

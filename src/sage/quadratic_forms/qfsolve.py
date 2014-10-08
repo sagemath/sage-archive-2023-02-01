@@ -27,13 +27,12 @@ AUTHORS:
 
 from sage.interfaces.gp import Gp
 from sage.rings.all import ZZ, QQ
-from sage.libs.pari.gen import pari
 
 _gp_for_simon_interpreter = None    # Global GP interpreter for Denis Simon's code
 def _gp_for_simon():
     r"""
-    Start a GP interpreter for the use of Denis Simon's Qfsolve and Qfparam
-    if it is not started already.
+    Start a GP interpreter for the use of Denis Simon's programs
+    ``qfsolve`` and ``qfparam``, if it is not started already.
 
     EXAMPLE ::
 
@@ -47,17 +46,8 @@ def _gp_for_simon():
         _gp_for_simon_interpreter.read("qfsolve.gp")
     return _gp_for_simon_interpreter
 
-# \\ - Qfsolve(G,factD): pour resoudre l'equation quadratique X^t*G*X = 0
-# \\ G doit etre une matrice symetrique n*n, a coefficients dans Z.
-# \\ S'il n'existe pas de solution, la reponse est un entier
-# \\ indiquant un corps local dans lequel aucune solution n'existe
-# \\ (-1 pour les reels, p pour Q_p).
-# \\ Si on connait la factorisation de -abs(2*matdet(G)),
-# \\ on peut la passer par le parametre factD pour gagner du temps.
-# \\
-# \\ - Qfparam(G,sol,fl): pour parametrer les solutions de la forme
-# \\ quadratique ternaire G, en utilisant la solution particuliere sol.
-# \\ si fl>0, la 'fl'eme forme quadratique est reduite.
+# For the documentation of the corresponding GP functions, see
+# src/ext/pari/simon/qfsolve.gp.
 
 def qfsolve(G, factD=None):
     r"""
@@ -67,6 +57,10 @@ def qfsolve(G, factD=None):
     If a solution exists, returns a tuple of rational numbers `x`.
     Otherwise, returns `-1` if no solutions exists over the reals or a
     prime `p` if no solution exists over the `p`-adic field `\QQ_p`.
+
+    ALGORITHM:
+
+    Uses Denis Simon's GP script ``qfsolve``.
 
     EXAMPLES::
 
@@ -92,14 +86,14 @@ def qfsolve(G, factD=None):
 
         sage: M = Matrix(QQ, [[3, 0, 0, 0], [0, 5, 0, 0], [0, 0, -7, 0], [0, 0, 0, -11]])
         sage: qfsolve(M)
-        (-3, 4, 3, 2)
+        (3, -4, -3, -2)
     """
     gp = _gp_for_simon()
     if factD is not None:
-        raise NotImplementedError, "qfsolve not implemented with parameter factD"
-    ret = pari(gp('Qfsolve(%s)' % G._pari_()))
-    if ret.type() == 't_COL':
-        return tuple([QQ(r) for r in ret])
+        raise NotImplementedError("qfsolve not implemented with parameter factD")
+    ret = gp('qfsolve(%s)' % G._pari_init_())
+    if str(ret.type()) == 't_COL':  # Need explicit str(), see #15522
+        return tuple(QQ(r) for r in ret)
     return ZZ(ret)
 
 def qfparam(G, sol):
@@ -120,7 +114,7 @@ def qfparam(G, sol):
 
     ALGORITHM:
 
-    Uses Denis Simon's pari script Qfparam.
+    Uses Denis Simon's GP script ``qfparam``.
 
     EXAMPLES::
 
@@ -131,14 +125,13 @@ def qfparam(G, sol):
         [-12   0  -1]
         sage: sol = qfsolve(M);
         sage: ret = qfparam(M, sol); ret
-        (-t^2 - 12, 24*t, 24*t^2)
+        (-12*t^2 - 1, 24*t, 24)
         sage: ret[0].parent() is QQ['t']
         True
     """
     gp = _gp_for_simon()
     R = QQ['t']
     t = R.gen()
-    s = 'Qfparam(%s, (%s)~)*[t^2,t,1]~' % (G._pari_(), pari(gp(sol))._pari_())
-    ret = pari(gp(s))
-    return tuple([R(r) for r in ret])
-
+    s = 'qfparam((%s), (%s)~)*[t^2,t,1]~' % (G._pari_init_(), list(sol))
+    ret = gp(s)
+    return tuple(R(str(r)) for r in ret)

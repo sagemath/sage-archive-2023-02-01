@@ -150,7 +150,7 @@ AUTHORS:
 from sage.structure.sage_object cimport SageObject
 from sage.libs.gmp.mpz cimport mpz_t, mpz_set
 from sage.rings.integer cimport Integer
-from sage.rings.rational import Rational
+from sage.rings.rational cimport Rational
 
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/stdsage.pxi"
@@ -171,7 +171,7 @@ cdef extern from "gmpxx.h":
         mpz_class(int i)
         mpz_class(mpz_t z)
         mpz_class(mpz_class)
-        mpz_t* get_mpz_t()
+        mpz_t get_mpz_t()
 
 
 ####################################################
@@ -187,11 +187,11 @@ restore_pre_PPL_rounding()
 ####################################################
 # Cython does not support ctypedef within cppclass; Hack around this restriction:
 cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library::Generator":
-    ctypedef enum PPL_GeneratorType:
+    ctypedef enum PPL_GeneratorType "Parma_Polyhedra_Library::Generator::Type":
         LINE, RAY, POINT, CLOSURE_POINT
 
 cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library::Constraint":
-    ctypedef enum PPL_ConstraintType:
+    ctypedef enum PPL_ConstraintType "Parma_Polyhedra_Library::Constraint::Type":
         EQUALITY, NONSTRICT_INEQUALITY, STRICT_INEQUALITY
 
 cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library::MIP_Problem":
@@ -328,7 +328,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
     cdef enum PPL_Optimization_Mode:
         MINIMIZATION, MAXIMIZATION
 
-    cdef enum PPL_MIP_Problem_Status:
+    cdef enum MIP_Problem_Status:
         UNFEASIBLE_MIP_PROBLEM, UNBOUNDED_MIP_PROBLEM, OPTIMIZED_MIP_PROBLEM
 
     cdef cppclass PPL_Polyhedron:
@@ -426,7 +426,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
         void set_optimization_mode(PPL_Optimization_Mode mode)
         PPL_Optimization_Mode optimization_mode()
         bint is_satisfiable()
-        PPL_MIP_Problem_Status solve()
+        MIP_Problem_Status solve()
         void evaluate_objective_function(PPL_Generator evaluating_point, PPL_Coefficient &num, PPL_Coefficient &den) except +ValueError
         PPL_Generator& feasible_point()
         PPL_Generator optimizing_point() except +ValueError
@@ -763,11 +763,9 @@ cdef class MIP_Problem(_mutable_or_immutable):
         cdef PPL_Coefficient sup_n
         cdef PPL_Coefficient sup_d
 
+        sig_on()
         try:
-            sig_on()
             self.thisptr.optimal_value(sup_n, sup_d)
-        except ValueError, msg:
-            raise ValueError, msg
         finally:
             sig_off()
 
@@ -863,6 +861,51 @@ cdef class MIP_Problem(_mutable_or_immutable):
         self.thisptr.add_space_dimensions_and_embed(m)
         sig_off()
 
+    def _add_rational_constraint(self, e, denom, lower, upper):
+        """
+        Helper function for adding constraints: add the constraint
+        ``lower <= e/denom <= upper``.
+        
+        INPUT:
+
+        - ``e`` -- a linear expression (type ``Linear_Expression``)
+
+        - ``denom`` -- a positive integer
+
+        - ``lower``, ``upper`` -- a rational number or ``None``, where
+          ``None`` means that there is no constraint
+
+        TESTS:
+
+        Create a linear system with only equalities as constraints::
+
+            sage: p = MixedIntegerLinearProgram(solver="PPL")
+            sage: x = p.new_variable(nonnegative=False)
+            sage: n = 40
+            sage: v = random_vector(QQ, n)
+            sage: M = random_matrix(QQ, 2*n, n)
+            sage: for j in range(2*n):  # indirect doctest
+            ....:     lhs = p.sum(M[j,i]*x[i] for i in range(n))
+            ....:     rhs = M.row(j).inner_product(v)
+            ....:     p.add_constraint(lhs == rhs)
+            sage: p.solve()  # long time
+            0
+
+        """
+        cdef Rational rhs
+
+        if lower == upper:
+            if lower is not None:
+                rhs = Rational(lower * denom)
+                self.add_constraint(e * rhs.denominator() == rhs.numerator())
+        else:
+            if lower is not None:
+                rhs = Rational(lower * denom)
+                self.add_constraint(e * rhs.denominator() >= rhs.numerator())
+            if upper is not None:
+                rhs = Rational(upper * denom)
+                self.add_constraint(e * rhs.denominator() <= rhs.numerator())
+
     def add_constraint(self, Constraint c):
         """
         Adds a copy of constraint c to the MIP problem.
@@ -891,11 +934,9 @@ cdef class MIP_Problem(_mutable_or_immutable):
             c.space_dimension() == 3 exceeds this->space_dimension == 2.
         """
         self.assert_mutable("The MIP_Problem is not mutable!");
+        sig_on()
         try:
-            sig_on()
             self.thisptr.add_constraint(c.thisptr[0])
-        except ValueError, msg:
-            raise ValueError, msg
         finally:
             sig_off()
 
@@ -929,11 +970,9 @@ cdef class MIP_Problem(_mutable_or_immutable):
             cs.space_dimension() == 10 exceeds this->space_dimension() == 2.
         """
         self.assert_mutable("The MIP_Problem is not mutable!");
+        sig_on()
         try:
-            sig_on()
             self.thisptr.add_constraints(cs.thisptr[0])
-        except ValueError, msg:
-            raise ValueError, msg
         finally:
             sig_off()
 
@@ -1046,11 +1085,9 @@ cdef class MIP_Problem(_mutable_or_immutable):
         cdef PPL_Coefficient sup_n
         cdef PPL_Coefficient sup_d
 
+        sig_on()
         try:
-            sig_on()
             self.thisptr.evaluate_objective_function(evaluating_point.thisptr[0], sup_n, sup_d)
-        except ValueError, msg:
-            raise ValueError, msg
         finally:
             sig_off()
 
@@ -1079,11 +1116,9 @@ cdef class MIP_Problem(_mutable_or_immutable):
             sage: m.solve()
             {'status': 'optimized'}
         """
+        sig_on()
         try:
-            sig_on()
             tmp = self.thisptr.solve()
-        except ValueError, msg:
-            raise ValueError, msg
         finally:
             sig_off()
         if tmp == UNFEASIBLE_MIP_PROBLEM:
@@ -1112,11 +1147,9 @@ cdef class MIP_Problem(_mutable_or_immutable):
             point(10/3, 0/3)
         """
         cdef PPL_Generator *g
+        sig_on()
         try:
-            sig_on()
             g = new_MIP_optimizing_point(self.thisptr[0])
-        except ValueError, msg:
-            raise ValueError, msg
         finally:
             sig_off()
         return _wrap_Generator(g[0])
@@ -1439,13 +1472,14 @@ cdef class Polyhedron(_mutable_or_immutable):
         rel = Poly_Gen_Relation(True)
         try:
             sig_on()
-            rel.thisptr = new_relation_with(self.thisptr[0], g.thisptr[0])
-        except ValueError, msg:
-            # we must initialize rel.thisptr to something
+            try:
+                rel.thisptr = new_relation_with(self.thisptr[0], g.thisptr[0])
+            finally:
+                sig_off()
+        except BaseException:
+            # rel.thisptr must be set to something valid or rel.__dealloc__() will segfault
             rel.thisptr = new PPL_Poly_Gen_Relation(PPL_Poly_Gen_Relation_nothing())
-            raise ValueError, msg
-        finally:
-            sig_off()
+            raise
         return rel
 
 
@@ -1456,13 +1490,14 @@ cdef class Polyhedron(_mutable_or_immutable):
         rel = Poly_Con_Relation(True)
         try:
             sig_on()
-            rel.thisptr = new_relation_with(self.thisptr[0], c.thisptr[0])
-        except ValueError, msg:
-            # we must initialize rel.thisptr to something
+            try:
+                rel.thisptr = new_relation_with(self.thisptr[0], c.thisptr[0])
+            finally:
+                sig_off()
+        except BaseException:
+            # rel.thisptr must be set to something valid or rel.__dealloc__() will segfault
             rel.thisptr = new PPL_Poly_Con_Relation(PPL_Poly_Con_Relation_nothing())
-            raise ValueError, msg
-        finally:
-            sig_off()
+            raise
         return rel
 
 
@@ -1654,8 +1689,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             True
         """
         cdef bint result
+        sig_on()
         try:
-            sig_on()
             result = self.thisptr.is_disjoint_from(y.thisptr[0])
         finally:
             sig_off()
@@ -1774,8 +1809,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             this->space_dimension() == 1, v.space_dimension() == 2.
         """
         cdef bint result
+        sig_on()
         try:
-            sig_on()
             result = self.thisptr.constrains(var.thisptr[0])
         finally:
             sig_off()
@@ -1815,8 +1850,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             this->space_dimension() == 1, e.space_dimension() == 2.
         """
         cdef bint result
+        sig_on()
         try:
-            sig_on()
             result = self.thisptr.bounds_from_above(expr.thisptr[0])
         finally:
             sig_off()
@@ -1856,8 +1891,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             this->space_dimension() == 1, e.space_dimension() == 2.
         """
         cdef bint result
+        sig_on()
         try:
-            sig_on()
             result = self.thisptr.bounds_from_below(expr.thisptr[0])
         finally:
             sig_off()
@@ -1904,7 +1939,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: cs.insert( 3*x+5*y<=10 )
             sage: p = C_Polyhedron(cs)
             sage: p.maximize( x+y )
-            {'sup_d': 3, 'sup_n': 10, 'bounded': True, 'maximum': True, 'generator': point(10/3, 0/3)}
+            {'bounded': True,
+             'generator': point(10/3, 0/3),
+             'maximum': True,
+             'sup_d': 3,
+             'sup_n': 10}
 
         Unbounded case::
 
@@ -1914,7 +1953,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: p.maximize( +x )
             {'bounded': False}
             sage: p.maximize( -x )
-            {'sup_d': 1, 'sup_n': 0, 'bounded': True, 'maximum': False, 'generator': closure_point(0/1)}
+            {'bounded': True,
+             'generator': closure_point(0/1),
+             'maximum': False,
+             'sup_d': 1,
+             'sup_n': 0}
         """
         cdef PPL_Coefficient sup_n
         cdef PPL_Coefficient sup_d
@@ -1975,7 +2018,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: cs.insert( 3*x+5*y<=10 )
             sage: p = C_Polyhedron(cs)
             sage: p.minimize( x+y )
-            {'minimum': True, 'bounded': True, 'inf_d': 1, 'generator': point(0/1, 0/1), 'inf_n': 0}
+            {'bounded': True,
+             'generator': point(0/1, 0/1),
+             'inf_d': 1,
+             'inf_n': 0,
+             'minimum': True}
 
         Unbounded case::
 
@@ -1983,7 +2030,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: cs.insert( x>0 )
             sage: p = NNC_Polyhedron(cs)
             sage: p.minimize( +x )
-            {'minimum': False, 'bounded': True, 'inf_d': 1, 'generator': closure_point(0/1), 'inf_n': 0}
+            {'bounded': True,
+             'generator': closure_point(0/1),
+             'inf_d': 1,
+             'inf_n': 0,
+             'minimum': False}
             sage: p.minimize( -x )
             {'bounded': False}
         """
@@ -2047,8 +2098,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             y is a NNC_Polyhedron.
         """
         cdef bint result
+        sig_on()
         try:
-            sig_on()
             result = self.thisptr.contains(y.thisptr[0])
         finally:
             sig_off()
@@ -2097,8 +2148,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             y is a NNC_Polyhedron.
         """
         cdef bint result
+        sig_on()
         try:
-            sig_on()
             result = self.thisptr.strictly_contains(y.thisptr[0])
         finally:
             sig_off()
@@ -2156,8 +2207,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             c is a strict inequality.
         """
         self.assert_mutable('The Polyhedron is not mutable!')
+        sig_on()
         try:
-            sig_on()
             self.thisptr.add_constraint(c.thisptr[0])
         finally:
             sig_off()
@@ -2224,8 +2275,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             *this is an empty polyhedron and g is not a point.
         """
         self.assert_mutable('The Polyhedron is not mutable!')
+        sig_on()
         try:
-            sig_on()
             self.thisptr.add_generator(g.thisptr[0])
         finally:
             sig_off()
@@ -2285,8 +2336,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             cs contains strict inequalities.
         """
         self.assert_mutable('The Polyhedron is not mutable!')
+        sig_on()
         try:
-            sig_on()
             self.thisptr.add_constraints(cs.thisptr[0])
         finally:
             sig_off()
@@ -2349,8 +2400,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             gs contains closure points.
         """
         self.assert_mutable('The Polyhedron is not mutable!')
+        sig_on()
         try:
-            sig_on()
             self.thisptr.add_generators(gs.thisptr[0])
         finally:
             sig_off()
@@ -2390,8 +2441,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             ValueError: PPL::C_Polyhedron::unconstrain(var):
             this->space_dimension() == 2, required space dimension == 3.
         """
+        sig_on()
         try:
-            sig_on()
             self.thisptr.unconstrain(var.thisptr[0])
         finally:
             sig_off()
@@ -2435,8 +2486,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             y is a NNC_Polyhedron.
         """
         self.assert_mutable('The Polyhedron is not mutable!')
+        sig_on()
         try:
-            sig_on()
             self.thisptr.intersection_assign(y.thisptr[0])
         finally:
             sig_off()
@@ -2489,8 +2540,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             y is a NNC_Polyhedron.
         """
         self.assert_mutable('The Polyhedron is not mutable!')
+        sig_on()
         try:
-            sig_on()
             self.thisptr.poly_hull_assign(y.thisptr[0])
         finally:
             sig_off()
@@ -2562,8 +2613,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             y is a NNC_Polyhedron.
         """
         self.assert_mutable('The Polyhedron is not mutable!')
+        sig_on()
         try:
-            sig_on()
             self.thisptr.poly_difference_assign(y.thisptr[0])
         finally:
             sig_off()
@@ -2686,8 +2737,8 @@ cdef class Polyhedron(_mutable_or_immutable):
         """
         self.assert_mutable('The Polyhedron is not mutable!')
         m = int(m)
+        sig_on()
         try:
-            sig_on()
             self.thisptr.add_space_dimensions_and_embed(m)
         finally:
             sig_off()
@@ -2742,8 +2793,8 @@ cdef class Polyhedron(_mutable_or_immutable):
         """
         self.assert_mutable('The Polyhedron is not mutable!')
         m = int(m)
+        sig_on()
         try:
-            sig_on()
             self.thisptr.add_space_dimensions_and_project(m)
         finally:
             sig_off()
@@ -2817,8 +2868,8 @@ cdef class Polyhedron(_mutable_or_immutable):
             concatenation exceeds the maximum allowed space dimension.
         """
         self.assert_mutable('The Polyhedron is not mutable!')
+        sig_on()
         try:
-            sig_on()
             self.thisptr.concatenate_assign(y.thisptr[0])
         finally:
             sig_off()
@@ -2853,8 +2904,8 @@ cdef class Polyhedron(_mutable_or_immutable):
         """
         self.assert_mutable('The Polyhedron is not mutable!')
         new_dimension = int(new_dimension)
+        sig_on()
         try:
-            sig_on()
             self.thisptr.remove_higher_space_dimensions(new_dimension)
         finally:
             sig_off()
@@ -2873,7 +2924,7 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: sage_cmd += 'p.minimized_generators()\n'
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             space_dim 2
             -ZE -EM  +CM +GM  +CS +GS  -CP -GP  -SC +SG
@@ -3929,7 +3980,7 @@ cdef class Linear_Expression(object):
             sage: sage_cmd += 'e = 3*x+2*y+1\n'
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             size 3 1 3 2
         """
@@ -4318,10 +4369,10 @@ cdef class Generator(object):
         cdef Generator g = Generator(True)
         try:
             g.thisptr = new_line(e.thisptr[0])
-        except ValueError, msg:
+        except BaseException:
             # g.thisptr must be set to something valid or g.__dealloc__() will segfault
             g.thisptr = new_point(e.thisptr[0],PPL_Coefficient(1))
-            raise ValueError, msg
+            raise
         return g
 
 
@@ -4363,10 +4414,10 @@ cdef class Generator(object):
         cdef Generator g = Generator(True)
         try:
             g.thisptr = new_ray(e.thisptr[0])
-        except ValueError, msg:
+        except BaseException:
             # g.thisptr must be set to something valid or g.__dealloc__() will segfault
             g.thisptr = new_point(e.thisptr[0],PPL_Coefficient(1))
-            raise ValueError, msg
+            raise
         return g
 
 
@@ -4412,10 +4463,10 @@ cdef class Generator(object):
         cdef Generator g = Generator(True)
         try:
             g.thisptr = new_point(e.thisptr[0], PPL_Coefficient(d.value))
-        except ValueError, msg:
+        except BaseException:
             # g.thisptr must be set to something valid or g.__dealloc__() will segfault
             g.thisptr = new_point(e.thisptr[0],PPL_Coefficient(1))
-            raise ValueError, msg
+            raise
         return g
 
 
@@ -4464,10 +4515,10 @@ cdef class Generator(object):
         cdef Generator g = Generator(True)
         try:
             g.thisptr = new_closure_point(e.thisptr[0], PPL_Coefficient(d.value))
-        except ValueError, msg:
+        except BaseException:
             # g.thisptr must be set to something valid or g.__dealloc__() will segfault
             g.thisptr = new_point(e.thisptr[0],PPL_Coefficient(1))
-            raise ValueError, msg
+            raise
         return g
 
 
@@ -4823,7 +4874,7 @@ cdef class Generator(object):
             sage: sage_cmd += 'p = point(3*x+2*y)\n'
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             size 3 1 3 2 P (C)
         """
@@ -5124,7 +5175,7 @@ cdef class Generator_System(_mutable_or_immutable):
             sage: sage_cmd += 'gs = Generator_System( point(3*x+2*y+1) )\n'
             sage: sage_cmd += 'gs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             topology NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
@@ -5812,7 +5863,7 @@ cdef class Constraint(object):
             sage: sage_cmd += 'e = (3*x+2*y+1 > 0)\n'
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             size 4 1 3 2 -1 > (NNC)
         """
@@ -6158,7 +6209,7 @@ cdef class Constraint_System(object):
             sage: sage_cmd += 'cs = Constraint_System( 3*x > 2*y+1 )\n'
             sage: sage_cmd += 'cs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             topology NOT_NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
@@ -6509,7 +6560,7 @@ cdef class Poly_Gen_Relation(object):
             sage: sage_cmd  = 'from sage.libs.ppl import Poly_Gen_Relation\n'
             sage: sage_cmd += 'Poly_Gen_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             NOTHING
         """
@@ -6759,7 +6810,7 @@ cdef class Poly_Con_Relation(object):
             sage: sage_cmd  = 'from sage.libs.ppl import Poly_Con_Relation\n'
             sage: sage_cmd += 'Poly_Con_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
-            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print err  # long time
             NOTHING
         """

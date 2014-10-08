@@ -35,7 +35,6 @@ cdef class GapElement(RingElement):
 
     # comparison
     cdef bint _compare_by_id
-    cdef _richcmp_c_impl(self, Element other, int op)
     cdef bint _compare_equal(self, Element other) except -2
     cdef bint _compare_less(self, Element other) except -2
     cpdef _set_compare_by_id(self)

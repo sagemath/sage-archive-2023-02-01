@@ -115,7 +115,7 @@ class BinaryQF(SageObject):
         if isinstance(abc, (list, tuple)):
             if len(abc) != 3:
                 # Check we have three coefficients
-                raise TypeError, "Binary quadratic form must be given by a list of three coefficients"
+                raise TypeError("Binary quadratic form must be given by a list of three coefficients")
             self._a, self._b, self._c = [ZZ(x) for x in abc]
         else:
             f = abc
@@ -127,7 +127,7 @@ class BinaryQF(SageObject):
                 x, y = f.parent().gens()
                 self._a, self._b, self._c = [f.monomial_coefficient(mon) for mon in [x**2, x*y, y**2]]
             else:
-                raise TypeError, "Binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial"
+                raise TypeError("Binary quadratic form must be given by a quadratic homogeneous bivariate integer polynomial")
 
     def _pari_init_(self):
         """
@@ -175,7 +175,7 @@ class BinaryQF(SageObject):
 
         """
         if not isinstance(right, BinaryQF):
-            raise TypeError, "both self and right must be binary quadratic forms"
+            raise TypeError("both self and right must be binary quadratic forms")
         # There could be more elegant ways, but qfbcompraw isn't
         # wrapped yet in the PARI C library.  We may as well settle
         # for the below, until somebody simply implements composition
@@ -485,7 +485,7 @@ class BinaryQF(SageObject):
             True
         """
         if self.discriminant() >= 0:
-            raise NotImplementedError, "only implemented for negative discriminants"
+            raise NotImplementedError("only implemented for negative discriminants")
         return (abs(self._b) <= self._a) and (self._a <= self._c)
 
     @cached_method
@@ -513,7 +513,7 @@ class BinaryQF(SageObject):
             True
         """
         if self.discriminant() >= 0 or self._a < 0:
-            raise NotImplementedError, "only implemented for positive definite forms"
+            raise NotImplementedError("only implemented for positive definite forms")
         if not self.is_reduced():
             v = list(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self._a,self._b,self._c)))
             return BinaryQF(v)
@@ -540,7 +540,7 @@ class BinaryQF(SageObject):
             False
         """
         if not isinstance(right, BinaryQF):
-            raise TypeError, "right must be a binary quadratic form"
+            raise TypeError("right must be a binary quadratic form")
         return self.reduced_form() == right.reduced_form()
 
     @cached_method
@@ -587,7 +587,7 @@ class BinaryQF(SageObject):
             1.00000000000000*I
         """
         if self.discriminant() >= 0:
-            raise NotImplementedError, "only implemented for negative discriminant"
+            raise NotImplementedError("only implemented for negative discriminant")
         R = ZZ['x']
         x = R.gen()
         Q1 = R(self.polynomial()(x,1))
@@ -719,7 +719,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
     """
     D = ZZ(D)
     if not ( D < 0 and (D % 4 in [0,1])):
-        raise ValueError, "discriminant must be negative and congruent to 0 or 1 modulo 4"
+        raise ValueError("discriminant must be negative and congruent to 0 or 1 modulo 4")
 
     # For a fundamental discriminant all forms are primitive so we need not check:
     if primitive_only:

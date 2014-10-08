@@ -5,7 +5,7 @@ AUTHORS:
     -- Craig Citro and John Voight (2007-11-04):
         * Type checking and other polishing.
     -- John Voight (2007-10-09):
-        * Improvements: Symth bound, Lagrange multipliers for b.
+        * Improvements: Smyth bound, Lagrange multipliers for b.
     -- John Voight (2007-09-19):
         * Various optimization tweaks.
     -- John Voight (2007-09-01):
@@ -49,48 +49,57 @@ cdef extern from "math.h":
     cdef int abs(int x)
 
 
-#*********************************************************************************
+#*********************************************************************
 # Auxiliary routine
 # Hermite constant, naive Newton-Raphson, and a specialized Lagrange
 # multiplier solver.
-#*********************************************************************************
+#*********************************************************************
 
 def hermite_constant(n):
     r"""
-    This function returns the nth Hermite constant (typically denoted
-    $gamma_n$), defined to be
-    $$ \max_L \min_{0 \neq x \in L} ||x||^2 $$
-    where $L$ runs over all lattices of dimension $n$ and determinant $1$.
-    For $n \leq 8$ it returns the exact value of $\gamma_n$, and for $n > 9$
-    it returns an upper bound on $\gamma_n$.
+    This function returns the nth Hermite constant
+
+    The nth Hermite constant (typically denoted $gamma_n$), is defined
+    to be $$ \max_L \min_{0 \neq x \in L} ||x||^2 $$ where $L$ runs
+    over all lattices of dimension $n$ and determinant $1$.
+
+    For $n \leq 8$ it returns the exact value of $\gamma_n$, and for
+    $n > 9$ it returns an upper bound on $\gamma_n$.
 
     INPUT:
-    n -- integer
+
+    - n -- integer
 
     OUTPUT:
-    (an upper bound for) the Hermite constant gamma_n
 
-    EXAMPLES:
-    sage: hermite_constant(1) # trivial one-dimensional lattice
-    1.0
-    sage: hermite_constant(2) # Eisenstein lattice
-    1.1547005383792515
-    sage: 2/sqrt(3.)
-    1.15470053837925
-    sage: hermite_constant(8) # E_8
-    2.0
+    - (an upper bound for) the Hermite constant gamma_n
 
-    NOTES:
-    The upper bounds used can be found in [CS] and [CE].
+    EXAMPLES::
+
+        sage: hermite_constant(1) # trivial one-dimensional lattice
+        1.0
+        sage: hermite_constant(2) # Eisenstein lattice
+        1.1547005383792515
+        sage: 2/sqrt(3.)
+        1.15470053837925
+        sage: hermite_constant(8) # E_8
+        2.0
+
+    .. NOTE::
+
+        The upper bounds used can be found in [CS]_ and [CE]_.
 
     REFERENCES:
-        [CE] Henry Cohn and Noam Elkies, New upper bounds on sphere
-               packings I, Ann. Math. 157 (2003), 689--714.
-        [CS] J.H. Conway and N.J.A. Sloane, Sphere packings, lattices and
-               groups, 3rd. ed., Grundlehren der Mathematischen Wissenschaften,
-               vol. 290, Springer-Verlag, New York, 1999.
+
+    .. [CE] Henry Cohn and Noam Elkies, New upper bounds on sphere
+       packings I, Ann. Math. 157 (2003), 689--714.
+
+    .. [CS] J.H. Conway and N.J.A. Sloane, Sphere packings, lattices
+       and groups, 3rd. ed., Grundlehren der Mathematischen
+       Wissenschaften, vol. 290, Springer-Verlag, New York, 1999.
 
     AUTHORS:
+
     - John Voight (2007-09-03)
     """
 
@@ -195,12 +204,20 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
     We output the largest value of z which occurs.
     We use a precomputed elimination ideal.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: ls = sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,0,1,2)
         sage: [RealField(10)(x) for x in ls]
         [-1.0, -1.0]
         sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,6,1,2) # random
         [-5.8878, -5.8878]
+
+    TESTS:
+
+    Check that :trac:`13101` is solved::
+
+        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(4,12,19,42)
+        [0.0, -1.0]
     """
     cdef double zmin, zmax, val
     cdef double *roots_data
@@ -291,6 +308,9 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
         if len(rts) > 0:
             rts = [rts[i][0] for i in range(len(rts))]
             z4minmax = [min(rts + z4minmax), max(rts + z4minmax)]
+
+    if not z4minmax:
+        return [0.0, -1.0]
 
     return z4minmax
 
@@ -505,7 +525,7 @@ cdef class tr_data:
             # The value of k is the largest index of the coefficients of a which is
             # currently unknown; e.g., if k == -1, then we can iterate
             # over polynomials, and if k == n-1, then we have finished iterating.
-            if a[len(a)-1] <> 1:
+            if a[len(a)-1] != 1:
                 raise ValueError, "a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1]
 
             k = n-len(a)
@@ -754,7 +774,7 @@ cdef class tr_data:
                             f = ZZx([self.gnk[(k+1)*n+i] for i in range(n-(k+1)+1)])
                             # Could just take self.gnk(k+2)*n+i, but this may not be initialized...
                             df = ZZx([i*self.gnk[(k+1)*n+i] for i in range(1,n-(k+1)+1)])
-                            if gcd(f,df) <> 1:
+                            if gcd(f,df) != 1:
                                 if verbose:
                                     print "  gnk has multiple factor!"
                                 maxoutflag = 1

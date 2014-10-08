@@ -17,12 +17,10 @@ AUTHOR:
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/gmp.pxi"
-include "sage/libs/ntl/decl.pxi"
-
 include "sage/ext/cdefs.pxi"
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
-include "sage/libs/flint/fmpq_poly.pxd"
+
+include "sage/libs/ntl/decl.pxi"
+include "sage/libs/flint/fmpq_poly.pxi"
 
 from sage.interfaces.all import singular as singular_default
 
@@ -612,6 +610,42 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_on()
         fmpq_poly_reverse(res.__poly, self.__poly, len)
         if do_sig: sig_off()
+        return res
+
+    def revert_series(self, n):
+        r"""
+        Return a polynomial `f` such that `f(self(x)) = self(f(x)) = x mod x^n`.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: f = t - t^3/6 + t^5/120
+            sage: f.revert_series(6)
+            3/40*t^5 + 1/6*t^3 + t
+
+            sage: f.revert_series(-1)
+            Traceback (most recent call last):
+            ValueError: argument n must be a non-negative integer, got -1
+
+            sage: g = - t^3/3 + t^5/5
+            sage: g.revert_series(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: self must have constant coefficient 0 and a unit for coefficient t^1
+        """
+
+        cdef Polynomial_rational_flint res = self._new()
+        cdef unsigned long m
+        if n < 0:
+            raise ValueError("argument n must be a non-negative integer, got {}".format(n))
+        m = n
+        if not self[0].is_zero() or not self[1].is_unit():
+            raise ValueError("self must have constant coefficient 0 and a unit for coefficient {}^1".format(self.parent().gen()))
+
+        sig_on()
+        fmpq_poly_revert_series(res.__poly, self.__poly, m)
+        sig_off()
+
         return res
 
     ###########################################################################
@@ -1413,7 +1447,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: G = f.galois_group(); G            # optional - database_gap
             Transitive group number 5 of degree 4
             sage: G.gens()                           # optional - database_gap
-            [(1,2,3,4), (1,2)]
+            [(1,2), (1,2,3,4)]
             sage: G.order()                          # optional - database_gap
             24
 
@@ -1487,7 +1521,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                 d = int(kash.eval('%s.ext1'%G.name()))
                 n = int(kash.eval('%s.ext2'%G.name()))
                 return TransitiveGroup(d, n)
-            except RuntimeError, msg:
+            except RuntimeError as msg:
                 raise NotImplementedError, (str(msg) + "\nSorry, " +
                     "computation of Galois groups of fields of degree " +
                     "bigger than 11 is not yet implemented.  Try installing " +
@@ -1502,7 +1536,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                 n, d = X.TransitiveGroupIdentification(nvals=2)
                 d = int(d)
                 n = int(n)
-            except RuntimeError, msg:
+            except RuntimeError as msg:
                 raise RuntimeError, (str(msg) + "\nUnable to lookup " +
                     "description of Galois group as a transitive " +
                     "group.\n%s" %X)
@@ -1550,17 +1584,18 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def factor_padic(self, p, prec=10):
         """
-        Returns the ``p``-adic factorization of this polynomial to the given
+        Return the `p`-adic factorization of this polynomial to the given
         precision.
 
         INPUT:
 
         -  ``p`` - Prime number
+
         -  ``prec`` - Integer; the precision
 
         OUTPUT:
 
-        -  Factorization of ``self`` viewed as a ``p``-adic polynomial
+        - factorization of ``self`` viewed as a `p`-adic polynomial
 
         EXAMPLES::
 
@@ -1572,19 +1607,55 @@ cdef class Polynomial_rational_flint(Polynomial):
             (1 + O(3^10))*x^3 + (O(3^10))*x^2 + (O(3^10))*x + (1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))
             sage: f.factor_padic(5)
             ((1 + O(5^10))*x + (2 + 4*5 + 2*5^2 + 2*5^3 + 5^4 + 3*5^5 + 4*5^7 + 2*5^8 + 5^9 + O(5^10))) * ((1 + O(5^10))*x^2 + (3 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + O(5^10))*x + (4 + 5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^9 + O(5^10)))
+
+        The input polynomial is considered to have "infinite" precision,
+        therefore the `p`-adic factorization of the polynomial is not
+        the same as first coercing to `Q_p` and then factoring
+        (see also :trac:`15422`)::
+
+            sage: f = x^2 - 3^6
+            sage: f.factor_padic(3,5)
+            ((1 + O(3^5))*x + (3^3 + O(3^5))) * ((1 + O(3^5))*x + (2*3^3 + 2*3^4 + O(3^5)))
+            sage: f.change_ring(Qp(3,5)).factor()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: p-adic factorization not well-defined since the discriminant is zero up to the requestion p-adic precision
+
+        A more difficult example::
+
+            sage: f = 100 * (5*x + 1)^2 * (x + 5)^2
+            sage: f.factor_padic(5, 10)
+            (4*5^4 + O(5^14)) * ((1 + O(5^9))*x + (5^-1 + O(5^9)))^2 * ((1 + O(5^10))*x + (5 + O(5^10)))^2
+
+        Try some bogus inputs::
+
+            sage: f.factor_padic(3,-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: prec_cap must be non-negative.
+            sage: f.factor_padic(6,10)
+            Traceback (most recent call last):
+            ...
+            ValueError: p must be prime
+            sage: f.factor_padic('hello', 'world')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (=hello) to an integer
         """
         from sage.rings.padics.factory import Qp
 
         p = Integer(p)
-        if not p.is_prime():
-            raise ValueError, "p must be prime"
         prec = Integer(prec)
-        if prec <= 0:
-            raise ValueError, "prec must be positive"
 
+        # Parent field for coefficients and polynomial
         K = Qp(p, prec, type='capped-rel')
         R = K[self.parent().variable_name()]
-        return R(self).factor()  # absprec = prec
+
+        # Factor the *exact* polynomial using factorpadic()
+        G = self._pari_with_name().factorpadic(p, prec)
+
+        from sage.rings.polynomial.padics.polynomial_padic import _pari_padic_factorization_to_sage
+        return _pari_padic_factorization_to_sage(G, R, self.leading_coefficient())
 
     def hensel_lift(self, p, e):
         r"""

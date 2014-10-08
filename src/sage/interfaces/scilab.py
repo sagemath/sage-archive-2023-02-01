@@ -218,7 +218,7 @@ class Scilab(Expect):
         Expect.__init__(self,
                         name = 'scilab',
                         prompt = '-->',
-                        command = "scilab -nogui",
+                        command = "scilab -nw",
                         maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
@@ -308,7 +308,7 @@ class Scilab(Expect):
         cmd = '%s=%s;'%(var,value)
         out = self.eval(cmd)
         if out.find("error") != -1:
-            raise TypeError, "Error executing code in Scilab\nCODE:\n\t%s\nScilab ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Scilab\nCODE:\n\t%s\nScilab ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
         """
@@ -495,7 +495,7 @@ def scilab_console():
     Scilab, like Sage, remembers its history from one session to
     another.
     """
-    os.system('scilab -nogui')
+    os.system('scilab -nw')
 
 
 def scilab_version():

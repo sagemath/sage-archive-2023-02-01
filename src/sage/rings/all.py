@@ -70,6 +70,9 @@ from number_field.all import *
 # Function field
 from function_field.all import *
 
+# Finite residue fields
+from finite_rings.residue_field import ResidueField
+
 # p-adic field
 from padics.all import *
 from padics.padic_printing import _printer_defaults as padic_printing
@@ -135,23 +138,40 @@ Frac = FractionField
 from contfrac import continued_fraction, CFF, ContinuedFractionField
 
 # Arithmetic
-from arith import *
+from arith import algdep, bernoulli, is_prime, is_prime_power, \
+    is_pseudoprime, is_pseudoprime_small_power, valuation, \
+    prime_powers, primes_first_n, eratosthenes, primes, \
+    next_prime_power, next_probable_prime, next_prime, \
+    previous_prime, previous_prime_power, random_prime, \
+    divisors, sigma, gcd, GCD, lcm, LCM, xlcm, xgcd, xkcd, \
+    inverse_mod, get_gcd, get_inverse_mod, power_mod, \
+    rational_reconstruction, mqrr_rational_reconstruction, \
+    trial_division, factor, prime_divisors, odd_part, prime_to_m_part, \
+    is_square, is_squarefree, euler_phi, crt, CRT, CRT_list, CRT_basis, \
+    CRT_vectors, multinomial, multinomial_coefficients, \
+    kronecker_symbol, kronecker, legendre_symbol, \
+    primitive_root, nth_prime, quadratic_residues, moebius, \
+    farey, continued_fraction_list, convergent, convergents, \
+    continuant, number_of_divisors, hilbert_symbol, hilbert_conductor, \
+    hilbert_conductor_inverse, falling_factorial, rising_factorial, \
+    integer_ceil, integer_floor, \
+    two_squares, three_squares, four_squares, sum_of_k_squares, \
+    subfactorial, is_power_of_two, differences, \
+    sort_complex_numbers_for_display, \
+    fundamental_discriminant, squarefree_divisors, \
+    Sigma, radical, Euler_Phi, binomial_coefficients, jacobi_symbol, \
+    Moebius, Hirzebruch_Jung_continued_fraction_list, dedekind_sum, \
+    prime_factors
+
+
 from fast_arith import prime_range
 
 from bernoulli_mod_p import bernoulli_mod_p, bernoulli_mod_p_single
 
 from monomials import monomials
 
-#from fast_polynomial.compiled_polynomial import compiled_polynomial
-
 CC = ComplexField()
 CIF = ComplexIntervalField()
-
-# i = I = QuadraticField(-1, 'I').gen()
-I = CC.gen()
-
-from residue_field import ResidueField
-
 
 from misc import composite_field
 

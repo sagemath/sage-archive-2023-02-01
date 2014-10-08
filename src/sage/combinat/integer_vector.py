@@ -9,6 +9,7 @@ AUTHORS:
  *   Travis Scrimshaw (2012-05-12) - Updated doc-strings to tell the user of
      that the class's name is a misnomer (that they only contains non-negative
      entries).
+ *   Federico Poloni (2013) - specialized rank()
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -329,7 +330,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
         adjacency matrix is binary, and it is used to create some
         "random-looking" sequences which correspond to an existing matrix. The
         ``gale_ryser_theorem`` is then called on these sequences, and the output
-        checked for correction.::
+        checked for correctness.::
 
             sage: def test_algorithm(algorithm, low = 10, high = 50):
             ...      n,m = randint(low,high), randint(low,high)
@@ -339,16 +340,14 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             ...      m = gale_ryser_theorem(s1, s2, algorithm = algorithm)
             ...      ss1 = sorted(map(lambda x : sum(x) , m.rows()), reverse = True)
             ...      ss2 = sorted(map(lambda x : sum(x) , m.columns()), reverse = True)
-            ...      if ((ss1 == s1) and (ss2 == s2)):
-            ...          return True
-            ...      return False
+            ...      if ((ss1 != s1) or (ss2 != s2)):
+            ...          print "Algorithm %s failed with this input:" % algorithm
+            ...          print s1, s2
 
             sage: for algorithm in ["gale", "ryser"]:                            # long time
             ...      for i in range(50):                                         # long time
-            ...         if not test_algorithm(algorithm, 3, 10):                 # long time
-            ...             print "Something wrong with algorithm ", algorithm   # long time
-            ...             break                                                # long time
-
+            ...         test_algorithm(algorithm, 3, 10)                         # long time
+            
         Null matrix::
 
             sage: gale_ryser_theorem([0,0,0],[0,0,0,0], algorithm="gale")
@@ -359,6 +358,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             [0 0 0 0]
             [0 0 0 0]
             [0 0 0 0]
+            
 
         REFERENCES:
 
@@ -392,7 +392,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
 
             for k in range(1,n+1):
                 goodcols = [i for i in range(n) if s[i]==sum(A0.column(i))]
-                if sum(A0.column(n-k))<>s[n-k]:
+                if sum(A0.column(n-k)) != s[n-k]:
                     A0 = _slider01(A0,s[n-k],n-k, p1, p2, goodcols)
 
             # If we need to add empty rows/columns
@@ -411,19 +411,18 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
           from sage.numerical.mip import MixedIntegerLinearProgram
           k1, k2=len(p1), len(p2)
           p = MixedIntegerLinearProgram()
-          b = p.new_variable(dim=2)
+          b = p.new_variable(binary = True)
           for (i,c) in enumerate(p1):
-              p.add_constraint(p.sum([b[i][j] for j in xrange(k2)]),min=c,max=c)
+              p.add_constraint(p.sum([b[i,j] for j in xrange(k2)]) ==c)
           for (i,c) in enumerate(p2):
-              p.add_constraint(p.sum([b[j][i] for j in xrange(k1)]),min=c,max=c)
+              p.add_constraint(p.sum([b[j,i] for j in xrange(k1)]) ==c)
           p.set_objective(None)
-          p.set_binary(b)
           p.solve()
           b = p.get_values(b)
           M = [[0]*k2 for i in xrange(k1)]
           for i in xrange(k1):
               for j in xrange(k2):
-                  M[i][j] = int(b[i][j])
+                  M[i][j] = int(b[i,j])
           return matrix(M)
 
         else:
@@ -614,7 +613,7 @@ class IntegerVectors_all(CombinatorialClass):
             ...
             NotImplementedError: infinite list
         """
-        raise NotImplementedError, "infinite list"  # can't use InfiniteAbstractCombinatorialClass
+        raise NotImplementedError("infinite list")  # can't use InfiniteAbstractCombinatorialClass
 
     def cardinality(self):
         """
@@ -795,6 +794,35 @@ class IntegerVectors_nk(CombinatorialClass):
             return False
 
         return True
+
+    def rank(self, x):
+        """
+        Returns the position of a given element.
+
+        INPUT:
+
+        - ``x`` - a list with ``sum(x) == n`` and ``len(x) == k``
+
+        TESTS::
+
+            sage: IV = IntegerVectors(4,5) 
+            sage: range(IV.cardinality()) == [IV.rank(x) for x in IV]
+            True
+        """
+
+        if x not in self:
+            raise ValueError("argument is not a member of IntegerVectors(%d,%d)" % (self.n, self.k))
+
+        n = self.n
+        k = self.k
+
+        r = 0
+        for i in range(k-1):
+          k -= 1
+          n -= x[i]
+          r += binomial(k+n-1,k)
+
+        return r
 
 class IntegerVectors_nkconstraints(CombinatorialClass):
     def __init__(self, n, k, constraints):
@@ -1097,7 +1125,7 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
             NotImplementedError: infinite list
         """
         if 'max_length' not in self.constraints:
-            raise NotImplementedError, "infinite list" # no list from infinite iter
+            raise NotImplementedError("infinite list") # no list from infinite iter
         else:
             return list(self)
 

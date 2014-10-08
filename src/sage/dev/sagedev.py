@@ -96,7 +96,7 @@ class SageDev(MercurialPatchMixin):
         TESTS::
 
             sage: type(dev._sagedev)
-            <class 'sage.dev.sagedev.SageDev'>
+            <class 'sage.dev.test.sagedev.DoctestSageDev'>
         """
         self.config = config
         if self.config is None:
@@ -1502,11 +1502,12 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  (use "sage --dev commit" to commit your merge)
 
-        Alice and Bob make non-conflicting changes simultaneously::
+        Alice and Bob make non-conflicting changes simultaneously (and alice
+        adds some characters that need escaping)::
 
             sage: with open("tracked", "w") as f: f.write("alice")
             sage: alice.git.super_silent.add("tracked")
-            sage: alice.git.super_silent.commit(message="alice: modified tracked")
+            sage: alice.git.super_silent.commit(message="alice: modified tracked {} {{0}} {1}")
 
             sage: bob._chdir()
             sage: open("tracked2", "w").close()
@@ -1521,7 +1522,7 @@ class SageDev(MercurialPatchMixin):
             sage: alice.push()
             Local commits that are not on the remote branch "u/alice/ticket/1":
             <BLANKLINE>
-                ...: alice: modified tracked
+                ...: alice: modified tracked {} {{0}} {1}
                 ...: bob: modified tracked
             <BLANKLINE>
             Push to remote branch? [Yes/no] y
@@ -1541,8 +1542,6 @@ class SageDev(MercurialPatchMixin):
             "u/bob/ticket/1" and the current value of the branch field "u/alice/ticket/1"
             have diverged.
             <BLANKLINE>
-            #  Use "sage --dev push --force --ticket=1 --remote-branch=u/bob/ticket/1" to overwrite the branch field.
-            <BLANKLINE>
             #  Use "sage --dev pull --ticket=1" to merge the changes introduced by the remote "u/alice/ticket/1" into your local branch.
 
         After merging the changes, this works again::
@@ -1558,7 +1557,7 @@ class SageDev(MercurialPatchMixin):
             Local commits that are not on the remote branch "u/bob/ticket/1":
             <BLANKLINE>
                 ...: Merge branch 'u/alice/ticket/1' of ... into ticket/1
-                ...: alice: modified tracked
+                ...: alice: modified tracked {} {{0}} {1}
             <BLANKLINE>
             Push to remote branch? [Yes/no] y
             The branch field of ticket #1 needs to be updated from its current value
@@ -1755,9 +1754,6 @@ class SageDev(MercurialPatchMixin):
                 if not force:
                     self._UI.error('Not pushing your changes because they would discard some of'
                                    ' the commits on the remote branch "{0}".', remote_branch)
-                    self._UI.info(['', 'Use "{0}" if you really want to overwrite the remote branch.'],
-                                  self._format_command("push", ticket=ticket,
-                                                       remote_branch=remote_branch, force=True))
                     raise OperationCancelledError("not a fast-forward")
 
             # check whether this is a nop
@@ -1773,7 +1769,7 @@ class SageDev(MercurialPatchMixin):
                         if remote_branch_exists:
                             commits = self.git.log("{0}..{1}".format('FETCH_HEAD', branch), '--pretty=%h: %s')
                             self._UI.show(['Local commits that are not on the remote branch "{0}":', ''] +
-                                          ['    ' + c for c in commits.splitlines()] +
+                                          ['    ' + c.replace('{','{{').replace('}','}}') for c in commits.splitlines()] +
                                           [''], remote_branch)
                             if not self._UI.confirm('Push to remote branch?', default=True):
                                 raise OperationCancelledError("user requested")
@@ -1805,11 +1801,9 @@ class SageDev(MercurialPatchMixin):
                         self._UI.error('Not setting the branch field for ticket #{0} to "{1}" because'
                                        ' "{1}" and the current value of the branch field "{2}" have diverged.'
                                        .format(ticket, remote_branch, current_remote_branch))
-                        self._UI.info(['', 'Use "{0}" to overwrite the branch field.', '',
-                                       'Use "{1}" to merge the changes introduced by'
-                                       ' the remote "{2}" into your local branch.'],
-                                      self._format_command("push", ticket=ticket,
-                                                           remote_branch=remote_branch, force=True),
+                        self._UI.info(['',
+                                       'Use "{0}" to merge the changes introduced by'
+                                       ' the remote "{1}" into your local branch.'],
                                       self._format_command("pull", ticket=ticket),
                                       current_remote_branch)
                         raise OperationCancelledError("not a fast-forward")
@@ -2720,17 +2714,16 @@ class SageDev(MercurialPatchMixin):
                     self._UI.show("Abandoning #{0}.".format(ticket))
                     self.abandon(ticket, helpful=False)
 
-    def abandon(self, ticket_or_branch=None, helpful=True):
+    def abandon(self, ticket_or_branch, helpful=True):
         r"""
         Abandon a ticket or branch.
 
         INPUT:
 
         - ``ticket_or_branch`` -- an integer or string identifying a ticket or
-          the name of a local branch or ``None`` (default: ``None``), remove
-          the branch ``ticket_or_branch`` or the branch for the ticket
-          ``ticket_or_branch`` (or the current branch if ``None``). Also
-          removes the users remote tracking branch.
+          the name of a local branch, remove the branch ``ticket_or_branch`` or
+          the branch for the ticket ``ticket_or_branch``. Also removes the
+          users remote tracking branch.
 
         - ``helpful`` -- boolean (default: ``True``). Whether to print
           informational messages to guide new users.
@@ -2789,6 +2782,14 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  Use "sage --dev merge" to include another ticket/branch.
             #  Use "sage --dev commit" to save changes into a new commit.
+
+        Verify that :trac:`16249` has been resolved::
+
+            sage: dev.abandon()
+            Traceback (most recent call last):
+            ...
+            TypeError: abandon() takes at least 2 arguments (1 given)
+
         """
         ticket = None
 
@@ -3190,11 +3191,11 @@ class SageDev(MercurialPatchMixin):
         remote_branch = None
 
         if ticket_or_branch == 'dependencies':
-            if current_ticket == None:
+            if current_ticket is None:
                 raise SageDevValueError("dependencies can only be merged if currently on a ticket.")
             if pull == False:
                 raise SageDevValueError('"pull" must not be "False" when merging dependencies.')
-            if create_dependency != None:
+            if create_dependency is not None:
                 raise SageDevValueError('"create_dependency" must not be set when merging dependencies.')
             for dependency in self._dependencies_for_ticket(current_ticket):
                 self._UI.debug("Merging dependency #{0}.".format(dependency))
@@ -4032,7 +4033,8 @@ class SageDev(MercurialPatchMixin):
                 private_key = public_key[:-4]
                 self._UI.show("Generating ssh key.")
                 from subprocess import call
-                success = call(['sage-native-execute', 'ssh-keygen', '-q', '-f', private_key, '-P', ''])
+                success = call(['sage-native-execute', 'ssh-keygen', '-q',
+                                '-f', private_key, '-P', '', '-t', 'rsa'])
                 if success == 0:
                     self._UI.debug("Key generated.")
                 else:

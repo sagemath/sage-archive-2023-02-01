@@ -280,10 +280,15 @@ def simplex_points(vertices):
         sage: v = [(4,-1,-1,-1), (-1,4,-1,-1), (-1,-1,4,-1), (-1,-1,-1,4), (-1,-1,-1,-1)]
         sage: P4mirror = Polyhedron(v); P4mirror
         A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
-        sage: len( simplex_points(P4mirror.Vrepresentation()) )
+        sage: len(simplex_points(P4mirror.Vrepresentation()))
         126
+
+        sage: vertices = map(vector, [(1,2,3), (2,3,7), (-2,-3,-11)])
+        sage: for v in vertices: v.set_immutable()
+        sage: simplex_points(vertices)
+        ((-2, -3, -11), (0, 0, -2), (1, 2, 3), (2, 3, 7))
     """
-    rays = [ vector(ZZ, v) for v in vertices ]
+    rays = [vector(ZZ, list(v)) for v in vertices]
     if len(rays)==0:
         return tuple()
     origin = rays.pop()
@@ -496,14 +501,14 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
         sage: cube.Hrepresentation(2)
         An inequality (-1, 0, 0) x + 1 >= 0
         sage: rectangular_box_points([0]*3, [1]*3, cube, return_saturated=True)
-        (((0, 0, 0), frozenset([])),
-         ((0, 0, 1), frozenset([0])),
-         ((0, 1, 0), frozenset([1])),
-         ((0, 1, 1), frozenset([0, 1])),
-         ((1, 0, 0), frozenset([2])),
-         ((1, 0, 1), frozenset([0, 2])),
-         ((1, 1, 0), frozenset([1, 2])),
-         ((1, 1, 1), frozenset([0, 1, 2])))
+        (((0, 0, 0), frozenset()),
+         ((0, 0, 1), frozenset({0})),
+         ((0, 1, 0), frozenset({1})),
+         ((0, 1, 1), frozenset({0, 1})),
+         ((1, 0, 0), frozenset({2})),
+         ((1, 0, 1), frozenset({0, 2})),
+         ((1, 1, 0), frozenset({1, 2})),
+         ((1, 1, 1), frozenset({0, 1, 2})))
     """
     assert len(box_min)==len(box_max)
     assert not (count_only and return_saturated)
@@ -1317,11 +1322,11 @@ cdef class InequalityCollection:
             sage: ieqs.prepare_next_to_inner_loop([-1,0])
             sage: ieqs.prepare_inner_loop([-1,0])
             sage: ieqs.satisfied_as_equalities(-1)
-            frozenset([1])
+            frozenset({1})
             sage: ieqs.satisfied_as_equalities(0)
-            frozenset([0, 1])
+            frozenset({0, 1})
             sage: ieqs.satisfied_as_equalities(1)
-            frozenset([1])
+            frozenset({1})
         """
         cdef int i
         result = []

@@ -66,13 +66,9 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
     so let's check if this this runs without exception::
 
         sage: for i,g in enumerate(atlas_graphs):                         # long time
-        ...       if (not g.is_connected() or i==0):                      # long time
-        ...           continue                                            # long time
-        ...       try:                                                    # long time
-        ...           _ = g.is_planar(set_embedding=True, set_pos=True)   # long time
-        ...       except StandardError:                                   # long time
-        ...           print "There is something wrong here !"             # long time
-        ...           break                                               # long time
+        ....:     if (not g.is_connected() or i==0):
+        ....:         continue
+        ....:     _ = g.is_planar(set_embedding=True, set_pos=True)
     """
     if set_pos and not g.is_connected():
         raise ValueError("is_planar() cannot set vertex positions for a disconnected graph")

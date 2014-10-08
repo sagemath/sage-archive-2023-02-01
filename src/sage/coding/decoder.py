@@ -30,7 +30,7 @@ def syndrome(C, v):
     syndrome of v (ie, the coset v+C, sorted by weight).
 
     EXAMPLES:
-        sage: C = HammingCode(2,GF(3)); C
+        sage: C = codes.HammingCode(2,GF(3)); C
         Linear code of length 4, dimension 2 over Finite Field of size 3
         sage: V = VectorSpace(GF(3), 4)
         sage: v = V([0, 2, 0, 1])
@@ -44,8 +44,7 @@ def syndrome(C, v):
         v = v.list()
     v = V(v)
     coset = [[c + v, (c + v).hamming_weight()] for c in C]
-    coset.sort(lambda x, y: x[1] - y[1])
-    return [x[0] for x in coset]
+    return [x[0] for x in sorted(coset, key=lambda x: x[1])]
 
 def coset_leader(C, v):
     """
@@ -54,7 +53,7 @@ def coset_leader(C, v):
     element of the syndrome of v of lowest weight.
 
     EXAMPLES:
-        sage: C = HammingCode(2,GF(3)); C
+        sage: C = codes.HammingCode(2,GF(3)); C
         Linear code of length 4, dimension 2 over Finite Field of size 3
         sage: V = VectorSpace(GF(3), 4)
         sage: v = V([0, 2, 0, 1])
@@ -89,7 +88,7 @@ def decode(C, v, algorithm="syndrome"):
     a brute force search) and "syndrome".
 
     EXAMPLES:
-        sage: C = HammingCode(2,GF(3))
+        sage: C = codes.HammingCode(2,GF(3))
         sage: V = VectorSpace(GF(3), 4)
         sage: v = V([0, 2, 0, 1])
         sage: v in C
@@ -101,7 +100,7 @@ def decode(C, v, algorithm="syndrome"):
         True
         sage: c = decode(C, v, algorithm="nearest neighbor");c
         (0, 2, 2, 1)
-        sage: C = HammingCode(3,GF(3)); C
+        sage: C = codes.HammingCode(3,GF(3)); C
         Linear code of length 13, dimension 10 over Finite Field of size 3
         sage: V = VectorSpace(GF(3), 13)
         sage: v = V([2]+[0]*12)
@@ -114,7 +113,7 @@ def decode(C, v, algorithm="syndrome"):
     v = V(v)
     if algorithm == "nearest neighbor":
         diffs = [[c - v, (c - v).hamming_weight()] for c in C]
-        diffs.sort(lambda x, y:  x[1] - y[1])
+        diffs.sort(key=lambda x: x[1])
         return diffs[0][0] + v
     if algorithm == "syndrome":
         return -V(syndrome(C, v)[0]) + v

@@ -35,7 +35,7 @@ def cblas():
         sage: sage.misc.cython.cblas() # random -- depends on OS, etc.
         'cblas'
     """
-    if os.environ.has_key('SAGE_CBLAS'):
+    if 'SAGE_CBLAS' in os.environ:
         return os.environ['SAGE_CBLAS']
     elif os.path.exists('/usr/lib/libcblas.dylib') or \
          os.path.exists('/usr/lib/libcblas.so'):
@@ -156,7 +156,7 @@ def environ_parse(s):
     else:
         j = i + j
     name = s[i+1:j]
-    if os.environ.has_key(name):
+    if name in os.environ:
         s = s[:i] + os.environ[name] + s[j:]
     else:
         return s
@@ -399,7 +399,7 @@ def cython(filename, verbose=False, compile_message=False,
     # We will use this only to make some convenient symbolic links.
     abs_base = os.path.split(os.path.abspath(filename))[0]
 
-    # bad things happen if the current directory is devel/sage-*
+    # bad things happen if the current directory is SAGE_ROOT/src
     if not os.path.exists("%s/sage" % abs_base) and not os.path.exists("%s/c_lib" % abs_base):
         cmd = 'cd "%s"; ln -sf "%s"/* .'%(build_dir, abs_base)
         os.system(cmd)
@@ -425,7 +425,7 @@ def cython(filename, verbose=False, compile_message=False,
         name = base
     else:
         global sequence_number
-        if not sequence_number.has_key(base):
+        if base not in sequence_number:
             sequence_number[base] = 0
         name = '%s_%s'%(base, sequence_number[base])
 
@@ -490,7 +490,7 @@ setup(ext_modules = ext_modules,
     if os.system(cmd):
         log = open('%s/log'%build_dir).read()
         err = subtract_from_line_numbers(open('%s/err'%build_dir).read(), offset)
-        raise RuntimeError, "Error converting %s to C:\n%s\n%s"%(filename, log, err)
+        raise RuntimeError("Error converting {} to C:\n{}\n{}".format(filename, log, err))
 
     if language=='c++':
         os.system("cd '%s' && mv '%s.c' '%s.cpp'"%(build_dir,name,name))
@@ -533,14 +533,14 @@ setup(ext_modules = ext_modules,
     if os.system(cmd):
         log = open('%s/log'%build_dir).read()
         err = open('%s/err'%build_dir).read()
-        raise RuntimeError, "Error compiling %s:\n%s\n%s"%(filename, log, err)
+        raise RuntimeError("Error compiling {}:\n{}\n{}".format(filename, log, err))
 
     # Move from lib directory.
     cmd = 'mv %s/build/lib.*/* %s'%(build_dir, build_dir)
     if verbose:
         print(cmd)
     if os.system(cmd):
-        raise RuntimeError, "Error copying extension module for %s"%filename
+        raise RuntimeError("Error copying extension module for {}".format(filename))
 
     if create_local_so_file:
         # Copy from lib directory into local directory
@@ -550,7 +550,7 @@ setup(ext_modules = ext_modules,
             libext = 'dll'
         cmd = 'cp %s/%s.%s %s'%(build_dir, name, libext, os.path.abspath(os.curdir))
         if os.system(cmd):
-            raise RuntimeError, "Error making local copy of shared object library for %s"%filename
+            raise RuntimeError("Error making local copy of shared object library for {}".format(filename))
 
     return name, build_dir
 
@@ -765,8 +765,7 @@ TESTS = {
 
 from sage.rings.rational cimport Rational
 from sage.rings.polynomial.polynomial_rational_flint cimport Polynomial_rational_flint
-from sage.libs.flint.fmpq_poly cimport (fmpq_poly_get_coeff_mpq, fmpq_poly_set_coeff_mpq,
-                                        fmpq_poly_length)
+include "sage/libs/flint/fmpq_poly.pxi"
 
 def evaluate_at_power_of_gen(Polynomial_rational_flint f, unsigned long n):
     assert n >= 1

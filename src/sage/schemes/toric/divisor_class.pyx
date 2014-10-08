@@ -249,8 +249,8 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
         TESTS::
 
             sage: D = toric_varieties.dP6().divisor(0).divisor_class()
-            sage: D._latex_()
-            '\\left[ 1, 0, 0, 0 \\right]_{\\mathop{Cl}_{\\QQ}\\left(\\mathbb{P}_{\\Delta^{2}}\\right)}'
+            sage: print D._latex_()
+            \left[ 1, 0, 0, 0 \right]_{\mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}_{9}}\right)}
         """
         return r"\left[ %s \right]_{%s}" % (
                     ", ".join([latex(e) for e in self]), latex(self.parent()))

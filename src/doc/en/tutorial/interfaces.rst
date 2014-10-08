@@ -34,7 +34,7 @@ interfaces that you can use in Sage:
 
 -  ``gp`` - the "**G** o **P** ARI" interpreter, and
 
--  ``pari`` - the PARI C libraxry.
+-  ``pari`` - the PARI C library.
 
 
 For example, the following are two ways of doing the same thing.
@@ -132,7 +132,7 @@ things about it.
     sage: e.elltors()
     [1, [], []]
     sage: e.ellglobalred()
-    [10351, [1, -1, 0, -1], 1]
+    [10351, [1, -1, 0, -1], 1, [11, 1; 941, 1], [[1, 5, 0, 1], [1, 5, 0, 1]]]
     sage: f = e.ellchangecurve([1,-1,0,-1])
     sage: f[:5]
     [1, -1, 0, 4, 3]

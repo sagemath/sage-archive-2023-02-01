@@ -71,8 +71,13 @@ class NotebookIPython(object):
 
 description = \
 """
-The Sage Notebook Launcher
+The Sage notebook launcher is used to start the notebook, and allows
+you to choose between different implementations. Any further command
+line options are passed to the respective notebook. Sagenb: See the
+online help, that is, run "notebook?" in Sage. IPython: See the output
+of "sage -ipython notebook --help".
 """
+
 
 notebook_launcher = {
     'default': NotebookSageNB,   # change this to change the default

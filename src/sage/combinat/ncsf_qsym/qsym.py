@@ -2017,6 +2017,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 # that appears in self appears with the same coefficient.
                 # We use a dictionary to keep track of the coefficient
                 # and how many rearrangements of the composition we've seen.
+                from sage.combinat.permutation import Permutations_mset
                 d = {}
                 for (I, coeff) in self:
                     partition = I.to_partition()
@@ -2028,7 +2029,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                         else:
                             d[partition][1] += 1
                 # make sure we've seen each rearrangement of the composition
-                return all(d[partition][1] == Permutations(partition).cardinality()
+                return all(d[partition][1] == Permutations_mset(partition).cardinality()
                             for partition in d)
 
             def to_symmetric_function(self):

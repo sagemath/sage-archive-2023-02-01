@@ -135,6 +135,8 @@ first ``h(x)`` is evaluated: this means plugging the symbolic variable ``x``
 into the function ``h``. So, the inequality ``x < 2`` evaluates to ``False`` first,
 and hence ``h(x)`` evaluates to ``x - 2``. This can be seen with
 
+.. link
+
 ::
 
         sage: bool(x < 2)

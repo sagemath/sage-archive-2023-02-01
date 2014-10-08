@@ -23,6 +23,19 @@ from sage.repl.interpreter import (
 # The directory where all Sage IPython Notebooks files are stored
 NOTEBOOK_DIR = os.path.join(DOT_SAGE, 'notebooks_ipython')
 
+def make_notebook_dir():
+    """
+    Ensure that the IPython notebook directory exists.
+
+    EXAMPLES::
+
+        sage: from sage.repl.notebook_ipython import make_notebook_dir, NOTEBOOK_DIR
+        sage: make_notebook_dir()
+        sage: assert os.path.isdir(NOTEBOOK_DIR)
+    """
+    if not os.path.exists(NOTEBOOK_DIR):
+        os.makedirs(NOTEBOOK_DIR)
+
 
 # The notebook Jinja2 templates and static files
 TEMPLATE_PATH = os.path.join(SAGE_EXTCODE, 'notebook-ipython', 'templates')
@@ -67,6 +80,7 @@ class SageNotebookApp(NotebookApp):
             True
             sage: os.environ['IPYTHONDIR'] = IPYTHONDIR
         """
+        make_notebook_dir()
         super(SageNotebookApp, self).load_config_file(*args, **kwds)
         newconfig = copy.deepcopy(DEFAULT_SAGE_CONFIG)
         newconfig.merge(DEFAULT_SAGE_NOTEBOOK_CONFIG)

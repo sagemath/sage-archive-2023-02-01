@@ -1,0 +1,11 @@
+--- a/src/pari.cc	2014-07-02 11:05:07.000000000 +0200
++++ b/src/pari.cc	2014-10-03 17:21:23.000000000 +0200
+@@ -96,7 +96,7 @@
+ 
+   struct giac_pari_init {
+     giac_pari_init(long maxprime) { 
+-      do_giac_pari_init(maxprime);
++      if(!avma){ do_giac_pari_init(maxprime);}
+     }
+   };
+   static long pari_maxprime=100000;

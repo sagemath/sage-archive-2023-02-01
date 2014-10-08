@@ -211,6 +211,15 @@ class FreeModuleTensor(ModuleElement):
     """
     def __init__(self, fmodule, tensor_type, name=None, latex_name=None,
                  sym=None, antisym=None):
+        r"""
+        TEST::
+        
+            sage: from sage.tensor.modules.free_module_tensor import FreeModuleTensor
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: FreeModuleTensor(M, (2,1), name='t', latex_name=r'\tau', sym=(0,1))
+            type-(2,1) tensor t on the rank-3 free module M over the Integer Ring
+       
+        """
         ModuleElement.__init__(self, fmodule.tensor_module(*tensor_type))
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
@@ -267,6 +276,33 @@ class FreeModuleTensor(ModuleElement):
         Return True if ``self`` is nonzero and False otherwise. 
         
         This method is called by self.is_zero(). 
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: t = M.tensor((2,1))
+            sage: t.add_comp(e)
+            3-indices components w.r.t. basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring
+            sage: t.__nonzero__()  # unitialized components are zero
+            False
+            sage: t == 0
+            True
+            sage: t[e,1,0,2] = 4  # setting a non-zero component in basis e
+            sage: t.view()
+            4 e_1*e_0*e^2
+            sage: t.__nonzero__()
+            True
+            sage: t == 0
+            False
+            sage: t[e,1,0,2] = 0
+            sage: t.view()
+            0
+            sage: t.__nonzero__()
+            False
+            sage: t == 0
+            True
+
         """
         basis = self.pick_a_basis()
         return not self._components[basis].is_zero()
@@ -276,6 +312,14 @@ class FreeModuleTensor(ModuleElement):
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,1), name='t')
+            sage: t._repr_()
+            'type-(2,1) tensor t on the rank-3 free module M over the Integer Ring'
+
         """
         # Special cases
         if self._tensor_type == (0,2) and self._sym == [(0,1)]:
@@ -292,6 +336,24 @@ class FreeModuleTensor(ModuleElement):
     def _latex_(self):
         r"""
         LaTeX representation of the object.
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,1), name='t')
+            sage: t._latex_()
+            't'
+            sage: latex(t)
+            t
+            sage: t = M.tensor((2,1), name='t', latex_name=r'\tau')
+            sage: t._latex_()
+            '\\tau'
+            sage: latex(t)
+            \tau
+            sage: t = M.tensor((2,1))  # unnamed tensor
+            sage: t._latex_()
+            '\\mbox{type-(2,1) tensor on the rank-3 free module M over the Integer Ring}'
+
         """
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
@@ -301,12 +363,26 @@ class FreeModuleTensor(ModuleElement):
     def _init_derived(self):
         r"""
         Initialize the derived quantities
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,1), name='t')
+            sage: t._init_derived()
+
         """
         pass # no derived quantities
 
     def _del_derived(self):
         r"""
         Delete the derived quantities
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,1), name='t')
+            sage: t._del_derived()
+
         """
         pass # no derived quantities
 
@@ -552,6 +628,20 @@ class FreeModuleTensor(ModuleElement):
           tensor; if None while ``name`` is provided, the LaTeX symbol is set 
           to ``name``.
 
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,1)) ; t
+            type-(2,1) tensor on the rank-3 free module M over the Integer Ring
+            sage: t.set_name('t') ; t
+            type-(2,1) tensor t on the rank-3 free module M over the Integer Ring
+            sage: latex(t)
+            t
+            sage: t.set_name(latex_name=r'\tau') ; t
+            type-(2,1) tensor t on the rank-3 free module M over the Integer Ring
+            sage: latex(t)
+            \tau
+
         """
         if name is not None:
             self._name = name
@@ -564,6 +654,15 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Create a tensor of the same tensor type and with the same symmetries 
         as ``self``. 
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,1), name='t')
+            sage: t._new_instance()
+            type-(2,1) tensor on the rank-3 free module M over the Integer Ring
+            sage: t._new_instance().parent() is t.parent()
+            True
 
         """
         return self.__class__(self._fmodule, self._tensor_type, sym=self._sym, 
@@ -581,6 +680,17 @@ class FreeModuleTensor(ModuleElement):
         
         - an instance of :class:`~sage.tensor.modules.comp.Components` (or of one of its subclass)
         
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,1), name='t')
+            sage: e = M.basis('e')
+            sage: t._new_comp(e)
+            3-indices components w.r.t. basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring
+            sage: a = M.tensor((2,1), name='a', sym=(0,1))
+            sage: a._new_comp(e)
+            3-indices components w.r.t. basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring, with symmetry on the index positions (0, 1)
+
         """
         fmodule = self._fmodule  # the base free module
         if self._sym == [] and self._antisym == []:
@@ -917,7 +1027,29 @@ class FreeModuleTensor(ModuleElement):
           provided, all the components are returned. The basis can be passed
           as the first item of ``args``; if not, the free module's default 
           basis is assumed. 
-    
+                
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,1), name='t')
+            sage: e = M.basis('e')
+            sage: t.add_comp(e)
+            3-indices components w.r.t. basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring
+            sage: t.__getitem__((1,2,0)) # uninitialized components are zero
+            0
+            sage: t.__getitem__((e,1,2,0)) # same as above since e in the default basis
+            0
+            sage: t[1,2,0] = -4
+            sage: t.__getitem__((e,1,2,0))
+            -4
+            sage: v = M([3,-5,2])
+            sage: v.__getitem__(slice(None))
+            [3, -5, 2]
+            sage: v.__getitem__(slice(None)) == v[:]
+            True
+            sage: v.__getitem__((e, slice(None)))
+            [3, -5, 2]
+
         """
         if isinstance(args, str): # tensor with specified indices
             return TensorWithIndices(self, args).update()
@@ -953,6 +1085,26 @@ class FreeModuleTensor(ModuleElement):
         - ``value`` -- the value to be set or a list of values if ``args``
           == ``[:]``
    
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((0,2), name='t')
+            sage: e = M.basis('e')
+            sage: t.__setitem__((e,0,1), 5)  
+            sage: t.view()
+            t = 5 e^0*e^1
+            sage: t.__setitem__((0,1), 5)  # equivalent to above since e is the default basis
+            sage: t.view()
+            t = 5 e^0*e^1
+            sage: t[0,1] = 5  # end-user usage
+            sage: t.view()
+            t = 5 e^0*e^1
+            sage: t.__setitem__(slice(None), [[1,-2,3], [-4,5,-6], [7,-8,9]])
+            sage: t[:]
+            [ 1 -2  3]
+            [-4  5 -6]
+            [ 7 -8  9]
+
         """        
         if isinstance(args, list):  # case of [[...]] syntax
             if isinstance(args[0], (int, Integer, slice, tuple)):
@@ -1145,6 +1297,22 @@ class FreeModuleTensor(ModuleElement):
           :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis` 
           representing the basis 
 
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,0), name='t')
+            sage: e = M.basis('e')
+            sage: t[0,1] = 4  # component set in the default basis (e)
+            sage: t.pick_a_basis()
+            basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring
+            sage: f = M.basis('f')
+            sage: t.add_comp(f)[2,1] = -4  # the components in basis e are not erased
+            sage: t.pick_a_basis()
+            basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring
+            sage: t.set_comp(f)[2,1] = -4  # the components in basis e not erased
+            sage: t.pick_a_basis()
+            basis (f_0,f_1,f_2) on the rank-3 free module M over the Integer Ring
+
         """
         if self._fmodule._def_basis in self._components:
             return self._fmodule._def_basis  # the default basis is privileged
@@ -1164,6 +1332,33 @@ class FreeModuleTensor(ModuleElement):
         
         - True if ``self`` is equal to ``other`` and False otherwise
         
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,0), name='t')
+            sage: e = M.basis('e')
+            sage: t[0,1] = 7
+            sage: t.__eq__(0)
+            False
+            sage: t[0,1] = 0
+            sage: t.__eq__(0)
+            True
+            sage: a = M.tensor((0,2), name='a')
+            sage: a[0,1] = 7
+            sage: t[0,1] = 7
+            sage: a[:], t[:]
+            (
+            [0 7 0]  [0 7 0]
+            [0 0 0]  [0 0 0]
+            [0 0 0], [0 0 0]
+            )
+            sage: t.__eq__(a)  # False since t and a do not have the same tensor type
+            False
+            sage: a = M.tensor((2,0), name='a') # same tensor type as t
+            sage: a[0,1] = 7
+            sage: t.__eq__(a)
+            True
+
         """
         if self._tensor_rank == 0:
             raise NotImplementedError("Scalar comparison not implemented.")
@@ -1196,6 +1391,25 @@ class FreeModuleTensor(ModuleElement):
         
         - True if ``self`` is different from ``other`` and False otherwise
         
+        EXAMPLES::
+    
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,0), name='t')
+            sage: e = M.basis('e')
+            sage: t[0,1] = 7
+            sage: t.__ne__(0)
+            True
+            sage: t[0,1] = 0
+            sage: t.__ne__(0)
+            False
+            sage: a = M.tensor((2,0), name='a') # same tensor type as t
+            sage: a[0,1] = 7
+            sage: t.__ne__(a)
+            True
+            sage: t[0,1] = 7
+            sage: t.__ne__(a)
+            False
+
         """
         return not self.__eq__(other)
 
@@ -1207,6 +1421,21 @@ class FreeModuleTensor(ModuleElement):
         
         - an exact copy of ``self``
     
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,0), name='t')
+            sage: e = M.basis('e')
+            sage: t[0,1] = 7
+            sage: p = t.__pos__() ; p
+            type-(2,0) tensor +t on the rank-3 free module M over the Integer Ring
+            sage: p.view()
+            +t = 7 e_0*e_1
+            sage: p == t
+            True
+            sage: p is t
+            False
+
         """
         result = self._new_instance()
         for basis in self._components:
@@ -1224,7 +1453,23 @@ class FreeModuleTensor(ModuleElement):
         OUTPUT:
         
         - the tensor `-T`, where `T` is ``self``
+
     
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: t = M.tensor((2,0), name='t')
+            sage: e = M.basis('e')
+            sage: t[0,1], t[1,2] = 7, -4
+            sage: t.view()
+            t = 7 e_0*e_1 - 4 e_1*e_2
+            sage: a = t.__neg__() ; a
+            type-(2,0) tensor -t on the rank-3 free module M over the Integer Ring
+            sage: a.view()
+            -t = -7 e_0*e_1 + 4 e_1*e_2
+            sage: a == -t
+            True
+
         """
         result = self._new_instance()
         for basis in self._components:
@@ -1249,6 +1494,24 @@ class FreeModuleTensor(ModuleElement):
         
         - the tensor resulting from the addition of ``self`` and ``other``
         
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[4,0], [-2,5]]
+            sage: b = M.tensor((2,0), name='b')
+            sage: b[:] = [[0,1], [2,3]]
+            sage: s = a._add_(b) ; s
+            type-(2,0) tensor a+b on the rank-2 free module M over the Integer Ring
+            sage: s[:]
+            [4 1]
+            [0 8]
+            sage: a._add_(-a) == 0
+            True
+            sage: a._add_(a) == 2*a
+            True
+
         """
         # No need for consistency check since self and other are guaranted
         # to belong to the same tensor module
@@ -1277,6 +1540,26 @@ class FreeModuleTensor(ModuleElement):
         
         - the tensor resulting from the subtraction of ``other`` from ``self``
         
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[4,0], [-2,5]]
+            sage: b = M.tensor((2,0), name='b')
+            sage: b[:] = [[0,1], [2,3]]
+            sage: s = a._sub_(b) ; s
+            type-(2,0) tensor a-b on the rank-2 free module M over the Integer Ring
+            sage: s[:]
+            [ 4 -1]
+            [-4  2]
+            sage: b._sub_(a) == -s
+            True
+            sage: a._sub_(a) == 0
+            True
+            sage: a._sub_(-a) == 2*a
+            True
+
         """
         # No need for consistency check since self and other are guaranted
         # to belong to the same tensor module
@@ -1297,6 +1580,28 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Multiplication on the left by ``other``. 
         
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[4,0], [-2,5]]
+            sage: s = a._rmul_(2) ; s
+            type-(2,0) tensor on the rank-2 free module M over the Integer Ring
+            sage: s[:]
+            [ 8  0]
+            [-4 10]
+            sage: s == a + a
+            True
+            sage: a._rmul_(0)
+            type-(2,0) tensor on the rank-2 free module M over the Integer Ring
+            sage: a._rmul_(0) == 0
+            True
+            sage: a._rmul_(1) == a
+            True
+            sage: a._rmul_(-1) == -a
+            True
+
         """
         #!# The following test is probably not necessary:
         if isinstance(other, FreeModuleTensor):
@@ -1315,6 +1620,29 @@ class FreeModuleTensor(ModuleElement):
         
         This allows to write "0 + t", where "t" is a tensor
         
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[4,0], [-2,5]]
+            sage: b = M.tensor((2,0), name='b')
+            sage: b[:] = [[0,1], [2,3]]
+            sage: s = a.__radd__(b) ; s
+            type-(2,0) tensor a+b on the rank-2 free module M over the Integer Ring
+            sage: s[:]
+            [4 1]
+            [0 8]
+            sage: s == a+b
+            True
+            sage: s = a.__radd__(0) ; s
+            type-(2,0) tensor +a on the rank-2 free module M over the Integer Ring
+            sage: s == a
+            True
+            sage: 0 + a == a
+            True
+
+
         """
         return self.__add__(other)
 
@@ -1324,12 +1652,51 @@ class FreeModuleTensor(ModuleElement):
 
         This allows to write "0 - t", where "t" is a tensor
         
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[4,0], [-2,5]]
+            sage: b = M.tensor((2,0), name='b')
+            sage: b[:] = [[0,1], [2,3]]
+            sage: s = a.__rsub__(b) ; s
+            type-(2,0) tensor -a+b on the rank-2 free module M over the Integer Ring
+            sage: s[:]
+            [-4  1]
+            [ 4 -2]
+            sage: s == b - a
+            True
+            sage: s = a.__rsub__(0) ; s
+            type-(2,0) tensor +-a on the rank-2 free module M over the Integer Ring
+            sage: s == -a
+            True
+            sage: 0 - a == -a
+            True
+
         """
         return (-self).__add__(other)
 
     def __mul__(self, other):
         r"""
         Tensor product. 
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[4,0], [-2,5]]
+            sage: b = M.tensor((0,2), name='b', antisym=(0,1))
+            sage: b[0,1] = 3
+            sage: s = a.__mul__(b) ; s
+            type-(2,2) tensor a*b on the rank-2 free module M over the Integer Ring
+            sage: s.symmetries()
+            no symmetry;  antisymmetry: (2, 3)
+            sage: s[:]
+            [[[[0, 12], [-12, 0]], [[0, 0], [0, 0]]],
+             [[[0, -6], [6, 0]], [[0, 15], [-15, 0]]]]
+            
         """
         from format_utilities import format_mul_txt, format_mul_latex
         if isinstance(other, FreeModuleTensor):
@@ -1361,7 +1728,24 @@ class FreeModuleTensor(ModuleElement):
 
     def __div__(self, other):
         r"""
-        Division (by a scalar)
+        Division (by a scalar). 
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(QQ, 2, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[4,0], [-2,5]]
+            sage: s = a.__div__(4) ; s
+            type-(2,0) tensor on the rank-2 free module M over the Rational Field
+            sage: s[:]
+            [   1    0]
+            [-1/2  5/4]
+            sage: 4*s == a
+            True
+            sage: s == a/4
+            True
+
         """
         result = self._new_instance()
         for basis in self._components:
@@ -1378,7 +1762,35 @@ class FreeModuleTensor(ModuleElement):
         
         - ``*args`` -- list of k linear forms and l module elements, ``self`` 
           being a tensor of type (k,l). 
-          
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
+            sage: e = M.basis('e')
+            sage: t = M.tensor((2,1), name='t', antisym=(0,1))
+            sage: t[0,1,0], t[0,1,1] = 3, 2
+            sage: t.view()
+            t = 3 e_0*e_1*e^0 + 2 e_0*e_1*e^1 - 3 e_1*e_0*e^0 - 2 e_1*e_0*e^1
+            sage: a = M.linear_form()
+            sage: a[:] = 1, 2
+            sage: b = M.linear_form()
+            sage: b[:] = 3, -1
+            sage: v = M([-2,1])
+            sage: t.__call__(a,b,v)
+            28
+            sage: t(a,b,v) == t.__call__(a,b,v)
+            True
+            sage: t(a,b,v) == t.contract(v).contract(b).contract(a)
+            True
+            sage: a.__call__(v)
+            0
+            sage: v.__call__(a)
+            0
+            sage: b.__call__(v)
+            -7
+            sage: v.__call__(b)
+            -7
+
         """
         from free_module_alt_form import FreeModuleLinForm
         # Consistency checks:
@@ -2517,12 +2929,30 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
 
     """
     def __init__(self, fmodule, name=None, latex_name=None):
+        r"""
+        TEST::
+        
+            sage: from sage.tensor.modules.free_module_tensor import FiniteRankFreeModuleElement
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: FiniteRankFreeModuleElement(M, name='v')
+            element v of the rank-3 free module M over the Integer Ring
+
+        """
         FreeModuleTensor.__init__(self, fmodule, (1,0), name=name, 
                                   latex_name=latex_name)
 
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: v = M([1,-2,3], name='v')
+            sage: v._repr_()
+            'element v of the rank-3 free module M over the Integer Ring'
+
         """
         description = "element "
         if self._name is not None:
@@ -2536,6 +2966,17 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
               
         This method, which is already implemented in 
         :meth:`FreeModuleTensor._new_comp`, is redefined here for efficiency
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: v = M([1,-2,3], name='v')
+            sage: v._new_comp(e)
+            1-index components w.r.t. basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring
+            sage: type(v._new_comp(e))
+            <class 'sage.tensor.modules.comp.Components'>
+
         """
         fmodule = self._fmodule  # the base free module
         return Components(fmodule._ring, basis, 1, start_index=fmodule._sindex,
@@ -2546,6 +2987,16 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
         r"""
         Create an instance of the same class as ``self``. 
         
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: v = M([1,-2,3], name='v')
+            sage: v._new_instance()
+            element of the rank-3 free module M over the Integer Ring
+            sage: v._new_instance().parent() is v.parent()
+            True
+
         """
         return self.__class__(self._fmodule)
 

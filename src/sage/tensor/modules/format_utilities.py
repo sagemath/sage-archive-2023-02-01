@@ -166,6 +166,20 @@ def format_mul_txt(name1, operator, name2):
     Helper function for text-formatted names of results of multiplication or 
     tensor product. 
     
+    EXAMPLES::
+    
+        sage: from sage.tensor.modules.format_utilities import format_mul_txt
+        sage: format_mul_txt('a', '*', 'b')
+        'a*b'
+        sage: format_mul_txt('a+b', '*', 'c')
+        '(a+b)*c'
+        sage: format_mul_txt('a', '*', 'b+c')
+        'a*(b+c)'
+        sage: format_mul_txt('a+b', '*', 'c+d')
+        '(a+b)*(c+d)'
+        sage: format_mul_txt(None, '*', 'b')
+        sage: format_mul_txt('a', '*', None)
+    
     """
     if name1 is None or name2 is None:
         return None
@@ -181,6 +195,20 @@ def format_mul_latex(name1, operator, name2):
     Helper function for LaTeX names of results of multiplication or tensor 
     product. 
     
+    EXAMPLES::
+    
+        sage: from sage.tensor.modules.format_utilities import format_mul_latex
+        sage: format_mul_latex('a', '*', 'b')
+        'a*b'
+        sage: format_mul_latex('a+b', '*', 'c')
+        '\\left(a+b\\right)*c'
+        sage: format_mul_latex('a', '*', 'b+c')
+        'a*\\left(b+c\\right)'
+        sage: format_mul_latex('a+b', '*', 'c+d')
+        '\\left(a+b\\right)*\\left(c+d\\right)'
+        sage: format_mul_latex(None, '*', 'b')
+        sage: format_mul_latex('a', '*', None)
+
     """
     if name1 is None or name2 is None:
         return None
@@ -195,6 +223,17 @@ def format_unop_txt(operator, name):
     r"""
     Helper function for text-formatted names of results of unary operator.
     
+    EXAMPLES::
+    
+        sage: from sage.tensor.modules.format_utilities import format_unop_txt
+        sage: format_unop_txt('-', 'a')
+        '-a'
+        sage: format_unop_txt('-', 'a+b')
+        '-(a+b)'
+        sage: format_unop_txt('-', '(a+b)')
+        '-(a+b)'
+        sage: format_unop_txt('-', None)
+    
     """
     if name is None:
         return None
@@ -208,6 +247,17 @@ def format_unop_latex(operator, name):
     r"""
     Helper function for LaTeX names of results of unary operator.
     
+    EXAMPLES::
+    
+        sage: from sage.tensor.modules.format_utilities import format_unop_latex
+        sage: format_unop_latex('-', 'a')
+        '-a'
+        sage: format_unop_latex('-', 'a+b')
+        '-\\left(a+b\\right)'
+        sage: format_unop_latex('-', '(a+b)')
+        '-(a+b)'
+        sage: format_unop_latex('-', None)
+        
     """
     if name is None:
         return None
@@ -219,21 +269,56 @@ def format_unop_latex(operator, name):
 class FormattedExpansion(SageObject):
     r""" 
     Helper class for displaying tensor expansions.
+    
     """
     def  __init__(self, tensor):
+        r"""
+        EXAMPLE::
+        
+            sage: from sage.tensor.modules.format_utilities import FormattedExpansion
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: v = M.an_element()
+            sage: f = FormattedExpansion(v)
+            sage: f.txt = 'v' ; f.latex = r'\tilde v'
+            sage: f
+            v
+
+        """
         self.tensor = tensor
         self.txt = None
         self.latex = None
     
     def _repr_(self):
         r"""
-        Special Sage function for the string representation of the object.
+        String representation of the object.
+
+        EXAMPLE::
+        
+            sage: from sage.tensor.modules.format_utilities import FormattedExpansion
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: v = M.an_element()
+            sage: f = FormattedExpansion(v)
+            sage: f.txt = 'v' ; f.latex = r'\tilde v'
+            sage: f._repr_()
+            'v'
+
         """
         return self.txt
         
     def _latex_(self):
         r"""
-        Special Sage function for the LaTeX representation of the object.
+        LaTeX representation of the object.
+        
+        EXAMPLE::
+        
+            sage: from sage.tensor.modules.format_utilities import FormattedExpansion
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: v = M.an_element()
+            sage: f = FormattedExpansion(v)
+            sage: f.txt = 'v' ; f.latex = r'\tilde v'
+            sage: f._latex_()
+            '\\tilde v'
+
         """
         return self.latex
 

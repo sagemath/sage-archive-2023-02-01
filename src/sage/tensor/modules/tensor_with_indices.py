@@ -151,6 +151,16 @@ class TensorWithIndices(SageObject):
 
     """
     def __init__(self, tensor, indices):
+        r"""
+        TEST::
+        
+            sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: t = M.tensor((2,1), name='t')
+            sage: TensorWithIndices(t, 'ab_c')
+            t^ab_c
+            
+        """
         self._tensor = tensor # may be changed below
         self._changed = False # indicates whether self contains an altered 
                               # version of the original tensor (True if 
@@ -257,13 +267,30 @@ class TensorWithIndices(SageObject):
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLES::
+        
+            sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: t = M.tensor((2,1), name='t')
+            sage: ti = TensorWithIndices(t, 'ab_c')
+            sage: ti._repr_()
+            't^ab_c'
+            sage: t = M.tensor((0,2), name='t')
+            sage: ti = TensorWithIndices(t, '_{ij}')
+            sage: ti._repr_()
+            't_ij'
+
         """
-        if self._tensor._name is not None:
-            name = self._tensor._name
-        else:
-            name = 'X'
+        name = 'X'
+        if hasattr(self._tensor, '_name'):
+            if self._tensor._name is not None:
+                name = self._tensor._name
         if self._con == '':
-            return name + '_' + self._cov
+            if self._cov == '':
+                return 'scalar'
+            else:
+                return name + '_' + self._cov
         elif self._cov == '':
             return name + '^' + self._con
         else:
@@ -273,6 +300,25 @@ class TensorWithIndices(SageObject):
         r"""
         Return the tensor contains in ``self`` if it differs from that used
         for creating ``self``, otherwise return ``self``. 
+        
+        EXAMPLES::
+        
+            sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((1,1),  name='a')
+            sage: a[:] = [[1,-2,3], [-4,5,-6], [7,-8,9]]
+            sage: a_ind = TensorWithIndices(a, 'i_j') ; a_ind
+            a^i_j
+            sage: a_ind.update()
+            a^i_j
+            sage: a_ind.update() is a_ind
+            True
+            sage: a_ind = TensorWithIndices(a, 'k_k') ; a_ind
+            scalar
+            sage: a_ind.update()
+            15
+
         """
         if self._changed:
             return self._tensor
@@ -281,7 +327,35 @@ class TensorWithIndices(SageObject):
 
     def __mul__(self, other):
         r"""
-        Tensor contraction on specified indices
+        Tensor product or contraction on specified indices.
+        
+        EXAMPLES::
+        
+            sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,0), name='a')
+            sage: a[:] = [[1,-2,3], [-4,5,-6], [7,-8,9]]
+            sage: b = M.linear_form(name='b')
+            sage: b[:] = [4,2,1]
+            sage: ai = TensorWithIndices(a, '^ij')
+            sage: bi = TensorWithIndices(b, '_k')
+            sage: s = ai.__mul__(bi) ; s  # no repeated indices ==> tensor product
+            type-(2,1) tensor a*b on the rank-3 free module M over the Rational Field
+            sage: s == a*b
+            True
+            sage: s[:]
+            [[[4, 2, 1], [-8, -4, -2], [12, 6, 3]],
+             [[-16, -8, -4], [20, 10, 5], [-24, -12, -6]],
+             [[28, 14, 7], [-32, -16, -8], [36, 18, 9]]]
+            sage: ai = TensorWithIndices(a, '^kj')
+            sage: s = ai.__mul__(bi) ; s  # repeated index k ==> contraction
+            element of the rank-3 free module M over the Rational Field
+            sage: s == a.contract(0, b)
+            True
+            sage: s[:]
+            [3, -6, 9]
+
         """
         if not isinstance(other, TensorWithIndices):
             raise TypeError("The second item of * must be a tensor with " + 
@@ -318,6 +392,19 @@ class TensorWithIndices(SageObject):
         r"""
         Multiplication on the left by ``other``. 
         
+        EXAMPLE::
+        
+            sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,1), name='a')
+            sage: a[0,2,1], a[1,2,0] = 7, -4
+            sage: ai = TensorWithIndices(a, 'ij_k')
+            sage: s = ai.__rmul__(3) ; s
+            X^ij_k
+            sage: s._tensor == 3*a
+            True
+        
         """
         return TensorWithIndices(other*self._tensor, 
                                  self._con + '_' + self._cov)
@@ -329,7 +416,20 @@ class TensorWithIndices(SageObject):
         OUTPUT:
         
         - an exact copy of ``self``
-    
+        
+        EXAMPLE::
+        
+            sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,1), name='a')
+            sage: a[0,2,1], a[1,2,0] = 7, -4
+            sage: ai = TensorWithIndices(a, 'ij_k')
+            sage: s = ai.__pos__() ; s
+            +a^ij_k
+            sage: s._tensor == a
+            True
+
         """
         return TensorWithIndices(+self._tensor, 
                                  self._con + '_' + self._cov)
@@ -341,6 +441,19 @@ class TensorWithIndices(SageObject):
         OUTPUT:
         
         - - ``self``
+        
+        EXAMPLE::
+        
+            sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.tensor((2,1), name='a')
+            sage: a[0,2,1], a[1,2,0] = 7, -4
+            sage: ai = TensorWithIndices(a, 'ij_k')
+            sage: s = ai.__neg__() ; s
+            -a^ij_k
+            sage: s._tensor == -a
+            True
     
         """
         return TensorWithIndices(-self._tensor, 

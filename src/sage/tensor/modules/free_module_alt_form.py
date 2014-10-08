@@ -49,9 +49,45 @@ class FreeModuleAltForm(FreeModuleTensor):
     - ``name`` -- (default: None) name given to the alternating form
     - ``latex_name`` -- (default: None) LaTeX symbol to denote the alternating 
       form; if none is provided, the LaTeX symbol is set to ``name``
+      
+    EXAMPLES:
+    
+    Alternating form of degree 2 on a rank-3 free module::
+    
+        sage: M = FiniteRankFreeModule(ZZ, 3, name='M', start_index=1)
+        sage: e = M.basis('e')
+        sage: a = M.alternating_form(2, name='a') ; a
+        alternating form a of degree 2 on the rank-3 free module M over the Integer Ring
+        sage: type(a)
+        <class 'sage.tensor.modules.free_module_alt_form.FreeModuleAltForm'>
+        sage: a.parent()
+        free module of type-(0,2) tensors on the rank-3 free module M over the Integer Ring
+        sage: a[1,2], a[2,3] = 4, -3
+        sage: a.view()
+        a = 4 e^1/\e^2 - 3 e^2/\e^3
+    
+    The alternating form acting on the basis elements::
+    
+        sage: a(e[1],e[2])
+        4
+        sage: a(e[1],e[3])
+        0
+        sage: a(e[2],e[3])
+        -3
+        sage: a(e[2],e[1])
+        -4
 
     """
     def __init__(self, fmodule, degree, name=None, latex_name=None):
+        r"""
+        TEST::
+        
+            sage: from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: FreeModuleAltForm(M, 2, name='a')
+            alternating form a of degree 2 on the rank-3 free module M over the Integer Ring
+
+        """
         FreeModuleTensor.__init__(self, fmodule, (0,degree), name=name, 
                                   latex_name=latex_name, antisym=range(degree))
         FreeModuleAltForm._init_derived(self) # initialization of derived quantities
@@ -59,6 +95,17 @@ class FreeModuleAltForm(FreeModuleTensor):
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: a = M.alternating_form(2)
+            sage: a._repr_()
+            'alternating form of degree 2 on the rank-3 free module M over the Integer Ring'
+            sage: a = M.alternating_form(2, name='a')
+            sage: a._repr_()
+            'alternating form a of degree 2 on the rank-3 free module M over the Integer Ring'
+
         """
         description = "alternating form "
         if self._name is not None:
@@ -70,12 +117,26 @@ class FreeModuleAltForm(FreeModuleTensor):
     def _init_derived(self):
         r"""
         Initialize the derived quantities
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: a = M.alternating_form(2)
+            sage: a._init_derived()
+
         """
         FreeModuleTensor._init_derived(self)  
 
     def _del_derived(self):
         r"""
         Delete the derived quantities
+
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: a = M.alternating_form(2)
+            sage: a._del_derived()
+
         """
         FreeModuleTensor._del_derived(self)  
 
@@ -83,7 +144,16 @@ class FreeModuleAltForm(FreeModuleTensor):
         r"""
         Create an instance of the same class as ``self``, on the same module 
         and of the same degree.
-        
+
+        EXAMPLE::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: a = M.alternating_form(2, name='a')
+            sage: a._new_instance()
+            alternating form of degree 2 on the rank-3 free module M over the Integer Ring
+            sage: a._new_instance().parent() is a.parent()
+            True
+
         """
         return self.__class__(self._fmodule, self._tensor_rank)
 
@@ -93,6 +163,15 @@ class FreeModuleAltForm(FreeModuleTensor):
 
         This method, which is already implemented in 
         :meth:`FreeModuleTensor._new_comp`, is redefined here for efficiency
+
+        EXAMPLE::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.alternating_form(2, name='a')
+            sage: a._new_comp(e)
+            fully antisymmetric 2-indices components w.r.t. basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring
+
         """
         fmodule = self._fmodule  # the base free module
         if self._tensor_rank == 1: 
@@ -106,7 +185,15 @@ class FreeModuleAltForm(FreeModuleTensor):
 
     def degree(self):
         r"""
-        Return the degree of the alternating form. 
+        Return the degree of the alternating form.
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: a = M.alternating_form(2, name='a')
+            sage: a.degree()
+            2
+
         """
         return self._tensor_rank
 
@@ -441,12 +528,29 @@ class FreeModuleLinForm(FreeModuleAltForm):
 
     """
     def __init__(self, fmodule, name=None, latex_name=None):
+        r"""
+        TEST::
+        
+            sage: from sage.tensor.modules.free_module_alt_form import FreeModuleLinForm
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: FreeModuleLinForm(M, name='a')
+            linear form a on the rank-3 free module M over the Integer Ring
+
+        """
         FreeModuleAltForm.__init__(self, fmodule, 1, name=name, 
                                    latex_name=latex_name)
 
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: a = M.linear_form('A')
+            sage: a._repr_()
+            'linear form A on the rank-3 free module M over the Integer Ring'
+
         """
         description = "linear form "
         if self._name is not None:
@@ -459,6 +563,15 @@ class FreeModuleLinForm(FreeModuleAltForm):
         Create an instance of the same class as ``self`` and on the same 
         module. 
         
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: a = M.linear_form('A')
+            sage: a._new_instance()
+            linear form on the rank-3 free module M over the Integer Ring
+            sage: a._new_instance().parent() is a.parent()
+            True
+        
         """
         return self.__class__(self._fmodule)
 
@@ -468,6 +581,15 @@ class FreeModuleLinForm(FreeModuleAltForm):
               
         This method, which is already implemented in 
         :meth:`FreeModuleAltForm._new_comp`, is redefined here for efficiency
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.linear_form('A')
+            sage: a._new_comp(e)
+            1-index components w.r.t. basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring
+
         """
         fmodule = self._fmodule  # the base free module
         return Components(fmodule._ring, basis, 1, start_index=fmodule._sindex,
@@ -486,6 +608,18 @@ class FreeModuleLinForm(FreeModuleAltForm):
         
         - ring element `\langle \omega, v \rangle`
           
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.linear_form('A')
+            sage: a[:] = 2, -4, 1
+            sage: v = M([1,5,-2])
+            sage: a.__call__(v)
+            -20
+            sage: a.__call__(v) == a(v)
+            True
+            
         """
         if not isinstance(vector, FiniteRankFreeModuleElement):
             raise TypeError("The argument must be a free module element.")

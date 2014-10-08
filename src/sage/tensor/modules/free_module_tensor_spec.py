@@ -96,12 +96,32 @@ class FreeModuleEndomorphism(FreeModuleTensor):
         
     """
     def __init__(self, fmodule, name=None, latex_name=None):
+        r"""
+        TEST::
+
+            sage: from sage.tensor.modules.free_module_tensor_spec import FreeModuleEndomorphism
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: FreeModuleEndomorphism(M, name='a')
+            endomorphism a on the rank-3 free module M over the Integer Ring
+    
+        """
         FreeModuleTensor.__init__(self, fmodule, (1,1), name=name, 
                                   latex_name=latex_name)
                                   
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: a = M.endomorphism()
+            sage: a._repr_()
+            'endomorphism on the rank-3 free module M over the Integer Ring'
+            sage: a = M.endomorphism(name='a')
+            sage: a._repr_()
+            'endomorphism a on the rank-3 free module M over the Integer Ring'
+
         """
         description = "endomorphism "
         if self._name is not None:
@@ -112,7 +132,14 @@ class FreeModuleEndomorphism(FreeModuleTensor):
     def _new_instance(self):
         r"""
         Create an instance of the same class as ``self``. 
+
+        EXAMPLE::
         
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: a = M.endomorphism(name='a')
+            sage: a._new_instance()
+            endomorphism on the rank-3 free module M over the Integer Ring
+       
         """
         return self.__class__(self._fmodule)
 
@@ -120,6 +147,37 @@ class FreeModuleEndomorphism(FreeModuleTensor):
         r"""
         Redefinition of :meth:`FreeModuleTensor.__call__` to allow for a single 
         argument (module element). 
+        
+        EXAMPLES:
+        
+        Call with a single argument --> return a module element::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: a = M.endomorphism(name='a')
+            sage: e = M.basis('e')
+            sage: a[0,1], a[1,1], a[2,1] = 2, 4, -5
+            sage: v = M([2,1,4], name='v')
+            sage: s = a.__call__(v) ; s
+            element a(v) of the rank-3 free module M over the Integer Ring
+            sage: s.view()
+            a(v) = 2 e_0 + 4 e_1 - 5 e_2
+            sage: s == a(v)
+            True
+            sage: s == a.contract(v)
+            True
+            
+        Call with two arguments (FreeModuleTensor behaviour) --> return a 
+        scalar::
+    
+            sage: b = M.linear_form(name='b')
+            sage: b[:] = 7, 0, 2 
+            sage: a.__call__(b,v)
+            4
+            sage: a(b,v) == a.__call__(b,v)
+            True
+            sage: a(b,v) == s(b)
+            True
+
         """
         from free_module_tensor import FiniteRankFreeModuleElement
         if len(arg) > 1:
@@ -209,6 +267,15 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
     
     """
     def __init__(self, fmodule, name=None, latex_name=None):
+        r"""
+        TEST::
+        
+            sage: from sage.tensor.modules.free_module_tensor_spec import FreeModuleAutomorphism
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: FreeModuleAutomorphism(M, name='a')
+            automorphism a on the rank-3 free module M over the Rational Field
+
+        """
         FreeModuleEndomorphism.__init__(self, fmodule, name=name, 
                                         latex_name=latex_name)
         self._inverse = None    # inverse automorphism not set yet
@@ -216,6 +283,17 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: a = M.automorphism()
+            sage: a._repr_()
+            'automorphism on the rank-3 free module M over the Rational Field'
+            sage: a = M.automorphism(name='a')
+            sage: a._repr_()
+            'automorphism a on the rank-3 free module M over the Rational Field'
+        
         """
         description = "automorphism "
         if self._name is not None:
@@ -226,6 +304,18 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
     def _del_derived(self):
         r"""
         Delete the derived quantities
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: a = M.automorphism(name='a')
+            sage: e = M.basis('e')
+            sage: a[e,:] = [[1,0,-1], [0,3,0], [0,0,2]]
+            sage: b = a.inverse()
+            sage: a._inverse  
+            automorphism a^(-1) on the rank-3 free module M over the Rational Field
+            sage: a._del_derived()
+            sage: a._inverse  # has been reset to None
 
         """
         # First delete the derived quantities pertaining to the mother class:
@@ -399,6 +489,16 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
     
     """
     def __init__(self, fmodule, name='Id', latex_name=None):
+        r"""
+        TEST::
+
+            sage: from sage.tensor.modules.free_module_tensor_spec import FreeModuleIdentityMap
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: FreeModuleIdentityMap(M)
+            identity map on the rank-3 free module M over the Integer Ring
+    
+        """
         if latex_name is None and name == 'Id':
             latex_name = r'\mathrm{Id}'
         FreeModuleAutomorphism.__init__(self, fmodule, name=name, 
@@ -409,6 +509,15 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: id = M.identity_map()
+            sage: id._repr_()
+            'identity map on the rank-3 free module M over the Integer Ring'
+        
         """
         description = "identity map "
         if self._name != 'Id':
@@ -420,6 +529,13 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
         r"""
         Delete the derived quantities.
         
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: id = M.identity_map()
+            sage: id._del_derived()
+
         """
         # FreeModuleAutomorphism._del_derived is bypassed:
         FreeModuleEndomorphism._del_derived(self)
@@ -427,7 +543,17 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
     def _new_comp(self, basis): 
         r"""
         Create some components in the given basis. 
-                
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: id = M.identity_map()
+            sage: id._new_comp(e)
+            Kronecker delta of size 3x3
+            sage: type(id._new_comp(e))
+            <class 'sage.tensor.modules.comp.KroneckerDelta'>
+              
         """
         from comp import KroneckerDelta
         fmodule = self._fmodule  # the base free module
@@ -482,6 +608,16 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
         Redefinition of the generic tensor method 
         :meth:`FreeModuleTensor.set_comp`: should not be called.        
 
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.identity_map()
+            sage: a.set_comp(e)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The components of the identity map cannot be changed.
+        
         """
         raise NotImplementedError("The components of the identity map " + 
                                   "cannot be changed.")
@@ -491,6 +627,16 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
         Redefinition of the generic tensor method 
         :meth:`FreeModuleTensor.add_comp`: should not be called.        
 
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.identity_map()
+            sage: a.add_comp(e)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The components of the identity map cannot be changed.
+        
         """
         raise NotImplementedError("The components of the identity map " + 
                                   "cannot be changed.")
@@ -498,6 +644,36 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
     def __call__(self, *arg):
         r"""
         Redefinition of :meth:`FreeModuleEndomorphism.__call__`.
+
+        EXAMPLES:
+        
+        Call with a single argument --> return a module element::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: id = M.identity_map()
+            sage: v = M([-1,4,3])
+            sage: s = id.__call__(v) ; s
+            element of the rank-3 free module M over the Integer Ring
+            sage: s == v
+            True
+            sage: s == id(v)
+            True
+            sage: s == id.contract(v)
+            True
+
+        Call with two arguments (FreeModuleTensor behaviour) --> return a 
+        scalar::
+
+            sage: b = M.linear_form(name='b')
+            sage: b[:] = 7, 0, 2
+            sage: id.__call__(b,v)
+            -1
+            sage: id(b,v) == id.__call__(b,v)
+            True
+            sage: id(b,v) == b(v)
+            True
+
         """
         from free_module_tensor import FiniteRankFreeModuleElement
         from free_module_alt_form import FreeModuleLinForm

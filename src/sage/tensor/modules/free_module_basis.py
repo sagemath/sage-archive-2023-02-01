@@ -84,6 +84,19 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         
     """
     def __init__(self, fmodule, symbol, latex_symbol=None):
+        r"""
+        TESTS::
+        
+            sage: FiniteRankFreeModule._clear_cache_() # for doctests only
+            sage: from sage.tensor.modules.free_module_basis import FreeModuleBasis
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: FreeModuleBasis(M, 'e', latex_symbol=r'\epsilon')
+            basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring
+            sage: e = FreeModuleBasis(M, 'e', latex_symbol=r'\epsilon')
+            sage: e is FreeModuleBasis(M, 'e', latex_symbol=r'\epsilon') # unique representation
+            True
+            
+        """
         self._fmodule = fmodule
         self._name = "(" + \
           ",".join([symbol + "_" + str(i) for i in fmodule.irange()]) +")"
@@ -129,6 +142,18 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: e._repr_()
+            'basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring'
+            sage: M1 = FiniteRankFreeModule(ZZ, 3, name='M', start_index=1)
+            sage: e1 = M1.basis('e')
+            sage: e1._repr_()
+            'basis (e_1,e_2,e_3) on the rank-3 free module M over the Integer Ring'
+
         """
         return "basis " + self._name + " on the " + str(self._fmodule)
 
@@ -142,6 +167,13 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         - instance of :class:`FreeModuleCoBasis` representing the dual of
           ``self``
         
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: e._init_dual_basis()
+            dual basis (e^0,e^1,e^2) on the rank-3 free module M over the Integer Ring
+                  
         """
         return FreeModuleCoBasis(self, self._symbol, 
                                                latex_symbol=self._latex_symbol)
@@ -161,6 +193,13 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         OUTPUT:
         
         - instance of :class:`FreeModuleBasis`
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: e._new_instance('f')
+            basis (f_0,f_1,f_2) on the rank-3 free module M over the Integer Ring
                 
         """
         return FreeModuleBasis(self._fmodule, symbol, latex_symbol=latex_symbol)
@@ -209,6 +248,22 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
     def _latex_(self):
         r"""
         LaTeX representation of the object.
+        
+        EXAMPLES::
+
+            sage: FiniteRankFreeModule._clear_cache_() # for doctests only
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: e._latex_()
+            '\\left(e_0,e_1,e_2\\right)'
+            sage: latex(e)
+            \left(e_0,e_1,e_2\right)
+            sage: f = M.basis('eps', latex_symbol=r'\epsilon')
+            sage: f._latex_()
+            '\\left(\\epsilon_0,\\epsilon_1,\\epsilon_2\\right)'
+            sage: latex(f)
+            \left(\epsilon_0,\epsilon_1,\epsilon_2\right)
+        
         """
         return self._latex_name
 
@@ -216,18 +271,53 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         r"""
         Hash function (since instances of :class:`FreeModuleBasis` are used as
         dictionary keys).
+                
+        EXAMPLE::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: e.__hash__() # random
+            140529558663376
+
         """
         return id(self)
 
     def __eq__(self, other):
         r"""
         Equality (comparison) operator
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: f = M.basis('f')
+            sage: e.__eq__(f)
+            False
+            sage: e.__eq__(e)
+            True
+            sage: e.__eq__(M.basis('e'))
+            True
+            sage: M2 = FiniteRankFreeModule(ZZ, 2, name='M2')
+            sage: e.__eq__(M2.basis('e'))
+            False
+
         """
         return other is self
 
     def __ne__(self, other):
         r"""
         Non-equality operator.
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: f = M.basis('f')
+            sage: e.__ne__(f)
+            True
+            sage: e.__ne__(e)
+            False
+
         """
         return not self.__eq__(other)
         
@@ -238,6 +328,29 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         INPUT:
         
         - ``index`` -- the index of the basis element
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: e.__getitem__(0)
+            element e_0 of the rank-3 free module M over the Integer Ring
+            sage: e.__getitem__(1)
+            element e_1 of the rank-3 free module M over the Integer Ring
+            sage: e.__getitem__(2)
+            element e_2 of the rank-3 free module M over the Integer Ring
+            sage: e[1] is e.__getitem__(1)
+            True
+            sage: e[1].parent() is M
+            True
+            sage: M1 = FiniteRankFreeModule(ZZ, 3, name='M', start_index=1)
+            sage: e1 = M1.basis('e')
+            sage: e1.__getitem__(1)
+            element e_1 of the rank-3 free module M over the Integer Ring
+            sage: e1.__getitem__(2)
+            element e_2 of the rank-3 free module M over the Integer Ring
+            sage: e1.__getitem__(3)
+            element e_3 of the rank-3 free module M over the Integer Ring
 
         """
         n = self._fmodule._rank
@@ -252,6 +365,19 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
     def __len__(self):
         r"""
         Return the basis length, i.e. the rank of the free module.
+        
+        NB: the method  __len__()  is required for the basis to act as a 
+        "frame" in the class :class:`~sage.tensor.modules.comp.Components`. 
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: e.__len__()
+            3
+            sage: len(e)
+            3
+
         """
         return self._fmodule._rank
 
@@ -388,6 +514,16 @@ class FreeModuleCoBasis(SageObject):
 
     """
     def __init__(self, basis, symbol, latex_symbol=None):
+        r"""
+        TEST::
+        
+            sage: from sage.tensor.modules.free_module_basis import FreeModuleCoBasis
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: FreeModuleCoBasis(e, 'f')
+            dual basis (f^0,f^1,f^2) on the rank-3 free module M over the Integer Ring
+        
+        """
         self._basis = basis
         self._fmodule = basis._fmodule
         self._name = "(" + \
@@ -412,12 +548,30 @@ class FreeModuleCoBasis(SageObject):
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: f = e.dual_basis()
+            sage: f._repr_()
+            'dual basis (e^0,e^1,e^2) on the rank-3 free module M over the Integer Ring'
+
         """
         return "dual basis " + self._name + " on the " + str(self._fmodule)
 
     def _latex_(self):
         r"""
         LaTeX representation of the object.
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: f = e.dual_basis()
+            sage: f._latex_()
+            '\\left(e^0,e^1,e^2\\right)'
+            
         """
         return self._latex_name
 
@@ -428,6 +582,28 @@ class FreeModuleCoBasis(SageObject):
         INPUT:
         
         - ``index`` -- the index of the linear form 
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: f = e.dual_basis()
+            sage: f.__getitem__(0)
+            linear form e^0 on the rank-3 free module M over the Integer Ring
+            sage: f.__getitem__(1)
+            linear form e^1 on the rank-3 free module M over the Integer Ring
+            sage: f.__getitem__(2)
+            linear form e^2 on the rank-3 free module M over the Integer Ring
+            sage: f[1] is f.__getitem__(1)
+            True
+            sage: M1 = FiniteRankFreeModule(ZZ, 3, name='M', start_index=1)
+            sage: f1 = M1.basis('e').dual_basis()
+            sage: f1.__getitem__(1)
+            linear form e^1 on the rank-3 free module M over the Integer Ring
+            sage: f1.__getitem__(2)
+            linear form e^2 on the rank-3 free module M over the Integer Ring
+            sage: f1.__getitem__(3)
+            linear form e^3 on the rank-3 free module M over the Integer Ring
 
         """
         n = self._fmodule._rank

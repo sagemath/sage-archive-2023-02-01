@@ -343,7 +343,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         sage: v.view(e, format_spec=10)  # 10 bits of precision 
         0.33 e_0 - 2.0 e_2
         
-    All the tests from the suite for the category 
+    All tests from the suite for the category 
     :class:`~sage.categories.modules.Modules` are passed::
         
         sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
@@ -376,6 +376,15 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
     
     def __init__(self, ring, rank, name=None, latex_name=None, start_index=0,
                  output_formatter=None):
+        r"""
+        TEST::
+        
+            sage: FiniteRankFreeModule(ZZ, 3, name='M')
+            rank-3 free module M over the Integer Ring
+
+        See :class:`FiniteRankFreeModule` for documentation / doctests.
+        
+        """
         if not ring.is_commutative():
             raise TypeError("The module base ring must be commutative.")
         Parent.__init__(self, base=ring, category=Modules(ring))
@@ -407,6 +416,22 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                               latex_name=None):
         r"""
         Construct an element of the module
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: v = M._element_constructor_(comp=[1,0,-2], basis=e, name='v') ; v
+            element v of the rank-3 free module M over the Integer Ring
+            sage: v.view()
+            v = e_0 - 2 e_2
+            sage: v == M([1,0,-2])
+            True
+            sage: v = M._element_constructor_(0) ; v
+            element zero of the rank-3 free module M over the Integer Ring
+            sage: v = M._element_constructor_() ; v
+            element of the rank-3 free module M over the Integer Ring
+
         """
         if comp == 0:
             return self._zero_element
@@ -417,7 +442,21 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         r"""
-        Construct some (unamed) element of the module
+        Construct some (unamed) element of the module.
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: v = M._an_element_() ; v
+            element of the rank-3 free module M over the Integer Ring
+            sage: v.view()
+            e_0 + e_1 + e_2
+            sage: v == M.an_element()
+            True
+            sage: v.parent()
+            rank-3 free module M over the Integer Ring
+
         """
         resu = self.element_class(self)
         if self._def_basis is not None:
@@ -432,6 +471,13 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLE::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M._repr_()
+            'rank-3 free module M over the Integer Ring'
+
         """
         description = "rank-" + str(self._rank) + " free module "
         if self._name is not None:
@@ -1109,6 +1155,20 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
     def _latex_(self):
         r"""
         LaTeX representation of the object.
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M._latex_()
+            'M'
+            sage: latex(M)
+            M
+            sage: M1 = FiniteRankFreeModule(ZZ, 3, name='M', latex_name=r'\mathcal{M}')
+            sage: M1._latex_()
+            '\\mathcal{M}'
+            sage: latex(M1)
+            \mathcal{M}
+
         """
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'

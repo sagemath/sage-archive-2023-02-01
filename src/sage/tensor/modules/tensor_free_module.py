@@ -86,6 +86,7 @@ class TensorFreeModule(FiniteRankFreeModule):
     Set of tensors of type (1,2) on a free module of rank 3 over `\ZZ`::
     
         sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+        sage: e = M.basis('e') 
         sage: from sage.tensor.modules.tensor_free_module import TensorFreeModule
         sage: T = TensorFreeModule(M, (1,2)) ; T
         free module of type-(1,2) tensors on the rank-3 free module M over the Integer Ring
@@ -139,7 +140,7 @@ class TensorFreeModule(FiniteRankFreeModule):
     while non-zero elements are constructed by providing their components in 
     a given basis::
     
-        sage: e = M.basis('e') ; e
+        sage: e
         basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring
         sage: comp = [[[i-j+k for k in range(3)] for j in range(3)] for i in range(3)]
         sage: t = T(comp, basis=e, name='t') ; t
@@ -176,12 +177,46 @@ class TensorFreeModule(FiniteRankFreeModule):
     
         sage: T is M.tensor_module(1,2)
         True
+
+    All tests from the suite for the category 
+    :class:`~sage.categories.modules.Modules` are passed::
+        
+        sage: TestSuite(T).run(verbose=True)
+        running ._test_additive_associativity() . . . pass
+        running ._test_an_element() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_eq() . . . pass
+          running ._test_nonzero_equal() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
+        running ._test_eq() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_some_elements() . . . pass
+        running ._test_zero() . . . pass
             
     """
     
     Element = FreeModuleTensor
     
     def __init__(self, fmodule, tensor_type, name=None, latex_name=None):
+        r"""
+        TEST:
+        
+            sage: from sage.tensor.modules.tensor_free_module import TensorFreeModule
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: TensorFreeModule(M, (2,3), name='T23', latex_name=r'T^2_3')
+            free module T23 of type-(2,3) tensors on the rank-3 free module M over the Integer Ring
+
+        """
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
         rank = pow(fmodule._rank, tensor_type[0] + tensor_type[1])
@@ -215,7 +250,24 @@ class TensorFreeModule(FiniteRankFreeModule):
     def _element_constructor_(self, comp=[], basis=None, name=None, 
                               latex_name=None, sym=None, antisym=None):
         r"""
-        Construct a tensor
+        Construct a tensor. 
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(QQ, 2, name='M')
+            sage: T = M.tensor_module(1,1)
+            sage: T._element_constructor_(0) is T.zero()
+            True
+            sage: e = M.basis('e')
+            sage: t = T._element_constructor_(comp=[[2,0],[1/2,-3]], basis=e, name='t') ; t
+            type-(1,1) tensor t on the rank-2 free module M over the Rational Field
+            sage: t.view()
+            t = 2 e_0*e^0 + 1/2 e_1*e^0 - 3 e_1*e^1
+            sage: t.parent()
+            free module of type-(1,1) tensors on the rank-2 free module M over the Rational Field
+            sage: t.parent() is T
+            True
+
         """
         if comp == 0:
             return self._zero_element
@@ -229,6 +281,21 @@ class TensorFreeModule(FiniteRankFreeModule):
     def _an_element_(self):
         r"""
         Construct some (unamed) tensor
+        
+        EXAMPLES::
+        
+            sage: M = FiniteRankFreeModule(QQ, 2, name='M')
+            sage: T = M.tensor_module(1,1)
+            sage: e = M.basis('e')
+            sage: t = T._an_element_() ; t
+            type-(1,1) tensor on the rank-2 free module M over the Rational Field
+            sage: t.view()
+            1/2 e_0*e^0
+            sage: t.parent() is T
+            True
+            sage: M.tensor_module(2,3)._an_element_().view()
+            1/2 e_0*e_0*e^0*e^0*e^0
+
         """
         resu = self.element_class(self._fmodule, self._tensor_type)
         if self._fmodule._def_basis is not None:
@@ -242,6 +309,17 @@ class TensorFreeModule(FiniteRankFreeModule):
     def _repr_(self):
         r"""
         String representation of the object.
+        
+        EXAMPLE::
+        
+            sage: M = FiniteRankFreeModule(QQ, 2, name='M')
+            sage: T = M.tensor_module(1,1)
+            sage: T._repr_()
+            'free module of type-(1,1) tensors on the rank-2 free module M over the Rational Field'
+            sage: T = M.tensor_module(0,1)
+            sage: T._repr_()
+            'dual of the rank-2 free module M over the Rational Field'
+
         """
         if self._tensor_type == (0,1):
             return "dual of the " + str(self._fmodule)

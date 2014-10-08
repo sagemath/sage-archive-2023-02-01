@@ -168,7 +168,6 @@ from sage.ext.fast_eval      import fast_float
 sage.misc.lazy_import.lazy_import('sage.sandpiles.all', '*', globals())
 
 from sage.tensor.all     import *
-from sage.tensor.modules.all     import *
 
 from sage.matroids.all   import *
 

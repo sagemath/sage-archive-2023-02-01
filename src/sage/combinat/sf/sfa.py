@@ -4045,7 +4045,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def scalar(self, x, zee=None):
         r"""
-        Return standard scalar product between ``self`` and ``x``.
+        Return the standard scalar product between ``self`` and ``x``.
 
         INPUT:
 
@@ -4728,7 +4728,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         OUTPUT:
 
-        A monomial expansion of an instance of ``self`` in `n` variables.
+        A monomial expansion of ``self`` in the `n` variables labelled
+        by ``alphabet``.
 
         EXAMPLES::
 
@@ -4834,7 +4835,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             True
         """
         s_self = s(self)
-        return all([ _nonnegative_coefficients(c) for c in s_self.coefficients()])
+        return all(( _nonnegative_coefficients(c) for c in s_self.coefficients() ))
 
     def degree(self):
         r"""
@@ -4948,8 +4949,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def expand(self, n, alphabet = 'x'):
         r"""
-        Expand the symmetric function as a symmetric polynomial in ``n``
-        variables.
+        Expand the symmetric function ``self`` as a symmetric polynomial
+        in ``n`` variables.
 
         INPUT:
 
@@ -4959,13 +4960,19 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         OUTPUT:
 
-        A monomial expansion of an instance of ``self`` in `n` variables.
+        A monomial expansion of ``self`` in the `n` variables
+        labelled ``x0``, ``x1``, ..., ``x{n-1}`` (or just ``x``
+        if `n = 1`), where ``x`` is ``alphabet``.
 
         EXAMPLES::
 
             sage: J = SymmetricFunctions(QQ).jack(t=2).J()
             sage: J([2,1]).expand(3)
             4*x0^2*x1 + 4*x0*x1^2 + 4*x0^2*x2 + 6*x0*x1*x2 + 4*x1^2*x2 + 4*x0*x2^2 + 4*x1*x2^2
+            sage: (2*J([2])).expand(0)
+            0
+            sage: (3*J([])).expand(0)
+            3
         """
         s = self.parent().realization_of().schur()
         condition = lambda part: len(part) > n
@@ -5018,11 +5025,14 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ...
             ValueError: x needs to be a symmetric function
         """
-        if x not in self.parent().realization_of():
+        parent = self.parent()
+        Sym = parent.realization_of()
+        if x not in Sym:
             raise ValueError("x needs to be a symmetric function")
-        s = self.parent().realization_of().schur()
-        f = lambda part1, part2: s([part1,part2]) if part1.contains(part2) else 0
-        return self.parent()(s._apply_multi_module_morphism(s(self),s(x),f))
+        s = Sym.schur()
+        zero = s.zero()
+        f = lambda part1, part2: s([part1,part2]) if part1.contains(part2) else zero
+        return parent(s._apply_multi_module_morphism(s(self), s(x), f))
 
     def hl_creation_operator(self, nu, t = None):
         r"""

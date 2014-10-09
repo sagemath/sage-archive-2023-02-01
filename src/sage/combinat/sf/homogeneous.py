@@ -181,15 +181,19 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
         def expand(self, n, alphabet='x'):
             """
-            Expands the symmetric function as a symmetric polynomial in `n` variables.
+            Expand the symmetric function ``self`` as a symmetric polynomial
+            in ``n`` variables.
 
             INPUT:
 
-            - ``self`` -- an element of the homogeneous basis of symmetric functions
-            - ``n`` -- a positive integer
-            - ``alphabet`` -- a variable for the expansion (default: `x`)
+            - ``n`` -- a nonnegative integer
 
-            OUTPUT: a monomial expansion of an instance of ``self`` in `n` variables
+            - ``alphabet`` -- (default: ``'x'``) a variable for the expansion
+
+            OUTPUT:
+
+            A monomial expansion of ``self`` in the `n` variables
+            labelled by ``alphabet``.
 
             EXAMPLES::
 
@@ -208,7 +212,13 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
                 x^3 + x^2*y + x*y^2 + y^3 + x^2*z + x*y*z + y^2*z + x*z^2 + y*z^2 + z^3
                 sage: (h([]) + 2*h([1])).expand(3)
                 2*x0 + 2*x1 + 2*x2 + 1
+                sage: h([1]).expand(0)
+                0
+                sage: (3*h([])).expand(0)
+                3
             """
+            if n == 0:   # Symmetrica crashes otherwise...
+                return self.counit()
             condition = lambda part: False
             return self._expand(condition, n, alphabet)
 

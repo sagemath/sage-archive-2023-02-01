@@ -160,7 +160,6 @@ class LinearExtensionOfPoset(ClonableArray):
         """
         return "\\mathtt{"+str(tuple(self))+"}"
 
-    # TODO: Deprecate?
     def to_poset(self):
         r"""
         Returns the poset associated to the linear extension ``self``.
@@ -207,7 +206,7 @@ class LinearExtensionOfPoset(ClonableArray):
         old = [P.unwrap(x) for x in self]
         new = [P.unwrap(x) for x in P]
         relabelling = dict(zip(old,new))
-        return P.relabel(relabelling)#.with_linear_extension(new)
+        return P.relabel(relabelling).with_linear_extension(new)
 
     def tau(self, i):
         r"""

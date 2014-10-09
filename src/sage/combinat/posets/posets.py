@@ -370,7 +370,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         ...
         TypeError: unsupported operand type(s) for +: 'FinitePoset_with_category.element_class' and 'FinitePoset_with_category.element_class'
         sage: a.element + b.element
-        'ac'
+        'ab'
 
     By default, facade posets are constructed instead::
 
@@ -484,17 +484,22 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
                          "different from None. (Did you intend data to be "+
                          "equal to a pair ?)")
 
-    if element_labels is not None:
-        print("deprecated")
-
     #Convert data to a DiGraph
     elements = None
     D = {}
     if isinstance(data, FinitePoset):
-        if element_labels is None and category is None and facade is None:
+        if element_labels is None and category is None and facade is None and linear_extension == data._linear_extension:
             return data
+        if not linear_extension:
+            if element_labels is None:
+                return FinitePoset(data, elements = None, category = category, facade = facade)
+            else:
+                return FinitePoset(data, elements = None, category = category, facade = facade).relabel(element_labels)
         else:
-            return FinitePoset(data, category=category, facade=facade)
+            if element_labels is None:
+                return FinitePoset(data, elements = data._elements, category = category, facade = facade)
+            else:
+                return FinitePoset(data, elements = element_labels, category = category, facade = facade)
     elif data is None: # type 0
         D = DiGraph()
     elif isinstance(data, DiGraph): # type 4
@@ -543,19 +548,18 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
     elif cover_relations is True and not D.is_transitively_reduced():
         raise ValueError("Hasse diagram is not transitively reduced.")
 
+    if element_labels is not None:
+        D.relabel(element_labels)
+
     if linear_extension:
-        if elements is not None:
-            elements = list(elements)
+        if element_labels is not None:
+            elements = element_labels
         else:
             # Compute a linear extension of the poset (a topological sort).
             try:
                 elements = D.topological_sort()
             except Exception:
                 raise ValueError("Hasse diagram contains cycles.")
-        # Relabel using the linear_extension.
-        # So range(len(D)) becomes a linear extension of the poset.
-        rdict = dict([[elements[i],i] for i in range(len(elements))])
-        D.relabel(rdict)
     else:
         elements = None
 
@@ -572,7 +576,11 @@ class FinitePoset(UniqueRepresentation, Parent):
       :class:`DiGraph` that is transitively-reduced, acyclic,
       loop-free, and multiedge-free.
 
-    - ``elements`` -- deprecated in :trac:`14019`
+    - ``elements`` -- an optional list of elements, with ``element[i]``
+      corresponding to vertex ``i``. If ``elements`` is ``None``, then it is
+      set to be the vertex set of the digraph. Note that if this option is set,
+      then ``elements`` is considered as a specified linear extension of the poset
+      and the `linear_extension` attribut is set.
 
     - ``category`` -- :class:`FinitePosets`, or a subcategory thereof.
 
@@ -622,7 +630,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         sage: Q = sage.combinat.posets.posets.FinitePoset(P, elements=[1,2,3,4,5,6], facade = False); Q
         Finite poset containing 6 elements
         sage: Q.cover_relations()
-        [[1, 3], [1, 4], [3, 2], [4, 2], [5, 2], [6, 4], [6, 5]]
+        [[1, 2], [1, 5], [2, 6], [3, 4], [3, 5], [4, 6], [5, 6]]
 
     We test the facade argument::
 
@@ -729,23 +737,19 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         assert isinstance(hasse_diagram, (FinitePoset, DiGraph))
         if isinstance(hasse_diagram, FinitePoset):
-            #if elements is None:
-            #    elements = hasse_diagram._elements
             if category is None:
                 category = hasse_diagram.category()
             if facade is None:
                 facade = hasse_diagram in Sets().Facade()
-            if hasse_diagram._linear_extension:
-                elements = tuple(hasse_diagram._elements)
+            if elements is None:
+                relabel = {i:x for i,x in enumerate(hasse_diagram._elements)}
             else:
-                elements = None
-            relabel = {i:x for i,x in enumerate(hasse_diagram._elements)}
+                elements = tuple(elements)
+                relabel = {i:x for i,x in enumerate(elements)}
             hasse_diagram = hasse_diagram._hasse_diagram.relabel(relabel, inplace=False)
             hasse_diagram = hasse_diagram.copy(immutable=True)
         else:
             hasse_diagram = HasseDiagram(hasse_diagram, data_structure="static_sparse")
-            #if elements is None:
-            #    elements = hasse_diagram.vertices()
             if facade is None:
                 facade = True
             if elements is not None:
@@ -815,12 +819,15 @@ class FinitePoset(UniqueRepresentation, Parent):
             self._linear_extension = False
             # Compute a linear extension of the poset (a topological sort).
             try:
-                self._elements = tuple(hasse_diagram.topological_sort())
+                elements = tuple(hasse_diagram.topological_sort())
             except Exception:
                 raise ValueError("Hasse diagram contains cycles")
         else:
             self._linear_extension = True
-            self._elements = elements
+        # Work around the fact that, currently, when a DiGraph is
+        # created with Integer's as vertices, those vertices are
+        # converted to plain int's. This is a bit abusive.
+        self._elements = tuple(Integer(i) if isinstance(i,int) else i for i in elements)
         # Relabel using the linear_extension.
         # So range(len(D)) becomes a linear extension of the poset.
         rdict = dict([[self._elements[i],i] for i in range(len(self._elements))])
@@ -1252,10 +1259,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             5
             sage: L.list()
             [[1, 2, 4, 3, 6, 12],
+             [1, 2, 4, 6, 3, 12],
              [1, 2, 3, 4, 6, 12],
-             [1, 2, 3, 6, 4, 12],
-             [1, 3, 2, 4, 6, 12],
-             [1, 3, 2, 6, 4, 12]]
+             [1, 4, 2, 3, 6, 12],
+             [1, 4, 2, 6, 3, 12]]
 
         Each element is aware that it is a linear extension of `P`::
 
@@ -1276,10 +1283,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
                 sage: L = list(P.linear_extensions(facade=True)); L
                 [[1, 2, 4, 3, 6, 12],
+                 [1, 2, 4, 6, 3, 12],
                  [1, 2, 3, 4, 6, 12],
-                 [1, 2, 3, 6, 4, 12],
-                 [1, 3, 2, 4, 6, 12],
-                 [1, 3, 2, 6, 4, 12]]
+                 [1, 4, 2, 3, 6, 12],
+                 [1, 4, 2, 6, 3, 12]]
                 sage: type(L[0])
                 <type 'list'>
 
@@ -3055,6 +3062,27 @@ class FinitePoset(UniqueRepresentation, Parent):
             extension of ``Q`` is that of ``P`` after relabelling. In
             particular, ``P`` and ``Q`` share the same internal Hasse
             diagram.
+
+        TESTS:
+
+        The following checks that :trac:`14019` has been fixed::
+
+            sage: d = DiGraph({2:[1],3:[1]})
+            sage: p1 = Poset(d)
+            sage: p2 = p1.relabel({1:1,2:3,3:2})
+            sage: p1.hasse_diagram() == p2.hasse_diagram()
+            True
+            sage: p1 == p2
+            True
+
+            sage: d = DiGraph({2:[1],3:[1]})
+            sage: p1 = Poset(d)
+            sage: p2 = p1.relabel({1:2,2:3,3:1})
+            sage: p3 = p2.relabel({2:1,1:2,3:3})
+            sage: p1.hasse_diagram() == p3.hasse_diagram()
+            True
+            sage: p1 == p3
+            True
         """
         if isinstance(relabelling, (list, tuple)):
             relabelling = {i:relabelling[i] for i in range(len(self._elements))}
@@ -3062,7 +3090,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             if isinstance(relabelling, dict):
                 relabelling = relabelling.__getitem__
             relabelling = {i: relabelling(x) for i,x in enumerate(self._elements)}
-        return FinitePoset(self._hasse_diagram.relabel(relabelling, inplace=False),
+        if not self._linear_extension:
+            elements = None
+        else:
+            elements = tuple(relabelling[self._element_to_vertex(x)] for x in self._elements)
+        return FinitePoset(self._hasse_diagram.relabel(relabelling, inplace=False), elements = elements,
                            category=self.category(),
                            facade=self._is_facade)
 
@@ -3106,7 +3138,6 @@ class FinitePoset(UniqueRepresentation, Parent):
                            category=self.category(),
                            facade=self._is_facade)
 
-    # TODO: Deprecate
     def with_linear_extension(self, linear_extension):
         """
         Return a copy of ``self`` with a different default linear extension.
@@ -3151,9 +3182,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             the internal :class:`DiGraph` which is `O(n+m)`, where `n`
             is the number of elements and `m` the number of cover relations.
         """
-        vertex_relabelling = {self._element_to_vertex(element):element
-                              for element in linear_extension}
+        new_vertices = [ self._element_to_vertex(element) for element in linear_extension]
+        new_elements = [ self._elements[i] for i in new_vertices ]
+        vertex_relabelling = dict(zip(new_vertices, range(len(new_vertices))))
         return FinitePoset(self._hasse_diagram.relabel(vertex_relabelling, inplace=False),
+                           elements = new_elements,
                            category=self.category(),
                            facade=self._is_facade)
 

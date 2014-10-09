@@ -560,6 +560,10 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
                 elements = D.topological_sort()
             except Exception:
                 raise ValueError("Hasse diagram contains cycles.")
+        # Relabel using the linear_extension.
+        # So `elements` becomes a linear extension of the poset.
+        rdict = dict([[elements[i],D.vertices()[i]] for i in range(len(elements))])
+        D.relabel(rdict)
     else:
         elements = None
 

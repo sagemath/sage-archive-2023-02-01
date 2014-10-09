@@ -240,7 +240,7 @@ class FiniteWord_class(Word_class):
         global word_options
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
-            letters = list(map(str, self))
+            letters = map(str, self)
             if all(len(a)==1 for a in letters):
                 return ''.join(letters)
             else:

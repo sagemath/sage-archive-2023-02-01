@@ -343,7 +343,7 @@ class Combinations_msetk(CombinatorialClass):
             sage: Combinations(['a','a','b'],2).list() # indirect doctest
             [['a', 'a'], ['a', 'b']]
         """
-        items = list(map(self.mset.index, self.mset))
+        items = map(self.mset.index, self.mset)
         indices = uniq(sorted(items))
         counts = [0] * len(indices)
         for i in items:

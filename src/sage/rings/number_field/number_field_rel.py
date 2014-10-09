@@ -2163,7 +2163,7 @@ class NumberField_relative(NumberField_generic):
         abs_base = base.absolute_field('a')
         to_base = abs_base.structure()[0]
         D, d = nf.rnfdisc(self.pari_relative_polynomial())
-        D = list(map(abs_base, abs_base.pari_zk() * D))
+        D = map(abs_base, abs_base.pari_zk() * D)
         D = list(map(to_base, D))
         return base.ideal(D)
 

@@ -1669,8 +1669,8 @@ class qepcad_formula_factory:
             sage: qf._combine_formulas([x^2 == 0, y < 17])
             (['x^2 = 0', 'y < 17'], frozenset({'x', 'y'}))
         """
-        formulas = list(map(self.atomic, formulas))
-        formulas = list(map(self.atomic, formulas))
+        formulas = map(self.atomic, formulas)
+        formulas = map(self.atomic, formulas)
         formula_strs = list(map(repr, formulas))
         vars = frozenset()
         for f in formulas:

@@ -2,11 +2,10 @@ from sage.rings.all import *
 
 def pari(x):
     """
-    Return the pari object constructed from a Sage object.
+    Return the PARI object constructed from a Sage/Python object.
 
-    The work is done by the __call__ method of the class PariInstance,
-    which in turn passes the work to any class which has its own
-    method _pari_().
+    For Sage types, this uses the `_pari_()` method on the object if
+    possible and otherwise it uses the string representation.
 
     EXAMPLES::
 
@@ -99,6 +98,13 @@ def pari(x):
         sage: pari("dummy = 0; kill(dummy)")
         sage: type(pari("dummy = 0; kill(dummy)"))
         <type 'NoneType'>
+
+    TESTS::
+
+        sage: pari(None)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cannot convert None to pari
     """
     from sage.libs.pari.all import pari
     return pari(x)

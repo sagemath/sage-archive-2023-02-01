@@ -16,7 +16,6 @@ AUTHORS:
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
-import io
 
 def from_whatever(data):
     """
@@ -37,7 +36,7 @@ def from_whatever(data):
         [Graph on 15 vertices, Looped multi-graph on 17 vertices]
     """
     from sage.graphs.graph import Graph
-    if isinstance(data, io.IOBase):
+    if isinstance(data, file):
         if data.name[data.name.rindex('.'):] == '.g6':
             return from_graph6(data)
         elif data.name[data.name.rindex('.'):] == '.s6':
@@ -109,7 +108,7 @@ def from_graph6(data):
             else:
                 l.append(from_graph6(d))
         return l
-    elif isinstance(data, io.IOBase):
+    elif isinstance(data,file):
         strlist = data.readlines()
         l = []
         for s in strlist:
@@ -155,7 +154,7 @@ def from_sparse6(data):
             else:
                 l.append(from_sparse6(d))
         return l
-    elif isinstance(data, io.IOBase):
+    elif isinstance(data,file):
         strlist = data.readlines()
         l = []
         for s in strlist:

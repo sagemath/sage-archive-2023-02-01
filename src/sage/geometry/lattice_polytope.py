@@ -125,7 +125,6 @@ from sage.structure.sage_object import SageObject
 from copy import copy
 import collections
 import copy_reg
-import io
 import os
 import subprocess
 import StringIO
@@ -296,15 +295,15 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
         skip_palp_matrix(f, n)
         data = read_palp_matrix(data)
         f.close()
-    if isinstance(data, (io.IOBase, StringIO.StringIO)):
+    if isinstance(data, (file, StringIO.StringIO)):
         data = read_palp_matrix(data)
     if is_Matrix(data):
         deprecation(15240, "constructing lattice polytopes from matrices is "
-                           "deprecated!")
+                           "deprecated!")           
         if lattice is None:
             lattice = ToricLattice(data.nrows()).dual()
         data = data.columns(copy=False)
-    if not is_PointCollection(data) and not isinstance(data, (list, tuple)):
+    if not is_PointCollection(data) and not isinstance(data, (list, tuple)):        
         try:
             data = list(data)
         except TypeError:

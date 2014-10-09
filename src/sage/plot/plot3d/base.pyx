@@ -1263,11 +1263,11 @@ end_scene""" % (render_params.antialiasing,
         """
         Return an STL (STereoLithography) representation of the surface.
 
-        This only works for triangulated surfaces !
+        This only works for triangulated surfaces!
 
         INPUT:
 
-        - name (string, default:"surface") -- name of the surface.
+        - name (string, default: "surface") -- name of the surface.
 
         OUTPUT:
 
@@ -1304,9 +1304,6 @@ end_scene""" % (render_params.antialiasing,
         from sage.modules.free_module import FreeModule
         RR3 = FreeModule(RDF, 3)
 
-        if name is None:
-            name = "surface"
-
         faces = self.face_list()
         if not faces:
             self.triangulate()
@@ -1342,7 +1339,7 @@ end_scene""" % (render_params.antialiasing,
 
         INPUT:
 
-        - name (string, default:"surface") -- name of the surface.
+        - name (string, default: "surface") -- name of the surface.
 
         OUTPUT:
 
@@ -1384,9 +1381,6 @@ end_scene""" % (render_params.antialiasing,
             3.0 0.0 0.0
             3 0 1 2
         """
-        if name is None:
-            name = "surface"
-
         faces = self.index_faces()
         if not faces:
             self.triangulate()
@@ -1409,11 +1403,11 @@ end_scene""" % (render_params.antialiasing,
         Return an AMF (Additive Manufacturing File Format) representation of
         the surface.
 
-        This only works for triangulated surfaces !
+        This only works for triangulated surfaces!
 
         INPUT:
 
-        - name (string, default:"surface") -- name of the surface.
+        - name (string, default: "surface") -- name of the surface.
 
         OUTPUT:
 
@@ -1437,9 +1431,6 @@ end_scene""" % (render_params.antialiasing,
             sage: print p.amf_ascii_string(name='triangle')
             <?xml version="1.0" encoding="utf-8"?><amf><object id="triangle"><mesh><vertices><vertex><coordinates><x>0.0</x><y>0.0</y><z>0.0</z></coordinates></vertex><vertex><coordinates><x>1.0</x><y>2.0</y><z>3.0</z></coordinates></vertex><vertex><coordinates><x>3.0</x><y>0.0</y><z>0.0</z></coordinates></vertex></vertices><volume><triangle><v1>0</v1><v2>1</v2><v3>2</v3></triangle></volume></mesh></object></amf>
         """
-        if name is None:
-            name = "surface"
-
         faces = self.index_faces()
         if not faces:
             self.triangulate()
@@ -1493,11 +1484,11 @@ end_scene""" % (render_params.antialiasing,
         The file type is depending on the file extension you give the
         filename. This can be either:
 
-        - an image file (of type: PNG, BMP, GIF, PPM, or TIFF) rendered using Tachyon
+        - an image file (of type: PNG, BMP, GIF, PPM, or TIFF) rendered using Tachyon,
 
-        - a Sage object file (of type ``.sobj``) that you can load back later.
+        - a Sage object file (of type ``.sobj``) that you can load back later,
 
-        - a data file (of type: X3D, STL, AMF, PLY) for use in other software
+        - a data file (of type: X3D, STL, AMF, PLY) for use in other software.
 
         For data files, the support is only partial. For instance STL and
         AMF only works for triangulated surfaces. The prefered format is X3D.

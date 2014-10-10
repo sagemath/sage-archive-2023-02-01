@@ -189,7 +189,7 @@ from sage.rings.all import RR, Integer
 from sage.structure.coerce import parent
 from sage.structure.element import get_coercion_model
 from sage.symbolic.constants import pi
-from sage.symbolic.function import BuiltinFunction, is_inexact
+from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 
 # remove after deprecation period
@@ -303,25 +303,6 @@ class Function_Bessel_J(BuiltinFunction):
                                                   maxima='bessel_j',
                                                   sympy='besselj'))
 
-    def _eval_(self, n, x):
-        """
-        EXAMPLES::
-
-            sage: a, b = var('a, b')
-            sage: bessel_J(a, b)
-            bessel_J(a, b)
-            sage: bessel_J(1.0, 1.0)
-            0.440050585744933
-        """
-        if (not isinstance(n, Expression) and
-                not isinstance(x, Expression) and
-                (is_inexact(n) or is_inexact(x))):
-            coercion_model = get_coercion_model()
-            n, x = coercion_model.canonical_coercion(n, x)
-            return self._evalf_(n, x, parent(n))
-
-        return None
-
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """
         EXAMPLES::
@@ -405,6 +386,8 @@ class Function_Bessel_Y(BuiltinFunction):
         1.03440456978312 - 0.135747669767038*I
         sage: bessel_Y(0, 0).n()
         -infinity
+        sage: bessel_Y(0, 1).n(128)
+        0.088256964215676957982926766023515162828
 
     Examples of symbolic manipulation::
 
@@ -438,10 +421,23 @@ class Function_Bessel_Y(BuiltinFunction):
         Numerical evaluation is handled by the mpmath library. Symbolics are
         handled by a combination of Maxima and Sage (Ginac/Pynac).
 
+    TESTS:
+
     Check whether the return value is real whenever the argument is real (:trac:`10251`)::
 
         sage: bessel_Y(5, 1.5) in RR
         True
+
+    Coercion works correctly (see :trac:`17130`)::
+
+        sage: r = bessel_Y(RealField(200)(1), 1.0); r
+        -0.781212821300289
+        sage: parent(r)
+        Real Field with 53 bits of precision
+        sage: r = bessel_Y(RealField(200)(1), 1); r
+        -0.78121282130028871654715000004796482054990639071644460784383
+        sage: parent(r)
+        Real Field with 200 bits of precision
     """
     def __init__(self):
         """
@@ -456,24 +452,6 @@ class Function_Bessel_Y(BuiltinFunction):
                                  conversions=dict(mathematica='BesselY',
                                                   maxima='bessel_y',
                                                   sympy='bessely'))
-
-    def _eval_(self, n, x):
-        """
-        EXAMPLES::
-
-            sage: a,b = var('a, b')
-            sage: bessel_Y(a, b)
-            bessel_Y(a, b)
-            sage: bessel_Y(0, 1).n(128)
-            0.088256964215676957982926766023515162828
-        """
-        if (not isinstance(n, Expression) and not isinstance(x, Expression) and
-                (is_inexact(n) or is_inexact(x))):
-            coercion_model = get_coercion_model()
-            n, x = coercion_model.canonical_coercion(n, x)
-            return self._evalf_(n, x, parent(n))
-
-        return None  # leaves the expression unevaluated
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """
@@ -632,19 +610,11 @@ class Function_Bessel_I(BuiltinFunction):
             sage: bessel_I(-1/2, pi)
             sqrt(2)*cosh(pi)/pi
         """
-        if (not isinstance(n, Expression) and not isinstance(x, Expression) and
-                (is_inexact(n) or is_inexact(x))):
-            coercion_model = get_coercion_model()
-            n, x = coercion_model.canonical_coercion(n, x)
-            return self._evalf_(n, x, parent(n))
-
         # special identities
         if n == Integer(1) / Integer(2):
             return sqrt(2 / (pi * x)) * sinh(x)
         elif n == -Integer(1) / Integer(2):
             return sqrt(2 / (pi * x)) * cosh(x)
-
-        return None  # leaves the expression unevaluated
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """
@@ -810,17 +780,9 @@ class Function_Bessel_K(BuiltinFunction):
             sage: bessel_K(-1, 1).n(128)
             0.60190723019723457473754000153561733926
         """
-        if (not isinstance(n, Expression) and not isinstance(x, Expression) and
-                (is_inexact(n) or is_inexact(x))):
-            coercion_model = get_coercion_model()
-            n, x = coercion_model.canonical_coercion(n, x)
-            return self._evalf_(n, x, parent(n))
-
         # special identity
         if n == Integer(1) / Integer(2) and x > 0:
             return sqrt(pi / 2) * exp(-x) * x ** (-Integer(1) / Integer(2))
-
-        return None  # leaves the expression unevaluated
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """

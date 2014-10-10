@@ -1,16 +1,6 @@
---- ntl.orig/src/mfile	2014-08-27 05:51:42.000000000 +1200
+--- ntl.orig/src/mfile	2014-10-11 07:33:02.904149666 +1300
 +++ ntl/src/mfile	2014-10-09 22:14:46.730922903 +1300
-@@ -40,6 +40,9 @@
- LIBTOOL=@{LIBTOOL}
- # libtool command
- 
-+LIBTOOL_LINK_FLAGS=@{LIBTOOL_LINK_FLAGS}
-+# flags to pass to libtool when linking
-+
- DEF_PREFIX=@{DEF_PREFIX}
- 
- PREFIX=@{PREFIX}
-@@ -322,11 +325,11 @@
+@@ -325,11 +325,11 @@
  # again.
  
  all:
@@ -27,7 +17,7 @@
  	touch all
  
  
-@@ -335,7 +338,7 @@
+@@ -338,7 +338,7 @@
  setup1:
  	$(COMPILE) MakeDescAux.c
  	$(LINK) -o MakeDesc MakeDesc.c MakeDescAux.o $(LDLIBS)
@@ -36,7 +26,7 @@
  	mv mach_desc.h ../include/NTL/mach_desc.h
  
  # setup2 generates the file GetTime.c
-@@ -355,13 +358,13 @@
+@@ -358,7 +358,7 @@
  # setup4 runs the wizard
  
  setup4:
@@ -45,14 +35,7 @@
  
  
  ntl.a:	$(OBJ) 
- @{LSTAT}	$(AR) $(ARFLAGS) ntl.a $(OBJ) #LSTAT
- @{LSTAT}	- $(RANLIB) ntl.a #LSTAT
--@{LSHAR}	$(LIBTOOL) --mode=link $(LINK) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
-+@{LSHAR}	$(LIBTOOL) --mode=link $(LINK) $(LIBTOOL_LINK_FLAGS) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
- 
- @{LSTAT}LCOMP= #LSTAT
- @{LSHAR}LCOMP=$(LIBTOOL) --mode=compile #LSHAR
-@@ -394,10 +397,10 @@
+@@ -397,10 +397,10 @@
  
  check:
  	sh RemoveProg $(PROGS)

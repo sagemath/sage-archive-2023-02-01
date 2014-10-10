@@ -436,7 +436,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
     .. rubric:: Unique representation
 
     As most parents, :class:`Poset` have unique representation (see
-    :class:`UniqueRepresentation`. Namely if two posets are created
+    :class:`UniqueRepresentation`). Namely if two posets are created
     from two equal data, then they are not only equal but actually
     identical::
 
@@ -474,13 +474,13 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         sage: Poset([1,2,3], lambda x,y : x<y)
         Traceback (most recent call last):
         ...
-        ValueError: elements_label should be a dict or a list if different from None. (Did you intend data to be equal to a pair ?)
+        ValueError: element_labels should be a dict or a list if different from None. (Did you intend data to be equal to a pair ?)
     """
     # Avoiding some errors from the user when data should be a pair
     if (element_labels is not None and
         not isinstance(element_labels, dict) and
         not isinstance(element_labels, list)):
-        raise ValueError("elements_label should be a dict or a list if "+
+        raise ValueError("element_labels should be a dict or a list if "+
                          "different from None. (Did you intend data to be "+
                          "equal to a pair ?)")
 
@@ -579,7 +579,7 @@ class FinitePoset(UniqueRepresentation, Parent):
       corresponding to vertex ``i``. If ``elements`` is ``None``, then it is
       set to be the vertex set of the digraph. Note that if this option is set,
       then ``elements`` is considered as a specified linear extension of the poset
-      and the `linear_extension` attribut is set.
+      and the `linear_extension` attribute is set.
 
     - ``category`` -- :class:`FinitePosets`, or a subcategory thereof.
 
@@ -624,22 +624,22 @@ class FinitePoset(UniqueRepresentation, Parent):
         sage: Q is P
         True
 
-    We keep the same underlying hasse diagram, but change the elements::
+    We keep the same underlying Hasse diagram, but change the elements::
 
-        sage: Q = sage.combinat.posets.posets.FinitePoset(P, elements=[1,2,3,4,5,6], facade = False); Q
+        sage: Q = sage.combinat.posets.posets.FinitePoset(P, elements=[1,2,3,4,5,6], facade=False); Q
         Finite poset containing 6 elements
         sage: Q.cover_relations()
         [[1, 2], [1, 5], [2, 6], [3, 4], [3, 5], [4, 6], [5, 6]]
 
     We test the facade argument::
 
-        sage: P = Poset(DiGraph({'a':['b'],'b':['c'],'c':['d']}), facade = False)
+        sage: P = Poset(DiGraph({'a':['b'],'b':['c'],'c':['d']}), facade=False)
         sage: P.category()
         Join of Category of finite posets and Category of finite enumerated sets
         sage: parent(P[0]) is P
         True
 
-        sage: Q = Poset(DiGraph({'a':['b'],'b':['c'],'c':['d']}), facade = True)
+        sage: Q = Poset(DiGraph({'a':['b'],'b':['c'],'c':['d']}), facade=True)
         sage: Q.category()
         Join of Category of finite posets
             and Category of finite enumerated sets
@@ -650,7 +650,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     Changing a non facade poset to a facade poset::
 
-        sage: PQ = Poset(P, facade = True)
+        sage: PQ = Poset(P, facade=True)
         sage: PQ.category()
         Join of Category of finite posets
             and Category of finite enumerated sets
@@ -716,8 +716,15 @@ class FinitePoset(UniqueRepresentation, Parent):
         False
         sage: [[p1.__ne__(p2) for p1 in Posets(2)] for p2 in Posets(2)]
         [[False, True], [True, False]]
-    """
 
+        sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
+        sage: Q = Poset(P)
+        sage: Q == P
+        False
+        sage: Q = Poset(P, linear_extension=True)
+        sage: Q == P
+        True
+    """
     @staticmethod
     def __classcall__(cls, hasse_diagram, elements=None, category=None, facade=None, key=None):
         """
@@ -1170,6 +1177,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return a linear extension of this poset.
 
+        A linear extension of a finite poset `P` of size `n` is a total
+        ordering `\pi := \pi_0 \pi_1 \ldots \pi_{n-1}` of its elements
+        such that `i<j` whenever `\pi_i < \pi_j` in the poset `P`.
+
         INPUT:
 
         - ``linear_extension`` -- (default: ``None``) a list of the
@@ -1371,7 +1382,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: type(D.list()[0])
             <class 'sage.combinat.posets.elements.FinitePoset_with_category.element_class'>
         """
-        return list(self._list) #list(self.linear_extension())
+        return list(self._list)
 
     def plot(self, label_elements=True, element_labels=None,
              vertex_size=300, vertex_colors=None,
@@ -3004,9 +3015,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.dual().__class__
             <class 'sage.combinat.posets.lattices.FiniteMeetSemilattice_with_category'>
         """
-        #n = self.cardinality()
-        #dual_hasse_digraph = self.hasse_diagram().reverse()
-        #dual_hasse_digraph.relabel(lambda i: self._elements[n-i-1])
         if not self._linear_extension:
             elements = reversed(self._elements)
         else:
@@ -3199,10 +3207,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             is the number of elements and `m` the number of cover relations.
         """
         new_vertices = [self._element_to_vertex(element) for element in linear_extension]
-        #new_elements = [self._elements[i] for i in new_vertices]
-        #vertex_relabeling = dict(zip(new_vertices, range(len(new_vertices))))
         vertex_relabeling = dict(zip(new_vertices, linear_extension))
-        #vertex_relabeling = { i: linear_extension[i] for i in range(len(linear_extension)) }
         return FinitePoset(self._hasse_diagram.relabel(vertex_relabeling, inplace=False),
                            elements=linear_extension,
                            category=self.category(),

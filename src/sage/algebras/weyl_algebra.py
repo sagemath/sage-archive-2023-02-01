@@ -523,7 +523,7 @@ def expand_derivative(poly, exps):
         sage: from sage.algebras.weyl_algebra import expand_derivative
         sage: R.<x,y,z> = QQ[]
         sage: expand_derivative(x*y - z, (1,0,1))
-        {(1, 0, 0): -1, (0, 0, 1): y, (1, 0, 1): x*y - z}
+        {(0, 0, 1): y, (1, 0, 0): -1, (1, 0, 1): x*y - z}
         sage: expand_derivative(R(5), (1,0,1))
         {(1, 0, 1): 5}
     """

@@ -157,53 +157,54 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
     - ``data`` -- different input are accepted by this constructor:
 
-        1. A two-element list or tuple `(E, R)`, where `E` is a
-           collection of elements of the poset and `R` is a collection
-           of relations `x<=y`, each represented as a two-element
-           lists/tuples/iterables such as [x,y]. The poset is then the
-           transitive closure of the provided relations. If
-           ``cover_relations=True``, then `R` is assumed to contain
-           exactly the cover relations of the poset. If `E` is empty,
-           then `E` is taken to be the set of elements appearing in
-           the relations `R`.
+      1. A two-element list or tuple `(E, R)`, where `E` is a
+         collection of elements of the poset and `R` is a collection
+         of relations `x<=y`, each represented as a two-element
+         lists/tuples/iterables such as [x,y]. The poset is then the
+         transitive closure of the provided relations. If
+         ``cover_relations=True``, then `R` is assumed to contain
+         exactly the cover relations of the poset. If `E` is empty,
+         then `E` is taken to be the set of elements appearing in
+         the relations `R`.
 
-        2. A two-element list or tuple `(E, f)`, where `E` is the set
-           of elements of the poset and `f` is a function such that,
-           for any pair `x,y` of elements of `E`, `f(x,y)` returns
-           whether `x <= y`. If ``cover_relations=True``, then
-           `f(x,y)` should return whether `x` is covered by `y`.
+      2. A two-element list or tuple `(E, f)`, where `E` is the set
+         of elements of the poset and `f` is a function such that,
+         for any pair `x,y` of elements of `E`, `f(x,y)` returns
+         whether `x <= y`. If ``cover_relations=True``, then
+         `f(x,y)` should return whether `x` is covered by `y`.
 
-        3. A dictionary, list or tuple of upper covers: ``data[x]`` is
-           a list of the elements that cover the element `x` in the
-           poset.
+      3. A dictionary, list or tuple of upper covers: ``data[x]`` is
+         a list of the elements that cover the element `x` in the poset.
 
-           .. WARNING::
+         .. WARNING::
 
-              If data is a list or tuple of length `2`, then it is
-              handled by the above case..
+             If data is a list or tuple of length `2`, then it is
+             handled by the above case..
 
-        4. An acyclic, loop-free and multi-edge free ``DiGraph``. If
-           ``cover_relations`` is ``True``, then the edges of the
-           digraph are assumed to correspond to the cover relations of
-           the poset. Otherwise, the cover relations are computed.
+      4. An acyclic, loop-free and multi-edge free ``DiGraph``. If
+         ``cover_relations`` is ``True``, then the edges of the
+         digraph are assumed to correspond to the cover relations of
+         the poset. Otherwise, the cover relations are computed.
 
-        5. A previously constructed poset (the poset itself is returned).
+      5. A previously constructed poset (the poset itself is returned).
 
-    - ``element_labels`` -- (default: None); an optional list or
+    - ``element_labels`` -- (default: ``None``); an optional list or
       dictionary of objects that label the poset elements.
 
-    - ``cover_relations`` -- a boolean (default: False); whether the
+    - ``cover_relations`` -- a boolean (default: ``False``); whether the
       data can be assumed to describe a directed acyclic graph whose
       arrows are cover relations; otherwise, the cover relations are
       first computed.
 
-    - ``linear_extension`` -- a boolean (default: False); whether to
+    - ``linear_extension`` -- a boolean (default: ``False``); whether to
       use the provided list of elements as default linear extension
-      for the poset; otherwise a linear extension is computed.
+      for the poset; otherwise a linear extension is computed. If the data
+      is given as the pair ``(E, f)``, then ``E`` is taken to be the linear
+      extension.
 
     - ``facade`` -- a boolean or ``None`` (default); whether the
-      :meth:`Poset`'s elements should be wrapped to make them aware of the Poset
-      they belong to.
+      :meth:`Poset`'s elements should be wrapped to make them aware of the
+      Poset they belong to.
 
       * If ``facade = True``, the :meth:`Poset`'s elements are exactly those
         given as input.
@@ -218,12 +219,15 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
     OUTPUT:
 
-        ``FinitePoset`` -- an instance of the :class:`FinitePoset`` class.
+    ``FinitePoset`` -- an instance of the :class:`FinitePoset`` class.
 
     If ``category`` is specified, then the poset is created in this
     category instead of :class:`FinitePosets`.
 
-    .. SEEALSO:: :class:`Posets`, :class:`~sage.categories.posets.Posets`, :class:`FinitePosets`
+    .. SEEALSO::
+
+        :class:`Posets`, :class:`~sage.categories.posets.Posets`,
+        :class:`FinitePosets`
 
     EXAMPLES:
 
@@ -252,7 +256,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
           Finite poset containing 24 elements
 
        With a function that identifies the cover relations: the set
-       partitions of {1, 2, 3} ordered by refinement::
+       partitions of `\{1, 2, 3\}` ordered by refinement::
 
           sage: elms = SetPartitions(3)
           sage: def fcn(A, B):
@@ -282,7 +286,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
           sage: P.list()
           [a, b, c, d, e]
 
-       .. warning::
+       .. WARNING::
 
          The special case where the argument data is a list or tuple of
          length 2 is handled by the above cases. So you cannot use this
@@ -725,10 +729,23 @@ class FinitePoset(UniqueRepresentation, Parent):
         sage: Q == P
         True
     """
+
+    # The parsing of the construction data (like a list of cover relations)
+    #   into a :class:`DiGraph` is done in :func:`Poset`.
     @staticmethod
     def __classcall__(cls, hasse_diagram, elements=None, category=None, facade=None, key=None):
         """
-        Normalizes the arguments passed to the constructor
+        Normalizes the arguments passed to the constructor.
+
+        INPUT:
+
+        - ``hasse_diagram`` -- a :class:`DiGraph` or a :class:`FinitePoset`
+          that is labeled by the elements of the poset
+        - ``elements`` -- (default: ``None``) the default linear extension
+          or ``None`` if no such default linear extension is wanted
+        - ``category`` -- (optional) a subcategory of :class:`FinitePosets`
+        - ``facade`` -- (optional) boolean if this is a facade parent or not
+        - ``key`` -- (optional) a key value
 
         TESTS::
 

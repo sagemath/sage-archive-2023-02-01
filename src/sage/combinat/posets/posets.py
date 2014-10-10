@@ -3058,7 +3058,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             [1, 2, 4, 3, 6, 12]
             sage: Q = P.relabel(lambda x: 12/x)
             sage: Q.list()
-            [12, 6, 4, 3, 2, 1]
+            [12, 6, 3, 4, 2, 1]
             sage: Q.cover_relations()
             [[12, 6], [12, 4], [6, 3], [6, 2], [3, 1], [4, 2], [2, 1]]
 
@@ -3161,12 +3161,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
             sage: list(P)
-            [1, 2, 3, 4, 6, 12]
+            [1, 2, 4, 3, 6, 12]
             sage: Q = P.with_linear_extension([1,3,6,2,4,12])
             sage: list(Q)
             [1, 3, 6, 2, 4, 12]
             sage: Q.cover_relations()
-            [[1, 3], [1, 2], [3, 6], [6, 12], [2, 6], [2, 4], [4, 12]]
+            [[1, 3], [1, 2], [3, 6], [3, 4], [6, 12], [2, 4], [4, 12]]
 
         TESTS:
 
@@ -3176,7 +3176,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: list(Q)
             [1, 3, 6, 2, 4, 12]
             sage: Q.cover_relations()
-            [[1, 3], [1, 2], [3, 6], [6, 12], [2, 6], [2, 4], [4, 12]]
+            [[1, 3], [1, 2], [3, 6], [3, 4], [6, 12], [2, 4], [4, 12]]
 
         We check that this works for facade posets too::
 
@@ -3185,7 +3185,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: list(Q)
             [1, 3, 6, 2, 4, 12]
             sage: Q.cover_relations()
-            [[1, 3], [1, 2], [3, 6], [6, 12], [2, 6], [2, 4], [4, 12]]
+            [[1, 3], [1, 2], [3, 6], [3, 4], [6, 12], [2, 4], [4, 12]]
             sage: sorted(Q.cover_relations()) == sorted(P.cover_relations())
             True
 

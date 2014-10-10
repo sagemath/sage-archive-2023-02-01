@@ -1705,7 +1705,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                      - x2*x0*x1 - x2*x0*x2 - x2*x1*x0 - x2*x1^2 - x2*x1*x2
                      + x2^2*x0 + x2^2*x1 + x2^3
 
-                One can use a different set of variable by adding an optional
+                One can use a different set of variables by adding an optional
                 argument ``alphabet=...`` ::
 
                     sage: L[3].expand(4, alphabet="y")

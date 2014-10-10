@@ -944,6 +944,18 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             The equivalences of these three definitions are proven in
             [GR1993]_ Sections 2-3.
 
+            INPUT:
+
+            - ``lam`` -- a partition or a positive integer (in the
+              latter case, it is understood to mean the partition
+              ``[lam]``)
+
+            OUTPUT:
+
+            The Gessel-Reutenauer symmetric function
+            `\mathbf{GR}_\lambda`, where `\lambda` is ``lam``,
+            expanded in the basis ``self``.
+
             REFERENCES:
 
             .. [GR1993] Ira M. Gessel, Christophe Reutenauer.
@@ -1158,6 +1170,27 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             .. [ShaWach2014] John Shareshian, Michelle L. Wachs.
                *Chromatic quasisymmetric functions*.
                :arxiv:`1405.4629v1`.
+
+            INPUT:
+
+            - ``n`` -- a nonnegative integer
+
+            - ``d`` -- a nonnegative integer
+
+            - ``s`` -- a nonnegative integer
+
+            - ``comparison`` (default: ``None``) -- a variable
+              which can take the forms ``None``, ``-1``, ``0``
+              and ``1``
+
+            OUTPUT:
+
+            The Carlitz-Shareshian-Wachs symmetric function
+            `X_{n, d, s}` (if ``comparison`` is ``None``), or
+            `U_{n, d, s}` (if ``comparison`` is ``-1``), or
+            `V_{n, d, s}` (if ``comparison`` is ``0``), or
+            `W_{n, d, s}` (if ``comparison`` is ``1``) written in the
+            basis ``self``.
 
             EXAMPLES:
 

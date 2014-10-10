@@ -517,8 +517,8 @@ class HyperbolicGeodesic(SageObject):
             sage: gP = H.PD().get_geodesic(0, I)
             sage: RP = gP.reflection_involution(); RP
             Isometry in PD
-            [ 0  I]
-            [-I  0]
+            [ 1  0]
+            [ 0 -1]
         
             sage: RP*gP == gP
             True
@@ -546,7 +546,7 @@ class HyperbolicGeodesic(SageObject):
             sage: H = HyperbolicPlane() # Remove before submitting XXX.
             sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import mobius_transform
             sage: R = H.PD().get_geodesic(-1,1).reflection_involution() 
-            sage: mobius_transform(R.matrix(), 0) == 0
+            sage: bool(mobius_transform(R.matrix(), 0) == 0)
             True
         """
         return self._cached_geodesic.reflection_involution().to_model(self._model)
@@ -758,7 +758,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
             sage: UHP = HyperbolicPlane().UHP()
             sage: g1 = UHP.get_geodesic(0, 1)
-            sage: .reflection_involution()
+            sage: g1.reflection_involution()
             Isometry in UHP
             [ 1  0]
             [ 2 -1]

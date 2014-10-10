@@ -293,8 +293,8 @@ class CoercionPDtoUHP(HyperbolicModelCoercion):
             sage: UHP = HyperbolicPlane().UHP()
             sage: phi = UHP.coerce_map_from(PD)
             sage: phi.image_isometry_matrix(matrix([[0,I],[I,0]]))
-            [ 0 -1]
             [-1  0]
+            [ 0 -1]
         """
         from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometryPD
         if not HyperbolicIsometryPD._orientation_preserving(x):

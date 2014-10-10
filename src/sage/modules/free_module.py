@@ -4684,6 +4684,56 @@ class FreeModule_ambient(FreeModule_generic):
                 v[i] = R.random_element(*args, **kwds)
         return v
 
+    def gen(self, i=0):
+        """
+        Return ith generator for self, where i is between 0 and rank-1,
+        inclusive.
+
+        INPUT:
+
+
+        -  ``i`` - an integer
+
+        OUTPUT: i-th basis vector for self.
+
+        EXAMPLES::
+
+            sage: n = 5
+            sage: V = QQ^n
+            sage: B = [ V.gen(i) for i in range(n) ]
+            sage: B
+            [(1, 0, 0, 0, 0),
+            (0, 1, 0, 0, 0),
+            (0, 0, 1, 0, 0),
+            (0, 0, 0, 1, 0),
+            (0, 0, 0, 0, 1)]
+            sage: V.gens() == tuple(B)
+            True
+
+        TESTS::
+
+            sage: (QQ^3).gen(4/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: rational is not an integer
+
+        Check that :trac:`10262`, :trac:`13304` are fixed (coercions involving
+        FreeModule_ambients used to take quadratic time and space in the rank
+        of the module)::
+
+            sage: vector([0]*50000)/1
+            (0, 0, 0, ..., 0)
+        """
+        if i < 0 or i >= self.rank():
+            raise ValueError, "Generator %s not defined."%i
+        try:
+            return self.__basis[i]
+        except AttributeError:
+            v = self(0)
+            v[i] = self.base_ring().one_element()
+            v.set_immutable()
+            return v
+
 
 ###############################################################################
 #

@@ -129,8 +129,8 @@ ntl_install()
     fi
 }
 
-ntl_libtool
 ntl_patch
+ntl_libtool
 ntl_configure
 ntl_build
 ntl_install

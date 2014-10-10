@@ -921,6 +921,13 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
 
         EXAMPLES::
 
+            sage: PD = HyperbolicPlane().PD()
+            sage: X = PD.get_isometry(matrix([[3/4, -I/4], [-I/4, -3/4]]))
+            sage: X*X
+            Isometry in PD
+            [   5/8  3/8*I]
+            [-3/8*I    5/8]
+
         """
         if isinstance(other, HyperbolicIsometry):
             M = self._cached_isometry*other._cached_isometry 
@@ -930,6 +937,14 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
     def __pow__(self, n): #PD
         r"""
         EXAMPLES::
+
+            sage: PD = HyperbolicPlane().PD()
+            sage: X = PD.get_isometry(matrix([[3/4, -I/4], [-I/4, -3/4]]))
+            sage: X^2
+            Isometry in PD
+            [   5/8  3/8*I]
+            [-3/8*I    5/8]
+
         """
         return (self._cached_isometry**n).to_model('PD')
 

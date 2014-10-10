@@ -459,7 +459,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             Finite poset containing 1 elements
             sage: p = OrderedTree([[[]],[],[]]).to_poset()
             sage: p.cover_relations()
-            [[0, 4], [1, 4], [2, 3], [3, 4]]
+            [[2, 3], [3, 4], [1, 4], [0, 4]]
             sage: p = OrderedTree([[[]],[],[]]).to_poset(root_to_leaf=True)
             sage: p.cover_relations()
             [[0, 2], [0, 3], [0, 4], [4, 1]]

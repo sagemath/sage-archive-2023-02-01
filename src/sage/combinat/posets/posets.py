@@ -3037,6 +3037,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         else:
             elements = None
         return self._dual_class(self.hasse_diagram().reverse(),
+                                elements=elements,
                                 category=self.category(),
                                 facade=self._is_facade)
 

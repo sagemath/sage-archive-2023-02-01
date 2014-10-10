@@ -641,7 +641,7 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
         [1 0]
         [0 1]
     """
-    def _call_(self, p):
+    def _call_(self, p): #UHP
         r"""
         Return image of ``p`` under the action of ``self``.
 
@@ -655,7 +655,7 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
         """
         return self.codomain().get_point(mobius_transform(self._matrix, p.coordinates()))
 
-    def preserves_orientation(self):
+    def preserves_orientation(self): #UHP
         r"""
         Return ``True`` if ``self`` is orientation preserving and ``False``
         otherwise.
@@ -672,7 +672,7 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
         """
         return bool(self._matrix.det() > 0)
 
-    def classification(self):
+    def classification(self): #UHP
         r"""
         Classify the hyperbolic isometry as elliptic, parabolic, or
         hyperbolic.
@@ -724,7 +724,7 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
             return 'reflection'
         return 'orientation-reversing hyperbolic'
 
-    def translation_length(self):
+    def translation_length(self): #UHP
         r"""
         For hyperbolic elements, return the translation length;
         otherwise, raise a ``ValueError``.
@@ -749,7 +749,7 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
             return 2 * arccosh(tau/2)
         raise TypeError("translation length is only defined for hyperbolic transformations")
 
-    def fixed_point_set(self):
+    def fixed_point_set(self): #UHP
         r"""
         Return the a list or geodesic containing the fixed point set of
         orientation-preserving isometries.
@@ -835,7 +835,7 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
             return self.domain().get_geodesic(*pts)
         return pts
 
-    def repelling_fixed_point(self):
+    def repelling_fixed_point(self): #UHP
         r"""
         Return the repelling fixed point; otherwise raise a ``ValueError``.
 
@@ -859,7 +859,7 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
             return self.domain().get_point(infinity)
         return self.domain().get_point(v[0] / v[1])
 
-    def attracting_fixed_point(self):
+    def attracting_fixed_point(self): #UHP
         r"""
         Return the attracting fixed point; otherwise raise a ``ValueError``.
 
@@ -898,7 +898,7 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
         [1 0]
         [0 1]
     """
-    def _call_(self, p):
+    def _call_(self, p): #PD
         r"""
         Return image of ``p`` under the action of ``self``.
 
@@ -915,7 +915,25 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
         #     _image = mobius_transform(I*matrix([[0,1],[1,0]]), _image)
         return self.codomain().get_point(_image)
 
-    def preserves_orientation(self):
+    def __mul__(self, other): #PD
+        r"""
+        Return image of ``p`` under the action of ``self``.
+
+        EXAMPLES::
+
+        """
+        if isinstance(other, HyperbolicIsometry):
+            M = self._cached_isometry*other._cached_isometry 
+            return M.to_model('PD')
+        return super(HyperbolicIsometryPD, self).__mul__(other)
+
+    def __pow__(self, n): #PD
+        r"""
+        EXAMPLES::
+        """
+        return (self._cached_isometry**n).to_model('PD')
+
+    def preserves_orientation(self): #PD
         """
         Return ``True`` if ``self`` preserves orientation and ``False``
         otherwise.
@@ -931,7 +949,7 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
         return bool(self._matrix.det() > 0) and HyperbolicIsometryPD._orientation_preserving(self._matrix)
 
     @staticmethod
-    def _orientation_preserving(A):
+    def _orientation_preserving(A): #PD
         r"""
         For a matrix ``A`` of a PD isometry, determine if it preserves
         orientation.
@@ -967,7 +985,7 @@ class HyperbolicIsometryKM(HyperbolicIsometry):
         [0 1 0]
         [0 0 1]
     """
-    def _call_(self, p):
+    def _call_(self, p): #KM
         r"""
         Return image of ``p`` under the action of ``self``.
 

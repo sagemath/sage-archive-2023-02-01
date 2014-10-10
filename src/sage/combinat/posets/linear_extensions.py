@@ -162,7 +162,7 @@ class LinearExtensionOfPoset(ClonableArray):
 
     def to_poset(self):
         r"""
-        Returns the poset associated to the linear extension ``self``.
+        Return the poset associated to the linear extension ``self``.
 
         This method returns the poset obtained from the original poset
         `P` by relabelling the 'i'-th element of ``self`` to the
@@ -176,7 +176,7 @@ class LinearExtensionOfPoset(ClonableArray):
 
         EXAMPLES::
 
-            sage: P = Poset(([1,2,3,4], [[1,2],[1,3],[3,4]]), facade = False)
+            sage: P = Poset(([1,2,3,4], [[1,2],[1,3],[3,4]]), linear_extension=True, facade=False)
             sage: p = P.linear_extension([1,3,4,2])
             sage: Q = p.to_poset(); Q
             Finite poset containing 4 elements

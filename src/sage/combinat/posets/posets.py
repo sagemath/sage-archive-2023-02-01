@@ -331,9 +331,9 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
         sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
         sage: P.list()
-        [1, 2, 4, 3, 6, 12]
+        [1, 2, 3, 4, 6, 12]
         sage: P.linear_extension()
-        [1, 2, 4, 3, 6, 12]
+        [1, 2, 3, 4, 6, 12]
 
     Depending on popular request, ``Poset`` might eventually get
     modified to always use the provided list of elements as
@@ -554,7 +554,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
     if linear_extension:
         if element_labels is not None:
             elements = element_labels
-        else:
+        elif elements is None:
             # Compute a linear extension of the poset (a topological sort).
             try:
                 elements = D.topological_sort()
@@ -1252,17 +1252,17 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
             sage: P.list()
-            [1, 2, 4, 3, 6, 12]
+            [1, 2, 3, 4, 6, 12]
             sage: L = P.linear_extensions(); L
             The set of all linear extensions of Finite poset containing 6 elements
             sage: l = L.an_element(); l
-            [1, 2, 4, 3, 6, 12]
+            [1, 2, 3, 4, 6, 12]
             sage: L.cardinality()
             5
             sage: L.list()
-            [[1, 2, 4, 3, 6, 12],
-             [1, 2, 3, 4, 6, 12],
+            [[1, 2, 3, 4, 6, 12],
              [1, 2, 3, 6, 4, 12],
+             [1, 2, 4, 3, 6, 12],
              [1, 3, 2, 4, 6, 12],
              [1, 3, 2, 6, 4, 12]]
 
@@ -1284,9 +1284,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             of lists. To recover the previous functionality, please use::
 
                 sage: L = list(P.linear_extensions(facade=True)); L
-                [[1, 2, 4, 3, 6, 12],
-                 [1, 2, 3, 4, 6, 12],
+                [[1, 2, 3, 4, 6, 12],
                  [1, 2, 3, 6, 4, 12],
+                 [1, 2, 4, 3, 6, 12],
                  [1, 3, 2, 4, 6, 12],
                  [1, 3, 2, 6, 4, 12]]
                 sage: type(L[0])
@@ -1316,26 +1316,29 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset((divisors(12), attrcall("divides")), facade=True, linear_extension=True)
             sage: P.list()
-            [1, 2, 4, 3, 6, 12]
+            [1, 2, 3, 4, 6, 12]
             sage: P.is_linear_extension([1, 2, 4, 3, 6, 12])
             True
             sage: P.is_linear_extension([1, 2, 4, 6, 3, 12])
             False
 
             sage: [p for p in Permutations(list(P)) if P.is_linear_extension(p)]
-            [[1, 2, 4, 3, 6, 12],
-             [1, 2, 3, 4, 6, 12],
+            [[1, 2, 3, 4, 6, 12],
              [1, 2, 3, 6, 4, 12],
+             [1, 2, 4, 3, 6, 12],
              [1, 3, 2, 4, 6, 12],
              [1, 3, 2, 6, 4, 12]]
             sage: list(P.linear_extensions())
-            [[1, 2, 4, 3, 6, 12],
-             [1, 2, 3, 4, 6, 12],
+            [[1, 2, 3, 4, 6, 12],
              [1, 2, 3, 6, 4, 12],
+             [1, 2, 4, 3, 6, 12],
              [1, 3, 2, 4, 6, 12],
              [1, 3, 2, 6, 4, 12]]
 
-        .. note:: this is used and systematically tested in :class:`~sage.combinat.posets.linear_extensions.LinearExtensionsOfPosets`
+        .. NOTE::
+
+            This is used and systematically tested in
+            :class:`~sage.combinat.posets.linear_extensions.LinearExtensionsOfPosets`
 
         TESTS:
 
@@ -3027,26 +3030,26 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True, facade = False)
             sage: P.list()
-            [1, 2, 4, 3, 6, 12]
+            [1, 2, 3, 4, 6, 12]
             sage: P.cover_relations()
-            [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.relabel(lambda x: 12/x)
             sage: Q.list()
-            [12, 6, 3, 4, 2, 1]
+            [12, 6, 4, 3, 2, 1]
             sage: Q.cover_relations()
-            [[12, 6], [12, 4], [6, 3], [6, 2], [3, 1], [4, 2], [2, 1]]
+            [[12, 6], [12, 4], [6, 3], [6, 2], [4, 2], [3, 1], [2, 1]]
 
         Here we relabel the elements of a poset by `\{0,1,2, ...\}`, using
         a dictionary::
 
             sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True, facade=False)
             sage: relabeling = {c.element:i for (i,c) in enumerate(P)}; relabeling
-            {1: 0, 2: 1, 3: 3, 4: 2, 6: 4, 12: 5}
+            {1: 0, 2: 1, 3: 2, 4: 3, 6: 4, 12: 5}
             sage: Q = P.relabel(relabeling)
             sage: Q.list()
             [0, 1, 2, 3, 4, 5]
             sage: Q.cover_relations()
-            [[0, 1], [0, 3], [1, 2], [1, 4], [2, 5], [3, 4], [4, 5]]
+            [[0, 1], [0, 2], [1, 3], [1, 4], [2, 4], [3, 5], [4, 5]]
 
         Mind the ``c.element``; this is because the relabeling is
         applied to the elements of the poset without the wrapping.
@@ -3055,12 +3058,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset((divisors(12), attrcall("divides")), facade = True, linear_extension=True)
             sage: P.list()
-            [1, 2, 4, 3, 6, 12]
+            [1, 2, 3, 4, 6, 12]
             sage: Q = P.relabel(lambda x: 12/x)
             sage: Q.list()
-            [12, 6, 3, 4, 2, 1]
+            [12, 6, 4, 3, 2, 1]
             sage: Q.cover_relations()
-            [[12, 6], [12, 4], [6, 3], [6, 2], [3, 1], [4, 2], [2, 1]]
+            [[12, 6], [12, 4], [6, 3], [6, 2], [4, 2], [3, 1], [2, 1]]
 
         .. NOTE::
 
@@ -3120,9 +3123,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True, facade=False)
             sage: P.list()
-            [1, 2, 4, 3, 6, 12]
+            [1, 2, 3, 4, 6, 12]
             sage: P.cover_relations()
-            [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
             sage: Q.list()
             [0, 1, 2, 3, 4, 5]
@@ -3133,9 +3136,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset((divisors(12), attrcall("divides")), facade=True, linear_extension=True)
             sage: P.list()
-            [1, 2, 4, 3, 6, 12]
+            [1, 2, 3, 4, 6, 12]
             sage: P.cover_relations()
-            [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
             sage: Q.list()
             [0, 1, 2, 3, 4, 5]
@@ -3159,33 +3162,33 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
             sage: P.cover_relations()
-            [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: list(P)
-            [1, 2, 4, 3, 6, 12]
-            sage: Q = P.with_linear_extension([1,3,6,2,4,12])
+            [1, 2, 3, 4, 6, 12]
+            sage: Q = P.with_linear_extension([1,3,2,6,4,12])
             sage: list(Q)
-            [1, 3, 6, 2, 4, 12]
+            [1, 3, 2, 6, 4, 12]
             sage: Q.cover_relations()
-            [[1, 3], [1, 2], [3, 6], [3, 4], [6, 12], [2, 4], [4, 12]]
+            [[1, 3], [1, 2], [3, 6], [2, 6], [2, 4], [6, 12], [4, 12]]
 
         TESTS:
 
         We check that we can pass in a list of elements of ``P`` instead::
 
-            sage: Q = P.with_linear_extension(map(P, [1,3,6,2,4,12]))
+            sage: Q = P.with_linear_extension(map(P, [1,3,2,6,4,12]))
             sage: list(Q)
-            [1, 3, 6, 2, 4, 12]
+            [1, 3, 2, 6, 4, 12]
             sage: Q.cover_relations()
-            [[1, 3], [1, 2], [3, 6], [3, 4], [6, 12], [2, 4], [4, 12]]
+            [[1, 3], [1, 2], [3, 6], [2, 6], [2, 4], [6, 12], [4, 12]]
 
         We check that this works for facade posets too::
 
             sage: P = Poset((divisors(12), attrcall("divides")), facade=True)
-            sage: Q = P.with_linear_extension([1,3,6,2,4,12])
+            sage: Q = P.with_linear_extension([1,3,2,6,4,12])
             sage: list(Q)
-            [1, 3, 6, 2, 4, 12]
+            [1, 3, 2, 6, 4, 12]
             sage: Q.cover_relations()
-            [[1, 3], [1, 2], [3, 6], [3, 4], [6, 12], [2, 4], [4, 12]]
+            [[1, 3], [1, 2], [3, 6], [2, 6], [2, 4], [6, 12], [4, 12]]
             sage: sorted(Q.cover_relations()) == sorted(P.cover_relations())
             True
 
@@ -3196,11 +3199,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             is the number of elements and `m` the number of cover relations.
         """
         new_vertices = [self._element_to_vertex(element) for element in linear_extension]
-        new_elements = [self._elements[i] for i in new_vertices]
-        vertex_relabeling = { i: new_elements[i] for i in range(len(new_vertices)) }
-        #print vertex_relabeling
+        #new_elements = [self._elements[i] for i in new_vertices]
+        #vertex_relabeling = dict(zip(new_vertices, range(len(new_vertices))))
+        vertex_relabeling = dict(zip(new_vertices, linear_extension))
+        #vertex_relabeling = { i: linear_extension[i] for i in range(len(linear_extension)) }
         return FinitePoset(self._hasse_diagram.relabel(vertex_relabeling, inplace=False),
-                           elements=new_elements,
+                           elements=linear_extension,
                            category=self.category(),
                            facade=self._is_facade)
 
@@ -4061,7 +4065,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self.order_ideals_lattice().zeta_polynomial()
 
-    # TODO: Deprecate and move doc to LinearExtension
     def promotion(self, i=1):
         r"""
         Compute the (extended) promotion on the linear extension
@@ -4094,7 +4097,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P = Poset(([1,2], [[1,2]]), facade = False)
+            sage: P = Poset(([1,2], [[1,2]]), linear_extension=True, facade=False)
             sage: P.promotion()
             Finite poset containing 2 elements
             sage: P == P.promotion()
@@ -4123,17 +4126,19 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 5], [3, 6], [4, 7], [5, 7]]
 
-        Here is an example for a poset not labelled by `\{1,2,\ldots,n\}`::
+        Here is an example for a poset not labelled by `\{1, 2, \ldots, n\}`::
 
-            sage: P = Poset((divisors(30), attrcall("divides")), linear_extension = True)
+            sage: P = Poset((divisors(30), attrcall("divides")), linear_extension=True)
             sage: P.list()
             [1, 2, 3, 5, 6, 10, 15, 30]
             sage: P.cover_relations()
-            [[1, 2], [1, 3], [1, 5], [2, 6], [2, 10], [3, 6], [3, 15], [5, 10], [5, 15], [6, 30], [10, 30], [15, 30]]
+            [[1, 2], [1, 3], [1, 5], [2, 6], [2, 10], [3, 6], [3, 15],
+             [5, 10], [5, 15], [6, 30], [10, 30], [15, 30]]
             sage: Q = P.promotion(4); Q
             Finite poset containing 8 elements
             sage: Q.cover_relations()
-            [[1, 2], [1, 3], [1, 6], [2, 5], [2, 15], [3, 5], [3, 10], [5, 30], [6, 10], [6, 15], [10, 30], [15, 30]]
+            [[1, 2], [1, 3], [1, 6], [2, 5], [2, 15], [3, 5], [3, 10],
+             [5, 30], [6, 10], [6, 15], [10, 30], [15, 30]]
 
         .. SEEALSO::
 
@@ -4148,7 +4153,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self.linear_extension().promotion(i).to_poset()
 
-    # TODO: Deprecate and move doc to LinearExtension
     def evacuation(self):
         r"""
         Compute evacuation on the linear extension associated
@@ -4182,13 +4186,13 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P = Poset(([1,2], [[1,2]]), facade = False)
+            sage: P = Poset(([1,2], [[1,2]]), linear_extension=True, facade=False)
             sage: P.evacuation()
             Finite poset containing 2 elements
             sage: P.evacuation() == P
             True
 
-            sage: P = Poset(([1,2,3,4,5,6,7], [[1,2],[1,4],[2,3],[2,5],[3,6],[4,7],[5,6]]), linear_extension = True, facade = False)
+            sage: P = Poset(([1,2,3,4,5,6,7], [[1,2],[1,4],[2,3],[2,5],[3,6],[4,7],[5,6]]), linear_extension=True, facade=False)
             sage: P.list()
             [1, 2, 3, 4, 5, 6, 7]
             sage: Q = P.evacuation(); Q
@@ -4205,7 +4209,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = P.evacuation(); Q
             Finite poset containing 7 elements
             sage: Q.cover_relations()
-            [[1, 2], [1, 5], [2, 3], [5, 4], [5, 6], [4, 7], [6, 7]]
+            [[1, 2], [1, 5], [2, 3], [5, 6], [5, 4], [6, 7], [4, 7]]
 
         Here is an example of a poset where the vertices are not labelled
         by `\{1,2,\ldots,n\}`::

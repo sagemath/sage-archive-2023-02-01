@@ -491,15 +491,15 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         if element_labels is None and category is None and facade is None and linear_extension == data._linear_extension:
             return data
         if not linear_extension:
-            if element_labels is None:
-                return FinitePoset(data, elements = None, category = category, facade = facade)
-            else:
-                return FinitePoset(data, elements = None, category = category, facade = facade).relabel(element_labels)
+            P = FinitePoset(data, elements=None, category=category, facade=facade)
+            if element_labels is not None:
+                P = P.relabel(element_labels)
+            return P
         else:
             if element_labels is None:
-                return FinitePoset(data, elements = data._elements, category = category, facade = facade)
+                return FinitePoset(data, elements=data._elements, category=category, facade=facade)
             else:
-                return FinitePoset(data, elements = element_labels, category = category, facade = facade)
+                return FinitePoset(data, elements=element_labels, category=category, facade=facade)
     elif data is None: # type 0
         D = DiGraph()
     elif isinstance(data, DiGraph): # type 4
@@ -533,7 +533,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
             raise ValueError("not valid poset data.")
 
     # DEBUG: At this point D should be a DiGraph.
-    assert isinstance(D,DiGraph), "BUG: D should be a digraph."
+    assert isinstance(D, DiGraph), "BUG: D should be a digraph."
 
     # Determine cover relations, if necessary.
     if cover_relations is False:
@@ -549,7 +549,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         raise ValueError("Hasse diagram is not transitively reduced.")
 
     if element_labels is not None:
-        D.relabel(element_labels)
+        D = D.relabel(element_labels, inplace=False)
 
     if linear_extension:
         if element_labels is not None:
@@ -560,13 +560,8 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
                 elements = D.topological_sort()
             except Exception:
                 raise ValueError("Hasse diagram contains cycles.")
-        # Relabel using the linear_extension.
-        # So `elements` becomes a linear extension of the poset.
-        rdict = dict([[elements[i],D.vertices()[i]] for i in range(len(elements))])
-        D.relabel(rdict)
     else:
         elements = None
-
     return FinitePoset(D, elements=elements, category=category, facade=facade, key=key)
 
 class FinitePoset(UniqueRepresentation, Parent):
@@ -674,7 +669,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         sage: parent(QP[0]) is QP
         True
 
-    .. note::
+    .. NOTE::
 
        A class that inherits from this class needs to define
        ``Element``. This is the class of the elements that the inheriting
@@ -703,7 +698,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         sage: [[p2.__eq__(p1) for p1 in Posets(2)] for p2 in Posets(2)]
         [[True, False], [False, True]]
         sage: [[p2 == p1 for p1 in Posets(3)] for p2 in Posets(3)]
-        [[True, False, False, False, False], [False, True, False, False, False], [False, False, True, False, False], [False, False, False, True, False], [False, False, False, False, True]]
+        [[True, False, False, False, False],
+         [False, True, False, False, False],
+         [False, False, True, False, False],
+         [False, False, False, True, False],
+         [False, False, False, False, True]]
 
         sage: [[p1.__ne__(p2) for p1 in Posets(2)] for p2 in Posets(2)]
         [[False, True], [True, False]]
@@ -720,7 +719,7 @@ class FinitePoset(UniqueRepresentation, Parent):
     """
 
     @staticmethod
-    def __classcall__(cls, hasse_diagram, elements = None, category = None, facade = None, key = None):
+    def __classcall__(cls, hasse_diagram, elements=None, category=None, facade=None, key=None):
         """
         Normalizes the arguments passed to the constructor
 
@@ -758,14 +757,13 @@ class FinitePoset(UniqueRepresentation, Parent):
                 facade = True
             if elements is not None:
                 elements = tuple(elements)
-                hasse_diagram = hasse_diagram.relabel(elements, inplace=False)
-                hasse_diagram = hasse_diagram.copy(immutable=True)
         # Standardize the category by letting the Facade axiom be carried
         #   by the facade variable
         if category is not None and category.is_subcategory(Sets().Facade()):
             category = category._without_axiom("Facade")
         category = Category.join([FinitePosets().or_subcategory(category), FiniteEnumeratedSets()])
-        return super(FinitePoset, cls).__classcall__(cls, hasse_diagram=hasse_diagram, elements=elements,
+        return super(FinitePoset, cls).__classcall__(cls, hasse_diagram=hasse_diagram,
+                                                     elements=elements,
                                                      category=category, facade=facade,
                                                      key=key)
 
@@ -1110,7 +1108,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: H.set_latex_options(format = "dot2tex")   # optional - dot2tex
             sage: view(H, tight_page=True) # optional - dot2tex
         """
-        G = DiGraph(self._hasse_diagram).relabel(self._list, inplace = False)
+        G = DiGraph(self._hasse_diagram).relabel(self._list, inplace=False)
         from sage.graphs.dot2tex_utils import have_dot2tex
         if have_dot2tex():
             G.set_latex_options(format='dot2tex',
@@ -1263,10 +1261,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             5
             sage: L.list()
             [[1, 2, 4, 3, 6, 12],
-             [1, 2, 4, 6, 3, 12],
              [1, 2, 3, 4, 6, 12],
-             [1, 4, 2, 3, 6, 12],
-             [1, 4, 2, 6, 3, 12]]
+             [1, 2, 3, 6, 4, 12],
+             [1, 3, 2, 4, 6, 12],
+             [1, 3, 2, 6, 4, 12]]
 
         Each element is aware that it is a linear extension of `P`::
 
@@ -1287,10 +1285,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
                 sage: L = list(P.linear_extensions(facade=True)); L
                 [[1, 2, 4, 3, 6, 12],
-                 [1, 2, 4, 6, 3, 12],
                  [1, 2, 3, 4, 6, 12],
-                 [1, 4, 2, 3, 6, 12],
-                 [1, 4, 2, 6, 3, 12]]
+                 [1, 2, 3, 6, 4, 12],
+                 [1, 3, 2, 4, 6, 12],
+                 [1, 3, 2, 6, 4, 12]]
                 sage: type(L[0])
                 <type 'list'>
 
@@ -1444,14 +1442,14 @@ class FinitePoset(UniqueRepresentation, Parent):
             heights = defaultdict(list)
         else:
             heights = None
-        # if relabelling is needed
+        # if relabeling is needed
         if label_elements and element_labels is not None:
-            relabelling = dict((self(element), label)
+            relabeling = dict((self(element), label)
                                for (element, label) in element_labels.items())
-            graph = graph.relabel(relabelling, inplace = False)
+            graph = graph.relabel(relabeling, inplace = False)
             if rank_function: # use the rank function to set the heights
                 for i in self:
-                    heights[rank_function(i)].append(relabelling[i])
+                    heights[rank_function(i)].append(relabeling[i])
         else: # otherwise
             if rank_function: # use the rank function to set the heights
                 for i in self:
@@ -2271,9 +2269,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Posets.SymmetricGroupBruhatOrderPoset(4)
             sage: [(v,P.rank(v)) for v in P]
             [('1234', 0),
-             ('1324', 1),
+             ('1243', 1),
             ...
-             ('4231', 5),
+             ('4312', 5),
              ('4321', 6)]
         """
         if element is None:
@@ -3006,17 +3004,21 @@ class FinitePoset(UniqueRepresentation, Parent):
         #n = self.cardinality()
         #dual_hasse_digraph = self.hasse_diagram().reverse()
         #dual_hasse_digraph.relabel(lambda i: self._elements[n-i-1])
+        if not self._linear_extension:
+            elements = reversed(self._elements)
+        else:
+            elements = None
         return self._dual_class(self.hasse_diagram().reverse(),
                                 category=self.category(),
                                 facade=self._is_facade)
 
-    def relabel(self, relabelling):
+    def relabel(self, relabeling):
         r"""
         Return a copy of this poset with its elements relabelled.
 
         INPUT:
 
-        - ``relabelling`` -- a function or dictionnary
+        - ``relabeling`` -- a function or dictionnary
 
           This function should map each (non-wrapped) element of
           ``self`` to some distinct object.
@@ -3030,25 +3032,25 @@ class FinitePoset(UniqueRepresentation, Parent):
             [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
             sage: Q = P.relabel(lambda x: 12/x)
             sage: Q.list()
-            [12, 6, 4, 3, 2, 1]
+            [12, 6, 3, 4, 2, 1]
             sage: Q.cover_relations()
-            [[12, 6], [12, 4], [6, 3], [6, 2], [4, 2], [3, 1], [2, 1]]
+            [[12, 6], [12, 4], [6, 3], [6, 2], [3, 1], [4, 2], [2, 1]]
 
         Here we relabel the elements of a poset by `\{0,1,2, ...\}`, using
         a dictionary::
 
-            sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True, facade = False)
-            sage: relabelling = {c.element:i for (i,c) in enumerate(P)}; relabelling
+            sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True, facade=False)
+            sage: relabeling = {c.element:i for (i,c) in enumerate(P)}; relabeling
             {1: 0, 2: 1, 3: 3, 4: 2, 6: 4, 12: 5}
-            sage: Q = P.relabel(relabelling)
+            sage: Q = P.relabel(relabeling)
             sage: Q.list()
             [0, 1, 2, 3, 4, 5]
             sage: Q.cover_relations()
             [[0, 1], [0, 3], [1, 2], [1, 4], [2, 5], [3, 4], [4, 5]]
 
-        Mind the ``c.element``; this is because the relabelling is
+        Mind the ``c.element``; this is because the relabeling is
         applied to the elements of the poset without the wrapping.
-        Thanks to this convention, the same relabelling function can
+        Thanks to this convention, the same relabeling function can
         be used both for facade or non facade posets::
 
             sage: P = Poset((divisors(12), attrcall("divides")), facade = True, linear_extension=True)
@@ -3058,12 +3060,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.list()
             [12, 6, 4, 3, 2, 1]
             sage: Q.cover_relations()
-            [[12, 6], [12, 4], [6, 3], [6, 2], [4, 2], [3, 1], [2, 1]]
+            [[12, 6], [12, 4], [6, 3], [6, 2], [3, 1], [4, 2], [2, 1]]
 
         .. NOTE::
 
             As can be seen in the above examples, the default linear
-            extension of ``Q`` is that of ``P`` after relabelling. In
+            extension of ``Q`` is that of ``P`` after relabeling. In
             particular, ``P`` and ``Q`` share the same internal Hasse
             diagram.
 
@@ -3088,17 +3090,19 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: p1 == p3
             True
         """
-        if isinstance(relabelling, (list, tuple)):
-            relabelling = {i:relabelling[i] for i in range(len(self._elements))}
+        if isinstance(relabeling, (list, tuple)):
+            relabeling = {i:relabeling[i] for i in range(len(self._elements))}
         else:
-            if isinstance(relabelling, dict):
-                relabelling = relabelling.__getitem__
-            relabelling = {i: relabelling(x) for i,x in enumerate(self._elements)}
+            if isinstance(relabeling, dict):
+                relabeling = relabeling.__getitem__
+            relabeling = {i: relabeling(x) for i,x in enumerate(self._elements)}
         if not self._linear_extension:
             elements = None
         else:
-            elements = tuple(relabelling[self._element_to_vertex(x)] for x in self._elements)
-        return FinitePoset(self._hasse_diagram.relabel(relabelling, inplace=False), elements = elements,
+            elements = tuple(relabeling[self._element_to_vertex(x)]
+                             for x in self._elements)
+        return FinitePoset(self._hasse_diagram.relabel(relabeling, inplace=False),
+                           elements=elements,
                            category=self.category(),
                            facade=self._is_facade)
 
@@ -3114,31 +3118,36 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True, facade = False)
+            sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True, facade=False)
             sage: P.list()
             [1, 2, 4, 3, 6, 12]
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
             sage: Q = P.canonical_label()
             sage: Q.list()
-            [0, 2, 3, 1, 4, 5]
+            [0, 1, 2, 3, 4, 5]
             sage: Q.cover_relations()
-            [[0, 2], [0, 3], [2, 4], [3, 1], [3, 4], [1, 5], [4, 5]]
+            [[0, 2], [0, 3], [1, 5], [2, 4], [3, 1], [3, 4], [4, 5]]
 
         As a facade::
 
-            sage: P = Poset((divisors(12), attrcall("divides")), facade = True, linear_extension=True)
+            sage: P = Poset((divisors(12), attrcall("divides")), facade=True, linear_extension=True)
             sage: P.list()
             [1, 2, 4, 3, 6, 12]
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
             sage: Q = P.canonical_label()
             sage: Q.list()
-            [0, 2, 3, 1, 4, 5]
+            [0, 1, 2, 3, 4, 5]
             sage: Q.cover_relations()
-            [[0, 2], [0, 3], [2, 4], [3, 1], [3, 4], [1, 5], [4, 5]]
+            [[0, 2], [0, 3], [1, 5], [2, 4], [3, 1], [3, 4], [4, 5]]
         """
+        if not self._linear_extension:
+            elements = None
+        else:
+            elements = range(len(self._elements))
         return FinitePoset(DiGraph(self._hasse_diagram).canonical_label(),
+                           elements=elements,
                            category=self.category(),
                            facade=self._is_facade)
 
@@ -3150,7 +3159,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
             sage: P.cover_relations()
-            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
+            [[1, 2], [1, 3], [2, 4], [2, 6], [4, 12], [3, 6], [6, 12]]
             sage: list(P)
             [1, 2, 3, 4, 6, 12]
             sage: Q = P.with_linear_extension([1,3,6,2,4,12])
@@ -3182,15 +3191,16 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. NOTE::
 
-            With the current implementation, this requires relabelling
+            With the current implementation, this requires relabeling
             the internal :class:`DiGraph` which is `O(n+m)`, where `n`
             is the number of elements and `m` the number of cover relations.
         """
-        new_vertices = [ self._element_to_vertex(element) for element in linear_extension]
-        new_elements = [ self._elements[i] for i in new_vertices ]
-        vertex_relabelling = dict(zip(new_vertices, range(len(new_vertices))))
-        return FinitePoset(self._hasse_diagram.relabel(vertex_relabelling, inplace=False),
-                           elements = new_elements,
+        new_vertices = [self._element_to_vertex(element) for element in linear_extension]
+        new_elements = [self._elements[i] for i in new_vertices]
+        vertex_relabeling = { i: new_elements[i] for i in range(len(new_vertices)) }
+        #print vertex_relabeling
+        return FinitePoset(self._hasse_diagram.relabel(vertex_relabeling, inplace=False),
+                           elements=new_elements,
                            category=self.category(),
                            facade=self._is_facade)
 
@@ -4069,7 +4079,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         `n` by applying the promotion operator `\tau_i \tau_{i+1}
         \cdots \tau_{n-1}` to the default linear extension `\pi` of ``self``
         (see :meth:`~sage.combinat.posets.linear_extensions.LinearExtensionOfPoset.promotion`),
-        and relabelling ``self`` accordingly. For more details see [Stan2009]_.
+        and relabeling ``self`` accordingly. For more details see [Stan2009]_.
 
         When the vertices of the poset ``self`` are labelled by
         `\{1,2,\ldots,n\}`, the linear extension is the identity, and
@@ -4153,7 +4163,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         `(\tau_1 \cdots \tau_{n-1}) (\tau_1 \cdots \tau_{n-2}) \cdots (\tau_1)`,
         to the default linear extension `\pi` of ``self``
         (see :meth:`~sage.combinat.posets.linear_extensions.LinearExtensionOfPoset.evacuation`),
-        and relabelling ``self`` accordingly. For more details see [Stan2009]_.
+        and relabeling ``self`` accordingly. For more details see [Stan2009]_.
 
         .. SEEALSO::
 

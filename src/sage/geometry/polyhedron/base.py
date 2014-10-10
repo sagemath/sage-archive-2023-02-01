@@ -3525,7 +3525,7 @@ class Polyhedron_base(Element):
         in_str = self.cdd_Vrepresentation()
         in_str += 'volume'
         in_filename = tmp_filename()
-        in_file = file(in_filename,'w')
+        in_file = open(in_filename, 'w')
         in_file.write(in_str)
         in_file.close()
         if verbose: print in_str

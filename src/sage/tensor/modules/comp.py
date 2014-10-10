@@ -1179,7 +1179,7 @@ class Components(SageObject):
         
         - True if ``self`` is different from ``other``,  or False otherwise
         
-        EXAMPLES:
+        EXAMPLES::
         
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 1)

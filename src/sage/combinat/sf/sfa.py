@@ -212,7 +212,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import Integer, PolynomialRing, QQ
+from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 import sage.combinat.partition
@@ -1064,7 +1064,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 from the case when it isn't (in which case it transforms everything
                 into the Schur basis, which is slow).
             """
-            if lam in sage.rings.integer_ring.IntegerRing():
+            if lam in ZZ:
                 lam = [lam]
             lam = sage.combinat.partition.Partitions()(lam)
             R = self.base_ring()

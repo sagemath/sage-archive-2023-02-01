@@ -148,7 +148,6 @@ from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.dynamic_class import dynamic_class
 
 # a small overestimate of log(10,2)
@@ -7429,23 +7428,6 @@ cdef class Expression(CommutativeRingElement):
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
-
-    def lgamma(self, hold=False):
-        """
-        This method is deprecated, please use the ``.log_gamma()`` function instead.
-
-        Log gamma function evaluated at self.
-
-        EXAMPLES::
-
-            sage: x.lgamma()
-            doctest:...: DeprecationWarning: The lgamma() function is deprecated. Use log_gamma() instead.
-            See http://trac.sagemath.org/6992 for details.
-            log_gamma(x)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6992, "The lgamma() function is deprecated. Use log_gamma() instead.")
-        return self.log_gamma(hold=hold)
 
     def log_gamma(self, hold=False):
         """

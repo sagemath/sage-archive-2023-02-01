@@ -12338,7 +12338,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.is_directed() or method=='standard':
             return max(self.eccentricity())
         else:
-            return sage.graphs.distances_all_pairs.diameter(G, method=method)
+            return sage.graphs.distances_all_pairs.diameter(self, method=method)
 
     def distance_graph(self, dist):
         r"""

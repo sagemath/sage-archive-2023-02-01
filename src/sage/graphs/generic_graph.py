@@ -12304,7 +12304,7 @@ class GenericGraph(GenericGraph_pyx):
             return []
         return [v for v in e if e[v]==r]
 
-    def diameter(self, method=None):
+    def diameter(self, method=None, source=None):
         """
         Returns the largest distance between any two vertices. Returns Infinity
         if the (di)graph is not connected.
@@ -12315,6 +12315,8 @@ class GenericGraph(GenericGraph_pyx):
         documentation of the :meth:sage.graphs.distances_all_pairs.diameter
         for more details.
 
+        The input parameter ``source`` is used only for the ``2sweep``,
+        ``4sweep``, and ``iFUB`` methods.
 
         EXAMPLES::
 
@@ -12338,7 +12340,8 @@ class GenericGraph(GenericGraph_pyx):
         if self.is_directed() or method=='standard':
             return max(self.eccentricity())
         else:
-            return sage.graphs.distances_all_pairs.diameter(self, method=method)
+            return sage.graphs.distances_all_pairs.diameter(self, method=method, source=source)
+
 
     def distance_graph(self, dist):
         r"""

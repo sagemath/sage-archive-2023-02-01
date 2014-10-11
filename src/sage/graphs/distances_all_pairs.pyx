@@ -145,7 +145,7 @@ Functions
 
 include "sage/misc/bitset.pxi"
 include "sage/misc/binary_matrix.pxi"
-from libc.stdint cimport uint64_t, uint32_t, INT32_MAX
+from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
 from sage.graphs.base.c_graph cimport CGraph
 from sage.graphs.base.c_graph cimport vertex_label
 from sage.graphs.base.c_graph cimport get_vertex
@@ -838,7 +838,7 @@ cdef uint32_t _2sweep(uint32_t n,
     # so its diameter is infinite.
     if test_is_connected:
         if bitset_len(seen)<n:
-            return <uint32_t>-1
+            return UINT32_MAX
 
     # Then we perform a second BFS from the last visited vertex
     source = waiting_list[n-1]
@@ -898,7 +898,7 @@ cdef tuple _4sweep(uint32_t n,
     # We perform a first 2sweep call from source and test if the graph is
     # connected.
     LB = _2sweep(n, p_vertices, source, distances, waiting_list, seen, 1)
-    if LB==<uint32_t>-1:
+    if LB==UINT32_MAX:
         return (LB, 0, 0, 0)
 
     # We store the vertices s, m, d of the last BFS call. For vertex m, we
@@ -960,7 +960,7 @@ cdef uint32_t _iFUB(uint32_t n,
 
     # ==> We test if all vertices are seen
     #
-    if LB>n:
+    if LB==UINT32_MAX:
         return LB
 
     # ==> We order the vertices by decreasing layers. This is the inverse order
@@ -1128,7 +1128,7 @@ def diameter(G, method='iFUB', source=None):
         sage: G = graphs.RandomBarabasiAlbert(100, 2)
         sage: d1 = G.diameter(method='standard')
         sage: d2 = G.diameter(method='iFUB')
-        sage: d2 = G.diameter(method='iFUB', source=G.random_vertex())
+        sage: d3 = G.diameter(method='iFUB', source=G.random_vertex())
         sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
 
     """
@@ -1150,11 +1150,11 @@ def diameter(G, method='iFUB', source=None):
 
     diam = _diameter(G, method=method, source=source)
 
-    if diam>G.order():
+    if diam<0 or diam>G.order():
         from sage.rings.infinity import Infinity
         return +Infinity
     else:
-        return diam
+        return int(diam)
 
 
 

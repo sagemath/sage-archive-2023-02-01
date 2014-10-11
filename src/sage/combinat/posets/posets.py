@@ -857,7 +857,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         # Relabel using the linear_extension.
         # So range(len(D)) becomes a linear extension of the poset.
         rdict = dict([[self._elements[i],i] for i in range(len(self._elements))])
-        self._hasse_diagram = HasseDiagram(hasse_diagram.relabel(rdict, inplace=False))
+        self._hasse_diagram = HasseDiagram(hasse_diagram.relabel(rdict, inplace=False), data_structure="static_sparse")
         self._element_to_vertex_dict = dict( (self._elements[i], i)
                                              for i in range(len(self._elements)) )
         self._is_facade = facade
@@ -3032,7 +3032,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.dual().__class__
             <class 'sage.combinat.posets.lattices.FiniteMeetSemilattice_with_category'>
         """
-        if not self._linear_extension:
+        if self._linear_extension:
             elements = reversed(self._elements)
         else:
             elements = None

@@ -2170,6 +2170,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     faces.append(self)
                     for face in dfaces:
                         L.add_edge(face_to_index[face], next_index)
+                D = {i:f for i,f in enumerate(faces)}
+                L.relabel(D)
                 self._face_lattice = FinitePoset(L, faces, key = id(self))
         return self._face_lattice
 

@@ -1423,6 +1423,8 @@ class RationalPolyhedralFan(IntegralRayCollection,
             # ray incidence information to the total list, it would be
             # confused with the generating cone in the case of a single cone.
             elements[labels[0]] = FanFace(tuple(range(self.nrays())), ())
+            D = {i:f for i,f in enumerate(elements)}
+            L.relabel(D)
             self._cone_lattice = FinitePoset(L, elements, key = id(self))
 
     def _contains(self, cone):

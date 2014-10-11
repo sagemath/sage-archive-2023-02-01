@@ -375,10 +375,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         otherwise.
 
         A lattice $(L, \vee, \wedge)$ is distributive if meet
-        distributes over join: $x \wedge (y \vee z) = (x \wedge y) \vee (x \wedge z)$
-        for every $x,y,z \in L$ just like $x \cdot (y+z)=x \cdot y + x \cdot z$ in
-        normal arithmetic. For duality in lattices it follows that then also
-        join distributes over meet.
+        distributes over join: $x \wedge (y \vee z) = (x \wedge y)
+        \vee (x \wedge z)$ for every $x,y,z \in L$ just like $x \cdot
+        (y+z)=x \cdot y + x \cdot z$ in normal arithmetic. For duality
+        in lattices it follows that then also join distributes over
+        meet.
 
         EXAMPLES::
 
@@ -390,8 +391,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             False
         """
         if self.cardinality() == 0: return True
-        return self.is_graded() and \
-         self.rank() == len(self.join_irreducibles()) == len(self.meet_irreducibles())
+        return (self.is_graded() and 
+         self.rank() == len(self.join_irreducibles()) ==
+         len(self.meet_irreducibles()))
 
     def is_complemented(self):
         r"""

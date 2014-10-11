@@ -1195,7 +1195,7 @@ end_scene""" % (render_params.antialiasing,
         if DOCTEST_MODE or viewer=='jmol':
             # Temporary hack: encode the desired applet size in the end of the filename:
             # (This will be removed once we have dynamic resizing of applets in the browser.)
-            fg = figsize[0]*100
+            fg = figsize[0]
             sizedname = lambda ext: makename("-size{}{}".format(fg*100, ext))
 
             if EMBEDDED_MODE:

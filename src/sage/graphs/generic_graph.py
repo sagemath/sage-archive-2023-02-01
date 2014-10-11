@@ -12335,7 +12335,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         if self.order()==0:
             return 0
-        if isinstance(self, DiGraph) or method=='standard':
+        if self.is_directed() or method=='standard':
             return max(self.eccentricity())
         else:
             return sage.graphs.distances_all_pairs.diameter(G, method=method)

@@ -1185,13 +1185,11 @@ end_scene""" % (render_params.antialiasing,
         if DOCTEST_MODE or viewer=='java3d':
             mtl = makename(".mtl")
             filename = makename(".obj")
-            f = open(filename, "w")
-            f.write("mtllib %s\n" % mtl)
-            f.write(self.obj())
-            f.close()
-            f = open(mtl, "w")
-            f.write(self.mtl_str())
-            f.close()
+            with open(filename, "w") as f:
+                f.write("mtllib %s\n" % mtl)
+                f.write(self.obj())
+            with open(mtl, "w") as f:
+                f.write(self.mtl_str())
             viewer_app = os.path.join(sage.misc.misc.SAGE_LOCAL, "bin/sage3d")
 
         if DOCTEST_MODE or viewer=='jmol':
@@ -1251,9 +1249,8 @@ end_scene""" % (render_params.antialiasing,
             T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             data = flatten_list(T.json_repr(T.default_render_params()))
             filename = makename('.canvas3d')
-            f = open(filename, 'w')
-            f.write('[%s]' % ','.join(data))
-            f.close()
+            with open(filename, 'w') as f:
+                f.write('[%s]' % ','.join(data))
 
         if filename is None:
             raise ValueError("Unknown 3d plot type: %s" % viewer)

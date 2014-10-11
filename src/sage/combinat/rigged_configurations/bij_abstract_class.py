@@ -459,10 +459,10 @@ class RCToKRTBijectionAbstract:
             5
             sage: bijection.cur_partitions
             [(/)
-            , (/)
-            , (/)
-            , (/)
-            ]
+             , (/)
+             , (/)
+             , (/)
+             ]
         """
 
     def _update_vacancy_numbers(self, a):

@@ -408,7 +408,7 @@ cdef class FpTElement(RingElement):
             sage: hash(K(5))
             5
             sage: set([1, t, 1/t, t, t, 1/t, 1+1/t, t/t])
-            set([1, 1/t, t, (t + 1)/t])
+            {1, 1/t, t, (t + 1)/t}
             sage: a = (t+1)/(t^2-1); hash(a) == hash((a.numer(),a.denom()))
             True
         """
@@ -1089,9 +1089,11 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
         """
-        This function allows the map to take multiple arguments, usually used to specify both numerator and denominator.
+        This function allows the map to take multiple arguments,
+        usually used to specify both numerator and denominator.
 
-        If ``reduce`` is specified as False, then the result won't be normalized.
+        If ``reduce`` is specified as False, then the result won't be
+        normalized.
 
         EXAMPLES::
 
@@ -1107,7 +1109,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
 
         TEST:
 
-        Check that :trac:`12217` is fixed::
+        Check that :trac:`12217` and :trac:`16811` are fixed::
 
             sage: R.<t> = GF(5)[]
             sage: K = R.fraction_field()
@@ -1116,8 +1118,17 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: fraction has denominator 0
+            sage: f(t, GF(5).zero())
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: fraction has denominator 0
+            sage: f(t, R.zero())
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: fraction has denominator 0
         """
         cdef Polynomial_zmod_flint x
+        cdef unsigned long r
         try:
             x = <Polynomial_zmod_flint?> _x
         except TypeError:
@@ -1127,16 +1138,13 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
         nmod_poly_init(ans._denom, ans.p)
-        cdef long r
         nmod_poly_set(ans._numer, &x.x)
         if len(args) == 0:
-            nmod_poly_set_coeff_ui(ans._denom, 0, 1)
+            nmod_poly_set_coeff_ui(ans._denom, 0, 1)  # No need to normalize
         elif len(args) == 1:
             y = args[0]
             if PY_TYPE_CHECK(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
-                if r == 0:
-                    raise ZeroDivisionError('fraction has denominator 0')
                 nmod_poly_set_coeff_ui(ans._denom, 0, r)
             else:
                 # could use the coerce keyword being set to False to not check this...
@@ -1144,10 +1152,13 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
                     # We could special case integers and GF(p) elements here.
                     y = self.domain()(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
+            # Normalize the fraction, checking for division by zero
+            if nmod_poly_is_zero(ans._denom):
+                raise ZeroDivisionError('fraction has denominator 0')
+            if kwds.get('reduce', True):
+                normalize(ans._numer, ans._denom, ans.p)
         else:
-            raise ValueError, "FpT only supports two positional arguments"
-        if 'reduce' not in kwds or kwds['reduce']:
-            normalize(ans._numer, ans._denom, ans.p)
+            raise TypeError("FpT only supports two positional arguments")
         ans.initalized = True
         return ans
 

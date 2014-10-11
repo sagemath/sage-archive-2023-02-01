@@ -42,6 +42,17 @@ cdef extern from "fplll/matrix.h" namespace "fplll":
 
 cdef extern from "fplll/defs.h" namespace "fplll":
 
+    cdef enum RedStatus:
+        RED_SUCCESS
+        RED_GSO_FAILURE
+        RED_BABAI_FAILURE
+        RED_LLL_FAILURE
+        RED_ENUM_FAILURE
+        RED_BKZ_FAILURE
+        RED_BKZ_TIME_LIMIT
+        RED_BKZ_LOOPS_LIMIT
+        RED_STATUS_MAX
+
     cdef enum LLLFlags:
         LLL_VERBOSE
         LLL_EARLY_RED

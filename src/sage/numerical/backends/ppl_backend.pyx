@@ -79,13 +79,12 @@ cdef class PPLBackend(GenericBackend):
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "PPL")
+            sage: p = get_solver(solver="PPL")
             sage: p.base_ring()
             Rational Field
             sage: type(p.zero())
             <type 'sage.rings.rational.Rational'>
             sage: p.init_mip()
-
         """
 
         self.mip = MIP_Problem()
@@ -123,22 +122,11 @@ cdef class PPLBackend(GenericBackend):
                     l *= newdenom
                     coeff *= newdenom
                 l = l + Linear_Expression(coeff * Variable(j))
-            if self.row_lower_bound[i] is not None:
-                rhs = self.row_lower_bound[i] * denom
-                self.mip.add_constraint(l * rhs.denominator() >= rhs.numerator())
-            if self.row_upper_bound[i] is not None:
-                rhs = self.row_upper_bound[i] * denom
-                self.mip.add_constraint(l * rhs.denominator() <= rhs.numerator())
+            self.mip._add_rational_constraint(l, denom, self.row_lower_bound[i], self.row_upper_bound[i])
 
+        assert len(self.col_lower_bound) == len(self.col_upper_bound)
         for i in range(len(self.col_lower_bound)):
-            if self.col_lower_bound[i] is not None:
-                rhs = Rational(self.col_lower_bound[i])
-                self.mip.add_constraint(Variable(i) * rhs.denominator() >= rhs.numerator())
-
-        for i in range(len(self.col_upper_bound)):
-            if self.col_upper_bound[i] is not None:
-                rhs = Rational(self.col_upper_bound[i])
-                self.mip.add_constraint(Variable(i) * rhs.denominator() <= rhs.numerator())
+            self.mip._add_rational_constraint(Variable(i), 1, self.col_lower_bound[i], self.col_upper_bound[i])
 
         if self.is_maximize == 1:
             self.mip.set_optimization_mode('maximization')

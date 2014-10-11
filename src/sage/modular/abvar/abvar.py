@@ -120,9 +120,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         All hell breaks loose if you try to do anything with `A`::
 
             sage: A
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: BUG -- lattice method must be defined in derived class
+            <repr(<sage.modular.abvar.abvar.ModularAbelianVariety_abstract_with_category at 0x...>) failed: NotImplementedError: BUG -- lattice method must be defined in derived class>
 
 
         All instances of this class are in the category of modular
@@ -186,9 +184,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
             sage: A = sage.modular.abvar.abvar.ModularAbelianVariety_abstract((Gamma0(37),), QQ)
             sage: A
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: BUG -- lattice method must be defined in derived class
+            <repr(<sage.modular.abvar.abvar.ModularAbelianVariety_abstract_with_category at 0x...>) failed: NotImplementedError: BUG -- lattice method must be defined in derived class>
         """
         raise NotImplementedError("BUG -- lattice method must be defined in derived class")
     #############################################################################

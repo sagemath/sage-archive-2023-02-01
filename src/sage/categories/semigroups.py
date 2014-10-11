@@ -45,7 +45,7 @@ class Semigroups(CategoryWithAxiom):
         [Category of semigroups, Category of magmas,
          Category of sets, Category of sets with partial maps, Category of objects]
         sage: C.axioms()
-        frozenset(['Associative'])
+        frozenset({'Associative'})
         sage: C.example()
         An example of a semigroup: the left zero semigroup
 

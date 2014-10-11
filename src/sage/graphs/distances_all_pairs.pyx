@@ -756,18 +756,402 @@ def eccentricity(G):
 
     return l_ecc
 
-def diameter(G):
-    r"""
+
+############
+# Diameter #
+############
+
+cdef inline uint32_t _simple_BFS(uint32_t n,
+                                 uint32_t ** p_vertices,
+                                 uint32_t source,
+                                 uint32_t *distances,
+                                 uint32_t *waiting_list,
+                                 bitset_t seen):
+    """
+    Perform a BFS using the same method as in
+    sage.graphs.distances_all_pairs.all_pairs_shortest_path_BFS
+
+    Furthermore, the method returns the last computed distance which is the
+    eccentricity of the source when all vertices are seen.
+    """
+    cdef uint32_t v, u
+    cdef uint32_t waiting_beginning = 0
+    cdef uint32_t waiting_end = 0
+    cdef uint32_t * p_tmp
+    cdef uint32_t * end
+
+    # the source is seen
+    bitset_clear(seen)
+    bitset_add(seen, source)
+    distances[source] = 0
+
+    # and added to the queue
+    waiting_list[0] = source
+    waiting_beginning = 0
+    waiting_end = 0
+
+    # For as long as there are vertices left to explore
+    while waiting_beginning <= waiting_end:
+
+        # We pick the first one
+        v = waiting_list[waiting_beginning]
+        p_tmp = p_vertices[v]
+        end = p_vertices[v+1]
+
+        # Iterating over all the outneighbors u of v
+        while p_tmp < end:
+            u = p_tmp[0]
+
+            # If we notice one of these neighbors is not seen yet, we set its
+            # parameters and add it to the queue to be explored later.
+            if not bitset_in(seen, u):
+                distances[u] = distances[v]+1
+                bitset_add(seen, u)
+                waiting_end += 1
+                waiting_list[waiting_end] = u
+
+            p_tmp += 1
+
+        waiting_beginning += 1
+
+    return distances[waiting_list[waiting_end]]
+
+
+cdef uint32_t _2sweep(uint32_t n,
+                      uint32_t ** p_vertices,
+                      uint32_t source,
+                      uint32_t * distances,
+                      uint32_t * waiting_list,
+                      bitset_t seen,
+                      int test_is_connected):
+    """
+    Lower bound on the diameter using 2-sweep.
+
+    See the module's documentation.
+    """
+    cdef uint32_t LB, i, k, tmp
+
+    # We do a first BFS from source
+    LB = _simple_BFS(n, p_vertices, source, distances, waiting_list, seen)
+
+    # We test if all vertices are seen. If not, the graph is not connected and
+    # so its diameter is infinite.
+    if test_is_connected:
+        if bitset_len(seen)<n:
+            return <uint32_t>-1
+
+    # Then we perform a second BFS from the last visited vertex
+    source = waiting_list[n-1]
+    LB = _simple_BFS(n, p_vertices, source, distances, waiting_list, seen)
+
+    return LB
+
+
+cdef inline uint32_t _4sweep_select_dichotomy(uint32_t n,
+                                              uint32_t * distances,
+                                              uint32_t * waiting_list,
+                                              uint32_t LB_2):
+    """
+    Search for a vertex of eccentricity LB/2 by dichotomy. Recall that the
+    vertices in array waiting_list are ordered by increasing distance from the
+    source (i.e., waiting_list[0]).
+    """
+    cdef uint32_t i, j, k
+
+    i = 0
+    j = n-1
+    while i!=j:
+        if i==j-1:
+            if distances[waiting_list[i]]<LB_2:
+                i = j
+            else:
+                j = i
+        else:
+            k = (i+j)/2
+            if distances[waiting_list[k]]<LB_2:
+                i = k
+            else:
+                j = k
+
+    return waiting_list[i]
+
+
+cdef tuple _4sweep(uint32_t n,
+                   uint32_t ** p_vertices,
+                   uint32_t source,
+                   uint32_t * distances,
+                   uint32_t * waiting_list,
+                   bitset_t seen):
+    """
+    Lower bound on the diameter using 4-sweep.
+
+    See the module's documentation.
+
+    The method returns a 4-tuple ``(LB, s, m, d)``, where ``LB`` is best found
+    lower bound on the diameter, ``s`` is a vertex of eccentricity ``LB``, ``d``
+    is a vertex at distance ``LB`` from ``s``, and ``m`` is a vertex at distance
+    ``LB/2`` from both ``s`` and ``d``.
+
+    """
+    cdef uint32_t LB, tmp
+
+    # We perform a first 2sweep call from source and test if the graph is
+    # connected.
+    LB = _2sweep(n, p_vertices, source, distances, waiting_list, seen, 1)
+    if LB==<uint32_t>-1:
+        return (LB, 0, 0, 0)
+
+    # We store the vertices s, m, d of the last BFS call. For vertex m, we
+    # search for a vertex of eccentricity LB/2 by dichotomy. This vertex will
+    # serve the source for the next 2sweep call. Other strategies are
+    # possible. For instance, we could search for the vertex of maximum degree
+    # at the same distance from the last source, etc.
+    cdef uint32_t s = waiting_list[0]
+    cdef uint32_t m = _4sweep_select_dichotomy(n, distances, waiting_list, LB/2)
+    cdef uint32_t d = waiting_list[n-1]
+
+    cdef int improved = 1
+
+    # We perform new 2sweep calls for as long as we are able to improve the
+    # lower bound.
+    while improved:
+        improved = 0
+
+        # We perform a new 2sweep from m
+        tmp = _2sweep(n, p_vertices, m, distances, waiting_list, seen, 0)
+
+        # and check if the lower bound is improved
+        if tmp>LB:
+            improved = 1
+            LB = tmp
+            s = waiting_list[0]
+            m = _4sweep_select_dichotomy(n, distances, waiting_list, LB/2)
+            d = waiting_list[n-1]
+
+    return (LB, s, m, d)
+
+
+cdef uint32_t _iFUB(uint32_t n,
+                    uint32_t ** p_vertices,
+                    uint32_t source,
+                    uint32_t *distances,
+                    uint32_t *waiting_list,
+                    bitset_t seen,
+                    uint32_t *order,
+                    uint32_t *layer):
+    """
+    Computes the diameter of the input Graph using the iFUB algorithm.
+
+    The iFUB (iterative Fringe Upper Bound) algorithm calculates the exact value
+    of the diameter of a unweighted undirected graph [CGI+10]_. This algorithm
+    uses as a subroutine the 4-sweep lower bound computation method in order to
+    start an iterative procedure whose goal is both to refine the lower bound
+    value itself and to properly tune an upper bound value, until the two values
+    coincide. The worst case time complexity of the iFUB algorithm is O(nm), but
+    it can be very fast in practice. See [CGH+13]_ for more details.
+
+    """
+    cdef uint32_t i
+
+    # ==> We select a vertex m with low eccentricity using 4-sweep
+    #
+    cdef uint32_t LB, s, m, d
+    LB, s, m, d = _4sweep(n, p_vertices, source, distances, waiting_list, seen)
+
+    # ==> We test if all vertices are seen
+    #
+    if LB>n:
+        return LB
+
+    # ==> We order the vertices by decreasing layers. This is the inverse order
+    #     of a BFS from m, and so the inverse order of array waiting_list.
+    #     Distances are stored in array layer.
+    #
+    LB = _simple_BFS(n, p_vertices, m, layer, waiting_list, seen)
+    for i from 0 <= i < n:
+        order[i] = waiting_list[n-i-1]
+
+
+    # ==> We run a BFS from each vertex starting from the vertices at largest
+    #     distance from m. We stop exploration as soon as UB==LB.
+    i = 0
+    while (2*layer[order[i]])>LB and i<n:
+        tmp = _simple_BFS(n, p_vertices, order[i], distances, waiting_list, seen)
+        i += 1
+
+        # We update the lower bound
+        if tmp>LB:
+            LB = tmp
+
+    # ==> We finally return the computed diameter
+    return LB
+
+
+cdef _diameter(gg, method='iFUB', source=None):
+    """
+    Computes the diameter of the input Graph using specified method.
+
+    See the module's documentation.
+    """
+    cdef int n = gg.order()
+    cdef int i, u, LB, tmp
+
+    # Copying the whole graph to obtain the list of neighbors quicker than by
+    # calling out_neighbors
+
+    # The edges are stored in the vector p_edges. This vector contains, from
+    # left to right The list of the first vertex's outneighbors, then the
+    # second's, then the third's, ...
+    #
+    # The outneighbors of vertex i are enumerated from
+    #
+    # p_vertices[i] to p_vertices[i+1] - 1
+    # (if p_vertices[i] is equal to p_vertices[i+1], then i has no outneighbours)
+    #
+    # This data structure is well documented in the module
+    # sage.graphs.base.static_sparse_graph
+
+    cdef short_digraph sd
+    init_short_digraph(sd, gg)
+    cdef uint32_t ** p_vertices = sd.neighbors
+    cdef uint32_t * p_edges = sd.edges
+    cdef uint32_t * p_next = p_edges
+    cdef uint32_t * p_tmp
+    cdef uint32_t * end
+
+    cdef uint32_t isource = 0 if source is None else gg.vertices().index(source)
+
+
+    # The vertices which have already been visited
+    cdef bitset_t seen
+    bitset_init(seen, n)
+
+    # ==> initialize some tables
+    #
+    cdef uint32_t * waiting_list = <uint32_t *> sage_malloc(4* n * sizeof(uint32_t))
+    if waiting_list == NULL:
+        free_short_digraph(sd)
+        bitset_free(seen)
+        sage_free(waiting_list)
+        raise MemoryError()
+    cdef uint32_t * layer        = waiting_list + n
+    cdef uint32_t * order        = waiting_list + 2*n
+    cdef uint32_t * c_distances  = waiting_list + 3*n
+
+
+    if method=='2sweep':
+        LB = _2sweep(n, p_vertices, isource, c_distances, waiting_list, seen, 1)
+
+    elif method=='4sweep':
+        LB = _4sweep(n, p_vertices, isource, c_distances, waiting_list, seen)[0]
+
+    else: # method=='iFUB'
+        LB = _iFUB(n, p_vertices, isource, c_distances, waiting_list, seen, order, layer)
+
+
+    free_short_digraph(sd)
+    bitset_free(seen)
+    sage_free(waiting_list)
+
+    return LB
+
+
+def diameter(G, method='iFUB', source=None):
+    """
     Returns the diameter of `G`.
 
-    EXAMPLE::
+    This method returns Infinity if the (di)graph is not connected. It can also
+    quickly return a lower bound on the diameter using the ``2sweep`` and
+    ``4sweep`` schemes.
 
-        sage: from sage.graphs.distances_all_pairs import diameter
-        sage: g = graphs.PetersenGraph()
-        sage: diameter(g)
+    INPUTS:
+
+        - ``method`` -- (default: 'iFUB') specifies the algorithm to use among:
+
+            - ``standard`` -- Computes the diameter of the input (di)graph as
+              the largest eccentricity of its vertices. This is the classical
+              method with time complexity in `O(nm)`.
+
+            - ``2sweep`` -- Computes a lower bound on the diameter of an
+              unweighted undirected graph using 2 BFS, as proposed in [MLH08]_.
+              It first selects a vertex `v` that is at largest distance from an
+              initial vertex source using BFS. Then it performs a second BFS
+              from `v`. The largest distance from `v` is returned as a lower
+              bound on the diameter of `G`.  The time complexity of this method
+              is linear in the size of `G`.
+
+            - ``4sweep`` -- Computes a lower bound on the diameter of an
+              unweighted undirected graph using several iterations of the
+              ``2sweep`` algorithms [CGH+13]_. Roughly, it first uses ``2sweep``
+              to identify two vertices `u` and `v` that are far apart. Then it
+              selects a vertex `w` that is at same distance from `u` and `v`.
+              This vertex `w` will serve as the new source for another iteration
+              of the ``2sweep`` algorithm that may improve the current lower
+              bound on the diameter. This process is repeated as long as the
+              lower bound on the diameter is improved.
+
+            - ``iFUB`` -- The iFUB (iterative Fringe Upper Bound) algorithm,
+              proposed in [CGI+10]_, computes the exact value of the diameter of
+              an unweighted undirected graph. This algorithm uses as a
+              subroutine the ``4sweep`` lower bound computation method in order
+              to start an iterative procedure whose goal is both to refine the
+              lower bound value itself and to properly tune an upper bound
+              value, until the two values coincide. The worst case time
+              complexity of the iFUB algorithm is `O(nm)`, but it can be very
+              fast in practice. See [CGH+13]_ for more details.
+
+        - ``source`` -- (default: None) vertex from which to start the first
+          BFS. If ``source==None``, an arbitrary vertex of the graph is
+          chosen. Raise an error if the initial vertex is not in `G`.
+          This parameter is not used when ``method=='standard'``.
+
+
+    EXAMPLES:
+
+        sage: G = graphs.PetersenGraph()
+        sage: G.diameter(method='iFUB')
         2
+        sage: G = Graph( { 0 : [], 1 : [], 2 : [1] } )
+        sage: G.diameter(method='iFUB')
+        +Infinity
+
+
+    Although max( ) is usually defined as -Infinity, since the diameter will
+    never be negative, we define it to be zero::
+
+        sage: G = graphs.EmptyGraph()
+        sage: G.diameter(method='iFUB')
+        0
+
+    Comparison of exact methods::
+
+        sage: G = graphs.RandomBarabasiAlbert(100, 2)
+        sage: d1 = G.diameter(method='standard')
+        sage: d2 = G.diameter(method='iFUB')
+        sage: d2 = G.diameter(method='iFUB', source=G.random_vertex())
+        sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
+
     """
-    return max(eccentricity(G))
+    if G.order()==0:
+        return 0
+    
+    if method=='standard':
+        return max(G.eccentricity())
+
+    elif method is None:
+        method = 'iFUB'
+    elif not method in ['2sweep', '4sweep', 'iFUB']:
+        raise ValueError("Unknown method for computing the diameter.")
+
+    if source is None:
+        source = G.vertex_iterator().next()
+    elif not source in G:
+        raise ValueError("The specified source is not a vertex of the input Graph.")
+
+    diam = _diameter(G, method=method, source=source)
+
+    return +Infinity if diam>G.order() else diam
+
 
 
 ################

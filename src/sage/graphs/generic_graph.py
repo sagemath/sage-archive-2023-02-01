@@ -12304,10 +12304,17 @@ class GenericGraph(GenericGraph_pyx):
             return []
         return [v for v in e if e[v]==r]
 
-    def diameter(self):
+    def diameter(self, method=None):
         """
-        Returns the largest distance between any two vertices. Returns
-        Infinity if the (di)graph is not connected.
+        Returns the largest distance between any two vertices. Returns Infinity
+        if the (di)graph is not connected.
+
+        For unweighted Graphs, it is possible to use the ``2sweep`` and
+        ``4sweep`` lower bound methods as well as the ``iFUB`` fast exact
+        algorithm instead of the ``standard`` exhaustive algorithm. See the
+        documentation of the :meth:sage.graphs.distances_all_pairs.diameter
+        for more details.
+
 
         EXAMPLES::
 
@@ -12326,11 +12333,12 @@ class GenericGraph(GenericGraph_pyx):
             0
 
         """
-
-        if self.order() > 0:
+        if self.order()==0:
+            return 0
+        if isinstance(self, DiGraph) or method=='standard':
             return max(self.eccentricity())
         else:
-            return 0
+            return sage.graphs.distances_all_pairs.diameter(G, method=method)
 
     def distance_graph(self, dist):
         r"""

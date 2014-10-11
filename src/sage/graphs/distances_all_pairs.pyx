@@ -1150,7 +1150,11 @@ def diameter(G, method='iFUB', source=None):
 
     diam = _diameter(G, method=method, source=source)
 
-    return +Infinity if diam>G.order() else diam
+    if diam>G.order():
+        from sage.rings.infinity import Infinity
+        return +Infinity
+    else:
+        return diam
 
 
 

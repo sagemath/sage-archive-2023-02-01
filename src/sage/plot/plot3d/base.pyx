@@ -1245,7 +1245,7 @@ end_scene""" % (render_params.antialiasing,
                     T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
                     tachyon_rt(T.tachyon(), png_name, verbosity, True, opts)
 
-        if DOCTEST_MODE or (viewer == 'canvas3d' and EMBEDDED_MODE):
+        if viewer == 'canvas3d':
             T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             data = flatten_list(T.json_repr(T.default_render_params()))
             filename = makename('.canvas3d')

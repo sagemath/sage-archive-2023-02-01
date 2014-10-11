@@ -3170,11 +3170,18 @@ class FinitePoset(UniqueRepresentation, Parent):
             [0, 1, 2, 3, 4, 5]
             sage: Q.cover_relations()
             [[0, 2], [0, 3], [1, 5], [2, 4], [3, 1], [3, 4], [4, 5]]
+
+        TESTS::
+
+            sage: P = Poset(digraphs.Path(10), linear_extension = True)
+            sage: P.canonical_label().linear_extension()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
         if not self._linear_extension:
             elements = None
         else:
             elements = range(len(self._elements))
+            self = self.relabel(elements)
         return FinitePoset(DiGraph(self._hasse_diagram).canonical_label(),
                            elements=elements,
                            category=self.category(),

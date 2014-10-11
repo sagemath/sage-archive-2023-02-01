@@ -18,7 +18,7 @@ Ribbon Shaped Tableaux
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.combinat.skew_tableau import SkewTableau, StandardSkewTableaux, from_expr
+from sage.combinat.skew_tableau import SkewTableau, StandardSkewTableaux
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.permutation import Permutation, descents_composition_first, descents_composition_list, descents_composition_last
 from sage.combinat.skew_partition import SkewPartition
@@ -416,4 +416,5 @@ class StandardRibbonShapedTableaux_shape(StandardRibbonShapedTableaux):
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.ribbon', 'Ribbon_class', RibbonShapedTableau)
+register_unpickle_override('sage.combinat.ribbon', 'StandardRibbons_shape', StandardRibbonShapedTableaux)
 

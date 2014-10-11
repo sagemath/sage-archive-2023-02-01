@@ -2128,57 +2128,6 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
         for x in RibbonTableaux_shape_weight_length(self.p, self.mu, 1):
             yield self.element_class(self, x._list)
 
-################
-# Deprecations #
-################
-
-def from_expr(expr):
-    """
-    Deprecated in :trac:`14101`. Use instead :meth:`SkewTableaux.from_expr()`.
-
-    EXAMPLES::
-
-        sage: sage.combinat.skew_tableau.from_expr([[1,1],[[5],[3,4],[1,2]]])
-        doctest:...: DeprecationWarning: from_expr is deprecated. Use SkewTableaux().from_expr instead
-        See http://trac.sagemath.org/14101 for details.
-        [[None, 1, 2], [None, 3, 4], [5]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'from_expr is deprecated. Use SkewTableaux().from_expr instead')
-    return SkewTableaux().from_expr(expr)
-
-def from_shape_and_word(shape, word):
-    """
-    Deprecated in :trac:`14101`. Use instead
-    :meth:`SkewTableaux.from_shape_and_word()`.
-
-    EXAMPLES::
-
-        sage: t = SkewTableau([[None, 1, 3], [None, 2], [4]])
-        sage: shape = t.shape()
-        sage: word  = t.to_word()
-        sage: sage.combinat.skew_tableau.from_shape_and_word(shape, word)
-        doctest:...: DeprecationWarning: from_shape_and_word is deprecated. Use SkewTableaux().from_shape_and_word instead
-        See http://trac.sagemath.org/14101 for details.
-        [[None, 1, 3], [None, 2], [4]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'from_shape_and_word is deprecated. Use SkewTableaux().from_shape_and_word instead')
-    return SkewTableaux().from_shape_and_word(shape, word)
-
-def StandardSkewTableaux_skewpartition(skp):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.skew_tableau.StandardSkewTableaux_skewpartition([[1],[]])
-        doctest:...: DeprecationWarning: this class is deprecated. Use StandardSkewTableaux_shape instead
-        See http://trac.sagemath.org/14101 for details.
-        Standard skew tableaux of shape [1] / []
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101,'this class is deprecated. Use StandardSkewTableaux_shape instead')
-    return StandardSkewTableaux(skp)
-
 # October 2012: fixing outdated pickles which use the classes being deprecated
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_n',  StandardSkewTableaux_size)

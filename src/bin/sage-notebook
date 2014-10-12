@@ -45,12 +45,16 @@ class NotebookSageNB(object):
                 args.append(value)
         return tuple(args), kwds
 
-    def __init__(self, argv):
+    def __init__(self, argv, help=False):
         self.args, self.kwds = self.cmdline2argspec(argv)
         logger.info('notebook positional arguments = %s', self.args)
         logger.info('notebook keyword arguments = %s', self.kwds)
         from sagenb.notebook.notebook_object import notebook
-        notebook(*self.args, **self.kwds)
+        if help:
+            from sage.misc.sageinspect import sage_getdoc
+            print(sage_getdoc(notebook))
+        else:
+            notebook(*self.args, **self.kwds)
     
 
 class NotebookIPython(object):
@@ -67,11 +71,14 @@ description = \
 """
 The Sage notebook launcher is used to start the notebook, and allows
 you to choose between different implementations. Any further command
-line options are passed to the respective notebook. Sagenb: See the
-online help, that is, run "notebook?" in Sage. IPython: See the output
-of "sage -ipython notebook --help".
+line options are passed to the respective notebook.
 """
 
+help_help = \
+"""
+show this help message and exit. Can be combined with
+"--notebook=[...]" to see notebook-specific options
+"""
 
 notebook_launcher = {
     'default': NotebookSageNB,   # change this to change the default
@@ -93,7 +100,7 @@ def make_parser():
     parser.add_argument('-h', '--help',
                         dest='option_help', action='store_true',
                         default=False, 
-                        help='show this help message and exit')
+                        help=help_help)
     parser.add_argument('--log', dest='log', default=None,
                         help='one of [DEBUG, INFO, ERROR, WARNING, CRITICAL]')
     default = None
@@ -121,10 +128,6 @@ if __name__ == '__main__':
     logger.info('Main parser got arguments %s', args)
     logger.info('Passing on to notebook implementation: %s', unknown)
 
-    if args.option_help:
-        parser.print_help()
-        sys.exit(0)
-
     try:
         launcher = notebook_launcher[args.notebook]
     except KeyError:
@@ -132,6 +135,17 @@ if __name__ == '__main__':
         print('Error, notebook must be one of {0} but got {1}'.
               format(notebook_names, args.notebook))
         sys.exit(1)
+
+    if args.option_help:
+        if args.notebook == 'default':
+            parser.print_help()
+        elif launcher == NotebookSageNB:
+            NotebookSageNB([], help=True)
+        elif launcher == NotebookIPython:
+            NotebookIPython(['help'])
+        else:
+            parser.print_help()
+        sys.exit(0)
 
     banner()
     print("Please wait while the Sage Notebook server starts...")

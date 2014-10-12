@@ -39,21 +39,13 @@ Website: http://ecls.sourceforge.net/
 
 == Special Update/Build Instructions ==
  * Deleting the following directories saves space: without doing
-   this, the spkg can grow from under 2.5 megabytes to almost 7
+   this, the tarball can grow from under 3 megabytes to more than 7
    megabytes.  Deleting these files is done automatically by the
    `spkg-src` script.
-   - The directory src/msvc/
-   - The directory src/src/gc-unstable
-   - The directory src/src/libffi
-   - Most of the contents of the src/src/gmp directory:
-     everything except install-sh, config.*, configfsf.*
-   - The directory src/contrib/encodings/
-   - The directory src/contrib/unicode/
- * The directories src/contrib/encodings/ and src/contrib/unicode/ may
-   be removed because we build with --enable-unicode=no.
-   Building with --enable-unicode=yes, the default in the latest ECL
-   source, leads to problems with some strings in the Sage-Maxima-ECL
-   interface.
+   - The directory msvc
+   - The directory src/gc-unstable
+   - The directory src/gmp
+   - The directory src/libffi
  * Note: for the time being, ECL is built single threaded library as it
    seems to interact badly with the pexpect interface and Sage's signal
    handling when built multithreaded.

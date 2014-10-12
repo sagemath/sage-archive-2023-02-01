@@ -1009,24 +1009,18 @@ def hnf(A, include_zero_rows=True, proof=True):
             pivots = [j]
         return A, pivots
 
-    if proof == False:
+    if not proof:
         H, pivots = probable_hnf(A, include_zero_rows = include_zero_rows, proof=False)
         if not include_zero_rows and len(pivots) > H.nrows():
             return H.matrix_from_rows(range(len(pivots))), pivots
 
     while True:
-        try:
-            H, pivots = probable_hnf(A, include_zero_rows = include_zero_rows, proof=True)
-        except (AssertionError, ZeroDivisionError, TypeError):
-            raise
-            #verbose("Assertion occurred when computing HNF; guessed pivot columns likely wrong.")
-            #continue
-        else:
-            if is_in_hnf_form(H, pivots):
-                if not include_zero_rows and len(pivots) > H.nrows():
-                    H = H.matrix_from_rows(range(len(pivots)))
-                return H, pivots
-            verbose("After attempt the return matrix is not in HNF form since pivots must have been wrong.  We try again.")
+        H, pivots = probable_hnf(A, include_zero_rows = include_zero_rows, proof=True)
+        if is_in_hnf_form(H, pivots):
+            if not include_zero_rows and len(pivots) > H.nrows():
+                H = H.matrix_from_rows(range(len(pivots)))
+            return H, pivots
+        verbose("After attempt the return matrix is not in HNF form since pivots must have been wrong.  We try again.")
 
 def hnf_with_transformation(A, proof=True):
     """

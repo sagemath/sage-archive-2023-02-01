@@ -772,10 +772,10 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 4), (0, 1, 2), (0, 1, 3)}
 
     or e.g. the simplicial complex of all 168 hyperovals of the projective plane of order 4::
-    
-        sage: l=map(Set, designs.ProjectiveGeometryDesign(2,1,GF(4,name='a')).blocks()) # long time
-        sage: SimplicialComplex(from_characteristic_function=(lambda S: \
-        ....: not any(Set(S).intersection(x).cardinality()>2 for x in l), range(21))) # long time
+
+        sage: l=designs.ProjectiveGeometryDesign(2,1,GF(4,name='a'))
+        sage: f = lambda S: not any(len(set(S).intersection(x))>2 for x in l)
+        sage: SimplicialComplex(from_characteristic_function=(f, range(21)))
         Simplicial complex with 21 vertices and 168 facets
 
     TESTS:
@@ -830,7 +830,9 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: TestSuite(S).run()
             sage: TestSuite(S3).run()
         """
-        assert (maximal_faces is None) or (from_characteristic_function is None)
+        if (maximal_faces is not None and
+            from_characteristic_function is not None):
+            raise ValueError("maximal_faces and from_characteristic_function cannot be both defined")
         CategoryObject.__init__(self, category=SimplicialComplexes())
         from sage.misc.misc import union
 
@@ -892,22 +894,18 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         # build set of facets
         good_faces = []
         maximal_simplices = [Simplex(f) for f in maximal_faces]
+
+        if maximality_check: # Sorting is useful to filter maximal faces
+            maximal_simplices.sort(key=lambda x:x.dimension(),reverse=True)
         for face in maximal_simplices:
             # check whether each given face is actually maximal
-            face_is_maximal = True
-            if maximality_check:
-                faces_to_be_removed = []
-                for other in good_faces:
-                    if other.is_face(face):
-                        faces_to_be_removed.append(other)
-                    elif face_is_maximal:
-                        face_is_maximal = not face.is_face(other)
-                for x in faces_to_be_removed:
-                    good_faces.remove(x)
+            if (maximality_check and
+                any(face.is_face(other) for other in good_faces)):
+                continue
             if sort_facets:
                 face = Simplex(sorted(face.tuple()))
-            if face_is_maximal:
-                good_faces += [face]
+            good_faces.append(face)
+
         # if no maximal faces, add the empty face as a facet
         if len(maximal_simplices) == 0:
             good_faces.append(Simplex(-1))

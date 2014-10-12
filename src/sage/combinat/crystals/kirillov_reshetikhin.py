@@ -613,9 +613,10 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             sage: K.level()
             Traceback (most recent call last):
             ...
-            AssertionError: This crystal is not perfect!
+            ValueError: this crystal is not perfect
         """
-        assert self.is_perfect(), "This crystal is not perfect!"
+        if not self.is_perfect():
+            raise ValueError("this crystal is not perfect")
         return self.s()/self.cartan_type().c()[self.r()]
 
     @cached_method

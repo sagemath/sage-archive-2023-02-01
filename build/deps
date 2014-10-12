@@ -3,11 +3,8 @@
 # $SAGE_ROOT/build/Makefile by $SAGE_ROOT/build/install
 ###############################################################################
 
-# Let e.g. SAGE_ROOT/build/install pass options to sage-spkg, i.e. currently
-# "-f", to force rebuilding dependent packages during an upgrade (#9896).
-
 # Do not put an explicit path for sage-spkg here, it will be found in $PATH.
-SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
+SAGE_SPKG = sage-spkg -f
 PIPE = $(SAGE_ROOT)/build/pipestatus
 
 # Tell make not to look for files with these names:
@@ -46,7 +43,6 @@ all-sage: \
      $(INST)/$(FLINTQS) \
      $(INST)/$(FPLLL) \
      $(INST)/$(FREETYPE) \
-     $(INST)/$(GENUS2REDUCTION) \
      $(INST)/$(GAP) \
      $(INST)/$(GD) \
      $(INST)/$(GDMODULE) \
@@ -285,9 +281,6 @@ $(INST)/$(LINBOX): $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(GIVARO) \
 $(INST)/$(IML): $(INST)/$(MPIR) $(INST)/$(GSL) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(IML) 2>&1" "tee -a $(SAGE_LOGS)/$(IML).log"
 
-$(INST)/$(GENUS2REDUCTION): $(INST)/$(PARI)
-	+$(PIPE) "$(SAGE_SPKG) $(GENUS2REDUCTION) 2>&1" "tee -a $(SAGE_LOGS)/$(GENUS2REDUCTION).log"
-
 $(INST)/$(PALP):
 	+$(PIPE) "$(SAGE_SPKG) $(PALP) 2>&1" "tee -a $(SAGE_LOGS)/$(PALP).log"
 
@@ -312,7 +305,7 @@ $(INST)/$(GAP): $(INST)/$(NCURSES) $(INST)/$(READLINE) $(INST)/$(MPIR)
 $(INST)/$(LIBGAP): $(INST)/$(GAP)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBGAP) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBGAP).log"
 
-$(INST)/$(IPYTHON): $(INST)/$(PYTHON)
+$(INST)/$(IPYTHON): $(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO)
 	+$(PIPE) "$(SAGE_SPKG) $(IPYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(IPYTHON).log"
 
 $(INST)/$(PEXPECT): $(INST)/$(PYTHON)
@@ -384,7 +377,7 @@ $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
 		       $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \
 		       $(INST)/$(GDMODULE) $(INST)/$(DATEUTIL) \
 		       $(INST)/$(PKGCONF) $(INST)/$(PYPARSING) \
-                       $(INST)/$(SETUPTOOLS)
+		       $(INST)/$(SETUPTOOLS) $(INST)/$(TORNADO) $(INST)/$(SIX)
 	+$(PIPE) "$(SAGE_SPKG) $(MATPLOTLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(MATPLOTLIB).log"
 
 $(INST)/$(CDDLIB): $(INST)/$(MPIR)
@@ -414,7 +407,7 @@ $(INST)/$(R): $(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(READLINE) $(INST)/$(PK
 $(INST)/$(RPY): $(INST)/$(PYTHON) $(INST)/$(R)
 	+$(PIPE) "$(SAGE_SPKG) $(RPY) 2>&1" "tee -a $(SAGE_LOGS)/$(RPY).log"
 
-$(INST)/$(SYMPY): $(INST)/$(PYTHON)
+$(INST)/$(SYMPY): $(INST)/$(PYTHON) $(INST)/$(MPMATH)
 	+$(PIPE) "$(SAGE_SPKG) $(SYMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMPY).log"
 
 $(INST)/$(CYTHON): $(INST)/$(PYTHON)

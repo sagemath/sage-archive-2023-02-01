@@ -1132,7 +1132,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: H.set_latex_options(format = "dot2tex")   # optional - dot2tex
             sage: view(H, tight_page=True) # optional - dot2tex
         """
-        G = DiGraph(self._hasse_diagram).relabel(self._list, inplace=False)
+        G = DiGraph(self._hasse_diagram).relabel(self._elements, inplace=False)
         from sage.graphs.dot2tex_utils import have_dot2tex
         if have_dot2tex():
             G.set_latex_options(format='dot2tex',

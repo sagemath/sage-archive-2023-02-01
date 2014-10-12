@@ -3525,7 +3525,7 @@ class Polyhedron_base(Element):
         in_str = self.cdd_Vrepresentation()
         in_str += 'volume'
         in_filename = tmp_filename()
-        in_file = file(in_filename,'w')
+        in_file = open(in_filename, 'w')
         in_file.write(in_str)
         in_file.close()
         if verbose: print in_str
@@ -3605,7 +3605,7 @@ class Polyhedron_base(Element):
             2.37764129...
             sage: P5 = polytopes.regular_polygon(5, base_ring=QQ)
             sage: P5.volume()   # rational approximation
-            3387471714099766473500515673753476175274812279494567801326487870013/1424719417220622426561086640229666223984528142237277803327699435400
+            143675742936485206271005807482349119225365261915467953640852591/60427846494832899490396166935397049960830782710733164218307960
             sage: _.n()
             2.37764129...
 

@@ -55,6 +55,8 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/gmp.pxi"
 include "sage/ext/random.pxi"
+include "sage/libs/flint/fmpz.pxi"
+include "sage/libs/flint/fmpz_mat.pxi"
 
 cimport sage.structure.element
 
@@ -604,7 +606,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * denom(self):
     # x * mpz_denom(self, mpz_t d):
     # x * _clear_denom(self):
-    # x * _multiply_multi_modular(self, Matrix_rational_dense right):
     # o * echelon_modular(self, height_guess=None):
     ########################################################################
     def __invert__(self):

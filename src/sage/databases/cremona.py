@@ -1373,7 +1373,7 @@ class MiniCremonaDatabase(SQLDatabase):
             print("Inserting", F)
             class_data = []
             curve_data = []
-            for L in file(ftpdata + "/" + F).readlines():
+            for L in open(ftpdata + "/" + F).readlines():
                 N, iso, num, ainvs, r, tor = L.split()
                 if largest_conductor and int(N) > largest_conductor: break
                 cls = N+iso
@@ -1547,7 +1547,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
                 continue
             print("Inserting", F)
             class_data = []
-            for L in file(ftpdata + "/" + F).readlines():
+            for L in open(ftpdata + "/" + F).readlines():
                 N, iso, num, degree, primes, curve = L.split()
                 if largest_conductor and int(N) > largest_conductor: break
                 class_data.append((degree,N+iso))
@@ -1581,7 +1581,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             print("Inserting", F)
             curve_data = []
             class_data = []
-            for L in file(ftpdata + "/" + F).readlines():
+            for L in open(ftpdata + "/" + F).readlines():
                 N, iso, num, eqn, rank, tor, cp, om, L, reg, sha  = L.split()
                 if largest_conductor and int(N) > largest_conductor: break
                 cls = N+iso
@@ -1618,7 +1618,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
                 continue
             print("Inserting", F)
             curve_data = []
-            for L in file(ftpdata + "/" + F).readlines():
+            for L in open(ftpdata + "/" + F).readlines():
                 v = L.split()
                 if largest_conductor and int(v[0]) > largest_conductor: break
                 gens = '['+','.join(v[6:6+int(v[4])]).replace(':',',')+']'

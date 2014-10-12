@@ -4045,7 +4045,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
         TESTS:
 
-        Test that 11751 is fixed::
+        Test that :trac:`11751` is fixed::
 
             sage: K.<x> = QQ[]
             sage: M = FreeModule(K, 1, sparse=True)
@@ -4069,6 +4069,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: R = L.span([{0:x, 1:x^2}])
             sage: R.basis()[0][0].parent()
             Univariate Polynomial Ring in x over Rational Field
+
+        Test that :trac:`17101` is fixed::
+
+            sage: v = vector([RIF(-1, 1)], sparse=True)
+            sage: v.is_zero()
+            False
         """
         #WARNING: In creation, we do not check that the i pairs satisfy
         #     0 <= i < degree.
@@ -4083,7 +4089,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 x = entries
                 entries = {}
                 for i in xrange(self.degree()):
-                    if x[i] != 0:
+                    if x[i]:
                         entries[i] = x[i]
                 copy = False
             if not isinstance(entries, dict):

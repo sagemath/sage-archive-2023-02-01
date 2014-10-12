@@ -401,8 +401,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         -0.994514581164
         sage: T.distribution_function(0)
         0.3183098861837906
-        sage: T.cum_distribution_function(1)
-        0.7499999999999998
+        sage: T.cum_distribution_function(1)  # rel tol 1e-15
+        0.75
         sage: T.cum_distribution_function_inv(.5)
         0.0
 

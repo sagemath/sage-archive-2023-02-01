@@ -139,8 +139,9 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
             True
             sage: isinstance(ct, cartan_type.CartanType_simply_laced)
             False
-       """
-        assert type.is_crystallographic()
+        """
+        if not type.is_crystallographic():
+            raise NotImplementedError("only implemented for crystallographic Cartan types")
         self._dual = type
         # TODO: design an appropriate infrastructure to handle this
         # automatically? Maybe using categories and axioms?

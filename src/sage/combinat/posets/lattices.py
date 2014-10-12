@@ -374,10 +374,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is distributive, and ``False``
         otherwise.
 
-        A lattice $(L, \vee, \wedge)$ is distributive if meet
-        distributes over join: $x \wedge (y \vee z) = (x \wedge y)
-        \vee (x \wedge z)$ for every $x,y,z \in L$ just like $x \cdot
-        (y+z)=x \cdot y + x \cdot z$ in normal arithmetic. For duality
+        A lattice `(L, \vee, \wedge)` is distributive if meet
+        distributes over join: `x \wedge (y \vee z) = (x \wedge y)
+        \vee (x \wedge z)` for every `x,y,z \in L` just like `x \cdot
+        (y+z)=x \cdot y + x \cdot z` in normal arithmetic. For duality
         in lattices it follows that then also join distributes over
         meet.
 

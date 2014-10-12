@@ -19,7 +19,7 @@ export CFLAGS
 dirsr="$CUR"/src
 echo "Testing in $dirsr"
 cd "$dirsr"
-$MAKE check        
+$MAKE check
 if [ $? -ne 0 ]; then
      echo >&2 "Error: tests failed"
      exit 1

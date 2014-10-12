@@ -529,13 +529,12 @@ Methods
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.misc.superseded import deprecated_function_alias
-from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
 from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
+
 
 class Graph(GenericGraph):
     r"""
@@ -1362,39 +1361,36 @@ class Graph(GenericGraph):
                     break
             num_verts = data.nrows()
         elif format == 'incidence_matrix':
-            try:
-                positions = []
-                for c in data.columns():
-                    NZ = c.nonzero_positions()
-                    if len(NZ) == 1:
-                        if loops is None:
-                            loops = True
-                        elif not loops:
-                            msg += "There must be two nonzero entries (-1 & 1) per column."
-                            assert False
-                        positions.append((NZ[0], NZ[0]))
-                    elif len(NZ) != 2:
+            positions = []
+            for c in data.columns():
+                NZ = c.nonzero_positions()
+                if len(NZ) == 1:
+                    if loops is None:
+                        loops = True
+                    elif not loops:
                         msg += "There must be two nonzero entries (-1 & 1) per column."
-                        assert False
-                    else:
-                        positions.append(tuple(NZ))
-                    L = sorted(uniq(c.list()))
+                        raise ValueError(msg)
+                    positions.append((NZ[0], NZ[0]))
+                elif len(NZ) != 2:
+                    msg += "There must be two nonzero entries (-1 & 1) per column."
+                    raise ValueError(msg)
+                else:
+                    positions.append(tuple(NZ))
+                L = sorted(uniq(c.list()))
 
-                    if data.nrows() != (2 if len(NZ) == 2 else 1):
-                        desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
-                    else:
-                        desirable = [-1, 1] if len(NZ) == 2 else [1]
+                if data.nrows() != (2 if len(NZ) == 2 else 1):
+                    desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
+                else:
+                    desirable = [-1, 1] if len(NZ) == 2 else [1]
 
-                    if L != desirable:
-                        msg += "Each column represents an edge: -1 goes to 1."
-                        assert False
-                if loops      is None: loops     = False
-                if weighted   is None: weighted  = False
-                if multiedges is None:
-                    total = len(positions)
-                    multiedges = (  len(uniq(positions)) < total  )
-            except AssertionError:
-                raise ValueError(msg)
+                if L != desirable:
+                    msg += "Each column represents an edge: -1 goes to 1."
+                    raise ValueError(msg)
+            if loops      is None: loops     = False
+            if weighted   is None: weighted  = False
+            if multiedges is None:
+                total = len(positions)
+                multiedges = (  len(uniq(positions)) < total  )
             num_verts = data.nrows()
         elif format == 'Graph':
             if loops is None: loops = data.allows_loops()
@@ -5285,8 +5281,6 @@ class Graph(GenericGraph):
             return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
         else:
             raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
-
-    cliques = deprecated_function_alias(5739, cliques_maximal)
 
     def clique_maximum(self,  algorithm="Cliquer"):
         """

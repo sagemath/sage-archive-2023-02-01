@@ -148,7 +148,6 @@ from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.dynamic_class import dynamic_class
 
 # a small overestimate of log(10,2)
@@ -9347,7 +9346,7 @@ cdef class Expression(CommutativeRingElement):
             sage: solve(cos(x)==0, x, to_poly_solve=True)
             [x == 1/2*pi]
             sage: solve(cos(x)==0, x, to_poly_solve='force')
-            [x == 1/2*pi + pi*z85]
+            [x == 1/2*pi + pi*z77]
 
         The same may also apply if a returned unsolved expression has a
         denominator, but the original one did not::

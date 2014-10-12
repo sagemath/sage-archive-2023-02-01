@@ -555,11 +555,11 @@ cdef class BooleanFunction(SageObject):
             ...
             ValueError: unknown output format
         """
-        if format is 'bin':
+        if format == 'bin':
             return tuple(self)
-        if format is 'int':
+        if format == 'int':
             return tuple(map(int,self))
-        if format is 'hex':
+        if format == 'hex':
             S = ""
             S = ZZ(self.truth_table(),2).str(16)
             S = "0"*((1<<(self._nvariables-2)) - len(S)) + S

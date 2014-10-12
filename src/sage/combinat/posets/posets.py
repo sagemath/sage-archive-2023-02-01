@@ -1250,7 +1250,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         L = self.linear_extensions()
         if linear_extension is not None:
             return L(linear_extension, check=check)
-        return L(self._list, check=False)
+        return L(self._list, check=check)
 
     @cached_method
     def linear_extensions(self, facade=False):
@@ -2038,7 +2038,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         - ``other`` -- a finite poset
 
         EXAMPLES::
-    
+
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
             sage: T = Poset({1:[2,3], 2:[4,5], 3:[6,7]})
             sage: N5 = Posets.PentagonPoset()
@@ -2771,7 +2771,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             [[0, 1], [0, 3], [1, 4], [3, 4]]
 
         .. WARNING::
-        
+
             This function will return same subposet as many times as
             there are automorphism on it. This is due to
             :meth:`~sage.graphs.generic_graph.GenericGraph.subgraph_search_iterator`
@@ -3156,8 +3156,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.list()
             [0, 1, 2, 3, 4, 5]
             sage: Q.cover_relations()
-            [[0, 2], [0, 3], [1, 5], [2, 4], [3, 1], [3, 4], [4, 5]]
-
+            [[0, 1], [0, 2], [1, 4], [2, 3], [2, 4], [3, 5], [4, 5]]
+ 
         As a facade::
 
             sage: P = Poset((divisors(12), attrcall("divides")), facade=True, linear_extension=True)
@@ -3169,23 +3169,26 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.list()
             [0, 1, 2, 3, 4, 5]
             sage: Q.cover_relations()
-            [[0, 2], [0, 3], [1, 5], [2, 4], [3, 1], [3, 4], [4, 5]]
+            [[0, 1], [0, 2], [1, 4], [2, 3], [2, 4], [3, 5], [4, 5]]
 
         TESTS::
 
             sage: P = Poset(digraphs.Path(10), linear_extension = True)
-            sage: P.canonical_label().linear_extension()
+            sage: Q = P.canonical_label()
+            sage: Q.linear_extension()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: Q.cover_relations()
+            [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9]]
+            sage: P = Poset(digraphs.Path(10))
+            sage: Q = P.canonical_label()
+            sage: Q.linear_extension()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: Q.cover_relations()
+            [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9]]
         """
-        if not self._linear_extension:
-            elements = None
-        else:
-            elements = range(len(self._elements))
-            self = self.relabel(elements)
-        return FinitePoset(DiGraph(self._hasse_diagram).canonical_label(),
-                           elements=elements,
-                           category=self.category(),
-                           facade=self._is_facade)
+        P = Poset(DiGraph(self._hasse_diagram).canonical_label(), linear_extension=self._linear_extension,
+                  category=self.category(), facade=self._is_facade)
+        return P.relabel(range(len(self._elements)))
 
     def with_linear_extension(self, linear_extension):
         """

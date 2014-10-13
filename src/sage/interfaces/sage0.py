@@ -426,7 +426,7 @@ class Sage(Expect):
 
 class SageElement(ExpectElement):
 
-    def _graphics_(self):
+    def _graphics_(self, **kwds):
         """
         Disable graphical output.
 
@@ -436,10 +436,10 @@ class SageElement(ExpectElement):
         EXAMPLES::
 
             sage: m = sage0(4)
-            sage: m._graphics_()
-            False
+            sage: m._graphics_() is None
+            True
         """
-        return False
+        return None
 
     def __getattr__(self, attrname):
         """

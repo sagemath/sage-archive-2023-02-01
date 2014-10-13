@@ -200,7 +200,7 @@ class FunctionAiryAiSimple(BuiltinFunction):
         else:
             return None
 
-    def _evalf_(self, x, parent=None, algorithm=None):
+    def _evalf_(self, x, **kwargs):
         """
         EXAMPLES::
 
@@ -230,6 +230,8 @@ class FunctionAiryAiSimple(BuiltinFunction):
             ...
             NotImplementedError: airy_ai not implemented for precision > 53
         """
+        algorithm = kwargs.get('algorithm', 'mpmath') or 'mpmath'
+        parent = kwargs.get('parent')
         if algorithm == 'scipy':
             if hasattr(parent, 'prec') and parent.prec() > 53:
                 raise NotImplementedError("%s not implemented for precision > 53"%self.name())
@@ -245,10 +247,12 @@ class FunctionAiryAiSimple(BuiltinFunction):
                 if parent is None:
                     return CC(y)
             return parent(y)
-
-        import mpmath
-        from sage.libs.mpmath import utils as mpmath_utils
-        return mpmath_utils.call(mpmath.airyai, x, parent=parent)
+        elif algorithm == 'mpmath':
+            import mpmath
+            from sage.libs.mpmath import utils as mpmath_utils
+            return mpmath_utils.call(mpmath.airyai, x, parent=parent)
+        else:
+            raise ValueError("unknown algorithm '%s'" % algorithm)
 
 
 class FunctionAiryAiPrime(BuiltinFunction):
@@ -297,7 +301,7 @@ class FunctionAiryAiPrime(BuiltinFunction):
         else:
             return None
 
-    def _evalf_(self, x, parent=None, algorithm=None):
+    def _evalf_(self, x, **kwargs):
         """
         EXAMPLES::
 
@@ -324,6 +328,8 @@ class FunctionAiryAiPrime(BuiltinFunction):
             ...
             NotImplementedError: airy_ai_prime not implemented for precision > 53
         """
+        algorithm = kwargs.get('algorithm', 'mpmath') or 'mpmath'
+        parent = kwargs.get('parent', None)
         if algorithm == 'scipy':
             if hasattr(parent, 'prec') and parent.prec() > 53:
                 raise NotImplementedError("%s not implemented for precision > 53"%self.name())
@@ -339,11 +345,13 @@ class FunctionAiryAiPrime(BuiltinFunction):
                 if parent is None:
                     return CC(y)
             return parent(y)
-
-        import mpmath
-        from sage.libs.mpmath import utils as mpmath_utils
-        return mpmath_utils.call(mpmath.airyai, x, derivative=1,
-                                 parent=parent)
+        elif algorithm == 'mpmath':
+            import mpmath
+            from sage.libs.mpmath import utils as mpmath_utils
+            return mpmath_utils.call(mpmath.airyai, x, derivative=1,
+                                     parent=parent)
+        else:
+            raise ValueError("unknown algorithm '%s'" % algorithm)
 
 airy_ai_general = FunctionAiryAiGeneral()
 airy_ai_simple = FunctionAiryAiSimple()
@@ -656,8 +664,8 @@ class FunctionAiryBiSimple(BuiltinFunction):
             ...
             NotImplementedError: airy_bi not implemented for precision > 53
         """
-        algorithm = kwargs.get('algorithm', None) or 'mpmath'
-        parent = kwargs.get('parent')
+        algorithm = kwargs.get('algorithm', 'mpmath') or 'mpmath'
+        parent = kwargs.get('parent', None)
         if algorithm == 'scipy':
             if hasattr(parent, 'prec') and parent.prec() > 53:
                 raise NotImplementedError("%s not implemented for precision > 53"%self.name())
@@ -673,10 +681,12 @@ class FunctionAiryBiSimple(BuiltinFunction):
                 if parent is None:
                     return CC(y)
             return parent(y)
-
-        import mpmath
-        from sage.libs.mpmath import utils as mpmath_utils
-        return mpmath_utils.call(mpmath.airybi, x, parent=parent)
+        elif algorithm == 'mpmath':
+            import mpmath
+            from sage.libs.mpmath import utils as mpmath_utils
+            return mpmath_utils.call(mpmath.airybi, x, parent=parent)
+        else:
+            raise ValueError("unknown algorithm '%s'" % algorithm)
 
 
 class FunctionAiryBiPrime(BuiltinFunction):
@@ -752,8 +762,8 @@ class FunctionAiryBiPrime(BuiltinFunction):
             ...
             NotImplementedError: airy_bi_prime not implemented for precision > 53
         """
-        algorithm = kwargs.get('algorithm', None) or 'mpmath'
-        parent = sage_structure_coerce_parent(x)
+        algorithm = kwargs.get('algorithm', 'mpmath') or 'mpmath'
+        parent = kwargs.get('parent', None)
         if algorithm == 'scipy':
             if hasattr(parent, 'prec') and parent.prec() > 53:
                 raise NotImplementedError("%s not implemented for precision > 53"%self.name())
@@ -769,11 +779,13 @@ class FunctionAiryBiPrime(BuiltinFunction):
                 if parent is None:
                     return CC(y)
             return parent(y)
-
-        import mpmath
-        from sage.libs.mpmath import utils as mpmath_utils
-        return mpmath_utils.call(mpmath.airybi, x, derivative=1,
-                                 parent=parent)
+        elif algorithm == 'mpmath':
+            import mpmath
+            from sage.libs.mpmath import utils as mpmath_utils
+            return mpmath_utils.call(mpmath.airybi, x, derivative=1,
+                                     parent=parent)
+        else:
+            raise ValueError("unknown algorithm '%s'" % algorithm)
 
 airy_bi_general = FunctionAiryBiGeneral()
 airy_bi_simple = FunctionAiryBiSimple()

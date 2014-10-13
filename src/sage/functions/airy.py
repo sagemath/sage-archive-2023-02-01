@@ -220,13 +220,22 @@ class FunctionAiryAiSimple(BuiltinFunction):
             0.006591139357460719
             sage: airy_ai_simple(I).n(algorithm='scipy')  # rel tol 1e-10
             0.33149330543214117 - 0.3174498589684438*I
+            sage: parent(airy_ai_simple(3).n(algorithm='scipy'))                                          
+            Real Field with 53 bits of precision                                                   
         """
         if algorithm == 'scipy':
-            from sage.rings.all import RR
+            from sage.rings.all import RR, CC
             from sage.functions.other import real,imag
             from scipy.special import airy as airy
-            y = airy(complex(real(x),imag(x)))[0]
-            return real(y) if x in RR else y
+            if x in RR:
+                y = airy(real(x))[0]
+                if parent is None:
+                    return RR(y)
+            else:
+                y = airy(complex(real(x),imag(x)))[0]
+                if parent is None:
+                    return CC(y)
+            return parent(y)
 
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
@@ -296,13 +305,22 @@ class FunctionAiryAiPrime(BuiltinFunction):
             -0.00195864095020418
             sage: airy_ai_prime(I).n(algorithm='scipy')    # rel tol 1e-10
             -0.43249265984180707 + 0.09804785622924324*I
+            sage: parent(airy_ai_prime(3).n(algorithm='scipy'))                                          
+            Real Field with 53 bits of precision                                                   
         """
         if algorithm == 'scipy':
             from sage.rings.all import RR
             from sage.functions.other import real,imag
             from scipy.special import airy as airy
-            y = airy(complex(real(x),imag(x)))[1]
-            return real(y) if x in RR else y
+            if x in RR:
+                y = airy(real(x))[1]
+                if parent is None:
+                    return RR(y)
+            else:
+                y = airy(complex(real(x),imag(x)))[1]
+                if parent is None:
+                    return CC(y)
+            return parent(y)
 
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
@@ -610,15 +628,24 @@ class FunctionAiryBiSimple(BuiltinFunction):
             14.037328963730136
             sage: airy_bi_simple(I).n(algorithm='scipy')  # rel tol 1e-10
             0.648858208330395 + 0.34495863476804844*I
+            sage: parent(airy_bi_simple(3).n(algorithm='scipy'))                                          
+            Real Field with 53 bits of precision                                                   
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
         parent = kwargs.get('parent')
         if algorithm == 'scipy':
-            from sage.rings.all import RR
+            from sage.rings.all import RR, CC
             from sage.functions.other import real,imag
             from scipy.special import airy as airy
-            y = airy(complex(real(x),imag(x)))[2]
-            return real(y) if x in RR else y
+            if x in RR:
+                y = airy(real(x))[2]
+                if parent is None:
+                    return RR(y)
+            else:
+                y = airy(complex(real(x),imag(x)))[2]
+                if parent is None:
+                    return CC(y)
+            return parent(y)
 
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils
@@ -688,15 +715,24 @@ class FunctionAiryBiPrime(BuiltinFunction):
             161.92668350461398
             sage: airy_bi_prime(I).n(algorithm='scipy')  # rel tol 1e-10
             0.135026646710819 - 0.1288373867812549*I
+            sage: parent(airy_bi_prime(3).n(algorithm='scipy'))                                          
+            Real Field with 53 bits of precision                                                   
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
         parent = sage_structure_coerce_parent(x)
         if algorithm == 'scipy':
-            from sage.rings.all import RR
+            from sage.rings.all import RR, CC
             from sage.functions.other import real,imag
             from scipy.special import airy as airy
-            y = airy(complex(real(x),imag(x)))[3]
-            return real(y) if x in RR else y
+            if x in RR:
+                y = airy(real(x))[3]
+                if parent is None:
+                    return RR(y)
+            else:
+                y = airy(complex(real(x),imag(x)))[3]
+                if parent is None:
+                    return CC(y)
+            return parent(y)
 
         import mpmath
         from sage.libs.mpmath import utils as mpmath_utils

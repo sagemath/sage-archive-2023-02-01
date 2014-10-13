@@ -358,7 +358,7 @@ airy_ai_simple = FunctionAiryAiSimple()
 airy_ai_prime = FunctionAiryAiPrime()
 
 
-def airy_ai(alpha, x=None, hold_derivative=False, *args, **kwds):
+def airy_ai(alpha, x=None, hold_derivative=False, **kwds):
     r"""
     The Airy Ai function `\operatorname{Ai}(x)` is one of the two
     linearly independent solutions to the Airy differential equation
@@ -458,11 +458,6 @@ def airy_ai(alpha, x=None, hold_derivative=False, *args, **kwds):
     if x is None:
         x = alpha
         return airy_ai_simple(x, **kwds)
-
-    # We raise an error if there are too many arguments
-    if len(args) > 0:
-        raise TypeError(("symbolic function airy_ai takes at most 3 arguments "
-                         "({} given)").format(len(args) + 3))
 
     # We take care of all other cases.
     if not alpha in ZZ and not isinstance(alpha, Expression):
@@ -792,7 +787,7 @@ airy_bi_simple = FunctionAiryBiSimple()
 airy_bi_prime = FunctionAiryBiPrime()
 
 
-def airy_bi(alpha, x=None, hold_derivative=False, *args, **kwds):
+def airy_bi(alpha, x=None, hold_derivative=False, **kwds):
     r"""
     The Airy Bi function `\operatorname{Bi}(x)` is one of the two
     linearly independent solutions to the Airy differential equation
@@ -893,11 +888,6 @@ def airy_bi(alpha, x=None, hold_derivative=False, *args, **kwds):
     if x is None:
         x = alpha
         return airy_bi_simple(x, **kwds)
-
-    # We raise an error if there are too many arguments
-    if len(args) > 0:
-        raise TypeError(("symbolic function airy_ai takes at most 3 arguments "
-                         "({} given)").format(len(args) + 3))
 
     # We take care of all other cases.
     if not alpha in ZZ and not isinstance(alpha, Expression):

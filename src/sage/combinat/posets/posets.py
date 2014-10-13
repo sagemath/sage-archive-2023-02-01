@@ -1522,7 +1522,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return [map(self._vertex_to_element, level) for level in
                 self._hasse_diagram.level_sets()]
 
-    def cover_relations(self,element=None):
+    def cover_relations(self):
         """
         Returns the list of pairs [u,v] of elements of the poset such that
         u v is a cover relation (that is, u v and there does not exist z

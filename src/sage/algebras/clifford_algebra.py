@@ -899,7 +899,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
         REFERENCES:
 
-        - :wikipedia:`Classification_of_Clifford_algebras#Pseudoscalar`
+        - :wikipedia:`Classification_of_Clifford_algebras#Unit_pseudoscalar`
         """
         d = self._quadratic_form.dim()
         return self.element_class(self, {tuple(range(d)): self.base_ring().one()})
@@ -1113,7 +1113,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
         .. SEEALSO::
 
-            :meth:`supercenter`,
+            :meth:`supercenter_basis`,
             http://math.stackexchange.com/questions/129183/center-of-clifford-algebra-depending-on-the-parity-of-dim-v
 
         .. TODO::
@@ -1203,7 +1203,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
         .. SEEALSO::
 
-            :meth:`center`,
+            :meth:`center_basis`,
             http://math.stackexchange.com/questions/129183/center-of-clifford-algebra-depending-on-the-parity-of-dim-v
 
         .. TODO::

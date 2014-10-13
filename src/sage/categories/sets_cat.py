@@ -819,8 +819,9 @@ class Sets(Category_singleton):
                 sage: P.lt(2,3)
                 False
 
-            On the other hand, with option 2., the elements once
-            constructed know unambiguously how to compare themselves::
+            On the other hand, with option 2. and once constructed,
+            the elements know unambiguously how to compare
+            themselves::
 
                 sage: Q(2) < Q(3)
                 False
@@ -835,8 +836,8 @@ class Sets(Category_singleton):
 
             In short `P` being a facade parent is one of the programmatic
             counterparts (with e.g. coercions) of the usual mathematical idiom:
-            ``for ease of notation, we identify an element of `P` with the
-            corresponding integer''. Too many identifications lead to
+            "for ease of notation, we identify an element of `P` with the
+            corresponding integer". Too many identifications lead to
             confusion; the lack thereof leads to heavy, if not obfuscated,
             notations. Finding the right balance is an art, and even though
             there are common guidelines, it is ultimately up to the writer to
@@ -845,7 +846,8 @@ class Sets(Category_singleton):
             .. SEEALSO::
 
                The following examples illustrate various ways to
-               implement subsets like the set of prime numbers::
+               implement subsets like the set of prime numbers; look
+               at their code for details::
 
                    sage: Sets().example("facade")
                    Set of prime numbers (facade implementation)

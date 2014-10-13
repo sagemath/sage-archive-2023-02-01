@@ -765,14 +765,14 @@ SR = SymbolicRing()
 
 cdef unsigned sage_domain_to_ginac(object domain) except +:
         # convert the domain argument to something easy to parse
-        if domain is RR or domain is 'real':
+        if domain is RR or domain == 'real':
             return domain_real
-        elif domain is 'positive':
+        elif domain == 'positive':
             return domain_positive
-        elif domain is CC or domain is 'complex':
+        elif domain is CC or domain == 'complex':
             return domain_complex
         else:
-            raise ValueError, "domain must be one of 'complex', 'real' or 'positive'"
+            raise ValueError("domain must be one of 'complex', 'real' or 'positive'")
 
 cdef class NumpyToSRMorphism(Morphism):
     def __init__(self, numpy_type, R):

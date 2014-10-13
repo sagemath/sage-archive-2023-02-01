@@ -20,6 +20,7 @@ Regular Crystals
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
+from sage.categories.tensor import TensorProductsCategory
 
 class RegularCrystals(Category_singleton):
     r"""
@@ -534,4 +535,18 @@ class RegularCrystals(Category_singleton):
             tester.assertTrue(goodness)
             return goodness
 
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of regular crystals constructed by tensor
+        product of regular crystals.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: RegularCrystals().TensorProducts().extra_super_categories()
+                [Category of regular crystals]
+            """
+            return [self.base_category()]
 

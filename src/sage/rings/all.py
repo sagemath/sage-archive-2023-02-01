@@ -70,6 +70,9 @@ from number_field.all import *
 # Function field
 from function_field.all import *
 
+# Finite residue fields
+from finite_rings.residue_field import ResidueField
+
 # p-adic field
 from padics.all import *
 from padics.padic_printing import _printer_defaults as padic_printing
@@ -140,7 +143,7 @@ from arith import algdep, bernoulli, is_prime, is_prime_power, \
     prime_powers, primes_first_n, eratosthenes, primes, \
     next_prime_power, next_probable_prime, next_prime, \
     previous_prime, previous_prime_power, random_prime, \
-    divisors, sigma, gcd, GCD, lcm, LCM, xlcm, xgcd, \
+    divisors, sigma, gcd, GCD, lcm, LCM, xlcm, xgcd, xkcd, \
     inverse_mod, get_gcd, get_inverse_mod, power_mod, \
     rational_reconstruction, mqrr_rational_reconstruction, \
     trial_division, factor, prime_divisors, odd_part, prime_to_m_part, \
@@ -167,16 +170,8 @@ from bernoulli_mod_p import bernoulli_mod_p, bernoulli_mod_p_single
 
 from monomials import monomials
 
-#from fast_polynomial.compiled_polynomial import compiled_polynomial
-
 CC = ComplexField()
 CIF = ComplexIntervalField()
-
-# i = I = QuadraticField(-1, 'I').gen()
-I = CC.gen()
-
-from residue_field import ResidueField
-
 
 from misc import composite_field
 

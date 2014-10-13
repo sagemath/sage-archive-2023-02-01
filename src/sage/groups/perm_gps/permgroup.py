@@ -233,14 +233,19 @@ def from_gap_list(G, src):
         sage: L[1].parent() is G
         True
     """
-    # trim away the list constructs
-    src = src.replace("[", "").replace("]", "")
-    # cut out the individual elements
-    srcs = src.split("),")
-    for i in range(len(srcs[:-1])):
-        srcs[i] = srcs[i] + ")"
-    srcs = map(G, srcs)
-    return srcs
+    # src is a list of strings, each of which is a permutation of
+    # integers in cycle notation. It may contain \n and spaces.
+    src = [str(g)[1:].split(")(")
+           for g in str(src).replace(" ","").replace("\n","")[1:-2].split("),")]
+
+    # src is a list of list of strings. Each string is a list of
+    # integers separated by ','
+    src = [G([tuple(map(lambda x:G._domain_from_gap[int(x)],cycle.split(",")))
+                 for cycle in g])
+           for g in src]
+
+    # src is now a list of group elements
+    return src
 
 def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, category=None):
     """
@@ -1503,6 +1508,7 @@ class PermutationGroup_generic(group.Group):
     def order(self):
         """
         Return the number of elements of this group.
+        See also: G.degree()
 
         EXAMPLES::
 
@@ -3181,6 +3187,25 @@ class PermutationGroup_generic(group.Group):
             decomposition.append(coset)
         return decomposition
 
+    def minimal_generating_set(self):
+        r"""
+        Return a minimal generating set
+
+        EXAMPLE::
+
+            sage: g = graphs.CompleteGraph(4)
+            sage: g.relabel(['a','b','c','d'])
+            sage: g.automorphism_group().minimal_generating_set()
+            [('b','d','c'), ('a','c','b','d')]
+
+
+        TESTS::
+
+            sage: PermutationGroup(["(1,2,3)(4,5,6)","(1,2,3,4,5,6)"]).minimal_generating_set()
+            [(2,5)(3,6), (1,5,3,4,2,6)]
+        """
+        return from_gap_list(self,str(self._gap_().MinimalGeneratingSet()))
+
     def normalizer(self, g):
         """
         Returns the normalizer of ``g`` in ``self``.
@@ -3547,7 +3572,7 @@ class PermutationGroup_generic(group.Group):
 
     def non_fixed_points(self):
         r"""
-        Returns the list of points not fixed by ``self``, i.e., the subset
+        Return the list of points not fixed by ``self``, i.e., the subset
         of ``self.domain()`` moved by some element of ``self``.
 
         EXAMPLES::
@@ -3569,18 +3594,18 @@ class PermutationGroup_generic(group.Group):
 
     def fixed_points(self):
         r"""
-        Returns the list of points fixed by ``self``, i.e., the subset
+        Return the list of points fixed by ``self``, i.e., the subset
         of ``.domain()`` not moved by any element of ``self``.
 
         EXAMPLES::
 
-            sage: G=PermutationGroup([(1,2,3)])
+            sage: G = PermutationGroup([(1,2,3)])
             sage: G.fixed_points()
             []
-            sage: G=PermutationGroup([(1,2,3),(5,6)])
+            sage: G = PermutationGroup([(1,2,3),(5,6)])
             sage: G.fixed_points()
             [4]
-            sage: G=PermutationGroup([[(1,4,7)],[(4,3),(6,7)]])
+            sage: G = PermutationGroup([[(1,4,7)],[(4,3),(6,7)]])
             sage: G.fixed_points()
             [2, 5]
         """
@@ -3848,13 +3873,12 @@ class PermutationGroup_generic(group.Group):
 
     def molien_series(self):
         r"""
-        Returns the Molien series of a transitive permutation group. The
+        Return the Molien series of a permutation group. The
         function
 
         .. math::
 
                      M(x) = (1/|G|)\sum_{g\in G} \det(1-x*g)^{-1}
-
 
         is sometimes called the "Molien series" of `G`. GAP's
         ``MolienSeries`` is associated to a character of a
@@ -3873,16 +3897,37 @@ class PermutationGroup_generic(group.Group):
             sage: G = SymmetricGroup(3)
             sage: G.molien_series()
             1/(-x^6 + x^5 + x^4 - x^2 - x + 1)
+
+        Some further tests (after :trac:`15817`)::
+
+            sage: G = PermutationGroup([[(1,2,3,4)]])
+            sage: S4ms = SymmetricGroup(4).molien_series()
+            sage: G.molien_series() / S4ms
+            x^5 + 2*x^4 + x^3 + x^2 + 1
+
+        This works for not-transitive groups::
+
+            sage: G = PermutationGroup([[(1,2)],[(3,4)]])
+            sage: G.molien_series() / S4ms
+            x^4 + x^3 + 2*x^2 + x + 1
+
+        This works for groups with fixed points::
+
+            sage: G = PermutationGroup([[(2,)]])
+            sage: G.molien_series()
+            1/(x^2 - 2*x + 1)
         """
         pi = self._gap_().NaturalCharacter()
-        cc = pi.ConstituentsOfCharacter()
-        M = cc.Sum().MolienSeries()
+        # because NaturalCharacter forgets about fixed points :
+        pi += self._gap_().TrivialCharacter() * len(self.fixed_points())
+            
+        M = pi.MolienSeries()
 
         R = QQ['x']
         nn = M.NumeratorOfRationalFunction()
         dd = M.DenominatorOfRationalFunction()
-        return (R(str(nn).replace("_1","")) /
-                R(str(dd).replace("_1","")))
+        return (R(str(nn).replace("_1", "")) /
+                R(str(dd).replace("_1", "")))
 
     def normal_subgroups(self):
         """

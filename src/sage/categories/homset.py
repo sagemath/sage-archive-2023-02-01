@@ -148,7 +148,9 @@ def Hom(X, Y, category=None, check=True):
     is used::
 
         sage: Hom(X, Y)
-        Set of Morphisms from Integer Ring to Symmetric group of order 3! as a permutation group in Category of monoids
+        Set of Morphisms from Integer Ring
+         to Symmetric group of order 3! as a permutation group
+         in Join of Category of monoids and Category of enumerated sets
 
     Otherwise, if ``category`` is specified, then ``category`` is used,
     after checking that ``X`` and ``Y`` are indeed in ``category``::
@@ -375,7 +377,7 @@ def Hom(X, Y, category=None, check=True):
             for O in [X, Y]:
                 try:
                     category_mismatch = O not in category
-                except BaseException:
+                except Exception:
                     # An error should not happen, this here is just to be on
                     # the safe side.
                     category_mismatch = True
@@ -413,7 +415,7 @@ def Hom(X, Y, category=None, check=True):
         if not isinstance(H, WithEqualityById):
             try:
                 H.__class__ = dynamic_class(H.__class__.__name__+"_with_equality_by_id", (WithEqualityById, H.__class__), doccls=H.__class__)
-            except BaseException:
+            except Exception:
                 pass
     return H
 

@@ -1086,11 +1086,6 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
     - ``holes_sizes`` (list of integers) -- respective sizes of the holes to be
       found.
 
-      .. NOTE::
-
-          Right now the feature is only available when all holes have size 1,
-          i.e. `s_i=1`.
-
     - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
       resolvable. The classes of the resolvable design are obtained as the first
       `n` blocks, then the next `n` blocks, etc ... Set to ``False`` by default.
@@ -1106,8 +1101,15 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
 
     .. NOTE::
 
-        By convention, the ground set is always `V = \{0, ..., n-1\}` and the
-        holes are `\{n-1, ..., n-s_1\}^k`, `\{n-s_1-1,...,n-s_1-s_2\}^k`, etc.
+        By convention, the ground set is always `V = \{0, ..., n-1\}`.
+
+        If all holes have size 1, in the incomplete orthogonal array returned by
+        this function the holes are `\{n-1, ..., n-s_1\}^k`,
+        `\{n-s_1-1,...,n-s_1-s_2\}^k`, etc.
+
+        More generally, if ``holes_sizes`` is equal to `u1,...,uk`, the `i`-th
+        hole is the set of points `\{n-\sum_{j\geq i}u_j,...,n-\sum_{j\geq
+        i+1}u_j\}^k`.
 
     .. SEEALSO::
 
@@ -1184,6 +1186,15 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
         Traceback (most recent call last):
         ...
         NotImplementedError: I was not able to build this OA(6,36)-OA(6,8)-2.OA(6,9)
+
+    10 holes of size 9 through the product construction::
+
+        sage: iOA = designs.incomplete_orthogonal_array(10,153,[9]*10) # long time
+        sage: OA9 = designs.orthogonal_arrays.build(10,9)
+        sage: for i in range(10):
+        ....:     iOA.extend([[153-9*(i+1)+x for x in B] for B in OA9])
+        sage: is_orthogonal_array(iOA,10,153)
+        True
 
     REFERENCES:
 
@@ -1280,6 +1291,24 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
         OA  = OA_from_quasi_difference_matrix(M,G,fill_hole=False)
         return [B[:k] for B in OA]
 
+    # Equal holes [h,h,...] with h>1 through OA product construction
+    #
+    # (i.e. OA(k,n1)-x.OA(k,1) and OA(k,n2) ==> OA(k,n1.n2)-x.OA(k,n2) )
+    elif (not all_holes_of_size_1                           and # h>1
+          n%holes_sizes[0] == 0                             and # h divides n
+          all(h==holes_sizes[0] for h in holes_sizes)       and # holes of equal size
+          orthogonal_array(k,holes_sizes[0],existence=True) and # OA(k,h)
+          incomplete_orthogonal_array(k,n//holes_sizes[0],[1]*x,existence=True)): # OA(k,n/h)-x.OA(k,1)
+        if existence:
+            return True
+        from itertools import izip
+        h = holes_sizes[0]
+        iOA1 = incomplete_orthogonal_array(k,n//holes_sizes[0],[1]*x)
+        iOA2 = orthogonal_array(k,h)
+
+        return [[B1[i]*h+B2[i] for i in range(k)]
+                for B1 in iOA1
+                for B2 in iOA2]
     else:
         if existence:
             return Unknown

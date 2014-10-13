@@ -1869,7 +1869,7 @@ class OAMainFunctions():
             sage: designs.orthogonal_arrays.explain_construction(9,565)
             "Wilson's construction n=23.24+13 with master design OA(9+1,23)"
             sage: designs.orthogonal_arrays.explain_construction(10,154)
-            "the database contains a (137,10;1,0;17)-quasi difference matrix"
+            'the database contains a (137,10;1,0;17)-quasi difference matrix'
         """
         return orthogonal_array(k,n,t,explain_construction=True)
 

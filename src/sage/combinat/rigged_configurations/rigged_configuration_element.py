@@ -470,11 +470,11 @@ class RiggedConfigurationElement(ClonableArray):
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
             sage: RC(partition_list=[[2], [2,2], [2], [2]]).nu()
             [0[ ][ ]0
-            , -2[ ][ ]-2
-            -2[ ][ ]-2
-            , 2[ ][ ]2
-            , -2[ ][ ]-2
-            ]
+             , -2[ ][ ]-2
+             -2[ ][ ]-2
+             , 2[ ][ ]2
+             , -2[ ][ ]-2
+             ]
         """
         return list(self)
 

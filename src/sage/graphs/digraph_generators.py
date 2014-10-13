@@ -829,7 +829,19 @@ class DiGraphGenerators():
 
             sage: K = digraphs.Kautz(2, 3)
             sage: K.is_isomorphic(digraphs.ImaseItoh(12, 2), certify = True)
-            (True, {'201': 5, '120': 9, '202': 4, '212': 7, '210': 6, '010': 0, '121': 8, '012': 1, '021': 2, '020': 3, '102': 10, '101': 11})
+            (True,
+             {'010': 0,
+              '012': 1,
+              '020': 3,
+              '021': 2,
+              '101': 11,
+              '102': 10,
+              '120': 9,
+              '121': 8,
+              '201': 5,
+              '202': 4,
+              '210': 6,
+              '212': 7})
 
             sage: K = digraphs.Kautz([1,'a','B'], 2)
             sage: K.edges()

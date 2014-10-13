@@ -220,10 +220,19 @@ class FunctionAiryAiSimple(BuiltinFunction):
             0.006591139357460719
             sage: airy_ai_simple(I).n(algorithm='scipy')  # rel tol 1e-10
             0.33149330543214117 - 0.3174498589684438*I
+            
+        TESTS::
+        
             sage: parent(airy_ai_simple(3).n(algorithm='scipy'))                                          
-            Real Field with 53 bits of precision                                                   
+            Real Field with 53 bits of precision
+            sage: airy_ai_simple(3).n(algorithm='scipy', prec=200)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: airy_ai not implemented for precision > 53
         """
         if algorithm == 'scipy':
+            if hasattr(parent, 'prec') and parent.prec() > 53:
+                raise NotImplementedError("%s not implemented for precision > 53"%self.name())
             from sage.rings.all import RR, CC
             from sage.functions.other import real,imag
             from scipy.special import airy as airy
@@ -305,11 +314,20 @@ class FunctionAiryAiPrime(BuiltinFunction):
             -0.00195864095020418
             sage: airy_ai_prime(I).n(algorithm='scipy')    # rel tol 1e-10
             -0.43249265984180707 + 0.09804785622924324*I
+            
+        TESTS::
+        
             sage: parent(airy_ai_prime(3).n(algorithm='scipy'))                                          
-            Real Field with 53 bits of precision                                                   
+            Real Field with 53 bits of precision
+            sage: airy_ai_prime(3).n(algorithm='scipy', prec=200)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: airy_ai_prime not implemented for precision > 53
         """
         if algorithm == 'scipy':
-            from sage.rings.all import RR
+            if hasattr(parent, 'prec') and parent.prec() > 53:
+                raise NotImplementedError("%s not implemented for precision > 53"%self.name())
+            from sage.rings.all import RR, CC
             from sage.functions.other import real,imag
             from scipy.special import airy as airy
             if x in RR:
@@ -628,12 +646,21 @@ class FunctionAiryBiSimple(BuiltinFunction):
             14.037328963730136
             sage: airy_bi_simple(I).n(algorithm='scipy')  # rel tol 1e-10
             0.648858208330395 + 0.34495863476804844*I
+            
+        TESTS::
+        
             sage: parent(airy_bi_simple(3).n(algorithm='scipy'))                                          
-            Real Field with 53 bits of precision                                                   
+            Real Field with 53 bits of precision
+            sage: airy_bi_simple(3).n(algorithm='scipy', prec=200)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: airy_bi not implemented for precision > 53
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
         parent = kwargs.get('parent')
         if algorithm == 'scipy':
+            if hasattr(parent, 'prec') and parent.prec() > 53:
+                raise NotImplementedError("%s not implemented for precision > 53"%self.name())
             from sage.rings.all import RR, CC
             from sage.functions.other import real,imag
             from scipy.special import airy as airy
@@ -715,12 +742,21 @@ class FunctionAiryBiPrime(BuiltinFunction):
             161.92668350461398
             sage: airy_bi_prime(I).n(algorithm='scipy')  # rel tol 1e-10
             0.135026646710819 - 0.1288373867812549*I
+            
+        TESTS::
+        
             sage: parent(airy_bi_prime(3).n(algorithm='scipy'))                                          
-            Real Field with 53 bits of precision                                                   
+            Real Field with 53 bits of precision
+            sage: airy_bi_prime(3).n(algorithm='scipy', prec=200)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: airy_bi_prime not implemented for precision > 53
         """
         algorithm = kwargs.get('algorithm', None) or 'mpmath'
         parent = sage_structure_coerce_parent(x)
         if algorithm == 'scipy':
+            if hasattr(parent, 'prec') and parent.prec() > 53:
+                raise NotImplementedError("%s not implemented for precision > 53"%self.name())
             from sage.rings.all import RR, CC
             from sage.functions.other import real,imag
             from scipy.special import airy as airy

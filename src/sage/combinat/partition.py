@@ -642,7 +642,7 @@ class Partition(CombinatorialObject, Element):
         else:
             raise ValueError("%s is not a valid partition"%repr(mu))
 
-    def _repr_(self):
+    def _repr_(self, compact=None):
         r"""
         Return a string representation of ``self`` depending on
         :meth:`Partitions.global_options`.
@@ -706,6 +706,10 @@ class Partition(CombinatorialObject, Element):
 
             sage: Partitions.global_options.reset()
         """
+        if compact is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(16933, 'compact argument is deprecated.')
+
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
     def _ascii_art_(self):

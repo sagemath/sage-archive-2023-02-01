@@ -448,10 +448,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                     comps[self._vertex_to_element(i)] = (
                     [self._vertex_to_element(x) for x in c[i]] )
             return comps
-        
+
         # Looking for complements of one element.
         return [x for x in self.list() if
-         self.meet(x, element)==self.bottom() and 
+         self.meet(x, element)==self.bottom() and
          self.join(x, element)==self.top()]
 
     def is_atomic(self):

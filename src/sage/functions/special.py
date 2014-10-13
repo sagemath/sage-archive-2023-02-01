@@ -435,11 +435,7 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
         if prec != 53:
             raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
-        ans = str(scipy.special.hyperu(float(alpha), float(beta), float(x)))
-        ans = ans.replace("(", "")
-        ans = ans.replace(")", "")
-        ans = ans.replace("j", "*I")
-        return sage_eval(ans)
+        return RDF(scipy.special.hyperu(float(alpha), float(beta), float(x)))
     elif algorithm == 'pari':
         from sage.libs.pari.all import pari
         R = RealField(prec)

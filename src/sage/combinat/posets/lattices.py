@@ -446,13 +446,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             for i in range(n):
                 if len(c[i]) > 0:
                     comps[self._vertex_to_element(i)] = (
-                    [self._vertex_to_element(x) for x in c[i]] )
+                        [self._vertex_to_element(x) for x in c[i]] )
             return comps
 
         # Looking for complements of one element.
         if self.cardinality()==0:
             raise ValueError("element (=%s) not in poset"%element)
-        return [x for x in self.list() if
+        return [x for x in self if
          self.meet(x, element)==self.bottom() and
          self.join(x, element)==self.top()]
 

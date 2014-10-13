@@ -1387,10 +1387,10 @@ class HasseDiagram(DiGraph):
 
     def complements(self):
         r"""
-        Depreceated.
+        Deprecated.
         """
         from sage.misc.superseded import deprecation
-        deprecation(17138, "Use FiniteLattices::complements().")
+        deprecation(17138, "This function is broken. Do not use.")
         jn = self.join_matrix()
         mt = self.meet_matrix()
         n = self.cardinality()

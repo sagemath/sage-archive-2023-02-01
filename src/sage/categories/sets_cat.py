@@ -790,35 +790,53 @@ class Sets(Category_singleton):
                 sage: Posets().example("facade")
                 An example of a facade poset: the positive integers ordered by divisibility
 
-            Let us investigate this last example in detail: let `P` be
-            set of positive integers partially ordered by
-            divisibility. There are two options for representing its
-            elements:
+            Let us investigate in detail a close variant of this last
+            example: let `P` be set of divisors of `12` partially
+            ordered by divisibility. There are two options for
+            representing its elements:
 
-            1. as plain integers
-            2. as integers, modified to be aware that their parent is `P`
+            1. as plain integers::
 
-            The advantage of 1. is that one needs not to do conversions back and
-            forth between `P` and `\ZZ`. The disadvantage is that this
-            introduces an ambiguity when writing `2 < 3`::
+                sage: P = Poset((divisors(12), attrcall("divides")), facade=True)
+
+            2. as integers, modified to be aware that their parent is `P`::
+
+                sage: Q = Poset((divisors(12), attrcall("divides")), facade=False)
+
+            The advantage of option 1. is that one needs not do
+            conversions back and forth between `P` and `\ZZ`. The
+            disadvantage is that this introduces an ambiguity when
+            writing `2 < 3`: does this compare `2` and `3` w.r.t. the
+            natural order on integers or w.r.t. divisibility?::
 
                 sage: 2 < 3
                 True
 
-            To raise this ambiguity, one needs to explicitly specify the order
-            as in `2 <_P 3`::
+            To raise this ambiguity, one needs to explicitly specify
+            the underlying poset as in `2 <_P 3`::
 
                 sage: P = Posets().example("facade")
                 sage: P.lt(2,3)
                 False
 
+            On the other hand, with option 2., the elements once
+            constructed know unambiguously how to compare themselves::
+
+                sage: Q(2) < Q(3)
+                False
+                sage: Q(2) < Q(6)
+                True
+
             Beware that ``P(2)`` is still the integer `2`. Therefore
-            ``P(2) < P(3)`` still compares `2` and `3` as integers!
+            ``P(2) < P(3)`` still compares `2` and `3` as integers!::
+
+                sage: P(2) < P(3)
+                True
 
             In short `P` being a facade parent is one of the programmatic
             counterparts (with e.g. coercions) of the usual mathematical idiom:
-            "for ease of notation, we identify an element of `P` with the
-            corresponding integer". Too many identifications lead to
+            ``for ease of notation, we identify an element of `P` with the
+            corresponding integer''. Too many identifications lead to
             confusion; the lack thereof leads to heavy, if not obfuscated,
             notations. Finding the right balance is an art, and even though
             there are common guidelines, it is ultimately up to the writer to

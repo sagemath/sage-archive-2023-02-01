@@ -447,6 +447,7 @@ def airy_ai(alpha, x=None, hold_derivative=False, **kwds):
 
         sage: plot(airy_ai(x), (x, -10, 5)) + plot(airy_ai_prime(x),
         ....:  (x, -10, 5), color='red')
+        Graphics object consisting of 2 graphics primitives
 
     **References**
 
@@ -877,6 +878,7 @@ def airy_bi(alpha, x=None, hold_derivative=False, **kwds):
 
         sage: plot(airy_bi(x), (x, -10, 5)) + plot(airy_bi_prime(x),
         ....:  (x, -10, 5), color='red')
+        Graphics object consisting of 2 graphics primitives
 
     **References**
 

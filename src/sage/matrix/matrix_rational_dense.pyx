@@ -52,12 +52,12 @@ from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/ext/random.pxi"
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_mat.pxi"
+include "sage/ext/gmp.pxi"
 
+from sage.libs.gmp.types cimport mpq_t
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_mat cimport *
 cimport sage.structure.element
 
 from sage.structure.sequence import Sequence

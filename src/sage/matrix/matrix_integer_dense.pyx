@@ -52,6 +52,7 @@ from sage.misc.misc import verbose, get_verbose, cputime
 from sage.rings.arith import previous_prime
 from sage.structure.element import is_Element
 from sage.structure.proof.proof import get_flag as get_proof_flag
+from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 
@@ -73,8 +74,6 @@ cdef extern from "convert.h":
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/gmp.pxi"
-include "sage/ext/random.pxi"
 
 cdef extern from "math.h":
     double log(double x)

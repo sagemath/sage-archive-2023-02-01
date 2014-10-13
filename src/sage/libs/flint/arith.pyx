@@ -9,12 +9,10 @@ FLINT Arithmetic Functions
 ###########################################################################
 
 include "sage/ext/interrupt.pxi"
-include "fmpz.pxi"
-include "fmpq_poly.pxi"
 
-cdef extern from "flint/arith.h":
-    void arith_number_of_partitions(fmpz_t x, unsigned long n)
-    void arith_dedekind_sum(fmpq_t, fmpz_t, fmpz_t)
+from fmpz cimport *
+from fmpq cimport *
+from arith cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational

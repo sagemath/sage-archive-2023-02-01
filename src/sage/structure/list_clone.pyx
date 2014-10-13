@@ -909,11 +909,11 @@ cdef class ClonableArray(ClonableElement):
             sage: ClonableArray(Parent(), [1,2,3]) # indirect doctest
             Traceback (most recent call last):
             ...
-            AssertionError: This should never be called, please overload the check method
+            NotImplementedError: this should never be called, please overload the check method
             sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,4]) # indirect doctest
         """
-        assert False, "This should never be called, please overload the check method"
+        raise NotImplementedError("this should never be called, please overload the check method")
 
     cpdef long _hash_(self):
         """
@@ -1696,11 +1696,11 @@ cdef class ClonableIntArray(ClonableElement):
             sage: ClonableArray(Parent(), [1,2,3]) # indirect doctest
             Traceback (most recent call last):
             ...
-            AssertionError: This should never be called, please overload the check method
+            NotImplementedError: this should never be called, please overload the check method
             sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el = IncreasingIntArrays()([1,2,4]) # indirect doctest
         """
-        assert False, "This should never be called, please overload the check method"
+        raise NotImplementedError("this should never be called, please overload the check method")
 
     cpdef long _hash_(self):
         """
@@ -1862,5 +1862,5 @@ cdef class NormalizedClonableList(ClonableList):
             ...
             ValueError: list is not strictly increasing
         """
-        assert False, "This should never be called, please overload the normalize method"
+        raise NotImplementedError("This should never be called, please overload the normalize method")
 

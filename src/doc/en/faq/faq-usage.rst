@@ -384,18 +384,6 @@ unzip the fonts into your ``~/.fonts`` directory. You can also install
 the ``jsmath-fonts`` package.
 
 
-I created the file SAGE_ROOT/devel/sage/sage/calculus/stokes.py, and have changed my mind and want to completely delete it from Sage, but it keeps coming back (i.e. it is still importable) when I type "sage -br". What do I do?
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-Delete both of the file ::
-
-    SAGE_ROOT/devel/sage/build/sage/calculus/stokes.py
-
-**and** the file ::
-
-    SAGE_ROOT/devel/sage/build/lib.*/sage/calculus/stokes.py
-
-
 Does Sage contain a function similar to Mathematica's ToCharacterCode[]?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -491,7 +479,7 @@ When I run doctests on Mac OS X I see the messages with "malloc", but in the end
 The "malloc" messages you refer to might be something such as the
 following::
 
-    sage -t  devel/sage-main/sage/libs/pari/gen.pyx
+    sage -t  src/sage/libs/pari/gen.pyx
     python(4563) malloc: *** vm_allocate(size=4096000000) failed (error code=3)
     python(4563) malloc: *** error: can't allocate region
     python(4563) malloc: *** set a breakpoint in szone_error to debug

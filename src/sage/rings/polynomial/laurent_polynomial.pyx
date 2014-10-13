@@ -389,7 +389,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: f = (x^3 + y/t^3)^3 + t^2; f
             y^3*t^-9 + 3*x^3*y^2*t^-6 + 3*x^6*y*t^-3 + x^9 + t^2
             sage: f.dict()
-            {0: x^9, -6: 3*x^3*y^2, 2: 1, -3: 3*x^6*y, -9: y^3}
+            {-9: y^3, -6: 3*x^3*y^2, -3: 3*x^6*y, 0: x^9, 2: 1}
         """
         return dict(zip(self.exponents(), self.coefficients()))
 

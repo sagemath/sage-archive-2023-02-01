@@ -450,7 +450,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return comps
 
         # Looking for complements of one element.
-        if self.cardinality()==0:
+        if not element in self:
             raise ValueError("element (=%s) not in poset"%element)
         return [x for x in self if
          self.meet(x, element)==self.bottom() and

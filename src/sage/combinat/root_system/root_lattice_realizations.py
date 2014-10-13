@@ -17,7 +17,6 @@ from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import, LazyImport
-from sage.misc.superseded import deprecated_function_alias
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.modules_with_basis import ModulesWithBasis
@@ -2234,7 +2233,9 @@ class RootLatticeRealizations(Category_over_base_ring):
             EXAMPLES::
 
                 sage: RootSystem(["B",3]).ambient_space().plot_roots()
+                Graphics3d Object
                 sage: RootSystem(["B",3]).ambient_space().plot_roots("all")
+                Graphics3d Object
 
             TESTS::
 
@@ -2283,7 +2284,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     raise ValueError("plotting classical roots only available in affine type")
                 raise NotImplementedError("classical roots")
             elif collection == "all":
-                assert self.cartan_type().is_finite(), "plotting all roots only available in finite type"
+                if not self.cartan_type().is_finite():
+                    raise ValueError("plotting all roots only available in finite type")
                 roots = root_lattice.roots()
             elif isinstance(collection, (list, tuple)):
                 roots = collection
@@ -2316,6 +2318,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             EXAMPLES::
 
                 sage: RootSystem(["B",3]).ambient_space().plot_coroots()
+                Graphics3d Object
 
             TESTS::
 
@@ -2338,7 +2341,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     raise ValueError("plotting classical coroots only available in affine type")
                 raise NotImplementedError("classical coroots")
             elif collection == "all":
-                assert self.cartan_type().is_finite(), "plotting all coroots only available in finite type"
+                if not self.cartan_type().is_finite():
+                    raise ValueError("plotting all coroots only available in finite type")
                 coroots = coroot_lattice.roots()
             elif isinstance(collection, (list, tuple)):
                 coroots = collection
@@ -2364,6 +2368,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             EXAMPLES::
 
                 sage: RootSystem(["B",3]).ambient_space().plot_fundamental_weights()
+                Graphics3d Object
 
             TESTS::
 
@@ -2416,13 +2421,21 @@ class RootLatticeRealizations(Category_over_base_ring):
             EXAMPLES::
 
                 sage: RootSystem(["A",2,1]).ambient_space().plot_reflection_hyperplanes()
+                Graphics object consisting of 6 graphics primitives
                 sage: RootSystem(["G",2,1]).ambient_space().plot_reflection_hyperplanes()
+                Graphics object consisting of 6 graphics primitives
                 sage: RootSystem(["A",3]).weight_space().plot_reflection_hyperplanes()
+                Graphics3d Object
                 sage: RootSystem(["B",3]).ambient_space().plot_reflection_hyperplanes()
+                Graphics3d Object
                 sage: RootSystem(["A",3,1]).weight_space().plot_reflection_hyperplanes()
+                Graphics3d Object
                 sage: RootSystem(["B",3,1]).ambient_space().plot_reflection_hyperplanes()
+                Graphics3d Object
                 sage: RootSystem(["A",2,1]).weight_space().plot_reflection_hyperplanes(affine=False, level=1)
+                Graphics3d Object
                 sage: RootSystem(["A",2]).root_lattice().plot_reflection_hyperplanes()
+                Graphics object consisting of 4 graphics primitives
 
             TESTS::
 
@@ -2463,7 +2476,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     raise ValueError("plotting classical reflection hyperplanes only available in affine type")
                 raise NotImplementedError("classical roots")
             elif collection == "all":
-                assert self.cartan_type().is_finite(), "plotting all reflection hyperplanes only available in finite type"
+                if not self.cartan_type().is_finite():
+                    raise ValueError("plotting all reflection hyperplanes only available in finite type")
                 coroots = coroot_lattice.positive_roots()
             elif isinstance(collection, (list, tuple)):
                 coroots = collection
@@ -2492,15 +2506,21 @@ class RootLatticeRealizations(Category_over_base_ring):
             EXAMPLES::
 
                 sage: RootSystem(["A",2]).ambient_space().plot_hedron()
+                Graphics object consisting of 8 graphics primitives
                 sage: RootSystem(["A",3]).ambient_space().plot_hedron()
+                Graphics3d Object
                 sage: RootSystem(["B",3]).ambient_space().plot_hedron()
+                Graphics3d Object
                 sage: RootSystem(["C",3]).ambient_space().plot_hedron()
+                Graphics3d Object
                 sage: RootSystem(["D",3]).ambient_space().plot_hedron()
+                Graphics3d Object
 
             Surprise: polyhedrons of large dimension know how to
             project themselves nicely::
 
                 sage: RootSystem(["F",4]).ambient_space().plot_hedron() # long time
+                Graphics3d Object
 
             TESTS::
 
@@ -2519,7 +2539,8 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             from sage.geometry.polyhedron.all import Polyhedron
             plot_options = self.plot_parse_options(**options)
-            assert self.cartan_type().is_finite()
+            if not self.cartan_type().is_finite():
+                raise ValueError("the Cartan type must be finite")
             vertices = [plot_options.projection(vertex)
                         for vertex in self.rho().orbit()]
             return Polyhedron(vertices=vertices).plot()
@@ -2545,13 +2566,18 @@ class RootLatticeRealizations(Category_over_base_ring):
             2D plots::
 
                 sage: RootSystem(["B",2]).ambient_space().plot_fundamental_chamber()
+                Graphics object consisting of 1 graphics primitive
                 sage: RootSystem(["B",2,1]).ambient_space().plot_fundamental_chamber()
+                Graphics object consisting of 1 graphics primitive
                 sage: RootSystem(["B",2,1]).ambient_space().plot_fundamental_chamber("classical")
+                Graphics object consisting of 1 graphics primitive
 
             3D plots::
 
                 sage: RootSystem(["A",3,1]).weight_space() .plot_fundamental_chamber()
+                Graphics3d Object
                 sage: RootSystem(["B",3,1]).ambient_space().plot_fundamental_chamber()
+                Graphics3d Object
 
             This feature is currently not available in the root lattice/space::
 
@@ -2612,17 +2638,21 @@ class RootLatticeRealizations(Category_over_base_ring):
             2D plots::
 
                 sage: RootSystem(["B",2,1]).ambient_space().plot_alcoves()                      # long time (3s)
+                Graphics object consisting of 228 graphics primitives
 
             3D plots::
 
                 sage: RootSystem(["A",2,1]).weight_space() .plot_alcoves(affine=False)          # long time (3s)
+                Graphics3d Object
                 sage: RootSystem(["G",2,1]).ambient_space().plot_alcoves(affine=False, level=1) # long time (3s)
+                Graphics3d Object
 
             Here we plot a single alcove::
 
                 sage: L = RootSystem(["A",3,1]).ambient_space()
                 sage: W = L.weyl_group()
                 sage: L.plot(alcoves=[W.one()], reflection_hyperplanes=False, bounding_box=2)
+                Graphics3d Object
 
             TESTS::
 
@@ -2801,6 +2831,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(["A",2,1]).ambient_space()
                 sage: L.plot_bounding_box()
+                Graphics object consisting of 1 graphics primitive
 
             TESTS::
 
@@ -2836,6 +2867,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: p = L.plot_alcoves(bounding_box=5)           # long time (5s)
                 sage: p += L.plot_alcove_walk(w1)                  # long time
                 sage: p                                            # long time
+                Graphics object consisting of 375 graphics primitives
 
             The same plot with another alcove walk::
 
@@ -2845,9 +2877,10 @@ class RootLatticeRealizations(Category_over_base_ring):
             And another with some foldings::
 
                 sage: L.plot_alcoves(bounding_box=3) + \
-                ...   L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
-                ...                      foldings = [False, False, True, False, False, False, True, False, True, False],
-                ...                      color="green")            # long time (3s)
+                ....:   L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
+                ....:                      foldings = [False, False, True, False, False, False, True, False, True, False],
+                ....:                      color="green")            # long time (3s)
+                Graphics object consisting of 155 graphics primitives
 
             TESTS::
 
@@ -3310,8 +3343,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                     if reduced_word:
                         direction.append(i)
                     self = self.simple_reflection(i)
-
-        to_positive_chamber = deprecated_function_alias(12667, to_dominant_chamber)
 
         def reduced_word(self, index_set = None, positive = True):
             r"""

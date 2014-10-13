@@ -35,7 +35,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.superseded import deprecated_function_alias
 from sage.rings.all import ZZ
 from combinat import CombinatorialObject
 from cartesian_product import CartesianProduct
@@ -949,8 +948,6 @@ class Composition(CombinatorialObject, Element):
             ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
         """
         return Compositions()(map(len,self.refinement_splitting(J)))
-
-    refinement = deprecated_function_alias(13243, refinement_splitting_lengths)
 
     def major_index(self):
         """

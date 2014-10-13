@@ -32,7 +32,7 @@ Combinatorial Designs [DesignHandbook]_ (`available here
 ::
 
     sage: from sage.combinat.designs.latin_squares import MOLS_table
-    sage: MOLS_table(30) # long time
+    sage: MOLS_table(600) # long time
            0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
         ________________________________________________________________________________
       0| +oo +oo   1   2   3   4   1   6   7   8   2  10   5  12   4   4  15  16   5  18
@@ -66,11 +66,10 @@ Combinatorial Designs [DesignHandbook]_ (`available here
     560|  15   7   7 562   7   7   6   7   7 568   6 570   7   7  15  22   8 576   7   7
     580|   7   8   7  10   7   8   7 586   7  18  17   7  15 592   8  15   7   7   8 598
 
-
 Comparison with the results from the Handbook of Combinatorial Designs (2ed)
 [DesignHandbook]_::
 
-    sage: MOLS_table(30,compare=True) # long time
+    sage: MOLS_table(600,compare=True) # long time
             0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
         ________________________________________________________________________________
       0|                                                           +               +
@@ -294,15 +293,20 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
 
     What is the maximum number of MOLS of size 8 that Sage knows how to build?::
 
-        sage: designs.mutually_orthogonal_latin_squares(None,8,existence=True)
+        sage: designs.orthogonal_arrays.largest_available_k(8)-2
         7
 
-    If you only want to know if Sage is able to build a given set of MOLS, just
-    set the argument ``existence`` to ``True``::
+    If you only want to know if Sage is able to build a given set of
+    MOLS, query the ``orthogonal_arrays.*`` functions::
 
-        sage: designs.mutually_orthogonal_latin_squares(5, 5, existence=True)
+        sage: designs.orthogonal_arrays.is_available(5+2, 5) # 5 MOLS of order 5
         False
-        sage: designs.mutually_orthogonal_latin_squares(4,6, existence=True)
+        sage: designs.orthogonal_arrays.is_available(4+2,6) # 4 MOLS of order 6
+        False
+
+    Sage, however, is not able to prove that the second MOLS do not exist::
+
+        sage: designs.orthogonal_arrays.exists(4+2,6) # 4 MOLS of order 6
         Unknown
 
     If you ask for such a MOLS then you will respecively get an informative
@@ -323,14 +327,10 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
 
         sage: designs.mutually_orthogonal_latin_squares(3, 1)
         [[0], [0], [0]]
-        sage: designs.mutually_orthogonal_latin_squares(None,1, existence=True)
-        +Infinity
         sage: designs.mutually_orthogonal_latin_squares(None, 1)
         Traceback (most recent call last):
         ...
         ValueError: there are no bound on k when 0<=n<=1
-        sage: designs.mutually_orthogonal_latin_squares(2,10,existence=True)
-        True
         sage: designs.mutually_orthogonal_latin_squares(2,10)
         [
         [1 8 9 0 2 4 6 3 5 7]  [1 7 6 5 0 9 8 2 3 4]
@@ -345,13 +345,15 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
         [4 5 6 7 1 2 3 9 0 8], [7 1 2 3 4 5 6 9 8 0]
         ]
     """
-    from sage.combinat.designs.orthogonal_arrays import orthogonal_array, _OA_cache_set, _OA_cache_get, _OA_cache_construction_available
+    from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
     from sage.rings.arith import factor
     from database import MOLS_constructions
 
     # Is k is None we find the largest available
     if k is None:
+        from sage.misc.superseded import deprecation
+        deprecation(17034,"please use designs.orthogonal_arrays.largest_available_k instead of k=None")
         if n == 0 or n == 1:
             if existence:
                 from sage.rings.infinity import Infinity
@@ -362,10 +364,9 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
         if existence:
             return k
 
-    if existence and _OA_cache_get(k+2,n) is not None:
-        return _OA_cache_get(k+2,n)
-
-    may_be_available = _OA_cache_construction_available(k+2,n) is not False
+    if existence:
+        from sage.misc.superseded import deprecation
+        deprecation(17034,"please use designs.orthogonal_arrays.is_available/exists instead of existence=True")
 
     if n == 1:
         if existence:
@@ -377,8 +378,7 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
             return False
         raise EmptySetError("There exist at most n-1 MOLS of size n if n>=2.")
 
-    elif may_be_available and n in MOLS_constructions and k <= MOLS_constructions[n][0]:
-        _OA_cache_set(MOLS_constructions[n][0]+2,n,True)
+    elif n in MOLS_constructions and k <= MOLS_constructions[n][0]:
         if existence:
             return True
         _, construction = MOLS_constructions[n]
@@ -476,20 +476,29 @@ def latin_square_product(M,N,*others):
         return P
 
 
-def MOLS_table(number_of_lines,compare=False):
+def MOLS_table(start,stop=None,compare=False,width=None):
     r"""
     Prints the MOLS table that Sage can produce.
 
     INPUT:
 
+    - ``start,stop`` (integers) -- print the table of MOLS for value of `n` such
+      that ``start<=n<stop``. If only one integer is given as input, it is
+      interpreted as the value of ``stop`` with ``start=0`` (same behaviour as
+      ``range``).
+
     - ``compare`` (boolean) -- if sets to ``True`` the MOLS displays
       with `+` and `-` entries its difference with the table from the
       Handbook of Combinatorial Designs (2ed).
 
+    - ``width`` (integer) -- the width of each column of the table. By default,
+      it is computed from range of values determined by the parameters ``start``
+      and ``stop``.
+
     EXAMPLES::
 
         sage: from sage.combinat.designs.latin_squares import MOLS_table
-        sage: MOLS_table(5)
+        sage: MOLS_table(100)
                0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
             ________________________________________________________________________________
           0| +oo +oo   1   2   3   4   1   6   7   8   2  10   5  12   4   4  15  16   5  18
@@ -497,28 +506,58 @@ def MOLS_table(number_of_lines,compare=False):
          40|   7  40   5  42   5   6   4  46   8  48   6   5   5  52   5   6   7   7   5  58
          60|   5  60   5   6  63   7   5  66   5   6   6  70   7  72   5   7   6   6   6  78
          80|   9  80   8  82   6   6   6   6   7  88   6   7   6   6   6   6   7  96   6   8
-        sage: MOLS_table(5,compare=True)
-                0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
+        sage: MOLS_table(100, width=4)
+                 0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19
+             ____________________________________________________________________________________________________
+           0|  +oo  +oo    1    2    3    4    1    6    7    8    2   10    5   12    4    4   15   16    5   18
+          20|    4    5    3   22    7   24    4   26    5   28    4   30   31    5    4    5    8   36    4    5
+          40|    7   40    5   42    5    6    4   46    8   48    6    5    5   52    5    6    7    7    5   58
+          60|    5   60    5    6   63    7    5   66    5    6    6   70    7   72    5    7    6    6    6   78
+          80|    9   80    8   82    6    6    6    6    7   88    6    7    6    6    6    6    7   96    6    8
+        sage: MOLS_table(100, compare=True)
+               0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
             ________________________________________________________________________________
           0|                                                           +               +
          20|
          40|
          60|   +
          80|
+        sage: MOLS_table(50, 100, compare=True)
+               0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
+            ________________________________________________________________________________
+         40|
+         60|   +
+         80|
     """
+    from orthogonal_arrays import largest_available_k
+    if stop is None:
+        start,stop = 0,start
+    # make start and stop be congruent to 0 mod 20
+    start = start - (start%20)
+    stop  = stop-1
+    stop  = stop  + (20-(stop%20))
+    assert start%20 == 0 and stop%20 == 0
+    if stop <= start:
+        return
+
     if compare:
         from sage.misc.misc import SAGE_SHARE
         handbook_file = open(SAGE_SHARE+"/combinatorial_designs/MOLS_table.txt",'r')
         hb = map(int,handbook_file.readlines()[9].split(','))
         handbook_file.close()
 
+    # choose an appropriate width (needs to be >= 3 because "+oo" should fit)
+    if width is None:
+        from sage.rings.integer import Integer
+        width = max(3,Integer(stop-1).ndigits(10))
+
     from string import join
-    print "     " + join('%3d'%i for i in range(20))
-    print "    " + "_"*80,
-    for i in range(20*number_of_lines):
+    print " "*(width+2) + join("{i:>{width}}".format(i=i,width=width) for i in range(20))
+    print " "*(width+1) + "_"*((width+1)*20),
+    for i in range(start,stop):
         if i%20==0:
-            print "\n%3d|"%i,
-        k = mutually_orthogonal_latin_squares(None,i,existence=True)
+            print "\n{:>{width}}|".format(i,width=width),
+        k = largest_available_k(i)-2
         if compare:
             if i < 2 or hb[i] == k:
                 c = ""
@@ -531,4 +570,4 @@ def MOLS_table(number_of_lines,compare=False):
                 c = "+oo"
             else:
                 c = k
-        print '{:>3}'.format(c),
+        print '{:>{width}}'.format(c,width=width),

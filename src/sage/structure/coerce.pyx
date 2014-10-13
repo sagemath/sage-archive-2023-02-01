@@ -271,7 +271,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.record_exceptions()
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
-            ['Traceback (most recent call last):\n  File "coerce.pyx", line ...TypeError: just a test']
+            ['Traceback (most recent call last):\n  File "sage/structure/coerce.pyx", line ...TypeError: just a test']
             sage: cm.record_exceptions(False)
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
@@ -299,7 +299,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             []
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
-            ['Traceback (most recent call last):\n  File "coerce.pyx", line ...TypeError: just a test']
+            ['Traceback (most recent call last):\n  File "sage/structure/coerce.pyx", line ...TypeError: just a test']
 
         The function _test_exception_stack is executing the following code::
 
@@ -329,7 +329,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             []
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
-            ['Traceback (most recent call last):\n  File "coerce.pyx", line ...TypeError: just a test']
+            ['Traceback (most recent call last):\n  File "sage/structure/coerce.pyx", line ...TypeError: just a test']
         """
         try:
             raise TypeError, "just a test"
@@ -726,8 +726,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         The operator can be any callable::
 
-            set Rational Field Integer Ring <function <lambda> at 0xc0b2270> None None
-            (Rational Field, Rational Field)
             sage: R.<x> = ZZ['x']
             sage: cm.bin_op(x^2-1, x+1, gcd)
             x + 1

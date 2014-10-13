@@ -11,7 +11,6 @@ cdef class Integer(EuclideanDomainElement):
 
     cdef void _to_ZZ(self, ZZ_c *z)
     cdef void set_from_mpz(self, mpz_t value)
-    cdef mpz_t* get_value(self)
     cdef hash_c(self)
 
     cdef _pari_c(self)

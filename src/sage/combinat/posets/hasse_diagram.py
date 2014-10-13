@@ -124,6 +124,7 @@ class HasseDiagram(DiGraph):
 
             sage: P = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [3,4,1,2])
             sage: P._hasse_diagram.plot()
+            Graphics object consisting of 42 graphics primitives
         """
         # Set element_labels to default to the vertex set.
         if element_labels is None:
@@ -308,8 +309,7 @@ class HasseDiagram(DiGraph):
             sage: P(2) in P.minimal_elements()
             True
         """
-        indegs = self.in_degree(labels=True)
-        return [x for x in indegs if indegs[x]==0]
+        return self.sources()
 
     def maximal_elements(self):
         """
@@ -321,8 +321,7 @@ class HasseDiagram(DiGraph):
             sage: P.maximal_elements()
             [4]
         """
-        outdegs = self.out_degree(labels=True)
-        return [x for x,d in outdegs.iteritems() if d==0]
+        return self.sinks()
 
     def bottom(self):
         """
@@ -428,20 +427,9 @@ class HasseDiagram(DiGraph):
             sage: p.is_chain()
             False
         """
-        # There is one minimum and all other vertices have out-degree 1
-        seen_0 = False
-        for d in self.out_degree():
-            if d == 1:
-                pass
-            elif d == 0:
-                if seen_0:
-                    return False
-                seen_0 = True
-            else:
-                return False
-
-        # Maximum in-degree is 1
-        return all(d<=1 for d in self.in_degree())
+        return (self.num_edges()+1 == self.num_verts() and # Hasse Diagram is a tree
+                all(d<=1 for d in self.out_degree())   and # max outdegree is <= 1
+                all(d<=1 for d in self.in_degree()))       # max  indegree is <= 1
 
     def dual(self):
         """

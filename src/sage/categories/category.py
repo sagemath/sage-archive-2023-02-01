@@ -159,7 +159,7 @@ class Category(UniqueRepresentation, SageObject):
         ....:          pass
         ....:
         ....:     class ParentMethods: # holds the generic operations on parents
-        ....:          # TODO: find a good example of operation
+        ....:          # TODO: find a good example of an operation
         ....:          pass
         ....:
         ....:     class ElementMethods:# holds the generic operations on elements
@@ -168,11 +168,11 @@ class Category(UniqueRepresentation, SageObject):
         ....:              pass
         ....:
         ....:     class MorphismMethods: # holds the generic operations on morphisms
-        ....:          # TODO: find a good example of operation
+        ....:          # TODO: find a good example of an operation
         ....:          pass
         ....:
 
-    Note that the nested class ``ParentMethods`` is merely container
+    Note that the nested class ``ParentMethods`` is merely a container
     of operations, and does not inherit from anything. Instead, the
     hierarchy relation is defined once at the level of the categories,
     and the actual hierarchy of classes is built in parallel from all
@@ -182,8 +182,8 @@ class Category(UniqueRepresentation, SageObject):
     class inheritance from ``C.parent_class``.
 
     Similarly, two other hierarchies of classes, for elements and
-    morphisms respectively, are built from all the ``ElementsMethods``
-    and ``MorphismMethods`` nested classes
+    morphisms respectively, are built from all the ``ElementMethods``
+    and ``MorphismMethods`` nested classes.
 
     EXAMPLES:
 
@@ -1645,7 +1645,7 @@ class Category(UniqueRepresentation, SageObject):
     def parent_class(self):
         r"""
         A common super class for all parents in this category (and its
-        subcategories)..
+        subcategories).
 
         This class contains the methods defined in the nested class
         ``self.ParentMethods`` (if it exists), and has as bases the

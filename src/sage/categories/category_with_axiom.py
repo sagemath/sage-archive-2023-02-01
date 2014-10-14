@@ -2379,14 +2379,14 @@ class CategoryWithAxiom(Category):
             True
 
         If ``named`` is ``True``, then ``_without_axioms`` stops at the
-        first category that has a explicit name of its own::
+        first category that has an explicit name of its own::
 
             sage: Sets().Finite()._without_axioms(named=True)
             Category of sets
             sage: Monoids().Finite()._without_axioms(named=True)
             Category of monoids
 
-        Technically we tests this by checking if the class specifies
+        Technically we test this by checking if the class specifies
         explicitly the attribute ``_base_category_class_and_axiom``
         by looking up ``_base_category_class_and_axiom_origin``.
 

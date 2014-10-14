@@ -467,7 +467,7 @@ def End(X, category=None):
         Alternating group of order 3!/2 as a permutation group
 
     To avoid creating superfluous categories, a homset in a category
-    ``Cs()`` is in the homset category of the lowest fullsupercategory
+    ``Cs()`` is in the homset category of the lowest full super category
     ``Bs()`` of ``Cs()`` that implements ``Bs.Homsets`` (or the join
     thereof if there are several). For example, finite groups form a
     full subcategory of unital magmas: any unital magma morphism
@@ -486,7 +486,7 @@ def End(X, category=None):
 
     Similarly, a ring morphism just needs to preserve addition,
     multiplication, zero, and one. Accordingly, and since the category
-    of rings implement nothing specific about their homsets, a ring
+    of rings implements nothing specific about its homsets, a ring
     homset is currently constructed in the category of homsets of
     unital magmas and unital additive magmas::
 

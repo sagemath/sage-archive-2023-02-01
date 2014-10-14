@@ -492,7 +492,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
     elements = None
     D = {}
     if isinstance(data, FinitePoset):
-        if element_labels is None and category is None and facade is None and linear_extension == data._linear_extension:
+        if element_labels is None and category is None and facade is None and linear_extension == data._carries_linear_extension:
             return data
         if not linear_extension:
             P = FinitePoset(data, elements=None, category=category, facade=facade)
@@ -842,14 +842,14 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Parent.__init__(self, category=category, facade=facade)
         if elements is None:
-            self._linear_extension = False
+            self._carries_linear_extension = False
             # Compute a linear extension of the poset (a topological sort).
             try:
                 elements = tuple(hasse_diagram.topological_sort())
             except Exception:
                 raise ValueError("Hasse diagram contains cycles")
         else:
-            self._linear_extension = True
+            self._carries_linear_extension = True
         # Work around the fact that, currently, when a DiGraph is
         # created with Integer's as vertices, those vertices are
         # converted to plain int's. This is a bit abusive.
@@ -3051,7 +3051,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.dual().__class__
             <class 'sage.combinat.posets.lattices.FiniteMeetSemilattice_with_category'>
         """
-        if self._linear_extension:
+        if self._carries_linear_extension:
             elements = reversed(self._elements)
         else:
             elements = None
@@ -3146,7 +3146,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             if isinstance(relabeling, dict):
                 relabeling = relabeling.__getitem__
             relabeling = {i: relabeling(x) for i,x in enumerate(self._elements)}
-        if not self._linear_extension:
+        if not self._carries_linear_extension:
             elements = None
         else:
             elements = tuple(relabeling[self._element_to_vertex(x)]
@@ -3207,7 +3207,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.cover_relations()
             [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9]]
         """
-        P = Poset(DiGraph(self._hasse_diagram).canonical_label(), linear_extension=self._linear_extension,
+        P = Poset(DiGraph(self._hasse_diagram).canonical_label(), linear_extension=self._carries_linear_extension,
                   category=self.category(), facade=self._is_facade)
         return P.relabel(range(len(self._elements)))
 

@@ -671,7 +671,11 @@ class HasseDiagram(DiGraph):
 
     def is_graded(self):
         r"""
-        Deprecated. Had conflicting definition with posets.
+        Deprecated, has conflicting definition of "graded" vs. "ranked"
+        with posets.
+
+        Return ``True`` if the Hasse diagram is ranked. For definition
+        of ranked see :meth:`~rank_function`.
         """
         from sage.misc.superseded import deprecation
         deprecation(16998, "Use is_ranked(). Definition conflict with posets.")

@@ -25,6 +25,58 @@ class HomsetsCategory(FunctorialConstructionCategory):
     @classmethod
     @cached_function
     def category_of(cls, category, *args):
+        """
+        Return the homsets category of ``category``.
+
+        This class method centralizes the construction of all homset
+        categories.
+
+        The ``cls`` and ``args`` arguments below are essentially
+        unused. Their purpose is solely to let the code deviate as
+        little as possible from the generic implementation of this
+        method: :meth:`FunctorialConstructionCategory.category_of`.
+
+        INPUT:
+
+         - ``cls`` -- :class:`HomsetsCategory` or a subclass thereof
+         - ``category`` -- a category `Cat`
+         - ``*args`` -- (unused)
+
+        EXAMPLES:
+
+        If ``category`` implements a ``Homsets`` class, then this
+        class is used to build the homset category::
+
+            sage: from sage.categories.homsets import HomsetsCategory
+            sage: H = HomsetsCategory.category_of(Modules(ZZ)); H
+            Category of homsets of modules over Integer Ring
+            sage: type(H)
+            <class 'sage.categories.modules.Modules.Homsets_with_category'>
+
+        Otherwise, if ``category`` has one or more full super
+        categories, then the join of their respecitve homsets category
+        is returned. In this example, the join is trivial::
+
+            sage: C = Modules(ZZ).WithBasis().FiniteDimensional()
+            sage: C.full_super_categories()
+            [Category of modules with basis over Integer Ring,
+             Category of finite dimensional modules over Integer Ring]
+            sage: H = HomsetsCategory.category_of(C); H
+            Category of homsets of modules with basis over Integer Ring
+            sage: type(H)
+            <class 'sage.categories.modules_with_basis.ModulesWithBasis.Homsets_with_category'>
+
+        As a last resort, a :class:`HomsetsOf` of categories forming
+        the structure of ``self`` is constructed::
+
+            sage: H = HomsetsCategory.category_of(Magmas()); H
+            Category of homsets of magmas
+            sage: type(H)
+            <class 'sage.categories.homsets.HomsetsOf_with_category'>
+
+            sage: HomsetsCategory.category_of(Rings())
+            Category of homsets of unital magmas and additive unital additive magmas
+        """
         functor_category = getattr(category.__class__, cls._functor_category)
         if isinstance(functor_category, type) and issubclass(functor_category, Category):
             return functor_category(category, *args)
@@ -251,7 +303,7 @@ class Homsets(Category_singleton):
             EXAMPLES::
 
                 sage: from sage.categories.homsets import Homsets
-                sage: Homsets().Endsets().extra_super_categories()
+                sage: Homsets().Endset().extra_super_categories()
                 [Category of monoids]
             """
             from monoids import Monoids

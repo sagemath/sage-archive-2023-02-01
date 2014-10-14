@@ -158,11 +158,10 @@ class Objects(Category_singleton):
             EXAMPLES::
 
                 sage: Sets().Endsets()
-                Category of homsets of sets
+                Category of endsets of sets
 
                 sage: Rings().Endsets()
-                Category of homsets of unital magmas and additive unital additive magmas
-
+                Category of endsets of unital magmas and additive unital additive magmas
 
             .. SEEALSO::
 

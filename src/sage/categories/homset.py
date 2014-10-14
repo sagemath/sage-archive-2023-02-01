@@ -482,7 +482,7 @@ def End(X, category=None):
         sage: H.homset_category()
         Category of groups
         sage: H.category()
-        Category of homsets of unital magmas
+        Category of endsets of unital magmas
 
     Similarly, a ring morphism just needs to preserve addition,
     multiplication, zero, and one. Accordingly, and since the category
@@ -492,7 +492,7 @@ def End(X, category=None):
 
         sage: H = Hom(ZZ,ZZ,Rings())
         sage: H.category()
-        Category of homsets of unital magmas and additive unital additive magmas
+        Category of endsets of unital magmas and additive unital additive magmas
     """
     return Hom(X,X, category)
 
@@ -929,10 +929,12 @@ class Homset(Set_generic):
         Let's take a homset of finite commutative group as example; at
         this point this is the simplest one to create (gosh)::
 
-            sage: C = Groups().Finite().Commutative()
-            sage: G = PermutationGroup([(1,2,3)])
-            sage: G._refine_category_(Groups().Finite().Commutative())
-            sage: H = Hom(G, G, C)
+            sage: cat = Groups().Finite().Commutative()
+            sage: C3 = PermutationGroup([(1,2,3)])
+            sage: C3._refine_category_(Groups().Finite().Commutative())
+            sage: C2 = PermutationGroup([(1,2)])
+            sage: C2._refine_category_(Groups().Finite().Commutative())
+            sage: H = Hom(C3, C2, cat)
             sage: H.homset_category()
             Category of finite commutative groups
             sage: H.category()

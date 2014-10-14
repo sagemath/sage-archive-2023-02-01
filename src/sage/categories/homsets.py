@@ -213,9 +213,25 @@ class Homsets(Category_singleton):
         from sets_cat import Sets
         return [Sets()]
 
+    class SubcategoryMethods:
+
+        def Endset(self):
+            """
+            Return the subcategory of the homsets of ''self'' that are endomorphism sets.
+
+            EXAMPLES::
+
+                sage: Sets().Homsets().Endset()
+                Category of endsets of sets
+
+                sage: Posets().Homsets().Endset()
+                Category of endsets of posets
+            """
+            return self._with_axiom("Endset")
+
     class Endset(CategoryWithAxiom):
         """
-        The category of all end sets
+        The category of all endomorphism sets.
 
         At this point, the main purpose of this class is to keep the
         information that a category is a Endset category, even if the

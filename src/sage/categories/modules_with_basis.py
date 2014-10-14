@@ -118,7 +118,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         sage: H.category()
         Category of homsets of modules with basis over Rational Field
         sage: Hom(H, H).category()
-        Category of homsets of homsets of modules with basis over Rational Field
+        Category of endsets of homsets of modules with basis over Rational Field
 
     .. TODO:: ``End(X)`` is an algebra.
 

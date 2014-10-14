@@ -671,21 +671,10 @@ class HasseDiagram(DiGraph):
 
     def is_graded(self):
         r"""
-        Returns True if the poset is graded, and False otherwise.
-
-        A poset is *graded* if it admits a rank function. For more information
-        about the rank function, see :meth:`~rank_function`
-        and :meth:`~is_ranked`.
-
-        EXAMPLES::
-
-            sage: P = Poset([[1],[2],[3],[4],[]])
-            sage: P.is_graded()
-            True
-            sage: Q = Poset([[1,5],[2,6],[3],[4],[],[6,3],[4]])
-            sage: Q.is_graded()
-            False
+        Deprecated. Had conflicting definition with posets.
         """
+        from sage.misc.superseded import deprecation
+        deprecation(16998, "Use is_ranked(). Definition conflict with posets.")
         return self.is_ranked()
 
     def covers(self,x,y):

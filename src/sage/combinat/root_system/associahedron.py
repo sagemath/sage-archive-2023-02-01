@@ -66,10 +66,12 @@ def Associahedron(cartan_type):
         sage: Asso = Associahedron(['A',3]); Asso
         Generalized associahedron of type ['A', 3] with 14 vertices
         sage: Asso.plot()
+        Graphics3d Object
 
         sage: Asso = Associahedron(['B',3]); Asso
         Generalized associahedron of type ['B', 3] with 20 vertices
         sage: Asso.plot()
+        Graphics3d Object
 
     TESTS::
 

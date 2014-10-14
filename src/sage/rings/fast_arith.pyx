@@ -48,7 +48,6 @@ include "sage/libs/pari/decl.pxi"
 cdef extern from "pari/pari.h":
     cdef long NEXT_PRIME_VIADIFF(long, byteptr)
 
-from sage.rings.integer_ring import ZZ
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.all import pari
 from sage.rings.integer cimport Integer

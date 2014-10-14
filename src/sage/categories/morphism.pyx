@@ -507,7 +507,11 @@ cdef class SetMorphism(Morphism):
 
             sage: f = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()), operator.__abs__)
             sage: f._extra_slots_test({"bla":1})
-            {'_codomain': Integer Ring, '_domain': Integer Ring, '_function': <built-in function __abs__>, 'bla': 1, '_repr_type_str': None}
+            {'_codomain': Integer Ring,
+             '_domain': Integer Ring,
+             '_function': <built-in function __abs__>,
+             '_repr_type_str': None,
+             'bla': 1}
         """
         _slots['_function'] = self._function
         return Map._extra_slots(self, _slots)

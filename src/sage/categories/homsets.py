@@ -31,7 +31,7 @@ class HomsetsCategory(FunctorialConstructionCategory):
         elif category.full_super_categories():
             return cls.default_super_categories(category, *args)
         else:
-            return HomsetsOf(Category.join(category.all_structure_super_categories()))
+            return HomsetsOf(Category.join(category.structure()))
 
     @classmethod
     def default_super_categories(cls, category):
@@ -109,7 +109,7 @@ class HomsetsCategory(FunctorialConstructionCategory):
         #from sage.categories.objects    import Objects
         #from sage.categories.sets_cat import Sets
         tester = self._tester(**options)
-        tester.assert_(self.is_subcategory(Category.join(self.base_category().all_structure_super_categories()).Homsets()))
+        tester.assert_(self.is_subcategory(Category.join(self.base_category().structure()).Homsets()))
 
     @cached_method
     def base(self):

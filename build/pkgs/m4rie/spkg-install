@@ -36,12 +36,10 @@ fi
 if [ "x$SAGE64" = "xyes" ]; then
     CFLAGS="$CFLAGS -m64"
     CPPFLAGS="$CPPFLAGS -m64"
-    CXXFLAGS="$CXXFLAGS -m64"
 fi
 
 export CFLAGS
 export CPPFLAGS
-export CXXFLAGS
 export LDFLAGS
 
 # otherwise we might run into problems with old headers
@@ -53,24 +51,28 @@ fi
 # build M4RIE
 
 cd $ROOT_DIR/src/
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $ENABLE_DEBUG
+./configure \
+    --prefix="$SAGE_LOCAL" \
+    --libdir="$SAGE_LOCAL/lib" \
+    --enable-shared --disable-static \
+    $ENABLE_DEBUG
 
 if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring libm4rie"
+    echo >&2 "Error configuring m4rie"
     exit 1
 fi
 
 $MAKE
 
 if [ $? -ne 0 ]; then
-    echo >&2 "Error building libm4rie"
+    echo >&2 "Error building m4rie"
     exit 1
 fi
 
 $MAKE install
 
 if [ $? -ne 0 ]; then
-    echo >&2 "Error installing libm4rie"
+    echo >&2 "Error installing m4rie"
     exit 1
 fi
 

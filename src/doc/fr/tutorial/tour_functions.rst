@@ -20,6 +20,7 @@ pour tracer des courbes, mais pas dérivées ou intégrées symboliquement::
     sage: f(3)
     9
     sage: plot(f, 0, 2)
+    Graphics object consisting of 1 graphics primitive
 
 Remarquez la syntaxe de la dernière ligne. Écrire plutôt ``plot(f(z), 0, 2)``
 provoquerait une erreur : en effet, le ``z`` qui apparaît dans
@@ -39,6 +40,7 @@ s'abstenir de l'utiliser
     sage: f(z)
     z^2
     sage: plot(f(z), 0, 2)
+    Graphics object consisting of 1 graphics primitive
 
 L'appel de fonction ``f(z)`` renvoie ici l'expression symbolique
 ``z^2``, qui est alors utilisée par la fonction ``plot``.
@@ -59,6 +61,7 @@ et que l'on peut aussi dériver ou intégrer symboliquement ::
     sage: type(g)
     <type 'sage.symbolic.expression.Expression'>
     sage: plot(g, 0, 2)
+    Graphics object consisting of 1 graphics primitive
 
 Notez que, si ``g`` est une expression symbolique fonctionnelle
 (``x |--> x^2``), l'objet ``g(x)`` (``x^2``) est d'une nature un
@@ -77,6 +80,7 @@ illustrées dans le point 5 ci-dessous.
     sage: g(x).derivative()
     2*x
     sage: plot(g(x), 0, 2)
+    Graphics object consisting of 1 graphics primitive
 
 3. Utiliser une fonction usuelle prédéfinie de Sage. Celles-ci peuvent
 servir à tracer des courbes, et, indirectement, être dérivées ou intégrées ::
@@ -84,9 +88,11 @@ servir à tracer des courbes, et, indirectement, être dérivées ou intégrées
     sage: type(sin)
     <class 'sage.functions.trig.Function_sin'>
     sage: plot(sin, 0, 2)
+    Graphics object consisting of 1 graphics primitive
     sage: type(sin(x))
     <type 'sage.symbolic.expression.Expression'>
     sage: plot(sin(x), 0, 2)
+    Graphics object consisting of 1 graphics primitive
 
 Il n'est pas possible de dériver la fonction ``sin`` tout court pour
 obtenir ``cos`` ::
@@ -144,6 +150,7 @@ Solution : Il ne faut pas utiliser ``plot(h(x), 0, 4)``, mais plutôt
     ...       else:
     ...           return x-2
     sage: plot(h, 0, 4)
+    Graphics object consisting of 1 graphics primitive
 
 \5. Constante plutôt que fonction ::
 

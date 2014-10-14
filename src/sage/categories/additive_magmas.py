@@ -507,7 +507,7 @@ class AdditiveMagmas(Category_singleton):
                 sage: C.super_categories()
                 [Category of additive magmas, Category of Cartesian products of sets]
                 sage: C.axioms()
-                frozenset([])
+                frozenset()
             """
             return [AdditiveMagmas()]
 
@@ -601,7 +601,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: C.extra_super_categories();
                     [Category of additive commutative additive magmas]
                     sage: C.axioms()
-                    frozenset(['AdditiveCommutative'])
+                    frozenset({'AdditiveCommutative'})
                 """
                 return [AdditiveMagmas().AdditiveCommutative()]
 
@@ -625,11 +625,11 @@ class AdditiveMagmas(Category_singleton):
 
     class AdditiveUnital(CategoryWithAxiom):
 
-        def is_structure_category(self):
+        def additional_structure(self):
             r"""
             Return whether ``self`` is a structure category.
 
-            .. SEEALSO:: :meth:`Category.is_structure_category`
+            .. SEEALSO:: :meth:`Category.additional_structure`
 
             The category of unital additive magmas define the zero as
             new structure, and this zero shall be preserved by
@@ -637,10 +637,10 @@ class AdditiveMagmas(Category_singleton):
 
             EXAMPLES::
 
-                sage: AdditiveMagmas().AdditiveUnital().is_structure_category()
-                True
+                sage: AdditiveMagmas().AdditiveUnital().additional_structure()
+                Category of additive unital additive magmas
             """
-            return True
+            return self
 
         class SubcategoryMethods:
 
@@ -923,7 +923,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: C.extra_super_categories();
                     [Category of additive unital additive magmas]
                     sage: C.axioms()
-                    frozenset(['AdditiveUnital'])
+                    frozenset({'AdditiveUnital'})
                 """
                 return [AdditiveMagmas().AdditiveUnital()]
 

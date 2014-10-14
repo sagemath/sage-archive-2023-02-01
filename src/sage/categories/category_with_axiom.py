@@ -74,7 +74,7 @@ axioms)::
     [Category of finite cs, Category of finite sets,
      Category of cs, Category of sets, ...]
     sage: Cs().Finite().axioms()
-    frozenset(['Finite'])
+    frozenset({'Finite'})
 
 Now a parent declared in the category ``Cs().Finite()`` inherits from
 all the methods of finite sets and of finite `C`'s, as desired::
@@ -1624,7 +1624,13 @@ TESTS:
     sage: C.AdditiveInverse()
     Category of rings
     sage: Rings().axioms()
-    frozenset([...])
+    frozenset({'AdditiveAssociative',
+               'AdditiveCommutative',
+               'AdditiveInverse',
+               'AdditiveUnital',
+               'Associative',
+               'Distributive',
+               'Unital'})
     sage: sorted(Rings().axioms())
     ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
      'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
@@ -2161,28 +2167,28 @@ class CategoryWithAxiom(Category):
                              ignore_axioms = ((base_category, axiom),),
                              as_list = True)
 
-    def is_structure_category(self):
+    def additional_structure(self):
         r"""
-        Return whether ``self`` is a structure category.
+        Return the additional structure defined by ``self``.
 
-        .. SEEALSO:: :meth:`Category.is_structure_category`.
+        OUTPUT: ``None``
+
+        By default, a category with axiom defines no additional
+        structure.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`.
 
         EXAMPLES:
 
-        By default a category with axiom does not define new
-        structure::
-
-            sage: Sets().Finite().is_structure_category()
-            False
-            sage: Monoids().is_structure_category()
-            False
+            sage: Sets().Finite().additional_structure()
+            sage: Monoids().additional_structure()
 
         TESTS::
 
-            sage: Sets().Finite().is_structure_category.__module__
+            sage: Sets().Finite().additional_structure.__module__
             'sage.categories.category_with_axiom'
         """
-        return False
+        return None
 
     @staticmethod
     def _repr_object_names_static(category, axioms):
@@ -2408,7 +2414,7 @@ class CategoryWithAxiom(Category):
             sage: C = Sets.Finite(); C
             Category of finite sets
             sage: C.axioms()
-            frozenset(['Finite'])
+            frozenset({'Finite'})
 
             sage: C = Modules(GF(5)).FiniteDimensional(); C
             Category of finite dimensional vector spaces over Finite Field of size 5
@@ -2427,7 +2433,7 @@ class CategoryWithAxiom(Category):
 
             sage: from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
             sage: MagmasAndAdditiveMagmas().Distributive().Unital().axioms()
-            frozenset(['Distributive', 'Unital'])
+            frozenset({'Distributive', 'Unital'})
 
             sage: D = MagmasAndAdditiveMagmas().Distributive()
             sage: X = D.AdditiveAssociative().AdditiveCommutative().Associative()

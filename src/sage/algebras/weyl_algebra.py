@@ -484,13 +484,15 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
     of characteristic zero, by using a modified Groenewold-Moyal
     product in the symmetric algebra.
 
-    The Weyl algebra, even for `n=1`, has many interesting properties.
+    The Weyl algebra over a field of characteristic 0, even for `n = 1`,
+    has many interesting properties.
 
-    - It's a simple ring that is not a matrix ring over a division ring.
     - It's a non-commutative domain.
-    - For `n = `, it's a quotient of the universal enveloping algebra of the
-      Heisenberg algebra.
-    - Has no finite-dimensional representations in characteristic zero.
+    - It's a simple ring (but not in positive characteristic) that is not
+      a matrix ring over a division ring.
+    - It has no finite-dimensional representations.
+    - It's a quotient of the universal enveloping algebra of the
+      Heisenberg algebra `\mathfrak{h}_n`.
 
     REFERENCES:
 

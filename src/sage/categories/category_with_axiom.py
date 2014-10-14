@@ -2226,6 +2226,12 @@ class CategoryWithAxiom(Category):
 
             The logic here is shared between :meth:`_repr_object_names`
             and :meth:`.category.JoinCategory._repr_object_names`
+
+        TESTS::
+
+            sage: from sage.categories.homsets import Homsets
+            sage: CategoryWithAxiom._repr_object_names_static(Homsets(), ["Endset"])
+            'endsets'
         """
         axioms = canonicalize_axioms(all_axioms,axioms)
         base_category = category._without_axioms(named=True)
@@ -2246,7 +2252,8 @@ class CategoryWithAxiom(Category):
             elif axiom == "Connected" and "graded " in result:
                 result = result.replace("graded ", "graded connected ", 1)
             elif axiom == "Endset" and "homsets" in result:
-                result = result.replace("homsets ", "endsets ", 1)
+                # Without the space at the end to handle Homsets().Endset()
+                result = result.replace("homsets", "endsets", 1)
             else:
                 result = uncamelcase(axiom) + " " + result
         return result

@@ -2709,7 +2709,7 @@ class CategoryWithParameters(Category):
           ``self`` that provides methods for the new class (in
           addition to what comes from the super categories)
         - ``**options`` -- other named options to pass down to
-          :meth:`Category._make_named_class`, which see.
+          :meth:`Category._make_named_class`.
 
         ASSUMPTION:
 

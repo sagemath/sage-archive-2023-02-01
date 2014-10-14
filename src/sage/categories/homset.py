@@ -912,11 +912,23 @@ class Homset(Set_generic):
         it possible for a category to provide code for its morphisms
         and for morphisms of all its subcategories, full or not.
 
+        .. NOTE::
+
+            The element class of ``C.Homsets()`` will be inherited by
+            morphisms in *full* subcategories of ``C``, while the morphism
+            class of ``C`` will be inherited by *all* subcategories of
+            ``C``. Hence, if some feature of a morphism depends on the
+            algebraic properties of the homsets, it should be implemented by
+            ``C.Homsets.ElementMethods``, but if it depends only on the
+            algebraic properties of domain and codomain, it should be
+            implemented in ``C.MorphismMethods``.
+
+            At this point, the homset element classes takes precedence over
+            the morphism classes. But this may be subject to change.
+
+
         .. TODO::
 
-            - Decide in which order those two classes should be. At
-              this point the homset element classes takes precedence
-              over the morphism classes.
             - Make sure this class is shared whenever possible.
             - Flatten join category classes
 

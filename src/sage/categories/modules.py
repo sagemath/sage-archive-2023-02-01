@@ -477,6 +477,20 @@ class Modules(Category_module):
             """
             return [Modules(self.base_category().base_ring())]
 
+        def base_ring(self):
+            """
+            EXAMPLES::
+
+                sage: Modules(ZZ).Homsets().base_ring()
+                Integer Ring
+
+            .. TODO::
+
+                Generalize this so that any homset category of a full
+                subcategory of module is a category over base ring.
+            """
+            return self.base_category().base_ring()
+
         class ParentMethods:
 
             @cached_method
@@ -535,19 +549,24 @@ class Modules(Category_module):
                 from sage.misc.constant_function import ConstantFunction
                 return self(ConstantFunction(self.codomain().zero()))
 
-    class EndCategory:#(HomsetsCategory): TODO: handle systematically endomorphism categories
-        """
-        The category of endomorphism sets `End(X)` for `X` module (this is
-        not used yet)
-        """
-
-        def extra_super_categories(self):
+        class Endset(CategoryWithAxiom_over_base_ring):
             """
-            EXAMPLES::
-
-                sage: Hom(ZZ^3, ZZ^3).category().extra_super_categories() # todo: not implemented
-                [Category of algebras over Integer Ring]
+            The category of endomorphism sets `End(X)` for `X`
+            module (this is not used yet)
             """
-            from algebras import Algebras
-            return [Algebras(self.base_category.base_ring())]
+            def extra_super_categories(self):
+                """
+                Implement the fact that the endomorphism set of a module is an algebra.
 
+                .. SEEALSO:: :meth:`CategoryWithAxiom.extra_super_categories`
+
+                EXAMPLES::
+
+                    sage: Modules(ZZ).Endsets().extra_super_categories()
+                    [Category of magmatic algebras over Integer Ring]
+
+                    sage: End(ZZ^3) in Algebras(ZZ)
+                    True
+                """
+                from magmatic_algebras import MagmaticAlgebras
+                return [MagmaticAlgebras(self.base_category().base_ring())]

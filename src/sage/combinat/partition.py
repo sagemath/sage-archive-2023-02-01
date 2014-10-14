@@ -4426,6 +4426,12 @@ class Partition(CombinatorialObject, Element):
         Return the probability of ``self`` under the Plancherel probability
         measure on partitions of the same size.
 
+        This probability distribution comes from the uniform distribution
+        on permutations via the Robinson-Schensted correspondence.
+
+        See :wikipedia:`Plancherel\_measure`
+        and :meth:`Partitions_n.random_element_plancherel`.
+
         EXAMPLES::
 
             sage: Partition([]).plancherel_measure()
@@ -5438,7 +5444,7 @@ class Partitions_n(Partitions):
         elif measure == 'Plancherel':
             return self.random_element_plancherel()
         else:
-            raise ValueError("Unkown measure: %s"%(measure))
+            raise ValueError("Unkown measure: %s" % (measure))
 
     def random_element_uniform(self):
         """
@@ -5509,7 +5515,13 @@ class Partitions_n(Partitions):
 
     def random_element_plancherel(self):
         r"""
-        Return a random partition of `n`.
+        Return a random partition of `n` (for the Plancherel measure).
+
+        This probability distribution comes from the uniform distribution
+        on permutations via the Robinson-Schensted correspondence.
+
+        See :wikipedia:`Plancherel\_measure`
+        and :meth:`Partition.plancherel_measure`.
 
         EXAMPLES::
 
@@ -6944,7 +6956,6 @@ def number_of_partitions(n, algorithm='default'):
         True
 
     """
-    from sage.misc.superseded import deprecation
     n = ZZ(n)
     if n < 0:
         raise ValueError("n (=%s) must be a nonnegative integer"%n)

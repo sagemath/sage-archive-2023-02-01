@@ -484,7 +484,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
     of characteristic zero, by using a modified Groenewold-Moyal
     product in the symmetric algebra.
 
-    The Weyl algebra over a field of characteristic 0, even for `n = 1`,
+    The Weyl algebra (even for `n = 1`) over a field of characteristic 0
     has many interesting properties.
 
     - It's a non-commutative domain.

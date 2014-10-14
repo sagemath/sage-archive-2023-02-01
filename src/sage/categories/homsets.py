@@ -135,10 +135,10 @@ class HomsetsOf(HomsetsCategory):
     Default class for homsets of a category.
 
     This is used when a category `C` defines some additional structure
-    but not an homset category of its own. Indeed, unlike for
-    covariant functorial constructions, we cannot represent the homset
-    category of `C` by just the join of the homset categories of its
-    super categories.
+    but not a homset category of its own. Indeed, unlike for covariant
+    functorial constructions, we cannot represent the homset category
+    of `C` by just the join of the homset categories of its super
+    categories.
 
     EXAMPLES::
 

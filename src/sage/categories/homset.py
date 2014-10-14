@@ -938,14 +938,14 @@ class Homset(Set_generic):
 
         EXAMPLES:
 
-        Let's take a homset of finite commutative group as example; at
+        Let's take a homset of finite commutative groups as example; at
         this point this is the simplest one to create (gosh)::
 
             sage: cat = Groups().Finite().Commutative()
             sage: C3 = PermutationGroup([(1,2,3)])
-            sage: C3._refine_category_(Groups().Finite().Commutative())
+            sage: C3._refine_category_(cat)
             sage: C2 = PermutationGroup([(1,2)])
-            sage: C2._refine_category_(Groups().Finite().Commutative())
+            sage: C2._refine_category_(cat)
             sage: H = Hom(C3, C2, cat)
             sage: H.homset_category()
             Category of finite commutative groups

@@ -856,7 +856,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         self._elements = tuple(Integer(i) if isinstance(i,int) else i for i in elements)
         # Relabel using the linear_extension.
         # So range(len(D)) becomes a linear extension of the poset.
-        rdict = dict([[self._elements[i],i] for i in range(len(self._elements))])
+        rdict = {self._elements[i]: i for i in range(len(self._elements))}
         self._hasse_diagram = HasseDiagram(hasse_diagram.relabel(rdict, inplace=False), data_structure="static_sparse")
         self._element_to_vertex_dict = dict( (self._elements[i], i)
                                              for i in range(len(self._elements)) )
@@ -1121,22 +1121,18 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[e, f], [c, d], [a, b], [b, d], [d, f]]
             sage: H.edges()
-            [('a', 'b', None),
-             ('b', 'd', None),
-             ('c', 'd', None),
-             ('d', 'f', None),
-             ('e', 'f', None)]
+            [(a, b, None), (c, d, None), (b, d, None), (e, f, None), (d, f, None)]
 
             sage: P = Poset((divisors(15), attrcall("divides")), facade = False)
             sage: H = P.hasse_diagram()
             sage: H.vertices()
-            [1, 3, 5, 15]
+            [1, 5, 3, 15]
             sage: H.edges()
-            [(1, 3, None), (1, 5, None), (3, 15, None), (5, 15, None)]
+            [(1, 3, None), (1, 5, None), (5, 15, None), (3, 15, None)]
             sage: H.set_latex_options(format = "dot2tex")   # optional - dot2tex
             sage: view(H, tight_page=True) # optional - dot2tex
         """
-        G = DiGraph(self._hasse_diagram).relabel(self._elements, inplace=False)
+        G = DiGraph(self._hasse_diagram).relabel(self._list, inplace=False)
         from sage.graphs.dot2tex_utils import have_dot2tex
         if have_dot2tex():
             G.set_latex_options(format='dot2tex',
@@ -3059,7 +3055,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             elements = reversed(self._elements)
         else:
             elements = None
-        return self._dual_class(self.hasse_diagram().reverse(),
+        H = self._hasse_diagram.relabel({i:x for i,x in enumerate(self._elements)},
+                                         inplace=False)
+        return self._dual_class(H.reverse(),
                                 elements=elements,
                                 category=self.category(),
                                 facade=self._is_facade)

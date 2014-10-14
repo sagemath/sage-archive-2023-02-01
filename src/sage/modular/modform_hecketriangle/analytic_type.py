@@ -451,7 +451,9 @@ class AnalyticType(FiniteLatticePoset):
                                  linear_extension=True, facade=False)
 
         L = self._base_poset.order_ideals_lattice()
-        FiniteLatticePoset.__init__(self, hasse_diagram=L.hasse_diagram(),
+        H = L._hasse_diagram.relabel({i:x for i,x in enumerate(L._elements)},
+                                     inplace=False)
+        FiniteLatticePoset.__init__(self, hasse_diagram=H,
                                     elements=L._elements, category=L.category(),
                                     facade=False, key=None)
 

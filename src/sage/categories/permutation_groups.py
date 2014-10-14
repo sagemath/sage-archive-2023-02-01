@@ -38,8 +38,8 @@ class PermutationGroups(Category):
     that should be preserved by morphisms, namely the distinguished
     action::
 
-        sage: PermutationGroups().is_structure_category()
-        True
+        sage: PermutationGroups().additional_structure()
+        Category of permutation groups
 
     TESTS::
 

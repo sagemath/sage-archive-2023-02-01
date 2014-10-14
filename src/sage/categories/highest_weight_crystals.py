@@ -83,22 +83,23 @@ class HighestWeightCrystals(Category_singleton):
         from sage.categories.crystals import Crystals
         return Crystals().example()
 
-    def is_structure_category(self):
+    def additional_structure(self):
         r"""
-        Return whether ``self`` is a structure category.
+        Return ``None``.
 
-        .. SEEALSO:: :meth:`Category.is_structure_category`
+        Indeed, the category of highest weight crystals defines no
+        additional structure: it only guarantees the existence of a
+        unique highest weight element in each component.
 
-        The category of highest weight crystals defines no new structure:
-        it only guarantees the existence of a unique highest weight element
-        in each component.
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
 
         EXAMPLES::
 
-            sage: HighestWeightCrystals().is_structure_category()
-            False
+            sage: HighestWeightCrystals().additional_structure()
         """
-        return False
+        return None
 
     class ParentMethods:
 

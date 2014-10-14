@@ -131,6 +131,12 @@ class GradedModules(GradedModulesCategory):
         sage: GradedModules(ZZ).super_categories()
         [Category of modules over Integer Ring]
 
+    The category of graded modules defines the graded structure which
+    shall be preserved by morphisms::
+
+        sage: Modules(ZZ).Graded().additional_structure()
+        Category of graded modules over Integer Ring
+
     TESTS::
 
         sage: TestSuite(GradedModules(ZZ)).run()
@@ -169,24 +175,6 @@ class GradedModules(GradedModulesCategory):
             return [Modules(base_ring)]
         else:
             return []
-
-    def is_structure_category(self):
-        r"""
-        Return whether ``self`` is a structure category.
-
-        .. SEEALSO:: :meth:`Category.is_structure_category`
-
-        The category of graded modules defines the graded structure
-        which shall be preserved by morphisms.
-
-        EXAMPLES::
-
-            sage: Modules(ZZ).Graded().is_structure_category()
-            True
-            sage: Modules(QQ).Graded().is_structure_category()
-            True
-        """
-        return True
 
     class SubcategoryMethods:
 

@@ -169,23 +169,22 @@ class Modules(Category_module):
         R = self.base_ring()
         return [Bimodules(R,R)]
 
-    def is_structure_category(self):
+    def additional_structure(self):
         r"""
-        Return whether ``self`` is a structure category.
+        Return ``None``.
 
-        .. SEEALSO:: :meth:`Category.is_structure_category`
+        Indeed, the category of modules defines no new structure: a
+        bimodule morphism between two modules is a module morphism.
 
-        The category of modules defines no new structure: a bimodule
-        morphism between two modules is a module morphism.
+        .. SEEALSO:: :meth:`Category.additional_structure`
 
         .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
 
         EXAMPLES::
 
-            sage: Modules(ZZ).is_structure_category()
-            False
+            sage: Modules(ZZ).additional_structure()
         """
-        return False
+        return None
 
     class SubcategoryMethods:
 

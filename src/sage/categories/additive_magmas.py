@@ -610,11 +610,11 @@ class AdditiveMagmas(Category_singleton):
 
     class AdditiveUnital(CategoryWithAxiom):
 
-        def is_structure_category(self):
+        def additional_structure(self):
             r"""
             Return whether ``self`` is a structure category.
 
-            .. SEEALSO:: :meth:`Category.is_structure_category`
+            .. SEEALSO:: :meth:`Category.additional_structure`
 
             The category of unital additive magmas define the zero as
             new structure, and this zero shall be preserved by
@@ -622,10 +622,10 @@ class AdditiveMagmas(Category_singleton):
 
             EXAMPLES::
 
-                sage: AdditiveMagmas().AdditiveUnital().is_structure_category()
-                True
+                sage: AdditiveMagmas().AdditiveUnital().additional_structure()
+                Category of additive unital additive magmas
             """
-            return True
+            return self
 
         class SubcategoryMethods:
 

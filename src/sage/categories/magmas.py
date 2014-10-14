@@ -279,21 +279,22 @@ class Magmas(Category_singleton):
 
     class Unital(CategoryWithAxiom):
 
-        def is_structure_category(self):
+        def additional_structure(self):
             r"""
-            Return whether ``self`` is a structure category.
+            Return ``self``.
 
-            .. SEEALSO:: :meth:`Category.is_structure_category`
+            Indeed, the category of unital magmas defines an
+            additional structure, namely the unit of the magma which
+            shall be preserved by morphisms.
 
-            The category of unital magmas defines the unit as new
-            structure, and this unit shall be preserved by morphisms.
+            .. SEEALSO:: :meth:`Category.additional_structure`
 
             EXAMPLES::
 
-                sage: Magmas().Unital().is_structure_category()
-                True
+                sage: Magmas().Unital().additional_structure()
+                Category of unital magmas
             """
-            return True
+            return self
 
         class ParentMethods:
             @cached_method

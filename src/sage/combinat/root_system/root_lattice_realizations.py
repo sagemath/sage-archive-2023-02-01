@@ -1595,29 +1595,6 @@ class RootLatticeRealizations(Category_over_base_ring):
             res.rename("pi")
             return res
 
-        @lazy_attribute
-        def pi(self):
-            r"""
-            The simple projections of ``self``
-
-            .. seealso:: :meth:`simple_projections`
-
-            .. warning:: this shortcut is deprecated
-
-            EXAMPLES::
-
-                sage: space = RootSystem(['A',2]).weight_lattice()
-                sage: pi = space.pi
-                sage: x = space.simple_roots()
-                sage: pi[1](x[2])
-                -Lambda[1] + 2*Lambda[2]
-            """
-            # _test_not_implemented_methods apparently evaluates all lazy
-            # attributes, which means that we can't use deprecation here!
-            # from sage.misc.superseded import deprecation
-            # deprecation(trac_number, "The lazy attribute pi is deprecated; please use the simple_projections method.")
-            return self.simple_projections()
-
         ##########################################################################
         # Weyl group
         ##########################################################################

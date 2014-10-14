@@ -411,70 +411,6 @@ PartitionOptions=GlobalOptions(name='partitions',
     notation = dict(alt_name='convention')
 )
 
-def from_frobenius_coordinates(coords):
-    """
-    This function has been deprecated in :trac:`13605`. Use
-    :meth:`Partitions.from_frobenius_coordinates()` instead.
-
-    EXAMPLES::
-
-        sage: sage.combinat.partition.from_frobenius_coordinates(([],[]))
-        doctest:...: DeprecationWarning: from_frobenius_coordinates is deprecated. Use Partitions().from_frobenius_coordinates instead.
-        See http://trac.sagemath.org/13605 for details.
-        []
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13605, 'from_frobenius_coordinates is deprecated. Use Partitions().from_frobenius_coordinates instead.')
-    return _Partitions.from_frobenius_coordinates(coords)
-
-def from_beta_numbers(beta):
-    """
-    This function has been deprecated in :trac:`13605`. Use
-    :meth:`Partitions.from_beta_numbers()` instead.
-
-    EXAMPLES::
-
-        sage: sage.combinat.partition.from_beta_numbers([0,1,2,4,5,8])
-        doctest:...: DeprecationWarning: from_beta_numbers is deprecated. Use Partitions().from_beta_numbers instead.
-        See http://trac.sagemath.org/13605 for details.
-        [3, 1, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13605, 'from_beta_numbers is deprecated. Use Partitions().from_beta_numbers instead.')
-    return _Partitions.from_beta_numbers(beta)
-
-def from_exp(exp):
-    """
-    This has been deprecated in :trac:`13605`. Use
-    :meth:`Partitions.from_exp()` instead.
-
-    EXAMPLES::
-
-        sage: sage.combinat.partition.from_exp([2,2,1])
-        doctest:...: DeprecationWarning: from_exp is deprecated. Use Partitions().from_exp instead.
-        See http://trac.sagemath.org/13605 for details.
-        [3, 2, 2, 1, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13605, 'from_exp is deprecated. Use Partitions().from_exp instead.')
-    return _Partitions.from_exp(exp)
-
-def from_core_and_quotient(core, quotient):
-    """
-    This has been deprecated in :trac:`13605`. Use
-    :meth:`Partitions.from_core_and_quotient()` instead.
-
-    EXAMPLES::
-
-        sage: sage.combinat.partition.from_core_and_quotient([2,1], [[2,1],[3],[1,1,1]])
-        doctest:...: DeprecationWarning: from_core_and_quotient is deprecated. Use Partitions().from_core_and_quotient instead.
-        See http://trac.sagemath.org/13605 for details.
-        [11, 5, 5, 3, 2, 2, 2]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13605, 'from_core_and_quotient is deprecated. Use Partitions().from_core_and_quotient instead.')
-    return _Partitions.from_core_and_quotient(core, quotient)
-
 class Partition(CombinatorialObject, Element):
     r"""
     A partition `p` of a nonnegative integer `n` is a
@@ -706,7 +642,7 @@ class Partition(CombinatorialObject, Element):
         else:
             raise ValueError("%s is not a valid partition"%repr(mu))
 
-    def _repr_(self, compact=False):
+    def _repr_(self, compact=None):
         r"""
         Return a string representation of ``self`` depending on
         :meth:`Partitions.global_options`.
@@ -770,11 +706,9 @@ class Partition(CombinatorialObject, Element):
 
             sage: Partitions.global_options.reset()
         """
-
-        if compact != False:
+        if compact is not None:
             from sage.misc.superseded import deprecation
-            deprecation(13605, 'compact option is deprecated. Use :meth:`Partitions.global_options` instead.')
-            return self._repr_compact_high()
+            deprecation(16933, 'compact argument is deprecated.')
 
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
@@ -2738,21 +2672,6 @@ class Partition(CombinatorialObject, Element):
                     attacking_pairs.append( ((i,j),(i-1,k)) )
 
         return attacking_pairs
-
-    def dominate(self, rows=None):
-        """
-        Old name for :meth:`dominated_partitions()`.
-
-        EXAMPLES::
-
-            sage: Partition([3,2,1]).dominate()
-            doctest:...: DeprecationWarning: dominate is deprecated. Use dominated_partitions instead.
-            See http://trac.sagemath.org/13605 for details.
-            [[3, 2, 1], [3, 1, 1, 1], [2, 2, 2], [2, 2, 1, 1], [2, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(13605, 'dominate is deprecated. Use dominated_partitions instead.')
-        return self.dominated_partitions(rows)
 
     def dominated_partitions(self, rows=None):
         """
@@ -6460,22 +6379,6 @@ class PartitionsInBox(Partitions):
 
             return [self.element_class(self, [x for x in p if x!=0]) for p in l]
 
-def PartitionsInBox_hw(h, w):
-    """
-    For unpickling ``PartitionsInBox_hw`` objects created before
-    :trac:`13605`. See :class:`OrderedPartitions`.
-
-    EXAMPLES::
-
-        sage: sage.combinat.partition.PartitionsInBox_hw(3, 2)
-        doctest:...: DeprecationWarning: this class is deprecated. Use PartitionsInBox instead
-        See http://trac.sagemath.org/13605 for details.
-        Integer partitions which fit in a 3 x 2 box
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13605,'this class is deprecated. Use PartitionsInBox instead')
-    return PartitionsInBox(h, w)
-
 class Partitions_constraints(IntegerListsLex):
     """
     For unpickling old constrained ``Partitions_constraints`` objects created
@@ -6646,22 +6549,6 @@ class OrderedPartitions(Partitions):
             ans=gap.eval("NrOrderedPartitions(%s,%s)"%(n,k))
         return ZZ(ans)
 
-def OrderedPartitions_nk(n, k):
-    """
-    For unpickling ``OrderedPartitions_nk`` objects created before
-    :trac:`13605`. See :class:`OrderedPartitions`.
-
-    EXAMPLES::
-
-        sage: sage.combinat.partition.OrderedPartitions_nk(3, 2)
-        doctest:...: DeprecationWarning: this class is deprecated. Use OrderedPartitions instead
-        See http://trac.sagemath.org/13605 for details.
-        Ordered partitions of 3 of length 2
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13605,'this class is deprecated. Use OrderedPartitions instead')
-    return OrderedPartitions(n, k)
-
 ##########################
 # Partitions Greatest LE #
 ##########################
@@ -6719,22 +6606,6 @@ class PartitionsGreatestLE(UniqueRepresentation, IntegerListsLex):
 
     Element = Partition
     global_options = PartitionOptions
-
-def PartitionsGreatestLE_nk(n, k):
-    """
-    For unpickling ``PartitionsGreatestLE`` objects created with sage <= 3.4.1.
-    See :class:`PartitionsGreatestLE`.
-
-    EXAMPLES::
-
-        sage: sage.combinat.partition.PartitionsGreatestLE_nk(10, 2)
-        doctest:...: DeprecationWarning: this class is deprecated. Use PartitionsGreatestLE instead
-        See http://trac.sagemath.org/13605 for details.
-        Partitions of 10 having parts less than or equal to 2
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13605,'this class is deprecated. Use PartitionsGreatestLE instead')
-    return PartitionsGreatestLE(n, k)
 
 ##########################
 # Partitions Greatest EQ #
@@ -6794,19 +6665,6 @@ class PartitionsGreatestEQ(IntegerListsLex, UniqueRepresentation):
 
     Element = Partition
     global_options = PartitionOptions
-
-def PartitionsGreatestEQ_nk(n, k):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.partition.PartitionsGreatestEQ_nk(10, 2)
-        doctest:...: DeprecationWarning: this class is deprecated. Use PartitionsGreatestEQ instead
-        See http://trac.sagemath.org/13605 for details.
-        Partitions of 10 having greatest part equal to 2
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13605,'this class is deprecated. Use PartitionsGreatestEQ instead')
-    return PartitionsGreatestEQ(n, k)
 
 #########################
 # Restricted Partitions #

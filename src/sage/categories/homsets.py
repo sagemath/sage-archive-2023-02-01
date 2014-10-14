@@ -231,10 +231,28 @@ class Homsets(Category_singleton):
         """
         The category of all endomorphism sets.
 
-        At this point, the main purpose of this class is to keep the
-        information that a category is a Endset category, even if the
-        base category implements nothing specific about those.
+        This category serves too purposes: making sure that the
+        ``Endset`` axiom is implemented in the category where it's
+        defined, namely ``Homsets``, and specifying that ``Endsets``
+        are monoids.
+
+        EXAMPLES::
+
+            sage: from sage.categories.homsets import Homsets
+            sage: Homsets().Endset()
+            Category of endsets
         """
-        def super_categories(self):
+        def extra_super_categories(self):
+            """
+            Implement the fact that endsets are monoids.
+
+            .. SEEALSO:: :meth:`CategoryWithAxiom.extra_super_categories`
+
+            EXAMPLES::
+
+                sage: from sage.categories.homsets import Homsets
+                sage: Homsets().Endsets().extra_super_categories()
+                [Category of monoids]
+            """
             from monoids import Monoids
             return [Monoids()]

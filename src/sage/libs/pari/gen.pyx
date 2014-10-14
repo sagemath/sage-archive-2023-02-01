@@ -2462,7 +2462,7 @@ cdef class gen(sage.structure.element.RingElement):
     def Strexpand(gen x):
         """
         Concatenate the entries of the vector `x` into a single string,
-        performing tilde expansion and environment variable expansion
+        then perform tilde expansion and environment variable expansion
         similar to shells.
 
         INPUT:
@@ -2476,7 +2476,15 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: pari('"$HOME"').Strexpand() == pari('["~"]').Strexpand()
+            sage: pari('"~/subdir"').Strexpand()     # random
+            "/home/johndoe/subdir"
+            sage: pari('"$SAGE_LOCAL"').Strexpand()  # random
+            "/usr/local/sage/local"
+
+        TESTS::
+
+            sage: a = pari('"$HOME"')
+            sage: a.Strexpand() != a
             True
         """
         if typ(x.g) != t_VEC:

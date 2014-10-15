@@ -4,6 +4,11 @@
 # package maintainer, not for building GIAC during a Sage install.
 #
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 
 # Sanity check: must be run from current directory
@@ -22,9 +27,9 @@ VERSIONREV="10"
 # The upstream tarball name is: giac"$SOURCEORIG".tar.gz
 SOURCEORIG=_"$VERSION"-"$VERSIONREV"
 
-# Clean an existing giac files and directory
-rm -rf giac-"$VERSION" src 
-rm -rf giac"$SOURCEORIG".tar.gz 
+# Build a temporary working dir. 
+mkdir giactmpbuildpkg
+cd giactmpbuildpkg
 
 
 # Downloading upstream source
@@ -33,9 +38,6 @@ wget "http://www-fourier.ujf-grenoble.fr/~parisse/debian/dists/stable/main/sourc
 
 # untar upstream source
 tar -xzf giac"$SOURCEORIG".tar.gz
-
-# Clean an existing original archive file
-rm -f giac"$SOURCEORIG".tar.gz 
 
 
 # rename top sourcedir
@@ -60,7 +62,8 @@ touch html_vall
 
 # building giac source tarball for the spkg
 cd ../../../
-tar -cz src -f giac-"$VERSION"."$VERSIONREV".tar.gz
+tar -cz src -f ../giac-"$VERSION"."$VERSIONREV".tar.gz
 
 # cleaning extracted dir.
-rm -rf src
+cd ..
+rm -rf giactmpbuildpkg

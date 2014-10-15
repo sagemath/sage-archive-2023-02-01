@@ -420,11 +420,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         EXAMPLES::
 
             sage: L=LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
-            sage: L.complements()
+            sage: L.complements() # random order
             {0: [1], 1: [0], 'a': ['b', 'c'], 'b': ['c', 'a'], 'c': ['b', 'a']}
 
             sage: L=LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
-            sage: L.complements()
+            sage: L.complements() # random order
             {0: [4], 4: [0]}
             sage: L.complements(1)
             []

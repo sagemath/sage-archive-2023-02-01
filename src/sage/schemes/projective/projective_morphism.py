@@ -49,7 +49,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all                import Integer, moebius
 from sage.rings.arith              import gcd, lcm, next_prime, binomial, primes
 from sage.categories.number_fields import NumberFields
-from sage.rings.complex_field      import ComplexField_class
+from sage.rings.complex_field      import ComplexField_class,ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
@@ -58,7 +58,7 @@ from sage.rings.integer_ring       import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
 from sage.rings.rational_field     import QQ
-from sage.rings.real_mpfr          import RealField_class
+from sage.rings.real_mpfr          import RealField_class,RealField
 from sage.rings.real_mpfi          import RealIntervalField_class
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e

@@ -49,7 +49,8 @@ from sage.modules.free_module_element import vector
 from sage.rings.all                import Integer, moebius
 from sage.rings.arith              import gcd, lcm, next_prime, binomial, primes
 from sage.categories.number_fields import NumberFields
-from sage.rings.complex_field      import ComplexField
+from sage.rings.complex_field      import ComplexField_class
+from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
@@ -57,7 +58,8 @@ from sage.rings.integer_ring       import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
 from sage.rings.rational_field     import QQ
-from sage.rings.real_mpfr          import RealField
+from sage.rings.real_mpfr          import RealField_class
+from sage.rings.real_mpfi          import RealIntervalField_class
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
@@ -2460,7 +2462,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         r"""
         Given a rational point `Q` in the domain of ``self``, return all the rational points `P`
         in the domain of ``self`` with `self(P)==Q`. In other words, the set of first pre-images of `Q`.
-        ``self`` must be defined over `\QQ` and be an endomorphism of projective space.
+        ``self`` must be defined over number fields and be an endomorphism of projective space.
 
         ALGORITHM:
             Use elimination via groebner bases to find the rational pre-images
@@ -2548,10 +2550,13 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             NotImplementedError: Subschemes as Preimages not implemented
         """
         
+        BR = self.base_ring().base_ring()
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if (Q in self.codomain()) == False:
             raise TypeError("Point must be in codomain of self")
+        if isinstance(BR,(ComplexField_class, RealField_class,RealIntervalField_class, ComplexIntervalField_class)):
+            raise NotImplementedError("Not Implemented over precision fields") 
         PS = self.domain().ambient_space()
         R = PS.coordinate_ring()
         N = PS.dimension_relative()
@@ -2618,9 +2623,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         pre-images of those points. In others words, all the rational points which have some
         iterate in the set points. This function repeatedly calls ``rational_preimages``.
         If the degree is at least two, by Northocott, this is always a finite set.
-        ``self`` must be defined over `\QQ` and be an endomorphism of projective space.
-        In the examples, the output is sorted because the calculations are done in parallel
-        and the order of the results is not guaranteed.
+        ``self`` must be defined over number fields and be an endomorphism of projective space.
 
         INPUT:
 

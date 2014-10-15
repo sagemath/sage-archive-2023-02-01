@@ -2557,6 +2557,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             raise TypeError("Point must be in codomain of self")
         if isinstance(BR.base_ring(),(ComplexField_class, RealField_class,RealIntervalField_class, ComplexIntervalField_class)):
             raise NotImplementedError("Not Implemented over precision fields") 
+        Dom = self.domain()
         PS = self.domain().ambient_space()
         R = PS.coordinate_ring()
         N = PS.dimension_relative()
@@ -2612,7 +2613,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 #make them into projective points
                 for i in range(len(points)):
                     if len(points[i]) == N + 1 and I.subs(points[i]) == I0:
-                        S = PS([points[i][R.gen(j)] for j in range(N + 1)])
+                        S = Dom([points[i][R.gen(j)] for j in range(N + 1)])
                         S.normalize_coordinates()
                         if not all([g(tuple(S)) == 0 for g in self]):
                             preimages.add(S)

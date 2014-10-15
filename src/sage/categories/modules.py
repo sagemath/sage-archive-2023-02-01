@@ -169,6 +169,23 @@ class Modules(Category_module):
         R = self.base_ring()
         return [Bimodules(R,R)]
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of modules defines no additional structure:
+        a bimodule morphism between two modules is a module morphism.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: Modules(ZZ).additional_structure()
+        """
+        return None
+
     class SubcategoryMethods:
 
         @cached_method

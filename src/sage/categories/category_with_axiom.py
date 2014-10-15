@@ -2156,6 +2156,29 @@ class CategoryWithAxiom(Category):
                              ignore_axioms = ((base_category, axiom),),
                              as_list = True)
 
+    def additional_structure(self):
+        r"""
+        Return the additional structure defined by ``self``.
+
+        OUTPUT: ``None``
+
+        By default, a category with axiom defines no additional
+        structure.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`.
+
+        EXAMPLES:
+
+            sage: Sets().Finite().additional_structure()
+            sage: Monoids().additional_structure()
+
+        TESTS::
+
+            sage: Sets().Finite().additional_structure.__module__
+            'sage.categories.category_with_axiom'
+        """
+        return None
+
     @staticmethod
     def _repr_object_names_static(category, axioms):
         r"""

@@ -102,6 +102,24 @@ class RegularCrystals(Category_singleton):
         from sage.categories.crystals import Crystals
         return Crystals().example(n)
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of regular crystals defines no new
+        structure: it only relates `\varepsilon_a` and `\varphi_a` to
+        `e_a` and `f_a` respectively.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: RegularCrystals().additional_structure()
+        """
+        return None
+
     class ParentMethods:
 
         # TODO: this could be a method in Crystals.Algebras.ElementMethods, so that

@@ -36,6 +36,21 @@ class Objects(Category_singleton):
         sage: TestSuite(Objects()).run()
     """
 
+    def additional_structure(self):
+        """
+        Return ``None``
+
+        Indeed, by convention, the category of objects defines no
+        additional structure.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: Objects().additional_structure()
+        """
+        return None
+
     def super_categories(self):
         """
         EXAMPLES::

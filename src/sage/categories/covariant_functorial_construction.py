@@ -413,6 +413,74 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
                              self.extra_super_categories(),
                              as_list = True)
 
+    def is_construction_defined_by_base(self):
+        r"""
+        Return whether the construction is defined by the base of ``self``.
+
+        EXAMPLES:
+
+        The graded functorial construction is defined by the modules
+        category. Hence this method returns ``True`` for graded
+        modules and ``False`` for other graded xxx categories::
+
+            sage: Modules(ZZ).Graded().is_construction_defined_by_base()
+            True
+            sage: Algebras(QQ).Graded().is_construction_defined_by_base()
+            False
+            sage: Modules(ZZ).WithBasis().Graded().is_construction_defined_by_base()
+            False
+
+        This is implemented as follows: given the base category `A`
+        and the construction `F` of ``self``, that is ``self=A.F()``,
+        check whether no super category of `A` has `F` defined.
+
+        .. NOTE::
+
+            Recall that, when `A` does not implement the construction
+            ``F``, a join category is returned. Therefore, in such
+            cases, this method is not available::
+
+                sage: Coalgebras(QQ).Graded().is_construction_defined_by_base()
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'JoinCategory_with_category' object has no attribute 'is_construction_defined_by_base'
+        """
+        base = self.base_category()
+        f = self._functor_category;
+        return not any(hasattr(C, f) for C in base.super_categories())
+
+    def additional_structure(self):
+        r"""
+        Return the additional structure defined by ``self``.
+
+        By default, a functorial construction category ``A.F()``
+        defines additional structure if and only if `A` is the
+        category defining `F`. The rationale is that, for a
+        subcategory `B` of `A`, the fact that `B.F()` morphisms shall
+        preserve the `F`-specific structure is already imposed by
+        `A.F()`.
+
+        .. SEEALSO::
+
+            - :meth:`Category.additional_structure`.
+            - :meth:`is_construction_defined_by_base`.
+
+        EXAMPLES:
+
+            sage: Modules(ZZ).Graded().additional_structure()
+            Category of graded modules over Integer Ring
+            sage: Algebras(ZZ).Graded().additional_structure()
+
+        TESTS::
+
+            sage: Modules(ZZ).Graded().additional_structure.__module__
+            'sage.categories.covariant_functorial_construction'
+        """
+        if self.is_construction_defined_by_base():
+            return self
+        else:
+            return None
+
     def _repr_object_names(self):
         """
         EXAMPLES::

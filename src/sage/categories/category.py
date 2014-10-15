@@ -772,6 +772,10 @@ class Category(UniqueRepresentation, SageObject):
         """
         raise NotImplementedError("is_abelian")
 
+    ##########################################################################
+    # Methods related to the category hierarchy
+    ##########################################################################
+
     def category_graph(self):
          r"""
          Returns the graph of all super categories of this category
@@ -1014,6 +1018,346 @@ class Category(UniqueRepresentation, SageObject):
         self._all_super_categories
         return self._super_categories_for_classes
 
+    ##########################################################################
+    # Methods handling of full subcategories
+    ##########################################################################
+
+    def additional_structure(self):
+        """
+        Return whether ``self`` defines additional structure.
+
+        OUTPUT:
+
+        - ``self`` if ``self`` defines additional structure and
+          ``None`` otherwise. This default implementation returns
+          ``self``.
+
+        A category `C` *defines additional structure* if `C`-morphisms
+        shall preserve more structure (e.g. operations) than that
+        specified by the super categories of `C`. For example, the
+        category of magmas defines additional structure, namely the
+        operation `*` that shall be preserved by magma morphisms. On
+        the other hand the category of rings does not define additional
+        structure: a function between two rings that is both a unital
+        magma morphism and a unital additive magma morphism is
+        automatically a ring morphism.
+
+        Formally speaking `C` *defines additional structure*, if `C`
+        is *not* a full subcategory of the join of its super
+        categories: the morphisms need to preserve more structure, and
+        thus the homsets are smaller.
+
+        By default, a category is considered as defining additional
+        structure, unless it is a :ref:`category with axiom
+        <category-primer-axioms>`.
+
+        EXAMPLES:
+
+        Here are some typical structure categories, with the
+        additional structure they define::
+
+            sage: Sets().additional_structure()
+            Category of sets
+            sage: Magmas().additional_structure()         # `*`
+            Category of magmas
+            sage: AdditiveMagmas().additional_structure() # `+`
+            Category of additive magmas
+            sage: LeftModules(ZZ).additional_structure()  # left multiplication by scalar
+            Category of left modules over Integer Ring
+            sage: Coalgebras(QQ).additional_structure()   # coproduct
+            Category of coalgebras over Rational Field
+            sage: CoxeterGroups().additional_structure()  # distinguished generators
+            Category of coxeter groups
+            sage: Crystals().additional_structure()       # crystal operators
+            Category of crystals
+
+        On the other hand, the category of semigroups is not a
+        structure category, since its operation `+` is already defined
+        by the category of magmas::
+
+            sage: Semigroups().additional_structure()
+
+        Most :ref:`categories with axiom <category-primer-axioms>`
+        don't define additional structure::
+
+            sage: Sets().Finite().additional_structure()
+            sage: Rings().Commutative().additional_structure()
+            sage: Modules(QQ).FiniteDimensional().additional_structure()
+            sage: from sage.categories.magmatic_algebras import MagmaticAlgebras
+            sage: MagmaticAlgebras(QQ).Unital().additional_structure()
+
+        As of Sage 6.4, the only exceptions are the category of unital
+        magmas or the category of unital additive magmas (both define
+        a unit which shall be preserved by morphisms)::
+
+            sage: Magmas().Unital().additional_structure()
+            Category of unital magmas
+            sage: AdditiveMagmas().AdditiveUnital().additional_structure()
+            Category of additive unital additive magmas
+
+        Similarly, :ref:`functorial construction categories
+        <category-primer-functorial-constructions>` don't define
+        additional structure, unless the construction is actually
+        defined by their base category. For example, the category of
+        graded modules defines a grading which shall be preserved by
+        morphisms::
+
+            sage: Modules(ZZ).Graded().additional_structure()
+            Category of graded modules over Integer Ring
+
+        On the other hand, the category of graded algebras does not
+        define additional structure; indeed an algebra morphism which
+        is also a module morphism is a graded algebra morphism::
+
+            sage: Algebras(ZZ).Graded().additional_structure()
+
+        Similarly, morphisms are requested to preserve the structure
+        given by the following constructions::
+
+            sage: Sets().Quotients().additional_structure()
+            Category of quotients of sets
+            sage: Sets().CartesianProducts().additional_structure()
+            Category of Cartesian products of sets
+            sage: Modules(QQ).TensorProducts().additional_structure()
+
+        This might change, as we are lacking enough data points to
+        guarantee that this was the correct design decision.
+
+        .. NOTE::
+
+            In some cases a category defines additional structure,
+            where the structure can be useful to manipulate morphisms
+            but where, in most use cases, we don't want the morphisms
+            to necessarily preserve it. For example, in the context of
+            finite dimensional vector spaces, having a distinguished
+            basis allows for representing morphisms by matrices; yet
+            considering only morphisms that preserve that
+            distinguished basis would be boring.
+
+            In such cases, we might want to eventually have two
+            categories, one where the additional structure is
+            preserved, and one where it's not necessarily preserved
+            (we would need to find an idiom for this).
+
+            At this point, a choice is to be made each time, according
+            to the main use cases. Some of those choices are yet to be
+            settled. For example, should by default:
+
+            - an euclidean domain morphism preserve euclidean
+              division? ::
+
+                  sage: EuclideanDomains().additional_structure()
+                  Category of euclidean domains
+
+            - an enumerated set morphism preserve the distinguished
+              enumeration? ::
+
+                  sage: EnumeratedSets().additional_structure()
+
+            - a module with basis morphism preserve the distinguished
+              basis? ::
+
+                  sage: Modules(QQ).WithBasis().additional_structure()
+
+        .. SEEALSO::
+
+            This method together with the methods overloading it
+            provide the basic data to determine, for a given category,
+            the super categories that define some structure (see
+            :meth:`structure`), and to test whether a
+            category is a full subcategory of some other category (see
+            :meth:`is_full_subcategory`).
+
+            The support for modeling full subcategories has been
+            introduced in :trac:`16340`.
+        """
+        return self
+
+    @cached_method
+    def structure(self):
+        r"""
+        Return the structure ``self`` is endowed with.
+
+        This method returns the structure that morphisms in this
+        category shall be preserving. For example, it tells that a
+        ring is a set endowed with a structure of both a unital magma
+        and an additive unital magma which satisfies some further
+        axioms. In other words, a ring morphism is a function that
+        preserves the unital magma and additive unital magma
+        structure.
+
+        In practice, this returns the collection of all the super
+        categories of ``self`` that define some additional structure,
+        as a frozen set.
+
+        EXAMPLES::
+
+            sage: Objects().structure()
+            frozenset()
+
+            sage: def structure(C):
+            ....:     return Category._sort(C.structure())
+
+            sage: structure(Sets())
+            (Category of sets, Category of sets with partial maps)
+            sage: structure(Magmas())
+            (Category of magmas, Category of sets, Category of sets with partial maps)
+
+        In the following example, we only list the smallest structure
+        categories to get a more readable output::
+
+            sage: def structure(C):
+            ....:     return Category._sort_uniq(C.structure())
+
+            sage: structure(Magmas())
+            (Category of magmas,)
+            sage: structure(Rings())
+            (Category of unital magmas, Category of additive unital additive magmas)
+            sage: structure(Fields())
+            (Category of euclidean domains,)
+            sage: structure(Algebras(QQ))
+            (Category of unital magmas,
+             Category of right modules over Rational Field,
+             Category of left modules over Rational Field)
+            sage: structure(HopfAlgebras(QQ).Graded().WithBasis().Connected())
+            (Category of hopf algebras over Rational Field,
+             Category of graded modules over Rational Field)
+
+        This method is used in :meth:`is_full_subcategory` for
+        deciding whether a category is a full subcategory of some
+        other category, and for documentation purposes. It is computed
+        recursively from the result of :meth:`additional_structure`
+        on the super categories of ``self``.
+        """
+        result = { D for C in self.super_categories() for D in C.structure() }
+        if self.additional_structure() is not None:
+            result.add(self)
+        return frozenset(result)
+
+    def is_full_subcategory(self, other):
+        """
+        Return whether ``self`` is a full subcategory of ``other``.
+
+        A subcategory `B` of a category `A` is a *full subcategory* if
+        any `A`-morphism between two objects of `B` is also a
+        `B`-morphism (the reciprocal always holds: any `B`-morphism
+        between two objects of `B` is an `A`-morphism).
+
+        This is computed by testing whether ``self`` is a subcategory
+        of ``other`` and whether they have the same structure, as
+        determined by :meth:`structure` from the
+        result of :meth:`additional_structure` on the super
+        categories.
+
+        .. WARNING::
+
+            A positive answer is guaranteed to be mathematically
+            correct. A negative answer may mean that Sage has not been
+            taught enough information (or can not yet within the
+            current model) to derive this information. See
+            :meth:`full_super_categories` for a discussion.
+
+        .. SEEALSO::
+
+            - :meth:`is_subcategory`
+            - :meth:`full_super_categories`
+
+        EXAMPLES::
+
+            sage: Magmas().Associative().is_full_subcategory(Magmas())
+            True
+            sage: Magmas().Unital().is_full_subcategory(Magmas())
+            False
+            sage: Rings().is_full_subcategory(Magmas().Unital() & AdditiveMagmas().AdditiveUnital())
+            True
+
+        Here are two typical examples of false negatives::
+
+            sage: Groups().is_full_subcategory(Semigroups())
+            False
+            sage: Groups().is_full_subcategory(Semigroups()) # todo: not implemented
+            True
+            sage: Fields().is_full_subcategory(Rings())
+            False
+            sage: Fields().is_full_subcategory(Rings())      # todo: not implemented
+            True
+
+        .. TODO::
+
+            The latter is a consequence of :class:`EuclideanDomains`
+            currently being a structure category. Is this what we
+            want? ::
+
+                sage: EuclideanDomains().is_full_subcategory(Rings())
+                False
+        """
+        return self.is_subcategory(other) and \
+           len(self.structure()) == \
+           len(other.structure())
+
+    @cached_method
+    def full_super_categories(self):
+        """
+        Return the *immediate* full super categories of ``self``.
+
+        .. SEEALSO::
+
+            - :meth:`super_categories`
+            - :meth:`is_full_subcategory`
+
+        .. WARNING::
+
+            The current implementation selects the full subcategories
+            among the immediate super categories of ``self``. This
+            assumes that, if `C\subset B\subset A` is a chain of
+            categories and `C` is a full subcategory of `A`, then `C`
+            is a full subcategory of `B` and `B` is a full subcategory
+            of `A`.
+
+            This assumption is guaranteed to hold with the current
+            model and implementation of full subcategories in
+            Sage. However, mathematically speaking, this is too
+            restrictive. This indeed prevents the complete modelling
+            of situations where any `A` morphism between elements of
+            `C` automatically preserves the `B` structure. See below
+            for an example.
+
+        EXAMPLES:
+
+        A semigroup morphism between two finite semigroups is a finite
+        semigroup morphism::
+
+            sage: Semigroups().Finite().full_super_categories()
+            [Category of semigroups]
+
+        On the other hand, a semigroup morphism between two monoids is
+        not necessarily a monoid morphism (which must map the unit to
+        the unit)::
+
+            sage: Monoids().super_categories()
+            [Category of semigroups, Category of unital magmas]
+            sage: Monoids().full_super_categories()
+            [Category of unital magmas]
+
+        Any semigroup morphism between two groups is automatically a
+        monoid morphism (in a group the unit is the unique idempotent,
+        so it has to be mapped to the unit). Yet, due to the
+        limitation of the model advertised above, Sage currently can't
+        be taught that the category of groups is a full subcategory of
+        the category of semigroups::
+
+            sage: Groups().full_super_categories()     # todo: not implemented
+            [Category of monoids, Category of semigroups, Category of inverse unital magmas]
+            sage: Groups().full_super_categories()
+            [Category of monoids, Category of inverse unital magmas]
+        """
+        return [C for C in self.super_categories()
+                if self.is_full_subcategory(C)]
+
+    ##########################################################################
+    # Test methods
+    ##########################################################################
+
     def _test_category_graph(self, **options):
         """
         Check that the category graph matches with Python's method resolution order
@@ -1089,11 +1433,24 @@ class Category(UniqueRepresentation, SageObject):
         if not isinstance(self, JoinCategory):
             tester.assert_(all(self._cmp_key > cat._cmp_key      for cat in self._super_categories))
         tester.assert_(self.is_subcategory( Category.join(self.super_categories()) )) # Not an obviously passing test with axioms
+
+        for category in self._all_super_categories_proper:
+            if self.is_full_subcategory(category):
+                tester.assert_(any(cat.is_subcategory(category)
+                                   for cat in self.full_super_categories()),
+                               "Every full super category should be a super category"
+                               "of some immediate full super category")
+
         if self.is_subcategory(Sets()):
             tester.assert_(isinstance(self.parent_class, type))
             tester.assert_(isinstance(self.element_class, type))
 
     _cmp_key = _cmp_key
+
+
+    ##########################################################################
+    # Construction of the associated abstract classes for parents, elements, ...
+    ##########################################################################
 
     def _make_named_class(self, name, method_provider, cache=False, picklable=True):
         """
@@ -2672,6 +3029,20 @@ class JoinCategory(CategoryWithParameters):
             [Category of semigroups, Category of finite enumerated sets]
         """
         return self.__super_categories
+
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, a join category defines no additional structure.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: Modules(ZZ).additional_structure()
+        """
+        return None
 
     def _subcategory_hook_(self, category):
         """

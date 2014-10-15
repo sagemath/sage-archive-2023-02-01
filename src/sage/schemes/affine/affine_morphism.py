@@ -593,7 +593,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     def jacobian (self):
         r"""
         Returns the Jacobian matrix of partial derivitive of ``self`` in which the
-        ``(i,j)`` entry of the Jacobian matrix is the partial derivative ``diff(functions[i], variables[j]``.
+        ``(i,j)`` entry of the Jacobian matrix is the partial derivative ``diff(functions[i], variables[j])``.
 
         OUTPUT:
 
@@ -629,12 +629,12 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             return self.__jacobian
         except AttributeError:
             pass
-        self.__jacobian = jacobian(list(self),self.domain().gens())
+        self.__jacobian = jacobian(list(self),self.domain().ambient_space().gens())
         return self.__jacobian
 
     def multiplier(self, P, n, check=True):
         r"""
-        Returns the multiplier of ``self`` at the `QQ`-rational point ``P`` of period ``n``.
+        Returns the multiplier of ``self`` at the point ``P`` of period ``n``.
         ``self`` must be an endomorphism of affine space.
 
         INPUT:
@@ -673,8 +673,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: P.<x> = AffineSpace(CC,1)
             sage: H = End(P)
             sage: f = H([x^2 + 1/2])
-            sage: f.multiplier(P([0.5 + 0.5*I]),0)
-            [1.00000000000000]
+            sage: f.multiplier(P([0.5 + 0.5*I]),1)
+            [1.00000000000000 + 1.00000000000000*I]
 
         ::
 
@@ -682,14 +682,25 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: P.<x> = AffineSpace(R,1)
             sage: H = End(P)
             sage: f = H([x^2 - t^2 + t])
-            sage: f.multiplier(P([-t + 1]),0)
-            [1.00000000000000]
+            sage: f.multiplier(P([-t + 1]),1)
+            [(-2.00000000000000)*t + 2.00000000000000]
+
+        ::
+
+            sage: P.<x,y> = AffineSpace(QQ,2)
+            sage: X=P.subscheme([x^2-y^2])
+            sage: H = End(X)
+            sage: f = H([x^2,y^2])
+            sage: f.multiplier(X([1,1]),1)
+            
         """
         if not self.is_endomorphism():
-            raise NotImplementedError("Must be an endomorphism of affine space")
+            raise TypeError("Must be an endomorphism of affine space")
         if check:
             if self.nth_iterate(P, n) != P:
                 raise ValueError("%s is not periodic of period %s" % (P, n))
+            if n < 1:
+                raise ValueError("Period must be a positive integer")
         N = self.domain().ambient_space().dimension_relative()
         l = identity_matrix(FractionField(self.codomain().base_ring()), N, N)
         Q = P

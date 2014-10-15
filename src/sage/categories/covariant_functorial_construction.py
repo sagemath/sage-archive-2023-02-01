@@ -219,10 +219,10 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         assert(len(args) > 0)
         return getattr(args[0], self._functor_name)(*args[1:])
 
-class CovariantConstructionCategory(Category): # Should this be CategoryWithBase?
+class FunctorialConstructionCategory(Category): # Should this be CategoryWithBase?
     """
     Abstract class for categories `F_{Cat}` obtained through a
-    covariant functorial construction
+    functorial construction
     """
 
     @staticmethod
@@ -279,6 +279,103 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             return functor_category(category, *args)
         else:
             return cls.default_super_categories(category, *args)
+
+    def __init__(self, category, *args):
+        """
+        TESTS::
+
+            sage: from sage.categories.covariant_functorial_construction import CovariantConstructionCategory
+            sage: class FooBars(CovariantConstructionCategory):
+            ...       _functor_category = "FooBars"
+            sage: Category.FooBars = lambda self: FooBars.category_of(self)
+            sage: C = FooBars(ModulesWithBasis(ZZ))
+            sage: C
+            Category of foo bars of modules with basis over Integer Ring
+            sage: C.base_category()
+            Category of modules with basis over Integer Ring
+            sage: latex(C)
+            \mathbf{FooBars}(\mathbf{ModulesWithBasis}_{\Bold{Z}})
+            sage: import __main__; __main__.FooBars = FooBars # Fake FooBars being defined in a python module
+            sage: TestSuite(C).run()
+        """
+        assert isinstance(category, Category)
+        self._base_category = category
+        self._args = args
+        super(FunctorialConstructionCategory, self).__init__(*args)
+
+    def base_category(self):
+        """
+        Return the base category of the category ``self``.
+
+        For any category ``B`` = `F_{Cat}` obtained through a functorial
+        construction `F`, the call ``B.base_category()`` returns the
+        category `Cat`.
+
+        EXAMPLES::
+
+            sage: Semigroups().Quotients().base_category()
+            Category of semigroups
+        """
+        return self._base_category
+
+    def extra_super_categories(self):
+        """
+        Return the extra super categories of a construction category.
+
+        Default implementation which returns ``[]``.
+
+        EXAMPLES::
+
+            sage: Sets().Subquotients().extra_super_categories()
+            []
+            sage: Semigroups().Quotients().extra_super_categories()
+            []
+        """
+        return []
+
+    def super_categories(self):
+        """
+        Return the super categories of a construction category.
+
+        EXAMPLES::
+
+            sage: Sets().Subquotients().super_categories()
+            [Category of sets]
+            sage: Semigroups().Quotients().super_categories()
+            [Category of subquotients of semigroups, Category of quotients of sets]
+        """
+        return Category.join([self.__class__.default_super_categories(self.base_category(), *self._args)] +
+                             self.extra_super_categories(),
+                             as_list = True)
+
+    def _repr_object_names(self):
+        """
+        EXAMPLES::
+
+            sage: Semigroups().Subquotients()  # indirect doctest
+            Category of subquotients of semigroups
+        """
+        return "%s of %s"%(Category._repr_object_names(self), self.base_category()._repr_object_names())
+
+    def _latex_(self):
+        """
+        EXAMPLES::
+
+            sage: latex(Semigroups().Subquotients())   # indirect doctest
+            \mathbf{Subquotients}(\mathbf{Semigroups})
+            sage: latex(ModulesWithBasis(QQ).TensorProducts())
+            \mathbf{TensorProducts}(\mathbf{WithBasis}_{\Bold{Q}})
+            sage: latex(Semigroups().Algebras(QQ))
+            \mathbf{Algebras}(\mathbf{Semigroups})
+        """
+        from sage.misc.latex import latex
+        return "\\mathbf{%s}(%s)"%(self._short_name(), latex(self.base_category()))
+
+class CovariantConstructionCategory(FunctorialConstructionCategory):
+    """
+    Abstract class for categories `F_{Cat}` obtained through a
+    covariant functorial construction
+    """
 
     @classmethod
     def default_super_categories(cls, category, *args):
@@ -344,74 +441,6 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         return Category.join([getattr(cat, cls._functor_category)(*args)
                               for cat in category._super_categories
                               if hasattr(cat, cls._functor_category)])
-
-    def __init__(self, category, *args):
-        """
-        TESTS::
-
-            sage: from sage.categories.covariant_functorial_construction import CovariantConstructionCategory
-            sage: class FooBars(CovariantConstructionCategory):
-            ...       _functor_category = "FooBars"
-            sage: Category.FooBars = lambda self: FooBars.category_of(self)
-            sage: C = FooBars(ModulesWithBasis(ZZ))
-            sage: C
-            Category of foo bars of modules with basis over Integer Ring
-            sage: C.base_category()
-            Category of modules with basis over Integer Ring
-            sage: latex(C)
-            \mathbf{FooBars}(\mathbf{ModulesWithBasis}_{\Bold{Z}})
-            sage: import __main__; __main__.FooBars = FooBars # Fake FooBars being defined in a python module
-            sage: TestSuite(C).run()
-        """
-        assert isinstance(category, Category)
-        self._base_category = category
-        self._args = args
-        super(CovariantConstructionCategory, self).__init__(*args)
-
-    def base_category(self):
-        """
-        Return the base category of the category ``self``.
-
-        For any category ``B`` = `F_{Cat}` obtained through a functorial
-        construction `F`, the call ``B.base_category()`` returns the
-        category `Cat`.
-
-        EXAMPLES::
-
-            sage: Semigroups().Quotients().base_category()
-            Category of semigroups
-        """
-        return self._base_category
-
-    def extra_super_categories(self):
-        """
-        Return the extra super categories of a construction category.
-
-        Default implementation which returns ``[]``.
-
-        EXAMPLES::
-
-            sage: Sets().Subquotients().extra_super_categories()
-            []
-            sage: Semigroups().Quotients().extra_super_categories()
-            []
-        """
-        return []
-
-    def super_categories(self):
-        """
-        Return the super categories of a construction category.
-
-        EXAMPLES::
-
-            sage: Sets().Subquotients().super_categories()
-            [Category of sets]
-            sage: Semigroups().Quotients().super_categories()
-            [Category of subquotients of semigroups, Category of quotients of sets]
-        """
-        return Category.join([self.__class__.default_super_categories(self.base_category(), *self._args)] +
-                             self.extra_super_categories(),
-                             as_list = True)
 
     def is_construction_defined_by_base(self):
         r"""
@@ -480,29 +509,6 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             return self
         else:
             return None
-
-    def _repr_object_names(self):
-        """
-        EXAMPLES::
-
-            sage: Semigroups().Subquotients()  # indirect doctest
-            Category of subquotients of semigroups
-        """
-        return "%s of %s"%(Category._repr_object_names(self), self.base_category()._repr_object_names())
-
-    def _latex_(self):
-        """
-        EXAMPLES::
-
-            sage: latex(Semigroups().Subquotients())   # indirect doctest
-            \mathbf{Subquotients}(\mathbf{Semigroups})
-            sage: latex(ModulesWithBasis(QQ).TensorProducts())
-            \mathbf{TensorProducts}(\mathbf{WithBasis}_{\Bold{Q}})
-            sage: latex(Semigroups().Algebras(QQ))
-            \mathbf{Algebras}(\mathbf{Semigroups})
-        """
-        from sage.misc.latex import latex
-        return "\\mathbf{%s}(%s)"%(self._short_name(), latex(self.base_category()))
 
 class RegressiveCovariantConstructionCategory(CovariantConstructionCategory):
     """

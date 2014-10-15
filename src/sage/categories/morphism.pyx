@@ -175,13 +175,13 @@ cdef class Morphism(Map):
             sage: R.<t> = ZZ[]
             sage: f = R.hom([t**2])
             sage: f.category()
-            Join of Category of hom sets in Category of modules over (euclidean domains and infinite enumerated sets) and Category of hom sets in Category of rings
+            Category of endsets of unital magmas and right modules over (euclidean domains and infinite enumerated sets) and left modules over (euclidean domains and infinite enumerated sets)
 
             sage: K = CyclotomicField(12)
             sage: L = CyclotomicField(132)
             sage: phi = L._internal_coerce_map_from(K)
             sage: phi.category()
-            Category of hom sets in Category of rings
+            Category of homsets of unital magmas and additive unital additive magmas
         """
         # Should it be Category of elements of ...?
         return self.parent().category()

@@ -28,13 +28,19 @@ class HomsetsCategory(FunctorialConstructionCategory):
         """
         Return the homsets category of ``category``.
 
-        This class method centralizes the construction of all homset
+        This classmethod centralizes the construction of all homset
         categories.
 
         The ``cls`` and ``args`` arguments below are essentially
         unused. Their purpose is solely to let the code deviate as
         little as possible from the generic implementation of this
         method: :meth:`FunctorialConstructionCategory.category_of`.
+        The reason for this deviation is that, unlike in the other
+        functorial constructions which are covariant, we recurse only
+        on *full* supercategories; then, we need a special treatment
+        for the base case were a category neither defines the
+        ``Homsets`` construction, nor inherits it from its full
+        supercategories.
 
         INPUT:
 
@@ -54,8 +60,9 @@ class HomsetsCategory(FunctorialConstructionCategory):
             <class 'sage.categories.modules.Modules.Homsets_with_category'>
 
         Otherwise, if ``category`` has one or more full super
-        categories, then the join of their respecitve homsets category
-        is returned. In this example, the join is trivial::
+        categories, then the join of their respective homsets category
+        is returned. In this example, the join consists of a single
+        category::
 
             sage: C = Modules(ZZ).WithBasis().FiniteDimensional()
             sage: C.full_super_categories()
@@ -66,8 +73,8 @@ class HomsetsCategory(FunctorialConstructionCategory):
             sage: type(H)
             <class 'sage.categories.modules_with_basis.ModulesWithBasis.Homsets_with_category'>
 
-        As a last resort, a :class:`HomsetsOf` of categories forming
-        the structure of ``self`` is constructed::
+        As a last resort, a :class:`HomsetsOf` of the categories
+        forming the structure of ``self`` is constructed::
 
             sage: H = HomsetsCategory.category_of(Magmas()); H
             Category of homsets of magmas

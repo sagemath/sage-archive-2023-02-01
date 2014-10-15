@@ -616,8 +616,8 @@ class AdditiveMagmas(Category_singleton):
 
             .. SEEALSO:: :meth:`Category.additional_structure`
 
-            The category of unital additive magmas define the zero as
-            new structure, and this zero shall be preserved by
+            The category of unital additive magmas defines the zero as
+            additional structure, and this zero shall be preserved by
             morphisms.
 
             EXAMPLES::

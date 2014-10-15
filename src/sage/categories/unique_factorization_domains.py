@@ -45,8 +45,8 @@ class UniqueFactorizationDomains(Category_singleton):
         .. SEEALSO:: :meth:`Category.additional_structure`
 
         The category of unique factorization domains does not define
-        new structure: a ring-morphism between unique factorization
-        domains is a unique factorization domain-morphism.
+        additional structure: a ring morphism between unique factorization
+        domains is a unique factorization domain morphism.
 
         EXAMPLES::
 

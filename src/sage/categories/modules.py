@@ -173,8 +173,8 @@ class Modules(Category_module):
         r"""
         Return ``None``.
 
-        Indeed, the category of modules defines no new structure: a
-        bimodule morphism between two modules is a module morphism.
+        Indeed, the category of modules defines no additional structure:
+        a bimodule morphism between two modules is a module morphism.
 
         .. SEEALSO:: :meth:`Category.additional_structure`
 

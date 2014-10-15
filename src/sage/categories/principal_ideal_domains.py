@@ -49,8 +49,8 @@ class PrincipalIdealDomains(Category_singleton):
         Return ``None``.
 
         Indeed, the category of principal ideal domains defines no
-        additional structure: a ring-morphism between two principal
-        ideal domains is a principal ideal domain-morphism.
+        additional structure: a ring morphism between two principal
+        ideal domains is a principal ideal domain morphism.
 
         EXAMPLES::
 

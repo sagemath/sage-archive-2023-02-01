@@ -32,4 +32,6 @@ Algebras
    sage/algebras/steenrod/steenrod_algebra_misc
    sage/algebras/steenrod/steenrod_algebra_mult
 
+   sage/algebras/commutative_dga
+
 .. include:: ../footer.txt

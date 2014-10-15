@@ -467,7 +467,7 @@ def End(X, category=None):
         Alternating group of order 3!/2 as a permutation group
 
     To avoid creating superfluous categories, a homset in a category
-    ``Cs()`` is in the homset category of the lowest fullsupercategory
+    ``Cs()`` is in the homset category of the lowest full super category
     ``Bs()`` of ``Cs()`` that implements ``Bs.Homsets`` (or the join
     thereof if there are several). For example, finite groups form a
     full subcategory of unital magmas: any unital magma morphism
@@ -482,17 +482,17 @@ def End(X, category=None):
         sage: H.homset_category()
         Category of groups
         sage: H.category()
-        Category of homsets of unital magmas
+        Category of endsets of unital magmas
 
     Similarly, a ring morphism just needs to preserve addition,
     multiplication, zero, and one. Accordingly, and since the category
-    of rings implement nothing specific about their homsets, a ring
+    of rings implements nothing specific about its homsets, a ring
     homset is currently constructed in the category of homsets of
     unital magmas and unital additive magmas::
 
         sage: H = Hom(ZZ,ZZ,Rings())
         sage: H.category()
-        Category of homsets of unital magmas and additive unital additive magmas
+        Category of endsets of unital magmas and additive unital additive magmas
     """
     return Hom(X,X, category)
 
@@ -912,11 +912,23 @@ class Homset(Set_generic):
         it possible for a category to provide code for its morphisms
         and for morphisms of all its subcategories, full or not.
 
+        .. NOTE::
+
+            The element class of ``C.Homsets()`` will be inherited by
+            morphisms in *full* subcategories of ``C``, while the morphism
+            class of ``C`` will be inherited by *all* subcategories of
+            ``C``. Hence, if some feature of a morphism depends on the
+            algebraic properties of the homsets, it should be implemented by
+            ``C.Homsets.ElementMethods``, but if it depends only on the
+            algebraic properties of domain and codomain, it should be
+            implemented in ``C.MorphismMethods``.
+
+            At this point, the homset element classes takes precedence over
+            the morphism classes. But this may be subject to change.
+
+
         .. TODO::
 
-            - Decide in which order those two classes should be. At
-              this point the homset element classes takes precedence
-              over the morphism classes.
             - Make sure this class is shared whenever possible.
             - Flatten join category classes
 
@@ -926,13 +938,15 @@ class Homset(Set_generic):
 
         EXAMPLES:
 
-        Let's take a homset of finite commutative group as example; at
+        Let's take a homset of finite commutative groups as example; at
         this point this is the simplest one to create (gosh)::
 
-            sage: C = Groups().Finite().Commutative()
-            sage: G = PermutationGroup([(1,2,3)])
-            sage: G._refine_category_(Groups().Finite().Commutative())
-            sage: H = Hom(G, G, C)
+            sage: cat = Groups().Finite().Commutative()
+            sage: C3 = PermutationGroup([(1,2,3)])
+            sage: C3._refine_category_(cat)
+            sage: C2 = PermutationGroup([(1,2)])
+            sage: C2._refine_category_(cat)
+            sage: H = Hom(C3, C2, cat)
             sage: H.homset_category()
             Category of finite commutative groups
             sage: H.category()

@@ -25,13 +25,65 @@ class HomsetsCategory(FunctorialConstructionCategory):
     @classmethod
     @cached_function
     def category_of(cls, category, *args):
+        """
+        Return the homsets category of ``category``.
+
+        This class method centralizes the construction of all homset
+        categories.
+
+        The ``cls`` and ``args`` arguments below are essentially
+        unused. Their purpose is solely to let the code deviate as
+        little as possible from the generic implementation of this
+        method: :meth:`FunctorialConstructionCategory.category_of`.
+
+        INPUT:
+
+         - ``cls`` -- :class:`HomsetsCategory` or a subclass thereof
+         - ``category`` -- a category `Cat`
+         - ``*args`` -- (unused)
+
+        EXAMPLES:
+
+        If ``category`` implements a ``Homsets`` class, then this
+        class is used to build the homset category::
+
+            sage: from sage.categories.homsets import HomsetsCategory
+            sage: H = HomsetsCategory.category_of(Modules(ZZ)); H
+            Category of homsets of modules over Integer Ring
+            sage: type(H)
+            <class 'sage.categories.modules.Modules.Homsets_with_category'>
+
+        Otherwise, if ``category`` has one or more full super
+        categories, then the join of their respecitve homsets category
+        is returned. In this example, the join is trivial::
+
+            sage: C = Modules(ZZ).WithBasis().FiniteDimensional()
+            sage: C.full_super_categories()
+            [Category of modules with basis over Integer Ring,
+             Category of finite dimensional modules over Integer Ring]
+            sage: H = HomsetsCategory.category_of(C); H
+            Category of homsets of modules with basis over Integer Ring
+            sage: type(H)
+            <class 'sage.categories.modules_with_basis.ModulesWithBasis.Homsets_with_category'>
+
+        As a last resort, a :class:`HomsetsOf` of categories forming
+        the structure of ``self`` is constructed::
+
+            sage: H = HomsetsCategory.category_of(Magmas()); H
+            Category of homsets of magmas
+            sage: type(H)
+            <class 'sage.categories.homsets.HomsetsOf_with_category'>
+
+            sage: HomsetsCategory.category_of(Rings())
+            Category of homsets of unital magmas and additive unital additive magmas
+        """
         functor_category = getattr(category.__class__, cls._functor_category)
         if isinstance(functor_category, type) and issubclass(functor_category, Category):
             return functor_category(category, *args)
         elif category.full_super_categories():
             return cls.default_super_categories(category, *args)
         else:
-            return HomsetsOf(Category.join(category.all_structure_super_categories()))
+            return HomsetsOf(Category.join(category.structure()))
 
     @classmethod
     def default_super_categories(cls, category):
@@ -109,7 +161,7 @@ class HomsetsCategory(FunctorialConstructionCategory):
         #from sage.categories.objects    import Objects
         #from sage.categories.sets_cat import Sets
         tester = self._tester(**options)
-        tester.assert_(self.is_subcategory(Category.join(self.base_category().all_structure_super_categories()).Homsets()))
+        tester.assert_(self.is_subcategory(Category.join(self.base_category().structure()).Homsets()))
 
     @cached_method
     def base(self):
@@ -134,12 +186,10 @@ class HomsetsOf(HomsetsCategory):
     """
     Default class for homsets of a category.
 
-    This is used for structure categories that do not define a homsets
-    category of their own.
-
-    This is needed because, unlike for covariant functorial
-    constructions, we cannot represent the homset category of such a
-    category by just the join of the homset categories of its super
+    This is used when a category `C` defines some additional structure
+    but not a homset category of its own. Indeed, unlike for covariant
+    functorial constructions, we cannot represent the homset category
+    of `C` by just the join of the homset categories of its super
     categories.
 
     EXAMPLES::
@@ -213,14 +263,48 @@ class Homsets(Category_singleton):
         from sets_cat import Sets
         return [Sets()]
 
+    class SubcategoryMethods:
+
+        def Endset(self):
+            """
+            Return the subcategory of the homsets of ''self'' that are endomorphism sets.
+
+            EXAMPLES::
+
+                sage: Sets().Homsets().Endset()
+                Category of endsets of sets
+
+                sage: Posets().Homsets().Endset()
+                Category of endsets of posets
+            """
+            return self._with_axiom("Endset")
+
     class Endset(CategoryWithAxiom):
         """
-        The category of all end sets
+        The category of all endomorphism sets.
 
-        At this point, the main purpose of this class is to keep the
-        information that a category is a Endset category, even if the
-        base category implements nothing specific about those.
+        This category serves too purposes: making sure that the
+        ``Endset`` axiom is implemented in the category where it's
+        defined, namely ``Homsets``, and specifying that ``Endsets``
+        are monoids.
+
+        EXAMPLES::
+
+            sage: from sage.categories.homsets import Homsets
+            sage: Homsets().Endset()
+            Category of endsets
         """
-        def super_categories(self):
+        def extra_super_categories(self):
+            """
+            Implement the fact that endsets are monoids.
+
+            .. SEEALSO:: :meth:`CategoryWithAxiom.extra_super_categories`
+
+            EXAMPLES::
+
+                sage: from sage.categories.homsets import Homsets
+                sage: Homsets().Endset().extra_super_categories()
+                [Category of monoids]
+            """
             from monoids import Monoids
             return [Monoids()]

@@ -509,9 +509,9 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.<a> = NumberField(x^4 + 389); K
             Number Field in a with defining polynomial x^4 + 389
             sage: I = K.factor(17)[0][0]; I
-            Fractional ideal (17, a^2 - 6)
+            Fractional ideal (17, a^2 + 6)
             sage: I._repr_short()
-            '(17, a^2 - 6)'
+            '(17, a^2 + 6)'
 
         We use reduced gens, because the discriminant is small::
 
@@ -527,9 +527,9 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.<a> = NumberField(x^2 + 902384094); K
             Number Field in a with defining polynomial x^2 + 902384094
             sage: I = K.factor(19)[0][0]; I
-            Fractional ideal (19, a + 14)
+            Fractional ideal (19, a + 5)
             sage: I.gens_reduced()
-            (19, a + 14)
+            (19, a + 5)
         """
         return '(%s)'%(', '.join(map(str, self._gens_repr())))
 
@@ -2040,8 +2040,8 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         EXAMPLES::
 
             sage: K.<i>=NumberField(x^2+1)
-            sage: res =  K.ideal(2).residues(); res  # random address
-            xmrange_iter([[0, 1], [0, 1]], <function <lambda> at 0xa252144>)
+            sage: res =  K.ideal(2).residues(); res
+            xmrange_iter([[0, 1], [0, 1]], <function <lambda> at 0x...>)
             sage: list(res)
             [0, i, 1, i + 1]
             sage: list(K.ideal(2+i).residues())
@@ -2103,8 +2103,8 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         EXAMPLES::
 
             sage: K.<i>=NumberField(x^2+1)
-            sage: ires =  K.ideal(2).invertible_residues(); ires  # random address
-            <generator object at 0xa2feb6c>
+            sage: ires =  K.ideal(2).invertible_residues(); ires
+            xmrange_iter([[0, 1]], <function <lambda> at 0x...>)
             sage: list(ires)
             [1, -i]
             sage: list(K.ideal(2+i).invertible_residues())
@@ -3127,7 +3127,7 @@ class QuotientMap:
               From: Number Field in a with defining polynomial x^3 + 4
               To:   Residue field of Fractional ideal (1/2*a^2 + 1)
             sage: f.__class__
-            <type 'sage.rings.residue_field.ReductionMap'>
+            <type 'sage.rings.finite_rings.residue_field.ReductionMap'>
         """
         self.__M_OK_change = M_OK_change
         self.__Q = Q
@@ -3182,7 +3182,7 @@ class LiftMap:
             sage: I = K.ideal(1 + a^2/2)
             sage: f = I.residue_field().lift_map()
             sage: f.__class__
-            <type 'sage.rings.residue_field.LiftingMap'>
+            <type 'sage.rings.finite_rings.residue_field.LiftingMap'>
         """
         self.__I = I
         self.__OK = OK
@@ -3306,6 +3306,3 @@ def quotient_char_p(I, p):
     Q_to_OK = LiftMap(OK, M_OK_mat, Q, I)
 
     return Q, K_to_Q, Q_to_OK
-
-
-

@@ -62,6 +62,7 @@ class ModularAbelianVarieties(Category_over_base):
         return [Sets()] # FIXME
 
     class Homsets(HomsetsCategory):
+
         class Endset(CategoryWithAxiom):
             def extra_super_categories(self):
                 """

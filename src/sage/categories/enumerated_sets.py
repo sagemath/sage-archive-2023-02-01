@@ -95,21 +95,20 @@ class EnumeratedSets(Category_singleton):
         """
         return [Sets()]
 
-    def is_structure_category(self):
+    def additional_structure(self):
         """
-        Return whether ``self`` is a structure category.
+        Return ``None``.
 
-        .. SEEALSO:: :meth:`Category.is_structure_category`
+        Indeed, morphisms of enumerated sets are not required to
+        preserve the enumeration.
 
-        Morphisms of enumerated sets are not required to preserve the
-        enumeration.
+        .. SEEALSO:: :meth:`Category.additional_structure`
 
         EXAMPLES::
 
-            sage: GcdDomains().is_structure_category()
-            False
+            sage: EnumeratedSets().additional_structure()
         """
-        return False
+        return None
 
     def _call_(self, X):
         """

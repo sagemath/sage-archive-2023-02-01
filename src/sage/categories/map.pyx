@@ -456,7 +456,10 @@ cdef class Map(Element):
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
             sage: f._extra_slots_test({"bla": 1})
-            {'_codomain': Integer Ring, '_domain': Rational Field, 'bla': 1, '_repr_type_str': None}
+            {'_codomain': Integer Ring,
+             '_domain': Rational Field,
+             '_repr_type_str': None,
+             'bla': 1}
         """
         return self._extra_slots(_slots)
 
@@ -617,7 +620,7 @@ cdef class Map(Element):
             sage: f.category_for()
             Join of Category of unique factorization domains and Category of commutative algebras over quotient fields
             sage: f.category()
-            Category of homsets of unital magmas and right modules over quotient fields and left modules over quotient fields
+            Category of endsets of unital magmas and right modules over quotient fields and left modules over quotient fields
 
         FIXME: find a better name for this method
         """

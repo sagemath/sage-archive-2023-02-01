@@ -134,7 +134,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
             sage: E = CombinatorialFreeModule(QQ, ["a", "b", "c"])
             sage: tensor.category_from_parents((E, E, E))
-            Category of tensor products of modules with basis over Rational Field
+            Category of tensor products of vector spaces with basis over Rational Field
         """
         from sage.structure.parent import Parent
         assert(all(isinstance(parent, Parent) for parent in parents))
@@ -183,7 +183,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: tensor.category_from_category(ModulesWithBasis(QQ))
-            Category of tensor products of modules with basis over Rational Field
+            Category of tensor products of vector spaces with basis over Rational Field
 
         # TODO: add support for parametrized functors
         """
@@ -265,7 +265,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
         EXAMPLES::
 
             sage: sage.categories.tensor.TensorProductsCategory.category_of(ModulesWithBasis(QQ))
-            Category of tensor products of modules with basis over Rational Field
+            Category of tensor products of vector spaces with basis over Rational Field
 
             sage: sage.categories.algebra_functor.AlgebrasCategory.category_of(FiniteMonoids(), QQ)
             Join of Category of finite dimensional algebras with basis over Rational Field
@@ -364,7 +364,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             sage: latex(Semigroups().Subquotients())   # indirect doctest
             \mathbf{Subquotients}(\mathbf{Semigroups})
             sage: latex(ModulesWithBasis(QQ).TensorProducts())
-            \mathbf{TensorProducts}(\mathbf{ModulesWithBasis}_{\Bold{Q}})
+            \mathbf{TensorProducts}(\mathbf{WithBasis}_{\Bold{Q}})
             sage: latex(Semigroups().Algebras(QQ))
             \mathbf{Algebras}(\mathbf{Semigroups})
         """
@@ -442,28 +442,73 @@ class CovariantConstructionCategory(FunctorialConstructionCategory):
                               for cat in category._super_categories
                               if hasattr(cat, cls._functor_category)])
 
-    def is_structure_category(self):
-        """
-        Return whether ``self`` is a structure category.
-
-        .. SEEALSO:: :meth:`Category.is_structure_category`
+    def is_construction_defined_by_base(self):
+        r"""
+        Return whether the construction is defined by the base of ``self``.
 
         EXAMPLES:
 
-        By default, a covariant functorial construction category does
-        not define new structure::
+        The graded functorial construction is defined by the modules
+        category. Hence this method returns ``True`` for graded
+        modules and ``False`` for other graded xxx categories::
 
-            sage: Sets().CartesianProducts().is_structure_category()
+            sage: Modules(ZZ).Graded().is_construction_defined_by_base()
+            True
+            sage: Algebras(QQ).Graded().is_construction_defined_by_base()
             False
-            sage: Groups().Quotients().is_structure_category()
+            sage: Modules(ZZ).WithBasis().Graded().is_construction_defined_by_base()
             False
+
+        This is implemented as follows: given the base category `A`
+        and the construction `F` of ``self``, that is ``self=A.F()``,
+        check whether no super category of `A` has `F` defined.
+
+        .. NOTE::
+
+            Recall that, when `A` does not implement the construction
+            ``F``, a join category is returned. Therefore, in such
+            cases, this method is not available::
+
+                sage: Coalgebras(QQ).Graded().is_construction_defined_by_base()
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'JoinCategory_with_category' object has no attribute 'is_construction_defined_by_base'
+        """
+        base = self.base_category()
+        f = self._functor_category;
+        return not any(hasattr(C, f) for C in base.super_categories())
+
+    def additional_structure(self):
+        r"""
+        Return the additional structure defined by ``self``.
+
+        By default, a functorial construction category ``A.F()``
+        defines additional structure if and only if `A` is the
+        category defining `F`. The rationale is that, for a
+        subcategory `B` of `A`, the fact that `B.F()` morphisms shall
+        preserve the `F`-specific structure is already imposed by
+        `A.F()`.
+
+        .. SEEALSO::
+
+            - :meth:`Category.additional_structure`.
+            - :meth:`is_construction_defined_by_base`.
+
+        EXAMPLES:
+
+            sage: Modules(ZZ).Graded().additional_structure()
+            Category of graded modules over Integer Ring
+            sage: Algebras(ZZ).Graded().additional_structure()
 
         TESTS::
 
-            sage: Sets().CartesianProducts().is_structure_category.__module__
+            sage: Modules(ZZ).Graded().additional_structure.__module__
             'sage.categories.covariant_functorial_construction'
         """
-        return False
+        if self.is_construction_defined_by_base():
+            return self
+        else:
+            return None
 
 class RegressiveCovariantConstructionCategory(CovariantConstructionCategory):
     """

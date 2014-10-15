@@ -76,6 +76,7 @@ from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
 
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
+ecl_eval("(setf *compile-verbose* NIL)")
 ecl_eval("(setf *load-verbose* NIL)")
 ecl_eval("(require 'maxima)")
 ecl_eval("(in-package :maxima)")
@@ -709,16 +710,12 @@ class MaximaLib(MaximaAbstract):
         ::
 
             sage: integrate(cos(x + abs(x)), x)
-            -1/4*(2*x - sin(2*x))*real_part(sgn(x)) + 1/2*x + 1/4*sin(2*x)
+            -1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x
 
-        Note that the last example yielded the same answer in a
-        simpler form in earlier versions of Maxima (<= 5.29.1), namely
-        ``-1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x``.  This
-        is because Maxima no longer simplifies ``realpart(signum(x))``
-        to ``signum(x)``::
+        The last example relies on the following simplification::
 
             sage: maxima("realpart(signum(x))")
-            'realpart(signum(x))
+            signum(x)
 
         An example from sage-support thread e641001f8b8d1129::
 
@@ -1067,7 +1064,7 @@ class MaximaLibElement(MaximaAbstractElement):
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: sol = maxima_lib(sin(x) == 0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == pi*z54]]
+            [[x == pi*z62]]
         """
         if options.find("use_grobner=true") != -1:
             cmd=EclObject([[max_to_poly_solve], self.ecl(), sr_to_max(vars),

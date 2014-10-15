@@ -154,9 +154,10 @@ class SchemeHomsetFactory(UniqueFactory):
             sage: key
             (..., ..., Category of schemes over Integer Ring, False)
             sage: extra
-            {'Y': Affine Space of dimension 2 over Rational Field,
-             'X': Affine Space of dimension 3 over Rational Field,
-             'base_ring': Integer Ring, 'check': False}
+            {'X': Affine Space of dimension 3 over Rational Field,
+             'Y': Affine Space of dimension 2 over Rational Field,
+             'base_ring': Integer Ring,
+             'check': False}
         """
         if is_CommutativeRing(X):
             X = AffineScheme(X)
@@ -247,7 +248,7 @@ class SchemeHomset_generic(HomsetWithBase):
           From: Affine Space of dimension 2 over Rational Field
           To:   Affine Space of dimension 2 over Rational Field
         sage: Hom.category()
-        Category of homsets of schemes over Rational Field
+        Category of endsets of schemes over Rational Field
     """
     Element = SchemeMorphism
 

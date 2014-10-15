@@ -95,7 +95,7 @@ from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_total
 from sage.libs.pari.all import pari
 from sage.rings.all import ZZ, QQ
 
-import math, bisect, sys
+import math, sys
 
 
 def integral_elements_in_box(K, C):
@@ -735,8 +735,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     n = F.degree()*m
 
     # Initialize
-    S = []
-    Srel = []
+    S = {}        # dictionary of the form {(d, fabs): f, ...}
     dB_odlyzko = odlyzko_bound_totallyreal(n)
     dB = math.ceil(40000*dB_odlyzko**n)
     counts = [0,0,0,0]
@@ -803,20 +802,13 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
                         ng = pari([nf,zk]).polredabs()
 
                         # Check if K is contained in the list.
-                        found = False
-                        ind = bisect.bisect_left(S, [d,ng])
-                        while ind < len(S) and S[ind][0] == d:
-                            if S[ind][1] == ng:
-                                if verbose:
-                                    print "but is not new"
-                                found = True
-                                break
-                            ind += 1
-                        if not found:
+                        if (d, ng) in S:
+                            if verbose:
+                                print "but is not new"
+                        else:
                             if verbose:
                                 print "and is new!"
-                            S.insert(ind, [d,ng])
-                            Srel.insert(ind, Fx(f_out))
+                            S[(d, ng)] = Fx(f_out)
                     else:
                         if verbose:
                             print "has discriminant", abs(d), "> B"
@@ -847,9 +839,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
             d = K.absolute_discriminant()
             if abs(d) <= B:
                 ng = Kabs_pari.polredabs()
-                ind = bisect.bisect_left(S, [d,ng])
-                S.insert(ind, [d,ng])
-                Srel.insert(ind, Fx([-1,1,1]))
+                S[(d, ng)] = Fx([-1,1,1])
         elif F.degree() == 2:
             for ff in [[1,-7,13,-7,1],[1,-8,14,-7,1]]:
                 f = Fx(ff).factor()[0][0]
@@ -859,9 +849,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
                 d = K.absolute_discriminant()
                 if abs(d) <= B:
                     ng = Kabs_pari.polredabs()
-                    ind = bisect.bisect_left(S, [d,ng])
-                    S.insert(ind, [d,ng])
-                    Srel.insert(ind, f)
+                    S[(d, ng)] = f
     elif m == 3:
         if Fx([-1,6,-5,1]).is_irreducible():
             K = F.extension(Fx([-1,6,-5,1]), 'tK')
@@ -870,12 +858,14 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
             d = K.absolute_discriminant()
             if abs(d) <= B:
                 ng = Kabs_pari.polredabs()
-                ind = bisect.bisect_left(S, [d,ng])
-                S.insert(ind, [d,ng])
-                Srel.insert(ind, Fx([-1,6,-5,1]))
+                S[(d, ng)] = Fx([-1,6,-5,1])
+
+    # Convert S to a sorted list of triples [d, fabs, f], taking care
+    # to use cmp() and not the comparison operators on PARI polynomials.
+    S = [[s[0], s[1], t] for s, t in S.items()]
+    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
 
     # Now check for isomorphic fields
-    S = [[S[i][0],S[i][1],Srel[i]] for i in range(len(S))]
     weed_fields(S)
 
     # Output.
@@ -991,7 +981,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
                         if EF.degree() == n and EF.disc() <= B:
                             S.append([EF.disc(), pari(EF.absolute_polynomial())])
     S += enumerate_totallyreal_fields_prim(n, B, verbose=verbose)
-    S.sort()
+    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
     weed_fields(S)
 
     # Output.

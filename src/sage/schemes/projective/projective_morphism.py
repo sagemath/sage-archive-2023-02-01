@@ -2550,18 +2550,19 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             NotImplementedError: Subschemes as Preimages not implemented
         """
         
-        BR = self.base_ring().base_ring()
+        BR = self.base_ring()
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if (Q in self.codomain()) == False:
             raise TypeError("Point must be in codomain of self")
-        if isinstance(BR,(ComplexField_class, RealField_class,RealIntervalField_class, ComplexIntervalField_class)):
+        if isinstance(BR.base_ring(),(ComplexField_class, RealField_class,RealIntervalField_class, ComplexIntervalField_class)):
             raise NotImplementedError("Not Implemented over precision fields") 
         PS = self.domain().ambient_space()
         R = PS.coordinate_ring()
         N = PS.dimension_relative()
         #need a lexicographic ordering for elimination
         R = PolynomialRing(R.base_ring(), N + 1, R.gens(), order='lex')
+        BR = R.base_ring()
         I = list(self.domain().defining_polynomials())
         preimages = set()
         for i in range(N + 1):
@@ -2602,7 +2603,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                                     varindex = R.gens().index(r)
                                     #add this coordinates information to 
                                     #each dictionary entry
-                                    P.update({R.gen(varindex):-pol.coefficient({r:0}) / pol.coefficient({r:1})})
+                                    P.update({R.gen(varindex):-BR(pol.coefficient({r:0})) / BR(pol.coefficient({r:1}))})
                                     new_points.append(copy(P))
                     if good == 1:
                         points = new_points

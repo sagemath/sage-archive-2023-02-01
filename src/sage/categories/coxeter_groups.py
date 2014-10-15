@@ -39,7 +39,7 @@ class CoxeterGroups(Category_singleton):
         sage: C = CoxeterGroups(); C
         Category of coxeter groups
         sage: C.super_categories()
-        [Category of groups, Category of enumerated sets]
+        [Category of finitely generated groups]
 
         sage: W = C.example(); W
         The symmetric group on {0, ..., 3}
@@ -117,9 +117,9 @@ class CoxeterGroups(Category_singleton):
         EXAMPLES::
 
             sage: CoxeterGroups().super_categories()
-            [Category of groups, Category of enumerated sets]
+            [Category of finitely generated groups]
         """
-        return [Groups(), EnumeratedSets()]
+        return [Groups().FinitelyGenerated()]
 
     Finite = LazyImport('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
     Algebras = LazyImport('sage.categories.coxeter_group_algebras', 'CoxeterGroupAlgebras')

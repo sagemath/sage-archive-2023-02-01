@@ -2300,11 +2300,6 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO:: :meth:`is_ranked`
 
-        .. TODO::
-
-            The current algorithm could be improvable. See
-            :trac:`13223`.
-
         EXAMPLES::
 
             sage: P = Poset([[1],[2],[3],[4],[]])

@@ -97,7 +97,6 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.misc.superseded import deprecated_function_alias
 
 TableauOptions=GlobalOptions(name='tableaux',
     doc=r"""
@@ -2794,13 +2793,6 @@ class Tableau(CombinatorialObject, Element):
             return self
         else:
             return Tableau([])
-
-    katabolism = deprecated_function_alias(13605, catabolism)
-    katabolism_sequence = deprecated_function_alias(13605, catabolism_sequence)
-    lambda_katabolism = deprecated_function_alias(13605, lambda_catabolism)
-    reduced_lambda_katabolism = deprecated_function_alias(13605, reduced_lambda_catabolism)
-    katabolism_projector = deprecated_function_alias(13605, catabolism_projector)
-
 
     def promotion_operator(self, i):
         """

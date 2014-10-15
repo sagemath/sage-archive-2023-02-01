@@ -764,6 +764,11 @@ def prime_powers(start, stop=None):
         sage: type(v[0])      # trac #922
         <type 'sage.rings.integer.Integer'>
 
+        sage: prime_powers(0,1)
+        []
+        sage: prime_powers(0,2)
+        [1]
+
         sage: prime_powers("foo")
         Traceback (most recent call last):
         ...
@@ -775,45 +780,39 @@ def prime_powers(start, stop=None):
         TypeError: stop must be an integer, bar is not an integer
 
     """
-    from sage.rings.integer import Integer
+    from integer import Integer
     # check to ensure that both inputs are positive integers
     if not isinstance(start, (int, Integer)):
         raise TypeError("start must be an integer, {} is not an integer".format(start))
     if not (isinstance(stop, (int, Integer)) or stop is None):
         raise TypeError("stop must be an integer, {} is not an integer".format(stop))
 
+    ZZ_1 = Integer(1)
+
     # coerce inputs that are ints into Integers for efficiency
     start = Integer(start)
-    if(stop is not None):
+    if stop is not None:
         stop = Integer(stop)
-
-    # deal with the case in which only one input is given
-    if stop is None:
-        start, stop = 1, Integer(start)
+    else:  # deal with the case in which only one input is given
+        start, stop = ZZ_1, Integer(start)
 
     # inserted to prevent an error from occurring
-    if stop < 1:
-        return [];
+    if stop <= ZZ_1 or start >= stop:
+        return []
 
     # find all the primes in the given range
     from fast_arith import prime_range
-    temp = prime_range(stop)
-    output = [p for p in temp if p>=start]
+    output = []
 
-    if start <= 1:
-        output.append(Integer(1))
+    if start <= ZZ_1:
+        output.append(ZZ_1)
 
-    s = stop.sqrt()
-    for p in temp:
-        # if p > the square root of stop, p^2 will be outside the given
-        # range
-        if p > s:
-            break
-        q = p*p
-        # check if each power of p falls within the given range
+    for p in prime_range(stop):
+        q = p
+        while q < start:
+            q *= p
         while q < stop:
-            if start <= q:
-                output.append(q)
+            output.append(q)
             q *= p
 
     output.sort()
@@ -1333,7 +1332,7 @@ def divisors(n):
         sage: divisors(K.ideal(3))
         [Fractional ideal (1), Fractional ideal (3), Fractional ideal (-a + 2), Fractional ideal (-a - 2)]
         sage: divisors(K.ideal(35))
-        [Fractional ideal (1), Fractional ideal (35), Fractional ideal (5*a), Fractional ideal (5), Fractional ideal (a), Fractional ideal (7)]
+        [Fractional ideal (1), Fractional ideal (5), Fractional ideal (a), Fractional ideal (7), Fractional ideal (5*a), Fractional ideal (35)]
 
     TESTS::
 
@@ -1559,8 +1558,8 @@ def gcd(a, b=None, **kwargs):
 
         sage: R.<x>=QQ[]
         sage: S.<x>=ZZ[]
-        sage: p = S.random_element()
-        sage: q = R.random_element()
+        sage: p = S.random_element(degree=(0,10))
+        sage: q = R.random_element(degree=(0,10))
         sage: parent(gcd(1/p,q))
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: parent(gcd([1/p,q]))
@@ -1708,8 +1707,8 @@ def lcm(a, b=None):
 
         sage: R.<x>=QQ[]
         sage: S.<x>=ZZ[]
-        sage: p = S.random_element()
-        sage: q = R.random_element()
+        sage: p = S.random_element(degree=(0,5))
+        sage: q = R.random_element(degree=(0,5))
         sage: parent(lcm([1/p,q]))
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
@@ -2496,7 +2495,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
         sage: K.<i> = QuadraticField(-1)
         sage: factor(122 - 454*i)
-        (-1) * (-i - 4) * (-3*i - 2) * (-i - 2)^3 * (i + 1)^3
+        (-3*i - 2) * (-i - 2)^3 * (i + 1)^3 * (i + 4)
 
     To access the data in a factorization::
 
@@ -4583,6 +4582,8 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     b = QQ(b).numerator() * QQ(b).denominator()
 
     if algorithm == "pari":
+        if p == -1:
+            p = 0
         return ZZ(pari(a).hilbert(b,p))
 
     elif algorithm == 'direct':
@@ -5564,13 +5565,13 @@ def sort_complex_numbers_for_display(nums):
         sage: sort_c = sort_complex_numbers_for_display
         sage: nums = [CDF(i) for i in range(3)]
         sage: for i in range(3):
-        ...       nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
-        ...                       RDF.random_element()))
-        ...       nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
-        ...                       RDF.random_element()))
+        ....:     nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
+        ....:                     RDF.random_element()))
+        ....:     nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
+        ....:                     RDF.random_element()))
         sage: shuffle(nums)
         sage: sort_c(nums)
-        [0.0, 1.0, 2.0, -2.862406201e-11 - 0.708874026302*I, 2.2108362707e-11 - 0.436810529675*I, 1.00000000001 - 0.758765473764*I, 0.999999999976 - 0.723896589334*I, 1.99999999999 - 0.456080101207*I, 1.99999999999 + 0.609083628313*I]
+        [0.0, 1.0, 2.0, -2.862406201002009e-11 - 0.7088740263015161*I, 2.2108362706985576e-11 - 0.43681052967509904*I, 1.0000000000138833 - 0.7587654737635712*I, 0.9999999999760288 - 0.7238965893336062*I, 1.9999999999874383 - 0.4560801012073723*I, 1.9999999999869107 + 0.6090836283134269*I]
     """
     if len(nums) == 0:
         return nums
@@ -5708,7 +5709,7 @@ def dedekind_sum(p, q, algorithm='default'):
         sage: dedekind_sum(3^54 - 1, 2^93 + 1, algorithm='pari')
         459340694971839990630374299870/29710560942849126597578981379
 
-    Pari uses a different definition if the inputs are not coprime::
+    We check consistency of the results::
 
         sage: dedekind_sum(5, 7, algorithm='default')
         -1/14
@@ -5721,7 +5722,7 @@ def dedekind_sum(p, q, algorithm='default'):
         sage: dedekind_sum(6, 8, algorithm='flint')
         -1/8
         sage: dedekind_sum(6, 8, algorithm='pari')
-        -1/24
+        -1/8
 
     REFERENCES:
 

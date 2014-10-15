@@ -342,6 +342,7 @@ This is phenomenally useful.  Here is a nice plotting example.
 ::
 
     sage: plot([x^n for n in [2..6]],(x,0,1))
+    Graphics object consisting of 5 graphics primitives
 
 Now we apply it to the example we were doing in the first place.  Notice
 we now have a nice concise description of all determinants of these

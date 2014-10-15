@@ -38,7 +38,7 @@ class Function_exp(GinacFunction):
             sage: exp(float(2.5))
             12.182493960703473
             sage: exp(RDF('2.5'))
-            12.1824939607
+            12.182493960703473
 
         To prevent automatic evaluation, use the ``hold`` parameter::
 
@@ -63,6 +63,17 @@ class Function_exp(GinacFunction):
             1
             sage: exp(7*pi*I/2)
             -I
+
+        The precision for the result is deduced from the precision of
+        the input. Convert the input to a higher precision explicitly
+        if a result with higher precision is desired::
+
+            sage: t = exp(RealField(100)(2)); t
+            7.3890560989306502272304274606
+            sage: t.prec()
+            100
+            sage: exp(2).n(100)
+            7.3890560989306502272304274606
 
         TEST::
 
@@ -110,44 +121,6 @@ class Function_exp(GinacFunction):
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                    conversions=dict(maxima='exp'))
 
-    def __call__(self, x, coerce=True, hold=False, prec=None,
-            dont_call_method_on_arg=False):
-        """
-        Note that the ``prec`` argument is deprecated. The precision for
-        the result is deduced from the precision of the input. Convert
-        the input to a higher precision explicitly if a result with higher
-        precision is desired.::
-
-            sage: t = exp(RealField(100)(2)); t
-            7.3890560989306502272304274606
-            sage: t.prec()
-            100
-
-        TESTS::
-
-            sage: exp(2,prec=100)
-            doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.
-            See http://trac.sagemath.org/7490 for details.
-            7.3890560989306502272304274606
-
-        Ensure that :trac:`13608` is fixed::
-
-            sage: import mpmath
-            sage: a = mpmath.mpf('0.5')
-            sage: exp(a)
-            mpf('1.6487212707001282')
-            sage: a.exp
-            -1
-        """
-        if prec is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(7490, "The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.")
-            x = GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
-                    dont_call_method_on_arg=dont_call_method_on_arg)
-            return x.n(prec)
-        return GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
-                dont_call_method_on_arg=dont_call_method_on_arg)
-
 exp = Function_exp()
 
 class Function_log(GinacFunction):
@@ -168,7 +141,7 @@ class Function_log(GinacFunction):
         ::
 
             sage: ln(RDF(10))
-            2.30258509299
+            2.302585092994046
             sage: ln(2.718)
             0.999896315728952
             sage: ln(2.0)
@@ -260,7 +233,7 @@ class Function_log(GinacFunction):
             sage: log(10, 4)
             log(10)/log(4)
             sage: RDF(log(10, 4))
-            1.66096404744
+            1.6609640474436813
             sage: log(10, 2)
             log(10)/log(2)
             sage: n(log(10, 2))
@@ -572,7 +545,7 @@ class Function_lambert_w(BuiltinFunction):
         sage: integrate(lambert_w(x), x, 0, 1)
         (lambert_w(1)^2 - lambert_w(1) + 1)/lambert_w(1) - 1
         sage: integrate(lambert_w(x), x, 0, 1.0)
-        0.330366124762
+        0.3303661247616807
 
     Warning: The integral of a non-principal branch is not implemented,
     neither is numerical integration using GSL. The :meth:`numerical_integral`
@@ -681,7 +654,7 @@ class Function_lambert_w(BuiltinFunction):
         SciPy is used to evaluate for float, RDF, and CDF inputs::
 
             sage: lambert_w(RDF(1))
-            0.56714329041
+            0.5671432904097838
         """
         R = parent or sage_structure_coerce_parent(z)
         if R is float or R is complex or R is RDF or R is CDF:

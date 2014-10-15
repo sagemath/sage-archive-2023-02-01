@@ -711,8 +711,7 @@ def coefficients_from_j(j, minimal_twist=True):
         tw = [-1,2,-2,3,-3,6,-6]
         E1 = EllipticCurve([0,0,0,a4,a6])
         Elist = [E1] + [E1.quadratic_twist(t) for t in tw]
-        crv_cmp = lambda E,F: cmp(E.conductor(),F.conductor())
-        Elist.sort(cmp=crv_cmp)
+        Elist.sort(key=lambda E: E.conductor())
         return Sequence(Elist[0].ainvs())
 
     # defaults for all other fields:

@@ -602,6 +602,7 @@ class Hyperplane(LinearExpression):
 
             sage: L.<x, y> = HyperplaneArrangements(QQ)
             sage: (x+y-2).plot()
+            Graphics object consisting of 2 graphics primitives
         """
         from sage.geometry.hyperplane_arrangement.plot import plot_hyperplane
         return plot_hyperplane(self, **kwds)

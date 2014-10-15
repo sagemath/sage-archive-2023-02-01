@@ -37,6 +37,9 @@ AUTHORS:
 #include <execinfo.h>
 #endif
 #endif
+#ifdef __linux__
+#include <sys/prctl.h>
+#endif
 #include "stdsage.h"
 #include "interrupt.h"
 
@@ -366,6 +369,12 @@ void print_backtrace()
 
 void print_enhanced_backtrace()
 {
+    /* Bypass Linux Yama restrictions on ptrace() to allow debugging */
+    /* See https://www.kernel.org/doc/Documentation/security/Yama.txt */
+#ifdef PR_SET_PTRACER
+    prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
+#endif
+
     /* Flush all buffers before forking */
     fflush(stdout);
     fflush(stderr);

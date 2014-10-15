@@ -665,17 +665,15 @@ def num_cusps_of_width(N, d):
 
         sage: [num_cusps_of_width(18,d) for d in divisors(18)]
         [1, 1, 2, 2, 1, 1]
+        sage: num_cusps_of_width(4,8)
+        Traceback (most recent call last):
+        ...
+        ValueError: N and d must be positive integers with d|N
     """
-    try:
-        N = ZZ(N)
-        d = ZZ(d)
-        assert N>0
-        assert d>0
-        assert ((N % d) == 0)
-    except TypeError:
-        raise TypeError("N and d must be integers")
-    except AssertionError:
-        raise AssertionError("N and d must be positive integers with d|N")
+    N = ZZ(N)
+    d = ZZ(d)
+    if N <= 0 or d <= 0 or (N % d) != 0:
+        raise ValueError("N and d must be positive integers with d|N")
 
     return euler_phi(gcd(d, N//d))
 
@@ -693,14 +691,15 @@ def AllCusps(N):
 
         sage: AllCusps(18)
         [(Inf), (c_{2}), (c_{3,1}), (c_{3,2}), (c_{6,1}), (c_{6,2}), (c_{9}), (0)]
+        sage: AllCusps(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: N must be positive
     """
-    try:
-        N = ZZ(N)
-        assert N>0
-    except TypeError:
-        raise TypeError("N must be an integer")
-    except AssertionError:
-        raise AssertionError("N must be positive")
+    N = ZZ(N)
+    if N <= 0:
+        raise ValueError("N must be positive")
+
     c = []
     for d in divisors(N):
         n = num_cusps_of_width(N, d)
@@ -732,13 +731,9 @@ class CuspFamily(SageObject):
             sage: CuspFamily(16, 4, '1')
             (c_{4,1})
         """
-        try:
-            N = ZZ(N)
-            assert N>0
-        except TypeError:
-            raise TypeError("N must be an integer")
-        except AssertionError:
-            raise AssertionError("N must be positive")
+        N = ZZ(N)
+        if N <= 0:
+            raise ValueError("N must be positive")
         self._N = N
         self._width = width
         if (N % width):

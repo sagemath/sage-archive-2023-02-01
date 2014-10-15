@@ -164,24 +164,23 @@ from combinat_cython import _stirling_number2
 def bell_number(n, algorithm='dobinski', **options):
     r"""
     Return the `n`-th Bell number (the number of ways to partition a set
-    of n elements into pairwise disjoint nonempty subsets). If `n \leq 0`,
-    return `1`.
+    of `n` elements into pairwise disjoint nonempty subsets).
 
     INPUT:
 
     - ``n`` -- a positive integer
 
-    - ``algorithm`` -- (Default ``'dobinski'``) Can be any one of the
-      following:
+    - ``algorithm`` -- (Default: ``'dobinski'``) any one of the following:
 
       - ``'dobinski'`` -- Use Dobinski's summation formula
-        (when `n < 200`, this just wraps GAP)
-      - ``'gap'`` -- Wrap GAP's ``Bell``
+
+      - ``'gap'`` -- Wrap libGAP's ``Bell``
+
       - ``'mpmath'`` -- Wrap mpmath's ``bell``
 
     .. WARNING::
 
-        When using the mpmath algorithm to compute bell numbers and you specify
+        When using the mpmath algorithm to compute Bell numbers and you specify
         ``prec``, it can return incorrect results due to low precision. See
         the examples section.
 
@@ -191,20 +190,23 @@ def bell_number(n, algorithm='dobinski', **options):
 
         B_n = e^{-1} \sum_{k=0}^{\infty} \frac{k^n}{k!}.
 
-    To show our implementation of Dobinski's method works, suppose that `n > 8`
-    and let `k_0` be the smallest integer for that `\frac{k_0^n}{k_0!} < 1`.
+    To show our implementation of Dobinski's method works, suppose that `n \geq 5`
+    and let `k_0` be the smallest positive integer such that `\frac{k_0^n}{k_0!} < 1`.
     Note that `k_0 > n` and `k_0 \leq 2n` because we can prove that
     `\frac{(2n)^n}{(2n)!} < 1` by Stirling.
 
-    Next if `k > k_0`, then we have `\frac{k^n}{k!} < \frac{1}{2^{k-k_0}}`, and
-    the proof is by induction. Let `c_k = \frac{k^n}{k!}`, if `k > n` then
+    If `k > k_0`, then we have `\frac{k^n}{k!} < \frac{1}{2^{k-k_0}}`.
+    We show this by induction:
+    let `c_k = \frac{k^n}{k!}`, if `k > n` then
 
     .. MATH::
 
         \frac{c_{k+1}}{c_k} = \frac{(1+k^{-1})^n}{k+1} < \frac{(1+n^{-1})^n}{n}
-        < \frac{4}{n} < \frac{1}{2}.
+        < \frac{1}{2}.
 
-    By using this, we can see that `\frac{c_k}{c_{k_0}} < \frac{1}{2^{k-k_0}}`
+    The last inequality can easily be checked numerically for `n \geq 5`.
+
+    Using this, we can see that `\frac{c_k}{c_{k_0}} < \frac{1}{2^{k-k_0}}`
     for `k > k_0 > n`. So summing this it gives that `\sum_{k=k_0+1}^{\infty}
     \frac{k^n}{k!} < 1`, and hence
 
@@ -213,28 +215,22 @@ def bell_number(n, algorithm='dobinski', **options):
         B_n = e^{-1} \left( \sum_{k=0}^{k_0} \frac{k^n}{k!} + E_1 \right)
         = e^{-1} \sum_{k=0}^{k_0} \frac{k^n}{k!} + E_2,
 
-    where `0 < E_1 < 1` and `0 < E_2 < e^{-1}`. Next we have:
+    where `0 < E_1 < 1` and `0 < E_2 < e^{-1}`. Next we have for any `q > 0`
 
     .. MATH::
 
-        \sum_{k=0}^{k_0} \frac{k^n}{k!} = \sum_{k=0}^{k_0} n^{-2} \left\lfloor
-        \frac{n^2 k^n}{k!} \right\rfloor + \frac{E_3}{n^2}
+        \sum_{k=0}^{k_0} \frac{k^n}{k!} = \frac{1}{q} \sum_{k=0}^{k_0} \left\lfloor
+        \frac{q k^n}{k!} \right\rfloor + \frac{E_3}{q}
 
-    where `0 \leq E_3 \leq k_0 + 1 \leq 2n + 1 \leq 3n`, so
-
-    .. MATH::
-
-        \sum_{k=0}^{k_0} \frac{k^n}{k!} = \sum_{k=0}{k_0} n^{-2} \left\lfloor
-        \frac{n^2 k^n}{k!} \right\rfloor + E_4,
-
-    where `0 \leq E_4 \leq \frac{3}{n}`. These two bounds gives:
+    where `0 \leq E_3 \leq k_0 + 1 \leq 2n + 1`. Let `E_4 = \frac{E_3}{q}`
+    and let `q = 2n + 1`. We find `0 \leq E_4 \leq 1`. These two bounds give:
 
     .. MATH::
 
         \begin{aligned}
-        B_n & = e^{-1} \sum_{k=0}^{k_0} n^{-2} \left\lfloor
-        \frac{n^2 k^n}{k!} \right\rfloor + e^{-1} E_4 + E_2 \\
-        & = e^{-1} \sum_{k=0}^{k_0} n^{-2} \left\lfloor \frac{n^2 k^n}{k!}
+        B_n & = \frac{e^{-1}}{q} \sum_{k=0}^{k_0} \left\lfloor
+        \frac{q k^n}{k!} \right\rfloor + e^{-1} E_4 + E_2 \\
+        & = \frac{e^{-1}}{q} \sum_{k=0}^{k_0} \left\lfloor \frac{q k^n}{k!}
         \right\rfloor + E_5
         \end{aligned}
 
@@ -242,32 +238,52 @@ def bell_number(n, algorithm='dobinski', **options):
 
     .. MATH::
 
-        0 \leq E_5 < e^{-1} + \frac{3e^{-1}}{n} \leq e^{-1} \left(1 +
-        \frac{3}{9}\right) < \frac{1}{2}.
+        0 < E_5 = e^{-1} E_4 + E_2 \leq e^{-1} + e^{-1} < \frac{3}{4}.
 
-    Note `E_5` can be close to 0, so to avoid this, we subtract `\frac{1}{4}`
-    from the sum:
+    It follows that
 
     .. MATH::
 
-        \begin{aligned}
-        B_n & = e^{-1} \sum_{k=0}^{k_0} n^{-2} \left\lfloor \frac{n^2 k^n}{k!}
-        \right\rfloor - \frac{1}{4} + E, \\
-        B_n & = \left\lceil e^{-1} \sum_{k=0}^{k_0} n^{-2} \left\lfloor
-        \frac{n^2 k^n}{k!} \right\rfloor -1/4 \right\rceil
-        \end{aligned}
+        B_n = \left\lceil \frac{e^{-1}}{q} \sum_{k=0}^{k_0} \left\lfloor
+        \frac{q k^n}{k!} \right\rfloor \right\rceil.
 
-    where `\frac{1}{4} \leq E < \frac{3}{4}`.
+    Now define
 
-    Lastly, to avoid the costly integer division by `k!`, in one step collect
-    more terms and do only one division, say collect 3 terms:
+    .. MATH::
+
+        b = \sum_{k=0}^{k_0} \left\lfloor \frac{q k^n}{k!} \right\rfloor.
+
+    This `b` can be computed exactly using integer arithmetic.
+    To avoid the costly integer division by `k!`, we collect
+    more terms and do only one division, for example with 3 terms:
 
     .. MATH::
 
         \frac{k^n}{k!} + \frac{(k+1)^n}{(k+1)!} + \frac{(k+2)^n}{(k+2)!}
         = \frac{k^n (k+1)(k+2) + (k+1)^n (k+2) + (k+2)^n}{(k+2)!}
 
-    using this all above error terms.
+    In the implementation, we collect `\sqrt{n}/2` terms.
+
+    To actually compute `B_n` from `b`,
+    we let `p = \lfloor \log_2(b) \rfloor + 1` such that `b < 2^p` and
+    we compute with `p` bits of precision.
+    This implies that `b` (and `q < b`) can be represented exactly.
+
+    We compute `\frac{e^{-1}}{q} b`, rounding up, and we must have an
+    absolute error of at most `1/4` (given that `E_5 < 3/4`).
+    This means that we need a relative error of at most
+
+    .. MATH::
+
+        \frac{e q}{4 b} > \frac{(e q)/4}{2^p} > \frac{7}{2^p}
+
+    (assuming `n \geq 5`).
+    With a precision of `p` bits and rounding up, every rounding
+    has a relative error of at most `2^{1-p} = 2/2^p`.
+    Since we do 3 roundings (`b` and `q` do not require rounding),
+    we get a relative error of at most `6/2^p`
+    (plus some epsilon for errors on the errors).
+    All this implies that the precision of `p` bits is sufficient.
 
     EXAMPLES::
 
@@ -276,7 +292,9 @@ def bell_number(n, algorithm='dobinski', **options):
         sage: bell_number(2)
         2
         sage: bell_number(-10)
-        1
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Bell numbers not defined for negative indices
         sage: bell_number(1)
         1
         sage: bell_number(1/3)
@@ -287,8 +305,7 @@ def bell_number(n, algorithm='dobinski', **options):
     When using the mpmath algorithm, we are required have mpmath's precision
     set to at least `\log_2(B_n)` bits. If upon computing the Bell number the
     first time, we deem the precision too low, we use our guess to
-    (temporarily) raise mpmath's precision and the Bell number is recomputed.
-    The result from GAP's bell number was checked agaist OEIS. ::
+    (temporarily) raise mpmath's precision and the Bell number is recomputed. ::
 
         sage: k = bell_number(30, 'mpmath'); k
         846749014511809332450147
@@ -315,7 +332,7 @@ def bell_number(n, algorithm='dobinski', **options):
 
     TESTS::
 
-        sage: all([bell_number(n) == bell_number(n,'gap') for n in range(200, 220)])
+        sage: all([bell_number(n) == bell_number(n,'gap') for n in range(200)])
         True
         sage: all([bell_number(n) == bell_number(n,'mpmath', prec=500) for n in range(200, 220)])
         True
@@ -324,12 +341,18 @@ def bell_number(n, algorithm='dobinski', **options):
 
     - Robert Gerbicz
 
+    - Jeroen Demeyer: improved implementation of Dobinski formula with
+      more accurate error estimates (:trac:`17157`)
+
     REFERENCES:
 
     - :wikipedia:`Bell_number`
     - http://fredrik-j.blogspot.com/2009/03/computing-generalized-bell-numbers.html
     - http://mathworld.wolfram.com/DobinskisFormula.html
     """
+    n = ZZ(n)
+    if n < 0:
+        raise ArithmeticError('Bell numbers not defined for negative indices')
     if algorithm == 'mpmath':
         from sage.libs.mpmath.all import bell, mp, mag
         old_prec = mp.dps
@@ -346,24 +369,37 @@ def bell_number(n, algorithm='dobinski', **options):
             mp.dps = old_prec
             return ret
         return ZZ(int(ret_mp))
-    if n < 200 or algorithm == 'gap':
-        return ZZ(gap.eval("Bell(%s)"%ZZ(n)))
-    from sage.functions.log import log
-    from sage.misc.functional import ceil, N, isqrt, exp as exp2
-    b, fact, k, n2, si = Integer(0), Integer(1), Integer(1), \
-    Integer(n)**2, isqrt(Integer(n)) // 2
-    while True:
-        mult, v = n2, Integer(0)
-        for i in range(si - 1, -1, -1):
-            v += mult * (k + i)**n
-            mult *= k + i
-        fact *= mult // n2
-        v //= fact
-        b += v
-        k += si
-        if v == 0:
-            break
-    return ZZ(ceil(N((b - n) / n2 * exp2(Integer(-1)) - 1 / 4, log(b, 2) + 3)))
+
+    elif algorithm == 'gap':
+        from sage.libs.gap.libgap import libgap
+        return libgap.eval("Bell(%s)" % n).sage()
+
+    elif algorithm == 'dobinski':
+        # Hardcode small cases. We only proved the algorithm below
+        # for n >= 5, but it turns out that n = 4 also works.
+        if n < 4:
+            return Integer( (1, 1, 2, 5)[n] )
+        b = ZZ.zero()
+        fact = k = ZZ.one()
+        q = 2*n + 1
+        si = Integer(n).sqrtrem()[0] // 2
+        while True:
+            partfact = ZZ.one()
+            v = ZZ.zero()
+            for i in range(si - 1, -1, -1):
+                v += partfact * (k + i)**n
+                partfact *= k + i
+            fact *= partfact
+            v = (q * v) // fact
+            if not v:
+                break
+            b += v
+            k += si
+        from sage.rings.all import RealField
+        R = RealField(b.exact_log(2) + 1, rnd='RNDU')
+        return ( (R(-1).exp() / q) * b).ceil()
+
+    raise ValueError("unknown algorithm %r" % algorithm)
 
 def catalan_number(n):
     r"""

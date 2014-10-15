@@ -428,6 +428,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             {0: [4], 4: [0]}
             sage: L.complements(1)
             []
+
+        TESTS::
+            sage: L=LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
+            sage: sorted([(i, sorted(X[i])) for i in L.complements()])
+            {0: [1], 1: [0], 'a': ['b', 'c'], 'b': ['c', 'a'], 'c': ['b', 'a']}
         """
         if element is None:
             jn = self.join_matrix()

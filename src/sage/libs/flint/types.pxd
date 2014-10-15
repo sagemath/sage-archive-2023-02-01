@@ -65,7 +65,7 @@ cdef extern from "flint/nmod_poly.h":
         long length
         nmod_t mod
 
-    ctypedef nmod_poly_struct[1] nmod_poly_t
+    ctypedef nmod_poly_struct nmod_poly_t[1]
 
     ctypedef struct nmod_poly_factor_struct:
         nmod_poly_t p
@@ -73,7 +73,7 @@ cdef extern from "flint/nmod_poly.h":
         long num
         long alloc
 
-    ctypedef nmod_poly_factor_struct[1] nmod_poly_factor_t
+    ctypedef nmod_poly_factor_struct nmod_poly_factor_t[1]
 
 cdef extern from "flint/ulong_extras.h":
     ctypedef struct n_factor_t:

@@ -420,19 +420,33 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         EXAMPLES::
 
             sage: L=LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
-            sage: L.complements() # random order
+            sage: C = L.complements()
+
+        Let us check that `'a'` and `'b'` are complements of each other::
+
+            sage: 'a' in C['b']
+            True
+            sage: 'b' in C['a']
+            True
+
+        Full list of complements::
+
+            sage: L.complements() # random
             {0: [1], 1: [0], 'a': ['b', 'c'], 'b': ['c', 'a'], 'c': ['b', 'a']}
 
             sage: L=LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
-            sage: L.complements() # random order
+            sage: L.complements() # random
             {0: [4], 4: [0]}
             sage: L.complements(1)
             []
 
         TESTS::
+
             sage: L=LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
-            sage: sorted([(i, sorted(X[i])) for i in L.complements()])
-            {0: [1], 1: [0], 'a': ['b', 'c'], 'b': ['c', 'a'], 'c': ['b', 'a']}
+            sage: for v,v_complements in L.complements().items():
+            ....:     for v_c in v_complements:
+            ....:         assert L.meet(v,v_c) == L.bottom()
+            ....:         assert L.join(v,v_c) == L.top()
         """
         if element is None:
             jn = self.join_matrix()

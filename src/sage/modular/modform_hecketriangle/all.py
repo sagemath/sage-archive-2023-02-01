@@ -16,12 +16,14 @@ AUTHORS:
 
 from hecke_triangle_groups import HeckeTriangleGroup
 
+from series_constructor    import MFSeriesConstructor
+
 from graded_ring import ( QuasiMeromorphicModularFormsRing, QuasiWeakModularFormsRing, QuasiModularFormsRing,\
                           QuasiCuspFormsRing, MeromorphicModularFormsRing, WeakModularFormsRing,\
                           ModularFormsRing, CuspFormsRing )
 
 from space       import ( QuasiMeromorphicModularForms, QuasiWeakModularForms, QuasiModularForms, QuasiCuspForms,\
                           MeromorphicModularForms, WeakModularForms, ModularForms, CuspForms,\
-                          ZeroForm ) 
+                          ZeroForm )
 
 from subspace    import ModularFormsSubSpace

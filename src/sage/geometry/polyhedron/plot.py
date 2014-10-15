@@ -714,7 +714,7 @@ class Projection(SageObject):
         deprecation(16625, 'use Projection.plot instead')
         return self.plot(*args, **kwds)
 
-    def _graphics_(self):
+    def _graphics_(self, **kwds):
         """
         Display projection graphically on the Sage command line.
 
@@ -722,17 +722,11 @@ class Projection(SageObject):
 
         EXAMPLES::
 
-            sage: polytopes.n_cube(3).projection()._graphics_()
-            False
+            sage: polytopes.n_cube(3).projection()._graphics_(
+            ....:   mime_types={'image/png'})
+            Graphics file image/png
         """
-        from sage.doctest import DOCTEST_MODE
-        if DOCTEST_MODE:
-            return False
-        try:
-            self.plot().show()
-            return True
-        except AttributeError:
-            return False
+        return self.plot()._graphics_(**kwds)
 
     def _init_from_2d(self, polyhedron):
         """

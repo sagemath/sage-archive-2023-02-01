@@ -2667,12 +2667,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         try:
             D = self._CMD
+        except AttributeError:
+            pass
+        else:
             if D:
                 return D
             else:
                 raise ValueError("%s does not have CM"%self)
-        except:
-            pass
 
         from sage.schemes.elliptic_curves.cm import is_cm_j_invariant
         flag, df =  is_cm_j_invariant(self.j_invariant())

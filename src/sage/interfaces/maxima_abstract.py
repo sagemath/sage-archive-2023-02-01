@@ -367,7 +367,7 @@ class MaximaAbstract(Interface):
 
             sage: maxima.console()             # not tested (since we can't)
             Maxima 5.34.1 http://maxima.sourceforge.net
-            Using Lisp ECL 12.12.1
+            Using Lisp ECL 13.5.1
             Distributed under the GNU Public License. See the file COPYING.
             Dedicated to the memory of William Schelter.
             This is a development version of Maxima. The function bug_report()

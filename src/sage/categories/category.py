@@ -457,17 +457,7 @@ class Category(UniqueRepresentation, SageObject):
             the class) is not adequate, please use
             :meth:`_repr_object_names` to customize it.
         """
-        if s is not None:
-            assert False
-            from sage.misc.superseded import deprecation
-            deprecation(10963, "passing a string as extra argument to the"
-                               " category constructor is deprecated; please"
-                               " implement ``_repr_object_names`` instead")
-            if isinstance(s, str):
-                self._label = s
-                self.__repr_object_names = s
-            else:
-                raise TypeError("Argument string must be a string.")
+        assert s is None
         self.__class__ = dynamic_class("{}_with_category".format(self.__class__.__name__),
                                        (self.__class__, self.subcategory_class, ),
                                        cache = False, reduction = None,

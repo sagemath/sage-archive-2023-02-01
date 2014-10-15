@@ -331,12 +331,11 @@ On Linux systems, these are usually provided by the **tk** and **tk-dev**
 
 or similar commands.
 
-If you installed Sage first, all is not lost.
-You just need to rebuild Sage's Python, , and ideally any part of Sage relying
-on it::
+If you installed Sage first, all is not lost. You just need to rebuild
+Sage's Python and any part of Sage relying on it::
 
     sage -f python  # rebuild Python
-    SAGE_UPGRADING=yes make # rebuild components of Sage depending on Python
+    make            # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
 
@@ -639,7 +638,7 @@ And if you've already built Sage::
 
     ./sage -i openssl
     ./sage -f python
-    SAGE_UPGRADING=yes make ssl
+    make ssl
 
 The third line will rebuild all parts of Sage that depend on Python;
 this can take a while.
@@ -728,8 +727,9 @@ how it is built:
   ``make testalllong``, or ``make ptestalllong``.
 
 - ``make distclean`` restores the Sage directory to its state before doing any
-  building: it is equivalent to deleting the entire Sage's home directory and
-  unpacking the source tarfile again.
+  building: it is almost equivalent to deleting Sage's entire home directory and
+  unpacking the source tarfile again, the only difference being that the
+  :file:`.git` directory is preserved, so git branches are not deleted.
 
 .. _section_envvar:
 

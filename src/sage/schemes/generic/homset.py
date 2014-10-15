@@ -248,7 +248,7 @@ class SchemeHomset_generic(HomsetWithBase):
           From: Affine Space of dimension 2 over Rational Field
           To:   Affine Space of dimension 2 over Rational Field
         sage: Hom.category()
-        Category of hom sets in Category of schemes
+        Category of endsets of schemes over Rational Field
     """
     Element = SchemeMorphism
 

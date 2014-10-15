@@ -854,6 +854,9 @@ class Magmas(Category_singleton):
 
         def extra_super_categories(self):
             """
+            This implements the fact that a subquotient (and therefore
+            a quotient or subobject) of a finite set is finite.
+
             EXAMPLES::
 
                 sage: Semigroups().CartesianProducts().extra_super_categories()
@@ -865,7 +868,7 @@ class Magmas(Category_singleton):
 
         def example(self):
             """
-            Returns an example of cartesian product of magmas
+            Return an example of cartesian product of magmas.
 
             EXAMPLES::
 

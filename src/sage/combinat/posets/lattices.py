@@ -412,25 +412,78 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         return self._hasse_diagram.is_complemented_lattice()
 
-    def complements(self):
+    def complements(self, element=None):
         r"""
-        Returns all elements in ``self`` that have a complement.
+        Return the list of complements of an element in the lattice,
+        or the dictionary of complements for all elements.
 
-        A complement of ``x`` is an element ``y`` such that the meet
-        of ``x`` and ``y`` is the bottom element of ``self`` and the
-        join of ``x`` and ``y`` is the top element of ``self``.
+        Elements `x` and `y` are complements if their meet and join
+        are respectively the bottom and the top element of the lattice.
+
+        INPUT:
+
+        - ``element`` - an element of the poset whose complement is
+          returned. If ``None`` (default) then dictionary of
+          complements for all elements having at least one
+          complement is returned.
 
         EXAMPLES::
 
-            sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
-            sage: L.complements()
-            [4, 3, 3, 2, 0]
+            sage: L=LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
+            sage: C = L.complements()
 
-            sage: L = LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
-            sage: L.complements()
-            [4, None, None, None, 0]
+        Let us check that `'a'` and `'b'` are complements of each other::
+
+            sage: 'a' in C['b']
+            True
+            sage: 'b' in C['a']
+            True
+
+        Full list of complements::
+
+            sage: L.complements() # random
+            {0: [1], 1: [0], 'a': ['b', 'c'], 'b': ['c', 'a'], 'c': ['b', 'a']}
+
+            sage: L=LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: L.complements() # random
+            {0: [4], 4: [0]}
+            sage: L.complements(1)
+            []
+
+        TESTS::
+
+            sage: L=LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
+            sage: for v,v_complements in L.complements().items():
+            ....:     for v_c in v_complements:
+            ....:         assert L.meet(v,v_c) == L.bottom()
+            ....:         assert L.join(v,v_c) == L.top()
         """
-        return self._hasse_diagram.complements()
+        if element is None:
+            jn = self.join_matrix()
+            mt = self.meet_matrix()
+            n = self.cardinality()
+            zero = 0
+            one = n-1
+            c = [[] for x in range(n)]
+            for x in range(n):
+                for y in range(x,n):
+                    if jn[x][y]==one and mt[x][y]==zero:
+                        c[x].append(y)
+                        c[y].append(x)
+
+            comps={}
+            for i in range(n):
+                if len(c[i]) > 0:
+                    comps[self._vertex_to_element(i)] = (
+                        [self._vertex_to_element(x) for x in c[i]] )
+            return comps
+
+        # Looking for complements of one element.
+        if not element in self:
+            raise ValueError("element (=%s) not in poset"%element)
+        return [x for x in self if
+         self.meet(x, element)==self.bottom() and
+         self.join(x, element)==self.top()]
 
     def is_atomic(self):
         r"""

@@ -1387,24 +1387,10 @@ class HasseDiagram(DiGraph):
 
     def complements(self):
         r"""
-        Return a list ``l`` such that ``l[i]`` is a complement of
-        ``i`` in ``self``, or ``None`` if no such complement exists.
-
-        A complement of ``x`` is an element ``y`` such that the meet
-        of ``x`` and ``y`` is the bottom element of ``self`` and the
-        join of ``x`` and ``y`` is the top element of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1,2,3],1:[4],2:[4],3:[4]})
-            sage: H.complements()
-            [4, 3, 3, 2, 0]
-
-            sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[4]})
-            sage: H.complements()
-            [4, None, None, None, 0]
+        Deprecated.
         """
+        from sage.misc.superseded import deprecation
+        deprecation(17138, "This function is broken. Do not use.")
         jn = self.join_matrix()
         mt = self.meet_matrix()
         n = self.cardinality()

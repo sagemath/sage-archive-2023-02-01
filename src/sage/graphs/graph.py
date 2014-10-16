@@ -4838,6 +4838,13 @@ class Graph(GenericGraph):
 
             sage: graphs.PetersenGraph().to_directed()
             Petersen graph: Digraph on 10 vertices
+
+        TESTS:
+
+        Immutable graphs yield immutable graphs::
+
+            sage: Graph([[1, 2]], immutable=True).to_directed()._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
         """
         if sparse is not None:
             if data_structure is not None:
@@ -4855,10 +4862,13 @@ class Graph(GenericGraph):
             else:
                 data_structure = "static_sparse"
         from sage.graphs.all import DiGraph
-        D = DiGraph(name=self.name(), pos=self._pos, boundary=self._boundary,
+        D = DiGraph(name=self.name(),
+                    pos=self._pos,
+                    boundary=self._boundary,
                     multiedges=self.allows_multiple_edges(),
-                    implementation=implementation, data_structure=data_structure)
-        D.name(self.name())
+                    implementation=implementation,
+                    data_structure=data_structure if data_structure!="static_sparse" else "sparse")
+
         D.add_vertices(self.vertex_iterator())
         for u,v,l in self.edge_iterator():
             D.add_edge(u,v,l)
@@ -4867,6 +4877,10 @@ class Graph(GenericGraph):
             from copy import copy
             D._embedding = copy(self._embedding)
         D._weighted = self._weighted
+
+        if data_structure == "static_sparse":
+            D=D.copy(data_structure=data_structure)
+
         return D
 
     def to_undirected(self):

@@ -1575,22 +1575,21 @@ class Link:
         crossing = []
         crossing.append(first_crossing)
         q = 0
-        while q < len(pd_code):
+        while q < len(pd_code) - 1:
             for val in zip(reg, reg[1:]):
                 for i, j in enumerate(entering):
-                    if list(val) == j:
+                    if list(val) == j and pd_code[i] not in crossing:
                         crossing.append(pd_code[i])
                         reg[reg.index(val[0])] = leaving[i][0]
                         reg[reg.index(val[1])] = leaving[i][1]
                         q = q + 1
                         break
-                    if val[0] == j[0] and val[1] == 0:
+                    if val[0] == j[0] and val[1] == 0 and pd_code[i] not in crossing:
                         crossing.append(pd_code[i])
                         reg[reg.index(val[0])] = leaving[i][0]
                         reg[reg.index(val[1])] = leaving[i][1]
                         q = q + 1
                         break
-        del crossing[-1]
         # record the signs
         sign = orient
         # each crossing belongs to two seifert circles, we find the first and

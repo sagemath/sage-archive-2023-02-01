@@ -483,8 +483,6 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             ...
             ArithmeticError: Multiplicative order of 0 not defined.
         """
-        import sage.rings.arith
-
         if self.is_zero():
             raise ArithmeticError("Multiplicative order of 0 not defined.")
         n = self._parent.order() - 1
@@ -516,6 +514,110 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             from sage.rings.integer import Integer
             return Integer(1)
         return self.parent().characteristic()
+
+    def is_square(self):
+        """
+        Returns ``True`` if and only if this element is a perfect square.
+
+        EXAMPLES::
+
+            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
+            sage: k = FiniteField_ext_pari(3**2, 'a')
+            sage: a = k.gen()
+            sage: a.is_square()
+            False
+            sage: (a**2).is_square()
+            True
+            sage: k = FiniteField_ext_pari(2**2,'a')
+            sage: a = k.gen()
+            sage: (a**2).is_square()
+            True
+            sage: k = FiniteField_ext_pari(17**5,'a'); a = k.gen()
+            sage: (a**2).is_square()
+            True
+            sage: a.is_square()
+            False
+
+        ::
+
+            sage: k(0).is_square()
+            True
+        """
+        K = self.parent()
+        if K.characteristic() == 2:
+            return True
+        n = K.order() - 1
+        a = self**(n // 2)
+        return a == 1 or a == 0
+
+    def square_root(self, extend=False, all=False):
+        """
+        The square root function.
+
+        INPUT:
+
+
+        -  ``extend`` -- bool (default: ``True``); if ``True``, return a
+           square root in an extension ring, if necessary. Otherwise, raise a
+           ValueError if the root is not in the base ring.
+
+           .. WARNING::
+
+               This option is not implemented!
+
+        -  ``all`` - bool (default: ``False``); if ``True``, return all
+           square roots of ``self``, instead of just one.
+
+        .. WARNING::
+
+           The ``'extend'`` option is not implemented (yet).
+
+        EXAMPLES::
+
+            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
+            sage: F = FiniteField_ext_pari(7^2, 'a')
+            sage: F(2).square_root()
+            4
+            sage: F(3).square_root()
+            5*a + 1
+            sage: F(3).square_root()**2
+            3
+            sage: F(4).square_root()
+            5
+            sage: K = FiniteField_ext_pari(7^3, 'alpha')
+            sage: K(3).square_root()
+            Traceback (most recent call last):
+            ...
+            ValueError: must be a perfect square.
+        """
+        return self.nth_root(2, extend=extend, all=all)
+        # The following which calls PARI is utterly slower.
+#        if extend:
+#            raise NotImplementedError
+#        R = self.parent()['x']
+#        f = R([-self, 0, 1])
+#        g = f.factor()
+#        if len(g) == 2 or g[0][1] == 2:
+#            if all:
+#                return [-g[0][0][0], g[0][0][0]]
+#            else:
+#                return -g[0][0][0]
+#        if all:
+#            return []
+#        else:
+#            raise ValueError("must be a perfect square.")
+
+    def sqrt(self, extend=False, all = False):
+        """
+        See :meth:square_root().
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(3^17, impl='pari_mod')
+            sage: (a^3 - a - 1).sqrt()
+            2*a^16 + a^15 + 2*a^13 + a^12 + 2*a^10 + a^9 + a^8 + 2*a^7 + 2*a^6 + a^5 + 2*a^4 + a^2 + a + 1
+        """
+        return self.square_root(extend=extend, all=all)
 
     def nth_root(self, n, extend = False, all = False, algorithm=None, cunningham=False):
         r"""
@@ -694,4 +796,28 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             b^11 + b^10 + b^9 + b^7 + b^5 + b^4 + b^2 + b
         """
         return self.pth_power(-k)
+
+    def rational_reconstruction(self):
+        """
+        If the parent field is a prime field, uses rational reconstruction
+        to try to find a lift of this element to the rational numbers.
+
+        EXAMPLES::
+
+            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
+            sage: k = GF(97)
+            sage: a = k(RationalField()('2/3'))
+            sage: a
+            33
+            sage: a.rational_reconstruction()
+            2/3
+        """
+        import sage.rings.arith as arith
+        import sage.rings.rational as rational
+        if self.parent().degree() != 1:
+            raise ArithmeticError("finite field must be prime")
+        t = arith.rational_reconstruction(int(self), self.parent().characteristic())
+        if t is None or t[1] == 0:
+            raise ZeroDivisionError("unable to compute rational reconstruction")
+        return rational.Rational((t[0],t[1]))
 

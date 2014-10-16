@@ -39,6 +39,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.number_fields import NumberFields
 from sage.categories.homset        import Hom
 from sage.functions.all            import sqrt
 from sage.libs.pari.gen            import PariError
@@ -1657,8 +1658,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.height_difference_bound()
             10.7632079329219
         """
-        if self.domain().base_ring() != ZZ and self.domain().base_ring() != QQ:
-            raise NotImplementedError("Must be over ZZ or QQ")
+        BR = self.domain().base_ring()
+        if not BR in NumberFields:
+            raise NotImplemenetedError("Must be a number field")
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if prec is None:
@@ -1672,8 +1674,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         U = self.global_height(prec) + R(binomial(N + d, d)).log()
         #compute lower bound - from explicit polynomials of Nullstellensatz
         CR = self.domain().coordinate_ring()
-        CR = CR.change_ring(QQ) #.lift() only works over fields
-        I = CR.ideal(self.defining_polynomials())
+        try:
+            Def_polys = BR.defining_polynomial()
+        except AttributeError:
+            Def_polys = []
+        I = CR.ideal(self.defining_polynomials(), Def_polys)
         MCP = []
         for k in range(N + 1):
             CoeffPolys = (CR.gen(k) ** D).lift(I)

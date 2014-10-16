@@ -692,7 +692,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = End(X)
             sage: f = H([x^2,y^2])
             sage: f.multiplier(X([1,1]),1)
-            
+            [2 0]
+            [0 2]
         """
         if not self.is_endomorphism():
             raise TypeError("Must be an endomorphism of affine space")

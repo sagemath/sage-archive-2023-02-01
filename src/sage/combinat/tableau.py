@@ -3435,10 +3435,6 @@ class SemistandardTableau(Tableau):
         if not all(isinstance(c,(int,Integer)) and c>0 for row in t for c in row):
             raise ValueError("entries must be positive integers"%t)
 
-        valid_entries=range(1,1+max(sum((list(row) for row in t),[])))
-        if not all(c in valid_entries for row in t for c in row):
-            raise ValueError("the entries must be in %s"%(t,valid_entries))
-
         if any(row[c]>row[c+1] for row in t for c in range(len(row)-1)):
             raise ValueError("The rows of %s are not weakly increasing"%t)
 
@@ -4686,8 +4682,8 @@ class SemistandardTableaux(Tableaux):
             return True
         elif Tableaux.__contains__(self, t) and all(c>0 for row in t for c in row) \
                 and all(row[i] <= row[i+1] for row in t for i in range(len(row)-1)) \
-                and all(t[r][c] < t[r+1][c] for c in range(len(t[0]))
-                        for r in range(len(t)-1) if len(t[r+1]) > c):
+                and all(t[r][c] < t[r+1][c]
+                        for r in range(len(t)-1) for c in range(len(t[r+1]))):
             return self.max_entry is None or max(flatten(t)) <= self.max_entry
         else:
             return False

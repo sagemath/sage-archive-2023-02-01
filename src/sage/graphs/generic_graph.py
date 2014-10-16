@@ -12318,7 +12318,51 @@ class GenericGraph(GenericGraph_pyx):
         The input parameter ``source`` is used only for the ``2sweep``,
         ``4sweep``, and ``iFUB`` methods.
 
-        EXAMPLES::
+        INPUTS:
+
+        - ``method`` -- (default: 'iFUB') this parameter is used only for
+          undirected graphs. It specifies the algorithm to use among:
+
+            - ``'standard'`` -- Computes the diameter of the input (di)graph as
+              the largest eccentricity of its vertices. This is the classical
+              method with time complexity in `O(nm)`.
+
+            - ``'2sweep'`` -- Computes a lower bound on the diameter of an
+              unweighted undirected graph using 2 BFS, as proposed in [MLH08]_.
+              It first selects a vertex `v` that is at largest distance from an
+              initial vertex source using BFS. Then it performs a second BFS
+              from `v`. The largest distance from `v` is returned as a lower
+              bound on the diameter of `G`.  The time complexity of this method
+              is linear in the size of `G`.
+
+            - ``'4sweep'`` -- Computes a lower bound on the diameter of an
+              unweighted undirected graph using several iterations of the
+              ``2sweep`` algorithms [CGH+13]_. Roughly, it first uses ``2sweep``
+              to identify two vertices `u` and `v` that are far apart. Then it
+              selects a vertex `w` that is at same distance from `u` and `v`.
+              This vertex `w` will serve as the new source for another iteration
+              of the ``2sweep`` algorithm that may improve the current lower
+              bound on the diameter. This process is repeated as long as the
+              lower bound on the diameter is improved.
+
+            - ``'iFUB'`` -- The iFUB (iterative Fringe Upper Bound) algorithm,
+              proposed in [CGI+10]_, computes the exact value of the diameter of
+              an unweighted undirected graph. This algorithm uses as a
+              subroutine the ``4sweep`` lower bound computation method in order
+              to start an iterative procedure whose goal is both to refine the
+              lower bound value itself and to properly tune an upper bound
+              value, until the two values coincide. The worst case time
+              complexity of the iFUB algorithm is `O(nm)`, but it can be very
+              fast in practice. See [CGH+13]_ for more details.
+
+        - ``source`` -- (default: None) This parameter is used only for
+          undirected graphs. It specifies the vertex from which to start the
+          first BFS. If ``source==None``, an arbitrary vertex of the graph is
+          chosen. Raise an error if the initial vertex is not in `G`.  This
+          parameter is not used when ``method=='standard'``.
+
+
+        EXAMPLES:
 
             sage: G = graphs.PetersenGraph()
             sage: G.diameter()
@@ -12333,6 +12377,32 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.EmptyGraph()
             sage: G.diameter()
             0
+
+        Comparison of exact methods::
+
+            sage: G = graphs.RandomBarabasiAlbert(100, 2)
+            sage: d1 = G.diameter(method='standard')
+            sage: d2 = G.diameter(method='iFUB')
+            sage: d3 = G.diameter(method='iFUB', source=G.random_vertex())
+            sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
+
+        REFERENCES:
+
+        .. [CGH+13] P. Crescenzi, R. Grossi, M. Habib, L. Lanzi, A. Marino.
+          On computing the diameter of real-world undirected graphs.
+          *Theoretical Computer Science* 514: 84-95 (2013)
+          http://dx.doi.org/10.1016/j.tcs.2012.09.018
+
+        .. [CGI+10] P. Crescenzi, R. Grossi, C. Imbrenda, L. Lanzi, and
+          A. Marino.  Finding the Diameter in Real-World Graphs: Experimentally
+          Turning a Lower Bound into an Upper Bound. Proc. of *18th Annual
+          European Symposium on Algorithms*. Lecture Notes in Computer Science,
+          vol. 6346, 302-313. Springer (2010).
+
+        .. [MLH08] C. Magnien, M. Latapy, and M. Habib. Fast computation of
+          empirically tight bounds for the diameter of massive graphs.
+          *ACM Journal of Experimental Algorithms* 13 (2008)
+          http://dx.doi.org/10.1145/1412228.1455266
 
         """
         if self.order()==0:

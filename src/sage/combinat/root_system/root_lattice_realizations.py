@@ -17,7 +17,6 @@ from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import, LazyImport
-from sage.misc.superseded import deprecated_function_alias
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.modules_with_basis import ModulesWithBasis
@@ -2308,7 +2307,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     raise ValueError("plotting classical roots only available in affine type")
                 raise NotImplementedError("classical roots")
             elif collection == "all":
-                assert self.cartan_type().is_finite(), "plotting all roots only available in finite type"
+                if not self.cartan_type().is_finite():
+                    raise ValueError("plotting all roots only available in finite type")
                 roots = root_lattice.roots()
             elif isinstance(collection, (list, tuple)):
                 roots = collection
@@ -2364,7 +2364,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     raise ValueError("plotting classical coroots only available in affine type")
                 raise NotImplementedError("classical coroots")
             elif collection == "all":
-                assert self.cartan_type().is_finite(), "plotting all coroots only available in finite type"
+                if not self.cartan_type().is_finite():
+                    raise ValueError("plotting all coroots only available in finite type")
                 coroots = coroot_lattice.roots()
             elif isinstance(collection, (list, tuple)):
                 coroots = collection
@@ -2498,7 +2499,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                     raise ValueError("plotting classical reflection hyperplanes only available in affine type")
                 raise NotImplementedError("classical roots")
             elif collection == "all":
-                assert self.cartan_type().is_finite(), "plotting all reflection hyperplanes only available in finite type"
+                if not self.cartan_type().is_finite():
+                    raise ValueError("plotting all reflection hyperplanes only available in finite type")
                 coroots = coroot_lattice.positive_roots()
             elif isinstance(collection, (list, tuple)):
                 coroots = collection
@@ -2560,7 +2562,8 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             from sage.geometry.polyhedron.all import Polyhedron
             plot_options = self.plot_parse_options(**options)
-            assert self.cartan_type().is_finite()
+            if not self.cartan_type().is_finite():
+                raise ValueError("the Cartan type must be finite")
             vertices = [plot_options.projection(vertex)
                         for vertex in self.rho().orbit()]
             return Polyhedron(vertices=vertices).plot()
@@ -3363,8 +3366,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                     if reduced_word:
                         direction.append(i)
                     self = self.simple_reflection(i)
-
-        to_positive_chamber = deprecated_function_alias(12667, to_dominant_chamber)
 
         def reduced_word(self, index_set = None, positive = True):
             r"""

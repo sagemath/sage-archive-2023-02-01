@@ -106,7 +106,7 @@ Breadth First Search per vertex of the (di)graph.
 AUTHOR:
 
 - Nathann Cohen (2011)
-- David Coudert (2014) -- 2sweep, 4sweep and iFUB
+- David Coudert (2014) -- 2sweep, 4sweep and iFUB for diameter computation
 
 REFERENCE:
 

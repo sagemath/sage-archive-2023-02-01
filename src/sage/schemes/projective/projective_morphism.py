@@ -1700,7 +1700,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def multiplier(self, P, n, check=True):
         r"""
         Returns the multiplier of ``self`` point ``P`` of period ``n``.
-        ``self`` must be an endomorphism of projective space.
+        ``self`` must be an endomorphism.
 
         INPUT:
 
@@ -1769,7 +1769,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             ValueError: (0 : 1) is not periodic of period 1
         """
         if not self.is_endomorphism():
-            raise TypeError("Must be an endomorphism of projective space")
+            raise TypeError("Must be an endomorphism")
         if check:
             if self.nth_iterate(P, n) != P:
                 raise ValueError("%s is not periodic of period %s" % (P, n))

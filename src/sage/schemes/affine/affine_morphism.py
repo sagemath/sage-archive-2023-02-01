@@ -748,7 +748,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     def multiplier(self, P, n, check=True):
         r"""
         Returns the multiplier of ``self`` at the point ``P`` of period ``n``.
-        ``self`` must be an endomorphism of affine space.
+        ``self`` must be an endomorphism.
 
         INPUT:
 
@@ -809,7 +809,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             [0 2]
         """
         if not self.is_endomorphism():
-            raise TypeError("Must be an endomorphism of affine space")
+            raise TypeError("Must be an endomorphism")
         if check:
             if self.nth_iterate(P, n) != P:
                 raise ValueError("%s is not periodic of period %s" % (P, n))
@@ -821,7 +821,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         J = self.jacobian()
         for i in range(0, n):
             R = self(Q)
-            l = J(tuple(Q))*l #get the correct order for chain rule matrix multiplication
+            l = J(tuple(Q))*l #chain rule matrix multiplication
             Q = R
         return l
 

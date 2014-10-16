@@ -3848,7 +3848,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             import scipy
         import scipy.linalg
 
-        if algorithm is not None:
+        if algorithm is not None or order is not None:
             from sage.misc.superseded import deprecation
             deprecation(17140,'The algorithm and order arguments are deprecated.')
 

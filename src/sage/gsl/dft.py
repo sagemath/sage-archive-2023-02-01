@@ -623,7 +623,9 @@ class IndexedSequence(SageObject):
             Indexed sequence: [5.00000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000]
                 indexed by [0, 1, 2, 3, 4]
         """
-        from sage.rings.all import I
+        from sage.rings.all import CC
+        I = CC.gen()
+
         # elements must be coercible into RR
         J = self.index_object()   ## must be = range(N)
         N = len(J)
@@ -658,7 +660,9 @@ class IndexedSequence(SageObject):
             sage: t.ifft() == s
             1
         """
-        from sage.rings.all import I
+        from sage.rings.all import CC
+        I = CC.gen()
+
         # elements must be coercible into RR
         J = self.index_object()   ## must be = range(N)
         N = len(J)

@@ -214,8 +214,12 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
             sage: g.out_neighbors(0)
             [1, 4, 5]
+            sage: g.out_neighbors(10)
+            Traceback (most recent call last):
+            ...
+            LookupError: The vertex does not belong to the graph
         """
-        if u<0 or u>self.g.n:
+        if u<0 or u>=self.g.n:
             raise LookupError("The vertex does not belong to the graph")
 
         cdef int i
@@ -235,11 +239,15 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
             sage: g.in_neighbors(0)
             [1, 4, 5]
+            sage: g.in_neighbors(10)
+            Traceback (most recent call last):
+            ...
+            LookupError: The vertex does not belong to the graph
         """
         if not self._directed:
             return self.out_neighbors(u)
 
-        if u<0 or u>self.g.n:
+        if u<0 or u>=self.g.n:
             raise LookupError("The vertex does not belong to the graph")
 
         cdef int i
@@ -259,8 +267,12 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
             sage: g.out_degree(0)
             3
+            sage: g.out_degree(10)
+            Traceback (most recent call last):
+            ...
+            LookupError: The vertex does not belong to the graph
         """
-        if u<0 or u>self.g.n:
+        if u<0 or u>=self.g.n:
             raise LookupError("The vertex does not belong to the graph")
 
         return self.g.neighbors[u+1] - self.g.neighbors[u]
@@ -279,8 +291,12 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
             sage: g.in_degree(0)
             3
+            sage: g.in_degree(10)
+            Traceback (most recent call last):
+            ...
+            LookupError: The vertex does not belong to the graph
         """
-        if u<0 or u>self.g.n:
+        if u<0 or u>=self.g.n:
             raise LookupError("The vertex does not belong to the graph")
 
         if not self._directed:

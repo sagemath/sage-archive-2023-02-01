@@ -393,9 +393,6 @@ version of Sage (which is the "source" version, not the "binary").
    reinstalling.) This might be useful if you have a CD of these
    packages but no (or a very slow) internet connection.
 
-#. If you want to build the documentation, ``cd devel/doc`` and type
-   ``./rebuild``. This requires having latex and latex2html installed.
-
 
 .. index:: Python and Sage
 

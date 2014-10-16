@@ -325,10 +325,10 @@ Creating groups
 ---------------
 
 This is an annotated list of some small well-known permutation groups
-that can be created simply in Sage. (You can find more in the source
+that can be created simply in Sage. You can find more in the source
 code file ::
 
-    SAGE_ROOT/devel/sage/sage/groups/perm_gps/permgroup_named.py
+    SAGE_ROOT/src/sage/groups/perm_gps/permgroup_named.py
 
 * ``SymmetricGroup(n)``: All `n!` permutations on `n` symbols.
 * ``DihedralGroup(n)``: Symmetries of an `n`-gon.  Rotations and

@@ -432,6 +432,7 @@ class PiecewisePolynomial:
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(x=a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in rsf.list()])
             sage: P + Q + L
+            Graphics object consisting of 15 graphics primitives
 
         ::
 
@@ -441,6 +442,7 @@ class PiecewisePolynomial:
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(x=a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in rsf.list()])
             sage: P + Q + L
+            Graphics object consisting of 17 graphics primitives
         """
         if mode is None:
             rsum = self._riemann_sum_helper(N, lambda x0,x1: [[(x0,x1),SR(self(x0))]],
@@ -479,6 +481,7 @@ class PiecewisePolynomial:
             sage: Q = tf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in tf.list()])
             sage: P+Q+L
+            Graphics object consisting of 9 graphics primitives
 
         ::
 
@@ -489,6 +492,7 @@ class PiecewisePolynomial:
             sage: Q = tf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in tf.list()])
             sage: P+Q+L
+            Graphics object consisting of 14 graphics primitives
 
         TESTS:
 
@@ -527,6 +531,7 @@ class PiecewisePolynomial:
             sage: a = f.integral(definite=True)
             sage: tt = text('area under curve = %s'%a, (1.5, -0.5))
             sage: P + Q + t + tt
+            Graphics object consisting of 10 graphics primitives
 
         ::
 
@@ -538,6 +543,7 @@ class PiecewisePolynomial:
             sage: a = f.integral(definite=True)
             sage: tt = text('area under curve = %s'%a, (1.5, -0.5))
             sage: P+Q+t+tt
+            Graphics object consisting of 8 graphics primitives
         """
         def f(x0, x1):
             f0, f1 = self(x0), self(x1)
@@ -1008,6 +1014,7 @@ class PiecewisePolynomial:
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = tf.plot(rgbcolor=(0.7,0.2,0.2), plot_points=40)
             sage: P + Q
+            Graphics object consisting of 4 graphics primitives
         """
         pt = QQ(pt)
         R = QQ[self.default_variable()]
@@ -1034,6 +1041,7 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
             sage: P
+            Graphics object consisting of 4 graphics primitives
 
         Remember: to view this, type show(P) or P.save("path/myplot.png")
         and then open it in a graphics viewer such as GIMP.

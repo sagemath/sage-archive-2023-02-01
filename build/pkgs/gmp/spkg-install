@@ -334,14 +334,3 @@ if [ $? -ne 0 ]; then
         exit 1
     fi
 fi
-
-echo
-echo "Remember to rebuild the Sage library ('./sage -b') such that it"
-echo "will use the new GMP."
-echo "You may also have to (or want to) rebuild other Sage packages"
-echo "that use GMP.  Provided that this GMP spkg is in 'spkg/standard/',"
-echo "you can rebuild all packages depending on GMP by typing:"
-echo "    cd $SAGE_ROOT"
-echo "    env SAGE_UPGRADING=yes make"
-echo "but note that this will usually take quite a lot of time."
-echo

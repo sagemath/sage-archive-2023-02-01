@@ -627,7 +627,9 @@ cdef class SparseGraph(CGraph):
         """
         cdef int i = (u * self.hash_length) + (v & self.hash_mask)
         cdef int compared, left_len, right_len
-        cdef SparseGraphBTNode *temp, **left_child, **right_child
+        cdef SparseGraphBTNode *temp
+        cdef SparseGraphBTNode **left_child
+        cdef SparseGraphBTNode **right_child
         cdef SparseGraphBTNode **parent = &self.vertices[i]
         cdef SparseGraphLLNode *labels
 
@@ -1283,7 +1285,8 @@ cdef class SparseGraph(CGraph):
         cdef int i = (u * self.hash_length) + (v & self.hash_mask)
         cdef int compared
         cdef SparseGraphBTNode **parent = &self.vertices[i]
-        cdef SparseGraphLLNode **labels, *label
+        cdef SparseGraphLLNode **labels
+        cdef SparseGraphLLNode *label
         while parent[0] != NULL:
             compared = compare(parent[0].vertex, v)
             if compared > 0:

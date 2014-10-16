@@ -128,7 +128,7 @@ cdef class StaticSparseCGraph(CGraph):
         """
         self.add_vertex_unsafe(k)
 
-    def del_vertex(self, int k):
+    cpdef del_vertex(self, int k):
         r"""
         Removes a vertex from the graph. No way.
 
@@ -253,7 +253,7 @@ cdef class StaticSparseCGraph(CGraph):
         cdef int i
         return [<int> self.g_rev.neighbors[u][i] for i in range(out_degree(self.g_rev,u))]
 
-    cpdef int out_degree(self, int u):
+    cpdef int out_degree(self, int u) except -1:
         r"""
         Returns the out-degree of a vertex
 
@@ -277,7 +277,7 @@ cdef class StaticSparseCGraph(CGraph):
 
         return self.g.neighbors[u+1] - self.g.neighbors[u]
 
-    cpdef int in_degree(self, int u):
+    cpdef int in_degree(self, int u) except -1:
         r"""
         Returns the in-degree of a vertex
 

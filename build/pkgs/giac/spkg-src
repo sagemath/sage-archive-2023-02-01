@@ -49,10 +49,13 @@ mv giac-"$VERSION" src
 cd src/doc/fr
 rm -rf [^Mkx]*
 rm -rf *.pdf *.eps *.pdf *.png *.cxx *.cas *.jpg *.tex *.stamp *html* cas* *.fig fig*
-# repair the build procedure
+# repair the build procedure with a minimal Makefile.am
 echo -e "EXTRA_DIST = xcasmenu xcasex keywords\n\nlocaldocdir = \$(docdir)/fr \n\n\
 dist_localdoc_DATA = xcasmenu xcasex keywords html_mall html_mtt html_vall">Makefile.am
+# copy and adjust a minimal Makefile.in
 cp ../local/Makefile.in ./
+sed -ie 's|localdocdir = $(docdir)/local|localdocdir = $(docdir)/fr|' Makefile.in 
+sed -ie 's|doc/local|subdir = doc/fr|g' Makefile.in
 #
 touch html_mall
 touch html_mtt

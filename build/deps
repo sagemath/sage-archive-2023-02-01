@@ -418,7 +418,7 @@ $(INST)/$(RPY): $(INST)/$(PYTHON) $(INST)/$(R)
 $(INST)/$(SYMPY): $(INST)/$(PYTHON) $(INST)/$(MPMATH)
 	+$(PIPE) "$(SAGE_SPKG) $(SYMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMPY).log"
 
-$(INST)/$(CYTHON): $(INST)/$(PYTHON)
+$(INST)/$(CYTHON): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(CYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(CYTHON).log"
 
 $(INST)/$(FLINTQS): $(INST)/$(MPIR)

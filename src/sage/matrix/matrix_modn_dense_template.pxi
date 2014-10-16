@@ -115,6 +115,7 @@ from matrix_integer_dense cimport Matrix_integer_dense
 from sage.rings.integer_ring  import ZZ
 from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
+import sage.matrix.matrix_space as matrix_space
 
 cdef long num = 1
 cdef bint little_endian = (<char*>(&num))[0]
@@ -2898,17 +2899,13 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, j
 
         cdef Matrix_integer_dense L
-        L = Matrix_integer_dense.__new__(Matrix_integer_dense,
-                                         self.parent().change_ring(ZZ),
-                                         0, 0, 0)
-        cdef mpz_t* L_row
+        cdef object P =  matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=False)
+        L = Matrix_integer_dense(P,ZZ(0),False,False)
         cdef celement* A_row
-        for i from 0 <= i < self._nrows:
-            L_row = L._matrix[i]
+        for i in range(self._nrows):
             A_row = self._matrix[i]
-            for j from 0 <= j < self._ncols:
-                mpz_init_set_d(L_row[j], A_row[j])
-        L._initialized = 1
+            for j in range(self._ncols):
+                L.set_unsafe_double(i, j, A_row[j])
         L.subdivide(self.subdivisions())
         return L
 

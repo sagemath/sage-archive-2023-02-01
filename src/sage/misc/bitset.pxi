@@ -10,6 +10,8 @@ AUTHORS:
 - Robert Bradshaw (2008)
 - Rudi Pendavingh, Stefan van Zwam (2013-06-06): added functions map, lex_cmp,
   pickle, unpickle
+- Jeroen Demeyer (2014-09-05): use mpn_* functions from MPIR in the
+  implementation (:trac`13352` and :trac:`16937`)
 """
 
 #*****************************************************************************
@@ -29,13 +31,50 @@ from sage.misc.bitset cimport *
 # Doctests for the functions in this file are in sage/misc/bitset.pyx
 
 #############################################################################
+# Creating limb patterns
+#############################################################################
+#
+# NOTE: In all functions in this section, the index n is interpreted
+# modulo GMP_LIMB_BITS, the number of bits in a limb.
+#
+cdef inline mp_limb_t limb_one_set_bit(mp_bitcnt_t n):
+    """
+    Return a limb with only bit n set.
+    """
+    return (<mp_limb_t>1) << (n % GMP_LIMB_BITS)
+
+cdef inline mp_limb_t limb_one_zero_bit(mp_bitcnt_t n):
+    """
+    Return a limb with all bits set, except for bit n.
+    """
+    return ~((<mp_limb_t>1) << (n % GMP_LIMB_BITS))
+
+cdef inline mp_limb_t limb_lower_bits_down(mp_bitcnt_t n):
+    """
+    Return a limb with the lower n bits set, where n is interpreted
+    in [0 .. GMP_LIMB_BITS-1].
+    """
+    return ((<mp_limb_t>1) << (n % GMP_LIMB_BITS)) - 1
+
+cdef inline mp_limb_t limb_lower_bits_up(mp_bitcnt_t n):
+    """
+    Return a limb with the lower n bits set, where n is interpreted
+    in [1 .. GMP_LIMB_BITS].
+    """
+    return (<mp_limb_t>(-1)) >> ((<unsigned int>(-n)) % GMP_LIMB_BITS)
+
+cdef inline void bitset_fix(bitset_t bits):
+    """
+    Clear upper bits in upper limb which should be zero.
+    """
+    bits.bits[bits.limbs - 1] &= limb_lower_bits_up(bits.size)
+
+#############################################################################
 # Bitset Initalization
 #############################################################################
-
-cdef inline bint bitset_init(bitset_t bits, unsigned long size) except -1:
+cdef inline bint bitset_init(bitset_t bits, mp_bitcnt_t size) except -1:
     """
-    Allocate a bitset of size size. The set will probably be filled
-    with random elements.
+    Allocate an empty bitset of size ``size``.
 
     Size must be at least 1.
     """
@@ -43,35 +82,38 @@ cdef inline bint bitset_init(bitset_t bits, unsigned long size) except -1:
         raise ValueError("bitset capacity must be greater than 0")
 
     bits.size = size
-    bits.limbs = (size - 1) / (8 * sizeof(unsigned long)) + 1
-    bits.bits = <unsigned long*>sage_malloc(bits.limbs * sizeof(unsigned long))
+    bits.limbs = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
+    bits.bits = <mp_limb_t*>sage_calloc(bits.limbs, sizeof(mp_limb_t))
     if bits.bits == NULL:
         raise MemoryError
-    bits.bits[bits.limbs - 1] = 0  # Set entries beyond the end of the set to zero.
 
-cdef inline bint bitset_realloc(bitset_t bits, unsigned long size) except -1:
+cdef inline bint bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
     """
     Reallocate a bitset to size size. If reallocation is larger, new bitset
     does not contain any of the extra bits.
     """
-    cdef unsigned long limbs_old = bits.limbs
-    cdef unsigned long size_old = bits.size
+    cdef mp_size_t limbs_old = bits.limbs
+    cdef mp_bitcnt_t size_old = bits.size
     if size_old == size:
         return 0
     if size <= 0:
         raise ValueError("bitset capacity must be greater than 0")
 
-    bits.limbs = (size - 1) / (8 * sizeof(unsigned long)) + 1
-    tmp = <unsigned long*>sage_realloc(bits.bits, bits.limbs * sizeof(unsigned long))
+    bits.limbs = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
+    tmp = <mp_limb_t*>sage_realloc(bits.bits, bits.limbs * sizeof(mp_limb_t))
     if tmp != NULL:
         bits.bits = tmp
     else:
         bits.limbs = limbs_old
         raise MemoryError
     bits.size = size
-    if size_old < size:
-        bits.bits[size_old >> index_shift] &= ((<unsigned long>1 << (size_old & offset_mask)) - 1)
-        memset(bits.bits + (size_old >> index_shift) + 1, 0, (bits.limbs - (size_old >> index_shift) - 1) * sizeof(unsigned long))
+
+    if bits.limbs > limbs_old:
+        # Zero any extra limbs
+        mpn_zero(bits.bits + limbs_old, bits.limbs - limbs_old)
+    elif bits.size < size_old:
+        # Zero removed bits
+        bitset_fix(bits)
 
 cdef inline void bitset_free(bitset_t bits):
     """
@@ -83,7 +125,7 @@ cdef inline void bitset_clear(bitset_t bits):
     """
     Remove all elements from the set.
     """
-    memset(bits.bits, 0, bits.limbs * sizeof(unsigned long))
+    mpn_zero(bits.bits, bits.limbs)
 
 cdef inline void bitset_zero(bitset_t bits):
     """
@@ -91,7 +133,7 @@ cdef inline void bitset_zero(bitset_t bits):
 
     This function is the same as bitset_clear(bits).
     """
-    bitset_clear(bits)
+    mpn_zero(bits.bits, bits.limbs)
 
 cdef inline void bitset_copy(bitset_t dst, bitset_t src):
     """
@@ -101,7 +143,7 @@ cdef inline void bitset_copy(bitset_t dst, bitset_t src):
     behavior of this function is undefined and the function may
     segfault.
     """
-    memcpy(dst.bits, src.bits, dst.limbs * sizeof(unsigned long))
+    mpn_copyi(dst.bits, src.bits, src.limbs)
 
 #############################################################################
 # Bitset Comparison
@@ -112,11 +154,14 @@ cdef inline bint bitset_isempty(bitset_t bits):
     Test whether bits is empty.  Return True (i.e., 1) if the set is
     empty, False (i.e., 0) otherwise.
     """
-    cdef long i
-    for i from 0 <= i < bits.limbs:
-        if bits.bits[i] != 0:
-            return False
-    return True
+    # First check lowest limb
+    if bits.bits[0]:
+        return False
+    if bits.limbs == 1:
+        return True
+    # Compare bits to itself shifted by 1 limb. If these compare equal,
+    # all limbs must be 0.
+    return mpn_cmp(bits.bits+1, bits.bits, bits.limbs-1) == 0
 
 cdef inline bint bitset_is_zero(bitset_t bits):
     """
@@ -136,7 +181,7 @@ cdef inline bint bitset_eq(bitset_t a, bitset_t b):
     behavior of this function is undefined and the function may
     segfault.
     """
-    return memcmp(a.bits, b.bits, a.limbs * sizeof(unsigned long)) == 0
+    return mpn_cmp(a.bits, b.bits, b.limbs) == 0
 
 cdef inline int bitset_cmp(bitset_t a, bitset_t b):
     """
@@ -148,14 +193,7 @@ cdef inline int bitset_cmp(bitset_t a, bitset_t b):
     behavior of this function is undefined and the function may
     segfault.
     """
-    cdef long i
-    for i from a.limbs > i >= 0:
-        if a.bits[i] != b.bits[i]:
-            if a.bits[i] < b.bits[i]:
-                return -1
-            else:
-                return 1
-    return 0
+    return mpn_cmp(a.bits, b.bits, b.limbs)
 
 cdef inline int bitset_lex_cmp(bitset_t a, bitset_t b):
     """
@@ -176,8 +214,7 @@ cdef inline int bitset_lex_cmp(bitset_t a, bitset_t b):
     Return ``0`` if the two sets are identical, return ``1`` if ``a > b``,
     and return ``-1`` if ``a < b``.
     """
-    cdef long i
-    i = bitset_first_diff(a, b)
+    cdef long i = bitset_first_diff(a, b)
     if i == -1:
         return 0
     if bitset_in(a, i):
@@ -194,7 +231,7 @@ cdef inline bint bitset_issubset(bitset_t a, bitset_t b):
     behavior of this function is undefined and the function may
     segfault.
     """
-    cdef long i
+    cdef mp_size_t i
     for i from 0 <= i < a.limbs:
         if (a.bits[i] & ~b.bits[i]) != 0:
             return False
@@ -215,14 +252,14 @@ cdef inline bint bitset_issuperset(bitset_t a, bitset_t b):
 # Bitset Bit Manipulation
 #############################################################################
 
-cdef inline bint bitset_in(bitset_t bits, unsigned long n):
+cdef inline bint bitset_in(bitset_t bits, mp_bitcnt_t n):
     """
     Check if n is in bits.  Return True (i.e., 1) if n is in the
     set, False (i.e., 0) otherwise.
     """
-    return (bits.bits[n >> index_shift] >> (n & offset_mask)) & 1
+    return (bits.bits[n >> index_shift] >> (n % GMP_LIMB_BITS)) & 1
 
-cdef inline bint bitset_check(bitset_t bits, unsigned long n):
+cdef inline bint bitset_check(bitset_t bits, mp_bitcnt_t n):
     """
     Check if n is in bits.  Return True (i.e., 1) if n is in the
     set, False (i.e., 0) otherwise.
@@ -231,14 +268,14 @@ cdef inline bint bitset_check(bitset_t bits, unsigned long n):
     """
     return bitset_in(bits, n)
 
-cdef inline bint bitset_not_in(bitset_t bits, unsigned long n):
+cdef inline bint bitset_not_in(bitset_t bits, mp_bitcnt_t n):
     """
     Check if n is not in bits.  Return True (i.e., 1) if n is not in the
     set, False (i.e., 0) otherwise.
     """
     return not bitset_in(bits, n)
 
-cdef inline bint bitset_remove(bitset_t bits, unsigned long n) except -1:
+cdef inline bint bitset_remove(bitset_t bits, mp_bitcnt_t n) except -1:
     """
     Remove n from bits.  Raise KeyError if n is not contained in bits.
     """
@@ -246,13 +283,13 @@ cdef inline bint bitset_remove(bitset_t bits, unsigned long n) except -1:
         raise KeyError(n)
     bitset_discard(bits, n)
 
-cdef inline void bitset_discard(bitset_t bits, unsigned long n):
+cdef inline void bitset_discard(bitset_t bits, mp_bitcnt_t n):
     """
     Remove n from bits.
     """
-    bits.bits[n >> index_shift] &= ~((<unsigned long>1) << (n & offset_mask))
+    bits.bits[n >> index_shift] &= limb_one_zero_bit(n)
 
-cdef inline void bitset_unset(bitset_t bits, unsigned long n):
+cdef inline void bitset_unset(bitset_t bits, mp_bitcnt_t n):
     """
     Remove n from bits.
 
@@ -261,13 +298,13 @@ cdef inline void bitset_unset(bitset_t bits, unsigned long n):
     bitset_discard(bits, n)
 
 
-cdef inline void bitset_add(bitset_t bits, unsigned long n):
+cdef inline void bitset_add(bitset_t bits, mp_bitcnt_t n):
     """
     Add n to bits.
     """
-    bits.bits[n >> index_shift] |= (<unsigned long>1) << (n & offset_mask)
+    bits.bits[n >> index_shift] |= limb_one_set_bit(n)
 
-cdef inline void bitset_set(bitset_t bits, unsigned long n):
+cdef inline void bitset_set(bitset_t bits, mp_bitcnt_t n):
     """
     Add n to bits.
 
@@ -275,30 +312,30 @@ cdef inline void bitset_set(bitset_t bits, unsigned long n):
     """
     bitset_add(bits, n)
 
-cdef inline void bitset_set_to(bitset_t bits, unsigned long n, bint b):
+cdef inline void bitset_set_to(bitset_t bits, mp_bitcnt_t n, bint b):
     """
     If b is True, add n to bits.  If b is False, remove n from bits.
     """
     bitset_unset(bits, n)
-    bits.bits[n >> index_shift] |= (<unsigned long>b) << (n & offset_mask)
+    bits.bits[n >> index_shift] |= (<mp_limb_t>b) << (n % GMP_LIMB_BITS)
 
-cdef inline void bitset_flip(bitset_t bits, unsigned long n):
+cdef inline void bitset_flip(bitset_t bits, mp_bitcnt_t n):
     """
     If n is in bits, remove n from bits.  If n is not in bits, add n
     to bits.
     """
-    bits.bits[n >> index_shift] ^= (<unsigned long>1) << (n & offset_mask)
+    bits.bits[n >> index_shift] ^= limb_one_set_bit(n)
 
-cdef inline void bitset_set_first_n(bitset_t bits, unsigned long n):
+cdef inline void bitset_set_first_n(bitset_t bits, mp_bitcnt_t n):
     """
     Set exactly the first n bits.
     """
-    cdef unsigned long i
-    cdef long index = n >> index_shift
+    cdef mp_size_t i
+    cdef mp_size_t index = n >> index_shift
     for i from 0 <= i < index:
-        bits.bits[i] = ~0
+        bits.bits[i] = -1
     if index < bits.limbs:
-        bits.bits[index] = ((<unsigned long>1) << (n & offset_mask)) - 1
+        bits.bits[index] = limb_lower_bits_down(n)
     for i from index < i < bits.limbs:
         bits.bits[i] = 0
 
@@ -306,53 +343,31 @@ cdef inline void bitset_set_first_n(bitset_t bits, unsigned long n):
 # Bitset Searching
 #############################################################################
 
-cdef inline long _bitset_first_in_limb(unsigned long limb):
+cdef inline long _bitset_first_in_limb_nonzero(mp_limb_t limb):
+    """
+    Given a non-zero limb of a bitset, return the index of the first
+    nonzero bit.
+    """
+    return mpn_scan1(&limb, 0)
+
+cdef inline long _bitset_first_in_limb(mp_limb_t limb):
     """
     Given a limb of a bitset, return the index of the first nonzero
     bit. If there are no bits set in the limb, return -1.
     """
-    cdef long j
-    # First, we see if the first half of the limb is zero or not
-    if limb & (((<unsigned long>1) << 4 * sizeof(unsigned long)) - 1):
-        for j from 0 <= j < 4 * sizeof(unsigned long):
-            if limb & ((<unsigned long>1) << j):
-                return j
-    else:
-        # First half of the limb is zero, so first nonzero bit is in
-        # the second half.
-        for j from 4 * sizeof(unsigned long) <= j < 8 * sizeof(unsigned long):
-            if limb & ((<unsigned long>1) << j):
-                return j
-    return -1
-
-#cdef inline long _bitset_first_in_limb_complement(unsigned long limb):
-#    """
-#    Given a limb of a bitset, return the index of the first zero
-#    bit.  If there are no bits set in the limb, return -1.
-#    """
-#    cdef long j
-#    # First, we see if the first half of the limb is all 1 or not
-#    if ~limb & (((<unsigned long>1) << 4*sizeof(unsigned long)) - 1):
-#        for j from 0 <= j < 4*sizeof(unsigned long):
-#            if not limb & ((<unsigned long>1) << j):
-#                return j
-#    else:
-#        # First half of the limb is zero, so first nonzero bit is in
-#        # the second half.
-#        for j from 4*sizeof(unsigned long) <= j < 8*sizeof(unsigned long):
-#            if not limb & ((<unsigned long>1) << j):
-#                return j
-#    return -1
+    if limb == 0:
+        return -1
+    return mpn_scan1(&limb, 0)
 
 cdef inline long bitset_first(bitset_t a):
     """
     Calculate the index of the first element in the set. If the set
     is empty, returns -1.
     """
-    cdef long i
+    cdef mp_size_t i
     for i from 0 <= i < a.limbs:
         if a.bits[i]:
-            return (i << index_shift) | _bitset_first_in_limb(a.bits[i])
+            return (i << index_shift) | _bitset_first_in_limb_nonzero(a.bits[i])
     return -1
 
 cdef inline long bitset_first_in_complement(bitset_t a):
@@ -360,14 +375,14 @@ cdef inline long bitset_first_in_complement(bitset_t a):
     Calculate the index of the first element not in the set. If the set
     is full, returns -1.
     """
-    cdef long i, j = -1
+    cdef mp_size_t i, j
     for i from 0 <= i < a.limbs:
         if ~a.bits[i]:
-            j = (i << index_shift) | _bitset_first_in_limb(~a.bits[i])
-            break
-    if j >= a.size:
-        j = -1
-    return j
+            j = (i << index_shift) | _bitset_first_in_limb_nonzero(~a.bits[i])
+            if j >= a.size:
+                j = -1
+            return j
+    return -1
 
 cdef inline long bitset_pop(bitset_t a) except -1:
     """
@@ -389,13 +404,13 @@ cdef inline long bitset_first_diff(bitset_t a, bitset_t b):
     behavior of this function is undefined and the function may
     segfault.
     """
-    cdef long i
+    cdef mp_size_t i
     for i from 0 <= i < a.limbs:
         if a.bits[i] != b.bits[i]:
-            return (i << index_shift) | _bitset_first_in_limb(a.bits[i] ^ b.bits[i])
+            return (i << index_shift) | _bitset_first_in_limb_nonzero(a.bits[i] ^ b.bits[i])
     return -1
 
-cdef inline long bitset_next(bitset_t a, long n):
+cdef inline long bitset_next(bitset_t a, mp_bitcnt_t n):
     """
     Calculate the index of the next element in the set, starting at
     (and including) n.  Return -1 if there are no elements from n
@@ -403,17 +418,17 @@ cdef inline long bitset_next(bitset_t a, long n):
     """
     if n >= a.size:
         return -1
-    cdef long i
-    cdef unsigned long limb = a.bits[n >> index_shift] & ~(((<unsigned long>1) << (n & offset_mask)) - 1)
+    cdef mp_size_t i = n >> index_shift
+    cdef mp_limb_t limb = a.bits[i] & ~limb_lower_bits_down(n)
     cdef long ret = _bitset_first_in_limb(limb)
     if ret != -1:
-        return (n & ~offset_mask) | ret
+        return (i << index_shift) | ret
     for i from (n >> index_shift) < i < a.limbs:
         if a.bits[i]:
-            return (i << index_shift) | _bitset_first_in_limb(a.bits[i])
+            return (i << index_shift) | _bitset_first_in_limb_nonzero(a.bits[i])
     return -1
 
-cdef inline long bitset_next_diff(bitset_t a, bitset_t b, long n):
+cdef inline long bitset_next_diff(bitset_t a, bitset_t b, mp_bitcnt_t n):
     """
     Calculate the index of the next element that differs between a and
     b, starting at (and including) n.  Return -1 if there are no
@@ -425,12 +440,11 @@ cdef inline long bitset_next_diff(bitset_t a, bitset_t b, long n):
     """
     if n >= a.size:
         return -1
-    cdef long i
-    cdef long limb = (a.bits[n >> index_shift] ^ b.bits[n >> index_shift]) \
-        & ~(((<unsigned long>1) << (n & offset_mask)) - 1)
+    cdef mp_size_t i = n >> index_shift
+    cdef mp_limb_t limb = (a.bits[i] ^ b.bits[i]) & ~limb_lower_bits_down(n)
     cdef long ret = _bitset_first_in_limb(limb)
     if ret != -1:
-        return (n & ~offset_mask) | ret
+        return (i << index_shift) | ret
     for i from (n >> index_shift) < i < a.limbs:
         if a.bits[i] != b.bits[i]:
             return (i << index_shift) | _bitset_first_in_limb(a.bits[i] ^ b.bits[i])
@@ -440,7 +454,7 @@ cdef inline long bitset_len(bitset_t bits):
     """
     Calculate the number of items in the set (i.e., the number of nonzero bits).
     """
-    return mpn_popcount(<mp_limb_t*>bits.bits, bits.limbs)
+    return mpn_popcount(bits.bits, bits.limbs)
 
 cdef inline long bitset_hash(bitset_t bits):
     """
@@ -449,10 +463,10 @@ cdef inline long bitset_hash(bitset_t bits):
     This function should not depend on the size of the bitset, only on
     the items in the bitset.
     """
-    cdef unsigned long hash = 0
-    cdef long i
+    cdef mp_limb_t hash = 0
+    cdef mp_size_t i
     for i from 0 <= i < bits.limbs:
-        hash ^= bits.bits[i]
+        hash += bits.bits[i]
     return hash
 
 #############################################################################
@@ -467,13 +481,8 @@ cdef inline void bitset_complement(bitset_t r, bitset_t a):
     behavior of this function is undefined and the function may
     segfault.
     """
-    cdef long i
-    for i from 0 <= i < r.limbs:
-        r.bits[i] = ~a.bits[i]
-    if r.size & offset_mask != 0:
-        # If the last limb has extra bits beyond the size of r,
-        # then zero out those extra bits
-        r.bits[r.limbs - 1] &= ((<unsigned long>1) << ((r.size) & offset_mask)) - 1
+    mpn_com(r.bits, a.bits, a.limbs)
+    bitset_fix(r)
 
 cdef inline void bitset_not(bitset_t r, bitset_t a):
     """
@@ -495,9 +504,7 @@ cdef inline void bitset_intersection(bitset_t r, bitset_t a, bitset_t b):
     behavior of this function is undefined and the function may
     segfault.
     """
-    cdef long i
-    for i from 0 <= i < r.limbs:
-        r.bits[i] = a.bits[i] & b.bits[i]
+    mpn_and_n(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_and(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -509,7 +516,7 @@ cdef inline void bitset_and(bitset_t r, bitset_t a, bitset_t b):
 
     This function is the same as bitset_intersection(r, a, b).
     """
-    bitset_intersection(r, a, b)
+    mpn_and_n(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_union(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -519,9 +526,7 @@ cdef inline void bitset_union(bitset_t r, bitset_t a, bitset_t b):
     behavior of this function is undefined and the function may
     segfault.
     """
-    cdef long i
-    for i from 0 <= i < r.limbs:
-        r.bits[i] = a.bits[i] | b.bits[i]
+    mpn_ior_n(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_or(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -533,7 +538,7 @@ cdef inline void bitset_or(bitset_t r, bitset_t a, bitset_t b):
 
     This function is the same as bitset_union(r, a, b).
     """
-    bitset_union(r, a, b)
+    mpn_ior_n(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_difference(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -544,9 +549,7 @@ cdef inline void bitset_difference(bitset_t r, bitset_t a, bitset_t b):
     behavior of this function is undefined and the function may
     segfault.
     """
-    cdef long i
-    for i from 0 <= i < r.limbs:
-        r.bits[i] = a.bits[i] & ~b.bits[i]
+    mpn_andn_n(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_symmetric_difference(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -556,9 +559,7 @@ cdef inline void bitset_symmetric_difference(bitset_t r, bitset_t a, bitset_t b)
     behavior of this function is undefined and the function may
     segfault.
     """
-    cdef long i
-    for i from 0 <= i < r.limbs:
-        r.bits[i] = a.bits[i] ^ b.bits[i]
+    mpn_xor_n(r.bits, a.bits, b.bits, b.limbs)
 
 cdef inline void bitset_xor(bitset_t r, bitset_t a, bitset_t b):
     """
@@ -570,59 +571,63 @@ cdef inline void bitset_xor(bitset_t r, bitset_t a, bitset_t b):
 
     This function is the same as bitset_symmetric_difference(r, a, b).
     """
-    bitset_symmetric_difference(r, a, b)
+    mpn_xor_n(r.bits, a.bits, b.bits, b.limbs)
 
-cdef void bitset_rshift(bitset_t r, bitset_t a, long n):
-    if n <= 0:
-        if n != 0:
-            bitset_lshift(r, a, -n)
-        else:
-            bitset_copy(r, a)
-        return
-    elif n >= a.size:
-        bitset_clear(r)
-        return
-    cdef long i
-    cdef long off = n >> index_shift
-    cdef int shift = offset_mask & n
-    cdef int shift2 = 8 * sizeof(unsigned long) - shift
-    if shift == 0:
-        for i from 0 <= i < r.limbs - off:
-            r.bits[i] = a.bits[i + off]
+cdef void bitset_rshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
+    """
+    Shift the bitset ``a`` right by ``n`` bits and store the result in
+    ``r``.
 
+    We assume the two sets have the same size.  Otherwise, the
+    behavior of this function is undefined and the function may
+    segfault.
+    """
+    if n >= a.size:
+        mpn_zero(r.bits, r.limbs)
+        return
+    
+    # Number of limbs on the right which will totally be shifted out
+    cdef mp_size_t nlimbs = n >> index_shift
+    # Number of bits to shift additionally
+    cdef mp_bitcnt_t nbits = n % GMP_LIMB_BITS
+
+    if nbits:
+        # mpn_rshift only does shifts less than a limb
+        mpn_rshift(r.bits, a.bits + nlimbs, a.limbs - nlimbs, nbits)
     else:
-        for i from 0 <= i < r.limbs - off - 1:
-            r.bits[i] = (a.bits[i + off] >> shift) | (a.bits[i + off + 1] << shift2)
-        r.bits[r.limbs - off - 1] = a.bits[r.limbs - 1] >> shift
+        mpn_copyi(r.bits, a.bits + nlimbs, a.limbs - nlimbs)
 
-    if off > 0:
-        memset(r.bits + r.limbs - off, 0, off * sizeof(unsigned long))
+    # Clear top limbs
+    mpn_zero(r.bits + (r.limbs - nlimbs), nlimbs)
 
-cdef void bitset_lshift(bitset_t r, bitset_t a, long n):
-    if n <= 0:
-        if n != 0:
-            bitset_rshift(r, a, -n)
-        else:
-            bitset_copy(r, a)
+cdef void bitset_lshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
+    """
+    Shift the bitset ``a`` left by ``n`` bits and store the result in
+    ``r``.
+
+    We assume the two sets have the same size.  Otherwise, the
+    behavior of this function is undefined and the function may
+    segfault.
+    """
+    if n >= a.size:
+        mpn_zero(r.bits, r.limbs)
         return
-    elif n >= a.size:
-        bitset_clear(r)
-        return
-    cdef long i
-    cdef long off = n >> index_shift
-    cdef int shift = offset_mask & n
-    cdef int shift2 = 8 * sizeof(unsigned long) - shift
-    if shift == 0:
-        for i from r.limbs - off > i >= 0:
-            r.bits[i + off] = a.bits[i]
 
+    # Number of limbs on the left which will totally be shifted out
+    cdef mp_size_t nlimbs = n >> index_shift
+    # Number of bits to shift additionally
+    cdef mp_bitcnt_t nbits = n % GMP_LIMB_BITS
+
+    if nbits:
+        # mpn_lshift only does shifts less than a limb
+        mpn_lshift(r.bits + nlimbs, a.bits, a.limbs - nlimbs, nbits)
     else:
-        for i from r.limbs - off > i >= 1:
-            r.bits[i + off] = (a.bits[i] << shift) | (a.bits[i - 1] >> shift2)
-        r.bits[off] = a.bits[0] << shift
+        mpn_copyd(r.bits + nlimbs, a.bits, a.limbs - nlimbs)
+    bitset_fix(r)
 
-    if off > 0:
-        memset(r.bits, 0, off * sizeof(unsigned long))
+    # Clear bottom limbs
+    mpn_zero(r.bits, nlimbs)
+
 
 cdef inline void bitset_map(bitset_t r, bitset_t a, m):
     """

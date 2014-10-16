@@ -1659,7 +1659,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             [2, 3, 4, 5, 6]
             sage: M = matroids.CompleteGraphic(5)
             sage: M.cross_ratios()
-            set([])
+            set()
         """
         if hyperlines is None:
             hyperlines = self.flats(self.full_rank() - 2)

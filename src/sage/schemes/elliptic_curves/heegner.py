@@ -22,7 +22,7 @@ EXAMPLES::
     1
     sage: K.<a> = QuadraticField(-8)
     sage: K.factor(3)
-    (Fractional ideal (1/2*a + 1)) * (Fractional ideal (1/2*a - 1))
+    (Fractional ideal (1/2*a + 1)) * (Fractional ideal (-1/2*a + 1))
 
 Next try an inert prime::
 
@@ -2523,7 +2523,9 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
         EXAMPLES::
 
             sage: heegner_points(389,-7,5).plot(pointsize=50, rgbcolor='red')
+            Graphics object consisting of 12 graphics primitives
             sage: heegner_points(53,-7,15).plot(pointsize=50, rgbcolor='purple')
+            Graphics object consisting of 48 graphics primitives
         """
         return sum(z.plot(*args, **kwds) for z in self)
 
@@ -2855,6 +2857,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
         EXAMPLES::
 
             sage: heegner_point(389,-7,1).plot(pointsize=50)
+            Graphics object consisting of 1 graphics primitive
         """
         from sage.plot.all import point
         return point(CDF(self.tau()), **kwds)
@@ -4110,6 +4113,7 @@ class KolyvaginPoint(HeegnerPoint):
 
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-11).kolyvagin_point()
             sage: P.plot(prec=30, pointsize=50, rgbcolor='red') + E.plot()
+            Graphics object consisting of 3 graphics primitives
         """
         if self.conductor() != 1:
             raise NotImplementedError

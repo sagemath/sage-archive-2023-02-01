@@ -41,12 +41,12 @@ def _remove(file_set, module_base, to_remove):
         sage: files = set(['a/b/c.py', 'a/b/d.py', 'a/b/c.pyx'])
         sage: _remove(files, 'a.b', ['c.py', 'd.py'])
         sage: files
-        set(['a/b/c.pyx'])
+        {'a/b/c.pyx'}
 
         sage: files = set(['a/b/c.py', 'a/b/d.py', 'a/b/c.pyx'])
         sage: _remove(files, 'a.b.c', ['.py', '.pyx'])
         sage: files
-        set(['a/b/d.py'])
+        {'a/b/d.py'}
     """
     path = os.path.join(*module_base.split('.'))
     for filename in to_remove:

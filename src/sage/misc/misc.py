@@ -99,7 +99,7 @@ def sage_makedirs(dir):
 sage_makedirs(DOT_SAGE)
 
 _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
-_desired_mode = 040700     # drwx------
+_desired_mode = 0o40700     # drwx------
 if _mode != _desired_mode:
     print("Setting permissions of DOT_SAGE directory so only you can read and write it.")
     # Change mode of DOT_SAGE.
@@ -1159,13 +1159,13 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
     Try some inexact rings::
 
         sage: srange(0.5, 1.1, 0.1, universe=RDF, include_endpoint=False)
-        [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        [0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999, 0.9999999999999999]
         sage: srange(0.5, 1, 0.1, universe=RDF, include_endpoint=False)
-        [0.5, 0.6, 0.7, 0.8, 0.9]
+        [0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999]
         sage: srange(0.5, 0.9, 0.1, universe=RDF, include_endpoint=False)
-        [0.5, 0.6, 0.7, 0.8]
+        [0.5, 0.6, 0.7, 0.7999999999999999]
         sage: srange(0, 1.1, 0.1, universe=RDF, include_endpoint=True)
-        [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1]
+        [0.0, 0.1, 0.2, 0.30000000000000004, 0.4, 0.5, 0.6, 0.7, 0.7999999999999999, 0.8999999999999999, 0.9999999999999999, 1.1]
         sage: srange(0, 0.2, 0.1, universe=RDF, include_endpoint=True)
         [0.0, 0.1, 0.2]
         sage: srange(0, 0.3, 0.1, universe=RDF, include_endpoint=True)
@@ -1173,7 +1173,7 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
 
     TESTS:
 
-    These are doctests from trac ticket #6409::
+    These are doctests from :trac:`6409`::
 
         sage: srange(1,0,include_endpoint=True)
         []
@@ -1728,8 +1728,8 @@ def powerset(X):
 
     You may also use subsets as an alias for powerset::
 
-        sage: subsets([1,2,3])   # random object location in output
-        <generator object at 0xaeae418c>
+        sage: subsets([1,2,3])
+        <generator object powerset at 0x...>
         sage: list(subsets([1,2,3]))
         [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 

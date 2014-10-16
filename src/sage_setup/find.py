@@ -101,7 +101,7 @@ def installed_files_by_module(site_packages, modules=('sage',)):
         sage: site_packages = getsitepackages()[0]
         sage: files_by_module = installed_files_by_module(site_packages)
         sage: files_by_module['sage.structure.sage_object']
-        set(['sage/structure/sage_object.so'])
+        {'sage/structure/sage_object.so'}
         sage: sorted(files_by_module['sage.structure'])
         ['sage/structure/__init__.py', 'sage/structure/__init__.pyc']
 

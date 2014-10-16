@@ -46,7 +46,7 @@ Installation Guide for more about those.)
   on Mac OS X to set the :envvar:`DYLD_LIBRARY_PATH`.
 
 - :envvar:`SAGE_CBLAS` -- used in the file
-  :file:`SAGE_ROOT/devel/sage/sage/misc/cython.py`.  Set this to the
+  :file:`SAGE_ROOT/src/sage/misc/cython.py`.  Set this to the
   base name of the BLAS library file on your system if you want to
   override the default setting.  That is, if the relevant file is
   called :file:`libcblas_new.so` or :file:`libcblas_new.dylib`, then

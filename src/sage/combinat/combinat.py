@@ -148,10 +148,9 @@ Functions and classes
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.interfaces.all import maxima
-from sage.rings.all import QQ, ZZ, Integer
+from sage.rings.all import ZZ, Integer, infinity
 from sage.rings.arith import bernoulli, binomial
 from sage.rings.polynomial.polynomial_element import Polynomial
-from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari
 from sage.misc.prandom import randint
 from sage.misc.misc import prod
@@ -455,7 +454,6 @@ def catalan_number(n):
 
     -  http://www-history.mcs.st-andrews.ac.uk/~history/Miscellaneous/CatalanNumbers/catalan.html
     """
-    from sage.rings.arith import binomial
     n = ZZ(n)
     return binomial(2*n,n).divide_knowing_divisible_by(n+1)
 
@@ -540,7 +538,7 @@ def fibonacci(n, algorithm="pari"):
         return ZZ(pari(n).fibonacci())
     elif algorithm == 'gap':
         from sage.libs.gap.libgap import libgap
-        return ZZ(libgap.eval("Fibonacci(%s)"%n).sage())
+        return libgap.eval("Fibonacci(%s)"%n).sage()
     else:
         raise ValueError("no algorithm %s"%algorithm)
 
@@ -584,7 +582,7 @@ def lucas_number1(n,P,Q):
         sage: lucas_number1(5,2,1.5)
         Traceback (most recent call last):
         ...
-        TypeError: no canonical coercion from Real Field with 53 bits of precision to Rational Field
+        NotImplementedError: cannot construct equivalent Sage object
 
     There was a conjecture that the sequence `L_n` defined by
     `L_{n+2} = L_{n+1} + L_n`, `L_1=1`,
@@ -614,8 +612,7 @@ def lucas_number1(n,P,Q):
     Can you use Sage to find a counterexample to the conjecture?
     """
     from sage.libs.gap.libgap import libgap
-    ans=libgap.eval("Lucas(%s,%s,%s)[1]"%(QQ._coerce_(P),QQ._coerce_(Q),ZZ(n))).sage()
-    return ans
+    return libgap.eval("Lucas(%s,%s,%s)[1]"%(P, Q, n)).sage()
 
 def lucas_number2(n,P,Q):
     r"""
@@ -662,8 +659,7 @@ def lucas_number2(n,P,Q):
         [2, 1, 3, 4, 7, 11, 18, 29, 47, 76]
     """
     from sage.libs.gap.libgap import libgap
-    ans=libgap.eval("Lucas(%s,%s,%s)[2]"%(QQ._coerce_(P),QQ._coerce_(Q),ZZ(n))).sage()
-    return ans
+    return libgap.eval("Lucas(%s,%s,%s)[2]"%(P, Q, n)).sage()
 
 
 def stirling_number1(n, k):
@@ -688,8 +684,7 @@ def stirling_number1(n, k):
     Indeed, `S_1(n,k) = S_1(n-1,k-1) + (n-1)S_1(n-1,k)`.
     """
     from sage.libs.gap.libgap import libgap
-    return Integer(libgap.eval("Stirling1({0},{1})".format(Integer(n),
-                                                        Integer(k))).sage())
+    return libgap.eval("Stirling1({0},{1})".format(n, k)).sage()
 
 
 def stirling_number2(n, k, algorithm=None):
@@ -815,9 +810,9 @@ def stirling_number2(n, k, algorithm=None):
         return _stirling_number2(n, k)
     elif algorithm == 'gap':
         from sage.libs.gap.libgap import libgap
-        return ZZ(libgap.eval("Stirling2(%s,%s)"%(ZZ(n),ZZ(k))).sage())
+        return libgap.eval("Stirling2(%s,%s)"%(n, k)).sage()
     elif algorithm == 'maxima':
-        return ZZ(maxima.eval("stirling2(%s,%s)"%(ZZ(n),ZZ(k))))
+        return ZZ(maxima.eval("stirling2(%s,%s)"%(n, k)))
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
 
@@ -1241,7 +1236,6 @@ class CombinatorialClass(Parent):
             sage: Permutations().is_finite()
             False
         """
-        from sage.rings.all import infinity
         return self.cardinality() != infinity
 
     def __getitem__(self, i):
@@ -2132,7 +2126,6 @@ class MapCombinatorialClass(CombinatorialClass):
         return self.f(self.cc.an_element())
 
 ##############################################################################
-from sage.rings.all import infinity
 class InfiniteAbstractCombinatorialClass(CombinatorialClass):
     r"""
     This is an internal class that should not be used directly.  A class which
@@ -2259,8 +2252,7 @@ def number_of_tuples(S,k):
         25
     """
     from sage.libs.gap.libgap import libgap
-    ans=libgap.eval("NrTuples(%s,%s)"%(S,ZZ(k))).sage()
-    return ZZ(ans)
+    return libgap.eval("NrTuples(%s,%s)"%(S, k)).sage()
 
 def unordered_tuples(S,k):
     """
@@ -2287,8 +2279,8 @@ def unordered_tuples(S,k):
         sage: unordered_tuples(["a","b","c"],2)
         ['aa', 'ab', 'ac', 'bb', 'bc', 'cc']
     """
-    ans=gap.eval("UnorderedTuples(%s,%s)"%(S,ZZ(k)))
-    return eval(ans)
+    from sage.libs.gap.libgap import libgap
+    return libgap.eval("UnorderedTuples(%s,%s)"%(S, k)).sage()
 
 def number_of_unordered_tuples(S,k):
     """
@@ -2302,8 +2294,7 @@ def number_of_unordered_tuples(S,k):
         15
     """
     from sage.libs.gap.libgap import libgap
-    ans=libgap.eval("NrUnorderedTuples(%s,%s)"%(S,ZZ(k))).sage()
-    return ZZ(ans)
+    return libgap.eval("NrUnorderedTuples(%s,%s)"%(S, k)).sage()
 
 def permutations(mset):
     """

@@ -247,8 +247,10 @@ cdef skewtab_to_SkewTableau(skewtab *st):
     """
     inner = vector_to_list(st.inner)
     outer = vector_to_list(st.outer)
-    return SkewTableau(expr=[[ inner[y] for y in range(len(outer))],
-                             [[ st.matrix[x + y * st.cols]+1 for x in range(inner[y], outer[y]) ] for y in range(len(outer)-1,-1,-1) ]])
+    return SkewTableau(expr=[[inner[y] for y in range(len(outer))],
+                             [[st.matrix[x + y * st.cols] + 1
+                                for x in range(inner[y], outer[y])]
+                              for y in range(len(outer) - 1, -1, -1)]])
 
 def test_skewtab_to_SkewTableau(outer, inner):
     """
@@ -425,11 +427,11 @@ def mult(part1, part2, maxrows=None, level=None, quantum=None):
 
     - ``part2`` -- a partition.
 
-    - ``maxrows`` -- an integer or None.
+    - ``maxrows`` -- an integer or ``None``.
 
-    - ``level`` -- an integer or None.
+    - ``level`` -- an integer or ``None``.
 
-    - ``quantum`` -- an element of a ring or None.
+    - ``quantum`` -- an element of a ring or ``None``.
 
     If ``maxrows`` is specified, then only partitions with at most
     this number of rows are included in the result.
@@ -467,11 +469,18 @@ def mult(part1, part2, maxrows=None, level=None, quantum=None):
         {[2, 2]: 1, []: q}
         sage: mult([2,1],[2,1], 2, 2, quantum=q)
         {[2]: q, [1,1]: q}
+
+        sage: mult([2,1],[2,1], quantum=q)
+        {[2]: q, [1,1]: q}
+        Traceback (most recent call last):
+        ...
+        ValueError: missing parameters maxrows or level
     """
     if maxrows is None and not(level is None):
-        raise ValueError('maxrows needs to be specified if you specify the level')
+        raise ValueError('maxrows needs to be specified if you specify'
+                         ' the level')
     if not(quantum is None) and (level is None or maxrows is None):
-        raise ValueError('missing parameters')
+        raise ValueError('missing parameters maxrows or level')
 
     cdef vector* v1 = iterable_to_vector(part1)
     cdef vector* v2 = iterable_to_vector(part2)
@@ -484,7 +493,9 @@ def mult(part1, part2, maxrows=None, level=None, quantum=None):
         if not(level is None):
             fusion_reduce_c(ht, int(maxrows), int(level), int(0))
         result = sf_hashtab_to_dict(ht)
-        v_free(v1); v_free(v2); hash_free(ht)
+        v_free(v1)
+        v_free(v2)
+        hash_free(ht)
         return result
     else:
         qlist = quantum_reduce_c(ht, int(maxrows), int(level))
@@ -493,7 +504,9 @@ def mult(part1, part2, maxrows=None, level=None, quantum=None):
             tab = qlist[i]
             result += sf_hashtab_to_dict(tab)
             hash_free(tab)
-        v_free(v1); v_free(v2); hash_free(ht)
+        v_free(v1)
+        v_free(v2)
+        hash_free(ht)
         return result
 
 def skew(outer, inner, maxrows=0):
@@ -510,7 +523,7 @@ def skew(outer, inner, maxrows=0):
 
     - ``inner`` -- a partition.
 
-    - ``maxrows`` -- an integer or None.
+    - ``maxrows`` -- an integer or ``None``.
 
     If ``maxrows`` is specified, then only partitions with at most
     this number of rows are included in the result.

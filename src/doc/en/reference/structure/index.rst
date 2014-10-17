@@ -24,6 +24,8 @@ Basic Structures
    sage/structure/indexed_generators
    sage/structure/global_options
    sage/structure/graphics_file
+   sage/structure/set_factories
+   sage/structure/set_factories_example
 
    sage/sets/cartesian_product
    sage/sets/family

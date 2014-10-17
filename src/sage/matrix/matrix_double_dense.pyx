@@ -3830,9 +3830,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         TESTS::
 
             sage: A = matrix(RDF, 2, [1,2,3,4])
-            sage: A.exp(algorithm='eig')
+            sage: E = A.exp(algorithm='eig')
             doctest:...: DeprecationWarning: The algorithm and order arguments are deprecated.
             See http://trac.sagemath.org/17140 for details.
+            sage: E  # tol 1e-15
             [51.968956198705044  74.73656456700327]
             [112.10484685050491 164.07380304920997]
             sage: A.exp(algorithm='taylor')   # tol 1e-15

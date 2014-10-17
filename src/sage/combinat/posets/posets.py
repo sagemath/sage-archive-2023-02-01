@@ -157,21 +157,21 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
     - ``data`` -- different input are accepted by this constructor:
 
-      1. A two-element list or tuple `(E, R)`, where `E` is a
-         collection of elements of the poset and `R` is a collection
-         of relations `x<=y`, each represented as a two-element
-         lists/tuples/iterables such as [x,y]. The poset is then the
-         transitive closure of the provided relations. If
-         ``cover_relations=True``, then `R` is assumed to contain
-         exactly the cover relations of the poset. If `E` is empty,
-         then `E` is taken to be the set of elements appearing in
-         the relations `R`.
+      1. A two-element list or tuple ``(E, R)``, where ``E`` is a
+         collection of elements of the poset and ``R`` is a collection
+         of relations ``x <= y``, each represented as a two-element
+         lists/tuples/iterables such as ``[x, y]``. The poset is then
+         the transitive closure of the provided relations. If
+         ``cover_relations=True``, then ``R`` is assumed to contain
+         exactly the cover relations of the poset. If ``E`` is empty,
+         then ``E`` is taken to be the set of elements appearing in
+         the relations ``R``.
 
-      2. A two-element list or tuple `(E, f)`, where `E` is the set
-         of elements of the poset and `f` is a function such that,
-         for any pair `x,y` of elements of `E`, `f(x,y)` returns
-         whether `x <= y`. If ``cover_relations=True``, then
-         `f(x,y)` should return whether `x` is covered by `y`.
+      2. A two-element list or tuple ``(E, f)``, where ``E`` is the set
+         of elements of the poset and ``f`` is a function such that,
+         for any pair ``x, y`` of elements of ``E``, ``f(x, y)``
+         returns whether ``x <= y``. If ``cover_relations=True``, then
+         ``f(x,y)`` should return whether ``x`` is covered by ``y``.
 
       3. A dictionary, list or tuple of upper covers: ``data[x]`` is
          a list of the elements that cover the element `x` in the poset.
@@ -260,12 +260,12 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
           sage: elms = SetPartitions(3)
           sage: def fcn(A, B):
-          ...     if len(A) != len(B)+1:
-          ...         return False
-          ...     for a in A:
-          ...         if not any(set(a).issubset(b) for b in B):
-          ...             return False
-          ...     return True
+          ....:     if len(A) != len(B)+1:
+          ....:         return False
+          ....:     for a in A:
+          ....:         if not any(set(a).issubset(b) for b in B):
+          ....:             return False
+          ....:     return True
           sage: Poset((elms, fcn), cover_relations=True)
           Finite poset containing 5 elements
 
@@ -2518,11 +2518,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: sum([P.mobius_function(P(0),v) for v in P])
             0
             sage: sum([abs(P.mobius_function(P(0),v)) \
-            ...        for v in P])
+            ....:      for v in P])
             6
             sage: for u,v in P.cover_relations_iterator():
-            ...    if P.mobius_function(u,v) != -1:
-            ...        print "Bug in mobius_function!"
+            ....:     if P.mobius_function(u,v) != -1:
+            ....:         print "Bug in mobius_function!"
 
         ::
 
@@ -2781,7 +2781,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
             sage: N5 = Posets.PentagonPoset()
             sage: for P in N5.isomorphic_subposets_iterator(D):
-            ...       print P.cover_relations()
+            ....:     print P.cover_relations()
             [[0, 1], [0, 2], [1, 4], [2, 4]]
             [[0, 1], [0, 3], [1, 4], [3, 4]]
             [[0, 1], [0, 2], [1, 4], [2, 4]]

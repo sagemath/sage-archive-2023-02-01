@@ -2126,7 +2126,7 @@ class Tableau(CombinatorialObject, Element):
 
         When ``self`` is a standard tableau of size ``n + 1``, this definition of
         inverse promotion is the map called "promotion" in [Sg2011]_ (p. 23) and
-        in [St2009]_, and is the inverse of the map called "promotion" in
+        in [Stan2009]_, and is the inverse of the map called "promotion" in
         [Hai1992]_ (p. 90).
 
         EXAMPLES::
@@ -2216,7 +2216,7 @@ class Tableau(CombinatorialObject, Element):
 
         When ``self`` is a standard tableau of size ``n + 1``, this definition of
         promotion is precisely the one given in [Hai1992]_ (p. 90). It is the
-        inverse of the maps called "promotion" in [Sg2011]_ (p. 23) and in [St2009]_.
+        inverse of the maps called "promotion" in [Sg2011]_ (p. 23) and in [Stan2009]_.
 
         REFERENCES:
 
@@ -3618,7 +3618,7 @@ class StandardTableau(SemistandardTableau):
         the tableau. This yields a new standard tableau.
 
         This definition of inverse promotion is the map called "promotion" in
-        [Sg2011]_ (p. 23) and in [St2009]_, and is the inverse of the map
+        [Sg2011]_ (p. 23) and in [Stan2009]_, and is the inverse of the map
         called "promotion" in [Hai1992]_ (p. 90).
 
         See the :meth:`~sage.combinat.tableau.promotion_inverse` method for a
@@ -3662,7 +3662,7 @@ class StandardTableau(SemistandardTableau):
 
         This definition of promotion is precisely the one given in [Hai1992]_
         (p. 90). It is the inverse of the maps called "promotion" in [Sg2011]_
-        (p. 23) and in [St2009]_.
+        (p. 23) and in [Stan2009]_.
 
         See the :meth:`~sage.combinat.tableau.promotion` method for a
         more general operator.

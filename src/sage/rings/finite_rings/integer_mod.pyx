@@ -1378,7 +1378,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: a.rational_reconstruction()
             2/3
 
-        This method is also inhereted by prime finite fields elements::
+        This method is also inherited by prime finite fields elements::
 
             sage: k = GF(97)
             sage: a = k(RationalField()('2/3'))

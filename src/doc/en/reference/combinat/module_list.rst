@@ -86,7 +86,8 @@ Alphabetical module list
     sage/combinat/designs/__init__
     sage/combinat/designs/latin_squares
     sage/combinat/designs/orthogonal_arrays
-    sage/combinat/designs/orthogonal_arrays_recursive
+    sage/combinat/designs/orthogonal_arrays_build_recursive
+    sage/combinat/designs/orthogonal_arrays_find_recursive
     sage/combinat/designs/steiner_quadruple_systems
     sage/combinat/diagram_algebras
     sage/combinat/dict_addition
@@ -289,6 +290,7 @@ Alphabetical module list
     sage/combinat/species/sum_species
     sage/combinat/split_nk
     sage/combinat/subset
+    sage/combinat/subsets_hereditary
     sage/combinat/subsets_pairwise
     sage/combinat/subword
     sage/combinat/symmetric_group_algebra

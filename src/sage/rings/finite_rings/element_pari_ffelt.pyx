@@ -36,12 +36,7 @@ from sage.rings.polynomial.multi_polynomial_element import MPolynomial
 from sage.rings.rational import Rational
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
-cdef long mpz_t_offset = sage.rings.integer.mpz_t_offset_python
-
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
-
-cdef extern from "sage/libs/pari/misc.h":
-    int gcmp_sage(GEN x, GEN y)
 
 
 cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
@@ -211,7 +206,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         elif isinstance(x, Integer):
             g = (<pari_gen>self._parent._gen_pari).g
             pari_catch_sig_on()
-            x_GEN = pari._new_GEN_from_mpz_t(<void *>x + mpz_t_offset)
+            x_GEN = pari._new_GEN_from_mpz_t((<Integer>x).value)
             self.construct(_INT_to_FFELT(g, x_GEN))
 
         elif isinstance(x, int) or isinstance(x, long):
@@ -224,9 +219,8 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         elif isinstance(x, IntegerMod_abstract):
             if self._parent.characteristic().divides(x.modulus()):
                 g = (<pari_gen>self._parent._gen_pari).g
-                x = Integer(x)
                 pari_catch_sig_on()
-                x_GEN = pari._new_GEN_from_mpz_t(<void *>x + mpz_t_offset)
+                x_GEN = pari._new_GEN_from_mpz_t(Integer(x).value)
                 self.construct(_INT_to_FFELT(g, x_GEN))
             else:
                 raise TypeError("no coercion defined")
@@ -278,7 +272,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
                 set_gel(f, 1, gmael(g, 2, 1))
                 for i in xrange(n):
                     xi = Integer(x[i])
-                    set_gel(f, i + 2, pari._new_GEN_from_mpz_t(<void *>xi + mpz_t_offset))
+                    set_gel(f, i + 2, pari._new_GEN_from_mpz_t(xi.value))
             elif t == t_FF_Flxq or t == t_FF_F2xq:
                 f = cgetg(n + 2, t_VECSMALL)
                 set_gel(f, 1, gmael(g, 2, 1))
@@ -405,7 +399,11 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             sage: a > a^2
             False
         """
-        return gcmp_sage(self.val, (<FiniteFieldElement_pari_ffelt>other).val)
+        cdef int r
+        pari_catch_sig_on()
+        r = cmp_universal(self.val, (<FiniteFieldElement_pari_ffelt>other).val)
+        pari_catch_sig_off()
+        return r
 
     def __richcmp__(FiniteFieldElement_pari_ffelt left, object right, int op):
         """

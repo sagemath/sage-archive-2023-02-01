@@ -8,15 +8,9 @@ FLINT Arithmetic Functions
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-include "../../ext/interrupt.pxi"
+include "sage/ext/interrupt.pxi"
 include "fmpz.pxi"
-
-cdef extern from "flint/fmpq.h":
-    ctypedef void * fmpq_t
-    void fmpq_init(fmpq_t)
-    void fmpq_clear(fmpq_t)
-    void fmpq_get_mpq(mpq_t, fmpq_t)
-    void fmpq_set_mpq(fmpq_t, mpq_t)
+include "fmpq_poly.pxi"
 
 cdef extern from "flint/arith.h":
     void arith_number_of_partitions(fmpz_t x, unsigned long n)

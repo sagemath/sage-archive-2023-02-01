@@ -2492,16 +2492,21 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
             sage: E = EllipticCurve([0,-1])
             sage: plot(E, rgbcolor=hue(0.7))
+            Graphics object consisting of 1 graphics primitive
             sage: E = EllipticCurve('37a')
             sage: plot(E)
+            Graphics object consisting of 2 graphics primitives
             sage: plot(E, xmin=25,xmax=26)
+            Graphics object consisting of 2 graphics primitives
 
         With #12766 we added the components keyword::
 
             sage: E.real_components()
             2
             sage: E.plot(components='bounded')
+            Graphics object consisting of 1 graphics primitive
             sage: E.plot(components='unbounded')
+            Graphics object consisting of 1 graphics primitive
 
         If there is only one component then specifying
         components='bounded' raises a ValueError::

@@ -17,10 +17,10 @@ Construction of an embedding::
     Ring morphism:
       From: Finite Field in t of size 3^7
       To:   Finite Field in T of size 3^21
-      Defn: t |--> T^20 + T^19 + T^18 + 2*T^17 + 2*T^16 + 2*T^12 + T^9 + T^6 + 2*T^5 + T^3 + 2*T^2 + T + 2
+      Defn: t |--> T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T
 
     sage: f(t)
-    T^20 + T^19 + T^18 + 2*T^17 + 2*T^16 + 2*T^12 + T^9 + T^6 + 2*T^5 + T^3 + 2*T^2 + T + 2
+    T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T
 
 The map `f` has a method ``section`` which returns a partially defined
 map which is the inverse of `f` on the image of `f`::
@@ -29,7 +29,7 @@ map which is the inverse of `f` on the image of `f`::
     Section of Ring morphism:
       From: Finite Field in t of size 3^7
       To:   Finite Field in T of size 3^21
-      Defn: t |--> T^20 + T^19 + T^18 + 2*T^17 + 2*T^16 + 2*T^12 + T^9 + T^6 + 2*T^5 + T^3 + 2*T^2 + T + 2
+      Defn: t |--> T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T
     sage: g(f(t^3+t^2+1))
     t^3 + t^2 + 1
     sage: g(T)
@@ -38,7 +38,7 @@ map which is the inverse of `f` on the image of `f`::
     ValueError: T is not in the image of Ring morphism:
       From: Finite Field in t of size 3^7
       To:   Finite Field in T of size 3^21
-      Defn: t |--> T^20 + T^19 + T^18 + 2*T^17 + 2*T^16 + 2*T^12 + T^9 + T^6 + 2*T^5 + T^3 + 2*T^2 + T + 2
+      Defn: t |--> T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T
 
 There is no embedding of `GF(5^6)` into `GF(5^11)`::
 
@@ -137,7 +137,7 @@ cdef class SectionFiniteFieldHomomorphism_generic(Section):
             ValueError: T is not in the image of Ring morphism:
               From: Finite Field in t of size 3^7
               To:   Finite Field in T of size 3^21
-              Defn: t |--> T^20 + T^19 + T^18 + 2*T^17 + 2*T^16 + 2*T^12 + T^9 + T^6 + 2*T^5 + T^3 + 2*T^2 + T + 2
+              Defn: t |--> T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T
         """
         for root, _ in x.minimal_polynomial().roots(ring=self.codomain()):
             if self._inverse(root) == x:
@@ -157,7 +157,7 @@ cdef class SectionFiniteFieldHomomorphism_generic(Section):
             sage: f = FiniteFieldHomomorphism_generic(Hom(k, K))
             sage: g = f.section()
             sage: g._repr_()
-            'Section of Ring morphism:\n  From: Finite Field in t of size 3^7\n  To:   Finite Field in T of size 3^21\n  Defn: t |--> T^20 + T^19 + T^18 + 2*T^17 + 2*T^16 + 2*T^12 + T^9 + T^6 + 2*T^5 + T^3 + 2*T^2 + T + 2'
+            'Section of Ring morphism:\n  From: Finite Field in t of size 3^7\n  To:   Finite Field in T of size 3^21\n  Defn: t |--> T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T'
         """
         return "Section of %s" % self._inverse
 
@@ -195,7 +195,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             Ring morphism:
               From: Finite Field in t of size 3^7
               To:   Finite Field in T of size 3^21
-              Defn: t |--> T^20 + T^19 + T^18 + 2*T^17 + 2*T^16 + 2*T^12 + T^9 + T^6 + 2*T^5 + T^3 + 2*T^2 + T + 2
+              Defn: t |--> T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T
 
             sage: k.<t> = GF(3^6)
             sage: K.<t> = GF(3^9)
@@ -326,7 +326,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             Section of Ring morphism:
               From: Finite Field in t of size 3^7
               To:   Finite Field in T of size 3^21
-              Defn: t |--> T^20 + T^19 + T^18 + 2*T^17 + 2*T^16 + 2*T^12 + T^9 + T^6 + 2*T^5 + T^3 + 2*T^2 + T + 2
+              Defn: t |--> T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T
             sage: g(f(t^3+t^2+1))
             t^3 + t^2 + 1
             sage: g(T)
@@ -335,7 +335,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             ValueError: T is not in the image of Ring morphism:
               From: Finite Field in t of size 3^7
               To:   Finite Field in T of size 3^21
-              Defn: t |--> T^20 + T^19 + T^18 + 2*T^17 + 2*T^16 + 2*T^12 + T^9 + T^6 + 2*T^5 + T^3 + 2*T^2 + T + 2
+              Defn: t |--> T^20 + 2*T^18 + T^16 + 2*T^13 + T^9 + 2*T^8 + T^7 + T^6 + T^5 + T^3 + 2*T^2 + T
         """
         return self._section_class(self)
 

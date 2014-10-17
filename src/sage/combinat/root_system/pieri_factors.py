@@ -312,8 +312,8 @@ class PieriFactors_finite_type(PieriFactors):
         ct = self.W.cartan_type()
 
         # The following line may need to be changed when generalizing to more than types A and B.
-
-        assert any([ct.type() == 'A', ct.type() == 'B'])
+        if ct.type() != 'A' and ct.type() != 'B':
+            raise NotImplementedError("currently only implemented for finite types A and B")
 
         ct_aff = ct.dual().affine()
 
@@ -572,7 +572,8 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
         self._min_support = frozenset(min_support)
         self._max_support = frozenset(max_support)
 
-        assert self._min_support.issubset(self._max_support)
+        if not self._min_support.issubset(self._max_support):
+            raise ValueError("the min support must be a subset of the max support")
 
         self._extra_support = self._max_support.difference(self._min_support)
 
@@ -667,7 +668,8 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
             sage: w in PF
             False
         """
-        assert w in self.W
+        if w not in self.W:
+            raise ValueError("{} is not an element of the Weyl group".format(w))
         n = len(self.W.index_set()) - 1
         red = w.reduced_word()
         support = set(red)
@@ -691,11 +693,11 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
 
     def __getitem__(self, support):
         r"""
+        Return the cyclically decreasing element associated with ``support``.
+
         INPUT:
 
-         - ``support`` - a proper subset of the index_set, as a list or set.
-
-        Returns the cyclicaly decreasing element associated with ``support``.
+        - ``support`` -- a proper subset of the index_set, as a list or set
 
         EXAMPLES::
 
@@ -710,9 +712,9 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
         """
         index_set = sorted(self.W.index_set())
         support   = sorted(support)
-        assert set(support).issubset(set(index_set))
-        assert support != index_set
-        if len(support) == 0:
+        if not set(support).issubset(set(index_set)) or support == index_set:
+            raise ValueError("the support must be a proper subset of the index set")
+        if not support:
             return self.W.one()
         s = self.W.simple_reflections()
         i = 0

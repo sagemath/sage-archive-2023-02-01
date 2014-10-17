@@ -3531,8 +3531,8 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
 
     - Paul Zimmermann, Jeroen Demeyer (:trac:`14416`)
     """
-    cdef __mpz_struct* a = <__mpz_struct*>(mpq_numref(x))
-    cdef __mpz_struct* b = <__mpz_struct*>(mpq_denref(x))
+    cdef mpz_ptr a = mpq_numref(x)
+    cdef mpz_ptr b = mpq_denref(x)
     cdef int resultsign = mpz_sgn(a)
 
     if resultsign == 0:
@@ -3590,7 +3590,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
         remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
 
     # Convert abs(q) to a 64-bit integer.
-    cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
+    cdef mp_limb_t* q_limbs = (<mpz_ptr>q)._mp_d
     cdef uint64_t q64
     if sizeof(mp_limb_t) >= 8:
         q64 = q_limbs[0]

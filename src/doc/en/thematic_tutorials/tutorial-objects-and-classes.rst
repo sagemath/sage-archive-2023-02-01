@@ -285,7 +285,8 @@ Some particular actions modify the data structure of ``el``::
        sage: el.__class__
         <class 'sage.combinat.free_module.CombinatorialFreeModule_with_category.element_class'>
        sage: el.__dict__
-       {'_monomial_coefficients': {[1, 2, 3]: 1, [1, 3, 2]: 3}, '__custom_name': 'foo'}
+       {'__custom_name': 'foo',
+        '_monomial_coefficients': {[1, 2, 3]: 1, [1, 3, 2]: 3}}
 
     Lots of Sage objects are not Python objects but compiled Cython
     objects. Python sees them as builtin objects and you don't have access to
@@ -296,12 +297,8 @@ Some particular actions modify the data structure of ``el``::
         sage: type(e)
         <type 'sage.rings.integer.Integer'>
         sage: e.__dict__
-        dict_proxy({'__module__': 'sage.categories.category',
-         '_reduction': (<built-in function getattr>,
-             (Join of Category of euclidean domains
-              and Category of infinite enumerated sets, 'element_class')),
-         '__doc__': ...,
-         '_sage_src_lines_': <staticmethod object at 0x...>})
+        <dictproxy {'__doc__': ...
+         '_sage_src_lines_': <staticmethod object at 0x...>}>
         sage: e.__dict__.keys()
         ['__module__', '_reduction', '__doc__', '_sage_src_lines_']
 
@@ -309,12 +306,8 @@ Some particular actions modify the data structure of ``el``::
         sage: type(id4)
         <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
         sage: id4.__dict__
-        dict_proxy({'__module__': 'sage.categories.category',
-        '_reduction': (<built-in function getattr>,
-                      (Join of Category of finite permutation groups
-                           and Category of finite weyl groups, 'element_class')),
-        '__doc__': "...",
-        '_sage_src_lines_': <staticmethod object at 0x...>})
+        <dictproxy {'__doc__': ...
+        '_sage_src_lines_': <staticmethod object at 0x...>}>
 
 .. note::
 

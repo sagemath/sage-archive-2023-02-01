@@ -804,7 +804,7 @@ if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
     exec sage-list-packages standard
 fi
 
-if [ "$1" = "--installed" ]; then
+if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
     exec sage-list-packages installed
 fi
 

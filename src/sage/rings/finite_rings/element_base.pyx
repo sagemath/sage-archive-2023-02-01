@@ -589,7 +589,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         try:
             return self.nth_root(2, extend=extend, all=all)
         except ValueError:
-            raise ValueError, "must be a perfect square"
+            raise ValueError("must be a perfect square")
 
     def sqrt(self, extend=False, all = False):
         """

@@ -1053,12 +1053,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q(5)
             5
 
-        Accessing the `n`-th element of ``self`` as ``P[i]``::
+        Accessing the ``i``-th element of ``self`` as ``P[i]``::
 
-            sage: R = FinitePoset(DiGraph({'a':['b','c'], 'b':['d'], 'c':['d'], 'd':[]}), facade=False)
-            sage: R('a') == R[0]
+            sage: P = FinitePoset(DiGraph({'a':['b','c'], 'b':['d'], 'c':['d'], 'd':[]}), facade = False)
+            sage: P('a') == P[0]
             True
-            sage: R('d') == R[-1]
+            sage: P('d') == P[-1]
             True
 
         TESTS::

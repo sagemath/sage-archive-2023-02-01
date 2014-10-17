@@ -575,18 +575,21 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: F(2).square_root()
             4
             sage: F(3).square_root()
-            5*a + 1
+            2*a + 6
             sage: F(3).square_root()**2
             3
             sage: F(4).square_root()
-            5
+            2
             sage: K = FiniteField(7^3, 'alpha', impl='pari_mod')
             sage: K(3).square_root()
             Traceback (most recent call last):
             ...
             ValueError: must be a perfect square.
         """
-        return self.nth_root(2, extend=extend, all=all)
+        try:
+            return self.nth_root(2, extend=extend, all=all)
+        except ValueError:
+            raise ValueError, "must be a perfect square"
 
     def sqrt(self, extend=False, all = False):
         """
@@ -596,7 +599,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
             sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: (a^3 - a - 1).sqrt()
-            2*a^16 + a^15 + 2*a^13 + a^12 + 2*a^10 + a^9 + a^8 + 2*a^7 + 2*a^6 + a^5 + 2*a^4 + a^2 + a + 1
+            a^16 + 2*a^15 + a^13 + 2*a^12 + a^10 + 2*a^9 + 2*a^8 + a^7 + a^6 + 2*a^5 + a^4 + 2*a^2 + 2*a + 2
         """
         return self.square_root(extend=extend, all=all)
 

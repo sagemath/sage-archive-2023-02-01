@@ -61,7 +61,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
         n = n % (q-1)
         if n == 0:
             if all: return []
-            else: raise ValueError, "no nth root"
+            else: raise ValueError("no nth root")
         gcd, alpha, beta = n.xgcd(q-1) # gcd = alpha*n + beta*(q-1), so 1/n = alpha/gcd (mod q-1)
         if gcd == 1:
             return [self**alpha] if all else self**alpha
@@ -69,7 +69,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
         q1overn = (q-1)//n
         if self**q1overn != 1:
             if all: return []
-            else: raise ValueError, "no nth root"
+            else: raise ValueError("no nth root")
         self = self**alpha
         if cunningham:
             from sage.rings.factorint import factor_cunningham
@@ -98,7 +98,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             else:
                 return self
         else:
-            raise ValueError, "unknown algorithm"
+            raise ValueError("unknown algorithm")
 
 cdef class FinitePolyExtElement(FiniteRingElement):
     """
@@ -589,7 +589,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         try:
             return self.nth_root(2, extend=extend, all=all)
         except ValueError:
-            raise ValueError("must be a perfect square")
+            raise ValueError("must be a perfect square.")
 
     def sqrt(self, extend=False, all = False):
         """

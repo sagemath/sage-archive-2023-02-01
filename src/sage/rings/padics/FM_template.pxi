@@ -562,7 +562,7 @@ cdef class FMElement(pAdicTemplateElement):
                     aprec < right.prime_pow.prec_cap,
                     self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         Comparison of units, used in equality testing.
 

@@ -679,7 +679,7 @@ cdef class CAElement(pAdicTemplateElement):
                 raise PrecisionError("Elements not known to enough precision")
         return ccmp(self.value, right.value, aprec, aprec < self.absprec, aprec < right.absprec, self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         This function is used in comparing `p`-adic elements.
 

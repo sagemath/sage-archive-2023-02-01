@@ -264,9 +264,10 @@ class SageDoctestTextFormatter(SagePlainTextFormatter):
         EXAMPLES::
 
             sage: class FooGraphics(SageObject):
-            ....:     def _graphics_(self):
+            ....:     def _graphics_(self, **kwds):
             ....:         print('showing graphics') 
-            ....:         return True
+            ....:         from sage.structure.graphics_file import GraphicsFile
+            ....:         return GraphicsFile('/nonexistent.png', 'image/png')
             ....:     def _repr_(self):
             ....:         return 'Textual representation'
             sage: from sage.repl.display.formatter import SageDoctestTextFormatter
@@ -308,9 +309,10 @@ class SageConsoleTextFormatter(SagePlainTextFormatter):
         EXAMPLES::
 
             sage: class FooGraphics(SageObject):
-            ....:     def _graphics_(self):
+            ....:     def _graphics_(self, **kwds):
             ....:         print('showing graphics') 
-            ....:         return True
+            ....:         from sage.structure.graphics_file import GraphicsFile
+            ....:         return GraphicsFile('/nonexistent.png', 'image/png')
             ....:     def _repr_(self):
             ....:         return 'Textual representation'
             sage: from sage.repl.display.formatter import SageConsoleTextFormatter
@@ -321,7 +323,8 @@ class SageConsoleTextFormatter(SagePlainTextFormatter):
         """
         from sage.structure.sage_object import SageObject
         if isinstance(obj, SageObject) and hasattr(obj, '_graphics_'):
-            success = obj._graphics_()
-            if success: 
+            gfx = obj._graphics_()
+            if gfx: 
+                gfx.launch_viewer()
                 return ''
         return super(SageConsoleTextFormatter, self).__call__(obj)

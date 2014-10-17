@@ -553,7 +553,7 @@ def hnf_square(A, proof):
 
     W = B.stack (k*c + l*d)
     verbose("submatrix det: g=%s"%g)
-    CUTOFF = 2**30
+    CUTOFF = 2147483647  # 2^31-1
     if g == 0:
         # Big trouble -- matrix isn't invertible
         # Since we have no good conditioning code at present,

@@ -1038,7 +1038,7 @@ cdef class BinaryMatrix(LeanMatrix):
             return GF2_one
         return GF2_zero
 
-    cdef int set_unsafe(self, long r, long c, x) except 1:
+    cdef int set_unsafe(self, long r, long c, x) except -1:
         if x:
             bitset_add(self._M[r], c)
         else:

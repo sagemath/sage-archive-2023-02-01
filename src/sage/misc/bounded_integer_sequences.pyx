@@ -9,44 +9,56 @@ This module provides :class:`BoundedIntegerSequence`, which implements
 sequences of bounded integers and is for many (but not all) operations faster
 than representing the same sequence as a Python :class:`tuple`.
 
-It also provides some boilerplate functions that can be cimported in Cython
-modules::
+The underlying data structure is similar to :class:`~sage.misc.bitset.Bitset`,
+which means that certain operations are implemented by using fast shift
+operations from GMP.  The following boilerplate functions can be cimported in
+Cython modules::
 
-    cdef biseq_t allocate_biseq(size_t l, unsigned long int itemsize) except NULL
-       # Allocate memory (filled with zero) for a bounded integer sequence
-       # of length l with items fitting in itemsize bits.
+cdef bint allocate_biseq(biseq_t R, mp_size_t l, mp_size_t itemsize) except -1
+   # Allocate memory (filled with zero) for a bounded integer sequence
+   # of length l with items fitting in itemsize bits.
 
-    cdef biseq_t list_to_biseq(list data, unsigned int bound) except NULL
-       # Convert a list to a bounded integer sequence
+cdef void dealloc_biseq(biseq_t S)
+   # Free the data stored in S.
 
-    cdef list biseq_to_list(biseq_t S)
-       # Convert a bounded integer sequence to a list
+cdef bint copy_biseq(biseq_t R, biseq_t S)
+   # Replace the content of R by a copy of S
 
-    cdef biseq_t concat_biseq(biseq_t S1, biseq_t S2) except NULL
-       # Does not test whether the sequences have the same bound!
+cdef bint list_to_biseq(biseq_t R, list data, unsigned int bound) except -1
+   # Convert a list to a bounded integer sequence
 
-    cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2)
-       # Is S1=S2+something? Does not check whether the sequences have the same
-       # bound!
+cdef list biseq_to_list(biseq_t S)
+   # Convert a bounded integer sequence to a list
 
-    cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start)
-       # Returns the position *in S1* of S2 as a subsequence of S1[start:], or -1
-       # if S2 is not a subsequence. Does not check whether the sequences have the
-       # same bound!
+cdef bint concat_biseq(biseq_t R, biseq_t S1, biseq_t S2) except -1
+   # Does not test whether the sequences have the same bound!
 
-    cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0
-       # Returns the minimal *positive* integer i such that S2 starts with S1[i:].
-       # This function will *not* test whether S2 starts with S1!
+cdef bint first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_t d) except -1
+   # Boilerplate function for comparison of the first bits of two gmp bitsets,
+   # mimmicking mpz_congruent_2exp_p
 
-    cdef int index_biseq(biseq_t S, int item, size_t start)
-       # Returns the position *in S* of the item in S[start:], or -1 if S[start:]
-       # does not contain the item.
+cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2)
+   # Is S1=S2+something? Does not check whether the sequences have the same
+   # bound!
 
-    cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1
-       # Returns S[index], without checking margins
+cdef int contains_biseq(biseq_t S1, biseq_t S2, mp_size_t start) except -2
+   # Returns the position *in S1* of S2 as a subsequence of S1[start:], or -1
+   # if S2 is not a subsequence. Does not check whether the sequences have the
+   # same bound!
 
-    cdef biseq_t slice_biseq(biseq_t S, int start, int stop, int step) except NULL
-       # Returns the biseq S[start:stop:step]
+cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0
+   # Returns the minimal *positive* integer i such that S2 starts with S1[i:].
+   # This function will *not* test whether S2 starts with S1!
+
+cdef int index_biseq(biseq_t S, mp_limb_t item, mp_size_t start) except -2
+   # Returns the position *in S* of the item in S[start:], or -1 if S[start:]
+   # does not contain the item.
+
+cdef int getitem_biseq(biseq_t S, mp_size_t index) except -1
+   # Returns S[index], without checking margins
+
+cdef bint slice_biseq(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1
+   # Fills R with S[start:stop:step]
 
 """
 #*****************************************************************************
@@ -62,9 +74,11 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
+include "sage/libs/ntl/decl.pxi"
+include 'sage/misc/bitset.pxi'
 
-cdef extern from "mpz_pylong.h":
-    cdef long mpz_pythonhash(mpz_t src)
+#cdef extern from "mpz_pylong.h":
+#    cdef long mpz_pythonhash(mpz_t src)
 
 cdef extern from "gmp.h":
     cdef int mp_bits_per_limb
@@ -79,16 +93,16 @@ cdef extern from "gmp.h":
 cdef extern from "Python.h":
     bint PySlice_Check(PyObject* ob)
 
-cdef size_t times_size_of_limb = [1,2,4,8,16,32,64].index(sizeof(mp_limb_t))
-cdef size_t times_mp_bits_per_limb = [1,2,4,8,16,32,64,128,256].index(mp_bits_per_limb)
-cdef size_t mod_mp_bits_per_limb = ((<size_t>1)<<times_mp_bits_per_limb)-1
+cdef mp_size_t times_size_of_limb = [1,2,4,8,16,32,64].index(sizeof(mp_limb_t))
+cdef mp_size_t times_mp_bits_per_limb = [1,2,4,8,16,32,64,128,256].index(mp_bits_per_limb)
+cdef mp_size_t mod_mp_bits_per_limb = ((<mp_size_t>1)<<times_mp_bits_per_limb)-1
 
 cdef tuple ZeroNone = (0,None)
 cdef PyObject* zeroNone = <PyObject*>ZeroNone
 cdef dict EmptyDict = {}
 cdef PyObject* emptyDict = <PyObject*>EmptyDict
 
-from cython.operator import dereference as deref, preincrement as preinc, predecrement as predec
+from cython.operator import dereference as deref, preincrement as preinc, predecrement as predec, postincrement as postinc
 
 ###################
 #  Boilerplate
@@ -99,121 +113,129 @@ from cython.operator import dereference as deref, preincrement as preinc, predec
 # (De)allocation, copying
 #
 
-cdef biseq_t allocate_biseq(size_t l, unsigned long int itemsize) except NULL:
+cdef bint allocate_biseq(biseq_t R, mp_size_t l, mp_size_t itemsize) except -1:
     """
     Allocate memory for a bounded integer sequence of length l with items
-    fitting in itemsize bits. Returns a pointer to the bounded integer
-    sequence, or NULL on error.
+    fitting in itemsize bits.
     """
-    cdef biseq_t out = <biseq_t>sage_malloc(sizeof(biseq))
-    if out==NULL:
-        raise MemoryError("Can not allocate bounded integer sequence")
-    out.bitsize = l*itemsize
-    out.length = l
-    out.itembitsize = itemsize
-    out.mask_item = ((<unsigned int>1)<<itemsize)-1
-    sig_on()
-    mpz_init2(out.data, out.bitsize+mp_bits_per_limb)
-    sig_off()
-    return out
+    R.length = l
+    R.itembitsize = itemsize
+    R.mask_item = ((<mp_limb_t>1)<<itemsize)-1
+    if l:
+        bitset_init(R.data, l*itemsize)
 
 cdef void dealloc_biseq(biseq_t S):
-    mpz_clear(S.data)
-    sage_free(S)
+    if S.length:
+        bitset_free(S.data)
+
+cdef bint copy_biseq(biseq_t R, biseq_t S) except -1:
+    """
+    Create a copy of S and store it in R, overriding R's previous content.
+    """
+    if S.length:
+        if R.length:
+            bitset_realloc(R.data, S.data.size)
+        else:
+            bitset_init(R.data, S.data.size)
+        mpn_copyi(R.data.bits, S.data.bits, S.data.limbs)
+    elif R.length:
+        bitset_free(R.data)
+    R.length = S.length
+    R.itembitsize = S.itembitsize
+    R.mask_item = S.mask_item
 
 #
 # Conversion
 #
 
-cdef biseq_t list_to_biseq(list data, unsigned int bound) except NULL:
+cdef bint list_to_biseq(biseq_t R, list data, unsigned int bound) except -1:
     """
     Convert a list into a bounded integer sequence.
 
     """
     cdef mpz_t tmp
-    cdef biseq_t S
+    cdef mp_size_t ln
     if bound!=0:
         mpz_init_set_ui(tmp, bound-1)
-        S = allocate_biseq(len(data), mpz_sizeinbase(tmp, 2))
+        ln = mpz_sizeinbase(tmp, 2)
+        if ln>mp_bits_per_limb:
+            raise ValueError("The integer bound {} does not fit into {}".format(bound, mp_bits_per_limb))
+        allocate_biseq(R, len(data), ln)
         mpz_clear(tmp)
     else:
         raise ValueError("The bound for the items of bounded integer sequences must be positive")
     cdef unsigned long int item
     cdef mp_limb_t item_limb
-    cdef mp_limb_t tmp_limb
+    cdef mp_limb_t tmp_limb1, tmp_limb2
     cdef int offset_mod, offset_div
     cdef int offset = 0
     if not data:
-        return S
+        return True
     for item in data:
-        item_limb = <mp_limb_t>(item&S.mask_item)
+        item_limb = <mp_limb_t>(item&R.mask_item)
         offset_mod = offset&mod_mp_bits_per_limb
         offset_div = offset>>times_mp_bits_per_limb
         if offset_mod:
-            assert offset_div+1<(<__mpz_struct*>S.data)._mp_alloc
-            (<__mpz_struct*>S.data)._mp_d[offset_div+1] = mpn_lshift(&tmp_limb, &item_limb, 1, offset_mod)
-            (<__mpz_struct*>S.data)._mp_d[offset_div] |= tmp_limb
-            if (<__mpz_struct*>S.data)._mp_d[offset_div+1]!=0 and offset_div+1>=(<__mpz_struct*>S.data)._mp_size:
-                (<__mpz_struct*>S.data)._mp_size = offset_div+2
-            elif tmp_limb!=0 and offset_div>=(<__mpz_struct*>S.data)._mp_size:
-                (<__mpz_struct*>S.data)._mp_size = offset_div+1
+            tmp_limb2 = mpn_lshift(&tmp_limb1, &item_limb, 1, offset_mod)
+            if tmp_limb2:
+                # This can only happen, if offset_div is small enough to not
+                # write out of bounds, since initially we have allocated
+                # enough memory.
+                R.data.bits[offset_div+1] = tmp_limb2
+            R.data.bits[offset_div] |= tmp_limb1
         else:
-            assert offset_div<(<__mpz_struct*>S.data)._mp_alloc
-            (<__mpz_struct*>S.data)._mp_d[offset_div] = item_limb
-            if item_limb!=0 and offset_div>=(<__mpz_struct*>S.data)._mp_size:
-                (<__mpz_struct*>S.data)._mp_size = offset_div+1
-        offset += S.itembitsize
-    return S
+            R.data.bits[offset_div] = item_limb
+        offset += R.itembitsize
 
 cdef list biseq_to_list(biseq_t S):
     """
     Convert a bounded integer sequence to a list of integers.
     """
-    cdef int index, limb_index, bit_index, max_limb
-    index = 0
+    cdef mp_size_t limb_index, max_limbs
+    cdef mp_bitcnt_t bit_index, local_index
     cdef list L = []
-    cdef size_t n
-    # If limb_index<max_limb, then we safely are in allocated memory.
-    # If limb_index==max_limb, then we must only consider *one* limb (as it is the last)
-    # Otherwise, GMP was clever and has removed trailing zeroes.
-    max_limb = (<__mpz_struct*>S.data)._mp_size - 1
-    if max_limb<0:
-        return [int(0)]*S.length
+    if S.length==0:
+        return L
+    max_limbs = S.data.limbs
+    predec(max_limbs)
+    cdef mp_size_t n
     cdef mp_limb_t tmp_limb[2]
+    limb_index = 0
+    bit_index = 0   # This is the index mod mp_bits_per_limb in S.data
+    local_index = 0 # This is the index in tmp_limb
+    tmp_limb[0] = S.data.bits[0]
     for n from S.length>=n>0:
-        limb_index = index>>times_mp_bits_per_limb
-        bit_index  = index&mod_mp_bits_per_limb
-        # Problem: GMP tries to be clever, and sometimes removes trailing
-        # zeroes. Hence, we must take care to not read bits from non-allocated
-        # memory.
-        if limb_index < max_limb:
-            if bit_index:
-                if bit_index+S.itembitsize >= mp_bits_per_limb:
-                    mpn_rshift(<mp_limb_t*>tmp_limb, (<__mpz_struct*>S.data)._mp_d+limb_index, 2, bit_index)
-                    L.append(<int>(tmp_limb[0]&S.mask_item))
-                else:
-                    L.append(<int>((((<__mpz_struct*>S.data)._mp_d[limb_index])>>bit_index)&S.mask_item))
+        #print local_index, limb_index, bit_index
+        if local_index+S.itembitsize > mp_bits_per_limb:
+            #print "need more stuff"
+            local_index = 0
+            # tmp_limb[0] can not provide the next item, we need to get new stuff
+            if bit_index and limb_index < max_limbs:
+                # We move two limbs now, so that tmp_limb[0] will be completely full
+                #print "shifting two limbs"
+                mpn_rshift(<mp_limb_t*>tmp_limb, S.data.bits+limb_index, 2, bit_index)
             else:
-                L.append(<int>((<__mpz_struct*>S.data)._mp_d[limb_index]&S.mask_item))
-        elif limb_index == max_limb:
-            if bit_index:
-                L.append(<int>((((<__mpz_struct*>S.data)._mp_d[limb_index])>>bit_index)&S.mask_item))
-            else:
-                L.append(<int>((<__mpz_struct*>S.data)._mp_d[limb_index]&S.mask_item))
-        else:
-            break
-        index += S.itembitsize
-    if n:
-        L.extend([int(0)]*n)
+                #print "one limb is enough"
+                # We shift within one limb
+                tmp_limb[0] = S.data.bits[limb_index]>>bit_index
+        #else: tmp_limb[0] provides the next item
+        local_index += S.itembitsize
+        #print "next item from",Integer(tmp_limb[0]).bits(),"is",<int>(tmp_limb[0]&S.mask_item)
+        L.append(<int>(tmp_limb[0]&S.mask_item))
+        tmp_limb[0]>>=S.itembitsize
+        bit_index += S.itembitsize
+        if bit_index>=mp_bits_per_limb:
+            bit_index -= mp_bits_per_limb
+            preinc(limb_index)
     return L
 
 #
 # Arithmetics
 #
 
-cdef biseq_t concat_biseq(biseq_t S1, biseq_t S2) except NULL:
+cdef bint concat_biseq(biseq_t R, biseq_t S1, biseq_t S2) except -1:
     """
-    Concatenate two bounded integer sequences.
+    Concatenate two bounded integer sequences ``S1`` and ``S2``.
 
     ASSUMPTION:
 
@@ -223,24 +245,57 @@ cdef biseq_t concat_biseq(biseq_t S1, biseq_t S2) except NULL:
 
     OUTPUT:
 
-    - A pointer to the concatenated sequence, or NULL on error.
+    The result is written into ``R``, which must not be initialised
 
     """
-    cdef biseq_t out = <biseq_t>sage_malloc(sizeof(biseq))
-    if out==NULL:
-        raise MemoryError("Can not allocate bounded integer sequence")
-    out.bitsize = S1.bitsize+S2.bitsize
-    out.length = S1.length+S2.length
-    out.itembitsize = S1.itembitsize # do not test == S2.itembitsize
-    out.mask_item = S1.mask_item
-    sig_on()
-    mpz_init2(out.data, out.bitsize)
-    sig_off()
-    mpz_mul_2exp(out.data, S2.data, S1.bitsize)
-    mpz_ior(out.data, out.data, S1.data)
-    return out
+    R.itembitsize = S1.itembitsize # do not test == S2.itembitsize
+    R.mask_item = S1.mask_item
+    if S1.length==0:
+        if S2.length==0:
+            R.length = 0
+            return True
+        else:
+            R.length = S2.length
+            bitset_init(R.data, S2.data.size)
+            mpn_copyi(R.data.bits, S2.data.bits, S2.data.limbs)
+    else:
+        if S2.length==0:
+            R.length = S1.length
+            bitset_init(R.data, S1.data.size)
+            mpn_copyi(R.data.bits, S1.data.bits, S1.data.limbs)
+        else:
+            R.length = S1.length+S2.length
+            bitset_init(R.data, S1.data.size+S2.data.size)
+            mpn_lshift(R.data.bits+(S1.data.size>>times_mp_bits_per_limb), S2.data.bits,
+                       S2.data.limbs, S1.data.size&mod_mp_bits_per_limb)
+            mpn_ior_n(R.data.bits, R.data.bits, S1.data.bits, S1.data.limbs)
 
-cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2):
+cdef inline bint first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_t d) except -1:
+    """
+    Compare the first bits of two gmp bitsets
+
+    INPUT:
+
+    - b1,b2: Pointers to bitsets
+    - d: The number of bits to be compared
+
+    ASSUMPTION:
+
+    d must not exceed the length of either bitset.
+
+    """
+    cdef mp_size_t i, dlimbs
+    cdef unsigned long dbits
+    dlimbs = d>>times_mp_bits_per_limb
+    if mpn_cmp(b1,b2,dlimbs)!=0:
+        return False
+    dbits  = d&mod_mp_bits_per_limb
+    if dbits==0:
+        return True
+    return (((b1[dlimbs])^(b2[dlimbs]))&(((<mp_limb_t>1)<<dbits)-1))==0
+
+
+cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2) except -1:
     """
     Tests if bounded integer sequence S1 starts with bounded integer sequence S2
 
@@ -251,11 +306,15 @@ cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2):
       tested.
 
     """
-    return mpz_congruent_2exp_p(S1.data, S2.data, S2.bitsize)
+    if S2.length == 0:
+        return True
+    if S2.length>S1.length:
+        return False
+    return first_bits_equal(S1.data.bits, S2.data.bits, S2.data.size)
 
-cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start) except -2:
+cdef int contains_biseq(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
     """
-    Tests if bounded integer sequence ``S1[start:]`` contains a sub-sequence ``S2``
+    Tests if the bounded integer sequence ``S1[start:]`` contains a sub-sequence ``S2``
 
     INPUT:
 
@@ -265,7 +324,7 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start) except -2:
     OUTPUT:
 
     Index ``i>=start`` such that ``S1[i:]`` starts with ``S2``, or ``-1`` if
-    ``S1`` does not contain ``S2``.
+    ``S1[start:]`` does not contain ``S2``.
 
     ASSUMPTION:
 
@@ -276,113 +335,185 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start) except -2:
     """
     if S1.length<S2.length+start:
         return -1
-    cdef __mpz_struct seq
-    cdef int limb_size, limb_size_orig
-    cdef mpz_t tmp
-    # We will use tmp to store enough bits to be able to compare with S2.
-    # Hence, we say that its _mp_size is equal to that of S2. This may not be
-    # correct, as we move bits from S1 (hence, there might be different
-    # trailing zeroes), but this is not critical for the mpz_* functions we
-    # are using here: _mp_size must be big enough, but can be bigger than
-    # needed.
-    #
-    # Problem: When bitshifting data of S1, it may happen that S1 has some
-    # cut-off trailing zeroes. In this case, the bit-shift will not fill all
-    # allocated memory, and thus the highest limbs of tmp may still be
-    # non-zero from previous bitshifts. If the highest limb of S2 happens to
-    # be equal to this non-zero artifact of previous bitshift operations on
-    # S1, then the congruence tests will give the wrong result (telling that
-    # S2 in S1 even though the last items of S2 are non-zero and the
-    # corresponding items of S1 are zero.
-    #
-    # Solution: We only shift the limbs of S1 that are guaranteed to be
-    # correct. Then, we compare S2 with the shifted version of S1 at most up
-    # to the number of valid limbs. If S2's _mp_size is not larger than that,
-    # then it is a sub-sequence; otherwise (provided that we are keeping track
-    # of _mp_size correctly!!!) it has non-zero bits where S1 has (cut-off)
-    # trailing zeroes, and can thus be no sub-sequence (also not for higher
-    # index).
-    seq = deref(<__mpz_struct*>S2.data)
-    # The number of limbs required to store data of S2's bitsize (including
-    # trailing zeroes)
-    limb_size = (S2.bitsize>>times_mp_bits_per_limb)+1
-    # Size of S2 without trailing zeroes:
-    limb_size_orig = seq._mp_size
-
-    seq = deref(<__mpz_struct*>S1.data)
-    cdef int n, limb_index, bit_index
-    # Idea: We shift-copy enough limbs from S1 to tmp and then compare with
-    # S2, for each shift.
-    sig_on()
-    mpz_init2(tmp, S2.bitsize+mp_bits_per_limb)
-    sig_off()
-    # The maximal number of limbs of S1 that is safe to use after the current
-    # position, but not more than what fits into tmp:
-    cdef int max_S1_limbs = seq._mp_size-((start*S1.itembitsize)>>times_mp_bits_per_limb)
-    cdef int max_limb_size = min((<__mpz_struct*>tmp)._mp_alloc, max_S1_limbs)
-    if ((start*S1.itembitsize)&mod_mp_bits_per_limb)==0:
-        # We increase it, since in the loop it is decreased when the index is
-        # zero modulo bits per limb
-        preinc(max_S1_limbs)
-    n = 0
-    cdef int index = 0
-    # tmp may have trailing zeroes, and GMP can NOT cope with that!
-    # Hence, we need to adjust the size later.
-    (<__mpz_struct*>tmp)._mp_size = limb_size
-    for index from start<=index<=S1.length-S2.length:
+    if S2.length==0:
+        return start
+    cdef bitset_t tmp
+    bitset_init(tmp, S2.data.size+mp_bits_per_limb)
+    cdef mp_size_t index = 0
+    cdef mp_bitcnt_t n = 0
+    cdef mp_size_t limb_index, bit_index
+    cdef mp_bitcnt_t offset = S2.data.size&mod_mp_bits_per_limb
+    for index from start <= index <= S1.length-S2.length:
         limb_index = n>>times_mp_bits_per_limb
-        # Adjust the number of limbs we are shifting
-        bit_index  = n&mod_mp_bits_per_limb
+        bit_index = n&mod_mp_bits_per_limb
+        # We shift a part of S1 (with length S2) by bit_index, and compare
+        # with S2.
         if bit_index:
-            if limb_size < max_limb_size:
-                assert limb_size<(<__mpz_struct*>tmp)._mp_alloc
-                mpn_rshift((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, limb_size+1, bit_index)
+            if offset+bit_index>mp_bits_per_limb:
+                mpn_rshift(tmp.bits, S1.data.bits+limb_index, S2.data.limbs+1, bit_index)
             else:
-                assert max_limb_size<=(<__mpz_struct*>tmp)._mp_alloc
-                (<__mpz_struct*>tmp)._mp_size = max_limb_size
-                mpn_rshift((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, max_limb_size, bit_index)
+                mpn_rshift(tmp.bits, S1.data.bits+limb_index, S2.data.limbs, bit_index)
         else:
-            # The bit_index is zero, and hence one limb less is remaining. We
-            # thus decrement max_S1_limbs.
-            predec(max_S1_limbs)
-            max_limb_size = min((<__mpz_struct*>tmp)._mp_alloc, max_S1_limbs)
-            if limb_size < max_limb_size:
-                assert limb_size<=(<__mpz_struct*>tmp)._mp_alloc
-                mpn_copyi((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, limb_size)
-            else:
-                assert max_limb_size<=(<__mpz_struct*>tmp)._mp_alloc
-                (<__mpz_struct*>tmp)._mp_size = max_limb_size
-                mpn_copyi((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, max_limb_size)
-        # Now, the first min(limb_size,max_limb_size) limbs of tmp are
-        # guaranteed to be valid. The rest may be junk.
-
-        # If the number of valid limbs of tmp is smaller than limb_size_orig
-        # (this can only happen if max_limb_size became small), then we were
-        # running into trailing zeroes of S1. Hence, as explained above, we
-        # can decide now whether S2 is a sub-sequence of S1 in the case that
-        # the non-cutoff bits match.
-        if max_limb_size<limb_size_orig:
-            # We have exactly max_limb_size limbs to compare
-            if mpn_cmp((<__mpz_struct*>tmp)._mp_d, (<__mpz_struct*>(S2.data))._mp_d, max_limb_size)==0:
-                mpz_clear(tmp)
-                if limb_size_orig > max_limb_size:
-                    # S2 has further non-zero entries
-                    return -1
-                # Both S2 and S1 have enough trailing zeroes
-                return index
-        else:
-            if mpz_congruent_2exp_p(S2.data, tmp, S2.bitsize):
-                mpz_clear(tmp)
-                return index
+            mpn_copyi(tmp.bits, S1.data.bits+limb_index, S2.data.limbs)
+        if first_bits_equal(tmp.bits, S2.data.bits, S2.data.size):
+            bitset_free(tmp)
+            return index
         n += S1.itembitsize
-    mpz_clear(tmp)
+    bitset_free(tmp)
     return -1
+
+cdef int index_biseq(biseq_t S, mp_limb_t item, mp_size_t start) except -2:
+    """
+    Returns the position in S of an item in S[start:], or -1 if S[start:] does
+    not contain the item.
+
+    """
+    cdef mp_size_t limb_index, max_limbs
+    cdef mp_bitcnt_t bit_index, local_index
+    if S.length==0:
+        return -1
+    max_limbs = S.data.limbs
+    predec(max_limbs)
+    cdef mp_size_t n
+    cdef mp_limb_t tmp_limb[2]
+    limb_index = 0
+    bit_index = 0   # This is the index mod mp_bits_per_limb in S.data
+    local_index = 0 # This is the index in tmp_limb
+    tmp_limb[0] = S.data.bits[0]
+    item &= S.mask_item
+    for n from 0<=n<S.length:
+        if local_index+S.itembitsize > mp_bits_per_limb:
+            local_index = 0
+            # tmp_limb[0] can not provide the next item, we need to get new stuff
+            if bit_index and limb_index < max_limbs:
+                # We move two limbs now, so that tmp_limb[0] will be completely full
+                mpn_rshift(<mp_limb_t*>tmp_limb, S.data.bits+limb_index, 2, bit_index)
+            else:
+                # We shift within one limb
+                tmp_limb[0] = S.data.bits[limb_index]>>bit_index
+        #else: tmp_limb[0] provides the next item
+        local_index += S.itembitsize
+        if item == tmp_limb[0]&S.mask_item:
+            return n
+        tmp_limb[0]>>=S.itembitsize
+        bit_index += S.itembitsize
+        if bit_index>=mp_bits_per_limb:
+            bit_index -= mp_bits_per_limb
+            preinc(limb_index)
+    return -1
+
+cdef int getitem_biseq(biseq_t S, mp_size_t index) except -1:
+    """
+    Get item S[index], without checking margins.
+
+    """
+    cdef mp_size_t limb_index, bit_index
+    index *= S.itembitsize
+    limb_index = index>>times_mp_bits_per_limb
+    bit_index  = index&mod_mp_bits_per_limb
+    cdef mp_limb_t tmp_limb[2]
+    cdef int out
+    if bit_index:
+        # limb_size is 1 or 2
+        if bit_index+S.itembitsize>mp_bits_per_limb:
+            mpn_rshift(tmp_limb, S.data.bits+limb_index, 2, bit_index)
+            out = <int>(tmp_limb[0])
+        else:
+            out = <int>((S.data.bits[limb_index])>>bit_index)
+    else:
+        out = <int>(S.data.bits[limb_index])
+    return out&S.mask_item
+
+cdef bint slice_biseq(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1:
+    """
+    Create the slice S[start:stop:step] as bounded integer sequence.
+
+    """
+    cdef mp_size_t length, total_shift, n
+    if step>0:
+        if stop>start:
+            length = ((stop-start-1)//step)+1
+        else:
+            allocate_biseq(R, 0, S.itembitsize)
+            return True
+    else:
+        if stop>=start:
+            allocate_biseq(R, 0, S.itembitsize)
+            return True
+        else:
+            length = ((stop-start+1)//step)+1
+    allocate_biseq(R, length, S.itembitsize)
+    cdef mp_size_t offset_mod, offset_div
+    total_shift = start*S.itembitsize
+    if step==1:
+        # Slicing essentially boils down to a shift operation.
+        offset_mod = total_shift&mod_mp_bits_per_limb
+        offset_div = total_shift>>times_mp_bits_per_limb
+        if offset_mod:
+            #print "mpn_rshift",R.data.limbs,"by",offset_mod,"bits"
+            mpn_rshift(R.data.bits, S.data.bits+offset_div, R.data.limbs, offset_mod)
+            # Perhaps the last to-be-moved item partially belongs to the next
+            # limb of S?
+            #print "->",bitset_string(R.data)
+            if (R.data.size&mod_mp_bits_per_limb)+offset_mod>mp_bits_per_limb:
+                #print "adjust the final limb"
+                R.data.bits[R.data.limbs-1] |= (S.data.bits[offset_div+R.data.limbs]<<(mp_bits_per_limb-offset_mod))
+                #print "->", bitset_string(R.data)
+        else:
+            #print "just copying",R.data.limbs,"limbs"
+            mpn_copyi(R.data.bits, S.data.bits+offset_div, R.data.limbs)
+            #print "->", bitset_string(R.data)
+        # Perhaps the last few bits of the last limb have to be set to zero?
+        offset_mod = (length*S.itembitsize)&mod_mp_bits_per_limb
+        if offset_mod:
+            #print "focus on",offset_mod,"bits"
+            R.data.bits[R.data.limbs-1] &= ((<mp_limb_t>1)<<offset_mod) - 1
+            #print "->",bitset_string(R.data)
+        return True
+    # Now for the difficult case: 
+    #
+    # Convention for variable names: We move data from *_src to *_tgt
+    # tmp_limb is used to temporarily store the data that we move/shift
+    cdef mp_limb_t tmp_limb[2]
+    cdef mp_limb_t tmp_limb2
+    cdef mp_size_t offset_div_src, max_limb
+    cdef mp_bitcnt_t offset_mod_src
+    cdef mp_size_t offset_src = total_shift
+    cdef mp_bitcnt_t bitstep = step*S.itembitsize
+    cdef mp_bitcnt_t offset_mod_tgt
+    cdef mp_size_t offset_div_tgt
+    cdef mp_size_t offset_tgt = 0
+    for n from length>=n>0:
+        offset_div_src = offset_src>>times_mp_bits_per_limb
+        offset_mod_src = offset_src&mod_mp_bits_per_limb
+        offset_div_tgt = offset_tgt>>times_mp_bits_per_limb
+        offset_mod_tgt = offset_tgt&mod_mp_bits_per_limb
+        # put data from src to tmp_limb[0].
+        if offset_mod_src:
+            if (offset_mod_src+S.itembitsize > mp_bits_per_limb):
+                mpn_rshift(tmp_limb, S.data.bits+offset_div_src, 2, offset_mod_src)
+                tmp_limb[0] &= S.mask_item
+            else:
+                tmp_limb[0] = ((S.data.bits[offset_div_src])>>offset_mod_src) & S.mask_item
+        else:
+            tmp_limb[0] = S.data.bits[offset_div_src] & S.mask_item
+        # put data from tmp_limb[0] to tgt
+        if offset_mod_tgt:
+            tmp_limb2 = mpn_lshift(tmp_limb, tmp_limb, 1, offset_mod_tgt)
+            if tmp_limb2:
+                R.data.bits[offset_div_tgt+1] = tmp_limb2
+            R.data.bits[offset_div_tgt]  |= tmp_limb[0]
+        else:
+            R.data.bits[offset_div_tgt] = tmp_limb[0]
+        offset_tgt += S.itembitsize
+        offset_src += bitstep
 
 cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0:
     """
     Returns the smallest **positive** integer ``i`` such that ``S2`` starts with ``S1[i:]``.
 
-    Returns ``-1`` if there is no overlap. Note that ``i==0`` will not be considered!
+    Returns ``-1`` if there is no overlap. Note that ``i==0`` (``S2`` starts with ``S1``)
+    will not be considered!
 
     INPUT:
 
@@ -390,235 +521,58 @@ cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0:
 
     ASSUMPTION:
 
-    - The two sequences must have equivalent bounds, i.e., the items on the
-      sequences must fit into the same number of bits. This condition is not
-      tested.
+    The two sequences must have equivalent bounds, i.e., the items on the
+    sequences must fit into the same number of bits. This condition is not
+    tested.
 
     """
-    cdef __mpz_struct seq
-    seq = deref(<__mpz_struct*>S1.data)
-    cdef mpz_t tmp
-    # Idea: We shift-copy enough limbs from S1 to tmp and then compare with
-    # the initial part of S2, for each shift.
-    sig_on()
-    mpz_init2(tmp, S1.bitsize+mp_bits_per_limb)
-    sig_off()
-    # We will use tmp to store enough bits to be able to compare with the tail
-    # of S1.
-    cdef int n, limb_index, bit_index
-    cdef int index, i, start_index
+    # Idea: We store the maximal possible tail of S1 in a temporary bitset,
+    # and then rightshift it (taking care that the number of to-be-shifted
+    # limbs will decrease over time), comparing with the initial part of S2
+    # after each step.
+    if S1.length == 0:
+        raise ValueError("First argument must be of positive length")
+    cdef bitset_t tmp
+    cdef mp_size_t limb_index
+    cdef mp_bitcnt_t bit_index, n
+    cdef mp_size_t index, i, start_index
     if S2.length>=S1.length:
         start_index = 1
     else:
         start_index = S1.length-S2.length
+    if start_index == S1.length:
+        return -1
     n = S1.itembitsize*start_index
+    ## Initilise the temporary bitset
+    # Allocate an additional limb, to cope with shifting accross limb borders
+    bitset_init(tmp, (mp_bits_per_limb+S1.data.size)-n)
+    cdef mp_size_t nlimbs = tmp.limbs # number of to-be-shifted limbs
+    limb_index = n>>times_mp_bits_per_limb
+    bit_index  = n&mod_mp_bits_per_limb
+    if bit_index==0:
+        mpn_copyi(tmp.bits, S1.data.bits+limb_index, predec(nlimbs))
+    else:
+        if ((S1.data.size-n)&mod_mp_bits_per_limb)+bit_index>mp_bits_per_limb:
+            # Need to shift an additional limb
+            mpn_rshift(tmp.bits, S1.data.bits+limb_index, nlimbs, bit_index)
+        else:
+            mpn_rshift(tmp.bits, S1.data.bits+limb_index, predec(nlimbs), bit_index)
+    cdef mp_bitcnt_t remaining_size = S1.data.size - n
+    n = 0  # This now counts how many bits of the highest limb of tmp we have shifted.
     for index from start_index<=index<S1.length:
-        limb_index = n>>times_mp_bits_per_limb
-        if limb_index>=seq._mp_size:
-            break
-        bit_index  = n&mod_mp_bits_per_limb
-        if bit_index:
-            assert seq._mp_size-limb_index<=(<__mpz_struct*>tmp)._mp_alloc
-            mpn_rshift((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, seq._mp_size-limb_index, bit_index)
-        else:
-            assert seq._mp_size-limb_index<=(<__mpz_struct*>tmp)._mp_alloc
-            mpn_copyi((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, seq._mp_size-limb_index)
-        (<__mpz_struct*>tmp)._mp_size = seq._mp_size-limb_index
-        if mpz_congruent_2exp_p(tmp, S2.data, S1.bitsize-n):
-            mpz_clear(tmp)
+        if first_bits_equal(tmp.bits, S2.data.bits, remaining_size):
+            bitset_free(tmp)
             return index
-        n += S1.itembitsize
-    # now, it could be that we have to check for leading zeroes on S2.
-    if index<S1.length:
-        mpz_clear(tmp)
-        mpz_init_set_ui(tmp, 0)
-        for i from index <= i < S1.length:
-            if mpz_congruent_2exp_p(tmp, S2.data, S1.bitsize-n):
-                mpz_clear(tmp)
-                return i
+        remaining_size -= S1.itembitsize
+        if n>=mp_bits_per_limb:
+            mpn_rshift(tmp.bits, tmp.bits, predec(nlimbs), S1.itembitsize)
+            n = 0
+        else:
+            mpn_rshift(tmp.bits, tmp.bits, nlimbs, S1.itembitsize)
             n += S1.itembitsize
-    mpz_clear(tmp)
+    bitset_free(tmp)
     return -1
 
-cdef int index_biseq(biseq_t S, int item, size_t start) except -2:
-    """
-    Returns the position in S of an item in S[start:], or -1 if S[start:] does
-    not contain the item.
-
-    """
-    cdef __mpz_struct seq
-    seq = deref(<__mpz_struct*>S.data)
-
-    cdef int n, limb_index, bit_index, max_limb
-    cdef mp_limb_t tmp_limb[2]
-    item &= S.mask_item
-    n = 0
-    # If limb_index<max_limb, then we safely are in allocated memory.
-    # If limb_index==max_limb, then we must only consider *one* limb (as it is the last)
-    # Otherwise, GMP was clever and has removed trailing zeroes.
-    max_limb = seq._mp_size - 1
-    cdef int index = 0
-    for index from 0<=index<S.length:
-        limb_index = n>>times_mp_bits_per_limb
-        bit_index  = n&mod_mp_bits_per_limb
-        if limb_index < max_limb:
-            if bit_index:
-                if bit_index+S.itembitsize >= mp_bits_per_limb:
-                    mpn_rshift(tmp_limb, seq._mp_d+limb_index, 2, bit_index)
-                    if item==(tmp_limb[0]&S.mask_item):
-                        return index
-                elif item==(((seq._mp_d[limb_index])>>bit_index)&S.mask_item):
-                    return index
-            elif item==(seq._mp_d[limb_index]&S.mask_item):
-                return index
-        elif limb_index == max_limb:
-            if bit_index:
-                if item==(((seq._mp_d[limb_index])>>bit_index)&S.mask_item):
-                    return index
-            elif item==(seq._mp_d[limb_index]&S.mask_item):
-                return index
-        else:
-            if item==0 and index<S.length:
-                return index
-            else:
-                return -1
-        n += S.itembitsize
-    return -1
-
-cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1:
-    """
-    Get item S[index], without checking margins.
-
-    """
-    cdef __mpz_struct seq
-    seq = deref(<__mpz_struct*>S.data)
-    cdef long int limb_index, bit_index, limb_size
-    index *= S.itembitsize
-    limb_index = index>>times_mp_bits_per_limb
-    bit_index  = index&mod_mp_bits_per_limb
-    cdef mp_limb_t tmp_limb[2]
-    cdef int out
-    if limb_index>=seq._mp_size:
-        return 0
-    if bit_index:
-        # limb_size is 1 or 2
-        limb_size = ((bit_index+S.itembitsize-1)>>times_mp_bits_per_limb)+1
-        if limb_index+limb_size>seq._mp_size:
-            limb_size = 1 # the second limb may be non-allocated memory and
-                          # should be treated as zero.
-        if limb_size!=1:
-            assert limb_size<=2
-            mpn_rshift(tmp_limb, seq._mp_d+limb_index, limb_size, bit_index)
-            out = <int>(tmp_limb[0])
-        else:
-            out = <int>((seq._mp_d[limb_index])>>bit_index)
-    else:
-        out = <int>(seq._mp_d[limb_index])
-    return out&S.mask_item
-
-cdef biseq_t slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
-    """
-    Create the slice S[start:stop:step] as bounded integer sequence.
-
-    Return:
-
-    - A pointer to the resulting bounded integer sequence, or NULL on error.
-
-    """
-    cdef long int length, total_shift, n
-    if step>0:
-        if stop>start:
-            length = ((stop-start-1)//step)+1
-        else:
-            return allocate_biseq(0, S.itembitsize)
-    else:
-        if stop>=start:
-            return allocate_biseq(0, S.itembitsize)
-        else:
-            length = ((stop-start+1)//step)+1
-    cdef biseq_t out = allocate_biseq(length, S.itembitsize)
-    cdef int offset_mod, offset_div
-    cdef int limb_size
-    total_shift = start*S.itembitsize
-    if step==1:
-        # allocate_biseq allocates one limb more than strictly needed. This is
-        # enough to shift a limb* array directly to its ._mp_d field.
-        offset_mod = total_shift&mod_mp_bits_per_limb
-        offset_div = total_shift>>times_mp_bits_per_limb
-        limb_size = ((offset_mod+out.bitsize-1)>>times_mp_bits_per_limb)+1
-        # GMP tries to be clever and thus may cut trailing zeroes. Hence,
-        # limb_size may be so large that it would access non-allocated
-        # memory. We adjust this now:
-        limb_size = min(limb_size, (<__mpz_struct*>(S.data))._mp_size-offset_div)
-        if limb_size<=0:
-            (<__mpz_struct*>(out.data))._mp_size = 0
-            return out
-        assert limb_size<=(<__mpz_struct*>(out.data))._mp_alloc
-        if offset_mod:
-            mpn_rshift((<__mpz_struct*>(out.data))._mp_d, (<__mpz_struct*>(S.data))._mp_d+offset_div, limb_size, offset_mod)
-        else:
-            mpn_copyi((<__mpz_struct*>(out.data))._mp_d, (<__mpz_struct*>(S.data))._mp_d+offset_div, limb_size)
-        for n from limb_size>n>=0:
-            if (<__mpz_struct*>(out.data))._mp_d[n]:
-                break
-        (<__mpz_struct*>(out.data))._mp_size = n+1
-        mpz_fdiv_r_2exp(out.data, out.data, out.bitsize)
-        return out
-
-    # Convention for variable names: We move data from *_src to *_tgt
-    # tmp_limb is used to temporarily store the data that we move/shift
-    cdef mp_limb_t tmp_limb[2]
-    cdef int offset_mod_src, offset_div_src, max_limb
-    cdef int offset_src = total_shift
-    cdef __mpz_struct *seq_src
-    seq_src = <__mpz_struct*>S.data
-    # We need to take into account that GMP tries to be clever, and removes
-    # trailing zeroes from the allocated memory.
-    max_limb = seq_src._mp_size - 1
-    cdef int bitstep = step*S.itembitsize
-    cdef int offset_mod_tgt, offset_div_tgt
-    cdef int offset_tgt = 0
-    cdef __mpz_struct *seq_tgt
-    seq_tgt = <__mpz_struct*>out.data
-    for n from length>=n>0:
-        offset_div_src = offset_src>>times_mp_bits_per_limb
-        offset_mod_src = offset_src&mod_mp_bits_per_limb
-        offset_div_tgt = offset_tgt>>times_mp_bits_per_limb
-        offset_mod_tgt = offset_tgt&mod_mp_bits_per_limb
-        # put data from src to tmp_limb[0].
-        if offset_div_src < max_limb:
-            if offset_mod_src:
-                if (offset_mod_src+S.itembitsize >= mp_bits_per_limb):
-                    mpn_rshift(tmp_limb, seq_src._mp_d+offset_div_src, 2, offset_mod_src)
-                    tmp_limb[0] &= S.mask_item
-                else:
-                    tmp_limb[0] = ((seq_src._mp_d[offset_div_src])>>offset_mod_src) & S.mask_item
-            else:
-                tmp_limb[0] = seq_src._mp_d[offset_div_src] & S.mask_item
-        elif offset_div_src == max_limb:
-            if offset_mod_src:
-                tmp_limb[0] = ((seq_src._mp_d[offset_div_src])>>offset_mod_src) & S.mask_item
-            else:
-                tmp_limb[0] = seq_src._mp_d[offset_div_src] & S.mask_item
-        else:
-            tmp_limb[0] = 0
-        # put data from tmp_limb[0] to tgt
-        if offset_mod_tgt:
-            assert offset_div_tgt+1<(<__mpz_struct*>(out.data))._mp_alloc
-            seq_tgt._mp_d[offset_div_tgt+1] = mpn_lshift(tmp_limb, tmp_limb, 1, offset_mod_tgt)
-            seq_tgt._mp_d[offset_div_tgt]  |= tmp_limb[0]
-            if seq_tgt._mp_d[offset_div_tgt+1]!=0 and offset_div_tgt+1>=seq_tgt._mp_size:
-                seq_tgt._mp_size = offset_div_tgt+2
-            elif tmp_limb[0]!=0 and offset_div_tgt>=seq_tgt._mp_size:
-                seq_tgt._mp_size = offset_div_tgt+1
-        else:
-            assert offset_div_tgt<(<__mpz_struct*>(out.data))._mp_alloc
-            seq_tgt._mp_d[offset_div_tgt] = tmp_limb[0]
-            if tmp_limb[0]!=0:
-                seq_tgt._mp_size = offset_div_tgt+1
-        offset_tgt += S.itembitsize
-        offset_src += bitstep
-    return out
 
 ###########################################
 # A cdef class that wraps the above, and
@@ -791,7 +745,7 @@ cdef class BoundedIntegerSequence:
         <>
 
     """
-    def __cinit__(self, unsigned long int bound, list data):
+    def __cinit__(self, *args, **kwds):
         """
         Allocate memory for underlying data
 
@@ -813,7 +767,7 @@ cdef class BoundedIntegerSequence:
 
         """
         # In __init__, we'll raise an error if the bound is 0.
-        self.data = NULL
+        self.data.length = 0
 
     def __dealloc__(self):
         """
@@ -826,8 +780,7 @@ cdef class BoundedIntegerSequence:
             sage: del S     # indirect doctest
 
         """
-        if self.data!=NULL:
-            dealloc_biseq(self.data)
+        dealloc_biseq(self.data)
 
     def __init__(self, unsigned long int bound, list data):
         """
@@ -871,7 +824,7 @@ cdef class BoundedIntegerSequence:
         """
         if bound==0:
             raise ValueError("Positive bound expected")
-        self.data = list_to_biseq(data, bound)
+        list_to_biseq(self.data, data, bound)
 
     def __copy__(self):
         """
@@ -919,18 +872,7 @@ cdef class BoundedIntegerSequence:
             True
 
         """
-        cdef size_t n
-        cdef char *s
-        n = mpz_sizeinbase(self.data.data, 32) + 2
-        s = <char *>PyMem_Malloc(n)
-        if s == NULL:
-            raise MemoryError, "Unable to allocate enough memory for the string defining a bounded integer sequence."
-        sig_on()
-        mpz_get_str(s, 32, self.data.data)
-        sig_off()
-        data_str = <object> PyString_FromString(s)
-        PyMem_Free(s)
-        return NewBISEQ, (data_str, self.data.bitsize, self.data.itembitsize, self.data.length)
+        return NewBISEQ, (bitset_pickle(self.data.data), self.data.itembitsize, self.data.length)
 
     def __len__(self):
         """
@@ -1012,8 +954,7 @@ cdef class BoundedIntegerSequence:
             64
 
         """
-        cdef long b = 1
-        return (b<<self.data.itembitsize)
+        return Integer(1)<<self.data.itembitsize
 
     def __iter__(self):
         """
@@ -1039,40 +980,37 @@ cdef class BoundedIntegerSequence:
             [0, 0, 0, 0]
 
         """
-        cdef __mpz_struct seq
-        seq = deref(<__mpz_struct*>self.data.data)
-        cdef int index, limb_index, bit_index
-        cdef int max_limb
-        index = 0
-        cdef mp_limb_t tmp_limb[2]
-        cdef size_t n, n2
-        # If limb_index<max_limb, then we safely are in allocated memory.
-        # If limb_index==max_limb, then we must only consider *one* limb (as it is the last)
-        # Otherwise, GMP was clever and has removed trailing zeroes.
-        max_limb = seq._mp_size - 1
-        if max_limb<0:
-            for n from self.data.length>=n>0:
-                yield <int>0
+        if self.data.length==0:
             return
+        cdef mp_size_t limb_index, max_limbs
+        cdef mp_bitcnt_t bit_index, local_index
+        max_limbs = self.data.data.limbs
+        predec(max_limbs)
+        cdef mp_size_t n
+        cdef mp_limb_t tmp_limb[2]
+        limb_index = 0
+        bit_index = 0   # This is the index mod mp_bits_per_limb in self.data.data
+        local_index = 0 # This is the index in tmp_limb
+        tmp_limb[0] = self.data.data.bits[0]
         for n from self.data.length>=n>0:
-            limb_index = index>>times_mp_bits_per_limb
-            bit_index  = index&mod_mp_bits_per_limb
-            if limb_index < max_limb:
-                if bit_index:
-                    if bit_index+self.data.itembitsize >= mp_bits_per_limb:
-                        mpn_rshift(tmp_limb, seq._mp_d+limb_index, 2, bit_index)
-                        yield <int>(tmp_limb[0]&self.data.mask_item)
-                    else:
-                        yield <int>(((seq._mp_d[limb_index])>>bit_index)&self.data.mask_item)
+            if local_index+self.data.itembitsize > mp_bits_per_limb:
+                local_index = 0
+                # tmp_limb[0] can not provide the next item, we need to get new stuff
+                if bit_index and limb_index < max_limbs:
+                    # We move two limbs now, so that tmp_limb[0] will be completely full
+                    mpn_rshift(<mp_limb_t*>tmp_limb, self.data.data.bits+limb_index, 2, bit_index)
                 else:
-                    yield <int>(seq._mp_d[limb_index]&self.data.mask_item)
-            elif limb_index == max_limb:
-                yield <int>(((seq._mp_d[limb_index])>>bit_index)&self.data.mask_item)
-            else:
-                for n2 from n>=n2>0:
-                    yield <int>0
-                break
-            index += self.data.itembitsize
+                    # We shift within one limb
+                    tmp_limb[0] = self.data.data.bits[limb_index]>>bit_index
+            #else: tmp_limb[0] provides the next item
+            local_index += self.data.itembitsize
+            yield <int>(tmp_limb[0]&self.data.mask_item)
+            tmp_limb[0]>>=self.data.itembitsize
+            bit_index += self.data.itembitsize
+            if bit_index>=mp_bits_per_limb:
+                bit_index -= mp_bits_per_limb
+                preinc(limb_index)
+
 
     def __getitem__(self, index):
         """
@@ -1134,6 +1072,12 @@ cdef class BoundedIntegerSequence:
             sage: S[10]
             4
 
+        ::
+
+            sage: B = BoundedIntegerSequence(27, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
+            sage: B[8:]
+            <17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10>
+
         """
         cdef BoundedIntegerSequence out
         cdef int start,stop,step
@@ -1142,7 +1086,7 @@ cdef class BoundedIntegerSequence:
             if start==0 and stop==self.data.length and step==1:
                 return self
             out = BoundedIntegerSequence.__new__(BoundedIntegerSequence, 0, None)
-            out.data = slice_biseq(self.data, start, stop, step)
+            slice_biseq(out.data, self.data, start, stop, step)
             return out
         cdef long Index
         try:
@@ -1153,7 +1097,7 @@ cdef class BoundedIntegerSequence:
             Index = <long>(self.data.length)+Index
         if Index<0 or Index>=self.data.length:
             raise IndexError("Index out of range")
-        return getitem_biseq(self.data, <size_t>Index)
+        return getitem_biseq(self.data, <mp_size_t>Index)
 
     def __contains__(self, other):
         """
@@ -1206,6 +1150,12 @@ cdef class BoundedIntegerSequence:
             sage: S2 = BoundedIntegerSequence(3,[0])
             sage: S2 in S1
             False
+
+        ::
+
+            sage: B = BoundedIntegerSequence(27, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
+            sage: B.index(B[8:])
+            8
 
         """
         if not isinstance(other, BoundedIntegerSequence):
@@ -1328,7 +1278,7 @@ cdef class BoundedIntegerSequence:
             if other<0:
                 raise ValueError("BoundedIntegerSequence.index(x): x(={}) not in sequence".format(other))
             try:
-                out = index_biseq(self.data, <unsigned int>other, 0)
+                out = index_biseq(self.data, <mp_limb_t>other, 0)
             except TypeError:
                 raise ValueError("BoundedIntegerSequence.index(x): x(={}) not in sequence".format(other))
             if out>=0:
@@ -1391,7 +1341,7 @@ cdef class BoundedIntegerSequence:
         if right.data.itembitsize!=myself.data.itembitsize:
             raise ValueError("can only concatenate bounded integer sequences of compatible bounds")
         out = BoundedIntegerSequence.__new__(BoundedIntegerSequence, 0, None)
-        out.data = concat_biseq(myself.data, right.data)
+        concat_biseq(out.data, myself.data, right.data)
         return out
 
     cpdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other):
@@ -1472,19 +1422,26 @@ cdef class BoundedIntegerSequence:
 
         """
         cdef BoundedIntegerSequence right
+        cdef BoundedIntegerSequence Self
         if other is None:
             return 1
+        if self is None:
+            return -1
         try:
             right = other
         except TypeError:
             return -1
-        cdef int c = cmp(self.data.itembitsize, right.data.itembitsize)
+        try:
+            Self = self
+        except TypeError:
+            return 1
+        cdef int c = cmp(Self.data.itembitsize, right.data.itembitsize)
         if c:
             return c
-        c = cmp(self.data.length, right.data.length)
+        c = cmp(Self.data.length, right.data.length)
         if c:
             return c
-        return mpz_cmp(self.data.data, right.data.data)
+        return mpn_cmp(Self.data.data.bits, right.data.data.bits, Self.data.data.limbs)
 
     def __hash__(self):
         """
@@ -1510,9 +1467,25 @@ cdef class BoundedIntegerSequence:
             True
 
         """
-        return mpz_pythonhash(self.data.data)
+        # This is similar to mpz_pythonhash, which is a very bad additive hash:
+        cdef mp_limb_t h = 0
+        cdef mp_limb_t h0
+        cdef mp_size_t i
+        cdef mp_limb_t* p = self.data.data.bits
+        for i from self.data.data.limbs>i>=0:
+            h0 = h
+            h += deref(postinc(p))
+            if h<h0: # overflow
+                preinc(h)
+        if h==-1:
+            return -2
+        return h
+        ## bitset_hash is not a good hash either
+        ## We should consider using FNV-1a hash, see http://www.isthe.com/chongo/tech/comp/fnv/,
+        ## Or the hash defined in http://burtleburtle.net/bob/hash/doobs.html
+        ## Or http://www.azillionmonkeys.com/qed/hash.html
 
-cpdef BoundedIntegerSequence NewBISEQ(data, unsigned long int bitsize, unsigned int itembitsize, size_t length):
+cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length):
     """
     Helper function for unpickling of :class:`BoundedIntegerSequence`.
 
@@ -1525,16 +1498,13 @@ cpdef BoundedIntegerSequence NewBISEQ(data, unsigned long int bitsize, unsigned 
         True
 
     """
-    cdef BoundedIntegerSequence out = BoundedIntegerSequence.__new__(BoundedIntegerSequence, 0, None)
-    out.data = <biseq_t>sage_malloc(sizeof(biseq))
-    if out.data==NULL:
-        raise MemoryError("Can not allocate bounded integer sequence")
-    mpz_init2(out.data.data, bitsize+mp_bits_per_limb)
-    out.data.bitsize = bitsize
+    cdef BoundedIntegerSequence out = BoundedIntegerSequence.__new__(BoundedIntegerSequence)
     out.data.itembitsize = itembitsize
-    out.data.mask_item = ((<unsigned int>1)<<itembitsize)-1
+    out.data.mask_item = ((<mp_limb_t>1)<<itembitsize)-1
     out.data.length = length
-    mpz_set_str(out.data.data, data, 32)
+    # bitset_unpickle assumes that out.data.data is initialised.
+    bitset_init(out.data.data, mp_bits_per_limb)
+    bitset_unpickle(out.data.data, bitset_data)
     return out
 
 def _biseq_stresstest():
@@ -1585,4 +1555,5 @@ def _biseq_stresstest():
             T = L[randint(0,99)]
             startswith_biseq(S.data,T.data)
             contains_biseq(S.data, T.data, 0)
-            max_overlap_biseq(S.data, T.data)
+            if S.data.length>0:
+                max_overlap_biseq(S.data, T.data)

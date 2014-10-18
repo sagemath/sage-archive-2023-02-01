@@ -111,15 +111,15 @@ else
     # SAGE_INSTALL_GCC is not set, install GCC when needed.
     need_to_install_gcc=no
 
-    # Check whether $CC is some version of GCC.  If it's a different
+    # Check whether $CXX is some version of GCC.  If it's a different
     # compiler, install GCC.
-    CCtype=`testcc.sh $CC`
-    if [ "$CCtype" != GCC ]; then
-        echo >&2 "Installing GCC because your '$CC' isn't GCC (GNU CC)."
+    CXXtype=`testcxx.sh $CXX`
+    if [ "$CXXtype" != GCC ]; then
+        echo >&2 "Installing GCC because your '$CXX' isn't GCC (GNU C++)."
         need_to_install_gcc=yes
     else
-        # $CC points to some version of GCC, find out which version.
-        GCCVERSION=`$CC -dumpversion`
+        # $CXX points to some version of GCC, find out which version.
+        GCCVERSION=`$CXX -dumpversion`
         case $GCCVERSION in
             [0-3].*|4.[0-3]|4.[0-3].*)
                 # Install our own GCC if the system-provided one is older than gcc-4.4.
@@ -127,13 +127,13 @@ else
                 # https://groups.google.com/forum/?fromgroups#!topic/sage-devel/Ux3t0dW2FSI
                 # * gcc-4.3 might have trouble building ATLAS:
                 # https://groups.google.com/forum/?fromgroups#!topic/sage-devel/KCeFqQ_w2FE
-                echo >&2 "Installing GCC because you have $CC version $GCCVERSION, which is quite old."
+                echo >&2 "Installing GCC because you have $CXX version $GCCVERSION, which is quite old."
                 need_to_install_gcc=yes;;
             4.4*|4.5*)
                 # GCC 4.4.x and GCC 4.5.x fail to compile PARI/GP on ia64:
                 # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=46044
                 if [ x`uname -m` = xia64 ]; then
-                    echo >&2 "Installing GCC because you have $CC version $GCCVERSION on ia64."
+                    echo >&2 "Installing GCC because you have $CXX version $GCCVERSION on ia64."
                     echo >&2 "gcc <= 4.5 fails to compile PARI/GP on ia64."
                     need_to_install_gcc=yes
                 fi;;
@@ -142,14 +142,14 @@ else
                 # known to give trouble within Sage:
                 # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48702
                 # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48774
-                echo >&2 "Installing GCC because you have $CC version $GCCVERSION."
+                echo >&2 "Installing GCC because you have $CXX version $GCCVERSION."
                 echo >&2 "gcc-4.6.0 and gcc-4.6.1 have known bugs affecting Sage."
                 need_to_install_gcc=yes;;
             4.6*)
                 # GCC 4.6.x doesn't compile ECL on Cygwin:
                 # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52061
                 if uname | grep CYGWIN >/dev/null; then
-                    echo >&2 "Installing GCC because you have $CC version $GCCVERSION on Cygwin."
+                    echo >&2 "Installing GCC because you have $CXX version $GCCVERSION on Cygwin."
                     echo >&2 "gcc-4.6.x fails to compile ECL on Cygwin."
                     need_to_install_gcc=yes
                 fi;;
@@ -158,16 +158,22 @@ else
                 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496
                 # This is fixed in GCC 4.7.1.
                 if [ x`uname -m` = xia64 ]; then
-                    echo >&2 "Installing GCC because you have $CC version $GCCVERSION on ia64."
+                    echo >&2 "Installing GCC because you have $CXX version $GCCVERSION on ia64."
                     echo >&2 "gcc-4.7.0 has a serious bug on ia64."
                     need_to_install_gcc=yes
                 fi;;
         esac
     fi
 
-    # Check C++ and Fortran compilers.
+    # Check C, C++ and Fortran compilers.
+    if [ -z "$CC" ]; then
+        echo >&2 "Installing GCC because a C compiler is missing."
+        need_to_install_gcc=yes
+    fi
+
     if [ -z "$CXX" ]; then
         echo >&2 "Installing GCC because a C++ compiler is missing."
+        echo >&2 "(This is unlikely to work because the GCC bootstrap uses C++)"
         need_to_install_gcc=yes
     fi
 

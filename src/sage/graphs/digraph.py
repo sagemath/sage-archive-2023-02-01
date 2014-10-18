@@ -1384,13 +1384,9 @@ class DiGraph(GenericGraph):
             3
         """
         if vertices in self:
-            for d in self.in_degree_iterator(vertices):
-                return d # (weird, but works: only happens once!)
+            return self._backend.in_degree(vertices)
         elif labels:
-            di = {}
-            for v, d in self.in_degree_iterator(vertices, labels=labels):
-                di[v] = d
-            return di
+            return {v:d for v, d in self.in_degree_iterator(vertices, labels=labels)}
         else:
             return list(self.in_degree_iterator(vertices, labels=labels))
 
@@ -1424,24 +1420,12 @@ class DiGraph(GenericGraph):
         """
         if vertices is None:
             vertices = self.vertex_iterator()
-        elif vertices in self:
-            d = 0
-            for e in self.incoming_edge_iterator(vertices):
-                d += 1
-            yield d
-            return
         if labels:
             for v in vertices:
-                d = 0
-                for e in self.incoming_edge_iterator(v):
-                    d += 1
-                yield (v, d)
+                yield (v, self.in_degree(v))
         else:
             for v in vertices:
-                d = 0
-                for e in self.incoming_edge_iterator(v):
-                    d += 1
-                yield d
+                yield self.in_degree(v)
 
     def in_degree_sequence(self):
         r"""
@@ -1480,19 +1464,9 @@ class DiGraph(GenericGraph):
             1
         """
         if vertices in self:
-
-            try:
-                return self._backend.out_degree(vertices)
-
-            except AttributeError:
-                for d in self.out_degree_iterator(vertices):
-                    return d # (weird, but works: only happens once!)
-
+            return self._backend.out_degree(vertices)
         elif labels:
-            di = {}
-            for v, d in self.out_degree_iterator(vertices, labels=labels):
-                di[v] = d
-            return di
+            return {v:d for v, d in self.out_degree_iterator(vertices, labels=labels)}
         else:
             return list(self.out_degree_iterator(vertices, labels=labels))
 
@@ -1526,24 +1500,12 @@ class DiGraph(GenericGraph):
         """
         if vertices is None:
             vertices = self.vertex_iterator()
-        elif vertices in self:
-            d = 0
-            for e in self.outgoing_edge_iterator(vertices):
-                d += 1
-            yield d
-            return
         if labels:
             for v in vertices:
-                d = 0
-                for e in self.outgoing_edge_iterator(v):
-                    d += 1
-                yield (v, d)
+                yield (v, self.out_degree(v))
         else:
             for v in vertices:
-                d = 0
-                for e in self.outgoing_edge_iterator(v):
-                    d += 1
-                yield d
+                yield self.out_degree(v)
 
     def out_degree_sequence(self):
         r"""

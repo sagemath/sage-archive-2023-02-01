@@ -1273,8 +1273,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: B.has_vertex(7)
             False
         """
-        cdef v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if v_int == -1:
             return False
         if not bitset_in((<CGraph>self._cg).active_vertices, v_int):
@@ -1412,10 +1414,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: h.degree()
             [1, 1]
         """
-        cdef v_int = get_vertex(v,
-                                self.vertex_ints,
-                                self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if directed:
             return self._cg._in_degree(v_int) + self._cg._out_degree(v_int)
         d = 0
@@ -1426,7 +1428,6 @@ class CGraphBackend(GenericGraphBackend):
                 d += 1
         return self._cg._out_degree(v_int) + d
 
-
     def out_degree(self, v):
         r"""
         Returns the out-degree of v
@@ -1435,10 +1436,6 @@ class CGraphBackend(GenericGraphBackend):
 
         - ``v`` -- a vertex of the graph.
 
-        - ``directed`` -- boolean; whether to take into account the
-          orientation of this graph in counting the degree of ``v``.
-
-
         EXAMPLE::
 
 
@@ -1446,10 +1443,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: D.out_degree(1)
             2
         """
-        cdef v_int = get_vertex(v,
-                                self.vertex_ints,
-                                self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if self._directed:
             return self._cg._out_degree(v_int)
         d = 0
@@ -1461,6 +1458,30 @@ class CGraphBackend(GenericGraphBackend):
 
         return self._cg._out_degree(v_int) + d
 
+    def in_degree(self, v):
+        r"""
+        Returns the in-degree of v
+
+        INPUT:
+
+        - ``v`` -- a vertex of the graph.
+
+        EXAMPLE::
+
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
+            sage: D.out_degree(1)
+            2
+        """
+        if not self._directed:
+            return self.out_degree(v)
+
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
+
+        return self._cg_rev._out_degree(v_int)
 
     def add_vertex(self, object name):
         """

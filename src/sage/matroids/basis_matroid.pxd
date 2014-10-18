@@ -14,7 +14,6 @@ cdef class BasisMatroid(BasisExchangeMatroid):
     cdef _bases_invariant3_var
     cdef SetSystem _bases_partition3_var
 
-    cdef  bint __is_exchange_pair(self, long x, long y)
     cdef reset_current_basis(self)
 
     cpdef _is_basis(self, X)

@@ -27,7 +27,8 @@ GPLv3+ except the french html documentation which is freely redistributable
 == Upstream Contact ==
 
   * Bernard Parisse: http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
-  * Source file (giac-x.y.z.tar.gz) in: http://www-fourier.ujf-grenoble.fr/~parisse/giac/
+  * Source file (giac-x.y.z-t.tar.gz) in:
+    http://www-fourier.ujf-grenoble.fr/~parisse/debian/dists/stable/main/source/
 
 == Dependencies ==
 

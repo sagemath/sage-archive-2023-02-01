@@ -155,7 +155,8 @@ def MOLS_14_4():
     r"""
     Return four MOLS of order 14
 
-    These MOLS were shared by Ian Wanless.
+    These MOLS were shared by Ian Wanless. The first proof of existence was
+    given in [Todorov12]_.
 
     EXAMPLES::
 
@@ -169,6 +170,12 @@ def MOLS_14_4():
 
         sage: designs.orthogonal_arrays.is_available(4,14)
         True
+
+    REFERENCE::
+
+    .. [Todorov12] D.T. Todorov,
+      Four mutually orthogonal Latin squares of order 14,
+      Journal of Combinatorial Designs 2012, vol.20 n.8 pp.363-367
     """
     M = """
         bjihgkecalnfmd  bfmcenidgjhalk  bcdefghijklmna  bcdefghijklmna
@@ -862,7 +869,7 @@ def OA_9_135():
     truncated_OA = [B[1:-7]+[x if x==0 else None for x in B[-7:]] for B in OA]
 
     # And call Wilson's construction
-    return wilson_construction(truncated_OA, 9, 16, 8,7,(1,)*7,check=False)
+    return wilson_construction(truncated_OA, 9, 16, 8,(1,)*7,check=False)
 
 def OA_11_160():
     r"""
@@ -1496,7 +1503,7 @@ def OA_17_560():
 
     OA=zip(*OA)
 
-    return wilson_construction(OA,k,n,m,3,[p**beta]*3,check=False)
+    return wilson_construction(OA,k,n,m,[p**beta]*3,check=False)
 
 def OA_11_640():
     r"""
@@ -2398,6 +2405,8 @@ Vmt_vectors = {
               """A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
               Discrete Mathematics 1982, vol 39, num 3, pp 263-281"""),
 
+    (9,14) : ((0,1,11,25,37,8,100,23,95,42),"Handbook of Combinatorial Designs 2ed"),
+
     (10,13) : ((0,1,5,10,22,6,14,9,53,129,84),
                """Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104"""),
@@ -2547,6 +2556,7 @@ EXAMPLES::
                   Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(8,57):   A. Brouwer and J. van Rees, More mutually orthogonal Latin squares,
                   Discrete Mathematics 1982, vol 39, num 3, pp 263-281
+    V(9,14):   Handbook of Combinatorial Designs 2ed
     V(10,13):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
                    Journal of Statistical Planning and Inference, vol 56, num 1, pp 93-104
     V(10,19):  Charles J. Colbourn, Some direct constructions for incomplete transversal designs,
@@ -3900,10 +3910,11 @@ def RBIBD_120_8_1():
     Construction shared by Julian R. Abel:
 
         Seiden's method: Start with a cyclic `(273,17,1)-BIBD` and let `B` be an
-        hyperoval, i.e. a set which intersects any block of the BIBD in either 0
-        (153 blocks) or 2 points (120 blocks). Dualise this design and take
-        these last 120 blocks as points in the design; blocks in the design will
-        correspond to the `273-18=255` non-hyperoval points.
+        hyperoval, i.e. a set of 18 points which intersects any block of the
+        BIBD in either 0 points (153 blocks) or 2 points (120 blocks). Dualise
+        this design and take these last 120 blocks as points in the design;
+        blocks in the design will correspond to the `273-18=255` non-hyperoval
+        points.
 
         The design is also resolvable.  In the original `PG(2,16)` take any
         point `T` in the hyperoval and consider a block `B1` containing `T`.

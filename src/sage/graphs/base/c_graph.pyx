@@ -1277,8 +1277,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: B.has_vertex(7)
             False
         """
-        cdef v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if v_int == -1:
             return False
         if not bitset_in((<CGraph>self._cg).active_vertices, v_int):
@@ -1416,10 +1418,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: h.degree()
             [1, 1]
         """
-        cdef v_int = get_vertex(v,
-                                self.vertex_ints,
-                                self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if directed:
             return self._cg._in_degree(v_int) + self._cg._out_degree(v_int)
         d = 0
@@ -1445,10 +1447,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: D.out_degree(1)
             2
         """
-        cdef v_int = get_vertex(v,
-                                self.vertex_ints,
-                                self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if self._directed:
             return self._cg._out_degree(v_int)
         d = 0
@@ -1478,10 +1480,10 @@ class CGraphBackend(GenericGraphBackend):
         if not self._directed:
             return self.out_degree(v)
 
-        cdef v_int = get_vertex(v,
-                                self.vertex_ints,
-                                self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
 
         return self._cg_rev._out_degree(v_int)
 

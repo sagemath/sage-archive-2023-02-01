@@ -1511,14 +1511,25 @@ cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize
         sage: loads(dumps(S)) == S    # indirect doctest
         True
 
+    TESTS:
+
+    We test a corner case::
+
+        sage: S = BoundedIntegerSequence(8,[])
+        sage: S
+        <>
+        sage: loads(dumps(S)) == S
+        True
+
     """
     cdef BoundedIntegerSequence out = BoundedIntegerSequence.__new__(BoundedIntegerSequence)
     out.data.itembitsize = itembitsize
     out.data.mask_item = ((<mp_limb_t>1)<<itembitsize)-1
     out.data.length = length
-    # bitset_unpickle assumes that out.data.data is initialised.
-    bitset_init(out.data.data, mp_bits_per_limb)
-    bitset_unpickle(out.data.data, bitset_data)
+    if length>0:
+        # bitset_unpickle assumes that out.data.data is initialised.
+        bitset_init(out.data.data, mp_bits_per_limb)
+        bitset_unpickle(out.data.data, bitset_data)
     return out
 
 def _biseq_stresstest():

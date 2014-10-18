@@ -12,53 +12,67 @@ than representing the same sequence as a Python :class:`tuple`.
 The underlying data structure is similar to :class:`~sage.misc.bitset.Bitset`,
 which means that certain operations are implemented by using fast shift
 operations from GMP.  The following boilerplate functions can be cimported in
-Cython modules::
+Cython modules:
 
-cdef bint allocate_biseq(biseq_t R, mp_size_t l, mp_size_t itemsize) except -1
-   # Allocate memory (filled with zero) for a bounded integer sequence
-   # of length l with items fitting in itemsize bits.
+- ``cdef bint allocate_biseq(biseq_t R, mp_size_t l, mp_size_t itemsize) except -1``
 
-cdef void dealloc_biseq(biseq_t S)
-   # Free the data stored in S.
+  Allocate memory (filled with zero) for a bounded integer sequence
+  of length l with items fitting in itemsize bits.
 
-cdef bint copy_biseq(biseq_t R, biseq_t S)
-   # Replace the content of R by a copy of S
+- ``cdef void dealloc_biseq(biseq_t S)``
 
-cdef bint list_to_biseq(biseq_t R, list data, unsigned int bound) except -1
-   # Convert a list to a bounded integer sequence
+   Free the data stored in ``S``.
 
-cdef list biseq_to_list(biseq_t S)
-   # Convert a bounded integer sequence to a list
+- ``cdef bint copy_biseq(biseq_t R, biseq_t S)``
 
-cdef bint concat_biseq(biseq_t R, biseq_t S1, biseq_t S2) except -1
-   # Does not test whether the sequences have the same bound!
+  Replace the content of ``R`` by a copy of ``S``.
 
-cdef bint first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_t d) except -1
-   # Boilerplate function for comparison of the first bits of two gmp bitsets,
-   # mimmicking mpz_congruent_2exp_p
+- ``cdef bint list_to_biseq(biseq_t R, list data, unsigned int bound) except -1``
 
-cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2)
-   # Is S1=S2+something? Does not check whether the sequences have the same
-   # bound!
+  Convert a list to a bounded integer sequence.
 
-cdef int contains_biseq(biseq_t S1, biseq_t S2, mp_size_t start) except -2
-   # Returns the position *in S1* of S2 as a subsequence of S1[start:], or -1
-   # if S2 is not a subsequence. Does not check whether the sequences have the
-   # same bound!
+- ``cdef list biseq_to_list(biseq_t S)``
 
-cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0
-   # Returns the minimal *positive* integer i such that S2 starts with S1[i:].
-   # This function will *not* test whether S2 starts with S1!
+  Convert a bounded integer sequence to a list.
 
-cdef int index_biseq(biseq_t S, mp_limb_t item, mp_size_t start) except -2
-   # Returns the position *in S* of the item in S[start:], or -1 if S[start:]
-   # does not contain the item.
+- ``cdef bint concat_biseq(biseq_t R, biseq_t S1, biseq_t S2) except -1``
 
-cdef int getitem_biseq(biseq_t S, mp_size_t index) except -1
-   # Returns S[index], without checking margins
+  Concatenate ``S1`` and ``S2`` and write the result to ``R``. Does not test
+  whether the sequences have the same bound!
 
-cdef bint slice_biseq(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1
-   # Fills R with S[start:stop:step]
+- ``cdef bint first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_t d) except -1``
+
+  Boilerplate function for comparison of the first bits of two gmp bitsets,
+  mimmicking ``mpz_congruent_2exp_p``.
+
+- ``cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2)``
+
+  Is ``S1=S2+something``? Does not check whether the sequences have the same
+  bound!
+
+- ``cdef int contains_biseq(biseq_t S1, biseq_t S2, mp_size_t start) except -2``
+
+  Returns the position *in ``S1``* of ``S2`` as a subsequence of
+  ``S1[start:]``, or ``-1`` if ``S2`` is not a subsequence. Does not check
+  whether the sequences have the same bound!
+
+- ``cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0``
+
+  Returns the minimal *positive* integer ``i`` such that ``S2`` starts with
+  ``S1[i:]``.  This function will *not* test whether ``S2`` starts with ``S1``!
+
+- ``cdef int index_biseq(biseq_t S, mp_limb_t item, mp_size_t start) except -2``
+
+  Returns the position *in S* of the item in ``S[start:]``, or ``-1`` if
+  ``S[start:]`` does not contain the item.
+
+- ``cdef int getitem_biseq(biseq_t S, mp_size_t index) except -1``
+
+  Returns ``S[index]``, without checking margins.
+
+- ``cdef bint slice_biseq(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1``
+
+  Fills ``R`` with ``S[start:stop:step]``
 
 """
 #*****************************************************************************
@@ -581,7 +595,7 @@ cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0:
 from sage.rings.integer import Integer
 cdef class BoundedIntegerSequence:
     """
-    A sequence of non-negative uniformely bounded integers
+    A sequence of non-negative uniformely bounded integers.
 
     INPUT:
 

@@ -683,18 +683,21 @@ class IncidenceStructure(object):
 
         INPUT:
 
-        - ``perm`` -- ``None``, a list or a dictionary
+        - ``perm`` -- can be one of
+
+            - a dictionary -- then each point ``p`` (which should be a key of
+              ``d``) is relabeled to ``d[p]``
+
+            - a list or a tuple of length ``n`` -- the first point returned by
+              :meth:`ground_set` is relabeled to ``l[0]``, the second to
+              ``l[1]``, ...
+
+            - ``None`` -- the incidence structure is relabeled to be on
+              `\{0,1,...,n-1\}` in the ordering given by :meth:`ground_set`.
 
         - ``inplace`` -- If ``True`` then return a relabeled graph and does not
           touch ``self`` (default is ``False``).
 
-        If ``perm`` is a dictionary ``d``, then each point ``p`` (which should
-        be a key of ``d``) is relabeled to ``d[v]``.  Similarly, if ``perm`` is
-        a list or tuple ``l`` of length ``n``, then the first point returned by
-        ``G.points()`` is relabeled to ``l[0]``, the second to ``l[1]``, ...
-
-        If ``perm`` is ``None``, the graph is relabeled to be on
-        `\{0,1,...,n-1\}` in the ordering given by :meth:`ground_set`.
 
         EXAMPLES::
 
@@ -713,7 +716,7 @@ class IncidenceStructure(object):
 
         TESTS:
 
-        Check that the relabel is consistent.
+        Check that the relabel is consistent on a fixed incidence structure::
 
             sage: I = designs.IncidenceStructure([0,1,2,3,4],
             ....:               [[0,1,3],[0,2,4],[2,3,4],[0,1]])

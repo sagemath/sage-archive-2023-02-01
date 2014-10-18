@@ -877,9 +877,9 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(['C',2]).root_lattice()
                 sage: L.positive_roots_by_height()
-                [alpha[1], alpha[2], alpha[1] + alpha[2], 2*alpha[1] + alpha[2]]
+                [alpha[2], alpha[1], alpha[1] + alpha[2], 2*alpha[1] + alpha[2]]
                 sage: L.positive_roots_by_height(increasing = False)
-                [2*alpha[1] + alpha[2], alpha[1] + alpha[2], alpha[1], alpha[2]]
+                [2*alpha[1] + alpha[2], alpha[1] + alpha[2], alpha[2], alpha[1]]
 
                 sage: L = RootSystem(['A',2,1]).root_lattice()
                 sage: L.positive_roots_by_height()

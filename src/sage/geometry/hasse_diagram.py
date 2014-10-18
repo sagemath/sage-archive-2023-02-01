@@ -207,6 +207,8 @@ def Hasse_diagram_from_incidences(atom_to_coatoms, coatom_to_atoms,
         atoms, coatoms = face
         elements[labels[index]] = face_constructor(
                         tuple(sorted(atoms)), tuple(sorted(coatoms)), **kwds)
+    D = {i:f for i,f in enumerate(elements)}
+    L.relabel(D)
     return FinitePoset(L, elements, key = key)
 
 

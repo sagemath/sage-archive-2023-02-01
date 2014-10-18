@@ -297,7 +297,8 @@ Note that the user-visible method (without underscore) automates this copy::
     False
     sage: QQ['x'].get_action(QQ)
     Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Rational Field
-    sage: (QQ^2).get_action(QQ)
+    sage: QQ2 = QQ^2
+    sage: (QQ2).get_action(QQ)
     Right scalar multiplication by Rational Field on Vector space of dimension 2 over Rational Field
     sage: QQ['x'].get_action(RR)
     Right scalar multiplication by Real Field with 53 bits of precision on Univariate Polynomial Ring in x over Rational Field

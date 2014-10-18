@@ -677,12 +677,27 @@ class IncidenceStructure(object):
         A = self.incidence_matrix()
         return BipartiteGraph(A)
 
-    def relabel(self, perm):
+    def relabel(self, perm=None, inplace=True):
         r"""
         Relabel the ground set
 
-        - ``label`` (dictionary) -- associated every point of the ground set
-          with its image. All images must be distinct.
+        INPUT:
+
+        - ``perm`` -- can be one of
+
+            - a dictionary -- then each point ``p`` (which should be a key of
+              ``d``) is relabeled to ``d[p]``
+
+            - a list or a tuple of length ``n`` -- the first point returned by
+              :meth:`ground_set` is relabeled to ``l[0]``, the second to
+              ``l[1]``, ...
+
+            - ``None`` -- the incidence structure is relabeled to be on
+              `\{0,1,...,n-1\}` in the ordering given by :meth:`ground_set`.
+
+        - ``inplace`` -- If ``True`` then return a relabeled graph and does not
+          touch ``self`` (default is ``False``).
+
 
         EXAMPLES::
 
@@ -692,12 +707,53 @@ class IncidenceStructure(object):
             ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
             sage: print TD.blocks()[:3]
             [['a', 'f', 'k', 'p', 'u'], ['a', 'g', 'm', 's', 'y'], ['a', 'h', 'o', 'q', 'x']]
-        """
-        assert len(set(perm.values())) == len(perm)
 
+        Relabel to integer points::
+
+            sage: TD.relabel()
+            sage: print TD.blocks()[:3]
+            [[0, 5, 10, 15, 20], [0, 6, 12, 18, 24], [0, 7, 14, 16, 23]]
+
+        TESTS:
+
+        Check that the relabel is consistent on a fixed incidence structure::
+
+            sage: I = designs.IncidenceStructure([0,1,2,3,4],
+            ....:               [[0,1,3],[0,2,4],[2,3,4],[0,1]])
+            sage: I.relabel()
+            sage: from itertools import permutations
+            sage: for p in permutations([0,1,2,3,4]):
+            ....:     J = I.relabel(p,inplace=False)
+            ....:     if I == J: print p
+            (0, 1, 2, 3, 4)
+            (0, 1, 4, 3, 2)
+
+        And one can also verify that we have exactly two automorphisms::
+
+            sage: I.automorphism_group()
+            Permutation Group with generators [(2,4)]
+        """
+        if not inplace:
+            from copy import copy
+            G = copy(self)
+            G.relabel(perm=perm, inplace=True)
+            return G
+
+        if perm is None:
+            self._points = range(self.num_points())
+            self._point_to_index = None
+            return
+
+        if isinstance(perm, (list,tuple)):
+            perm = dict(zip(self._points, perm))
+
+        if not isinstance(perm, dict):
+            raise ValueError("perm argument must be None, a list or a dictionary")
+
+        if len(set(perm.values())) != len(perm):
+            raise ValueError("Two points are getting relabelled with the same name !")
 
         self._points = [perm[x] for x in self._points]
-
         if self._points == range(self.num_points()):
             self._point_to_index  = None
         else:

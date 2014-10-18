@@ -562,7 +562,7 @@ def wilson_construction(OA,k,r,m,u,check=True):
 
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: from sage.combinat.designs.orthogonal_arrays import wilson_construction
-        sage: OA = designs.orthogonal_array(6,11)
+        sage: OA = designs.orthogonal_arrays.build(6,11)
         sage: OA = [[x if (i<5 or x<5) else None for i,x in enumerate(R)] for R in OA]
         sage: OAb = wilson_construction(OA,5,11,21,[[(5,5)]])
         sage: is_orthogonal_array(OAb,5,256)
@@ -1237,11 +1237,11 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
         return orthogonal_array(k,n,existence=existence)
 
     # From a quasi-difference matrix
-    elif x==1 and any(uu==y and mu<=1 and lmbda==1 and k<=kk+1 for (nn,kk,lmbda,mu,uu) in QDM.get((n,1),[])):
-        for (nn,kk,lmbda,mu,uu) in QDM.get((n,1),[]):
+    elif x==1 and any(uu==y and mu<=1 and lmbda==1 and k<=kk+1 for (nn,lmbda,mu,uu),(kk,_) in QDM.get((n,1),{}).iteritems()):
+        for (nn,lmbda,mu,uu),(kk,f) in QDM[n,1].iteritems():
             if uu==y and mu<=1 and lmbda==1 and k<=kk+1:
                 break
-        G,M = QDM[n,1][nn,kk,lmbda,mu,uu]()
+        G,M = f()
         OA  = OA_from_quasi_difference_matrix(M,G,fill_hole=False)
         return [B[:k] for B in OA]
 

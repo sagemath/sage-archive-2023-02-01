@@ -171,7 +171,7 @@ def MOLS_14_4():
         sage: designs.orthogonal_arrays.is_available(4,14)
         True
 
-    REFERENCE::
+    REFERENCE:
 
     .. [Todorov12] D.T. Todorov,
       Four mutually orthogonal Latin squares of order 14,

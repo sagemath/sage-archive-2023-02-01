@@ -289,23 +289,35 @@ fi
 # First check for programs we need.
 AC_LANG(C)
 AC_PROG_CC()
-if test "x$CC" = x
-then
-    AC_MSG_ERROR([Exiting, since a C compiler was not found.])
-fi
 AC_PROG_CPP()
-AC_PROG_CXX()
+AC_PROG_CC_C99()
+if test $enable_compiler_checks = yes
+then
+    if test "x$ac_cv_prog_cc_c99" = xno
+    then
+        AC_MSG_ERROR([Exiting, as your C compiler cannot compile C99 code])
+    fi
+fi
+
+AC_LANG(Fortran)
 AC_PROG_FC()
 if test $enable_compiler_checks = yes
 then
-    if test "x$CXX" = x
+    if test "x$CC" = x
     then
-        AC_MSG_ERROR([Exiting, since a C++ compiler was not found.])
+        AC_MSG_ERROR([Exiting, since a C compiler was not found.])
     fi
     if test "x$FC" = x
     then
         AC_MSG_ERROR([Exiting, since a Fortran compiler was not found.])
     fi
+fi
+
+AC_LANG(C++)
+AC_PROG_CXX()
+if test "x$CXX" = x
+then
+    AC_MSG_ERROR([Exiting, since a C++ compiler was not found.])
 fi
 
 # As suggested in the autoconf manual, the characteristics of the compilers
@@ -326,15 +338,6 @@ AC_CHECK_HEADER([complex.h],[],[
 
 # Next one should check for compiler characterists.
 
-# Check that we can compile C99 code
-AC_PROG_CC_C99()
-if test $enable_compiler_checks = yes
-then
-    if test "x$ac_cv_prog_cc_c99" = xno
-    then
-        AC_MSG_ERROR([Exiting, as your C compiler cannot compile C99 code])
-    fi
-fi
 
 # Check the Fortran compiler accepts free-format source code
 # (as opposed to the older fixed-format style from Fortran 77).

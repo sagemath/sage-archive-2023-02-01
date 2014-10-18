@@ -70,6 +70,12 @@ if { uname -sr | grep 'Darwin 13\.' ;} &>/dev/null; then
     sed 's+defined(__GNUC_STDC_INLINE__)+& \&\& !defined(__cplusplus)+' /usr/include/sys/cdefs.h > "$SAGE_LOCAL/include/sys/cdefs.h"
 fi
 
+# On OS X 10.10 there is random ObjC stuff in a C header
+if { uname -sr | grep 'Darwin 14\.' ;} &>/dev/null; then
+    mkdir -p "$SAGE_LOCAL/include/dispatch"
+    sed 's+typedef void (\^dispatch_block_t)(void)+typedef void* dispatch_block_t+' /usr/include/dispatch/object.h > "$SAGE_LOCAL/include/dispatch/object.h"
+fi
+
 # Let GCC build on Raspberry Pi using hard floats.
 if [ `uname -m` = "armv6l" ]; then
     GCC_CONFIGURE="--with-arch=armv6 --with-fpu=vfp --with-float=hard $GCC_CONFIGURE"

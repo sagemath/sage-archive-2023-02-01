@@ -1,7 +1,7 @@
 """
 Callable Symbolic Expressions
 
-EXAMPLES::
+EXAMPLES:
 
 When you do arithmetic with
 
@@ -69,7 +69,7 @@ from sage.categories.pushout import ConstructionFunctor
 #########################################################################################
 def is_CallableSymbolicExpressionRing(x):
     """
-    Return True if x is a callable symbolic expression ring.
+    Return ``True`` if ``x`` is a callable symbolic expression ring.
 
     INPUT:
 
@@ -91,7 +91,7 @@ def is_CallableSymbolicExpressionRing(x):
 
 def is_CallableSymbolicExpression(x):
     r"""
-    Returns true if ``x`` is a callable symbolic
+    Returns ``True`` if ``x`` is a callable symbolic
     expression.
 
     EXAMPLES::
@@ -206,7 +206,7 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
            alphabetical order.
 
 
-        .. note::
+        .. NOTE::
 
            When used for arithmetic between
            ``CallableSymbolicExpression``s, these rules ensure that
@@ -272,7 +272,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
         """
         EXAMPLES:
 
-        We verify that coercion works in the case where x is not an
+        We verify that coercion works in the case where ``x`` is not an
         instance of SymbolicExpression, but its parent is still the
         SymbolicRing::
 
@@ -366,11 +366,22 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
             sage: R = CallableSymbolicExpressionRing(var('x,y,theta'))
             sage: R._repr_()
             'Callable function ring with arguments (x, y, theta)'
+
+        We verify that :trac:`12298` has been fixed:: 
+
+            sage: S = CallableSymbolicExpressionRing([var('z')])
+            sage: S._repr_()
+            'Callable function ring with argument z'
         """
-        return "Callable function ring with arguments %s"%(self._arguments,)
+        if len(self._arguments) == 0:
+            return "Callable function ring with no named arguments"
+        elif len(self._arguments) == 1:
+            return "Callable function ring with argument {}".format(self._arguments[0])
+        else:
+            return "Callable function ring with arguments {}".format(self._arguments)
 
     def arguments(self):
-        r"""
+        """
         Returns the arguments of ``self``. The order that the
         variables appear in ``self.arguments()`` is the order that
         is used in evaluating the elements of ``self``.
@@ -391,7 +402,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
 
     def _repr_element_(self, x):
         """
-        Returns the string representation of the Expression x.
+        Returns the string representation of the Expression ``x``.
 
         EXAMPLES::
 
@@ -509,4 +520,3 @@ class CallableSymbolicExpressionRingFactory(UniqueFactory):
         return CallableSymbolicExpressionRing_class(key)
 
 CallableSymbolicExpressionRing = CallableSymbolicExpressionRingFactory('sage.symbolic.callable.CallableSymbolicExpressionRing')
-

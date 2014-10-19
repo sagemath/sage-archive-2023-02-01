@@ -3837,7 +3837,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [51.968956198705044  74.73656456700327]
             [112.10484685050491 164.07380304920997]
             sage: A.exp(algorithm='taylor')   # tol 1e-15
-            [ 51.968956198705044  74.73656456700327]
+            [51.968956198705044  74.73656456700327]
             [112.10484685050491 164.07380304920997]
             sage: A = matrix(CDF, 2, [1,2+I,3*I,4])
             sage: A.exp(algorithm='eig')  # tol 2e-14

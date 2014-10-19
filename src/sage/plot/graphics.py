@@ -30,6 +30,7 @@ import sage.misc.misc
 from sage.misc.html import html
 from sage.misc.temporary_file import tmp_filename, graphics_filename
 from sage.structure.sage_object import SageObject
+from sage.structure.graphics_file import GraphicsFile
 from sage.misc.decorators import suboptions
 from colors import rgbcolor
 
@@ -129,6 +130,8 @@ class Graphics(SageObject):
 
         sage: isinstance(g2, Graphics)
         True
+
+    .. automethod:: _graphics_
     """
 
     def __init__(self):
@@ -818,29 +821,54 @@ class Graphics(SageObject):
         """
         return self.__str__()
 
-    def _graphics_(self):
+    def _graphics_(self, mime_types=None, figsize=None, dpi=None):
         """
-        Show graphics.
+        Magic graphics method.
 
         The presence of this method is used by the displayhook to
         decide that we want to see a graphical output by default.
 
+        INPUT:
+        
+        - ``mime_types`` -- set of mime types (as strings).
+
+        - ``figsize`` -- pair of integers (optional). The desired
+          graphics size in pixels. Suggested, but need not be
+          respected by the output.
+
+        - ``dpi`` -- integer (optional). The desired resolution in
+          dots per inch. Suggested, but need not be respected by the
+          output.
+
         OUTPUT:
 
-        Return ``True`` if graphical output was generated (might not
-        be shown in doctest mode), otherwise ``False``.
+        Return an instance of
+        :class:`sage.structure.graphics_file.GraphicsFile`
+        encapsulating a suitable image file. If ``mime_types`` is
+        specified, the resulting file format must match one of these.
+
+        Alternatively, this method can return ``None`` to indicate
+        that textual representation is preferable and/or no graphics
+        with the desired mime type can be generated.
 
         EXAMPLES::
 
             sage: g = Graphics()
             sage: g._graphics_()
-            True
+            Graphics file image/png
+
             sage: [g, g]
             [Graphics object consisting of 0 graphics primitives,
              Graphics object consisting of 0 graphics primitives]
+
+            sage: g._graphics_(mime_types={'foo/bar'}) is None
+            True
         """
-        self.show()
-        return True
+        from sage.structure.graphics_file import Mime, graphics_from_save
+        preference = [Mime.PNG, Mime.SVG, Mime.JPG, Mime.PDF]
+        return graphics_from_save(self.save, preference,
+                                  allowed_mime_types=mime_types, 
+                                  figsize=figsize, dpi=dpi)
 
     def __str__(self):
         r"""
@@ -1866,9 +1894,9 @@ class Graphics(SageObject):
             else:
                 html("<img src='cell://%s'>" % filename)
                 return
-        if not sage.doctest.DOCTEST_MODE:
-            os.system('%s %s 2>/dev/null 1>/dev/null &'
-                      % (sage.misc.viewer.png_viewer(), filename))
+
+        gfx = GraphicsFile(filename, mime_type='image/png')
+        gfx.launch_viewer()
 
     def xmin(self, xmin=None):
         """
@@ -2995,10 +3023,13 @@ class Graphics(SageObject):
         data.sort()
         return '\n'.join(g[1] for g in data)
 
+
 class GraphicsArray(SageObject):
     """
     GraphicsArray takes a (`m` x `n`) list of lists of
     graphics objects and plots them all on one canvas.
+
+    .. automethod:: _graphics_
     """
     def __init__(self, array):
         """
@@ -3071,27 +3102,26 @@ class GraphicsArray(SageObject):
         """
         return self.__str__()
 
-    def _graphics_(self):
+    def _graphics_(self, mime_types=None, figsize=None, dpi=None):
         """
-        Show graphics.
+        Magic graphics method.
 
-        The presence of this method is used by the displayhook to
-        decide that we want to see a graphical output by default.
-
-        OUTPUT:
-
-        Return ``True`` if graphical output was generated (might not
-        be shown in doctest mode), otherwise ``False``.
+        See :meth:`sage.plot.graphics.Graphics._graphics_` for details.
 
         EXAMPLES::
 
             sage: from sage.plot.graphics import GraphicsArray
             sage: g = GraphicsArray([])
             sage: g._graphics_()
+            Graphics file image/png
+            sage: g._graphics_(mime_types={'foo/bar'}) is None
             True
         """
-        self.show()
-        return True
+        from sage.structure.graphics_file import Mime, graphics_from_save
+        preference = [Mime.PNG, Mime.SVG, Mime.JPG, Mime.PDF]
+        return graphics_from_save(self.save, preference,
+                                  allowed_mime_types=mime_types, 
+                                  figsize=figsize, dpi=dpi)
 
     def __str__(self):
         """
@@ -3355,7 +3385,7 @@ class GraphicsArray(SageObject):
 
 
     def show(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
-             axes = None, **kwds):
+             axes=None, **kwds):
         r"""
         Show this graphics array using the default viewer.
 
@@ -3384,7 +3414,6 @@ class GraphicsArray(SageObject):
         """
         if filename is None:
             filename = graphics_filename()
-        self.save(filename, dpi=dpi, figsize=figsize, axes = axes, **kwds)
-        if not sage.doctest.DOCTEST_MODE and not sage.plot.plot.EMBEDDED_MODE:
-            os.system('%s %s 2>/dev/null 1>/dev/null &'%(
-                         sage.misc.viewer.png_viewer(), filename))
+        self.save(filename, dpi=dpi, figsize=figsize, axes=axes, **kwds)
+        gfx = GraphicsFile(filename, mime_type='image/png')
+        gfx.launch_viewer()

@@ -3254,11 +3254,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             """
             if len(self.support()) == 0:
                 raise ValueError("The zero element does not have a well-defined degree.")
-            try:
-                assert self.is_homogeneous()
-                return self.parent().degree_on_basis(self.leading_support())
-            except AssertionError:
+            if not self.is_homogeneous():
                 raise ValueError("Element is not homogeneous.")
+            return self.parent().degree_on_basis(self.leading_support())
 
         def milnor(self):
             """

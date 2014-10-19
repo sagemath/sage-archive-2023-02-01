@@ -210,7 +210,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         INPUT:
 
-        - ``reduce_type``   - An analytic type or something which is
+        - ``reduce_type``  -- An analytic type or something which is
                               convertable to an analytic type.
 
         OUTPUT:
@@ -240,7 +240,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         INPUT:
 
-        - ``extend_type``   - An analytic type or something which is
+        - ``extend_type``  -- An analytic type or something which is
                               convertable to an analytic type.
 
         OUTPUT:
@@ -499,7 +499,7 @@ class AnalyticType(FiniteLatticePoset):
 
         INPUT:
 
-        - ``element``   - Either something which coerces in the
+        - ``element``  -- Either something which coerces in the
                           ``FiniteLatticePoset`` of ``self`` or
                           a string or a list of strings of basic
                           properties that should be contained in

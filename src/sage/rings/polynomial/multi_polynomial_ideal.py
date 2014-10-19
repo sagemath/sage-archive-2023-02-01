@@ -3855,7 +3855,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         elif algorithm.lower() == "toy":
             algorithm = "toy:buchberger2"
 
-        if algorithm is '':
+        if not algorithm:
             try:
                 gb = self._groebner_basis_libsingular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
             except (TypeError,NameError) as msg: # conversion to Singular not supported

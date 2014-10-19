@@ -744,9 +744,36 @@ def desolve_system(des, vars, ics=None, ivar=None):
         sage: desolve_system([de1], [x])
         -t + x(0)
 
+    Trac #16568 fixed::
+
+        sage: t = var('t')
+        sage: x = function('x', t)
+        sage: y = function('y', t)
+        sage: de1 = diff(x,t) + y - 1 == 0
+        sage: de2 = diff(y,t) - x + 1 == 0
+        sage: des = [de1,de2]
+        sage: ics = [0,1,-1]
+        sage: vars = [x,y]
+        sage: sol = desolve_system(des, vars, ics); sol
+        [x(t) == 2*sin(t) + 1, y(t) == -2*cos(t) + 1]
+
+    ::
+
+        sage: solx, soly = sol[0].rhs(), sol[1].rhs()
+        sage: RR(solx(t=3))
+        1.28224001611973
+
+    ::
+
+      sage: P1 = plot([solx,soly], (0,1))
+      sage: P2 = parametric_plot((solx,soly), (0,1))
+
+      Now type show(P1), show(P2) to view these plots.
+
     AUTHORS:
 
     - Robert Bradshaw (10-2008)
+    - Sergey Bykov (10-2014)
     """
     if len(des)==1:
         return desolve_laplace(des[0], vars[0], ics=ics, ivar=ivar)

@@ -339,8 +339,6 @@ back | Back = if not(showBoundBox);if not(showUnitcell);boundbox on;moveto 1.0 f
 # Part III -- Word Translations
 # -----------------------------
 
-version | 14.0.13
-date | 2014-04-03
 modelSetMenu | No atoms loaded
 configurationComputedMenu | Configurations
 elementsComputedMenu | Element

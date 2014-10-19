@@ -2208,8 +2208,11 @@ class CategoryWithAxiom(Category):
                 continue
             if axiom == "WithBasis":
                 result = result.replace(" over ", " with basis over ", 1)
-            elif axiom == "Connected" and "graded " in result:
-                result = result.replace("graded ", "graded connected ", 1)
+            elif axiom == "Connected":
+                if "graded " in result:
+                    result = result.replace("graded ", "graded connected ", 1)
+                elif "filtered " in result:
+                    result = result.replace("filtered ", "filtered connected ", 1)
             else:
                 result = uncamelcase(axiom) + " " + result
         return result

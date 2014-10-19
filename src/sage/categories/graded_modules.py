@@ -26,7 +26,7 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
             sage: C.base_category()
             Category of algebras over Rational Field
             sage: sorted(C.super_categories(), key=str)
-            [Category of algebras over Rational Field,
+            [Category of filtered algebras over Rational Field,
              Category of graded modules over Rational Field]
 
             sage: AlgebrasWithBasis(QQ).Graded().base_ring()
@@ -120,86 +120,44 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
         """
         return "graded {}".format(self.base_category()._repr_object_names())
 
+    def extra_super_categories(self):
+        r"""
+        Adds :class:`FilteredModules` to the super categories of ``self``
+        since every graded module admits a filtraion.
+
+        EXAMPLES::
+
+            sage: GradedModules(ZZ).extra_super_categories()
+            [Category of filtered modules over Integer Ring]
+        """
+        from sage.categories.filtered_modules import FilteredModules
+        return [FilteredModules(self.base_ring())]
+
 class GradedModules(GradedModulesCategory):
-    """
+    r"""
     The category of graded modules.
+
+    We consider every graded module `M = \bigoplus_i M_i` as a
+    filtered module under the (natural) filtration of
+
+    .. MATH::
+
+        F_i = \bigoplus_{j < i} M_j.
 
     EXAMPLES::
 
         sage: GradedModules(ZZ)
         Category of graded modules over Integer Ring
         sage: GradedModules(ZZ).super_categories()
-        [Category of modules over Integer Ring]
+        [Category of filtered modules over Integer Ring]
 
     TESTS::
 
         sage: TestSuite(GradedModules(ZZ)).run()
     """
-
-    def extra_super_categories(self):
-        r"""
-        Adds :class:`VectorSpaces` to the super categories of ``self`` if
-        the base ring is a field.
-
-        EXAMPLES::
-
-            sage: Modules(QQ).Graded().extra_super_categories()
-            [Category of vector spaces over Rational Field]
-            sage: Modules(ZZ).Graded().extra_super_categories()
-            []
-
-        This makes sure that ``Modules(QQ).Graded()`` returns an
-        instance of :class:`GradedModules` and not a join category of
-        an instance of this class and of ``VectorSpaces(QQ)``::
-
-            sage: type(Modules(QQ).Graded())
-            <class 'sage.categories.graded_modules.GradedModules_with_category'>
-
-        .. TODO::
-
-            Get rid of this workaround once there is a more systematic
-            approach for the alias ``Modules(QQ)`` -> ``VectorSpaces(QQ)``.
-            Probably the later should be a category with axiom, and
-            covariant constructions should play well with axioms.
-        """
-        from sage.categories.modules import Modules
-        from sage.categories.fields import Fields
-        base_ring = self.base_ring()
-        if base_ring in Fields:
-            return [Modules(base_ring)]
-        else:
-            return []
-
-    class SubcategoryMethods:
-
-        @cached_method
-        def Connected(self):
-            r"""
-            Return the full subcategory of the connected objects of ``self``.
-
-            EXAMPLES::
-
-                sage: Modules(ZZ).Graded().Connected()
-                Category of graded connected modules over Integer Ring
-                sage: Coalgebras(QQ).Graded().Connected()
-                Join of Category of graded connected modules over Rational Field
-                    and Category of coalgebras over Rational Field
-                sage: GradedAlgebrasWithBasis(QQ).Connected()
-                Category of graded connected algebras with basis over Rational Field
-
-            TESTS::
-
-                sage: TestSuite(Modules(ZZ).Graded().Connected()).run()
-                sage: Coalgebras(QQ).Graded().Connected.__module__
-                'sage.categories.graded_modules'
-            """
-            return self._with_axiom("Connected")
-
-    class Connected(CategoryWithAxiom_over_base_ring):
-        pass
-
     class ParentMethods:
         pass
 
     class ElementMethods:
         pass
+

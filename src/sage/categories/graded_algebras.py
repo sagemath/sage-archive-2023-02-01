@@ -20,16 +20,39 @@ class GradedAlgebras(GradedModulesCategory):
         sage: GradedAlgebras(ZZ)
         Category of graded algebras over Integer Ring
         sage: GradedAlgebras(ZZ).super_categories()
-        [Category of algebras over Integer Ring,
+        [Category of filtered algebras over Integer Ring,
          Category of graded modules over Integer Ring]
 
     TESTS::
 
         sage: TestSuite(GradedAlgebras(ZZ)).run()
     """
+    def extra_super_categories(self):
+        r"""
+        Adds :class:`FilteredAlgebras` to the super categories of ``self``
+        since every graded algebra admits a filtraion.
+
+        EXAMPLES::
+
+            sage: GradedAlgebras(ZZ).extra_super_categories()
+            [Category of filtered algebras over Integer Ring]
+        """
+        from sage.categories.filtered_algebras import FilteredAlgebras
+        return [FilteredAlgebras(self.base_ring())]
 
     class ParentMethods:
-        pass
+        def graded_algebra(self):
+            """
+            Return the associated graded algebra to ``self``.
+
+            EXAMPLES::
+
+                sage: m = SymmetricFunctions(QQ).m()
+                sage: m.graded_algebra() is m
+                True
+            """
+            return self
 
     class ElementMethods:
         pass
+

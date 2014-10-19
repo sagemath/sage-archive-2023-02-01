@@ -1059,7 +1059,7 @@ class HierarchyElement(object):
         from sage.combinat.posets.poset_examples import Posets
         from sage.graphs.digraph import DiGraph
         if succ in Posets():
-            assert succ in Sets().Facades()
+            assert succ in Sets().Facade()
             succ = succ.upper_covers
         if isinstance(succ, DiGraph):
             succ = succ.copy()

@@ -202,6 +202,8 @@ Wrap-up: generic algorithms in Sage are organized in a hierarchy of
 bookshelves modelled upon the usual hierarchy of categories provided
 by abstract algebra.
 
+.. _category-primer-parents-elements-categories:
+
 Elements, Parents, Categories
 -----------------------------
 

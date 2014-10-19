@@ -264,6 +264,7 @@ cdef bint concat_biseq(biseq_t R, biseq_t S1, biseq_t S2) except -1:
     """
     R.itembitsize = S1.itembitsize # do not test == S2.itembitsize
     R.mask_item = S1.mask_item
+    cdef mp_size_t S1size_mod
     if S1.length==0:
         if S2.length==0:
             R.length = 0
@@ -280,8 +281,13 @@ cdef bint concat_biseq(biseq_t R, biseq_t S1, biseq_t S2) except -1:
         else:
             R.length = S1.length+S2.length
             bitset_init(R.data, S1.data.size+S2.data.size)
-            mpn_lshift(R.data.bits+(S1.data.size>>times_mp_bits_per_limb), S2.data.bits,
-                       S2.data.limbs, S1.data.size&mod_mp_bits_per_limb)
+            S1size_mod = S1.data.size&mod_mp_bits_per_limb
+            if S1size_mod > 0:
+                mpn_lshift(R.data.bits+(S1.data.size>>times_mp_bits_per_limb), S2.data.bits,
+                           S2.data.limbs, S1size_mod)
+            else:
+                mpn_copyi(R.data.bits+(S1.data.size>>times_mp_bits_per_limb), S2.data.bits,
+                          S2.data.limbs)
             mpn_ior_n(R.data.bits, R.data.bits, S1.data.bits, S1.data.limbs)
 
 cdef inline bint first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_t d) except -1:

@@ -150,6 +150,8 @@ from libc.stdint cimport uint64_t
 include "sage/ext/python_debug.pxi"
 include "../structure/coerce.pxi"   # for parent_c
 include "sage/libs/pari/decl.pxi"
+from sage.rings.rational cimport Rational
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
 cdef extern from "limits.h":
     long LONG_MAX
@@ -3081,6 +3083,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         modulo m and whose numerator and denominator is bounded by
         sqrt(m/2).
 
+        INPUT:
+
+        - ``self`` -- Integer
+
+        - ``m`` -- Integer
+
+        OUTPUT:
+
+        - a :class:`Rational`
+
         EXAMPLES::
 
             sage: (3/7)%100
@@ -3088,22 +3100,27 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (29).rational_reconstruction(100)
             3/7
 
-        TEST:
+        TESTS:
 
-        Check that ticket #9345 is fixed::
+        Check that trac:`9345` is fixed::
 
-            sage: ZZ(1).rational_reconstruction(0)
+            sage: 0.rational_reconstruction(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: The modulus cannot be zero
-            sage: m = ZZ.random_element(-10^6,10^6)
-            sage: m.rational_reconstruction(0)
+            ZeroDivisionError: rational reconstruction with zero modulus
+            sage: ZZ.random_element(-10^6, 10^6).rational_reconstruction(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: The modulus cannot be zero
+            ZeroDivisionError: rational reconstruction with zero modulus
         """
-        import rational
-        return rational.pyrex_rational_reconstruction(self, m)
+        cdef Integer a
+        cdef Rational x = <Rational>PY_NEW(Rational)
+        try:
+            mpq_rational_reconstruction(x.value, self.value, m.value)
+        except ValueError:
+            a = self % m
+            raise ArithmeticError("rational reconstruction of %s (mod %s) does not exist" % (a, m))
+        return x
 
     def powermodm_ui(self, exp, mod):
         r"""

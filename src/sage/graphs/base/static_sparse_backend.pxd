@@ -7,7 +7,7 @@ include 'sage/ext/stdsage.pxi'
 cdef class StaticSparseCGraph(CGraph):
     cdef short_digraph g
     cdef short_digraph g_rev
-    cdef bint directed
+    cdef bint _directed
 
     cpdef bint has_vertex(self, int n)
     cdef int add_vertex_unsafe(self, int k)
@@ -17,7 +17,7 @@ cdef class StaticSparseCGraph(CGraph):
     cpdef bint has_arc(self, int u, int v)
     cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2
     cpdef list out_neighbors(self, int u)
-    cpdef int out_degree(self, int u)
+    cpdef int out_degree(self, int u) except -1
     cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2
     cpdef list in_neighbors(self, int u)
-    cpdef int in_degree(self, int u)
+    cpdef int in_degree(self, int u) except -1

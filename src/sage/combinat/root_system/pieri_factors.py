@@ -309,8 +309,8 @@ class PieriFactors_finite_type(PieriFactors):
         ct = self.W.cartan_type()
 
         # The following line may need to be changed when generalizing to more than types A and B.
-
-        assert any([ct.type() == 'A', ct.type() == 'B'])
+        if ct.type() != 'A' and ct.type() != 'B':
+            raise NotImplementedError("currently only implemented for finite types A and B")
 
         ct_aff = ct.dual().affine()
 
@@ -339,25 +339,27 @@ class PieriFactors_affine_type(PieriFactors):
 
             sage: W = WeylGroup(['A',4,1])
             sage: PF = W.pieri_factors()
-            sage: [w.reduced_word() for w in PF.maximal_elements()]
-            [[0, 4, 3, 2], [1, 0, 4, 3], [4, 3, 2, 1], [2, 1, 0, 4], [3, 2, 1, 0]]
+            sage: sorted([w.reduced_word() for w in PF.maximal_elements()], key=str)
+            [[0, 4, 3, 2], [1, 0, 4, 3], [2, 1, 0, 4], [3, 2, 1, 0], [4, 3, 2, 1]]
 
             sage: W = WeylGroup(RootSystem(["C",3,1]).weight_space())
             sage: PF = W.pieri_factors()
-            sage: [w.reduced_word() for w in PF.maximal_elements()]
-            [[0, 1, 2, 3, 2, 1], [1, 0, 1, 2, 3, 2], [1, 2, 3, 2, 1, 0], [2, 1, 0, 1, 2, 3], [2, 3, 2, 1, 0, 1], [3, 2, 1, 0, 1, 2]]
+            sage: sorted([w.reduced_word() for w in PF.maximal_elements()], key=str)
+            [[0, 1, 2, 3, 2, 1], [1, 0, 1, 2, 3, 2], [1, 2, 3, 2, 1, 0],
+             [2, 1, 0, 1, 2, 3], [2, 3, 2, 1, 0, 1], [3, 2, 1, 0, 1, 2]]
 
             sage: W = WeylGroup(RootSystem(["B",3,1]).weight_space())
             sage: PF = W.pieri_factors()
-            sage: [w.reduced_word() for w in PF.maximal_elements()]
-            [[0, 2, 3, 2, 0], [1, 0, 2, 3, 2], [2, 3, 2, 1, 0], [3, 2, 1, 0, 2], [1, 2, 3, 2, 1], [2, 1, 0, 2, 3]]
+            sage: sorted([w.reduced_word() for w in PF.maximal_elements()], key=str)
+            [[0, 2, 3, 2, 0], [1, 0, 2, 3, 2], [1, 2, 3, 2, 1],
+             [2, 1, 0, 2, 3], [2, 3, 2, 1, 0], [3, 2, 1, 0, 2]]
 
             sage: W = WeylGroup(['D',4,1])
             sage: PF = W.pieri_factors()
-            sage: [w.reduced_word() for w in PF.maximal_elements()]
-            [[0, 2, 4, 3, 2, 0], [1, 0, 2, 4, 3, 2], [2, 4, 3, 2, 1, 0],
-            [1, 2, 4, 3, 2, 1], [2, 1, 0, 2, 4, 3], [4, 3, 2, 1, 0, 2],
-            [4, 2, 1, 0, 2, 4], [3, 2, 1, 0, 2, 3]]
+            sage: sorted([w.reduced_word() for w in PF.maximal_elements()], key=str)
+            [[0, 2, 4, 3, 2, 0], [1, 0, 2, 4, 3, 2], [1, 2, 4, 3, 2, 1],
+             [2, 1, 0, 2, 4, 3], [2, 4, 3, 2, 1, 0], [3, 2, 1, 0, 2, 3],
+             [4, 2, 1, 0, 2, 4], [4, 3, 2, 1, 0, 2]]
         """
         ct = self.W.cartan_type()
         s = ct.translation_factors()[1]
@@ -566,7 +568,8 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
         self._min_support = frozenset(min_support)
         self._max_support = frozenset(max_support)
 
-        assert self._min_support.issubset(self._max_support)
+        if not self._min_support.issubset(self._max_support):
+            raise ValueError("the min support must be a subset of the max support")
 
         self._extra_support = self._max_support.difference(self._min_support)
 
@@ -661,7 +664,8 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
             sage: w in PF
             False
         """
-        assert w in self.W
+        if w not in self.W:
+            raise ValueError("{} is not an element of the Weyl group".format(w))
         n = len(self.W.index_set()) - 1
         red = w.reduced_word()
         support = set(red)
@@ -685,14 +689,14 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
 
     def __getitem__(self, support):
         r"""
+        Return the cyclically decreasing element associated with ``support``.
+
         INPUT:
 
-         - ``support`` - a proper subset of the index_set, as a list or set.
-
-        Returns the cyclicaly decreasing element associated with ``support``.
+        - ``support`` -- a proper subset of the index_set, as a list or set
 
         EXAMPLES::
-:
+
             sage: W = WeylGroup(["A", 5, 1])
             sage: W.pieri_factors()[[0,1,2,3,5]].reduced_word()
             [3, 2, 1, 0, 5]
@@ -704,9 +708,9 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
         """
         index_set = sorted(self.W.index_set())
         support   = sorted(support)
-        assert set(support).issubset(set(index_set))
-        assert support != index_set
-        if len(support) == 0:
+        if not set(support).issubset(set(index_set)) or support == index_set:
+            raise ValueError("the support must be a proper subset of the index set")
+        if not support:
             return self.W.one()
         s = self.W.simple_reflections()
         i = 0
@@ -797,8 +801,9 @@ class PieriFactors_type_C_affine(PieriFactors_affine_type):
 
         sage: W = WeylGroup(['C',3,1])
         sage: PF = W.pieri_factors()
-        sage: [u.reduced_word() for u in PF.maximal_elements()]
-        [[0, 1, 2, 3, 2, 1], [1, 0, 1, 2, 3, 2], [1, 2, 3, 2, 1, 0], [2, 1, 0, 1, 2, 3], [2, 3, 2, 1, 0, 1], [3, 2, 1, 0, 1, 2]]
+        sage: sorted([u.reduced_word() for u in PF.maximal_elements()], key=str)
+        [[0, 1, 2, 3, 2, 1], [1, 0, 1, 2, 3, 2], [1, 2, 3, 2, 1, 0],
+         [2, 1, 0, 1, 2, 3], [2, 3, 2, 1, 0, 1], [3, 2, 1, 0, 1, 2]]
     """
 
     def __init__(self, W):
@@ -984,9 +989,11 @@ class PieriFactors_type_D_affine(PieriFactors_affine_type):
         True
         sage: W.from_reduced_word([2,0,1,3]) in PF
         True
-        sage: [u.reduced_word() for u in PF.maximal_elements()]
-        [[0, 2, 3, 5, 4, 3, 2, 0], [1, 0, 2, 3, 5, 4, 3, 2], [2, 3, 5, 4, 3, 2, 1, 0], [2, 1, 0, 2, 3, 5, 4, 3], [1, 2, 3, 5, 4, 3, 2, 1], [3, 5, 4, 3, 2, 1, 0, 2], [3, 2, 1, 0, 2, 3, 5, 4], [5, 4, 3, 2, 1, 0, 2, 3], [5, 3, 2, 1, 0, 2, 3, 5], [4, 3, 2, 1, 0, 2, 3, 4]]
-
+        sage: sorted([u.reduced_word() for u in PF.maximal_elements()], key=str)
+        [[0, 2, 3, 5, 4, 3, 2, 0], [1, 0, 2, 3, 5, 4, 3, 2], [1, 2, 3, 5, 4, 3, 2, 1],
+         [2, 1, 0, 2, 3, 5, 4, 3], [2, 3, 5, 4, 3, 2, 1, 0], [3, 2, 1, 0, 2, 3, 5, 4],
+         [3, 5, 4, 3, 2, 1, 0, 2], [4, 3, 2, 1, 0, 2, 3, 4], [5, 3, 2, 1, 0, 2, 3, 5],
+         [5, 4, 3, 2, 1, 0, 2, 3]]
     """
 
     def __init__(self, W):

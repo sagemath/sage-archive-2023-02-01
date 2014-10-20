@@ -66,7 +66,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
                          self.root(4,5,p1=1),
                          self.root(5,6,p1=1)]
         else:
-            raise NotImplementedError, "Type \'E\' root systems only come in flavors 6, 7, 8.  Please make another choice"
+            raise NotImplementedError("Type \'E\' root systems only come in flavors 6, 7, 8.  Please make another choice")
 
     def dimension(self):
         """
@@ -121,19 +121,19 @@ class AmbientSpace(ambient_space.AmbientSpace):
              (0, 0, 0, 0, 0, 1, 0, 1),
              (0, 0, 0, 0, 0, 0, 1, 1)]
         """
-        if i1 == i2 or i2 == None:
+        if i1 == i2 or i2 is None:
             return (-1)**p1*self.monomial(i1)
-        if i3 == None:
+        if i3 is None:
             return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)
-        if i4 == None:
+        if i4 is None:
             return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)
-        if i5 == None:
+        if i5 is None:
             return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)+(-1)**p4*self.monomial(i4)
-        if i6 == None:
+        if i6 is None:
             return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)+(-1)**p4*self.monomial(i4)+(-1)**p5*self.monomial(i5)
-        if i7 == None:
+        if i7 is None:
             return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)+(-1)**p4*self.monomial(i4)+(-1)**p5*self.monomial(i5)+(-1)**p6*self.monomial(i6)
-        if i8 == None:
+        if i8 is None:
             return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)+(-1)**p4*self.monomial(i4)+(-1)**p5*self.monomial(i5)+(-1)**p6*self.monomial(i6)+(-1)**p7*self.monomial(i7)
         return (-1)**p1*self.monomial(i1) + (-1)**p2*self.monomial(i2)+(-1)**p3*self.monomial(i3)+(-1)**p4*self.monomial(i4)+(-1)**p5*self.monomial(i5)+(-1)**p6*self.monomial(i6)+(-1)**p7*self.monomial(i7)+(-1)**p8*self.monomial(i8)
 
@@ -148,7 +148,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: LE6.simple_roots()
             Finite family {1: (1/2, -1/2, -1/2, -1/2, -1/2, -1/2, -1/2, 1/2), 2: (1, 1, 0, 0, 0, 0, 0, 0), 3: (-1, 1, 0, 0, 0, 0, 0, 0), 4: (0, -1, 1, 0, 0, 0, 0, 0), 5: (0, 0, -1, 1, 0, 0, 0, 0), 6: (0, 0, 0, -1, 1, 0, 0, 0)}
         """
-        assert(i in self.index_set())
+        if i not in self.index_set():
+            raise ValueError("{} is not in the index set".format(i))
         return self.Base[i-1]
 
     def negative_roots(self):
@@ -478,6 +479,46 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
         return "E_%s"%self.n
 
     AmbientSpace = AmbientSpace
+
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['E',6]).coxeter_number()
+            12
+            sage: CartanType(['E',7]).coxeter_number()
+            18
+            sage: CartanType(['E',8]).coxeter_number()
+            30
+        """
+        if self.n == 6:
+            return 12
+        if self.n == 7:
+            return 18
+        # n == 8
+        return 30
+
+    def dual_coxeter_number(self):
+        """
+        Return the dual Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['E',6]).dual_coxeter_number()
+            12
+            sage: CartanType(['E',7]).dual_coxeter_number()
+            18
+            sage: CartanType(['E',8]).dual_coxeter_number()
+            30
+        """
+        if self.n == 6:
+            return 12
+        if self.n == 7:
+            return 18
+        # n == 8
+        return 30
 
     def dynkin_diagram(self):
         """

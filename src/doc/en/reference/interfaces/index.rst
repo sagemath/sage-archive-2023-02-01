@@ -62,6 +62,7 @@ and testing to make sure nothing funny is going on).
 
    sage/interfaces/expect
    sage/interfaces/axiom
+   sage/interfaces/ecm
    sage/interfaces/four_ti_2
    sage/interfaces/gap
    sage/interfaces/gap3
@@ -76,6 +77,7 @@ and testing to make sure nothing funny is going on).
    sage/interfaces/mathematica
    sage/interfaces/mwrank
    sage/interfaces/octave
+   sage/interfaces/qepcad
    sage/interfaces/r
    sage/interfaces/sage0
    sage/interfaces/singular

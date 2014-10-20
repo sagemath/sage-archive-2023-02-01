@@ -40,7 +40,6 @@ Index
 Functions
 ---------
 """
-include "sage/misc/binary_matrix.pxi"
 
 cdef dict dense_graph_init(binary_matrix_t m, g, translation = False):
     r"""
@@ -87,7 +86,7 @@ def is_strongly_regular(g, parameters = False):
     r"""
     Tests whether ``self`` is strongly regular.
 
-    A graph `G` is said to be strongly regular with parameters `(n, k, \lambda,
+    A simple graph `G` is said to be strongly regular with parameters `(n, k, \lambda,
     \mu)` if and only if:
 
         * `G` has `n` vertices.
@@ -152,8 +151,25 @@ def is_strongly_regular(g, parameters = False):
         sage: g = graphs.EmptyGraph()
         sage: g.is_strongly_regular()
         False
+
+    If the input graph has loops or multiedges an exception is raised::
+
+        sage: Graph([(1,1),(2,2)]).is_strongly_regular()
+        Traceback (most recent call last):
+        ...
+        ValueError: This method is not known to work on graphs with
+        loops. Perhaps this method can be updated to handle them, but in the
+        meantime if you want to use it please disallow loops using
+        allow_loops().
+        sage: Graph([(1,2),(1,2)]).is_strongly_regular()
+        Traceback (most recent call last):
+        ...
+        ValueError: This method is not known to work on graphs with
+        multiedges. Perhaps this method can be updated to handle them, but in
+        the meantime if you want to use it please disallow multiedges using
+        allow_multiple_edges().
     """
-    g._scream_if_not_simple(allow_loops=True)
+    g._scream_if_not_simple()
     cdef binary_matrix_t m
     cdef int n = g.order()
     cdef int inter

@@ -67,7 +67,7 @@ def MeetSemilattice(data, *args, **options):
         return data
     P = Poset(data, *args, **options)
     if not P.is_meet_semilattice():
-        raise ValueError, "Not a meet semilattice."
+        raise ValueError("Not a meet semilattice.")
     return FiniteMeetSemilattice(P)
 
 class FiniteMeetSemilattice(FinitePoset):
@@ -191,7 +191,7 @@ def JoinSemilattice(data, *args, **options):
         return data
     P = Poset(data, *args, **options)
     if not P.is_join_semilattice():
-        raise ValueError, "Not a join semilattice."
+        raise ValueError("Not a join semilattice.")
     return FiniteJoinSemilattice(P)
 
 class FiniteJoinSemilattice(FinitePoset):
@@ -318,7 +318,7 @@ def LatticePoset(data, *args, **options):
 
         sage: L = LatticePoset([[1,2],[3],[3]], facade = True)
         sage: L.category()
-        Category of facade finite lattice posets
+        Join of Category of finite lattice posets and Category of finite enumerated sets and Category of facade sets
         sage: parent(L[0])
         Integer Ring
         sage: TestSuite(L).run(skip = ['_test_an_element']) # is_parent_of is not yet implemented
@@ -328,7 +328,7 @@ def LatticePoset(data, *args, **options):
         return data
     P = Poset(data, *args, **options)
     if not P.is_lattice():
-        raise ValueError, "Not a lattice."
+        raise ValueError("Not a lattice.")
 
     return FiniteLatticePoset(P, category = FiniteLatticePosets(), facade = P._is_facade)
 
@@ -371,8 +371,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def is_distributive(self):
         r"""
-        Returns ``True`` if the lattice is distributive, and ``False``
+        Return ``True`` if the lattice is distributive, and ``False``
         otherwise.
+
+        A lattice `(L, \vee, \wedge)` is distributive if meet
+        distributes over join: `x \wedge (y \vee z) = (x \wedge y)
+        \vee (x \wedge z)` for every `x,y,z \in L` just like `x \cdot
+        (y+z)=x \cdot y + x \cdot z` in normal arithmetic. For duality
+        in lattices it follows that then also join distributes over
+        meet.
 
         EXAMPLES::
 
@@ -383,7 +390,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_distributive()
             False
         """
-        return self._hasse_diagram.is_distributive_lattice()
+        if self.cardinality() == 0: return True
+        return (self.is_graded() and 
+         self.rank() == len(self.join_irreducibles()) ==
+         len(self.meet_irreducibles()))
 
     def is_complemented(self):
         r"""

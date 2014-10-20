@@ -62,7 +62,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: RootSystem(['C',3]).ambient_space().simple_roots()
             Finite family {1: (1, -1, 0), 2: (0, 1, -1), 3: (0, 0, 2)}
         """
-        assert(i in self.index_set())
+        if i not in self.index_set():
+            raise ValueError("{} is not in the index set".format(i))
         return self.root(i-1, i,0,1) if i < self.n else self.root(self.n-1, self.n-1, 0, 0)
 
     def positive_roots(self):
@@ -172,6 +173,28 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
     AmbientSpace = AmbientSpace
 
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['C',4]).coxeter_number()
+            8
+        """
+        return 2*self.n
+
+    def dual_coxeter_number(self):
+        """
+        Return the dual Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['C',4]).dual_coxeter_number()
+            5
+        """
+        return self.n + 1
+
     def dual(self):
         """
         Types B and C are in duality:
@@ -224,7 +247,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
             \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
 
-        When ``dual=True``, the dynkin diagram for the dual Cartan
+        When ``dual=True``, the Dynkin diagram for the dual Cartan
         type `B_n` is returned::
 
             sage: print CartanType(['C',4])._latex_dynkin_diagram(dual=True)

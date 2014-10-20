@@ -209,7 +209,7 @@ cdef class CoinBackend(GenericBackend):
             if obj:
                 self.si.setObjCoeff(n + i, obj)
 
-        if names != None:
+        if names is not None:
             for name in names:
                 self.col_names.append(name)
         else:
@@ -359,7 +359,6 @@ cdef class CoinBackend(GenericBackend):
             sage: p.set_verbosity(2)                                # optional - Coin
 
         """
-
         self.model.setLogLevel(level)
 
     cpdef remove_constraint(self, int i):
@@ -535,9 +534,9 @@ cdef class CoinBackend(GenericBackend):
             row.insert(i, c)
 
         self.si.addRow (row[0],
-                        lower_bound if lower_bound != None else -self.si.getInfinity(),
-                        upper_bound if upper_bound != None else +self.si.getInfinity())
-        if name != None:
+                        lower_bound if lower_bound is not None else -self.si.getInfinity(),
+                        upper_bound if upper_bound is not None else +self.si.getInfinity())
+        if name is not None:
             self.row_names.append(name)
         else:
             self.row_names.append("")
@@ -822,11 +821,24 @@ cdef class CoinBackend(GenericBackend):
             0.0
             sage: p.get_variable_value(1)                         # optional - Coin
             1.5
+            sage: p = MixedIntegerLinearProgram("Coin")  # optional - Coin
+            sage: x = p.new_variable(dim=1)       # optional - Coin
+            sage: p.set_min(x[0], 0.0)            # optional - Coin
+            sage: p.get_values(x)                 # optional - Coin
+            {0: 0.0}
         """
 
         cdef double * solution
+        cdef double v
         solution = <double*> self.model.solver().getColSolution()
-        return solution[variable]
+        if solution == NULL:
+            v = 0.0
+        else:
+            v = solution[variable]
+        if self.is_variable_continuous(variable):
+            return v
+        else:
+            return round(v)
 
     cpdef int ncols(self):
         r"""
@@ -1104,7 +1116,7 @@ cdef class CoinBackend(GenericBackend):
             There once was a french fry
         """
         if name == NULL:
-            if self.prob_name != None:
+            if self.prob_name is not None:
                 return self.prob_name
             else:
                 return ""
@@ -1128,7 +1140,7 @@ cdef class CoinBackend(GenericBackend):
             sage: print p.row_name(0)                                                 # optional - Coin
             Empty constraint 1
         """
-        if self.row_names != None:
+        if self.row_names is not None:
             return self.row_names[index]
         else:
             return ""
@@ -1150,7 +1162,7 @@ cdef class CoinBackend(GenericBackend):
             sage: print p.col_name(0)                      # optional - Coin
             I am a variable
         """
-        if self.col_names != None:
+        if self.col_names is not None:
             return self.col_names[index]
         else:
             return ""

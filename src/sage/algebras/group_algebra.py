@@ -51,7 +51,7 @@ class GroupAlgebra(Algebra):
         EXAMPLES::
 
             sage: from sage.algebras.group_algebra import GroupAlgebra
-            doctest:1: DeprecationWarning:...
+            doctest:...: DeprecationWarning:...
             sage: GroupAlgebra(GL(3, GF(7)))
             Group algebra of group "General Linear Group of degree 3 over Finite
             Field of size 7" over base ring Integer Ring
@@ -222,7 +222,7 @@ class GroupAlgebra(Algebra):
                 (self.base_ring().random_element(), self.group().random_element()),
                 (self.base_ring().random_element(), self.group().random_element()),
                 ]))
-        except StandardError: # base ring or group might not implement .random_element()
+        except Exception: # base ring or group might not implement .random_element()
             return self(self._formal_sum_module([ (self.base_ring().an_element(), self.group().an_element()) ]))
 
     def __call__(self, x, check=True):

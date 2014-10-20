@@ -144,7 +144,7 @@ cdef class ntl_zz_p:
         else:
             try:
                 modulus = int(modulus)
-            except StandardError:
+            except Exception:
                 raise ValueError, "%s is not a valid modulus."%modulus
             self.c = <ntl_zz_pContext_class>ntl_zz_pContext(modulus)
 

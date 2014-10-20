@@ -26,7 +26,9 @@ to be aware of the modules described in this chapter.
    sage/libs/gap/libgap
    sage/libs/gap/element
    sage/libs/flint/fmpz_poly
+   sage/libs/fplll/fplll
    sage/libs/libecm
+   sage/libs/lcalc/lcalc_Lfunction
    sage/libs/lrcalc/lrcalc
    sage/libs/ntl/all
    sage/libs/mwrank/all

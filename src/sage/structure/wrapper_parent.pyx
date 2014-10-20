@@ -27,7 +27,7 @@ Option 1: WrapperParent_model1
     b) Update this list to reflect any lessons you've learned.
 
 Option 2: Write your own custom.
-  When you want speed but can't use option 1.  See sage/rings/residue_field.pyx for examples (ResidueFiniteField_prime_modn, ResidueFiniteField_givaro and ResidueFiniteField_pari_ext)
+  When you want speed but can't use option 1.  See sage/rings/finite_rings/residue_field.pyx for examples (ResidueFiniteField_prime_modn, ResidueFiniteField_givaro and ResidueFiniteField_pari_ffelt)
 
 AUTHORS:
   -- David Roe (2007-10-3)

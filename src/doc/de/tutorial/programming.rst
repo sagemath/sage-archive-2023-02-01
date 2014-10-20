@@ -25,7 +25,7 @@ Sie können ``beispiel.sage`` einlesen und ausführen, indem Sie den
 
 ::
 
-    sage: load "beispiel.sage"
+    sage: load("beispiel.sage")
     Hello World
     8
 
@@ -36,7 +36,7 @@ indem Sie den ``attach``-Befehl verwenden:
 
 ::
 
-    sage: attach "beispiel.sage"
+    sage: attach("beispiel.sage")
     Hello World
     8
 
@@ -104,35 +104,8 @@ Kommandozeile arbeiten, können Sie kompilierten Code genau wie
 interpretierten Code anhängen und laden. (Im Moment wird das Anhängen
 von Cythoncode vom Notebook aus nicht unterstützt).
 Die tatsächliche Kompilierung wird "hinter den Kulissen" durchgeführt
-ohne dass Sie explizit etwas tun müssen. Schauen Sie sich
-``$SAGE_ROOT/examples/programming/sagex/factorial.spyx`` an, um ein
-Beispiel einer kompilierten Implementation der Fakultätsfunktion zu
-sehen, welche die GMP-C-Bibliothek unmittelbar benutzt. Um dies
-selbst auszuprobierten, wechseln Sie in das Verzeichnis
-``$SAGE_ROOT/examples/programming/sagex/`` und führen Sie Folgendes
-aus:
-
-.. skip
-
-::
-
-    sage: load "factorial.spyx"
-    ***************************************************
-                    Recompiling factorial.spyx
-    ***************************************************
-    sage: factorial(50)
-    30414093201713378043612608166064768844377641568960512000000000000L
-    sage: time n = factorial(10000)
-    CPU times: user 0.03 s, sys: 0.00 s, total: 0.03 s
-    Wall time: 0.03
-
-Hier gibt das abschließende L ein "Python long integer" zu erkennen
-(Lesen Sie :ref:`section-mathannoy`).
-
-Beachten Sie, dass Sage ``factorial.spyx`` neu kompiliert falls Sie
-Sage beenden und neustarten.
-Die komplierte "shared object library" wird unter
-``$HOME/.sage/temp/hostname/pid/spyx`` gespeichert. Diese Dateien
+ohne dass Sie explizit etwas tun müssen. Die komplierte "shared object library"
+wird unter ``$HOME/.sage/temp/hostname/pid/spyx`` gespeichert. Diese Dateien
 werden gelöscht wenn Sie Sage beenden.
 
 Auf spyx-Dateien wird kein "preparsing" angewendet, d.h. ``1/3`` wird
@@ -180,7 +153,7 @@ Dann funktioniert das Folgende:
 
 ::
 
-    sage: attach "test.spyx"
+    sage: attach("test.spyx")
     Compiling (...)/test.spyx...
     sage: test(10)
     11
@@ -527,16 +500,18 @@ ob ein Element zu der Menge gehört oder nicht, sehr schnell geht.
 ::
 
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
-    sage: X
-    set(['a', 1, 19])
+    sage: X   # random sort order
+    {1, 19, 'a'}
+    sage: X == set(['a', 1, 1, 19])
+    True
     sage: Y
-    set([1, 2/3])
+    {2/3, 1}
     sage: 'a' in X
     True
     sage: 'a' in Y
     False
     sage: X.intersection(Y)
-    set([1])
+    {1}
 
 Sage besitzt auch einen eigenen Mengen-Datentyp, welcher (manchmal)
 mit Hilfe des standardmäßigen Python-Mengen-Datentyps implementiert
@@ -547,8 +522,10 @@ verwenden. Zum Beispiel,
 ::
 
     sage: X = Set([1,19,'a']);   Y = Set([1,1,1, 2/3])
-    sage: X
+    sage: X   # random sort order
     {'a', 1, 19}
+    sage: X == Set(['a', 1, 1, 19])
+    True
     sage: Y
     {1, 2/3}
     sage: X.intersection(Y)

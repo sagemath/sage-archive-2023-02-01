@@ -10,7 +10,7 @@ AUTHORS:
 
 TESTS::
 
-    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(CartanType(['A', 4, 2]).dual(), [[2, 1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(CartanType(['A', 4, 2]).dual(), [[2, 1]])
     sage: from sage.combinat.rigged_configurations.bij_type_A2_dual import KRTToRCBijectionTypeA2Dual
     sage: bijection = KRTToRCBijectionTypeA2Dual(KRT(pathlist=[[2,1]]))
     sage: TestSuite(bijection).run()
@@ -56,7 +56,7 @@ class KRTToRCBijectionTypeA2Dual(KRTToRCBijectionTypeC):
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(CartanType(['A', 4, 2]).dual(), [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(CartanType(['A', 4, 2]).dual(), [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A2_dual import KRTToRCBijectionTypeA2Dual
             sage: bijection = KRTToRCBijectionTypeA2Dual(KRT(pathlist=[[-1,2]]))
             sage: bijection.cur_path.insert(0, [])

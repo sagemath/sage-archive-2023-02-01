@@ -139,7 +139,7 @@ class Function_HurwitzZeta(BuiltinFunction):
         else:
             return
 
-    def _evalf_(self, s, x, parent):
+    def _evalf_(self, s, x, parent=None, algorithm=None):
         r"""
         TESTS::
 
@@ -254,7 +254,15 @@ class Function_zetaderiv(GinacFunction):
         """
         GinacFunction.__init__(self, "zetaderiv", nargs=2)
 
-    def _evalf_(self, n, x, parent):
+    def _evalf_(self, n, x, parent=None, algorithm=None):
+        r"""
+        TESTS::
+
+            sage: zetaderiv(0, 3, hold=True).n() == zeta(3).n()
+            True
+            sage: zetaderiv(2, 3 + I).n()
+            0.0213814086193841 - 0.174938812330834*I
+        """
         from mpmath import zeta
         return mpmath_utils.call(zeta, x, 1, n, parent=parent)
 
@@ -359,6 +367,7 @@ class DickmanRho(BuiltinFunction):
         sage: dickman_rho(10.00000000000000000000000000000000000000)
         2.77017183772595898875812120063434232634e-11
         sage: plot(log(dickman_rho(x)), (x, 0, 15))
+        Graphics object consisting of 1 graphics primitive
 
     AUTHORS:
 
@@ -407,7 +416,7 @@ class DickmanRho(BuiltinFunction):
         elif x <= 2:
             return 1 - x.log()
         n = x.floor()
-        if self._cur_prec < x.parent().prec() or not self._f.has_key(n):
+        if self._cur_prec < x.parent().prec() or n not in self._f:
             self._cur_prec = rel_prec = x.parent().prec()
             # Go a bit beyond so we're not constantly re-computing.
             max = x.parent()(1.1)*x + 10

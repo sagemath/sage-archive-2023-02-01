@@ -198,7 +198,7 @@ def wigner_3j(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
                           _Factlist[int(j_1 + j_2 + j_3 + 1)]
 
     ressqrt = argsqrt.sqrt(prec)
-    if type(ressqrt) is ComplexNumber:
+    if isinstance(ressqrt, ComplexNumber):
         ressqrt = ressqrt.real()
 
     imin = max(-j_3 + j_1 + m_2, -j_3 + j_2 - m_1, 0)
@@ -316,7 +316,7 @@ def _big_delta_coeff(aa, bb, cc, prec=None):
                           Integer(_Factlist[int(aa + bb + cc + 1)])
 
     ressqrt = argsqrt.sqrt(prec)
-    if type(ressqrt) is ComplexNumber:
+    if isinstance(ressqrt, ComplexNumber):
         res = ressqrt.real()
     else:
         res = ressqrt
@@ -728,6 +728,6 @@ def gaunt(l_1, l_2, l_3, m_1, m_2, m_3, prec=None):
         sumres = sumres + Integer((-1) ** ii) / den
 
     res = ressqrt * prefac * sumres * (-1) ** (bigL + l_3 + m_1 - m_2)
-    if prec != None:
+    if prec is not None:
         res = res.n(prec)
     return res

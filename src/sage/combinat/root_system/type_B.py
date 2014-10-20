@@ -62,7 +62,8 @@ class  AmbientSpace(ambient_space.AmbientSpace):
             sage: e.fundamental_weights()
             Finite family {1: (1, 0, 0, 0), 2: (1, 1, 0, 0), 3: (1, 1, 1, 0), 4: (1/2, 1/2, 1/2, 1/2)}
         """
-        assert(i in self.index_set())
+        if i not in self.index_set():
+            raise ValueError("{} is not in the index set".format(i))
         return self.root(i-1,i) if i < self.n else self.monomial(self.n-1)
 
     def negative_roots(self):
@@ -116,7 +117,8 @@ class  AmbientSpace(ambient_space.AmbientSpace):
             sage: RootSystem(['B',3]).ambient_space().fundamental_weights()
             Finite family {1: (1, 0, 0), 2: (1, 1, 0), 3: (1/2, 1/2, 1/2)}
         """
-        assert(i in self.index_set())
+        if i not in self.index_set():
+            raise ValueError("{} is not in the index set".format(i))
         n = self.dimension()
         if i == n:
             return self.sum( self.monomial(j) for j in range(n) ) / 2
@@ -177,6 +179,28 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         return "B_{%s}"%self.n
 
     AmbientSpace = AmbientSpace
+
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['B',4]).coxeter_number()
+            8
+        """
+        return 2*self.n
+
+    def dual_coxeter_number(self):
+        """
+        Return the dual Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['B',4]).dual_coxeter_number()
+            7
+        """
+        return 2*self.n - 1
 
     def dual(self):
         """
@@ -261,7 +285,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
             \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
 
-        When ``dual=True``, the dynkin diagram for the dual Cartan
+        When ``dual=True``, the Dynkin diagram for the dual Cartan
         type `C_n` is returned::
 
             sage: print CartanType(['B',4])._latex_dynkin_diagram(dual=True)

@@ -121,7 +121,7 @@ This base class provides a lot more methods than a general parent::
      'has_coerce_map_from_impl', 'ideal', 'ideal_monoid',
      'integral_closure', 'is_commutative', 'is_field', 'is_finite',
      'is_integral_domain', 'is_integrally_closed', 'is_noetherian',
-     'is_prime_field', 'is_ring', 'is_subring', 'is_zero',
+     'is_prime_field', 'is_ring', 'is_subring',
      'krull_dimension', 'list', 'ngens', 'one', 'one_element',
      'order', 'prime_subfield', 'principal_ideal', 'quo', 'quotient',
      'quotient_ring', 'random_element', 'unit_ideal', 'zero',
@@ -399,16 +399,23 @@ Sage's category framework can differentiate the two cases::
 
 .. end of output
 
-Surprisingly, ``MS2`` has *more* methods than ``MS1``, even though their classes
-coincide::
+And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    55
+    57
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    78
-    sage: MS1.__class__ is MS2.__class__
-    True
+    82
+
+This is because the class of ``MS2`` also inherits from the parent
+class for algebras::
+
+    sage: MS1.__class__.__bases__
+    (<class 'sage.matrix.matrix_space.MatrixSpace'>,
+     <class 'sage.categories.vector_spaces.VectorSpaces.parent_class'>)
+    sage: MS2.__class__.__bases__
+    (<class 'sage.matrix.matrix_space.MatrixSpace'>,
+     <class 'sage.categories.algebras.Algebras.parent_class'>)
 
 .. end of output
 
@@ -526,7 +533,7 @@ monoids\---see
 :meth:`~sage.categories.commutative_additive_monoids.CommutativeAdditiveMonoids.ParentMethods.sum`::
 
     sage: P.sum.__module__
-    'sage.categories.commutative_additive_monoids'
+    'sage.categories.additive_monoids'
 
 .. end of output
 
@@ -751,7 +758,7 @@ thus have::
     sage: P1.has_coerce_map_from(P2)
     True
     sage: P1.coerce_map_from(P2)
-    Call morphism:
+    Conversion map:
       From: Multivariate Polynomial Ring in w, v over Integer Ring
       To:   Multivariate Polynomial Ring in v, w over Rational Field
 
@@ -759,7 +766,7 @@ While there is a conversion from `P_1` to `P_2` (namely restricted to
 polynomials with integral coefficients), this conversion is not a coercion::
 
     sage: P2.convert_map_from(P1)
-    Call morphism:
+    Conversion map:
       From: Multivariate Polynomial Ring in v, w over Rational Field
       To:   Multivariate Polynomial Ring in w, v over Integer Ring
     sage: P2.has_coerce_map_from(P1)
@@ -817,9 +824,15 @@ The four axioms requested for coercions
    In addition, if there is a *coercion* from `P_2` to `P_1`, then a
    *conversion* from `P_2` to `P_1` is defined for all elements of `P_2` and
    coincides with the coercion.
-   ::
+   Nonetheless, user-exposed maps are copies of the internally used maps whence
+   the lack of identity between different instantiations::
 
        sage: P1.coerce_map_from(P2) is P1.convert_map_from(P2)
+       False
+
+   For internally used maps, the maps are identical::
+
+       sage: P1._internal_coerce_map_from(P2) is P1._internal_convert_map_from(P2)
        True
 
    .. end of output
@@ -1087,10 +1100,10 @@ In particular, the construction functors can be composed::
 
 .. end of output
 
-In addition, it is assumed that we have a coercion from input to output of the
+In addition, it is often assumed that we have a coercion from input to output of the
 construction functor::
 
-    sage: ((Poly*Fract)(ZZ))._coerce_map_from_(ZZ)
+    sage: ((Poly*Fract)(ZZ)).coerce_map_from(ZZ)
     Composite map:
       From: Integer Ring
       To:   Univariate Polynomial Ring in x over Rational Field
@@ -1473,9 +1486,12 @@ Here are the tests that form the test suite of quotient fields::
      '_test_elements_eq_symmetric',
      '_test_elements_eq_transitive',
      '_test_elements_neq',
+     '_test_euclidean_degree',
      '_test_one', '_test_prod',
+     '_test_quo_rem',
      '_test_some_elements',
-     '_test_zero']
+     '_test_zero',
+     '_test_zero_divisors']
 
 .. end of output
 
@@ -1521,12 +1537,15 @@ Let us see what tests are actually performed::
     running ._test_elements_eq_transitive() . . . pass
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
+    running ._test_euclidean_degree() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
     running ._test_prod() . . . pass
+    running ._test_quo_rem() . . . pass
     running ._test_some_elements() . . . pass
     running ._test_zero() . . . pass
+    running ._test_zero_divisors() . . . pass
 
 .. end of output
 
@@ -1686,12 +1705,15 @@ interesting.
     running ._test_elements_eq_transitive() . . . pass
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
+    running ._test_euclidean_degree() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
     running ._test_prod() . . . pass
+    running ._test_quo_rem() . . . pass
     running ._test_some_elements() . . . pass
     running ._test_zero() . . . pass
+    running ._test_zero_divisors() . . . pass
 
 .. end of output
 

@@ -108,9 +108,9 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         from all import SL2Z
         oldparent, kwdict = state
         self._set_parent(SL2Z)
-        if kwdict.has_key('_ArithmeticSubgroupElement__x'):
+        if '_ArithmeticSubgroupElement__x' in kwdict:
             self.__x = kwdict['_ArithmeticSubgroupElement__x']
-        elif kwdict.has_key('_CongruenceSubgroupElement__x'):
+        elif '_CongruenceSubgroupElement__x' in kwdict:
             self.__x = kwdict['_CongruenceSubgroupElement__x']
         else:
             raise ValueError, "Don't know how to unpickle %s" % repr(state)
@@ -415,8 +415,10 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         EXAMPLE::
 
             sage: (SL2Z.1).__reduce__()
-            (Modular Group SL(2,Z), ([1 1]
-            [0 1],))
+            (Modular Group SL(2,Z), (
+            [1 1]
+            [0 1]
+            ))
         """
         from all import SL2Z
         return SL2Z, (self.__x,)

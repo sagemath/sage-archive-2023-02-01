@@ -446,12 +446,15 @@ def random_spanning_tree(self, output_as_graph=False):
 
         sage: G = Graph()
         sage: G.random_spanning_tree()
-        []
+        Traceback (most recent call last):
+        ...
+        ValueError: works only for non-empty connected graphs
+
         sage: G = graphs.CompleteGraph(3).complement()
         sage: G.random_spanning_tree()
         Traceback (most recent call last):
         ...
-        ValueError: works only for connected graphs
+        ValueError: works only for non-empty connected graphs
 
     .. SEEALSO::
 
@@ -471,17 +474,12 @@ def random_spanning_tree(self, output_as_graph=False):
     from sage.misc.prandom import randint
     from sage.graphs.graph import Graph
 
-    s = self.vertex_iterator().next()
     cdef int N = self.order()
 
-    if N == 0:
-        if not output_as_graph:
-            return []
-        return Graph()
+    if N == 0 or not self.is_connected():
+        raise ValueError('works only for non-empty connected graphs')
 
-    if not self.is_connected():
-        raise ValueError('works only for connected graphs')
-
+    s = self.vertex_iterator().next()
     found = set([s])
     cdef int found_nr = 1
     tree_edges = []

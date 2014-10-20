@@ -77,7 +77,7 @@ graphs.
     :meth:`~Graph.degree_constrained_subgraph` | Returns a degree-constrained subgraph.
     :meth:`~Graph.bridges` | Returns the list of all bridges.
     :meth:`~Graph.spanning_trees` | Returns the list of all spanning trees.
-    :meth:`~Graph.random spanning_tree` | Returns a random spanning tree.
+    :meth:`~Graph.random_spanning_tree` | Returns a random spanning tree.
 
 **Clique-related methods:**
 
@@ -1838,8 +1838,11 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
-            -- counts the number of spanning trees.
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+              -- counts the number of spanning trees.
+
+            - :meth:`~sage.graphs.graph.Graph.random_spanning_tree`
+              -- returns a random spanning tree.
 
         REFERENCES:
 
@@ -1940,6 +1943,11 @@ class Graph(GenericGraph):
             sage: T = G.random_spanning_tree(True)
             sage: T.set_pos(pos)
             sage: T.show(vertex_labels=False)
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+            and :meth:`~sage.graphs.graph.Graph.spanning_trees`
 
         REFERENCES:
 

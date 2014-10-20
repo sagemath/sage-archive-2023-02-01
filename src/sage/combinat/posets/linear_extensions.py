@@ -54,7 +54,7 @@ class LinearExtensionOfPoset(ClonableArray):
         sage: p = P.linear_extension([1,4,2,3]); p
         [1, 4, 2, 3]
         sage: p.parent()
-        The set of all linear extensions of Finite poset containing 4 elements
+        The set of all linear extensions of Finite poset containing 4 elements with embedded linear extension
         sage: p[0], p[1], p[2], p[3]
         (1, 4, 2, 3)
 
@@ -179,7 +179,7 @@ class LinearExtensionOfPoset(ClonableArray):
             sage: P = Poset(([1,2,3,4], [[1,2],[1,3],[3,4]]), linear_extension=True, facade=False)
             sage: p = P.linear_extension([1,3,4,2])
             sage: Q = p.to_poset(); Q
-            Finite poset containing 4 elements
+            Finite poset containing 4 elements with embedded linear extension
             sage: P == Q
             False
 
@@ -341,7 +341,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         sage: rels = [[1,3],[1,4],[2,3]]
         sage: P = Poset((elms, rels), linear_extension=True)
         sage: L = P.linear_extensions(); L
-        The set of all linear extensions of Finite poset containing 4 elements
+        The set of all linear extensions of Finite poset containing 4 elements with embedded linear extension
         sage: L.cardinality()
         5
         sage: L.list()
@@ -349,7 +349,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         sage: L.an_element()
         [1, 2, 3, 4]
         sage: L.poset()
-        Finite poset containing 4 elements
+        Finite poset containing 4 elements with embedded linear extension
     """
 
     @staticmethod

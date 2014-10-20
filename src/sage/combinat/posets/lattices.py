@@ -106,8 +106,10 @@ class FiniteMeetSemilattice(FinitePoset):
             sage: M._repr_()
             'Finite meet-semilattice containing 4 elements'
         """
-        return "Finite meet-semilattice containing %s elements"\
-                %self._hasse_diagram.order()
+        s  = "Finite meet-semilattice containing %s elements" %self._hasse_diagram.order()
+        if self._with_linear_extension:
+            s += " with embedded linear extension"
+        return s
 
     def meet(self,x,y):
         r"""
@@ -229,8 +231,10 @@ class FiniteJoinSemilattice(FinitePoset):
             sage: J._repr_()
             'Finite join-semilattice containing 4 elements'
         """
-        return "Finite join-semilattice containing %s elements"\
-                %self._hasse_diagram.order()
+        s = "Finite join-semilattice containing %s elements"%self._hasse_diagram.order()
+        if self._with_linear_extension:
+            s += " with embedded linear extension"
+        return s
 
     def join(self,x,y):
         r"""
@@ -367,7 +371,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L._repr_()
             'Finite lattice containing 4 elements'
         """
-        return "Finite lattice containing %s elements"%self._hasse_diagram.order()
+        s = "Finite lattice containing %s elements"%self._hasse_diagram.order()
+        if self._with_linear_extension:
+            s += " with embedded linear extension"
+        return s
 
     def is_distributive(self):
         r"""

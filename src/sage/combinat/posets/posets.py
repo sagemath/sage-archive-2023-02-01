@@ -631,7 +631,7 @@ class FinitePoset(UniqueRepresentation, Parent):
     We keep the same underlying Hasse diagram, but change the elements::
 
         sage: Q = sage.combinat.posets.posets.FinitePoset(P, elements=[1,2,3,4,5,6], facade=False); Q
-        Finite poset containing 6 elements
+        Finite poset containing 6 elements with embedded linear extension
         sage: Q.cover_relations()
         [[1, 2], [1, 5], [2, 6], [3, 4], [3, 5], [4, 6], [5, 6]]
 
@@ -1176,7 +1176,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P5._repr_()
             'Finite poset containing 7 elements'
         """
-        return "Finite poset containing %s elements"%self._hasse_diagram.order()
+        s =  "Finite poset containing %s elements"%self._hasse_diagram.order()
+        if self._with_linear_extension:
+            s += " with embedded linear extension"
+        return s
 
     def __iter__(self):
         """
@@ -1268,7 +1271,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
                 sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
                 sage: L = P.linear_extensions(facade=True); L
-                The set of all linear extensions of Finite poset containing 6 elements
+                The set of all linear extensions of Finite poset containing 6 elements with embedded linear extension
                 sage: L([1, 2, 3, 4, 6, 12])
                 Traceback (most recent call last):
                 ...
@@ -1282,7 +1285,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.list()
             [1, 2, 3, 4, 6, 12]
             sage: L = P.linear_extensions(); L
-            The set of all linear extensions of Finite poset containing 6 elements
+            The set of all linear extensions of Finite poset containing 6 elements with embedded linear extension
             sage: l = L.an_element(); l
             [1, 2, 3, 4, 6, 12]
             sage: L.cardinality()
@@ -4180,7 +4183,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset(([1,2], [[1,2]]), linear_extension=True, facade=False)
             sage: P.promotion()
-            Finite poset containing 2 elements
+            Finite poset containing 2 elements with embedded linear extension
             sage: P == P.promotion()
             True
 
@@ -4188,7 +4191,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.list()
             [1, 2, 3, 5, 6, 4, 7]
             sage: Q = P.promotion(4); Q
-            Finite poset containing 7 elements
+            Finite poset containing 7 elements with embedded linear extension
             sage: Q.cover_relations()
             [[1, 2], [1, 6], [2, 3], [2, 5], [3, 7], [5, 7], [6, 4]]
 
@@ -4200,7 +4203,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.list()
             [1, 2, 3, 4, 5, 6, 7]
             sage: Q = P.promotion(4); Q
-            Finite poset containing 7 elements
+            Finite poset containing 7 elements with embedded linear extension
             sage: Q.cover_relations()
             [[1, 2], [1, 6], [2, 3], [2, 4], [3, 5], [4, 5], [6, 7]]
             sage: Q = P.promotion()
@@ -4216,7 +4219,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             [[1, 2], [1, 3], [1, 5], [2, 6], [2, 10], [3, 6], [3, 15],
              [5, 10], [5, 15], [6, 30], [10, 30], [15, 30]]
             sage: Q = P.promotion(4); Q
-            Finite poset containing 8 elements
+            Finite poset containing 8 elements with embedded linear extension
             sage: Q.cover_relations()
             [[1, 2], [1, 3], [1, 6], [2, 5], [2, 15], [3, 5], [3, 10],
              [5, 30], [6, 10], [6, 15], [10, 30], [15, 30]]
@@ -4269,7 +4272,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset(([1,2], [[1,2]]), linear_extension=True, facade=False)
             sage: P.evacuation()
-            Finite poset containing 2 elements
+            Finite poset containing 2 elements with embedded linear extension
             sage: P.evacuation() == P
             True
 
@@ -4277,7 +4280,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.list()
             [1, 2, 3, 4, 5, 6, 7]
             sage: Q = P.evacuation(); Q
-            Finite poset containing 7 elements
+            Finite poset containing 7 elements with embedded linear extension
             sage: Q.cover_relations()
             [[1, 2], [1, 3], [2, 5], [3, 4], [3, 6], [4, 7], [6, 7]]
 
@@ -4288,7 +4291,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.list()
             [1, 2, 3, 5, 6, 4, 7]
             sage: Q = P.evacuation(); Q
-            Finite poset containing 7 elements
+            Finite poset containing 7 elements with embedded linear extension
             sage: Q.cover_relations()
             [[1, 2], [1, 5], [2, 3], [5, 6], [5, 4], [6, 7], [4, 7]]
 
@@ -4299,7 +4302,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.list()
             [1, 3, 5, 15]
             sage: Q = P.evacuation(); Q
-            Finite poset containing 4 elements
+            Finite poset containing 4 elements with embedded linear extension
             sage: Q.cover_relations()
             [[1, 3], [1, 5], [3, 15], [5, 15]]
 

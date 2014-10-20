@@ -46,7 +46,7 @@ from sage.ext.fast_callable import fast_callable
 from sage.rings.semirings.non_negative_integer_semiring import NN
 from sage.functions.log import log, exp
 from sage.functions.other import floor, sqrt, ceil
-from sage.symbolic.ring import SR
+
 
 
 
@@ -439,7 +439,7 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
         sage: l[15]
         '    double tolrel, tolabs, tini, tend, dt;\n'
         sage: l[25]
-        '\ttolrel = 1.00000000000000e-16 ;\n'
+        '\ttolrel = 9.9999999999999998e-17 ;\n'
         sage: shutil.rmtree(tempdir)
 
     Check that ticket :trac:`17179` is fixed (handle expressions like `\\pi`)::
@@ -464,7 +464,7 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
         sage: l = filedr.readlines()
         sage: filedr.close()
         sage: l[18]
-        '    \tv[0] = 3.14159265358979 ; \n'
+        '    \tv[0] = 3.1415926535897931 ; \n'
         sage: shutil.rmtree(tempdir)
 
 
@@ -526,17 +526,17 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
         if el[0] == 'add':
             string += el[1] + "[i] + " + el[2] +"[i];"
         elif el[0] == 'add_c':
-            string += "(i==0)? {}+".format(RR(SR(el[2]))) + el[1] + "[0] : "+ el[1]+ "[i];"
+            string += "(i==0)? {}+".format(el[2]) + el[1] + "[0] : "+ el[1]+ "[i];"
         elif el[0] == 'mul':
             string += "mul_mc("+el[1]+","+el[2]+",i);"
         elif el[0] == 'mul_c':
-            string += RR(SR(el[2])).str(truncate=False) + "*"+ el[1] + "[i];"
+            string += el[2] + "*"+ el[1] + "[i];"
         elif el[0] == 'pow_c':
-            string += "pow_mc_c("+el[1]+","+RR(SR(el[2])).str(truncate=False)+",XX[{}], i);".format(i+n)
+            string += "pow_mc_c("+el[1]+","+el[2]+",XX[{}], i);".format(i+n)
         elif el[0] == 'div':
             string += "div_mc("+el[2]+","+el[1]+",XX[{}], i);".format(i+n)
         elif el[0] == 'div_c':
-            string += "inv_mc("+RR(SR(el[2])).str(truncate=False)+","+el[1]+",XX[{}], i);".format(i+n)
+            string += "inv_mc("+el[2]+","+el[1]+",XX[{}], i);".format(i+n)
         elif el[0] == 'log':
             string += "log_mc("+el[1]+",XX[{}], i);".format(i+n)
         elif el[0] == 'exp':
@@ -626,12 +626,12 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     """%(n-1)
     outfile.write(auxstring)
     for i in range(len(ics)):
-        outfile.write('\tv[{}] = {} ; \n'.format(i, RR(SR(ics[i]))))
-    outfile.write('\ttini = {} ;\n'.format(RR(SR(initial))))
-    outfile.write('\ttend = {} ;\n'.format(RR(SR(final))))
-    outfile.write('\tdt   = {} ;\n'.format(RR(SR(delta))))
-    outfile.write('\ttolrel = {} ;\n'.format(RR(SR(tolrel))))
-    outfile.write('\ttolabs = {} ;\n'.format(RR(SR(tolabs))))
+        outfile.write('\tv[{}] = {} ; \n'.format(i, RR(ics[i]).str(truncate=False)))
+    outfile.write('\ttini = {} ;\n'.format(RR(initial).str(truncate=False)))
+    outfile.write('\ttend = {} ;\n'.format(RR(final).str(truncate=False)))
+    outfile.write('\tdt   = {} ;\n'.format(RR(delta).str(truncate=False)))
+    outfile.write('\ttolrel = {} ;\n'.format(RR(tolrel).str(truncate=False)))
+    outfile.write('\ttolabs = {} ;\n'.format(RR(tolabs).str(truncate=False)))
     outfile.write('\textern char ofname[500];')
     outfile.write('\tstrcpy(ofname, "'+ output +'");\n')
     outfile.write('\tminc_tides(v,VARS,p,PARS,tini,tend,dt,tolrel,tolabs);\n')
@@ -717,7 +717,7 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         sage: l[16]
         '    int nfun = 0;\n'
         sage: l[26]
-        '\tmpfr_set_str(v[2], "0.0000000000000000000000000000000000000000000000000", 10, TIDES_RND);\n'
+        '\tmpfr_set_str(v[2], "0.0000000000000000000000000000000000000000000000000000", 10, TIDES_RND);\n'
         sage: l[30]
         '\tmpfr_init2(tolabs, TIDES_PREC); \n'
         sage: l[34]
@@ -748,7 +748,7 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         sage: l = filedr.readlines()
         sage: filedr.close()
         sage: l[24]
-        '\tmpfr_set_str(v[0], "3.141592653589793238462643383279502884197169399375", 10, TIDES_RND);\n'
+        '\tmpfr_set_str(v[0], "3.141592653589793238462643383279502884197169399375101", 10, TIDES_RND);\n'
         sage: shutil.rmtree(tempdir)
 
     """
@@ -756,7 +756,7 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         parameters = []
     if parameter_values == None:
         parameter_values = []
-    RR = RealField(ceil(dig * 3.322))
+    RR = RealField(ceil(dig * 3.3219))
     l1, l2 = subexpressions_list(f, parameters)
     remove_repeated(l1, l2)
     remove_constants(l1, l2)
@@ -825,17 +825,17 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         if el[0] == 'add':
             string += 'add_t(itd, ' + el[1] + ', ' + el[2] + ', link[{}], i);'.format(i)
         elif el[0] == 'add_c':
-            string += 'add_t_c(itd, "' + RR(SR(el[2])).str(truncate=False) + '", ' + el[1] + ', link[{}], i);'.format(i)
+            string += 'add_t_c(itd, "' + el[2] + '", ' + el[1] + ', link[{}], i);'.format(i)
         elif el[0] == 'mul':
             string += 'mul_t(itd, ' + el[1] + ', ' + el[2] + ', link[{}], i);'.format(i)
         elif el[0] == 'mul_c':
-            string += 'mul_t_c(itd, "' + RR(SR(el[2])).str(truncate=False) + '", ' + el[1] + ', link[{}], i);'.format(i)
+            string += 'mul_t_c(itd, "' + el[2] + '", ' + el[1] + ', link[{}], i);'.format(i)
         elif el[0] == 'pow_c':
-            string += 'pow_t_c(itd, ' + el[1] + ', "' + RR(SR(el[2])).str(truncate=False) + '", link[{}], i);'.format(i)
+            string += 'pow_t_c(itd, ' + el[1] + ', "' + el[2] + '", link[{}], i);'.format(i)
         elif el[0] == 'div':
             string += 'div_t(itd, ' + el[2] + ', ' + el[1] + ', link[{}], i);'.format(i)
         elif el[0] == 'div_c':
-            string += 'div_t_cv(itd, "' + RR(SR(el[2])).str(truncate=False) + '", ' + el[1] + ', link[{}], i);'.format(i)
+            string += 'div_t_cv(itd, "' + el[2] + '", ' + el[1] + ', link[{}], i);'.format(i)
         elif el[0] == 'log':
             string += 'log_t(itd, ' + el[1]  + ', link[{}], i);'.format(i)
         elif el[0] == 'exp':
@@ -928,24 +928,24 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     outfile.write('\tfor(i=0; i<npar; i++) mpfr_init2(p[i], TIDES_PREC);\n')
 
     for i in range(npar):
-        outfile.write('\tmpfr_set_str(p[{}], "{}", 10, TIDES_RND);\n'.format(i,RR(SR(parameter_values[i]))))
+        outfile.write('\tmpfr_set_str(p[{}], "{}", 10, TIDES_RND);\n'.format(i,RR(parameter_values[i]).str(truncate=False)))
     outfile.write('\tint nvar = {};\n\tmpfr_t v[nvar];\n'.format(VAR))
     outfile.write('\tfor(i=0; i<nvar; i++) mpfr_init2(v[i], TIDES_PREC);\n')
     for i in range(len(ics)):
-        outfile.write('\tmpfr_set_str(v[{}], "{}", 10, TIDES_RND);\n'.format(i,RR(SR(ics[i]))))
+        outfile.write('\tmpfr_set_str(v[{}], "{}", 10, TIDES_RND);\n'.format(i,RR(ics[i]).str(truncate=False)))
     outfile.write('\tmpfr_t tolrel, tolabs;\n')
     outfile.write('\tmpfr_init2(tolrel, TIDES_PREC); \n')
     outfile.write('\tmpfr_init2(tolabs, TIDES_PREC); \n')
-    outfile.write('\tmpfr_set_str(tolrel, "{}", 10, TIDES_RND);\n'.format(RR(SR(tolrel))))
-    outfile.write('\tmpfr_set_str(tolabs, "{}", 10, TIDES_RND);\n'.format(RR(SR(tolabs))))
+    outfile.write('\tmpfr_set_str(tolrel, "{}", 10, TIDES_RND);\n'.format(RR(tolrel).str(truncate=False)))
+    outfile.write('\tmpfr_set_str(tolabs, "{}", 10, TIDES_RND);\n'.format(RR(tolabs).str(truncate=False)))
 
     outfile.write('\tmpfr_t tini, dt; \n')
     outfile.write('\tmpfr_init2(tini, TIDES_PREC); \n')
     outfile.write('\tmpfr_init2(dt, TIDES_PREC); \n')
 
 
-    outfile.write('\tmpfr_set_str(tini, "{}", 10, TIDES_RND);;\n'.format(RR(SR(initial))))
-    outfile.write('\tmpfr_set_str(dt, "{}", 10, TIDES_RND);\n'.format(RR(SR(delta))))
+    outfile.write('\tmpfr_set_str(tini, "{}", 10, TIDES_RND);;\n'.format(RR(initial).str(truncate=False)))
+    outfile.write('\tmpfr_set_str(dt, "{}", 10, TIDES_RND);\n'.format(RR(delta).str(truncate=False)))
     outfile.write('\tint nipt = {};\n'.format(floor((final-initial)/delta)))
     outfile.write('\tFILE* fd = fopen("' + output + '", "w");\n')
     outfile.write('\tmp_tides_delta(function_iteration, NULL, nvar, npar, nfun, v, p, tini, dt, nipt, tolrel, tolabs, NULL, fd);\n')

@@ -11,6 +11,7 @@ Graded modules
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.categories.category import Category
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
@@ -120,18 +121,46 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
         """
         return "graded {}".format(self.base_category()._repr_object_names())
 
-    def extra_super_categories(self):
+    @classmethod
+    def default_super_categories(cls, category, *args):
         r"""
-        Adds :class:`FilteredModules` to the super categories of ``self``
-        since every graded module admits a filtraion.
+        Return the default super categories of ``category.Graded()``
 
-        EXAMPLES::
+        Mathematical meaning: every graded category is a filtered category
+        with the (implicit) filtration of `F_i = \bigoplus_{j \leq i} G_j`.
 
-            sage: GradedModules(ZZ).extra_super_categories()
-            [Category of filtered modules over Integer Ring]
+        INPUT:
+
+        - ``cls`` -- the class ``QuotientsCategory``
+        - ``category`` -- a category `Cat`
+
+        OUTPUT: a (join) category
+
+        In practice, this returns ``category.Filtered()``, joined
+        together with the result of the method
+        :meth:`RegressiveCovariantConstructionCategory.default_super_categories() <sage.categories.covariant_functorial_construction.RegressiveCovariantConstructionCategory.default_super_categories>`
+        (that is the join of ``category`` and ``cat.Filtered()`` for
+        each ``cat`` in the super categories of ``category``).
+
+        EXAMPLES:
+
+        Consider ``category=Algebras()``, which has ``cat=Modules()``
+        as super category. Then, a grading of an algebra `G`
+        is also a filtration of `G`::
+
+            sage: Algebras(QQ).Graded().super_categories()
+            [Category of filtered algebras over Rational Field,
+             Category of graded modules over Rational Field]
+
+        This resulted from the following call::
+
+            sage: sage.categories.graded_modules.GradedModulesCategory.default_super_categories(Algebras(QQ))
+            Join of Category of filtered algebras over Rational Field
+             and Category of graded modules over Rational Field
         """
-        from sage.categories.filtered_modules import FilteredModules
-        return [FilteredModules(self.base_ring())]
+        cat = super(GradedModulesCategory, cls).default_super_categories(category, *args)
+        return Category.join([category.Filtered(),
+                              cat])
 
 class GradedModules(GradedModulesCategory):
     r"""

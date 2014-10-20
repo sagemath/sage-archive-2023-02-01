@@ -28,19 +28,6 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
 
         sage: TestSuite(C).run()
     """
-    def extra_super_categories(self):
-        r"""
-        Adds :class:`FilteredAlgebras` to the super categories of ``self``
-        since every graded algebra admits a filtraion.
-
-        EXAMPLES::
-
-            sage: GradedAlgebras(ZZ).extra_super_categories()
-            [Category of filtered algebras over Integer Ring]
-        """
-        from sage.categories.filtered_algebras_with_basis import FilteredAlgebrasWithBasis
-        return [FilteredAlgebrasWithBasis(self.base_ring())]
-
     class ParentMethods:
         # This needs to be copied in GradedAlgebras because we need to have
         #   FilteredAlgebrasWithBasis as an extra super category

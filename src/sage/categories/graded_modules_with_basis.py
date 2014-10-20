@@ -29,19 +29,6 @@ class GradedModulesWithBasis(GradedModulesCategory):
 
         sage: TestSuite(C).run()
     """
-    def extra_super_categories(self):
-        r"""
-        Adds :class:`FilteredModulesWithBasis` to the super categories
-        of ``self`` since every graded module admits a filtraion.
-
-        EXAMPLES::
-
-            sage: GradedModulesWithBasis(ZZ).extra_super_categories()
-            [Category of filtered modules with basis over Integer Ring]
-        """
-        from sage.categories.filtered_modules_with_basis import FilteredModulesWithBasis
-        return [FilteredModulesWithBasis(self.base_ring())]
-
     class ParentMethods:
         pass
 

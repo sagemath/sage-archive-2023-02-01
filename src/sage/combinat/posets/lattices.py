@@ -108,7 +108,7 @@ class FiniteMeetSemilattice(FinitePoset):
         """
         s  = "Finite meet-semilattice containing %s elements" %self._hasse_diagram.order()
         if self._with_linear_extension:
-            s += " with embedded linear extension"
+            s += " with distinguished linear extension"
         return s
 
     def meet(self,x,y):
@@ -233,7 +233,7 @@ class FiniteJoinSemilattice(FinitePoset):
         """
         s = "Finite join-semilattice containing %s elements"%self._hasse_diagram.order()
         if self._with_linear_extension:
-            s += " with embedded linear extension"
+            s += " with distinguished linear extension"
         return s
 
     def join(self,x,y):
@@ -373,7 +373,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         s = "Finite lattice containing %s elements"%self._hasse_diagram.order()
         if self._with_linear_extension:
-            s += " with embedded linear extension"
+            s += " with distinguished linear extension"
         return s
 
     def is_distributive(self):

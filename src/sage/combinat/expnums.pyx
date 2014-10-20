@@ -9,7 +9,6 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 
 from sage.rings.integer cimport Integer
 

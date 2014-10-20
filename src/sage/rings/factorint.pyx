@@ -18,7 +18,6 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/libs/pari/decl.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 
 from sage.rings.integer cimport Integer

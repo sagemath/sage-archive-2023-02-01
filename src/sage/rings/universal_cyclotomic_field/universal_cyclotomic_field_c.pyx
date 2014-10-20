@@ -17,7 +17,6 @@ AUTHORS:
 #*****************************************************************************
 include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 
 import sys
 import operator

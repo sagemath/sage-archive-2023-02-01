@@ -52,7 +52,6 @@ other types will also coerce to the integers, when it makes sense.
 ###########################################################################
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/random.pxi"

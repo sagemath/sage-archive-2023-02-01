@@ -35,9 +35,7 @@ AUTHORS:
 ######################################################################
 
 include "sage/ext/interrupt.pxi"
-# include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/ext/random.pxi"
 include "sage/libs/ntl/decl.pxi"
 

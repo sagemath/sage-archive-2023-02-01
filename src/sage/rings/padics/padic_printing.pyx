@@ -23,7 +23,6 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/gmp.pxi"
 from cpython.list cimport *
 
 

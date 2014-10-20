@@ -869,7 +869,7 @@ def OA_9_135():
     truncated_OA = [B[1:-7]+[x if x==0 else None for x in B[-7:]] for B in OA]
 
     # And call Wilson's construction
-    return wilson_construction(truncated_OA, 9, 16, 8,(1,)*7,check=False)
+    return wilson_construction(truncated_OA, 9, 16, 8, (1,)*7, check=False)
 
 def OA_11_160():
     r"""

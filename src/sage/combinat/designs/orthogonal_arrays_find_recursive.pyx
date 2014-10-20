@@ -56,7 +56,7 @@ def find_recursive_construction(k, n):
     This determines whether an `OA(k,n)` can be built through the following
     constructions:
 
-    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.simple_wilson_construction` (0, 1 or 2 truncated columns)
+    - :func:`~sage.combinat.designs.orthogonal_arrays.wilson_construction`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_3`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_4`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_5`
@@ -135,7 +135,7 @@ cpdef find_product_decomposition(int k,int n):
         sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_product_decomposition
         sage: f,args = find_product_decomposition(6, 84)
         sage: args
-        (6, 7, 12, ())
+        (None, 6, 7, 12, (), False)
         sage: _ = f(*args)
     """
     cdef int n1,n2
@@ -147,8 +147,8 @@ cpdef find_product_decomposition(int k,int n):
                   # faster to use that rather than calling the divisors function
             continue
         if is_available(k, n1) and is_available(k, n2):
-            from orthogonal_arrays_build_recursive import simple_wilson_construction
-            return simple_wilson_construction, (k,n1,n2,())
+            from orthogonal_arrays import wilson_construction
+            return wilson_construction, (None,k,n1,n2,(),False)
     return False
 
 cpdef find_wilson_decomposition_with_one_truncated_group(int k,int n):
@@ -173,7 +173,7 @@ cpdef find_wilson_decomposition_with_one_truncated_group(int k,int n):
         sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_wilson_decomposition_with_one_truncated_group
         sage: f,args = find_wilson_decomposition_with_one_truncated_group(4,38)
         sage: args
-        (4, 5, 7, (3,))
+        (None, 4, 5, 7, (3,), False)
         sage: _ = f(*args)
 
         sage: find_wilson_decomposition_with_one_truncated_group(4,20)
@@ -197,8 +197,8 @@ cpdef find_wilson_decomposition_with_one_truncated_group(int k,int n):
             is_available(k  ,m+1) and
             is_available(k+1,r  ) and
             is_available(k  ,u  )):
-            from orthogonal_arrays_build_recursive import simple_wilson_construction
-            return simple_wilson_construction, (k,r,m,(u,))
+            from orthogonal_arrays import wilson_construction
+            return wilson_construction, (None,k,r,m,(u,),False)
 
     return False
 
@@ -224,7 +224,7 @@ cpdef find_wilson_decomposition_with_two_truncated_groups(int k,int n):
         sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_wilson_decomposition_with_two_truncated_groups
         sage: f,args = find_wilson_decomposition_with_two_truncated_groups(5,58)
         sage: args
-        (5, 7, 7, (4, 5))
+        (None, 5, 7, 7, (4, 5), False)
         sage: _ = f(*args)
     """
     cdef int r,m_min,m_max,m,r1_min,r1_max,r1,r2,r1_p_r2
@@ -259,8 +259,8 @@ cpdef find_wilson_decomposition_with_two_truncated_groups(int k,int n):
                 r2 = r1_p_r2-r1
                 if is_available(k,r2):
                     assert n == r*m+r1+r2
-                    from orthogonal_arrays_build_recursive import simple_wilson_construction
-                    return simple_wilson_construction, (k,r,m,(r1,r2))
+                    from orthogonal_arrays import wilson_construction
+                    return wilson_construction, (None,k,r,m,(r1,r2),False)
     return False
 
 cpdef find_construction_3_3(int k,int n):

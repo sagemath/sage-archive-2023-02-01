@@ -478,7 +478,7 @@ def is_transversal_design(B,k,n, verbose=False):
     """
     return is_orthogonal_array([[x%n for x in R] for R in B],k,n,verbose=verbose)
 
-def wilson_construction(OA,k,r,m,u,check=True):
+def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
     r"""
     Returns a `OA(k,rm+\sum_i u_i)` from a truncated `OA(k+s,r)` by Wilson's
     construction.
@@ -515,7 +515,8 @@ def wilson_construction(OA,k,r,m,u,check=True):
 
     - ``OA`` -- an incomplete orthogonal array with `k+s` columns. The
       elements of a column of size `c` must belong to `\{0,...,c\}`. The missing
-      entries of a block are represented by ``None`` values.
+      entries of a block are represented by ``None`` values. If it is set to
+      ``None`` then the function tries to build such an orthogonal array.
 
     - ``k,r,m`` (integers)
 
@@ -558,6 +559,9 @@ def wilson_construction(OA,k,r,m,u,check=True):
         sage: print total
         41
 
+        sage: print designs.orthogonal_arrays.explain_construction(9,115)
+        Wilson's construction n=13.8+11 with master design OA(9+1,13)
+
     An example using the Brouwer-van Rees generalization::
 
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
@@ -568,10 +572,6 @@ def wilson_construction(OA,k,r,m,u,check=True):
         sage: is_orthogonal_array(OAb,5,256)
         True
     """
-    master_design = OA
-
-    n_trunc = len(u)
-
     # Converting the input to Brouwer-Van Rees form
     try:
         if u:
@@ -580,6 +580,27 @@ def wilson_construction(OA,k,r,m,u,check=True):
         pass
     else:
         u = [[(1,uu)] for uu in u]
+
+    n_trunc = len(u)
+
+    if explain_construction:
+        from string import join
+        if not u:
+            return ("Product of orthogonal arrays n={}.{}").format(r,m)
+        elif all(len(uu) == 1 and uu[0][0] == 1 for uu in u):
+            return (("Wilson's construction n={}.{}+{} with master design OA({}+{},{})")
+                    .format(r,m,join((str(x) for ((_,x),) in u),"+"),k,n_trunc,r))
+        else:
+            raise NotImplementedError("no explanation for Brouwer-Van Rees form of the Wilson construction")
+
+    if OA is None:
+        master_design = orthogonal_array(k+n_trunc,r,check=False)
+        matrix = [range(r)]*k
+        for ((_,uu),) in u:
+            matrix.append(range(uu)+[None]*(r-uu))
+        master_design = OA_relabel(master_design, k+n_trunc, r, matrix=matrix)
+    else:
+        master_design = OA
 
     for c in u:
         assert all(m_ij>=0 and h_size>=0 for m_ij,h_size in c)
@@ -604,10 +625,10 @@ def wilson_construction(OA,k,r,m,u,check=True):
         point_to_point_set.append(column_i_point_to_point_set)
 
     # the set of ij associated with each block
-    block_to_ij = lambda B: [(i,j) for i,j in enumerate(B[k:]) if j is not None]
+    block_to_ij = lambda B: ((i,j) for i,j in enumerate(B[k:]) if j is not None)
 
     # The different profiles (set of mij associated with each block)
-    block_profiles = set(tuple([point_to_mij[i][j] for i,j in block_to_ij(B)]) for B in OA)
+    block_profiles = set(tuple(point_to_mij[i][j] for i,j in block_to_ij(B)) for B in master_design)
 
     # For each block meeting multipliers m_ij(0),...,m_ij(s) we need a
     # OA(k,m+\sum m_{ij(i)})-\sum OA(k,\sum m_{ij(i)})

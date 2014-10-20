@@ -269,7 +269,7 @@ def bell_number(n, algorithm='dobinski', **options):
     we compute with `p` bits of precision.
     This implies that `b` (and `q < b`) can be represented exactly.
 
-    We compute `\frac{e^{-1}}{q} b`, rounding up, and we must have an
+    We compute `\frac{e^{-1}}{q} b`, rounding down, and we must have an
     absolute error of at most `1/4` (given that `E_5 < 3/4`).
     This means that we need a relative error of at most
 
@@ -278,11 +278,10 @@ def bell_number(n, algorithm='dobinski', **options):
         \frac{e q}{4 b} > \frac{(e q)/4}{2^p} > \frac{7}{2^p}
 
     (assuming `n \geq 5`).
-    With a precision of `p` bits and rounding up, every rounding
+    With a precision of `p` bits and rounding down, every rounding
     has a relative error of at most `2^{1-p} = 2/2^p`.
     Since we do 3 roundings (`b` and `q` do not require rounding),
-    we get a relative error of at most `6/2^p`
-    (plus some epsilon for errors on the errors).
+    we get a relative error of at most `6/2^p`.
     All this implies that the precision of `p` bits is sufficient.
 
     EXAMPLES::
@@ -396,7 +395,7 @@ def bell_number(n, algorithm='dobinski', **options):
             b += v
             k += si
         from sage.rings.all import RealField
-        R = RealField(b.exact_log(2) + 1, rnd='RNDU')
+        R = RealField(b.exact_log(2) + 1, rnd='RNDD')
         return ( (R(-1).exp() / q) * b).ceil()
 
     raise ValueError("unknown algorithm %r" % algorithm)

@@ -734,7 +734,7 @@ or the axioms satisfied by the operations of a category::
     sage: Groups().super_categories()
     [Category of monoids, Category of inverse unital magmas]
     sage: Groups().axioms()
-    frozenset(['Inverse', 'Associative', 'Unital'])
+    frozenset({'Associative', 'Inverse', 'Unital'})
 
 or constructing the intersection of two categories, or the smallest
 category containing them::
@@ -752,8 +752,8 @@ operations. In particular a list of mandatory and optional methods to
 be implemented can be found by introspection with::
 
     sage: Groups().required_methods()
-    {'parent': {'required': ['__contains__'], 'optional': []},
-     'element': {'required': [], 'optional': ['_mul_']}}
+    {'element': {'optional': ['_mul_'], 'required': []},
+     'parent': {'optional': [], 'required': ['__contains__']}}
 
 Documentation about those methods can be obtained with::
 
@@ -956,8 +956,8 @@ A (not yet complete) list of mandatory and optional methods to be
 implemented can be found by introspection with::
 
     sage: FiniteSemigroups().required_methods()
-    {'parent': {'required': ['__contains__'], 'optional': []},
-     'element': {'required': [], 'optional': ['_mul_']}}
+    {'element': {'optional': ['_mul_'], 'required': []},
+     'parent': {'optional': [], 'required': ['__contains__']}}
 
 ``product`` does not appear in the list because a default implementation
 is provided in term of the method ``_mul_`` on elements. Of course, at
@@ -1157,7 +1157,7 @@ We have seen that Sage is aware of the axioms satisfied by, for
 example, groups::
 
     sage: Groups().axioms()
-    frozenset(['Inverse', 'Associative', 'Unital'])
+    frozenset({'Associative', 'Inverse', 'Unital'})
 
 In fact, the category of groups can be *defined* by stating that a
 group is a magma, that is a set endowed with an internal binary

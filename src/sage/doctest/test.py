@@ -44,6 +44,66 @@ Check that :trac:`2235` has been fixed::
     ...
     0
 
+Check handling of tolerances::
+
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "tolerance.rst"], **kwds)  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t --warn-long 0.0 tolerance.rst
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print ":-("    # abs tol 0.1
+    Expected:
+        :-)
+    Got:
+        :-(
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print "1.0 2.0 3.0"  # abs tol 0.1
+    Expected:
+        4.0 5.0
+    Got:
+        1.0 2.0 3.0
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print "Hello"  # abs tol 0.1
+    Expected:
+        1.0
+    Got:
+        Hello
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print "1.0"  # abs tol 0.1
+    Expected:
+        Hello
+    Got:
+        1.0
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print "Hello 1.1"  # abs tol 0.1
+    Expected:
+        Goodbye 1.0
+    Got:
+        Hello 1.1
+    **********************************************************************
+    File "tolerance.rst", line ..., in sage.doctest.tests.tolerance
+    Failed example:
+        print "Hello 1.0"  # rel tol 1e-6
+    Expected:
+        Goodbye 0.999999
+    Got:
+        Hello 1.0
+    Tolerance exceeded:
+        0.999999 vs 1.0, tolerance 1e-06 > 1e-06
+    **********************************************************************
+    ...
+    1
+
 Test the ``--initial`` option::
 
     sage: subprocess.call(["sage", "-t", "--warn-long", "0", "-i", "initial.rst"], **kwds)  # long time

@@ -1573,17 +1573,17 @@ class CartanType_crystallographic(CartanType_abstract):
         EXAMPLES::
 
             sage: CartanType(['A',5]).index_set_bipartition()
-            (set([1, 3, 5]), set([2, 4]))
+            ({1, 3, 5}, {2, 4})
 
             sage: CartanType(['A',2,1]).index_set_bipartition()
             Traceback (most recent call last):
             ...
-            AssertionError: The Dynkin diagram should be bipartite
-
+            ValueError: the Dynkin diagram must be bipartite
         """
         from sage.graphs.graph import Graph
         G = Graph(self.dynkin_diagram())
-        assert G.is_bipartite(), "The Dynkin diagram should be bipartite"
+        if not G.is_bipartite():
+            raise ValueError("the Dynkin diagram must be bipartite")
         return G.bipartite_sets()
 
 
@@ -1859,9 +1859,11 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         """
         if m is None:
             m = self.cartan_matrix()
-        assert self.index_set() == tuple(range(m.ncols()))
+        if self.index_set() != tuple(range(m.ncols())):
+            raise NotImplementedError("the Cartan matrix currently must be indexed by [0,1,...,{}]".format(m.ncols()))
         annihilator_basis = m.integer_kernel().gens()
-        assert(len(annihilator_basis) == 1)
+        if len(annihilator_basis) != 1:
+            raise ValueError("the kernel is not 1 dimensional")
         assert(all(coef > 0 for coef in annihilator_basis[0]))
 
         return Family(dict((i,annihilator_basis[0][i])for i in self.index_set()))

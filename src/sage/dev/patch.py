@@ -500,7 +500,7 @@ class MercurialPatchMixin(object):
                                         older = "%s%s" % (base2, ext)
                                     if older in patches:
                                         patches.remove(older)
-                            except:
+                            except Exception:
                                 pass
                         if rebased_regex.search(attachment):
                             older = rebased_regex.sub('', attachment)

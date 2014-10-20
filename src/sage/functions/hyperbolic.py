@@ -164,8 +164,8 @@ class Function_tanh(GinacFunction):
             0.997524731976164 - 0.00279068768100315*I
             sage: ComplexField(100)(tanh(pi + I*e))
             0.99752473197616361034204366446 - 0.0027906876810031453884245163923*I
-            sage: CDF(tanh(pi + I*e))
-            0.997524731976 - 0.002790687681*I
+            sage: CDF(tanh(pi + I*e))  # rel tol 4e-16
+            0.9975247319761636 - 0.002790687681003147*I
 
         To prevent automatic evaluation, use the ``hold`` parameter::
 

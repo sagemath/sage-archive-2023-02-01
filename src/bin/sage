@@ -462,7 +462,7 @@ fi
 
 if [ "$1" = '-git-branch' -o "$1" = '--git-branch' ]; then
     shift
-    git --git-dir="$SAGE_ROOT"/.git rev-parse --abbrev-ref HEAD
+    exec git --git-dir="$SAGE_ROOT"/.git rev-parse --abbrev-ref HEAD
 fi
 
 if [ "$1" = '-sh' -o "$1" = '--sh' ]; then

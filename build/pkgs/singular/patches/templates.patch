@@ -1,0 +1,19 @@
+diff -druN latest.orig/factory/GNUmakefile.in latest/factory/GNUmakefile.in
+--- latest.orig/factory/GNUmakefile.in	2014-08-06 08:59:15.000000000 -0700
++++ latest/factory/GNUmakefile.in	2014-10-20 04:21:24.914606325 -0700
+@@ -98,11 +98,13 @@
+ 		 @FLINT_CFLAGS@ $(DEFS) $(CPPFLAGS) $(CFLAGS)
+ 
+ # flags to translate library c++ files
+-LIBCXXFLAGS =	$(WARNFLAGS) -fno-implicit-templates \
++#LIBCXXFLAGS =	$(WARNFLAGS) -fno-implicit-templates
++LIBCXXFLAGS =	$(WARNFLAGS) \
+ 		-I. -I.. -I$(srcdir) -I${prefix} -I$(includedir) \
+ 		 @FLINT_CFLAGS@ $(DEFS) $(CPPFLAGS) $(CXXFLAGS)
+ 
+-LIBCGGFLAGS =	$(WARNFLAGS) -fno-implicit-templates \
++#LIBCGGFLAGS =	$(WARNFLAGS) -fno-implicit-templates
++LIBCGGFLAGS =	$(WARNFLAGS) \
+ 		-I. -I.. -I$(srcdir) -I${prefix} -I$(includedir) \
+ 		 @FLINT_CFLAGS@ $(DEFS) $(CPPFLAGS)
+ 

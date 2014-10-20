@@ -1891,90 +1891,13 @@ class Graph(GenericGraph):
 
                 return trees
 
-        if self.is_connected():
+        if self.is_connected() and len(self):
             forest = Graph([])
             forest.add_vertices(self.vertices())
             forest.add_edges(self.bridges())
-            return _recursive_spanning_trees(self,forest)
+            return _recursive_spanning_trees(self, forest)
         else:
             return []
-
-    def random_spanning_tree(self, output_as_graph=False):
-        """
-        Return a random spanning tree of the graph ``self``.
-
-        This uses the Aldous-Broder algorithm to generate a random
-        spanning tree with the uniform distribution, as follows.
-
-        Start from any vertex. Perform a random walk by choosing at every
-        step one neighbor uniformly at random. Every time a new vertex `j`
-        is met, add the edge `(i, j)` to the spanning tree, where `i` is
-        the previous vertex in the random walk.
-
-        INPUT:
-
-        - output_as_graph -- boolean (default: ``False``) whether to
-          return a list of edges or a graph
-
-        EXAMPLES::
-
-            sage: G = graphs.TietzeGraph()
-            sage: G.random_spanning_tree(output_as_graph=True)
-            Graph on 12 vertices
-            sage: rg = G.random_spanning_tree(); rg
-            [(0, 9),
-            (9, 11),
-            (0, 8),
-            (8, 7),
-            (7, 6),
-            (7, 2),
-            (2, 1),
-            (1, 5),
-            (9, 10),
-            (5, 4),
-            (2, 3)]
-            sage: Graph(rg).is_tree()
-            True
-
-        A visual example for the grid graph::
-
-            sage: G = graphs.Grid2dGraph(6,6)
-            sage: pos = G.get_pos()
-            sage: T = G.random_spanning_tree(True)
-            sage: T.set_pos(pos)
-            sage: T.show(vertex_labels=False)
-
-        .. SEEALSO::
-
-            :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
-            and :meth:`~sage.graphs.graph.Graph.spanning_trees`
-
-        REFERENCES:
-
-        .. [Broder89] A. Broder, 'Generating random spanning trees',
-          Proceedings of the 30th IEEE Symposium on Foundations of
-          Computer Science, 1989,
-          pp. 442-447. :doi:`10.1109/SFCS.1989.63516`
-
-        .. [Aldous90] D. Aldous, 'The random walk construction of
-          uniform spanning trees', SIAM J Discrete Math 3 (1990),
-          450-465.
-        """
-        from sage.misc.prandom import randint
-        s = self.vertex_iterator().next()
-        N = len(self)
-        found = [s]
-        tree_edges = []
-        while len(found) < N:
-            neighbours = self.neighbors(s)
-            new_s = neighbours[randint(0, len(neighbours) - 1)]
-            if not(new_s in found):
-                found += [new_s]
-                tree_edges += [(s, new_s)]
-            s = new_s
-        if not output_as_graph:
-            return tree_edges
-        return Graph(tree_edges)
 
     ### Properties
     def is_tree(self, certificate=False, output='vertex'):
@@ -6951,6 +6874,9 @@ Graph.matching_polynomial = types.MethodType(sage.graphs.matchpoly.matching_poly
 
 import sage.graphs.cliquer
 Graph.cliques_maximum = types.MethodType(sage.graphs.cliquer.all_max_clique, None, Graph)
+
+import sage.graphs.spanning_tree
+Graph.random_spanning_tree = types.MethodType(sage.graphs.spanning_tree.random_spanning_tree, None, Graph)
 
 import sage.graphs.graph_decompositions.graph_products
 Graph.is_cartesian_product = types.MethodType(sage.graphs.graph_decompositions.graph_products.is_cartesian_product, None, Graph)

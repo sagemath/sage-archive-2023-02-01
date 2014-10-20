@@ -6887,33 +6887,3 @@ Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 from sage.graphs.tutte_polynomial import tutte_polynomial
 Graph.tutte_polynomial = tutte_polynomial
 
-
-def compare_edges(x, y):
-    """
-    This function has been deprecated.
-
-    Compare edge x to edge y, return -1 if x y, 1 if x y, else 0.
-
-    TEST::
-
-        sage: G = graphs.PetersenGraph()
-        sage: E = G.edges()
-        sage: from sage.graphs.graph import compare_edges
-        sage: compare_edges(E[0], E[2])
-        doctest:...: DeprecationWarning: compare_edges(x,y) is deprecated.  Use statement 'cmp(x[1],y[1]) or cmp(x[0],y[0])' instead.
-        See http://trac.sagemath.org/13192 for details.
-        -1
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13192, "compare_edges(x,y) is deprecated.  Use statement 'cmp(x[1],y[1]) or cmp(x[0],y[0])' instead.")
-    if x[1] < y[1]:
-        return -1
-    elif x[1] > y[1]:
-        return 1
-    elif x[1] == y[1]:
-        if x[0] < y[0]:
-            return -1
-        if x[0] > y[0]:
-            return 1
-        else:
-            return 0

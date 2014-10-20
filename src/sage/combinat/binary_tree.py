@@ -1093,7 +1093,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: bt.to_poset(with_leaves=True)
             Finite poset containing 3 elements
             sage: bt.to_poset(with_leaves=True).cover_relations()
-            [[0, 2], [1, 2]]
+            [[1, 2], [0, 2]]
             sage: bt = BinaryTree([])
             sage: bt.to_poset(with_leaves=True,root_to_leaf=True).cover_relations()
             [[0, 1], [0, 2]]

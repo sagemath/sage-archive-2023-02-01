@@ -513,10 +513,10 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
 
     INPUT:
 
-    - ``OA`` -- an incomplete orthogonal array with `k+s` columns. The
-      elements of a column of size `c` must belong to `\{0,...,c\}`. The missing
-      entries of a block are represented by ``None`` values. If it is set to
-      ``None`` then the function tries to build such an orthogonal array.
+    - ``OA`` -- an incomplete orthogonal array with `k+s` columns. The elements
+      of a column of size `c` must belong to `\{0,...,c\}`. The missing entries
+      of a block are represented by ``None`` values. If ``OA=None``, it is
+      defined as a truncated orthogonal arrays with `k+s` columns.
 
     - ``k,r,m`` (integers)
 
@@ -532,6 +532,9 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
           where `u_i=\sum_j |H_{ip_i}|`. Besides, the first `|H_{i0}|` points
           represent `H_{i0}`, the next `|H_{i1}|` points represent `H_{i1}`,
           etc...
+
+    - ``explain_construction`` (boolean) -- return a string describing
+      the construction.
 
     - ``check`` (boolean) -- whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -559,8 +562,14 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
         sage: print total
         41
 
+        sage: print designs.orthogonal_arrays.explain_construction(7,58)
+        Wilson's construction n=8.7+1+1 with master design OA(7+2,8)
         sage: print designs.orthogonal_arrays.explain_construction(9,115)
         Wilson's construction n=13.8+11 with master design OA(9+1,13)
+        sage: print wilson_construction(None,5,11,21,[[(5,5)]],explain_construction=True)
+        Brouwer-van Rees construction n=11.21+(5.5) with master design OA(5+1,11)
+        sage: print wilson_construction(None,71,17,21,[[(4,9),(1,1)],[(9,9),(1,1)]],explain_construction=True)
+        Brouwer-van Rees construction n=17.21+(9.4+1.1)+(9.9+1.1) with master design OA(71+2,17)
 
     An example using the Brouwer-van Rees generalization::
 
@@ -591,7 +600,11 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
             return (("Wilson's construction n={}.{}+{} with master design OA({}+{},{})")
                     .format(r,m,join((str(x) for ((_,x),) in u),"+"),k,n_trunc,r))
         else:
-            raise NotImplementedError("no explanation for Brouwer-Van Rees form of the Wilson construction")
+            return (("Brouwer-van Rees construction n={}.{}+{} with master design OA({}+{},{})")
+                    .format(r,m,
+                            join(("("+join((str(x)+"."+str(mul) for mul,x in uu),"+")+")"
+                                  for uu in u),"+"),
+                            k,n_trunc,r))
 
     if OA is None:
         master_design = orthogonal_array(k+n_trunc,r,check=False)

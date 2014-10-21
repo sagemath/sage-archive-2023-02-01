@@ -542,11 +542,11 @@ if [ "$LDFLAGS" = "" ]; then
     LDFLAGS=""          && export LDFLAGS
 fi
 
-if [ -z "$CFLAGS"]; then
+if [ -z "$CFLAGS" ]; then
     unset CFLAGS
 fi
 
-if [ -z "$CXXFLAGS"]; then
+if [ -z "$CXXFLAGS" ]; then
     unset CXXFLAGS
 fi
 

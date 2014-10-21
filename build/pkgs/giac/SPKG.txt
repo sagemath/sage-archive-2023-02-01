@@ -7,9 +7,8 @@
     - a command line interpreter (icas or giac).
     - the built of the FLTK-based GUI (xcas) has been disabled in the spkg-install file.
 
-  * The english and french documentation will be installed in:
+  * The english documentation will be installed in:
        $SAGE_LOCAL/share/giac/doc/en/cascmd_en/index.html
-       $SAGE_LOCAL/share/giac/doc/fr/cascmd_fr/index.html
 
   * -Author's website with debian, ubuntu, macosx, windows package:
     	http://www-fourier.ujf-grenoble.fr/~parisse/giac.html
@@ -18,7 +17,7 @@
 == Licence ==
 
 GPLv3+ except the french html documentation which is freely redistributable
-       for non commercial only purposes)
+       for non commercial only purposes. This doc has been removed in the spkg)
 
 == SPKG Maintener ==
 

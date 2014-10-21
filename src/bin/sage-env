@@ -269,7 +269,7 @@ fi
 export UNAME=`uname | sed 's/CYGWIN.*/CYGWIN/' `
 
 # Mac OS X-specific setup
-if [ $UNAME = "Darwin" ]; then
+if [ "$UNAME" = "Darwin" ]; then
     # set MACOSX_DEPLOYMENT_TARGET -- if set incorrectly, this can
     # cause lots of random "Abort trap" issues on OSX. see trac
     # #7095 for an example.
@@ -401,7 +401,7 @@ export LD_LIBRARY_PATH
 
 # The following is needed for OS X (especially for the
 # Singular install).
-if [ $UNAME = "Darwin" ]; then
+if [ "$UNAME" = "Darwin" ]; then
     if [ -z "${SAGE_ORIG_DYLD_LIBRARY_PATH_SET}" ]; then
         SAGE_ORIG_DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH && export SAGE_ORIG_DYLD_LIBRARY_PATH
         SAGE_ORIG_DYLD_LIBRARY_PATH_SET=True && export SAGE_ORIG_DYLD_LIBRARY_PATH_SET

@@ -1,20 +1,25 @@
 from sage.libs.gmp.types cimport *
+from sage.libs.gmp.types cimport mp_bits_per_limb
 from sage.libs.gmp.mpn cimport mpn_rshift, mpn_lshift, mpn_copyi, mpn_ior_n, mpn_zero, mpn_copyd, mpn_cmp
 from sage.misc.bitset cimport *
 
-ctypedef struct biseq:       # bounded integer sequence
-    bitset_t data            # Use GMP integers as bitarrays
-    mp_bitcnt_t itembitsize  # Bitsize of one element of this sequence. Note:
-                             # We do not store the exact bound for the items
-                             # of this sequence, but store the bitlength that
-                             # is sufficient to store one item.
-    mp_limb_t mask_item      # "bla&mask_item" greps onethe item bla starts with
-    mp_size_t length         # Number of items in this sequence.
-                             # bitsize=length*itembitsize, but we do not want
-                             # to repeat this multiplication and thus store
-                             # the result.
+ctypedef struct biseq_s:       # bounded integer sequence
+    # Use GMP integers as bitarrays
+    bitset_t data
+    # Bitsize of one element of this sequence. Note: We do not store the exact
+    # bound for the items of this sequence, but store the bitlength that is
+    # sufficient to store one item.
+    mp_bitcnt_t itembitsize
+    # If `L` is a limb, then `L&mask_item` extracts the first `itembitsize`
+    # bits of it, i.e., it extracts one item.
+    mp_limb_t mask_item
+    # Number of items in this sequence. bitsize=length*itembitsize, but we do
+    # not want to repeat this multiplication and thus store the result.
+    mp_size_t length
 
-ctypedef biseq biseq_t[1]
+ctypedef biseq_s biseq_t[1]
+
+ctypedef mp_limb_t biseq_item_t
 
 cdef bint biseq_init(biseq_t R, mp_size_t l, mp_size_t itemsize) except -1
    # Allocate memory (filled with zero) for a bounded integer sequence
@@ -26,7 +31,7 @@ cdef void biseq_dealloc(biseq_t S)
 cdef bint biseq_copy(biseq_t R, biseq_t S) except -1
    # Replace the content of R by a copy of S
 
-cdef bint list_to_biseq(biseq_t R, list data, unsigned int bound) except -1
+cdef bint list_to_biseq(biseq_t R, list data, mp_limb_t bound) except -1
    # Convert a list to a bounded integer sequence
 
 cdef list biseq_to_list(biseq_t S)
@@ -35,7 +40,7 @@ cdef list biseq_to_list(biseq_t S)
 cdef bint biseq_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1
    # Does not test whether the sequences have the same bound!
 
-cdef bint first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_t d) except -1
+cdef bint biseq_first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_t d) except -1
    # Boilerplate function for comparison of the first bits of two gmp bitsets,
    # mimmicking mpz_congruent_2exp_p
 
@@ -56,7 +61,7 @@ cdef int biseq_index(biseq_t S, mp_limb_t item, mp_size_t start) except -2
    # Returns the position *in S* of the item in S[start:], or -1 if S[start:]
    # does not contain the item.
 
-cdef int biseq_getitem(biseq_t S, mp_size_t index) except -1
+cdef biseq_item_t biseq_getitem(biseq_t S, mp_size_t index) except -1
    # Returns S[index], without checking margins
 
 cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1

@@ -29,7 +29,7 @@ Cython modules:
 
 - ``cdef bint list_to_biseq(biseq_t R, list data, unsigned int bound) except -1``
 
-  Convert a list to a bounded integer sequence.
+  Convert a list to a bounded integer sequence, which must not be allocated.
 
 - ``cdef list biseq_to_list(biseq_t S)``
 
@@ -40,7 +40,7 @@ Cython modules:
   Concatenate ``S1`` and ``S2`` and write the result to ``R``. Does not test
   whether the sequences have the same bound!
 
-- ``cdef bint first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_t d) except -1``
+- ``cdef bint biseq_first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_t d) except -1``
 
   Boilerplate function for comparison of the first bits of two gmp bitsets,
   mimmicking ``mpz_congruent_2exp_p``.
@@ -66,7 +66,7 @@ Cython modules:
   Returns the position *in S* of the item in ``S[start:]``, or ``-1`` if
   ``S[start:]`` does not contain the item.
 
-- ``cdef int biseq_getitem(biseq_t S, mp_size_t index) except -1``
+- ``cdef biseq_item_t biseq_getitem(biseq_t S, mp_size_t index) except -1``
 
   Returns ``S[index]``, without checking margins.
 
@@ -90,9 +90,6 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 include "sage/libs/ntl/decl.pxi"
 include 'sage/misc/bitset.pxi'
-
-cdef extern from "gmp.h":
-    cdef int mp_bits_per_limb
 
 cdef extern from "Python.h":
     bint PySlice_Check(PyObject* ob)
@@ -152,9 +149,10 @@ cdef bint biseq_copy(biseq_t R, biseq_t S) except -1:
 # Conversion
 #
 
-cdef bint list_to_biseq(biseq_t R, list data, unsigned int bound) except -1:
+cdef bint list_to_biseq(biseq_t R, list data, mp_limb_t bound) except -1:
     """
-    Convert a list into a bounded integer sequence.
+    Convert a list into a bounded integer sequence and write the result into
+    ``R``, which must not be initialised.
 
     """
     cdef mpz_t tmp
@@ -162,8 +160,6 @@ cdef bint list_to_biseq(biseq_t R, list data, unsigned int bound) except -1:
     if bound!=0:
         mpz_init_set_ui(tmp, bound-1)
         ln = mpz_sizeinbase(tmp, 2)
-        if ln>mp_bits_per_limb:
-            raise ValueError("The integer bound {} does not fit into {}".format(bound, mp_bits_per_limb))
         biseq_init(R, len(data), ln)
         mpz_clear(tmp)
     else:
@@ -171,8 +167,9 @@ cdef bint list_to_biseq(biseq_t R, list data, unsigned int bound) except -1:
     cdef unsigned long int item
     cdef mp_limb_t item_limb
     cdef mp_limb_t tmp_limb1, tmp_limb2
-    cdef int offset_mod, offset_div
-    cdef int offset = 0
+    cdef mp_bitcnt_t offset_mod
+    cdef mp_size_t offset_div
+    cdef mp_size_t offset = 0
     if not data:
         return True
     for item in data:
@@ -209,23 +206,18 @@ cdef list biseq_to_list(biseq_t S):
     local_index = 0 # This is the index in tmp_limb
     tmp_limb[0] = S.data.bits[0]
     for n from S.length>=n>0:
-        #print local_index, limb_index, bit_index
         if local_index+S.itembitsize > mp_bits_per_limb:
-            #print "need more stuff"
             local_index = 0
             # tmp_limb[0] can not provide the next item, we need to get new stuff
             if bit_index and limb_index < max_limbs:
                 # We move two limbs now, so that tmp_limb[0] will be completely full
-                #print "shifting two limbs"
                 mpn_rshift(<mp_limb_t*>tmp_limb, S.data.bits+limb_index, 2, bit_index)
             else:
-                #print "one limb is enough"
                 # We shift within one limb
                 tmp_limb[0] = S.data.bits[limb_index]>>bit_index
         #else: tmp_limb[0] provides the next item
         local_index += S.itembitsize
-        #print "next item from",Integer(tmp_limb[0]).bits(),"is",<int>(tmp_limb[0]&S.mask_item)
-        L.append(<int>(tmp_limb[0]&S.mask_item))
+        L.append(<biseq_item_t>(tmp_limb[0]&S.mask_item))
         tmp_limb[0]>>=S.itembitsize
         bit_index += S.itembitsize
         if bit_index>=mp_bits_per_limb:
@@ -280,7 +272,7 @@ cdef bint biseq_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1:
                           S2.data.limbs)
             mpn_ior_n(R.data.bits, R.data.bits, S1.data.bits, S1.data.limbs)
 
-cdef inline bint first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_t d) except -1:
+cdef inline bint biseq_first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_t d) except -1:
     """
     Compare the first bits of two gmp bitsets
 
@@ -320,7 +312,7 @@ cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
         return True
     if S2.length>S1.length:
         return False
-    return first_bits_equal(S1.data.bits, S2.data.bits, S2.data.size)
+    return biseq_first_bits_equal(S1.data.bits, S2.data.bits, S2.data.size)
 
 cdef int biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
     """
@@ -365,7 +357,7 @@ cdef int biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
                 mpn_rshift(tmp.bits, S1.data.bits+limb_index, S2.data.limbs, bit_index)
         else:
             mpn_copyi(tmp.bits, S1.data.bits+limb_index, S2.data.limbs)
-        if first_bits_equal(tmp.bits, S2.data.bits, S2.data.size):
+        if biseq_first_bits_equal(tmp.bits, S2.data.bits, S2.data.size):
             bitset_free(tmp)
             return index
         n += S1.itembitsize
@@ -412,7 +404,7 @@ cdef int biseq_index(biseq_t S, mp_limb_t item, mp_size_t start) except -2:
             preinc(limb_index)
     return -1
 
-cdef int biseq_getitem(biseq_t S, mp_size_t index) except -1:
+cdef biseq_item_t biseq_getitem(biseq_t S, mp_size_t index) except -1:
     """
     Get item S[index], without checking margins.
 
@@ -422,16 +414,16 @@ cdef int biseq_getitem(biseq_t S, mp_size_t index) except -1:
     limb_index = index>>times_mp_bits_per_limb
     bit_index  = index&mod_mp_bits_per_limb
     cdef mp_limb_t tmp_limb[2]
-    cdef int out
+    cdef biseq_item_t out
     if bit_index:
         # limb_size is 1 or 2
         if bit_index+S.itembitsize>mp_bits_per_limb:
             mpn_rshift(tmp_limb, S.data.bits+limb_index, 2, bit_index)
-            out = <int>(tmp_limb[0])
+            out = <biseq_item_t>(tmp_limb[0])
         else:
-            out = <int>((S.data.bits[limb_index])>>bit_index)
+            out = <biseq_item_t>((S.data.bits[limb_index])>>bit_index)
     else:
-        out = <int>(S.data.bits[limb_index])
+        out = <biseq_item_t>(S.data.bits[limb_index])
     return out&S.mask_item
 
 cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1:
@@ -460,25 +452,17 @@ cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int
         offset_mod = total_shift&mod_mp_bits_per_limb
         offset_div = total_shift>>times_mp_bits_per_limb
         if offset_mod:
-            #print "mpn_rshift",R.data.limbs,"by",offset_mod,"bits"
             mpn_rshift(R.data.bits, S.data.bits+offset_div, R.data.limbs, offset_mod)
             # Perhaps the last to-be-moved item partially belongs to the next
             # limb of S?
-            #print "->",bitset_string(R.data)
             if (R.data.size&mod_mp_bits_per_limb)+offset_mod>mp_bits_per_limb:
-                #print "adjust the final limb"
                 R.data.bits[R.data.limbs-1] |= (S.data.bits[offset_div+R.data.limbs]<<(mp_bits_per_limb-offset_mod))
-                #print "->", bitset_string(R.data)
         else:
-            #print "just copying",R.data.limbs,"limbs"
             mpn_copyi(R.data.bits, S.data.bits+offset_div, R.data.limbs)
-            #print "->", bitset_string(R.data)
         # Perhaps the last few bits of the last limb have to be set to zero?
         offset_mod = (length*S.itembitsize)&mod_mp_bits_per_limb
         if offset_mod:
-            #print "focus on",offset_mod,"bits"
             R.data.bits[R.data.limbs-1] &= ((<mp_limb_t>1)<<offset_mod) - 1
-            #print "->",bitset_string(R.data)
         return True
     # Now for the difficult case: 
     #
@@ -570,7 +554,7 @@ cdef int biseq_max_overlap(biseq_t S1, biseq_t S2) except 0:
     cdef mp_bitcnt_t remaining_size = S1.data.size - n
     n = 0  # This now counts how many bits of the highest limb of tmp we have shifted.
     for index from start_index<=index<S1.length:
-        if first_bits_equal(tmp.bits, S2.data.bits, remaining_size):
+        if biseq_first_bits_equal(tmp.bits, S2.data.bits, remaining_size):
             bitset_free(tmp)
             return index
         remaining_size -= S1.itembitsize
@@ -609,7 +593,7 @@ cdef class BoundedIntegerSequence:
     To distinguish from tuples or lists, we use pointed brackets for the
     string representation of bounded integer sequences::
 
-        sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+        sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
         sage: S = BoundedIntegerSequence(21, [2, 7, 20]); S
         <2, 7, 20>
 
@@ -771,7 +755,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: BoundedIntegerSequence(21, [4,1,6,2,7,20,9])  # indirect doctest
             <4, 1, 6, 2, 7, 20, 9>
 
@@ -785,7 +769,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: del S     # indirect doctest
 
@@ -804,7 +788,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: L = [randint(0,26) for i in range(5000)]
             sage: S = BoundedIntegerSequence(57, L)   # indirect doctest
             sage: list(S) == L
@@ -842,7 +826,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(11, [4,1,6,2,7,20,9])
             sage: copy(S) is S
             True
@@ -857,7 +841,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: L = [randint(0,26) for i in range(5000)]
             sage: S = BoundedIntegerSequence(32, L)
             sage: loads(dumps(S)) == S    # indirect doctest
@@ -888,7 +872,7 @@ cdef class BoundedIntegerSequence:
         """
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: L = [randint(0,26) for i in range(5000)]
             sage: S = BoundedIntegerSequence(57, L)   # indirect doctest
             sage: len(S) == len(L)
@@ -903,7 +887,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(13, [0,0,0])
             sage: bool(S)
             True
@@ -922,7 +906,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: BoundedIntegerSequence(21, [4,1,6,2,7,20,9])   # indirect doctest
             <4, 1, 6, 2, 7, 20, 9>
             sage: BoundedIntegerSequence(21, [0,0]) + BoundedIntegerSequence(21, [0,0])
@@ -939,12 +923,14 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: BoundedIntegerSequence(21, [4,1,6,2,7,20,9])   # indirect doctest
             <4, 1, 6, 2, 7, 20, 9>
 
         """
-        return ', '.join([repr(n) for n in biseq_to_list(self.data)])
+        if self.data.length==0:
+            return ''
+        return ('{!s:}'+(self.data.length-1)*', {!s:}').format(*biseq_to_list(self.data))
 
     def bound(self):
         """
@@ -955,7 +941,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: T = BoundedIntegerSequence(51, [4,1,6,2,7,20,9])
             sage: S.bound()
@@ -970,7 +956,7 @@ cdef class BoundedIntegerSequence:
         """
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: L = [randint(0,26) for i in range(5000)]
             sage: S = BoundedIntegerSequence(27, L)
             sage: list(S) == L   # indirect doctest
@@ -983,11 +969,11 @@ cdef class BoundedIntegerSequence:
             sage: S = BoundedIntegerSequence(21, [0,0,0,0,0,0,0])
             sage: X = BoundedIntegerSequence(21, [4,1,6,2,7,2,3])
             sage: list(X)
-            [4, 1, 6, 2, 7, 2, 3]
+            [4L, 1L, 6L, 2L, 7L, 2L, 3L]
             sage: list(X+S)
-            [4, 1, 6, 2, 7, 2, 3, 0, 0, 0, 0, 0, 0, 0]
+            [4L, 1L, 6L, 2L, 7L, 2L, 3L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]
             sage: list(BoundedIntegerSequence(21, [0,0]) + BoundedIntegerSequence(21, [0,0]))
-            [0, 0, 0, 0]
+            [0L, 0L, 0L, 0L]
 
         """
         if self.data.length==0:
@@ -1014,7 +1000,7 @@ cdef class BoundedIntegerSequence:
                     tmp_limb[0] = self.data.data.bits[limb_index]>>bit_index
             #else: tmp_limb[0] provides the next item
             local_index += self.data.itembitsize
-            yield <int>(tmp_limb[0]&self.data.mask_item)
+            yield <biseq_item_t>(tmp_limb[0]&self.data.mask_item)
             tmp_limb[0]>>=self.data.itembitsize
             bit_index += self.data.itembitsize
             if bit_index>=mp_bits_per_limb:
@@ -1028,10 +1014,10 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: S[2]
-            6
+            6L
             sage: S[1::2]
             <1, 2, 20>
             sage: S[-1::-2]
@@ -1065,9 +1051,9 @@ cdef class BoundedIntegerSequence:
             sage: S = BoundedIntegerSequence(21, [0,0,0,0,0,0,0])
             sage: X = BoundedIntegerSequence(21, [4,1,6,2,7,2,3])
             sage: (X+S)[6]
-            3
+            3L
             sage: (X+S)[10]
-            0
+            0L
             sage: (X+S)[12:]
             <0, 0>
 
@@ -1080,7 +1066,7 @@ cdef class BoundedIntegerSequence:
 
             sage: S = BoundedIntegerSequence(6, [3, 5, 3, 1, 5, 2, 2, 5, 3, 3, 4])
             sage: S[10]
-            4
+            4L
 
         ::
 
@@ -1115,7 +1101,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: 6 in S
             True
@@ -1186,7 +1172,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: L = [randint(0,26) for i in range(5000)]
             sage: S = BoundedIntegerSequence(32, L)
             sage: S.list() == list(S) == L
@@ -1195,7 +1181,7 @@ cdef class BoundedIntegerSequence:
         The discussion at :trac:`15820` explains why the following is a good test::
 
             sage: (BoundedIntegerSequence(21, [0,0]) + BoundedIntegerSequence(21, [0,0])).list()
-            [0, 0, 0, 0]
+            [0L, 0L, 0L, 0L]
 
         """
         return biseq_to_list(self.data)
@@ -1206,7 +1192,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: L = [randint(0,26) for i in range(5000)]
             sage: S = BoundedIntegerSequence(27, L)
             sage: L0 = L[:1000]
@@ -1242,7 +1228,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,6,20,9])
             sage: S.index(6)
             2
@@ -1278,7 +1264,7 @@ cdef class BoundedIntegerSequence:
 
             sage: S = BoundedIntegerSequence(8, [2, 2, 2, 1, 2, 4, 3, 3, 3, 2, 2, 0])
             sage: S[11]
-            0
+            0L
             sage: S.index(0)
             11
 
@@ -1313,7 +1299,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: T = BoundedIntegerSequence(21, [4,1,6,2,8,15])
             sage: S+T
@@ -1329,7 +1315,7 @@ cdef class BoundedIntegerSequence:
             sage: T+list(S)
             Traceback (most recent call last):
             ...
-            TypeError:  Cannot convert list to sage.misc.bounded_integer_sequences.BoundedIntegerSequence
+            TypeError:  Cannot convert list to sage.data_structures.bounded_integer_sequences.BoundedIntegerSequence
             sage: T+None
             Traceback (most recent call last):
             ...
@@ -1362,7 +1348,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: X = BoundedIntegerSequence(21, [4,1,6,2,7,2,3])
             sage: S = BoundedIntegerSequence(21, [0,0,0,0,0,0,0])
             sage: T = BoundedIntegerSequence(21, [2,7,2,3,0,0,0,0,0,0,0,1])
@@ -1398,7 +1384,7 @@ cdef class BoundedIntegerSequence:
 
         Comparison by bound::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: T = BoundedIntegerSequence(51, [4,1,6,2,7,20,9])
             sage: S < T
@@ -1459,7 +1445,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: T = BoundedIntegerSequence(51, [4,1,6,2,7,20,9])
             sage: S == T
@@ -1501,7 +1487,7 @@ cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize
 
     EXAMPLES::
 
-        sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+        sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
         sage: L = [randint(0,26) for i in range(5000)]
         sage: S = BoundedIntegerSequence(32, L)
         sage: loads(dumps(S)) == S    # indirect doctest
@@ -1535,14 +1521,13 @@ def _biseq_stresstest():
 
     TESTS::
 
-        sage: from sage.misc.bounded_integer_sequences import _biseq_stresstest
+        sage: from sage.data_structures.bounded_integer_sequences import _biseq_stresstest
         sage: _biseq_stresstest()
 
     """
     cdef int i
     from sage.misc.prandom import randint
     cdef list L = [BoundedIntegerSequence(6, [randint(0,5) for x in range(randint(4,10))]) for y in range(100)]
-    cdef int branch
     cdef BoundedIntegerSequence S, T
     for i from 0<=i<10000:
         branch = randint(0,4)

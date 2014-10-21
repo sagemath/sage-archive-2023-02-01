@@ -7,7 +7,6 @@ Miscellaneous
    sage/misc/abstract_method
    sage/misc/ascii_art
    sage/misc/bindable_class
-   sage/misc/bounded_integer_sequences
    sage/misc/cachefunc
    sage/misc/weak_dict
    sage/misc/c3

@@ -540,7 +540,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_upper_semimodular()
             True
         """
-        # 
         if not self.is_graded():
             return False
         H=self._hasse_diagram
@@ -582,7 +581,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         n=H.order()
         for a in range(0, n):
             for b in range(a+1, n):
-                if ( H._rank_dict[a]+H._rank_dict[b] > 
+                if ( H._rank_dict[a]+H._rank_dict[b] >
                      H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]] ):
                     return False
         return True

@@ -468,11 +468,11 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ...
 
         sage: def has_tty():
-        ...       try:
-        ...           os.open(os.ctermid(), os.O_RDONLY)
-        ...           return True
-        ...       except OSError:
-        ...            return False 
+        ....:     try:
+        ....:         os.open(os.ctermid(), os.O_RDONLY)
+        ....:         return True
+        ....:     except OSError:
+        ....:         return False 
         sage: (out, err, ret) = test_executable(["sage", "--dev", "help"]) if has_tty() else ('usage: sage-dev', '', 0)
         sage: ret, err
         (0, '')

@@ -42,6 +42,7 @@ cdef class Arb(SageObject):
     EXAMPLES::
     """
     cdef arb_t value
+    cdef unsigned int precision
     def __cinit__(self):
         """
         Allocate memory for the encapsulated value.
@@ -57,7 +58,7 @@ cdef class Arb(SageObject):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import Arb
-            sage: Arb() # indirect doctest
+            sage: Arb(precision=2) # indirect doctest
             <type 'sage.rings.real_arb.Arb'>
         """
         arb_init(self.value)
@@ -77,19 +78,22 @@ cdef class Arb(SageObject):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import Arb
-            sage: a = Arb() # indirect doctest
+            sage: a = Arb(precision=2) # indirect doctest
             sage: del a
         """
         arb_clear(self.value)
 
-    def __init__(self, value=None):
+    def __init__(self, value=None, unsigned long precision=0):
         """
         Initialize Arb using value.
 
         INPUT:
 
-        - `value` -- (default: ``None``) ``None`` or a
+        - ``value`` -- (default: ``None``) ``None`` or a
           :class:`RealIntervalFieldElement`.
+
+        - ``precision`` -- (default: ``0``) a non-negative
+          integer. Must be given unless ``value`` is not ``None``.
 
         OUTPUT:
 
@@ -103,6 +107,10 @@ cdef class Arb(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: value must be None or a RealIntervalFieldElement.
+            sage: c = Arb()
+            Traceback (most recent call last):
+            ...
+            TypeError: precision must be given.
         """
         cdef RealIntervalFieldElement element
         cdef mpfr_t left
@@ -110,18 +118,21 @@ cdef class Arb(SageObject):
         cdef int prec
 
         if value is None:
-            pass
+            if precision > 0:
+                self.precision = precision
+            else:
+                raise TypeError("precision must be given.")
         elif isinstance(value, RealIntervalFieldElement):
             element = <RealIntervalFieldElement> value
-            prec = value.parent().precision()
-            mpfr_init2(left, prec)
-            mpfr_init2(right, prec)
+            self.precision = value.parent().precision()
+            mpfr_init2(left, self.precision)
+            mpfr_init2(right, self.precision)
             mpfi_get_left(left, element.value)
             mpfi_get_right(right, element.value)
             arb_set_interval_mpfr(self.value,
                                   left,
                                   right,
-                                  prec)
+                                  self.precision)
             mpfr_clear(left)
             mpfr_clear(right)
 
@@ -154,11 +165,10 @@ cdef class Arb(SageObject):
         cdef int prec
         cdef RealIntervalFieldElement result
 
-        prec = max(arb_bits(self.value), 2)
-        mpfr_init2(left, prec)
-        mpfr_init2(right, prec)
+        mpfr_init2(left, self.precision)
+        mpfr_init2(right, self.precision)
         arb_get_interval_mpfr(left, right, self.value)
-        result = RealIntervalField(prec)(0)
+        result = RealIntervalField(self.precision)(0)
         mpfi_interv_fr(result.value, left, right)
         mpfr_clear(left)
         mpfr_clear(right)
@@ -182,16 +192,15 @@ cdef class Arb(SageObject):
             sage: from sage.rings.real_arb import Arb
             sage: a = Arb(RIF(1))
             sage: a.psi().RealIntervalFieldElement()
-            -1.?
+            -0.577215664901533?
         """
 
         cdef Arb result
         cdef int prec
 
-        result = Arb()
+        result = Arb(precision=self.precision)
 
-        prec = arb_bits(self.value)
-        arb_digamma(result.value, self.value, prec)
+        arb_digamma(result.value, self.value, self.precision)
         return result
 
 

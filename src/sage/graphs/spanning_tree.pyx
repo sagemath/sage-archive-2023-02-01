@@ -23,6 +23,15 @@ including minimum spanning trees.
 
 REFERENCES:
 
+.. [Aldous90] D. Aldous, 'The random walk construction of
+  uniform spanning trees', SIAM J Discrete Math 3 (1990),
+  450-465.
+
+.. [Broder89] A. Broder, 'Generating random spanning trees',
+  Proceedings of the 30th IEEE Symposium on Foundations of
+  Computer Science, 1989, pp. 442-447. :doi:`10.1109/SFCS.1989.63516`,
+  <http://www.cs.cmu.edu/~15859n/RelatedWork/Broder-GenRanSpanningTrees.pdf>_
+
 .. [CormenEtAl2001] Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest,
   and Clifford Stein. *Introduction to Algorithms*. 2nd edition, The MIT Press,
   2001.
@@ -37,6 +46,7 @@ REFERENCES:
 
 .. [Sahni2000] Sartaj Sahni. *Data Structures, Algorithms, and Applications
   in Java*. McGraw-Hill, 2000.
+
 
 Methods
 -------
@@ -398,11 +408,12 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
 
 def random_spanning_tree(self, output_as_graph=False):
-    """
-    Return a random spanning tree of the graph ``self``.
+    r"""
+    Return a random spanning tree of the graph.
 
-    This uses the Aldous-Broder algorithm to generate a random
-    spanning tree with the uniform distribution, as follows.
+    This uses the Aldous-Broder algorithm ([Broder89]_, [Aldous90]_)
+    to generate a random spanning tree with the uniform distribution,
+    as follows.
 
     Start from any vertex. Perform a random walk by choosing at every
     step one neighbor uniformly at random. Every time a new vertex `j`
@@ -411,15 +422,20 @@ def random_spanning_tree(self, output_as_graph=False):
 
     INPUT:
 
-    - output_as_graph -- boolean (default: ``False``) whether to
-      return a list of edges or a graph
+    - ``output_as_graph`` -- boolean (default: ``False``) whether to return a
+      list of edges or a graph.
+
+    .. SEEALSO::
+
+        :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+        and :meth:`~sage.graphs.graph.Graph.spanning_trees`
 
     EXAMPLES::
 
         sage: G = graphs.TietzeGraph()
         sage: G.random_spanning_tree(output_as_graph=True)
         Graph on 12 vertices
-        sage: rg = G.random_spanning_tree(); rg
+        sage: rg = G.random_spanning_tree(); rg # random
         [(0, 9),
         (9, 11),
         (0, 8),
@@ -455,21 +471,6 @@ def random_spanning_tree(self, output_as_graph=False):
         Traceback (most recent call last):
         ...
         ValueError: works only for non-empty connected graphs
-
-    .. SEEALSO::
-
-        :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
-        and :meth:`~sage.graphs.graph.Graph.spanning_trees`
-
-    REFERENCES:
-
-    .. [Broder89] A. Broder, 'Generating random spanning trees',
-      Proceedings of the 30th IEEE Symposium on Foundations of
-      Computer Science, 1989, pp. 442-447. :doi:`10.1109/SFCS.1989.63516`
-
-    .. [Aldous90] D. Aldous, 'The random walk construction of
-      uniform spanning trees', SIAM J Discrete Math 3 (1990),
-      450-465.
     """
     from sage.misc.prandom import randint
     from sage.graphs.graph import Graph

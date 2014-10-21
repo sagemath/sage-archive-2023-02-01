@@ -48,7 +48,6 @@ if 'inventory' in sys.argv:
 
 # warnings: regular expressions (or strings) indicating a problem with
 # docbuilding. Raise an exception if any of these occur.
-
 warnings = (re.compile('Segmentation fault'),
             re.compile('SEVERE'),
             re.compile('ERROR'),
@@ -56,7 +55,10 @@ warnings = (re.compile('Segmentation fault'),
             re.compile('Exception occurred'),
             re.compile('Sphinx error'))
 
-if 'latex' not in sys.argv:
+# Unless this is the first pass of the compilation (where some cross
+# links may not be resolvable yet), or we are compiling the latex
+# documentation, we want all warnings to raise an exception.
+if 'multidoc_first_pass=1' not in sys.argv and 'latex' not in sys.argv:
     warnings += (re.compile('WARNING'),)
 
 

@@ -55,11 +55,17 @@ warnings = (re.compile('Segmentation fault'),
             re.compile('Exception occurred'),
             re.compile('Sphinx error'))
 
-# Unless this is the first pass of the compilation (where some cross
-# links may not be resolvable yet), or we are compiling the latex
-# documentation, we want all warnings to raise an exception.
-if 'multidoc_first_pass=1' not in sys.argv and 'latex' not in sys.argv:
-    warnings += (re.compile('WARNING'),)
+# We want all warnings to actually be errors.
+# Exceptions:
+# - warnings upon building the LaTeX documentation
+# - undefined labels upon the first pass of the compilation: some
+#   cross links may legitimately not yet be resolvable at this point.
+if 'latex' not in sys.argv:
+    if 'multidoc_first_pass=1' in sys.argv:
+        # Catch all warnings except 'WARNING: undefined label'
+        warnings += (re.compile('WARNING: (?!undefined label)'),)
+    else:
+        warnings += (re.compile('WARNING:'),)
 
 
 # Do not error out at the first warning, sometimes there is more

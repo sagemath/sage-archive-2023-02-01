@@ -470,7 +470,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
-    def is_upper_semimodular(L):
+    def is_upper_semimodular(self):
         r"""
         Return ``True`` if ``self`` is an upper semimodular lattice and
         ``False`` otherwise.
@@ -496,18 +496,17 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_upper_semimodular()
             True
         """
-        if not L.is_ranked():
+        if not self.is_ranked():
             return False
-        for p in L.list():
-            cover_list = L.upper_covers(p)
-            for (i,q) in enumerate(cover_list):
-                for r in cover_list[i+1:]:
-                    qr = L.join(q,r)
-                    if not (L.covers(q,qr) and L.covers(r,qr)):
-                        return False
+        H=self._hasse_diagram
+        n=H.order()
+        for a in range(0, n):
+            for b in range(a+1, n):
+                if H._rank_dict[a]+H._rank_dict[b] < H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]:
+                    return False
         return True
 
-    def is_lower_semimodular(L):
+    def is_lower_semimodular(self):
         r"""
         Return ``True`` if ``self`` is a lower semimodular lattice and
         ``False`` otherwise.
@@ -529,9 +528,17 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_lower_semimodular()
             True
         """
-        return L.dual().is_upper_semimodular()
+        if not self.is_ranked():
+            return False
+        H=self._hasse_diagram
+        n=H.order()
+        for a in range(0, n):
+            for b in range(a+1, n):
+                if H._rank_dict[a]+H._rank_dict[b] > H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]:
+                    return False
+        return True
 
-    def is_modular(L):
+    def is_modular(self):
         r"""
         Return ``True`` if ``self`` is a modular lattice and ``False``
         otherwise.
@@ -561,7 +568,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_modular()
             False
         """
-        return L.is_upper_semimodular() and L.is_lower_semimodular()
+        if not self.is_ranked():
+            return False
+        H=self._hasse_diagram
+        n=H.order()
+        for a in range(0, n):
+            for b in range(a+1, n):
+                if H._rank_dict[a]+H._rank_dict[b] != H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]:
+                    return False
+        return True
 
 
 ####################################################################################

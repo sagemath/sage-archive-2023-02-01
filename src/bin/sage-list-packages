@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # script to list the Sage packages
-#  called with one argument which meight be either "installed" or "standard or
+#  called with one argument which meight be either "installed" or "standard" or
 #  "optional" or "experimental".
 
 import os, sys
@@ -32,7 +32,7 @@ def get_remote_package_list(category):
 
     try:
         pkg_list_file = urllib2.urlopen(url)
-    except (OSError, IOError), msg:
+    except (OSError, IOError) as msg:
         print msg
         print "\n\n"
         print "*"*80
@@ -44,7 +44,7 @@ def get_remote_package_list(category):
         print "\n\n"
         print "*"*80
         print "\n\n"
-        return -1
+        sys.exit(1)
 
     result = [line.strip() for line in pkg_list_file.readlines()]
     pkg_list_file.close()

@@ -70,10 +70,6 @@ Home Page: http://sphinx.pocoo.org,
      \trivlist instead of \list. This fixes the pdf docbuild for
      deeply nested classes/methods revealed in #9107.
 
-   - patches/docutils-0.9.patch: Upstream patch for compatibility with
-     docutils-0.9 and later. See 
-     https://bitbucket.org/birkenfeld/sphinx/commits/bab0b83c9e02
-
  * The script create_grammar_pickle.py creates the file
    Grammar2.7.pickle in site-packages/Sphinx-.../sphinx/pycode/.  This
    helps to avoid race conditions when building the documentation in

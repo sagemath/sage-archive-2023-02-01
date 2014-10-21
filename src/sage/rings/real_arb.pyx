@@ -18,11 +18,13 @@ documentation for more details.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 """
+include 'mpfi.pxi'
 
 from sage.libs.arb.arb cimport *
 from sage.libs.mpfr cimport mpfr_inits2, mpfr_clears, mpfr_t
-from sage.libs.mpfi cimport mpfi_interv_fr
-from sage.rings.real_mpfi cimport RealIntervalFieldElement, RealIntervalField
+from sage.rings.real_mpfi cimport RealIntervalFieldElement
+from sage.rings.real_mpfi import RealIntervalField
+from sage.structure.sage_object cimport SageObject
 
 cdef class Arb(SageObject):
     """
@@ -40,7 +42,7 @@ cdef class Arb(SageObject):
     EXAMPLES::
     """
     cdef arb_t value
-    cdef __cinit__(self):
+    def __cinit__(self):
         """
         Allocate memory for the encapsulated value.
 
@@ -56,12 +58,11 @@ cdef class Arb(SageObject):
 
             sage: from sage.rings.real_arb import Arb
             sage: Arb() # indirect doctest
-            Memory initialized.
+            <type 'sage.rings.real_arb.Arb'>
         """
         arb_init(self.value)
-        print "Memory initialized."
 
-    cdef __dealloc__(self):
+    def __dealloc__(self):
         """
         Deallocate memory of the encapsulated value.
 
@@ -77,12 +78,9 @@ cdef class Arb(SageObject):
 
             sage: from sage.rings.real_arb import Arb
             sage: a = Arb() # indirect doctest
-            Memory initialized.
             sage: del a
-            Memory deallocated.
         """
         arb_clear(self.value)
-        print "Memory deallocated."
 
     def __init__(self, value=None):
         """
@@ -101,19 +99,32 @@ cdef class Arb(SageObject):
 
             sage: from sage.rings.real_arb import Arb
             sage: a = Arb(RIF(0, 1))
-            sage: a.print_d()
             sage: b = Arb(1)
             Traceback (most recent call last):
             ...
             TypeError: value must be None or a RealIntervalFieldElement.
         """
+        cdef RealIntervalFieldElement element
+        cdef mpfr_t left
+        cdef mpfr_t right
+        cdef int prec
+
         if value is None:
             pass
         elif isinstance(value, RealIntervalFieldElement):
+            element = <RealIntervalFieldElement> value
+            prec = value.parent().precision()
+            mpfr_init2(left, prec)
+            mpfr_init2(right, prec)
+            mpfi_get_left(left, element.value)
+            mpfi_get_right(right, element.value)
             arb_set_interval_mpfr(self.value,
-                                  value.left().value,
-                                  value.right().value,
-                                  value.parent().precision())
+                                  left,
+                                  right,
+                                  prec)
+            mpfr_clear(left)
+            mpfr_clear(right)
+
         else:
             raise TypeError("value must be None or a "
                             "RealIntervalFieldElement.")
@@ -135,17 +146,22 @@ cdef class Arb(SageObject):
             sage: from sage.rings.real_arb import Arb
             sage: a = Arb(RIF(2))
             sage: a.RealIntervalFieldElement()
+            2
         """
 
-        cdef mpfr_t left, right
+        cdef mpfr_t left
+        cdef mpfr_t right
         cdef int prec
+        cdef RealIntervalFieldElement result
 
-        prec = arb_bits(self.value)
-        mpfr_inits2(prec, left, right)
+        prec = max(arb_bits(self.value), 2)
+        mpfr_init2(left, prec)
+        mpfr_init2(right, prec)
         arb_get_interval_mpfr(left, right, self.value)
         result = RealIntervalField(prec)(0)
         mpfi_interv_fr(result.value, left, right)
-        mpfr_clears(left, right)
+        mpfr_clear(left)
+        mpfr_clear(right)
 
         return result
 
@@ -163,12 +179,19 @@ cdef class Arb(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.rings.real_arb import Arb
             sage: a = Arb(RIF(1))
             sage: a.psi().RealIntervalFieldElement()
+            -1.?
         """
 
         cdef Arb result
-        arb_digamma(result.value, self.value)
+        cdef int prec
+
+        result = Arb()
+
+        prec = arb_bits(self.value)
+        arb_digamma(result.value, self.value, prec)
         return result
 
 

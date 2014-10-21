@@ -1,3 +1,5 @@
+from sage.libs.mpfr cimport mpfr_t
+
 cdef extern from "arb.h":
      ctypedef struct arb_struct:
          pass
@@ -5,6 +7,7 @@ cdef extern from "arb.h":
 
      void arb_init(arb_t x)
      void arb_clear(arb_t x)
+     long arb_bits(arb_t x)
      void arb_set_interval_mpfr(arb_t x, const mpfr_t a, const mpfr_t b, long prec)
      void arb_get_interval_mpfr(mpfr_t a, mpfr_t b, const arb_t x)
      void arb_print(const arb_t x)

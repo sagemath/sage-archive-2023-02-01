@@ -2193,7 +2193,7 @@ if is_package_installed('arb'):
        Extension("sage.rings.real_arb",
                  ["sage/rings/real_arb.pyx"],
                  language = "c",
-                 libraries = ['arb'],
+                 libraries = ['arb', 'mpfi', 'mpfr'],
                  include_dirs = [SAGE_INC + '/flint'],
                  depends = flint_depends)
        ])

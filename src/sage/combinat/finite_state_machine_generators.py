@@ -1223,7 +1223,7 @@ class TransducerGenerators(object):
         def transition_function((carry, look_ahead), input):
             current = carry + input * base**look_ahead
             K = look_ahead + 1
-            R = current % 2**K
+            R = current % base**K
             rule = residues[K][R]
             if rule is not None:
                 n = (current - R) / base**K

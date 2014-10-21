@@ -736,7 +736,7 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
     TESTS:
 
-    Trac #9823 fixed::
+    Check that :trac:`9823` is fixed::
 
         sage: t = var('t')
         sage: x = function('x', t)
@@ -744,7 +744,7 @@ def desolve_system(des, vars, ics=None, ivar=None):
         sage: desolve_system([de1], [x])
         -t + x(0)
 
-    Trac #16568 fixed::
+    Check that :trac:`16568` is fixed::
 
         sage: t = var('t')
         sage: x = function('x', t)
@@ -765,10 +765,10 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
     ::
 
-      sage: P1 = plot([solx,soly], (0,1))
-      sage: P2 = parametric_plot((solx,soly), (0,1))
+        sage: P1 = plot([solx,soly], (0,1))
+        sage: P2 = parametric_plot((solx,soly), (0,1))
 
-      Now type show(P1), show(P2) to view these plots.
+        Now type show(P1), show(P2) to view these plots.
 
     AUTHORS:
 

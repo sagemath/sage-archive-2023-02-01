@@ -79,7 +79,7 @@ cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:
             if mpz_cmpabs(v2, bound) <= 0:
                 break
             mpz_fdiv_q(q, u2, v2)  # q = floor(u2/v2)
-            mpz_submul(u1, q, v1)  # w1 = u1 - q*v
+            mpz_submul(u1, q, v1)  # w1 = u1 - q*v1
             mpz_submul(u2, q, v2)  # w2 = u2 - q*v2
             mpz_swap(u1, v1)       # u1 = v1; v1 = w1
             mpz_swap(u2, v2)       # u2 = v2; v2 = w2

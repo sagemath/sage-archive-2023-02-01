@@ -44,6 +44,8 @@ See spkg-src.
  * flint.patch: avoid underlinking FLINT in libsingular.
  * exeext.patch: Add $(EXEEXT) to some executable names.
  * cygwin64.path: Support for Cywgin64.
+ * templates.patch: Let Singular correctly instantiate templates from NTL
+   with some GCC versions.
 
 The following patches fix errors that only occur in a debug build, see
 http://trac.sagemath.org/ticket/16938

@@ -41,7 +41,7 @@ diff -druN singular-3.1.6.orig/latest/Singular/Makefile.in singular-3.1.6/latest
 +SO_SUFFIX = dll
 +MODULE_SUFFIX    = dll
 +LIBSINGULAR_FLAGS = -shared
-+LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc 
++LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline @FLINT_LIBS@ -lgmp -lomalloc 
 +endif
 +
  ifeq ($(SINGUNAME),ix86-SunOS)

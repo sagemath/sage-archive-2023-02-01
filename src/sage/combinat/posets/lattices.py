@@ -470,85 +470,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
-    def is_upper_semimodular(self):
-        r"""
-        Return ``True`` if ``self`` is an upper semimodular lattice and
-        ``False`` otherwise.
-
-        A lattice is upper semimodular if for any `x` in the poset that is
-        covered by `y` and `z`, both `y` and `z` are covered by their join.
-
-        EXAMPLES::
-
-            sage: L = posets.DiamondPoset(5)
-            sage: L.is_upper_semimodular()
-            True
-
-            sage: L = posets.PentagonPoset()
-            sage: L.is_upper_semimodular()
-            False
-
-            sage: L = posets.ChainPoset(6)
-            sage: L.is_upper_semimodular()
-            True
-
-            sage: L = LatticePoset(posets.IntegerPartitions(4))
-            sage: L.is_upper_semimodular()
-            True
-        """
-        if not self.is_ranked():
-            return False
-        H=self._hasse_diagram
-        n=H.order()
-        for a in range(0, n):
-            for b in range(a+1, n):
-                if H._rank_dict[a]+H._rank_dict[b] < H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]:
-                    return False
-        return True
-
-    def is_lower_semimodular(self):
-        r"""
-        Return ``True`` if ``self`` is a lower semimodular lattice and
-        ``False`` otherwise.
-
-        A lattice is lower semimodular if for any `x` in the poset that covers
-        `y` and `z`, both `y` and `z` cover their meet.
-
-        EXAMPLES::
-
-            sage: L = posets.DiamondPoset(5)
-            sage: L.is_lower_semimodular()
-            True
-
-            sage: L = posets.PentagonPoset()
-            sage: L.is_lower_semimodular()
-            False
-
-            sage: L = posets.ChainPoset(6)
-            sage: L.is_lower_semimodular()
-            True
-        """
-        if not self.is_ranked():
-            return False
-        H=self._hasse_diagram
-        n=H.order()
-        for a in range(0, n):
-            for b in range(a+1, n):
-                if H._rank_dict[a]+H._rank_dict[b] > H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]:
-                    return False
-        return True
-
     def is_modular(self):
         r"""
-        Return ``True`` if ``self`` is a modular lattice and ``False``
-        otherwise.
+        Return ``True`` if the lattice is modular and ``False`` otherwise.
 
-        A lattice is modular if it is both upper semimodular and lower
-        semimodular.
+        A lattice is modular if `x \le b` implies `x \vee (a \wedge b)=
+        (x \vee a) \wedge b` for every `a` and `b`. There are other equivalent
+        definitions, see :wikipedia:`Modular_lattice`.
 
-        See :wikipedia:`Modular_lattice`
-
-        See also :meth:`is_upper_semimodular` and :meth:`is_lower_semimodular`
+        See also :meth:`is_upper_semimodular` and :meth:`is_lower_semimodular`.
 
         EXAMPLES::
 
@@ -568,16 +498,94 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_modular()
             False
         """
-        if not self.is_ranked():
+        # Algorithm is based on pp. 286-287 on Enumerative Combinatorics,
+        # second edition (version of 15 July 2011) by Richard P. Stanley.
+        # Available at http://www-math.mit.edu/~rstan/ec/ec1.pdf
+        if not self.is_graded():
             return False
         H=self._hasse_diagram
         n=H.order()
         for a in range(0, n):
             for b in range(a+1, n):
-                if H._rank_dict[a]+H._rank_dict[b] != H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]:
+                if ( H._rank_dict[a]+H._rank_dict[b] != 
+                     H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]] ):
                     return False
         return True
 
+    def is_upper_semimodular(self):
+        r"""
+        Return ``True`` if the lattice is upper semimodular and
+        ``False`` otherwise.
+
+        A lattice is upper semimodular if for any `x` in the poset that is
+        covered by `y` and `z`, both `y` and `z` are covered by their join.
+
+        See also :meth:`is_modular` and :meth:`is_lower_semimodular`.
+
+        EXAMPLES::
+
+            sage: L = posets.DiamondPoset(5)
+            sage: L.is_upper_semimodular()
+            True
+
+            sage: L = posets.PentagonPoset()
+            sage: L.is_upper_semimodular()
+            False
+
+            sage: L = posets.ChainPoset(6)
+            sage: L.is_upper_semimodular()
+            True
+
+            sage: L = LatticePoset(posets.IntegerPartitions(4))
+            sage: L.is_upper_semimodular()
+            True
+        """
+        # 
+        if not self.is_graded():
+            return False
+        H=self._hasse_diagram
+        n=H.order()
+        for a in range(0, n):
+            for b in range(a+1, n):
+                if ( H._rank_dict[a]+H._rank_dict[b] <
+                     H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]] ):
+                    return False
+        return True
+
+    def is_lower_semimodular(self):
+        r"""
+        Return ``True`` if the lattice is lower semimodular and
+        ``False`` otherwise.
+
+        A lattice is lower semimodular if for any `x` in the poset that covers
+        `y` and `z`, both `y` and `z` cover their meet.
+
+        See also :meth:`is_modular` and :meth:`is_upper_semimodular`.
+
+        EXAMPLES::
+
+            sage: L = posets.DiamondPoset(5)
+            sage: L.is_lower_semimodular()
+            True
+
+            sage: L = posets.PentagonPoset()
+            sage: L.is_lower_semimodular()
+            False
+
+            sage: L = posets.ChainPoset(6)
+            sage: L.is_lower_semimodular()
+            True
+        """
+        if not self.is_graded():
+            return False
+        H=self._hasse_diagram
+        n=H.order()
+        for a in range(0, n):
+            for b in range(a+1, n):
+                if ( H._rank_dict[a]+H._rank_dict[b] > 
+                     H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]] ):
+                    return False
+        return True
 
 ####################################################################################
 

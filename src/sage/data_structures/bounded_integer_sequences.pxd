@@ -4,7 +4,7 @@ from sage.libs.gmp.mpn cimport mpn_rshift, mpn_lshift, mpn_copyi, mpn_ior_n, mpn
 from sage.misc.bitset cimport *
 
 ctypedef struct biseq_s:       # bounded integer sequence
-    # Use GMP integers as bitarrays
+    # Use bitsets to store the data, which in turn is based on GMP integers
     bitset_t data
     # Bitsize of one element of this sequence. Note: We do not store the exact
     # bound for the items of this sequence, but store the bitlength that is
@@ -13,8 +13,7 @@ ctypedef struct biseq_s:       # bounded integer sequence
     # If `L` is a limb, then `L&mask_item` extracts the first `itembitsize`
     # bits of it, i.e., it extracts one item.
     mp_limb_t mask_item
-    # Number of items in this sequence. bitsize=length*itembitsize, but we do
-    # not want to repeat this multiplication and thus store the result.
+    # Number of items in this sequence.
     mp_size_t length
 
 ctypedef biseq_s biseq_t[1]

@@ -3042,7 +3042,7 @@ class Polyhedron_base(Element):
 
             sage: square = polytopes.n_cube(2)
             sage: square.face_lattice()
-            Finite poset containing 10 elements
+            Finite poset containing 10 elements with distinguished linear extension
             sage: list(_)
             [<>, <0>, <1>, <2>, <3>, <0,1>, <0,2>, <2,3>, <1,3>, <0,1,2,3>]
             sage: poset_element = _[6]

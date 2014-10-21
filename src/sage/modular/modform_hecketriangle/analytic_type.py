@@ -563,7 +563,7 @@ class AnalyticType(FiniteLatticePoset):
             sage: AT = AnalyticType()
             sage: P = AT.base_poset()
             sage: P
-            Finite poset containing 5 elements
+            Finite poset containing 5 elements with distinguished linear extension
             sage: isinstance(P, FinitePoset)
             True
 

@@ -880,7 +880,7 @@ class InterfaceElement(RingElement):
                 s = s.replace(self._name, self.__custom_name)
             except AttributeError:
                 pass
-         return s
+        return s
 
     def __getattr__(self, attrname):
         P = self._check_valid()

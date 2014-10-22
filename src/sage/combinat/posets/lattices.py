@@ -501,7 +501,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         # Algorithm is based on pp. 286-287 on Enumerative Combinatorics,
         # second edition (version of 15 July 2011) by Richard P. Stanley.
         # Available at http://www-math.mit.edu/~rstan/ec/ec1.pdf
-        if not self.is_graded():
+        if not self.is_ranked():
             return False
         H=self._hasse_diagram
         n=H.order()
@@ -540,7 +540,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_upper_semimodular()
             True
         """
-        if not self.is_graded():
+        if not self.is_ranked():
             return False
         H=self._hasse_diagram
         n=H.order()
@@ -575,7 +575,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_lower_semimodular()
             True
         """
-        if not self.is_graded():
+        if not self.is_ranked():
             return False
         H=self._hasse_diagram
         n=H.order()

@@ -77,6 +77,7 @@ graphs.
     :meth:`~Graph.degree_constrained_subgraph` | Returns a degree-constrained subgraph.
     :meth:`~Graph.bridges` | Returns the list of all bridges.
     :meth:`~Graph.spanning_trees` | Returns the list of all spanning trees.
+    :meth:`~Graph.random_spanning_tree` | Returns a random spanning tree.
 
 **Clique-related methods:**
 
@@ -1837,8 +1838,11 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
-            -- counts the number of spanning trees.
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+              -- counts the number of spanning trees.
+
+            - :meth:`~sage.graphs.graph.Graph.random_spanning_tree`
+              -- returns a random spanning tree.
 
         REFERENCES:
 
@@ -1887,11 +1891,11 @@ class Graph(GenericGraph):
 
                 return trees
 
-        if self.is_connected():
+        if self.is_connected() and len(self):
             forest = Graph([])
             forest.add_vertices(self.vertices())
             forest.add_edges(self.bridges())
-            return _recursive_spanning_trees(self,forest)
+            return _recursive_spanning_trees(self, forest)
         else:
             return []
 
@@ -6884,6 +6888,9 @@ Graph.matching_polynomial = types.MethodType(sage.graphs.matchpoly.matching_poly
 
 import sage.graphs.cliquer
 Graph.cliques_maximum = types.MethodType(sage.graphs.cliquer.all_max_clique, None, Graph)
+
+import sage.graphs.spanning_tree
+Graph.random_spanning_tree = types.MethodType(sage.graphs.spanning_tree.random_spanning_tree, None, Graph)
 
 import sage.graphs.graph_decompositions.graph_products
 Graph.is_cartesian_product = types.MethodType(sage.graphs.graph_decompositions.graph_products.is_cartesian_product, None, Graph)

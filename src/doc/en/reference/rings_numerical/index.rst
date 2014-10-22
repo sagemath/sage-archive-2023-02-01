@@ -25,7 +25,6 @@ when implementations aren't otherwise available.
    sage/rings/real_double
    sage/rings/real_mpfr
    sage/rings/real_mpfi
-   sage/rings/real_arb
    sage/rings/real_interval_field
    sage/rings/real_interval_absolute
    sage/rings/real_lazy

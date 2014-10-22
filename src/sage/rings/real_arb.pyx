@@ -18,13 +18,10 @@ documentation for more details.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 """
-include 'mpfi.pxi'
-
 from sage.libs.arb.arb cimport *
 from sage.libs.mpfr cimport mpfr_inits2, mpfr_clears, mpfr_t
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 from sage.rings.real_mpfi import RealIntervalField
-from sage.structure.sage_object cimport SageObject
 
 cdef mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long precision):
     """
@@ -105,8 +102,6 @@ cdef class Arb(SageObject):
 
     EXAMPLES::
     """
-    cdef arb_t value
-    cdef unsigned int precision
     def __cinit__(self):
         """
         Allocate memory for the encapsulated value.

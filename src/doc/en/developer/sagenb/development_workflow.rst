@@ -204,7 +204,7 @@ collaborator:
 
 Now all those people can do::
 
-    git clone git@githhub.com:your-user-name/sagenb.git
+    git clone git@githhub.com:your-user-name/sagenb.git sagenb-git
 
 Remember that links starting with ``git@`` use the ssh protocol and are
 read-write; links starting with ``git://`` are read-only.

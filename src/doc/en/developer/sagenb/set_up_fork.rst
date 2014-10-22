@@ -11,19 +11,19 @@ Overview
 
 ::
 
-   git clone git@github.com:your-user-name/sagenb.git
-   cd sagenb
+   git clone git@github.com:your-user-name/sagenb.git sagenb-git
+   cd sagenb-git
    git remote add upstream git://github.com/sagemath/sagenb.git
 
-In etail
+In detail
 =========
 
 Clone Your Fork
 ---------------
 
 #. Clone your fork to the local computer with ``git clone
-   git@github.com:your-user-name/sagenb.git``
-#. Investigate.  Change directory to your new repo: ``cd sagenb``. Then
+   git@github.com:your-user-name/sagenb.git sagenb-git``
+#. Investigate.  Change directory to your new repo: ``cd sagenb-git``. Then
    ``git branch -a`` to show you all branches.  You'll get something
    like::
 
@@ -45,7 +45,7 @@ Linking Your Repository to the Upstream Repo
 
 ::
 
-   cd sagenb
+   cd sagenb-git
    git remote add upstream git://github.com/sagemath/sagenb.git
 
 ``upstream`` here is just the arbitrary name we're using to refer to the

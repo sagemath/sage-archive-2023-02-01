@@ -435,21 +435,21 @@ class WeakTableau_abstract(ClonableList):
 
             sage: T = WeakTableaux(3, [5,2,1], [1,1,1,1,1,1], representation='core')
             sage: t = T[0]
-            sage: hash(t)
-            -1325635545736929576
+            sage: hash(t) == hash(t)
+            True
             sage: T = WeakTableaux(3, [2,2,1], [1,1,1,1,1], representation='bounded')
             sage: t = T[0]
-            sage: hash(t)
-            -48378404010490616
+            sage: hash(t) == hash(t)
+            True
             sage: T = WeakTableaux(3, [5,2,1], [1,1,1,1,1,1], representation='factorized_permutation')
             sage: t = T[0]
-            sage: hash(t)
-            7760238307943387445
+            sage: hash(t) == hash(t)
+            True
         """
         if self.parent()._representation in ['core', 'bounded']:
             return hash(tuple(tuple(x) for x in self)) + hash(self.parent().k)
         else:
-            return hash(tuple(x for x in self)) + hash(self.parent().k)
+            return super(WeakTableau_abstract, self).__hash__()
 
     def _latex_(self):
         r"""
@@ -2465,8 +2465,8 @@ class StrongTableau(ClonableList):
         EXAMPLES::
 
             sage: t = StrongTableau([[-1, -1, -2], [2]], 2)
-            sage: hash(t)
-            -2626861618990167811
+            sage: hash(t) == hash(t)
+            True
         """
         return hash(tuple(tuple(x) for x in self)) + hash(self.parent().k)
 

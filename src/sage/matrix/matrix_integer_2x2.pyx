@@ -141,7 +141,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         mpz_init(self.b)
         mpz_init(self.c)
         mpz_init(self.d)
-        self._entries = &self.a
+        self._entries = address_of_mpz(self.a)
         self._parent = parent
         self._base_ring = ZZ
         self._nrows = 2

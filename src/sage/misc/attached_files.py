@@ -39,7 +39,7 @@ character-by-character::
     ....:     traceback.print_exc()
     Traceback (most recent call last):
     ...
-        exec preparse_file(open(fpath).read()) + "\n" in globals
+        exec(preparse_file(open(fpath).read()) + "\n", globals)
       File "<string>", line 3, in <module>
     ValueError: third
     sage: detach(src)
@@ -51,7 +51,7 @@ character-by-character::
     ....:     traceback.print_exc()
     Traceback (most recent call last):
     ...
-        execfile(preparse_file_named(fpath), globals)
+        exec(code, globals)
       File ".../foobar.sage....py", line ..., in <module>
         raise ValueError("third")   # this should appear in the source snippet
     ValueError: third

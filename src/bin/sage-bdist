@@ -26,11 +26,11 @@ if [ $# -gt 1 ]; then
 fi
 
 if [ -z "$SAGE_ROOT" ]; then
-    die "must be run from within a Sage enviroment, or with SAGE_ROOT provided"
+    die "must be run from within a Sage environment, or with SAGE_ROOT provided"
 fi
 
 if [ -z "$SAGE_SRC" ]; then
-    die "must be run from within a Sage enviroment, or with SAGE_SRC provided"
+    die "must be run from within a Sage environment, or with SAGE_SRC provided"
 fi
 
 if [ "$#" -gt 0 ]; then
@@ -48,7 +48,7 @@ else
 	TARGET_ARCH="$SAGE_APP_TARGET_ARCH"
 fi
 
-TARGET=sage-"$SAGE_VERSION"-"$TARGET_ARCH"-`uname`
+TARGET=sage-"$SAGE_VERSION"-"$TARGET_ARCH"-"$UNAME"
 TARGET=`echo $TARGET | sed 's/ //g'`   # Remove spaces
 
 if [ "$SAGE_APP_BUNDLE" = "yes" ]; then

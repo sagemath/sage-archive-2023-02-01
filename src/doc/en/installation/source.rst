@@ -959,7 +959,7 @@ Here are some of the more commonly used variables affecting the build process:
 The following :envvar:`SAGE_APP_*` -variables are specific to building a binary distribution on OSX:
 
 - :envvar:`SAGE_APP_BUNDLE` - OSX-specific; defaults to ``no``. Set to ``yes`` if you
-  want to build a Sage OSX application rather than a terminal version fo Sage.
+  want to build a Sage OSX application rather than a terminal version of Sage.
 
 - :envvar:`SAGE_APP_TARGET_ARCH` - OSX-specific; defaults to ``uname -m``. Meaningful
   values, on Intel, are `i386` and `x86_64`.

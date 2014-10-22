@@ -962,7 +962,7 @@ The following :envvar:`SAGE_APP_*` -variables are specific to building a binary 
   want to build a Sage OSX application rather than a terminal version of Sage.
 
 - :envvar:`SAGE_APP_TARGET_ARCH` - OSX-specific; defaults to ``uname -m``. Meaningful
-  values, on Intel, are `i386` and `x86_64`.
+  values, on Intel, are ``i386`` and ``x86_64``.
   To prepare a 64-bit binary distribution on an older 64-bit OSX machine that boots
   into a 32-bit system, one would do::
 

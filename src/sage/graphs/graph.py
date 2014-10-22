@@ -3161,7 +3161,7 @@ class Graph(GenericGraph):
             sage: P.is_semi_symmetric()
             False
 
-        The Gray graph is the smallest possible semi-symmetric graph::
+        The Gray graph is the smallest possible cubic semi-symmetric graph::
 
             sage: G = graphs.GrayGraph()
             sage: G.is_semi_symmetric()

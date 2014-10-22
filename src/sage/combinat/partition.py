@@ -4697,7 +4697,7 @@ class Partitions(UniqueRepresentation, Parent):
         sage: Partitions(max_part = 3)
         3-Bounded Partitions
 
-    Check that trac:`14145` has been fixed::
+    Check that :trac:`14145` has been fixed::
 
         sage: 1 in Partitions()
         False
@@ -6891,6 +6891,7 @@ def number_of_partitions(n, algorithm='default'):
         ValueError: n (=-5) must be a nonnegative integer
 
     ::
+
         sage: number_of_partitions(10)
         42
         sage: number_of_partitions(3)

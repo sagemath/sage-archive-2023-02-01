@@ -103,9 +103,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     to create the Lie algebra of `\QQ^3` under the Lie bracket of `\times`
     (cross-product)::
 
-        sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1},
-        ....:                             ('y','z'): {'x':1},
-        ....:                             ('z','x'): {'y':1}})
+        sage: d = {('x','y'): {'z':1}, ('y','z'): {'x':1}, ('z','x'): {'y':1}}
+        sage: L.<x,y,z> = LieAlgebra(QQ, d)
         sage: L
         Lie algebra on 3 generators (x, y, z) over Rational Field
 
@@ -114,8 +113,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     To get elements in the Lie algebra, you must use :meth:`bracket`::
 
         sage: L = LieAlgebra(QQ, {('e','h'): {'e':-2}, ('f','h'): {'f':2},
-        ....:                     ('e','f'): {'h':1}})
-        sage: h,e,f = L.gens()
+        ....:                     ('e','f'): {'h':1}}, names='e,f,h')
+        sage: e,f,h = L.gens()
         sage: L.bracket(h, e)
         2*e
         sage: elt = h*e; elt
@@ -537,6 +536,12 @@ class FinitelyGeneratedLieAlgebra(LieAlgebra):
         except ValueError:
             return tuple(G)
 
+    def gen(self, i):
+        """
+        Return the ``i``-th generator of ``self``.
+        """
+        return self.gens()[i]
+
     @lazy_attribute
     def _ordered_indices(self):
         """
@@ -707,8 +712,6 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
         # TODO: We should strip axioms from the category of the base ring,
         #   such as FiniteDimensional, WithBasis
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, category)
-        # We register the coercion here since the UEA already exists
-        self.lift.register_as_coercion()
         if isinstance(gens, dict):
             F = Family(self._indices, lambda i: self.element_class(self, gens[i]))
         else:
@@ -716,6 +719,9 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
                         for i,v in enumerate(gens)})
         self._gens = F
         # TODO: Do we want to store the original generators?
+
+        # We register the coercion here since the UEA already exists
+        self.lift.register_as_coercion()
 
     def _repr_option(self, key):
         """
@@ -891,11 +897,10 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
                 sage: L.bracket(x, y)
                 (2,3) - (1,3)
 
-                sage: L = LieAlgebra(QQ, cartan_type=['A',2], representation='matrix')
+                sage: L = lie_algebras.sl(QQ, 2, representation='matrix')
                 sage: L.bracket(L.gen(0), L.gen(1))
-                [0 0 1]
-                [0 0 0]
-                [0 0 0]
+                [ 1  0]
+                [ 0 -1]
             """
             ret = self.value * rhs.value - rhs.value * self.value
             return self.__class__(self.parent(), ret)

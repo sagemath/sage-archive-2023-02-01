@@ -104,13 +104,16 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
     if isinstance(names, str):
         names = names.split(',')
     names = tuple(names)
+
     if n == 0:
         from sage.algebras.lie_algebras.structure_coefficients import AbelianLieAlgebra
         return AbelianLieAlgebra(R, names)
+
     if n == 1:
         L = three_dimensional(R, 0, 1, 0, 0, names) # Strictly upper triangular matrices
         L.rename("Lie algebra of 3x3 strictly upper triangular matrices over {}".format(R))
         return L
+
     if n == 2:
         if a is None:
             raise ValueError("The parameter 'a' must be specified")
@@ -127,8 +130,10 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
             L = LieAlgebraWithStructureCoefficients(R, s_coeff, tuple(names))
             L.rename("Lie algebra of dimension 3 and rank 2 with parameter {} over {}".format(a, R))
         return L
+
     if n == 3:
         #return sl(R, 2)
+        from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
         E = names[0]
         F = names[1]
         H = names[2]
@@ -136,7 +141,38 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
         L = LieAlgebraWithStructureCoefficients(R, s_coeff, tuple(names))
         L.rename("sl2 over {}".format(R))
         return L
+
     raise ValueError("Invalid rank")
+
+# This can probably be replaced (removed) by sl once the classical Lie
+#   algebras are implemented
+def sl(R, n, representation='bracket'):
+    r"""
+    Return the Lie algebra `\mathfrak{sl}_n`.
+
+    EXAMPLES::
+
+        sage: lie_algebras.sl(QQ, 2)
+        sl2 over Rational Field
+    """
+    if n != 2:
+        raise NotImplementedError("only n=2 is implemented")
+
+    if representation == 'matrix':
+        from sage.matrix.matrix_space import MatrixSpace
+        from sage.algebras.lie_algebras.lie_algebra import LieAlgebraFromAssociative
+        MS = MatrixSpace(R, 2)
+        E = MS([[0,1],[0,0]])
+        F = MS([[0,0],[1,0]])
+        H = MS([[1,0],[-1,0]])
+        L = LieAlgebraFromAssociative(R, MS, [E, F, H], ['E', 'F', 'H'])
+        L.rename("sl2 as a matrix Lie algebra over {}".format(R))
+    elif representation == 'bracket':
+        L = three_dimensional_by_rank(R, 3)
+    else:
+        raise ValueError("invalid representation")
+
+    return L
 
 def affine_transformations_line(R, names=['X', 'Y'], representation='bracket'):
     """

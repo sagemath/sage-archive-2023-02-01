@@ -169,17 +169,31 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         return Family({i: self.monomial(i) for i in self._indices})
 
-    def structure_coefficients(self):
+    def structure_coefficients(self, include_zeros=False):
         """
         Return the dictonary of structure coefficients of ``self``.
 
         EXAMPLES::
 
-            sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
+            sage: L = LieAlgebra(QQ, 'x,y,z', {('x','y'):{'x':1}})
             sage: L.structure_coefficients()
             Finite family {('x', 'y'): x}
+            sage: L.structure_coefficients(True)
+            Finite family {('x', 'y'): x, ('x', 'z'): 0, ('y', 'z'): 0}
         """
-        return self._s_coeff
+        if not include_zeros:
+            return self._s_coeff
+        ret = {}
+        zero = self.base_ring().zero()
+        S = dict(self._s_coeff)
+        for i,x in enumerate(self._indices):
+            for y in self._indices[i+1:]:
+                if x < y:
+                    b = (x, y)
+                else:
+                    b = (y, x)
+                ret[b] = S.get(b, zero)
+        return Family(ret)
 
     def dimension(self):
         """

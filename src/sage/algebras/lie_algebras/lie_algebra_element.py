@@ -85,7 +85,8 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
     #        return '0'
     #    return repr_lincomb(self.list(), repr_monomial=self._latex_monomial, is_latex=True)
 
-    def _mul_(self, y):
+    # Need to bypass the coercion model
+    def __mul__(self, y):
         """
         If we are multiplying two non-zero elements, automatically
         lift up to the universal enveloping algebra.
@@ -163,8 +164,8 @@ class LieAlgebraElementWrapper(ElementWrapper):
 
         EXAMPLES::
 
-            sage: L = LieAlgebra(QQ, cartan_type=['A',3], representation='matrix')
-            sage: L.bracket(L.e(2), L.e(1)) == -L.bracket(L.e(1), L.e(2))
+            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3)
+            sage: L.bracket(L.gen(0), L.gen(1)) == -L.bracket(L.gen(1), L.gen(0))
             True
         """
         if not isinstance(rhs, LieAlgebraElementWrapper):
@@ -177,11 +178,10 @@ class LieAlgebraElementWrapper(ElementWrapper):
 
         EXAMPLES::
 
-            sage: L = LieAlgebra(QQ, cartan_type=['A',2], representation='matrix')
-            sage: L.gen(0)
-            [0 1 0]
-            [0 0 0]
-            [0 0 0]
+            sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
+            sage: L.<x,y,z> = LieAlgebra(QQ, R)
+            sage: x + y
+            x + y
         """
         return repr(self.value)
 
@@ -191,10 +191,10 @@ class LieAlgebraElementWrapper(ElementWrapper):
 
         EXAMPLES::
 
-            sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(QQ, R)
-            sage: latex(x + y)
-            x + y
+            sage: R = FreeAlgebra(QQ, 3, 'x')
+            sage: L.<x0,x1,x2> = LieAlgebra(QQ, R)
+            sage: latex(x0 + x1)
+            x_{0} + x_{1}
         """
         from sage.misc.latex import latex
         return latex(self.value)
@@ -284,8 +284,8 @@ class LieAlgebraElementWrapper(ElementWrapper):
 
         EXAMPLES::
 
-            sage: L = LieAlgebra(QQ, cartan_type=['A',2], representation='matrix')
-            sage: m = L.e(0)
+            sage: L = lie_algebras.sl(QQ, 2, representation='matrix')
+            sage: m = L.gen(0)
             sage: m[0,0]
             0
             sage: m[0][1]

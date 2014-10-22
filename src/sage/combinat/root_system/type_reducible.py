@@ -481,7 +481,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: A.simple_roots()
             Finite family {1: (1, -1, 0, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 1)}
         """
-        assert i in self.index_set()
+        if i not in self.index_set():
+            raise ValueError("{} is not in the index set".format(i))
         (i, j) = self.cartan_type()._indices[i]
         return self.inject_weights(i, self.ambient_spaces()[i].simple_root(j))
 
@@ -496,7 +497,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: A.simple_coroots()
             Finite family {1: (1, -1, 0, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 2)}
         """
-        assert i in self.index_set()
+        if i not in self.index_set():
+            raise ValueError("{} is not in the index set".format(i))
         (i, j) = self.cartan_type()._indices[i]
         return self.inject_weights(i, self.ambient_spaces()[i].simple_coroot(j))
 

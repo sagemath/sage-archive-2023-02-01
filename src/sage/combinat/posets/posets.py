@@ -53,6 +53,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
     :meth:`~FinitePoset.is_bounded` | Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
     :meth:`~FinitePoset.is_chain` | Returns True if the poset is totally ordered, and False otherwise.
+    :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
     :meth:`~FinitePoset.is_EL_labelling` | Returns whether ``f`` is an EL labelling of ``self``
     :meth:`~FinitePoset.is_gequal` | Returns ``True`` if `x` is greater than or equal to `y` in the poset, and ``False`` otherwise.
     :meth:`~FinitePoset.is_graded` | Returns whether this poset is graded.
@@ -76,6 +77,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.list` | List the elements of the poset. This just returns the result of :meth:`linear_extension`.
     :meth:`~FinitePoset.lower_covers_iterator` | Returns an iterator for the lower covers of the element y. An lower cover of y is an element x such that y x is a cover relation.
     :meth:`~FinitePoset.lower_covers` | Returns a list of lower covers of the element y. An lower cover of y is an element x such that y x is a cover relation.
+    :meth:`~FinitePoset.maximal_antichains` | Return all maximal antichains of the poset.
     :meth:`~FinitePoset.maximal_chains` | Returns all maximal chains of this poset.  Each chain is listed in increasing order.
     :meth:`~FinitePoset.maximal_elements` | Returns a list of the maximal elements of the poset.
     :meth:`~FinitePoset.meet_matrix` | Returns a matrix whose ``(i,j)`` entry is ``k``, where ``self.linear_extension()[k]`` is the meet (greatest lower bound) of ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
@@ -92,7 +94,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.plot` | Returns a Graphic object corresponding the Hasse diagram of the poset.
     :meth:`~FinitePoset.product` | Returns the cartesian product of ``self`` and ``other``.
     :meth:`~FinitePoset.promotion` | Computes the (extended) promotion on the linear extension of the poset ``self``
-    :meth:`~FinitePoset.random_subposet` | Returns a random subposet that contains each element with probability p.
+    :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with probability ``p``.
     :meth:`~FinitePoset.rank_function` | Returns a rank function of the poset, if it exists.
     :meth:`~FinitePoset.rank` | Returns the rank of an element, or the rank of the poset if element is None.
     :meth:`~FinitePoset.relabel` | Returns a copy of this poset with its elements relabelled
@@ -126,12 +128,10 @@ Classes and functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
 import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
-from sage.misc.superseded import deprecated_function_alias
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -728,7 +728,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             <class 'sage.combinat.posets.posets.FinitePoset_with_category'>
             sage: TestSuite(P).run()
 
-        See also the extensive tests in the class documentation
+        See also the extensive tests in the class documentation.
+
+        We check that :trac:`17059` is fixed::
+
+            sage: p = Poset()
+            sage: p is Poset(p, category=p.category())
+            True
         """
         assert isinstance(hasse_diagram, (FinitePoset, DiGraph))
         if isinstance(hasse_diagram, FinitePoset):
@@ -736,8 +742,6 @@ class FinitePoset(UniqueRepresentation, Parent):
                 elements = hasse_diagram._elements
             if category is None:
                 category = hasse_diagram.category()
-                if facade is False and category.is_subcategory(Sets().Facade()):
-                    category = category._without_axiom("Facade")
             if facade is None:
                 facade = hasse_diagram in Sets().Facade()
             hasse_diagram = hasse_diagram._hasse_diagram
@@ -748,6 +752,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             if facade is None:
                 facade = True
         elements = tuple(elements)
+        # Standardize the category by letting the Facade axiom be carried
+        #   by the facade variable
+        if category is not None and category.is_subcategory(Sets().Facade()):
+            category = category._without_axiom("Facade")
         category = Category.join([FinitePosets().or_subcategory(category), FiniteEnumeratedSets()])
         return super(FinitePoset, cls).__classcall__(cls, hasse_diagram = hasse_diagram, elements = elements,
                                                      category = category, facade = facade, key = key)
@@ -1514,7 +1522,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return [map(self._vertex_to_element, level) for level in
                 self._hasse_diagram.level_sets()]
 
-    def cover_relations(self,element=None):
+    def cover_relations(self):
         """
         Returns the list of pairs [u,v] of elements of the poset such that
         u v is a cover relation (that is, u v and there does not exist z
@@ -1643,7 +1651,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         ::
 
-            sage: [len([p for p in Posets(n) if p.is_incomparable_chain_free(((3, 1), (2, 2)))]) for n in range(6)]
+            sage: [len([p for p in Posets(n) if p.is_incomparable_chain_free(((3, 1), (2, 2)))]) for n in range(6)] # long time
             [1, 1, 2, 5, 14, 42]
 
         TESTS::
@@ -2112,6 +2120,25 @@ class FinitePoset(UniqueRepresentation, Parent):
             sorted_o = sorted(o, key=self._element_to_vertex)
             return all(self.le(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
 
+    def is_connected(self):
+        """
+        Return ``True`` if the poset is connected, and ``False`` otherwise.
+
+        Poset is not connected if it can be divided to disjoint parts
+        `S_1` and `S_2` so that every element of `S_1` is incomparable to
+        every element of `S_2`.
+
+        EXAMPLES::
+
+            sage: P=Poset({1:[2,3], 3:[4,5]})
+            sage: P.is_connected()
+            True
+            sage: P=Poset({1:[2,3], 3:[4,5], 6:[7,8]})
+            sage: P.is_connected()
+            False
+        """
+        return self._hasse_diagram.is_connected()
+
     def is_EL_labelling(self, f, return_raising_chains=False):
         r"""
         Returns ``True`` if ``f`` is an EL labelling of ``self``.
@@ -2432,8 +2459,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             5
         """
         return Integer(self._hasse_diagram.order())
-
-    size = deprecated_function_alias(8735, cardinality)
 
     def mobius_function(self,x,y):
         r"""
@@ -2827,6 +2852,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             On the other hand, this returns a full featured enumerated
             set, with containment testing, etc.
 
+        .. seealso:: :meth:`maximal_antichains`
         """
         vertex_to_element = self._vertex_to_element
         def f(antichain):
@@ -2931,7 +2957,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_isomorphic(Posets.BooleanLattice(4))
             True
         """
-        return Poset(self._hasse_diagram.cartesian_product(other._hasse_diagram),cover_relations=True)
+        return Poset(self.hasse_diagram().cartesian_product(other.hasse_diagram()),cover_relations=True)
 
     def interval_iterator(self):
         """
@@ -3242,18 +3268,25 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def random_subposet(self, p):
         """
-        Returns a random subposet that contains each element with
-        probability p.
+        Return a random subposet that contains each element with
+        probability ``p``.
 
         EXAMPLES::
 
-            sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
-            sage: Q = P.random_subposet(.25)
+            sage: P = Posets.BooleanLattice(3)
+            sage: set_random_seed(0)
+            sage: Q = P.random_subposet(0.5)
+            sage: Q.cover_relations()
+            [[0, 2], [0, 5], [2, 3], [3, 7], [5, 7]]
         """
+        from sage.misc.randstate import current_randstate
+        random = current_randstate().python_random().random
         elements = []
         p = float(p)
+        if p<0 or p>1:
+            raise ValueError("The probability p must be in [0..1].")
         for v in self:
-            if random.random() <= p:
+            if random() <= p:
                 elements.append(v)
         return self.subposet(elements)
 
@@ -3418,6 +3451,24 @@ class FinitePoset(UniqueRepresentation, Parent):
         G.rename('Incomparability graph on %s vertices' % self.cardinality())
         return G
 
+    def maximal_antichains(self):
+        """
+        Return all maximal antichains of the poset.
+
+        EXAMPLES::
+        
+            sage: P=Poset({'a':['b', 'c'], 'b':['d','e']})
+            sage: P.maximal_antichains()
+            [['a'], ['b', 'c'], ['c', 'd', 'e']]
+
+            sage: Posets.PentagonPoset().maximal_antichains()
+            [[0], [1, 2], [1, 3], [4]]
+
+        .. seealso:: :meth:`maximal_chains`, :meth:`antichains`
+        """
+        # Maximal antichains are maximum cliques on incomparability graph.
+        return self.incomparability_graph().cliques_maximal()
+
     def maximal_chains(self, partial=None):
         """
         Returns all maximal chains of this poset.
@@ -3443,6 +3494,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Posets.ChainPoset(6)
             sage: Q.maximal_chains()
             [[0, 1, 2, 3, 4, 5]]
+
+        .. seealso:: :meth:`maximal_antichains`, :meth:`chains`
         """
         if partial is None or len(partial) == 0:
             start = self.minimal_elements()

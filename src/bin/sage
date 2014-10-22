@@ -18,11 +18,13 @@ usage() {
     echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
     echo "  -h, -?              -- print this help message"
     echo "  -i [packages]       -- install the given Sage packages"
-    echo "  -inotebook [...]    -- start the *insecure* Sage notebook"
+    echo "  -inotebook [...]    -- start the *insecure* Sage notebook (deprecated)"
     echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
-    echo "  -n, -notebook [...] -- start the Sage notebook (options are the same"
-    echo "                         as for the notebook command in Sage)"
+    echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
+    echo "                         'default', 'sagenb', and 'ipython')"
+    echo "  -n, --notebook      -- shortcut for --notebook=default"
+    echo "  -notebook-ipy [...] -- start the Sage IPython notebook"
     echo "  -optional           -- list all optional packages that can be installed"
     echo "  -python [...]       -- run the Python interpreter"
     echo "  -R [...]            -- run Sage's R with given arguments"
@@ -69,9 +71,12 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Running the notebook:"
+    echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
+    echo "                         'default', 'sagenb', and 'ipython'). See the output"
+    echo "                         'of sage --notebook --help for more details"
     echo "  -bn, -build-and-notebook [...] -- build the Sage library then start"
     echo "                         the Sage notebook"
-    echo "  -inotebook [...]    -- start the *insecure* Sage notebook"
+    echo "  -inotebook [...]    -- start the *insecure* Sage notebook (deprecated)"
     echo "  -n, -notebook [...] -- start the Sage notebook (options are the same"
     echo "                         as for the notebook command in Sage)"
 
@@ -624,23 +629,28 @@ build_sage() {
     sage-build "$@" || exit $?
 }
 
+if [[ "$1" =~ "--notebook="* || "$1" =~ "-n="* || "$1" =~ "-notebook="* ]]; then
+    sage-cleaner &>/dev/null &
+    exec sage-notebook "$@"
+fi
+
 if [ "$1" = "-notebook" -o "$1" = '--notebook' -o "$1" = '-n' ]; then
     shift
     sage-cleaner &>/dev/null &
-    exec sage-notebook "$@"
+    exec sage-notebook --notebook=default "$@"
 fi
 
 if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then
     shift
     build_sage
     sage-cleaner &>/dev/null &
-    exec sage-notebook "$@"
+    exec sage-notebook --notebook=default "$@"
 fi
 
 if [ "$1" = "-inotebook" -o "$1" = '--inotebook' ]; then
     shift
     sage-cleaner &>/dev/null &
-    exec sage-notebook-insecure "$@"
+    exec sage-notebook --notebook=sagenb secure=False "$@"
 fi
 
 if [ "$1" = '-grep' -o "$1" = "--grep" -o "$1" = "-search_src" -o "$1" = "--search_src" ]; then

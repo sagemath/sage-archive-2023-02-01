@@ -42,7 +42,6 @@ import numpy as np
 cimport numpy as np
 
 from sage.rings.all import CIF
-from sage.rings.arith import gcd
 
 cdef class PeriodicRegion:
 
@@ -371,7 +370,7 @@ cdef class PeriodicRegion:
         m, n = self.data.shape
         return self.data[int(m * i), int(n * j)]
 
-    def __div__(self, int n):
+    def __div__(self, unsigned int n):
         """
         Returns a new region of the same resolution that is the image
         of this region under the map z -> z/n.
@@ -380,6 +379,7 @@ cdef class PeriodicRegion:
         always at worse a superset of the true image.
 
         EXAMPLES::
+
             sage: import numpy as np
             sage: from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
 
@@ -415,30 +415,36 @@ cdef class PeriodicRegion:
             False
             sage: any(z/3 + j/3 + k/3 in S/3 for z in outside for j in range(3) for k in range(3))
             False
+
+            sage: (S / 1) is S
+            True
+            sage: S / 0
+            Traceback (most recent call last):
+            ...
+            ValueError: divisor must be positive
+            sage: S / (-1)
+            Traceback (most recent call last):
+            ...
+            OverflowError: can't convert negative value to unsigned int
         """
-        cdef int i, j, a, b, rows, cols, g
-        cdef double d, e
-        if n == 1:
-            return self
+        cdef unsigned int i, j, a, b, rows, cols
+        if n <= 1:
+            if n == 1:
+                return self
+            raise ValueError("divisor must be positive")
         self._ensure_full()
         cdef np.ndarray[np.npy_int8, ndim=2] data, new_data
         data = self.data
         rows, cols = self.data.shape
-        if n != 1:
-            new_data = np.zeros(self.data.shape, self.data.dtype)
-            d = 1.0/n
-            e = 1-d/2
-            for i in range(rows):
-                for j in range(cols):
-                    if data[i,j]:
-                        for a in range(n):
-                            for b in range(n):
-                                new_data[<int>((a*rows+i  )*d), <int>((b*cols+j  )*d)] = True
-                                new_data[<int>((a*rows+i+e)*d), <int>((b*cols+j  )*d)] = True
-                                new_data[<int>((a*rows+i+e)*d), <int>((b*cols+j+e)*d)] = True
-                                new_data[<int>((a*rows+i  )*d), <int>((b*cols+j+e)*d)] = True
-            data = new_data
-        return PeriodicRegion(self.w1, self.w2, data)
+
+        new_data = np.zeros(self.data.shape, self.data.dtype)
+        for i in range(rows):
+            for j in range(cols):
+                if data[i,j]:
+                    for a in range(n):
+                        for b in range(n):
+                            new_data[(a*rows+i)//n, (b*cols+j)//n] = data[i,j]
+        return PeriodicRegion(self.w1, self.w2, new_data)
 
     def __invert__(self):
         """

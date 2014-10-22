@@ -315,6 +315,8 @@ from sage.misc.superseded import deprecation, deprecated_function_alias
 class GenericGraph(GenericGraph_pyx):
     """
     Base class for graphs and digraphs.
+
+    .. automethod:: __eq__
     """
 
     # Nice defaults for plotting arrays of graphs (see sage.misc.functional.show)
@@ -360,11 +362,22 @@ class GenericGraph(GenericGraph_pyx):
 
     def __eq__(self, other):
         """
-        Comparison of self and other. For equality, must be in the same
-        class, have the same settings for loops and multiedges, output the
-        same vertex list (in order) and the same adjacency matrix.
+        Compare self and other for equality.
 
-        Note that this is _not_ an isomorphism test.
+        Do not call this method directly. That is, for ``G.__eq__(H)``
+        write ``G == H``.
+
+        Two graphs are considered equal if the following hold:
+         - they are either both directed, or both undirected;
+         - they have the same settings for loops, multiedges, and
+           weightedness;
+         - they have the same set of vertices;
+         - they have the same (multi)set of arrows/edges, where labels
+           of arrows/edges are taken into account if *and only if*
+           the graphs are considered weighted. See
+           :meth:`~GenericGraph.weighted`.
+
+        Note that this is *not* an isomorphism test.
 
         EXAMPLES::
 
@@ -466,11 +479,9 @@ class GenericGraph(GenericGraph_pyx):
     @cached_method
     def __hash__(self):
         """
-        Only immutable graphs are hashable.
+        Computes a hash for self, if self is immutable.
 
-        The hash value of an immutable graph relies on the tuple
-        of vertices and the tuple of edges. The resulting value
-        is cached.
+        Only immutable graphs are hashable. The resulting value is cached.
 
         EXAMPLE::
 
@@ -488,9 +499,61 @@ class GenericGraph(GenericGraph_pyx):
             sage: G_imm.__hash__() is G_imm.__hash__()
             True
 
+        TESTS:
+
+        Equality and hash do not depend on ordering of vertices. In other words,
+        `G1==G2` can be `True` even when `G1.vertices() == G2.vertices()` is
+        `False`. This is parts 1 and 2 of ticket :trac:`17086`. ::
+
+            sage: import functools
+            sage: @functools.total_ordering
+            ....: class C:
+            ....:     order = ((0,0), (0,1), (1,1), (1,0))
+            ....:     # Hasse diagram:
+            ....:     #   0,0 < 0,1
+            ....:     #    ^     ^
+            ....:     #   1,0 > 1,1
+            ....:     def __init__(self, x):
+            ....:         assert x in self.order
+            ....:         self.x = x
+            ....:     def __repr__(self):
+            ....:         return 'C(%r)' % (self.x,)
+            ....:     # ordering depends on full self.x
+            ....:     def __lt__(self, other):
+            ....:         return self.order.index(self.x) < self.order.index(other.x)
+            ....:     # equality depends only on the second coordinate.
+            ....:     def __eq__(self, other):
+            ....:         return self.x[1] == other.x[1]
+            ....:     def __hash__(self):
+            ....:         return hash(self.x[1])
+            sage: G1 = Graph({C((0, 0)): [], C((0, 1)): []}, immutable=True)
+            sage: G2 = Graph({C((1, 0)): [], C((1, 1)): []}, immutable=True)
+            sage: (G1.vertices(), G2.vertices())
+            ([C((0, 0)), C((0, 1))], [C((1, 1)), C((1, 0))])
+            sage: G1 == G2
+            True
+            sage: G1.__hash__() == G2.__hash__()
+            True
+
+        Hash of unweighted graphs does not depend on edge labels. That is,
+        part 3 of ticket :trac:`17086` is fixed ::
+
+            sage: G1 = Graph({0: {1: 'edge label A'}}, immutable=True)
+            sage: G2 = Graph({0: {1: 'edge label B'}}, immutable=True)
+            sage: G1 == G2
+            True
+            sage: G1.__hash__() == G2.__hash__()
+            True
+
         """
         if getattr(self, "_immutable", False):
-            return hash((tuple(self.vertices()), tuple(self.edges())))
+            edge_items = self.edge_iterator(labels = self._weighted)
+            if self.allows_multiple_edges():
+                from collections import Counter
+                edge_items = Counter(edge_items).items()
+            return hash((frozenset(self.vertex_iterator()),
+                         self._weighted,
+                         frozenset(edge_items)))
         raise TypeError("This graph is mutable, and thus not hashable. "
                         "Create an immutable copy by `g.copy(immutable=True)`")
 
@@ -710,12 +773,15 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Formats
 
-    def __copy__(self, implementation='c_graph', data_structure=None,
+    def __copy__(self, weighted=None, implementation='c_graph', data_structure=None,
                  sparse=None, immutable=None):
         """
         Return a copy of the graph.
 
         INPUT:
+
+         - ``weighted`` boolean (default: ``None``) -- weightedness for
+           the copy. Might change the equality class if not ``None``.
 
          - ``implementation`` - string (default: 'c_graph') the implementation
            goes here.  Current options are only 'networkx' or 'c_graph'.
@@ -757,8 +823,13 @@ class GenericGraph(GenericGraph_pyx):
         .. warning::
 
            Please use this method only if you need to copy but change the
-           underlying implementation.  Otherwise simply do ``copy(g)``
-           instead of ``g.copy()``.
+           underlying implementation or weightedness.  Otherwise simply
+           do ``copy(g)`` instead of ``g.copy()``.
+
+        .. warning::
+
+           If ``weighted`` is passed and is not the weightedness of the
+           original, then the copy will not equal the original.
 
         EXAMPLES::
 
@@ -798,6 +869,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: G2 = copy(G)
             sage: G2 is G
             False
+
+        Argument ``weighted`` affects the equality class::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: H1 = G.copy(weighted=False)
+            sage: H2 = G.copy(weighted=True)
+            sage: [G.weighted(), H1.weighted(), H2.weighted()]
+            [False, False, True]
+            sage: [G == H1, G == H2, H1 == H2]
+            [True, False, False]
+            sage: G.weighted(True)
+            sage: [G == H1, G == H2, H1 == H2]
+            [False, True, False]
 
         TESTS:
 
@@ -919,7 +1003,9 @@ class GenericGraph(GenericGraph_pyx):
             data_structure = "dense"
 
         # Immutable copy of an immutable graph ? return self !
-        if getattr(self, '_immutable', False):
+        # (if okay for weightedness)
+        if (getattr(self, '_immutable', False) and
+                (weighted is None or self._weighted == weighted)):
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             if (isinstance(self._backend, StaticSparseBackend) and
                 implementation=='c_graph' and
@@ -934,7 +1020,10 @@ class GenericGraph(GenericGraph_pyx):
                 data_structure = "sparse"
 
         from copy import copy
-        G = self.__class__(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, data_structure=data_structure)
+        G = self.__class__(self, name=self.name(), pos=copy(self._pos),
+                           boundary=copy(self._boundary), weighted=weighted,
+                           implementation=implementation,
+                           data_structure=data_structure)
 
         attributes_to_copy = ('_assoc', '_embedding')
         for attr in attributes_to_copy:
@@ -952,7 +1041,6 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     setattr(G, attr, copy(old_attr))
 
-        G._weighted = self._weighted
         return G
 
     copy = __copy__

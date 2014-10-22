@@ -975,6 +975,27 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         raise TypeError, "can't convert complex interval to complex"
 
+    def __nonzero__(self):
+        """
+        Return ``True`` if ``self`` is not known to be exactly zero.
+
+        EXAMPLES::
+
+            sage: CIF(RIF(0, 0), RIF(0, 0)).__nonzero__()
+            False
+            sage: bool(CIF(RIF(0, 0), RIF(0, 0)))
+            False
+            sage: CIF(RIF(1), RIF(0)).__nonzero__()
+            True
+            sage: CIF(RIF(0), RIF(1)).__nonzero__()
+            True
+            sage: CIF(RIF(1, 2), RIF(0)).__nonzero__()
+            True
+            sage: CIF(RIF(-1, 1), RIF(-1, 1)).__nonzero__()
+            True
+        """
+        return self.real().__nonzero__() or self.imag().__nonzero__()
+
     def __richcmp__(left, right, int op):
         r"""
         As with the real interval fields this never returns false positives.
@@ -1347,7 +1368,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             return RIF(0).log()
         theta = self.argument()
         rho = abs(self)
-        if base is None or base is 'e':
+        if base is None or base == 'e':
             return ComplexIntervalFieldElement(self._parent, rho.log(), theta)
         else:
             from real_mpfr import RealNumber, RealField

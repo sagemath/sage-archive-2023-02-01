@@ -173,7 +173,7 @@ class Octave(Expect):
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
     """
 
-    def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
+    def __init__(self, maxread=100, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
         """
         EXAMPLES::
 
@@ -515,7 +515,7 @@ class OctaveElement(ExpectElement):
 
 
 # An instance
-octave = Octave(script_subdirectory='user')
+octave = Octave()
 
 def reduce_load_Octave():
     """

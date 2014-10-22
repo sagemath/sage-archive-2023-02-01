@@ -380,15 +380,6 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         import misc
         return misc.matrix_integer_sparse_rational_reconstruction(self, N)
 
-    def _linbox_sparse(self):
-        cdef Py_ssize_t i, j
-        v = ['%s %s M'%(self._nrows, self._ncols)]
-        d = self._dict()
-        for ij, x in d.iteritems():
-            v.append('%s %s %s'%(ij[0]+1,ij[1]+1,x))
-        v.append('0 0 0\n')
-        return '\n'.join(v)
-
     def _right_kernel_matrix(self, **kwds):
         r"""
         Returns a pair that includes a matrix of basis vectors

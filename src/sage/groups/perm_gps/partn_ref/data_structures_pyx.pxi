@@ -1952,22 +1952,17 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
                         print 'element', permy
                         print 'random element not contained in group, according to GAP'
                         raise AssertionError
-    except AssertionError:
+    except Exception:
+        if giant:
+            print "detected giant!"
+        raise
+    finally:
         bitset_free(giant_support)
         sage_free(perm)
         SC_dealloc(SC)
         SC_dealloc(SCC)
         SC_dealloc(SCCC)
         SC_dealloc(SC_nb)
-        if giant:
-            print "detected giant!"
-        raise AssertionError
-    bitset_free(giant_support)
-    sage_free(perm)
-    SC_dealloc(SC)
-    SC_dealloc(SCC)
-    SC_dealloc(SCCC)
-    SC_dealloc(SC_nb)
 
 # Functions
 

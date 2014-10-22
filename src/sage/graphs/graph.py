@@ -2502,7 +2502,7 @@ class Graph(GenericGraph):
             ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
         """
         if algorithm=='bitset':
-            from sage.misc.bitset import Bitset
+            from sage.data_structures.bitset import Bitset
             N = self.num_verts()
             map = {}
             i = 0

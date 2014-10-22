@@ -37,7 +37,7 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 DEF BINT_EXCEPT = -2 ** 31 - 1
 

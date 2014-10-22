@@ -26,9 +26,9 @@ AUTHORS:
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 from sage.libs.gmp.mpn cimport *
-from sage.misc.bitset cimport *
+from sage.data_structures.bitset cimport *
 
-# Doctests for the functions in this file are in sage/misc/bitset.pyx
+# Doctests for the functions in this file are in sage/data_structures/bitset.pyx
 
 #############################################################################
 # Creating limb patterns

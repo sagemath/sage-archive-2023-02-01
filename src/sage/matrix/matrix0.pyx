@@ -26,7 +26,7 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 from cpython.list cimport *
 from cpython.object cimport *
-include "sage/ext/python_slice.pxi"
+from cpython.slice cimport PySlice_Check
 from cpython.tuple cimport *
 
 import sage.modules.free_module

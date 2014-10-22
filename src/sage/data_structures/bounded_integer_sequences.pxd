@@ -27,7 +27,7 @@ ctypedef biseq_s biseq_t[1]
 
 ctypedef mp_limb_t biseq_item_t
 
-cdef bint biseq_init(biseq_t R, mp_size_t l, mp_size_t itemsize) except -1
+cdef bint biseq_init(biseq_t R, mp_size_t l, mp_bitcnt_t itemsize) except -1
    # Allocate memory (filled with zero) for a bounded integer sequence
    # of length l with items fitting in itemsize bits.
 

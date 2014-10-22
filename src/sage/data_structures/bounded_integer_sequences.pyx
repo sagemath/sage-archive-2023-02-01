@@ -113,14 +113,14 @@ from cython.operator import dereference as deref, preincrement as preinc, predec
 # (De)allocation, copying
 #
 
-cdef bint biseq_init(biseq_t R, mp_size_t l, mp_size_t itemsize) except -1:
+cdef bint biseq_init(biseq_t R, mp_size_t l, mp_bitcnt_t itemsize) except -1:
     """
     Allocate memory for a bounded integer sequence of length l with items
     fitting in itemsize bits.
     """
     R.length = l
     R.itembitsize = itemsize
-    R.mask_item = ((<mp_limb_t>1)<<itemsize)-1
+    R.mask_item = limb_lower_bits_up(itemsize)
     if l:
         bitset_init(R.data, l*itemsize)
 
@@ -286,7 +286,7 @@ cdef inline bint biseq_first_bits_equal(mp_limb_t* b1, mp_limb_t* b2, mp_bitcnt_
 
     """
     cdef mp_size_t i, dlimbs
-    cdef unsigned long dbits
+    cdef mp_bitcnt_t dbits
     dlimbs = d>>times_mp_bits_per_limb
     if mpn_cmp(b1,b2,dlimbs)!=0:
         return False
@@ -779,11 +779,12 @@ cdef class BoundedIntegerSequence:
         """
         INPUT:
 
-        - ``bound``, non-negative integer. When zero, a :class:`ValueError`
-          will be raised. Otherwise, the given bound is replaced by the next
-          power of two that is greater than the given bound.
-        - ``data``, a list of integers. The given integers will be truncated
-          to be less than the bound.
+        - ``bound``, non-negative integer that can be interpreted by an
+          `mp_limb_t` (which normally is an unsigned int). When zero, a
+          :class:`ValueError` will be raised. Otherwise, the given bound is
+          replaced by the next power of two that is greater than the given
+          bound.  - ``data``, a list of integers. The given integers will be
+          truncated to be less than the bound.
 
         EXAMPLES::
 
@@ -813,6 +814,12 @@ cdef class BoundedIntegerSequence:
             Traceback (most recent call last):
             ...
             ValueError: Positive bound expected
+
+        We are testing the corner case of the maximal possible bound::
+
+            sage: S = BoundedIntegerSequence(2^32-1, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
+            sage: S
+            <8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10>
 
         """
         if bound==0:
@@ -1502,10 +1509,16 @@ cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize
         sage: loads(dumps(S)) == S
         True
 
+    And another one::
+
+        sage: S = BoundedIntegerSequence(2^32-1, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
+        sage: loads(dumps(S))
+        <8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10>
+
     """
     cdef BoundedIntegerSequence out = BoundedIntegerSequence.__new__(BoundedIntegerSequence)
     out.data.itembitsize = itembitsize
-    out.data.mask_item = ((<mp_limb_t>1)<<itembitsize)-1
+    out.data.mask_item = limb_lower_bits_up(itembitsize)
     out.data.length = length
     if length>0:
         # bitset_unpickle assumes that out.data.data is initialised.

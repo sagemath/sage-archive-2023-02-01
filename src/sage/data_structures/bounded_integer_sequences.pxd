@@ -4,17 +4,22 @@ from sage.libs.gmp.mpn cimport mpn_rshift, mpn_lshift, mpn_copyi, mpn_ior_n, mpn
 from sage.misc.bitset cimport *
 
 ctypedef struct biseq_s:       # bounded integer sequence
-    # Use bitsets to store the data, which in turn is based on GMP integers
-    bitset_t data
+    # Number of items in this sequence.
+    mp_size_t length
     # Bitsize of one element of this sequence. Note: We do not store the exact
-    # bound for the items of this sequence, but store the bitlength that is
+    # bound for the items of this sequence, but store the bitsize that is
     # sufficient to store one item.
     mp_bitcnt_t itembitsize
+    # A bitset comprising `length*itembitsize` bits is used to store the items
+    # of this sequence. Note that `bitset_t` stores the data in a field
+    # `mp_limb_t *bits`, where `mp_limb_t` is defined in
+    # `sage.libs.gmp.types`. Functions from `sage.libs.gmp.mpn` are used on
+    # `data.bits` for operations such as shift, comparison, or copying of
+    # data.
+    bitset_t data
     # If `L` is a limb, then `L&mask_item` extracts the first `itembitsize`
     # bits of it, i.e., it extracts one item.
     mp_limb_t mask_item
-    # Number of items in this sequence.
-    mp_size_t length
 
 ctypedef biseq_s biseq_t[1]
 

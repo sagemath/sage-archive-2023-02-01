@@ -88,7 +88,6 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
-include "sage/libs/ntl/decl.pxi"
 include 'sage/misc/bitset.pxi'
 
 cdef extern from "Python.h":

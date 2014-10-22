@@ -956,6 +956,30 @@ Here are some of the more commonly used variables affecting the build process:
       make
       ./sage --bdist x.y.z-fat
 
+The following :envvar:`SAGE_APP_*` -variables are specific to building a binary distribution on OSX:
+
+- :envvar:`SAGE_APP_BUNDLE` - OSX-specific; defaults to ``no``. Set to ``yes`` if you
+  want to build a Sage OSX application rather than a terminal version fo Sage.
+
+- :envvar:`SAGE_APP_TARGET_ARCH` - OSX-specific; defaults to ``uname -m``. Meaningful
+  values, on Intel, are `i386` and `x86_64`.
+  To prepare a 64-bit binary distribution on an older 64-bit OSX machine that boots
+  into a 32-bit system, one would do::
+
+      export SAGE_APP_TARGET_ARCH=x86_64
+      make
+      ./sage --bdist
+
+- :envvar:`SAGE_APP_DMG` - OSX-specific; defaults to ``yes``, can be set to ``no``
+  to create a tar file instead instead of a ``dmg`` image.
+
+- :envvar:`SAGE_APP_GZ` - OSX-specific; defaults to ``yes``, used for debugging of
+  ``sage -bdist`` to save time on the compression step. E.g.::
+
+      export SAGE_APP_GZ=no
+      export SAGE_APP_DMG=no
+      ./sage --bdist
+
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
 

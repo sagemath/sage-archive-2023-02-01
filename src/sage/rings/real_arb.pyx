@@ -5,10 +5,12 @@ AUTHORS:
 
 - Clemens Heuberger (2014-10-21): Initial version.
 
-This is a rudimentary binding to the `Arb library
+This is a rudimentary binding to the optional `Arb library
 <http://fredrikj.net/arb/>`_; it may be useful to refer to its
 documentation for more details.
 
+You may have to run ``sage -i arb`` to use the arb library.
+"""
 #*****************************************************************************
 # Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
 #
@@ -17,7 +19,6 @@ documentation for more details.
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
-"""
 from sage.libs.arb.arb cimport *
 from sage.libs.mpfr cimport mpfr_inits2, mpfr_clears, mpfr_t
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
@@ -101,6 +102,12 @@ cdef class Arb(SageObject):
     None.
 
     EXAMPLES::
+
+        sage: from sage.rings.real_arb import Arb
+        sage: a = Arb(RIF(1))
+        sage: b = a.psi()
+        sage: b.RealIntervalFieldElement()
+        -0.577215664901533?
     """
     def __cinit__(self):
         """

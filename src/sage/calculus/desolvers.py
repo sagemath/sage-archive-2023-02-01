@@ -768,7 +768,7 @@ def desolve_system(des, vars, ics=None, ivar=None):
         sage: P1 = plot([solx,soly], (0,1))
         sage: P2 = parametric_plot((solx,soly), (0,1))
 
-        Now type show(P1), show(P2) to view these plots.
+    Now type show(P1), show(P2) to view these plots.
 
     AUTHORS:
 

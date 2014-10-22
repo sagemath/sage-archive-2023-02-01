@@ -4999,3 +4999,107 @@ def __create__RealIntervalFieldElement_version1(parent, lower, upper):
         2.226?
     """
     return RealIntervalFieldElement(parent, (lower, upper))
+
+def max_RIF(elements):
+    r"""
+    Compute the maximum of
+    :class:`~sage.rings.real_mpfi.RealIntervalFieldElement` elements.
+
+    INPUT:
+
+    - ``elements`` -- iterable of
+      :class:`~sage.rings.real_mpfi.RealIntervalFieldElement` elements.
+
+    OUTPUT:
+
+    A :class:`~sage.rings.real_mpfi.RealIntervalFieldElement` element.
+
+    EXAMPLES::
+
+        sage: a = RIF(1, 4)
+        sage: b = RIF(2, 3)
+        sage: from sage.rings.real_mpfi import max_RIF
+        sage: max_RIF([a, b]).endpoints()
+        (2.00000000000000, 4.00000000000000)
+        sage: max_RIF([b, a]).endpoints()
+        (2.00000000000000, 4.00000000000000)
+
+    For two elements, this corresponds to
+    :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.max`::
+
+        sage: a.max(b).endpoints()
+        (2.00000000000000, 4.00000000000000)
+        sage: b.max(a).endpoints()
+        (2.00000000000000, 4.00000000000000)
+
+    Note that the standard Python ``max`` function does not handle
+    :class:`~sage.rings.real_mpfi.RealIntervalFieldElement` elements
+    correctly::
+
+        sage: max(a, b).endpoints()
+        (1.00000000000000, 4.00000000000000)
+        sage: max(b, a).endpoints()
+        (2.00000000000000, 3.00000000000000)
+
+    .. SEEALSO::
+
+        :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.max`,
+        :func:`min_RIF`
+    """
+    # we iterate twice, so store as a list.
+    data = list(elements)
+    max_upper = max(e.upper() for e in data)
+    max_lower = max(e.lower() for e in data)
+    return data[0].parent()(max_lower, max_upper)
+
+def min_RIF(elements):
+    r"""
+    Compute the minimum of
+    :class:`~sage.rings.real_mpfi.RealIntervalFieldElement` elements.
+
+    INPUT:
+
+    - ``elements`` -- iterable of
+      :class:`~sage.rings.real_mpfi.RealIntervalFieldElement` elements.
+
+    OUTPUT:
+
+    A :class:`~sage.rings.real_mpfi.RealIntervalFieldElement` element.
+
+    EXAMPLES::
+
+        sage: a = RIF(1, 4)
+        sage: b = RIF(2, 3)
+        sage: from sage.rings.real_mpfi import min_RIF
+        sage: min_RIF([a, b]).endpoints()
+        (1.00000000000000, 3.00000000000000)
+        sage: min_RIF([b, a]).endpoints()
+        (1.00000000000000, 3.00000000000000)
+
+    For two elements, this corresponds to
+    :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.min`::
+
+        sage: a.min(b).endpoints()
+        (1.00000000000000, 3.00000000000000)
+        sage: b.min(a).endpoints()
+        (1.00000000000000, 3.00000000000000)
+
+    Note that the standard Python ``min`` function does not handle
+    :class:`~sage.rings.real_mpfi.RealIntervalFieldElement` elements
+    correctly::
+
+        sage: min(a, b).endpoints()
+        (1.00000000000000, 4.00000000000000)
+        sage: min(b, a).endpoints()
+        (2.00000000000000, 3.00000000000000)
+
+    .. SEEALSO::
+
+        :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.min`,
+        :func:`max_RIF`
+    """
+    # we iterate twice, so store as a list.
+    data = list(elements)
+    min_upper = min(e.upper() for e in data)
+    min_lower = min(e.lower() for e in data)
+    return data[0].parent()(min_lower, min_upper)

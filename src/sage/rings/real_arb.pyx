@@ -26,6 +26,70 @@ from sage.rings.real_mpfi cimport RealIntervalFieldElement
 from sage.rings.real_mpfi import RealIntervalField
 from sage.structure.sage_object cimport SageObject
 
+cdef mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long precision):
+    """
+    Convert an ``mpfi`` to an ``arb``.
+
+    INPUT:
+
+    - ``target`` -- an ``arb_t``.
+
+    - ``source`` -- an ``mpfi_t``.
+
+    - ``precision`` -- a positive integer.
+
+    OUTPUT:
+
+    None.
+    """
+    cdef mpfr_t left
+    cdef mpfr_t right
+
+    mpfr_init2(left, precision)
+    mpfr_init2(right, precision)
+
+    mpfi_get_left(left, source)
+    mpfi_get_right(right, source)
+
+    arb_set_interval_mpfr(target,
+                          left,
+                          right,
+                          precision)
+
+    mpfr_clear(left)
+    mpfr_clear(right)
+
+cdef arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision):
+    """
+    Convert an ``arb`` to an ``mpfi``.
+
+    INPUT:
+
+    - ``target`` -- an ``mpfi_t``.
+
+    - ``source`` -- an ``arb_t``.
+
+    - ``precision`` -- a positive integer.
+
+    OUTPUT:
+
+    None.
+    """
+    cdef mpfr_t left
+    cdef mpfr_t right
+
+    mpfr_init2(left, precision)
+    mpfr_init2(right, precision)
+
+    arb_get_interval_mpfr(left, right, source)
+    mpfi_interv_fr(target, left, right)
+
+    mpfr_clear(left)
+    mpfr_clear(right)
+
+
+
+
 cdef class Arb(SageObject):
     """
     Hold one ``arb_t`` of the `Arb library
@@ -113,8 +177,6 @@ cdef class Arb(SageObject):
             TypeError: precision must be given.
         """
         cdef RealIntervalFieldElement element
-        cdef mpfr_t left
-        cdef mpfr_t right
         cdef int prec
 
         if value is None:
@@ -125,16 +187,7 @@ cdef class Arb(SageObject):
         elif isinstance(value, RealIntervalFieldElement):
             element = <RealIntervalFieldElement> value
             self.precision = value.parent().precision()
-            mpfr_init2(left, self.precision)
-            mpfr_init2(right, self.precision)
-            mpfi_get_left(left, element.value)
-            mpfi_get_right(right, element.value)
-            arb_set_interval_mpfr(self.value,
-                                  left,
-                                  right,
-                                  self.precision)
-            mpfr_clear(left)
-            mpfr_clear(right)
+            mpfi_to_arb(self.value, element.value, self.precision)
 
         else:
             raise TypeError("value must be None or a "
@@ -160,18 +213,10 @@ cdef class Arb(SageObject):
             2
         """
 
-        cdef mpfr_t left
-        cdef mpfr_t right
-        cdef int prec
         cdef RealIntervalFieldElement result
 
-        mpfr_init2(left, self.precision)
-        mpfr_init2(right, self.precision)
-        arb_get_interval_mpfr(left, right, self.value)
         result = RealIntervalField(self.precision)(0)
-        mpfi_interv_fr(result.value, left, right)
-        mpfr_clear(left)
-        mpfr_clear(right)
+        arb_to_mpfi(result.value, self.value, self.precision)
 
         return result
 

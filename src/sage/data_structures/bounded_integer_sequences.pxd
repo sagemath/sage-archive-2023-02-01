@@ -6,9 +6,11 @@ from sage.misc.bitset cimport *
 ctypedef struct biseq_s:       # bounded integer sequence
     # Number of items in this sequence.
     mp_size_t length
-    # Bitsize of one element of this sequence. Note: We do not store the exact
-    # bound for the items of this sequence, but store the bitsize that is
-    # sufficient to store one item.
+    # Bitsize (ranging from 1 to mp_bits_per_limb) of one item of this
+    # sequence. Note: Each item is a non-negative integer, and all items of
+    # this sequence satisfy an upper bound. We do not store the exact bound
+    # for the items of this sequence, but store the bitsize that is sufficient
+    # to store one item.
     mp_bitcnt_t itembitsize
     # A bitset comprising `length*itembitsize` bits is used to store the items
     # of this sequence. Note that `bitset_t` stores the data in a field

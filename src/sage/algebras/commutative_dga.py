@@ -1,4 +1,4 @@
-r"""
+"""
 Commutative Differential Graded Algebras
 
 An algebra is said to be *graded commutative* if it is endowed with a
@@ -16,40 +16,36 @@ degree 1.
 EXAMPLES:
 
 All of these algebras may be constructed with the function
-:func:`CDGAlgebra`. For most users, that will be the main function of
-interest. See its documentation for many more examples.
+:func:`GradedCommutativeAlgebra`. For most users, that will be the
+main function of interest. See its documentation for many more
+examples.
 
 We start by constructing some graded commutative algebras. Generators
 have degree 1 by default::
 
-    sage: A.<x,y,z> = CDGAlgebra(QQ)
+    sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ)
     sage: x.degree()
     1
     sage: x^2
     0
     sage: y*x
     -x*y
-    sage: B.<a,b> = CDGAlgebra(QQ, degrees = (2,3))
+    sage: B.<a,b> = GradedCommutativeAlgebra(QQ, degrees = (2,3))
     sage: a.degree()
     2
     sage: b.degree()
     3
 
 Once we have defined a graded commutative algebra, it is easy to
-define a differential on it, either using the :meth:`GCAlgebra.CDGAlgebra` method ::
+define a differential on it using the :meth:`GCAlgebra.CDGAlgebra` method::
 
-    sage: A.<x,y,z> = CDGAlgebra(QQ, degrees=(1,1,2))
+    sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,1,2))
     sage: B = A.CDGAlgebra({x: x*y, y: -x*y})
     sage: B
     Commutative Differential Graded Algebra over Rational Field with generators ('x', 'y', 'z') in degrees (1, 1, 2), differential
         x --> x*y
         y --> -x*y
         z --> 0
-
-or using the :func:`CDGAlgebra` function ::
-
-    sage: A.<x,y,z> = CDGAlgebra(QQ, degrees=(1,1,2))
-    sage: B = CDGAlgebra(A, differential={x: x*y, y: -x*y})
 
 AUTHORS:
 
@@ -80,12 +76,11 @@ class CDGA_Differential(UniqueRepresentation, Map):
     INPUT:
 
     - ``A`` -- algebra where the differential is defined
-
     - ``im_gens`` -- tuple containing the image of each generator
 
     EXAMPLES::
 
-        sage: A.<x,y,z,t> = CDGAlgebra(QQ, degrees=(1,1,2,3))
+        sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ, degrees=(1,1,2,3))
         sage: B = A.CDGAlgebra({x: x*y, y: -x*y , z: t})
         sage: B # indirect doctest
         Commutative Differential Graded Algebra over Rational Field with generators ('x', 'y', 'z', 't') in degrees (1, 1, 2, 3), differential
@@ -98,7 +93,7 @@ class CDGA_Differential(UniqueRepresentation, Map):
     """
     def __init__(self, A, im_gens):
         r"""
-        Python constructor
+        Python constructor.
 
         INPUT:
 
@@ -108,14 +103,14 @@ class CDGA_Differential(UniqueRepresentation, Map):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ)
+            sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ)
             sage: B = A.CDGAlgebra({x: x*y, y: x*y, z: z*t, t: t*z}) # indirect doctest
             sage: [B.cohomology(i).dimension() for i in range(6)]
             [1, 2, 1, 0, 0, 0]
 
         An error is raised if the differential `d` does not have
         degree 1 or if `d \circ d` is not zero. These errors are
-        tested in :meth:`CDGAlgebra_class.__init__`.
+        tested in :meth:`CDGAlgebra.__init__`.
         """
         from sage.categories.homset import Hom
         from sage.categories.sets_cat import Sets
@@ -141,7 +136,7 @@ class CDGA_Differential(UniqueRepresentation, Map):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ)
+            sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ)
             sage: B = A.CDGAlgebra({x: x*y, y: x*y, z: z*t, t: t*z})
             sage: D = B.differential()
             sage: D(x*t+1/2*t*x*y) # indirect doctest
@@ -149,8 +144,8 @@ class CDGA_Differential(UniqueRepresentation, Map):
 
         Test positive characteristic::
 
-            sage: A.<x,y> = CDGAlgebra(GF(17), degrees=(2,3))
-            sage: B = CDGAlgebra(A, differential={x:y})
+            sage: A.<x,y> = GradedCommutativeAlgebra(GF(17), degrees=(2,3))
+            sage: B = A.CDGAlgebra(differential={x:y})
             sage: B.differential()(x^17)
             0
         """
@@ -221,7 +216,7 @@ class CDGA_Differential(UniqueRepresentation, Map):
 
 class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
     r"""
-    The class of graded commutative algebras
+    The class of graded commutative algebras.
 
     INPUT:
 
@@ -270,7 +265,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
         sage: B.basis(7)
         []
 
-    Note that the function :func:`CDGAlgebra` can also be used to
+    Note that the function :func:`GradedCommutativeAlgebra` can also be used to
     construct these algebras.
     """
     @staticmethod
@@ -358,7 +353,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
     def __init__(self, base, R=None, I=None, names=None, degrees=None):
         """
-        Python constructor
+        Python constructor.
 
         INPUT:
 
@@ -422,7 +417,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
     @cached_method
     def _basis_for_free_alg(self, n):
         r"""
-        Basis of the associated free commutative DGA in degree `n`
+        Basis of the associated free commutative DGA in degree `n`.
 
         That is, ignore the relations when computing the basis:
         compute the basis of the free commutative DGA with generators
@@ -531,7 +526,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
     def quotient(self, I, check=True):
         """
-        Create the quotient of this algebra by a two-sided ideal ``I``
+        Create the quotient of this algebra by a two-sided ideal `I`.
 
         INPUT:
 
@@ -634,7 +629,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
         if hasattr(self, '_degrees_multi'):
             return CDGAlgebra_multigraded(self, differential)
         else:
-            return CDGAlgebra_class(self, differential)
+            return CDGAlgebra(self, differential)
 
 
     class Element(QuotientRingElement):
@@ -861,10 +856,10 @@ class GCAlgebra_multigraded(GCAlgebra):
         sage: c.degree(total=True)
         2
 
-    As with :class:`GCAlgebra`, the function :func:`CDGAlgebra`
+    As with :class:`GCAlgebra`, the function :func:`GradedCommutativeAlgebra`
     can be used to construct these algebras::
 
-        sage: CDGAlgebra(QQ, names=('a', 'b', 'c'), degrees=((1,0), (0,1), (1,1)))
+        sage: GradedCommutativeAlgebra(QQ, names=('a', 'b', 'c'), degrees=((1,0), (0,1), (1,1)))
         Graded Commutative Algebra over Rational Field with generators ('a', 'b', 'c') in degrees ((1, 0), (0, 1), (1, 1))
 
     """
@@ -1044,7 +1039,7 @@ class cohomology_class(SageObject):
         return '[{}]'.format(latex(self.x))
 
 
-class CDGAlgebra_class(GCAlgebra):
+class CDGAlgebra(GCAlgebra):
     """
     The class of commutative differential graded algebras
 
@@ -1064,31 +1059,32 @@ class CDGAlgebra_class(GCAlgebra):
     algebras should be constructed using
     :class:`CDGAlgebra_multigraded` instead.
 
-    Note that these may be constructed with the function
-    :func:`CDGAlgebra` instead.
+    Note that a natural way to construct these is to use the
+    :func:`GradedCommutativeAlgebra` function and the
+    :meth:`GCAlgebra.CDGAlgebra` method.
 
     EXAMPLES::
 
-        sage: from sage.algebras.commutative_dga import GCAlgebra, CDGAlgebra_class
+        sage: from sage.algebras.commutative_dga import GCAlgebra, CDGAlgebra
         sage: A.<x,y,z,t> = GCAlgebra(QQ, degrees=(3, 2, 2, 3))
-        sage: CDGAlgebra_class(A, {x: y*z})
+        sage: CDGAlgebra(A, {x: y*z})
         Commutative Differential Graded Algebra over Rational Field with generators ('x', 'y', 'z', 't') in degrees (3, 2, 2, 3), differential
             x --> y*z
             y --> 0
             z --> 0
             t --> 0
 
-    Alternatively, just using :func:`CDGAlgebra`::
+    Alternatively, starting with :func:`GradedCommutativeAlgebra`::
 
-        sage: A.<x,y,z,t> = CDGAlgebra(QQ, degrees=(3, 2, 2, 3))
-        sage: CDGAlgebra(A, differential={x: y*z})
+        sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ, degrees=(3, 2, 2, 3))
+        sage: A.CDGAlgebra(differential={x: y*z})
         Commutative Differential Graded Algebra over Rational Field with generators ('x', 'y', 'z', 't') in degrees (3, 2, 2, 3), differential
             x --> y*z
             y --> 0
             z --> 0
             t --> 0
 
-    See the function :func:`CDGAlgebra` for more examples.
+    See the function :func:`GradedCommutativeAlgebra` for more examples.
     """
     __classcall__ = None
 
@@ -1104,9 +1100,9 @@ class CDGAlgebra_class(GCAlgebra):
 
         EXAMPLES::
 
-            sage: from sage.algebras.commutative_dga import GCAlgebra, CDGAlgebra_class
+            sage: from sage.algebras.commutative_dga import GCAlgebra, CDGAlgebra
             sage: A.<x,y,z,t> = GCAlgebra(QQ, degrees=(3, 2, 2, 3))
-            sage: CDGAlgebra_class(A, {x: y*z})
+            sage: CDGAlgebra(A, {x: y*z})
             Commutative Differential Graded Algebra over Rational Field with generators ('x', 'y', 'z', 't') in degrees (3, 2, 2, 3), differential
                 x --> y*z
                 y --> 0
@@ -1177,9 +1173,9 @@ class CDGAlgebra_class(GCAlgebra):
 
         EXAMPLES::
 
-            sage: from sage.algebras.commutative_dga import GCAlgebra, CDGAlgebra_class
+            sage: from sage.algebras.commutative_dga import GCAlgebra, CDGAlgebra
             sage: A.<x,y,z> = GCAlgebra(QQ, degrees=(2,1,1))
-            sage: B = CDGAlgebra_class(A, {y:y*z, z: y*z})
+            sage: B = CDGAlgebra(A, {y:y*z, z: y*z})
             sage: B._coerce_map_from_(A)
             True
             sage: B._coerce_map_from_(QQ)
@@ -1211,7 +1207,7 @@ class CDGAlgebra_class(GCAlgebra):
 
     def quotient(self, I, check=True):
         """
-        Create the quotient of this algebra by a two-sided ideal ``I``
+        Create the quotient of this algebra by a two-sided ideal `I`.
 
         INPUT:
 
@@ -1268,7 +1264,7 @@ class CDGAlgebra_class(GCAlgebra):
 
         EXAMPLES::
 
-            sage: A.<x,y,z> = CDGAlgebra(QQ, degrees=(2,1,1))
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(2,1,1))
             sage: B = A.CDGAlgebra({y:y*z, z: y*z})
             sage: B.differential()
             Differential map in Commutative Differential Graded Algebra over Rational Field with generators ('x', 'y', 'z') in degrees (2, 1, 1), differential
@@ -1283,7 +1279,7 @@ class CDGAlgebra_class(GCAlgebra):
     @cached_method
     def differential_matrix(self, n):
         """
-        The matrix that gives the differential in degree ``n``
+        The matrix that gives the differential in degree ``n``.
 
         INPUT:
 
@@ -1291,7 +1287,7 @@ class CDGAlgebra_class(GCAlgebra):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(GF(5), degrees=(2, 3, 2, 4))
+            sage: A.<x,y,z,t> = GradedCommutativeAlgebra(GF(5), degrees=(2, 3, 2, 4))
             sage: B = A.CDGAlgebra({t: x*y, x: y, z: y})
             sage: B.differential_matrix(4)
             [0 1]
@@ -1342,8 +1338,8 @@ class CDGAlgebra_class(GCAlgebra):
 
         EXAMPLES::
 
-            sage: A.<x,y,z> = CDGAlgebra(QQ, degrees=(1,1,2))
-            sage: B = CDGAlgebra(A, differential={z: x*z})
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,1,2))
+            sage: B = A.CDGAlgebra(differential={z: x*z})
             sage: B.coboundaries(2)
             Vector space of degree 2 and dimension 0 over Rational Field
             Basis matrix:
@@ -1383,8 +1379,8 @@ class CDGAlgebra_class(GCAlgebra):
 
         EXAMPLES::
 
-            sage: A.<x,y,z> = CDGAlgebra(QQ, degrees=(1,1,2))
-            sage: B = CDGAlgebra(A, differential={z: x*z})
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,1,2))
+            sage: B = A.CDGAlgebra(differential={z: x*z})
             sage: B.cocycles(2)
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
@@ -1418,7 +1414,7 @@ class CDGAlgebra_class(GCAlgebra):
 
         EXAMPLES::
 
-            sage: A.<x,y,z,t> = CDGAlgebra(QQ, degrees = (2, 3, 2, 4))
+            sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ, degrees = (2, 3, 2, 4))
             sage: B = A.CDGAlgebra({t: x*y, x: y, z: y})
             sage: B.cohomology_raw(4)
             Vector space quotient V/W of dimension 2 over Rational Field where
@@ -1453,7 +1449,7 @@ class CDGAlgebra_class(GCAlgebra):
 
         EXAMPLES::
 
-            sage: A.<a, b, c, d, e> = CDGAlgebra(QQ, degrees = (1, 1, 1, 1, 1))
+            sage: A.<a, b, c, d, e> = GradedCommutativeAlgebra(QQ, degrees = (1, 1, 1, 1, 1))
             sage: B = A.CDGAlgebra({d: a*b, e: b*c})
             sage: B.cohomology(2)
             Free module generated by {[c*e], [c*d - a*e], [b*e], [b*d], [a*d], [a*c]} over Rational Field
@@ -1492,7 +1488,7 @@ class CDGAlgebra_class(GCAlgebra):
 
             EXAMPLES::
 
-                sage: A.<x,y,z,t> = CDGAlgebra(QQ, degrees = (2, 3, 2, 4))
+                sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ, degrees = (2, 3, 2, 4))
                 sage: B = A.CDGAlgebra({t: x*y, x: y, z: y})
                 sage: B.inject_variables()
                 Defining x, y, z, t
@@ -1511,8 +1507,9 @@ class CDGAlgebra_class(GCAlgebra):
 
             EXAMPLES::
 
-                sage: A.<a,b,c> = CDGAlgebra(QQ, degrees=(1,2,2))
-                sage: B.<x,y,z> = CDGAlgebra(A, differential={b: a*c})
+                sage: A.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=(1,2,2))
+                sage: B = A.CDGAlgebra(differential={b: a*c})
+                sage: x,y,z = B.gens()
                 sage: x.is_coboundary()
                 False
                 sage: (x*z).is_coboundary()
@@ -1545,8 +1542,9 @@ class CDGAlgebra_class(GCAlgebra):
 
             EXAMPLES::
 
-                sage: A.<a,b,c,d> = CDGAlgebra(QQ, degrees=(1,1,1,1))
-                sage: B.<w,x,y,z> = CDGAlgebra(A, differential={a:b*c-c*d})
+                sage: A.<a,b,c,d> = GradedCommutativeAlgebra(QQ, degrees=(1,1,1,1))
+                sage: B = A.CDGAlgebra(differential={a:b*c-c*d})
+                sage: w, x, y, z = B.gens()
                 sage: (x*y).is_cohomologous_to(y*z)
                 True
                 sage: (x*y).is_cohomologous_to(x*z)
@@ -1568,7 +1566,7 @@ class CDGAlgebra_class(GCAlgebra):
             if other.is_zero():
                 return self.is_coboundary()
             try:
-                assert (isinstance(other, CDGAlgebra_class.Element)
+                assert (isinstance(other, CDGAlgebra.Element)
                         and self.parent() is other.parent())
             except AssertionError:
                 raise ValueError('The element {} does not lie in this DGA'.format(other))
@@ -1578,7 +1576,7 @@ class CDGAlgebra_class(GCAlgebra):
                 return (self.is_coboundary() and other.is_coboundary())
 
 
-class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
+class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra):
     """
     Class for multi-graded commutative differential graded algebras.
 
@@ -1691,21 +1689,27 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
                 b --> 0
                 c --> 0
         """
-        s = CDGAlgebra_class._repr_(self)
+        s = CDGAlgebra._repr_(self)
         old = '{}'.format(self._degrees)
         new = '{}'.format(self._degrees_multi)
         return s.replace(old, new)
 
     @cached_method
-    def differential_matrix_multi(self, n, total=False):
+    def differential_matrix_multigraded(self, n, total=False):
         """
-        The matrix that gives the differential in degree n
+        The matrix that gives the differential in degree ``n``.
 
-        INPUTS:
+        .. TODO::
+
+            Rename this to ``differential_matrix`` once inheritance,
+            overriding, and cached methods work together better. See
+            :trac:`17201`.
+
+        INPUT:
 
         - ``n`` -- degree
-        - ``total`` (optional, default False) -- if True, return the
-          matrix corresponding to total degree ``n``.
+        - ``total`` (optional, default ``False``) -- if ``True``,
+          return the matrix corresponding to total degree ``n``
 
         If ``n`` is an integer rather than a multi-index, then the
         total degree is used in that case as well.
@@ -1715,17 +1719,18 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
             sage: from sage.algebras.commutative_dga import GCAlgebra_multigraded, CDGAlgebra_multigraded
             sage: A.<a,b,c> = GCAlgebra_multigraded(QQ, degrees=((1,0), (0, 1), (0,2)))
             sage: B = CDGAlgebra_multigraded(A, differential={a: c})
-            sage: B.differential_matrix_multi((1,0))
+            sage: B.differential_matrix_multigraded((1,0))
             [1]
-            sage: B.differential_matrix_multi(1, total=True)
+            sage: B.differential_matrix_multigraded(1, total=True)
             [0 0]
             [0 1]
-            sage: B.differential_matrix_multi((1,0), total=True)
+            sage: B.differential_matrix_multigraded((1,0), total=True)
             [0 0]
             [0 1]
-            sage: B.differential_matrix_multi(1)
+            sage: B.differential_matrix_multigraded(1)
             [0 0]
             [0 1]
+
         """
         from sage.matrix.constructor import matrix
         from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
@@ -1733,7 +1738,7 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
         from sage.modules.free_module_element import vector
 
         if total or isinstance(n, (int, Integer)):
-            return self.differential_matrix(total_degree(n))
+            return CDGAlgebra.differential_matrix(self, total_degree(n))
 
         G = AdditiveAbelianGroup([0] * self._grading_rank)
         n = G(vector(n))
@@ -1786,7 +1791,7 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
         from sage.modules.free_module_element import vector
 
         if total or isinstance(n, (int, Integer)):
-            return CDGAlgebra_class.coboundaries(self, total_degree(n))
+            return CDGAlgebra.coboundaries(self, total_degree(n))
 
         G = AdditiveAbelianGroup([0] * self._grading_rank)
         n = G(vector(n))
@@ -1795,7 +1800,7 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
             return VectorSpace(F, 0)
         if total_degree(n) == 1:
             return VectorSpace(F, 0)
-        M = self.differential_matrix_multi(n-self._degree_of_differential)
+        M = self.differential_matrix_multigraded(n-self._degree_of_differential)
         V0 = VectorSpace(F, M.nrows())
         V1 = VectorSpace(F, M.ncols())
         map = V0.Hom(V1)(M)
@@ -1838,14 +1843,14 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
         from sage.modules.free_module_element import vector
 
         if total or isinstance(n, (int, Integer)):
-            return CDGAlgebra_class.cocycles(self, total_degree(n))
+            return CDGAlgebra.cocycles(self, total_degree(n))
 
         G = AdditiveAbelianGroup([0] * self._grading_rank)
         n = G(vector(n))
         F = self.base_ring()
         if total_degree(n) == 0:
             return VectorSpace(F, 1)
-        M = self.differential_matrix_multi(n)
+        M = self.differential_matrix_multigraded(n)
         V0 = VectorSpace(F, M.nrows())
         V1 = VectorSpace(F, M.ncols())
         map = V0.Hom(V1)(M)
@@ -1936,7 +1941,7 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
         H_basis_brackets = [cohomology_class(_) for _ in H_basis]
         return CombinatorialFreeModule(self.base(), H_basis_brackets)
 
-    class Element(GCAlgebra_multigraded.Element, CDGAlgebra_class.Element):
+    class Element(GCAlgebra_multigraded.Element, CDGAlgebra.Element):
         """
         Element class
         """
@@ -1944,11 +1949,11 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra_class):
 ################################################
 # Main entry point.
 
-def CDGAlgebra(ring, names=None, degrees=None, differential=None, relations=None):
+def GradedCommutativeAlgebra(ring, names=None, degrees=None, relations=None):
     r"""
     Construct a commutative differential graded algebra
 
-    INPUTS:
+    INPUT:
 
     There are two ways to call this. The first way defines a free
     graded commutative algebra:
@@ -1967,15 +1972,11 @@ def CDGAlgebra(ring, names=None, degrees=None, differential=None, relations=None
     methods to take a quotient, impose a differential, etc. See the
     examples below.
 
-    The second way takes a graded commutative algebra and imposes a
-    differential and/or relations:
+    The second way takes a graded commutative algebra and imposes
+    relations:
 
     - ``ring`` -- a graded commutative algebra as a starting
       point. Call this ring `A`.
-
-    - ``differential`` -- a differential, specified as a dictionary.
-      The keys are generators of `A`, and the associated values are
-      the targets of those generators under the differential.
 
     - ``relations`` -- a list or tuple of elements of `A`
 
@@ -1983,15 +1984,15 @@ def CDGAlgebra(ring, names=None, degrees=None, differential=None, relations=None
 
     Defining a graded commutative algebra::
 
-        sage: CDGAlgebra(QQ, 'x, y, z')
+        sage: GradedCommutativeAlgebra(QQ, 'x, y, z')
         Graded Commutative Algebra over Rational Field with generators ('x', 'y', 'z') in degrees (1, 1, 1)
-        sage: CDGAlgebra(QQ, degrees=(2, 3, 4))
+        sage: GradedCommutativeAlgebra(QQ, degrees=(2, 3, 4))
         Graded Commutative Algebra over Rational Field with generators ('x0', 'x1', 'x2') in degrees (2, 3, 4)
 
     As usual in Sage, the ``A.<...>`` notation defines both the
     algebra and the generator names::
 
-        sage: A.<x,y,z> = CDGAlgebra(QQ, degrees=(1, 2, 1))
+        sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1, 2, 1))
         sage: x^2
         0
         sage: z*x # Odd classes anticommute.
@@ -2022,10 +2023,7 @@ def CDGAlgebra(ring, names=None, degrees=None, differential=None, relations=None
         ...
         AttributeError: 'GCAlgebra_with_category' object has no attribute 'differential'
 
-    Now we add a differential to ``AQ``. There are two ways to do
-    this: using the method :meth:`GCAlgebra.CDGAlgebra` from the class
-    :class:`GCAlgebra` (of which ``AQ`` is an instance), or using the
-    function :func:`CDGAlgebra`. Method 1::
+    Now we add a differential to ``AQ``::
 
         sage: B = AQ.CDGAlgebra({y:y*z})
         sage: B
@@ -2038,23 +2036,12 @@ def CDGAlgebra(ring, names=None, degrees=None, differential=None, relations=None
         sage: B.cohomology(2)
         Free module generated by {[x*z]} over Rational Field
 
-    Method 2. This has the slight advantage that relations and a
-    differential can be specified at the same time, instead of in
-    stages. So we can start from ``A`` instead of ``AQ`` if we want::
-
-        sage: C = CDGAlgebra(A, differential={y:y*z}, relations=[x*y])
-        sage: C
-        Commutative Differential Graded Algebra over Rational Field with generators ('x', 'y', 'z') in degrees (1, 2, 1) with relations [x*y], differential
-            x --> 0
-            y --> y*z
-            z --> 0
-
     We can construct multi-graded rings as well. We work in
     characteristic 2 for a change, so the algebras here are honestly
     commutative::
 
-        sage: C.<a,b,c,d> = CDGAlgebra(GF(2), degrees=((1,0), (1,1), (0,2), (0,3)))
-        sage: D = CDGAlgebra(C, differential={a:c, b:d})
+        sage: C.<a,b,c,d> = GradedCommutativeAlgebra(GF(2), degrees=((1,0), (1,1), (0,2), (0,3)))
+        sage: D = C.CDGAlgebra(differential={a:c, b:d})
         sage: D
         Commutative Differential Graded Algebra over Finite Field of size 2 with generators ('a', 'b', 'c', 'd') in degrees ((1, 0), (1, 1), (0, 2), (0, 3)), differential
             a --> c
@@ -2078,6 +2065,21 @@ def CDGAlgebra(ring, names=None, degrees=None, differential=None, relations=None
         Additive abelian group isomorphic to Z + Z
         sage: D.basis(G(vector([1,2])))
         [a*c]
+
+    At this point, ``a``, for example, is an element of ``C``. We can
+    redefine it so that it is instead an element of ``D`` in several
+    ways, for instance using :meth:`gens` method::
+
+        sage: a, b, c, d = D.gens()
+        sage: a.differential()
+        c
+
+    Or the :meth:`inject_variables` method::
+
+        sage: D.inject_variables()
+        Defining a, b, c, d
+        sage: (a*b).differential()
+        b*c + a*d
         sage: (a*b*c**2).degree()
         (2, 5)
 
@@ -2097,7 +2099,7 @@ def CDGAlgebra(ring, names=None, degrees=None, differential=None, relations=None
         if hasattr(ring, '_degrees_multi'):
             A = CDGAlgebra_multigraded(ring, differential=differential)
         else:
-            A = CDGAlgebra_class(ring, differential=differential)
+            A = CDGAlgebra(ring, differential=differential)
         if relations:
             I = A.ideal([A(_) for _ in relations])
             return A.quotient(I)
@@ -2125,7 +2127,7 @@ def exterior_algebra_basis(n, degrees):
     Basis of an exterior algebra in degree ``n``, where the
     generators are in degrees ``degrees``.
 
-    INPUTS:
+    INPUT:
 
     - ``n`` - integer
     - ``degrees`` - iterable of integers
@@ -2144,7 +2146,7 @@ def exterior_algebra_basis(n, degrees):
         []
     """
     zeroes = [0]*len(degrees)
-    if len(degrees) == 0:
+    if not degrees:
         if n == 0:
             return [zeroes]
         else:
@@ -2168,7 +2170,7 @@ def total_degree(deg):
     """
     Total degree of ``deg``.
 
-    INPUTS:
+    INPUT:
 
     - ``deg`` - an element of a free abelian group.
 

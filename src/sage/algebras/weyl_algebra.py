@@ -180,7 +180,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         TESTS::
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
-            sage: dx,dy,dz = sorted(W.differentials(), key=str)
+            sage: dx,dy,dz = W.differentials()
             sage: ((x^3-z)*dx + dy)^2
             dy^2 + 2*x^3*dx*dy - 2*z*dx*dy + x^6*dx^2 - 2*x^3*z*dx^2
              + z^2*dx^2 + 3*x^5*dx - 3*x^2*z*dx
@@ -253,7 +253,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
 
             sage: R.<x,y,z> =  QQ[]
             sage: W = DifferentialWeylAlgebra(R)
-            sage: dx,dy,dz = sorted(W.differentials(), key=str)
+            sage: dx,dy,dz = W.differentials()
             sage: dy*(x^3-y*z)*dx == -z*dx + x^3*dx*dy - y*z*dx*dy
             True
             sage: W.zero() == 0
@@ -296,7 +296,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
-            sage: dx,dy,dz = sorted(W.differentials(), key=str)
+            sage: dx,dy,dz = W.differentials()
             sage: dy - (3*x - z)*dx
             dy + z*dx - 3*x*dx
         """
@@ -309,7 +309,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
-            sage: dx,dy,dz = sorted(W.differentials(), key=str)
+            sage: dx,dy,dz = W.differentials()
             sage: (dx*dy) + dz + x^3 - 2
             dx*dy + dz + x^3 - 2
         """
@@ -331,7 +331,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
-            sage: dx,dy,dz = sorted(W.differentials(), key=str)
+            sage: dx,dy,dz = W.differentials()
             sage: dx*(x*y + z)
             x*y*dx + z*dx + y
             sage: ((x^3-z)*dx + dy) * (dx*dz^2 - 10*x)
@@ -377,7 +377,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
-            sage: dx,dy,dz = sorted(W.differentials(), key=str)
+            sage: dx,dy,dz = W.differentials()
             sage: a = (x*y + z) * dx
             sage: 3/2 * a
             3/2*x*y*dx + 3/2*z*dx
@@ -394,7 +394,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
-            sage: dx,dy,dz = sorted(W.differentials(), key=str)
+            sage: dx,dy,dz = W.differentials()
             sage: a = (x*y + z) * dx
             sage: a * 3/2
             3/2*x*y*dx + 3/2*z*dx
@@ -413,9 +413,9 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
             sage: dx,dy,dz = W.differentials()
             sage: list(dy - (3*x - z)*dx)
-            [(((0, 0, 1), (0, 0, 1)), 1),
-             (((1, 0, 0), (0, 0, 1)), -3),
-             (((0, 0, 0), (1, 0, 0)), 1)]
+            [(((0, 0, 0), (0, 1, 0)), 1),
+             (((0, 0, 1), (1, 0, 0)), 1),
+             (((1, 0, 0), (1, 0, 0)), -3)]
         """
         return iter(self.list())
 
@@ -429,9 +429,9 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: dx,dy,dz = W.differentials()
             sage: elt = dy - (3*x - z)*dx
             sage: elt.list()
-            [(((0, 0, 1), (0, 0, 1)), 1),
-             (((1, 0, 0), (0, 0, 1)), -3),
-             (((0, 0, 0), (1, 0, 0)), 1)]
+            [(((0, 0, 0), (0, 1, 0)), 1),
+             (((0, 0, 1), (1, 0, 0)), 1),
+             (((1, 0, 0), (1, 0, 0)), -3)]
         """
         return sorted(self.__monomials.items(),
                       key=lambda x: (-sum(x[0][1]), x[0][1], -sum(x[0][0]), x[0][0]) )
@@ -502,7 +502,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
     - ``R`` -- a (polynomial) ring
     - ``names`` -- (default: ``None``) if ``None`` and ``R`` is a
-      polynomial ring, then consider the variable names corrspond to
+      polynomial ring, then the variable names correspond to
       those of ``R``; otherwise if ``names`` is specified, then ``R``
       is the base ring
 
@@ -514,6 +514,16 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
         sage: R.<x,y,z> = QQ[]
         sage: W = DifferentialWeylAlgebra(R); W
         Differential Weyl algebra of polynomials in x, y, z over Rational Field
+
+    We can call ``W.inject_variables()`` to give the polynomial ring
+    variables, now as elements of ``W``, and the differentials::
+
+        sage: W.inject_variables()
+        Defining x, y, z, dx, dy, dz
+        sage: (dx * dy * dz) * (x^2 * y * z + x * z * dy + 1)
+        x*z*dx*dy^2*dz + z*dy^2*dz + x^2*y*z*dx*dy*dz + dx*dy*dz
+         + x*dx*dy^2 + 2*x*y*z*dy*dz + dy^2 + x^2*z*dx*dz + x^2*y*dx*dy
+         + 2*x*z*dz + 2*x*y*dy + x^2*dx + 2*x
 
     Or directly by specifying a base ring and variable names::
 
@@ -577,7 +587,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
     def _element_constructor_(self, x):
         """
-        Construct and element of ``self`` from ``x``.
+        Construct an element of ``self`` from ``x``.
 
         EXAMPLES::
 
@@ -592,17 +602,27 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
         """
         t = tuple([0]*(self._n))
         if x in self.base_ring():
+            if x == self.base_ring().zero():
+                return self.zero()
             return self.element_class(self, {(t, t): x})
         if isinstance(x, DifferentialWeylAlgebraElement):
-            return self.element_class(self, dict(x))
+            R = self.base_ring()
+            if x.parent().base_ring() is R:
+                return self.element_class(self, dict(x))
+            zero = R.zero()
+            return self.element_class(self, {i: R(c) for i,c in x if R(c) != zero})
         x = self._poly_ring(x)
         return self.element_class(self, {(tuple(m), t): c
                                          for m,c in x.dict().iteritems()})
 
     def _coerce_map_from_(self, R):
         """
-        Return a coercion map from ``R`` to ``self`` or ``True`` if such
-        a map exists, otherwise ``False``.
+        Return data which determines if there is a coercion map
+        from ``R`` to ``self``.
+
+        If such a map exists, the output could be a map, callable,
+        or ``True``, which constructs a generic map. Otherwise the output
+        must be ``False`` or ``None``.
 
         EXAMPLES::
 
@@ -614,11 +634,33 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             True
             sage: W._coerce_map_from_(ZZ['x'])
             True
+
+        Order of the names matter::
+
+            sage: Wp = DifferentialWeylAlgebra(QQ['x,z,y'])
+            sage: W.has_coerce_map_from(Wp)
+            False
+            sage: Wp.has_coerce_map_from(W)
+            False
+
+        Zero coordinates are handled appropriately::
+
+            sage: R.<x,y,z> = ZZ[]
+            sage: W3 = DifferentialWeylAlgebra(GF(3)['x,y,z'])
+            sage: W3.has_coerce_map_from(R)
+            True
+
+            sage: W.<x,y,z> = DifferentialWeylAlgebra(ZZ)
+            sage: W3.has_coerce_map_from(W)
+            True
+            sage: W3(3*x + y)
+            y
         """
         if self._poly_ring.has_coerce_map_from(R):
             return True
         if isinstance(R, DifferentialWeylAlgebra):
-            return R.variable_names() == self.variable_names()
+            return ( R.variable_names() == self.variable_names()
+                     and self.base_ring().has_coerce_map_from(R.base_ring()) )
         return super(DifferentialWeylAlgebra, self)._coerce_map_from_(R)
 
     def polynomial_ring(self):
@@ -674,9 +716,10 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: R.<x,y,z> = QQ[]
             sage: W = DifferentialWeylAlgebra(R)
             sage: W.algebra_generators()
-            Family (x, y, z, dx, dy, dz)
+            Finite family {'dz': dz, 'dx': dx, 'dy': dy, 'y': y, 'x': x, 'z': z}
         """
-        return Family([self.gen(i) for i in range(self._n*2)])
+        d = {x: self.gen(i) for i,x in enumerate(self.variable_names())}
+        return Family(self.variable_names(), lambda x: d[x])
 
     @cached_method
     def variables(self):
@@ -693,8 +736,9 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: W.variables()
             Finite family {'y': y, 'x': x, 'z': z}
         """
-        return Family({ x: self.gen(i)
-                        for i,x in enumerate(self.variable_names()[:self._n]) })
+        N = self.variable_names()[:self._n]
+        d = {x: self.gen(i) for i,x in enumerate(N) }
+        return Family(N, lambda x: d[x])
 
     @cached_method
     def differentials(self):
@@ -711,8 +755,9 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: W.differentials()
             Finite family {'dz': dz, 'dx': dx, 'dy': dy}
         """
-        return Family({ x: self.gen(self._n+i)
-                        for i,x in enumerate(self.variable_names()[self._n:]) })
+        N = self.variable_names()[self._n:]
+        d = {x: self.gen(self._n+i) for i,x in enumerate(N) }
+        return Family(N, lambda x: d[x])
 
     def gen(self, i):
         """

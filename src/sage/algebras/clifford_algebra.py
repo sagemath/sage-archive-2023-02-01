@@ -24,6 +24,7 @@ from sage.categories.modules_with_basis import ModuleMorphismByLinearity
 from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule, FreeModule_generic
 from sage.matrix.constructor import Matrix
+from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.subset import SubsetsSorted
 from sage.quadratic_forms.quadratic_form import QuadraticForm
@@ -476,6 +477,11 @@ class CliffordAlgebra(CombinatorialFreeModule):
         a*d
         sage: d*c*b*a + a + 4*b*c
         a*b*c*d + 4*b*c + a
+
+    .. WARNING::
+
+        The Clifford is not graded, but instead filtred. This will be
+        changed once :trac:`17096` is finished.
     """
     @staticmethod
     def __classcall_private__(cls, Q, names=None):
@@ -747,12 +753,23 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Cl.algebra_generators()
+            Finite family {'y': y, 'x': x, 'z': z}
+        """
+        d = {x: self.gen(i) for i,x in enumerate(self.variable_names())}
+        return Family(self.variable_names(), lambda x: d[x])
+
+    def gens(self):
+        r"""
+        Return the generators of ``self`` (as an algebra).
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Cl.gens()
             (x, y, z)
         """
-        d = self._quadratic_form.dim()
-        return tuple(self.gen(i) for i in range(d))
-
-    gens = algebra_generators
+        return tuple(self.algebra_generators())
 
     def ngens(self):
         """
@@ -1335,8 +1352,7 @@ class ExteriorAlgebra(CliffordAlgebra):
 
     .. TODO::
 
-        Add a category for Hopf superalgebras. (Once :trac:`10963`
-        is finished...)
+        Add a category for Hopf superalgebras (perhaps part of :trac:`16513`).
 
     INPUT:
 

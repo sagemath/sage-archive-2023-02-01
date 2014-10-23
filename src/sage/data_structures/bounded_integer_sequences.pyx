@@ -3,7 +3,7 @@ Sequences of bounded integers
 
 AUTHORS:
 
-- Simon King (2014): initial version
+- Simon King, Jeroen Demeyer (2014-10): initial version
 
 This module provides :class:`BoundedIntegerSequence`, which implements
 sequences of bounded integers and is for many (but not all) operations faster
@@ -64,6 +64,11 @@ Cython modules:
 - ``cdef biseq_item_t biseq_getitem_py(biseq_t S, mp_size_t index)``
 
   Returns ``S[index]`` as Python ``int`` or ``long``, without checking margins.
+
+- ``cdef biseq_inititem(biseq_t S, mp_size_t index, biseq_item_t item)``
+
+  Set ``S[index] = item``, without checking margins and assuming that ``S[index]``
+  has previously been zero.
 
 - ``cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1``
 
@@ -149,31 +154,16 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
     - ``bound`` -- a number which is the maximal number which can be
       represented
     """
+    cdef mp_size_t index
     cdef mp_limb_t item_limb
-    cdef mp_limb_t tmp_limb1, tmp_limb2
-    cdef mp_bitcnt_t offset_mod
-    cdef mp_size_t offset_div
-    cdef mp_size_t offset = 0
 
     biseq_init(R, len(data), BIT_COUNT(bound|<size_t>1))
 
-    for item in data:
-        item_limb = item
-        if item_limb > bound:
+    for index, item in enumerate(data):
+        if item > bound:
             raise ValueError("list item %r larger than %s"%(item, bound) )
-        offset_mod = offset % GMP_LIMB_BITS
-        offset_div = offset // GMP_LIMB_BITS
-        if offset_mod:
-            tmp_limb2 = mpn_lshift(&tmp_limb1, &item_limb, 1, offset_mod)
-            if tmp_limb2:
-                # This can only happen, if offset_div is small enough to not
-                # write out of bounds, since initially we have allocated
-                # enough memory.
-                R.data.bits[offset_div+1] = tmp_limb2
-            R.data.bits[offset_div] |= tmp_limb1
-        else:
-            R.data.bits[offset_div] = item_limb
-        offset += R.itembitsize
+        item_limb = item
+        biseq_inititem(R, index, item_limb)
 
 #
 # Arithmetics
@@ -325,6 +315,40 @@ cdef biseq_getitem_py(biseq_t S, mp_size_t index):
     cdef size_t out = biseq_getitem(S, index)
     return PyInt_FromSize_t(out)
 
+cdef biseq_inititem(biseq_t S, mp_size_t index, biseq_item_t item):
+    """
+    Set ``S[index] = item``, without checking margins.
+
+    Note that it is assumed that ``S[index] == 0`` before the assignment.
+    """
+    cdef mp_bitcnt_t limb_index, bit_index
+    bit_index = (<mp_bitcnt_t>index) * S.itembitsize
+    limb_index = bit_index // GMP_LIMB_BITS
+    bit_index %= GMP_LIMB_BITS
+
+    S.data.bits[limb_index] |= (item << bit_index)
+    # Have some bits been shifted out of bound?
+    if bit_index + S.itembitsize > GMP_LIMB_BITS:
+        # Our item is stored using 2 limbs, add the part from the upper limb
+        S.data.bits[limb_index+1] |= (item >> (GMP_LIMB_BITS - bit_index))
+
+cdef biseq_clearitem(biseq_t S, mp_size_t index):
+    """
+    Set ``S[index] = 0``, without checking margins.
+
+    In contrast to ``biseq_inititem``, the previous content of ``S[index]``
+    will be erased.
+    """
+    cdef mp_bitcnt_t limb_index, bit_index
+    bit_index = (<mp_bitcnt_t>index) * S.itembitsize
+    limb_index = bit_index // GMP_LIMB_BITS
+    bit_index %= GMP_LIMB_BITS
+
+    S.data.bits[limb_index] &= ~(S.mask_item << bit_index)
+    # Have some bits been shifted out of bound?
+    if bit_index + S.itembitsize > GMP_LIMB_BITS:
+        # Our item is stored using 2 limbs, add the part from the upper limb
+        S.data.bits[limb_index+1] &= ~(S.mask_item >> (GMP_LIMB_BITS - bit_index))
 
 cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1:
     """
@@ -364,42 +388,12 @@ cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int
         if offset_mod:
             R.data.bits[R.data.limbs-1] &= ((<mp_limb_t>1)<<offset_mod) - 1
         return True
-    # Now for the difficult case: 
-    #
-    # Convention for variable names: We move data from *_src to *_tgt
-    # tmp_limb is used to temporarily store the data that we move/shift
-    cdef mp_limb_t tmp_limb
-    cdef mp_limb_t tmp_limb2
-    cdef mp_size_t offset_div_src, max_limb
-    cdef mp_bitcnt_t offset_mod_src
-    cdef mp_size_t offset_src = total_shift
-    cdef mp_bitcnt_t bitstep = step*S.itembitsize
-    cdef mp_bitcnt_t offset_mod_tgt
-    cdef mp_size_t offset_div_tgt
-    cdef mp_size_t offset_tgt = 0
+    # In the general case, we move item by item.
+    cdef mp_size_t src_index = start
+    cdef mp_size_t tgt_index = 0
     for n from length>=n>0:
-        offset_div_src = offset_src // GMP_LIMB_BITS
-        offset_mod_src = offset_src % GMP_LIMB_BITS
-        offset_div_tgt = offset_tgt // GMP_LIMB_BITS
-        offset_mod_tgt = offset_tgt % GMP_LIMB_BITS
-        # put data from src to tmp_limb.
-        if offset_mod_src:
-            tmp_limb = ((S.data.bits[offset_div_src])>>offset_mod_src)
-            if (offset_mod_src+S.itembitsize > GMP_LIMB_BITS):
-                tmp_limb |= (S.data.bits[offset_div_src+1]) << (GMP_LIMB_BITS - offset_mod_src)
-            tmp_limb &= S.mask_item
-        else:
-            tmp_limb = S.data.bits[offset_div_src] & S.mask_item
-        # put data from tmp_limb to tgt
-        if offset_mod_tgt:
-            tmp_limb2 = mpn_lshift(&tmp_limb, &tmp_limb, 1, offset_mod_tgt)
-            if tmp_limb2:
-                R.data.bits[offset_div_tgt+1] = tmp_limb2
-            R.data.bits[offset_div_tgt]  |= tmp_limb
-        else:
-            R.data.bits[offset_div_tgt] = tmp_limb
-        offset_tgt += S.itembitsize
-        offset_src += bitstep
+        biseq_inititem(R, postinc(tgt_index), biseq_getitem(S, src_index))
+        src_index += step
 
 cdef int biseq_max_overlap(biseq_t S1, biseq_t S2) except 0:
     """

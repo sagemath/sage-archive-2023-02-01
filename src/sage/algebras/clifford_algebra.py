@@ -21,9 +21,11 @@ from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.categories.modules_with_basis import ModuleMorphismByLinearity
+from sage.categories.poor_man_map import PoorManMap
 from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule, FreeModule_generic
 from sage.matrix.constructor import Matrix
+from sage.matrix.matrix_space import MatrixSpace
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.subset import SubsetsSorted
@@ -1773,15 +1775,15 @@ class ExteriorAlgebra(CliffordAlgebra):
         a bilinear form `\Lambda(f) : \Lambda(V) \times
         \Lambda(V) \to R` on `\Lambda(V)` can be canonically
         defined as follows: For every `n \in \NN`, `m \in \NN`,
-        `v_1, v_2, \ldots, v_n \in V` and `w_1, w_2, \ldots,
-        w_m \in W`, we set
+        `v_1, v_2, \ldots, v_n, w_1, w_2, \ldots, w_m \in V`,
+        we define
 
         .. MATH::
 
             \Lambda(f)
             ( v_1 \wedge v_2 \wedge \cdots \wedge v_n ,
-              w_1 \wedge w_2 \wedge \cdots \wedge v_m )
-            = \begin{cases}
+              w_1 \wedge w_2 \wedge \cdots \wedge w_m )
+            := \begin{cases}
               0, &\mbox{if } n \neq m ; \\
               \det G, & \mbox{if } n = m \end{cases} ,
 
@@ -1794,38 +1796,40 @@ class ExteriorAlgebra(CliffordAlgebra):
 
         The bilinear form `\Lambda(f)` is symmetric if `f` is.
 
-        .. NOTE::
-
-            This takes a bilinear form on `V` as matrix, and
-            returns a bilinear form on ``self`` as a function in
-            two arguments. This is one of a myriad possible
-            design choices; is it a good one? (I would rather
-            not return the bilinear form on ``self`` as matrix,
-            since this matrix can be huge and one often needs
-            just a particular value. I don't know if it is
-            possible to return the bilinear form on ``self`` as
-            a bilinear map -- is there a class for bilinear
-            maps? -- and, if so, if this is useful thing to do.
-
         INPUT:
 
         - ``M`` -- a matrix over the same base ring as ``self``,
           whose `(i, j)`-th entry is `f(e_i, e_j)`, where
           `(e_1, e_2, \ldots, e_N)` is the standard basis of the
-          module `V` for which ``self`` `= \Lambda(V)` (so
-          that ``N = self.ngens()``), and where `f` is the
-          bilinear form which is to be lifted.
+          module `V` for which ``self`` `= \Lambda(V)` (so that
+          `N = 2^{\dim(V)}`), and where `f` is the bilinear form
+          which is to be lifted.
 
         OUTPUT:
 
         A bivariate function which takes two elements `p` and
         `q` of ``self`` to `\Lambda(f)(p, q)`.
 
+        .. NOTE::
+
+            This takes a bilinear form on `V` as matrix, and
+            returns a bilinear form on ``self`` as a function in
+            two arguments. We do not return the bilinear form as
+            a matrix since this matrix can be huge and one often
+            needs just a particular value.
+
+        .. TODO::
+
+            Implement a class for bilinear forms and rewrite this
+            method to use that class.
+
         EXAMPLES::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: M = Matrix(QQ, [[1, 2, 3], [2, 3, 4], [3, 4, 5]])
             sage: Eform = E.lifted_bilinear_form(M)
+            sage: Eform
+            Bilinear Form from The exterior algebra of rank 3 over Rational Field to Rational Field
             sage: Eform(x*y, y*z)
             -1
             sage: Eform(x*y, y)
@@ -1877,7 +1881,6 @@ class ExteriorAlgebra(CliffordAlgebra):
             back are implemented, check if this is faster.
         """
         R = self.base_ring()
-        from sage.matrix.matrix_space import MatrixSpace
         def lifted_form(x, y):
             result = R.zero()
             for mx, cx in x:
@@ -1897,7 +1900,8 @@ class ExteriorAlgebra(CliffordAlgebra):
                     # typing (:trac:`17124`).
                     result += cx * cy * matr.determinant()
             return result
-        return lifted_form
+        return PoorManMap(lifted_form, domain=self, codomain=self.base_ring(),
+                          name="Bilinear Form")
 
     class Element(CliffordAlgebraElement):
         """

@@ -94,6 +94,7 @@ build()
     fi
 
     echo "Installing valgrind suppression file..."
+    mkdir -p "$SAGE_EXTCODE/valgrind"
     cp Misc/valgrind-python.supp "$SAGE_EXTCODE/valgrind/python.supp"
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing valgrind suppression file."

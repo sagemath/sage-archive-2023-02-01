@@ -64,6 +64,9 @@ pi = RDF.pi()
 cdef class Graphics3d(SageObject):
     """
     This is the baseclass for all 3d graphics objects.
+
+    .. automethod:: _graphics_
+    .. automethod:: __add__
     """
     def _repr_(self):
         """
@@ -81,30 +84,40 @@ cdef class Graphics3d(SageObject):
         """
         return str(self)
 
-    def _graphics_(self):
+    def _graphics_(self, mime_types=None, figsize=None, dpi=None):
         """
-        Show graphics.
+        Magic graphics method.
 
         The presence of this method is used by the displayhook to
         decide that we want to see a graphical output by default.
 
-        OUTPUT:
+        INPUT/OUTPUT:
 
-        Return ``True`` if graphical output was generated (might not
-        be shown in doctest mode), otherwise ``False``.
+        See :meth:`sage.plot.graphics.Graphics._graphics_` for details.
 
         EXAMPLES::
 
             sage: S = sphere((0, 0, 0), 1)
-            sage: S._graphics_()
-            True
+            sage: S._graphics_(mime_types={'image/png'})
+            Graphics file image/png
             sage: S  # also productes graphics
             Graphics3d Object
             sage: [S, S]
             [Graphics3d Object, Graphics3d Object]
         """
-        self.show()
-        return True
+        from sage.structure.graphics_file import (
+            Mime, graphics_from_save, GraphicsFile)
+        if (mime_types is None) or (Mime.JMOL in mime_types):
+            # default to jmol
+            from sage.misc.temporary_file import tmp_filename
+            filename = tmp_filename(
+                ext=os.path.extsep + Mime.extension(Mime.JMOL))
+            self.save(filename)
+            return GraphicsFile(filename, Mime.JMOL)
+        preference = [Mime.PNG, Mime.JPG]
+        return graphics_from_save(self.save, preference,
+                                  allowed_mime_types=mime_types, 
+                                  figsize=figsize, dpi=dpi)
 
     def __str__(self):
         """
@@ -1283,6 +1296,8 @@ end_scene""" % (render_params.antialiasing,
 
     def save(self, filename, **kwds):
         """
+        Save to file.
+
         Save the graphic to an image file (of type: PNG, BMP, GIF, PPM, or TIFF)
         rendered using Tachyon, or pickle it (stored as an SOBJ so you can load it
         later) depending on the file extension you give the filename.
@@ -1322,7 +1337,6 @@ end_scene""" % (render_params.antialiasing,
         ext = os.path.splitext(filename)[1].lower()
         if ext == '' or ext == '.sobj':
             SageObject.save(self, filename)
-            return
         elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif', '.jpg', '.jpeg']:
             opts = self._process_viewing_options(kwds)
             T = self._prepare_for_tachyon(
@@ -1341,6 +1355,17 @@ end_scene""" % (render_params.antialiasing,
             if ext != '.png':
                 import PIL.Image as Image
                 Image.open(out_filename).save(filename)
+        elif filename.endswith('.spt.zip'):
+            # Jmol zip archive
+            opts = self._process_viewing_options(kwds)
+            zoom = opts['zoom']
+            T = self._prepare_for_jmol(
+                opts['frame'],
+                opts['axes'],
+                opts['frame_aspect_ratio'],
+                opts['aspect_ratio'],
+                zoom)
+            T.export_jmol(filename, zoom=zoom*100, **kwds)
         else:
             raise ValueError('filetype not supported by save()')
 

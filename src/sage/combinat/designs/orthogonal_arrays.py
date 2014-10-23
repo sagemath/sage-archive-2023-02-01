@@ -867,7 +867,7 @@ def orthogonal_array(k,n,t=2,resolvable=False, check=True,existence=False,explai
                 if existence:
                     return True
                 elif explain_construction:
-                    return "the database contains a ({},{};{},{};{})-quasi difference matrix".format(n,k,lmbda,mu,u)
+                    return "the database contains a ({},{};{},{};{})-quasi difference matrix".format(nn,k,lmbda,mu,u)
                 G,M = f()
                 M = [R[:k] for R in M]
                 OA = OA_from_quasi_difference_matrix(M,G,add_col=False)
@@ -1868,6 +1868,8 @@ class OAMainFunctions():
 
             sage: designs.orthogonal_arrays.explain_construction(9,565)
             "Wilson's construction n=23.24+13 with master design OA(9+1,23)"
+            sage: designs.orthogonal_arrays.explain_construction(10,154)
+            'the database contains a (137,10;1,0;17)-quasi difference matrix'
         """
         return orthogonal_array(k,n,t,explain_construction=True)
 

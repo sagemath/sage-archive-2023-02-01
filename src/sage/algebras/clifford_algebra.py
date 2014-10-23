@@ -1728,6 +1728,12 @@ class ExteriorAlgebra(CliffordAlgebra):
         See :meth:`~sage.algebras.clifford_algebra.CliffordAlgebra.Element.interior_product`
         for more information.
 
+        In this method, ``a`` and ``b`` are supposed to be
+        basis elements (see
+        :meth:`~sage.algebras.clifford_algebra.CliffordAlgebra.Element.interior_product`
+        for a method that computes interior product of arbitrary
+        elements), and to be input as their keys.
+
         This depends on the choice of basis of the vector space
         whose exterior algebra is ``self``.
 
@@ -1755,6 +1761,143 @@ class ExteriorAlgebra(CliffordAlgebra):
             t.remove(i)
         R = self.base_ring()
         return self.term(tuple(t), (R.one() if sgn else - R.one()))
+
+    def lifted_bilinear_form(self, M):
+        r"""
+        Return the bilinear form on the exterior algebra ``self``
+        `= \Lambda(V)` which is obtained by lifting the bilinear
+        form `f` on `V` given by the matrix ``M``.
+
+        Let `V` be a module over a commutative ring `R`, and let
+        `f : V \times V \to R` be a bilinear form on `V`. Then,
+        a bilinear form `\Lambda(f) : \Lambda(V) \times
+        \Lambda(V) \to R` on `\Lambda(V)` can be canonically
+        defined as follows: For every `n \in \NN`, `m \in \NN`,
+        `v_1, v_2, \ldots, v_n \in V` and `w_1, w_2, \ldots,
+        w_m \in W`, we set
+
+        .. MATH::
+
+            \Lambda(f)
+            ( v_1 \wedge v_2 \wedge \cdots \wedge v_n ,
+              w_1 \wedge w_2 \wedge \cdots \wedge v_m )
+            = \begin{cases}
+              0, &\mbox{if } n \neq m ; \\
+              \det G, & \mbox{if } n = m \end{cases} ,
+
+        where `G` is the `n \times m`-matrix whose
+        `(i, j)`-th entry is `f(v_i, w_j)`. This bilinear form
+        `\Lambda(f)` is known as the bilinear form on
+        `\Lambda(V)` obtained by lifting the bilinear form `f`.
+        Its restriction to the `1`-st homogeneous component
+        `V` of `\Lambda(V)` is `f`.
+
+        The bilinear form `\Lambda(f)` is symmetric if `f` is.
+
+        .. NOTE::
+
+            This takes a bilinear form on `V` as matrix, and
+            returns a bilinear form on ``self`` as a function in
+            two arguments. This is one of a myriad possible
+            design choices; is it a good one? (I would rather
+            not return the bilinear form on ``self`` as matrix,
+            since this matrix can be huge and one often needs
+            just a particular value. I don't know if it is
+            possible to return the bilinear form on ``self`` as
+            a bilinear map -- is there a class for bilinear
+            maps? -- and, if so, if this is useful thing to do.
+
+        INPUT:
+
+        - ``M`` -- a matrix over the same base ring as ``self``,
+          whose `(i, j)`-th entry is `f(e_i, e_j)`, where
+          `(e_1, e_2, \ldots, e_N)` is the standard basis of the
+          module `V` for which ``self`` `= \Lambda(V)` (so
+          that ``N = self.ngens()``), and where `f` is the
+          bilinear form which is to be lifted.
+
+        OUTPUT:
+
+        A bivariate function which takes two elements `p` and
+        `q` of ``self`` to `\Lambda(f)(p, q)`.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: M = Matrix(QQ, [[1, 2, 3], [2, 3, 4], [3, 4, 5]])
+            sage: Eform = E.lifted_bilinear_form(M)
+            sage: Eform(x*y, y*z)
+            -1
+            sage: Eform(x*y, y)
+            0
+            sage: Eform(x*(y+z), y*z)
+            -3
+            sage: Eform(x*(y+z), y*(z+x))
+            0
+            sage: N = Matrix(QQ, [[3, 1, 7], [2, 0, 4], [-1, -3, -1]])
+            sage: N.determinant()
+            -8
+            sage: Eform = E.lifted_bilinear_form(N)
+            sage: Eform(x, E.one())
+            0
+            sage: Eform(x, x*z*y)
+            0
+            sage: Eform(E.one(), E.one())
+            1
+            sage: Eform(E.zero(), E.one())
+            0
+            sage: Eform(x, y)
+            1
+            sage: Eform(z, y)
+            -3
+            sage: Eform(x*z, y*z)
+            20
+            sage: Eform(x+x*y+x*y*z, z+z*y+z*y*x)
+            11
+
+        TESTS:
+
+        Exterior algebra over a zero space (a border case)::
+
+            sage: E = ExteriorAlgebra(QQ, 0)
+            sage: M = Matrix(QQ, [])
+            sage: Eform = E.lifted_bilinear_form(M)
+            sage: Eform(E.one(), E.one())
+            1
+            sage: Eform(E.zero(), E.one())
+            0
+
+        .. TODO::
+
+            Another way to compute this bilinear form seems to be to
+            map `x` and `y` to the appropriate Clifford algebra and
+            there compute `x^t y`, then send the result back to the
+            exterior algebra and return its constant coefficient. Or
+            something like this. Once the maps to the Clifford and
+            back are implemented, check if this is faster.
+        """
+        R = self.base_ring()
+        from sage.matrix.matrix_space import MatrixSpace
+        def lifted_form(x, y):
+            result = R.zero()
+            for mx, cx in x:
+                for my, cy in y:
+                    n = len(mx)
+                    m = len(my)
+                    if m != n:
+                        continue
+                    MS = MatrixSpace(R, n, n)
+                    MC = MS._get_matrix_class()
+                    matrix_list = [M[mx[i], my[j]]
+                                   for i in range(n)
+                                   for j in range(n)]
+                    matr = MC(MS, matrix_list, copy=False, coerce=False)
+                    # Using low-level matrix constructor here
+                    # because Matrix(...) does too much duck
+                    # typing (:trac:`17124`).
+                    result += cx * cy * matr.determinant()
+            return result
+        return lifted_form
 
     class Element(CliffordAlgebraElement):
         """

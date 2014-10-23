@@ -161,7 +161,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from combinat_cython import _stirling_number2
 ######### combinatorial sequences
 
-def bell_number(n, algorithm='dobinski', **options):
+def bell_number(n, algorithm='flint', **options):
     r"""
     Return the `n`-th Bell number (the number of ways to partition a set
     of `n` elements into pairwise disjoint nonempty subsets).
@@ -170,9 +170,11 @@ def bell_number(n, algorithm='dobinski', **options):
 
     - ``n`` -- a positive integer
 
-    - ``algorithm`` -- (Default: ``'dobinski'``) any one of the following:
+    - ``algorithm`` -- (Default: ``'flint'``) any one of the following:
 
-      - ``'dobinski'`` -- Use Dobinski's summation formula
+      - ``'dobinski'`` -- Use Dobinski's formula implemented in Sage
+
+      - ``'flint'`` -- Wrap FLINT's ``arith_bell_number``
 
       - ``'gap'`` -- Wrap libGAP's ``Bell``
 
@@ -331,6 +333,8 @@ def bell_number(n, algorithm='dobinski', **options):
 
     TESTS::
 
+        sage: all([bell_number(n) == bell_number(n,'dobinski') for n in range(200)])
+        True
         sage: all([bell_number(n) == bell_number(n,'gap') for n in range(200)])
         True
         sage: all([bell_number(n) == bell_number(n,'mpmath', prec=500) for n in range(200, 220)])
@@ -368,6 +372,10 @@ def bell_number(n, algorithm='dobinski', **options):
             mp.dps = old_prec
             return ret
         return ZZ(int(ret_mp))
+
+    elif algorithm == 'flint':
+        import sage.libs.flint.arith
+        return sage.libs.flint.arith.bell_number(n)
 
     elif algorithm == 'gap':
         from sage.libs.gap.libgap import libgap

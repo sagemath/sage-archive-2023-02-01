@@ -6367,7 +6367,7 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-        - :meth:`is_prime` -- Tests whether a graph is prime.
+            - :meth:`is_prime` -- Tests whether a graph is prime.
 
         REFERENCE:
 

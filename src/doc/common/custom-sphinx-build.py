@@ -28,7 +28,8 @@ useless_chatter = (
     re.compile('^looking for now-outdated files... none found'),
     re.compile('^building \[.*\]: targets for 0 source files that are out of date'),
     re.compile('^loading pickled environment... done'),
-    re.compile('^loading cross citations... done \([0-9]* citations\).')
+    re.compile('^loading cross citations... done \([0-9]* citations\).'),
+    re.compile('WARNING: favicon file \'favicon.ico\' does not exist')
     )
 
 # replacements: pairs of regular expressions and their replacements,

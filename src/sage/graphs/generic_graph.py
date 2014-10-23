@@ -4453,7 +4453,9 @@ class GenericGraph(GenericGraph_pyx):
           We implement the algorithm proposed by Tarjan in [Tarjan72]_. The
           original version is recursive. We emulate the recursion using a stack.
 
-        .. SEEALSO:: :meth:`blocks_and_cuts_tree`
+        .. SEEALSO::
+            
+            :meth:`blocks_and_cuts_tree`
 
         EXAMPLES::
 
@@ -4605,7 +4607,9 @@ class GenericGraph(GenericGraph_pyx):
         When ``self`` is biconnected, the tree is reduced to a single node of
         type `B`.
 
-        .. SEEALSO:: :meth:`blocks_and_cut_vertices`
+        .. SEEALSO::
+        
+            :meth:`blocks_and_cut_vertices`
 
         EXAMPLES:
 
@@ -9363,7 +9367,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :meth:`subdivide_edge` -- subdivides one edge
+            - :meth:`subdivide_edge` -- subdivides one edge
         """
         for e in edges:
             self.subdivide_edge(e, k)
@@ -11645,10 +11649,10 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :mod:`Interval Graph Recognition <sage.graphs.pq_trees>`.
-
-        - :meth:`PQ <sage.graphs.pq_trees.PQ>`
-          -- Implementation of PQ-Trees.
+            - :mod:`Interval Graph Recognition <sage.graphs.pq_trees>`.
+    
+            - :meth:`PQ <sage.graphs.pq_trees.PQ>`
+              -- Implementation of PQ-Trees.
 
         """
         self._scream_if_not_simple()
@@ -13517,13 +13521,13 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
-          -- breadth-first search for fast compiled graphs.
-
-        - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
-          -- depth-first search for fast compiled graphs.
-
-        - :meth:`depth_first_search` -- depth-first search for generic graphs.
+            - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
+              -- breadth-first search for fast compiled graphs.
+    
+            - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
+              -- depth-first search for fast compiled graphs.
+    
+            - :meth:`depth_first_search` -- depth-first search for generic graphs.
 
         EXAMPLES::
 
@@ -13642,13 +13646,13 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :meth:`breadth_first_search`
-
-        - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
-          -- breadth-first search for fast compiled graphs.
-
-        - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
-          -- depth-first search for fast compiled graphs.
+            - :meth:`breadth_first_search`
+    
+            - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
+              -- breadth-first search for fast compiled graphs.
+    
+            - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
+              -- depth-first search for fast compiled graphs.
 
         EXAMPLES::
 

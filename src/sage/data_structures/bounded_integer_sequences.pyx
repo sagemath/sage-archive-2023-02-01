@@ -151,8 +151,7 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
 
     - ``data`` -- a list of integers
 
-    - ``bound`` -- a number which is the maximal number which can be
-      represented
+    - ``bound`` -- a number which is the maximal value of an item
     """
     cdef mp_size_t index
     cdef mp_limb_t item_limb
@@ -160,10 +159,9 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
     biseq_init(R, len(data), BIT_COUNT(bound|<size_t>1))
 
     for index from 0<=index<R.length:
-        item = data[index]
-        if item > bound:
-            raise ValueError("list item %r larger than %s"%(item, bound) )
-        item_limb = item
+        item_limb = data[index]
+        if item_limb > bound:
+            raise ValueError("list item {!s:} larger than {!s:}".format(item_limb, bound) )
         biseq_inititem(R, index, item_limb)
 
 #
@@ -716,6 +714,24 @@ cdef class BoundedIntegerSequence:
             sage: S = BoundedIntegerSequence(2^32, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
             sage: S
             <8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10>
+
+        Items that are too large::
+
+            sage: BoundedIntegerSequence(100, [2^256])
+            Traceback (most recent call last):
+            ...
+            OverflowError: long int too large to convert
+            sage: BoundedIntegerSequence(100, [200])
+            Traceback (most recent call last):
+            ...
+            ValueError: list item 200 larger than 99
+
+        Bounds that are too large::
+
+            sage: BoundedIntegerSequence(2^256, [200])
+            Traceback (most recent call last):
+            ...
+            OverflowError: long int too large to convert
 
         """
         if bound <= 0:

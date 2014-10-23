@@ -197,7 +197,6 @@ cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1:
 
     The result is written into ``R``, which must not be initialised
     """
-    assert S1.itembitsize == S2.itembitsize
     biseq_init(R, S1.length + S2.length, S1.itembitsize)
     bitset_lshift(R.data, S2.data, S1.length * S1.itembitsize)
     bitset_or(R.data, R.data, S1.data)
@@ -279,30 +278,26 @@ cdef int biseq_index(biseq_t S, mp_limb_t item, mp_size_t start) except -2:
     cdef mp_bitcnt_t bit_index, local_index
     if S.length==0:
         return -1
-    max_limbs = S.data.limbs
-    predec(max_limbs)
+    max_limbs = S.data.limbs - 1
     cdef mp_size_t n
-    cdef mp_limb_t tmp_limb[2]
+    cdef mp_limb_t tmp_limb
     limb_index = 0
     bit_index = 0   # This is the index mod GMP_LIMB_BITS in S.data
     local_index = 0 # This is the index in tmp_limb
-    tmp_limb[0] = S.data.bits[0]
+    tmp_limb = S.data.bits[0]
     item &= S.mask_item
     for n from 0<=n<S.length:
         if local_index+S.itembitsize > GMP_LIMB_BITS:
             local_index = 0
             # tmp_limb[0] can not provide the next item, we need to get new stuff
+            tmp_limb = S.data.bits[limb_index]>>bit_index
             if bit_index and limb_index < max_limbs:
-                # We move two limbs now, so that tmp_limb[0] will be completely full
-                mpn_rshift(<mp_limb_t*>tmp_limb, S.data.bits+limb_index, 2, bit_index)
-            else:
-                # We shift within one limb
-                tmp_limb[0] = S.data.bits[limb_index]>>bit_index
-        #else: tmp_limb[0] provides the next item
+                # We fill the rest of tmp_limb
+                tmp_limb |= (S.data.bits[limb_index+1]) << (GMP_LIMB_BITS - bit_index)
         local_index += S.itembitsize
-        if item == tmp_limb[0]&S.mask_item:
+        if item == tmp_limb&S.mask_item:
             return n
-        tmp_limb[0]>>=S.itembitsize
+        tmp_limb>>=S.itembitsize
         bit_index += S.itembitsize
         if bit_index>=GMP_LIMB_BITS:
             bit_index -= GMP_LIMB_BITS
@@ -378,7 +373,7 @@ cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int
     #
     # Convention for variable names: We move data from *_src to *_tgt
     # tmp_limb is used to temporarily store the data that we move/shift
-    cdef mp_limb_t tmp_limb[2]
+    cdef mp_limb_t tmp_limb
     cdef mp_limb_t tmp_limb2
     cdef mp_size_t offset_div_src, max_limb
     cdef mp_bitcnt_t offset_mod_src
@@ -392,23 +387,22 @@ cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int
         offset_mod_src = offset_src % GMP_LIMB_BITS
         offset_div_tgt = offset_tgt // GMP_LIMB_BITS
         offset_mod_tgt = offset_tgt % GMP_LIMB_BITS
-        # put data from src to tmp_limb[0].
+        # put data from src to tmp_limb.
         if offset_mod_src:
+            tmp_limb = ((S.data.bits[offset_div_src])>>offset_mod_src)
             if (offset_mod_src+S.itembitsize > GMP_LIMB_BITS):
-                mpn_rshift(tmp_limb, S.data.bits+offset_div_src, 2, offset_mod_src)
-                tmp_limb[0] &= S.mask_item
-            else:
-                tmp_limb[0] = ((S.data.bits[offset_div_src])>>offset_mod_src) & S.mask_item
+                tmp_limb |= (S.data.bits[offset_div_src+1]) << (GMP_LIMB_BITS - offset_mod_src)
+            tmp_limb &= S.mask_item
         else:
-            tmp_limb[0] = S.data.bits[offset_div_src] & S.mask_item
-        # put data from tmp_limb[0] to tgt
+            tmp_limb = S.data.bits[offset_div_src] & S.mask_item
+        # put data from tmp_limb to tgt
         if offset_mod_tgt:
-            tmp_limb2 = mpn_lshift(tmp_limb, tmp_limb, 1, offset_mod_tgt)
+            tmp_limb2 = mpn_lshift(&tmp_limb, &tmp_limb, 1, offset_mod_tgt)
             if tmp_limb2:
                 R.data.bits[offset_div_tgt+1] = tmp_limb2
-            R.data.bits[offset_div_tgt]  |= tmp_limb[0]
+            R.data.bits[offset_div_tgt]  |= tmp_limb
         else:
-            R.data.bits[offset_div_tgt] = tmp_limb[0]
+            R.data.bits[offset_div_tgt] = tmp_limb
         offset_tgt += S.itembitsize
         offset_src += bitstep
 
@@ -897,28 +891,24 @@ cdef class BoundedIntegerSequence:
             return
         cdef mp_size_t limb_index, max_limbs
         cdef mp_bitcnt_t bit_index, local_index
-        max_limbs = self.data.data.limbs
-        predec(max_limbs)
+        max_limbs = self.data.data.limbs-1
         cdef mp_size_t n
-        cdef mp_limb_t tmp_limb[2]
+        cdef mp_limb_t tmp_limb
         limb_index = 0
         bit_index = 0   # This is the index mod GMP_LIMB_BITS in self.data.data
         local_index = 0 # This is the index in tmp_limb
-        tmp_limb[0] = self.data.data.bits[0]
+        tmp_limb = self.data.data.bits[0]
         for n from self.data.length>=n>0:
             if local_index+self.data.itembitsize > GMP_LIMB_BITS:
                 local_index = 0
-                # tmp_limb[0] can not provide the next item, we need to get new stuff
+                # tmp_limb can not provide the next item, we need to get new stuff
+                tmp_limb = self.data.data.bits[limb_index]>>bit_index
                 if bit_index and limb_index < max_limbs:
-                    # We move two limbs now, so that tmp_limb[0] will be completely full
-                    mpn_rshift(<mp_limb_t*>tmp_limb, self.data.data.bits+limb_index, 2, bit_index)
-                else:
-                    # We shift within one limb
-                    tmp_limb[0] = self.data.data.bits[limb_index]>>bit_index
-            #else: tmp_limb[0] provides the next item
+                    # We fill the rest of tmp_limb
+                    tmp_limb |= self.data.data.bits[limb_index+1] << (GMP_LIMB_BITS - bit_index)
             local_index += self.data.itembitsize
-            yield <biseq_item_t>(tmp_limb[0]&self.data.mask_item)
-            tmp_limb[0]>>=self.data.itembitsize
+            yield <biseq_item_t>(tmp_limb&self.data.mask_item)
+            tmp_limb>>=self.data.itembitsize
             bit_index += self.data.itembitsize
             if bit_index>=GMP_LIMB_BITS:
                 bit_index -= GMP_LIMB_BITS

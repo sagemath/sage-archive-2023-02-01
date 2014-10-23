@@ -530,78 +530,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
-    def is_upper_semimodular(L):
+    def is_modular(self):
         r"""
-        Return ``True`` if ``self`` is an upper semimodular lattice and
-        ``False`` otherwise.
+        Return ``True`` if the lattice is modular and ``False`` otherwise.
 
-        A lattice is upper semimodular if for any `x` in the poset that is
-        covered by `y` and `z`, both `y` and `z` are covered by their join.
+        A lattice is modular if `x \le b` implies `x \vee (a \wedge b)=
+        (x \vee a) \wedge b` for every `a` and `b`. There are other equivalent
+        definitions, see :wikipedia:`Modular_lattice`.
 
-        EXAMPLES::
-
-            sage: L = posets.DiamondPoset(5)
-            sage: L.is_upper_semimodular()
-            True
-
-            sage: L = posets.PentagonPoset()
-            sage: L.is_upper_semimodular()
-            False
-
-            sage: L = posets.ChainPoset(6)
-            sage: L.is_upper_semimodular()
-            True
-
-            sage: L = LatticePoset(posets.IntegerPartitions(4))
-            sage: L.is_upper_semimodular()
-            True
-        """
-        if not L.is_ranked():
-            return False
-        for p in L.list():
-            cover_list = L.upper_covers(p)
-            for (i,q) in enumerate(cover_list):
-                for r in cover_list[i+1:]:
-                    qr = L.join(q,r)
-                    if not (L.covers(q,qr) and L.covers(r,qr)):
-                        return False
-        return True
-
-    def is_lower_semimodular(L):
-        r"""
-        Return ``True`` if ``self`` is a lower semimodular lattice and
-        ``False`` otherwise.
-
-        A lattice is lower semimodular if for any `x` in the poset that covers
-        `y` and `z`, both `y` and `z` cover their meet.
-
-        EXAMPLES::
-
-            sage: L = posets.DiamondPoset(5)
-            sage: L.is_lower_semimodular()
-            True
-
-            sage: L = posets.PentagonPoset()
-            sage: L.is_lower_semimodular()
-            False
-
-            sage: L = posets.ChainPoset(6)
-            sage: L.is_lower_semimodular()
-            True
-        """
-        return L.dual().is_upper_semimodular()
-
-    def is_modular(L):
-        r"""
-        Return ``True`` if ``self`` is a modular lattice and ``False``
-        otherwise.
-
-        A lattice is modular if it is both upper semimodular and lower
-        semimodular.
-
-        See :wikipedia:`Modular_lattice`
-
-        See also :meth:`is_upper_semimodular` and :meth:`is_lower_semimodular`
+        See also :meth:`is_upper_semimodular` and :meth:`is_lower_semimodular`.
 
         EXAMPLES::
 
@@ -620,9 +557,97 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
             sage: L.is_modular()
             False
-        """
-        return L.is_upper_semimodular() and L.is_lower_semimodular()
 
+        ALGORITHM:
+
+        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
+        """
+        if not self.is_ranked():
+            return False
+        H=self._hasse_diagram
+        n=H.order()
+        return all(H._rank_dict[a] + H._rank_dict[b] == 
+                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+                   for a in range(n) for b in range(a+1, n))
+        return True
+
+    def is_upper_semimodular(self):
+        r"""
+        Return ``True`` if the lattice is upper semimodular and
+        ``False`` otherwise.
+
+        A lattice is upper semimodular if for any `x` in the poset that is
+        covered by `y` and `z`, both `y` and `z` are covered by their join.
+
+        See also :meth:`is_modular` and :meth:`is_lower_semimodular`.
+
+        EXAMPLES::
+
+            sage: L = posets.DiamondPoset(5)
+            sage: L.is_upper_semimodular()
+            True
+
+            sage: L = posets.PentagonPoset()
+            sage: L.is_upper_semimodular()
+            False
+
+            sage: L = posets.ChainPoset(6)
+            sage: L.is_upper_semimodular()
+            True
+
+            sage: L = LatticePoset(posets.IntegerPartitions(4))
+            sage: L.is_upper_semimodular()
+            True
+
+        ALGORITHM:
+
+        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
+        """
+        if not self.is_ranked():
+            return False
+        H=self._hasse_diagram
+        n=H.order()
+        return all(H._rank_dict[a] + H._rank_dict[b] >=
+                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+                   for a in range(n) for b in range(a+1, n))
+        return True
+
+    def is_lower_semimodular(self):
+        r"""
+        Return ``True`` if the lattice is lower semimodular and
+        ``False`` otherwise.
+
+        A lattice is lower semimodular if for any `x` in the poset that covers
+        `y` and `z`, both `y` and `z` cover their meet.
+
+        See also :meth:`is_modular` and :meth:`is_upper_semimodular`.
+
+        EXAMPLES::
+
+            sage: L = posets.DiamondPoset(5)
+            sage: L.is_lower_semimodular()
+            True
+
+            sage: L = posets.PentagonPoset()
+            sage: L.is_lower_semimodular()
+            False
+
+            sage: L = posets.ChainPoset(6)
+            sage: L.is_lower_semimodular()
+            True
+
+        ALGORITHM:
+
+        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
+        """
+        if not self.is_ranked():
+            return False
+        H=self._hasse_diagram
+        n=H.order()
+        return all(H._rank_dict[a] + H._rank_dict[b] <=
+                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+                   for a in range(n) for b in range(a+1, n))
+        return True
 
 ####################################################################################
 

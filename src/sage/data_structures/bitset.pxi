@@ -147,6 +147,22 @@ cdef inline void bitset_copy(bitset_t dst, bitset_t src):
 # Bitset Comparison
 #############################################################################
 
+cdef inline bint mpn_equal_bits(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n):
+    """
+    Return ``True`` iff the first n bits of *b1 and *b2 agree.
+    """
+    cdef mp_size_t nlimbs = n // GMP_LIMB_BITS
+    cdef mp_limb_t mask = limb_lower_bits_down(n)
+    if nlimbs > 0 and mpn_cmp(b1, b2, nlimbs) != 0:
+        return False
+    if mask == 0:
+        return True
+
+    cdef mp_limb_t b1h = b1[nlimbs]
+    cdef mp_limb_t b2h = b2[nlimbs]
+    return (b1h ^ b2h) & mask == 0
+
+
 cdef inline bint bitset_isempty(bitset_t bits):
     """
     Test whether bits is empty.  Return True (i.e., 1) if the set is

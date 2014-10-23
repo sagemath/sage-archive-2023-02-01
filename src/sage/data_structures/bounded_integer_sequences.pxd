@@ -46,7 +46,7 @@ cdef int biseq_max_overlap(biseq_t S1, biseq_t S2) except 0
 cdef int biseq_index(biseq_t S, mp_limb_t item, mp_size_t start) except -2
 cdef biseq_item_t biseq_getitem(biseq_t S, mp_size_t index)
 cdef biseq_getitem_py(biseq_t S, mp_size_t index)
-cdef biseq_inititem(biseq_t S, mp_size_t index, biseq_item_t item)
+cdef inline void biseq_inititem(biseq_t S, mp_size_t index, biseq_item_t item)
 cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1
 
 cdef class BoundedIntegerSequence:

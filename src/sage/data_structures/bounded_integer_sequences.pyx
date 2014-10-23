@@ -19,7 +19,7 @@ Cython modules:
   Allocate memory (filled with zero) for a bounded integer sequence
   of length l with items fitting in itemsize bits.
 
-- ``cdef void biseq_dealloc(biseq_t S)``
+- ``cdef inline void biseq_dealloc(biseq_t S)``
 
    Free the data stored in ``S``.
 
@@ -125,7 +125,7 @@ cdef bint biseq_init(biseq_t R, mp_size_t l, mp_bitcnt_t itemsize) except -1:
     R.itembitsize = itemsize
     R.mask_item = limb_lower_bits_up(itemsize)
 
-cdef void biseq_dealloc(biseq_t S):
+cdef inline void biseq_dealloc(biseq_t S):
     """
     Deallocate the memory used by S.
     """
@@ -159,7 +159,8 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
 
     biseq_init(R, len(data), BIT_COUNT(bound|<size_t>1))
 
-    for index, item in enumerate(data):
+    for index from 0<=index<R.length:
+        item = data[index]
         if item > bound:
             raise ValueError("list item %r larger than %s"%(item, bound) )
         item_limb = item
@@ -315,7 +316,7 @@ cdef biseq_getitem_py(biseq_t S, mp_size_t index):
     cdef size_t out = biseq_getitem(S, index)
     return PyInt_FromSize_t(out)
 
-cdef biseq_inititem(biseq_t S, mp_size_t index, biseq_item_t item):
+cdef inline void biseq_inititem(biseq_t S, mp_size_t index, biseq_item_t item):
     """
     Set ``S[index] = item``, without checking margins.
 
@@ -332,7 +333,7 @@ cdef biseq_inititem(biseq_t S, mp_size_t index, biseq_item_t item):
         # Our item is stored using 2 limbs, add the part from the upper limb
         S.data.bits[limb_index+1] |= (item >> (GMP_LIMB_BITS - bit_index))
 
-cdef biseq_clearitem(biseq_t S, mp_size_t index):
+cdef inline void biseq_clearitem(biseq_t S, mp_size_t index):
     """
     Set ``S[index] = 0``, without checking margins.
 

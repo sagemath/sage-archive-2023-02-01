@@ -480,8 +480,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
     .. WARNING::
 
-        The Clifford is not graded, but instead filtred. This will be
-        changed once :trac:`17096` is finished.
+        The Clifford algebra is not graded, but instead filtered. This
+        will be changed once :trac:`17096` is finished.
     """
     @staticmethod
     def __classcall_private__(cls, Q, names=None):

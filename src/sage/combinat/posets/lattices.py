@@ -497,19 +497,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
             sage: L.is_modular()
             False
+
+        ALGORITHM:
+
+        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
         """
-        # Algorithm is based on pp. 286-287 on Enumerative Combinatorics,
-        # second edition (version of 15 July 2011) by Richard P. Stanley.
-        # Available at http://www-math.mit.edu/~rstan/ec/ec1.pdf
         if not self.is_ranked():
             return False
         H=self._hasse_diagram
         n=H.order()
-        for a in range(0, n):
-            for b in range(a+1, n):
-                if ( H._rank_dict[a]+H._rank_dict[b] != 
-                     H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]] ):
-                    return False
+        return all(H._rank_dict[a] + H._rank_dict[b] == 
+                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+                   for a in range(n) for b in range(a+1, n))
         return True
 
     def is_upper_semimodular(self):
@@ -539,16 +538,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = LatticePoset(posets.IntegerPartitions(4))
             sage: L.is_upper_semimodular()
             True
+
+        ALGORITHM:
+
+        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
         """
         if not self.is_ranked():
             return False
         H=self._hasse_diagram
         n=H.order()
-        for a in range(0, n):
-            for b in range(a+1, n):
-                if ( H._rank_dict[a]+H._rank_dict[b] <
-                     H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]] ):
-                    return False
+        return all(H._rank_dict[a] + H._rank_dict[b] >=
+                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+                   for a in range(n) for b in range(a+1, n))
         return True
 
     def is_lower_semimodular(self):
@@ -574,16 +575,18 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = posets.ChainPoset(6)
             sage: L.is_lower_semimodular()
             True
+
+        ALGORITHM:
+
+        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
         """
         if not self.is_ranked():
             return False
         H=self._hasse_diagram
         n=H.order()
-        for a in range(0, n):
-            for b in range(a+1, n):
-                if ( H._rank_dict[a]+H._rank_dict[b] >
-                     H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]] ):
-                    return False
+        return all(H._rank_dict[a] + H._rank_dict[b] <=
+                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+                   for a in range(n) for b in range(a+1, n))
         return True
 
 ####################################################################################

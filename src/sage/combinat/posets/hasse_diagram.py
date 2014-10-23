@@ -179,7 +179,7 @@ class HasseDiagram(DiGraph):
         for u,v,l in self.edge_iterator():
             yield (u,v)
 
-    def cover_relations(self,element=None):
+    def cover_relations(self):
         r"""
         TESTS::
 

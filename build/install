@@ -377,6 +377,7 @@ PYGMENTS=`newest_version pygments`
 PYNAC=`newest_version pynac`
 PYPARSING=`newest_version pyparsing`
 PYTHON=`newest_version python`
+PYZMQ=`newest_version pyzmq`
 R=`newest_version r`
 RPY=`newest_version rpy2`
 RATPOINTS=`newest_version ratpoints`
@@ -398,6 +399,7 @@ SYMPY=`newest_version sympy`
 TACHYON=`newest_version tachyon`
 TORNADO=`newest_version tornado`
 NCURSES=`newest_version ncurses`
+ZEROMQ=`newest_version zeromq`
 ZLIB=`newest_version zlib`
 ZNPOLY=`newest_version zn_poly`
 

@@ -38,7 +38,7 @@ ctypedef biseq_s biseq_t[1]
 cdef bint biseq_init(biseq_t R, mp_size_t l, mp_bitcnt_t itemsize) except -1
 cdef void biseq_dealloc(biseq_t S)
 cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1
-cdef bint biseq_init_list(biseq_t R, list data, mp_limb_t bound) except -1
+cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1
 cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1
 cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1
 cdef int biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2

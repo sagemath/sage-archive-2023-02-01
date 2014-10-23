@@ -27,7 +27,7 @@ Cython modules:
 
   Copy S to the unallocated bitset R.
 
-- ``cdef bint biseq_init_list(biseq_t R, list data, unsigned int bound) except -1``
+- ``cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1``
 
   Convert a list to a bounded integer sequence, which must not be allocated.
 
@@ -85,7 +85,6 @@ include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include 'sage/data_structures/bitset.pxi'
 
-from libc.stdint cimport SIZE_MAX
 from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
 from sage.libs.gmp.mpn cimport mpn_rshift, mpn_lshift, mpn_copyi, mpn_ior_n, mpn_zero, mpn_copyd, mpn_cmp
 from sage.libs.flint.flint cimport FLINT_BIT_COUNT as BIT_COUNT
@@ -138,7 +137,7 @@ cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1:
 # Conversion
 #
 
-cdef bint biseq_init_list(biseq_t R, list data, mp_limb_t bound) except -1:
+cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
     """
     Convert a list into a bounded integer sequence and write the result
     into ``R``, which must not be initialised.
@@ -156,16 +155,12 @@ cdef bint biseq_init_list(biseq_t R, list data, mp_limb_t bound) except -1:
     cdef mp_size_t offset_div
     cdef mp_size_t offset = 0
 
-    if not (bound <= SIZE_MAX):
-        raise OverflowError("bound can be at most %s" % SIZE_MAX)
-    bound |= 1  # A bound of 0 should become 1
-    biseq_init(R, len(data), BIT_COUNT(bound))
+    biseq_init(R, len(data), BIT_COUNT(bound|<size_t>1))
 
     for item in data:
         item_limb = item
-        #if item_limb > bound:
-        #    raise ValueError("list item %r larger than %s"%(item, bound) )
-        item_limb &= R.mask_item
+        if item_limb > bound:
+            raise ValueError("list item %r larger than %s"%(item, bound) )
         offset_mod = offset % GMP_LIMB_BITS
         offset_div = offset // GMP_LIMB_BITS
         if offset_mod:
@@ -484,10 +479,9 @@ cdef class BoundedIntegerSequence:
     INPUT:
 
     - ``bound``, non-negative integer. When zero, a :class:`ValueError`
-      will be raised. Otherwise, the given bound is replaced by the next
-      power of two that is greater than the given bound.
-    - ``data``, a list of integers. The given integers will be truncated
-      to be less than the bound.
+      will be raised. Otherwise, the given bound is replaced by the
+      power of two that is at least the given bound.
+    - ``data``, a list of integers.
 
     EXAMPLES:
 
@@ -502,22 +496,21 @@ cdef class BoundedIntegerSequence:
         <2, 7, 20>
 
     Each bounded integer sequence has a bound that is a power of two, such
-    that all its item are less than this bound (they are in fact truncated)::
+    that all its item are less than this bound::
 
         sage: S.bound()
         32
         sage: BoundedIntegerSequence(16, [2, 7, 20])
-        <2, 7, 4>
+        Traceback (most recent call last):
+        ...
+        ValueError: list item 20 larger than 15
 
     Bounded integer sequences are iterable, and we see that we can recover the
-    originally given list, modulo the bound::
+    originally given list::
 
         sage: L = [randint(0,31) for i in range(5000)]
         sage: S = BoundedIntegerSequence(32, L)
         sage: list(L) == L
-        True
-        sage: S16 = BoundedIntegerSequence(16, L)
-        sage: list(S16) == [x%S16.bound() for x in L]
         True
 
     Getting items and slicing works in the same way as for lists. Note,
@@ -629,17 +622,21 @@ cdef class BoundedIntegerSequence:
         Traceback (most recent call last):
         ...
         OverflowError: can't convert negative value to mp_limb_t
-        sage: BoundedIntegerSequence(1, [2, 7, 0])
-        <0, 1, 0>
-        sage: BoundedIntegerSequence(0, [2, 7, 0])
+        sage: BoundedIntegerSequence(1, [0, 0, 0])
+        <0, 0, 0>
+        sage: BoundedIntegerSequence(1, [0, 1, 0])
         Traceback (most recent call last):
         ...
-        ValueError: Positive bound expected
+        ValueError: list item 1 larger than 0
+        sage: BoundedIntegerSequence(0, [0, 1, 0])
+        Traceback (most recent call last):
+        ...
+        ValueError: positive bound expected
         sage: BoundedIntegerSequence(2, [])
         <>
         sage: BoundedIntegerSequence(2, []) == BoundedIntegerSequence(4, []) # The bounds differ
         False
-        sage: BoundedIntegerSequence(16, [2, 7, 20])[1:1]
+        sage: BoundedIntegerSequence(16, [2, 7, 4])[1:1]
         <>
 
     """
@@ -680,7 +677,7 @@ cdef class BoundedIntegerSequence:
         """
         biseq_dealloc(self.data)
 
-    def __init__(self, mp_limb_t bound, list data):
+    def __init__(self, bound, data):
         """
         INPUT:
 
@@ -698,37 +695,36 @@ cdef class BoundedIntegerSequence:
             sage: S = BoundedIntegerSequence(57, L)   # indirect doctest
             sage: list(S) == L
             True
-
-        The given data are truncated according to the bound::
-
-            sage: S = BoundedIntegerSequence(11, [4,1,6,2,7,20,9]); S
+            sage: S = BoundedIntegerSequence(11, [4,1,6,2,7,4,9]); S
             <4, 1, 6, 2, 7, 4, 9>
             sage: S.bound()
             16
-            sage: S = BoundedIntegerSequence(11, L)
-            sage: [x%S.bound() for x in L] == list(S)
-            True
 
-        Non-positive bounds result in errors::
+        Non-positive bounds or bounds which are too large result in errors::
 
             sage: BoundedIntegerSequence(-1, L)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to mp_limb_t
+            ValueError: positive bound expected
             sage: BoundedIntegerSequence(0, L)
             Traceback (most recent call last):
             ...
-            ValueError: Positive bound expected
+            ValueError: positive bound expected
+            sage: BoundedIntegerSequence(2^64+1, L)
+            Traceback (most recent call last):
+            ...
+            OverflowError: long int too large to convert
 
-        We are testing the corner case of the maximal possible bound::
+        We are testing the corner case of the maximal possible bound
+        on a 32-bit system::
 
-            sage: S = BoundedIntegerSequence(2^32-1, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
+            sage: S = BoundedIntegerSequence(2^32, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
             sage: S
             <8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10>
 
         """
-        if bound==0:
-            raise ValueError("Positive bound expected")
+        if bound <= 0:
+            raise ValueError("positive bound expected")
         biseq_init_list(self.data, data, bound-1)
 
     def __copy__(self):
@@ -738,7 +734,7 @@ cdef class BoundedIntegerSequence:
         EXAMPLES::
 
             sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
-            sage: S = BoundedIntegerSequence(11, [4,1,6,2,7,20,9])
+            sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: copy(S) is S
             True
 
@@ -1049,8 +1045,8 @@ cdef class BoundedIntegerSequence:
 
         ::
 
-            sage: S1 = BoundedIntegerSequence(3,[1,3])
-            sage: S2 = BoundedIntegerSequence(3,[0])
+            sage: S1 = BoundedIntegerSequence(4, [1,3])
+            sage: S2 = BoundedIntegerSequence(4, [0])
             sage: S2 in S1
             False
 

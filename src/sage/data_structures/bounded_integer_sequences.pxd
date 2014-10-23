@@ -1,8 +1,6 @@
 from sage.libs.gmp.types cimport *
 from sage.data_structures.bitset cimport *
 
-ctypedef size_t biseq_item_t
-
 # A biseq (bounded integer sequence) is a sequence of non-negative
 # integers, each fitting in "itembitsize" bits. We store the sequence
 # in a bitset of length at least length*itembitsize.
@@ -31,7 +29,7 @@ ctypedef struct biseq_s:
 
     # If L is a limb, then "L & mask_item" extracts the first
     # itembitsize bits of it, i.e., it extracts one item.
-    biseq_item_t mask_item
+    size_t mask_item
 
 ctypedef biseq_s biseq_t[1]
 
@@ -44,9 +42,9 @@ cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1
 cdef int biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
 cdef int biseq_max_overlap(biseq_t S1, biseq_t S2) except 0
 cdef int biseq_index(biseq_t S, mp_limb_t item, mp_size_t start) except -2
-cdef biseq_item_t biseq_getitem(biseq_t S, mp_size_t index)
+cdef size_t biseq_getitem(biseq_t S, mp_size_t index)
 cdef biseq_getitem_py(biseq_t S, mp_size_t index)
-cdef inline void biseq_inititem(biseq_t S, mp_size_t index, biseq_item_t item)
+cdef inline void biseq_inititem(biseq_t S, mp_size_t index, size_t item)
 cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1
 
 cdef class BoundedIntegerSequence:

@@ -57,15 +57,15 @@ Cython modules:
   Returns the position *in S* of the item in ``S[start:]``, or ``-1`` if
   ``S[start:]`` does not contain the item.
 
-- ``cdef biseq_item_t biseq_getitem(biseq_t S, mp_size_t index)``
+- ``cdef size_t biseq_getitem(biseq_t S, mp_size_t index)``
 
   Returns ``S[index]``, without checking margins.
 
-- ``cdef biseq_item_t biseq_getitem_py(biseq_t S, mp_size_t index)``
+- ``cdef size_t biseq_getitem_py(biseq_t S, mp_size_t index)``
 
   Returns ``S[index]`` as Python ``int`` or ``long``, without checking margins.
 
-- ``cdef biseq_inititem(biseq_t S, mp_size_t index, biseq_item_t item)``
+- ``cdef biseq_inititem(biseq_t S, mp_size_t index, size_t item)``
 
   Set ``S[index] = item``, without checking margins and assuming that ``S[index]``
   has previously been zero.
@@ -161,7 +161,7 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
     for index from 0<=index<R.length:
         item_limb = data[index]
         if item_limb > bound:
-            raise ValueError("list item {!s:} larger than {!s:}".format(item_limb, bound) )
+            raise ValueError("list item {!r:} larger than {!r:}".format(item_limb, bound) )
         biseq_inititem(R, index, item_limb)
 
 #
@@ -289,7 +289,7 @@ cdef int biseq_index(biseq_t S, mp_limb_t item, mp_size_t start) except -2:
     return -1
 
 
-cdef inline biseq_item_t biseq_getitem(biseq_t S, mp_size_t index):
+cdef inline size_t biseq_getitem(biseq_t S, mp_size_t index):
     """
     Get item S[index], without checking margins.
 
@@ -314,7 +314,7 @@ cdef biseq_getitem_py(biseq_t S, mp_size_t index):
     cdef size_t out = biseq_getitem(S, index)
     return PyInt_FromSize_t(out)
 
-cdef inline void biseq_inititem(biseq_t S, mp_size_t index, biseq_item_t item):
+cdef inline void biseq_inititem(biseq_t S, mp_size_t index, size_t item):
     """
     Set ``S[index] = item``, without checking margins.
 
@@ -496,7 +496,7 @@ cdef class BoundedIntegerSequence:
         sage: BoundedIntegerSequence(16, [2, 7, 20])
         Traceback (most recent call last):
         ...
-        ValueError: list item 20 larger than 15
+        ValueError: list item 20L larger than 15
 
     Bounded integer sequences are iterable, and we see that we can recover the
     originally given list::
@@ -620,7 +620,7 @@ cdef class BoundedIntegerSequence:
         sage: BoundedIntegerSequence(1, [0, 1, 0])
         Traceback (most recent call last):
         ...
-        ValueError: list item 1 larger than 0
+        ValueError: list item 1L larger than 0
         sage: BoundedIntegerSequence(0, [0, 1, 0])
         Traceback (most recent call last):
         ...
@@ -724,7 +724,7 @@ cdef class BoundedIntegerSequence:
             sage: BoundedIntegerSequence(100, [200])
             Traceback (most recent call last):
             ...
-            ValueError: list item 200 larger than 99
+            ValueError: list item 200L larger than 99
 
         Bounds that are too large::
 
@@ -914,7 +914,7 @@ cdef class BoundedIntegerSequence:
                     # We fill the rest of tmp_limb
                     tmp_limb |= self.data.data.bits[limb_index+1] << (GMP_LIMB_BITS - bit_index)
             local_index += self.data.itembitsize
-            yield <biseq_item_t>(tmp_limb&self.data.mask_item)
+            yield <size_t>(tmp_limb&self.data.mask_item)
             tmp_limb>>=self.data.itembitsize
             bit_index += self.data.itembitsize
             if bit_index>=GMP_LIMB_BITS:

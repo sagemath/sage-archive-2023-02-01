@@ -1,4 +1,4 @@
-from sage.misc.bitset cimport *
+from sage.data_structures.bitset cimport *
 
 DEF BINT_EXCEPT = -2**31 - 1  # def. repeated in .pyx file
 

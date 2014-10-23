@@ -23,7 +23,7 @@ REFERENCES:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 cdef extern from "math.h":
     float log(float x)

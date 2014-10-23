@@ -283,7 +283,12 @@ ext_modules = [
     ################################
 
     Extension('sage.data_structures.bounded_integer_sequences',
-              sources = ['sage/data_structures/bounded_integer_sequences.pyx']),
+              sources = ['sage/data_structures/bounded_integer_sequences.pyx'],
+              libraries = ['gmp']),
+
+    Extension('sage.data_structures.bitset',
+              sources = ['sage/data_structures/bitset.pyx'],
+              libraries = ['gmp']),
 
     ################################
     ##
@@ -1210,10 +1215,6 @@ ext_modules = [
 
     Extension('sage.misc.allocator',
               sources = ['sage/misc/allocator.pyx']),
-
-    Extension('sage.misc.bitset',
-              sources = ['sage/misc/bitset.pyx'],
-              libraries = ['gmp']),
 
     Extension('sage.misc.cachefunc',
               sources = ['sage/misc/cachefunc.pyx']),

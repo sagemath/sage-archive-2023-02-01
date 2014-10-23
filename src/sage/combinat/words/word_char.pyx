@@ -13,7 +13,7 @@ Fast word datatype using an array of unsigned char.
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 
 cimport cython
 from sage.rings.integer cimport Integer, smallInteger

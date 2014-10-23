@@ -47,7 +47,7 @@ cdef extern from "<math.h>":
     double c_sqrt "sqrt"(double)
 
 cdef class LFunctionZeroSum_abstract(SageObject):
-    """
+    r"""
     Abstract class for computing certain sums over zeros of a motivic L-function
     without having to determine the zeros themselves.
     """
@@ -839,7 +839,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         return (u+err)/Del
 
 cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
-    """
+    r"""
     Subclass for computing certain sums over zeros of an elliptic curve L-function
     without having to determine the zeros themselves.
     """
@@ -898,7 +898,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         return s+str(self._E)
 
     def elliptic_curve(self):
-        """
+        r"""
         Return the elliptic curve associated with self.
 
         EXAMPLES::
@@ -912,7 +912,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         return self._E
 
     def lseries(self):
-        """
+        r"""
         Return the $L$-series associated with self.
 
         EXAMPLES::
@@ -1267,10 +1267,12 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         - ``Delta`` -- positive real parameter defining the
           tightness of the zero sum, and thus the closeness of the returned
           estimate to the actual analytic rank of the form attached to self.
+
         - ``bad_primes`` -- (default: None) If not None, a list of primes dividing
           the level of the form attached to self. This is passable so that this
           method can be run on curves whose conductor is large enough to warrant
           precomputing bad primes.
+          
         - ``ncpus`` - (default: None) If not None, a positive integer
           defining the number of CPUs to be used for the computation. If left as
           None, the maximum available number of CPUs will be used.
@@ -1711,7 +1713,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             return smallest_bound
 
 def LFunctionZeroSum(X, *args, **kwds):
-    """
+    r"""
     Constructor for the LFunctionZeroSum class.
 
     INPUT:

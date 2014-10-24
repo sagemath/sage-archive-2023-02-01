@@ -161,7 +161,7 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
     for index from 0<=index<R.length:
         item_limb = data[index]
         if item_limb > bound:
-            raise ValueError("list item {!r:} larger than {!r:}".format(item_limb, bound) )
+            raise ValueError("list item {} larger than {}".format(data[index], bound) )
         biseq_inititem(R, index, item_limb)
 
 #
@@ -496,7 +496,7 @@ cdef class BoundedIntegerSequence:
         sage: BoundedIntegerSequence(16, [2, 7, 20])
         Traceback (most recent call last):
         ...
-        ValueError: list item 20L larger than 15
+        ValueError: list item 20 larger than 15
 
     Bounded integer sequences are iterable, and we see that we can recover the
     originally given list::
@@ -620,7 +620,7 @@ cdef class BoundedIntegerSequence:
         sage: BoundedIntegerSequence(1, [0, 1, 0])
         Traceback (most recent call last):
         ...
-        ValueError: list item 1L larger than 0
+        ValueError: list item 1 larger than 0
         sage: BoundedIntegerSequence(0, [0, 1, 0])
         Traceback (most recent call last):
         ...
@@ -724,7 +724,7 @@ cdef class BoundedIntegerSequence:
             sage: BoundedIntegerSequence(100, [200])
             Traceback (most recent call last):
             ...
-            ValueError: list item 200L larger than 99
+            ValueError: list item 200 larger than 99
 
         Bounds that are too large::
 

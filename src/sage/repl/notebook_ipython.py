@@ -20,23 +20,6 @@ from sage.repl.interpreter import (
 )
 
 
-# The directory where all Sage IPython Notebooks files are stored
-NOTEBOOK_DIR = os.path.join(DOT_SAGE, 'notebooks_ipython')
-
-def make_notebook_dir():
-    """
-    Ensure that the IPython notebook directory exists.
-
-    EXAMPLES::
-
-        sage: from sage.repl.notebook_ipython import make_notebook_dir, NOTEBOOK_DIR
-        sage: make_notebook_dir()
-        sage: assert os.path.isdir(NOTEBOOK_DIR)
-    """
-    if not os.path.exists(NOTEBOOK_DIR):
-        os.makedirs(NOTEBOOK_DIR)
-
-
 # The notebook Jinja2 templates and static files
 TEMPLATE_PATH = os.path.join(SAGE_EXTCODE, 'notebook-ipython', 'templates')
 STATIC_PATH = os.path.join(SAGE_EXTCODE, 'notebook-ipython', 'static')
@@ -48,7 +31,6 @@ DEFAULT_SAGE_NOTEBOOK_CONFIG = Config(
     SageNotebookApp = Config(
         # log_level = 'DEBUG',       # if you want more logs
         # open_browser = False,      # if you want to avoid browser restart
-        notebook_dir = NOTEBOOK_DIR,
         webapp_settings = Config(
             template_path = TEMPLATE_PATH,
         ),
@@ -68,7 +50,7 @@ class SageNotebookApp(NotebookApp):
         EXAMPLES::
 
             sage: from sage.misc.temporary_file import tmp_dir
-            sage: from sage.repl.notebook_ipython import SageNotebookApp, NOTEBOOK_DIR
+            sage: from sage.repl.notebook_ipython import SageNotebookApp
             sage: d = tmp_dir()
             sage: IPYTHONDIR = os.environ['IPYTHONDIR']
             sage: os.environ['IPYTHONDIR'] = d
@@ -76,11 +58,10 @@ class SageNotebookApp(NotebookApp):
             sage: app.load_config_file()    # random output
             2014-09-16 23:57:35.6 [SageNotebookApp] Created profile dir: 
             u'/home/vbraun/.sage/temp/desktop.localdomain/1490/dir_ZQupP5/profile_default'
-            sage: app.config.SageNotebookApp.notebook_dir == NOTEBOOK_DIR
-            True
+            sage: app.notebook_dir          # random output
+            u'/home/vbraun/'
             sage: os.environ['IPYTHONDIR'] = IPYTHONDIR
         """
-        make_notebook_dir()
         super(SageNotebookApp, self).load_config_file(*args, **kwds)
         newconfig = copy.deepcopy(DEFAULT_SAGE_CONFIG)
         newconfig.merge(DEFAULT_SAGE_NOTEBOOK_CONFIG)

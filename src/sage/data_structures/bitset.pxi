@@ -27,6 +27,7 @@ include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 from sage.libs.gmp.mpn cimport *
 from sage.data_structures.bitset cimport *
+from cython.operator import preincrement as preinc
 
 # Doctests for the functions in this file are in sage/data_structures/bitset.pyx
 
@@ -162,6 +163,36 @@ cdef inline bint mpn_equal_bits(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n):
     cdef mp_limb_t b2h = b2[nlimbs]
     return (b1h ^ b2h) & mask == 0
 
+cdef inline bint mpn_equal_bits_shifted(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n, mp_bitcnt_t offset):
+    """
+    Return ``True`` iff the first n bits of *b1 and the bits ranging from
+    offset to offset+n of *b2 agree.
+    """
+    cdef mp_bitcnt_t bit_offset = offset % GMP_LIMB_BITS
+    cdef mp_size_t i2 = offset//GMP_LIMB_BITS
+    if bit_offset==0:
+        return mpn_equal_bits(b1, b2 + i2, n)
+    cdef mp_size_t neg_bit_offset = GMP_LIMB_BITS-bit_offset
+    # limbs of b1 to be considered
+    cdef mp_size_t nlimbs = n // GMP_LIMB_BITS
+    # bits of an additional limb of b1 to be considered
+    cdef mp_limb_t tmp_limb
+    cdef mp_size_t i1
+    for i1 from 0 <= i1 < nlimbs:
+        tmp_limb = (b2[i2] >> bit_offset)
+        tmp_limb |= (b2[preinc(i2)] << neg_bit_offset)
+        if tmp_limb != b1[i1]:
+            return False
+    cdef mp_limb_t mask = limb_lower_bits_down(n)
+    if mask == 0:
+        return True
+
+    cdef mp_limb_t b1h = b1[nlimbs]
+    tmp_limb = (b2[i2] >> bit_offset)
+    if (n%GMP_LIMB_BITS)+bit_offset > GMP_LIMB_BITS:
+        # Need bits from the next limb of b2
+        tmp_limb |= (b2[preinc(i2)] << neg_bit_offset)
+    return (b1h ^ tmp_limb) & mask == 0
 
 cdef inline bint bitset_isempty(bitset_t bits):
     """

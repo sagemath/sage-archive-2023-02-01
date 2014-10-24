@@ -199,6 +199,8 @@ cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
     """
     if S2.length > S1.length:
         return False
+    if S2.length == 0:
+        return True
     return mpn_equal_bits(S1.data.bits, S2.data.bits, S2.data.size)
 
 
@@ -227,29 +229,14 @@ cdef int biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
         return -1
     if S2.length==0:
         return start
-    cdef bitset_t tmp
-    bitset_init(tmp, S2.data.size+GMP_LIMB_BITS)
-    cdef mp_size_t index = 0
-    cdef mp_bitcnt_t n = 0
-    cdef mp_size_t limb_index, bit_index
-    cdef mp_bitcnt_t offset = S2.data.size % GMP_LIMB_BITS
-    for index from start <= index <= S1.length-S2.length:
-        limb_index = n // GMP_LIMB_BITS
-        bit_index = n % GMP_LIMB_BITS
-        # We shift a part of S1 (with length S2) by bit_index, and compare
-        # with S2.
-        if bit_index:
-            if offset+bit_index>GMP_LIMB_BITS:
-                mpn_rshift(tmp.bits, S1.data.bits+limb_index, S2.data.limbs+1, bit_index)
-            else:
-                mpn_rshift(tmp.bits, S1.data.bits+limb_index, S2.data.limbs, bit_index)
-        else:
-            mpn_copyi(tmp.bits, S1.data.bits+limb_index, S2.data.limbs)
-        if mpn_equal_bits(tmp.bits, S2.data.bits, S2.data.size):
-            bitset_free(tmp)
+    cdef mp_bitcnt_t offset = 0
+    cdef mp_size_t index
+    for index from start <= index < S1.length-S2.length:
+        if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, S2.data.size, offset):
             return index
-        n += S1.itembitsize
-    bitset_free(tmp)
+        offset += S1.itembitsize
+    if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, S2.data.size, offset):
+        return index
     return -1
 
 cdef int biseq_index(biseq_t S, mp_limb_t item, mp_size_t start) except -2:
@@ -412,53 +399,25 @@ cdef int biseq_max_overlap(biseq_t S1, biseq_t S2) except 0:
     tested.
 
     """
-    # Idea: We store the maximal possible tail of S1 in a temporary bitset,
-    # and then rightshift it (taking care that the number of to-be-shifted
-    # limbs will decrease over time), comparing with the initial part of S2
-    # after each step.
     if S1.length == 0:
         raise ValueError("First argument must be of positive length")
-    cdef bitset_t tmp
-    cdef mp_size_t limb_index
-    cdef mp_bitcnt_t bit_index, n
-    cdef mp_size_t index, i, start_index
+    cdef mp_size_t index, start_index
     if S2.length>=S1.length:
         start_index = 1
     else:
         start_index = S1.length-S2.length
     if start_index == S1.length:
         return -1
-    n = S1.itembitsize*start_index
-    ## Initilise the temporary bitset
-    # Allocate an additional limb, to cope with shifting accross limb borders
-    bitset_init(tmp, (GMP_LIMB_BITS+S1.data.size)-n)
-    cdef mp_size_t nlimbs = tmp.limbs # number of to-be-shifted limbs
-    limb_index = n // GMP_LIMB_BITS
-    bit_index  = n % GMP_LIMB_BITS
-    if bit_index==0:
-        mpn_copyi(tmp.bits, S1.data.bits+limb_index, predec(nlimbs))
-    else:
-        if ((S1.data.size-n) % GMP_LIMB_BITS)+bit_index>GMP_LIMB_BITS:
-            # Need to shift an additional limb
-            mpn_rshift(tmp.bits, S1.data.bits+limb_index, nlimbs, bit_index)
-        else:
-            mpn_rshift(tmp.bits, S1.data.bits+limb_index, predec(nlimbs), bit_index)
-    cdef mp_bitcnt_t remaining_size = S1.data.size - n
-    n = 0  # This now counts how many bits of the highest limb of tmp we have shifted.
-    for index from start_index<=index<S1.length:
-        if mpn_equal_bits(tmp.bits, S2.data.bits, remaining_size):
-            bitset_free(tmp)
+    cdef mp_bitcnt_t offset = S1.itembitsize*start_index
+    cdef mp_bitcnt_t overlap = (S1.length-start_index)*S1.itembitsize
+    for index from start_index<=index<S1.length-1:
+        if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, overlap, offset):
             return index
-        remaining_size -= S1.itembitsize
-        if n>=GMP_LIMB_BITS:
-            mpn_rshift(tmp.bits, tmp.bits, predec(nlimbs), S1.itembitsize)
-            n = 0
-        else:
-            mpn_rshift(tmp.bits, tmp.bits, nlimbs, S1.itembitsize)
-            n += S1.itembitsize
-    bitset_free(tmp)
+        overlap -= S1.itembitsize
+        offset  += S1.itembitsize
+    if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, overlap, offset):
+        return index
     return -1
-
 
 ###########################################
 # A cdef class that wraps the above, and

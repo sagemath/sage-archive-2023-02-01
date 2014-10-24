@@ -17,6 +17,37 @@ from arith cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
+def bell_number(unsigned long n):
+    """
+    Returns the `n`th Bell number.
+
+    EXAMPLES::
+
+        sage: from sage.libs.flint.arith import bell_number
+        sage: [bell_number(i) for i in range(10)]
+        [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
+        sage: bell_number(10)
+        115975
+        sage: bell_number(40)
+        157450588391204931289324344702531067
+        sage: bell_number(100)
+        47585391276764833658790768841387207826363669686825611466616334637559114497892442622672724044217756306953557882560751
+    """
+    cdef fmpz_t ans_fmpz
+    cdef Integer ans = Integer(0)
+
+    fmpz_init(ans_fmpz)
+
+    if n > 1000:
+        sig_on()
+    arith_bell_number(ans_fmpz, n)
+    fmpz_get_mpz(ans.value, ans_fmpz)
+    fmpz_clear(ans_fmpz)
+    if n > 1000:
+        sig_off()
+
+    return ans
+
 def number_of_partitions(unsigned long n):
     """
     Returns the number of partitions of the integer ``n``.

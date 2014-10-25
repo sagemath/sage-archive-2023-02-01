@@ -18,7 +18,8 @@ design catalog:
 - :ref:`sage.combinat.designs.bibd`
 - :ref:`sage.combinat.designs.latin_squares`
 - :ref:`sage.combinat.designs.orthogonal_arrays`
-- :ref:`sage.combinat.designs.orthogonal_arrays_recursive`
+- :ref:`sage.combinat.designs.orthogonal_arrays_build_recursive`
+- :ref:`sage.combinat.designs.orthogonal_arrays_find_recursive`
 - :ref:`sage.combinat.designs.difference_family`
 - :ref:`sage.combinat.designs.difference_matrices`
 - :ref:`sage.combinat.designs.steiner_quadruple_systems`

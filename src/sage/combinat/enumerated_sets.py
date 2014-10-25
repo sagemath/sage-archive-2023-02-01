@@ -82,12 +82,14 @@ Integer matrices, ...
     - :class:`MatrixSpace`
     - :ref:`sage.groups.matrix_gps.catalog`
 
-Set partitions, ...
--------------------
+Subsets and set partitions
+--------------------------
 
+- :class:`~sage.combinat.subset.Subsets`, :class:`~sage.combinat.combination.Combinations`
+- :class:`~sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`
+- :ref:`sage.combinat.subsets_hereditary`
 - :ref:`sage.combinat.set_partition_ordered`
 - :ref:`sage.combinat.set_partition`
-- :class:`~sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`
 
 Trees
 -----

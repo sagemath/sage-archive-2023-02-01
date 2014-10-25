@@ -185,13 +185,7 @@ class NumberFieldHomset(RingHomset_generic):
         D = self.domain()
         C = self.codomain()
         if D.degree().divides(C.absolute_degree()):
-            if C.is_absolute():
-                roots = D.polynomial().roots(ring=C, multiplicities=False)
-            else:
-                C_abs = C.absolute_field('a')
-                from_abs, _ = C_abs.structure()
-                roots = D.polynomial().roots(ring=C_abs, multiplicities=False)
-                roots = [from_abs(r) for r in roots]
+            roots = D.polynomial().roots(ring=C, multiplicities=False)
             v = [D.hom([r], codomain=C, check=False) for r in roots]
         else:
             v = []

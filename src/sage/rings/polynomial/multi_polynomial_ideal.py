@@ -3,7 +3,7 @@ r"""
 Ideals in multivariate polynomial rings.
 
 Sage has a powerful system to compute with multivariate polynomial
-rings. Most algorithms dealing with these ideals are centered the
+rings. Most algorithms dealing with these ideals are centered on the
 computation of *Groebner bases*. Sage mainly uses Singular to
 implement this functionality. Singular is widely regarded as the best
 open-source system for Groebner basis calculation in multivariate
@@ -80,7 +80,7 @@ Note that the result of a computation is not necessarily reduced::
     sage: S(17) == 0
     True
 
-Or we can work with `\ZZ/17\ZZ`` directly::
+Or we can work with `\ZZ/17\ZZ` directly::
 
     sage: R.<x,y> = Zmod(17)[]
     sage: S.<a,b> = R.quotient((x^2 + y^2,))
@@ -166,7 +166,7 @@ when the system has no solutions over the rationals.
         [1]
 
     However, when we compute the Groebner basis of I (defined over
-    `\ZZ``), we note that there is a certain integer in the ideal
+    `\ZZ`), we note that there is a certain integer in the ideal
     which is not 1. ::
 
         sage: I.groebner_basis()
@@ -1254,7 +1254,7 @@ class MPolynomialIdeal_singular_repr(
             sage: (I * J).is_prime()
             False
 
-        The following is Trac #5982.  Note that the quotient ring
+        The following is :trac:`5982`.  Note that the quotient ring
         is not recognized as being a field at this time, so the
         fraction field is not the quotient ring itself::
 
@@ -2064,7 +2064,7 @@ class MPolynomialIdeal_singular_repr(
         ALGORITHM:
 
         Uses Singular's interred command or
-        :func:`sage.rings.polynomial.toy_buchberger.inter_reduction``
+        :func:`sage.rings.polynomial.toy_buchberger.inter_reduction`
         if conversion to Singular fails.
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular
@@ -3511,7 +3511,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         Return the Groebner fan of this ideal.
 
         The base ring must be `\QQ` or a finite field
-        `\GF{p}` of with `p <= 32749`.
+        `\GF{p}` of with `p \leq 32749`.
 
         EXAMPLES::
 
@@ -3540,7 +3540,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
     @cached_method
     def groebner_basis(self, algorithm='', deg_bound=None, mult_bound=None, prot=False, *args, **kwds):
-        """
+        r"""
         Return the reduced Groebner basis of this ideal.
 
         A Groebner basis `g_1,...,g_n` for an ideal `I` is a
@@ -3649,7 +3649,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         EXAMPLES:
 
-        Consider Katsura-3 over QQ with lexicographical term
+        Consider Katsura-3 over `\QQ` with lexicographical term
         ordering. We compute the reduced Groebner basis using every
         available implementation and check their equality.
 
@@ -3829,7 +3829,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             Y*Z + 6/5*Z^2 + (1/5*t^2 - 1/5*t + 1/30)*Y + (4/5*t^2 - 4/5*t + 2/15)*Z + 1/5*t^4 - 2/5*t^3 + 7/15*t^2 - 3/10*t - 11/45, X + 2*Y + 2*Z + t^2 - t - 1/3]
 
         In cases where a characteristic cannot be determined, we use a toy implementation of Buchberger's algorithm
-        (see ticket 6581):
+        (see :trac:`6581`)::
 
             sage: R.<a,b> = QQ[]; I = R.ideal(a^2+b^2-1)
             sage: Q = QuotientRing(R,I); K = Frac(Q)
@@ -4342,7 +4342,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.plot()                         # the Singular logo
             Graphics object consisting of 1 graphics primitive
 
-        This used to be trac #5267::
+        This used to be :trac:`5267`::
 
             sage: I = R.ideal([-x^2*y+1])
             sage: I.plot()

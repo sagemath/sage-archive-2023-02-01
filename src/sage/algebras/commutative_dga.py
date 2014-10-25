@@ -481,8 +481,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
         if n == 0:
             return ((0,)*len(self._degrees),)
         if self.base_ring().characteristic() == 2:
-            return [tuple(_) for _
-                    in WeightedIntegerVectors(n, self._degrees)]
+            return map(tuple, WeightedIntegerVectors(n, self._degrees))
 
         even_degrees = []
         odd_degrees = []
@@ -493,9 +492,9 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 odd_degrees.append(a)
 
         if not even_degrees: # No even generators.
-            return [tuple(_) for _ in exterior_algebra_basis(n, tuple(odd_degrees))]
+            return map( tuple, exterior_algebra_basis(n, tuple(odd_degrees)) )
         if not odd_degrees: # No odd generators.
-            return [tuple(_) for _ in WeightedIntegerVectors(n, tuple(even_degrees))]
+            return map( tuple, WeightedIntegerVectors(n, tuple(even_degrees)) )
 
         # General case: both even and odd generators.
         result = []
@@ -576,7 +575,9 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: B.basis(7)
             [y*t, y*z^2, x^2*y]
         """
+        # FIXME: This is bad, I think self.cover_ring() will do the job
         NCR = self._QuotientRing_nc__R
+        # FIXME: This is bad, I think self.defining_ideal() will do the job
         gens1 = list(self._QuotientRing_nc__I.gens())
         gens2 = [i.lift() for i in I.gens()]
         gens = [_ for _ in gens1 + gens2 if _ != 0]

@@ -4710,7 +4710,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: psi_1 = RIF(1).psi() # optional - arb
             sage: psi_1 # optional - arb
             -0.577215664901533?
-            sage. psi_1.overlaps(-RIF.euler_constant()) # optional - arb
+            sage: psi_1.overlaps(-RIF.euler_constant()) # optional - arb
             True
         """
         if is_package_installed('arb'):

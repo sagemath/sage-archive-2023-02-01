@@ -1083,31 +1083,26 @@ class HasseDiagram(DiGraph):
             sage: P.meet(2,3)
             4
         """
+        if not self.has_bottom():
+            raise ValueError("Not a meet-semilattice: no bottom element.")
+        le = self._leq_matrix
         n = self.cardinality()
         meet = [[0 for x in range(n)] for x in range(n)]
-        le = copy(self.lequal_matrix())
-        for i in range(n): le[i,i] = 1
-        if not all([le[0,x]==1 for x in range(n)]):
-            raise ValueError("Not a meet-semilattice: no bottom element.")
-        lc = [[y[0] for y in self.incoming_edges([x])] for x in range(n)]
+        lc = [self.neighbors_in(x) for x in range(n)]
 
         for x in range(n): # x=x_k
             meet[x][x] = x
             for y in range(x):
-                T = []
-                for z in lc[x]:
-                    T.append(meet[y][z]) # T = {x_i \wedge z : z>-x_k}
+                T = [meet[y][z] for z in lc[x]] # T = {x_i \wedge z : z>-x_k}
 
-                q = T[0]
-                for z in T:
-                    if z>q: q = z
+                q = max(T)
                 for z in T:
                     if not le[z,q]:
                         raise ValueError("No meet for x=%s y=%s"%(x,y))
                 meet[x][y] = q
                 meet[y][x] = q
 
-        return matrix(ZZ,meet)
+        return matrix(ZZ, meet)
 
     def meet_matrix(self):
         r"""

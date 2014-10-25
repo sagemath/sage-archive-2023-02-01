@@ -2195,6 +2195,12 @@ if is_package_installed('arb'):
                  language = "c",
                  libraries = ['arb', 'mpfi', 'mpfr'],
                  include_dirs = [SAGE_INC + '/flint'],
+                 depends = flint_depends),
+       Extension("sage.rings.complex_interval_acb",
+                 ["sage/rings/complex_interval_acb.pyx"],
+                 language = "c",
+                 libraries = ['arb', 'mpfi', 'mpfr'],
+                 include_dirs = [SAGE_INC + '/flint'],
                  depends = flint_depends)
        ])
 

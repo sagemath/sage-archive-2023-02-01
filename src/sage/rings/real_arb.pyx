@@ -182,13 +182,13 @@ cdef class Arb(SageObject):
 
         if value is None:
             if precision > 0:
-                self.precision = precision
+                self._precision_ = precision
             else:
                 raise TypeError("precision must be given.")
         elif isinstance(value, RealIntervalFieldElement):
             element = <RealIntervalFieldElement> value
-            self.precision = value.parent().precision()
-            mpfi_to_arb(self.value, element.value, self.precision)
+            self._precision_ = value.parent().precision()
+            mpfi_to_arb(self.value, element.value, self._precision_)
 
         else:
             raise TypeError("value must be None or a "
@@ -216,8 +216,8 @@ cdef class Arb(SageObject):
 
         cdef RealIntervalFieldElement result
 
-        result = RealIntervalField(self.precision)(0)
-        arb_to_mpfi(result.value, self.value, self.precision)
+        result = RealIntervalField(self._precision_)(0)
+        arb_to_mpfi(result.value, self.value, self._precision_)
 
         return result
 
@@ -242,9 +242,8 @@ cdef class Arb(SageObject):
         """
 
         cdef Arb result
-        cdef int prec
 
-        result = Arb(precision=self.precision)
+        result = Arb(precision=self._precision_)
 
-        arb_digamma(result.value, self.value, self.precision)
+        arb_digamma(result.value, self.value, self._precision_)
         return result

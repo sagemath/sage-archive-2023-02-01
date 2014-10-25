@@ -9,6 +9,6 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision
 
 cdef class Arb(SageObject):
      cdef arb_t value
-     cdef unsigned int precision
+     cdef unsigned int _precision_
      cpdef RealIntervalFieldElement RealIntervalFieldElement(self)
      cpdef Arb psi(self)

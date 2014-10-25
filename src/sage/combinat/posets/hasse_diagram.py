@@ -1224,31 +1224,29 @@ class HasseDiagram(DiGraph):
             sage: P.join(2,3)
             0
         """
+        if not self.has_top():
+            raise ValueError("Not a join-semilattice: no top element.")
         n = self.cardinality()
         join = [[0 for x in range(n)] for x in range(n)]
-        le = copy(self.lequal_matrix())
-        for i in range(n): le[i,i] = 1
-        if not all([le[x,n-1]==1 for x in range(n)]):
-            raise ValueError("Not a join-semilattice: no top element.")
-        uc = [sorted([n-1-y[1] for y in self.outgoing_edges([x])]) for
+        le = self.lequal_matrix()
+        uc = [sorted([n-1-y for y in self.neighbors_out(x)]) for
                 x in reversed(range(n))]
 
         for x in range(n): # x=x_k
             join[x][x] = x
 
             for y in range(x):
-                T = []
-                for z in uc[x]:
-                    T.append(join[y][z]) # T = {x_i \vee z : z>-x_k}
-                q = T[0]
+                T = [join[y][z] for z in uc[x]]
+
+                q = max(T)
                 for z in T:
-                    if z>q: q = z
-                for z in T:
-                    if not le[n-1-q,n-1-z]:
+                    if not le[n-1-q, n-1-z]:
                         raise ValueError("No join for x=%s y=%s"%(x,y))
                 join[x][y] = q
                 join[y][x] = q
-        return matrix(ZZ,[[n-1-join[n-1-x][n-1-y] for y in range(n)] for x in range(n)])
+
+        return matrix(ZZ, [[n-1-join[n-1-x][n-1-y] for y in range(n)] for
+                           x in range(n)])
 
     def join_matrix(self):
         r"""

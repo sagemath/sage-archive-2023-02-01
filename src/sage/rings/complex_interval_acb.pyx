@@ -157,7 +157,6 @@ cdef class Acb(SageObject):
             TypeError: precision must be given.
         """
         cdef ComplexIntervalFieldElement element
-        cdef int prec
 
         if value is None:
             if precision > 0:

@@ -102,10 +102,10 @@ cdef class Arb(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.rings.real_arb import Arb
-        sage: a = Arb(RIF(1))
-        sage: b = a.psi()
-        sage: b.RealIntervalFieldElement()
+        sage: from sage.rings.real_arb import Arb # optional - arb
+        sage: a = Arb(RIF(1))                     # optional - arb
+        sage: b = a.psi()                         # optional - arb
+        sage: b.RealIntervalFieldElement()        # optional - arb
         -0.577215664901533?
     """
     def __cinit__(self):
@@ -122,8 +122,8 @@ cdef class Arb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import Arb
-            sage: Arb(precision=2) # indirect doctest
+            sage: from sage.rings.real_arb import Arb # optional - arb
+            sage: Arb(precision=2) # optional - arb; indirect doctest
             <type 'sage.rings.real_arb.Arb'>
         """
         arb_init(self.value)
@@ -142,9 +142,9 @@ cdef class Arb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import Arb
-            sage: a = Arb(precision=2) # indirect doctest
-            sage: del a
+            sage: from sage.rings.real_arb import Arb # optional - arb
+            sage: a = Arb(precision=2) # optional - arb; indirect doctest
+            sage: del a # optional - arb
         """
         arb_clear(self.value)
 
@@ -166,13 +166,13 @@ cdef class Arb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import Arb
-            sage: a = Arb(RIF(0, 1))
-            sage: b = Arb(1)
+            sage: from sage.rings.real_arb import Arb # optional - arb
+            sage: a = Arb(RIF(0, 1))                  # optional - arb
+            sage: b = Arb(1)                          # optional - arb
             Traceback (most recent call last):
             ...
             TypeError: value must be None or a RealIntervalFieldElement.
-            sage: c = Arb()
+            sage: c = Arb() # optional - arb
             Traceback (most recent call last):
             ...
             TypeError: precision must be given.
@@ -208,9 +208,9 @@ cdef class Arb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import Arb
-            sage: a = Arb(RIF(2))
-            sage: a.RealIntervalFieldElement()
+            sage: from sage.rings.real_arb import Arb # optional - arb
+            sage: a = Arb(RIF(2))                     # optional - arb
+            sage: a.RealIntervalFieldElement()        # optional - arb
             2
         """
 
@@ -235,9 +235,9 @@ cdef class Arb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import Arb
-            sage: a = Arb(RIF(1))
-            sage: a.psi().RealIntervalFieldElement()
+            sage: from sage.rings.real_arb import Arb # optional - arb
+            sage: a = Arb(RIF(1))                     # optional - arb
+            sage: a.psi().RealIntervalFieldElement()  # optional - arb
             -0.577215664901533?
         """
 

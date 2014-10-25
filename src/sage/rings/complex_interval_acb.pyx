@@ -74,7 +74,11 @@ cdef class Acb(SageObject):
 
     INPUT:
 
-    None.
+    - ``value`` -- (default: ``None``) ``None`` or a
+      :class:`ComplexIntervalFieldElement`.
+
+    - ``precision`` -- (default: ``0``) a non-negative
+      integer. Must be given unless ``value`` is not ``None``.
 
     OUTPUT:
 

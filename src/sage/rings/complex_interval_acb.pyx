@@ -161,12 +161,12 @@ cdef class Acb(SageObject):
 
         if value is None:
             if precision > 0:
-                self.precision = precision
+                self._precision_ = precision
             else:
                 raise TypeError("precision must be given.")
         elif isinstance(value, ComplexIntervalFieldElement):
             element = <ComplexIntervalFieldElement> value
-            self.precision = value.parent().precision()
+            self._precision_ = value.parent().precision()
             ComplexIntervalFieldElement_to_acb(self.value, element)
 
         else:
@@ -193,4 +193,4 @@ cdef class Acb(SageObject):
             2 + 2*I
         """
 
-        return acb_to_ComplexIntervalFieldElement(self.value, self.precision)
+        return acb_to_ComplexIntervalFieldElement(self.value, self._precision_)

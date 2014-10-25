@@ -12,5 +12,5 @@ cdef ComplexIntervalFieldElement acb_to_ComplexIntervalFieldElement(
 
 cdef class Acb(SageObject):
     cdef acb_t value
-    cdef unsigned long precision
+    cdef unsigned long _precision_
     cpdef ComplexIntervalFieldElement ComplexIntervalFieldElement(self)

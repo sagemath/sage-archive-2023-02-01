@@ -21,10 +21,9 @@ You may have to run ``sage -i arb`` to use the arb library.
 #*****************************************************************************
 from sage.libs.arb.arb cimport *
 from sage.libs.mpfr cimport mpfr_inits2, mpfr_clears, mpfr_t
-from sage.rings.real_mpfi cimport RealIntervalFieldElement
 from sage.rings.real_mpfi import RealIntervalField
 
-cdef mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long precision):
+cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long precision):
     """
     Convert an ``mpfi`` to an ``arb``.
 
@@ -57,7 +56,7 @@ cdef mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long precisio
     mpfr_clear(left)
     mpfr_clear(right)
 
-cdef arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision):
+cdef void arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision):
     """
     Convert an ``arb`` to an ``mpfi``.
 
@@ -195,7 +194,7 @@ cdef class Arb(SageObject):
             raise TypeError("value must be None or a "
                             "RealIntervalFieldElement.")
 
-    cpdef RealIntervalFieldElement(self):
+    cpdef RealIntervalFieldElement RealIntervalFieldElement(self):
         """
         Return :class:`RealIntervalFieldElement` of the same value.
 
@@ -222,7 +221,7 @@ cdef class Arb(SageObject):
 
         return result
 
-    cpdef psi(self):
+    cpdef Arb psi(self):
         """
         Compute the digamma function with argument self.
 

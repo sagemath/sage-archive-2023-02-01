@@ -49,26 +49,6 @@ class FinitePosets(CategoryWithAxiom):
         ##########################################################################
         # Properties of this poset
 
-        def is_lattice(self):
-            r"""
-            Returns whether this poset is both a meet and a join semilattice.
-
-            EXAMPLES::
-
-                sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
-                sage: P.is_lattice()
-                True
-
-                sage: P = Poset([[1,2],[3],[3],[]])
-                sage: P.is_lattice()
-                True
-
-                sage: P = Poset({0:[2,3],1:[2,3]})
-                sage: P.is_lattice()
-                False
-            """
-            return self.is_meet_semilattice() and self.is_join_semilattice()
-
         def is_selfdual(self):
             r"""
             Returns whether this poset is *self-dual*, that is

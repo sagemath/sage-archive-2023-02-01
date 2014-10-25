@@ -665,9 +665,7 @@ class SchemeMorphism_structure_map(SchemeMorphism):
     EXAMPLES::
 
         sage: Spec(ZZ).structure_morphism()    # indirect doctest
-        Scheme morphism:
-          From: Spectrum of Integer Ring
-          To:   Spectrum of Integer Ring
+        Scheme endomorphism of Spectrum of Integer Ring
           Defn: Structure map
     """
     def __init__(self, parent, codomain=None):

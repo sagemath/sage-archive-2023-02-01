@@ -4761,6 +4761,10 @@ class Partitions(UniqueRepresentation, Parent):
 
         sage: Partitions(5, inner=[2,1], min_length=3).list()
         [[3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
+        sage: Partitions(5, inner=Partition([2,2]), min_length=3).list()
+        [[2, 2, 1]]
+        sage: Partitions(7, inner=(2, 2), min_length=3).list()
+        [[4, 2, 1], [3, 3, 1], [3, 2, 2], [3, 2, 1, 1], [2, 2, 2, 1], [2, 2, 1, 1, 1]]
         sage: Partitions(5, inner=[2,0,0,0,0,0]).list()
         [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
         sage: Partitions(6, length=2, max_slope=-1).list()
@@ -4801,6 +4805,19 @@ class Partitions(UniqueRepresentation, Parent):
         Traceback (most recent call last):
         ...
         ValueError: n must be an integer or be equal to one of None, NN, NonNegativeIntegers()
+
+    Check that calling ``Partitions`` with ``outer=a`` no longer
+    mutates ``a`` (:trac:`16234`)::
+
+        sage: a = [4,2,1,1,1,1,1]
+        sage: for p in Partitions(8, outer=a, min_slope=-1):
+        ....:    print p
+        ....:     
+        [3, 2, 1, 1, 1]
+        [2, 2, 1, 1, 1, 1]
+        [2, 1, 1, 1, 1, 1, 1]
+        sage: a
+        [4, 2, 1, 1, 1, 1, 1]
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):

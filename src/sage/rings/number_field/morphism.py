@@ -378,6 +378,20 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
             Relative number field endomorphism of Number Field in b with defining polynomial x^4 - 2 over its base field
               Defn: b |--> -a*b
                     a |--> -a
+                    
+        Using check=False, it is possible to construct homomorphisms into fields such as CC
+        where calculations are only approximate.
+        
+            sage: K.<a> = QuadraticField(-7)
+            sage: f = K.hom([CC(sqrt(-7))], check=False)
+            sage: x = polygen(K)
+            sage: L.<b> = K.extension(x^2 - a - 5)
+            sage: L.Hom(CC)(f(a + 5).sqrt(), f, check=False)
+            Relative number field morphism:
+              From: Number Field in b with defining polynomial x^2 - a - 5 over its base field
+              To:   Complex Field with 53 bits of precision
+              Defn: b |--> 2.30833860703888 + 0.573085617291335*I
+              a |--> -8.88178419700125e-16 + 2.64575131106459*I
         """
         if isinstance(im_gen, NumberFieldHomomorphism_im_gens):
             # Then it must be a homomorphism from the corresponding
@@ -400,7 +414,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
             im_gen = im_gen[0]
         if check:
             im_gen = self.codomain()(im_gen)
-        return self._from_im(im_gen, base_hom)
+        return self._from_im(im_gen, base_hom, check=check)
 
     def _coerce_impl(self, x):
         r"""
@@ -424,7 +438,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
             return RelativeNumberFieldHomomorphism_from_abs(self, x.abs_hom())
         raise TypeError
 
-    def _from_im(self, im_gen, base_hom):
+    def _from_im(self, im_gen, base_hom, check=True):
         """
         Return the homomorphism that acts on the base as given and
         sends the generator of the domain to im_gen.
@@ -447,7 +461,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
         R = L['x']
         f = R([base_hom(x) for x in a.list()])
         b = f(im_gen)
-        abs_hom = K.hom([b])
+        abs_hom = K.hom([b], check=check)
         return RelativeNumberFieldHomomorphism_from_abs(self, abs_hom)
 
     def default_base_hom(self):

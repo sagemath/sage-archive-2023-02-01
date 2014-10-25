@@ -771,8 +771,9 @@ cdef inline uint32_t simple_BFS(uint32_t n,
     Perform a breadth first search (BFS) using the same method as in
     sage.graphs.distances_all_pairs.all_pairs_shortest_path_BFS
 
-    Furthermore, the method returns the last computed distance which is the
-    eccentricity of the source when all vertices are seen.
+    Furthermore, the method returns the the eccentricity of the source which is
+    either the last computed distance when all vertices are seen, or a very
+    large number (UINT32_MAX) when the graph is not connected.
 
     INPUTS:
 
@@ -795,7 +796,8 @@ cdef inline uint32_t simple_BFS(uint32_t n,
       nead to initialize it.
 
     - ``seen`` -- bitset of size ``n`` that must be initialized before calling
-      this method. owever, there is no nead to initialize it.
+      this method (i.e., bitset_init(seen, n)). However, there is no need to
+      clear it.
 
     """
     cdef uint32_t v, u
@@ -838,9 +840,8 @@ cdef inline uint32_t simple_BFS(uint32_t n,
 
         waiting_beginning += 1
 
-    # We return the largest distance, that is the distance from the source to
-    # the last visited vertex
-    return distances[waiting_list[waiting_end]]
+    # We return the eccentricity of the source
+    return distances[waiting_list[waiting_end]] if waiting_end==n-1 else UINT32_MAX
 
 
 cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
@@ -848,14 +849,13 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
                                           uint32_t source,
                                           uint32_t * distances,
                                           uint32_t * waiting_list,
-                                          bitset_t seen,
-                                          int test_is_connected):
+                                          bitset_t seen):
     """
     Compute a lower bound on the diameter using the 2-sweep algorithm.
 
     This method computes a lower bound on the diameter of an unweighted
     undirected graph using 2 BFS, as proposed in [MLH08]_.  It first selects a
-    vertex `v` that is at largest distance from an initial vertex source using
+    vertex `v` that is at largest distance from an initial vertex `source` using
     BFS. Then it performs a second BFS from `v`. The largest distance from `v`
     is returned as a lower bound on the diameter of `G`.  The time complexity of
     this method is linear in the size of the graph.
@@ -882,25 +882,19 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
       nead to initialize it.
 
     - ``seen`` -- bitset of size ``n`` that must be initialized before calling
-      this method. owever, there is no nead to initialize it.
-
-    - ``test_is_connected`` -- When set to a positive integer, this method check
-      is all vertices are visited during the first BFS. If it is not the case,
-      the diameter is infinite and so this method returns a huge value. When
-      this parameter is set to 0, we skip the test. This helps saving
-      computation time when we already known that the graph is connected.
+      this method (i.e., bitset_init(seen, n)). However, there is no need to
+      clear it.
 
     """
     cdef uint32_t LB, i, k, tmp
 
-    # We do a first BFS from source
+    # We do a first BFS from source and get the eccentricity of source
     LB = simple_BFS(n, p_vertices, source, distances, waiting_list, seen)
 
-    # We test if all vertices are seen. If not, the graph is not connected and
-    # so its diameter is infinite.
-    if test_is_connected:
-        if bitset_len(seen)<n:
-            return UINT32_MAX
+    # If the eccentricity of the source is infinite (very large number), the
+    # graph is not connected and so its diameter is infinite.
+    if LB==UINT32_MAX:
+        return UINT32_MAX
 
     # Then we perform a second BFS from the last visited vertex
     source = waiting_list[n-1]
@@ -908,41 +902,6 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
 
     # We return the computed lower bound
     return LB
-
-
-cdef inline uint32_t diameter_lower_bound_4sweep_select_dichotomy(uint32_t n,
-                                                                  uint32_t * distances,
-                                                                  uint32_t * waiting_list,
-                                                                  uint32_t LB_2):
-    """
-    This method is part of the diameter_lower_bound_4sweep(..) method.
-
-    This method search for a vertex of eccentricity LB/2 by dichotomy. Recall
-    that the vertices in array waiting_list are ordered by increasing distance
-    from the source (first vertex in array waiting_list). So we have:
-
-    distances[ waiting_list[0] ] == 0
-    distances[ waiting_list[i] ] <= distances[ waiting_list[i+1] ]
-
-    """
-    cdef uint32_t i, j, k
-
-    i = 0
-    j = n-1
-    while i!=j:
-        if i==j-1:
-            if distances[waiting_list[i]]<LB_2:
-                i = j
-            else:
-                j = i
-        else:
-            k = (i+j)/2
-            if distances[waiting_list[k]]<LB_2:
-                i = k
-            else:
-                j = k
-
-    return waiting_list[i]
 
 
 cdef tuple diameter_lower_bound_4sweep(uint32_t n,
@@ -988,43 +947,46 @@ cdef tuple diameter_lower_bound_4sweep(uint32_t n,
       nead to initialize it.
 
     - ``seen`` -- bitset of size ``n`` that must be initialized before calling
-      this method. owever, there is no nead to initialize it.
+      this method (i.e., bitset_init(seen, n)). However, there is no need to
+      clear it.
 
     """
-    cdef uint32_t LB, tmp
+    cdef uint32_t LB, tmp, s, m, d, i, j, k
 
-    # We perform a first 2sweep call from source and test if the graph is
-    # connected.
-    LB = diameter_lower_bound_2sweep(n, p_vertices, source, distances, waiting_list, seen, 1)
-    if LB==UINT32_MAX:
-        return (LB, 0, 0, 0)
-
-    # We store the vertices s, m, d of the last BFS call. For vertex m, we
-    # search for a vertex of eccentricity LB/2 by dichotomy. This vertex will
-    # serve the source for the next 2sweep call. Other strategies are
-    # possible. For instance, we could search for the vertex of maximum degree
-    # at the same distance from the last source, etc.
-    cdef uint32_t s = waiting_list[0]
-    cdef uint32_t m = diameter_lower_bound_4sweep_select_dichotomy(n, distances, waiting_list, LB/2)
-    cdef uint32_t d = waiting_list[n-1]
-
-    cdef int improved = 1
+    # We perform a first 2sweep call from source. If the returned value is a
+    # very large number, the graph is not connected and so the diameter is
+    # infinite.
+    tmp = diameter_lower_bound_2sweep(n, p_vertices, source, distances, waiting_list, seen)
+    if tmp==UINT32_MAX:
+        return (UINT32_MAX, 0, 0, 0)
 
     # We perform new 2sweep calls for as long as we are able to improve the
     # lower bound.
-    while improved:
-        improved = 0
+    LB = 0
+    while tmp>LB:
 
-        # We perform a new 2sweep from m
-        tmp = diameter_lower_bound_2sweep(n, p_vertices, m, distances, waiting_list, seen, 0)
+        LB = tmp
 
-        # and check if the lower bound is improved
-        if tmp>LB:
-            improved = 1
-            LB = tmp
-            s = waiting_list[0]
-            m = diameter_lower_bound_4sweep_select_dichotomy(n, distances, waiting_list, LB/2)
-            d = waiting_list[n-1]
+        # We store the vertices s, m, d of the last BFS call. For vertex m, we
+        # search for a vertex of eccentricity LB/2 by dichotomy. This vertex
+        # will serve as the source for the next 2sweep call.
+        i = 0
+        j = n-1
+        LB_2 = LB/2
+        while i!=j:
+            k = (i+j)/2
+            if distances[waiting_list[k]]<LB_2:
+                i = k+1
+            else:
+                j = k
+
+        s = waiting_list[0]
+        m = waiting_list[i]
+        d = waiting_list[n-1]
+
+
+        # We perform a new 2sweep call from m
+        tmp = diameter_lower_bound_2sweep(n, p_vertices, m, distances, waiting_list, seen)
 
     return (LB, s, m, d)
 
@@ -1043,8 +1005,8 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     uses as a subroutine the 4-sweep lower bound computation method in order to
     start an iterative procedure whose goal is both to refine the lower bound
     value itself and to properly tune an upper bound value, until the two values
-    coincide. The worst case time complexity of the iFUB algorithm is O(nm), but
-    it can be very fast in practice. See [CGH+13]_ for more details.
+    coincide. The worst case time complexity of the iFUB algorithm is `O(nm)`,
+    but it can be very fast in practice. See [CGH+13]_ for more details.
 
     INPUTS:
 
@@ -1067,41 +1029,37 @@ cdef uint32_t diameter_iFUB(uint32_t n,
       nead to initialize it.
 
     - ``seen`` -- bitset of size ``n`` that must be initialized before calling
-      this method. owever, there is no nead to initialize it.
+      this method (i.e., bitset_init(seen, n)). However, there is no need to
+      clear it.
 
     """
-    cdef uint32_t i
+    cdef uint32_t i, LB, s, m, d
 
-    # ==> We select a vertex m with low eccentricity using 4-sweep
-    #
-    cdef uint32_t LB, s, m, d
+    # We select a vertex m with low eccentricity using 4-sweep
     LB, s, m, d = diameter_lower_bound_4sweep(n, p_vertices, source, distances, waiting_list, seen)
 
-    # ==> We test if all vertices are seen
-    #
+    # If the lower bound is a very large number, it means that the graph is not
+    # connected and so the diameter is infinite.
     if LB==UINT32_MAX:
         return LB
 
-    # ==> initialize some tables
-    #
+    # We initialize some tables
     cdef uint32_t * layer = <uint32_t *>sage_malloc(2* n * sizeof(uint32_t))
     if layer == NULL:
-        bitset_free(seen)
-        sage_free(waiting_list)
         raise MemoryError()
     cdef uint32_t * order  = layer + n
 
-    # ==> We order the vertices by decreasing layers. This is the inverse order
-    #     of a BFS from m, and so the inverse order of array waiting_list.
-    #     Distances are stored in array layer.
-    #
+
+    # We order the vertices by decreasing layers. This is the inverse order of a
+    # BFS from m, and so the inverse order of array waiting_list. Distances are
+    # stored in array layer.
     LB = simple_BFS(n, p_vertices, m, layer, waiting_list, seen)
     for i from 0 <= i < n:
         order[i] = waiting_list[n-i-1]
 
 
-    # ==> We run a BFS from each vertex starting from the vertices at largest
-    #     distance from m. We stop exploration as soon as UB==LB.
+    # We run a BFS from each vertex starting from the vertices at largest
+    # distance from m. We stop exploration as soon as UB==LB.
     i = 0
     while (2*layer[order[i]])>LB and i<n:
         tmp = simple_BFS(n, p_vertices, order[i], distances, waiting_list, seen)
@@ -1113,7 +1071,7 @@ cdef uint32_t diameter_iFUB(uint32_t n,
 
     sage_free(layer)
 
-    # ==> We finally return the computed diameter
+    # We finally return the computed diameter
     return LB
 
 
@@ -1193,9 +1151,10 @@ def diameter(G, method='iFUB', source=None):
         sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
 
     """
-    if G.order()==0:
+    cdef int n = G.order()
+    if n==0:
         return 0
-    
+
     if method=='standard':
         return max(G.eccentricity())
     elif method is None:
@@ -1209,50 +1168,36 @@ def diameter(G, method='iFUB', source=None):
         raise ValueError("The specified source is not a vertex of the input Graph.")
 
 
-    cdef int n = G.order()
-    cdef int i, u, LB, tmp
-
     # Copying the whole graph to obtain the list of neighbors quicker than by
-    # calling out_neighbors. The outneighbors of vertex i are enumerated from
-    # p_vertices[i] to p_vertices[i+1] - 1.  If p_vertices[i] is equal to
-    # p_vertices[i+1], then i has no outneighbours.
-    #
-    # This data structure is well documented in the module
-    # sage.graphs.base.static_sparse_graph
-
+    # calling out_neighbors. This data structure is well documented in the
+    # module sage.graphs.base.static_sparse_graph
     cdef short_digraph sd
     init_short_digraph(sd, G)
-    cdef uint32_t ** p_vertices = sd.neighbors
-    cdef uint32_t * p_tmp
-    cdef uint32_t * end
 
-
+    # and we map the source to an int in [0,n-1] 
     cdef uint32_t isource = 0 if source is None else G.vertices().index(source)
 
 
-    # The vertices which have already been visited
+    # Initialize some tables and a bitset
     cdef bitset_t seen
     bitset_init(seen, n)
-
-    # ==> initialize some tables
-    #
     cdef uint32_t * waiting_list = <uint32_t *> sage_malloc(2* n * sizeof(uint32_t))
     if waiting_list == NULL:
         free_short_digraph(sd)
         bitset_free(seen)
-        sage_free(waiting_list)
         raise MemoryError()
     cdef uint32_t * c_distances  = waiting_list + n
 
 
+    cdef int LB
     if method=='2sweep':
-        LB = diameter_lower_bound_2sweep(n, p_vertices, isource, c_distances, waiting_list, seen, 1)
+        LB = diameter_lower_bound_2sweep(n, sd.neighbors, isource, c_distances, waiting_list, seen)
 
     elif method=='4sweep':
-        LB = diameter_lower_bound_4sweep(n, p_vertices, isource, c_distances, waiting_list, seen)[0]
+        LB = diameter_lower_bound_4sweep(n, sd.neighbors, isource, c_distances, waiting_list, seen)[0]
 
     else: # method=='iFUB'
-        LB = diameter_iFUB(n, p_vertices, isource, c_distances, waiting_list, seen)
+        LB = diameter_iFUB(n, sd.neighbors, isource, c_distances, waiting_list, seen)
 
 
     free_short_digraph(sd)

@@ -591,7 +591,7 @@ class RequireField(MethodDecorator):
             sage: class Foo(I.__class__):
             ....:     @RequireField
             ....:     def bar(I):
-            ....:        return I.groebner_basis()
+            ....:         return I.groebner_basis()
             ....:
             sage: J = Foo(I.ring(), I.gens())
             sage: J.bar()
@@ -919,7 +919,7 @@ class MPolynomialIdeal_singular_repr(
         return GroebnerStrategy(MPolynomialIdeal(self.ring(), self.groebner_basis()))
 
     def plot(self, singular=singular_default):
-        """
+        r"""
         If you somehow manage to install surf, perhaps you can use
         this function to implicitly plot the real zero locus of this
         ideal (if principal).
@@ -928,7 +928,7 @@ class MPolynomialIdeal_singular_repr(
 
 
         -  ``self`` - must be a principal ideal in 2 or 3 vars
-           over QQ.
+           over `\QQ`.
 
 
         EXAMPLES:
@@ -1532,7 +1532,7 @@ class MPolynomialIdeal_singular_repr(
 
     @require_field
     def _groebner_basis_ginv(self, algorithm="TQ", criteria='CritPartially', division_interface="Janet"):
-        """
+        r"""
         Compute a Groebner basis using GINV.
 
         INPUT:
@@ -1546,7 +1546,7 @@ class MPolynomialIdeal_singular_repr(
 
         EXAMPLES:
 
-        Currently, only GF(p) and QQ are supported as base fields::
+        Currently, only `\GF{p}` and `\QQ` are supported as base fields::
 
             sage: P.<x,y,z> = PolynomialRing(QQ,order='degrevlex')
             sage: I = sage.rings.ideal.Katsura(P)
@@ -1564,8 +1564,8 @@ class MPolynomialIdeal_singular_repr(
             Criterion C1 is Buchberger's co-prime criterion. Criteria
             C2, C3 and C4 in the aggregate are equivalent to the second
             (chain) Buchberger's criterion. Supported term orderings are
-            'lex' and 'degrevlex', supported base rings are GF(p) with p
-            < 2^16 and QQ.
+            'lex' and 'degrevlex', supported base rings are `\GF{p}` with
+            `p < 2^16` and `\QQ`.
         """
         P = self.ring()
         T = P.term_order()
@@ -4215,9 +4215,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: s = [K.random_element() for _ in range(n)]
             sage: L = []
             sage: for i in range(2*n):
-            ....:   f = P.random_element(degree=2, terms=binomial(n,2))
-            ....:   f -= f(*s)
-            ....:   L.append(f.homogenize())
+            ....:     f = P.random_element(degree=2, terms=binomial(n,2))
+            ....:     f -= f(*s)
+            ....:     L.append(f.homogenize())
             sage: I = Ideal(L)
             sage: I.degree_of_semi_regularity()
             4
@@ -4233,9 +4233,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         the degree of regularity::
 
             sage: for i in range(2*n):
-            ....:   f = P.random_element(degree=2, terms=binomial(n,2))
-            ....:   f -= f(*s)
-            ....:   L.append(f.homogenize())
+            ....:     f = P.random_element(degree=2, terms=binomial(n,2))
+            ....:     f -= f(*s)
+            ....:     L.append(f.homogenize())
             sage: I = Ideal(L)
             sage: I.degree_of_semi_regularity()
             3
@@ -4247,9 +4247,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         the number of polynomials approaches `n^2`::
 
             sage: for i in range((n-4)*n):
-            ....:   f = P.random_element(degree=2, terms=binomial(n,2))
-            ....:   f -= f(*s)
-            ....:   L.append(f.homogenize())
+            ....:     f = P.random_element(degree=2, terms=binomial(n,2))
+            ....:     f -= f(*s)
+            ....:     L.append(f.homogenize())
             sage: I = Ideal(L)
             sage: I.degree_of_semi_regularity()
             2

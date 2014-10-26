@@ -148,7 +148,7 @@ Functions and classes
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.interfaces.all import maxima
-from sage.rings.all import ZZ, Integer, infinity
+from sage.rings.all import ZZ, QQ, Integer, infinity
 from sage.rings.arith import bernoulli, binomial
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.libs.all import pari
@@ -371,7 +371,7 @@ def bell_number(n, algorithm='dobinski', **options):
 
     elif algorithm == 'gap':
         from sage.libs.gap.libgap import libgap
-        return libgap.eval("Bell(%s)" % n).sage()
+        return libgap.Bell(n).sage()
 
     elif algorithm == 'dobinski':
         # Hardcode small cases. We only proved the algorithm below
@@ -538,7 +538,7 @@ def fibonacci(n, algorithm="pari"):
         return ZZ(pari(n).fibonacci())
     elif algorithm == 'gap':
         from sage.libs.gap.libgap import libgap
-        return libgap.eval("Fibonacci(%s)"%n).sage()
+        return libgap.Fibonacci(n).sage()
     else:
         raise ValueError("no algorithm %s"%algorithm)
 
@@ -574,22 +574,15 @@ def lucas_number1(n,P,Q):
         13
         sage: lucas_number1(7,1,-2)
         43
-
-    ::
-
         sage: lucas_number1(5,2,3/5)
         229/25
         sage: lucas_number1(5,2,1.5)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: cannot construct equivalent Sage object
+        1/4
 
     There was a conjecture that the sequence `L_n` defined by
     `L_{n+2} = L_{n+1} + L_n`, `L_1=1`,
     `L_2=3`, has the property that `n` prime implies
-    that `L_n` is prime.
-
-    ::
+    that `L_n` is prime. ::
 
         sage: lucas = lambda n : Integer((5/2)*lucas_number1(n,1,-1)+(1/2)*lucas_number2(n,1,-1))
         sage: [[lucas(n),is_prime(lucas(n)),n+1,is_prime(n+1)] for n in range(15)]
@@ -611,8 +604,9 @@ def lucas_number1(n,P,Q):
 
     Can you use Sage to find a counterexample to the conjecture?
     """
+    n = ZZ(n);  P = QQ(P);  Q = QQ(Q)
     from sage.libs.gap.libgap import libgap
-    return libgap.eval("Lucas(%s,%s,%s)[1]"%(P, Q, n)).sage()
+    return libgap.Lucas(P, Q, n)[0].sage()
 
 def lucas_number2(n,P,Q):
     r"""
@@ -658,8 +652,9 @@ def lucas_number2(n,P,Q):
         sage: [lucas_number2(n,1,-1) for n in range(10)]
         [2, 1, 3, 4, 7, 11, 18, 29, 47, 76]
     """
+    n = ZZ(n);  P = QQ(P);  Q = QQ(Q)
     from sage.libs.gap.libgap import libgap
-    return libgap.eval("Lucas(%s,%s,%s)[2]"%(P, Q, n)).sage()
+    return libgap.Lucas(P, Q, n)[1].sage()
 
 
 def stirling_number1(n, k):
@@ -683,8 +678,9 @@ def stirling_number1(n, k):
 
     Indeed, `S_1(n,k) = S_1(n-1,k-1) + (n-1)S_1(n-1,k)`.
     """
+    n = ZZ(n);  k = ZZ(k)
     from sage.libs.gap.libgap import libgap
-    return libgap.eval("Stirling1({0},{1})".format(n, k)).sage()
+    return libgap.Stirling1(n, k).sage()
 
 
 def stirling_number2(n, k, algorithm=None):
@@ -805,12 +801,13 @@ def stirling_number2(n, k, algorithm=None):
          Traceback (most recent call last):
          ...
          ValueError: unknown algorithm: CloudReading
-     """
+    """
+    n = ZZ(n);  k = ZZ(k)
     if algorithm is None:
         return _stirling_number2(n, k)
     elif algorithm == 'gap':
         from sage.libs.gap.libgap import libgap
-        return libgap.eval("Stirling2(%s,%s)"%(n, k)).sage()
+        return libgap.Stirling2(n, k).sage()
     elif algorithm == 'maxima':
         return ZZ(maxima.eval("stirling2(%s,%s)"%(n, k)))
     else:
@@ -2238,7 +2235,7 @@ def tuples(S,k):
             ans.append(y)
     return ans
 
-def number_of_tuples(S,k):
+def number_of_tuples(S, k):
     """
     Returns the size of tuples(S,k). Wraps GAP's NrTuples.
 
@@ -2251,10 +2248,12 @@ def number_of_tuples(S,k):
         sage: number_of_tuples(S,2)
         25
     """
+    k = ZZ(k)
     from sage.libs.gap.libgap import libgap
-    return libgap.eval("NrTuples(%s,%s)"%(S, k)).sage()
+    S = libgap.eval(str(S))
+    return libgap.NrTuples(S, k).sage()
 
-def unordered_tuples(S,k):
+def unordered_tuples(S, k):
     """
     An unordered tuple of length k of set is a unordered selection with
     repetitions of set and is represented by a sorted list of length k
@@ -2279,8 +2278,10 @@ def unordered_tuples(S,k):
         sage: unordered_tuples(["a","b","c"],2)
         ['aa', 'ab', 'ac', 'bb', 'bc', 'cc']
     """
+    k = ZZ(k)
     from sage.libs.gap.libgap import libgap
-    return libgap.eval("UnorderedTuples(%s,%s)"%(S, k)).sage()
+    S = libgap.eval(str(S))
+    return libgap.UnorderedTuples(S, k).sage()
 
 def number_of_unordered_tuples(S,k):
     """
@@ -2294,7 +2295,8 @@ def number_of_unordered_tuples(S,k):
         15
     """
     from sage.libs.gap.libgap import libgap
-    return libgap.eval("NrUnorderedTuples(%s,%s)"%(S, k)).sage()
+    S = libgap.eval(str(S))
+    return libgap.NrUnorderedTuples(S, k).sage()
 
 def permutations(mset):
     """

@@ -832,27 +832,25 @@ def multiple(list S,int k,int cutoff):
         (12, 5)
     """
     cdef int i,ii,iii
-    cdef dict D,new_D
-    cdef bint changed
-    D = {0:tuple()}
+    cdef dict D,new_D,last_D
+    last_D = D = {0:tuple()}
 
     # The answer for a given k can be easily deduced from the answer
     # for k-1. That's how we build the list, incrementally starting
     # from k=0
     for _ in range(k):
-        changed=False
-        new_D={}
+        new_D = {}
         for i in S:
-            for ii in D:
+            for ii in last_D:
                 iii = i+ii
                 if (iii <= cutoff and   # The new integer is too big
                     iii not in D  and   # We had it in D     already
                     iii not in new_D):  # We had it in new_D already
-                    changed=True
                     new_D[iii] = D[ii]+(i,)
-        if not changed:
+        if not new_D:
             break
         D.update(new_D)
+        last_D = new_D
     return D
 
 cpdef find_brouwer_van_rees_with_one_truncated_column(int k,int n):
@@ -872,9 +870,11 @@ cpdef find_brouwer_van_rees_with_one_truncated_column(int k,int n):
         sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_brouwer_van_rees_with_one_truncated_column
         sage: find_brouwer_van_rees_with_one_truncated_column(5,53)[1]
         (5, 7, 7, (2, 2))
+        sage: find_brouwer_van_rees_with_one_truncated_column(6,96)[1]
+        (6, 7, 13, (3, 1, 1))
     """
     cdef list available_multipliers
-    cdef int kk,uu,r,m,remainder
+    cdef int kk,uu,r,m,remainder,max_multiplier
     cdef dict multiple_dict
 
     # We write n=rm+remainder
@@ -899,9 +899,11 @@ cpdef find_brouwer_van_rees_with_one_truncated_column(int k,int n):
             (len(available_multipliers) == 1 and available_multipliers[0] == 1)):
             continue
 
+        max_multiplier = max(available_multipliers)
         for r in range(2,n//m+1):
             remainder = n-r*m
-            if (not is_available(k+1,r) or
+            if (remainder > r*max_multiplier or
+                not is_available(k+1,r) or
                 not is_available(k,remainder)):
                 continue
 

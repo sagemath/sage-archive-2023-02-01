@@ -111,10 +111,16 @@ class DifferentialCGA(UniqueRepresentation, Morphism):
         r"""
         Normalize input to ensure a unique representation.
 
-        EXAMPLES::
+        TESTS::
+
+            sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ, degrees=(1,1,2,3))
+            sage: d1 = A.CDGAlgebra({x: x*y, y: -x*y, z: t}).differential()
+            sage: d2 = A.CDGAlgebra({x: x*y, z: t, y: -x*y, t: 0}).differential()
+            sage: d1 is d2
+            True
         """
         if isinstance(im_gens, (list, tuple)):
-            im_gens = {A.gen(i): x for i,x in im_gens}
+            im_gens = {A.gen(i): x for i,x in enumerate(im_gens)}
 
         R = A.cover_ring()
         I = A.defining_ideal()
@@ -153,7 +159,7 @@ class DifferentialCGA(UniqueRepresentation, Morphism):
 
     def __init__(self, A, im_gens):
         r"""
-        Python constructor.
+        Initialize ``self``.
 
         INPUT:
 
@@ -167,9 +173,21 @@ class DifferentialCGA(UniqueRepresentation, Morphism):
             sage: B = A.CDGAlgebra({x: x*y, y: x*y, z: z*t, t: t*z})
             sage: [B.cohomology(i).dimension() for i in range(6)]
             [1, 2, 1, 0, 0, 0]
+            sage: d = B.differential()
+
+        We skip the category test because homsets/morphisms aren't
+        proper parents/elements yet::
+
+            sage: TestSuite(d).run(skip="_test_category")
 
         An error is raised if the differential `d` does not have
         degree 1 or if `d \circ d` is not zero::
+
+            sage: A.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3))
+            sage: A.CDGAlgebra({a:b, b:c})
+            Traceback (most recent call last):
+            ...
+            ValueError: The given dictionary does not determine a valid differential
         """
         self._dic_ = {A.gen(i): x for i,x in enumerate(im_gens)}
         Morphism.__init__(self, Hom(A, A, category=Modules(A.base_ring())))
@@ -386,7 +404,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
     def __init__(self, base, R=None, I=None, names=None, degrees=None):
         """
-        Python constructor.
+        Initialize ``self``.
 
         INPUT:
 
@@ -608,12 +626,6 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             True
             sage: B._coerce_map_from_(GF(3))
             False
-
-        Check that base ring coercion works::
-
-            sage: C.<x,y,z> = GradedCommutativeAlgebra(RR, degrees=(2,1,1))
-            sage: C.has_coerce_map_from(A)
-            True
         """
         if isinstance(other, GCAlgebra):
             if self._names != other._names or self._degrees != other._degrees:
@@ -696,7 +708,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
         """
         def __init__(self, A, rep):
             r"""
-            Python constructor.
+            Initialize ``self``.
 
             INPUT:
 
@@ -848,7 +860,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
 class GCAlgebra_multigraded(GCAlgebra):
     """
-    Class for multi-graded commutative algebras.
+    A multi-graded commutative algebra.
 
     INPUT:
 
@@ -862,12 +874,10 @@ class GCAlgebra_multigraded(GCAlgebra):
       commas; if not specified, the generators are named ``x0``,
       ``x1``, ...
 
-    - ``R`` (optional, default ``None``) -- the ring over which the
-      algebra is defined
+    - ``R`` -- (optional) the ring over which the algebra is defined
 
-    - ``I`` (optional, default ``None``) -- an ideal in ``R``; it
-      should include, among other relations, the squares of the
-      generators of odd degree
+    - ``I`` -- (optional) an ideal in ``R``; it should include, among
+      other relations, the squares of the generators of odd degree
 
     When defining such an algebra, each entry of ``degrees`` should be
     a list, tuple, or element of an additive (free) abelian
@@ -912,7 +922,7 @@ class GCAlgebra_multigraded(GCAlgebra):
     """
     def __init__(self, base, degrees, names=None, R=None, I=None):
         """
-        Python constructor.
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -1051,10 +1061,10 @@ class CDGAlgebra(GCAlgebra):
 
     INPUT:
 
-    - ``cg_alg`` -- a graded commutative algebra; that is, an instance
+    - ``A`` -- a graded commutative algebra; that is, an instance
       of :class:`GCAlgebra`
 
-    - ``differential`` -- a dictionary defining a differential
+    - ``differential`` -- a differential
 
     As described in the module-level documentation, these are graded
     algebras for which oddly graded elements anticommute and evenly
@@ -1091,11 +1101,29 @@ class CDGAlgebra(GCAlgebra):
 
     See the function :func:`GradedCommutativeAlgebra` for more examples.
     """
-    __classcall__ = None
+    @staticmethod
+    def __classcall__(cls, A, differential):
+        """
+        Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: A.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=(1,1,1))
+            sage: D1 = A.CDGAlgebra({a: b*c, b: a*c})
+            sage: D2 = A.CDGAlgebra(D1.differential())
+            sage: D1 is D2
+            True
+            sage: from sage.algebras.commutative_dga import CDGAlgebra
+            sage: D1 is CDGAlgebra(A, {a: b*c, b: a*c, c: 0})
+            True
+        """
+        if not isinstance(differential, DifferentialCGA):
+            differential = DifferentialCGA(A, differential)
+        return super(GCAlgebra, cls).__classcall__(cls, A, differential)
 
     def __init__(self, A, differential):
         """
-        Python constructor
+        Initialize ``self``
 
         INPUT:
 
@@ -1129,13 +1157,18 @@ class CDGAlgebra(GCAlgebra):
                            degrees=A._degrees,
                            R=A.cover_ring(),
                            I=A.defining_ideal())
-        self._differential = DifferentialCGA(A, differential)
+        self._differential = differential
 
     def graded_commutative_algebra(self):
         """
         Return the base graded commutative algebra of ``self``.
 
         EXAMPLES::
+
+            sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ, degrees=(3, 2, 2, 3))
+            sage: D = A.CDGAlgebra({x: y*z})
+            sage: D.graded_commutative_algebra() == A
+            True
         """
         return GCAlgebra(self.base(), names=self._names, degrees=self._degrees,
                          R=self.cover_ring(), I=self.defining_ideal())
@@ -1516,12 +1549,13 @@ class CDGAlgebra(GCAlgebra):
 
 class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra):
     """
-    Class for multi-graded commutative differential graded algebras.
+    A commutative differential multi-graded algebras.
 
     INPUT:
 
-    - ``cg_alg`` -- a commutative multi-graded algebra
-    - ``differential`` -- a dictionary defining a differential
+    - ``A`` -- a commutative multi-graded algebra
+
+    - ``differential`` -- a differential
 
     EXAMPLES::
 
@@ -1538,7 +1572,7 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra):
     """
     def __init__(self, A, differential):
         """
-        Python constructor.
+        Initialize ``self``.
 
         INPUT:
 
@@ -1564,7 +1598,7 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra):
                                        degrees=A._degrees_multi,
                                        R=A.cover_ring(),
                                        I=A.defining_ideal())
-        self._differential = DifferentialCGA(A, differential)
+        self._differential = differential
 
         # Check that the differential has a well-defined degree.
         # diff_deg = [x.differential().degree() - x.degree() for x in self.gens()]
@@ -1819,7 +1853,7 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra):
 
     class Element(GCAlgebra_multigraded.Element, CDGAlgebra.Element):
         """
-        Element class
+        Element class of a commutative differential multi-graded algebra.
         """
 
 ################################################

@@ -294,12 +294,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def list(self):
         """
-        Returns a list of coefficients of self.
+        Return a list of coefficients of ``self``.
 
-        NOTE:
-        The length of the list returned may be greater
-        than expected since it includes any leading zeros
-        that have finite absolute precision.
+        .. NOTE::
+
+            The length of the list returned may be greater
+            than expected since it includes any leading zeros
+            that have finite absolute precision.
 
         EXAMPLES::
 
@@ -320,12 +321,12 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def content(self):
         """
-        Returns the content of self.
+        Return the content of ``self``.
 
         The content is returned to maximum precision: since it's only
-        defined up to a unit, we can choose p^k as the representative.
+        defined up to a unit, we can choose `p^k` as the representative.
 
-        Returns an error if the base ring is actually a field: this is
+        Return an error if the base ring is actually a field: this is
         probably not a function you want to be using then, since any
         nonzero answer will be correct.
 
@@ -353,7 +354,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             2 + O(2^11)
         """
         if self.base_ring().is_field():
-            raise TypeError("ground ring is a field.  Answer is only defined up to units.")
+            raise TypeError("ground ring is a field. "
+                            "Answer is only defined up to units.")
         if self._normalized:
             return self.base_ring()(self.base_ring().prime_pow(self._valbase))
         if self._valaddeds is None:
@@ -362,11 +364,15 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def lift(self):
         """
-        Returns an integer polynomial congruent to this one modulo the precision of each coefficient.
+        Return an integer polynomial congruent to this one modulo the
+        precision of each coefficient.
 
-        NOTE: The lift that is returned will not necessarily be the same for polynomials with
-              the same coefficients (ie same values and precisions): it will depend on how
-              the polynomials are created.
+        .. NOTE::
+
+            The lift that is returned will not necessarily be the same
+            for polynomials with the same coefficients (i.e. same values
+            and precisions): it will depend on how the polynomials are
+            created.
 
         EXAMPLES::
 
@@ -380,8 +386,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def __getitem__(self, n):
         """
-        Returns the coefficient of x^n if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the coefficient of x^n if `n` is an integer,
+        return the monomials of ``self`` of degree in slice `n` if `n` is a slice.
 
         EXAMPLES::
 
@@ -427,7 +433,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def _add_(self, right):
         """
-        Returns the sum of self and right.
+        Return the sum of ``self`` and ``right``.
 
         EXAMPLES::
 
@@ -461,7 +467,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def _sub_(self, right):
         """
-        Returns the sum of self and right.
+        Return the difference of ``self`` and ``right``.
 
         EXAMPLES::
 
@@ -495,7 +501,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def _mul_(self, right):
         r"""
-        Multiplies self and right.
+        Multiplies ``self`` and ``right``.
 
         ALGORITHM: We use an algorithm thought up by Joe Wetherell to
         find the precisions of the product.  It works as follows:
@@ -576,7 +582,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def _rmul_(self, left):
         """
-        Returns self multiplied by a constant
+        Return ``self`` multiplied by a constant.
 
         EXAMPLES::
 
@@ -603,7 +609,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def _neg_(self):
         """
-        Returns the negation of self.
+        Return the negation of ``self``.
 
         EXAMPLES::
 
@@ -617,7 +623,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def lshift_coeffs(self, shift, no_list = False):
         """
-        Returns a new polynomials whose coefficients are multiplied by p^shift.
+        Return a new polynomials whose coefficients are multiplied by p^shift.
 
         EXAMPLES::
 
@@ -636,7 +642,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def rshift_coeffs(self, shift, no_list = False):
         """
-        Returns a new polynomial whose coefficients are p-adiclly
+        Return a new polynomial whose coefficients are p-adically
         shifted to the right by shift.
 
         NOTES: Type Qp(5)(0).__rshift__? for more information.
@@ -679,7 +685,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def _unsafe_mutate(self, n, value):
         """
-        It's a really bad idea to use this function for p-adic polynomials.  There are speed issues, and it may not be bug-free currently.
+        It's a really bad idea to use this function for p-adic
+        polynomials.  There are speed issues, and it may not be
+        bug-free currently.
         """
         n = int(n)
         value = self.base_ring()(value)
@@ -741,29 +749,33 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
                     zero = self._base_ring()(0)
                     self._list.extend([zero] * (n - len(self._list)) + [value])
 
-    def _pari_(self, variable = None):
+    def _pari_(self, variable=None):
+        """
+        Return ``self`` as a Pari object.
+        """
         if variable is None:
             variable = self.parent().variable_name()
         return pari(self.list()).Polrev(variable)
 
     def __copy__(self):
+        """
+        Return a copy of ``self``.
+        """
         return Polynomial_padic_capped_relative_dense(self.parent(), (copy.copy(self._poly), self._valbase, copy.copy(self._relprecs), self._normalized, copy.copy(self._valaddeds), copy.copy(self._list)), construct = True)
 
     def degree(self, secure=False):
         """
+        Return the degree of ``self``.
+
         INPUT:
 
-        - secure  -- a boolean (default: False)
+        - secure  -- a boolean (default: ``False``)
 
-        OUTPUT:
-
-        The degree of self.
-
-        If ``secure`` is True and the degree of this polynomial
+        If ``secure`` is ``True`` and the degree of this polynomial
         is not determined (because the leading coefficient is 
-        indistinguishable from 0), an error is raised
+        indistinguishable from 0), an error is raised.
 
-        If ``secure`` is False, the returned value is the largest 
+        If ``secure`` is ``False``, the returned value is the largest 
         $n$ so that the coefficient of $x^n$ does not compare equal 
         to $0$.
 
@@ -797,29 +809,52 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         self._normalize()
         deg = Integer(self._poly.degree())
         if secure and deg < self.prec_degree():
-            raise PrecisionError("the leading coefficient is indistinguishable from 0")
+            raise PrecisionError("the leading coefficient is "
+                                 "indistinguishable from 0")
         return deg
 
     def prec_degree(self):
         """
-        Returns the largest $n$ so that precision information is
+        Return the largest $n$ so that precision information is
         stored about the coefficient of $x^n$.
 
         Always greater than or equal to degree.
+
+        EXAMPLES::
+
+            sage: K = Qp(3,10)
+            sage: R.<T> = K[]
+            sage: f = T + 2; f
+            (1 + O(3^10))*T + (2 + O(3^10))
+            sage: f.prec_degree()
+            1
         """
         return len(self._relprecs) - 1
 
     def precision_absolute(self, n = None):
         """
-        Returns absolute precision information about self.
+        Return absolute precision information about ``self``.
 
         INPUT:
-        self -- a p-adic polynomial
-        n -- None or an integer (default None).
+
+        ``self`` -- a p-adic polynomial
+
+        n -- ``None`` or an integer (default ``None``).
 
         OUTPUT:
-        If n == None, returns a list of absolute precisions of coefficients.  Otherwise,
-        returns the absolute precision of the coefficient of x^n.
+
+        If n == None, returns a list of absolute precisions of
+        coefficients.  Otherwise, returns the absolute precision of
+        the coefficient of x^n.
+
+        EXAMPLES::
+
+            sage: K = Qp(3,10)
+            sage: R.<T> = K[]
+            sage: f = T + 2; f
+            (1 + O(3^10))*T + (2 + O(3^10))
+            sage: f.precision_absolute()
+            [10, 10]
         """
         if n is None:
             return [c + self._valbase for c in self._relprecs]
@@ -827,15 +862,28 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def precision_relative(self, n = None):
         """
-        Returns relative precision information about self.
+        Return relative precision information about ``self``.
 
         INPUT:
-        self -- a p-adic polynomial
-        n -- None or an integer (default None).
+
+        ``self`` -- a p-adic polynomial
+
+        n -- ``None`` or an integer (default ``None``).
 
         OUTPUT:
-        If n == None, returns a list of relative precisions of coefficients.  Otherwise,
-        returns the relative precision of the coefficient of x^n.
+
+        If n == None, returns a list of relative precisions of
+        coefficients.  Otherwise, returns the relative precision of
+        the coefficient of x^n.
+
+        EXAMPLES::
+
+            sage: K = Qp(3,10)
+            sage: R.<T> = K[]
+            sage: f = T + 2; f
+            (1 + O(3^10))*T + (2 + O(3^10))
+            sage: f.precision_relative()
+            [10, 10]
         """
         if n is None:
             self._normalize()
@@ -848,17 +896,29 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         else:
             return self._relprecs[n] - self._valaddeds[n]
 
-    def valuation_of_coefficient(self, n = None):
+    def valuation_of_coefficient(self, n=None):
         """
-        Returns valuation information about self's coefficients.
+        Return valuation information about ``self``'s coefficients.
 
         INPUT:
-        self -- a p-adic polynomial
-        n -- None or an integer (default None).
+
+        ``self`` -- a p-adic polynomial
+
+        n -- ``None`` or an integer (default ``None``).
 
         OUTPUT:
+
         If n == None, returns a list of valuations of coefficients.  Otherwise,
         returns the valuation of the coefficient of x^n.
+
+        EXAMPLES::
+
+            sage: K = Qp(3,10)
+            sage: R.<T> = K[]
+            sage: f = T + 2; f
+            (1 + O(3^10))*T + (2 + O(3^10))
+            sage: f.valuation_of_coefficient(1)
+            0
         """
         if self._valaddeds is None:
             self._comp_valaddeds()
@@ -870,17 +930,30 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             return infinity
         return self._valbase + self._valaddeds[n]
 
-    def valuation(self, val_of_var = None):
+    def valuation(self, val_of_var=None):
         """
-        Returns the valuation of self
+        Return the valuation of ``self``.
 
         INPUT:
-        self -- a p-adic polynomial
-        val_of_var -- None or a rational (default None).
+
+        ``self`` -- a p-adic polynomial
+
+        val_of_var -- ``None`` or a rational (default ``None``).
 
         OUTPUT:
-        If val_of_var == None, returns the largest power of the variable dividing self.  Otherwise,
-        returns the valuation of self where the variable is assigned valuation val_of_var
+
+        If val_of_var == None, returns the largest power of the
+        variable dividing self.  Otherwise, returns the valuation of
+        ``self`` where the variable is assigned valuation val_of_var
+
+        EXAMPLES::
+
+            sage: K = Qp(3,10)
+            sage: R.<T> = K[]
+            sage: f = T + 2; f
+            (1 + O(3^10))*T + (2 + O(3^10))
+            sage: f.valuation()
+            0
         """
         if val_of_var is None:
             return self._poly.valuation()
@@ -888,12 +961,16 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             self._comp_valaddeds()
         return self._valbase + min([self._valaddeds[i] + val_of_var * i for i in range(len(self._valaddeds))])
 
-    def reverse(self, n = None):
+    def reverse(self, n=None):
         """
-        Returns a new polynomial whose coefficients are the reversed coefficients of self, where self is considered as a polynomial of degree n.
+        Return a new polynomial whose coefficients are the reversed
+        coefficients of ``self``, where ``self`` is considered as a
+        polynomial of degree n.
 
-        If n is None, defaults to the degree of self.
-        If n is smaller than the degree of self, some coefficients will be discarded.
+        If n is ``None``, defaults to the degree of ``self``.
+
+        If n is smaller than the degree of ``self``, some coefficients
+        will be discarded.
 
         EXAMPLES::
 
@@ -914,19 +991,19 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         """
         if n is None:
             n = self._poly.degree()
-        zzlist = self._poly.list()[:(n+1)] + [0] * (n - self._poly.degree())
+        zzlist = self._poly.list()[:(n + 1)] + [0] * (n - self._poly.degree())
         zzlist.reverse()
-        relprec = self._relprecs[:(n+1)] + [infinity] * (n - self.prec_degree())
+        relprec = self._relprecs[:(n + 1)] + [infinity] * (n - self.prec_degree())
         relprec.reverse()
         if self._valaddeds is None:
             valadded = None
         else:
-            valadded = self._valaddeds[:(n+1)] + [infinity] * (n - self.prec_degree())
+            valadded = self._valaddeds[:(n + 1)] + [infinity] * (n - self.prec_degree())
             valadded.reverse()
         if self._list is None:
             L = None
         else:
-            L = self._list[:(n+1)] + [self.base_ring()(0)] * (n - self.prec_degree())
+            L = self._list[:(n + 1)] + [self.base_ring()(0)] * (n - self.prec_degree())
             L.reverse()
         return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly.parent()(zzlist), self._valbase, relprec, self._normalized, valadded, L), construct = True)
 
@@ -934,7 +1011,10 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         r"""
         Return f(a*X)
 
-        NOTE:  Need to write this function for integer polynomials before this works.
+        .. TODO::
+
+            Need to write this function for integer polynomials before
+            this works.
 
         EXAMPLES::
 
@@ -970,17 +1050,34 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         return Polynomial_padic_capped_relative_dense(self.parent(), (zzpoly, self._valbase, relprec, False, valadded, None), construct = True)
 
     def quo_rem(self, right, secure=False):
+        """
+        Return the quotient and remainder in division of ``self`` by ``right``.
+
+        EXAMPLES::
+
+            sage: K = Qp(3,10)
+            sage: R.<T> = K[]
+            sage: f = T + 2
+            sage: g = T**4 + 3*T+22
+            sage: g.quo_rem(f)
+            ((1 + O(3^10))*T^3 + (1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))*T^2 + (1 + 3 + O(3^10))*T + (1 + 3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)),
+            (2 + 3 + 3^3 + O(3^10)))
+        """
         return self._quo_rem_list(right, secure=secure)
 
     def _quo_rem_naive(self, right):
         """
-        An implementation of quo_rem that doesn't have good run-time or precision characteristics.
+        An implementation of quo_rem that doesn't have good run-time
+        or precision characteristics.
+
+        A better one is :meth:`_quo_rem_list`.
         """
         K = self.base_ring().fraction_field()
         f = self.base_extend(K)
         g = right.base_extend(K)
         if g == 0:
-            raise ZeroDivisionError("cannot divide by a polynomial indistinguishable from 0")
+            raise ZeroDivisionError("cannot divide by a polynomial "
+                                    "indistinguishable from 0")
         x = f.parent().gen()
         quo = f.parent()(0)
         while f.degree() >= g.degree():
@@ -993,23 +1090,26 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         """
         An implementation of quo_rem using lists of coefficients.
 
-        Faster than the previous one.
+        Faster than :meth:`_quo_rem_naive`.
 
         AUTHOR:
 
         - Xavier Caruso (2013-03)
         """
         if right.is_zero():
-            raise ZeroDivisionError, "cannot divide by a polynomial indistinguishable from 0"
-        a = self.list(); da = len(a)-1
-        b = right.list(); db = right.degree(secure=secure)
+            raise ZeroDivisionError("cannot divide by a polynomial "
+                                    "indistinguishable from 0")
+        a = self.list()
+        da = len(a) - 1
+        b = right.list()
+        db = right.degree(secure=secure)
         inv = ~b[db]
         q = [ ]
-        for i in range(da,db-1,-1):
-            c = inv*a[i]
+        for i in range(da, db - 1, -1):
+            c = inv * a[i]
             q.append(c)
             for j in range(db):
-                a[j+i-db] -= c*b[j]
+                a[j + i - db] -= c * b[j]
         q.reverse()
         K = self.base_ring().fraction_field()
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1080,7 +1180,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def newton_polygon(self):
         r"""
-        Returns the Newton polygon of this polynomial.
+        Return the Newton polygon of this polynomial.
 
         .. NOTE::
 
@@ -1210,7 +1310,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def newton_slopes(self, repetition=True):
         """
-        Returns a list of the Newton slopes of this polynomial.
+        Return a list of the Newton slopes of this polynomial.
 
         These are the valuations of the roots of this polynomial.
 
@@ -1248,7 +1348,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
 
     def factor_mod(self):
         r"""
-        Returns the factorization of self modulo p.
+        Return the factorization of ``self`` modulo `p`.
 
         EXAMPLES::
         """

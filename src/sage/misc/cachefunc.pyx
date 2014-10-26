@@ -1111,6 +1111,18 @@ cdef class CachedFunction(object):
         in parallel, and only bother to compute values that we
         haven't already cached.
 
+        INPUT:
+
+        - ``arglist`` -- list (or iterables) of arguments for which
+          the method shall be precomputed.
+
+        - ``num_processes`` -- number of processes used by
+          :func:`~sage.parallel.decorate.parallel`
+
+        OUTPUT:
+
+        None.
+
         EXAMPLES::
 
             sage: @cached_function
@@ -2026,6 +2038,18 @@ cdef class CachedMethodCaller(CachedFunction):
         Cache values for a number of inputs.  Do the computation
         in parallel, and only bother to compute values that we
         haven't already cached.
+
+        INPUT:
+
+        - ``arglist`` -- list (or iterables) of arguments for which
+          the method shall be precomputed.
+
+        - ``num_processes`` -- number of processes used by
+          :func:`~sage.parallel.decorate.parallel`
+
+        OUTPUT:
+
+        None.
 
         EXAMPLES::
 

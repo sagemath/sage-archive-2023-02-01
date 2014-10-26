@@ -1269,6 +1269,7 @@ class CDGAlgebra(GCAlgebra):
             for j in dic.keys():
                 k = cokeys.index(j)
                 m[i,k] = dic[j]
+        m.set_immutable()
         return m
 
     def coboundaries(self, n):
@@ -1643,6 +1644,7 @@ class CDGAlgebra_multigraded(GCAlgebra_multigraded, CDGAlgebra):
             for j in dic.keys():
                 k = cokeys.index(j)
                 m[i,k] = dic[j]
+        m.set_immutable()
         return m
 
     def coboundaries(self, n, total=False):

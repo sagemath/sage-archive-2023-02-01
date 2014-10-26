@@ -804,54 +804,76 @@ for x in _QDM.itervalues():
                 ioa_indexed_by_n_minus_x[n] = []
             ioa_indexed_by_n_minus_x[n].append((k,u))
 
-def multiple(list S,int k,int cutoff):
+def int_as_sum(int value, list S, int k_max):
     r"""
-    Lists all integers that belong to `S+...+S=k'\cdot S` for some `k'\leq k`.
+    Return a tuple `(s_1, s_2, \ldots, s_k)` of less then `k_max` elements of `S` such
+    that `value = s_1 + s_2 + \ldots + s_k`. If there is no such tuples then the
+    function returns ``None``.
 
     INPUT:
 
+    - ``value`` (integer)
+
     - ``S`` -- a list of integers
 
-    - ``k`` (integer)
-
-    - ``cutoff`` (integer) - discard integers (strictly) larger than
-      ``cutoff``.
-
-    OUTPUT:
-
-    A dictionary associating to each `x\leq M` its sum as `<k`
-    elements of `S`.
+    - ``k_max`` (integer)
 
     EXAMPLE::
 
-        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import multiple
-        sage: D = multiple([5,12],100,20)
-        sage: print sorted(D.keys())
-        [0, 5, 10, 12, 15, 17, 20]
-        sage: D[17]
-        (12, 5)
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import int_as_sum
+        sage: D = int_as_sum(21,[5,12],100)
+        sage: for k in range(20,40):
+        ....:     print k, int_as_sum(k,[5,12],100)
+        20 (5, 5, 5, 5)
+        21 None
+        22 (12, 5, 5)
+        23 None
+        24 (12, 12)
+        25 (5, 5, 5, 5, 5)
+        26 None
+        27 (12, 5, 5, 5)
+        28 None
+        29 (12, 12, 5)
+        30 (5, 5, 5, 5, 5, 5)
+        31 None
+        32 (12, 5, 5, 5, 5)
+        33 None
+        34 (12, 12, 5, 5)
+        35 (5, 5, 5, 5, 5, 5, 5)
+        36 (12, 12, 12)
+        37 (12, 5, 5, 5, 5, 5)
+        38 None
+        39 (12, 12, 5, 5, 5)
     """
-    cdef int i,ii,iii
+    cdef int i,j,v,vv,max_value
     cdef dict D,new_D,last_D
-    last_D = D = {0:tuple()}
+    last_D = D = {value:tuple()}
+    max_value = max(S)
+
+    if k_max * max_value < value:
+        return None
 
     # The answer for a given k can be easily deduced from the answer
     # for k-1. That's how we build the list, incrementally starting
     # from k=0
-    for _ in range(k):
+    for j in range(k-1,-1,-1):
         new_D = {}
         for i in S:
-            for ii in last_D:
-                iii = i+ii
-                if (iii <= cutoff and   # The new integer is too big
-                    iii not in D  and   # We had it in D     already
-                    iii not in new_D):  # We had it in new_D already
-                    new_D[iii] = D[ii]+(i,)
+            for v in last_D:
+                vv = v-i
+                if vv == 0:
+                    return D[v] + (i,)
+                if (vv > 0            and   # The new integer i is too big
+                    vv <= j*max_value and   # The new integer i is too small
+                    vv not in D       and   # We had it in D     already
+                    vv not in new_D):       # We had it in new_D already
+                    new_D[vv] = D[v]+(i,)
         if not new_D:
             break
         D.update(new_D)
         last_D = new_D
-    return D
+
+    return None
 
 cpdef find_brouwer_van_rees_with_one_truncated_column(int k,int n):
     r"""
@@ -875,7 +897,7 @@ cpdef find_brouwer_van_rees_with_one_truncated_column(int k,int n):
     """
     cdef list available_multipliers
     cdef int kk,uu,r,m,remainder,max_multiplier
-    cdef dict multiple_dict
+    cdef tuple values
 
     # We write n=rm+remainder
     for m in range(2,n//2):
@@ -907,12 +929,11 @@ cpdef find_brouwer_van_rees_with_one_truncated_column(int k,int n):
                 not is_available(k,remainder)):
                 continue
 
-            multiple_dict = multiple(available_multipliers,r,remainder)
-
-            if remainder in multiple_dict:
+            values = int_as_sum(remainder, available_multipliers, r)
+            if values is not None:
                 from orthogonal_arrays_build_recursive import brouwer_van_rees_with_one_truncated_column
                 return (brouwer_van_rees_with_one_truncated_column,
-                        (k,r,m,multiple_dict[remainder]))
+                        (k,r,m,values))
 
     return False
 

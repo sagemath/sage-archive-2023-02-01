@@ -1,17 +1,87 @@
 r"""
-Link class
+Link Class
 
-AUTHOR:
 
-- Amit Jamadagni
+A Link can be created by using one of the conventions mentioned below:
+
+Braid:
+======
+
+Generators of the braid group are used to generate the link::
+
+    sage: B = BraidGroup(8)
+    sage: L = Link(B([-1, -1, -1, -2,1, -2,3,-2,3]))
+    sage: L
+    Knot represented by 9 crossings
+    sage: L = Link(B([1, 2,1, -2,-1]))
+    sage: L
+    Link with 2 components represented by 5 crossings
+
+Oriented Gauss Code:
+====================
+
+Randomly number the crossings from 1 to n (where n is the number of
+crossings) and start moving along the link. Trace every component of
+the link, by starting at a particular point on one component of the link and
+taking note of each of the crossings until one returns to the starting
+point. Note each component as a list whose elements are the crossing
+numbers. Compile every component info into a list. We need the orientation
+of every crossing. This is recorded as a list with +1 and -1, +1 is recorded
+if the direction from leaving over-cross to the leaving under-cross is
+anti-clockwise, -1 if the direction from the leaving over-cross to the
+leaving under-cross is clockwise::
+
+    sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
+    sage: L
+    Knot represented by 8 crossings
+
+For links there is more than one component and the input is as follows::
+
+    sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
+    sage: L
+    Link with 3 components represented by 4 crossings
+
+Planar Diagram Code:
+====================
+
+Select some point on the link. Start numbering the strands in the
+components of the link. For a new component add one to the greatest
+number from the previous component and proceed till all the strands
+are numbered. At every cross contruct the data as follows :
+Start with the strand number of the entering under-cross and move in the
+clockwise direction around the cross and note down the strand numbers.
+Construct this data at every crossing and that would give the PD-Code.
+
+There is no particular distinction between knots and links for this input
+
+One of the representations of the Trefoil knot::
+
+    sage: L = Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
+    sage: L
+    Knot represented by 3 crossings
+
+One of the representations of the Hopf link::
+
+    sage: L = Link([[1,4,2,3],[4,1,3,2]])
+    sage: L
+    Link with 2 components represented by 2 crossings
+
+AUTHORS:
+
 - Miguel Angel Marco Buzunariz
+- Amit Jamadagni
 """
-#*****************************************************************************
-#  Copyright (C) 2014
+
+##############################################################################
+#       Copyright (C) 2014
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#
+#  The full text of the GPL is available at:
+#
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+##############################################################################
+
 
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
@@ -33,7 +103,7 @@ from sage.misc.flatten import flatten
 
 
 class Link:
-    r"""
+    """
     The base class for Link.
 
     INPUT:
@@ -57,73 +127,15 @@ class Link:
         sage: L
         Link with 2 components represented by 5 crossings
     """
-
     def __init__(self, data):
-        r"""
+        """
 
         The Python constructor.
 
         A Link can be created by using one of the conventions mentioned below:
-
-        Braid:
-        ======
-
-        Generators of the braid group are used to generate the link.
-
-            sage: B = BraidGroup(8)
-            sage: L = Link(B([-1, -1, -1, -2,1, -2,3,-2,3]))
-            sage: L
-            Knot represented by 9 crossings
-            sage: L = Link(B([1, 2,1, -2,-1]))
-            sage: L
-            Link with 2 components represented by 5 crossings
-
-        Oriented Gauss Code:
-        ===================
-
-        Randomly number the crossings from 1 to n (where n is the number of
-        crossings) and start moving along the link. Trace every component of
-        the link, by starting at a particular point on one component of the link and
-        taking note of each of the crossings until one returns to the starting
-        point. Note each component as a list whose elements are the crossing
-        numbers. Compile every component info into a list. We need the orientation
-        of every crossing. This is recorded as a list with +1 and -1, +1 is recorded
-        if the direction from leaving over-cross to the leaving under-cross is
-        anti-clockwise, -1 if the direction from the leaving over-cross to the
-        leaving under-cross is clockwise.
-
-            # for knots there is only a single component so the input is as follows
-            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
-            sage: L
-            Knot represented by 8 crossings
-
-            # for links there is more than one component and the input is as follows
-            sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
-            sage: L
-            Link with 3 components represented by 4 crossings
-
-        Planar Diagram Code:
-        ===================
-
-        Select some point on the link. Start numbering the strands in the
-        components of the link. For a new component add one to the greatest
-        number from the previous component and proceed till all the strands
-        are numbered. At every cross contruct the data as follows :
-        Start with the strand number of the entering under-cross and move in the
-        clockwise direction around the cross and note down the strand numbers.
-        Construct this data at every crossing and that would give the PD-Code.
-
-            # there is no particular distinction between knots and links for this input
-
-            # One of the representations of the Trefoil knot
-            sage: L = Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
-            sage: L
-            Knot represented by 3 crossings
-
-            # One of the representations of the Hopf link
-            sage: L = Link([[1,4,2,3],[4,1,3,2]])
-            sage: L
-            Link with 2 components represented by 2 crossings
+        1. Braid
+        2. Oriented Gauss Code
+        3. Planar Diagram Code
         """
         if isinstance(data, list):
             if not data:
@@ -156,7 +168,7 @@ class Link:
                 raise Exception("Invalid Input: Data must be either a list or a Braid")
 
     def __repr__(self):
-        r"""
+        """
         Return a string representation.
 
         OUTPUT:
@@ -184,8 +196,8 @@ class Link:
             return 'Link with {} components represented by {} crossings'.format(ncomponents, pd_len)
 
     def braidword(self):
-        r"""
-        Return the braidword of the link.
+        """
+        Return the braidword of link.
 
         OUTPUT:
 
@@ -206,7 +218,7 @@ class Link:
         return self.braid().Tietze()
 
     def braid(self):
-        r"""
+        """
         Return the braid representation of the link.
 
         OUTPUT:
@@ -237,11 +249,14 @@ class Link:
             return self._braid
 
     def oriented_gauss_code(self):
-        r"""
+        """
         Return the oriented gauss code of the link. The oriented gauss
-        code has two parts
+        code has two parts :
+
         a. The gauss code
+
         b. The orientation of each crossing
+
         The following orientation was taken into consideration for consturction
         of knots:
 
@@ -313,22 +328,24 @@ class Link:
             return self._oriented_gauss_code
 
     def PD_code(self):
-        r"""
+        """
         Return the Planar Diagram code of the link. The Planar Diagram is returned
         in the following format.
 
         We construct the crossing by starting with the entering component of the
         undercrossing, move in the clockwise direction and then generate the list.
         Suppose if the crossing is given by [a, b, c, d], then we interpret this
-        information as
-        a is the entering component of the undercrossing
-        b, d are the components of the overcrossing
-        c is the leaving component of the undercrossing
+        information as :
+
+        1. a is the entering component of the undercrossing
+        2. b, d are the components of the overcrossing
+        3. c is the leaving component of the undercrossing
 
         Convention :
-        Orientation of the crossing:
-        Leaving over crossing to leaving under crossing in clockwise direction denoted by -1
-        Leaving over crossing to leaving under crossing in anticlockwise direction denoted by 1
+        Orientation of the crossing :
+
+        1. Leaving over crossing to leaving under crossing in clockwise direction denoted by -1
+        2. Leaving over crossing to leaving under crossing in anticlockwise direction denoted by 1
 
         OUTPUT:
 
@@ -412,7 +429,7 @@ class Link:
             return pd
 
     def gauss_code(self):
-        r"""
+        """
         Return the gauss_code of the link. Gauss code is generated by the
         following procedure:
 
@@ -442,7 +459,7 @@ class Link:
         return self.oriented_gauss_code()[0]
 
     def dt_code(self):
-        r"""
+        """
         Return the dt_code of the knot.DT code is generated by the following way.
 
         We start moving along the knot, as we encounter the crossings we
@@ -450,6 +467,7 @@ class Link:
         it once we have traced the entire knot. Now we take the even number
         associated with every crossing. The following sign convention is to be
         followed:
+
         Take the even number with a negative sign if it is an overcrossing
         that we are encountering.
 
@@ -526,7 +544,7 @@ class Link:
         return _dt_internal_(b)
 
     def _dowker_notation_(self):
-        r"""
+        """
         Return the dowker notation of the link. Similar to the PD Code we number the
         components. So every crossing is represented by four numbers. We focus on
         the incoming entites of the under and the over crossing. It is the pair of incoming
@@ -558,7 +576,7 @@ class Link:
         return dn
 
     def _braidwordcomponents_(self):
-        r"""
+        """
         Return the disjoint braid components, if any, else returns the braid itself.
         For example consider the braid [-1, 3, 1, 3] this can be viewed as a braid
         with components as [-1, 1] and [3, 3]. There is no common crossing to these
@@ -608,7 +626,7 @@ class Link:
                 return y2
 
     def _braidwordcomponentsvector_(self):
-        r"""
+        """
         The list from the braidwordcomponents is flattened to give out the vector form.
 
         OUTPUT:
@@ -633,7 +651,7 @@ class Link:
         return flatten(bc)
 
     def _homology_generators_(self):
-        r"""
+        """
         The set of generators for the first homology group of the connected Seifert surface of the given link.
         This method uses the braidwordcomponentsvector to generate the homology generators.
         The position of the repeated element w.r.t the braidwordcomponentvector list is
@@ -670,7 +688,7 @@ class Link:
         return hom_gen
 
     def seifert_matrix(self):
-        r"""
+        """
         Return the Seifert Matrix associated with the braidword.
 
         OUTPUT:
@@ -743,7 +761,7 @@ class Link:
         return A
 
     def ncomponents(self):
-        r"""
+        """
         Return the number of connected components of the link.
 
         OUTPUT:
@@ -768,7 +786,7 @@ class Link:
         return len(p.to_cycles())
 
     def is_knot(self):
-        r"""
+        """
         Return True if the link is knot.
         Every knot is a link but the converse is not true.
 
@@ -793,7 +811,7 @@ class Link:
             return False
 
     def genus(self):
-        r"""
+        """
         Return the genus of the link
 
         OUTPUT:
@@ -851,7 +869,7 @@ class Link:
             return genus
 
     def signature(self):
-        r"""
+        """
         Return the signature of the link
 
         OUTPUT:
@@ -882,7 +900,7 @@ class Link:
         return sum
 
     def alexander_polynomial(self, var='t'):
-        r"""
+        """
         Return the alexander polynomial of the link
 
         INPUT:
@@ -915,7 +933,7 @@ class Link:
         return t ** ((-max(f.exponents()) - min(f.exponents())) / 2) * f if f != 0 else f
 
     def knot_determinant(self):
-        r"""
+        """
         Return the determinant of the knot
 
         OUTPUT:
@@ -943,7 +961,7 @@ class Link:
             raise Exception("Determinant implmented only for knots")
 
     def arf_invariant(self):
-        r"""
+        """
         Return the arf invariant. Arf invariant is defined only for knots.
 
         OUTPUT:
@@ -974,7 +992,7 @@ class Link:
             raise Exception("Arf invariant is defined only for knots")
 
     def is_alternating(self):
-        r"""
+        """
         Return True if the given knot diagram is alternating else returns False.
         Alternating diagram implies every over cross is followed by an under cross
         or the vice-versa.
@@ -1015,24 +1033,10 @@ class Link:
         else:
             return False
 
-    #*************************************************************************
-    # Various methods for the implementation of the Vogel's algorithm
-    # start here.The input is the oriented gauss code where in every cross is
-    # given a sign for the orientation. The missing information in the last
-    # implementation of PD was which part of the over crossing we encounter first.
-    # So we took the braid word as the input, now in addition to the gauss code we
-    # take the orientation at every crossing and call it the oriented gauss code.
-    # Eventually after this algorithmic implementation we would like to work on
-    # making the planar diagram code as a standard input.
-    #
-    #  The crux of the Vogel algorithm is two steps, identify the unoriented
-    # Seifert circle and perform a move. The first part deals with identifying
-    # the regions and Seifert circles.
-    #*************************************************************************
 
     #**************************** PART - 1 ***********************************
     def orientation(self):
-        r"""
+        """
         Return the orientation of the crossings from the input. We construct the entering, leaving information at
         each crossing to get to the orientation.
 
@@ -1041,6 +1045,7 @@ class Link:
         - Orientation  of the crossings.
 
         Convention :
+
         Entering component is denoted by 1
         Leaving component is denoted by -1
 
@@ -1087,14 +1092,17 @@ class Link:
         return orientation
 
     def seifert_circles(self):
-        r"""
+        """
         Return the seifert circles from the input. Seifert circles are obtained
         by smoothing the crossings in the following way:
+
         All the crossings are assigned four numbers which form the components of the
         crossings.
+
         At a crossing the under cross entering component would go to the over cross
         leaving component and the over cross entering component would go to the
         under cross leaving component.
+
         We start with a component of the crossing and start smoothing as according to
         the above rule until we return to the starting component.
 
@@ -1151,13 +1159,15 @@ class Link:
         return d
 
     def regions(self):
-        r"""
+        """
         Return the regions from the input.Regions are obtained always turning left at the crossing.
         The smoothing used for obtaining the Seifert circles case was specific but here whenever a
         crossing in encountered a left turn is taken until we reach the starting component.
         The following procedure is followed for the development of regions:
+
         Start at a component of the crossing and keep turning left as the crossings are encountered
         until the starting component is reached.
+
         Append a negative sign to the component if it were encountered in the opposite direction to
         the direction it is actually in.
 
@@ -1235,13 +1245,16 @@ class Link:
         return d
 
     def _vogel_move_(self):
-        r"""
+        """
         Return the Planar Diagram code if there is a vogel's move required, else returns
         False. Whether a move is required or not is decided by the following
         criteria:
+
         A bad region is one that has two components with the same sign, but that belong
         to different Seifert circles.
+
         We detect the presence of a bad region and then perform the move. The move is done as follows:
+
         Perform a Reidemeister move of type 2 by pulling the component with a higher number
         over the component having the lower number. As this is done we have 2 more crossings added to
         the initial system. We renumber everything and return the Planar Diagram Code of the modified
@@ -1396,7 +1409,7 @@ class Link:
                 return pd_copy
 
     def _info_all_moves_(self):
-        r"""
+        """
         Return the Planar Diagram code, Seifert circles, regions, orientation after all the bad regions
         have been removed by performing the vogel's move.
 
@@ -1450,7 +1463,7 @@ class Link:
 
     #**************************** PART - 2 ***********************************
     def _braidword_detection_(self):
-        r"""
+        """
         Return the braidword of the input. We match the outgoing components to the
         incoming components, in doing so we order the crossings and see to which strand
         they belong, thereby developing the braidword
@@ -1604,7 +1617,7 @@ class Link:
         return braid
 
     def writhe(self):
-        r"""
+        """
         Return the writhe of the knot.
 
         OUTPUT:
@@ -1628,21 +1641,24 @@ class Link:
         neg = (-1) * x[1].count(-1)
         return pos + neg
 
-    # here we have used the symbolic ring rather than the Laurent Polynomial Ring.
-    # The answer has been returned in the symbolic ring. Once the rational powers is
-    # functional we can use it and revert back to Laurent Polynomial Ring.
     def jones_polynomial(self):
-        r"""
+        """
         Return the jones polynomial of the link.
         The following procedure is used to determine the jones polynomial.
         There are two constructions :
+
         1. Smoothing of crossings in two ways, corresponding coefficients being
            A^-1 and A. The various permutations of the smoothing of the crossings
            is constructed by taking the permutation of the crossings.
-        2. After this, the number of circles are calculated after smoothing and the
-           polynomial is constructed by summing up in the following way
-                polynomial = sigma[(no. of A^-1)*(no. of A)*d**((no. of circles) - 1)]
 
+        2. After this, the number of circles are calculated after smoothing and the
+           polynomial is constructed by summing up in the following way:
+
+           polynomial = sigma[(no. of A^-1)*(no. of A)*d**((no. of circles) - 1)]
+
+        Note : here we have used the symbolic ring rather than the Laurent Polynomial Ring.
+        The answer has been returned in the symbolic ring. Once the rational powers is
+        functional we can use it and revert back to Laurent Polynomial Ring.
         OUTPUT:
 
         - Jones Polynomial of the link.

@@ -8,6 +8,7 @@ cdef class StaticSparseCGraph(CGraph):
     cdef short_digraph g
     cdef short_digraph g_rev
     cdef bint _directed
+    cdef int * number_of_loops
 
     cpdef bint has_vertex(self, int n)
     cdef int add_vertex_unsafe(self, int k)

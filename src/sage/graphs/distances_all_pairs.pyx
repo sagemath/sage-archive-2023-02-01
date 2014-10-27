@@ -765,6 +765,7 @@ cdef inline uint32_t simple_BFS(uint32_t n,
                                 uint32_t ** p_vertices,
                                 uint32_t source,
                                 uint32_t *distances,
+                                uint32_t *predecessors,
                                 uint32_t *waiting_list,
                                 bitset_t seen):
     """
@@ -788,12 +789,18 @@ cdef inline uint32_t simple_BFS(uint32_t n,
 
     - ``distances`` -- array of size ``n`` to store BFS distances from
       ``source``. This method assumes that this array has already been
-      allocated. However, there is no nead to initialize it.
+      allocated. However, there is no need to initialize it.
+
+    - ``predecessors`` -- array of size ``n`` to store the first predecessor of
+      each vertex during the BFS search from ``source``. The predecessor of the
+      ``source`` is itself. This method assumes that this array has already
+      been allocated. However, it is possible to pass a ``NULL`` pointer in
+      which case the predecessors are not recorded. 
 
     - ``waiting_list`` -- array of size ``n`` to store the order in which the
       vertices are visited during the BFS search from ``source``. This method
       assumes that this array has already been allocated. However, there is no
-      nead to initialize it.
+      need to initialize it.
 
     - ``seen`` -- bitset of size ``n`` that must be initialized before calling
       this method (i.e., bitset_init(seen, n)). However, there is no need to
@@ -810,6 +817,8 @@ cdef inline uint32_t simple_BFS(uint32_t n,
     bitset_clear(seen)
     bitset_add(seen, source)
     distances[source] = 0
+    if predecessors!=NULL:
+        predecessors[source] = source
 
     # and added to the queue
     waiting_list[0] = source
@@ -835,6 +844,8 @@ cdef inline uint32_t simple_BFS(uint32_t n,
                 bitset_add(seen, u)
                 waiting_end += 1
                 waiting_list[waiting_end] = u
+                if predecessors!=NULL:
+                    predecessors[u] = v
 
             p_tmp += 1
 
@@ -848,6 +859,7 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
                                           uint32_t ** p_vertices,
                                           uint32_t source,
                                           uint32_t * distances,
+                                          uint32_t * predecessors,
                                           uint32_t * waiting_list,
                                           bitset_t seen):
     """
@@ -874,12 +886,18 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
 
     - ``distances`` -- array of size ``n`` to store BFS distances from
       ``source``. This method assumes that this array has already been
-      allocated. However, there is no nead to initialize it.
+      allocated. However, there is no need to initialize it.
+
+    - ``predecessors`` -- array of size ``n`` to store the first predecessor of
+      each vertex during the BFS search from ``source``. The predecessor of the
+      ``source`` is itself. This method assumes that this array has already
+      been allocated. However, it is possible to pass a ``NULL`` pointer in
+      which case the predecessors are not recorded. 
 
     - ``waiting_list`` -- array of size ``n`` to store the order in which the
       vertices are visited during the BFS search from ``source``. This method
       assumes that this array has already been allocated. However, there is no
-      nead to initialize it.
+      need to initialize it.
 
     - ``seen`` -- bitset of size ``n`` that must be initialized before calling
       this method (i.e., bitset_init(seen, n)). However, there is no need to
@@ -889,7 +907,7 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
     cdef uint32_t LB, i, k, tmp
 
     # We do a first BFS from source and get the eccentricity of source
-    LB = simple_BFS(n, p_vertices, source, distances, waiting_list, seen)
+    LB = simple_BFS(n, p_vertices, source, distances, NULL, waiting_list, seen)
 
     # If the eccentricity of the source is infinite (very large number), the
     # graph is not connected and so its diameter is infinite.
@@ -898,7 +916,7 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
 
     # Then we perform a second BFS from the last visited vertex
     source = waiting_list[n-1]
-    LB = simple_BFS(n, p_vertices, source, distances, waiting_list, seen)
+    LB = simple_BFS(n, p_vertices, source, distances, predecessors, waiting_list, seen)
 
     # We return the computed lower bound
     return LB
@@ -908,6 +926,7 @@ cdef tuple diameter_lower_bound_4sweep(uint32_t n,
                                        uint32_t ** p_vertices,
                                        uint32_t source,
                                        uint32_t * distances,
+                                       uint32_t * predecessors,
                                        uint32_t * waiting_list,
                                        bitset_t seen):
     """
@@ -915,9 +934,9 @@ cdef tuple diameter_lower_bound_4sweep(uint32_t n,
 
     This method computes a lower bound on the diameter of an unweighted
     undirected graph using several iterations of the 2-sweep algorithms
-    [CGH+13]_. Roughly, it first uses 2-sweep to identify two vertices `u` and
-    `v` that are far apart. Then it selects a vertex `w` that is at same
-    distance from `u` and `v`.  This vertex `w` will serve as the new source for
+    [CGH+13]_. Roughly, it first uses 2-sweep to identify two vertices `s` and
+    `d` that are far apart. Then it selects a vertex `m` that is at same
+    distance from `s` and `d`.  This vertex `m` will serve as the new source for
     another iteration of the 2-sweep algorithm that may improve the current
     lower bound on the diameter.  This process is repeated as long as the lower
     bound on the diameter is improved.
@@ -939,12 +958,18 @@ cdef tuple diameter_lower_bound_4sweep(uint32_t n,
 
     - ``distances`` -- array of size ``n`` to store BFS distances from
       ``source``. This method assumes that this array has already been
-      allocated. However, there is no nead to initialize it.
+      allocated. However, there is no need to initialize it.
+
+    - ``predecessors`` -- array of size ``n`` to store the first predecessor of
+      each vertex during the BFS search from ``source``. The predecessor of the
+      ``source`` is itself. This method assumes that this array has already
+      been allocated. However, it is possible to pass a ``NULL`` pointer in
+      which case the predecessors are not recorded. 
 
     - ``waiting_list`` -- array of size ``n`` to store the order in which the
       vertices are visited during the BFS search from ``source``. This method
       assumes that this array has already been allocated. However, there is no
-      nead to initialize it.
+      need to initialize it.
 
     - ``seen`` -- bitset of size ``n`` that must be initialized before calling
       this method (i.e., bitset_init(seen, n)). However, there is no need to
@@ -953,10 +978,18 @@ cdef tuple diameter_lower_bound_4sweep(uint32_t n,
     """
     cdef uint32_t LB, tmp, s, m, d, i, j, k
 
+    cdef uint32_t * l_pred
+    if predecessors==NULL:
+        l_pred = <uint32_t *>sage_malloc(n * sizeof(uint32_t))
+        if l_pred==NULL:
+            raise MemoryError()
+    else:
+        l_pred = predecessors
+
     # We perform a first 2sweep call from source. If the returned value is a
     # very large number, the graph is not connected and so the diameter is
     # infinite.
-    tmp = diameter_lower_bound_2sweep(n, p_vertices, source, distances, waiting_list, seen)
+    tmp = diameter_lower_bound_2sweep(n, p_vertices, source, distances, l_pred, waiting_list, seen)
     if tmp==UINT32_MAX:
         return (UINT32_MAX, 0, 0, 0)
 
@@ -968,25 +1001,20 @@ cdef tuple diameter_lower_bound_4sweep(uint32_t n,
         LB = tmp
 
         # We store the vertices s, m, d of the last BFS call. For vertex m, we
-        # search for a vertex of eccentricity LB/2 by dichotomy. This vertex
-        # will serve as the source for the next 2sweep call.
-        i = 0
-        j = n-1
-        LB_2 = LB/2
-        while i!=j:
-            k = (i+j)/2
-            if distances[waiting_list[k]]<LB_2:
-                i = k+1
-            else:
-                j = k
-
+        # search for a vertex of eccentricity LB/2. This vertex will serve as
+        # the source for the next 2sweep call.
         s = waiting_list[0]
-        m = waiting_list[i]
         d = waiting_list[n-1]
-
+        LB_2 = LB/2
+        m = d
+        while distances[m]>LB_2:
+            m = l_pred[m]
 
         # We perform a new 2sweep call from m
-        tmp = diameter_lower_bound_2sweep(n, p_vertices, m, distances, waiting_list, seen)
+        tmp = diameter_lower_bound_2sweep(n, p_vertices, m, distances, l_pred, waiting_list, seen)
+
+    if predecessors==NULL:
+        sage_free(l_pred)
 
     return (LB, s, m, d)
 
@@ -1021,12 +1049,12 @@ cdef uint32_t diameter_iFUB(uint32_t n,
 
     - ``distances`` -- array of size ``n`` to store BFS distances from
       ``source``. This method assumes that this array has already been
-      allocated. However, there is no nead to initialize it.
+      allocated. However, there is no need to initialize it.
 
     - ``waiting_list`` -- array of size ``n`` to store the order in which the
       vertices are visited during the BFS search from ``source``. This method
       assumes that this array has already been allocated. However, there is no
-      nead to initialize it.
+      need to initialize it.
 
     - ``seen`` -- bitset of size ``n`` that must be initialized before calling
       this method (i.e., bitset_init(seen, n)). However, there is no need to
@@ -1036,7 +1064,7 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     cdef uint32_t i, LB, s, m, d
 
     # We select a vertex m with low eccentricity using 4-sweep
-    LB, s, m, d = diameter_lower_bound_4sweep(n, p_vertices, source, distances, waiting_list, seen)
+    LB, s, m, d = diameter_lower_bound_4sweep(n, p_vertices, source, distances, NULL, waiting_list, seen)
 
     # If the lower bound is a very large number, it means that the graph is not
     # connected and so the diameter is infinite.
@@ -1053,7 +1081,7 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     # We order the vertices by decreasing layers. This is the inverse order of a
     # BFS from m, and so the inverse order of array waiting_list. Distances are
     # stored in array layer.
-    LB = simple_BFS(n, p_vertices, m, layer, waiting_list, seen)
+    LB = simple_BFS(n, p_vertices, m, layer, NULL, waiting_list, seen)
     for i from 0 <= i < n:
         order[i] = waiting_list[n-i-1]
 
@@ -1062,7 +1090,7 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     # distance from m. We stop exploration as soon as UB==LB.
     i = 0
     while (2*layer[order[i]])>LB and i<n:
-        tmp = simple_BFS(n, p_vertices, order[i], distances, waiting_list, seen)
+        tmp = simple_BFS(n, p_vertices, order[i], distances, NULL, waiting_list, seen)
         i += 1
 
         # We update the lower bound
@@ -1191,10 +1219,10 @@ def diameter(G, method='iFUB', source=None):
 
     cdef int LB
     if method=='2sweep':
-        LB = diameter_lower_bound_2sweep(n, sd.neighbors, isource, c_distances, waiting_list, seen)
+        LB = diameter_lower_bound_2sweep(n, sd.neighbors, isource, c_distances, NULL, waiting_list, seen)
 
     elif method=='4sweep':
-        LB = diameter_lower_bound_4sweep(n, sd.neighbors, isource, c_distances, waiting_list, seen)[0]
+        LB = diameter_lower_bound_4sweep(n, sd.neighbors, isource, c_distances, NULL, waiting_list, seen)[0]
 
     else: # method=='iFUB'
         LB = diameter_iFUB(n, sd.neighbors, isource, c_distances, waiting_list, seen)

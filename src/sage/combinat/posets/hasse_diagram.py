@@ -1083,10 +1083,12 @@ class HasseDiagram(DiGraph):
             sage: P.meet(2,3)
             4
         """
+        n = self.cardinality()
+        if n == 0:
+            return matrix(0)
         if not self.has_bottom():
             raise ValueError("Not a meet-semilattice: no bottom element.")
         le = self._leq_matrix
-        n = self.cardinality()
         meet = [[0 for x in range(n)] for x in range(n)]
         lc = [self.neighbors_in(x) for x in range(n)]
 
@@ -1224,9 +1226,11 @@ class HasseDiagram(DiGraph):
             sage: P.join(2,3)
             0
         """
+        n = self.cardinality()
+        if n == 0:
+            return matrix(0)
         if not self.has_top():
             raise ValueError("Not a join-semilattice: no top element.")
-        n = self.cardinality()
         join = [[0 for x in range(n)] for x in range(n)]
         le = self.lequal_matrix()
         uc = [sorted([n-1-y for y in self.neighbors_out(x)]) for

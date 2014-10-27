@@ -1119,10 +1119,6 @@ cdef class CachedFunction(object):
         - ``num_processes`` -- number of processes used by
           :func:`~sage.parallel.decorate.parallel`
 
-        OUTPUT:
-
-        None.
-
         EXAMPLES::
 
             sage: @cached_function
@@ -2046,10 +2042,6 @@ cdef class CachedMethodCaller(CachedFunction):
 
         - ``num_processes`` -- number of processes used by
           :func:`~sage.parallel.decorate.parallel`
-
-        OUTPUT:
-
-        None.
 
         EXAMPLES::
 

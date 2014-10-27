@@ -160,7 +160,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from combinat_cython import _stirling_number2
 ######### combinatorial sequences
 
-def bell_number(n, algorithm='dobinski', **options):
+def bell_number(n, algorithm='flint', **options):
     r"""
     Return the `n`-th Bell number (the number of ways to partition a set
     of `n` elements into pairwise disjoint nonempty subsets).
@@ -169,9 +169,11 @@ def bell_number(n, algorithm='dobinski', **options):
 
     - ``n`` -- a positive integer
 
-    - ``algorithm`` -- (Default: ``'dobinski'``) any one of the following:
+    - ``algorithm`` -- (Default: ``'flint'``) any one of the following:
 
-      - ``'dobinski'`` -- Use Dobinski's summation formula
+      - ``'dobinski'`` -- Use Dobinski's formula implemented in Sage
+
+      - ``'flint'`` -- Wrap FLINT's ``arith_bell_number``
 
       - ``'gap'`` -- Wrap libGAP's ``Bell``
 
@@ -268,7 +270,7 @@ def bell_number(n, algorithm='dobinski', **options):
     we compute with `p` bits of precision.
     This implies that `b` (and `q < b`) can be represented exactly.
 
-    We compute `\frac{e^{-1}}{q} b`, rounding up, and we must have an
+    We compute `\frac{e^{-1}}{q} b`, rounding down, and we must have an
     absolute error of at most `1/4` (given that `E_5 < 3/4`).
     This means that we need a relative error of at most
 
@@ -277,11 +279,10 @@ def bell_number(n, algorithm='dobinski', **options):
         \frac{e q}{4 b} > \frac{(e q)/4}{2^p} > \frac{7}{2^p}
 
     (assuming `n \geq 5`).
-    With a precision of `p` bits and rounding up, every rounding
+    With a precision of `p` bits and rounding down, every rounding
     has a relative error of at most `2^{1-p} = 2/2^p`.
     Since we do 3 roundings (`b` and `q` do not require rounding),
-    we get a relative error of at most `6/2^p`
-    (plus some epsilon for errors on the errors).
+    we get a relative error of at most `6/2^p`.
     All this implies that the precision of `p` bits is sufficient.
 
     EXAMPLES::
@@ -331,6 +332,8 @@ def bell_number(n, algorithm='dobinski', **options):
 
     TESTS::
 
+        sage: all([bell_number(n) == bell_number(n,'dobinski') for n in range(200)])
+        True
         sage: all([bell_number(n) == bell_number(n,'gap') for n in range(200)])
         True
         sage: all([bell_number(n) == bell_number(n,'mpmath', prec=500) for n in range(200, 220)])
@@ -369,6 +372,10 @@ def bell_number(n, algorithm='dobinski', **options):
             return ret
         return ZZ(int(ret_mp))
 
+    elif algorithm == 'flint':
+        import sage.libs.flint.arith
+        return sage.libs.flint.arith.bell_number(n)
+
     elif algorithm == 'gap':
         from sage.libs.gap.libgap import libgap
         return libgap.Bell(n).sage()
@@ -395,14 +402,14 @@ def bell_number(n, algorithm='dobinski', **options):
             b += v
             k += si
         from sage.rings.all import RealField
-        R = RealField(b.exact_log(2) + 1, rnd='RNDU')
+        R = RealField(b.exact_log(2) + 1, rnd='RNDD')
         return ( (R(-1).exp() / q) * b).ceil()
 
     raise ValueError("unknown algorithm %r" % algorithm)
 
 def catalan_number(n):
     r"""
-    Returns the n-th Catalan number
+    Return the `n`-th Catalan number.
 
     Catalan numbers: The `n`-th Catalan number is given
     directly in terms of binomial coefficients by
@@ -416,8 +423,8 @@ def catalan_number(n):
 
     Consider the set `S = \{ 1, ..., n \}`. A noncrossing
     partition of `S` is a partition in which no two blocks
-    "cross" each other, i.e., if a and b belong to one block and x and
-    y to another, they are not arranged in the order axby.
+    "cross" each other, i.e., if `a` and `b` belong to one block and
+    `x` and `y` to another, they are not arranged in the order `axby`.
     `C_n` is the number of noncrossing partitions of the set
     `S`. There are many other interpretations (see
     REFERENCES).
@@ -459,7 +466,7 @@ def catalan_number(n):
 
 def euler_number(n):
     """
-    Returns the n-th Euler number
+    Return the `n`-th Euler number.
 
     IMPLEMENTATION: Wraps Maxima's euler.
 
@@ -487,25 +494,24 @@ def euler_number(n):
 
 def fibonacci(n, algorithm="pari"):
     """
-    Returns the n-th Fibonacci number. The Fibonacci sequence
-    `F_n` is defined by the initial conditions
-    `F_1=F_2=1` and the recurrence relation
+    Return the `n`-th Fibonacci number.
+
+    The Fibonacci sequence `F_n` is defined by the initial
+    conditions `F_1 = F_2 = 1` and the recurrence relation
     `F_{n+2} = F_{n+1} + F_n`. For negative `n` we
     define `F_n = (-1)^{n+1}F_{-n}`, which is consistent with
     the recurrence relation.
 
     INPUT:
 
+    - ``algorithm`` -- a string:
 
-    -  ``algorithm`` - string:
+      * ``"pari"`` - (default) use the PARI C library's
+        fibo function
 
-    -  ``"pari"`` - (default) - use the PARI C library's
-       fibo function.
+      * ``"gap"`` - use GAP's Fibonacci function
 
-    -  ``"gap"`` - use GAP's Fibonacci function
-
-
-    .. note::
+    .. NOTE::
 
        PARI is tens to hundreds of times faster than GAP here;
        moreover, PARI works for every large input whereas GAP doesn't.
@@ -540,27 +546,25 @@ def fibonacci(n, algorithm="pari"):
         from sage.libs.gap.libgap import libgap
         return libgap.Fibonacci(n).sage()
     else:
-        raise ValueError("no algorithm %s"%algorithm)
+        raise ValueError("no algorithm {}".format(algorithm))
 
 def lucas_number1(n,P,Q):
     """
-    Returns the n-th Lucas number "of the first kind" (this is not
+    Return the `n`-th Lucas number "of the first kind" (this is not
     standard terminology). The Lucas sequence `L^{(1)}_n` is
     defined by the initial conditions `L^{(1)}_1=0`,
     `L^{(1)}_2=1` and the recurrence relation
     `L^{(1)}_{n+2} = P*L^{(1)}_{n+1} - Q*L^{(1)}_n`.
 
-    Wraps GAP's Lucas(...)[1].
+    Wraps GAP's ``Lucas(...)[1]``.
 
-    P=1, Q=-1 gives the Fibonacci sequence.
+    `P=1`, `Q=-1` gives the Fibonacci sequence.
 
     INPUT:
 
+    -  ``n`` -- integer
 
-    -  ``n`` - integer
-
-    -  ``P, Q`` - integer or rational numbers
-
+    -  ``P, Q`` -- integer or rational numbers
 
     OUTPUT: integer or rational number
 
@@ -610,7 +614,7 @@ def lucas_number1(n,P,Q):
 
 def lucas_number2(n,P,Q):
     r"""
-    Returns the n-th Lucas number "of the second kind" (this is not
+    Return the `n`-th Lucas number "of the second kind" (this is not
     standard terminology). The Lucas sequence `L^{(2)}_n` is
     defined by the initial conditions `L^{(2)}_1=2`,
     `L^{(2)}_2=P` and the recurrence relation
@@ -646,7 +650,7 @@ def lucas_number2(n,P,Q):
         sage: type(n)
         <type 'sage.rings.rational.Rational'>
 
-    The case P=1, Q=-1 is the Lucas sequence in Brualdi's Introductory
+    The case `P=1`, `Q=-1` is the Lucas sequence in Brualdi's Introductory
     Combinatorics, 4th ed., Prentice-Hall, 2004::
 
         sage: [lucas_number2(n,1,-1) for n in range(10)]
@@ -659,7 +663,7 @@ def lucas_number2(n,P,Q):
 
 def stirling_number1(n, k):
     r"""
-    Returns the `n`-th Stirling number `S_1(n,k)` of the first kind
+    Return the `n`-th Stirling number `S_1(n,k)` of the first kind.
 
     This is the number of permutations of `n` points with `k` cycles.
 
@@ -685,9 +689,9 @@ def stirling_number1(n, k):
 
 def stirling_number2(n, k, algorithm=None):
     """
-    Returns the n-th Stirling number `S_2(n,k)` of the second
-    kind (the number of ways to partition a set of n elements into k
-    pairwise disjoint nonempty subsets). (The n-th Bell number is the
+    Return the `n`-th Stirling number `S_2(n,k)` of the second
+    kind (the number of ways to partition a set of `n` elements into `k`
+    pairwise disjoint nonempty subsets). (The `n`-th Bell number is the
     sum of the `S_2(n,k)`'s, `k=0,...,n`.)
 
     INPUT:
@@ -2191,10 +2195,17 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
 
 def tuples(S,k):
     """
-    An ordered tuple of length k of set is an ordered selection with
-    repetition and is represented by a list of length k containing
-    elements of set. tuples returns the set of all ordered tuples of
-    length k of the set.
+    Return a list of all `k`-tuples of elements of a given set ``S``.
+
+    This function accepts the set ``S`` in the form of any iterable
+    (list, tuple or iterator), and returns a list of `k`-tuples
+    (themselves encoded as lists). If ``S`` contains duplicate entries,
+    then you should expect the method to return tuples multiple times!
+
+    Recall that `k`-tuples are ordered (in the sense that two `k`-tuples
+    differing in the order of their entries count as different) and
+    can have repeated entries (even if ``S`` is a list with no
+    repetition).
 
     EXAMPLES::
 
@@ -2237,7 +2248,7 @@ def tuples(S,k):
 
 def number_of_tuples(S, k):
     """
-    Returns the size of tuples(S,k). Wraps GAP's NrTuples.
+    Return the size of ``tuples(S,k)``. Wraps GAP's ``NrTuples``.
 
     EXAMPLES::
 
@@ -2255,20 +2266,26 @@ def number_of_tuples(S, k):
 
 def unordered_tuples(S, k):
     """
-    An unordered tuple of length k of set is a unordered selection with
-    repetitions of set and is represented by a sorted list of length k
-    containing elements from set.
+    Return the set of all unordered tuples of length ``k`` of the
+    set ``S``. Wraps GAP's ``UnorderedTuples``.
 
-    unordered_tuples returns the set of all unordered tuples of length
-    k of the set. Wraps GAP's UnorderedTuples.
+    An unordered tuple of length `k` of a set `S` is a unordered selection
+    with repetitions of elements of `S`, and is represented by a sorted
+    list of length `k` containing elements from `S`.
 
-    .. warning::
+    .. WARNING::
 
-       Wraps GAP - hence mset must be a list of objects that have
+       Wraps GAP -- hence ``S`` must be a list of objects that have
        string representations that can be interpreted by the GAP
-       interpreter. If mset consists of at all complicated Sage
+       interpreter. If ``S`` contains any complicated Sage
        objects, this function does *not* do what you expect. A proper
        function should be written! (TODO!)
+
+    .. NOTE::
+
+        Repeated entries in ``S`` are being ignored -- i.e.,
+        ``unordered_tuples([1,2,3,3],2)`` doesn't return anything
+        different from ``unordered_tuples([1,2,3],2)``.
 
     EXAMPLES::
 
@@ -2285,8 +2302,8 @@ def unordered_tuples(S, k):
 
 def number_of_unordered_tuples(S,k):
     """
-    Returns the size of unordered_tuples(S,k). Wraps GAP's
-    NrUnorderedTuples.
+    Return the size of ``unordered_tuples(S,k)``. Wraps GAP's
+    ``NrUnorderedTuples``.
 
     EXAMPLES::
 
@@ -2297,6 +2314,67 @@ def number_of_unordered_tuples(S,k):
     from sage.libs.gap.libgap import libgap
     S = libgap.eval(str(S))
     return libgap.NrUnorderedTuples(S, k).sage()
+
+def unshuffle_iterator(a, one=1):
+    r"""
+    Iterate over the unshuffles of a list (or tuple) ``a``, also
+    yielding the signs of the respective permutations.
+
+    If `n` and `k` are integers satisfying `0 \leq k \leq n`, then
+    a `(k, n-k)`-*unshuffle* means a permutation `\pi \in S_n` such
+    that `\pi(1) < \pi(2) < \cdots < \pi(k)` and
+    `\pi(k+1) < \pi(k+2) < \cdots < \pi(n)`. This method provides,
+    for a list `a = (a_1, a_2, \ldots, a_n)` of length `n`, an iterator
+    yielding all pairs:
+
+    .. MATH::
+
+        \Bigl( \bigl( (a_{\pi(1)}, a_{\pi(2)}, \ldots, a_{\pi(k)}),
+        (a_{\pi(k+1)}, a_{\pi(k+2)}, \ldots, a_{\pi(n)}) \bigl),
+        (-1)^{\pi} \Bigr)
+
+    for all `k \in \{0, 1, \ldots, n\}` and all `(k, n-k)`-unshuffles
+    `\pi`. The optional variable ``one`` can be set to a different
+    value which results in the `(-1)^{\pi}` component being multiplied
+    by said value.
+
+    The iterator does not yield these in order of increasing `k`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.combinat import unshuffle_iterator
+        sage: list(unshuffle_iterator([1, 3, 4]))
+        [(((), (1, 3, 4)), 1), (((1,), (3, 4)), 1), (((3,), (1, 4)), -1),
+         (((1, 3), (4,)), 1), (((4,), (1, 3)), 1), (((1, 4), (3,)), -1),
+         (((3, 4), (1,)), 1), (((1, 3, 4), ()), 1)]
+        sage: list(unshuffle_iterator([3, 1]))
+        [(((), (3, 1)), 1), (((3,), (1,)), 1), (((1,), (3,)), -1),
+         (((3, 1), ()), 1)]
+        sage: list(unshuffle_iterator([8]))
+        [(((), (8,)), 1), (((8,), ()), 1)]
+        sage: list(unshuffle_iterator([]))
+        [(((), ()), 1)]
+        sage: list(unshuffle_iterator([3, 1], 3/2))
+        [(((), (3, 1)), 3/2), (((3,), (1,)), 3/2), (((1,), (3,)), -3/2),
+         (((3, 1), ()), 3/2)]
+    """
+    from sage.misc.misc import powerset
+    n = len(a)
+    for I in powerset(range(n)):
+        sorted_I = tuple(sorted(I))
+        nonI = range(n)
+        for j in reversed(sorted_I): # probably optimizable
+            nonI.pop(j)
+        sorted_nonI = tuple(nonI)
+        sign = True
+        for i in sorted_I:
+            if i % 2:  # aka i % 2 == 1
+                sign = not sign
+        if len(sorted_I) % 4 > 1:
+            sign = not sign
+        yield ((tuple([a[i] for i in sorted_I]),
+                tuple([a[i] for i in sorted_nonI])),
+               (one if sign else - one))
 
 def permutations(mset):
     """
@@ -2426,19 +2504,19 @@ def cyclic_permutations_iterator(mset):
 
 def bell_polynomial(n, k):
     r"""
-    This function returns the Bell Polynomial
+    Return the Bell Polynomial
 
-    .. math::
+    .. MATH::
 
        B_{n,k}(x_1, x_2, \ldots, x_{n-k+1}) = \sum_{\sum{j_i}=k, \sum{i j_i}
-       =n} \frac{n!}{j_1!j_2!\ldots} \frac{x_1}{1!}^j_1 \frac{x_2}{2!}^j_2
-       \ldots
+       =n} \frac{n!}{j_1!j_2!\cdots} \frac{x_1}{1!}^j_1 \frac{x_2}{2!}^j_2
+       \cdots.
 
     INPUT:
 
-    - ``n`` - integer
+    - ``n`` -- integer
 
-    - ``k`` - integer
+    - ``k`` -- integer
 
     OUTPUT:
 
@@ -2477,21 +2555,19 @@ def bell_polynomial(n, k):
 
 def fibonacci_sequence(start, stop=None, algorithm=None):
     r"""
-    Returns an iterator over the Fibonacci sequence, for all fibonacci
+    Return an iterator over the Fibonacci sequence, for all fibonacci
     numbers `f_n` from ``n = start`` up to (but
     not including) ``n = stop``
 
     INPUT:
 
+    -  ``start`` -- starting value
 
-    -  ``start`` - starting value
+    -  ``stop`` -- stopping value
 
-    -  ``stop`` - stopping value
-
-    -  ``algorithm`` - default (None) - passed on to
+    -  ``algorithm`` -- (default: ``None``) passed on to
        fibonacci function (or not passed on if None, i.e., use the
-       default).
-
+       default)
 
     EXAMPLES::
 
@@ -2504,7 +2580,7 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
         sage: sum([i for i in fibonacci_sequence(100, 110)])
         69919376923075308730013
 
-    .. seealso::
+    .. SEEALSO::
 
        :func:`fibonacci_xrange`
 
@@ -2528,7 +2604,7 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
 
 def fibonacci_xrange(start, stop=None, algorithm='pari'):
     r"""
-    Returns an iterator over all of the Fibonacci numbers in the given
+    Return an iterator over all of the Fibonacci numbers in the given
     range, including ``f_n = start`` up to, but not
     including, ``f_n = stop``.
 
@@ -2556,7 +2632,7 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
         sage: sum([i for i in fibonacci_xrange(10^6) if is_even(i)])
         1089154
 
-    .. seealso::
+    .. SEEALSO::
 
        :func:`fibonacci_sequence`
 
@@ -2588,17 +2664,17 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
 
 def bernoulli_polynomial(x, n):
     r"""
-    Return the nth Bernoulli polynomial evaluated at x.
+    Return the ``n``-th Bernoulli polynomial evaluated at ``x``.
 
     The generating function for the Bernoulli polynomials is
 
-    .. math::
+    .. MATH::
 
        \frac{t e^{xt}}{e^t-1}= \sum_{n=0}^\infty B_n(x) \frac{t^n}{n!},
 
     and they are given directly by
 
-    .. math::
+    .. MATH::
 
        B_n(x) = \sum_{i=0}^n \binom{n}{i}B_{n-i}x^i.
 
@@ -2630,10 +2706,9 @@ def bernoulli_polynomial(x, n):
         sage: 5*power_sum == bernoulli_polynomial(10, 5) - bernoulli(5)
         True
 
-
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Bernoulli_polynomials
+    - :wikipedia:`Bernoulli_polynomials`
     """
     try:
         n = ZZ(n)

@@ -20,9 +20,7 @@ one is a paper from Horan and Hurlbert which goes through all constructions
 It can be used through the ``designs`` object::
 
     sage: designs.steiner_quadruple_system(8)
-    ((0, 1, 2, 3), (0, 1, 6, 7), (0, 5, 2, 7), (0, 5, 6, 3), (4, 1, 2, 7),
-    (4, 1, 6, 3), (4, 5, 2, 3), (4, 5, 6, 7), (0, 1, 4, 5), (0, 2, 4, 6),
-    (0, 3, 4, 7), (1, 2, 5, 6), (1, 3, 5, 7), (2, 3, 6, 7))
+    Incidence structure with 8 points and 14 blocks
 
 REFERENCES:
 
@@ -76,15 +74,14 @@ Functions
 ---------
 """
 from sage.misc.cachefunc import cached_function
+from sage.combinat.designs.incidence_structures import IncidenceStructure
 
 # Construction 1
-def two_n(n,B):
+def two_n(B):
     r"""
     Return a Steiner Quadruple System on `2n` points.
 
     INPUT:
-
-    - ``n`` (integer)
 
     - ``B`` -- A Steiner Quadruple System on `n` points.
 
@@ -94,35 +91,34 @@ def two_n(n,B):
         sage: for n in xrange(4, 30):
         ....:     if (n%6) in [2,4]:
         ....:         sqs = designs.steiner_quadruple_system(n)
-        ....:         if not is_steiner_quadruple_system(2*n, two_n(n, sqs)):
+        ....:         if not is_steiner_quadruple_system(2*n,two_n(sqs)):
         ....:             print "Something is wrong !"
 
     """
+    n = B.num_points()
     Y = []
 
     # Line 1
-    for x,y,z,t in B:
+    for x,y,z,t in B._blocks:
         for a in xrange(2):
             for b in xrange(2):
                 for c in xrange(2):
                     d = (a+b+c)%2
-                    Y.append((x+a*n,y+b*n,z+c*n,t+d*n))
+                    Y.append([x+a*n,y+b*n,z+c*n,t+d*n])
 
     # Line 2
     for j in xrange(n):
         for jj in xrange(j+1,n):
-            Y.append((j,jj,n+j,n+jj))
+            Y.append([j,jj,n+j,n+jj])
 
-    return tuple(Y)
+    return IncidenceStructure(2*n,Y,check=False,copy=False)
 
 # Construction 2
-def three_n_minus_two(n,B):
+def three_n_minus_two(B):
     """
     Return a Steiner Quadruple System on `3n-2` points.
 
     INPUT:
-
-    - ``n`` (integer)
 
     - ``B`` -- A Steiner Quadruple System on `n` points.
 
@@ -132,55 +128,53 @@ def three_n_minus_two(n,B):
         sage: for n in xrange(4, 30):
         ....:     if (n%6) in [2,4]:
         ....:         sqs = designs.steiner_quadruple_system(n)
-        ....:         if not is_steiner_quadruple_system(3*n-2, three_n_minus_two(n, sqs)):
+        ....:         if not is_steiner_quadruple_system(3*n-2, three_n_minus_two(sqs)):
         ....:             print "Something is wrong !"
 
     """
+    n = B.num_points()
     A = n-1
     Y = []
     # relabel function
     r = lambda i,x : (i%3)*(n-1)+x
-    for x,y,z,t in B:
+    for x,y,z,t in B._blocks:
         if t == A:
             # Line 2.
             for a in xrange(3):
                 for b in xrange(3):
                     c = -(a+b)%3
-                    Y.append((r(a,x),r(b,y),r(c,z),3*n-3))
+                    Y.append([r(a,x),r(b,y),r(c,z),3*n-3])
 
             # Line 3.
-            Y.extend([(r(i,x),r(i,y),r(i+1,z),r(i+2,z)) for i in xrange(3)])
-            Y.extend([(r(i,x),r(i,z),r(i+1,y),r(i+2,y)) for i in xrange(3)])
-            Y.extend([(r(i,y),r(i,z),r(i+1,x),r(i+2,x)) for i in xrange(3)])
+            Y.extend([[r(i,x),r(i,y),r(i+1,z),r(i+2,z)] for i in xrange(3)])
+            Y.extend([[r(i,x),r(i,z),r(i+1,y),r(i+2,y)] for i in xrange(3)])
+            Y.extend([[r(i,y),r(i,z),r(i+1,x),r(i+2,x)] for i in xrange(3)])
 
         else:
             # Line 1.
             for a in xrange(3):
                 for b in xrange(3):
                     for c in xrange(3):
-                      d = -(a+b+c)%3
-                      Y.append((r(a,x),r(b,y),r(c,z),r(d,t)))
+                        d = -(a+b+c)%3
+                        Y.append([r(a,x),r(b,y),r(c,z),r(d,t)])
 
     # Line 4.
     for j in xrange(n-1):
         for jj in xrange(j+1,n-1):
-            Y.extend([(r(i,j),r(i,jj),r(i+1,j),r(i+1,jj)) for i in xrange(3)])
+            Y.extend([[r(i,j),r(i,jj),r(i+1,j),r(i+1,jj)] for i in xrange(3)])
 
     # Line 5.
     for j in xrange(n-1):
-        Y.append((r(0,j),r(1,j),r(2,j),3*n-3))
+        Y.append([r(0,j),r(1,j),r(2,j),3*n-3])
 
-    Y = tuple(map(tuple,map(sorted,Y)))
-    return Y
+    return IncidenceStructure(3*n-2,Y,check=False,copy=False)
 
 # Construction 3
-def three_n_minus_eight(n, B):
-    """
+def three_n_minus_eight(B):
+    r"""
     Return a Steiner Quadruple System on `3n-8` points.
 
     INPUT:
-
-    - ``n`` -- an integer such that `n\equiv 2 \pmod{12}`.
 
     - ``B`` -- A Steiner Quadruple System on `n` points.
 
@@ -190,22 +184,23 @@ def three_n_minus_eight(n, B):
         sage: for n in xrange(4, 30):
         ....:     if (n%12) == 2:
         ....:         sqs = designs.steiner_quadruple_system(n)
-        ....:         if not is_steiner_quadruple_system(3*n-8, three_n_minus_eight(n, sqs)):
+        ....:         if not is_steiner_quadruple_system(3*n-8, three_n_minus_eight(sqs)):
         ....:             print "Something is wrong !"
 
     """
+    n = B.num_points()
 
     if (n%12) != 2:
         raise ValueError("n must be equal to 2 mod 12")
 
-    B = relabel_system(n, B)
+    B = relabel_system(B)
     r = lambda i,x : (i%3)*(n-4)+(x%(n-4))
 
     # Line 1.
-    Y = [[x+2*(n-4) for x in B[0]]]
+    Y = [[x+2*(n-4) for x in B._blocks[-1]]]
 
     # Line 2.
-    for s in B[1:]:
+    for s in B._blocks[:-1]:
         for i in xrange(3):
             Y.append([r(i,x) if x<= n-5 else x+2*(n-4) for x in s])
 
@@ -215,7 +210,7 @@ def three_n_minus_eight(n, B):
         for aa in xrange(n-4):
             for aaa in xrange(n-4):
                 aaaa = -(a+aa+aaa)%(n-4)
-                Y.append((r(0,aa),r(1,aaa), r(2,aaaa),3*(n-4)+a))
+                Y.append([r(0,aa),r(1,aaa), r(2,aaaa),3*(n-4)+a])
 
 
     # Line 4.
@@ -225,31 +220,26 @@ def three_n_minus_eight(n, B):
             for bb in xrange(n-4):
                 bbb = -(b+bb)%(n-4)
                 for d in xrange(2*k+1):
-                    Y.append((r(i+2,bbb), r(i, b+2*k+1+i*(4*k+2)-d) , r(i, b+2*k+2+i*(4*k+2)+d), r(i+1,bb)))
-
-
+                    Y.append([r(i+2,bbb), r(i, b+2*k+1+i*(4*k+2)-d) , r(i, b+2*k+2+i*(4*k+2)+d), r(i+1,bb)])
 
     # Line 5.
     for i in xrange(3):
         for alpha in xrange(4*k+2, 12*k+9):
             for ra,sa in P(alpha,6*k+5):
                 for raa,saa in P(alpha,6*k+5):
-                    Y.append(tuple(sorted((r(i,ra),r(i,sa),r(i+1,raa), r(i+1,saa)))))
+                    Y.append([r(i,ra),r(i,sa),r(i+1,raa), r(i+1,saa)])
 
-
-    Y = tuple(map(tuple,map(sorted,Y)))
-    return Y
+    return IncidenceStructure(3*n-8,Y,check=False,copy=False)
 
 # Construction 4
-def three_n_minus_four(n, B):
-    """
+def three_n_minus_four(B):
+    r"""
     Return a Steiner Quadruple System on `3n-4` points.
 
     INPUT:
 
-    - ``n`` -- an integer such that `n\equiv 10\pmod{12}`
-
-    - ``B`` -- A Steiner Quadruple System on `n` points.
+    - ``B`` -- A Steiner Quadruple System on `n` points where `n\equiv
+      10\pmod{12}`.
 
     EXAMPLES::
 
@@ -257,28 +247,30 @@ def three_n_minus_four(n, B):
         sage: for n in xrange(4, 30):
         ....:     if n%12 == 10:
         ....:         sqs = designs.steiner_quadruple_system(n)
-        ....:         if not is_steiner_quadruple_system(3*n-4, three_n_minus_four(n, sqs)):
+        ....:         if not is_steiner_quadruple_system(3*n-4, three_n_minus_four(sqs)):
         ....:             print "Something is wrong !"
 
     """
+    n = B.num_points()
+
     if n%12 != 10:
         raise ValueError("n must be equal to 10 mod 12")
 
-    B = relabel_system(n, B)
+    B = relabel_system(B)
     r = lambda i,x : (i%3)*(n-2)+(x%(n-2))
 
     # Line 1/2.
     Y = []
-    for s in B:
+    for s in B._blocks:
         for i in xrange(3):
-            Y.append(tuple(r(i,x) if x<= n-3 else x+2*(n-2) for x in s ))
+            Y.append([r(i,x) if x<= n-3 else x+2*(n-2) for x in s])
 
     # Line 3.
     for a in xrange(2):
         for aa in xrange(n-2):
             for aaa in xrange(n-2):
                 aaaa= -(a+aa+aaa)%(n-2)
-                Y.append((r(0,aa),r(1,aaa), r(2,aaaa),3*(n-2)+a))
+                Y.append([r(0,aa),r(1,aaa), r(2,aaaa),3*(n-2)+a])
 
     # Line 4.
     k = (n-10) // 12
@@ -287,7 +279,7 @@ def three_n_minus_four(n, B):
             for bb in xrange(n-2):
                 bbb = -(b+bb)%(n-2)
                 for d in xrange(2*k+1):
-                    Y.append((r(i+2,bbb), r(i, b+2*k+1+i*(4*k+2)-d) , r(i, b+2*k+2+i*(4*k+2)+d), r(i+1,bb)))
+                    Y.append([r(i+2,bbb), r(i, b+2*k+1+i*(4*k+2)-d) , r(i, b+2*k+2+i*(4*k+2)+d), r(i+1,bb)])
 
     # Line 5.
     from sage.graphs.graph_coloring import round_robin
@@ -300,19 +292,16 @@ def three_n_minus_four(n, B):
         for alpha in xrange(4*k+2, 12*k+6+1):
             for ra,sa in P(alpha, 6*k+4):
                 for raa,saa in P(alpha, 6*k+4):
-                    Y.append(tuple(sorted((r(i,ra),r(i,sa),r(i+1,raa), r(i+1,saa)))))
+                    Y.append([r(i,ra),r(i,sa),r(i+1,raa), r(i+1,saa)])
 
-    Y = tuple(map(tuple,map(sorted,Y)))
-    return Y
+    return IncidenceStructure(3*n-4,Y,check=False,copy=False)
 
 # Construction 5
-def four_n_minus_six(n, B):
+def four_n_minus_six(B):
     """
     Return a Steiner Quadruple System on `4n-6` points.
 
     INPUT:
-
-    - ``n`` (integer)
 
     - ``B`` -- A Steiner Quadruple System on `n` points.
 
@@ -322,20 +311,20 @@ def four_n_minus_six(n, B):
         sage: for n in xrange(4, 20):
         ....:     if (n%6) in [2,4]:
         ....:         sqs = designs.steiner_quadruple_system(n)
-        ....:         if not is_steiner_quadruple_system(4*n-6, four_n_minus_six(n, sqs)):
+        ....:         if not is_steiner_quadruple_system(4*n-6, four_n_minus_six(sqs)):
         ....:             print "Something is wrong !"
 
     """
-
+    n = B.num_points()
     f = n-2
     r = lambda i,ii,x : (2*(i%2)+(ii%2))*(n-2)+(x)%(n-2)
 
     # Line 1.
     Y = []
-    for s in B:
+    for s in B._blocks:
         for i in xrange(2):
             for ii in xrange(2):
-                Y.append(tuple(r(i,ii,x) if x<= n-3 else x+3*(n-2) for x in s ))
+                Y.append([r(i,ii,x) if x<= n-3 else x+3*(n-2) for x in s])
 
     # Line 2/3/4/5
     k = f // 2
@@ -344,10 +333,10 @@ def four_n_minus_six(n, B):
             for c in xrange(k):
                 for cc in xrange(k):
                     ccc = -(c+cc)%k
-                    Y.append((4*(n-2)+l,r(0,0,2*c),r(0,1,2*cc-eps),r(1,eps,2*ccc+l)))
-                    Y.append((4*(n-2)+l,r(0,0,2*c+1),r(0,1,2*cc-1-eps),r(1,eps,2*ccc+1-l)))
-                    Y.append((4*(n-2)+l,r(1,0,2*c),r(1,1,2*cc-eps),r(0,eps,2*ccc+1-l)))
-                    Y.append((4*(n-2)+l,r(1,0,2*c+1),r(1,1,2*cc-1-eps),r(0,eps,2*ccc+l)))
+                    Y.append([4*(n-2)+l, r(0,0,2*c)  , r(0,1,2*cc-eps)  , r(1,eps,2*ccc+l)  ])
+                    Y.append([4*(n-2)+l, r(0,0,2*c+1), r(0,1,2*cc-1-eps), r(1,eps,2*ccc+1-l)])
+                    Y.append([4*(n-2)+l, r(1,0,2*c)  , r(1,1,2*cc-eps)  , r(0,eps,2*ccc+1-l)])
+                    Y.append([4*(n-2)+l, r(1,0,2*c+1), r(1,1,2*cc-1-eps), r(0,eps,2*ccc+l)  ])
 
     # Line 6/7
     for h in xrange(2):
@@ -357,8 +346,8 @@ def four_n_minus_six(n, B):
                 for rc,sc in barP(ccc,k):
                     for c in xrange(k):
                         cc = -(c+ccc)%k
-                        Y.append((r(h,0,2*c+eps),r(h,1,2*cc-eps),r(h+1,0,rc),r(h+1,0,sc)))
-                        Y.append((r(h,0,2*c-1+eps),r(h,1,2*cc-eps),r(h+1,1,rc),r(h+1,1,sc)))
+                        Y.append([r(h,0,2*c+eps)  , r(h,1,2*cc-eps), r(h+1,0,rc), r(h+1,0,sc)])
+                        Y.append([r(h,0,2*c-1+eps), r(h,1,2*cc-eps), r(h+1,1,rc), r(h+1,1,sc)])
 
 
 
@@ -369,8 +358,8 @@ def four_n_minus_six(n, B):
                 for rc,sc in barP(k+ccc,k):
                     for c in xrange(k):
                         cc = -(c+ccc)%k
-                        Y.append((r(h,0,2*c+eps),r(h,1,2*cc-eps),r(h+1,1,rc),r(h+1,1,sc)))
-                        Y.append((r(h,0,2*c-1+eps),r(h,1,2*cc-eps),r(h+1,0,rc),r(h+1,0,sc)))
+                        Y.append([r(h,0,2*c+eps)  , r(h,1,2*cc-eps), r(h+1,1,rc), r(h+1,1,sc)])
+                        Y.append([r(h,0,2*c-1+eps), r(h,1,2*cc-eps), r(h+1,0,rc), r(h+1,0,sc)])
 
 
     # Line 10
@@ -378,19 +367,16 @@ def four_n_minus_six(n, B):
         for alpha in xrange(n-3):
             for ra,sa in P(alpha,k):
                 for raa,saa in P(alpha,k):
-                    Y.append((r(h,0,ra),r(h,0,sa),r(h,1,raa),r(h,1,saa)))
+                    Y.append([r(h,0,ra),r(h,0,sa),r(h,1,raa),r(h,1,saa)])
 
-    Y = tuple(map(tuple,map(sorted,Y)))
-    return Y
+    return IncidenceStructure(4*n-6,Y,check=False,copy=False)
 
 # Construction 6
-def twelve_n_minus_ten(n, B):
+def twelve_n_minus_ten(B):
     """
     Return a Steiner Quadruple System on `12n-6` points.
 
     INPUT:
-
-    - ``n`` (integer)
 
     - ``B`` -- A Steiner Quadruple System on `n` points.
 
@@ -400,22 +386,21 @@ def twelve_n_minus_ten(n, B):
         sage: for n in xrange(4, 15):
         ....:     if (n%6) in [2,4]:
         ....:         sqs = designs.steiner_quadruple_system(n)
-        ....:         if not is_steiner_quadruple_system(12*n-10, twelve_n_minus_ten(n, sqs)):
+        ....:         if not is_steiner_quadruple_system(12*n-10, twelve_n_minus_ten(sqs)):
         ....:             print "Something is wrong !"
 
     """
-
+    n = B.num_points()
     B14 = steiner_quadruple_system(14)
     r = lambda i,x : i%(n-1)+(x%12)*(n-1)
-    k = n // 2
 
     # Line 1.
     Y = []
     for s in B14:
         for i in xrange(n-1):
-            Y.append(tuple(r(i,x) if x<= 11 else r(n-2,11)+x-11 for x in s ))
+            Y.append([r(i,x) if x<= 11 else r(n-2,11)+x-11 for x in s])
 
-    for s in B:
+    for s in B._blocks:
         if s[-1] == n-1:
             u,v,w,B = s
             dd = {0:u,1:v,2:w}
@@ -425,36 +410,36 @@ def twelve_n_minus_ten(n, B):
                     bbb = -(b+bb)%12
                     for h in xrange(2):
                         # Line 2
-                        Y.append((r(n-2,11)+1+h,r(u,b),r(v,bb),r(w,bbb+3*h)))
+                        Y.append([r(n-2,11)+1+h,r(u,b),r(v,bb),r(w,bbb+3*h)])
 
                     for i in xrange(3):
                         # Line 38.3
-                        Y.append((  r(d(i),b+4+i), r(d(i),b+7+i), r(d(i+1),bb), r(d(i+2),bbb)))
+                        Y.append([r(d(i),b+4+i), r(d(i),b+7+i), r(d(i+1),bb), r(d(i+2),bbb)])
 
             for j in xrange(12):
                 for eps in xrange(2):
                     for i in xrange(3):
                         # Line 38.4-38.7
-                        Y.append((  r(d(i),j), r(d(i+1),j+6*eps  ), r(d(i+2),6*eps-2*j+1), r(d(i+2),6*eps-2*j-1)))
-                        Y.append((  r(d(i),j), r(d(i+1),j+6*eps  ), r(d(i+2),6*eps-2*j+2), r(d(i+2),6*eps-2*j-2)))
-                        Y.append((  r(d(i),j), r(d(i+1),j+6*eps-3), r(d(i+2),6*eps-2*j+1), r(d(i+2),6*eps-2*j+2)))
-                        Y.append((  r(d(i),j), r(d(i+1),j+6*eps+3), r(d(i+2),6*eps-2*j-1), r(d(i+2),6*eps-2*j-2)))
+                        Y.append([ r(d(i),j), r(d(i+1),j+6*eps  ), r(d(i+2),6*eps-2*j+1), r(d(i+2),6*eps-2*j-1)])
+                        Y.append([ r(d(i),j), r(d(i+1),j+6*eps  ), r(d(i+2),6*eps-2*j+2), r(d(i+2),6*eps-2*j-2)])
+                        Y.append([ r(d(i),j), r(d(i+1),j+6*eps-3), r(d(i+2),6*eps-2*j+1), r(d(i+2),6*eps-2*j+2)])
+                        Y.append([ r(d(i),j), r(d(i+1),j+6*eps+3), r(d(i+2),6*eps-2*j-1), r(d(i+2),6*eps-2*j-2)])
 
             for j in xrange(6):
                 for i in xrange(3):
                     for eps in xrange(2):
                         # Line 38.8
-                        Y.append((  r(d(i),j), r(d(i),j+6), r(d(i+1),j+3*eps), r(d(i+1),j+6+3*eps)))
+                        Y.append([ r(d(i),j), r(d(i),j+6), r(d(i+1),j+3*eps), r(d(i+1),j+6+3*eps)])
 
             for j in xrange(12):
                 for i in xrange(3):
                     for eps in xrange(4):
                         # Line 38.11
-                        Y.append((  r(d(i),j), r(d(i),j+1), r(d(i+1),j+3*eps), r(d(i+1),j+3*eps+1)))
+                        Y.append([ r(d(i),j), r(d(i),j+1), r(d(i+1),j+3*eps), r(d(i+1),j+3*eps+1)])
                         # Line 38.12
-                        Y.append((  r(d(i),j), r(d(i),j+2), r(d(i+1),j+3*eps), r(d(i+1),j+3*eps+2)))
+                        Y.append([ r(d(i),j), r(d(i),j+2), r(d(i+1),j+3*eps), r(d(i+1),j+3*eps+2)])
                         # Line 38.13
-                        Y.append((  r(d(i),j), r(d(i),j+4), r(d(i+1),j+3*eps), r(d(i+1),j+3*eps+4)))
+                        Y.append([ r(d(i),j), r(d(i),j+4), r(d(i+1),j+3*eps), r(d(i+1),j+3*eps+4)])
 
             for alpha in [4,5]:
                 for ra,sa in P(alpha,6):
@@ -462,7 +447,7 @@ def twelve_n_minus_ten(n, B):
                         for i in xrange(3):
                             for ii in xrange(i+1,3):
                                 # Line 38.14
-                                Y.append((  r(d(i),ra), r(d(i),sa), r(d(ii),raa), r(d(ii),saa)))
+                                Y.append([ r(d(i),ra), r(d(i),sa), r(d(ii),raa), r(d(ii),saa)])
 
             for g in xrange(6):
                 for eps in xrange(2):
@@ -471,9 +456,9 @@ def twelve_n_minus_ten(n, B):
                             if i == ii:
                                 continue
                             # Line 38.9
-                            Y.append((  r(d(i),2*g+3*eps), r(d(i),2*g+6+3*eps), r(d(ii),2*g+1), r(d(ii),2*g+5)))
+                            Y.append([ r(d(i),2*g+3*eps), r(d(i),2*g+6+3*eps), r(d(ii),2*g+1), r(d(ii),2*g+5)])
                             # Line 38.10
-                            Y.append((  r(d(i),2*g+3*eps), r(d(i),2*g+6+3*eps), r(d(ii),2*g+2), r(d(ii),2*g+4)))
+                            Y.append([ r(d(i),2*g+3*eps), r(d(i),2*g+6+3*eps), r(d(ii),2*g+2), r(d(ii),2*g+4)])
 
         else:
             x,y,z,t = s
@@ -482,37 +467,32 @@ def twelve_n_minus_ten(n, B):
                     for aaa in xrange(12):
                         aaaa = -(a+aa+aaa)%12
                         # Line 3
-                        Y.append((r(x,a), r(y,aa), r(z,aaa), r(t,aaaa)))
-    return Y
+                        Y.append([r(x,a), r(y,aa), r(z,aaa), r(t,aaaa)])
+    return IncidenceStructure(12*n-10,Y,check=False,copy=False)
 
-def relabel_system(n,B):
+def relabel_system(B):
     r"""
     Relabels the set so that `\{n-4, n-3, n-2, n-1\}` is in `B`.
 
     INPUT:
-
-    - ``n`` -- an integer
 
     - ``B`` -- a list of 4-uples on `0,...,n-1`.
 
     EXAMPLE::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import relabel_system
-        sage: designs.steiner_quadruple_system(8)
-        ((0, 1, 2, 3), (0, 1, 6, 7), (0, 5, 2, 7), (0, 5, 6, 3), (4, 1, 2, 7),
-        (4, 1, 6, 3), (4, 5, 2, 3), (4, 5, 6, 7), (0, 1, 4, 5), (0, 2, 4, 6),
-        (0, 3, 4, 7), (1, 2, 5, 6), (1, 3, 5, 7), (2, 3, 6, 7))
-        sage: relabel_system(8,designs.steiner_quadruple_system(8))
-        ((4, 5, 6, 7), (0, 1, 4, 5), (1, 2, 4, 6), (0, 2, 4, 7), (1, 3, 5, 6),
-        (0, 3, 5, 7), (2, 3, 6, 7), (0, 1, 2, 3), (2, 3, 4, 5), (0, 3, 4, 6),
-        (1, 3, 4, 7), (0, 2, 5, 6), (1, 2, 5, 7), (0, 1, 6, 7))
+        sage: SQS8 = designs.steiner_quadruple_system(8)
+        sage: relabel_system(SQS8)
+        Incidence structure with 8 points and 14 blocks
     """
+    n = B.num_points()
+    B0 = B._blocks[0]
 
     label = {
-        B[0][0] : n-4,
-        B[0][1] : n-3,
-        B[0][2] : n-2,
-        B[0][3] : n-1
+        B0[0] : n-4,
+        B0[1] : n-3,
+        B0[2] : n-2,
+        B0[3] : n-1
         }
 
     def get_label(x):
@@ -523,8 +503,8 @@ def relabel_system(n,B):
             label[x] = total
             return total
 
-    B = tuple([tuple(sorted(map(get_label,s))) for s in B])
-    return B
+    B = [map(get_label,s) for s in B]
+    return IncidenceStructure(n,B)
 
 def P(alpha, m):
     r"""
@@ -729,11 +709,9 @@ def steiner_quadruple_system(n, check = False):
     EXAMPLES::
 
         sage: designs.steiner_quadruple_system(4)
-        ((0, 1, 2, 3),)
+        Incidence structure with 4 points and 1 blocks
         sage: designs.steiner_quadruple_system(8)
-        ((0, 1, 2, 3), (0, 1, 6, 7), (0, 5, 2, 7), (0, 5, 6, 3), (4, 1, 2, 7),
-        (4, 1, 6, 3), (4, 5, 2, 3), (4, 5, 6, 7), (0, 1, 4, 5), (0, 2, 4, 6),
-        (0, 3, 4, 7), (1, 2, 5, 6), (1, 3, 5, 7), (2, 3, 6, 7))
+        Incidence structure with 8 points and 14 blocks
 
     TESTS::
 
@@ -745,29 +723,29 @@ def steiner_quadruple_system(n, check = False):
     if not ((n%6) in [2, 4]):
         raise ValueError("n mod 6 must be equal to 2 or 4")
     elif n == 4:
-        return ((0,1,2,3),)
+        sqs = IncidenceStructure(4,[[0,1,2,3]])
     elif n == 14:
-        return _SQS14()
+        sqs = IncidenceStructure(14,_SQS14())
     elif n == 38:
-        return _SQS38()
-    elif (n%12) in [4,8]:
+        sqs = IncidenceStructure(38,_SQS38())
+    elif n%12 in [4,8]:
         nn =  n // 2
-        sqs = two_n(nn,steiner_quadruple_system(nn, check = False))
-    elif (n%18) in [4,10]:
+        sqs = two_n(steiner_quadruple_system(nn, check = False))
+    elif n%18 in [4,10]:
         nn = (n+2) // 3
-        sqs = three_n_minus_two(nn,steiner_quadruple_system(nn, check = False))
+        sqs = three_n_minus_two(steiner_quadruple_system(nn, check = False))
     elif (n%36) == 34:
         nn = (n+8) // 3
-        sqs = three_n_minus_eight(nn,steiner_quadruple_system(nn, check = False))
+        sqs = three_n_minus_eight(steiner_quadruple_system(nn, check = False))
     elif (n%36) == 26 :
         nn = (n+4) // 3
-        sqs = three_n_minus_four(nn,steiner_quadruple_system(nn, check = False))
-    elif (n%24) in [2,10]:
+        sqs = three_n_minus_four(steiner_quadruple_system(nn, check = False))
+    elif n%24 in [2,10]:
         nn = (n+6) // 4
-        sqs = four_n_minus_six(nn,steiner_quadruple_system(nn, check = False))
-    elif (n%72) in [14,38]:
+        sqs = four_n_minus_six(steiner_quadruple_system(nn, check = False))
+    elif n%72 in [14,38]:
         nn = (n+10) // 12
-        sqs = twelve_n_minus_ten(nn, steiner_quadruple_system(nn, check = False))
+        sqs = twelve_n_minus_ten(steiner_quadruple_system(nn, check = False))
     else:
         raise ValueError("This shouldn't happen !")
 
@@ -793,31 +771,7 @@ def is_steiner_quadruple_system(n,B):
         sage: is_steiner_quadruple_system(8,designs.steiner_quadruple_system(8))
         True
     """
-    from sage.rings.arith import binomial
-    # Cardinality
-    if len(B)*4 != binomial(n,3):
-        return False
-
-    # Vertex set
-    V = set([])
-    for b in B:
-        for x in b:
-            V.add(x)
-
-    if V != set(range(n)):
-        return False
-
-    # No two 4-sets intersect on 3 elements.
-    from itertools import combinations
-    s = set([])
-    for b in B:
-        for e in combinations(b,3):
-            if frozenset(e) in s:
-                return False
-            s.add(frozenset(e))
-
-    return True
-
+    return B.is_t_design(3,n,4,1)
 
 def _SQS14():
     r"""
@@ -828,7 +782,7 @@ def _SQS14():
     EXAMPLE::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import is_steiner_quadruple_system, _SQS14
-        sage: is_steiner_quadruple_system(14,_SQS14())
+        sage: is_steiner_quadruple_system(14,IncidenceStructure(_SQS14()))
         True
     """
     return ((0, 1, 2, 5), (0, 1, 3, 6), (0, 1, 4, 13), (0, 1, 7, 10), (0, 1, 8, 9),
@@ -860,11 +814,10 @@ def _SQS38():
     EXAMPLE::
 
         sage: from sage.combinat.designs.steiner_quadruple_systems import is_steiner_quadruple_system, _SQS38
-        sage: is_steiner_quadruple_system(38,_SQS38())
+        sage: is_steiner_quadruple_system(38,IncidenceStructure(_SQS38()))
         True
     """
-
-# From the La Jolla Covering Repository
+    # From the La Jolla Covering Repository
     return ((0, 1, 2, 14), (0, 1, 3, 34), (0, 1, 4, 31), (0, 1, 5, 27), (0, 1, 6, 17),
             (0, 1, 7, 12), (0, 1, 8, 36), (0, 1, 9, 10), (0, 1, 11, 18), (0, 1, 13, 37),
             (0, 1, 15, 35), (0, 1, 16, 22), (0, 1, 19, 33), (0, 1, 20, 25), (0, 1, 21, 23),

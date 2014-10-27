@@ -185,7 +185,7 @@ class IncidenceStructure(object):
 
         sage: blocks = [[0,1],[2,0],[1,2]]  # a list of lists of integers
         sage: I = designs.IncidenceStructure(3, blocks, copy=False)
-        sage: I._blocks == blocks
+        sage: I._blocks is blocks
         True
     """
     def __init__(self, points=None, blocks=None, incidence_matrix=None,
@@ -455,7 +455,7 @@ class IncidenceStructure(object):
             sage: designs.IncidenceStructure(3, [[0,1],[0,2]]).ground_set()
             [0, 1, 2]
         """
-        return self._points
+        return self._points[:]
 
     def num_points(self):
         r"""

@@ -37,7 +37,7 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 from matroid cimport Matroid
 from set_system cimport SetSystem

@@ -227,10 +227,8 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         self.set_random_number_generator(rng)
         self.r = gsl_rng_alloc(self.T)
         if seed is None:
-            self.seed = random.randint(1, sys.maxsize)
-        else:
-            self.seed = seed
-        self.set_seed(self.seed)
+            seed = random.randint(1, 2**31)
+        self.set_seed(seed)
         self.dimension = dimension
         self.vec = <double *>sage_malloc(self.dimension*(sizeof(double)))
 
@@ -537,10 +535,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         self.set_random_number_generator(rng)
         self.r = gsl_rng_alloc(self.T)
         if seed is None:
-            self.seed = random.randint(1, sys.maxsize)
-        else:
-            self.seed = seed
-        self.set_seed(self.seed)
+            seed = random.randint(1, 2**31)
+        self.set_seed(seed)
         self.name = " "
         self.set_distribution(type, parameters)
 
@@ -1031,10 +1027,8 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
         self.set_random_number_generator(rng)
         self.r = gsl_rng_alloc(self.T)
         if seed is None:
-            self.seed = random.randint(1, sys.maxsize)
-        else:
-            self.seed = seed
-        self.set_seed(self.seed)
+            seed = random.randint(1, 2**31)
+        self.set_seed(seed)
 
         cdef int n
         n = len(P)

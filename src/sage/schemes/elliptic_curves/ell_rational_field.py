@@ -1477,7 +1477,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           the conductor of self. This is passable so that rank estimation
           can be done for curves whose (large) conductor has been precomputed.
 
-        - ``root_number`` -- (default: "compute") String
+        - ``root_number`` -- (default: "compute") String or integer.
 
           - ``"compute"`` -- the root number of self is computed and used to
             (possibly) lower ther analytic rank estimate by 1.

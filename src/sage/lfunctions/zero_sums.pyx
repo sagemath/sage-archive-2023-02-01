@@ -1490,7 +1490,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
           - If False, the computation is run a single time with
             Delta=max_Delta, and the resulting bound returned.
 
-        - ``root_number`` -- (default: "compute") String
+        - ``root_number`` -- (default: "compute") String or integer.
 
           - ``"compute"`` -- the root number of self is computed and used to
             (possibly) lower ther analytic rank estimate by 1.
@@ -1500,7 +1500,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
           - ``1`` -- this value is assumed to be the root number of
             self. This is passable so that rank estimation can be done for
             curves whose root number has been precomputed.
-            
+
           - ``-1`` -- this value is assumed to be the root number of
             self. This is passable so that rank estimation can be done for
             curves whose root number has been precomputed.

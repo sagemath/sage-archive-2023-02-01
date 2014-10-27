@@ -1153,8 +1153,6 @@ cdef class SingularFunction(SageObject):
             foobar (singular function)
         """
         self._name = name
-        print name
-        print RING_CMD, <long> <void*> (IDROOT), <long> <void*> currPack
         global currRingHdl
         if currRingHdl == NULL:
             currRingHdl = ggetid("my_awesome_sage_ring")

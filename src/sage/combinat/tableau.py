@@ -2940,7 +2940,7 @@ class Tableau(CombinatorialObject, Element):
         return from_shape_and_word(self.shape(), w)
 
     def symmetric_group_action_on_values(self, perm):
-        """
+        r"""
         Return the image of the semistandard tableau ``self`` under the
         action of the permutation ``perm`` using the
         Lascoux-Schuetzenberger action of the symmetric group `S_n` on
@@ -2954,9 +2954,9 @@ class Tableau(CombinatorialObject, Element):
 
         Let `i \in \{1, 2, \ldots, n-1\}`, and let `T` be a
         semistandard tableau with ceiling `n`. Let `w` be the reading
-        word (:meth:`to_word`) of `T`. Replace all letters `i+1` in `w`
-        by opening parentheses, and all letters `i` in `w` by
-        closing parentheses. Whenever an opening parenthesis stands
+        word (:meth:`to_word`) of `T`. Replace all letters `i` in `w`
+        by closing parentheses, and all letters `i+1` in `w` by
+        opening parentheses. Whenever an opening parenthesis stands
         left of a closing parenthesis without there being any
         parentheses inbetween (it is allowed to have letters
         inbetween as long as they are not parentheses), consider these
@@ -2966,9 +2966,9 @@ class Tableau(CombinatorialObject, Element):
         parentheses. Then, let `a` be the number of opening
         parentheses in the word, and `b` the number of closing
         parentheses (notice that all opening parentheses are left of
-        all closing parentheses). Replace the first `b` parentheses
-        by the letters `i+1`, and replace the remaining `a` parentheses
-        by the letters `i`. Let `w'` be the resulting word. Let
+        all closing parentheses). Replace the first `a` parentheses
+        by the letters `i`, and replace the remaining `b` parentheses
+        by the letters `i+1`. Let `w'` be the resulting word. Let
         `T'` be the tableau with the same shape as `T` but with reading
         word `w'`. This tableau `T'` can be shown to be semistandard.
         We define the image of `T` under the action of the simple
@@ -2978,6 +2978,15 @@ class Tableau(CombinatorialObject, Element):
         extends to a unique action of the symmetric group `S_n` on
         the set of semistandard tableaux with ceiling `n`. This is the
         Lascoux-Schuetzenberger action.
+
+        This action of the symmetric group `S_n` on the set of all
+        semistandard tableaux of given shape `\lambda` with entries
+        in `\{ 1, 2, \ldots, n \}` is the one defined in
+        [Loth02]_ Theorem 5.6.3. In particular, the action of `s_i`
+        is denoted by `\sigma_i` in said source. (Beware of the typo
+        in the definition of `\sigma_i`: it should say
+        `\sigma_i ( a_i^r a_{i+1}^s ) = a_i^s a_{i+1}^r`, not
+        `\sigma_i ( a_i^r a_{i+1}^s ) = a_i^s a_{i+1}^s`.)
 
         EXAMPLES::
 
@@ -2994,6 +3003,12 @@ class Tableau(CombinatorialObject, Element):
             [[1, 1, 1, 1], [2, 3], [3]]
             sage: t.symmetric_group_action_on_values([1,3,2])
             [[1, 1, 2, 2], [2, 2], [3]]
+
+        TESTS::
+
+            sage: t = Tableau([])
+            sage: t.symmetric_group_action_on_values([])
+            []
         """
         return self.raise_action_from_words(symmetric_group_action_on_values, perm)
 

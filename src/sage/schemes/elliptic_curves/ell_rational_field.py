@@ -1440,10 +1440,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Return an upper bound for the analytic rank of self, conditional on
         the Generalized Riemann Hypothesis, via computing the zero sum
-        `\sum_{\gamma} f(\Delta\gamma),`
-        where `\gamma` ranges over the imaginary parts of the zeros of `L(E,s)`
-        along the critical strip, `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`,
-        and `\Delta` is the tightness parameter whose maximum value is specified by
+        `\sum_{\gamma} f(\Delta\gamma)`, where `\gamma` ranges over the
+        imaginary parts of the zeros of `L(E,s)` along the critical strip,
+        `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`, and `\Delta`
+        is the tightness parameter whose maximum value is specified by
         max_Delta. This computation can be run on curves with very large
         conductor (so long as the conductor is known or quickly computable)
         when `\Delta` is not too large (see below).
@@ -1462,12 +1462,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           empirical results show that for about 99.7% of all curves the returned
           value is the actual analytic rank.
 
-        - ``adaptive`` -- (default: True) Either True or False:
+        - ``adaptive`` -- (default: True) Boolean
+
           - If True, the computation is first run with small and then
             successively larger Delta values up to max_Delta. If at any
             point the computed bound is 0 (or 1 when when root_number is -1
             or True), the computation halts and that value is returned;
             otherwise the minimum of the computed bounds is returned.
+
           - If False, the computation is run a single time with
             `\Delta=` max_Delta, and the resulting bound returned.
 
@@ -1475,13 +1477,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           the conductor of self. This is passable so that rank estimation
           can be done for curves whose (large) conductor has been precomputed.
 
-        - ``root_number`` -- (default: "compute") One of the following:
+        - ``root_number`` -- (default: "compute") String
+
           - ``"compute"`` -- the root number of self is computed and used to
             (possibly) lower ther analytic rank estimate by 1.
-          - ``"ignore"`` -- the above step is omitted
+
+          - ``"ignore"`` -- the above step is omitted.
+
           - ``1`` -- this value is assumed to be the root number of
             self. This is passable so that rank estimation can be done for
             curves whose root number has been precomputed.
+
           - ``-1`` -- this value is assumed to be the root number of
             self. This is passable so that rank estimation can be done for
             curves whose root number has been precomputed.
@@ -1496,6 +1502,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           If left as None, the maximum available number of CPUs will be used.
           Note: Due to parallelization overhead, multiple processors will
           only be used for Delta values `\ge 1.75`.
+
 
         .. NOTE::
 
@@ -1635,7 +1642,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         [Bob13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
         ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
-        
+
         """
         Z = LFunctionZeroSum_EllipticCurve(self, N)
         bound = Z.analytic_rank_upper_bound(max_Delta=max_Delta,

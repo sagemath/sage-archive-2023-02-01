@@ -53,6 +53,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
     r"""
     Abstract class for computing certain sums over zeros of a motivic L-function
     without having to determine the zeros themselves.
+
     """
     cdef _pi            # Pi to 64 bits
     cdef _euler_gamma   # Euler-Mascheroni constant = 0.5772...
@@ -183,6 +184,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         INPUT:
 
         - ``s`` -- A complex number
+
         - ``include_constant_term`` -- (default: True) boolean; if set False,
           only the value of the sum over `k` is returned without subtracting
           off the Euler-Mascheroni constant, i.e. the returned value is
@@ -253,6 +255,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         INPUT:
 
         - ``s`` -- Real or complex value
+
         - ``num_terms`` -- (default: 10000) the maximum number of terms
           summed in the Dirichlet series.
 
@@ -366,6 +369,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         INPUT:
 
         - ``s`` -- Real or complex value
+
         - ``num_terms`` -- (default: 10000) the maximum number of terms
           summed in the Dirichlet series.
 
@@ -438,18 +442,22 @@ cdef class LFunctionZeroSum_abstract(SageObject):
           otherwise ignored.
 
         - ``function`` -- string (default: "sincsquared_fast") - the function
-          `f(x)` as described above. Currently implemented options for `f` are:
+          `f(x)` as described above. Currently implemented options for `f` are
 
           - ``sincquared`` -- `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`
+
           - ``gaussian``   -- `f(x) = e^{-x^2}`
+
           - ``sincquared_fast`` -- Same as "sincsquared", but implementation
             optimized for elliptic curve `L`-functions, and tau must be 0. self
             must be attached to an elliptic curve over `\QQ` given by its global
             minimal model, otherwise the returned result will be incorrect.
+
           - ``sincquared_parallel`` -- Same as "sincsquared_fast", but optimized
             for parallel computation with large (>2.0) `\Delta` values. self must
             be attached to an elliptic curve over `\QQ` given by its global minimal
             model, otherwise the returned result will be incorrect.
+
           - ``cauchy`` -- `f(x) = \frac{1}{1+x^2}`; this is only computable to
             low precision, and only when `\Delta < 2`.
 
@@ -1062,9 +1070,12 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         OUTPUT:
 
-        A triple ``(small_primes, M, residue_chunks)`` such that:
+        A triple ``(small_primes, M, residue_chunks)`` such that
+
           - ``small_primes`` -- a list of small primes
+
           - ``M`` -- the product of the small primes
+
           - ``residue_chunks`` -- a list of lists comprised of all integers
              less than M that are coprime to M, broken into n sublists of
              approximately equal size.
@@ -1133,7 +1144,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         - ``Delta`` -- positive real parameter defining the
           tightness of the zero sum, and thus the closeness of the returned
-          estimate to the actual analytic rank of the form attached to self.
+          estimate to the actual analytic rank of the form attached to self
+
         - ``bad_primes`` -- (default: None) If not None, a list of primes dividing
           the level of the form attached to self. This is passable so that this
           method can be run on curves whose conductor is large enough to warrant
@@ -1467,22 +1479,28 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
           results show that for about 99.7% of all curves the returned value
           is the actual analytic rank.
 
-        - ``adaptive`` -- (default: True) Either True or False.
+        - ``adaptive`` -- (default: True) Boolean
+
           - If True, the computation is first run with small and then
             successively larger Delta values up to max_Delta. If at any
             point the computed bound is 0 (or 1 when when root_number is -1
             or True), the computation halts and that value is returned;
             otherwise the minimum of the computed bounds is returned.
+
           - If False, the computation is run a single time with
             Delta=max_Delta, and the resulting bound returned.
 
-        - ``root_number`` -- (default: "compute") One of the following:
+        - ``root_number`` -- (default: "compute") String
+
           - ``"compute"`` -- the root number of self is computed and used to
             (possibly) lower ther analytic rank estimate by 1.
+
           - ``"ignore"`` -- the above step is omitted
+
           - ``1`` -- this value is assumed to be the root number of
             self. This is passable so that rank estimation can be done for
             curves whose root number has been precomputed.
+            
           - ``-1`` -- this value is assumed to be the root number of
             self. This is passable so that rank estimation can be done for
             curves whose root number has been precomputed.

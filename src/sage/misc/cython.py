@@ -399,7 +399,7 @@ def cython(filename, verbose=False, compile_message=False,
     # We will use this only to make some convenient symbolic links.
     abs_base = os.path.split(os.path.abspath(filename))[0]
 
-    # bad things happen if the current directory is devel/sage-*
+    # bad things happen if the current directory is SAGE_ROOT/src
     if not os.path.exists("%s/sage" % abs_base) and not os.path.exists("%s/c_lib" % abs_base):
         cmd = 'cd "%s"; ln -sf "%s"/* .'%(build_dir, abs_base)
         os.system(cmd)
@@ -687,7 +687,7 @@ def cython_create_local_so(filename):
 
         sage: curdir = os.path.abspath(os.curdir)
         sage: dir = tmp_dir(); os.chdir(dir)
-        sage: f = file('hello.spyx', 'w')
+        sage: f = open('hello.spyx', 'w')
         sage: s = "def hello():\n  print 'hello'\n"
         sage: f.write(s)
         sage: f.close()

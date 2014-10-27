@@ -2209,6 +2209,46 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         s = PolynomialRing_commutative._repr_(self)
         return s + self._implementation_repr
 
+    def residue_field(self, ideal, names=None):
+        """
+        Return the residue finite field at the given ideal.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(2)[]
+            sage: k.<a> = R.residue_field(t^3+t+1); k
+            Residue field in a of Principal ideal (t^3 + t + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.list()
+            [0, a, a^2, a + 1, a^2 + a, a^2 + a + 1, a^2 + 1, 1]
+            sage: R.residue_field(t)
+            Residue field of Principal ideal (t) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: P = R.irreducible_element(8) * R
+            sage: P
+            Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.<a> = R.residue_field(P); k
+            Residue field in a of Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.cardinality()
+            256
+
+        Non-maximal ideals are not accepted::
+
+            sage: R.residue_field(t^2 + 1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+            sage: R.residue_field(0)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+            sage: R.residue_field(1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+        """
+        ideal = self.ideal(ideal)
+        if not ideal.is_maximal():
+            raise ArithmeticError("ideal is not maximal")
+        return ideal.residue_field(names)
 
 class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
                                  PolynomialRing_dense_mod_n,

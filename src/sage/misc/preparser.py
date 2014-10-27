@@ -314,7 +314,7 @@ def strip_string_literals(code, state=None):
         sage: s
         '[%(L1)s, %(L2)s, %(L3)s, %(L4)s]'
         sage: literals
-        {'L4': '"d\\""', 'L2': '"b"', 'L3': "'c'", 'L1': "'a'"}
+        {'L1': "'a'", 'L2': '"b"', 'L3': "'c'", 'L4': '"d\\""'}
         sage: print s % literals
         ['a', "b", 'c', "d\""]
         sage: print strip_string_literals(r'-"\\\""-"\\"-')[0]

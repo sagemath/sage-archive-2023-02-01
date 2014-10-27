@@ -3229,11 +3229,11 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
         sage: from sage.matrix.constructor import random_echelonizable_matrix
         sage: matrix_space = sage.matrix.matrix_space.MatrixSpace(QQ, 5, 6)
         sage: A=random_echelonizable_matrix(matrix_space, rank=4, upper_bound=40); A
-        [  1   1   3  11  17  33]
-        [ -1   0  -1  -4  -6 -13]
-        [ -1   0   0   0  -1  -2]
-        [  0  -3  -4 -12 -22 -35]
-        [ -1   2   1   1   5   2]
+        [  3   4  12  39  18  22]
+        [ -1  -3  -9 -27 -16 -19]
+        [  1   3  10  31  18  21]
+        [ -1   0   0  -2   2   2]
+        [  0   1   2   8   4   5]
         sage: A.rank()
         4
         sage: max(map(abs,A.list()))<40
@@ -3244,12 +3244,12 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
     An example with default settings (i.e. no entry size control). ::
 
         sage: C=random_matrix(QQ, 6, 7, algorithm='echelonizable', rank=5); C
-        [   5   -2  -33  150  450 -643  349]
-        [  -2    1   14  -63 -190  272 -147]
-        [   3   -5  -34  142  446 -648  339]
-        [   4   -2  -29  132  396 -565  307]
-        [  -4    1   27 -131 -381  535 -300]
-        [   5   -1  -29  138  401 -565  318]
+        [   1   -5   -8   16    6   65   30]
+        [   3  -14  -22   42   17  178   84]
+        [  -5   24   39  -79  -31 -320 -148]
+        [   4  -15  -26   55   27  224  106]
+        [  -1    0   -6   29    8   65   17]
+        [   3  -20  -32   72   14  250  107]
         sage: C.rank()
         5
         sage: C.rref()==C.rref().change_ring(ZZ)
@@ -3258,13 +3258,13 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
     A matrix without size control may have very large entry sizes. ::
 
         sage: D=random_matrix(ZZ, 7, 8, algorithm='echelonizable', rank=6); D
-        [    1     1     9    25   -17  -125    -7    83]
-        [    0     1     5    11    -9   -54     0    28]
-        [   -1    -3   -18   -44    33   217     6  -128]
-        [   -3   -10   -66  -163   123   815    18  -473]
-        [   -5   -19  -111  -271   200  1328    54  -818]
-        [    5    17   109   272  -202 -1355   -39   805]
-        [   -3   -14   -83  -199   147   970    46  -611]
+        [    1     2     8   -35  -178  -673  -284   778]
+        [    4     9    37  -163  -827 -3128 -1324  3624]
+        [    5     6    21   -88  -454 -1712  -708  1951]
+        [   -4    -5   -22    97   491  1854   779 -2140]
+        [    4     4    13   -55  -283 -1066  -436  1206]
+        [    4    11    43  -194  -982 -3714 -1576  4310]
+        [   -1    -2   -13    59   294  1113   481 -1312]
 
     Matrices can be generated over any exact ring. ::
 
@@ -3280,13 +3280,13 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
     Square matrices over ZZ or QQ with full rank are always unimodular. ::
 
         sage: E=random_matrix(QQ, 7, 7, algorithm='echelonizable', rank=7); E
-        [   1   10   36 -107  -47  658  120]
-        [  -3    1   -2   -9    9  -12   66]
-        [  -3   -4  -21   49   36 -378    2]
-        [  -3    3    9  -38  -13  217   73]
-        [   0    5   17  -53  -21  314   69]
-        [  -1   -5  -21   56   39 -418  -23]
-        [  -3    0   -2   -7    6    2   51]
+        [    1     1     7   -29   139   206   413]
+        [   -2    -1   -10    41  -197  -292  -584]
+        [    2     5    27  -113   541   803  1618]
+        [    4     0    14   -55   268   399   798]
+        [    3     1     8   -32   152   218   412]
+        [   -3    -2   -18    70  -343  -506 -1001]
+        [    1    -2    -1     1    -2     9    52]
         sage: det(E)
         1
 
@@ -3447,12 +3447,12 @@ def random_subspaces_matrix(parent, rank=None):
         sage: from sage.matrix.constructor import random_subspaces_matrix
         sage: matrix_space = sage.matrix.matrix_space.MatrixSpace(QQ, 6, 8)
         sage: B=random_subspaces_matrix(matrix_space, rank=3); B
-        [    5     0    15    18    18   -59    64   -26]
-        [   -5    -1   -19   -16   -15    50   -56    21]
-        [  216    57   876   663   606 -2034  2307  -837]
-        [  216    57   876   663   606 -2034  2307  -837]
-        [  -72   -19  -292  -221  -202   678  -769   279]
-        [   15     4    61    46    42  -141   160   -58]
+        [ -15   -4   83   35  -24   47  -74   50]
+        [ -16   -7   94   34  -25   38  -75   50]
+        [  89   34 -513 -196  141 -235  426 -285]
+        [  17    6  -97  -38   27  -47   82  -55]
+        [   7    3  -41  -15   11  -17   33  -22]
+        [  -5   -2   29   11   -8   13  -24   16]
         sage: B.rank()
         3
         sage: B.nullity()
@@ -3465,12 +3465,12 @@ def random_subspaces_matrix(parent, rank=None):
         sage: all([x in ZZ for x in B_expanded.list()])
         True
         sage: B_expanded
-        [  1   0   3   0   0  -1   2   2   0  10   0   0 -18 -83]
-        [  0   1   4   0  -1   3  -2   1   0  -3   0   0  10  47]
-        [  0   0   0   1   1  -3   3  -2   0  -3   0   0   5  23]
-        [  0   0   0   0   0   0   0   0   1   4   0   0   0   1]
-        [  0   0   0   0   0   0   0   0   0   0   1   0   3   0]
-        [  0   0   0   0   0   0   0   0   0   0   0   1   3   0]
+        [  1   0  -5   0  -1   1   0  -1   0   0   0   3  10  24]
+        [  0   1  -2   0   1   2   1   0   0   0   0  -2  -3 -11]
+        [  0   0   0   1  -1   2  -2   1   0   0   0   1   4   9]
+        [  0   0   0   0   0   0   0   0   1   0   0   2  -2   1]
+        [  0   0   0   0   0   0   0   0   0   1   0   0   3   1]
+        [  0   0   0   0   0   0   0   0   0   0   1  -3  -4   2]
 
     Check that we fixed Trac #10543 (echelon forms should be immutable)::
 
@@ -3481,23 +3481,23 @@ def random_subspaces_matrix(parent, rank=None):
 
         sage: B_expanded = copy(B_expanded)
         sage: B_expanded.subdivide(B.nrows()-B.nullity(),B.ncols());B_expanded
-        [  1   0   3   0   0  -1   2   2|  0  10   0   0 -18 -83]
-        [  0   1   4   0  -1   3  -2   1|  0  -3   0   0  10  47]
-        [  0   0   0   1   1  -3   3  -2|  0  -3   0   0   5  23]
+        [  1   0  -5   0  -1   1   0  -1|  0   0   0   3  10  24]
+        [  0   1  -2   0   1   2   1   0|  0   0   0  -2  -3 -11]
+        [  0   0   0   1  -1   2  -2   1|  0   0   0   1   4   9]
         [-------------------------------+-----------------------]
-        [  0   0   0   0   0   0   0   0|  1   4   0   0   0   1]
-        [  0   0   0   0   0   0   0   0|  0   0   1   0   3   0]
-        [  0   0   0   0   0   0   0   0|  0   0   0   1   3   0]
+        [  0   0   0   0   0   0   0   0|  1   0   0   2  -2   1]
+        [  0   0   0   0   0   0   0   0|  0   1   0   0   3   1]
+        [  0   0   0   0   0   0   0   0|  0   0   1  -3  -4   2]
         sage: C=B_expanded.subdivision(0,0)
         sage: C
-        [ 1  0  3  0  0 -1  2  2]
-        [ 0  1  4  0 -1  3 -2  1]
-        [ 0  0  0  1  1 -3  3 -2]
+        [ 1  0 -5  0 -1  1  0 -1]
+        [ 0  1 -2  0  1  2  1  0]
+        [ 0  0  0  1 -1  2 -2  1]
         sage: L=B_expanded.subdivision(1,1)
         sage: L
-        [1 4 0 0 0 1]
-        [0 0 1 0 3 0]
-        [0 0 0 1 3 0]
+        [ 1  0  0  2 -2  1]
+        [ 0  1  0  0  3  1]
+        [ 0  0  1 -3 -4  2]
         sage: B.right_kernel()==C.right_kernel()
         True
         sage: B.row_space()==C.row_space()
@@ -3510,24 +3510,24 @@ def random_subspaces_matrix(parent, rank=None):
     A matrix to show that the null space of the L matrix is the column space of the starting matrix. ::
 
         sage: A=random_matrix(QQ, 5, 7, algorithm='subspaces', rank=None); A
-        [  14   54  -54   26  -28 -134 -108]
-        [  -3  -11   11   -5    6   27   22]
-        [   7   27  -27   13  -14  -67  -54]
-        [   6   23  -23   11  -12  -57  -46]
-        [   1    4   -4    2   -2  -10   -8]
+        [ -63   13  -71   29 -163  150 -268]
+        [  24   -5   27  -11   62  -57  102]
+        [  14   -3   16   -7   37  -34   60]
+        [  -4    1   -4    1   -9    8  -16]
+        [   9   -2   10   -4   23  -21   38]
         sage: (A.nrows(), A.ncols())
         (5, 7)
         sage: all([x in ZZ for x in A.list()])
         True
         sage: A.nullity()
-        3
+        2
         sage: A_expanded=A.augment(identity_matrix(5)).rref()
         sage: A_expanded
-        [  1   0   0  -2  -2   2   0   0   0   0   4 -23]
-        [  0   1  -1   1   0  -3  -2   0   0   0  -1   6]
-        [  0   0   0   0   0   0   0   1   0   0  -2  -2]
-        [  0   0   0   0   0   0   0   0   1   0   1  -3]
-        [  0   0   0   0   0   0   0   0   0   1  -1  -1]
+        [  1   0   0   2  -1   1   2   0   2   0  -4  -7]
+        [  0   1   0   1  -1   0   0   0   4   0  -3 -12]
+        [  0   0   1  -2   3  -3   2   0  -1   0   3   4]
+        [  0   0   0   0   0   0   0   1   3   0   0  -1]
+        [  0   0   0   0   0   0   0   0   0   1  -1  -2]
         sage: all([x in ZZ for x in A_expanded.list()])
         True
         sage: C=A_expanded.submatrix(0,0,A.nrows()-A.nullity(),A.ncols())
@@ -3649,24 +3649,24 @@ def random_unimodular_matrix(parent, upper_bound=None, max_tries=100):
         sage: from sage.matrix.constructor import random_unimodular_matrix
         sage: matrix_space = sage.matrix.matrix_space.MatrixSpace(QQ, 5)
         sage: A=random_unimodular_matrix(matrix_space); A
-        [  5   0  19  -5 -77]
-        [  4   1   8  -8 -48]
-        [ -1   3 -14   3  50]
-        [  4   0  16  -3 -62]
-        [  1  -1  11   6 -22]
+        [   0    3    8  -30  -30]
+        [   0    1    4  -18  -13]
+        [  -1    0    0    3    0]
+        [   4   16   71 -334 -222]
+        [  -1   -1   -9   50   24]
         sage: det(A)
         1
 
     A matrix size 6 with entries no larger than 50. ::
 
         sage: B=random_matrix(ZZ, 7, algorithm='unimodular', upper_bound=50);B
-        [  4   3  -7   4   4  -3   7]
-        [ -3   1   2  -4  -5  -4 -37]
-        [ -4   0   5  -4  -1   6  20]
-        [  4   1  -5   4   5   2  29]
-        [ -1  -1   2  -1  -1   1  -1]
-        [  0  -1   0   1   1   5  26]
-        [  1   0  -2   3   3  -2   4]
+        [-14  17  14 -31  43  24  46]
+        [ -5   6   5 -11  15   9  18]
+        [ -2   5   3  -7  15  -3 -16]
+        [  1  -2  -3   4  -3  -7 -21]
+        [ -1   4   1  -4  14 -10 -37]
+        [  3  -3  -1   6 -12   4  25]
+        [  4  -4  -2   7 -13  -2   1]
         sage: det(B)
         1
 

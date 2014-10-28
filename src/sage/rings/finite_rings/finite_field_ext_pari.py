@@ -232,7 +232,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         elif isinstance(modulus, (list, tuple)):
             modulus = GF(self.__char)['x'](modulus)
         elif sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
-            if modulus.parent() is not base_ring:
+            if modulus.base_ring() is not base_ring:
                 modulus = modulus.change_ring(base_ring)
         else:
             raise ValueError("Modulus parameter not understood")

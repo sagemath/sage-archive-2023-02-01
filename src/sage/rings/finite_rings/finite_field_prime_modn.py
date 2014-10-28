@@ -116,6 +116,10 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             return cmp(type(self), type(other))
         c = cmp(self.__char, other.__char)
         if c: return c
+        # Shortcut: if neither field has a _modulus attribute, they
+        # are equal
+        if not hasattr(self, "_modulus") and not hasattr(other, "_modulus"):
+            return 0
         return cmp(self.modulus(), other.modulus())
 
     def __richcmp__(left, right, op):

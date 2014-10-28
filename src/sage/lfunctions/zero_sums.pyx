@@ -38,10 +38,6 @@ from sage.parallel.decorate import parallel
 from sage.parallel.ncpus import ncpus as num_cpus
 from sage.libs.flint.ulong_extras cimport n_is_prime
 
-from scipy.special import erfcx as _erfcx
-from scipy.special import spence as _spence
-from scipy.special import psi as _psi
-
 cdef extern from "<math.h>":
     double c_exp "exp"(double)
     double c_log "log"(double)
@@ -219,6 +215,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             2.28333333333
 
         """
+        # imported here so as to avoid importing Numpy on Sage startup
+        from scipy.special import psi
+
         if real(s)<0 and imag(s)==0:
             try:
                 z = ZZ(s)
@@ -230,8 +229,8 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             F = RDF
         else:
             F = CDF
-        # Cheating: SciPy already has this function implemented
-        z = F(_psi(F(s)))
+        # Cheating: SciPy already has this function implemented for complex inputs
+        z = F(psi(F(s)))
         if include_constant_term:
             return z
         else:
@@ -621,7 +620,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         # No offset: formulae are simpler
         if tau==0:
-            w = RDF(npi**2/6-_spence(1-RDF(1)/expt))
+            w = npi**2/6-(RDF(1)/expt).dilog()
 
             y = RDF(0)
             n = int(1)
@@ -702,6 +701,8 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             1.05639507734
 
         """
+        # imported here so as to avoid importing Numpy on Sage startup
+        from scipy.special import erfcx
 
         npi = self._pi
         eg = self._euler_gamma
@@ -714,7 +715,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         w = RDF(0)
         for k in range(1,1001):
-            w += RDF(1)/k-_erfcx(Delta*k)*Deltasqrtpi
+            w += RDF(1)/k-erfcx(Delta*k)*Deltasqrtpi
 
         y = RDF(0)
         n = int(1)
@@ -948,10 +949,14 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         r"""
         Return the nth Dirichlet coefficient of the logarithmic
         derivative of the L-function attached to self, shifted so that
-        the critical line lies on the imaginary axis. This is zero if
-        `n` is not a perfect prime power; and when `n=p^e` it is
-        `-a_p^e log(p)/p^e`, where `a_p = p+1-\#{E(\mathbb{F}_p)}` is
-        the trace of Frobenius at `p`.
+        the critical line lies on the imaginary axis. The returned value is
+        zero if `n` is not a perfect prime power;
+        when `n=p^e` for `p` a prime of bad reduction it is `-a_p^e log(p)/p^e`,
+        where `a_p` is `+1, -1` or `0` according to the reduction type of $p$;
+        and when `n=p^e` for a prime `p` of good reduction, the value is
+        `-(\alpha_p^e + \beta_p^e) \log(p)/p^e`, where `\alpha_p` and
+        `\beta_p` are the two complex roots of the characteristic equation
+        of Frobenius at `p` on `E`.
 
         INPUT:
 
@@ -1196,7 +1201,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         expt = c_exp(t)
 
         u = t*(-eg + c_log(N_double)/2 - c_log(twopi))
-        w = npi**2/6-_spence(-expt**(-1)+1)
+        w = npi**2/6-(RDF(1)/expt).dilog()
 
         y = 0
         # Do bad primes first. Add correct contributions and subtract
@@ -1348,7 +1353,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         expt = c_exp(t)
         bound1 = c_exp(t/2)
         u = t*(-eg + c_log(N_double)/2 - c_log(twopi))
-        w = npi**2/6-_spence(-expt**(-1)+1)
+        w = npi**2/6-(RDF(1)/expt).dilog()
 
         y = 0
         # Do bad primes first. Add correct contributions and subtract

@@ -2197,6 +2197,23 @@ cdef class RealDoubleElement(FieldElement):
         """
         return self._new_c(gsl_sf_sin(self._value))
 
+    def dilog(self):
+        """
+        Return the dilogarithm of ``self``, defined by the
+        series `\sum_n x^n/n^2` for `|x| \le 1`. When the absolute
+        value of self is greater than 1, the returned value is the
+        real part of (the analytic continuation to `\CC` of) the
+        dilogarithm of self.
+
+        EXAMPLES::
+
+            sage: RDF(1).dilog()
+            1.64493406685
+            sage: RDF(2).dilog()
+            2.46740110027
+        """
+        return self._new_c(gsl_sf_dilog(self._value))
+
     def restrict_angle(self):
         r"""
         Return a number congruent to ``self`` mod `2\pi` that lies in

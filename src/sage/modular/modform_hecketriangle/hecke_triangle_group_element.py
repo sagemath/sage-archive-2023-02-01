@@ -150,7 +150,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
                 raise ValueError("The matrix is not an element of {}, it has determinant {} != 1.".format(parent, self._matrix.determinant()))
             self._basic_data()
 
-    #TODO: allow output of words?
+    # TODO: allow output of words?
+    # We cache this method since the calculation is rather long and the
+    # data is beeing reused at several places (e.g. in _repr_)
     @cached_method
     def _basic_data(self):
         r"""
@@ -326,7 +328,6 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         return self.string_repr(self.parent().element_repr_method())
 
-    @cached_method
     def string_repr(self, method="default"):
         r"""
         Return a string representation of ``self`` using the specified ``method``.
@@ -532,6 +533,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         else:
             raise NotImplementedError
 
+    # We cache this method for performance reason (the result is beeing reused)
     @cached_method
     def continued_fraction(self):
         r"""
@@ -636,7 +638,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         return (tuple(L[:preperiod_len]), tuple(L[preperiod_len:]))
 
-    #TODO: allow output as word?
+    # TODO: allow output as word?
+    # We cache this method since the calculation is rather long and the
+    # data is beeing reused at several places (e.g. in _repr_)
     @cached_method
     def _primitive_block_data(self):
         r"""
@@ -856,7 +860,6 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         return (L, R)
 
-    @cached_method
     def primitive_representative(self, method="block"):
         r"""
         Return a tuple ``(P, R)`` which gives the
@@ -1247,6 +1250,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             else:
                 raise AssertionError("This shouldn't happen!")
 
+    # We cache this method since the calculation is rather long and the
+    # (small) data is beeing reused
     @cached_method
     def primitive_power(self, method="cf"):
         r"""
@@ -1487,7 +1492,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         else:
             return sum([abs(v[1]) for v in L])
 
-    #TODO: allow output as word?
+    # TODO: allow output as word?
+    # We cache this method since the calculation is rather long and the
+    # (small) data is beeing reused at several places (e.g. in _repr_)
     @cached_method
     def _block_data(self):
         r"""
@@ -1744,7 +1751,6 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         else:
             return (tuple([ G.V(v[0])**v[1] for v in L ]), R, sgn)
 
-    @cached_method
     def conjugacy_type(self, ignore_sign=True, primitive=False):
         r"""
         Return a unique description of the conjugacy class of ``self``
@@ -2913,7 +2919,6 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         return self.parent().root_extension_embedding(self.discriminant(), K)
 
-    @cached_method
     def fixed_points(self, embedded=False, order="default"):
         r"""
         Return a pair of (mutually conjugate) fixed points of ``self``

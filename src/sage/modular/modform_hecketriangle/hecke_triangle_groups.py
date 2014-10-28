@@ -202,7 +202,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self.I()
 
-    @cached_method
     def lam_minpoly(self):
         r"""
         Return the minimal polynomial of the corresponding lambda parameter of ``self``.
@@ -380,6 +379,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return ZZ(1)/ZZ(2) * (ZZ(1)/ZZ(2) + ZZ(1)/self._n)
 
+    # We use cached method here to create unique instances of basic matrices
+    # (major performance gain)
     @cached_method
     def I(self):
         r"""
@@ -398,6 +399,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self(matrix(self._base_ring, [[1,0],[0,1]]), check=False)
 
+    # We use cached method here to create unique instances of basic matrices
+    # (major performance gain)
     @cached_method
     def T(self, m=1):
         r"""
@@ -422,6 +425,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self(matrix(self._base_ring, [[1,self._lam*m],[0,1]]), check=False)
 
+    # We use cached method here to create unique instances of basic matrices
+    # (major performance gain)
     @cached_method
     def S(self):
         r"""
@@ -448,6 +453,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self.gen(0)
 
+    # We use cached method here to create unique instances of basic matrices
+    # (major performance gain)
     @cached_method
     def U(self):
         r"""
@@ -531,7 +538,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self.U()**(j-1) * self.T()
 
-    @cached_method
     def dvalue(self):
         r"""
         Return a symbolic expression (or an exact value in case n=3, 4, 6)
@@ -749,6 +755,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             #return NumberField(L.absolute_polynomial(), 'e', structure=AbsoluteFromRelative(L), embedding=(???))
             return L
 
+    # We cache this method for performance reasons (it is repeatadly reused)
     @cached_method
     def root_extension_embedding(self, D, K=None):
         r"""

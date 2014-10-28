@@ -177,7 +177,7 @@ class Composition(CombinatorialObject, Element):
     def __setstate__(self, state):
         r"""
         In order to maintain backwards compatibility and be able to unpickle a
-
+        old pickle from ``Composition_class`` we have to override the default
         ``__setstate__``.
 
         EXAMPLES::

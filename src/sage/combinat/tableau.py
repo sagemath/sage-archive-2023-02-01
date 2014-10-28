@@ -5647,14 +5647,17 @@ class StandardTableaux_size(StandardTableaux):
             sage: all([StandardTableaux(10).random_element() in StandardTableaux(10) for i in range(20)])
             True
         """
-        # We compute the number of involutions of size ``size``.
         from sage.misc.prandom import randrange
+        from sage.rings.arith import binomial
+        from sage.misc.prandom import sample
+        from sage.combinat.perfect_matching import PerfectMatchings
+        from sage.combinat.permutation import from_cycles
+        # We compute the number of involutions of size ``size``.
         involution_index = randrange(0, StandardTableaux(self.size).cardinality())
         # ``involution_index`` is our random integer `r`.
         partial_sum = 0
         fixed_point_number = self.size % 2
         # ``fixed_point_number`` will become `k`.
-        from sage.rings.arith import binomial
         while True:
             # We add the number of involutions with ``fixed_point_number``
             # fixed points.
@@ -5668,17 +5671,14 @@ class StandardTableaux_size(StandardTableaux):
             fixed_point_number += 2
         # We generate a subset of size "fixed_point_number" of the set {1,
         # ..., size}.
-        from sage.misc.prandom import sample
         fixed_point_positions = set(sample(xrange(1, self.size + 1), fixed_point_number))
         # We generate a list of tuples which will form the cycle
         # decomposition of our random involution. This list contains
         # singletons (corresponding to the fixed points of the
         # involution) and pairs (forming a perfect matching on the
         # remaining values).
-        from sage.combinat.perfect_matching import PerfectMatchings
         permutation_cycle_rep = [(fixed_point,) for fixed_point in fixed_point_positions] + \
                                 list(PerfectMatchings(set(range(1, self.size + 1)) - set(fixed_point_positions)).random_element())
-        from sage.combinat.permutation import from_cycles
         return from_cycles(self.size, permutation_cycle_rep).robinson_schensted()[0]
 
 

@@ -5626,7 +5626,7 @@ class StandardTableaux_size(StandardTableaux):
         involutions of size `n`. We then decompose the interval
         `\{ 1, 2, \ldots, N \}` into subintervals whose lengths are the
         numbers of involutions of size `n` with respectively `0`, `1`,
-        `\ldots`, `\left \lfoor N/2 \right \rfloor` fixed points. The
+        `\ldots`, `\left \lfloor N/2 \right \rfloor` fixed points. The
         interval in which our random integer `r` lies then decides how
         many fixed points our random involution will have. We then
         place those fixed points randomly and then compute a perfect

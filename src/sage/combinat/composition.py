@@ -177,7 +177,7 @@ class Composition(CombinatorialObject, Element):
     def __setstate__(self, state):
         r"""
         In order to maintain backwards compatibility and be able to unpickle a
-        old pickle from ``Composition_class`` we have to override the default
+
         ``__setstate__``.
 
         EXAMPLES::
@@ -1923,6 +1923,33 @@ class Compositions_n(Compositions):
             return 1
         else:
             return 0
+
+    def random_element(self):
+        r"""
+        Return a random ``Composition`` with uniform probability.
+
+        This method generates a random binary word starting with a 1
+        and then uses the bijection between compositions and their code.
+
+        EXAMPLES::
+            sage: Compositions(5).random_element() # random
+            [2, 1, 1, 1]
+            sage: Compositions(0).random_element()
+            []
+            sage: Compositions(1).random_element()
+            [1]
+
+        TESTS::
+            sage: all([Compositions(10).random_element() in Compositions(10) for i in range(20)])
+            True
+        """
+        if self.n == 0:
+            return Compositions()([])
+        from sage.combinat.words.alphabet import build_alphabet
+        A = build_alphabet([0, 1])
+        from sage.combinat.words.words import FiniteWords_length_k_over_OrderedAlphabet
+        binary_word = FiniteWords_length_k_over_OrderedAlphabet(A, length = self.n - 1).random_element()
+        return Compositions().from_code([1] + list(binary_word))
 
     def __iter__(self):
         """

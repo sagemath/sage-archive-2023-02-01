@@ -2,7 +2,7 @@
 Free Groups
 
 Free groups and finitely presented groups are implemented as a wrapper
-over the corresponing GAP objects.
+over the corresponding GAP objects.
 
 A free group can be created by giving the number of generators, or their names.
 It is also possible to create indexed generators::
@@ -314,22 +314,65 @@ class FreeGroupElement(ElementLibGAP):
         tl = self.gap().TietzeWordAbstractWord()
         return tuple(tl.sage())
 
-    def fox_derivative(self, gen, im_gens=None):
-        """
-        Return the Fox derivative of self with respect to a given generator.
+    def fox_derivative(self, gen, im_gens=None, ring=None):
+        r"""
+        Return the Fox derivative of ``self`` with respect to a given
+        generator ``gen`` of the free group.
+
+        Let `F` be a free group with free generators
+        `x_1, x_2, \ldots, x_n`. Let `j \in \{ 1, 2, \ldots ,
+        n \right\}`. Let `a_1, a_2, \ldots, a_n` be `n`
+        invertible elements of a ring `A`. Let `a : F \to A^\times`
+        be the (unique) homomorphism from `F` to the multiplicative
+        group of invertible elements of `A` which sends each `x_i`
+        to `a_i`. Then, we can define a map `\partial_j : F \to A`
+        by the requirements that
+
+        .. MATH::
+
+            \partial_j (x_i) = \delta_{i, j}
+            \qquad \qquad \text{ for all indices } i \text{ and } j
+
+        and
+
+        .. MATH::
+
+            \partial_j (uv) = \partial_j(u) + a(u) \partial_j(v)
+            \qquad \qquad \text{ for all } u, v \in F .
+
+        This map `\partial_j` is called the `j`-th Fox derivative
+        on `F` induced by `(a_1, a_2, \ldots, a_n)`.
+
+        The most well-known case is when `A` is the group ring
+        `\ZZ [F]` of `F` over `\ZZ`, and when `a_i = x_i \in A`.
+        In this case, `\partial_j` is simply called the `j`-th
+        Fox derivative on `F`.
 
         INPUT:
 
-        - ``gen`` -- the generator with respect to which the derivative will be computed.
+        - ``gen`` -- the generator with respect to which the
+          derivative will be computed. If this is `x_j`, then the
+          method will return `\partial_j`.
 
-        - ``im_gens`` (optional) -- the images of the generators.
+        - ``im_gens`` (optional) -- the images of the generators
+          (given as a list or iterable). This is the list
+          `(a_1, a_2, \ldots, a_n)`.
+          If not provided, it defaults to
+          `(x_1, x_2, \ldots, x_n\right)` in the group ring
+          `\ZZ [F]`.
+
+        - ``ring`` (optional) -- the ring in which the elements
+          of the list  `(a_1, a_2, \ldots, a_n)` lie. If not
+          provided, this ring is inferred from these elements.
 
         OUTPUT:
 
-        The fox derivative of self with respect to gen.
-        By default, it is an element of the group algebra with integer coefficients.
-        If ``im_gens`` are provided, the result lives in the algebra where im_gens live,
-        and is given by the map determined by them.
+        The fox derivative of ``self`` with respect to ``gen``
+        (induced by ``im_gens``).
+        By default, it is an element of the group algebra with
+        integer coefficients.
+        If ``im_gens`` are provided, the result lives in the
+        algebra where ``im_gens`` live.
 
         EXAMPLES:
 
@@ -348,9 +391,8 @@ class FreeGroupElement(ElementLibGAP):
             0
 
 
-        If ``im_gens`` is given, the images of the generators are mapped to them.
-
-        ::
+        If ``im_gens`` is given, the images of the generators are
+        mapped to them::
 
             sage: F=FreeGroup(3)
             sage: a=F([2,1,3,-1,2])
@@ -367,30 +409,56 @@ class FreeGroupElement(ElementLibGAP):
             -y*z + y
             sage: a.inverse().fox_derivative(F([1]),[x,y,z])
             (z - 1)/(y*z)
+
+        TESTS::
+
+            sage: F=FreeGroup(3)
+            sage: a=F([])
+            sage: a.fox_derivative(F([]))
+            0
+            sage: R.<t>=LaurentPolynomialRing(ZZ)
+            sage: a.fox_derivative(F([]),[t,t,t])
+            0
+            sage: F=FreeGroup(0)
+            sage: a=F([])
+            sage: a.fox_derivative(F([]))
+            0
+            sage: R.<t>=LaurentPolynomialRing(ZZ)
+            sage: a.fox_derivative(F([]),[])
+            0
         """
         if not gen in self.parent().generators():
             raise ValueError("Fox derivative can only be computed with respect to generators of the group")
         l = list(self.Tietze())
-        if im_gens == None:
-            R = self.parent().algebra(IntegerRing())
-            symb = [R(a) for a in self.parent().gens()]
-            symb += reversed([R(a.inverse()) for a in self.parent().gens()])
+        if im_gens is None:
+            F = self.parent()
+            R = F.algebra(IntegerRing())
+            R_basis = R.basis()
+            symb = [R_basis[a] for a in F.gens()]
+            symb += reversed([R_basis[a.inverse()] for a in F.gens()])
+            if ring is not None:
+                R = ring
+                symb = [R(i) for i in symb]
         else:
-            R = Sequence(im_gens).universe()
+            if ring is None:
+                R = Sequence(im_gens).universe()
+            else:
+                R = ring
             symb = list(im_gens)
             symb += reversed([a**(-1) for a in im_gens])
-        i = gen.Tietze()[0]
+        i = gen.Tietze()[0]  # So ``gen`` is the `i`-th
+                             # generator of the free group.
         a = R.zero()
         coef = R.one()
-        while len(l)>0:
+        while len(l) > 0:
             b = l.pop(0)
             if b == i:
                 a += coef * R.one()
                 coef *= symb[b-1]
             elif b == -i:
-                a -= coef*symb[b]
+                a -= coef * symb[b]
                 coef *= symb[b]
-            elif b>0:
+            elif b > 0:
                 coef *= symb[b-1]
             else:
                 coef *= symb[b]
@@ -433,13 +501,15 @@ class FreeGroupElement(ElementLibGAP):
 
     def __call__(self, *values):
         """
-        Replace the generators of the free group.
+        Replace the generators of the free group by corresponding
+        elements of the iterable ``values`` in the group element
+        ``self``.
 
         INPUT:
 
         - ``*values`` -- a sequence of values, or a
           list/tuple/iterable of the same length as the number of
-          generators.
+          generators of the free group.
 
         OUTPUT:
 
@@ -751,10 +821,11 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
 
     def abelian_invariants(self):
         r"""
-        Return the Abelian invariants of self.
+        Return the Abelian invariants of ``self``.
 
-        The Abelian invariants are given by a list of integers `i_1 \dots i_j`, such that the
-        abelianization of the group is isomorphic to
+        The Abelian invariants are given by a list of integers
+        `i_1 \dots i_j`, such that the abelianization of the
+        group is isomorphic to
 
         .. math::
 
@@ -766,12 +837,11 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             sage: F.abelian_invariants()
             (0, 0)
         """
-        inv = self.gap().AbelianInvariants()
-        return tuple(inv.sage())
+        return tuple((0 for _ in self.ngens()))
 
     def quotient(self, relations):
         """
-        Return the quotient of self by the normal subgroup generated
+        Return the quotient of ``self`` by the normal subgroup generated
         by the given elements.
 
         This quotient is a finitely presented groups with the same

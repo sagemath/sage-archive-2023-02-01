@@ -741,6 +741,10 @@ cdef class FiniteField(Field):
         coefficients in the base field that has `a` as a root. In
         finite field extensions, `\GF{p^n}`, the base field is `\GF{p}`.
 
+        OUTPUT:
+
+        - a monic polynomial over `\GF{p}` in the variable `x`.
+
         EXAMPLES::
 
             sage: F.<a> = GF(7^2); F
@@ -829,9 +833,22 @@ cdef class FiniteField(Field):
 
     def polynomial(self, name=None):
         """
-        Return the irreducible characteristic polynomial of the
-        generator of this finite field, i.e., the polynomial `f(x)` so
-        elements of the finite field as elements modulo `f`.
+        Return the minimal polynomial of the generator of ``self`` over
+        the prime finite field.
+
+        INPUT:
+
+        - ``name`` -- a variable name to use for the polynomial. By
+          default, use the name given when constructing this field.
+
+        OUTPUT:
+
+        - a monic polynomial over `\GF{p}` in the variable ``name``.
+
+        .. SEEALSO::
+
+            Except for the ``name`` argument, this is identical to the
+            :meth:`modulus` method.
 
         EXAMPLES::
 

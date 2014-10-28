@@ -205,7 +205,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             +Infinity
 
         Evaluating the sum without the constant term at the positive integers n
-        returns the (n-1)th harmonic number:
+        returns the (n-1)th harmonic number.
 
         ::
 
@@ -282,7 +282,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             (0.575125706359, 0.024087912697)
 
         Increasing the number of terms should see the truncation error
-        decrease:
+        decrease.
 
         ::
 
@@ -290,7 +290,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             (0.575157964506, 0.00898877551916)
 
         Attempting to compute values inside the critical strip
-        gives infinite error:
+        gives infinite error.
 
         ::
 
@@ -298,7 +298,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             (5.44299441392, +Infinity)
 
         Complex inputs and inputs to the left of the critical strip
-        are allowed:
+        are allowed.
 
         ::
 
@@ -307,7 +307,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: Z.logarithmic_derivative(complex(-3,-1.1))
             (-13.9084521732 + 2.59144309907*I, 2.71315847363e-14)
 
-        The logarithmic derivative has poles at the negative integers:
+        The logarithmic derivative has poles at the negative integers.
 
         ::
 
@@ -398,7 +398,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             (6.64372066048, 6.5846713591e-06)
 
         Complex values are handled. The function is odd about s=1, so
-        the value at 2-s should be minus the value at s:
+        the value at 2-s should be minus the value at s.
 
         ::
 
@@ -477,8 +477,8 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         OUTPUT:
 
         A positive real number that bounds from above the number of zeros with
-        imaginary part equal to `\tau`. When `\tau=0` this is an upper bound for the
-        `L`-function's analytic rank.
+        imaginary part equal to `\tau`. When `\tau=0` this is an upper bound for
+        the `L`-function's analytic rank.
 
         .. SEEALSO::
 
@@ -585,14 +585,14 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         E is a rank 1 curve; the lowest noncentral zero has imaginary part
         ~5.003. The zero sum with tau=0 indicates the probable existence of
-        a zero at or very close to the central point:
+        a zero at or very close to the central point.
 
         ::
 
             sage: Z._zerosum_sincsquared(Delta=1,tau=0)
             1.01038406984
 
-        The zero sum also detects a zero at or near 5.003, as expected:
+        The zero sum also detects a zero at or near 5.003, as expected.
 
         ::
 
@@ -600,7 +600,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             1.01681245469
 
         However, there is definitely no zero with imaginary part near 2.5,
-        as the sum would have to be at least 1:
+        as the sum would have to be at least 1.
 
         ::
 
@@ -792,7 +792,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         E is a rank zero curve; the lowest zero has imaginary part ~6.36. The
         zero sum with tau=0 indicates that there are no zeros at the central
-        point (otherwise the returned value would be at least 1):
+        point (otherwise the returned value would be at least 1).
 
         ::
 
@@ -801,14 +801,14 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             0.970107398446
 
         The zero sum with tau=6.36 indicates there might be a zero in the
-        vicinity:
+        vicinity.
 
         ::
 
             sage: Z._zerosum_cauchy(Delta=1,tau=6.36261389)
             2.18090462633
 
-        However, there are no zeros with imaginary part close to 1.5:
+        However, there are no zeros with imaginary part close to 1.5.
 
         ::
 
@@ -826,7 +826,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: Z._zerosum_cauchy(Delta=1.5,num_terms=100000)
             10.3951839608
 
-        An error will be thrown if a Delta value >= 2 is passed:
+        An error will be thrown if a Delta value >= 2 is passed.
 
         ::
 
@@ -953,9 +953,9 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         zero if `n` is not a perfect prime power;
         when `n=p^e` for `p` a prime of bad reduction it is `-a_p^e log(p)/p^e`,
         where `a_p` is `+1, -1` or `0` according to the reduction type of $p$;
-        and when `n=p^e` for a prime `p` of good reduction, the value is
-        `-(\alpha_p^e + \beta_p^e) \log(p)/p^e`, where `\alpha_p` and
-        `\beta_p` are the two complex roots of the characteristic equation
+        and when `n=p^e` for a prime `p` of good reduction, the value
+        is `-(\alpha_p^e + \beta_p^e) \log(p)/p^e`, where `\alpha_p`
+        and `\beta_p` are the two complex roots of the characteristic equation
         of Frobenius at `p` on `E`.
 
         INPUT:
@@ -964,8 +964,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         OUTPUT:
 
-        A real number which (by Hasse's Theorem) is at most
-        `2\frac{log(n)}{\sqrt{n}}` in magnitude.
+        A real number which (by Hasse's Theorem) is at
+        most `2\frac{log(n)}{\sqrt{n}}` in magnitude.
 
         EXAMPLES::
 
@@ -1462,9 +1462,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         Return an upper bound for the analytic rank of the L-function
         `L_E(s)` attached to self, conditional on the Generalized Riemann
         Hypothesis, via computing the zero sum `\sum_{\gamma} f(\Delta\gamma)`,
-        where `\gamma` ranges over the imaginary parts of the zeros of
-        `L(E,s)` along the critical strip,
-        `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`,
+        where `\gamma` ranges over the imaginary parts of the zeros of `L(E,s)`
+        along the critical strip, `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`,
         and `\Delta` is the tightness parameter whose maximum value is
         specified by max_Delta. This computation can be run on curves with
         very large conductor (so long as the conductor is known or quickly
@@ -1476,8 +1475,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         - ``max_Delta`` -- (default: None) If not None, a positive real value
           specifying the maximum Delta value used in the zero sum; larger
           values of Delta yield better bounds - but runtime is exponential in
-          Delta. If left as None, Delta is set to
-          `\min\left\{\frac{1}{\pi}\left(\log(N+1000)/2-\log(2\pi)-\eta\right), 2.5\right\}`
+          Delta. If left as None, Delta is set
+          to `\min\left\{\frac{1}{\pi}\left(\log(N+1000)/2-\log(2\pi)-\eta\right), 2.5\right\}`,
           where `N` is the conductor of the curve attached to self, and `\eta`
           is the Euler-Mascheroni constant `= 0.5772...`; the crossover
           point is at conductor ~8.3*10^8. For the former value, empirical
@@ -1485,27 +1484,21 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
           is the actual analytic rank.
 
         - ``adaptive`` -- (default: True) Boolean
-
           - If True, the computation is first run with small and then
             successively larger Delta values up to max_Delta. If at any
             point the computed bound is 0 (or 1 when when root_number is -1
             or True), the computation halts and that value is returned;
             otherwise the minimum of the computed bounds is returned.
-
           - If False, the computation is run a single time with
             Delta=max_Delta, and the resulting bound returned.
 
-        - ``root_number`` -- (default: "compute") String or integer.
-
+        - ``root_number`` -- (default: "compute") String or integer
           - ``"compute"`` -- the root number of self is computed and used to
             (possibly) lower ther analytic rank estimate by 1.
-
           - ``"ignore"`` -- the above step is omitted
-
           - ``1`` -- this value is assumed to be the root number of
             self. This is passable so that rank estimation can be done for
             curves whose root number has been precomputed.
-
           - ``-1`` -- this value is assumed to be the root number of
             self. This is passable so that rank estimation can be done for
             curves whose root number has been precomputed.
@@ -1515,7 +1508,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
           so that rank estimation can be done for curves of large conductor
           whose bad primes have been precomputed.
 
-        - ``ncpus`` - (default: None) If not None, a positive integer
+        - ``ncpus`` -- (default: None) If not None, a positive integer
           defining the maximum number of CPUs to be used for the computation.
           If left as None, the maximum available number of CPUs will be used.
           Note: Multiple processors will only be used for Delta values >= 1.75.
@@ -1553,7 +1546,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         For most elliptic curves with small conductor the central zero(s)
         of `L_E(s)` are fairly isolated, so small values of `\Delta`
-        will yield tight rank estimates:
+        will yield tight rank estimates.
 
         ::
 
@@ -1571,7 +1564,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: Z.analytic_rank_upper_bound(max_Delta=1)
             1
 
-        This is especially true for elliptic curves with large rank:
+        This is especially true for elliptic curves with large rank.
 
         ::
 
@@ -1591,7 +1584,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             (8, 8)
 
         However, some curves have `L`-functions with low-lying zeroes, and for these
-        larger values of `\Delta` must be used to get tight estimates:
+        larger values of `\Delta` must be used to get tight estimates.
 
         ::
 
@@ -1605,7 +1598,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             0
 
         Knowing the root number of E allows us to use smaller Delta values
-        to get tight bounds, thus speeding up runtime considerably:
+        to get tight bounds, thus speeding up runtime considerably.
 
         ::
 
@@ -1617,7 +1610,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         strictly larger than the analytic rank, unless very large values of
         Delta are used. The following curve ("256944c1" in the Cremona tables)
         is a rank 0 curve with a zero at 0.0256...; the smallest Delta value
-        for which the zero sum is strictly less than 2 is ~2.815:
+        for which the zero sum is strictly less than 2 is ~2.815.
 
         ::
 
@@ -1631,7 +1624,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: E.analytic_rank_upper_bound(max_Delta=2.815,adaptive=False) # long time
             0
 
-        This method is can be called on curves with large conductor:
+        This method is can be called on curves with large conductor.
 
         ::
 
@@ -1660,8 +1653,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         REFERENCES:
 
-        [Bob13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
-        ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
+        .. [Bob13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
+           ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
 
         """
         #Helper function: compute zero sum and apply parity if not False

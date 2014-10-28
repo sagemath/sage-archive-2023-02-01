@@ -1399,15 +1399,57 @@ class SetPartitions_setparts(SetPartitions_set):
         return "Set partitions of %s with sizes in %s"%(Set(self._set), self.parts)
 
     def cardinality(self):
-        """
+        r"""
         Return the cardinality of ``self``.
+
+        This algorithm counts for each block of the partition the
+        number of ways to fill it using values from the set.  Then,
+        for each distinct value `v` of block, we divide the result by
+        the number of ways to arrange the blocks of size `v` in the
+        set partition.
+
+        For example, if we want to count the number of set partitions
+        of size 13 having [3,3,3,2,2] as underlying partition we
+        compute the number of ways to fill each block of the
+        partition, which is `\binom{13}{3} \binom{10}{3} \binom{7}{3}
+        \binom{4}{2}\binom{2}{2}` and as we have three blocks of size
+        `3` and two blocks of size `2`, we divide the result by
+        `3!2!` which gives us `600600`.
 
         EXAMPLES::
 
             sage: SetPartitions(3, [2,1]).cardinality()
             3
+            sage: SetPartitions(13, Partition([3,3,3,2,2])).cardinality()
+            600600
+
+        TESTS::
+
+            sage: all((len(SetPartitions(size, part)) == SetPartitions(size, part).cardinality() for size in xrange(8) for part in Partitions(size)))
+            True
+
         """
-        return Integer(len(self.list()))
+        from sage.rings.arith import binomial
+        from sage.rings.arith import factorial
+        set_size = len(self._set)
+        sum_subset_size = 0
+        last_subset_size = 0
+        count = 1
+        cardinal = 1
+        for subset_size in self.parts:
+            if not last_subset_size == subset_size:
+                # we divide the cardinal by the number of ways to
+                # order the blocks having the same size.
+                cardinal /= factorial(count)
+                count = 1
+                last_subset_size = subset_size
+            else:
+                count += 1
+            cardinal *= binomial(set_size - sum_subset_size, subset_size)
+            sum_subset_size += subset_size
+
+        cardinal /= factorial(count)
+        return Integer(cardinal)
 
     def __iter__(self):
         """

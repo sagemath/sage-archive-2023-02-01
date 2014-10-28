@@ -1079,10 +1079,16 @@ def point3d(v, size=5, **kwds):
 
         sage: point3d(iter([(1,1,2),(2,3,4),(3,5,8)]),size=20,color='red')
         Graphics3d Object
+
+    TESTS::
+
+        sage: point3d([])
+        Graphics3d Object
     """
     try:
         l = len(v)
     except TypeError:
+        # argument is an iterator
         l = None
 
     if l == 3:

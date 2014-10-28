@@ -37,7 +37,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
     r"""
     A Coxeter group represented as a matrix group.
 
-    Let `(W, S)` be a Coxeter system and we construct a vector space `V`
+    Let `(W, S)` be a Coxeter system. We construct a vector space `V`
     over `\RR` with a basis of `\{ \alpha_s \}_{s \in S}` and inner product
 
     .. MATH::
@@ -287,61 +287,179 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             Category of finite coxeter groups
             sage: CoxeterGroup(['H',4], base_ring=QQbar).category()
             Category of finite coxeter groups
+            sage: CoxeterGroup(['A',2]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['B',2]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['A',3]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['B',3]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['A',4]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['B',4]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['A',5]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['B',5]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['D',2]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['D',3]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['D',5]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['E',6]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['E',7]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['E',8]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['F',4]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['G',2]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['H',3]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['H',4]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['I',2]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['I',3]).category()
+            Category of finite coxeter groups
+            sage: CoxeterGroup(['I',4]).category()
+            Category of finite coxeter groups
         """
         self._matrix = coxeter_matrix
         self._index_set = index_set
         n = ZZ(coxeter_matrix.nrows())
+        # Compute the matrix with entries `2 \cos( \pi / m_{ij} )`.
         MS = MatrixSpace(base_ring, n, sparse=True)
+        MC = MS._get_matrix_class()
         # FIXME: Hack because there is no ZZ \cup \{ \infty \}: -1 represents \infty
         if base_ring is UniversalCyclotomicField():
             val = lambda x: base_ring.gen(2*x) + ~base_ring.gen(2*x) if x != -1 else base_ring(2)
         else:
             from sage.functions.trig import cos
             from sage.symbolic.constants import pi
-            val = lambda x: base_ring(2*cos(pi / x)) if x != -1 else base_ring.one()
-        gens = [MS.one() + MS({(i, j): val(coxeter_matrix[i, j])
-                               for j in range(n)})
+            val = lambda x: base_ring(2*cos(pi / x)) if x != -1 else base_ring(2)
+        gens = [MS.one() + MC(MS, entries={(i, j): val(coxeter_matrix[i, j])
+                                           for j in range(n)},
+                              coerce=True, copy=True)
                 for i in range(n)]
-
-        self._bilinear = matrix({(i, j): val(coxeter_matrix[i, j]) / base_ring(-2)
-                                 for i in range(n) for j in range(n)
-                                 if coxeter_matrix[i, j] != 2})
+        # Compute the matrix with entries `- \cos( \pi / m_{ij} )`.
+        # This describes the bilinear form corresponding to this
+        # Coxeter system, and might lead us out of our base ring.
+        base_field = base_ring.fraction_field()
+        MS2 = MatrixSpace(base_field, n, sparse=True)
+        MC2 = MS2._get_matrix_class()
+        self._bilinear = MC2(MS2, entries={(i, j): val(coxeter_matrix[i, j]) / base_ring(-2)
+                                           for i in range(n) for j in range(n)
+                                           if coxeter_matrix[i, j] != 2},
+                             coerce=True, copy=True)
         self._bilinear.set_immutable()
         category = CoxeterGroups()
-        try:
-            # Try first using the fact that the bilinear form for finite
-            #   groups is positive definite
-            if self._bilinear.is_positive_definite():
-                category = category.Finite()
-        except (TypeError, OverflowError):
-            # Fallback by comparing the Coxeter matrices
-            if n == 1:
-                category = category.Finite()
-            elif n == 2:
-                if coxeter_matrix[0,1] > 0:
-                    category = category.Finite()
-            elif n == 3:
-                if coxeter_matrix == CartanType(['A',n]).coxeter_matrix() \
-                        or coxeter_matrix == CartanType(['B',n]).coxeter_matrix() \
-                        or coxeter_matrix == CartanType(['H',n]).coxeter_matrix():
-                    category = category.Finite()
-            elif n == 4:
-                if coxeter_matrix == CartanType(['A',n]).coxeter_matrix() \
-                        or coxeter_matrix == CartanType(['B',n]).coxeter_matrix() \
-                        or coxeter_matrix == CartanType(['D',n]).coxeter_matrix() \
-                        or coxeter_matrix == CartanType(['F',n]).coxeter_matrix() \
-                        or coxeter_matrix == CartanType(['H',n]).coxeter_matrix():
-                    category = category.Finite()
-            elif n in [6,7,8]:
-                if coxeter_matrix == CartanType(['A',n]).coxeter_matrix() \
-                        or coxeter_matrix == CartanType(['B',n]).coxeter_matrix() \
-                        or coxeter_matrix == CartanType(['D',n]).coxeter_matrix() \
-                        or coxeter_matrix == CartanType(['E',n]).coxeter_matrix():
-                    category = category.Finite()
-            elif coxeter_matrix == CartanType(['A',n]).coxeter_matrix() \
-                    or coxeter_matrix == CartanType(['B',n]).coxeter_matrix() \
-                    or coxeter_matrix == CartanType(['D',n]).coxeter_matrix():
-                category = category.Finite()
+        # Now we shall see if the group is finite, and, if so, refine
+        # the category to ``category.Finite()``.
+        # First, we build the Coxeter graph of the group, without
+        # the edge labels.
+        MS3 = MatrixSpace(ZZ, n, sparse=True)
+        MC3 = MS3._get_matrix_class()
+        adjmat = MC3(MS3, entries={(i, j): 1 for i in range(n) for j in range(n)
+                                   if coxeter_matrix[i, j] not in [1, 2]},
+                     coerce=True, copy=True)
+        G = Graph(adjmat, format="adjacency_matrix")
+        comps = G.connected_components()
+        finite = True
+        for comp in comps:
+            # Check if ``comp`` is one of the ABDEFHI graphs. The group
+            # is finite if and only if this holds for every ``comp``.
+            l = len(comp)
+            if l == 1:
+                continue
+            elif l == 2:
+                c0, c1 = comp
+                if coxeter_matrix[c0, c1] > 0:
+                    continue
+                finite = False
+                break
+            elif l == 3:
+                c0, c1, c2 = comp
+                s = sorted([coxeter_matrix[c0, c1],
+                            coxeter_matrix[c0, c2],
+                            coxeter_matrix[c1, c2]])
+                if s[0] == 2 and s[1] == 3 and s[2] in [3, 4, 5]:
+                    continue
+                finite = False
+                break
+            elif l == 4:
+                c0, c1, c2, c3 = comp
+                u = [coxeter_matrix[c0, c1],
+                     coxeter_matrix[c0, c2],
+                     coxeter_matrix[c0, c3],
+                     coxeter_matrix[c1, c2],
+                     coxeter_matrix[c1, c3],
+                     coxeter_matrix[c2, c3]]
+                s = sorted(u)
+                if s[:5] == [2, 2, 2, 3, 3]:
+                    if s[5] == 3:
+                        continue
+                    if s[5] in [4, 5]:
+                        u0 = u[0] + u[1] + u[2]
+                        u1 = u[0] + u[3] + u[4]
+                        u2 = u[1] + u[3] + u[5]
+                        u3 = u[2] + u[4] + u[5]
+                        ss = sorted([u0, u1, u2, u3])
+                        if ss in [[7, 7, 9, 9], [7, 8, 8, 9],
+                                  [7, 8, 9, 10]]:
+                            continue
+                finite = False
+                break
+            else:
+                G0 = G.subgraph(comp)
+                mentries = [coxeter_matrix[comp[i], comp[j]]
+                            for j in range(l) for i in range(j)]
+                mentries_s = sorted(mentries)
+                if mentries_s[0] < 0:
+                    finite = False
+                    break
+                if mentries_s[-1] > 3:
+                    if mentries_s[-2] > 3:
+                        finite = False
+                        break
+                    if mentries_s[-1] > 4:
+                        finite = False
+                        break
+                    diameter = G0.diameter()
+                    if diameter != l - 1:
+                        finite = False
+                        break
+                    ecc = sorted(((u, v) for (v, u) in G0.eccentricity(with_labels=True).items()))
+                    left_end = ecc[-1][1]
+                    right_end = ecc[-2][1]
+                    shortest_path = G0.shortest_path(left_end, right_end)
+                    left_almost_end = shortest_path[1]
+                    right_almost_end = shortest_path[-2]
+                    if (coxeter_matrix[left_end, left_almost_end] == 4
+                        or coxeter_matrix[right_end, right_almost_end] == 4):
+                        continue
+                    finite = False
+                    break
+                # Now ``mentries_s`` consists only of 2's and 3's.
+                if not G0.is_tree():
+                    finite = False
+                    break
+                ecc = sorted(G0.eccentricity())
+                if ecc[-1] == l - 1:
+                    continue
+                if ecc[-3] == l - 2:
+                    continue
+                if l <= 8 and ecc[-2] == l - 2 and ecc[-5] == l - 3:
+                    continue
+                finite = False
+                break
+        if finite:
+            category = category.Finite()
         FinitelyGeneratedMatrixGroup_generic.__init__(self, n, base_ring,
                                                       gens, category=category)
 

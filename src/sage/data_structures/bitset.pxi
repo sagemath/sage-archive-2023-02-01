@@ -603,8 +603,8 @@ cdef void bitset_rshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     Shift the bitset ``a`` right by ``n`` bits and store the result in
     ``r``.
 
-    If the result of the shift would exceed the size of ``r``, then it
-    will be cut.
+    There are no assumptions on the sizes of ``a`` and ``r``.  Bits which are
+    shifted outside of the resulting bitset are discarded.
     """
     if n >= a.size:
         mpn_zero(r.bits, r.limbs)
@@ -640,8 +640,8 @@ cdef void bitset_lshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     Shift the bitset ``a`` left by ``n`` bits and store the result in
     ``r``.
 
-    If the result of the shift would exceed the size of ``r``, then it
-    will be cut.
+    There are no assumptions on the sizes of ``a`` and ``r``.  Bits which are
+    shifted outside of the resulting bitset are discarded.
     """
     if n >= r.size:
         mpn_zero(r.bits, r.limbs)

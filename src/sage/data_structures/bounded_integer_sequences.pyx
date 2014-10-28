@@ -165,7 +165,7 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
     for item in data:
         item_limb = item
         if item_limb > bound:
-            raise ValueError("list item {} larger than {}".format(data[index], bound) )
+            raise ValueError("list item {} larger than {}".format(item, bound) )
         biseq_inititem(R, index, item_limb)
         index += 1
 
@@ -463,13 +463,7 @@ cdef class BoundedIntegerSequence:
         True
         sage: S[200:400] in S
         True
-
-    Items will not just be compared by congruence modulo the bound of the
-    sequence, but by equality. Thus, we have::
-
         sage: S[200]+S.bound() in S
-        False
-        sage: L[200]+S.bound() in L
         False
 
     Bounded integer sequences are immutable, and thus copies are
@@ -932,8 +926,7 @@ cdef class BoundedIntegerSequence:
             sage: BoundedIntegerSequence(51, [2, 7, 20]) in S
             False
 
-        Note that the items are not just compared by congruence modulo the
-        bound of the sequence, but by equality. Thus we have::
+        ::
 
             sage: 6+S.bound() in S
             False
@@ -1075,10 +1068,6 @@ cdef class BoundedIntegerSequence:
             Traceback (most recent call last):
             ...
             ValueError: Not a sub-sequence
-
-        Items are *not* compared up to congruence modulo the bound of the
-        sequence::
-
             sage: S.index(0)
             7
             sage: S.index(S.bound())

@@ -67,7 +67,6 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.is_meet_semilattice` | Returns True if self has a meet operation, and False otherwise.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
-    :meth:`~FinitePoset.join_matrix` | Returns a matrix whose ``(i,j)`` entry is ``k``, where ``self.linear_extension()[k]`` is the join (least upper bound) of ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Returns whether the poset is `(m+n)`-free.
     :meth:`~FinitePoset.is_ranked` | Returns whether this poset is ranked.
     :meth:`~FinitePoset.is_slender` | Returns whether the poset ``self`` is slender or not.
@@ -81,7 +80,6 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.maximal_antichains` | Return all maximal antichains of the poset.
     :meth:`~FinitePoset.maximal_chains` | Returns all maximal chains of this poset.  Each chain is listed in increasing order.
     :meth:`~FinitePoset.maximal_elements` | Returns a list of the maximal elements of the poset.
-    :meth:`~FinitePoset.meet_matrix` | Returns a matrix whose ``(i,j)`` entry is ``k``, where ``self.linear_extension()[k]`` is the meet (greatest lower bound) of ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
     :meth:`~FinitePoset.minimal_elements` | Returns a list of the minimal elements of the poset.
     :meth:`~FinitePoset.mobius_function_matrix` | Returns a matrix whose ``(i,j)`` entry is the value of the Mobius function evaluated at ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
     :meth:`~FinitePoset.mobius_function` | Returns the value of the Mobius function of the poset on the elements x and y.
@@ -2654,29 +2652,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def meet_matrix(self):
         """
-        Returns a matrix whose ``(i,j)`` entry is ``k``, where
-        ``self.linear_extension()[k]`` is the meet (greatest lower bound) of
-        ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
+        Deprecated as a function of posets, moved to lattices.
 
-        EXAMPLES::
-
-            sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]], facade = False)
-            sage: M = P.meet_matrix(); M
-            [0 0 0 0 0 0 0 0]
-            [0 1 0 1 0 0 0 1]
-            [0 0 2 2 2 0 2 2]
-            [0 1 2 3 2 0 2 3]
-            [0 0 2 2 4 0 2 4]
-            [0 0 0 0 0 5 5 5]
-            [0 0 2 2 2 5 6 6]
-            [0 1 2 3 4 5 6 7]
-            sage: M[P(4).vertex,P(3).vertex] == P(0).vertex
-            True
-            sage: M[P(5).vertex,P(2).vertex] == P(2).vertex
-            True
-            sage: M[P(5).vertex,P(2).vertex] == P(5).vertex
-            False
+        Convert a poset `P` to meet-semilattice and use it like
+        ``MeetSemilattice(P).join_matrix()``.
         """
+        deprecation(17216, "Function moved from posets to lattices.")
         return self._hasse_diagram.meet_matrix()
 
     def is_meet_semilattice(self):
@@ -2701,29 +2682,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def join_matrix(self):
         """
-        Returns a matrix whose ``(i,j)`` entry is ``k``, where
-        ``self.linear_extension()[k]`` is the join (least upper bound) of
-        ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
+        Deprecated as a function of posets, moved to lattices.
 
-        EXAMPLES::
-
-            sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]], facade = False)
-            sage: J = P.join_matrix(); J
-            [0 1 2 3 4 5 6 7]
-            [1 1 3 3 7 7 7 7]
-            [2 3 2 3 4 6 6 7]
-            [3 3 3 3 7 7 7 7]
-            [4 7 4 7 4 7 7 7]
-            [5 7 6 7 7 5 6 7]
-            [6 7 6 7 7 6 6 7]
-            [7 7 7 7 7 7 7 7]
-            sage: J[P(4).vertex,P(3).vertex] == P(7).vertex
-            True
-            sage: J[P(5).vertex,P(2).vertex] == P(5).vertex
-            True
-            sage: J[P(5).vertex,P(2).vertex] == P(2).vertex
-            False
+        Convert a poset `P` to join-semilattice and use it like
+        ``JoinSemilattice(P).join_matrix()``.
         """
+        deprecation(17216, "Function moved from posets to lattices.")
         return self._hasse_diagram.join_matrix()
 
     def is_join_semilattice(self):

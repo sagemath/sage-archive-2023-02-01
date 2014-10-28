@@ -111,6 +111,33 @@ class FiniteMeetSemilattice(FinitePoset):
             s += " with distinguished linear extension"
         return s
 
+    def meet_matrix(self):
+        """
+        Return a matrix whose ``(i,j)`` entry is ``k``, where
+        ``self.linear_extension()[k]`` is the meet (greatest lower bound) of
+        ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
+
+        EXAMPLES::
+
+            sage: P = LatticePoset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]], facade = False)
+            sage: M = P.meet_matrix(); M
+            [0 0 0 0 0 0 0 0]
+            [0 1 0 1 0 0 0 1]
+            [0 0 2 2 2 0 2 2]
+            [0 1 2 3 2 0 2 3]
+            [0 0 2 2 4 0 2 4]
+            [0 0 0 0 0 5 5 5]
+            [0 0 2 2 2 5 6 6]
+            [0 1 2 3 4 5 6 7]
+            sage: M[P(4).vertex,P(3).vertex] == P(0).vertex
+            True
+            sage: M[P(5).vertex,P(2).vertex] == P(2).vertex
+            True
+            sage: M[P(5).vertex,P(2).vertex] == P(5).vertex
+            False
+        """
+        return self._hasse_diagram.meet_matrix()
+
     def meet(self,x,y):
         r"""
         Return the meet of two elements in the lattice.
@@ -235,6 +262,33 @@ class FiniteJoinSemilattice(FinitePoset):
         if self._with_linear_extension:
             s += " with distinguished linear extension"
         return s
+
+    def join_matrix(self):
+        """
+        Return a matrix whose ``(i,j)`` entry is ``k``, where
+        ``self.linear_extension()[k]`` is the join (least upper bound) of
+        ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
+
+        EXAMPLES::
+
+            sage: P = LatticePoset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]], facade = False)
+            sage: J = P.join_matrix(); J
+            [0 1 2 3 4 5 6 7]
+            [1 1 3 3 7 7 7 7]
+            [2 3 2 3 4 6 6 7]
+            [3 3 3 3 7 7 7 7]
+            [4 7 4 7 4 7 7 7]
+            [5 7 6 7 7 5 6 7]
+            [6 7 6 7 7 6 6 7]
+            [7 7 7 7 7 7 7 7]
+            sage: J[P(4).vertex,P(3).vertex] == P(7).vertex
+            True
+            sage: J[P(5).vertex,P(2).vertex] == P(5).vertex
+            True
+            sage: J[P(5).vertex,P(2).vertex] == P(2).vertex
+            False
+        """
+        return self._hasse_diagram.join_matrix()
 
     def join(self,x,y):
         r"""

@@ -1439,12 +1439,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                                   ncpus=None):
         r"""
         Return an upper bound for the analytic rank of self, conditional on
-        the Generalized Riemann Hypothesis, via computing the zero sum
-        `\sum_{\gamma} f(\Delta\gamma),`
-        where `\gamma` ranges over the imaginary parts of the zeros of `L(E,s)`
+        the Generalized Riemann Hypothesis, via computing
+        the zero sum `\sum_{\gamma} f(\Delta\gamma),` where `\gamma`
+        ranges over the imaginary parts of the zeros of `L(E,s)`
         along the critical strip, `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`,
-        and `\Delta` is the tightness parameter whose maximum value is specified by
-        max_Delta. This computation can be run on curves with very large
+        and `\Delta` is the tightness parameter whose maximum value is specified
+        by ``max_Delta``. This computation can be run on curves with very large
         conductor (so long as the conductor is known or quickly computable)
         when `\Delta` is not too large (see below).
         Uses Bober's rank bounding method as described in [Bob13].
@@ -1454,28 +1454,28 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         - ``max_Delta`` -- (default: None) If not None, a positive real value
           specifying the maximum Delta value used in the zero sum; larger
           values of Delta yield better bounds - but runtime is exponential in
-          Delta. If left as None, Delta is set to
-          `\min\{\frac{1}{\pi}(\log(N+1000)/2-\log(2\pi)-\eta), 2.5\}`,
+          Delta. If left as None, Delta is set
+          to `\min\{\frac{1}{\pi}(\log(N+1000)/2-\log(2\pi)-\eta), 2.5\}`,
           where `N` is the conductor of the curve attached to self, and `\eta`
           is the Euler-Mascheroni constant `= 0.5772...`; the crossover
           point is at conductor around `8.3 \cdot 10^8`. For the former value,
           empirical results show that for about 99.7% of all curves the returned
           value is the actual analytic rank.
 
-        - ``adaptive`` -- (default: True) Either True or False:
+        - ``adaptive`` -- (default: True) Boolean.
           - If True, the computation is first run with small and then
             successively larger Delta values up to max_Delta. If at any
             point the computed bound is 0 (or 1 when when root_number is -1
             or True), the computation halts and that value is returned;
             otherwise the minimum of the computed bounds is returned.
-          - If False, the computation is run a single time with
-            `\Delta=` max_Delta, and the resulting bound returned.
+          - If False, the computation is run a single time with `\Delta` equal
+            to ``max_Delta``, and the resulting bound returned.
 
         - ``N`` -- (default: None) If not None, a positive integer equal to
           the conductor of self. This is passable so that rank estimation
           can be done for curves whose (large) conductor has been precomputed.
 
-        - ``root_number`` -- (default: "compute") One of the following:
+        - ``root_number`` -- (default: "compute") String or integer.
           - ``"compute"`` -- the root number of self is computed and used to
             (possibly) lower ther analytic rank estimate by 1.
           - ``"ignore"`` -- the above step is omitted
@@ -1504,11 +1504,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         .. WARNING::
 
-            Zero sum computation time is exponential in the tightness parameter
-            `\Delta`, roughly doubling for every increase of 0.1 thereof.
-            Using `\Delta=1` (and adaptive=False) will yield a runtime of a few
-            milliseconds; `\Delta=2` takes a few seconds, and `\Delta=3` may
-            take upwards of an hour. Increase beyond this at your own risk!
+            Zero sum computation time is exponential in the tightness
+            parameter `\Delta`, roughly doubling for every increase of 0.1
+            thereof. Using `\Delta=1` (and adaptive=False) will yield a runtime
+            of a few milliseconds; `\Delta=2` takes a few seconds, and `\Delta=3`
+            may take upwards of an hour. Increase beyond this at your own risk!
 
         OUTPUT:
 

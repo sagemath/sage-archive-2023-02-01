@@ -1382,6 +1382,7 @@ class Partition(CombinatorialObject, Element):
         """
         return [p for p in self.down()]
 
+    @combinatorial_map(name="cell poset")
     def cell_poset(self, orientation="SE"):
         """
         Return the Young diagram of ``self`` as a poset. The optional
@@ -1996,7 +1997,7 @@ class Partition(CombinatorialObject, Element):
         list_of_word.extend([0]*(n-self[0]))
         return DyckWord(list_of_word)
 
-    @combinatorial_map(name="conjugate partition")
+    @combinatorial_map(order=2, name="conjugate partition")
     def conjugate(self):
         """
         Return the conjugate partition of the partition ``self``. This
@@ -2218,8 +2219,9 @@ class Partition(CombinatorialObject, Element):
             sage: Partition([3,2,2]).initial_tableau()
             [[1, 2, 3], [4, 5], [6, 7]]
         """
-        mu=self._list # for some reason the next line doesn't work with self?
-        tab=[range(1+sum(mu[:i]),1+sum(mu[:(i+1)])) for i in range(len(mu))]
+        mu = self._list
+        # In Python 3, improve this using itertools.accumulate
+        tab = [range(1+sum(mu[:i]), 1+sum(mu[:(i+1)])) for i in range(len(mu))]
         return tableau.StandardTableau(tab)
 
 
@@ -4684,6 +4686,10 @@ class Partitions(UniqueRepresentation, Parent):
 
         sage: Partitions(5, inner=[2,1], min_length=3).list()
         [[3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
+        sage: Partitions(5, inner=Partition([2,2]), min_length=3).list()
+        [[2, 2, 1]]
+        sage: Partitions(7, inner=(2, 2), min_length=3).list()
+        [[4, 2, 1], [3, 3, 1], [3, 2, 2], [3, 2, 1, 1], [2, 2, 2, 1], [2, 2, 1, 1, 1]]
         sage: Partitions(5, inner=[2,0,0,0,0,0]).list()
         [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
         sage: Partitions(6, length=2, max_slope=-1).list()
@@ -4724,6 +4730,19 @@ class Partitions(UniqueRepresentation, Parent):
         Traceback (most recent call last):
         ...
         ValueError: n must be an integer or be equal to one of None, NN, NonNegativeIntegers()
+
+    Check that calling ``Partitions`` with ``outer=a`` no longer
+    mutates ``a`` (:trac:`16234`)::
+
+        sage: a = [4,2,1,1,1,1,1]
+        sage: for p in Partitions(8, outer=a, min_slope=-1):
+        ....:    print p
+        ....:     
+        [3, 2, 1, 1, 1]
+        [2, 2, 1, 1, 1, 1]
+        [2, 1, 1, 1, 1, 1, 1]
+        sage: a
+        [4, 2, 1, 1, 1, 1, 1]
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):

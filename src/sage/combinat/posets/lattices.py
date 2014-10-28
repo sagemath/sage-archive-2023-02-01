@@ -111,7 +111,7 @@ class FiniteMeetSemilattice(FinitePoset):
 
     def meet(self, x, y=None):
         r"""
-        Return the meet of two elements in the lattice.
+        Return the meet of given elements in the lattice.
 
         EXAMPLES::
 

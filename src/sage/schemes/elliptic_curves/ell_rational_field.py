@@ -1302,7 +1302,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-        - ``algorithm`` -- (default: 'pari'), One of:
+        - ``algorithm`` -- (default: 'pari'), String, one of
 
           - ``'pari'`` -- use the PARI library function.
 

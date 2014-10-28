@@ -370,5 +370,4 @@ hyperplane representations of the first face in the list.
 
 .. end of output
 
-If you want more... `http://www.sagemath.org/doc/reference/geometry/sage/geometry/polyhedron/base.html  <http://www.sagemath.org/doc/reference/geometry/sage/geometry/polyhedron/base.html>`_is the first place you want to go.
-
+If you want more... :ref:`sage.geometry.polyhedron.base` is the first place you want to go.

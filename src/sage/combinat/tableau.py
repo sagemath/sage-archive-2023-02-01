@@ -5629,11 +5629,17 @@ class StandardTableaux_size(StandardTableaux):
         randomly and then compute a perfect matching (an involution
         without fixed point) on the remaining values.
 
-        EXAMPLES:
-            sage: StandardTableaux(5).random_element()
-            [[1, 4, 5], [2], [3]] # random
+        EXAMPLES::
+
+            sage: StandardTableaux(5).random_element() # random
+            [[1, 4, 5], [2], [3]] 
             sage: StandardTableaux(0).random_element()
             []
+
+        TESTS::
+
+            sage: all([StandardTableaux(10).random_element() in StandardTableaux(10) for i in range(20)])
+            True
         """
         # We compute the number of involution of size ``size``.
         from sage.misc.prandom import randrange

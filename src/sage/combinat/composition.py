@@ -1945,13 +1945,11 @@ class Compositions_n(Compositions):
             sage: all([Compositions(10).random_element() in Compositions(10) for i in range(20)])
             True
         """
+        from sage.misc.prandom import choice
+
         if self.n == 0:
             return Compositions()([])
-        from sage.combinat.words.alphabet import build_alphabet
-        A = build_alphabet([0, 1])
-        from sage.combinat.words.words import FiniteWords_length_k_over_OrderedAlphabet
-        binary_word = FiniteWords_length_k_over_OrderedAlphabet(A, length = self.n - 1).random_element()
-        return Compositions().from_code([1] + list(binary_word))
+        return Compositions().from_code([1] + [choice([0,1]) for _ in range(self.n - 1)])
 
     def __iter__(self):
         """

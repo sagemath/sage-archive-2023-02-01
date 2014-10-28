@@ -33,6 +33,8 @@ fi
 
 EXTRA_BLAS=""
 if [ $UNAME = "Darwin" ]; then
+    # copy cblas headers from gsl
+    cp ../patches/gsl_cblas.h cblas.h
     EXTRA_BLAS="--with-cblas=-lcblas"
 fi
 

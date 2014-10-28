@@ -390,7 +390,6 @@ class FreeGroupElement(ElementLibGAP):
             sage: (~x0*x1*x0*x2*~x0).fox_derivative(x3)
             0
 
-
         If ``im_gens`` is given, the images of the generators are
         mapped to them::
 
@@ -410,21 +409,27 @@ class FreeGroupElement(ElementLibGAP):
             sage: a.inverse().fox_derivative(F([1]),[x,y,z])
             (z - 1)/(y*z)
 
+        The optional parameter ``ring`` determines the ring `A`::
+
+            sage: u = a.fox_derivative(F([1]), [1,2,3], ring=QQ)
+            sage: u
+            -4
+            sage: parent(u)
+            Rational Field
+            sage: u = a.fox_derivative(F([1]), [1,2,3], ring=R)
+            sage: u
+            -4
+            sage: parent(u)
+            Multivariate Polynomial Ring in x, y, z over Rational Field
+
         TESTS::
 
             sage: F=FreeGroup(3)
             sage: a=F([])
-            sage: a.fox_derivative(F([]))
+            sage: a.fox_derivative(F([1]))
             0
             sage: R.<t>=LaurentPolynomialRing(ZZ)
-            sage: a.fox_derivative(F([]),[t,t,t])
-            0
-            sage: F=FreeGroup(0)
-            sage: a=F([])
-            sage: a.fox_derivative(F([]))
-            0
-            sage: R.<t>=LaurentPolynomialRing(ZZ)
-            sage: a.fox_derivative(F([]),[])
+            sage: a.fox_derivative(F([1]),[t,t,t])
             0
         """
         if not gen in self.parent().generators():
@@ -837,7 +842,7 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             sage: F.abelian_invariants()
             (0, 0)
         """
-        return tuple((0 for _ in self.ngens()))
+        return (0,) * self.ngens()
 
     def quotient(self, relations):
         """

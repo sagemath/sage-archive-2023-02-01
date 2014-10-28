@@ -1236,6 +1236,36 @@ cdef class Parent(category_object.CategoryObject):
             sage: pi in CDF
             True
 
+        Note that we have
+
+        ::
+
+            sage: 3/2 in RIF
+            True
+
+        because
+
+        ::
+
+            sage: RIF(3/2).endpoints()
+            (1.50000000000000, 1.50000000000000)
+
+        i.e., the RIF-element has equal endpoints, but we have
+
+        ::
+
+            sage: 2/3 in RIF
+            False
+
+        because
+
+        ::
+
+            sage: RIF(2/3).endpoints()
+            (0.666666666666666, 0.666666666666667)
+
+        i.e., the RIF-element has different endpoints.
+
         TESTS:
 
         Check that :trac:`13824` is fixed::

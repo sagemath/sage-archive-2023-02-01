@@ -232,11 +232,11 @@ class FiniteFieldHomset(RingHomset_generic):
             Ring morphism:
               From: Finite Field in a of size 1009^2
               To:   Finite Field in b of size 1009^2
-              Defn: a |--> 719*b + 145,
+              Defn: a |--> 290*b + 864,
             Ring morphism:
               From: Finite Field in a of size 1009^2
               To:   Finite Field in b of size 1009^2
-              Defn: a |--> 290*b + 864
+              Defn: a |--> 719*b + 145
             ]
 
         TESTS:

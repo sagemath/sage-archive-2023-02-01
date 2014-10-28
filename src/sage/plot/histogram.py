@@ -87,13 +87,20 @@ class Histogram(GraphicPrimitive):
             return minmax_data(xdata,[0]+list(ydata), dict=True)
         else:
             m = { 'xmax': 0, 'xmin':0, 'ymax':0, 'ymin':0}
-            for d in self.datalist:
-                ydata, xdata = numpy.histogram(d,**opt)
-                m['xmax'] = max([m['xmax']] + list(xdata))
-                m['xmin'] = min([m['xmin']] + list(xdata))
-                m['ymax'] = max([m['ymax']] + list(ydata))
-                m['ymin'] = min([m['ymin']] + list(ydata))
-            return m
+            if not options.pop('stacked',None):
+                for d in self.datalist:
+                    ydata, xdata = numpy.histogram(d,**opt)
+                    m['xmax'] = max([m['xmax']] + list(xdata))
+                    m['xmin'] = min([m['xmin']] + list(xdata))
+                    m['ymax'] = max([m['ymax']] + list(ydata))
+                return m
+            else:
+                for d in self.datalist:
+                    ydata, xdata = numpy.histogram(d,**opt)
+                    m['xmax'] = max([m['xmax']] + list(xdata))
+                    m['xmin'] = min([m['xmin']] + list(xdata))
+                    m['ymax'] = m['ymax'] + max(list(ydata))
+                return m
      
     def _allowed_options(self):
         """
@@ -112,18 +119,25 @@ class Histogram(GraphicPrimitive):
             sage: L[-1]
             ('zorder', 'The layer level to draw the histogram')
             sage: len(L)
-            11
+            18
         """
         return {'color': 'The color of the face of the bars or list of colors if multiple data sets are given.',
                 'edgecolor':'The color of the the border of each bar.',
+                'alpha': 'How transparent the plot is',
                 'hue':'The color of the bars given as a hue.',
+                'fill':'(True or False, default True) Whether to fill the bars',
+                'hatch': 'What symbol to fill with - one of "/", "\", "|", "-", "+", "x", "o", "O", ".", "*"',
+                'linewidth':'Width of the lines defining the bars',
+                'linestyle':'Style of line, one of "solid", "dashed", "dotted", "dashdot"',
                 'zorder':'The layer level to draw the histogram',
                 'bins': 'The number of sections in which to divide the range. Also can be a sequence of points within the range that create the partition.', 
                 'align': 'How the bars align inside of each bin. Acceptable values are "left", "right" or "mid".',
                 'rwidth': 'The relative width of the bars as a fraction of the bin width',
+                'cumulative': '(True or False) If True, then a histogram is computed in which each bin gives the counts in that bin plus all bins for smaller values.  Negative values give a reversed direction of accumulation.',
                 'range': 'A list [min, max] which define the range of the histogram. Values outside of this range are treated as outliers and omitted from counts.', 
                 'normed': '(True or False) If True, the counts are normalized to form a probability density. (n/(len(x)*dbin)', 
-                'weights': 'A sequence of weights the same length as the data list. If supplied, then each value contributes it\'s associated weight to the bin count.',
+                'weights': 'A sequence of weights the same length as the data list. If supplied, then each value contributes its associated weight to the bin count.',
+                'stacked': '(True or False) If True, multiple data are stacked on top of each other.',
                 'label': 'A string label for each data list given.'}
 
     def _repr_(self):
@@ -171,6 +185,8 @@ class Histogram(GraphicPrimitive):
 def histogram(datalist, **options):
     """
     Computes and draws the histogram for list(s) of numerical data.
+    See examples for the many options; even more customization is
+    available using matplotlib directly.
 
     EXAMPLES:
 
@@ -179,7 +195,9 @@ def histogram(datalist, **options):
         sage: histogram([1,2,3,4], bins=2)
         Graphics object consisting of 1 graphics primitive
 
-    We can see how the histogram compares to various distributions::
+    We can see how the histogram compares to various distributions.
+    Note the use of the ``normed`` keyword to guarantee the plot
+    looks like the probability density function::
 
         sage: nv = normalvariate
         sage: H = histogram([nv(0,1) for _ in xrange(1000)], bins=20, normed=True, range=[-5,5])
@@ -187,15 +205,35 @@ def histogram(datalist, **options):
         sage: H+P
         Graphics object consisting of 2 graphics primitives
 
-    There are many options one can use with histograms::
+    There are many options one can use with histograms.  Some of these
+    control the presentation of the data, even if it is boring::
 
-        sage: histogram(range(100), color=(1,0,0))
+        sage: histogram(range(100), color=(1,0,0), label='mydata',\
+              rwidth=.5, align="right")
+        Graphics object consisting of 1 graphics primitive
+
+    This includes many usual matplotlib styling options::
+
+        sage: T = RealDistribution('lognormal', [0,1])
+        sage: histogram( [T.get_random_element() for _ in range(100)], alpha=0.3,\
+              edgecolor='red', fill=False, linestyle='dashed', hatch='O', linewidth=5)
         Graphics object consisting of 1 graphics primitive
 
     We can do several data sets at once if desired::
 
         sage: histogram([srange(0,1,.1)*10, [nv(0, 1) for _ in xrange(100)]], color=['red','green'], bins=5)
         Graphics object consisting of 1 graphics primitive
+
+    We have the option of stacking the data sets too.
+
+        sage: histogram([ [1,1,1,1,2,2,2,3,3,3], [4,4,4,4,3,3,3,2,2,2] ], stacked=True, color=['blue', 'red'])
+        Graphics object consisting of 1 graphics primitive
+
+    It is possible to use weights with the histogram as well.
+
+        sage: histogram(range(10), bins=3, weights=[1,2,3,4,5,5,4,3,2,1])
+        Graphics object consisting of 1 graphics primitive
+
     """
 
     g = Graphics()

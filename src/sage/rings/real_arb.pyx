@@ -33,7 +33,7 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long pre
 
     - ``source`` -- an ``mpfi_t``.
 
-    - ``precision`` -- an integer `> 2`.
+    - ``precision`` -- an integer `\ge 2`.
 
     OUTPUT:
 
@@ -66,7 +66,7 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision
 
     - ``source`` -- an ``arb_t``.
 
-    - ``precision`` -- an integer `>2`.
+    - ``precision`` -- an integer `\ge 2`.
 
     OUTPUT:
 
@@ -158,7 +158,7 @@ cdef class Arb(SageObject):
           :class:`RealIntervalFieldElement`.
 
         - ``precision`` -- (default: ``0``) zero or an integer
-          `>2`. Must be given unless ``value`` is not ``None``.
+          `\ge 2`. Must be given unless ``value`` is not ``None``.
 
         OUTPUT:
 

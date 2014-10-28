@@ -5610,24 +5610,28 @@ class StandardTableaux_size(StandardTableaux):
 
     def random_element(self):
         r"""
-        Returns a random StandardTableau with uniform probability.
+        Return a random ``StandardTableau`` with uniform probability.
 
         This algorithm uses the fact that the Robinson-Schensted
-        correspondance gives a pair of identical standard Young tableau
-        (syt) if and only if the permutation was an involution. This way,
-        the generating a random syt is equivalent to the generating of an
-        involution.
-        
-        To generate an involution, we first need to compute its number of
+        correspondence returns a pair of identical standard Young
+        tableaux (SYTs) if and only if the permutation was an involution.
+        Thus, generating a random SYT is equivalent to generating a
+        random involution.
+
+        To generate an involution, we first need to choose its number of
         fixed points `k` (if the size of the involution is even, the
-        number of fixed point will be even, and if the size is odd, the
-        number of fixed point will be odd). To do this, we compute a
-        random integer `r` between 0 and the number of involution of size
-        `n`. We then decompose the number of involutions of size `n` by
-        number of fixed points which gives us the number `k` of fixed
-        points of our permutation. We then place those fixed points
-        randomly and then compute a perfect matching (an involution
-        without fixed point) on the remaining values.
+        number of fixed points will be even, and if the size is odd, the
+        number of fixed points will be odd). To do this, we choose a
+        random integer `r` between 0 and the number `N` of all
+        involutions of size `n`. We then decompose the interval
+        `\{ 1, 2, \ldots, N \}` into subintervals whose lengths are the
+        numbers of involutions of size `n` with respectively `0`, `1`,
+        `\ldots`, `\left \lfoor N/2 \right \rfloor` fixed points. The
+        interval in which our random integer `r` lies then decides how
+        many fixed points our random involution will have. We then
+        place those fixed points randomly and then compute a perfect
+        matching (an involution without fixed points) on the remaining
+        values.
 
         EXAMPLES::
 
@@ -5635,13 +5639,15 @@ class StandardTableaux_size(StandardTableaux):
             [[1, 4, 5], [2], [3]] 
             sage: StandardTableaux(0).random_element()
             []
+            sage: StandardTableaux(1).random_element()
+            [[1]]
 
         TESTS::
 
             sage: all([StandardTableaux(10).random_element() in StandardTableaux(10) for i in range(20)])
             True
         """
-        # We compute the number of involution of size ``size``.
+        # We compute the number of involutions of size ``size``.
         from sage.misc.prandom import randrange
         involution_index = randrange(0, StandardTableaux(self.size).cardinality())
         partial_sum = 0
@@ -5649,7 +5655,7 @@ class StandardTableaux_size(StandardTableaux):
     
         from sage.functions.other import binomial
         while True:
-            # We add the number of involution with ``fixed_point_number``
+            # We add the number of involutions with ``fixed_point_number``
             # fixed points.
             partial_sum += binomial(self.size, fixed_point_number) * \
                            prod(xrange(1, self.size - fixed_point_number , 2))
@@ -5663,7 +5669,7 @@ class StandardTableaux_size(StandardTableaux):
         # ..., size}.
         from sage.misc.prandom import sample
         fixed_point_positions = set(sample(range(1, self.size + 1), fixed_point_number))
-        # We generate a list of tuple with the first part being the fixed
+        # We generate a list of tuples with the first part being the fixed
         # points of the permutation and the second part being a perfect
         # matching on the remaining values.
         from sage.combinat.perfect_matching import PerfectMatchings

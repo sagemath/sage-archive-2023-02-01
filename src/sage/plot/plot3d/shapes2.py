@@ -1091,6 +1091,10 @@ def point3d(v, size=5, **kwds):
         # argument is an iterator
         l = None
 
+    if l == 0:
+        from sage.plot.plot3d.base import Graphics3d
+        return Graphics3d()
+
     if l == 3:
         try:
             # check if the first element can be changed to a float

@@ -4939,9 +4939,9 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: em = A.change_ring(RDF).eigenmatrix_left()
             sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(2e-15)
-            [ 13.348469228349...                0.0                 0.0]
-            [                0.0 -1.348469228349...                 0.0]
-            [                0.0                0.0                 0.0]
+            [13.348469228349...                0.0                 0.0]
+            [               0.0 -1.348469228349...                 0.0]
+            [               0.0                0.0                 0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.440242867...  0.567868371...  0.695493875...]
             [ 0.897878732...  0.278434036... -0.341010658...]
@@ -5598,9 +5598,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = matrix(QQ, 3, 3, range(9))
             sage: em = A.change_ring(RDF).eigenmatrix_left()
             sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
-            [ 13.348469228349...                0.0                 0.0]
-            [                0.0 -1.348469228349...                 0.0]
-            [                0.0                0.0                 0.0]
+            [13.348469228349...                0.0                 0.0]
+            [               0.0 -1.348469228349...                 0.0]
+            [               0.0                0.0                 0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
             ....:     scale = evectors[i,0].sign()

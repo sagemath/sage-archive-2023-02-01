@@ -2954,6 +2954,7 @@ class BinaryTrees_size(BinaryTrees):
         bijection between Dyck words and binary trees.
 
         EXAMPLES::
+
             sage: BinaryTrees(5).random_element() # random
             [., [., [., [., [., .]]]]] 
             sage: BinaryTrees(0).random_element()
@@ -2962,6 +2963,7 @@ class BinaryTrees_size(BinaryTrees):
             [., .]
 
         TESTS::
+
             sage: all([BinaryTrees(10).random_element() in BinaryTrees(10) for i in range(20)])
             True
         """

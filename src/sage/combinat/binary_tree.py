@@ -2948,9 +2948,9 @@ class BinaryTrees_size(BinaryTrees):
 
     def random_element(self):
         r"""
-        Returns a random BinaryTree with uniform probability.
+        Return a random ``BinaryTree`` with uniform probability.
 
-        This method generates a random DyckWord and then uses a
+        This method generates a random ``DyckWord`` and then uses a
         bijection between Dyck words and binary trees.
 
         EXAMPLES::
@@ -2958,13 +2958,15 @@ class BinaryTrees_size(BinaryTrees):
             [., [., [., [., [., .]]]]] 
             sage: BinaryTrees(0).random_element()
             .
+            sage: BinaryTrees(1).random_element()
+            [., .]
 
         TESTS::
             sage: all([BinaryTrees(10).random_element() in BinaryTrees(10) for i in range(20)])
             True
         """
-        from sage.combinat.dyck_word import DyckWords
-        return DyckWords(self._size).random_element().to_binary_tree()
+        from sage.combinat.dyck_word import CompleteDyckWords_size
+        return CompleteDyckWords_size(self._size).random_element().to_binary_tree()
 
     def __iter__(self):
         """

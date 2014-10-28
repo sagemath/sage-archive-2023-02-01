@@ -1249,8 +1249,8 @@ class HasseDiagram(DiGraph):
                 join[x][y] = q
                 join[y][x] = q
 
-        return matrix(ZZ, [[n-1-join[n-1-x][n-1-y] for y in range(n)] for
-                           x in range(n)])
+        return matrix(ZZ, [[n-1-join[n-1-x][n-1-y] for y in range(n)]
+                           for x in range(n)])
 
     def join_matrix(self):
         r"""

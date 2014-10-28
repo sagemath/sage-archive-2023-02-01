@@ -5610,8 +5610,10 @@ class StandardTableaux_size(StandardTableaux):
 
     def random_element(self):
         r"""
+        Returns a random StandardTableau with uniform probability.
+
         This algorithm uses the fact that the Robinson-Schensted
-        correspondance gives a couple of identical standard Young tableau
+        correspondance gives a pair of identical standard Young tableau
         (syt) if and only if the permutation was an involution. This way,
         the generating a random syt is equivalent to the generating of an
         involution.
@@ -5626,6 +5628,12 @@ class StandardTableaux_size(StandardTableaux):
         points of our permutation. We then place those fixed points
         randomly and then compute a perfect matching (an involution
         without fixed point) on the remaining values.
+
+        EXAMPLES:
+            sage: StandardTableaux(5).random_element()
+            [[1, 4, 5], [2], [3]] # random
+            sage: StandardTableaux(0).random_element()
+            []
         """
         # We compute the number of involution of size ``size``.
         from sage.misc.prandom import randrange
@@ -5645,18 +5653,18 @@ class StandardTableaux_size(StandardTableaux):
             if partial_sum > involution_index:
                 break
             fixed_point_number += 2
-            # We generate a subset of size "fixed_point_number" of the set {1,
-            # ..., size}.
-        from sage.combinat.permutation import Permutations
-        fixed_point_positions = set(Permutations(self.size).random_element()[:fixed_point_number])
+        # We generate a subset of size "fixed_point_number" of the set {1,
+        # ..., size}.
+        from sage.misc.prandom import sample
+        fixed_point_positions = set(sample(range(1, self.size + 1), fixed_point_number))
         # We generate a list of tuple with the first part being the fixed
         # points of the permutation and the second part being a perfect
         # matching on the remaining values.
         from sage.combinat.perfect_matching import PerfectMatchings
         permutation_cycle_rep = [(fixed_point,) for fixed_point in fixed_point_positions] + \
                                 list(PerfectMatchings(set(range(1, self.size + 1)) - set(fixed_point_positions)).random_element())
-        from sage.combinat.permutation import Permutation
-        return Permutation(permutation_cycle_rep).robinson_schensted()[0]
+        from sage.combinat.permutation import from_cycles
+        return from_cycles(self.size, permutation_cycle_rep).robinson_schensted()[0]
 
 
 class StandardTableaux_shape(StandardTableaux):

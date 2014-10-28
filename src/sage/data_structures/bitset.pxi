@@ -12,6 +12,8 @@ AUTHORS:
   pickle, unpickle
 - Jeroen Demeyer (2014-09-05): use mpn_* functions from MPIR in the
   implementation (:trac`13352` and :trac:`16937`)
+- Simon King (2014-10-28): ``bitset_rshift`` and ``bitset_lshift`` respecting
+  the size of the given bitsets.
 """
 
 #*****************************************************************************
@@ -601,7 +603,8 @@ cdef void bitset_rshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     Shift the bitset ``a`` right by ``n`` bits and store the result in
     ``r``.
 
-    We assume ``a.size <= r.size + n``.
+    If the result of the shift would exceed the size of ``r``, then it
+    will be cut.
     """
     if n >= a.size:
         mpn_zero(r.bits, r.limbs)
@@ -609,21 +612,25 @@ cdef void bitset_rshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     
     # Number of limbs on the right of a which will totally be shifted out
     cdef mp_size_t nlimbs = n >> index_shift
+    # Number of limbs of a which will survive the shift
+    cdef mp_size_t shifted_limbs = a.limbs - nlimbs
     # Number of bits to shift additionally
     cdef mp_bitcnt_t nbits = n % GMP_LIMB_BITS
 
     if nbits:
         # mpn_rshift only does shifts less than a limb
-        if a.limbs - nlimbs <= r.limbs:
-            mpn_rshift(r.bits, a.bits + nlimbs, a.limbs - nlimbs, nbits)
+        if shifted_limbs <= r.limbs:
+            mpn_rshift(r.bits, a.bits + nlimbs, shifted_limbs, nbits)
         else:
-            # In this case, we must have a.limbs - nlimbs - 1 == r.limbs
             mpn_rshift(r.bits, a.bits + nlimbs, r.limbs, nbits)
             # Add the additional bits from top limb of a
-            r.bits[r.limbs-1] |= a.bits[a.limbs-1] << (GMP_LIMB_BITS - nbits)
+            r.bits[r.limbs-1] |= a.bits[r.limbs+nlimbs] << (GMP_LIMB_BITS - nbits)
     else:
-        mpn_copyi(r.bits, a.bits + nlimbs, a.limbs - nlimbs)
-
+        if shifted_limbs <= r.limbs:
+            mpn_copyi(r.bits, a.bits + nlimbs, shifted_limbs)
+        else:
+            mpn_copyi(r.bits, a.bits + nlimbs, r.limbs)
+            bitset_fix(r)
     # Clear top limbs
     if r.limbs + nlimbs >= a.limbs + 1:
         mpn_zero(r.bits + (r.limbs - nlimbs), r.limbs + nlimbs - a.limbs)
@@ -633,7 +640,8 @@ cdef void bitset_lshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     Shift the bitset ``a`` left by ``n`` bits and store the result in
     ``r``.
 
-    We assume ``r.size <= a.size + n``.
+    If the result of the shift would exceed the size of ``r``, then it
+    will be cut.
     """
     if n >= r.size:
         mpn_zero(r.bits, r.limbs)
@@ -641,25 +649,27 @@ cdef void bitset_lshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
 
     # Number of limbs on the left of r which will totally be shifted out
     cdef mp_size_t nlimbs = n >> index_shift
+    # Number of limbs of a which would fit into r
+    cdef mp_size_t max_shifted_limbs = r.limbs - nlimbs
     # Number of bits to shift additionally
     cdef mp_bitcnt_t nbits = n % GMP_LIMB_BITS
 
     cdef mp_limb_t out
     if nbits:
         # mpn_lshift only does shifts less than a limb
-        if r.limbs - nlimbs <= a.limbs:
-            mpn_lshift(r.bits + nlimbs, a.bits, r.limbs - nlimbs, nbits)
+        if max_shifted_limbs <= a.limbs:
+            mpn_lshift(r.bits + nlimbs, a.bits, max_shifted_limbs, nbits)
         else:
-            # In this case, we must have r.limbs - nlimbs - 1 == a.limbs
             out = mpn_lshift(r.bits + nlimbs, a.bits, a.limbs, nbits)
-            r.bits[r.limbs-1] = out
+            r.bits[nlimbs+a.limbs] = out
     else:
-        mpn_copyd(r.bits + nlimbs, a.bits, r.limbs - nlimbs)
+        if max_shifted_limbs <= a.limbs:
+            mpn_copyd(r.bits + nlimbs, a.bits, max_shifted_limbs)
+        else:
+            mpn_copyd(r.bits + nlimbs, a.bits, a.limbs)
     bitset_fix(r)
-
     # Clear bottom limbs
     mpn_zero(r.bits, nlimbs)
-
 
 cdef inline void bitset_map(bitset_t r, bitset_t a, m):
     """

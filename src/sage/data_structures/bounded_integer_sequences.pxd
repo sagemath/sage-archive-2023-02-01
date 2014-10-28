@@ -39,12 +39,13 @@ cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1
 cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1
 cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1
 cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1
-cdef int biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
-cdef int biseq_max_overlap(biseq_t S1, biseq_t S2) except 0
-cdef int biseq_index(biseq_t S, mp_limb_t item, mp_size_t start) except -2
+cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
+cdef mp_size_t biseq_max_overlap(biseq_t S1, biseq_t S2) except 0
+cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2
 cdef size_t biseq_getitem(biseq_t S, mp_size_t index)
 cdef biseq_getitem_py(biseq_t S, mp_size_t index)
 cdef inline void biseq_inititem(biseq_t S, mp_size_t index, size_t item)
+cdef inline void biseq_clearitem(biseq_t S, mp_size_t index)
 cdef bint biseq_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1
 
 cdef class BoundedIntegerSequence:

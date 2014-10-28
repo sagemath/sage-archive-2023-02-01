@@ -1932,6 +1932,7 @@ class Compositions_n(Compositions):
         and then uses the bijection between compositions and their code.
 
         EXAMPLES::
+
             sage: Compositions(5).random_element() # random
             [2, 1, 1, 1]
             sage: Compositions(0).random_element()
@@ -1940,6 +1941,7 @@ class Compositions_n(Compositions):
             [1]
 
         TESTS::
+
             sage: all([Compositions(10).random_element() in Compositions(10) for i in range(20)])
             True
         """

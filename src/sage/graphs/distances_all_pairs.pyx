@@ -106,7 +106,7 @@ Breadth First Search per vertex of the (di)graph.
 AUTHOR:
 
 - Nathann Cohen (2011)
-- David Coudert (2014) -- 2sweep, 4sweep and iFUB for diameter computation
+- David Coudert (2014) -- 2sweep, multi-sweep and iFUB for diameter computation
 
 REFERENCE:
 
@@ -922,15 +922,15 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
     return LB
 
 
-cdef tuple diameter_lower_bound_4sweep(uint32_t n,
-                                       uint32_t ** p_vertices,
-                                       uint32_t source,
-                                       uint32_t * distances,
-                                       uint32_t * predecessors,
-                                       uint32_t * waiting_list,
-                                       bitset_t seen):
+cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
+                                            uint32_t ** p_vertices,
+                                            uint32_t source,
+                                            uint32_t * distances,
+                                            uint32_t * predecessors,
+                                            uint32_t * waiting_list,
+                                            bitset_t seen):
     """
-    Lower bound on the diameter using 4-sweep.
+    Lower bound on the diameter using multi-sweep.
 
     This method computes a lower bound on the diameter of an unweighted
     undirected graph using several iterations of the 2-sweep algorithms
@@ -1063,8 +1063,8 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     """
     cdef uint32_t i, LB, s, m, d
 
-    # We select a vertex m with low eccentricity using 4-sweep
-    LB, s, m, d = diameter_lower_bound_4sweep(n, p_vertices, source, distances, NULL, waiting_list, seen)
+    # We select a vertex m with low eccentricity using multi-sweep
+    LB, s, m, d = diameter_lower_bound_multi_sweep(n, p_vertices, source, distances, NULL, waiting_list, seen)
 
     # If the lower bound is a very large number, it means that the graph is not
     # connected and so the diameter is infinite.
@@ -1109,7 +1109,7 @@ def diameter(G, method='iFUB', source=None):
 
     This method returns Infinity if the (di)graph is not connected. It can also
     quickly return a lower bound on the diameter using the ``2sweep`` and
-    ``4sweep`` schemes.
+    ``multi-sweep`` schemes.
 
     INPUTS:
 
@@ -1127,7 +1127,7 @@ def diameter(G, method='iFUB', source=None):
           of `G`.  The time complexity of this method is linear in the size of
           `G`.
 
-        - ``'4sweep'`` -- Computes a lower bound on the diameter of an
+        - ``'multi-sweep'`` -- Computes a lower bound on the diameter of an
           unweighted undirected graph using several iterations of the ``2sweep``
           algorithms [CGH+13]_. Roughly, it first uses ``2sweep`` to identify
           two vertices `u` and `v` that are far apart. Then it selects a vertex
@@ -1140,12 +1140,15 @@ def diameter(G, method='iFUB', source=None):
         - ``'iFUB'`` -- The iFUB (iterative Fringe Upper Bound) algorithm,
           proposed in [CGI+10]_, computes the exact value of the diameter of an
           unweighted undirected graph. This algorithm uses as a subroutine the
-          ``4sweep`` lower bound computation method in order to start an
+          ``multi-sweep`` lower bound computation method in order to start an
           iterative procedure whose goal is both to refine the lower bound value
           itself and to properly tune an upper bound value, until the two values
           coincide. The worst case time complexity of the iFUB algorithm is
           `O(nm)`, but it can be very fast in practice. See [CGH+13]_ for more
-          details.
+          details. Notice that [CGH+13]_ uses ``4sweep`` (two iterations of
+          ``2sweep``) instead of ``multi-sweep``. However, this those not affect
+          the validity of the algorithm since we are only trying to improve the
+          selection of the starting vertex of the iterative procedure.
 
     - ``source`` -- (default: None) vertex from which to start the first BFS. If
       ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
@@ -1178,6 +1181,12 @@ def diameter(G, method='iFUB', source=None):
         sage: d3 = G.diameter(method='iFUB', source=G.random_vertex())
         sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
 
+    Comparison of lower bound methods::
+
+        sage: lb2 = G.diameter(method='2sweep')
+        sage: lbm = G.diameter(method='multi-sweep')
+        sage: if not (lb2<=lbm and lbm<=d3): print "Something goes wrong!"
+
     """
     cdef int n = G.order()
     if n==0:
@@ -1187,7 +1196,7 @@ def diameter(G, method='iFUB', source=None):
         return max(G.eccentricity())
     elif method is None:
         method = 'iFUB'
-    elif not method in ['2sweep', '4sweep', 'iFUB']:
+    elif not method in ['2sweep', 'multi-sweep', 'iFUB']:
         raise ValueError("Unknown method for computing the diameter.")
 
     if source is None:
@@ -1221,8 +1230,8 @@ def diameter(G, method='iFUB', source=None):
     if method=='2sweep':
         LB = diameter_lower_bound_2sweep(n, sd.neighbors, isource, c_distances, NULL, waiting_list, seen)
 
-    elif method=='4sweep':
-        LB = diameter_lower_bound_4sweep(n, sd.neighbors, isource, c_distances, NULL, waiting_list, seen)[0]
+    elif method=='multi-sweep':
+        LB = diameter_lower_bound_multi_sweep(n, sd.neighbors, isource, c_distances, NULL, waiting_list, seen)[0]
 
     else: # method=='iFUB'
         LB = diameter_iFUB(n, sd.neighbors, isource, c_distances, waiting_list, seen)

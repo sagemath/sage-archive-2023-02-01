@@ -1967,7 +1967,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             from sage.rings.polynomial.polynomial_zz_pex import Polynomial_ZZ_pEX
 
             p=base_ring.characteristic()
-            self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.polynomial()), p))
+            self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.modulus()), p))
             element_class = Polynomial_ZZ_pEX
 
         PolynomialRing_field.__init__(self, base_ring, sparse=False, name=name,
@@ -2358,10 +2358,11 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
           - ``'random'``: try random polynomials until an irreducible
             one is found.
 
-          If ``algorithm`` is ``None``, the Conway polynomial is used
-          if it is found in the database.  If no Conway polynomial is
-          found, the algorithm ``minimal_weight`` is used if `p = 2`,
-          and the algorithm ``adleman-lenstra`` if `p > 2`.
+          If ``algorithm`` is ``None``, use `x - 1` in degree 1. In
+          degree > 1, the Conway polynomial is used if it is found in
+          the database.  Otherwise, the algorithm ``minimal_weight``
+          is used if `p = 2`, and the algorithm ``adleman-lenstra`` if
+          `p > 2`.
 
         OUTPUT:
 
@@ -2391,6 +2392,15 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             sage: GF(2)['x'].irreducible_element(33, algorithm="minimal_weight")
             x^33 + x^10 + 1
 
+        In degree 1::
+        
+            sage: GF(97)['x'].irreducible_element(1)
+            x + 96
+            sage: GF(97)['x'].irreducible_element(1, algorithm="conway")
+            x + 92
+            sage: GF(97)['x'].irreducible_element(1, algorithm="adleman-lenstra")
+            x
+
         AUTHORS:
 
         - Peter Bruin (June 2013)
@@ -2409,15 +2419,17 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         n = int(n)
         if n < 1:
             raise ValueError("degree must be at least 1")
+
         if algorithm is None:
-            if exists_conway_polynomial(p, n):
+            if n == 1:
+                return self((-1,1))  # Polynomial x - 1
+            elif exists_conway_polynomial(p, n):
                 algorithm = "conway"
             elif p == 2:
                 algorithm = "minimal_weight"
             else:
                 algorithm = "adleman-lenstra"
-
-        if algorithm == "primitive":
+        elif algorithm == "primitive":
             if exists_conway_polynomial(p, n):
                 algorithm = "conway"
             else:

@@ -675,6 +675,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         self._compiled = CompiledPolynomialFunction(self.list())
         return self._compiled
 
+    def _get_compiled(self):
+        # For testing
+        return self._compiled
+
     def _fast_float_(self, *vars):
         """
         Returns a quickly-evaluating function on floats.

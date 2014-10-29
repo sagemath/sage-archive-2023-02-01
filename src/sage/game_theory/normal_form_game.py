@@ -816,7 +816,7 @@ class NormalFormGame(SageObject, MutableMapping):
           * ``"lrs"`` - This algorithm is only suited for 2 player games.
             See the lrs web site (http://cgm.cs.mcgill.ca/~avis/C/lrs.html).
 
-          * ``"support enumeration"`` - This is a very inefficient
+          * ``enumeration`` - This is a very inefficient
             algorithm (in essence a brute force approach).
 
         - ``maximization`` - Whether a player is trying to maximize their utility

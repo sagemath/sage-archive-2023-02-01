@@ -354,6 +354,23 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: threegame
         {(0, 1, 1): [3, 5, 8], (1, 1, 0): [8, 4, 6], (1, 0, 0): [9, 7, 9], (0, 0, 1): [1, 5, 9], (1, 0, 1): [3, 2, 3], (0, 0, 0): [3, 1, 4], (0, 1, 0): [2, 6, 5], (1, 1, 1): [2, 6, 4]}
 
+    The above requires a lot of input that could be simplified if there is
+    another data structure with our utilities and/or a structure to the utilities.
+    The following example creates a game with a relatively strange utility
+    function::
+
+        sage: def utility(strategy_triplet, player):
+        ....:     return sum(strategy_triplet) * player
+        sage: threegame = NormalFormGame()
+        sage: threegame.add_player(2)
+        sage: threegame.add_player(2)
+        sage: threegame.add_player(2)
+        sage: for i, j, k in [(i, j, k) for i in [0,1] for j in [0,1] for k in [0,1]]:
+        ....:     for p in range(3):
+        ....:          threegame[i, j, k][p] = utility([i, j, k], p)
+        sage: threegame
+        {(0, 1, 1): [0, 2, 4], (1, 1, 0): [0, 2, 4], (1, 0, 0): [0, 1, 2], (0, 0, 1): [0, 1, 2], (1, 0, 1): [0, 2, 4], (0, 0, 0): [0, 0, 0], (0, 1, 0): [0, 1, 2], (1, 1, 1): [0, 3, 6]}
+
     At present no algorithm has been implemented in Sage for games with
     more than 2 players::
 

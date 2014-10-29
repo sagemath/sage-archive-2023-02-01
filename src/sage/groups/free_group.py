@@ -320,7 +320,7 @@ class FreeGroupElement(ElementLibGAP):
         generator ``gen`` of the free group.
 
         Let `F` be a free group with free generators
-        `x_1, x_2, \ldots, x_n`. Let `j \in \{ 1, 2, \ldots ,
+        `x_1, x_2, \ldots, x_n`. Let `j \in \left\{ 1, 2, \ldots ,
         n \right\}`. Let `a_1, a_2, \ldots, a_n` be `n`
         invertible elements of a ring `A`. Let `a : F \to A^\times`
         be the (unique) homomorphism from `F` to the multiplicative
@@ -358,7 +358,7 @@ class FreeGroupElement(ElementLibGAP):
           (given as a list or iterable). This is the list
           `(a_1, a_2, \ldots, a_n)`.
           If not provided, it defaults to
-          `(x_1, x_2, \ldots, x_n\right)` in the group ring
+          `(x_1, x_2, \ldots, x_n)` in the group ring
           `\ZZ [F]`.
 
         - ``ring`` (optional) -- the ring in which the elements

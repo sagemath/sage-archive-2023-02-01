@@ -1444,10 +1444,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                         s1 += cc[j]
                     if b2:
                         s2 += cc[j]*(-1)**(ee[j]%2)
-                if b1 and s1 <> 0:
+                if b1 and s1 != 0:
                     m1 = i
                     b1 = False
-                if b2 and s2 <> 0:
+                if b2 and s2 != 0:
                     m2 = i
                     b2 = False
                 # Stop asap

@@ -1924,6 +1924,33 @@ class Compositions_n(Compositions):
         else:
             return 0
 
+    def random_element(self):
+        r"""
+        Return a random ``Composition`` with uniform probability.
+
+        This method generates a random binary word starting with a 1
+        and then uses the bijection between compositions and their code.
+
+        EXAMPLES::
+
+            sage: Compositions(5).random_element() # random
+            [2, 1, 1, 1]
+            sage: Compositions(0).random_element()
+            []
+            sage: Compositions(1).random_element()
+            [1]
+
+        TESTS::
+
+            sage: all([Compositions(10).random_element() in Compositions(10) for i in range(20)])
+            True
+        """
+        from sage.misc.prandom import choice
+
+        if self.n == 0:
+            return Compositions()([])
+        return Compositions().from_code([1] + [choice([0,1]) for _ in range(self.n - 1)])
+
     def __iter__(self):
         """
         Iterate over the compositions of `n`.

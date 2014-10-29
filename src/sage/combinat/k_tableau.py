@@ -4466,10 +4466,14 @@ class StrongTableaux(UniqueRepresentation, Parent):
             []
         """
         LL = list(T)
+        print "LL = ",LL
         marks = [v for row in T for v in row if v is not None and v<0]+[0]
+        print "marks = ",marks
         m = -min(marks) # the largest marked cell
+        print "m = ",m
         transeq = [] # start with the empty list and append on the right
         sh = Core(map(len,T), k+1)
+        print "sh = ",sh
         for v in range(m,0,-1):
             for j in range(len(LL[0]),-len(LL)-1,-1):
                 if -v in [LL[i][i+j] for i in range(len(LL)) if len(LL[i])>j+i and i+j>=0]:
@@ -4480,9 +4484,11 @@ class StrongTableaux(UniqueRepresentation, Parent):
                         # a valid or invalid transposition?
                         if msh.length()==sh.length()-1:
                             # if applying t_{j-l,j+1} reduces the size of the shape by 1
-                            valcells = [LL[c[0]][c[1]] for c in SkewPartition([sh.to_partition(),msh.to_partition()]).cells()]
-                            if all(x is not None for x in valcells) and all(abs(x)==v for x in valcells) and [x for x in valcells if x==-v] == [-v]:
-                                # if all values are \pm v and exactly one of them is -v
+                            skewcells = SkewPartition([sh.to_partition(),msh.to_partition()]).cells()
+                            valcells = [LL[c[0]][c[1]] for c in skewcells] # values in all the cells
+                            regcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0] in range(j-l,j+1)] # values in just the t_{j-l,j+1} segment
+                            if -v in regcells and all(x is not None for x in valcells) and all(abs(x)==v for x in valcells) and [x for x in valcells if x==-v] == [-v]:
+                                # if all values are \pm v and exactly one of them is -v and the -v is in range(j-l,j+1)
                                 transeq.append([j-l, j+1])
                                 LL = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]
                                 sh = msh

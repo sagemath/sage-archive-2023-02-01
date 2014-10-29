@@ -44,10 +44,12 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
             INPUT:
 
-            - `d` -- non negative integer or ``None``, optional (default: ``None``)
+            - ``d`` -- (optional, default ``None``) non negative integer
+              or ``None``
 
-            If `d` is None, returns a basis of the module.
-            Otherwise, returns the basis of the homogeneous component of degree `d`.
+            If ``d`` is ``None``, returns a basis of the module.
+            Otherwise, returns the basis of the homogeneous component
+            of degree ``d`` (i.e., of ``F_d \setminus F_{d-1}``).
 
             EXAMPLES::
 
@@ -74,6 +76,9 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             """
             Return whether ``self`` is homogeneous.
 
+            An element `x` is homogeneous if `x \in F_i \setminus F_{i-1}`
+            for some `i`.
+
             EXAMPLES::
 
                 sage: A = ModulesWithBasis(ZZ).Filtered().example()
@@ -99,7 +104,10 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
         def degree(self):
             """
-            The degree of this element in the filtered module.
+            The degree of ``self`` in the filtered module.
+
+            The degree of an element `x` is the value `i` such that
+            `x \in F_i \setminus F_{i-1}`.
 
             .. NOTE::
 
@@ -164,7 +172,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
         def truncate(self, n):
             """
             Return the sum of the homogeneous components of degree
-            strictly less than ``n`` of this element.
+            strictly less than ``n`` of ``self``.
 
             EXAMPLES::
 

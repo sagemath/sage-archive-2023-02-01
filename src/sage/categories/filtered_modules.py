@@ -1,5 +1,7 @@
 r"""
 Filtered modules
+
+We require all `F_i \setminus F_{i-1}` to be modules for all `i`.
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -123,8 +125,13 @@ class FilteredModulesCategory(RegressiveCovariantConstructionCategory, Category_
         return "filtered {}".format(self.base_category()._repr_object_names())
 
 class FilteredModules(FilteredModulesCategory):
-    """
+    r"""
     The category of filtered modules.
+
+    A `R`-module `M` is *filtered* if there exists a `R`-module
+    isomorphism `A = \bigoplus_{i \in I} F_i`, where `I` is a
+    totally ordered additive abelian group, such that
+    `F_{i-1} \subseteq F_i` for all `i \in I`.
 
     EXAMPLES::
 

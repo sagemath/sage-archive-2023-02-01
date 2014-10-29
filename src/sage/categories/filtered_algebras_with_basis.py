@@ -46,7 +46,10 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
     class ElementMethods:
         def is_homogeneous(self):
             """
-            Return whether this element is homogeneous.
+            Return whether ``self`` is homogeneous.
+
+            An element `x` is homogeneous if `x \in F_i \setminus F_{i-1}`
+            for some `i`.
 
             EXAMPLES::
 
@@ -71,7 +74,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
         def homogeneous_degree(self):
             """
-            The degree of this element.
+            The degree of ``self``.
 
             .. NOTE::
 

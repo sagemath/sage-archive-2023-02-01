@@ -15,6 +15,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
+from copy import copy
 
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
@@ -37,6 +38,35 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     INPUT:
 
     - ``A`` -- a filtered algebra
+
+    EXAMPLES:
+
+        sage: A = Algebras(QQ).WithBasis().Filtered().example()
+        sage: grA = A.graded_algebra()
+        sage: x,y,z = map(lambda s: grA.algebra_generators()[s], ['x','y','z'])
+        sage: x
+        bar(U['x'])
+        sage: y * x + z
+        bar(U['x']*U['y']) + bar(U['z'])
+        sage: A(y) * A(x) + A(z)
+        U['x']*U['y']
+
+    We note that the conversion between ``A`` and ``grA`` is the canonical
+    ``QQ``-module isomorphism::
+
+        sage: grA(A.an_element())
+        bar(U['x']^2*U['y']^2*U['z']^3)
+        sage: elt = A.an_element() + A.algebra_generators()['x'] + 2
+        sage: grelt = grA(elt); grelt
+        bar(U['x']^2*U['y']^2*U['z']^3) + bar(U['x']) + 2*bar(1)
+        sage: A(grelt) == elt
+        True
+
+    .. TODO::
+
+        The algebra ``A`` must currently be an instance of (a subclass of)
+        :class:`CombinatorialFreeModule`. This should work with any algebra
+        with a basis.
     """
     def __init__(self, A, category=None):
         """
@@ -51,15 +81,20 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
         if A not in AlgebrasWithBasis(A.base_ring()).Filtered():
             raise ValueError("the base algebra must be filtered")
         self._A = A
+
         if category is None:
             category = A.category().Graded()
-        from copy import copy
         opts = copy(A.print_options())
         if not opts['prefix'] and not opts['bracket']:
             opts['bracket'] = '('
         opts['prefix'] = opts['prefix'] + 'bar'
+
         CombinatorialFreeModule.__init__(self, A.base_ring(), A.indices(),
                                          category=category, **opts)
+
+        # Setup the conversion back
+        phi = self.module_morphism(lambda x: A.monomial(x), codomain=A)
+        self._A.register_conversion(phi)
 
     def _repr_(self):
         """
@@ -91,6 +126,11 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     def _element_constructor_(self, x):
         """
         Construct an element of ``self`` from ``x``.
+
+        .. NOTE::
+
+            This constructs an element from the filtered algebra ``A``
+            by the canonical module isomorphism.
 
         EXAMPLES::
 

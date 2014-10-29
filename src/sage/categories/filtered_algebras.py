@@ -12,8 +12,12 @@ from sage.misc.abstract_method import abstract_method
 from sage.categories.filtered_modules import FilteredModulesCategory
 
 class FilteredAlgebras(FilteredModulesCategory):
-    """
+    r"""
     The category of filtered algebras.
+
+    An algebra `A` over `R` is *filtered* if `A` is a filtered `R`-module
+    such that `F_i \cdot F_j \subseteq F_{i+j}` for all `i, j` in the
+    filteration group.
 
     EXAMPLES::
 

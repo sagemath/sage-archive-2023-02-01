@@ -14,7 +14,7 @@ from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
 from sage.sets.family import Family
 from sage.misc.misc import powerset
 
-class IntersectionFilteredAlgebra(CombinatorialFreeModule):
+class PBWBasisCrossProduct(CombinatorialFreeModule):
     r"""
     This class illustrates an implementation of a filtered algebra
     with basis: the universal enveloping algebra of the Lie algebra
@@ -31,6 +31,9 @@ class IntersectionFilteredAlgebra(CombinatorialFreeModule):
     The implementation involves the following:
 
     - A set of algebra generators -- the set of generators `x,y,z`.
+
+    - The index of the unit element -- the unit element in the monoid
+      of monomials.
 
     - A product -- this is given on basis elements by using
       :meth:`product_on_basis`.
@@ -115,6 +118,9 @@ class IntersectionFilteredAlgebra(CombinatorialFreeModule):
         """
         return len(m)
 
+    # TODO: This is a general procedure of expanding multiplication defined
+    #  on generators to arbitrary monomials and could likely be factored out
+    #  and be useful elsewhere.
     def product_on_basis(self, s, t):
         """
         Return the product of two basis elements indexed by ``s`` and ``t``.
@@ -142,6 +148,7 @@ class IntersectionFilteredAlgebra(CombinatorialFreeModule):
 
         if len(t) == 1:
             if len(s) == 1:
+                # Do the product of the generators
                 a = s.leading_support()
                 b = t.leading_support()
                 cur = self.monomial(s*t)
@@ -165,5 +172,5 @@ class IntersectionFilteredAlgebra(CombinatorialFreeModule):
             cur = cur * self.monomial(self._indices.gen(a))
         return cur
 
-Example = IntersectionFilteredAlgebra
+Example = PBWBasisCrossProduct
 

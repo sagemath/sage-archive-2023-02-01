@@ -1364,6 +1364,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if algorithm == "dense":
             return p._roots_from_factorization(p.factor(),multiplicities)
 
+        sig_on()
+
         v = p.valuation()
         p = p.shift(-v)
 
@@ -1375,7 +1377,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             roots = []
 
-        if p.is_constant(): return roots
+        if p.is_constant(): 
+            sig_off()
+            return roots
 
         cdef list c = p.coefficients()
         cdef list e = p.exponents()
@@ -1408,6 +1412,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             # if no gap, directly return the roots of p
             if g.is_zero():
                 roots.extend(p._roots_from_factorization(p.factor(),multiplicities))
+                sig_off()
                 return roots
 
             g = g.gcd(R(p[e[i_min]:1+e[k-1]].shift(-e[i_min])))
@@ -1464,6 +1469,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             roots.extend(r for r in g._roots_from_factorization(g.factor(),False) if r.abs()>1)
 
+        sig_off()
         return roots
 
 

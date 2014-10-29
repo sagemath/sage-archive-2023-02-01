@@ -17,7 +17,7 @@ class FilteredAlgebras(FilteredModulesCategory):
 
     An algebra `A` over `R` is *filtered* if `A` is a filtered `R`-module
     such that `F_i \cdot F_j \subseteq F_{i+j}` for all `i, j` in the
-    filteration group.
+    filtration group.
 
     EXAMPLES::
 

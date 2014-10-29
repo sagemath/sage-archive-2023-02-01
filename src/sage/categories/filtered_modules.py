@@ -129,7 +129,7 @@ class FilteredModules(FilteredModulesCategory):
     The category of filtered modules.
 
     A `R`-module `M` is *filtered* if there exists a `R`-module
-    isomorphism `A = \bigoplus_{i \in I} F_i`, where `I` is a
+    isomorphism `A = \bigcup_{i \in I} F_i`, where `I` is a
     totally ordered additive abelian group, such that
     `F_{i-1} \subseteq F_i` for all `i \in I`.
 

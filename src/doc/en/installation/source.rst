@@ -9,12 +9,13 @@ Install from Source Code
 
 More familiarity with computers may be required to build Sage from
 the `source code <http://en.wikipedia.org/wiki/Source_code>`_.
-If you do have all the pre-requisite tools, the process should be completely
+If you do have all the :ref:`pre-requisite tools <section-prereqs>`,
+the process should be completely
 painless, basically consisting in extracting the source tarball and typing
-``make``.
-It can take your computer a while to build Sage from the source code,
+``make``.  It can take your computer a while to build Sage from the source code,
 although the procedure is fully automated and should need no human
 intervention.
+
 Building Sage from the source code has the major advantage that your install
 will be optimised for your particular computer and should therefore offer
 better performance and compatibility than a binary install.
@@ -48,11 +49,18 @@ you can find details about
 `ports <http://en.wikipedia.org/wiki/Computer_port_%28software%29>`_
 to other operating systems or processors which may be taking place.
 
+.. _section-prereqs:
+
 Prerequisites
 -------------
 
 General requirements
 ~~~~~~~~~~~~~~~~~~~~
+
+This section details the technical prerequisites needed on any platform. See
+`System-specific requirements`_ and `Installing prerequisites`_ for details
+on how to acquire these. :ref:`Mac OS X <section_macprereqs>` has
+special instructions as developer tools do not come standard.
 
 Your computer comes with at least 5 GB of free disk space running one of the
 supported versions of an operating system listed at
@@ -112,6 +120,9 @@ and inform you of any that are missing, or have unsuitable versions.
 System-specific requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+On Mac OS X, there are various developer tools needed which require
+some registration on Apple's developer site; see :ref:`section_macprereqs`.
+
 On recent Debian or Ubuntu systems, the **dpkg-dev** package is needed for
 `multiarch <http://wiki.debian.org/Multiarch>`_ support.
 
@@ -134,6 +145,9 @@ on the command line. If it gives an error (or returns nothing), then
 either ``perl`` is not installed, or it is installed but not in your
 `PATH <http://en.wikipedia.org/wiki/PATH_%28variable%29>`_.
 
+Linux prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 On Linux systems (e.g., Ubuntu, Redhat, etc), ``ar`` and ``ranlib`` are in the
 `binutils <http://www.gnu.org/software/binutils/>`_ package.
 The other programs are usually located in packages with their respective names.
@@ -155,26 +169,43 @@ On other Linux systems, you might use
 `yum <http://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,
 or other package managers.
 
+.. _section_macprereqs:
+
+Mac OS X prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 On OS X systems, you need a recent version of
-`Command Line Tools <http://developer.apple.com/opensource/>`_.
+`Command Line Tools <http://developer.apple.com/downloads/index.action?=command%20line%20tools>`_.
 It provides all the above requirements.
-You can download it for free at
-http://developer.apple.com/downloads/index.action?=command%20line%20tools
-provided you registered for a free Apple Developer account at
-http://developer.apple.com/register/.
-Alternatively, if you have already installed
-`Xcode <http://developer.apple.com/xcode/>`_
+
+- First, you will need to register as an Apple Developer at
+  http://developer.apple.com/register/.
+
+- Having done so, you should be able to download it for free at
+  http://developer.apple.com/downloads/index.action?=command%20line%20tools
+
+- Alternately, https://developer.apple.com/opensource/ should have a link
+  to Command Line Tools.
+
+If you have already installed `Xcode <http://developer.apple.com/xcode/>`_
 (which at the time of writing is freely available in the Mac App Store,
 or through http://developer.apple.com/downloads/ provided you registered for an
 Apple Developer account), you can install the command line tools from
-there: with OS X Mavericks, run the command ``xcode-select --install``
-from a Terminal window and click "Install" in the pop-up dialog
-box. Using OS X Mountain Lion or earlier, run Xcode, open its "Downloads"
-preference pane and install the command line
-tools from there.
-On pre-Lion OS X systems, the command line tools are not available as a
-separate download and you have to install the full-blown Xcode supporting your
-system version.
+there as well.
+
+- With OS X Mavericks, run the command ``xcode-select --install``
+  from a Terminal window and click "Install" in the pop-up dialog
+  box.
+
+- Using OS X Mountain Lion or earlier, run Xcode, open its "Downloads"
+  preference pane and install the command line tools from there.
+
+- On pre-Lion OS X systems, the command line tools are not available as a
+  separate download and you have to install the full-blown Xcode supporting your
+  system version.
+
+Other platforms
+^^^^^^^^^^^^^^^
 
 On Solaris, you would use ``pkgadd`` and on OpenSolaris ``ipf`` to install
 the necessary software.
@@ -1323,4 +1354,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in May 2014 (Sage 6.2).**
+**This page was last updated in October 2014 (Sage 6.3).**

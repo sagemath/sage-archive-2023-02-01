@@ -1029,12 +1029,11 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     Computes the diameter of the input Graph using the iFUB algorithm.
 
     The iFUB (iterative Fringe Upper Bound) algorithm calculates the exact value
-    of the diameter of a unweighted undirected graph [CGI+10]_. This algorithm
-    uses as a subroutine the 4-sweep lower bound computation method in order to
-    start an iterative procedure whose goal is both to refine the lower bound
-    value itself and to properly tune an upper bound value, until the two values
-    coincide. The worst case time complexity of the iFUB algorithm is `O(nm)`,
-    but it can be very fast in practice. See [CGH+13]_ for more details.
+    of the diameter of a unweighted undirected graph [CGI+10]_. This algorithms
+    starts with a vertex found through a multi-sweep call (a refinement of the
+    4sweep method). The worst case time complexity of the iFUB algorithm is
+    `O(nm)`, but it can be very fast in practice. See the code's documentation
+    and [CGH+13]_ for more details.
 
     INPUTS:
 
@@ -1077,7 +1076,6 @@ cdef uint32_t diameter_iFUB(uint32_t n,
         raise MemoryError()
     cdef uint32_t * order  = layer + n
 
-
     # We order the vertices by decreasing layers. This is the inverse order of a
     # BFS from m, and so the inverse order of array waiting_list. Distances are
     # stored in array layer.
@@ -1085,9 +1083,26 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     for i from 0 <= i < n:
         order[i] = waiting_list[n-i-1]
 
-
-    # We run a BFS from each vertex starting from the vertices at largest
-    # distance from m. We stop exploration as soon as UB==LB.
+    # The algorithm:
+    #
+    # The diameter of the graph is equal to the maximum eccentricity of a
+    # vertex. Let m be any vertex, and let V be partitionned into A u B where:
+    #
+    #    d(m,a)<=i for all a \in A
+    #    d(m,b)>=i for all b \in B
+    #
+    # As all vertices from A are at distance <=2i from each other, a vertex a
+    # from A with eccentricity ecc(a)>2i is at distance ecc(a) from some vertex
+    # b\in B.
+    #
+    # Consequently, if we have already computed the eccentricity of all
+    # vertices in B and know that the diameter is >2i, then we do not have to
+    # compute the eccentricity of vertices in A.
+    #
+    # Now, we compute the maximum eccentricity of all vertices, ordered
+    # decreasingly according to their distance to m. We stop when we know that
+    # the eccentricity of the unexplored vertices is smaller than the max
+    # eccentricity already found.
     i = 0
     while (2*layer[order[i]])>LB and i<n:
         tmp = simple_BFS(n, p_vertices, order[i], distances, NULL, waiting_list, seen)
@@ -1104,7 +1119,7 @@ cdef uint32_t diameter_iFUB(uint32_t n,
 
 
 def diameter(G, method='iFUB', source=None):
-    """
+    r"""
     Returns the diameter of `G`.
 
     This method returns Infinity if the (di)graph is not connected. It can also
@@ -1139,24 +1154,38 @@ def diameter(G, method='iFUB', source=None):
 
         - ``'iFUB'`` -- The iFUB (iterative Fringe Upper Bound) algorithm,
           proposed in [CGI+10]_, computes the exact value of the diameter of an
-          unweighted undirected graph. This algorithm uses as a subroutine the
-          ``multi-sweep`` lower bound computation method in order to start an
-          iterative procedure whose goal is both to refine the lower bound value
-          itself and to properly tune an upper bound value, until the two values
-          coincide. The worst case time complexity of the iFUB algorithm is
-          `O(nm)`, but it can be very fast in practice. See [CGH+13]_ for more
-          details. Notice that [CGH+13]_ uses ``4sweep`` (two iterations of
-          ``2sweep``) instead of ``multi-sweep``. However, this those not affect
-          the validity of the algorithm since we are only trying to improve the
-          selection of the starting vertex of the iterative procedure.
+          unweighted undirected graph. It is based on the following observation:
+
+              The diameter of the graph is equal to the maximum eccentricity of
+              a vertex. Let `v` be any vertex, and let `V` be partitionned into
+              `A\cup B` where:
+
+              .. MATH::
+
+                  d(v,a)<=i, \forall a \in A\\
+                  d(v,b)>=i, \forall b \in B
+
+              As all vertices from `A` are at distance `\leq 2i` from each
+              other, a vertex `a\in A` with eccentricity `ecc(a)>2i` is at
+              distance `ecc(a)` from some vertex `b\in B`.
+
+              Consequently, if we have already computed the maximum eccentricity
+              `m` of all vertices in B and if `m>2i`, then we do not need to
+              compute the eccentricity of the vertices in A.
+
+          Starting from a vertex `v` obtained through a multi-sweep computation
+          (which refines the 4sweep algorithm used in [CGH+13]_), we compute the
+          diameter by computing the eccentricity of all vertices sorted
+          decreasingly according to their distance to `v`, and stop as allowed
+          by the remark above. The worst case time complexity of the iFUB
+          algorithm is `O(nm)`, but it can be very fast in practice.
 
     - ``source`` -- (default: None) vertex from which to start the first BFS. If
       ``source==None``, an arbitrary vertex of the graph is chosen. Raise an
       error if the initial vertex is not in `G`.  This parameter is not used
       when ``method=='standard'``.
 
-
-    EXAMPLES:
+    EXAMPLES::
 
         sage: G = graphs.PetersenGraph()
         sage: G.diameter(method='iFUB')

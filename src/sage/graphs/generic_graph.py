@@ -12454,7 +12454,7 @@ class GenericGraph(GenericGraph_pyx):
           parameter is not used when ``method=='standard'``.
 
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: G = graphs.PetersenGraph()
             sage: G.diameter()
@@ -12483,26 +12483,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: lb2 = G.diameter(method='2sweep')
             sage: lbm = G.diameter(method='multi-sweep')
             sage: if not (lb2<=lbm and lbm<=d3): print "Something goes wrong!"
-
-
-        REFERENCES:
-
-        .. [CGH+13] P. Crescenzi, R. Grossi, M. Habib, L. Lanzi, A. Marino.
-          On computing the diameter of real-world undirected graphs.
-          *Theoretical Computer Science* 514: 84-95 (2013)
-          http://dx.doi.org/10.1016/j.tcs.2012.09.018
-
-        .. [CGI+10] P. Crescenzi, R. Grossi, C. Imbrenda, L. Lanzi, and
-          A. Marino.  Finding the Diameter in Real-World Graphs: Experimentally
-          Turning a Lower Bound into an Upper Bound. Proc. of *18th Annual
-          European Symposium on Algorithms*. Lecture Notes in Computer Science,
-          vol. 6346, 302-313. Springer (2010).
-
-        .. [MLH08] C. Magnien, M. Latapy, and M. Habib. Fast computation of
-          empirically tight bounds for the diameter of massive graphs.
-          *ACM Journal of Experimental Algorithms* 13 (2008)
-          http://dx.doi.org/10.1145/1412228.1455266
-
         """
         if self.order()==0:
             return 0

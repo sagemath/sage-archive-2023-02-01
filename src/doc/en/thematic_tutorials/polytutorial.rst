@@ -1,11 +1,18 @@
 .. -*- coding: utf-8 -*-
 
+.. _polytutorial:
+
 A Brief Introduction to Polytopes in Sage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. MODULEAUTHOR:: sarah-marie belcastro <smbelcas@toroidalsnark.net>
 
 If you already know some convex geometry  *a la*  Grünbaum or
 Brøndsted, then you may have itched to get your hands dirty with some
 polytope calculations.  Here is a mini\-guide to doing just that. 
+
+Basics
+""""""
 
 First, let's define a polytope as the convex hull of a set of points,
 i.e. given  :math:`S` we compute  :math:`P={\rm conv}(S)`:

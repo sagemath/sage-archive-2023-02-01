@@ -135,6 +135,7 @@ class ToricPlotter(SageObject):
 
         sage: fan = toric_varieties.dP6().fan()
         sage: fan.plot()
+        Graphics object consisting of 31 graphics primitives
         sage: print fan.plot()
         Graphics object consisting of 31 graphics primitives
 

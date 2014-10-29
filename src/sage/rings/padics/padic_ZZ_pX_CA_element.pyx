@@ -241,6 +241,15 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
 
             sage: W(gp('5 + O(5^2)'))
             w^5 + 2*w^7 + 4*w^9 + O(w^10)
+
+        Check that :trac:`13612` has been fixed::
+
+            sage: R = ZpCA(3)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2+1)
+            sage: W(W.residue_field().zero())
+            O(3)
+
         """
         pAdicZZpXElement.__init__(self, parent)
         cdef long aprec, rprec, ctx_prec
@@ -352,7 +361,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             # Should only reach here if x is not in F_p
             z = parent.gen()
             poly = x.polynomial().list()
-            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))])
+            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))], parent.zero())
             if 1 < aprec:
                 aprec = 1
         cdef pAdicZZpXCAElement _x

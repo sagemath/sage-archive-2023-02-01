@@ -327,6 +327,7 @@ Sage example in ./calculus.tex, line 898::
 Sage example in ./calculus.tex, line 914::
 
     sage: plot(u(x), x, 1, 40)
+    Graphics object consisting of 1 graphics primitive
 
 Sage example in ./calculus.tex, line 929::
 

@@ -415,8 +415,10 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         EXAMPLE::
 
             sage: (SL2Z.1).__reduce__()
-            (Modular Group SL(2,Z), ([1 1]
-            [0 1],))
+            (Modular Group SL(2,Z), (
+            [1 1]
+            [0 1]
+            ))
         """
         from all import SL2Z
         return SL2Z, (self.__x,)

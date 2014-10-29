@@ -708,7 +708,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             sage: QQ.residue_field(next_prime(10^9))
             Residue field of Integers modulo 1000000007
         """
-        from sage.rings.residue_field import ResidueField
+        from sage.rings.finite_rings.residue_field import ResidueField
         return ResidueField(ZZ.ideal(p), check=check)
 
     def gens(self):

@@ -161,7 +161,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             sage: RF13 = K.residue_field(pp)
             sage: RF13.hom([GF(13)(1)])
             Ring morphism:
-             From: Residue field of Fractional ideal (-w + 18)
+             From: Residue field of Fractional ideal (w + 18)
              To:   Finite Field of size 13
              Defn: 1 |--> 1
         """
@@ -170,7 +170,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         elif S is ZZ:
             return integer_mod.Integer_to_IntegerMod(self)
         elif isinstance(S, IntegerModRing_generic):
-            from sage.rings.residue_field import ResidueField_generic
+            from residue_field import ResidueField_generic
             if S.characteristic() == self.characteristic() and \
                (not isinstance(S, ResidueField_generic) or S.degree() == 1):
                 try:

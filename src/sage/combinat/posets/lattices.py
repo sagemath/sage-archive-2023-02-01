@@ -371,8 +371,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def is_distributive(self):
         r"""
-        Returns ``True`` if the lattice is distributive, and ``False``
+        Return ``True`` if the lattice is distributive, and ``False``
         otherwise.
+
+        A lattice `(L, \vee, \wedge)` is distributive if meet
+        distributes over join: `x \wedge (y \vee z) = (x \wedge y)
+        \vee (x \wedge z)` for every `x,y,z \in L` just like `x \cdot
+        (y+z)=x \cdot y + x \cdot z` in normal arithmetic. For duality
+        in lattices it follows that then also join distributes over
+        meet.
 
         EXAMPLES::
 
@@ -383,7 +390,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_distributive()
             False
         """
-        return self._hasse_diagram.is_distributive_lattice()
+        if self.cardinality() == 0: return True
+        return (self.is_graded() and 
+         self.rank() == len(self.join_irreducibles()) ==
+         len(self.meet_irreducibles()))
 
     def is_complemented(self):
         r"""

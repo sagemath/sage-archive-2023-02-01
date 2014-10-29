@@ -8312,6 +8312,7 @@ class FiniteStateMachine(SageObject):
         TESTS::
 
             sage: FiniteStateMachine([('A', 'A', 0)]).plot()
+            Graphics object consisting of 3 graphics primitives
         """
         return self.graph(edge_labels='words_in_out').plot()
 
@@ -11304,7 +11305,7 @@ class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
             sage: TC2._visited_states_.add(1)
             sage: TC3 = deepcopy(TC2)  # indirect doctest
             sage: TC3._visited_states_
-            set([1])
+            {1}
         """
         new = super(_FSMTapeCacheDetectEpsilon_, self).__deepcopy__(memo)
         new._visited_states_ = copy(self._visited_states_)

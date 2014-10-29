@@ -59,7 +59,6 @@ cimport cython
 
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
-    int     gcmp_sage(GEN x, GEN y)
 
 cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
@@ -1045,24 +1044,16 @@ cdef class gen(sage.structure.element.RingElement):
         return glength(self.g)
 
 
-
     ###########################################
     # comparisons
-    # I had to rewrite PARI's compare, since
-    # otherwise trapping signals and other horrible,
-    # memory-leaking and slow stuff occurs.
     ###########################################
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cdef _richcmp_c_impl(left, Element right, int op):
         """
-        Comparisons
-
-        First uses PARI's cmp routine; if it decides the objects are not
-        comparable, it then compares the underlying strings (since in
-        Python all objects are supposed to be comparable).
+        Compare ``left`` and ``right`` using ``op``.
 
         EXAMPLES::
 
@@ -1085,8 +1076,6 @@ cdef class gen(sage.structure.element.RingElement):
             sage: a is 5
             False
 
-        ::
-
             sage: pari(2.5) > None
             True
             sage: pari(3) == pari(3)
@@ -1095,8 +1084,114 @@ cdef class gen(sage.structure.element.RingElement):
             False
             sage: pari(I) == pari(I)
             True
+
+        This does not define a total order.  An error is raised when
+        applying inequality operators to non-ordered types::
+
+            sage: pari("Mod(1,3)") <= pari("Mod(2,3)")
+            Traceback (most recent call last):
+            ...
+            PariError: forbidden comparison t_INTMOD , t_INTMOD
+            sage: pari("[0]") <= pari("0")
+            Traceback (most recent call last):
+            ...
+            PariError: forbidden comparison t_VEC (1 elts) , t_INT
+
+        TESTS:
+
+        Check that :trac:`16127` has been fixed::
+
+            sage: pari(1/2) < pari(1/3)
+            False
+            sage: pari(1) < pari(1/2)
+            False
+
+            sage: pari('O(x)') == 0
+            True
+            sage: pari('O(2)') == 0
+            True
         """
-        return gcmp_sage(left.g, (<gen>right).g)
+        cdef bint r
+        cdef GEN x = (<gen>left).g
+        cdef GEN y = (<gen>right).g
+        pari_catch_sig_on()
+        if op == 2:    # ==
+            r = (gequal(x, y) != 0)
+        elif op == 3:  # !=
+            r = (gequal(x, y) == 0)
+        else:
+            r = left._rich_to_bool(op, gcmp(x, y))
+        pari_catch_sig_off()
+        return r
+
+    def __cmp__(left, right):
+        return (<Element>left)._cmp(right)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        """
+        Compare ``left`` and ``right``.
+
+        This uses PARI's ``cmp_universal()`` routine, which defines
+        a total ordering on the set of all PARI objects (up to the
+        indistinguishability relation given by ``gidentical()``).
+
+        .. WARNING::
+            
+            This comparison is only mathematically meaningful when
+            comparing 2 integers. In particular, when comparing
+            rationals or reals, this does not correspond to the natural
+            ordering.
+
+        EXAMPLES::
+
+            sage: cmp(pari(5), 5)
+            0
+            sage: cmp(pari(5), 10)
+            -1
+            sage: cmp(pari(2.5), None)
+            1
+            sage: cmp(pari(3), pari(3))
+            0
+            sage: cmp(pari('x^2 + 1'), pari('I-1'))
+            1
+            sage: cmp(pari(I), pari(I))
+            0
+
+        Beware when comparing rationals or reals::
+
+            sage: cmp(pari(2/3), pari(2/5))
+            -1
+            sage: two = RealField(256)(2)._pari_()
+            sage: cmp(two, pari(1.0))
+            1
+            sage: cmp(two, pari(2.0))
+            1
+            sage: cmp(two, pari(3.0))
+            1
+
+        Since :trac:`17026`, different elements with the same string
+        representation can be distinguished by ``cmp()``::
+
+            sage: a = pari(0); a
+            0
+            sage: b = pari("0*ffgen(ffinit(29, 10))"); b
+            0
+            sage: cmp(a, b)
+            -1
+
+            sage: x = pari("x"); x
+            x
+            sage: y = pari("ffgen(ffinit(3, 5))"); y
+            x
+            sage: cmp(x, y)
+            1
+
+        """
+        cdef int r
+        pari_catch_sig_on()
+        r = cmp_universal(left.g, (<gen>right).g)
+        pari_catch_sig_off()
+        return r
 
     def __copy__(gen self):
         pari_catch_sig_on()
@@ -5888,12 +5983,10 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e = pari([0,0,0,-82,0]).ellinit()
             sage: e.elleta()
             [3.60546360143265, 3.60546360143265*I]
-            sage: w1,w2 = e.omega()
+            sage: w1, w2 = e.omega()
             sage: eta1, eta2 = e.elleta()
-            sage: w1*eta2-w2*eta1
+            sage: w1*eta2 - w2*eta1
             6.28318530717959*I
-            sage: w1*eta2-w2*eta1 == pari(2*pi*I)
-            True
         """
         pari_catch_sig_on()
         return P.new_gen(elleta(self.g, prec_bits_to_words(precision)))

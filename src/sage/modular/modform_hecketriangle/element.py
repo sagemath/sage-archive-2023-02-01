@@ -31,6 +31,7 @@ class FormsElement(FormsRingElement):
         INPUT:
 
         - ``parent``     -- a modular form space
+
         - ``rat``        -- a rational function which corresponds to a
                             modular form in the modular form space
 
@@ -90,6 +91,8 @@ class FormsElement(FormsRingElement):
             sage: (x,y,z,d)=var("x,y,z,d")
             sage: QuasiModularForms(n=5, k=10, ep=-1)(x^3*z^3-y^3)
             21/(20*d)*q - 4977/(16000*d^2)*q^2 + 297829/(12800000*d^3)*q^3 + 27209679/(20480000000*d^4)*q^4 + O(q^5)
+            sage: QuasiModularForms(n=infinity, k=8, ep=1)(x*(x-y^2))
+            64*q + 512*q^2 + 768*q^3 - 4096*q^4 + O(q^5)
         """
 
         return self._qexp_repr()
@@ -106,6 +109,8 @@ class FormsElement(FormsRingElement):
             sage: (x,y,z,d)=var("x,y,z,d")
             sage: latex(QuasiModularForms(n=5, k=10, ep=-1)(x^3*z^3-y^3))
             f_{\rho}^{3} E_{2}^{3} -  f_{i}^{3}
+            sage: latex(QuasiModularForms(n=infinity, k=8, ep=1)(x*(x-y^2)))
+            - E_{4} f_{i}^{2} + E_{4}^{2}
         """
 
         return super(FormsElement, self)._latex_()
@@ -115,7 +120,9 @@ class FormsElement(FormsRingElement):
         Return the coordinate vector of ``self`` with
         respect to ``self.parent().gens()``.
 
-        Note: This uses the corresponding function of the
+        .. NOTE:
+
+        This uses the corresponding function of the
         parent. If the parent has not defined a coordinate
         vector function or a module for coordinate vectors
         then an exception is raised by the parent
@@ -146,8 +153,8 @@ class FormsElement(FormsRingElement):
         respect to ``self.parent().ambient_space().gens()``.
 
         The returned coordinate vector is an element
-        of ``self.parent().module()``.        
-        
+        of ``self.parent().module()``.
+
         Mote: This uses the corresponding function of the
         parent. If the parent has not defined a coordinate
         vector function or an ambient module for
@@ -175,3 +182,167 @@ class FormsElement(FormsRingElement):
         """
 
         return self.parent().ambient_coordinate_vector(self)
+
+    def lseries(self, num_prec=None, max_imaginary_part=0, max_asymp_coeffs=40):
+        r"""
+        Return the L-series of ``self`` if ``self`` is modular and holomorphic.
+        Note: This relies on the (pari) based function ``Dokchitser``.
+
+        INPUT:
+
+        - ``num_prec``           -- An integer denoting the to-be-used numerical precision.
+                                    If integer ``num_prec=None`` (default) the default
+                                    numerical precision of the parent of ``self`` is used.
+
+        - ``max_imaginary_part`` -- A real number (default: 0), indicating up to which
+                                    imaginary part the L-series is going to be studied.
+
+        - ``max_asymp_coeffs``   -- An integer (default: 40).
+
+        OUTPUT:
+
+        An interface to Tim Dokchitser's program for computing L-series, namely
+        the series given by the Fourier coefficients of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform.eis_series import eisenstein_series_lseries
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: f = ModularForms(n=3, k=4).E4()/240
+            sage: L = f.lseries()
+            sage: L
+            L-series associated to the modular form 1/240 + q + 9*q^2 + 28*q^3 + 73*q^4 + O(q^5)
+            sage: L.conductor
+            1
+            sage: L(1).prec()
+            53
+            sage: L.check_functional_equation() < 2^(-50)
+            True
+            sage: L(1)
+            -0.0304484570583...
+            sage: abs(L(1) - eisenstein_series_lseries(4)(1)) < 2^(-53)
+            True
+            sage: L.derivative(1, 1)
+            -0.0504570844798...
+            sage: L.derivative(1, 2)/2
+            -0.0350657360354...
+            sage: L.taylor_series(1, 3)
+            -0.0304484570583... - 0.0504570844798...*z - 0.0350657360354...*z^2 + O(z^3)
+            sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
+            sage: sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)
+            1.00935215408...
+            sage: L(10)
+            1.00935215649...
+
+            sage: f = ModularForms(n=6, k=4).E4()
+            sage: L = f.lseries(num_prec=200)
+            sage: L.conductor
+            3
+            sage: L.check_functional_equation() < 2^(-180)
+            True
+            sage: L(1)
+            -2.92305187760575399490414692523085855811204642031749788...
+            sage: L(1).prec()
+            200
+            sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
+            sage: sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)
+            24.2281438789...
+            sage: L(10).n(53)
+            24.2281439447...
+
+            sage: f = ModularForms(n=8, k=6, ep=-1).E6()
+            sage: L = f.lseries()
+            sage: L.check_functional_equation() < 2^(-45)
+            True
+            sage: L.taylor_series(3, 3)
+            0.000000000000... + 0.867197036668...*z + 0.261129628199...*z^2 + O(z^3)
+            sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
+            sage: sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)
+            -13.0290002560...
+            sage: L(10).n(53)
+            -13.0290184579...
+
+            sage: f = (ModularForms(n=17, k=24).Delta()^2)    # long time
+            sage: L = f.lseries()    # long time
+            sage: L.check_functional_equation() < 2^(-50)    # long time
+            True
+            sage: L.taylor_series(12, 3)    # long time
+            0.000683924755280... - 0.000875942285963...*z + 0.000647618966023...*z^2 + O(z^3)
+            sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)    # long time
+            sage: sum([coeffs[k]*k^(-30) for k in range(1,len(coeffs))]).n(53)    # long time
+            9.31562890589...e-10
+            sage: L(30).n(53)    # long time
+            9.31562890589...e-10
+
+            sage: f = ModularForms(n=infinity, k=2, ep=-1).f_i()
+            sage: L = f.lseries()
+            sage: L.check_functional_equation() < 2^(-50)
+            True
+            sage: L.taylor_series(1, 3)
+            0.000000000000... + 5.76543616701...*z + 9.92776715593...*z^2 + O(z^3)
+            sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
+            sage: sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)
+            -23.9781792831...
+            sage: L(10).n(53)
+            -23.9781792831...
+        """
+
+        from sage.rings.all import ZZ
+        from sage.symbolic.all import pi
+        from sage.functions.other import sqrt
+        from sage.lfunctions.dokchitser import Dokchitser
+
+        if (not (self.is_modular() and self.is_holomorphic()) or self.weight() == 0):
+            raise NotImplementedError("L-series are only implemented for non-trivial holomorphic modular forms.")
+
+        if (num_prec is None):
+            num_prec = self.parent().default_num_prec()
+
+        conductor = self.group().lam()**2
+        if (self.group().is_arithmetic()):
+            conductor = ZZ(conductor)
+        else:
+            conductor = conductor.n(num_prec)
+
+        gammaV = [0, 1]
+        weight = self.weight()
+        eps = self.ep()
+
+        # L^*(s) = cor_factor * (2*pi)^(-s)gamma(s)*L(f,s),
+        cor_factor = (2*sqrt(pi)).n(num_prec)
+
+        if (self.is_cuspidal()):
+            poles = []
+            residues = []
+        else:
+            poles = [ weight ]
+            val_inf = self.q_expansion_fixed_d(prec=1, d_num_prec=num_prec)[0]
+            residue = eps * val_inf * cor_factor
+
+            # (pari) BUG?
+            # The residue of the above L^*(s) differs by a factor -1 from
+            # the residue pari expects (?!?).
+            residue *= -1
+
+            residues = [ residue ]
+
+        L = Dokchitser(conductor = conductor,
+                          gammaV = gammaV,
+                          weight = weight,
+                             eps = eps,
+                           poles = poles,
+                        residues = residues,
+                            prec = num_prec)
+
+        # TODO for later: Figure out the correct coefficient growth and do L.set_coeff_growth(...)
+
+        # num_coeffs = L.num_coeffs()
+        num_coeffs = L.num_coeffs(1.2)
+        coeff_vector = [coeff for coeff in self.q_expansion_vector(min_exp=0, max_exp=num_coeffs + 1, fix_d=True)]
+        pari_precode = "coeff = {};".format(coeff_vector)
+
+        L.init_coeffs(v = "coeff[k+1]", pari_precode = pari_precode, max_imaginary_part = max_imaginary_part, max_asymp_coeffs = max_asymp_coeffs)
+        L.check_functional_equation()
+        L.rename("L-series associated to the {} form {}".format("cusp" if self.is_cuspidal() else "modular", self))
+
+        return L

@@ -274,8 +274,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: x = polygen(GF(389))
             sage: plot(x^2 + 1, rgbcolor=(0,0,1))
+            Graphics object consisting of 1 graphics primitive
             sage: x = polygen(QQ)
             sage: plot(x^2 + 1, rgbcolor=(1,0,0))
+            Graphics object consisting of 1 graphics primitive
         """
         R = self.base_ring()
         from sage.plot.all import plot, point, line
@@ -1379,7 +1381,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.any_root(GF(11^6, 'a'))
             a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a
             sage: sorted(f.roots(GF(11^6, 'a')))
-            [(10*a^5 + 2*a^4 + 8*a^3 + 9*a^2 + a, 1), (10*a^5 + 3*a^4 + 8*a^3 + a^2 + 10*a + 4, 1), (2*a^5 + 8*a^4 + 3*a^3 + 6*a + 2, 1), (9*a^5 + 5*a^4 + 10*a^3 + 8*a^2 + 3*a + 1, 1), (a^5 + 3*a^4 + 8*a^3 + 2*a^2 + 3*a + 4, 1), (a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a, 1)]
+            [(10*a^5 + 2*a^4 + 8*a^3 + 9*a^2 + a, 1), (a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a, 1), (9*a^5 + 5*a^4 + 10*a^3 + 8*a^2 + 3*a + 1, 1), (2*a^5 + 8*a^4 + 3*a^3 + 6*a + 2, 1), (a^5 + 3*a^4 + 8*a^3 + 2*a^2 + 3*a + 4, 1), (10*a^5 + 3*a^4 + 8*a^3 + a^2 + 10*a + 4, 1)]
             sage: f.any_root(GF(11^6, 'a'))
             a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a
 
@@ -1387,9 +1389,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g.any_root(ring=GF(11^10, 'b'), degree=1)
             1
             sage: g.any_root(ring=GF(11^10, 'b'), degree=2)
-            6*b^9 + 7*b^7 + 7*b^6 + 3*b^5 + b^2 + b + 3
+            5*b^9 + 4*b^7 + 4*b^6 + 8*b^5 + 10*b^2 + 10*b + 5
             sage: g.any_root(ring=GF(11^10, 'b'), degree=5)
-            7*b^9 + 2*b^8 + 6*b^7 + 3*b^6 + 2*b^5 + 7*b^3 + 7*b^2 + 2
+            5*b^9 + b^8 + 3*b^7 + 2*b^6 + b^5 + 4*b^4 + 3*b^3 + 7*b^2 + 10*b
 
         TESTS::
 
@@ -2426,7 +2428,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             {}
             sage: f = 7*x^5 + x^2 - 2*x - 3
             sage: f._mpoly_dict_recursive()
-            {(0,): -3, (1,): -2, (5,): 7, (2,): 1}
+            {(0,): -3, (1,): -2, (2,): 1, (5,): 7}
         """
         if not self:
             return {}
@@ -3054,15 +3056,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (-2*x^2 - 1).factor().expand()
             -2.0*x^2 - 1.0000000000000002
             sage: f = (x - 1)^3
-            sage: f.factor()  # abs tol 1e-6
-            (x - 0.9999894993080326) * (x^2 - 2.0000105006919666*x + 1.0000105008022333)
+            sage: f.factor()  # abs tol 2e-5
+            (x - 1.0000065719436413) * (x^2 - 1.9999934280563585*x + 0.9999934280995487)
 
         The above output is incorrect because it relies on the
         :meth:`.roots` method, which does not detect that all the roots
         are real::
 
-            sage: f.roots()  # abs tol 1e-6
-            [(0.9999894993080326, 1)]
+            sage: f.roots()  # abs tol 2e-5
+            [(1.0000065719436413, 1)]
 
         Over the complex double field the factors are approximate and
         therefore occur with multiplicity 1::
@@ -3561,7 +3563,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
              Ring morphism:
                From: Finite Field in a of size 7^3
                To:   Finite Field in b of size 7^6
-               Defn: a |--> 4*b^5 + 4*b^4 + 4*b^3 + 2*b^2 + 4*b + 5)
+               Defn: a |--> 2*b^4 + 6*b^3 + 2*b^2 + 3*b + 2)
 
         If the extension is trivial and the generators have the same
         name, the map will be the identity::
@@ -5340,10 +5342,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Another example over RDF::
 
             sage: x = RDF['x'].0
-            sage: ((x^3 -1)).roots()
-            [(0.9999999999999998, 1)]
-            sage: ((x^3 -1)).roots(multiplicities=False)
-            [0.9999999999999998]
+            sage: ((x^3 -1)).roots()  # abs tol 4e-16
+            [(1.0000000000000002, 1)]
+            sage: ((x^3 -1)).roots(multiplicities=False)  # abs tol 4e-16
+            [1.0000000000000002]
 
         More examples involving the complex double field::
 
@@ -5461,10 +5463,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:             assert(abs(f2(rt)) <= 1e-10)
             ....:             assert(rt.parent() == fld_out)
             Real Field with 53 bits of precision [1.25992104989487]
-            Real Double Field [1.2599210498948734]
+            Real Double Field [1.25992104989...]
             Real Field with 100 bits of precision [1.2599210498948731647672106073]
             Complex Field with 53 bits of precision [1.25992104989487, -0.62996052494743... - 1.09112363597172*I, -0.62996052494743... + 1.09112363597172*I]
-            Complex Double Field [1.259921049894873, -0.6299605249474364 - 1.0911236359717214*I, -0.6299605249474365 + 1.0911236359717214*I]
+            Complex Double Field [1.25992104989..., -0.629960524947... - 1.0911236359717...*I, -0.629960524947... + 1.0911236359717...*I]
             Complex Field with 100 bits of precision [1.2599210498948731647672106073, -0.62996052494743658238360530364 - 1.0911236359717214035600726142*I, -0.62996052494743658238360530364 + 1.0911236359717214035600726142*I]
 
         Note that we can find the roots of a polynomial with algebraic

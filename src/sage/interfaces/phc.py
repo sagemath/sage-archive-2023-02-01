@@ -245,7 +245,7 @@ class PHC_Object:
         start_data += str(sol_count) + ' ' + str(var_number) + '\n'
         start_data += jan_bar + sol_data
         if start_filename is not None:
-            start_file = file(start_filename,'w')
+            start_file = open(start_filename, 'w')
             start_file.write(start_data)
             start_file.close()
         return start_data
@@ -427,7 +427,7 @@ class PHC:
         input = self._input_file(polys)
         if verbose:
             print "Writing the input file to %s"%input_filename
-        open(input_filename,'w').write(input)
+        open(input_filename, 'w').write(input)
 
         if verbose:
             print "The following file will be the input polynomial file to phc."
@@ -603,7 +603,7 @@ class PHC:
         # Probably unnecessarily redundant from the start_from function
         if start_filename_or_string.find('THE SOLUTIONS') != -1:
             start_filename = sage.misc.misc.tmp_filename()
-            start_file = file(start_filename,'w')
+            start_file = open(start_filename, 'w')
             start_file.write(start_filename_or_string)
             start_file.close()
         elif os.path.exists(start_filename_or_string):
@@ -779,7 +779,7 @@ class PHC:
 
         if start_filename_or_string.find('THE SOLUTIONS') != -1:
             start_filename = sage.misc.misc.tmp_filename()
-            start_file = file(start_filename,'w')
+            start_file = open(start_filename,'w')
             start_file.write(start_filename_or_string)
             start_file.close()
         elif os.path.exists(start_filename_or_string):
@@ -791,7 +791,7 @@ class PHC:
         input = self._input_file(polys)
         if verbose:
             print "Writing the input file to %s"%input_filename
-        open(input_filename,'w').write(input)
+        open(input_filename, 'w').write(input)
 
         if verbose:
             print "The following file will be the input polynomial file to phc."
@@ -877,7 +877,7 @@ class PHC:
         input = self._input_file(polys)
         if verbose:
             print "Writing the input file to %s"%input_filename
-        open(input_filename,'w').write(input)
+        open(input_filename, 'w').write(input)
 
         if verbose:
             print "The following file will be the input polynomial file to phc."

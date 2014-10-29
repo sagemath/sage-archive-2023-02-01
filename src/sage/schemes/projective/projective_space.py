@@ -1021,8 +1021,14 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
 
             sage: P1=ProjectiveSpace(GF(7),1,'x')
             sage: P1.rational_points_dictionary()
-            {(1 : 0): 7, (0 : 1): 0, (1 : 1): 1, (2 : 1): 2, (3 : 1): 3, (4 : 1): 4,
-            (5 : 1): 5, (6 : 1): 6}
+            {(0 : 1): 0,
+             (1 : 0): 7,
+             (1 : 1): 1,
+             (2 : 1): 2,
+             (3 : 1): 3,
+             (4 : 1): 4,
+             (5 : 1): 5,
+             (6 : 1): 6}
         """
         n = self.dimension_relative()
         R = self.base_ring()

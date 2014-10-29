@@ -2088,15 +2088,15 @@ def PathSubset(n,m):
 
         sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import PathSubset
         sage: PathSubset(4,0)
-        set([1, 3, 5, 7])
+        {1, 3, 5, 7}
         sage: PathSubset(4,1)
-        set([1, 3, 5, 6, 7])
+        {1, 3, 5, 6, 7}
         sage: PathSubset(4,2)
-        set([1, 2, 3, 5, 6, 7])
+        {1, 2, 3, 5, 6, 7}
         sage: PathSubset(4,3)
-        set([1, 2, 3, 4, 5, 6, 7])
+        {1, 2, 3, 4, 5, 6, 7}
         sage: PathSubset(4,4)
-        set([0, 1, 2, 3, 4, 5, 6, 7])
+        {0, 1, 2, 3, 4, 5, 6, 7}
     """
     from sage.misc.misc import union
     from sage.functions.other import floor

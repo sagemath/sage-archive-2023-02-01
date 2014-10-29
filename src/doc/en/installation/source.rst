@@ -65,8 +65,8 @@ and a `bash <http://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_-compatible shell,
 the following standard command-line development tools must be installed on your
 computer:
 
-- A **C compiler**: Since Sage builds its own GCC if needed,
-  a wide variety of C compilers is supported.
+- A **C/C++ compiler**: Since Sage builds its own GCC if needed,
+  a wide variety of C/C++ compilers is supported.
   Many GCC versions work,
   from as old as version 3.4.3 to the most recent release.
   Clang also works.
@@ -78,7 +78,7 @@ computer:
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
 
-Sage also needs a C++ compiler and a Fortran compiler.
+Sage also needs a Fortran compiler.
 The only configuration currently supported is matching versions of the
 C, C++ and Fortran compilers from the
 `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_.
@@ -88,8 +88,8 @@ Alternatively, Sage includes a GCC package, so that C, C++ and Fortran
 compilers will be built when the build system detects that it is needed,
 e.g., non-GCC compilers, or
 versions of the GCC compilers known to miscompile some components of Sage,
-or simply a missing C++ or Fortran compiler.
-Whatsoever, you always need at least a C compiler to build the GCC package and
+or simply a missing Fortran compiler.
+Whatsoever, you always need at least a C/C++ compiler to build the GCC package and
 its prerequisites before the compilers it provides can be used.
 Note that you can always override this behavior through the environment
 variable :envvar:`SAGE_INSTALL_GCC`, see :ref:`section_compilers` and
@@ -220,14 +220,14 @@ Using alternative compilers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sage developers tend to use fairly recent versions of GCC.
-Nonetheless, the Sage build process should succeed with any reasonable C compiler.
+Nonetheless, the Sage build process should succeed with any reasonable C/C++ compiler.
 This is because Sage will build GCC first (if needed) and then use that newly
 built GCC to compile Sage.
 
 If you don't want this and want to try building Sage with a different set of
 compilers,
 you need to set the environment variable :envvar:`SAGE_INSTALL_GCC` to ``no``.
-Make sure you have C, C++ and Fortran compilers installed!
+Make sure you have C, C++, and Fortran compilers installed!
 
 Building all of Sage with Clang is currently not supported, see :trac:`12426`.
 
@@ -826,7 +826,7 @@ Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`SAGE_INSTALL_GCC` - by default, Sage will automatically detect
   whether to install the `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_
-  package or not (depending on whether C, C++ and Fortran compilers are present
+  package or not (depending on whether C, C++, and Fortran compilers are present
   and the versions of those compilers).
   Setting ``SAGE_INSTALL_GCC=yes`` will force Sage to install GCC.
   Setting ``SAGE_INSTALL_GCC=no`` will prevent Sage from installing GCC.

@@ -12,45 +12,29 @@ workflow.
 
 To update to the latest development source, run the commands below,
 where ``SAGE_ROOT`` is the root directory of the Sage installation,
-and where ``~/src`` is a directory you create for working on code
+and where ``hackdir`` is a directory you create for working on code
 changes (it need not have the name or location given below).
 
 .. warning:: This will create a new sagenb repository ignoring any
    changes you have made to the files.
 
-First, create the directories needed and clone the sagenb repository from
-Github::
+::
 
-    mkdir ~/src
-    cd ~/src
+    mkdir ~/hackdir
+    cd ~/hackdir
     git clone git://github.com/sagemath/sagenb.git sagenb-git
-
-Next, create a link from the sagenb repository to the installation of
-sagenb inside the Sage's python directory::
-
-    cd SAGE_ROOT/local/lib/python/site-packages/sagenb-*
-    mv sagenb sagenb-old
-    ln -s ~/src/sagenb-git/sagenb sagenb  # or wherever your clone is
-    cd ~/src/sagenb-git
-    SAGE_ROOT/sage --python setup.py develop
-
-.. note::
-
-    #. If there are multiple sagenb directories in
-       ``SAGE_ROOT/local/lib/python/site-packages`` then change directory
-       into the latest version.
-
-    #. If you update your Sage installation and a new version of sagenb
-       gets installed, or if you install a new version of Sage, you will
-       need to redo the commands above.
-
+    cd SAGE_ROOT/devel
+    rm sagenb
+    ln -s ~/hackdir/sagenb sagenb
+    cd sagenb
+    ../../sage setup.py develop
 
 What this has done is to create a new directory, move to that
 directory, and create a clone of the most up-to-date version of
-the upstream notebook sources there.  Then we replace the ``sagenb``
-folder inside Sage's python installation, and replace it with a link
-to the ``sagenb`` directory in your clone of upstream, finally making sure
-that the notebook has the correct dependencies.
+the upstream notebook sources there.  Then we remove a symbolic
+link ``sagenb`` in the Sage folder and replace it with a link
+to your clone of upstream, finally making sure that the notebook
+has the correct dependencies.
 
 An advantage of having the separate directory for sagenb is that
 you would later be able to keep it and do development work in it

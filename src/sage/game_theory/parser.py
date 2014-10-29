@@ -3,8 +3,8 @@ class Parser():
     A class for parsing the outputs of different algorithms called in other
     software packages.
 
-    At present the only parser included is the for `lrs` algorithm however
-    this will be expanded to `gambit` soon.
+    At present the only parser included is for 'lrs' algorithm however
+    this is actively being expanded to 'gambit'.
     """
 
     def __init__(self, raw_string):
@@ -86,34 +86,34 @@ class Parser():
 
         TESTS::
 
-            sage: from sage.game_theory.parser import Parser
-            sage: from subprocess import Popen, PIPE
-            sage: A = matrix([[1, 2], [3, 2]])
-            sage: g = NormalFormGame([A])
-            sage: game1_str, game2_str = g._Hrepresentation(A, -A)
-            sage: g1_name = tmp_filename()
-            sage: g2_name = tmp_filename()
-            sage: g1_file = file(g1_name, 'w')
-            sage: g2_file = file(g2_name, 'w')
-            sage: g1_file.write(game1_str)
-            sage: g1_file.close()
-            sage: g2_file.write(game2_str)
-            sage: g2_file.close()
-            sage: process = Popen(['nash', g1_name, g2_name], stdout=PIPE)
-            sage: lrs_output = [row for row in process.stdout]
+            sage: from sage.game_theory.parser import Parser  # optional - lrs
+            sage: from subprocess import Popen, PIPE  # optional - lrs
+            sage: A = matrix([[1, 2], [3, 2]])  # optional - lrs
+            sage: g = NormalFormGame([A])  # optional - lrs
+            sage: game1_str, game2_str = g._Hrepresentation(A, -A)  # optional - lrs
+            sage: g1_name = tmp_filename()  # optional - lrs
+            sage: g2_name = tmp_filename()  # optional - lrs
+            sage: g1_file = file(g1_name, 'w')  # optional - lrs
+            sage: g2_file = file(g2_name, 'w')  # optional - lrs
+            sage: g1_file.write(game1_str)  # optional - lrs
+            sage: g1_file.close()  # optional - lrs
+            sage: g2_file.write(game2_str)  # optional - lrs
+            sage: g2_file.close()  # optional - lrs
+            sage: process = Popen(['nash', g1_name, g2_name], stdout=PIPE)  # optional - lrs
+            sage: lrs_output = [row for row in process.stdout]  # optional - lrs
 
         The above creates a game, writes the H representation to
         temporary files, calls lrs and stores the output in `lrs_output`
         (here slicing to get rid of some system parameters that get returned)::
 
-            sage: lrs_output[5:-4]
+            sage: lrs_output[5:-4]  # optional - lrs
             ['\n', '***** 4 4 rational\n', '2  0  1  2 \n', '1  1/2  1/2 -2 \n', '\n', '2  0  1  2 \n', '1  0  1 -2 \n', '\n', '*Number of equilibria found: 2\n', '*Player 1: vertices=3 bases=3 pivots=5\n', '*Player 2: vertices=2 bases=1 pivots=6\n']
 
         The above is pretty messy, here is the output when we put it through
         the parser::
 
-            sage: nasheq = Parser(lrs_output).format_lrs()
-            sage: nasheq
+            sage: nasheq = Parser(lrs_output).format_lrs()  # optional - lrs
+            sage: nasheq  # optional - lrs
             [[(1/2, 1/2), (0, 1)], [(0, 1), (0, 1)]]
         """
         from sage.misc.sage_eval import sage_eval

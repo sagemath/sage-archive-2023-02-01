@@ -887,6 +887,13 @@ cdef class BoundedIntegerSequence:
             sage: B[8:]
             <17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10>
 
+        ::
+
+            sage: B1 = BoundedIntegerSequence(8, [0,7])
+            sage: B2 = BoundedIntegerSequence(8, [2,1,4])
+            sage: B1[0:1]+B2
+            <0, 2, 1, 4>
+
         """
         cdef BoundedIntegerSequence out
         cdef Py_ssize_t start, stop, step, slicelength

@@ -557,14 +557,12 @@ class IncidenceStructure(object):
         EXAMPLE::
 
             sage: IS = IncidenceStructure([[1,2,3,"e"]],name="Test")
-            sage: IS.blocks()
-            [[1, 2, 3, 'e']]
             sage: IS
             Incidence structure with 4 points and 1 blocks
             sage: copy(IS)
             Incidence structure with 4 points and 1 blocks
-            sage: copy(IS).blocks()
-            [[1, 2, 3, 'e']]
+            sage: [1, 2, 3, 'e'] in copy(IS)
+            True
             sage: copy(IS)._name
             'Test'
         """

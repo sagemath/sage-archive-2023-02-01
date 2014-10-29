@@ -3885,7 +3885,7 @@ class StrongTableau(ClonableList):
             sage: StrongTableau([],4).to_transposition_sequence()
             []
         """
-        return StrongTableaux.marked_CST_to_transposition_sequence( self.to_list(), self.k )
+        return StrongTableaux.marked_CST_to_transposition_sequence( self.to_standard_list(), self.k )
 
 class StrongTableaux(UniqueRepresentation, Parent):
 

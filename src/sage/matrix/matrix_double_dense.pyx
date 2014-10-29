@@ -1009,11 +1009,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.condition() > 1.6e16 or A.condition()
             True
 
-            sage: A.singular_values(eps=None)  # abs tol 2e-16
+            sage: A.singular_values(eps=None)  # abs tol 5e-16
             [1.7953720595619975, 0.38027524595503703, 0.04473854875218107, 0.0037223122378911614, 0.0002330890890217751, 1.116335748323284e-05, 4.082376110397296e-07, 1.1228610675717613e-08, 2.2519645713496478e-10, 3.1113486853814003e-12, 2.6500422260778388e-14, 9.87312834948426e-17]
-            sage: A.singular_values(eps='auto')  # abs tol 2e-16
+            sage: A.singular_values(eps='auto')  # abs tol 5e-16
             [1.7953720595619975, 0.38027524595503703, 0.04473854875218107, 0.0037223122378911614, 0.0002330890890217751, 1.116335748323284e-05, 4.082376110397296e-07, 1.1228610675717613e-08, 2.2519645713496478e-10, 3.1113486853814003e-12, 2.6500422260778388e-14, 0.0]
-            sage: A.singular_values(eps=1e-4)  # abs tol 2e-16
+            sage: A.singular_values(eps=1e-4)  # abs tol 5e-16
             [1.7953720595619975, 0.38027524595503703, 0.04473854875218107, 0.0037223122378911614, 0.0002330890890217751, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         With Sage's "verbose" facility, you can compactly see the cutoff
@@ -1135,7 +1135,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 0.0  1.0  2.0  3.0]
             [ 8.0  9.0 10.0 11.0]
             [ 4.0  5.0  6.0  7.0]
-            sage: L*U
+            sage: L*U # rel tol 2e-16 
             [12.0 13.0 14.0 15.0]
             [ 0.0  1.0  2.0  3.0]
             [ 8.0  9.0 10.0 11.0]

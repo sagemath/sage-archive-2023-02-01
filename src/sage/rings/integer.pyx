@@ -5998,7 +5998,7 @@ cpdef LCM_list(v):
 
 def GCD_list(v):
     r"""
-    Return the GCD of a list v of integers.
+    Return the greatest common divisor of a list of integers.
 
     Elements of v are converted to Sage integers if they aren't already.
     An empty list has GCD zero.
@@ -6009,8 +6009,6 @@ def GCD_list(v):
 
     -  ``v`` - list or tuple
 
-    OUTPUT: integer
-
     EXAMPLES::
 
         sage: from sage.rings.integer import GCD_list
@@ -6019,7 +6017,7 @@ def GCD_list(v):
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
 
-    Check that the bug reported in trac #3118 has been fixed::
+    Check that the bug reported in trac :trac:`3118` has been fixed::
 
         sage: sage.rings.integer.GCD_list([2,2,3])
         1
@@ -6033,7 +6031,7 @@ def GCD_list(v):
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
 
-    Check GCD of empty list is zero::
+    Check GCD of empty list is zero (:trac:`17257`)::
 
         sage: GCD_list([])
         0

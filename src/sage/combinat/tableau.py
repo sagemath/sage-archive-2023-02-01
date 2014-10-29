@@ -5681,6 +5681,79 @@ class StandardTableaux_size(StandardTableaux):
 
         return tableaux_number
 
+    def random_element(self):
+        r"""
+        Return a random ``StandardTableau`` with uniform probability.
+
+        This algorithm uses the fact that the Robinson-Schensted
+        correspondence returns a pair of identical standard Young
+        tableaux (SYTs) if and only if the permutation was an involution.
+        Thus, generating a random SYT is equivalent to generating a
+        random involution.
+
+        To generate an involution, we first need to choose its number of
+        fixed points `k` (if the size of the involution is even, the
+        number of fixed points will be even, and if the size is odd, the
+        number of fixed points will be odd). To do this, we choose a
+        random integer `r` between 0 and the number `N` of all
+        involutions of size `n`. We then decompose the interval
+        `\{ 1, 2, \ldots, N \}` into subintervals whose lengths are the
+        numbers of involutions of size `n` with respectively `0`, `1`,
+        `\ldots`, `\left \lfloor N/2 \right \rfloor` fixed points. The
+        interval in which our random integer `r` lies then decides how
+        many fixed points our random involution will have. We then
+        place those fixed points randomly and then compute a perfect
+        matching (an involution without fixed points) on the remaining
+        values.
+
+        EXAMPLES::
+
+            sage: StandardTableaux(5).random_element() # random
+            [[1, 4, 5], [2], [3]] 
+            sage: StandardTableaux(0).random_element()
+            []
+            sage: StandardTableaux(1).random_element()
+            [[1]]
+
+        TESTS::
+
+            sage: all([StandardTableaux(10).random_element() in StandardTableaux(10) for i in range(20)])
+            True
+        """
+        from sage.misc.prandom import randrange
+        from sage.rings.arith import binomial
+        from sage.misc.prandom import sample
+        from sage.combinat.perfect_matching import PerfectMatchings
+        from sage.combinat.permutation import from_cycles
+        # We compute the number of involutions of size ``size``.
+        involution_index = randrange(0, StandardTableaux(self.size).cardinality())
+        # ``involution_index`` is our random integer `r`.
+        partial_sum = 0
+        fixed_point_number = self.size % 2
+        # ``fixed_point_number`` will become `k`.
+        while True:
+            # We add the number of involutions with ``fixed_point_number``
+            # fixed points.
+            partial_sum += binomial(self.size, fixed_point_number) * \
+                           prod(xrange(1, self.size - fixed_point_number , 2))
+            # If the partial sum is greater than the involution index,
+            # then the random involution that we want to generate has
+            # ``fixed_point_number`` fixed points.
+            if partial_sum > involution_index:
+                break
+            fixed_point_number += 2
+        # We generate a subset of size "fixed_point_number" of the set {1,
+        # ..., size}.
+        fixed_point_positions = set(sample(xrange(1, self.size + 1), fixed_point_number))
+        # We generate a list of tuples which will form the cycle
+        # decomposition of our random involution. This list contains
+        # singletons (corresponding to the fixed points of the
+        # involution) and pairs (forming a perfect matching on the
+        # remaining values).
+        permutation_cycle_rep = [(fixed_point,) for fixed_point in fixed_point_positions] + \
+                                list(PerfectMatchings(set(range(1, self.size + 1)) - set(fixed_point_positions)).random_element())
+        return from_cycles(self.size, permutation_cycle_rep).robinson_schensted()[0]
+
 
 class StandardTableaux_shape(StandardTableaux):
     """

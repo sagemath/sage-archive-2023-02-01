@@ -115,6 +115,7 @@ fi
     --disable-multilib \
     --disable-nls \
     --enable-languages=c,c++,fortran \
+    --disable-libitm \
     $GCC_CONFIGURE "$CONFIGURE_AS" "$CONFIGURE_LD"
 
 $MAKE

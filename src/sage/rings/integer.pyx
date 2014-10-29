@@ -5998,8 +5998,10 @@ cpdef LCM_list(v):
 
 def GCD_list(v):
     r"""
-    Return the GCD of a list v of integers. Elements of v are converted
-    to Sage integers if they aren't already.
+    Return the GCD of a list v of integers.
+
+    Elements of v are converted to Sage integers if they aren't already.
+    An empty list has GCD zero.
 
     This function is used, e.g., by rings/arith.py
 
@@ -6030,6 +6032,11 @@ def GCD_list(v):
         3
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
+
+    Check GCD of empty list is zero::
+
+        sage: GCD_list([])
+        0
     """
     cdef int i, n = len(v)
     cdef Integer z = <Integer>PY_NEW(Integer)
@@ -6041,7 +6048,7 @@ def GCD_list(v):
             v[i] = Integer(v[i])
 
     if n == 0:
-        return one
+        return zero
     elif n == 1:
         return v[0].abs()
 

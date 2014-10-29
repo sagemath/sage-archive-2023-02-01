@@ -137,7 +137,8 @@ class NormalFormGame(SageObject, MutableMapping):
       only ever do the same activity `3/8` of the time.
 
     We can use Sage to compute the expected utility for any mixed strategy
-    pair `(\sigma_1, \sigma_2)`. The payoff to player 1 is given by:
+    pair `(\sigma_1, \sigma_2)`. The payoff to player 1 is given by the
+    vector/matrix multiplication:
 
     .. MATH::
 
@@ -189,7 +190,8 @@ class NormalFormGame(SageObject, MutableMapping):
 
     We can plot the utility of player 1 when player 2 is playing a mixed
     strategy `\sigma_2=(y,1-y)` (so that the utility to player 1 for
-    playing strategy `i` is given by (`(Ay)_i`)::
+    playing strategy `i` is given by the matrix/vector multiplication:
+    (`(Ay)_i`)::
 
         sage: y = var('y')
         sage: A = matrix([[1, -1], [-1, 1]])
@@ -225,7 +227,7 @@ class NormalFormGame(SageObject, MutableMapping):
         )
 
     One can also input a single matrix and then a zero sum game is constructed.
-    Here is an instance of Rock-Paper-Scissors-Lizard-Spock::
+    Here is an instance of `Rock-Paper-Scissors-Lizard-Spock <http://en.wikipedia.org/wiki/Rock-paper-scissors-lizard-Spock>`_::
 
         sage: A = matrix([[0, -1, 1, 1, -1],
         ....:             [1, 0, -1, -1, 1],

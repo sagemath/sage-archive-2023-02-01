@@ -72,8 +72,13 @@ fi
 
 # On OS X 10.10 there is random ObjC stuff in a C header
 if { uname -sr | grep 'Darwin 14\.' ;} &>/dev/null; then
-    mkdir -p "$SAGE_LOCAL/include/dispatch"
-    sed 's+typedef void (\^dispatch_block_t)(void)+typedef void* dispatch_block_t+' /usr/include/dispatch/object.h > "$SAGE_LOCAL/include/dispatch/object.h"
+    if [ -f /usr/include/dispatch/object.h ]; then
+        mkdir -p "$SAGE_LOCAL/include/dispatch"
+        sed 's+typedef void (\^dispatch_block_t)(void)+typedef void* dispatch_block_t+' \
+            /usr/include/dispatch/object.h > "$SAGE_LOCAL/include/dispatch/object.h"
+    else
+        echo "Warning: header /usr/include/dispatch/object.h not found, not applying fix."
+    fi
 fi
 
 # Let GCC build on Raspberry Pi using hard floats.

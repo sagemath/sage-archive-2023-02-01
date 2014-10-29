@@ -4938,10 +4938,10 @@ cdef class Matrix(matrix1.Matrix):
             consult numerical or symbolic matrix classes for other options
 
             sage: em = A.change_ring(RDF).eigenmatrix_left()
-            sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(2e-15) # rel tol 4e-13
-            [ 13.348469228349531                0.0                 0.0]
-            [                0.0 -1.348469228349534                 0.0]
-            [                0.0                0.0                 0.0]
+            sage: eigenvalues = em[0]; eigenvalues.dense_matrix() # abs tol 1e-13
+            [13.348469228349522                0.0                 0.0]
+            [               0.0 -1.348469228349534                 0.0]
+            [               0.0                0.0                 0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.440242867...  0.567868371...  0.695493875...]
             [ 0.897878732...  0.278434036... -0.341010658...]
@@ -5206,7 +5206,7 @@ cdef class Matrix(matrix1.Matrix):
             consult numerical or symbolic matrix classes for other options
 
             sage: em = B.change_ring(RDF).eigenmatrix_right()
-            sage: eigenvalues = em[0]; eigenvalues.dense_matrix()  # abs tol 1e-13
+            sage: eigenvalues = em[0]; eigenvalues.dense_matrix() # abs tol 1e-13
             [13.348469228349522                0.0                0.0]
             [               0.0 -1.348469228349534                0.0]
             [               0.0                0.0                0.0]
@@ -5597,10 +5597,10 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = matrix(QQ, 3, 3, range(9))
             sage: em = A.change_ring(RDF).eigenmatrix_left()
-            sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15) # rel tol 4e-13
-            [ 13.348469228349531                0.0                 0.0]
-            [                0.0 -1.348469228349534                 0.0]
-            [                0.0                0.0                 0.0]
+            sage: evalues = em[0]; evalues.dense_matrix() # abs tol 1e-13
+            [13.348469228349522                0.0                 0.0]
+            [               0.0 -1.348469228349534                 0.0]
+            [               0.0                0.0                 0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
             ....:     scale = evectors[i,0].sign()

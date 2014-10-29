@@ -2365,7 +2365,7 @@ class StrongTableau(ClonableList):
             if weight is not None and tuple(weight)!=count_marks:
                 raise ValueError("Weight = %s and tableau = %s do not agree"%(weight, T))
             tijseq = StrongTableaux.marked_CST_to_transposition_sequence(T, k)
-            if len(tijseq)<sum(list(count_marks)):
+            if tijseq is None or len(tijseq)<sum(list(count_marks)):
                 raise ValueError("Unable to parse strong marked tableau : %s"%T)
             T = StrongTableaux.transpositions_to_standard_strong( tijseq, k, [[None]*r for r in inner_shape] ) # build from scratch
             T = T.set_weight( count_marks )
@@ -4460,6 +4460,9 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: CST_to_trans([[-1, -2, -2, -2, -2], [-2, 2], [2]], 3)
             [[4, 5], [3, 4], [2, 3], [1, 2], [-1, 0], [0, 1]]
             sage: CST_to_trans([[-1, -2, -5, 5, -5, 5, -5], [-3, -4, 5, 5], [5]],3)
+            [[5, 7], [3, 5], [2, 3], [0, 1], [-1, 0], [1, 2], [0, 1]]
+            sage: CST_to_trans([[-1, -2, -3, 4, -7], [-4, -6], [-5, 6]],3)
+            [[4, 5], [-1, 1], [-2, -1], [-1, 0], [2, 3], [1, 2], [0, 1]]
 
         TESTS::
 
@@ -4471,42 +4474,29 @@ class StrongTableaux(UniqueRepresentation, Parent):
         LL = list(T)
         if LL==[] or all(v is None for v in sum(LL,[])):
             return []
-        #print "LL = ",LL
         marks = [v for row in T for v in row if v is not None and v<0]+[0]
-        #print "marks = ",marks
         m = -min(marks) # the largest marked cell
-        #print "m = ",m
         transeq = [] # start with the empty list and append on the right
         sh = Core(map(len,T), k+1)
-        #print "sh = ",sh
         for v in range(m,0,-1):
             for j in range(len(LL[0]),-len(LL)-1,-1):
                 if -v in [LL[i][i+j] for i in range(len(LL)) if len(LL[i])>j+i and i+j>=0]:
                     for l in range(k):
                         msh = sh.affine_symmetric_group_action([j-l,j+1],transposition=True)
-                        #print "(v,j,l), msh, msh.length() = ",(v,j,l), msh, msh.length()
                         # my worry here is that the affine symmetric group action might apply an invalid
                         # transposition but get something of the right length anyway.  How do I test if it is applying
                         # a valid or invalid transposition?
                         if msh.length()==sh.length()-1:
                             # if applying t_{j-l,j+1} reduces the size of the shape by 1
-                            #print "passed test 1"
                             skewcells = SkewPartition([sh.to_partition(),msh.to_partition()]).cells()
-                            #print "skewcells = ", skewcells
                             valcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]!=j] # values in all the cells except content j
-                            #print "valcells = ", valcells
                             regcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]==j] # values in the cells with content j
-                            #print "regcells = ", regcells
                             if all(x==v for x in valcells) and regcells==[-v]:
-                                # if all values are \pm v and exactly one of them is -v 
-                                # and the -v is a label of in the cells with content in range(j-l,j+1)
-                                #print "passed test 2"
+                                # if all labels that are not content j are v and the label 
+                                # with content j = -v
                                 MM = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]
-                                #print "MM = ", MM
                                 transeq = self.marked_CST_to_transposition_sequence(MM,k)
-                                #print "transeq = ", transeq
                                 if not transeq is None:
-                                    #print "passed test 3"
                                     return [[j-l, j+1]]+transeq
 
     @classmethod

@@ -6000,14 +6000,14 @@ def GCD_list(v):
     r"""
     Return the greatest common divisor of a list of integers.
 
-    Elements of v are converted to Sage integers if they aren't already.
-    An empty list has GCD zero.
-
-    This function is used, e.g., by rings/arith.py
-
     INPUT:
 
-    -  ``v`` - list or tuple
+    - ``v`` -- list or tuple
+
+    Elements of `v` are converted to Sage integers.  An empty list has
+    GCD zero.
+
+    This function is used, for example, by ``rings/arith.py``.
 
     EXAMPLES::
 
@@ -6017,7 +6017,7 @@ def GCD_list(v):
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
 
-    Check that the bug reported in trac :trac:`3118` has been fixed::
+    Check that the bug reported in :trac:`3118` has been fixed::
 
         sage: sage.rings.integer.GCD_list([2,2,3])
         1
@@ -6031,7 +6031,7 @@ def GCD_list(v):
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
 
-    Check GCD of empty list is zero (:trac:`17257`)::
+    Check that the GCD of the empty list is zero (:trac:`17257`)::
 
         sage: GCD_list([])
         0

@@ -1064,7 +1064,7 @@ def largest_available_k(n,t=2):
         k += 1
     return k
 
-def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=False):
+def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
     r"""
     Return an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
 
@@ -1083,8 +1083,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
 
     - ``k,n`` (integers)
 
-    - ``holes_sizes`` (list of integers) -- respective sizes of the holes to be
-      found.
+    - ``holes`` (list of integers) -- respective sizes of the holes to be found.
 
     - ``resolvable`` (boolean) -- set to ``True`` if you want the design to be
       resolvable. The classes of the resolvable design are obtained as the first
@@ -1107,9 +1106,8 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
         this function the holes are `\{n-1, ..., n-s_1\}^k`,
         `\{n-s_1-1,...,n-s_1-s_2\}^k`, etc.
 
-        More generally, if ``holes_sizes`` is equal to `u1,...,uk`, the `i`-th
-        hole is the set of points `\{n-\sum_{j\geq i}u_j,...,n-\sum_{j\geq
-        i+1}u_j\}^k`.
+        More generally, if ``holes`` is equal to `u1,...,uk`, the `i`-th hole is
+        the set of points `\{n-\sum_{j\geq i}u_j,...,n-\sum_{j\geq i+1}u_j\}^k`.
 
     .. SEEALSO::
 
@@ -1204,24 +1202,26 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
       vol.39, num.3, pages 263-281
       1982
     """
-    assert all(xx > 0 for xx in holes_sizes)
+    assert all(xx > 0 for xx in holes)
     from database import QDM
 
-    y = sum(holes_sizes)
-    x = len(holes_sizes)
-    all_holes_of_size_1 = (x==y)
+    OA = None
 
-    if y == 0:
+    sum_of_holes = sum(holes)
+    number_of_holes = len(holes)
+    all_holes_of_size_1 = (number_of_holes==sum_of_holes)
+
+    if sum_of_holes == 0:
         return orthogonal_array(k,n,existence=existence,resolvable=resolvable)
-    if y > n:
+    if sum_of_holes > n:
         if existence:
             return False
         raise EmptySetError("The total size of holes must be smaller or equal than the size of the ground set")
 
-    if all_holes_of_size_1 and resolvable and y != n:
+    if all_holes_of_size_1 and resolvable and sum_of_holes != n:
         if existence:
             return False
-        raise EmptySetError("There is no resolvable incomplete OA({},{}) whose holes' sizes sum to {}!=n(={})".format(k,n,y,n))
+        raise EmptySetError("There is no resolvable incomplete OA({},{}) whose holes' sizes sum to {}!=n(={})".format(k,n,sum_of_holes,n))
 
     if all_holes_of_size_1 and resolvable: # n holes of size 1 --> equivalent to OA(k+1,n)
         if existence:
@@ -1244,48 +1244,48 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
         return OA[:-n]
 
     # Easy case
-    elif all_holes_of_size_1 and x <= 1:
+    elif all_holes_of_size_1 and number_of_holes <= 1:
         if existence:
             return orthogonal_array(k,n,existence=True)
         OA = orthogonal_array(k,n)
-        independent_set = OA[:x]
+        independent_set = OA[:number_of_holes]
 
-    elif all_holes_of_size_1 and x <= 3 and n > k-1 and k >= 3 and existence:
+    elif all_holes_of_size_1 and number_of_holes <= 3 and n > k-1 and k >= 3 and existence:
         # This is lemma 2.3 from [BvR82]_ with u=1
         return orthogonal_array(k,n,existence=True)
 
-    elif all_holes_of_size_1 and x >= 2 and k == n+1:
+    elif all_holes_of_size_1 and number_of_holes >= 2 and k == n+1:
         if existence:
             return False
-        raise EmptySetError("There is no OA(n+1,n) - {}.OA(n+1,1) as all blocks do intersect in a projective plane.".format(x))
+        raise EmptySetError("There is no OA(n+1,n) - {}.OA(n+1,1) as all blocks do intersect in a projective plane.".format(number_of_holes))
 
     # If we can build OA(k+1,n) then we can find n disjoint blocks in OA(k,n)
     elif all_holes_of_size_1 and orthogonal_array(k+1,n,existence=True):
         if existence:
             return True
         OA = orthogonal_array(k+1,n)
-        independent_set = [B[:-1] for B in OA if B[-1] == 0][:x]
+        independent_set = [B[:-1] for B in OA if B[-1] == 0][:number_of_holes]
         OA = [B[:-1] for B in OA]
 
     elif all_holes_of_size_1 and orthogonal_array(k,n,existence=True):
         OA = orthogonal_array(k,n)
         try:
-            independent_set = OA_find_disjoint_blocks(OA,k,n,x)
+            independent_set = OA_find_disjoint_blocks(OA,k,n,number_of_holes)
         except ValueError:
             if existence:
                 return Unknown
-            raise NotImplementedError("I was not able to build this OA({},{})-{}.OA({},1)".format(k,n,x,k))
+            raise NotImplementedError("I was not able to build this OA({},{})-{}.OA({},1)".format(k,n,number_of_holes,k))
         if existence:
             return True
-        independent_set = OA_find_disjoint_blocks(OA,k,n,x)
+        independent_set = OA_find_disjoint_blocks(OA,k,n,number_of_holes)
 
     elif all_holes_of_size_1 and not orthogonal_array(k,n,existence=True):
         return orthogonal_array(k,n,existence=existence)
 
     # From a quasi-difference matrix
-    elif x==1 and any(uu==y and mu<=1 and lmbda==1 and k<=kk+1 for (nn,lmbda,mu,uu),(kk,_) in QDM.get((n,1),{}).iteritems()):
+    elif number_of_holes==1 and any(uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1 for (nn,lmbda,mu,uu),(kk,_) in QDM.get((n,1),{}).iteritems()):
         for (nn,lmbda,mu,uu),(kk,f) in QDM[n,1].iteritems():
-            if uu==y and mu<=1 and lmbda==1 and k<=kk+1:
+            if uu==sum_of_holes and mu<=1 and lmbda==1 and k<=kk+1:
                 break
         G,M = f()
         OA  = OA_from_quasi_difference_matrix(M,G,fill_hole=False)
@@ -1295,15 +1295,15 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
     #
     # (i.e. OA(k,n1)-x.OA(k,1) and OA(k,n2) ==> OA(k,n1.n2)-x.OA(k,n2) )
     elif (not all_holes_of_size_1                           and # h>1
-          n%holes_sizes[0] == 0                             and # h divides n
-          all(h==holes_sizes[0] for h in holes_sizes)       and # holes of equal size
-          orthogonal_array(k,holes_sizes[0],existence=True) and # OA(k,h)
-          incomplete_orthogonal_array(k,n//holes_sizes[0],[1]*x,existence=True)): # OA(k,n/h)-x.OA(k,1)
+          n%holes[0] == 0                             and # h divides n
+          all(h==holes[0] for h in holes)       and # holes of equal size
+          orthogonal_array(k,holes[0],existence=True) and # OA(k,h)
+          incomplete_orthogonal_array(k,n//holes[0],[1]*number_of_holes,existence=True)): # OA(k,n/h)-x.OA(k,1)
         if existence:
             return True
         from itertools import izip
-        h = holes_sizes[0]
-        iOA1 = incomplete_orthogonal_array(k,n//holes_sizes[0],[1]*x)
+        h = holes[0]
+        iOA1 = incomplete_orthogonal_array(k,n//holes[0],[1]*number_of_holes)
         iOA2 = orthogonal_array(k,h)
 
         return [[B1[i]*h+B2[i] for i in range(k)]
@@ -1315,10 +1315,10 @@ def incomplete_orthogonal_array(k,n,holes_sizes,resolvable=False, existence=Fals
         # format the list of holes
         from string import join
         f = lambda x: "" if x == 1 else "{}.".format(x)
-        holes_string = join(["-{}OA({},{})".format(f(holes_sizes.count(x)),k,x) for x in sorted(set(holes_sizes))],'')
+        holes_string = join(["-{}OA({},{})".format(f(holes.count(x)),k,x) for x in sorted(set(holes))],'')
         raise NotImplementedError("I was not able to build this OA({},{}){}".format(k,n,holes_string))
 
-    assert x == len(independent_set)
+    assert number_of_holes == len(independent_set)
 
     for B in independent_set:
         OA.remove(B)

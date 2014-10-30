@@ -455,6 +455,78 @@ class NormalFormGame(SageObject, MutableMapping):
 
     """
 
+    def __init__(self, generator=None):
+        r"""
+        Initializes a Normal Form game and checks the inputs.
+
+        EXAMPLES:
+
+        Can have games with more than 2 players::
+
+            sage: threegame = NormalFormGame()
+            sage: threegame.add_player(2)
+            sage: threegame.add_player(2)
+            sage: threegame.add_player(2)
+            sage: threegame[0, 0, 0][0] = 3
+            sage: threegame[0, 0, 0][1] = 1
+            sage: threegame[0, 0, 0][2] = 4
+            sage: threegame[0, 0, 1][0] = 1
+            sage: threegame[0, 0, 1][1] = 5
+            sage: threegame[0, 0, 1][2] = 9
+            sage: threegame[0, 1, 0][0] = 2
+            sage: threegame[0, 1, 0][1] = 6
+            sage: threegame[0, 1, 0][2] = 5
+            sage: threegame[0, 1, 1][0] = 3
+            sage: threegame[0, 1, 1][1] = 5
+            sage: threegame[0, 1, 1][2] = 8
+            sage: threegame[1, 0, 0][0] = 9
+            sage: threegame[1, 0, 0][1] = 7
+            sage: threegame[1, 0, 0][2] = 9
+            sage: threegame[1, 0, 1][0] = 3
+            sage: threegame[1, 0, 1][1] = 2
+            sage: threegame[1, 0, 1][2] = 3
+            sage: threegame[1, 1, 0][0] = 8
+            sage: threegame[1, 1, 0][1] = 4
+            sage: threegame[1, 1, 0][2] = 6
+            sage: threegame[1, 1, 1][0] = 2
+            sage: threegame[1, 1, 1][1] = 6
+            sage: threegame[1, 1, 1][2] = 4
+            sage: threegame.obtain_Nash() # optional - gambit
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
+
+        TESTS:
+
+        Raise error if matrices aren't the same size::
+
+            sage: p1 = matrix([[1, 2], [3, 4]])
+            sage: p2 = matrix([[3, 3], [1, 4], [6, 6]])
+            sage: error = NormalFormGame([p1, p2])
+            Traceback (most recent call last):
+            ...
+            ValueError: matrices must be the same size
+
+        """
+        self.players = []
+        self.utilities = {}
+        matrices = []
+        if type(generator) is not list and generator != None:
+            if is_package_installed('gambit'):
+                if type(generator) is not Game:
+                    raise TypeError("Generator function must be a list or nothing")
+            else:
+                raise TypeError("Generator function must be a list or nothing")
+
+        if type(generator) is list:
+            if len(generator) == 1:
+                generator.append(-generator[-1])
+            matrices = generator
+            if matrices[0].dimensions() != matrices[1].dimensions():
+                raise ValueError("matrices must be the same size")
+            self._two_matrix_game(matrices)
+
+
     def __delitem__(self, key):
         r"""
         This method is one of a collection that aims to make a game

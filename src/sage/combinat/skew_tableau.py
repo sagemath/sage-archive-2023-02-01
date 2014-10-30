@@ -1081,7 +1081,7 @@ class SkewTableau(CombinatorialObject, Element):
         """
         Return the coordinates of the cells in ``self`` with content ``c``.
 
-        ::
+        EXAMPLES::
 
             sage: s = SkewTableau([[None,1,2],[3,4,5],[6]])
             sage: s.cells_by_content(0)
@@ -1139,7 +1139,7 @@ class SkewTableau(CombinatorialObject, Element):
 
     def cells(self):
         """
-        Returns the cells in ``self``.
+        Return the cells in ``self``.
 
         EXAMPLES::
 
@@ -1216,8 +1216,8 @@ class SkewTableau(CombinatorialObject, Element):
 
 def _label_skew(list, sk):
     """
-    Returns a filled in a standard skew tableaux given an ordered list
-    of the coordinates to filled in.
+    Return a filled-in standard skew tableau given an ordered list
+    of the coordinates to fill in.
 
     EXAMPLES::
 
@@ -1285,7 +1285,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
 
     def __contains__(self, x):
         """
-        Checks if ``x`` is a skew tableaux.
+        Checks if ``x`` is a skew tableau.
 
         EXAMPLES::
 

@@ -21,7 +21,7 @@ All development takes place on or via `the Sage Trac server
 <http://trac.sagemath.org>`_,
 including bug reports, fixes, new functionality, and discussions about
 approaches to particular tickets.  Once you start writing code for Sage,
-you will want to carefully read
+you will want to carefully read the
 :ref:`conventions and guidelines <section-writing-code-for-sage>` we use.
 
 Depending on your previous knowledge, there are several places you can
@@ -45,38 +45,57 @@ start learning about the source code revision control process.
    and the :ref:`Sage dev scripts <chapter-devscript>`.  This is mainly
    intended as a bridge to full use of git once one becomes more comfortable
    with the system.
--  Finally, if you've never worked on software before, don't forget you
-   will need the `prerequisites to compile
-   <http://www.sagemath.org/doc/installation/source.html#prerequisites>`_
-   in order to make your changes in the source code work.
+
+Finally, if you've never worked on software before, don't forget you
+will need the `prerequisites to compile
+<http://www.sagemath.org/doc/installation/source.html#prerequisites>`_
+in order to make your changes in the source code work.
 
 No matter where you start, good luck and welcome to Sage development!
 
 
-Walk-Through and First Steps
-============================
+Git and Trac
+============
 
-.. toctree::
-   :maxdepth: 3
+First Steps with Git
+--------------------
 
-   walk_through
-   git_trac
-   dev_script
-
-Git and Trac Reference
-======================
+Sage uses git for version control.
 
 .. toctree::
    :maxdepth: 3
 
    git_setup
+   walk_through
+
+Sage Trac and tickets
+---------------------
+
+All changes to Sage source code require a ticket on the
+`Sage trac server <http://trac.sagemath.org>`_.
+
+.. toctree::
+   :maxdepth: 3
+
    trac
 
+Git and Trac integration
+------------------------
+
+Putting your local changes on a Trac ticket.
+
+.. toctree::
+   :maxdepth: 3
+
+   git_trac
+   dev_script
 
 .. _section-git-tricks-and-tips:
 
 Git Tricks & Tips
-=================
+-----------------
+
+When ``git trac`` is not enough.
 
 .. toctree::
    :maxdepth: 3
@@ -85,6 +104,7 @@ Git Tricks & Tips
    git_background
    advanced_git
    workflows
+
 
 .. _section-writing-code-for-sage:
 

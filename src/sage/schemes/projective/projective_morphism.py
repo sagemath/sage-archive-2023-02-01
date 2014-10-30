@@ -969,9 +969,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-y^2,y^2])
             sage: f.dehomogenize((0,1))
-            Scheme morphism:
-              From: Affine Space of dimension 1 over Rational Field
-              To:   Affine Space of dimension 1 over Rational Field
+            Scheme endomorphism of Affine Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x) to
                     ((-x^2 + 1)/x^2)
 
@@ -1699,8 +1697,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def multiplier(self, P, n, check=True):
         r"""
-        Returns the multiplier of ``self`` at the `QQ`-rational point ``P`` of period ``n``.
-        ``self`` must be an endomorphism of projective space
+        Returns the multiplier of ``self`` point ``P`` of period ``n``.
+        ``self`` must be an endomorphism.
 
         INPUT:
 
@@ -1767,15 +1765,15 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Traceback (most recent call last):
             ...
             ValueError: (0 : 1) is not periodic of period 1
-
-        ..  TODO:: would be better to keep the dehomogenizations for reuse
         """
         if not self.is_endomorphism():
-            raise NotImplementedError("Must be an endomorphism of projective space")
+            raise TypeError("Must be an endomorphism")
         if check:
             if self.nth_iterate(P, n) != P:
                 raise ValueError("%s is not periodic of period %s" % (P, n))
-        N = self.domain().dimension_relative()
+            if n < 1:
+                raise ValueError("Period must be a positive integer")
+        N = self.domain().ambient_space().dimension_relative()
         l = identity_matrix(FractionField(self.codomain().base_ring()), N, N)
         Q = P
         Q.normalize_coordinates()

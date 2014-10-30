@@ -361,7 +361,7 @@ Sage example in ./mpoly.tex, line 1109::
 
 Sage example in ./mpoly.tex, line 1119 (edited manually)::
 
-  sage: ys = CDF['y'](Jy.0).roots(); ys
+  sage: ys = CDF['y'](Jy.0).roots(); ys  # abs tol 3e-16
   [(-0.8000000000000002, 1), (0.0, 1), (0.8, 1)]
   sage: [CDF['x'](p(y=ys[0][0])).roots() for p in J.gens()]  # abs tol 1e-14
   [[(-0.5999999999999999 - 1.306289919090511e-16*I, 1), (0.6000000000000001 + 1.3062899190905113e-16*I, 1)], [(0.6000000000000001 - 3.135095805817224e-16*I, 1), (2.600000000000001 + 3.1350958058172237e-16*I, 1)]]

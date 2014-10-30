@@ -1,5 +1,4 @@
 cdef extern from "flint/flint.h":
-
     cdef long FLINT_BITS
     cdef long FLINT_D_BITS
 

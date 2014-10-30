@@ -1,9 +1,0 @@
-#!/bin/sh
-
-# Run this after extracting the upstream sources in src/
-
-# Make various files executable
-cd src
-chmod ugo+x bootstrap
-chmod ugo+x config/compile config/depcomp config/ltmain.sh config/missing
-

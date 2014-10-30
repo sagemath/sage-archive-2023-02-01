@@ -154,7 +154,7 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
         return cache._one_element
     z = (<lnumber*>n).z
 
-    a = cache.objectptr.sage_generator()
+    a = cache.objectptr.indeterminate()
     ret = cache.objectptr.zero
     order = cache.objectptr.cardinality() - 1
 
@@ -164,7 +164,7 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
         if e == 0:
             ret = cache.objectptr.add(ret, c, ret)
         else:
-            a = ( e * cache.objectptr.sage_generator() ) % order
+            a = ( e * cache.objectptr.indeterminate() ) % order
             ret = cache.objectptr.axpy(ret, c, a, ret)
         z = <napoly*>pNext(<poly*>z)
     return (<FFgivE>cache._zero_element)._new_c(ret)

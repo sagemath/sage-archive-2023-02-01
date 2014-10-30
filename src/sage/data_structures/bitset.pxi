@@ -672,7 +672,8 @@ cdef void bitset_lshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     # Clear bottom limbs
     mpn_zero(r.bits, nlimbs)
 
-cdef inline void bitset_map(bitset_t r, bitset_t a, m):
+
+cdef int bitset_map(bitset_t r, bitset_t a, m) except -1:
     """
     Fill bitset ``r`` so ``r == {m[i] for i in a}``.
 
@@ -686,6 +687,7 @@ cdef inline void bitset_map(bitset_t r, bitset_t a, m):
     while i >= 0:
         bitset_add(r, m[i])
         i = bitset_next(a, i + 1)
+    return 0
 
 #############################################################################
 # Hamming Weights
@@ -715,7 +717,7 @@ cdef char* bitset_chars(char* s, bitset_t bits, char zero=c'0', char one=c'1'):
     s[bits.size] = 0
     return s
 
-cdef void bitset_from_str(bitset_t bits, char* s, char zero=c'0', char one=c'1'):
+cdef int bitset_from_str(bitset_t bits, char* s, char zero=c'0', char one=c'1') except -1:
     """
     Initialize a bitset with a set derived from the character string
     s, where one represents the character indicating set membership.
@@ -724,6 +726,7 @@ cdef void bitset_from_str(bitset_t bits, char* s, char zero=c'0', char one=c'1')
     cdef long i
     for i from 0 <= i < bits.size:
         bitset_set_to(bits, i, s[i] == one)
+    return 0
 
 cdef bitset_string(bitset_t bits):
     """

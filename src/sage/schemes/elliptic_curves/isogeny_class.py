@@ -1,10 +1,11 @@
-"""
-This file defines a class for an isogeny class of an elliptic curve.
+# -*- coding: utf-8 -*-
+r"""
+Isogeny class of elliptic curves over number fields
 
 AUTHORS:
 
-David Roe (2012-03-29) -- initial version.
-John Cremona (2014-08) -- extend to number fields.
+- David Roe (2012-03-29) -- initial version.
+- John Cremona (2014-08) -- extend to number fields.
 """
 
 ##############################################################################
@@ -35,22 +36,19 @@ from sage.schemes.elliptic_curves.ell_rational_field import EllipticCurve_ration
 from sage.schemes.elliptic_curves.ell_number_field import EllipticCurve_number_field
 
 class IsogenyClass_EC(SageObject):
-    """
+    r"""
     Isogeny class of an elliptic curve.
 
-    ..note::
+    .. note::
 
-    The current implementation chooses a curve from each isomorphism
-    class in the isogeny class. Over `\QQ` this is a unique reduced
-    minimal model in each isomorphism class.  Over number fields the
-    model chosen may change in future.
-
-    EXAMPLES::
-
-
+       The current implementation chooses a curve from each isomorphism
+       class in the isogeny class. Over `\QQ` this is a unique reduced
+       minimal model in each isomorphism class.  Over number fields the
+       model chosen may change in future.
     """
+
     def __init__(self, E, label=None, empty=False):
-        """
+        r"""
         Over `\QQ` we use curves since minimal models exist and there
         is a canonical choice of one.
 
@@ -118,7 +116,7 @@ class IsogenyClass_EC(SageObject):
 
         OUTPUT:
 
-        - ``i`` -- an integer so that the ``i``th curve in the class
+        - ``i`` -- an integer so that the ``i`` th curve in the class
           is isomorphic to ``C``
 
         EXAMPLES::
@@ -338,7 +336,7 @@ class IsogenyClass_EC(SageObject):
 
     @cached_method
     def isogenies(self, fill=False):
-        """
+        r"""
         Returns a list of lists of isogenies and 0s, corresponding to
         the entries of :meth:`matrix`
 
@@ -350,16 +348,16 @@ class IsogenyClass_EC(SageObject):
 
         OUTPUT:
 
-        - a list of lists, where the ``j``th entry of the ``i``th list
-          is either zero or a prime degree isogeny from ``i``th curve
-          in this class to the ``j``th curve.
+        - a list of lists, where the ``j`` th entry of the ``i`` th list
+          is either zero or a prime degree isogeny from the ``i`` th curve
+          in this class to the ``j`` th curve.
 
-        WARNING:
+        .. WARNING::
 
-        - The domains and codmains of the isogenies will have the same
-          Weierstrass equation as the curves in this class, but they
-          may not be identical python objects in the current
-          implementation.
+           The domains and codomains of the isogenies will have the same
+           Weierstrass equation as the curves in this class, but they
+           may not be identical python objects in the current
+           implementation.
 
         EXAMPLES::
 
@@ -501,7 +499,7 @@ class IsogenyClass_EC(SageObject):
 
     @cached_method
     def reorder(self, order):
-        """
+        r"""
         Return a new isogeny class with the curves reordered.
 
         INPUT:
@@ -1091,7 +1089,7 @@ def possible_isogeny_degrees(E, verbose=False):
     admit `\ell`-isogenies for infinitely many primes `\ell`, but
     there are (of course) only finitely many codomains `E'`.  The
     primes can be divided according to the discriminant `d'` of the CM
-    order `O'` associated to `E': either `O=O'`, or one contains the
+    order `O'` associated to `E`: either `O=O'`, or one contains the
     other with index `\ell`, since `\ell O\subset O'` and vice versa.
 
     Case (1): `O=O'`.  The degrees of all isogenies between `E` and
@@ -1143,23 +1141,23 @@ def possible_isogeny_degrees(E, verbose=False):
 
     For curves with CM by a quadratic order of class number greater
     than `1`, we use the structure of the class group to only give one
-    prime in each ideal class.
+    prime in each ideal class::
 
-            sage: pol = PolynomialRing(QQ,'x')([1,-3,5,-5,5,-3,1])
-            sage: L.<a> = NumberField(pol)
-            sage: j = hilbert_class_polynomial(-23).roots(L,multiplicities=False)[0]
-            sage: E = EllipticCurve(j=j)
-            sage: from sage.schemes.elliptic_curves.isogeny_class import possible_isogeny_degrees
-            sage: possible_isogeny_degrees(E, verbose=True)
-            CM case, discriminant = -23
-            initial primes: {2}
-            upward primes: {}
-            downward ramified primes: {}
-            downward split primes: {2, 3}
-            downward inert primes: {5}
-            primes generating the class group: [2]
-            Complete set of primes: {2, 3, 5}
-            [2, 3, 5]
+        sage: pol = PolynomialRing(QQ,'x')([1,-3,5,-5,5,-3,1])
+        sage: L.<a> = NumberField(pol)
+        sage: j = hilbert_class_polynomial(-23).roots(L,multiplicities=False)[0]
+        sage: E = EllipticCurve(j=j)
+        sage: from sage.schemes.elliptic_curves.isogeny_class import possible_isogeny_degrees
+        sage: possible_isogeny_degrees(E, verbose=True)
+        CM case, discriminant = -23
+        initial primes: {2}
+        upward primes: {}
+        downward ramified primes: {}
+        downward split primes: {2, 3}
+        downward inert primes: {5}
+        primes generating the class group: [2]
+        Complete set of primes: {2, 3, 5}
+        [2, 3, 5]
     """
     if E.has_cm():
         d = E.cm_discriminant()

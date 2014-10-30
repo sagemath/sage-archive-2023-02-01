@@ -2258,7 +2258,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         EXAMPLES::
 
-                    sage: K.<i> = QuadraticField(-1)
+            sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve(K, [0,0,0,0,1])
             sage: C = E.isogeny_class(); C
             Isogeny class of Elliptic Curve defined by y^2 = x^3 + 1 over Number Field in i with defining polynomial x^2 + 1

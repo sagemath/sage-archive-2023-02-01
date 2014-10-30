@@ -178,6 +178,27 @@ On OS X systems, you need a recent version of
 `Command Line Tools <http://developer.apple.com/downloads/index.action?=command%20line%20tools>`_.
 It provides all the above requirements.
 
+If you have already installed `Xcode <http://developer.apple.com/xcode/>`_
+(which at the time of writing is freely available in the Mac App Store,
+or through http://developer.apple.com/downloads/ provided you registered for an
+Apple Developer account), you can install the command line tools from
+there as well.
+
+- With OS X Mavericks or Yosemite, run the command
+  ``xcode-select --install`` from a Terminal window and click "Install"
+  in the pop-up dialog box.
+
+- Using OS X Mountain Lion or earlier, run Xcode, open its "Downloads"
+  preference pane and install the command line tools from there.
+
+- On pre-Lion OS X systems, the command line tools are not available as a
+  separate download and you have to install the full-blown Xcode supporting your
+  system version.
+
+If you have not installed `Xcode <http://developer.apple.com/xcode/>`_
+you can get these tools as a relatively small download, but it does require
+a registration.
+
 - First, you will need to register as an Apple Developer at
   http://developer.apple.com/register/.
 
@@ -186,23 +207,6 @@ It provides all the above requirements.
 
 - Alternately, https://developer.apple.com/opensource/ should have a link
   to Command Line Tools.
-
-If you have already installed `Xcode <http://developer.apple.com/xcode/>`_
-(which at the time of writing is freely available in the Mac App Store,
-or through http://developer.apple.com/downloads/ provided you registered for an
-Apple Developer account), you can install the command line tools from
-there as well.
-
-- With OS X Mavericks, run the command ``xcode-select --install``
-  from a Terminal window and click "Install" in the pop-up dialog
-  box.
-
-- Using OS X Mountain Lion or earlier, run Xcode, open its "Downloads"
-  preference pane and install the command line tools from there.
-
-- On pre-Lion OS X systems, the command line tools are not available as a
-  separate download and you have to install the full-blown Xcode supporting your
-  system version.
 
 Other platforms
 ^^^^^^^^^^^^^^^
@@ -1354,4 +1358,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in October 2014 (Sage 6.3).**
+**This page was last updated in October 2014 (Sage 6.4).**

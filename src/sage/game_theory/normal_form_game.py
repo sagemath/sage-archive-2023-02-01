@@ -457,6 +457,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def __delitem__(self, key):
         r"""
+        This method is one of a collection that aims to make a game
+        instance behave like a dictionary which can be used if a game
+        is to be generated without using a matrix.
+
         Method is needed to make an instance of Normal Form Game
         behave like a dictionary. Here we set up deleting an element
         of the utilities dictionary::
@@ -475,6 +479,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def __getitem__(self, key):
         r"""
+        This method is one of a collection that aims to make a game
+        instance behave like a dictionary which can be used if a game
+        is to be generated without using a matrix.
+
         Method is needed to make an instance of Normal Form Game
         behave like a dictionary. Here we allow for querying a key::
 
@@ -494,6 +502,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def __iter__(self):
         r"""
+        This method is one of a collection that aims to make a game
+        instance behave like a dictionary which can be used if a game
+        is to be generated without using a matrix.
+
         Method is needed to make an instance of Normal Form Game
         behave like a dictionary. Here we allow for iteration over
         the game to correspond to iteration over keys of the utility
@@ -513,6 +525,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def __len__(self):
         r"""
+        This method is one of a collection that aims to make a game
+        instance behave like a dictionary which can be used if a game
+        is to be generated without using a matrix.
+
         Method is needed to make an instance of Normal Form Game
         behave like a dictionary. Here we return the length of the
         game to be the length of the utilities::
@@ -527,6 +543,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def __setitem__(self, key, value):
         r"""
+        This method is one of a collection that aims to make a game
+        instance behave like a dictionary which can be used if a game
+        is to be generated without using a matrix.
+
         Method is needed to make an instance of Normal Form Game
         behave like a dictionary. Here we set up setting the value
         of a key::

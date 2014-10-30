@@ -1145,8 +1145,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         sage: designs.incomplete_orthogonal_array(4,3,[1,1])
         Traceback (most recent call last):
         ...
-        EmptySetError: There is no OA(n+1,n) - 2.OA(n+1,1) as all blocks do
-        intersect in a projective plane.
+        EmptySetError: There is no OA(n+1,n) - 2.OA(n+1,1) as all blocks intersect in a projective plane.
         sage: n=10
         sage: k=designs.orthogonal_arrays.largest_available_k(n)
         sage: designs.incomplete_orthogonal_array(k,n,[1,1,1],existence=True)
@@ -1176,7 +1175,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         sage: designs.incomplete_orthogonal_array(9,13,[1]*10,resolvable=True)
         Traceback (most recent call last):
         ...
-        EmptySetError: There is no resolvable incomplete OA(9,13) whose holes' sizes sum to 10!=n(=13)
+        EmptySetError: There is no resolvable incomplete OA(9,13) whose holes' sizes sum to 10<n(=13)
 
     Error message for big holes::
 
@@ -1202,28 +1201,35 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
       vol.39, num.3, pages 263-281
       1982
     """
-    assert all(xx > 0 for xx in holes)
-    from database import QDM
+    from sage.combinat.designs.database import QDM
+    for h in holes:
+        if h<0:
+            raise ValueError("Holes must have size >=0, but {} was in the list").format(h)
 
-    OA = None
+    holes = [h for h in holes if h>0]
 
-    sum_of_holes = sum(holes)
-    number_of_holes = len(holes)
-    all_holes_of_size_1 = (number_of_holes==sum_of_holes)
-
-    if sum_of_holes == 0:
+    if not holes:
         return orthogonal_array(k,n,existence=existence,resolvable=resolvable)
+
+    sum_of_holes    = sum(holes)
+    number_of_holes = len(holes)
+    max_hole        = max(holes)
+    min_hole        = min(holes)
+
     if sum_of_holes > n:
         if existence:
             return False
         raise EmptySetError("The total size of holes must be smaller or equal than the size of the ground set")
 
-    if all_holes_of_size_1 and resolvable and sum_of_holes != n:
+    if (max_hole == 1 and
+        resolvable    and
+        sum_of_holes != n):
         if existence:
             return False
-        raise EmptySetError("There is no resolvable incomplete OA({},{}) whose holes' sizes sum to {}!=n(={})".format(k,n,sum_of_holes,n))
+        raise EmptySetError("There is no resolvable incomplete OA({},{}) whose holes' sizes sum to {}<n(={})".format(k,n,sum_of_holes,n))
 
-    if all_holes_of_size_1 and resolvable: # n holes of size 1 --> equivalent to OA(k+1,n)
+    # resolvable OA(k,n)-n.OA(k,1) ==> equivalent to OA(k+1,n)
+    if max_hole==1 and resolvable:
         if existence:
             return orthogonal_array(k+1,n,existence=True)
 
@@ -1244,30 +1250,36 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         return OA[:-n]
 
     # Easy case
-    elif all_holes_of_size_1 and number_of_holes <= 1:
+    elif max_hole==1 and number_of_holes <= 1:
         if existence:
             return orthogonal_array(k,n,existence=True)
         OA = orthogonal_array(k,n)
         independent_set = OA[:number_of_holes]
 
-    elif all_holes_of_size_1 and number_of_holes <= 3 and n > k-1 and k >= 3 and existence:
-        # This is lemma 2.3 from [BvR82]_ with u=1
+    # This is lemma 2.3 from [BvR82]_ with u=1
+    #
+    # TODO: handle larger holes too
+    elif (max_hole==1          and
+          existence            and
+          number_of_holes <= 3 and
+          n > k-1 and k >= 3):
         return orthogonal_array(k,n,existence=True)
 
-    elif all_holes_of_size_1 and number_of_holes >= 2 and k == n+1:
+    elif max_hole==1 and number_of_holes >= 2 and k == n+1:
         if existence:
             return False
-        raise EmptySetError("There is no OA(n+1,n) - {}.OA(n+1,1) as all blocks do intersect in a projective plane.".format(number_of_holes))
+        raise EmptySetError(("There is no OA(n+1,n) - {}.OA(n+1,1) as all blocks "
+                             "intersect in a projective plane.").format(number_of_holes))
 
-    # If we can build OA(k+1,n) then we can find n disjoint blocks in OA(k,n)
-    elif all_holes_of_size_1 and orthogonal_array(k+1,n,existence=True):
+    # Holes of size 1 from OA(k+1,n)
+    elif max_hole==1 and orthogonal_array(k+1,n,existence=True):
         if existence:
             return True
         OA = orthogonal_array(k+1,n)
         independent_set = [B[:-1] for B in OA if B[-1] == 0][:number_of_holes]
         OA = [B[:-1] for B in OA]
 
-    elif all_holes_of_size_1 and orthogonal_array(k,n,existence=True):
+    elif max_hole==1 and orthogonal_array(k,n,existence=True):
         OA = orthogonal_array(k,n)
         try:
             independent_set = OA_find_disjoint_blocks(OA,k,n,number_of_holes)
@@ -1279,7 +1291,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
             return True
         independent_set = OA_find_disjoint_blocks(OA,k,n,number_of_holes)
 
-    elif all_holes_of_size_1 and not orthogonal_array(k,n,existence=True):
+    elif max_hole==1 and not orthogonal_array(k,n,existence=True):
         return orthogonal_array(k,n,existence=existence)
 
     # From a quasi-difference matrix
@@ -1294,15 +1306,14 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
     # Equal holes [h,h,...] with h>1 through OA product construction
     #
     # (i.e. OA(k,n1)-x.OA(k,1) and OA(k,n2) ==> OA(k,n1.n2)-x.OA(k,n2) )
-    elif (not all_holes_of_size_1                           and # h>1
-          n%holes[0] == 0                             and # h divides n
-          all(h==holes[0] for h in holes)       and # holes of equal size
-          orthogonal_array(k,holes[0],existence=True) and # OA(k,h)
-          incomplete_orthogonal_array(k,n//holes[0],[1]*number_of_holes,existence=True)): # OA(k,n/h)-x.OA(k,1)
+    elif (min_hole > 1                                and
+          max_hole == min_hole                        and
+          n%min_hole == 0                             and # h divides n
+          orthogonal_array(k,min_hole,existence=True) and # OA(k,h)
+          incomplete_orthogonal_array(k,n//min_hole,[1]*number_of_holes,existence=True)): # OA(k,n/h)-x.OA(k,1)
         if existence:
             return True
-        from itertools import izip
-        h = holes[0]
+        h    = min_hole
         iOA1 = incomplete_orthogonal_array(k,n//holes[0],[1]*number_of_holes)
         iOA2 = orthogonal_array(k,h)
 
@@ -1886,7 +1897,7 @@ def OA_from_PBD(k,n,PBD, check=True):
         sage: OA_from_PBD(4,10,pbd)
         Traceback (most recent call last):
         ...
-        EmptySetError: There is no OA(n+1,n) - 3.OA(n+1,1) as all blocks do intersect in a projective plane.
+        EmptySetError: There is no OA(n+1,n) - 3.OA(n+1,1) as all blocks intersect in a projective plane.
 
     Or an `OA(3,6)` (as the PBD has 10 points)::
 
@@ -2119,7 +2130,7 @@ class OAMainFunctions():
         INPUT:
 
         - ``k,n,t`` (integers) -- parameters of the orthogonal array.
-
+x
         .. SEEALSO::
 
             :meth:`exists`

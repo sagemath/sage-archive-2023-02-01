@@ -92,6 +92,7 @@ choose_patches()
         rm -r "$SRC/omalloc"/*
         mv configure_omalloc "$SRC/omalloc/configure"
         mv conditional/singular_xalloc.patch . || return $?
+        mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
     fi
 }
 

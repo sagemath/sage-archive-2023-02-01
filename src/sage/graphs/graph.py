@@ -95,7 +95,7 @@ graphs.
     :meth:`~Graph.clique_maximum` | Returns the vertex set of a maximal order complete subgraph.
     :meth:`~Graph.cliques_maximum` | Returns the list of all maximum cliques
     :meth:`~Graph.cliques_maximal` | Returns the list of all maximal cliques
-
+    :meth:`~Graph.clique_polynomial` | Returns the clique polynomial
 
 **Algorithmically hard stuff:**
 
@@ -211,6 +211,7 @@ AUTHORS:
 
 - Alexandre P. Zuge (2013-07): added join operation.
 
+- Amritanshu Prasad (2014-08): added clique polynomial
 
 Graph Format
 ------------
@@ -525,13 +526,15 @@ Methods
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
-from sage.misc.superseded import deprecated_function_alias
-from sage.misc.superseded import deprecation
+from sage.rings.integer_ring import ZZ
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
+from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
+
 
 class Graph(GenericGraph):
     r"""
@@ -564,11 +567,13 @@ class Graph(GenericGraph):
 
         sage: g = graphs.PetersenGraph()
         sage: g.plot()
+        Graphics object consisting of 26 graphics primitives
 
     or::
 
         sage: g = graphs.ChvatalGraph()
         sage: g.plot()
+        Graphics object consisting of 37 graphics primitives
 
     In order to obtain more information about these graph constructors, access
     the documentation using the command ``graphs.RandomGNP?``.
@@ -592,7 +597,8 @@ class Graph(GenericGraph):
     connected components with only two lines::
 
         sage: for component in g.connected_components():
-        ...      g.subgraph(component).plot()
+        ....:      g.subgraph(component).plot()
+        Graphics object consisting of 37 graphics primitives
 
 
     INPUT:
@@ -1355,39 +1361,36 @@ class Graph(GenericGraph):
                     break
             num_verts = data.nrows()
         elif format == 'incidence_matrix':
-            try:
-                positions = []
-                for c in data.columns():
-                    NZ = c.nonzero_positions()
-                    if len(NZ) == 1:
-                        if loops is None:
-                            loops = True
-                        elif not loops:
-                            msg += "There must be two nonzero entries (-1 & 1) per column."
-                            assert False
-                        positions.append((NZ[0], NZ[0]))
-                    elif len(NZ) != 2:
+            positions = []
+            for c in data.columns():
+                NZ = c.nonzero_positions()
+                if len(NZ) == 1:
+                    if loops is None:
+                        loops = True
+                    elif not loops:
                         msg += "There must be two nonzero entries (-1 & 1) per column."
-                        assert False
-                    else:
-                        positions.append(tuple(NZ))
-                    L = sorted(uniq(c.list()))
+                        raise ValueError(msg)
+                    positions.append((NZ[0], NZ[0]))
+                elif len(NZ) != 2:
+                    msg += "There must be two nonzero entries (-1 & 1) per column."
+                    raise ValueError(msg)
+                else:
+                    positions.append(tuple(NZ))
+                L = sorted(uniq(c.list()))
 
-                    if data.nrows() != (2 if len(NZ) == 2 else 1):
-                        desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
-                    else:
-                        desirable = [-1, 1] if len(NZ) == 2 else [1]
+                if data.nrows() != (2 if len(NZ) == 2 else 1):
+                    desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
+                else:
+                    desirable = [-1, 1] if len(NZ) == 2 else [1]
 
-                    if L != desirable:
-                        msg += "Each column represents an edge: -1 goes to 1."
-                        assert False
-                if loops      is None: loops     = False
-                if weighted   is None: weighted  = False
-                if multiedges is None:
-                    total = len(positions)
-                    multiedges = (  len(uniq(positions)) < total  )
-            except AssertionError:
-                raise ValueError(msg)
+                if L != desirable:
+                    msg += "Each column represents an edge: -1 goes to 1."
+                    raise ValueError(msg)
+            if loops      is None: loops     = False
+            if weighted   is None: weighted  = False
+            if multiedges is None:
+                total = len(positions)
+                multiedges = (  len(uniq(positions)) < total  )
             num_verts = data.nrows()
         elif format == 'Graph':
             if loops is None: loops = data.allows_loops()
@@ -3677,7 +3680,7 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: graphs.CycleGraph(4).bipartite_sets()
-            (set([0, 2]), set([1, 3]))
+            ({0, 2}, {1, 3})
             sage: graphs.CycleGraph(5).bipartite_sets()
             Traceback (most recent call last):
             ...
@@ -3830,6 +3833,7 @@ class Graph(GenericGraph):
             sage: P = G.coloring(algorithm="DLX"); P
             [[1, 2, 3], [0, 5, 6], [4]]
             sage: G.plot(partition=P)
+            Graphics object consisting of 16 graphics primitives
             sage: H = G.coloring(hex_colors=True, algorithm="MILP")
             sage: for c in sorted(H.keys()):
             ...       print c, H[c]
@@ -3843,6 +3847,7 @@ class Graph(GenericGraph):
             #00ff00 [1, 2, 3]
             #ff0000 [0, 5, 6]
             sage: G.plot(vertex_colors=H)
+            Graphics object consisting of 16 graphics primitives
 
         TESTS::
 
@@ -4103,7 +4108,7 @@ class Graph(GenericGraph):
         except MIPSolverException:
             return False
 
-    def fractional_chromatic_index(self, verbose_constraints = 0, verbose = 0):
+    def fractional_chromatic_index(self, solver = None, verbose_constraints = 0, verbose = 0):
         r"""
         Computes the fractional chromatic index of ``self``
 
@@ -4135,6 +4140,19 @@ class Graph(GenericGraph):
 
         INPUT:
 
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+          .. NOTE::
+
+              If you want exact results, i.e. a rational number, use
+              ``solver="PPL"``. This may be slower, though.
+
         - ``verbose_constraints`` -- whether to display which constraints are
           being generated.
 
@@ -4149,7 +4167,6 @@ class Graph(GenericGraph):
             just have to update the weights on the edges between each call to
             ``solve`` (and so avoiding the generation of all the constraints).
 
-
         EXAMPLE:
 
         The fractional chromatic index of a `C_5` is `5/2`::
@@ -4157,12 +4174,17 @@ class Graph(GenericGraph):
             sage: g = graphs.CycleGraph(5)
             sage: g.fractional_chromatic_index()
             2.5
+
+        With PPL::
+
+            sage: g.fractional_chromatic_index(solver="PPL")
+            5/2
         """
         self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram
 
         g = self.copy()
-        p = MixedIntegerLinearProgram(constraint_generation = True)
+        p = MixedIntegerLinearProgram(solver=solver, constraint_generation = True)
 
         # One variable per edge
         r = p.new_variable(nonnegative=True)
@@ -5260,8 +5282,6 @@ class Graph(GenericGraph):
         else:
             raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
 
-    cliques = deprecated_function_alias(5739, cliques_maximal)
-
     def clique_maximum(self,  algorithm="Cliquer"):
         """
         Returns the vertex set of a maximal order complete subgraph.
@@ -6045,6 +6065,35 @@ class Graph(GenericGraph):
         C._graph = self
         return C
 
+    def clique_polynomial(self, t = None):
+        """
+        Returns the clique polynomial of self.
+
+        This is the polynomial where the coefficient of `t^n` is the number of
+        cliques in the graph with `n` vertices. The constant term of the
+        clique polynomial is always taken to be one.
+
+        EXAMPLES::
+
+            sage: g = Graph()
+            sage: g.clique_polynomial()
+            1
+            sage: g = Graph({0:[1]})
+            sage: g.clique_polynomial()
+            t^2 + 2*t + 1
+            sage: g = graphs.CycleGraph(4)
+            sage: g.clique_polynomial()
+            4*t^2 + 4*t + 1
+
+        """
+        if t is None:
+            R = PolynomialRing(ZZ, 't')
+            t = R.gen()
+        number_of = [0]*(self.order() + 1)
+        for x in IndependentSets(self, complement = True):
+            number_of[len(x)] += 1
+        return sum([coeff*t**i for i,coeff in enumerate(number_of) if coeff])
+    
     ### Miscellaneous
 
     def cores(self, k = None, with_labels=False):
@@ -6604,6 +6653,7 @@ class Graph(GenericGraph):
             sage: g = graphs.CirculantGraph(24, [7, 11])
             sage: cl = g.two_factor_petersen()
             sage: g.plot(edge_colors={'black':cl[0], 'red':cl[1]})
+            Graphics object consisting of 73 graphics primitives
 
         """
         self._scream_if_not_simple()

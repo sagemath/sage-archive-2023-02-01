@@ -518,7 +518,7 @@ class MagmaDefaultContext:
 
         EXAMPLE::
 
-            sage: from sage.rings.polynomial.multi_polynomial_ideal import MagmaDefaultContext
+            sage: from sage.rings.polynomial.multi_polynomial_ideal import MagmaDefaultContext # optional - magma
             sage: magma.SetVerbose('Groebner',1) # optional - magma
             sage: with MagmaDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
             0
@@ -689,12 +689,20 @@ class MPolynomialIdeal_magma_repr:
             sage: gb = I.groebner_basis('magma:GroebnerBasis') # indirect doctest; optional - magma
             sage: len(gb)                                      # optional - magma
             45
+
+         We may also pass a degree bound to Magma::
+        
+            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
+            sage: I = sage.rings.ideal.Cyclic(R,6)
+            sage: gb = I.groebner_basis('magma:GroebnerBasis', deg_bound=4) # indirect doctest; optional - magma
+            sage: len(gb)                                      # optional - magma
+            7
         """
         R   = self.ring()
         if not deg_bound:
             mself = magma(self)
         else:
-            mself = magma(self.gens())
+            mself = magma(list(self.gens())) # PolynomialSequence converts to a Magma Ideal too, so we force a list
 
         if get_verbose() >= 2:
             prot = True
@@ -929,12 +937,16 @@ class MPolynomialIdeal_singular_repr(
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: I = R.ideal([y^3 - x^2])
             sage: I.plot()        # cusp
+            Graphics object consisting of 1 graphics primitive
             sage: I = R.ideal([y^2 - x^2 - 1])
             sage: I.plot()        # hyperbola
+            Graphics object consisting of 1 graphics primitive
             sage: I = R.ideal([y^2 + x^2*(1/4) - 1])
             sage: I.plot()        # ellipse
+            Graphics object consisting of 1 graphics primitive
             sage: I = R.ideal([y^2-(x^2-1)*(x-2)])
             sage: I.plot()        # elliptic curve
+            Graphics object consisting of 1 graphics primitive
 
         Implicit plotting in 3-d::
 
@@ -1370,11 +1382,7 @@ class MPolynomialIdeal_singular_repr(
             raise TypeError("algorithm '%s' unknown"%algorithm)
 
         T = Sequence([ MPolynomialIdeal(Q,t) for t in Tbar])
-
-        f = lambda x,y: cmp(x.gens(), y.gens())
-        T.sort(f)
-
-        return T
+        return sorted(T, key=lambda x: x.gens())
 
     @require_field
     def dimension(self, singular=singular_default):
@@ -3278,7 +3286,13 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             We test to make sure that pickling works with the cached Groebner basis::
 
             sage: loads(dumps(I)).__getstate__()
-            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Finite Field of size 32003, {'_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Finite Field of size 32003, '_cache__groebner_basis': {}, 'groebner_basis': Pickle of the cached method "groebner_basis", 'gens': Pickle of the cached method "gens", '_Ideal_generic__gens': (x^2 + x, y), '_gb_by_ordering': {'degrevlex': [x^2 + x, y]}})
+            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Finite Field of size 32003,
+             {'_Ideal_generic__gens': (x^2 + x, y),
+              '_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Finite Field of size 32003,
+              '_cache__groebner_basis': {},
+              '_gb_by_ordering': {'degrevlex': [x^2 + x, y]},
+              'gens': Pickle of the cached method "gens",
+              'groebner_basis': Pickle of the cached method "groebner_basis"})
 
         """
         # first check the type
@@ -3841,7 +3855,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         elif algorithm.lower() == "toy":
             algorithm = "toy:buchberger2"
 
-        if algorithm is '':
+        if not algorithm:
             try:
                 gb = self._groebner_basis_libsingular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
             except (TypeError,NameError) as msg: # conversion to Singular not supported
@@ -4299,32 +4313,38 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: I = R.ideal([y^3 - x^2])
             sage: I.plot()                         # cusp
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: I = R.ideal([y^2 - x^2 - 1])
             sage: I.plot((x,-3, 3), (y, -2, 2))  # hyperbola
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: I = R.ideal([y^2 + x^2*(1/4) - 1])
             sage: I.plot()                         # ellipse
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: I = R.ideal([y^2-(x^2-1)*(x-2)])
             sage: I.plot()                         # elliptic curve
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: f = ((x+3)^3 + 2*(x+3)^2 - y^2)*(x^3 - y^2)*((x-3)^3-2*(x-3)^2-y^2)
             sage: I = R.ideal(f)
             sage: I.plot()                         # the Singular logo
+            Graphics object consisting of 1 graphics primitive
 
         This used to be trac #5267::
 
             sage: I = R.ideal([-x^2*y+1])
             sage: I.plot()
+            Graphics object consisting of 1 graphics primitive
 
         AUTHORS:
 

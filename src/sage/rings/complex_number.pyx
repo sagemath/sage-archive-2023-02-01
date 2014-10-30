@@ -1223,11 +1223,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: z = CC(0,1)
             sage: plot(z)
+            Graphics object consisting of 1 graphics primitive
 
         or the more direct::
 
             sage: z = CC(0,1)
             sage: z.plot()
+            Graphics object consisting of 1 graphics primitive
         """
         return sage.plot.point.point2d((self.real(), self.imag()), **kargs)
 
@@ -1508,7 +1510,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: z = 1 + i
             sage: z.eta(omit_frac=True)
-            0.998129069925959 - 8.12769318...e-22*I
+            0.998129069925959
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
             0.998129069925958 + 4.59099857829247e-19*I
 
@@ -1721,13 +1723,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: a.agm(b, algorithm="principal")
             0.338175462986180 - 0.0135326969565405*I
             sage: a.agm(b, algorithm="pari")
-            0.0806891850759812 + 0.239036532685557*I
+            -0.371591652351761 + 0.319894660206830*I
             sage: a.agm(b, algorithm="optimal").abs()
             0.490319232466314
             sage: a.agm(b, algorithm="principal").abs()
             0.338446122230459
             sage: a.agm(b, algorithm="pari").abs()
-            0.252287947683910
+            0.490319232466314
 
         TESTS:
 
@@ -2020,7 +2022,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: C, i = ComplexField(30).objgen()
-            sage: (1+i).gamma_inc(2 + 3*i)
+            sage: (1+i).gamma_inc(2 + 3*i)  # abs tol 2e-10
             0.0020969149 - 0.059981914*I
             sage: (1+i).gamma_inc(5)
             -0.0013781309 + 0.0065198200*I
@@ -2028,8 +2030,17 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.70709210 - 0.42035364*I
             sage: CC(2).gamma_inc(5)
             0.0404276819945128
+
+        TESTS:
+
+        Check that :trac:`7099` is fixed::
+
+            sage: C = ComplexField(400)
+            sage: C(2 + I).gamma_inc(C(3 + I))  # abs tol 1e-120
+            0.121515644664508695525971545977439666159749344176962379708992904126499444842886620664991650378432544392118359044438541515 + 0.101533909079826033296475736021224621546966200987295663190553587086145836461236284668967411665020429964946098113930918850*I
+
         """
-        return self._parent(self._pari_().incgam(t))
+        return self._parent(self._pari_().incgam(t, precision=self.prec()))
 
     def log(self,base=None):
         r"""
@@ -2584,7 +2595,7 @@ cdef class CCtoCDF(Map):
             sage: f(CC.0)
             1.0*I
             sage: f(exp(pi*CC.0/4))
-            0.707106781187 + 0.707106781187*I
+            0.7071067811865476 + 0.7071067811865475*I
         """
         cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
         z._complex.dat[0] = mpfr_get_d((<ComplexNumber>x).__re, GMP_RNDN)

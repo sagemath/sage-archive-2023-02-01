@@ -164,16 +164,19 @@ def plot_vector_field(f_g, xrange, yrange, **options):
 
         sage: x,y = var('x y')
         sage: plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3))
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: plot_vector_field(( y, (cos(x)-2)*sin(x)), (x,-pi,pi), (y,-pi,pi))
+        Graphics object consisting of 1 graphics primitive
 
     Plot a gradient field::
 
         sage: u,v = var('u v')
         sage: f = exp(-(u^2+v^2))
         sage: plot_vector_field(f.gradient(), (u,-2,2), (v,-2,2), color='blue')
+        Graphics object consisting of 1 graphics primitive
 
     Plot two orthogonal vector fields::
 
@@ -186,15 +189,18 @@ def plot_vector_field(f_g, xrange, yrange, **options):
 
         sage: x,y = var('x,y')
         sage: plot_vector_field( (-x/sqrt(x^2+y^2), -y/sqrt(x^2+y^2)), (x, -10, 10), (y, -10, 10))
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: x,y = var('x,y')
         sage: plot_vector_field( (-x/sqrt(x+y), -y/sqrt(x+y)), (x, -10, 10), (y, -10, 10))
+        Graphics object consisting of 1 graphics primitive
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: plot_vector_field((x, y), (x, -2, 2), (y, -2, 2), xmax=10)
+        Graphics object consisting of 1 graphics primitive
         sage: plot_vector_field((x, y), (x, -2, 2), (y, -2, 2)).show(xmax=10) # These are equivalent
     """
     (f, g) = f_g
@@ -236,15 +242,18 @@ def plot_slope_field(f, xrange, yrange, **kwds):
         sage: capacity = 3 # thousand
         sage: growth_rate = 0.7 # population increases by 70% per unit of time
         sage: plot_slope_field(growth_rate*(1-y/capacity)*y, (x,0,5), (y,0,capacity*2))
+        Graphics object consisting of 1 graphics primitive
 
     Plot a slope field involving sin and cos::
 
         sage: x,y = var('x y')
         sage: plot_slope_field(sin(x+y)+cos(x+y), (x,-3,3), (y,-3,3))
+        Graphics object consisting of 1 graphics primitive
 
     Plot a slope field using a lambda function::
 
         sage: plot_slope_field(lambda x,y: x+y, (-2,2), (-2,2))
+        Graphics object consisting of 1 graphics primitive
 
     TESTS:
 
@@ -255,6 +264,7 @@ def plot_slope_field(f, xrange, yrange, **kwds):
         sage: import numpy # bump warnings up to errors for testing purposes
         sage: old_err = numpy.seterr('raise')
         sage: plot_slope_field(sin(x+y)+cos(x+y), (x,-3,3), (y,-3,3))
+        Graphics object consisting of 1 graphics primitive
         sage: dummy_err = numpy.seterr(**old_err)
     """
     slope_options = {'headaxislength': 0, 'headlength': 1e-9, 'pivot': 'middle'}

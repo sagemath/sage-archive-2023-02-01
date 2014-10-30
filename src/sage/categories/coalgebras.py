@@ -151,7 +151,8 @@ class Coalgebras(Category_over_base_ring):
                 sage: Coalgebras(QQ).TensorProducts().extra_super_categories()
                 [Category of coalgebras over Rational Field]
                 sage: Coalgebras(QQ).TensorProducts().super_categories()
-                [Category of coalgebras over Rational Field]
+                [Category of tensor products of vector spaces over Rational Field,
+                 Category of coalgebras over Rational Field]
 
             Meaning: a tensor product of coalgebras is a coalgebra
             """

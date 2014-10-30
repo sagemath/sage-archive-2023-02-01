@@ -553,7 +553,7 @@ def hnf_square(A, proof):
 
     W = B.stack (k*c + l*d)
     verbose("submatrix det: g=%s"%g)
-    CUTOFF = 2**30
+    CUTOFF = 2147483647  # 2^31-1
     if g == 0:
         # Big trouble -- matrix isn't invertible
         # Since we have no good conditioning code at present,
@@ -851,7 +851,7 @@ def probable_hnf(A, include_zero_rows, proof):
         H = hnf_square(C, proof=proof)
     except NotImplementedError:
         # raise
-        # this signals that we must fallback to pari
+        # this signals that we must fallback to PARI
         verbose("generic random modular HNF algorithm failed -- we fall back to PARI")
         H = A.hermite_form(algorithm='pari', include_zero_rows=include_zero_rows, proof=proof)
         return H, H.pivots()
@@ -1009,24 +1009,18 @@ def hnf(A, include_zero_rows=True, proof=True):
             pivots = [j]
         return A, pivots
 
-    if proof == False:
+    if not proof:
         H, pivots = probable_hnf(A, include_zero_rows = include_zero_rows, proof=False)
         if not include_zero_rows and len(pivots) > H.nrows():
             return H.matrix_from_rows(range(len(pivots))), pivots
 
     while True:
-        try:
-            H, pivots = probable_hnf(A, include_zero_rows = include_zero_rows, proof=True)
-        except (AssertionError, ZeroDivisionError, TypeError):
-            raise
-            #verbose("Assertion occurred when computing HNF; guessed pivot columns likely wrong.")
-            #continue
-        else:
-            if is_in_hnf_form(H, pivots):
-                if not include_zero_rows and len(pivots) > H.nrows():
-                    H = H.matrix_from_rows(range(len(pivots)))
-                return H, pivots
-            verbose("After attempt the return matrix is not in HNF form since pivots must have been wrong.  We try again.")
+        H, pivots = probable_hnf(A, include_zero_rows = include_zero_rows, proof=True)
+        if is_in_hnf_form(H, pivots):
+            if not include_zero_rows and len(pivots) > H.nrows():
+                H = H.matrix_from_rows(range(len(pivots)))
+            return H, pivots
+        verbose("After attempt the return matrix is not in HNF form since pivots must have been wrong.  We try again.")
 
 def hnf_with_transformation(A, proof=True):
     """
@@ -1180,7 +1174,7 @@ def sanity_checks(times=50, n=8, m=5, proof=True, stabilize=2, check_using_magma
                     print 'a = matrix(ZZ, %s, %s, %s)'%(a.nrows(), a.ncols(), a.list())
                     return
             else:
-                if hnf(a)[0] != a.echelon_form('pari'):
+                if hnf(a)[0] != a.echelon_form(algorithm = 'pari'):
                     print "bug computing hnf of a matrix"
                     print 'a = matrix(ZZ, %s, %s, %s)'%(a.nrows(), a.ncols(), a.list())
                     return

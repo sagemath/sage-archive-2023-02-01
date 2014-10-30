@@ -39,7 +39,7 @@ chained::
     x_0 <= x_1 <= x_2 <= x_3 <= x_4
 
 If necessary, the direction of inequality is flipped to always write
-inqualities as less or equal::
+inequalities as less or equal::
 
     sage: x[5] >= ieq_01234
     x_0 <= x_1 <= x_2 <= x_3 <= x_4 <= x_5
@@ -93,7 +93,7 @@ from sage.misc.cachefunc import cached_function
 #
 #*****************************************************************************
 
-def is_LinearFunction(x):
+cpdef is_LinearFunction(x):
     """
     Test whether ``x`` is a linear function
 
@@ -159,7 +159,7 @@ def LinearFunctionsParent(base_ring):
     INPUT:
 
     - ``base_ring`` -- a ring. The coefficient ring for the linear
-      funcitons.
+      functions.
 
     OUTPUT:
 
@@ -286,6 +286,54 @@ cdef class LinearFunctionsParent_class(Parent):
             '*'
         """
         return self._multiplication_symbol
+
+    def tensor(self, free_module):
+        """
+        Return the tensor product with ``free_module``.
+
+        INPUT:
+
+        - ``free_module`` -- vector space or matrix space over the
+          same base ring.
+        
+        OUTPUT:
+
+        Instance of
+        :class:`sage.numerical.linear_tensor.LinearTensorParent_class`.
+        
+        EXAMPLES::
+
+            sage: LF = MixedIntegerLinearProgram().linear_functions_parent()
+            sage: LF.tensor(RDF^3)
+            Tensor product of Vector space of dimension 3 over Real Double Field
+            and Linear functions over Real Double Field
+            sage: LF.tensor(QQ^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: base rings must match
+        """
+        from sage.numerical.linear_tensor import LinearTensorParent
+        return LinearTensorParent(free_module, self)
+
+    def gen(self, i):
+        """
+        Return the linear variable `x_i`.
+
+        INPUT:
+
+        - ``i`` -- non-negative integer.
+
+        OUTPUT:
+
+        The linear function `x_i`.
+
+        EXAMPLES::
+
+            sage: LF = MixedIntegerLinearProgram().linear_functions_parent()
+            sage: LF.gen(23)
+            x_23
+        """
+        return LinearFunction(self, {i:1})
 
     def _repr_(self):
         """
@@ -472,7 +520,7 @@ cdef class LinearFunction(ModuleElement):
 
     def dict(self):
         r"""
-        Returns the dictionary corresponding to the Linear Function.
+        Return the dictionary corresponding to the Linear Function.
 
         OUTPUT:
 
@@ -489,6 +537,65 @@ cdef class LinearFunction(ModuleElement):
             {0: 1.0, 3: -8.0}
         """
         return dict(self._f)
+
+    def coefficient(self, x):
+        r"""
+        Return one of the the coefficients.
+
+        INPUT:
+
+        - ``x`` -- a linear variable or an integer. If an integer `i`
+          is passed, then `x_i` is used as linear variable.
+
+        OUTPUT:
+
+        A base ring element. The coefficient of ``x`` in the linear
+        function. Pass ``-1`` for the constant term.
+
+        EXAMPLE::
+
+            sage: mip.<b> = MixedIntegerLinearProgram()
+            sage: lf = -8 * b[3] + b[0] - 5;  lf
+            -5 - 8*x_0 + x_1
+            sage: lf.coefficient(b[3])
+            -8.0
+            sage: lf.coefficient(0)      # x_0 is b[3]
+            -8.0
+            sage: lf.coefficient(4)
+            0.0
+            sage: lf.coefficient(-1)
+            -5.0
+
+        TESTS::
+
+            sage: lf.coefficient(b[3] + b[4])
+            Traceback (most recent call last):
+            ...
+            ValueError: x is a sum, must be a single variable
+            sage: lf.coefficient(2*b[3])
+            Traceback (most recent call last):
+            ...
+            ValueError: x must have a unit coefficient
+            sage: mip.<q> = MixedIntegerLinearProgram(solver='ppl')
+            sage: lf.coefficient(q[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: x is from a different linear functions module
+        """
+        if is_LinearFunction(x):
+            if self.parent() != x.parent():
+                raise ValueError('x is from a different linear functions module')
+            if len((<LinearFunction>x)._f) != 1:
+                raise ValueError('x is a sum, must be a single variable')
+            i = (<LinearFunction>x)._f.keys()[0]
+            if (<LinearFunction>x)._f[i] != 1:
+                raise ValueError('x must have a unit coefficient')
+        else:
+            i = int(x)
+        try:
+            return self._f[i]
+        except KeyError:
+            return self.parent().base_ring().zero()
 
     cpdef ModuleElement _add_(self, ModuleElement b):
         r"""
@@ -589,12 +696,32 @@ cdef class LinearFunction(ModuleElement):
            sage: x = p.new_variable()
            sage: x[0] * 0.6
            3/5*x_0
+
+           sage: vf = (2 + x[0]) * vector(ZZ, [3,4]);  vf
+           (6, 8) + (3, 4)*x_0
+           sage: vf.parent()
+           Tensor product of Vector space of dimension 2 over Rational Field
+           and Linear functions over Rational Field
+
+           sage: tf = x[0] * identity_matrix(2);  tf
+           [x_0 0  ]
+           [0   x_0]
+           sage: tf.parent()
+           Tensor product of Full MatrixSpace of 2 by 2 dense matrices over 
+           Rational Field and Linear functions over Rational Field
        """
        R = self.base_ring()
        try:
            x_R = R(x)
        except TypeError:
-           return None
+           M = x.parent().base_extend(R)
+           x_M = M(x)
+           from sage.numerical.linear_tensor import LinearTensorParent
+           P = LinearTensorParent(M, self.parent())
+           tensor = dict()
+           for k, v in self._f.items():
+               tensor[k] = x_M * v
+           return P(tensor)
        return self._rmul_(x_R)
 
     def _coeff_formatter(self, coeff, constant_term=False):

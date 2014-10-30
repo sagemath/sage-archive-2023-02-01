@@ -5511,8 +5511,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        - [Co1] Cohen H., Number Theory Vol I: Tools and Diophantine
-          Equations GTM 239, Springer 2007
+        .. [Co1] H. Cohen, Number Theory, Vol. I: Tools and
+           Diophantine Equations.  GTM 239, Springer, 2007.
 
         AUTHORS:
 

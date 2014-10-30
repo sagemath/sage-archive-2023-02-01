@@ -2249,7 +2249,7 @@ class StrongTableau(ClonableList):
         """
         INPUT:
 
-        - ``parent`` - an instance of ``StrongTableaux``
+        - ``parent`` -- an instance of ``StrongTableaux``
         - ``T`` -- standard marked strong (possibly skew) `k`-tableau or a semistandard
           marked strong (possibly skew) `k`-tableau with inner cells represented by
           ``None``
@@ -3858,7 +3858,7 @@ class StrongTableau(ClonableList):
         """
         Return a list of transpositions corresponding to ``self``.
 
-        Given a strong column strict tableau ``self`` returns the the list of transpositions
+        Given a strong column strict tableau ``self`` returns the list of transpositions
         which when applied to the left of an empty tableau gives the corresponding strong
         standard tableau.
 
@@ -4436,20 +4436,21 @@ class StrongTableaux(UniqueRepresentation, Parent):
         """
         Return a list of transpositions corresponding to ``T``.
 
-        Given a strong column strict tableau ``T`` returns the the list of transpositions
+        Given a strong column strict tableau ``T`` returns the list of transpositions
         which when applied to the left of an empty tableau gives the corresponding strong
         standard tableau.
 
         INPUT:
 
-        - ``T`` - a non-empty column strict tableau as a list of lists
-        - ``k`` - a positive integer
+        - ``T`` -- a non-empty column strict tableau as a list of lists
+        - ``k`` -- a positive integer
 
         OUTPUT:
 
         - a list of pairs of values ``[i,j]`` representing the transpositions `t_{ij}`
 
         EXAMPLES::
+
             sage: CST_to_trans = StrongTableaux.marked_CST_to_transposition_sequence
             sage: CST_to_trans([[-1, -1, -1], [1]], 2)
             [[2, 3], [1, 2], [0, 1]]
@@ -4492,7 +4493,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
                             valcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]!=j] # values in all the cells except content j
                             regcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]==j] # values in the cells with content j
                             if all(x==v for x in valcells) and regcells==[-v]:
-                                # if all labels that are not content j are v and the label 
+                                # if all labels that are not content j are v and the label
                                 # with content j = -v
                                 MM = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]
                                 transeq = self.marked_CST_to_transposition_sequence(MM,k)

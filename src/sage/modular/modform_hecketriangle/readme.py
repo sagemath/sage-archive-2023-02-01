@@ -1146,6 +1146,15 @@ Modular forms ring and spaces for Hecke triangle groups:
       sage: MF.q_basis(m=-1, order_1=-1, min_exp=-1)
       q^-1 - 203528/7*q^5 + O(q^6)
 
+      Elements with respect to the full group are automatically coerced
+      to elements of the Theta subgroup if necessary:
+
+      sage: el = QuasiMeromorphicModularFormsRing(n=3).Delta().full_reduce() + E2
+      sage: el
+      (E4*f_i^4 - 2*E4^2*f_i^2 + E4^3 + 4096*E2)/4096
+      sage: el.parent()
+      QuasiModularFormsRing(n=+Infinity) over Integer Ring
+
 
 - **Determine exact coefficients from numerical ones:**
   There is some experimental support for replacing numerical coefficients with

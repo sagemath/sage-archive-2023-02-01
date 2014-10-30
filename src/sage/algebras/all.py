@@ -44,5 +44,7 @@ lazy_import('sage.algebras.hall_algebra', 'HallAlgebra')
 
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')
 
-lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra')
+from clifford_algebra import CliffordAlgebra, ExteriorAlgebra
+from weyl_algebra import DifferentialWeylAlgebra
 
+lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra')

@@ -612,7 +612,7 @@ blocks. If ``sig_on()`` needs to raise an exception, the GIL is
 temporarily acquired internally.
 
 If you use C libraries without the GIL and you want to raise an exception
-after :ref:`sig_error() <sig-error>`, remember to acquire the GIL
+before calling :ref:`sig_error() <sig-error>`, remember to acquire the GIL
 while raising the exception. Within Cython, you can use a
 `with gil context <http://docs.cython.org/src/userguide/external_C_code.html#acquiring-the-gil>`_.
 

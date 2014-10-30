@@ -759,13 +759,13 @@ def compile_and_load(code):
 
 TESTS = {
 'trac11680':"""
-#cargs -std=c99 -O3 -ggdb
-#cinclude $SAGE_SRC/sage/libs/flint $SAGE_LOCAL/include/FLINT
+#cargs -O3 -ggdb
+#cinclude $SAGE_SRC/sage/libs/flint $SAGE_LOCAL/include/flint
 #clib flint
 
 from sage.rings.rational cimport Rational
 from sage.rings.polynomial.polynomial_rational_flint cimport Polynomial_rational_flint
-include "sage/libs/flint/fmpq_poly.pxi"
+from sage.libs.flint.fmpq_poly cimport fmpq_poly_length, fmpq_poly_get_coeff_mpq, fmpq_poly_set_coeff_mpq
 
 def evaluate_at_power_of_gen(Polynomial_rational_flint f, unsigned long n):
     assert n >= 1

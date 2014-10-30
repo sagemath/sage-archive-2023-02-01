@@ -278,6 +278,16 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.data_structures
+    ##
+    ################################
+
+    Extension('sage.data_structures.bitset',
+              sources = ['sage/data_structures/bitset.pyx'],
+              libraries = ['gmp']),
+
+    ################################
+    ##
     ## sage.ext
     ##
     ################################
@@ -1202,10 +1212,6 @@ ext_modules = [
     Extension('sage.misc.allocator',
               sources = ['sage/misc/allocator.pyx']),
 
-    Extension('sage.misc.bitset',
-              sources = ['sage/misc/bitset.pyx'],
-              libraries = ['gmp']),
-
     Extension('sage.misc.cachefunc',
               sources = ['sage/misc/cachefunc.pyx']),
 
@@ -2109,7 +2115,7 @@ ext_modules = [
     ## sage.schemes
     ##
     ################################
-    
+
     Extension('sage.schemes.projective.projective_morphism_helper',
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]

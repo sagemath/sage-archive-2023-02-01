@@ -6,7 +6,7 @@ more. Look into ``sage/repl/display`` instead.
 """
 
 from sage.repl.display.python_hook import DoctestDisplayHook
-from sage.repl.display.formatter import SageConsoleTextFormatter
+from sage.repl.display.formatter import SageNBTextFormatter
 
 
 class DisplayHook(DoctestDisplayHook):
@@ -25,4 +25,4 @@ class DisplayHook(DoctestDisplayHook):
             set([1, 2, 3])
         """
         # do not call super, we set our own formatter
-        self.formatter = SageConsoleTextFormatter()
+        self.formatter = SageNBTextFormatter()

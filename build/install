@@ -43,12 +43,6 @@ EOF
     exit 2
 fi
 
-if [ "$SAGE_UPGRADING" = yes ]; then
-    # We're doing an upgrade. Let build/Makefile call sage-spkg with
-    # "-f" to force rebuilding dependent packages, too:
-    export SAGE_SPKG_OPTS="-f"
-fi
-
 ###############################################################################
 # Create basic directories needed for Sage
 ###############################################################################
@@ -90,22 +84,16 @@ if [ -z "$FC" ]; then
 fi
 
 if [ -f "$SAGE_LOCAL/bin/gcc" ]; then
-    # GCC is already installed. Normally we don't need to re-install
-    # GCC, unless this is an upgrade. To disable unneeded rebuilding
+    # GCC is already installed. To disable unneeded rebuilding
     # of GCC, we touch the installed file for GCC, such that it will
     # really only be built if one of its dependencies has been upgraded.
-    if [ "$SAGE_UPGRADING" = yes ]; then
-        echo >&2 "We are upgrading Sage and GCC was installed before, it will get"
-        echo >&2 "re-installed if needed."
-        need_to_install_gcc=yes
-        for f in "$SAGE_SPKG_INST"/gcc-*; do
-            if [ -f "$f" ]; then
-                touch "$f"
-            fi
-        done
-    else
-        need_to_install_gcc=no
-    fi
+    echo >&2 "GCC was installed before, it will get re-installed if needed."
+    need_to_install_gcc=yes
+    for f in "$SAGE_SPKG_INST"/gcc-*; do
+        if [ -f "$f" ]; then
+            touch "$f"
+        fi
+    done
 elif [ -n "$SAGE_INSTALL_GCC" ]; then
     # Check the value of the environment variable SAGE_INSTALL_GCC
     case "$SAGE_INSTALL_GCC" in
@@ -343,7 +331,6 @@ GAP=`newest_version gap`
 GCC=`newest_version gcc`
 GD=`newest_version gd`
 GDMODULE=`newest_version gdmodule`
-GENUS2REDUCTION=`newest_version genus2reduction`
 GFAN=`newest_version gfan`
 GF2X=`newest_version gf2x`
 GIT=`newest_version git`
@@ -390,6 +377,7 @@ PYGMENTS=`newest_version pygments`
 PYNAC=`newest_version pynac`
 PYPARSING=`newest_version pyparsing`
 PYTHON=`newest_version python`
+PYZMQ=`newest_version pyzmq`
 R=`newest_version r`
 RPY=`newest_version rpy2`
 RATPOINTS=`newest_version ratpoints`
@@ -411,6 +399,7 @@ SYMPY=`newest_version sympy`
 TACHYON=`newest_version tachyon`
 TORNADO=`newest_version tornado`
 NCURSES=`newest_version ncurses`
+ZEROMQ=`newest_version zeromq`
 ZLIB=`newest_version zlib`
 ZNPOLY=`newest_version zn_poly`
 

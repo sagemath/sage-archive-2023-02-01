@@ -276,11 +276,12 @@ algorithms succeed; along the way, we collect some statistics::
     sage: stats = []
     sage: for l in L:
     ....:     x = HierarchyElement(10, l.to_poset())
-    ....:     try:
+    ....:     try: # Check that x.mro_standard always fails with a ValueError
     ....:         x.mro_standard
-    ....:         assert False
-    ....:     except:
+    ....:     except ValueError:
     ....:         pass
+    ....:     else:
+    ....:         assert False
     ....:     assert x.mro            == list(P)
     ....:     assert x.mro_controlled == list(P)
     ....:     assert x.all_bases_len() == 15

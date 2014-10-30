@@ -212,8 +212,7 @@ from copy import copy
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecated_function_alias, deprecation
-
+from sage.misc.superseded import deprecation
 
 cdef class MixedIntegerLinearProgram(SageObject):
     r"""

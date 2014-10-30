@@ -402,7 +402,7 @@ class NormalFormGame(SageObject, MutableMapping):
     strategy should both travelers follow to decide the value they should
     write down?
 
-    In the following we create the game and solve it::
+    In the following we create the game (with a max value of 10) and solve it::
 
         sage: K = 10  # Modifying this value lets us play with games of any size
         sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
@@ -415,7 +415,9 @@ class NormalFormGame(SageObject, MutableMapping):
     of their suitcase is 2.
 
     Importantly this algorithm is known to fail in the case of a degenerate
-    game. In fact degenerate games can cause problems for most algorithms::
+    game. In fact degenerate games can cause problems for most algorithms.
+    The following example in fact has an infinite quantity of equilibria which
+    is evidenced by the two algorithms returning different solutions::
 
         sage: A = matrix([[3,3],[2,5],[0,6]])
         sage: B = matrix([[3,3],[2,6],[3,1]])

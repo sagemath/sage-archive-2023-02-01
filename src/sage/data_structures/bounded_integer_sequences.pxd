@@ -46,7 +46,7 @@ cdef size_t biseq_getitem(biseq_t S, mp_size_t index)
 cdef biseq_getitem_py(biseq_t S, mp_size_t index)
 cdef inline void biseq_inititem(biseq_t S, mp_size_t index, size_t item)
 cdef inline void biseq_clearitem(biseq_t S, mp_size_t index)
-cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1
+cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, mp_size_t step) except -1
 
 cdef class BoundedIntegerSequence:
     cdef biseq_t data

@@ -74,7 +74,7 @@ Cython modules:
 
     Set ``S[index] = 0``, without checking margins.
 
-- ``cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1``
+- ``cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, mp_size_t step) except -1``
 
   Initialises ``R`` with ``S[start:stop:step]``.
 
@@ -317,7 +317,7 @@ cdef inline void biseq_clearitem(biseq_t S, mp_size_t index):
         # Our item is stored using 2 limbs, add the part from the upper limb
         S.data.bits[limb_index+1] &= ~(S.mask_item >> (GMP_LIMB_BITS - bit_index))
 
-cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, int step) except -1:
+cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, mp_size_t step) except -1:
     """
     Create the slice S[start:stop:step] as bounded integer sequence and write
     the result to ``R``, which must not be initialised.

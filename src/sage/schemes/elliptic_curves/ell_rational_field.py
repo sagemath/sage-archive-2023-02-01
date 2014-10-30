@@ -5217,7 +5217,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def tate_curve(self, p):
         r"""
-        Create the Tate Curve over the `p`-adics associated to
+        Create the Tate curve over the `p`-adics associated to
         this elliptic curve.
 
         This Tate curve is a `p`-adic curve with split multiplicative
@@ -5229,7 +5229,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-        `p` -- a prime where the curve has multiplicative reduction.
+        - `p` -- a prime where the curve has split multiplicative
+          reduction
 
         EXAMPLES::
 

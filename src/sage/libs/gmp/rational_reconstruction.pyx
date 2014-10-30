@@ -27,7 +27,6 @@ include 'sage/ext/interrupt.pxi'
 from mpz cimport *
 from mpq cimport *
 
-from sage.rings.integer cimport Integer
 
 cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:
     """
@@ -79,10 +78,10 @@ cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:
             if mpz_cmpabs(v2, bound) <= 0:
                 break
             mpz_fdiv_q(q, u2, v2)  # q = floor(u2/v2)
-            mpz_submul(u1, q, v1)  # w1 = u1 - q*v1
-            mpz_submul(u2, q, v2)  # w2 = u2 - q*v2
-            mpz_swap(u1, v1)       # u1 = v1; v1 = w1
-            mpz_swap(u2, v2)       # u2 = v2; v2 = w2
+            mpz_submul(u1, q, v1)  # tmp1 = u1 - q*v1   (store tmp1 in u1)
+            mpz_submul(u2, q, v2)  # tmp2 = u2 - q*v2   (store tmp2 in u2)
+            mpz_swap(u1, v1)       # u1 = v1; v1 = tmp1
+            mpz_swap(u2, v2)       # u2 = v2; v2 = tmp2
 
         # The answer is v2/v1, but check the conditions first
         if mpz_cmpabs(v1, bound) <= 0:

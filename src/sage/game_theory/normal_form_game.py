@@ -526,7 +526,6 @@ class NormalFormGame(SageObject, MutableMapping):
                 raise ValueError("matrices must be the same size")
             self._two_matrix_game(matrices)
 
-
     def __delitem__(self, key):
         r"""
         This method is one of a collection that aims to make a game
@@ -545,7 +544,6 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: del(prisoners_dilemma[(0,1)])
             sage: prisoners_dilemma
             {(1, 0): [0, 5], (0, 0): [2, 2], (1, 1): [4, 4]}
-
         """
         self.utilities.pop(key, None)
 
@@ -632,6 +630,15 @@ class NormalFormGame(SageObject, MutableMapping):
             (
             [2 5]  [2 6]
             [0 4], [5 4]
+            )
+
+        We can use the dictionary like interface to overwrite a strategy profile::
+
+            sage: prisoners_dilemma[(0,1)] = [-3,-30]
+            sage: prisoners_dilemma.payoff_matrices()
+            (
+            [ 2 -3]  [  2 -30]
+            [ 0  4], [  5   4]
             )
         """
         self.utilities[key] = value

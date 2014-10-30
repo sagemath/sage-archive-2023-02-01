@@ -10,6 +10,8 @@ Sage at some point. You could:
 * Find bugs or typos
 * Fix a bug
 * Implement a new function
+* Contribute a useful tutorial for a mathematical topic
+* Translate an existing document to a new language
 * Create a new class, create a fast new C library, etc.
 
 This document describes how to write programs using Sage, how to modify
@@ -41,6 +43,10 @@ to be aware of.
   :ref:`conventions and guidelines <section-writing-code-for-sage>` we use.
   (Looking at newer files and functionality within Sage is another way to
   get a sense for the the general style, but refer here for details.)
+
+  - There is an entire section on how to modify or add to the various
+    :ref:`manuals and tutorials <chapter-sage_manuals>`,
+    including localizing to other languages.
 
 - Finally, in order to share changes with the Sage community, you will
   need to learn some basics of the source code revision control process.
@@ -126,16 +132,41 @@ When ``git trac`` is not enough.
 Writing Code for Sage
 =====================
 
+Basics of Writing and Testing Sage Code
+---------------------------------------
+
 .. toctree::
    :maxdepth: 3
 
    coding_basics
+   doctesting
+
+
+-----------------
+
+.. toctree::
+   :maxdepth: 3
+
    coding_in_python
    coding_in_cython
    coding_in_other
+
+
+Using Third-Party Code
+----------------------
+
+.. toctree::
+   :maxdepth: 3
+
    packaging
    packaging_old_spkgs
-   doctesting
+
+Contributing to Manuals and Tutorials
+-------------------------------------
+
+.. toctree::
+   :maxdepth: 3
+
    sage_manuals
 
 

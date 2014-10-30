@@ -268,7 +268,7 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset((Subsets([1,2,3]), attrcall("issubset")))
                 sage: I = P.order_ideal([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{}, {1}, {3}, {2}, {1, 2}, {2, 3}]
+                [{}, {3}, {2}, {2, 3}, {1}, {1, 2}]
 
             Then, we retrieve the generators of this ideal::
 
@@ -279,7 +279,7 @@ class FinitePosets(CategoryWithAxiom):
             the minimal generators for an order filter::
 
                 sage: I = P.order_filter([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{1}, {1, 3}, {1, 2}, {2, 3}, {1, 2, 3}]
+                [{2, 3}, {1}, {1, 2}, {1, 3}, {1, 2, 3}]
                 sage: P.order_ideal_generators(I, direction='up')
                 {{2, 3}, {1}}
 
@@ -307,7 +307,7 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset((Subsets([1,2,3]), attrcall("issubset")))
                 sage: I = P.order_filter([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{1}, {1, 3}, {1, 2}, {2, 3}, {1, 2, 3}]
+                [{2, 3}, {1}, {1, 2}, {1, 3}, {1, 2, 3}]
                 sage: P.order_filter_generators(I)
                 {{2, 3}, {1}}
 
@@ -1708,7 +1708,7 @@ class FinitePosets(CategoryWithAxiom):
                 sage: J = P.order_ideals_lattice(); J
                 Finite lattice containing 8 elements
                 sage: list(J)
-                [{}, {0}, {0, 2}, {0, 1}, {0, 1, 2}, {0, 2, 3}, {0, 1, 2, 3}, {0, 1, 2, 3, 4}]
+                [{}, {0}, {0, 2}, {0, 2, 3}, {0, 1}, {0, 1, 2}, {0, 1, 2, 3}, {0, 1, 2, 3, 4}]
 
             As a lattice on antichains::
 

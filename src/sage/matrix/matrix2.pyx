@@ -4938,10 +4938,10 @@ cdef class Matrix(matrix1.Matrix):
             consult numerical or symbolic matrix classes for other options
 
             sage: em = A.change_ring(RDF).eigenmatrix_left()
-            sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(2e-15)
-            [ 13.348469228349...                0.0                 0.0]
-            [                0.0 -1.348469228349...                 0.0]
-            [                0.0                0.0                 0.0]
+            sage: eigenvalues = em[0]; eigenvalues.dense_matrix() # abs tol 1e-13
+            [13.348469228349522                0.0                 0.0]
+            [               0.0 -1.348469228349534                 0.0]
+            [               0.0                0.0                 0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.440242867...  0.567868371...  0.695493875...]
             [ 0.897878732...  0.278434036... -0.341010658...]
@@ -5206,10 +5206,10 @@ cdef class Matrix(matrix1.Matrix):
             consult numerical or symbolic matrix classes for other options
 
             sage: em = B.change_ring(RDF).eigenmatrix_right()
-            sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(1e-15)
-            [ 13.348469228349...                0.0                 0.0]
-            [                0.0 -1.348469228349...                 0.0]
-            [                0.0                0.0                 0.0]
+            sage: eigenvalues = em[0]; eigenvalues.dense_matrix() # abs tol 1e-13
+            [13.348469228349522                0.0                0.0]
+            [               0.0 -1.348469228349534                0.0]
+            [               0.0                0.0                0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.164763817...  0.799699663...  0.408248290...]
             [ 0.505774475...  0.104205787... -0.816496580...]
@@ -5597,10 +5597,10 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = matrix(QQ, 3, 3, range(9))
             sage: em = A.change_ring(RDF).eigenmatrix_left()
-            sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
-            [ 13.348469228349...                0.0                 0.0]
-            [                0.0 -1.348469228349...                 0.0]
-            [                0.0                0.0                 0.0]
+            sage: evalues = em[0]; evalues.dense_matrix() # abs tol 1e-13
+            [13.348469228349522                0.0                 0.0]
+            [               0.0 -1.348469228349534                 0.0]
+            [               0.0                0.0                 0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
             ....:     scale = evectors[i,0].sign()
@@ -5686,10 +5686,10 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: B = matrix(QQ, 3, 3, range(9))
             sage: em = B.change_ring(RDF).eigenmatrix_right()
-            sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
-            [ 13.348469228349...                0.0                 0.0]
-            [                0.0 -1.348469228349...                 0.0]
-            [                0.0                0.0                 0.0]
+            sage: evalues = em[0]; evalues.dense_matrix()  # abs tol 1e-13
+            [13.348469228349522                0.0                0.0]
+            [               0.0 -1.348469228349534                0.0]
+            [               0.0                0.0                0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
             ....:     scale = evectors[0,i].sign()
@@ -12204,8 +12204,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: Id.norm(2)
             1.0
             sage: A = matrix(RR, 2, 2, [13,-4,-4,7])
-            sage: A.norm()
-            15.0
+            sage: A.norm()  # rel tol 2e-16
+            14.999999999999998
 
         Norms of numerical matrices over high-precision reals are computed by this routine.
         Faster routines for double precision entries from `RDF` or `CDF` are provided by

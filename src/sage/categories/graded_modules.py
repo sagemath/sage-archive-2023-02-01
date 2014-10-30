@@ -180,6 +180,12 @@ class GradedModules(GradedModulesCategory):
         sage: GradedModules(ZZ).super_categories()
         [Category of filtered modules over Integer Ring]
 
+    The category of graded modules defines the graded structure which
+    shall be preserved by morphisms::
+
+        sage: Modules(ZZ).Graded().additional_structure()
+        Category of graded modules over Integer Ring
+
     TESTS::
 
         sage: TestSuite(GradedModules(ZZ)).run()

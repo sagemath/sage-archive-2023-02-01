@@ -4453,7 +4453,9 @@ class GenericGraph(GenericGraph_pyx):
           We implement the algorithm proposed by Tarjan in [Tarjan72]_. The
           original version is recursive. We emulate the recursion using a stack.
 
-        .. SEEALSO:: :meth:`blocks_and_cuts_tree`
+        .. SEEALSO::
+            
+            :meth:`blocks_and_cuts_tree`
 
         EXAMPLES::
 
@@ -4605,7 +4607,9 @@ class GenericGraph(GenericGraph_pyx):
         When ``self`` is biconnected, the tree is reduced to a single node of
         type `B`.
 
-        .. SEEALSO:: :meth:`blocks_and_cut_vertices`
+        .. SEEALSO::
+        
+            :meth:`blocks_and_cut_vertices`
 
         EXAMPLES:
 
@@ -9363,7 +9367,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :meth:`subdivide_edge` -- subdivides one edge
+            - :meth:`subdivide_edge` -- subdivides one edge
         """
         for e in edges:
             self.subdivide_edge(e, k)
@@ -11613,7 +11617,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        A Petersen Graph is not chordal, nor car it be an interval
+        A Petersen Graph is not chordal, nor can it be an interval
         graph ::
 
             sage: g = graphs.PetersenGraph()
@@ -11645,10 +11649,10 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :mod:`Interval Graph Recognition <sage.graphs.pq_trees>`.
-
-        - :meth:`PQ <sage.graphs.pq_trees.PQ>`
-          -- Implementation of PQ-Trees.
+            - :mod:`Interval Graph Recognition <sage.graphs.pq_trees>`.
+    
+            - :meth:`PQ <sage.graphs.pq_trees.PQ>`
+              -- Implementation of PQ-Trees.
 
         """
         self._scream_if_not_simple()
@@ -13490,40 +13494,45 @@ class GenericGraph(GenericGraph_pyx):
     ### Searches
 
     def breadth_first_search(self, start, ignore_direction=False,
-                             distance=None, neighbors=None):
+                             distance=None, neighbors=None,
+                             report_distance=False):
         """
-        Returns an iterator over the vertices in a breadth-first ordering.
+        Return an iterator over the vertices in a breadth-first ordering.
 
         INPUT:
 
+        - ``start`` -- vertex or list of vertices from which to start
+          the traversal.
 
-        - ``start`` - vertex or list of vertices from which to start
-          the traversal
-
-        - ``ignore_direction`` - (default False) only applies to
-          directed graphs. If True, searches across edges in either
+        - ``ignore_direction`` -- (default ``False``) only applies to
+          directed graphs. If ``True``, searches across edges in either
           direction.
 
-        - ``distance`` - the maximum distance from the ``start`` nodes
-          to traverse.  The ``start`` nodes are distance zero from
+        - ``distance`` -- the maximum distance from the ``start`` nodes
+          to traverse. The ``start`` nodes are distance zero from
           themselves.
 
-        - ``neighbors`` - a function giving the neighbors of a vertex.
+        - ``neighbors`` -- a function giving the neighbors of a vertex.
           The function should take a vertex and return a list of
           vertices.  For a graph, ``neighbors`` is by default the
           :meth:`.neighbors` function of the graph.  For a digraph,
           the ``neighbors`` function defaults to the
           :meth:`.successors` function of the graph.
 
+        - ``report_distance`` -- (default ``False``) If ``True``,
+          reports pairs (vertex, distance) where distance is the
+          distance from the ``start`` nodes. If ``False`` only the
+          vertices are reported.
+
         .. SEEALSO::
 
-        - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
-          -- breadth-first search for fast compiled graphs.
-
-        - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
-          -- depth-first search for fast compiled graphs.
-
-        - :meth:`depth_first_search` -- depth-first search for generic graphs.
+            - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
+              -- breadth-first search for fast compiled graphs.
+    
+            - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
+              -- depth-first search for fast compiled graphs.
+    
+            - :meth:`depth_first_search` -- depth-first search for generic graphs.
 
         EXAMPLES::
 
@@ -13540,7 +13549,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2, 3, 7, 4, 5, 6]
 
-        You can specify a maximum distance in which to search.  A
+        You can specify a maximum distance in which to search. A
         distance of zero returns the ``start`` vertices::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
@@ -13563,7 +13572,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(6,ignore_direction=True,distance=2))
             [6, 3, 7, 0, 5]
 
-        More generally, you can specify a ``neighbors`` function.  For
+        More generally, you can specify a ``neighbors`` function. For
         example, you can traverse the graph backwards by setting
         ``neighbors`` to be the :meth:`.neighbors_in` function of the graph::
 
@@ -13575,6 +13584,25 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(5,neighbors=D.neighbors, distance=2))
             [5, 1, 2, 7, 0, 4, 6]
 
+        It is possible (:trac:`16470`) using the keyword
+        ``report_distance`` to get pairs (vertex, distance) encoding
+        the distance to the starting vertices::
+
+            sage: G = graphs.PetersenGraph()
+            sage: list(G.breadth_first_search(0, report_distance=True))
+            [(0, 0), (1, 1), (4, 1), (5, 1), (2, 2), (6, 2), (3, 2), (9, 2),
+            (7, 2), (8, 2)]
+            sage: list(G.breadth_first_search(0, report_distance=False))
+            [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
+
+            sage: D = DiGraph({0:[1, 3], 1:[0, 2], 2:[0, 3], 3:[4]})
+            sage: D.show()
+            sage: list(D.breadth_first_search(4, neighbors=D.neighbor_in_iterator, report_distance=True))
+            [(4, 0), (3, 1), (0, 2), (2, 2), (1, 3)]
+
+            sage: C = graphs.CycleGraph(4)
+            sage: list(C.breadth_first_search([0,1], report_distance=True))
+            [(0, 0), (1, 0), (3, 1), (2, 1)]
 
         TESTS::
 
@@ -13583,36 +13611,41 @@ class GenericGraph(GenericGraph_pyx):
             [0]
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2]
-
         """
         # Preferably use the Cython implementation
-        if neighbors is None and not isinstance(start,list) and distance is None and hasattr(self._backend,"breadth_first_search"):
-            for v in self._backend.breadth_first_search(start, ignore_direction = ignore_direction):
+        if neighbors is None and not isinstance(start, list) and distance is None and hasattr(self._backend,"breadth_first_search") and not report_distance:
+            for v in self._backend.breadth_first_search(start, ignore_direction=ignore_direction):
                 yield v
         else:
             if neighbors is None:
                 if not self._directed or ignore_direction:
-                    neighbors=self.neighbor_iterator
+                    neighbors = self.neighbor_iterator
                 else:
-                    neighbors=self.neighbor_out_iterator
-            seen=set([])
+                    neighbors = self.neighbor_out_iterator
+            seen = set([])
             if isinstance(start, list):
-                queue=[(v,0) for v in start]
+                queue = [(v, 0) for v in start]
             else:
-                queue=[(start,0)]
+                queue = [(start, 0)]
 
-            for v,d in queue:
-                yield v
+            for v, d in queue:
+                if report_distance:
+                    yield v, d
+                else:
+                    yield v
                 seen.add(v)
 
-            while len(queue)>0:
-                v,d = queue.pop(0)
-                if distance is None or d<distance:
+            while len(queue) > 0:
+                v, d = queue.pop(0)
+                if distance is None or d < distance:
                     for w in neighbors(v):
                         if w not in seen:
                             seen.add(w)
-                            queue.append((w, d+1))
-                            yield w
+                            queue.append((w, d + 1))
+                            if report_distance:
+                                yield w, d + 1
+                            else:
+                                yield w
 
     def depth_first_search(self, start, ignore_direction=False,
                            distance=None, neighbors=None):
@@ -13642,13 +13675,13 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :meth:`breadth_first_search`
-
-        - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
-          -- breadth-first search for fast compiled graphs.
-
-        - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
-          -- depth-first search for fast compiled graphs.
+            - :meth:`breadth_first_search`
+    
+            - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
+              -- breadth-first search for fast compiled graphs.
+    
+            - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
+              -- depth-first search for fast compiled graphs.
 
         EXAMPLES::
 
@@ -15694,7 +15727,7 @@ class GenericGraph(GenericGraph_pyx):
               :meth:`sage.graphs.graph_plot_js.gen_html_code`. Depending on
               whether d3js optional package is installed or not, the javascript
               code will be used locally or fetched from d3js.org website by the
-              browser. 
+              browser.
 
         This method accepts any other option understood by
         :meth:`~sage.graphs.generic_graph.GenericGraph.plot` (graph-specific) or
@@ -16358,7 +16391,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         from sage.graphs.dot2tex_utils import quoted_latex, quoted_str
-        
+
         if self.is_directed():
             graph_string = "digraph"
             default_edge_string = "->"

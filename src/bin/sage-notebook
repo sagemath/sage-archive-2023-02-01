@@ -60,8 +60,7 @@ class NotebookSageNB(object):
 class NotebookIPython(object):
 
     def __init__(self, argv):
-        from sage.repl.notebook_ipython import SageNotebookApp, make_notebook_dir
-        make_notebook_dir()
+        from sage.repl.notebook_ipython import SageNotebookApp
         app = SageNotebookApp.instance()
         app.initialize(argv)
         app.start()

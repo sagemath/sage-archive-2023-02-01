@@ -10,7 +10,6 @@ SetsWithPartialMaps
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
 from objects import Objects
 
@@ -49,6 +48,3 @@ class SetsWithPartialMaps(Category_singleton):
             [Category of objects]
         """
         return [Objects()]
-
-    class HomCategory(HomCategory):
-        pass

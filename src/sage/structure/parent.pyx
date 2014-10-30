@@ -1250,7 +1250,12 @@ cdef class Parent(category_object.CategoryObject):
             sage: RIF(3/2).endpoints()
             (1.50000000000000, 1.50000000000000)
 
-        i.e., the RIF-element has equal endpoints, but we have
+        i.e., the RIF-element has equal endpoints and therefore is exact::
+
+            sage: RIF(3/2).is_exact()
+            True
+
+        On the other hand we have
 
         ::
 
@@ -1264,7 +1269,11 @@ cdef class Parent(category_object.CategoryObject):
             sage: RIF(2/3).endpoints()
             (0.666666666666666, 0.666666666666667)
 
-        i.e., the RIF-element has different endpoints.
+        i.e., the RIF-element has different endpoints and therefore is
+        exact::
+
+            sage: RIF(2/3).is_exact()
+            False
 
         TESTS:
 

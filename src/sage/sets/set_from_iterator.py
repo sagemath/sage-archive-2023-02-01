@@ -136,7 +136,12 @@ class EnumeratedSetFromIterator(Parent):
         (2, 3)
         sage: e2.next()
         3
+
+    The following warning is due to ``E`` being a facade parent. For more,
+    see the discussion on :trac:`16239`::
+
         sage: TestSuite(E).run()
+        doctest:...: UserWarning: Testing equality of infinite sets which will not end in case of equality
 
         sage: E = EnumeratedSetFromIterator(xsrange, args=(10,), category=FiniteEnumeratedSets(), cache=True)
         sage: TestSuite(E).run()
@@ -494,7 +499,7 @@ class Decorator:
             sage: S = sage_getsourcelines(d)   # indirect doctest
             sage: S[0][2]
             '        Return the number of elements of this group.\n'
-            sage: S[0][17]
+            sage: S[0][18]
             '            return Integer(1)\n'
         """
         from sage.misc.sageinspect import sage_getsourcelines

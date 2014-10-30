@@ -238,9 +238,9 @@ def milnor_multiplication(r,s):
         sage: milnor_multiplication((2,), (1,))
         {(0, 1): 1, (3,): 1}
         sage: milnor_multiplication((4,), (2,1))
-        {(6, 1): 1, (0, 3): 1, (2, 0, 1): 1}
+        {(0, 3): 1, (2, 0, 1): 1, (6, 1): 1}
         sage: milnor_multiplication((2,4), (0,1))
-        {(2, 5): 1, (2, 0, 0, 1): 1}
+        {(2, 0, 0, 1): 1, (2, 5): 1}
 
     These examples correspond to the following product computations:
 
@@ -410,7 +410,7 @@ def milnor_multiplication_odd(m1,m2,p):
         sage: milnor_multiplication_odd(((0,2,4),()), ((1,5),()), 7)
         {((0, 1, 2, 4, 5), ()): 1}
         sage: milnor_multiplication_odd(((),(6,)), ((),(2,)), 3)
-        {((), (4, 1)): 1, ((), (8,)): 1, ((), (0, 2)): 1}
+        {((), (0, 2)): 1, ((), (4, 1)): 1, ((), (8,)): 1}
 
     These examples correspond to the following product computations:
 
@@ -776,9 +776,9 @@ def adem(a, b, c=0, p=2, generic=None):
         sage: adem(1,0,1, p=7)
         {(0, 2, 0): 2}
         sage: adem(1,1,1, p=5)
-        {(1, 2, 0): 1, (0, 2, 1): 1}
+        {(0, 2, 1): 1, (1, 2, 0): 1}
         sage: adem(1,1,2, p=5)
-        {(1, 3, 0): 2, (0, 3, 1): 1}
+        {(0, 3, 1): 1, (1, 3, 0): 2}
     """
     if generic is None:
         generic = False if p==2 else True

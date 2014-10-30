@@ -668,18 +668,14 @@ cdef class GLPKGraphBackend(object):
         cdef _glp_arc* a
         cdef int u
         cdef int v
-        cdef char* u_name
-        cdef char* v_name
         cdef double cost
         cdef double cap
         cdef double low
         cdef int isdirected = g.is_directed()
 
         for (eu,ev,label) in g.edges():
-            s = str(eu)
-            u_name = s
-            s = str(ev)
-            v_name = s
+            u_name = str(eu)
+            v_name = str(ev)
             u = glp_find_vertex(self.graph, u_name)
             v = glp_find_vertex(self.graph, v_name)
             if u < 1 or v < 1:

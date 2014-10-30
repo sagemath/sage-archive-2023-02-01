@@ -41,10 +41,10 @@ from sage.structure.factorization import Factorization
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.arith import lcm
 
+from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_series
-
-from sage.libs.flint.ntl_interface cimport fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
-from sage.libs.ntl.ntl_ZZX_decl cimport *, vec_pair_ZZX_long_c
+from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
+from sage.libs.ntl.ntl_ZZX_decl cimport *
 
 cdef extern from "limits.h":
     long LONG_MAX
@@ -1034,7 +1034,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             True
         """
         cdef Polynomial_integer_dense_flint Q = self._new(), R = self._new(), _B = B
-        cdef unsigned long d
+        cdef ulong d
         fmpz_poly_pseudo_divrem(Q.__poly, R.__poly, &d, self.__poly, _B.__poly)
         return Q, R, Integer(d)
 
@@ -1067,7 +1067,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         temp = ZZX_discriminant(&ntl_poly, proof)
         x = PY_NEW(Integer)
-        ZZ_to_mpz(&x.value, temp)
+        ZZ_to_mpz(x.value, temp)
         ZZ_delete(temp)
 
         return x

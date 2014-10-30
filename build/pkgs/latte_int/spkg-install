@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+cd src/
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+#CFLAGS="-I $SAGE_LOCAL/include -L$SAGE_LOCAL/lib $CFLAGS"
+#export CFLAGS
+./configure --prefix=$SAGE_LOCAL --enable-shared=yes --enable-static=false --with-gmp=$SAGE_LOCAL --with-ntl=$SAGE_LOCAL --with-cddlib=$SAGE_LOCAL --with-4ti2=$SAGE_LOCAL
+$MAKE
+$MAKE install
+
+if [ $? -ne 0 ]; then
+   echo "Error building latte-int"
+   exit 1
+fi
+

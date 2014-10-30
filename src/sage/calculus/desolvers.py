@@ -51,6 +51,8 @@ AUTHORS:
 
 - Robert Marik (10-2009) - Some bugfixes and enhancements
 
+- Miguel Marco (06-2014) - Tides desolvers
+
 """
 
 ##########################################################################
@@ -67,7 +69,13 @@ from sage.plot.all import line
 from sage.symbolic.expression import is_SymbolicEquation
 from sage.symbolic.ring import is_SymbolicVariable
 from sage.calculus.functional import diff
+from sage.misc.functional import N
 from sage.misc.decorators import rename_keyword
+from tempfile import mkdtemp
+import shutil
+import os
+from sage.rings.real_mpfr import RealField
+
 
 maxima = Maxima()
 
@@ -139,6 +147,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     ::
 
         sage: plot(f)
+        Graphics object consisting of 1 graphics primitive
 
     We can also solve second-order differential equations.::
 
@@ -727,7 +736,7 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
     TESTS:
 
-    Trac #9823 fixed::
+    Check that :trac:`9823` is fixed::
 
         sage: t = var('t')
         sage: x = function('x', t)
@@ -735,9 +744,36 @@ def desolve_system(des, vars, ics=None, ivar=None):
         sage: desolve_system([de1], [x])
         -t + x(0)
 
+    Check that :trac:`16568` is fixed::
+
+        sage: t = var('t')
+        sage: x = function('x', t)
+        sage: y = function('y', t)
+        sage: de1 = diff(x,t) + y - 1 == 0
+        sage: de2 = diff(y,t) - x + 1 == 0
+        sage: des = [de1,de2]
+        sage: ics = [0,1,-1]
+        sage: vars = [x,y]
+        sage: sol = desolve_system(des, vars, ics); sol
+        [x(t) == 2*sin(t) + 1, y(t) == -2*cos(t) + 1]
+
+    ::
+
+        sage: solx, soly = sol[0].rhs(), sol[1].rhs()
+        sage: RR(solx(t=3))
+        1.28224001611973
+
+    ::
+
+        sage: P1 = plot([solx,soly], (0,1))
+        sage: P2 = parametric_plot((solx,soly), (0,1))
+
+    Now type show(P1), show(P2) to view these plots.
+
     AUTHORS:
 
     - Robert Bradshaw (10-2008)
+    - Sergey Bykov (10-2014)
     """
     if len(des)==1:
         return desolve_laplace(des[0], vars[0], ics=ics, ivar=ivar)
@@ -767,95 +803,6 @@ def desolve_system(des, vars, ics=None, ivar=None):
         for dvar, ic in zip(dvars, ics[:1]):
             dvar.atvalue(ivar==ivar_ic, dvar)
     return soln
-
-
-def desolve_system_strings(des,vars,ics=None):
-    r"""
-    Solve any size system of 1st order ODE's. Initial conditions are optional.
-
-    This function is obsolete, use desolve_system.
-
-    INPUT:
-
-    - ``de`` - a list of strings representing the ODEs in maxima
-      notation (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
-
-    - ``vars`` - a list of strings representing the variables (eg,
-      vars = ["s","x","y"], where s is the independent variable and
-      x,y the dependent variables)
-
-    - ``ics`` - a list of numbers representing initial conditions
-      (eg, x(0)=1, y(0)=2 is ics = [0,1,2])
-
-    WARNING:
-
-        The given ics sets the initial values of the dependent vars in
-        maxima, so subsequent ODEs involving these variables will have
-        these initial conditions automatically imposed.
-
-    EXAMPLES::
-
-        sage: from sage.calculus.desolvers import desolve_system_strings
-        sage: s = var('s')
-        sage: function('x', s)
-        x(s)
-
-    ::
-
-        sage: function('y', s)
-        y(s)
-
-    ::
-
-        sage: de1 = lambda z: diff(z[0],s) + z[1] - 1
-        sage: de2 = lambda z: diff(z[1],s) - z[0] + 1
-        sage: des = [de1([x(s),y(s)]),de2([x(s),y(s)])]
-        sage: vars = ["s","x","y"]
-        sage: desolve_system_strings(des,vars)
-        ["(1-'y(0))*sin(s)+('x(0)-1)*cos(s)+1", "('x(0)-1)*sin(s)+('y(0)-1)*cos(s)+1"]
-
-    ::
-
-        sage: ics = [0,1,-1]
-        sage: soln = desolve_system_strings(des,vars,ics); soln
-        ['2*sin(s)+1', '1-2*cos(s)']
-
-    ::
-
-        sage: solnx, solny = map(SR, soln)
-        sage: RR(solnx(s=3))
-        1.28224001611973
-
-    ::
-
-        sage: P1 = plot([solnx,solny],(0,1))
-        sage: P2 = parametric_plot((solnx,solny),(0,1))
-
-    Now type show(P1), show(P2) to view these.
-
-
-    AUTHORS:
-
-    - David Joyner (3-2006, 8-2007)
-    """
-    d = len(des)
-    dess = [de._maxima_init_() + "=0" for de in des]
-    for i in range(d):
-        cmd="de:" + dess[int(i)] + ";"
-        maxima.eval(cmd)
-    desstr = "[" + ",".join(dess) + "]"
-    d = len(vars)
-    varss = list("'" + vars[i] + "(_SAGE_VAR_" + vars[0] + ")" for i in range(1,d))
-    varstr = "[" + ",".join(varss) + "]"
-    if ics is not None:
-        #d = len(ics) ## must be same as len(des)
-        for i in range(1,d):
-            ic = "atvalue('" + vars[i] + "(_SAGE_VAR_"+vars[0] + ")," + "_SAGE_VAR_"\
-             + str(vars[0]) + "=" + str(ics[0]) + "," + str(ics[i]) + ")"
-            maxima.eval(ic)
-    cmd = "desolve(" + desstr + "," + varstr + ");"
-    soln = maxima(cmd)
-    return [f.rhs()._maxima_init_().replace("_SAGE_VAR_"+vars[0],vars[0]) for f in soln]
 
 @rename_keyword(deprecation=6094, method="algorithm")
 def eulers_method(f,x0,y0,h,x1,algorithm="table"):
@@ -1174,7 +1121,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
 
         sage: x,y=var('x y')
         sage: desolve_rk4(x*y*(2-y),y,ics=[0,1],end_points=1,step=0.5)
-        [[0, 1], [0.5, 1.12419127425], [1.0, 1.46159016229]]
+        [[0, 1], [0.5, 1.12419127424558], [1.0, 1.461590162288825]]
 
     Variant 1 for input - we can pass ODE in the form used by
     desolve function In this example we integrate bakwards, since
@@ -1182,7 +1129,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
 
         sage: y=function('y',x)
         sage: desolve_rk4(diff(y,x)+y*(y-1) == x-2,y,ics=[1,1],step=0.5, end_points=0)
-        [[0.0, 8.90425710896], [0.5, 1.90932794536], [1, 1]]
+        [[0.0, 8.904257108962112], [0.5, 1.909327945361535], [1, 1]]
 
     Here we show how to plot simple pictures. For more advanced
     aplications use list_plot instead. To see the resulting picture
@@ -1566,3 +1513,207 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         mxhnil=mxhnil, mxordn=mxordn, mxords=mxords, printmessg=printmessg)
 
     return sol
+
+def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16):
+    r"""
+    Solve numerically a system of first order differential equations using the
+    taylor series integrator implemented in mintides.
+
+    INPUT:
+
+    - ``f`` -- symbolic function. Its first argument will be the independent
+      variable. Its output should be de derivatives of the deppendent variables.
+
+    - ``ics`` -- a list or tuple with the initial conditions.
+
+    - ``initial`` -- the starting value for the independent variable.
+
+    - ``final`` -- the final value for the independent value.
+
+    - ``delta`` -- the size of the steps in the output.
+
+    - ``tolrel`` -- the relative tolerance for the method.
+
+    - ``tolabs`` -- the absolute tolerance for the method.
+
+
+    OUTPUT:
+
+    - A list  with the positions of the IVP.
+
+
+    EXAMPLES:
+
+    We integrate a periodic orbit of the Kepler problem along 50 periods::
+
+        sage: var('t,x,y,X,Y')
+        (t, x, y, X, Y)
+        sage: f(t,x,y,X,Y)=[X, Y, -x/(x^2+y^2)^(3/2), -y/(x^2+y^2)^(3/2)]
+        sage: ics = [0.8, 0, 0, 1.22474487139159]
+        sage: t = 100*pi
+        sage: sol = desolve_mintides(f, ics, 0, t, t, 1e-12, 1e-12) # optional -tides
+        sage: sol # optional -tides # abs tol 1e-5
+        [[0.000000000000000,
+        0.800000000000000,
+        0.000000000000000,
+        0.000000000000000,
+        1.22474487139159],
+        [314.159265358979,
+        0.800000000028622,
+        -5.91973525754241e-9,
+        7.56887091890590e-9,
+        1.22474487136329]]
+
+
+    ALGORITHM:
+
+    Uses TIDES.
+
+    REFERENCES:
+
+    - A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
+      Transactions on Mathematical Software* , *39* (1), 1-28.
+
+    - (http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
+      A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
+      TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
+    """
+    import subprocess
+    if subprocess.call('command -v gcc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
+        raise RuntimeError('Unable to run because gcc cannot be found')
+    from sage.misc.misc import SAGE_ROOT
+    from sage.interfaces.tides import genfiles_mintides
+    from sage.misc.temporary_file import tmp_dir
+    tempdir = tmp_dir()
+    intfile = os.path.join(tempdir, 'integrator.c')
+    drfile = os.path.join(tempdir ,'driver.c')
+    fileoutput = os.path.join(tempdir, 'output')
+    runmefile = os.path.join(tempdir, 'runme')
+    genfiles_mintides(intfile, drfile, f, map(N, ics), N(initial), N(final), N(delta), N(tolrel),
+                     N(tolabs), fileoutput)
+    subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
+                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' -lm  -O2 ' +
+                          os.path.join('-I$SAGE_ROOT','local','include ') + os.path.join('-L$SAGE_ROOT','local','lib '),
+                          shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.check_call(os.path.join(tempdir, 'runme'), shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    outfile = open(fileoutput)
+    res = outfile.readlines()
+    outfile.close()
+    for i in range(len(res)):
+        l=res[i]
+        l = l.split(' ')
+        l = filter(lambda a: len(a) > 2, l)
+        res[i] = map(RealField(),l)
+    shutil.rmtree(tempdir)
+    return res
+
+
+def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16, digits=50):
+    r"""
+    Solve numerically a system of first order differential equations using the
+    taylor series integrator in arbitrary precission implemented in tides.
+
+    INPUT:
+
+    - ``f`` -- symbolic function. Its first argument will be the independent
+      variable. Its output should be de derivatives of the deppendent variables.
+
+    - ``ics`` -- a list or tuple with the initial conditions.
+
+    - ``initial`` -- the starting value for the independent variable.
+
+    - ``final`` -- the final value for the independent value.
+
+    - ``delta`` -- the size of the steps in the output.
+
+    - ``tolrel`` -- the relative tolerance for the method.
+
+    - ``tolabs`` -- the absolute tolerance for the method.
+
+    - ``digits`` -- the digits of precission used in the computation.
+
+
+    OUTPUT:
+
+    - A list  with the positions of the IVP.
+
+
+    EXAMPLES:
+
+    We integrate the Lorenz equations with Salztman values for the parameters
+    along 10 periodic orbits with 100 digits of precission::
+
+        sage: var('t,x,y,z')
+        (t, x, y, z)
+        sage: s = 10
+        sage: r = 28
+        sage: b = 8/3
+        sage: f(t,x,y,z)= [s*(y-x),x*(r-z)-y,x*y-b*z]
+        sage: x0 = -13.7636106821342005250144010543616538641008648540923684535378642921202827747268115852940239346395038284
+        sage: y0 = -19.5787519424517955388380414460095588661142400534276438649791334295426354746147526415973165506704676171
+        sage: z0 = 27
+        sage: T = 15.586522107161747275678702092126960705284805489972439358895215783190198756258880854355851082660142374
+        sage: sol = desolve_tides_mpfr(f, [x0, y0, z0],0 , T, T, 1e-100, 1e-100, 100) # optional - tides
+        sage: sol # optional -tides # abs tol 1e-50
+        [[0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+        -13.7636106821342005250144010543616538641008648540923684535378642921202827747268115852940239346395038,
+        -19.5787519424517955388380414460095588661142400534276438649791334295426354746147526415973165506704676,
+        27.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000],
+        [15.5865221071617472756787020921269607052848054899724393588952157831901987562588808543558510826601424,
+        -13.7636106821342005250144010543616538641008648540923684535378642921202827747268115852940239346315658,
+        -19.5787519424517955388380414460095588661142400534276438649791334295426354746147526415973165506778440,
+        26.9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999636628]]
+
+
+    ALGORITHM:
+
+    Uses TIDES.
+
+
+    .. WARNING::
+
+        This requires the package tides.
+
+
+    REFERENCES:
+
+    .. A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
+       Transactions on Mathematical Software* , *39* (1), 1-28.
+
+    .. (http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
+       A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
+       TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
+
+    """
+    import subprocess
+    if subprocess.call('command -v gcc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
+        raise RuntimeError('Unable to run because gcc cannot be found')
+    from sage.misc.misc import SAGE_ROOT
+    from sage.interfaces.tides import genfiles_mpfr
+    from sage.functions.other import ceil
+    from sage.functions.log import log
+    from sage.misc.temporary_file import tmp_dir
+    tempdir = tmp_dir()
+    intfile = os.path.join(tempdir, 'integrator.c')
+    drfile = os.path.join(tempdir, 'driver.c')
+    fileoutput = os.path.join(tempdir, 'output')
+    runmefile = os.path.join(tempdir, 'runme')
+    genfiles_mpfr(intfile, drfile, f, ics, initial, final, delta, [], [],
+                      digits, tolrel, tolabs, fileoutput)
+    subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
+                          os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' -lmpfr -lgmp -lm  -O2 -w ' +
+                          os.path.join('-I$SAGE_ROOT','local','include ') + os.path.join('-L$SAGE_ROOT','local','lib '),
+                          shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.check_call(os.path.join(tempdir, 'runme'), shell=True,  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    outfile = open(fileoutput)
+    res = outfile.readlines()
+    outfile.close()
+    for i in range(len(res)):
+        l=res[i]
+        l = l.split(' ')
+        l = filter(lambda a: len(a) > 2, l)
+        res[i] = map(RealField(ceil(digits*log(10,2))),l)
+    shutil.rmtree(tempdir)
+    return res
+
+

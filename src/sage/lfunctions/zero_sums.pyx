@@ -1484,6 +1484,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
           is the actual analytic rank.
 
         - ``adaptive`` -- (default: True) Boolean
+
           - If True, the computation is first run with small and then
             successively larger Delta values up to max_Delta. If at any
             point the computed bound is 0 (or 1 when when root_number is -1
@@ -1493,6 +1494,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             Delta=max_Delta, and the resulting bound returned.
 
         - ``root_number`` -- (default: "compute") String or integer
+
           - ``"compute"`` -- the root number of self is computed and used to
             (possibly) lower ther analytic rank estimate by 1.
           - ``"ignore"`` -- the above step is omitted

@@ -1303,6 +1303,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         INPUT:
 
         - ``algorithm`` -- (default: 'pari'), String
+
           - ``'pari'`` -- use the PARI library function.
           - ``'sympow'`` -- use Watkins's program sympow
           - ``'rubinstein'`` -- use Rubinstein's L-function C++ program lcalc.
@@ -1457,6 +1458,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           value is the actual analytic rank.
 
         - ``adaptive`` -- (default: True) Boolean
+
           - ``True`` -- the computation is first run with small and then
             successively larger `\Delta` values up to max_Delta. If at any
             point the computed bound is 0 (or 1 when when root_number is -1
@@ -1470,6 +1472,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           can be done for curves whose (large) conductor has been precomputed.
 
         - ``root_number`` -- (default: "compute") String or integer
+
           - ``"compute"`` -- the root number of self is computed and used to
             (possibly) lower ther analytic rank estimate by 1.
           - ``"ignore"`` -- the above step is omitted

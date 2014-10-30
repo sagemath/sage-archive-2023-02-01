@@ -77,6 +77,7 @@ graphs.
     :meth:`~Graph.degree_constrained_subgraph` | Returns a degree-constrained subgraph.
     :meth:`~Graph.bridges` | Returns the list of all bridges.
     :meth:`~Graph.spanning_trees` | Returns the list of all spanning trees.
+    :meth:`~Graph.random_spanning_tree` | Returns a random spanning tree.
 
 **Clique-related methods:**
 
@@ -529,13 +530,12 @@ Methods
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.misc.superseded import deprecated_function_alias
-from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
 from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
+
 
 class Graph(GenericGraph):
     r"""
@@ -1362,39 +1362,36 @@ class Graph(GenericGraph):
                     break
             num_verts = data.nrows()
         elif format == 'incidence_matrix':
-            try:
-                positions = []
-                for c in data.columns():
-                    NZ = c.nonzero_positions()
-                    if len(NZ) == 1:
-                        if loops is None:
-                            loops = True
-                        elif not loops:
-                            msg += "There must be two nonzero entries (-1 & 1) per column."
-                            assert False
-                        positions.append((NZ[0], NZ[0]))
-                    elif len(NZ) != 2:
+            positions = []
+            for c in data.columns():
+                NZ = c.nonzero_positions()
+                if len(NZ) == 1:
+                    if loops is None:
+                        loops = True
+                    elif not loops:
                         msg += "There must be two nonzero entries (-1 & 1) per column."
-                        assert False
-                    else:
-                        positions.append(tuple(NZ))
-                    L = sorted(uniq(c.list()))
+                        raise ValueError(msg)
+                    positions.append((NZ[0], NZ[0]))
+                elif len(NZ) != 2:
+                    msg += "There must be two nonzero entries (-1 & 1) per column."
+                    raise ValueError(msg)
+                else:
+                    positions.append(tuple(NZ))
+                L = sorted(uniq(c.list()))
 
-                    if data.nrows() != (2 if len(NZ) == 2 else 1):
-                        desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
-                    else:
-                        desirable = [-1, 1] if len(NZ) == 2 else [1]
+                if data.nrows() != (2 if len(NZ) == 2 else 1):
+                    desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
+                else:
+                    desirable = [-1, 1] if len(NZ) == 2 else [1]
 
-                    if L != desirable:
-                        msg += "Each column represents an edge: -1 goes to 1."
-                        assert False
-                if loops      is None: loops     = False
-                if weighted   is None: weighted  = False
-                if multiedges is None:
-                    total = len(positions)
-                    multiedges = (  len(uniq(positions)) < total  )
-            except AssertionError:
-                raise ValueError(msg)
+                if L != desirable:
+                    msg += "Each column represents an edge: -1 goes to 1."
+                    raise ValueError(msg)
+            if loops      is None: loops     = False
+            if weighted   is None: weighted  = False
+            if multiedges is None:
+                total = len(positions)
+                multiedges = (  len(uniq(positions)) < total  )
             num_verts = data.nrows()
         elif format == 'Graph':
             if loops is None: loops = data.allows_loops()
@@ -1841,8 +1838,11 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
-            -- counts the number of spanning trees.
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+              -- counts the number of spanning trees.
+
+            - :meth:`~sage.graphs.graph.Graph.random_spanning_tree`
+              -- returns a random spanning tree.
 
         REFERENCES:
 
@@ -1891,11 +1891,11 @@ class Graph(GenericGraph):
 
                 return trees
 
-        if self.is_connected():
+        if self.is_connected() and len(self):
             forest = Graph([])
             forest.add_vertices(self.vertices())
             forest.add_edges(self.bridges())
-            return _recursive_spanning_trees(self,forest)
+            return _recursive_spanning_trees(self, forest)
         else:
             return []
 
@@ -2506,7 +2506,7 @@ class Graph(GenericGraph):
             ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
         """
         if algorithm=='bitset':
-            from sage.misc.bitset import Bitset
+            from sage.data_structures.bitset import Bitset
             N = self.num_verts()
             map = {}
             i = 0
@@ -3165,7 +3165,7 @@ class Graph(GenericGraph):
             sage: P.is_semi_symmetric()
             False
 
-        The Gray graph is the smallest possible semi-symmetric graph::
+        The Gray graph is the smallest possible cubic semi-symmetric graph::
 
             sage: G = graphs.GrayGraph()
             sage: G.is_semi_symmetric()
@@ -4842,6 +4842,13 @@ class Graph(GenericGraph):
 
             sage: graphs.PetersenGraph().to_directed()
             Petersen graph: Digraph on 10 vertices
+
+        TESTS:
+
+        Immutable graphs yield immutable graphs::
+
+            sage: Graph([[1, 2]], immutable=True).to_directed()._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
         """
         if sparse is not None:
             if data_structure is not None:
@@ -4859,10 +4866,13 @@ class Graph(GenericGraph):
             else:
                 data_structure = "static_sparse"
         from sage.graphs.all import DiGraph
-        D = DiGraph(name=self.name(), pos=self._pos, boundary=self._boundary,
+        D = DiGraph(name=self.name(),
+                    pos=self._pos,
+                    boundary=self._boundary,
                     multiedges=self.allows_multiple_edges(),
-                    implementation=implementation, data_structure=data_structure)
-        D.name(self.name())
+                    implementation=implementation,
+                    data_structure=data_structure if data_structure!="static_sparse" else "sparse")
+
         D.add_vertices(self.vertex_iterator())
         for u,v,l in self.edge_iterator():
             D.add_edge(u,v,l)
@@ -4871,6 +4881,10 @@ class Graph(GenericGraph):
             from copy import copy
             D._embedding = copy(self._embedding)
         D._weighted = self._weighted
+
+        if data_structure == "static_sparse":
+            D=D.copy(data_structure=data_structure)
+
         return D
 
     def to_undirected(self):
@@ -5285,8 +5299,6 @@ class Graph(GenericGraph):
             return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
         else:
             raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
-
-    cliques = deprecated_function_alias(5739, cliques_maximal)
 
     def clique_maximum(self,  algorithm="Cliquer"):
         """
@@ -6355,7 +6367,7 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-        - :meth:`is_prime` -- Tests whether a graph is prime.
+            - :meth:`is_prime` -- Tests whether a graph is prime.
 
         REFERENCE:
 
@@ -6877,6 +6889,9 @@ Graph.matching_polynomial = types.MethodType(sage.graphs.matchpoly.matching_poly
 import sage.graphs.cliquer
 Graph.cliques_maximum = types.MethodType(sage.graphs.cliquer.all_max_clique, None, Graph)
 
+import sage.graphs.spanning_tree
+Graph.random_spanning_tree = types.MethodType(sage.graphs.spanning_tree.random_spanning_tree, None, Graph)
+
 import sage.graphs.graph_decompositions.graph_products
 Graph.is_cartesian_product = types.MethodType(sage.graphs.graph_decompositions.graph_products.is_cartesian_product, None, Graph)
 
@@ -6893,33 +6908,3 @@ Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 from sage.graphs.tutte_polynomial import tutte_polynomial
 Graph.tutte_polynomial = tutte_polynomial
 
-
-def compare_edges(x, y):
-    """
-    This function has been deprecated.
-
-    Compare edge x to edge y, return -1 if x y, 1 if x y, else 0.
-
-    TEST::
-
-        sage: G = graphs.PetersenGraph()
-        sage: E = G.edges()
-        sage: from sage.graphs.graph import compare_edges
-        sage: compare_edges(E[0], E[2])
-        doctest:...: DeprecationWarning: compare_edges(x,y) is deprecated.  Use statement 'cmp(x[1],y[1]) or cmp(x[0],y[0])' instead.
-        See http://trac.sagemath.org/13192 for details.
-        -1
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13192, "compare_edges(x,y) is deprecated.  Use statement 'cmp(x[1],y[1]) or cmp(x[0],y[0])' instead.")
-    if x[1] < y[1]:
-        return -1
-    elif x[1] > y[1]:
-        return 1
-    elif x[1] == y[1]:
-        if x[0] < y[0]:
-            return -1
-        if x[0] > y[0]:
-            return 1
-        else:
-            return 0

@@ -52,10 +52,12 @@ from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/ext/random.pxi"
+include "sage/ext/gmp.pxi"
 
+from sage.libs.gmp.types cimport mpq_t
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_mat cimport *
 cimport sage.structure.element
 
 from sage.structure.sequence import Sequence
@@ -604,7 +606,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * denom(self):
     # x * mpz_denom(self, mpz_t d):
     # x * _clear_denom(self):
-    # x * _multiply_multi_modular(self, Matrix_rational_dense right):
     # o * echelon_modular(self, height_guess=None):
     ########################################################################
     def __invert__(self):
@@ -874,7 +875,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         from sage.matrix.matrix_space import MatrixSpace
         MZ = MatrixSpace(ZZ, self._nrows, self._ncols, sparse=self.is_sparse())
         A =  Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, None, None, None)
-        fmpz_mat_init(A._matrix,self._nrows,self._ncols)
         sig_on()
         for i from 0 <= i < self._nrows:
             self_row = self._matrix[i]
@@ -885,7 +885,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 fmpz_set_mpz(fmpz_mat_entry(A._matrix,i,j),tmp)
                 self_row += 1
         sig_off()
-        A._initialized = 1
         self.cache('clear_denom', (A,D))
         fmpz_clear(aij)
         mpz_clear(tmp)

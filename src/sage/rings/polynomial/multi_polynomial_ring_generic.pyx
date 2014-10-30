@@ -1189,6 +1189,21 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         poly_quo = poly_num.quo_rem(poly_denom)[0]
         return U(poly_quo(0))
 
+    def weyl_algebra(self):
+        """
+        Return the Weyl algebra generated from ``self``.
+
+        EXAMPLES::
+
+            sage: R = QQ['x,y,z']
+            sage: W = R.weyl_algebra(); W
+            Differential Weyl algebra of polynomials in x, y, z over Rational Field
+            sage: W.polynomial_ring() == R
+            True
+        """
+        from sage.algebras.weyl_algebra import DifferentialWeylAlgebra
+        return DifferentialWeylAlgebra(self)
+
 ####################
 # Leave *all* old versions!
 

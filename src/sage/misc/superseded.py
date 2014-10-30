@@ -93,8 +93,6 @@ def deprecation(trac_number, message):
     # the deprecated function which called this function.
     warn(message, DeprecationWarning, stacklevel=3)
 
-
-
 class DeprecatedFunctionAlias(object):
     """
     A wrapper around methods or functions which automatically print
@@ -350,5 +348,7 @@ def deprecated_callable_import(trac_number, module_name, globs, locs, fromlist, 
             from sage.misc.superseded import deprecation
             deprecation(trac_number, message%{'name': name, 'module_name': module_name})
             return func(*args, **kwds)
-        globs[name] = sage_wraps(func)(partial(wrapper, func, name))
+        wrapped_function = sage_wraps(func)(partial(wrapper, func, name))
+        wrapped_function.__doc__ = message%{'name': name, 'module_name': module_name}
+        globs[name] = wrapped_function
     del name

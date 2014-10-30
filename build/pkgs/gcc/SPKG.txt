@@ -23,7 +23,3 @@ http://gcc.gnu.org/
  * MPFR
  * MPC
 
-== Special Update/Build Instructions ==
-
-* Lots of stuff can be removed, run ./spkg-src to do this automatically
-  (after downloading the sources).

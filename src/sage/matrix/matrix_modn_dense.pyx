@@ -94,11 +94,13 @@ TESTS::
     []
 """
 
-
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/random.pxi'
+include 'sage/ext/cdefs.pxi'
+
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_mat cimport *
+from sage.misc.randstate cimport randstate, current_randstate
 from cpython.string cimport *
 
 cimport sage.rings.fast_arith

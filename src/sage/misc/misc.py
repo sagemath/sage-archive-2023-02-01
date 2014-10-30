@@ -99,7 +99,7 @@ def sage_makedirs(dir):
 sage_makedirs(DOT_SAGE)
 
 _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
-_desired_mode = 040700     # drwx------
+_desired_mode = 0o40700     # drwx------
 if _mode != _desired_mode:
     print("Setting permissions of DOT_SAGE directory so only you can read and write it.")
     # Change mode of DOT_SAGE.

@@ -61,7 +61,7 @@ cdef extern from "zn_poly/zn_poly.h":
     cdef void zn_mod_clear(zn_mod_struct *mod)
     cdef void zn_array_mul(unsigned long* res, unsigned long* op1, size_t n1, unsigned long* op2, size_t n2, zn_mod_struct *mod)
 
-include "sage/libs/flint/fmpz_poly.pxi"
+from sage.libs.flint.fmpz_poly cimport *
 
 cdef class Polynomial_zmod_flint(Polynomial_template):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):

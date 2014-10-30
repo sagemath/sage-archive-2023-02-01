@@ -595,51 +595,51 @@ cdef class FrozenBitset:
             sage: F < None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: F <= None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: F > None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: F >= None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: F == None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: F != None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None < F
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None <= F
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None > F
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None >= F
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None == F
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None != F
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
         """
         cdef FrozenBitset left, right
 
@@ -944,7 +944,7 @@ cdef class FrozenBitset:
             sage: FrozenBitset('10101') | None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None | FrozenBitset('10101')
             Traceback (most recent call last):
             ...
@@ -1014,7 +1014,7 @@ cdef class FrozenBitset:
             sage: FrozenBitset("101011") & None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None & FrozenBitset("101011")
             Traceback (most recent call last):
             ...
@@ -1083,7 +1083,7 @@ cdef class FrozenBitset:
             sage: FrozenBitset('10101') - None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None - FrozenBitset('10101')
             Traceback (most recent call last):
             ...
@@ -1156,7 +1156,7 @@ cdef class FrozenBitset:
             sage: FrozenBitset('11111' * 10) ^^ None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None ^^ FrozenBitset('11111' * 10)
             Traceback (most recent call last):
             ...
@@ -1337,51 +1337,51 @@ cdef class Bitset(FrozenBitset):
             sage: Bitset('11') < None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: Bitset('11') <= None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: Bitset('11') > None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: Bitset('11') >= None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: Bitset('11') == None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: Bitset('11') != None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None < Bitset('11')
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None <= Bitset('11')
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None > Bitset('11')
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None >= Bitset('11')
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None == Bitset('11')
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
             sage: None != Bitset('11')
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
         """
         cdef FrozenBitset left, right
 
@@ -1484,7 +1484,7 @@ cdef class Bitset(FrozenBitset):
             sage: a |= None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
         """
         self.update(other)
         return self
@@ -1553,7 +1553,7 @@ cdef class Bitset(FrozenBitset):
             sage: a &= None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
         """
         self.intersection_update(other)
         return self
@@ -1650,7 +1650,7 @@ cdef class Bitset(FrozenBitset):
             sage: a -= None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
         """
         self.difference_update(other)
         return self
@@ -1743,7 +1743,7 @@ cdef class Bitset(FrozenBitset):
             sage: a ^^= None
             Traceback (most recent call last):
             ...
-            TypeError: Argument 'other' has incorrect type (expected sage.misc.bitset.FrozenBitset, got NoneType)
+            TypeError: Argument 'other' has incorrect type (expected sage.data_structures.bitset.FrozenBitset, got NoneType)
         """
         self.symmetric_difference_update(other)
         return self
@@ -1906,7 +1906,7 @@ def test_bitset(py_a, py_b, long n):
 
     TESTS::
 
-        sage: from sage.misc.bitset import test_bitset
+        sage: from sage.data_structures.bitset import test_bitset
         sage: test_bitset('00101', '01110', 4)
         a 00101
         list a [2, 4]
@@ -2257,7 +2257,7 @@ def test_bitset_set_first_n(py_a, long n):
 
     TESTS::
 
-        sage: from sage.misc.bitset import test_bitset_set_first_n
+        sage: from sage.data_structures.bitset import test_bitset_set_first_n
         sage: test_bitset_set_first_n('00'*64, 128)
         a.set_first_n(n)    11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
 
@@ -2277,7 +2277,7 @@ def test_bitset_remove(py_a, long n):
 
     TESTS::
 
-        sage: from sage.misc.bitset import test_bitset_remove
+        sage: from sage.data_structures.bitset import test_bitset_remove
         sage: test_bitset_remove('01', 0)
         Traceback (most recent call last):
         ...
@@ -2309,7 +2309,7 @@ def test_bitset_pop(py_a):
 
     TESTS::
 
-        sage: from sage.misc.bitset import test_bitset_pop
+        sage: from sage.data_structures.bitset import test_bitset_pop
         sage: test_bitset_pop('0101')
         a.pop()   1
         new set:  0001
@@ -2342,7 +2342,7 @@ def test_bitset_unpickle(data):
 
     We compare 64-bit and 32-bit encoding. Both should unpickle on any system::
 
-        sage: from sage.misc.bitset import test_bitset_unpickle
+        sage: from sage.data_structures.bitset import test_bitset_unpickle
         sage: test_bitset_unpickle((0, 100, 2, 8, (33, 6001)))
         [0, 5, 64, 68, 69, 70, 72, 73, 74, 76]
         sage: test_bitset_unpickle((0, 100, 4, 4, (33, 0, 6001, 0)))

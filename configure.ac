@@ -289,18 +289,24 @@ fi
 # First check for programs we need.
 AC_LANG(C)
 AC_PROG_CC()
-if test "x$CC" = x
-then
-    AC_MSG_ERROR([Exiting, since a C compiler was not found.])
-fi
 AC_PROG_CPP()
+
+AC_LANG(C++)
 AC_PROG_CXX()
+
+AC_LANG(Fortran)
 AC_PROG_FC()
+
+if test "x$CXX" = x
+then
+    AC_MSG_ERROR([Exiting, since a C++ compiler was not found.])
+fi
+
 if test $enable_compiler_checks = yes
 then
-    if test "x$CXX" = x
+    if test "x$CC" = x
     then
-        AC_MSG_ERROR([Exiting, since a C++ compiler was not found.])
+        AC_MSG_ERROR([Exiting, since a C compiler was not found.])
     fi
     if test "x$FC" = x
     then
@@ -308,12 +314,9 @@ then
     fi
 fi
 
-# As suggested in the autoconf manual, the characteristics of the compilers
-# are checked later.
-
-
 # Next one should check for header files.
 # complex.h is one that might not exist on older systems.
+AC_LANG(C++)
 AC_CHECK_HEADER([complex.h],[],[
     AC_MSG_ERROR([Exiting, since you do not have the 'complex.h' header file.])
 ])
@@ -327,6 +330,7 @@ AC_CHECK_HEADER([complex.h],[],[
 # Next one should check for compiler characterists.
 
 # Check that we can compile C99 code
+AC_LANG(C)
 AC_PROG_CC_C99()
 if test $enable_compiler_checks = yes
 then
@@ -336,11 +340,12 @@ then
     fi
 fi
 
-# Check the Fortran compiler accepts free-format source code
+# Check that the Fortran compiler accepts free-format source code
 # (as opposed to the older fixed-format style from Fortran 77).
 # This helps verify the compiler works too, so if some idiot
 # sets FC to /usr/bin/ls, we will at least know it's
 # not a working Fortran compiler.
+AC_LANG(Fortran)
 if test $enable_compiler_checks = yes
 then
    # see http://www.gnu.org/software/hello/manual/autoconf/Fortran-Compiler.html
@@ -518,6 +523,7 @@ fi  # test $enable_compiler_checks = yes
 
 # Testing for library functions
 # First check for something that should be in any maths library (sqrt).
+AC_LANG(C++)
 AC_CHECK_LIB(m,sqrt,[],[
                        AC_MSG_NOTICE([This system has no maths library installed.])
                        # On AIX this is not installed by default - strange as that might seem.

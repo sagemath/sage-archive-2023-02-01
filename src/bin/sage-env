@@ -268,6 +268,11 @@ if [ `uname` = "Darwin" ]; then
     # #7095 for an example.
     MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
     MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
+    if [ $MACOSX_DEPLOYMENT_TARGET = '10.10' ]; then
+        # Workaround for the libtool version detection bug
+        # See http://trac.sagemath.org/ticket/17204
+        MACOSX_DEPLOYMENT_TARGET=10.9
+    fi
     export MACOSX_DEPLOYMENT_TARGET
 fi
 

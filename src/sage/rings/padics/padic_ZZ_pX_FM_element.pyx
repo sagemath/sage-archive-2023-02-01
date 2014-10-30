@@ -371,7 +371,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         self.prime_pow.restore_top_context()
         ZZX_to_ZZ_pX(self.value, poly)
 
-    cpdef bint _is_inexact_zero(self):
+    cpdef bint _is_inexact_zero(self) except -1:
         """
         Tests if ``self`` is an inexact zero.
 

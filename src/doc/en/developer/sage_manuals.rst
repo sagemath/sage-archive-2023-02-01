@@ -279,9 +279,13 @@ create a tutorial.
   command ``sage --sws2rst -h`` once you have installed beautifulsoup.)
 
 * In principle, such a file could be added directly to the documentation;
-  see :ref:`section-add-file`.  However, you probably want to check
-  whether it looks right first.  So next we will compile this file to
-  html documentation.
+  see :ref:`section-add-file`.  If you add it to one of the manuals or
+  thematic tutorial list, be sure to edit the ``toctree`` file as well,
+  and put the line ``.. _tutorial-name:`` at the start of your file with
+  the same listing as in the ``index.rst`` file.
+
+  However, you probably want to check whether it looks right first.  So
+  next we will compile this file to html documentation.
 
   * Following the instructions of ``sage --sws2rst --sphinxify``,
     we will open a Sage shell session, where all appropriate Sage

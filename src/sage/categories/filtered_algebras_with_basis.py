@@ -45,7 +45,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
     class ElementMethods:
         def is_homogeneous(self):
-            """
+            r"""
             Return whether ``self`` is homogeneous.
 
             An element `x` is homogeneous if `x \in F_i \setminus F_{i-1}`

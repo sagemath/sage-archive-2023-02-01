@@ -39,7 +39,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
         # be the elements of F of degree 3 or those whose index is of degree 3?
 
         def basis(self, d=None):
-            """
+            r"""
             Return the basis for (an homogeneous component of) ``self``.
 
             INPUT:
@@ -49,7 +49,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
             If ``d`` is ``None``, returns a basis of the module.
             Otherwise, returns the basis of the homogeneous component
-            of degree ``d`` (i.e., of ``F_d \setminus F_{d-1}``).
+            of degree ``d`` (i.e., of `F_d \setminus F_{d-1}`).
 
             EXAMPLES::
 
@@ -73,7 +73,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
     class ElementMethods:
 
         def is_homogeneous(self):
-            """
+            r"""
             Return whether ``self`` is homogeneous.
 
             An element `x` is homogeneous if `x \in F_i \setminus F_{i-1}`
@@ -103,7 +103,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             return True
 
         def degree(self):
-            """
+            r"""
             The degree of ``self`` in the filtered module.
 
             The degree of an element `x` is the value `i` such that

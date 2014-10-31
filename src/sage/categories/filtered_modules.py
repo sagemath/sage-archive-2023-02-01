@@ -1,7 +1,7 @@
 r"""
 Filtered modules
 
-We require all `F_i \setminus F_{i-1}` to be modules for all `i`.
+We require all `F_i / F_{i-1}` to be modules for all `i`.
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -168,7 +168,7 @@ class FilteredModules(FilteredModulesCategory):
 
             Get rid of this workaround once there is a more systematic
             approach for the alias ``Modules(QQ)`` -> ``VectorSpaces(QQ)``.
-            Probably the later should be a category with axiom, and
+            Probably the latter should be a category with axiom, and
             covariant constructions should play well with axioms.
         """
         from sage.categories.modules import Modules

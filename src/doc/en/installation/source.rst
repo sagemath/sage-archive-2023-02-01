@@ -60,11 +60,17 @@ General requirements
 This section details the technical prerequisites needed on all platforms. See
 also the `System-specific requirements`_ below.
 
+Disk space and memory
+^^^^^^^^^^^^^^^^^^^^^
+
 Your computer comes with at least 6 GB of free disk space running one of the
 supported versions of an operating system listed at
 http://wiki.sagemath.org/SupportedPlatforms.
 It is recommended to have at least 2 GB of RAM, but you might get away
 with less (be sure to have some swap space in this case).
+
+Command-line tools
+^^^^^^^^^^^^^^^^^^
 
 In addition to standard `POSIX <http://en.wikipedia.org/wiki/POSIX>`_ utilities
 and the `bash <http://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_ shell,
@@ -84,22 +90,30 @@ computer:
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
 
+Fortran and compiler suites
+###########################
+
 Sage also needs a Fortran compiler.
 The only configuration currently supported is matching versions of the
 C, C++ and Fortran compilers from the
 `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_.
 Therefore, if you plan on using your own GCC compilers, then make sure that
 their versions match.
+
 Alternatively, Sage includes a GCC package, so that C, C++ and Fortran
 compilers will be built when the build system detects that it is needed,
 e.g., non-GCC compilers, or
 versions of the GCC compilers known to miscompile some components of Sage,
 or simply a missing Fortran compiler.
-Whatsoever, you always need at least a C/C++ compiler to build the GCC package and
-its prerequisites before the compilers it provides can be used.
+In any case, you always need at least a C/C++ compiler to build the GCC
+package and its prerequisites before the compilers it provides can be used.
+
 Note that you can always override this behavior through the environment
 variable :envvar:`SAGE_INSTALL_GCC`, see :ref:`section_compilers` and
 :ref:`section_envvar`.
+
+Other notes
+^^^^^^^^^^^
 
 Although some of Sage is written in `Python <http://www.python.org/>`_, you do
 not need Python pre-installed on your computer, since the Sage installation
@@ -118,7 +132,7 @@ and inform you of any that are missing, or have unsuitable versions.
 System-specific requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-On Mac OS X, there are various developer tools needed which require
+On Mac OS X, there are various developer tools needed which may require
 some registration on Apple's developer site; see :ref:`section_macprereqs`.
 
 On recent Debian or Ubuntu systems, the **dpkg-dev** package is needed for

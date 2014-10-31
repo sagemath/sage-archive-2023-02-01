@@ -96,6 +96,15 @@ graphs. Here is what they can do
 
     :meth:`~DiGraph.feedback_edge_set` | Computes the minimum feedback edge (arc) set of a digraph
 
+**Miscellanous:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~DiGraph.flow_polytope` | Computes the flow polytope of a digraph
+
 Methods
 -------
 """
@@ -3468,3 +3477,7 @@ import types
 
 import sage.graphs.comparability
 DiGraph.is_transitive = types.MethodType(sage.graphs.comparability.is_transitive, None, DiGraph)
+
+# From Python modules
+import sage.graphs.line_graph
+DiGraph.flow_polytope = sage.graphs.flow_polytope.flow_polytope

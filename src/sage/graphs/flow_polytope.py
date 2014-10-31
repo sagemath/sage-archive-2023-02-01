@@ -1,14 +1,5 @@
 r"""
-Procedure to compute the flow polytope of a directed graph.
-
-Flow polytopes of a directed graph is a polytope formed by
-assigning a nonnegative flow to each of edges of the graph such that
-the flow is conserved on internal vertices, and there is a unit of
-flow entering the sources and leaving the sinks.
-
-The faces and volume of these polytopes are of interest. Examples of
-these polytopes are the Chan-Robbins-Yuen polytope and the
-Pitman-Stanley polytope.
+Flow polytopes of directed graphs.
 """
 from sage.rings.integer_ring import ZZ
 
@@ -17,13 +8,21 @@ def flow_polytope(G):
     """
     Return the flow polytope of `G`
 
+    The flow polytope of a directed graph is a polytope formed by
+    assigning a nonnegative flow to each of the edges of the graph such that
+    the flow is conserved on internal vertices, and there is a unit of
+    flow entering the sources and leaving the sinks.
+
+    The faces and volume of these polytopes are of interest. Examples of
+    these polytopes are the Chan-Robbins-Yuen polytope and the
+    Pitman-Stanley polytope.
+
     EXAMPLES:
 
     A commutative square::
 
-        sage: from sage.graphs.flow_polytope import flow_polytope
         sage: G = DiGraph({1:[2,3],2:[4],3:[4]})
-        sage: fl = flow_polytope(G); fl
+        sage: fl = G.flow_polytope(); fl
         A 1-dimensional polyhedron in QQ^4 defined as the convex hull
         of 2 vertices
         sage: fl.vertices()
@@ -32,7 +31,7 @@ def flow_polytope(G):
     A tournament on 4 vertices::
 
         sage: H = digraphs.TransitiveTournament(4)
-        sage: fl = flow_polytope(H); fl
+        sage: fl = H.flow_polytope(); fl
         A 3-dimensional polyhedron in QQ^6 defined as the convex hull
         of 4 vertices
         sage: fl.vertices()
@@ -42,7 +41,7 @@ def flow_polytope(G):
          A vertex at (1, 0, 0, 1, 0, 1))
     """
     from sage.geometry.polyhedron.constructor import Polyhedron
-    ineqs = [[0] + [ZZ(j==u) for j in G.edges()]
+    ineqs = [[0] + [ZZ(j == u) for j in G.edges()]
              for u in G.edges()]
 
     eqs = []

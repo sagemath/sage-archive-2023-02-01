@@ -4713,12 +4713,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: psi_1.overlaps(-RIF.euler_constant()) # optional - arb
             True
         """
-        if is_package_installed('arb'):
+        try:
             from sage.rings.real_arb import RealBallElement
-            return RealBallElement(self).psi().RealIntervalFieldElement()
-        else:
+        except ImportError:
             raise TypeError("The optional arb package is not installed. "
                             "Consider installing it via 'sage -i arb'")
+        return RealBallElement(self).psi().RealIntervalFieldElement()
 
 # MPFI does not have: agm, erf, gamma, zeta
 #     def agm(self, other):

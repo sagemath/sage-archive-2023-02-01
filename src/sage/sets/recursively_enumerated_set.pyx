@@ -137,7 +137,7 @@ graded, it may have other structure like not containing oriented cycle but
 this does not help for enumeration.
 
 In this example, the seed is 0 and the successor function is either ``+2``
-or ``+3``. This is the set of non negative linear combinaisons of 2 and 3::
+or ``+3``. This is the set of non negative linear combinations of 2 and 3::
 
     sage: succ = lambda a:[a+2,a+3]
     sage: C = RecursivelyEnumeratedSet([0], succ)

@@ -321,6 +321,19 @@ class NormalFormGame(SageObject, MutableMapping):
         ...
         ValueError: utilities have not been populated
 
+    Here we populate the missing utilities::
+
+        sage: f[2, 1] = [5, 3]
+        sage: f[2, 0] = [2, 1]
+        sage: f.payoff_matrices()
+        (
+        [1 2]  [3 3]
+        [3 4]  [1 4]
+        [2 5], [1 3]
+        )
+        sage: f.obtain_Nash()
+        [[(0, 0, 1), (0, 1)]]
+
     We can use the same syntax as above to create games with more than 2 players::
 
         sage: threegame = NormalFormGame()
@@ -426,6 +439,22 @@ class NormalFormGame(SageObject, MutableMapping):
         [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
         sage: degenerate_game.obtain_Nash(algorithm='enumeration')
         [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+
+    Here is an example with the trivial game where all payoffs are 0::
+
+        sage: g = NormalFormGame()
+        sage: g.add_player(3)
+        sage: g.add_player(3)
+        sage: for key in g:
+        ....:     g[key] = [0, 0]
+        sage: g.payoff_matrices()
+        (
+        [0 0 0]  [0 0 0]
+        [0 0 0]  [0 0 0]
+        [0 0 0], [0 0 0]
+        )
+        sage: g.obtain_Nash()
+        [[(1, 0, 0), (1, 0, 0)], [(0, 1, 0), (0, 1, 0)], [(0, 0, 1), (0, 0, 1)]]
 
     A good description of degenerate games can be found in [NN2007]_.
 

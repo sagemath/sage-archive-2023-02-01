@@ -595,12 +595,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def __len__(self):
         r"""
-        This method is one of a collection that aims to make a game
-        instance behave like a dictionary which can be used if a game
-        is to be generated without using a matrix.
-
-        Method is needed to make an instance of Normal Form Game
-        behave like a dictionary. Here we return the length of the
+        Here we return the length of the
         game to be the length of the utilities::
 
             sage: A = matrix([[2, 5], [0, 4]])

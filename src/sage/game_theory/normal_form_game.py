@@ -585,11 +585,11 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: B = matrix([[2, 0], [5, 4]])
             sage: prisoners_dilemma = NormalFormGame([A, B])
             sage: for key in prisoners_dilemma:
-            ....:     print key
-            (0, 1)
-            (1, 0)
-            (0, 0)
-            (1, 1)
+            ....:     print "The strategy pair {} gives utilities {}".format(key, prisoners_dilemma[key])
+            The strategy pair (0, 1) gives utilities [5, 0]
+            The strategy pair (1, 0) gives utilities [0, 5]
+            The strategy pair (0, 0) gives utilities [2, 2]
+            The strategy pair (1, 1) gives utilities [4, 4]
         """
         return iter(self.utilities)
 

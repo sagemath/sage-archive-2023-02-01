@@ -924,22 +924,22 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
-        A game with 2 equilibria when ``maximization`` is ``True`` and 3 when
+        A game with 1 equilibria when ``maximization`` is ``True`` and 3 when
         ``maximization`` is ``False``::
 
-            sage: A = matrix([[160, 205, 44],
-            ....:       [175, 180, 45],
-            ....:       [201, 204, 50],
-            ....:       [120, 207, 49]])
-            sage: B = matrix([[2, 2, 2],
-            ....:             [1, 0, 0],
+            sage: A = matrix([[10, 500, 44],
+            ....:       [15, 10, 105],
+            ....:       [19, 204, 55],
+            ....:       [20, 200, 590]])
+            sage: B = matrix([[2, 1, 2],
+            ....:             [0, 5, 6],
             ....:             [3, 4, 1],
-            ....:             [4, 1, 2]])
+            ....:             [4, 1, 20]])
             sage: g=NormalFormGame([A, B])
             sage: g.obtain_Nash(algorithm='lrs') # optional - lrs
-            [[(0, 0, 3/4, 1/4), (1/28, 27/28, 0)]]
+            [[(0, 0, 0, 1), (0, 0, 1)]]
             sage: g.obtain_Nash(algorithm='lrs', maximization=False) # optional - lrs
-            [[(1, 0, 0, 0), (127/1212, 115/1212, 485/606)], [(0, 1, 0, 0), (0, 1/26, 25/26)]]
+            [[(2/3, 1/12, 1/4, 0), (6333/8045, 247/8045, 293/1609)], [(3/4, 0, 1/4, 0), (0, 11/307, 296/307)], [(5/6, 1/6, 0, 0), (98/99, 1/99, 0)]]
 
         This particular game has 3 Nash equilibria::
 

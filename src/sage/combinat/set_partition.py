@@ -1427,28 +1427,19 @@ class SetPartitions_setparts(SetPartitions_set):
 
             sage: all((len(SetPartitions(size, part)) == SetPartitions(size, part).cardinality() for size in xrange(8) for part in Partitions(size)))
             True
-
+            sage: sum((SetPartitions(13, p).cardinality() for p in Partitions(13))) == SetPartitions(13).cardinality()
+            True
         """
-        from sage.rings.arith import binomial
-        from sage.rings.arith import factorial
-        set_size = len(self._set)
-        sum_subset_size = 0
-        last_subset_size = 0
-        count = 1
-        cardinal = 1
-        for subset_size in self.parts:
-            if not last_subset_size == subset_size:
-                # we divide the cardinal by the number of ways to
-                # order the blocks having the same size.
-                cardinal /= factorial(count)
-                count = 1
-                last_subset_size = subset_size
-            else:
-                count += 1
-            cardinal *= binomial(set_size - sum_subset_size, subset_size)
-            sum_subset_size += subset_size
+        from sage.misc.misc_c import prod
 
-        cardinal /= factorial(count)
+        remaining_subset_size = Integer(len(self._set))
+        cardinal = Integer(1)
+        for subset_size in self.parts:
+            cardinal *= remaining_subset_size.binomial(subset_size)
+            remaining_subset_size -= subset_size
+
+        repetitions = (Integer(rep).factorial() for rep in self.parts.to_exp_dict().values() if rep != 1)
+        cardinal /= prod(repetitions)
         return Integer(cardinal)
 
     def __iter__(self):

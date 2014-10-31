@@ -734,7 +734,6 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES ::
 
-
             sage: p1 = matrix([[1, 2], [3, 4]])
             sage: p2 = matrix([[3, 3], [1, 4]])
             sage: g = NormalFormGame([p1, p2])
@@ -743,6 +742,37 @@ class NormalFormGame(SageObject, MutableMapping):
             [1 2]  [3 3]
             [3 4], [1 4]
             )
+
+        If we create a game with 3 players we will not be able to
+        obtain payoff matrices::
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(2)
+            sage: g.add_player(2)
+            sage: g.add_player(2)
+            sage: g.payoff_matrices()
+            Traceback (most recent call last):
+            ...
+            ValueError: Only available for 2 player games
+
+        If we do create a two player game but it is not complete
+        then an error is also raised::
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(1)
+            sage: g.add_player(1)
+            sage: g.payoff_matrices()
+            Traceback (most recent call last):
+            ...
+            ValueError: utilities have not been populated
+
+        The above creates a 2 player game where each player has
+        a single strategy. Here we populate the strategies and
+        can then view the payoff matrices::
+
+            sage: g[0, 0] = [1,2]
+            sage: g.payoff_matrices()
+            ([1], [2])
         """
         if len(self.players) != 2:
             raise ValueError("Only available for 2 player games")

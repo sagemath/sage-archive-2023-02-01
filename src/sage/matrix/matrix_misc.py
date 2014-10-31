@@ -19,6 +19,7 @@ Miscellaneous matrix functions
 #*****************************************************************************
 
 from sage.categories.fields import Fields
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 _Fields = Fields()
 
 def row_iterator(A):
@@ -199,3 +200,138 @@ def weak_popov_form(M,ascend=True):
 
     # return reduced matrix and operations matrix
     return (matrix(r)/den, matrix(N), d)
+
+def _prm_mul(p1, p2, free_vars_indices, K):
+    p = {}
+    mask_free = 0
+    one = int(1)
+    for i in free_vars_indices:
+        mask_free += one << i
+    if not p2:
+        return p
+    get = p.get
+    for exp1, v1 in p1.iteritems():
+        for exp2, v2 in p2.items():
+            if exp1 & exp2:
+                continue
+            exp = exp1 | exp2
+            v = v1*v2
+            if exp & mask_free:
+                for i in free_vars_indices:
+                    #print 'DB14 exp=%s i=%s' %(exp, i)
+                    if exp & (one << i):
+                        exp = exp.__xor__(one << i)
+                        #print 'DB14b exp=%s' % exp
+            p[exp] = get(exp, K.zero()) + v
+    return p
+
+
+def _is_free_var(i, k, m):
+    """
+    i  current row
+    k  index of the variable
+    m  matrix as a list of lists
+    returns true if the variable `k` does not occur from row `i` on
+    """
+    for j in range(i, len(m)):
+        if m[j][k] != 0:
+            return False
+    return True
+
+def permanental_minor_vector(m, permanent_only=False):
+    """
+    Return the polynomial of the sums of permanental minors of a matrix `m`
+    in array form.
+
+    The polynomial of the sums of permanental minors is
+
+    .. MATH::
+
+    \sum_0^{min(nrows, ncols)} p_i(m) x^i
+
+    where `p_i(m) = m.permanental_minor(i)`
+
+
+    INPUT:
+
+     - `m` - matrix
+
+     - `permanent_only`  if True, only the permanent is computed
+
+    OUTPUT:
+
+    polynomial in array form; the last element of the array is the permanent.
+
+    EXAMPLES::
+
+        sage: from sage.matrix.matrix_misc import permanental_minor_vector
+        sage: m = matrix([[1,1],[1,2]])
+        sage: permanental_minor_vector(m)
+        [1, 5, 3]
+        sage: permanental_minor_vector(m, permanent_only=1)
+        3
+
+    ::
+
+        sage: from sage.matrix.matrix_misc import permanental_minor_vector
+        sage: M = MatrixSpace(ZZ,4,4)
+        sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
+        sage: permanental_minor_vector(A)
+        [1, 28, 114, 84, 0]
+
+    ::
+
+        sage: M = MatrixSpace(QQ,2,2)
+        sage: A = M([1/5,2/7,3/2,4/5])
+        sage: permanental_minor_vector(A, 1)
+        103/175
+
+    ::
+
+        sage: R.<a> = PolynomialRing(ZZ)
+        sage: A = MatrixSpace(R,2)([[a,1], [a,a+1]])
+        sage: permanental_minor_vector(A, 1)
+        a^2 + 2*a
+
+    REFERENCES:
+
+    P. Butera and M. Pernici
+    ``Sums of permanental minors using Grassmann algebra''
+    http://arxiv.org/abs/1406.5337
+    """
+    K = PolynomialRing(m.base_ring(), 'K')
+    m = list(m)
+    nrows = len(m)
+    ncols = len(m[0])
+    p = {int(0):K.one()}
+    t = K.gen()
+    done_vars = set()
+    one = int(1)
+    for i in range(nrows):
+        if permanent_only:
+            p1 = {}
+        else:
+            p1 = {int(0): K.one()}
+        a = m[i]
+        for j in range(len(a)):
+            if a[j]:
+                p1[one<<j] = a[j]*t
+        free_vars_indices = []
+        for j in range(ncols):
+            if j in done_vars:
+                continue
+            r = _is_free_var(i+1, j, m)
+            if r:
+                free_vars_indices.append(j)
+                done_vars.add(j)
+        p = _prm_mul(p, p1, free_vars_indices, K)
+    if not p:
+        return K.zero()
+    assert len(p) == 1
+    a = p[0].coeffs()
+    len_a = min(nrows, ncols) + 1
+    if len(a) < len_a:
+        a += [0]*(len_a - len(a))
+    if permanent_only:
+        return a[-1]
+    return a

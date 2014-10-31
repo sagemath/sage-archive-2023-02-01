@@ -900,7 +900,6 @@ cdef class Matrix(matrix1.Matrix):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
 
-
     def rook_vector(self, check = False):
         r"""
         Return the rook vector of the matrix ``self``.
@@ -952,7 +951,8 @@ cdef class Matrix(matrix1.Matrix):
         m = self._nrows
         n = self._ncols
         if not m <= n:
-            raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
+            raise ValueError("must have m <= n, but m (=%s) and n (=%s)"
+                             % (m, n))
 
         if check:
             # verify that self[i, j] in {0, 1}
@@ -960,12 +960,11 @@ cdef class Matrix(matrix1.Matrix):
                 for j in range(n):
                     x = self.get_unsafe(i, j)
                     if not (x == 0 or x == 1):
-                        raise ValueError, "must have zero or one, but we have (=%s)"%x
+                        raise ValueError("must have zero or one, but we have (=%s)" % x)
 
-        p = permanental_minor_vector(self)
-        return p
+        return permanental_minor_vector(self)
 
-    def minors(self,k):
+    def minors(self, k):
         r"""
         Return the list of all `k \times k` minors of self.
 
@@ -14283,4 +14282,3 @@ def _jordan_form_vector_in_difference(V, W):
         if v not in W_space:
             return v
     return None
-

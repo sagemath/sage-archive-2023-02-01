@@ -202,6 +202,11 @@ def weak_popov_form(M,ascend=True):
     return (matrix(r)/den, matrix(N), d)
 
 def _prm_mul(p1, p2, free_vars_indices, K):
+    """
+    MISSING DOCUMENTATION HERE
+
+    EXAMPLES::
+    """
     p = {}
     mask_free = 0
     one = int(1)
@@ -215,31 +220,37 @@ def _prm_mul(p1, p2, free_vars_indices, K):
             if exp1 & exp2:
                 continue
             exp = exp1 | exp2
-            v = v1*v2
+            v = v1 * v2
             if exp & mask_free:
                 for i in free_vars_indices:
-                    #print 'DB14 exp=%s i=%s' %(exp, i)
                     if exp & (one << i):
                         exp = exp.__xor__(one << i)
-                        #print 'DB14b exp=%s' % exp
             p[exp] = get(exp, K.zero()) + v
     return p
 
 
 def _is_free_var(i, k, m):
     """
-    i  current row
-    k  index of the variable
-    m  matrix as a list of lists
-    returns true if the variable `k` does not occur from row `i` on
+    Return ``True`` if the variable `k` does not occur from row `i` on.
+
+    INPUT:
+
+    - i -- current row
+    - k -- index of the variable
+    - m -- matrix as a list of lists
+
+    EXAMPLES::
+
+        sage: from sage.matrix.matrix_misc import _is_free_var
+        sage: m = [[1,2,3], [2,0,4], [2,0,4]]
+        sage: _is_free_var(1,1,m)
+        True
     """
-    for j in range(i, len(m)):
-        if m[j][k] != 0:
-            return False
-    return True
+    return all(m[j][k] == 0 for j in range(i, len(m)))
+
 
 def permanental_minor_vector(m, permanent_only=False):
-    """
+    r"""
     Return the polynomial of the sums of permanental minors of a matrix `m`
     in array form.
 
@@ -247,16 +258,15 @@ def permanental_minor_vector(m, permanent_only=False):
 
     .. MATH::
 
-    \sum_0^{min(nrows, ncols)} p_i(m) x^i
+        \sum_0^{min(nrows, ncols)} p_i(m) x^i
 
-    where `p_i(m) = m.permanental_minor(i)`
-
+    where `p_i(m)` is ``m.permanental_minor(i)``.
 
     INPUT:
 
-     - `m` - matrix
+     - `m` -- matrix
 
-     - `permanent_only`  if True, only the permanent is computed
+     - `permanent_only` -- boolean, if ``True``, only the permanent is computed
 
     OUTPUT:
 
@@ -273,20 +283,19 @@ def permanental_minor_vector(m, permanent_only=False):
 
     ::
 
-        sage: from sage.matrix.matrix_misc import permanental_minor_vector
         sage: M = MatrixSpace(ZZ,4,4)
         sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
         sage: permanental_minor_vector(A)
         [1, 28, 114, 84, 0]
 
-    ::
+    An example over `\QQ`::
 
         sage: M = MatrixSpace(QQ,2,2)
         sage: A = M([1/5,2/7,3/2,4/5])
         sage: permanental_minor_vector(A, 1)
         103/175
 
-    ::
+    An example with polynomial coefficients::
 
         sage: R.<a> = PolynomialRing(ZZ)
         sage: A = MatrixSpace(R,2)([[a,1], [a,a+1]])
@@ -295,15 +304,14 @@ def permanental_minor_vector(m, permanent_only=False):
 
     REFERENCES:
 
-    P. Butera and M. Pernici
-    ``Sums of permanental minors using Grassmann algebra''
-    http://arxiv.org/abs/1406.5337
+    .. [ButPer] P. Butera and M. Pernici "Sums of permanental minors
+       using Grassmann algebra", :arxiv:`1406.5337`
     """
     K = PolynomialRing(m.base_ring(), 'K')
     m = list(m)
     nrows = len(m)
     ncols = len(m[0])
-    p = {int(0):K.one()}
+    p = {int(0): K.one()}
     t = K.gen()
     done_vars = set()
     one = int(1)
@@ -315,12 +323,12 @@ def permanental_minor_vector(m, permanent_only=False):
         a = m[i]
         for j in range(len(a)):
             if a[j]:
-                p1[one<<j] = a[j]*t
+                p1[one<<j] = a[j] * t
         free_vars_indices = []
         for j in range(ncols):
             if j in done_vars:
                 continue
-            r = _is_free_var(i+1, j, m)
+            r = _is_free_var(i + 1, j, m)
             if r:
                 free_vars_indices.append(j)
                 done_vars.add(j)
@@ -331,7 +339,7 @@ def permanental_minor_vector(m, permanent_only=False):
     a = p[0].coeffs()
     len_a = min(nrows, ncols) + 1
     if len(a) < len_a:
-        a += [0]*(len_a - len(a))
+        a += [0] * (len_a - len(a))
     if permanent_only:
         return a[-1]
     return a

@@ -278,9 +278,7 @@ def ModularForms(group  = 1,
         sage: M = ModularForms(Gamma1(57), 1); M
         Modular Forms space of dimension (unknown) for Congruence Subgroup Gamma1(57) of weight 1 over Rational Field
         sage: M.basis()
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
+        <repr(<sage.structure.sequence.Sequence_generic at 0x...>) failed: NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general>
         sage: M.cuspidal_subspace().basis()
         Traceback (most recent call last):
         ...

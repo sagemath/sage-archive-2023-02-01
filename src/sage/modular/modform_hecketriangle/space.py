@@ -37,6 +37,9 @@ def canonical_parameters(group, base_ring, k, ep, n=None):
         sage: from sage.modular.modform_hecketriangle.space import canonical_parameters
         sage: canonical_parameters(5, ZZ, 20/3, int(1))
         (Hecke triangle group for n = 5, Integer Ring, 20/3, 1, 5)
+
+        sage: canonical_parameters(infinity, ZZ, 2, int(-1))
+        (Hecke triangle group for n = +Infinity, Integer Ring, 2, -1, +Infinity)
     """
 
     if not (n is None):
@@ -45,21 +48,31 @@ def canonical_parameters(group, base_ring, k, ep, n=None):
     if (group == infinity):
         group = HeckeTriangleGroup(infinity)
     else:
-        try: 
+        try:
             group = HeckeTriangleGroup(ZZ(group))
         except TypeError:
             group = HeckeTriangleGroup(group.n())
 
     n = group.n()
     k = QQ(k)
-    if (ep == None):   
-        ep = (-1)**(k*ZZ(n-2)/ZZ(2))
+    if (ep == None):
+        if (n == infinity):
+            ep = (-1)**(k/ZZ(2))
+        elif (ZZ(2).divides(n)):
+            ep = (-1)**(k*ZZ(n-2)/ZZ(4))
+        else:
+            ep = (-1)**(k*ZZ(n-2)/ZZ(2))
     ep = ZZ(ep)
-    num = (k-(1-ep)*n/(n-2))*(n-2)/4
+
+    if (n == infinity):
+        num = (k-(1-ep)) / ZZ(4)
+    else:
+        num = (k-(1-ep)*n/(n-2)) * (n-2) / ZZ(4)
+
     try:
         num = ZZ(num)
     except TypeError:
-        raise ValueError("Invalid or non-occuring weight!")
+        raise ValueError("Invalid or non-occuring weight k={}, ep={}!".format(k,ep))
 
     return (group, base_ring, k, ep, n)
 
@@ -69,7 +82,7 @@ class QuasiMeromorphicModularForms(FormsSpace_abstract, Module, UniqueRepresenta
     Module of (Hecke) quasi meromorphic modular forms
     for the given group, base ring, weight and multiplier
     """
-            
+
     @staticmethod
     def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
@@ -114,7 +127,7 @@ class QuasiWeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     Module of (Hecke) quasi weakly holomorphic modular forms
     for the given group, base ring, weight and multiplier
     """
-            
+
     @staticmethod
     def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
@@ -159,7 +172,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     Module of (Hecke) quasi modular forms
     for the given group, base ring, weight and multiplier
     """
-            
+
     @staticmethod
     def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
@@ -198,51 +211,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["quasi", "holo"])
-
-    def quasi_part_gens(self, r=0):
-        r"""
-        Return a basis of ``self`` for the submodule
-        of quasi modular forms of the form ``E2^r*f``,
-        where ``f`` is a modular form.
-
-        INPUT:
-
-        - `r` -- An integer.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
-            sage: MF = QuasiModularForms(n=5, k=6, ep=-1)
-            sage: MF.default_prec(2)
-            sage: MF.dimension()
-            3
-            sage: MF.quasi_part_gens(r=0)
-            [1 - 37/(200*d)*q + O(q^2)]
-            sage: MF.quasi_part_gens(r=0)[0] == MF.E6()
-            True
-            sage: MF.quasi_part_gens(r=1)
-            [1 + 33/(200*d)*q + O(q^2)]
-            sage: MF.quasi_part_gens(r=1)[0] == MF.E2()*MF.E4()
-            True
-            sage: MF.quasi_part_gens(r=2)
-            []
-            sage: MF.quasi_part_gens(r=3)
-            [1 - 27/(200*d)*q + O(q^2)]
-            sage: MF.quasi_part_gens(r=3)[0] == MF.E2()^3
-            True
-        """
-
-        r = ZZ(r)
-        if (r < 0 or 2*r > self._weight):
-            return []
-
-        gens = self.graded_ring().reduce_type("holo", degree=(self._weight-QQ(2*r), self._ep*(-1)**r)).gens()
-        if (len(gens)>0):
-            (x,y,z,d) = self.rat_field().gens()
-            #gens = [ self.graded_ring().E2()**r*gen for gen in gens ]
-            return [ self(z**r*gen._rat) for gen in gens ]
-        else:
-            return []
+        self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
     def gens(self):
@@ -258,13 +227,14 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             [1 - 37/(200*d)*q + O(q^2),
              1 + 33/(200*d)*q + O(q^2),
              1 - 27/(200*d)*q + O(q^2)]
+
+            sage: MF = QuasiModularForms(n=infinity, k=2, ep=-1)
+            sage: MF.default_prec(2)
+            sage: MF.gens()
+            [1 - 24*q + O(q^2), 1 - 8*q + O(q^2)]
         """
 
-        gens = []
-        for r in range(ZZ(0), QQ(self._weight/ZZ(2)).floor()+1):
-            gens.extend(self.quasi_part_gens(r))
-
-        return gens
+        return self.quasi_part_gens()
 
     @cached_method
     def dimension(self):
@@ -280,28 +250,89 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: len(MF.gens()) == MF.dimension()
             True
         """
-        n  = self.hecke_n()
-        k  = self.weight()
-        ep = self.ep()
-        return sum([ 
-            max(QQ((k-2*r)*(n-2)/(4*n) - (1-ep*(-1)**r)/4).floor() + 1, 0)\
-            for r in range(ZZ(0), QQ(k / ZZ(2)).floor() + 1)])
 
-    # TODO: it is possible to define coordinate_vector!
-    # for this a routine needs to be written to additively decompose
-    # the polynomial according to the degree of z
-    # the basis vector with respect to the above basis is then given
-    # by concatenating the coordinate vectors for each (decomposed) part
-    # However the above gens() has no nice relation to the Fourier coefficients
-    # and it is expected to be hard(er) to write an algorithm to determine
-    # the form by its fourier coefficients
+        return self.quasi_part_dimension()
+
+    @cached_method
+    def coordinate_vector(self, v):
+        r"""
+        Return the coordinate vector of ``v`` with respect to
+        the basis ``self.gens()``.
+
+        INPUT:
+
+        - ``v`` -- An element of ``self``.
+
+        OUTPUT:
+
+        An element of ``self.module()``, namely the
+        corresponding coordinate vector of ``v`` with respect
+        to the basis ``self.gens()``.
+
+        The module is the free module over the coefficient
+        ring of ``self`` with the dimension of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
+            sage: MF = QuasiModularForms(n=6, k=20, ep=1)
+            sage: MF.dimension()
+            22
+            sage: el = MF(MF.E4()^2*MF.E6()^2 + MF.E4()*MF.E2()^2*MF.Delta() + MF.E2()^3*MF.E4()^2*MF.E6())
+            sage: el
+            2 + 25*q - 2478*q^2 - 82731*q^3 - 448484*q^4 + O(q^5)
+            sage: vec = el.coordinate_vector()    # long time
+            sage: vec    # long time
+            (1, 1/(9*d), -11/(81*d^2), -4499/(104976*d^3), 0, 0, 0, 0, 1, 1/(2*d), 1, 5/(18*d), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            sage: vec.parent()    # long time
+            Vector space of dimension 22 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: vec.parent() == MF.module()    # long time
+            True
+            sage: el == MF(sum([vec[l]*MF.gen(l) for l in range(0,22)]))    # long time
+            True
+            sage: el == MF.element_from_coordinates(vec)    # long time
+            True
+            sage: MF.gen(1).coordinate_vector() == vector([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])    # long time
+            True
+
+            sage: MF = QuasiModularForms(n=infinity, k=4, ep=1)
+            sage: el2 = MF.E4() + MF.E2()^2
+            sage: el2
+            2 + 160*q^2 + 512*q^3 + 1632*q^4 + O(q^5)
+            sage: el2.coordinate_vector()
+            (1, 1/(4*d), 0, 1)
+            sage: el2 == MF.element_from_coordinates(el2.coordinate_vector())
+            True
+        """
+
+        (x,y,z,d) = self.pol_ring().gens()
+        k = self._weight
+        rmax = QQ(k / ZZ(2)).floor()
+        partlist = v.rat().numerator().polynomial(z).list()
+        denom = self.coeff_ring()(v.rat().denominator())
+        partlist = [part/denom for part in partlist]
+        parts = partlist + [0]*(rmax + 1 - len(partlist))
+        E2 = self.E2()
+        coord_vector = []
+
+        for r in range(ZZ(0), rmax + 1):
+            gens = [v/E2**r for v in self.quasi_part_gens(r)]
+
+            if len(gens) > 0:
+                ambient_space = self.graded_ring().reduce_type("holo", degree=(gens[0].weight(), gens[0].ep()))
+                subspace = ambient_space.subspace(gens)
+                vector_part_in_subspace = subspace(parts[r])
+                coord_part = [v for v in vector_part_in_subspace.coordinate_vector() ]
+                coord_vector += coord_part
+
+        return self._module(vector(self.coeff_ring(), coord_vector))
 
 class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Module of (Hecke) quasi cusp forms
     for the given group, base ring, weight and multiplier
     """
-            
+
     @staticmethod
     def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
@@ -335,62 +366,15 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MF.is_ambient()
             True
+
+            sage: QuasiCuspForms(n=infinity)
+            QuasiCuspForms(n=+Infinity, k=0, ep=1) over Integer Ring
         """
 
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["quasi", "cusp"])
-
-    def quasi_part_gens(self, r=0):
-        r"""
-        Return a basis of ``self`` for the submodule
-        of quasi cusp forms of the form ``E2^r*f``,
-        where ``f`` is a cusp form.
-
-        INPUT:
-
-        - `r` -- An integer.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.space import QuasiCuspForms, CuspForms
-            sage: MF = QuasiCuspForms(n=5, k=18, ep=-1)
-            sage: MF.default_prec(4)
-            sage: MF.dimension()
-            8
-            sage: MF.quasi_part_gens(r=0)
-            [q - 34743/(640000*d^2)*q^3 + O(q^4), q^2 - 69/(200*d)*q^3 + O(q^4)]
-            sage: MF.quasi_part_gens(r=1)
-            [q - 9/(200*d)*q^2 + 37633/(640000*d^2)*q^3 + O(q^4),
-             q^2 + 1/(200*d)*q^3 + O(q^4)]
-            sage: MF.quasi_part_gens(r=2)
-            [q - 1/(4*d)*q^2 - 24903/(640000*d^2)*q^3 + O(q^4)]
-            sage: MF.quasi_part_gens(r=3)
-            [q + 1/(10*d)*q^2 - 7263/(640000*d^2)*q^3 + O(q^4)]
-            sage: MF.quasi_part_gens(r=4)
-            [q - 11/(20*d)*q^2 + 53577/(640000*d^2)*q^3 + O(q^4)]
-            sage: MF.quasi_part_gens(r=5)
-            [q - 1/(5*d)*q^2 + 4017/(640000*d^2)*q^3 + O(q^4)]
-
-            sage: MF.quasi_part_gens(r=1)[0] == MF.E2() * CuspForms(n=5, k=16, ep=1).gen(0)
-            True
-            sage: MF.quasi_part_gens(r=1)[1] == MF.E2() * CuspForms(n=5, k=16, ep=1).gen(1)
-            True
-            sage: MF.quasi_part_gens(r=3)[0] == MF.E2()^3 * MF.Delta()
-            True
-        """
-
-        r = ZZ(r)
-        if (r < 0 or 2*r > self._weight):
-            return []
-
-        gens = self.graded_ring().reduce_type("cusp", degree=(self._weight-QQ(2*r), self._ep*(-1)**r)).gens()
-        if (len(gens)>0):
-            (x,y,z,d) = self.rat_field().gens()
-            #gens = [ self.graded_ring().E2()**r*gen for gen in gens ]
-            return [ self(z**r*gen._rat) for gen in gens ]
-        else:
-            return []
+        self._module = FreeModule(self.coeff_ring(), self.dimension())
 
     @cached_method
     def gens(self):
@@ -412,13 +396,13 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
              q - 23/(64*d)*q^2 - 3103/(262144*d^2)*q^3 + O(q^4),
              q - 3/(64*d)*q^2 - 4863/(262144*d^2)*q^3 + O(q^4),
              q - 27/(64*d)*q^2 + 17217/(262144*d^2)*q^3 + O(q^4)]
+
+            sage: MF = QuasiCuspForms(n=infinity, k=10, ep=-1)
+            sage: MF.gens()
+            [q - 16*q^2 - 156*q^3 - 256*q^4 + O(q^5), q - 60*q^3 - 256*q^4 + O(q^5)]
         """
 
-        gens = []
-        for r in range(ZZ(0), QQ(self._weight/ZZ(2)).floor()+1):
-            gens.extend(self.quasi_part_gens(r))
-
-        return gens
+        return self.quasi_part_gens()
 
     @cached_method
     def dimension(self):
@@ -434,23 +418,91 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             7
             sage: len(MF.gens()) == MF.dimension()
             True
+
+            sage: QuasiCuspForms(n=infinity, k=10, ep=-1).dimension()
+            2
         """
 
-        n  = self.hecke_n()
-        k  = self.weight()
-        ep = self.ep()
-        return sum([ 
-            max( QQ( (k - 2*r)*(n - 2)/(4*n) - (1 - ep*(-1)**r)/4 ).floor() + 0, 0)\
-            for r in range(ZZ(0), QQ(k/ZZ(2)).floor() + 1) ])
+        return self.quasi_part_dimension()
 
-    # TODO: it is possible to define coordinate_vector! (see above)
+    @cached_method
+    def coordinate_vector(self, v):
+        r"""
+        Return the coordinate vector of ``v`` with respect to
+        the basis ``self.gens()``.
+
+        INPUT:
+
+        - ``v`` -- An element of ``self``.
+
+        OUTPUT:
+
+        An element of ``self.module()``, namely the
+        corresponding coordinate vector of ``v`` with respect
+        to the basis ``self.gens()``.
+
+        The module is the free module over the coefficient
+        ring of ``self`` with the dimension of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import QuasiCuspForms
+            sage: MF = QuasiCuspForms(n=6, k=20, ep=1)
+            sage: MF.dimension()
+            12
+            sage: el = MF(MF.E4()^2*MF.Delta() + MF.E4()*MF.E2()^2*MF.Delta())
+            sage: el
+            2*q + 120*q^2 + 3402*q^3 + 61520*q^4 + O(q^5)
+            sage: vec = el.coordinate_vector()    # long time
+            sage: vec    # long time
+            (1, 13/(18*d), 103/(432*d^2), 0, 0, 1, 1/(2*d), 0, 0, 0, 0, 0)
+            sage: vec.parent()    # long time
+            Vector space of dimension 12 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: vec.parent() == MF.module()    # long time
+            True
+            sage: el == MF(sum([vec[l]*MF.gen(l) for l in range(0,12)]))    # long time
+            True
+            sage: el == MF.element_from_coordinates(vec)    # long time
+            True
+            sage: MF.gen(1).coordinate_vector() == vector([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])    # long time
+            True
+
+            sage: MF = QuasiCuspForms(n=infinity, k=10, ep=-1)
+            sage: el2 = MF(MF.E4()*MF.f_inf()*(MF.f_i() - MF.E2()))
+            sage: el2.coordinate_vector()
+            (1, -1)
+            sage: el2 == MF.element_from_coordinates(el2.coordinate_vector())
+            True
+        """
+
+        (x,y,z,d) = self.pol_ring().gens()
+        k = self._weight
+        rmax = QQ(k / ZZ(2)).floor()
+        partlist = v.rat().numerator().polynomial(z).list()
+        denom = self.coeff_ring()(v.rat().denominator())
+        partlist = [part/denom for part in partlist]
+        parts = partlist + [0]*(rmax + 1 - len(partlist))
+        E2 = self.E2()
+        coord_vector = []
+
+        for r in range(ZZ(0), rmax + 1):
+            gens = [v/E2**r for v in self.quasi_part_gens(r)]
+
+            if len(gens) > 0:
+                ambient_space = self.graded_ring().reduce_type("cusp", degree=(gens[0].weight(), gens[0].ep()))
+                subspace = ambient_space.subspace(gens)
+                vector_part_in_subspace = subspace(parts[r])
+                coord_part = [v for v in vector_part_in_subspace.coordinate_vector() ]
+                coord_vector += coord_part
+
+        return self._module(vector(self.coeff_ring(), coord_vector))
 
 class MeromorphicModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Module of (Hecke) meromorphic modular forms
     for the given group, base ring, weight and multiplier
     """
-            
+
     @staticmethod
     def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
@@ -495,7 +547,7 @@ class WeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     Module of (Hecke) weakly holomorphic modular forms
     for the given group, base ring, weight and multiplier
     """
-            
+
     @staticmethod
     def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
@@ -538,7 +590,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     Module of (Hecke) modular forms
     for the given group, base ring, weight and multiplier
     """
-            
+
     @staticmethod
     def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
@@ -576,6 +628,14 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: MF.is_ambient()
             True
+
+            sage: MF = ModularForms(n=infinity, k=8)
+            sage: MF
+            ModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
+            sage: MF.analytic_type()
+            modular
+            sage: MF.category()
+            Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
         """
 
         FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
@@ -599,9 +659,12 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
              q + 21742*q^4 + O(q^5),
              q^2 + 702*q^4 + O(q^5),
              q^3 - 6*q^4 + O(q^5)]
+
+            sage: ModularForms(n=infinity, k=4).gens()
+            [1 + 240*q^2 + 2160*q^4 + O(q^5), q - 8*q^2 + 28*q^3 - 64*q^4 + O(q^5)]
         """
 
-        return [ self.F_basis(m) for m in range(ZZ(0), -(self._l1 + 1), -1)]
+        return [ self.F_basis(m) for m in range(self.dimension()) ]
 
     @cached_method
     def dimension(self):
@@ -616,6 +679,9 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             4
             sage: len(MF.gens()) == MF.dimension()
             True
+
+            sage: ModularForms(n=infinity, k=8).dimension()
+            3
         """
 
         return max(self._l1+1, ZZ(0))
@@ -625,10 +691,10 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         r"""
         Return the coordinate vector of ``v`` with respect to
         the basis ``self.gens()``.
-        
+
         INPUT:
 
-        - ``v``    - An element of ``self``.
+        - ``v`` -- An element of ``self``.
 
         OUTPUT:
 
@@ -659,17 +725,21 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: el == MF.element_from_coordinates(vec)
             True
+
+            sage: MF = ModularForms(n=infinity, k=8, ep=1)
+            sage: (MF.E4()^2).coordinate_vector()
+            (1, 1/(2*d), 15/(128*d^2))
         """
 
-        vec = v.q_expansion(prec=self.degree()).add_bigoh(self.degree()).padded_list()
-        return self._module(vector(self.coeff_ring(), vec))
+        vec = v.q_expansion_vector(min_exp = 0, max_exp = self.degree() - 1)
+        return self._module(vec)
 
 class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Module of (Hecke) cusp forms
     for the given group, base ring, weight and multiplier
     """
-            
+
     @staticmethod
     def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
@@ -731,9 +801,13 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             [q + 296888795/(10319560704*d^3)*q^4 + O(q^5),
              q^2 + 6629/(221184*d^2)*q^4 + O(q^5),
              q^3 - 25/(96*d)*q^4 + O(q^5)]
+
+            sage: MF = CuspForms(n=infinity, k=8, ep=1)
+            sage: MF.gen(0) == MF.E4()*MF.f_inf()
+            True
           """
 
-        return [ self.F_basis(m) for m in range(ZZ(-1), -(self._l1 + 1), -1)]
+        return [ self.F_basis(m, order_1=ZZ(1)) for m in range(1, self.dimension() + 1) ]
 
     @cached_method
     def dimension(self):
@@ -748,19 +822,25 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             3
             sage: len(MF.gens()) == MF.dimension()
             True
+
+            sage: CuspForms(n=infinity, k=8).dimension()
+            1
         """
 
-        return max(self._l1, ZZ(0))
+        if (self.hecke_n() == infinity):
+            return max(self._l1-1, ZZ(0))
+        else:
+            return max(self._l1, ZZ(0))
 
     @cached_method
     def coordinate_vector(self, v):
         r"""
         Return the coordinate vector of ``v`` with respect to
         the basis ``self.gens()``.
-        
+
         INPUT:
 
-        - ``v``    - An element of ``self``.
+        - ``v`` -- An element of ``self``.
 
         OUTPUT:
 
@@ -792,18 +872,25 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: el == MF.element_from_coordinates(vec)
             True
+
+            sage: MF = CuspForms(n=infinity, k=16)
+            sage: el2 = MF(MF.Delta()*MF.E4())
+            sage: vec2 = el2.coordinate_vector()
+            sage: vec2
+            (1, 5/(8*d), 187/(1024*d^2))
+            sage: el2 == MF.element_from_coordinates(vec2)
+            True
         """
 
-        vec = v.q_expansion(prec=self.degree()+1).add_bigoh(self.degree()+1).padded_list()
-        vec.pop(0)
-        return self._module(vector(self.coeff_ring(), vec))
+        vec = v.q_expansion_vector(min_exp = 1, max_exp = self.degree())
+        return self._module(vec)
 
 class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Zero Module for the zero form for the given group, base ring
     weight and multiplier
     """
-            
+
     @staticmethod
     def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
@@ -881,7 +968,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
         Since this is the zero module an empty list is returned.
 
         EXAMPLES::
- 
+
             sage: from sage.modular.modform_hecketriangle.space import ZeroForm
             sage: ZeroForm(6, CC, 3, -1).gens()
             []
@@ -896,7 +983,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
         Since this is the zero module ``0`` is returned.
 
         EXAMPLES::
- 
+
             sage: from sage.modular.modform_hecketriangle.space import ZeroForm
             sage: ZeroForm(6, CC, 3, -1).dimension()
             0
@@ -916,10 +1003,10 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``v``    - An element of ``self``, i.e. in this case the zero vector.
+        - ``v`` -- An element of ``self``, i.e. in this case the zero vector.
 
         EXAMPLES::
- 
+
             sage: from sage.modular.modform_hecketriangle.space import ZeroForm
             sage: MF = ZeroForm(6, CC, 3, -1)
             sage: el = MF(0)

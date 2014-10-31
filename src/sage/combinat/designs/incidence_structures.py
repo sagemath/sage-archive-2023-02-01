@@ -20,10 +20,16 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.incidence_matrix` | Return the incidence matrix `A` of the design
     :meth:`~IncidenceStructure.incidence_graph` | Return the incidence graph of the design
     :meth:`~IncidenceStructure.packing` | Return a maximum packing
+    :meth:`~IncidenceStructure.relabel` | Relabel the ground set
+    :meth:`~IncidenceStructure.is_resolvable` | Test whether the hypergraph is resolvable
     :meth:`~IncidenceStructure.is_t_design` | Test whether ``self`` is a `t-(v,k,l)` design.
     :meth:`~IncidenceStructure.dual` | Return the dual design.
     :meth:`~IncidenceStructure.automorphism_group` | Return the automorphism group
+    :meth:`~IncidenceStructure.canonical_label` | Return a canonical label for the incidence structure.
+    :meth:`~IncidenceStructure.is_isomorphic` | Return whether the two incidence structures are isomorphic.
     :meth:`~IncidenceStructure.edge_coloring` | Return an optimal edge coloring`
+    :meth:`~IncidenceStructure.copy` | Return a copy of the incidence structure.
+
 
 REFERENCES:
 
@@ -279,6 +285,8 @@ class IncidenceStructure(object):
             self._blocks = blocks
 
         self._name = str(name) if name is not None else 'IncidenceStructure'
+        self._classes = None
+        self._canonical_label = None
 
     def __iter__(self):
         """
@@ -444,6 +452,130 @@ class IncidenceStructure(object):
                 return False
 
         return sorted(block) in self._blocks
+
+    def canonical_label(self):
+        r"""
+        Return a canonical label for the incidence structure.
+
+        A canonical label is relabeling of the points into integers
+        `\{0,...,n-1\}` such that isomorphic incidence structures are
+        relabelled to equal objects.
+
+        EXAMPLE::
+
+            sage: fano1 = designs.balanced_incomplete_block_design(7,3)
+            sage: fano2 = designs.projective_plane(2)
+            sage: fano1 == fano2
+            False
+            sage: fano1.relabel(fano1.canonical_label())
+            sage: fano2.relabel(fano2.canonical_label())
+            sage: fano1 == fano2
+            True
+        """
+        if self._canonical_label is None:
+            from sage.graphs.graph import Graph
+            g = Graph()
+            n = self.num_points()
+            g.add_edges((i+n,x) for i,b in enumerate(self._blocks) for x in b)
+            canonical_label = g.canonical_label([range(n),range(n,n+self.num_blocks())],certify=True)[1]
+            canonical_label = [canonical_label[x] for x in range(n)]
+            self._canonical_label = canonical_label
+
+        return dict(zip(self._points,self._canonical_label))
+
+    def is_isomorphic(self, other, certificate=False):
+        r"""
+        Return whether the two incidence structures are isomorphic.
+
+        .. NOTE::
+
+            If you need to test isomorphisms between one incidence
+            structure and many others, you should consider using
+            :meth:`canonical_label` instead of this function.
+
+        INPUT:
+
+        - ``other`` -- an incidence structure.
+
+        - ``certificate`` (boolean) -- whether to return an
+          insomorphism from ``self`` to ``other`` instead of a boolean
+          answer.
+
+        EXAMPLE::
+
+            sage: fano1 = designs.balanced_incomplete_block_design(7,3)
+            sage: fano2 = designs.projective_plane(2)
+            sage: fano1.is_isomorphic(fano2)
+            True
+            sage: fano1.is_isomorphic(fano2,certificate=True)
+            {0: 0, 1: 1, 2: 2, 3: 6, 4: 4, 5: 3, 6: 5}
+
+        TESTS::
+
+            sage: IS  = IncidenceStructure([["A",5,pi],["A",5,"Wouhou"],["A","Wouhou",(9,9)],[pi,12]])
+            sage: IS2 = IS.copy()
+            sage: IS2.relabel(IS2.canonical_label())
+            sage: IS.is_isomorphic(IS2)
+            True
+            sage: canon = IS.is_isomorphic(IS2,certificate=True)
+            sage: IS.relabel(canon)
+            sage: IS==IS2
+            True
+
+            sage: IS2 = IncidenceStructure([[1,2]])
+            sage: IS2.is_isomorphic(IS)
+            False
+            sage: IS2.is_isomorphic(IS,certificate=True)
+            {}
+        """
+        if (self.num_points() != other.num_points() or
+            self.num_blocks() != other.num_blocks() or
+            sorted(self.block_sizes()) != sorted(other.block_sizes())):
+            return {} if certificate else False
+
+        A = self.copy()
+        B = other.copy()
+
+        A_canon = A.canonical_label()
+        B_canon = B.canonical_label()
+        A.relabel(A_canon)
+        B.relabel(B_canon)
+
+        if A == B:
+            if certificate:
+                B_canon_rev = {y:x for x,y in B_canon.iteritems()}
+                return {x:B_canon_rev[xint] for x,xint in A_canon.iteritems()}
+            else:
+                return True
+        else:
+            return {} if certificate else False
+
+    def copy(self):
+        r"""
+        Return a copy of the incidence structure.
+
+        EXAMPLE::
+
+            sage: IS = IncidenceStructure([[1,2,3,"e"]],name="Test")
+            sage: IS
+            Incidence structure with 4 points and 1 blocks
+            sage: copy(IS)
+            Incidence structure with 4 points and 1 blocks
+            sage: [1, 2, 3, 'e'] in copy(IS)
+            True
+            sage: copy(IS)._name
+            'Test'
+        """
+        IS = IncidenceStructure(self._blocks,
+                                name=self._name,
+                                check=False)
+        IS.relabel(dict(zip(range(self.num_points()),self._points)))
+        IS._canonical_label = None if self._canonical_label is None else self._canonical_label[:]
+
+        return IS
+
+    __copy__ = copy
+
 
     def ground_set(self, copy=True):
         r"""
@@ -674,12 +806,27 @@ class IncidenceStructure(object):
         A = self.incidence_matrix()
         return BipartiteGraph(A)
 
-    def relabel(self, perm):
+    def relabel(self, perm=None, inplace=True):
         r"""
-        Relabels the ground set
+        Relabel the ground set
 
-        - ``label`` (dictionary) -- associated every point of the ground set
-          with its image. All images must be distinct.
+        INPUT:
+
+        - ``perm`` -- can be one of
+
+            - a dictionary -- then each point ``p`` (which should be a key of
+              ``d``) is relabeled to ``d[p]``
+
+            - a list or a tuple of length ``n`` -- the first point returned by
+              :meth:`ground_set` is relabeled to ``l[0]``, the second to
+              ``l[1]``, ...
+
+            - ``None`` -- the incidence structure is relabeled to be on
+              `\{0,1,...,n-1\}` in the ordering given by :meth:`ground_set`.
+
+        - ``inplace`` -- If ``True`` then return a relabeled graph and does not
+          touch ``self`` (default is ``False``).
+
 
         EXAMPLES::
 
@@ -689,12 +836,53 @@ class IncidenceStructure(object):
             ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
             sage: print TD.blocks()[:3]
             [['a', 'f', 'k', 'p', 'u'], ['a', 'g', 'm', 's', 'y'], ['a', 'h', 'o', 'q', 'x']]
-        """
-        assert len(set(perm.values())) == len(perm)
 
+        Relabel to integer points::
+
+            sage: TD.relabel()
+            sage: print TD.blocks()[:3]
+            [[0, 5, 10, 15, 20], [0, 6, 12, 18, 24], [0, 7, 14, 16, 23]]
+
+        TESTS:
+
+        Check that the relabel is consistent on a fixed incidence structure::
+
+            sage: I = designs.IncidenceStructure([0,1,2,3,4],
+            ....:               [[0,1,3],[0,2,4],[2,3,4],[0,1]])
+            sage: I.relabel()
+            sage: from itertools import permutations
+            sage: for p in permutations([0,1,2,3,4]):
+            ....:     J = I.relabel(p,inplace=False)
+            ....:     if I == J: print p
+            (0, 1, 2, 3, 4)
+            (0, 1, 4, 3, 2)
+
+        And one can also verify that we have exactly two automorphisms::
+
+            sage: I.automorphism_group()
+            Permutation Group with generators [(2,4)]
+        """
+        if not inplace:
+            from copy import copy
+            G = copy(self)
+            G.relabel(perm=perm, inplace=True)
+            return G
+
+        if perm is None:
+            self._points = range(self.num_points())
+            self._point_to_index = None
+            return
+
+        if isinstance(perm, (list,tuple)):
+            perm = dict(zip(self._points, perm))
+
+        if not isinstance(perm, dict):
+            raise ValueError("perm argument must be None, a list or a dictionary")
+
+        if len(set(perm.values())) != len(perm):
+            raise ValueError("Two points are getting relabelled with the same name !")
 
         self._points = [perm[x] for x in self._points]
-
         if self._points == range(self.num_points()):
             self._point_to_index  = None
         else:
@@ -1076,6 +1264,158 @@ class IncidenceStructure(object):
         else:
             gens = [[tuple([i-1 for i in cycle]) for cycle in g] for g in gens]
         return PermutationGroup(gens, domain=self._points)
+
+    def is_resolvable(self, certificate=False, solver=None, verbose=0, copy=True, check=True):
+        r"""
+        Test whether the hypergraph is resolvable
+
+        A hypergraph is said to be resolvable if its sets can be partitionned
+        into classes, each of which is a partition of the ground set.
+
+        .. NOTE::
+
+            This problem is solved using an Integer Linear Program, and GLPK
+            (the default LP solver) has been reported to be very slow on some
+            instances. If you hit this wall, consider installing a more powerful
+            LP solver (CPLEX, Gurobi, ...).
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- whether to return the classes along with
+          the binary answer (see examples below).
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
+          pointer toward the object's internal data is given. Set it to
+          ``False`` only if you know what you are doing.
+
+        - ``check`` (boolean) -- whether to check that output is correct before
+          returning it. As this is expected to be useless (but we are cautious
+          guys), you may want to disable it whenever you want speed. Set to ``True``
+          by default.
+
+        EXAMPLES:
+
+        Some resolvable designs::
+
+            sage: TD = designs.transversal_design(2,2,resolvable=True)
+            sage: TD.is_resolvable()
+            True
+
+            sage: AG = designs.AffineGeometryDesign(3,1,GF(2))
+            sage: AG.is_resolvable()
+            True
+
+        Their classes::
+
+            sage: b,cls = TD.is_resolvable(True)
+            sage: b
+            True
+            sage: cls # random
+            [[[0, 3], [1, 2]], [[1, 3], [0, 2]]]
+
+            sage: b,cls = AG.is_resolvable(True)
+            sage: b
+            True
+            sage: cls # random
+            [[[6, 7], [4, 5], [0, 1], [2, 3]],
+             [[5, 7], [0, 4], [3, 6], [1, 2]],
+             [[0, 2], [4, 7], [1, 3], [5, 6]],
+             [[3, 4], [0, 7], [1, 5], [2, 6]],
+             [[3, 7], [1, 6], [0, 5], [2, 4]],
+             [[0, 6], [2, 7], [1, 4], [3, 5]],
+             [[4, 6], [0, 3], [2, 5], [1, 7]]]
+
+        A non-resolvable design::
+
+            sage: Fano = designs.balanced_incomplete_block_design(7,3)
+            sage: Fano.is_resolvable()
+            False
+            sage: Fano.is_resolvable(True)
+            (False, [])
+
+        TESTS::
+
+            sage: _,cls1 = AG.is_resolvable(certificate=True, copy=True)
+            sage: _,cls2 = AG.is_resolvable(certificate=True, copy=True)
+            sage: cls1 is cls2
+            False
+
+            sage: _,cls1 = AG.is_resolvable(certificate=True, copy=False)
+            sage: _,cls2 = AG.is_resolvable(certificate=True, copy=False)
+            sage: cls1 is cls2
+            True
+        """
+        if self._classes is None:
+            degrees = set(self.degree().itervalues())
+            if len(degrees) != 1:
+                self._classes = False
+            else:
+                from sage.numerical.mip import MixedIntegerLinearProgram
+                from sage.numerical.mip import MIPSolverException
+                n_classes = degrees.pop()
+                p = MixedIntegerLinearProgram(solver=solver)
+                b = p.new_variable(binary=True)
+                domain = range(self.num_points())
+
+                # Lists of blocks containing i for every i
+                dual = [[] for i in domain]
+                for i,B in enumerate(self._blocks):
+                    for x in B:
+                        dual[x].append(i)
+
+                # Each class is a partition
+                for t in range(n_classes):
+                    for x in domain:
+                        p.add_constraint(p.sum(b[t,i] for i in dual[x]) == 1)
+
+                # Each set appears exactly once
+                for i in range(len(self._blocks)):
+                    p.add_constraint(p.sum(b[t,i] for t in range(n_classes)) == 1)
+
+                try:
+                    p.solve(log=verbose)
+                except MIPSolverException:
+                    self._classes = False
+                else:
+                    # each class is stored as the list of indices of its blocks
+                    self._classes = [[] for _ in range(n_classes)]
+                    for (t,i),v in p.get_values(b).iteritems():
+                        if v:
+                            self._classes[t].append(self._blocks[i])
+
+        if check and self._classes is not False:
+            assert sorted(id(c) for cls in self._classes for c in cls) == sorted(id(b) for b in self._blocks), "some set does not appear exactly once"
+            domain = range(self.num_points())
+            for i,c in enumerate(self._classes):
+                assert sorted(sum(c,[])) == domain, "class {} is not a partition".format(i)
+
+        if self._classes is False:
+            return (False, []) if certificate else False
+
+        if certificate:
+            if copy:
+                if self._point_to_index is None:
+                    classes = [[block[:] for block in classs] for classs in self._classes]
+                else:
+                    classes = [[[self._points[i] for i in block] for block in classs] for classs in self._classes]
+            else:
+                classes = self._classes
+
+            return (True, classes)
+
+        else:
+            return True
 
     ###############
     # Deprecation #

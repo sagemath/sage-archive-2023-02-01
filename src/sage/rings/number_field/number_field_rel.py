@@ -212,9 +212,7 @@ class NumberField_relative(NumberField_generic):
             sage: l.<b> = k.extension(x^2 + 3/5)
             doctest:...: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
             sage: b
-            Traceback (most recent call last):
-            ...
-            PariError: incorrect type in core2partial (t_FRAC)
+            <repr(<sage.rings.number_field.number_field_element.NumberFieldElement_relative at 0x...>) failed: sage.libs.pari.gen.PariError: incorrect type in core2partial (t_FRAC)>
 
         However, if the polynomial is linear, rational coefficients should work::
 
@@ -909,7 +907,8 @@ class NumberField_relative(NumberField_generic):
             ValueError: Length must be equal to the degree of this number field
 
         TESTS:
-        Examples from Trac ticket \#4727::
+
+        Examples from Trac ticket :trac:`4727`::
 
             sage: K.<j,b> = QQ[sqrt(-1), sqrt(2)]
             sage: j
@@ -923,17 +922,17 @@ class NumberField_relative(NumberField_generic):
             sage: K((b*j + 1/2).list())
             sqrt2*I + 1/2
 
-        Examples from Trac \#4869::
+        Examples from Trac :trac:`4869`::
 
             sage: K.<z> = CyclotomicField(7)
             sage: Ky.<y> = PolynomialRing(K)
             sage: L.<a> = K.extension(y^2 + 1)
-            sage: K(K.polynomial_ring().random_element())
+            sage: K(K.polynomial_ring().random_element()) # random
             -12*z^2 + 1/2*z - 1/95
-            sage: L(L.polynomial_ring().random_element())
+            sage: L(L.polynomial_ring().random_element()) # random
             (z^5 + 1/3*z^4 - z^3 + z^2 - z + 2/3)*a + 1/4*z^5 - 7/2*z^4 + 5/3*z^3 - 1/4*z^2 + 3/2*z - 1
 
-        Examples from Trac \#11307::
+        Examples from :trac:`11307`::
 
             sage: L = NumberField([x^2 + 1, x^2 - 3], 'a')
             sage: L(L)
@@ -1582,10 +1581,10 @@ class NumberField_relative(NumberField_generic):
             x^4 + 7/6*x^2 + 1/144
         """
         try:
-            return self.__pari_polynomial.change_variable_name(name)
+            return self._pari_polynomial.change_variable_name(name)
         except AttributeError:
-            self.__pari_polynomial = self._pari_rnfequation()[0].change_variable_name(name)
-            return self.__pari_polynomial
+            self._pari_polynomial = self._pari_rnfequation()[0].change_variable_name(name)
+            return self._pari_polynomial
 
     @cached_method
     def pari_rnf(self):
@@ -2466,7 +2465,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 3])
             sage: P = K.prime_factors(5)[0]; P
-            Fractional ideal (5, (-1/2*b - 5/2)*a + 5/2*b - 11/2)
+            Fractional ideal (5, (-1/2*b - 5/2)*a + 5/2*b - 9/2)
             sage: u = K.uniformizer(P)
             sage: u.valuation(P)
             1

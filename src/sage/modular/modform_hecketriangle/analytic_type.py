@@ -210,7 +210,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         INPUT:
 
-        - ``reduce_type``   - An analytic type or something which is
+        - ``reduce_type``  -- An analytic type or something which is
                               convertable to an analytic type.
 
         OUTPUT:
@@ -240,7 +240,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         INPUT:
 
-        - ``extend_type``   - An analytic type or something which is
+        - ``extend_type``  -- An analytic type or something which is
                               convertable to an analytic type.
 
         OUTPUT:
@@ -299,16 +299,16 @@ class AnalyticType(FiniteLatticePoset):
 
     The basic ``analytic properties`` are:
 
-        - ``quasi``  - Whether the element is quasi modular (and not modular)
-                       or modular.
-        - ``mero``   - ``meromorphic``: If the element is meromorphic
-                       and meromorphic at infinity.
-        - ``weak``   - ``weakly holomorphic``: If the element is holomorphic
-                       and meromorphic at infinity.
-        - ``holo``   - ``holomorphic``: If the element is holomorphic and
-                       holomorphic at infinity.
-        - ``cusp``   - ``cuspidal``: If the element additionally has a positive
-                       order at infinity.
+    - ``quasi``  - Whether the element is quasi modular (and not modular)
+                   or modular.
+    - ``mero``   - ``meromorphic``: If the element is meromorphic
+                   and meromorphic at infinity.
+    - ``weak``   - ``weakly holomorphic``: If the element is holomorphic
+                   and meromorphic at infinity.
+    - ``holo``   - ``holomorphic``: If the element is holomorphic and
+                   holomorphic at infinity.
+    - ``cusp``   - ``cuspidal``: If the element additionally has a positive
+                   order at infinity.
 
     The ``zero`` elements/property have no analytic properties (or only ``quasi``).
 
@@ -366,7 +366,7 @@ class AnalyticType(FiniteLatticePoset):
             sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AT = AnalyticType()
             sage: AT2 = AnalyticType()
-            sage: AT == AT2
+            sage: AT is AT2
             True
         """
         return super(FinitePoset, cls).__classcall__(cls)
@@ -409,31 +409,31 @@ class AnalyticType(FiniteLatticePoset):
             True
             sage: AT.list()
             [zero,
-             zero,
              cuspidal,
+             zero,
              modular,
              weakly holomorphic modular,
+             meromorphic modular,
              quasi cuspidal,
              quasi modular,
              quasi weakly holomorphic modular,
-             meromorphic modular,
              quasi meromorphic modular]
             sage: len(AT.relations())
             45
             sage: AT.cover_relations()
-            [[zero, zero],
-             [zero, cuspidal],
-             [zero, quasi cuspidal],
+            [[zero, cuspidal],
+             [zero, zero],
              [cuspidal, modular],
              [cuspidal, quasi cuspidal],
+             [zero, quasi cuspidal],
              [modular, weakly holomorphic modular],
              [modular, quasi modular],
-             [weakly holomorphic modular, quasi weakly holomorphic modular],
              [weakly holomorphic modular, meromorphic modular],
+             [weakly holomorphic modular, quasi weakly holomorphic modular],
+             [meromorphic modular, quasi meromorphic modular],
              [quasi cuspidal, quasi modular],
              [quasi modular, quasi weakly holomorphic modular],
-             [quasi weakly holomorphic modular, quasi meromorphic modular],
-             [meromorphic modular, quasi meromorphic modular]]
+             [quasi weakly holomorphic modular, quasi meromorphic modular]]
             sage: AT.has_top()
             True
             sage: AT.has_bottom()
@@ -443,16 +443,19 @@ class AnalyticType(FiniteLatticePoset):
             sage: AT.bottom()
             zero
         """
-
         # We (arbitrarily) choose to model by inclusion instead of restriction
         P_elements = [ "cusp", "holo", "weak", "mero", "quasi"]
         P_relations = [["cusp", "holo"], ["holo", "weak"], ["weak", "mero"]]
 
-        self._base_poset = Poset([P_elements, P_relations], cover_relations=True, facade=False)
-        L = self._base_poset.order_ideals_lattice()
-        L = FiniteLatticePoset(L, facade=False)
+        self._base_poset = Poset([P_elements, P_relations], cover_relations=True,
+                                 linear_extension=True, facade=False)
 
-        FiniteLatticePoset.__init__(self, hasse_diagram=L._hasse_diagram, elements=L._elements, category=L.category(), facade=L._is_facade, key=None)
+        L = self._base_poset.order_ideals_lattice()
+        H = L._hasse_diagram.relabel({i:x for i,x in enumerate(L._elements)},
+                                     inplace=False)
+        FiniteLatticePoset.__init__(self, hasse_diagram=H,
+                                    elements=L._elements, category=L.category(),
+                                    facade=False, key=None)
 
     def _repr_(self):
         r"""
@@ -499,7 +502,7 @@ class AnalyticType(FiniteLatticePoset):
 
         INPUT:
 
-        - ``element``   - Either something which coerces in the
+        - ``element``  -- Either something which coerces in the
                           ``FiniteLatticePoset`` of ``self`` or
                           a string or a list of strings of basic
                           properties that should be contained in
@@ -560,7 +563,7 @@ class AnalyticType(FiniteLatticePoset):
             sage: AT = AnalyticType()
             sage: P = AT.base_poset()
             sage: P
-            Finite poset containing 5 elements
+            Finite poset containing 5 elements with distinguished linear extension
             sage: isinstance(P, FinitePoset)
             True
 
@@ -573,7 +576,7 @@ class AnalyticType(FiniteLatticePoset):
             sage: P.is_bounded()
             False
             sage: P.list()
-            [quasi, cusp, holo, weak, mero]
+            [cusp, holo, weak, mero, quasi]
 
             sage: len(P.relations())
             11

@@ -54,7 +54,9 @@ Animations of 3d objects::
     ....:     return sphere((0,0,0),1,color='red',opacity=.5)+parametric_plot3d([t,x,s],(s,-1,1),(t,-1,1),color='green',opacity=.7)
     sage: sp = animate([sphere_and_plane(x) for x in sxrange(-1,1,.3)])
     sage: sp[0]      # first frame
+    Graphics3d Object
     sage: sp[-1]     # last frame
+    Graphics3d Object
     sage: sp.show()  # optional -- ImageMagick
 
     sage: (x,y,z) = var('x,y,z')
@@ -62,6 +64,7 @@ Animations of 3d objects::
     ....:     return implicit_plot3d((x^2 + y^2 + z^2), (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=[1,3,5], region=lambda x,y,z: x<=t or y>=t or z<=t)
     sage: a = animate([frame(t) for t in srange(.01,1.5,.2)])
     sage: a[0]       # first frame
+    Graphics3d Object
     sage: a.show()   # optional -- ImageMagick
 
 If the input objects do not have a ``save_image`` method, then the

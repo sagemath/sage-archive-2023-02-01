@@ -1259,6 +1259,8 @@ end_scene""" % (render_params.antialiasing,
                     tachyon_rt(T.tachyon(), png_name, verbosity, True, opts)
 
         if viewer == 'canvas3d':
+            if not EMBEDDED_MODE and not DOCTEST_MODE:
+                raise RuntimeError("canvas3d viewer is only available from the Notebook")
             T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             data = flatten_list(T.json_repr(T.default_render_params()))
             filename = makename('.canvas3d')

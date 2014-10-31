@@ -110,10 +110,10 @@ Methods
 """
 
 from sage.rings.integer import Integer
-from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
+
 
 class DiGraph(GenericGraph):
     """
@@ -3510,14 +3510,14 @@ class DiGraph(GenericGraph):
              A vertex at (1, 0, 0, 1, 0, 1))
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
-        ineqs = [[0] + [ZZ(j == u) for j in G.edges()]
+        ineqs = [[0] + [Integer(j == u) for j in G.edges()]
                  for u in G.edges()]
 
         eqs = []
         for u in G:
             ins = G.incoming_edges(u)
             outs = G.outgoing_edges(u)
-            eq = [ZZ(j in ins) - ZZ(j in outs) for j in G.edges()]
+            eq = [Integer(j in ins) - Integer(j in outs) for j in G.edges()]
 
             if len(ins) == 0:  # sources
                 eq = [1] + eq

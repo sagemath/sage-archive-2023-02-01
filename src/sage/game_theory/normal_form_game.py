@@ -512,11 +512,7 @@ class NormalFormGame(SageObject, MutableMapping):
         self.utilities = {}
         matrices = []
         if type(generator) is not list and generator != None:
-            if is_package_installed('gambit'):
-                if type(generator) is not Game:
-                    raise TypeError("Generator function must be a list or nothing")
-            else:
-                raise TypeError("Generator function must be a list or nothing")
+            raise TypeError("Generator function must be a list or nothing")
 
         if type(generator) is list:
             if len(generator) == 1:

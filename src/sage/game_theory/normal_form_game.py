@@ -837,6 +837,9 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g
             Normal Form Game with the following utilities: {(0, 1): [2, 3], (1, 2): [False, False], (0, 0): [False, False], (0, 2): [False, False], (1, 0): [False, False], (1, 1): [False, False]}
 
+            sage: g._generate_utilities(True)
+            sage: g
+            Normal Form Game with the following utilities: {(0, 1): [False, False], (1, 2): [False, False], (0, 0): [False, False], (1, 1): [False, False], (1, 0): [False, False], (0, 2): [False, False]}
         """
         strategy_sizes = [range(p.num_strategies) for p in self.players]
         if replacement is True:

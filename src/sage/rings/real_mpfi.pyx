@@ -4714,8 +4714,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             True
         """
         if is_package_installed('arb'):
-            from sage.rings.real_arb import Arb
-            return Arb(self).psi().RealIntervalFieldElement()
+            from sage.rings.real_arb import RealBallElement
+            return RealBallElement(self).psi().RealIntervalFieldElement()
         else:
             raise TypeError("The optional arb package is not installed. "
                             "Consider installing it via 'sage -i arb'")

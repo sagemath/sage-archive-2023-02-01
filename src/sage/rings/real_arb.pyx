@@ -87,7 +87,7 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision
 
 
 
-cdef class Arb(SageObject):
+cdef class RealBallElement(SageObject):
     """
     Hold one ``arb_t`` of the `Arb library
     <http://fredrikj.net/arb/>`_
@@ -102,8 +102,8 @@ cdef class Arb(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.rings.real_arb import Arb # optional - arb
-        sage: a = Arb(RIF(1))                     # optional - arb
+        sage: from sage.rings.real_arb import RealBallElement # optional - arb
+        sage: a = RealBallElement(RIF(1))                     # optional - arb
         sage: b = a.psi()                         # optional - arb
         sage: b.RealIntervalFieldElement()        # optional - arb
         -0.577215664901533?
@@ -122,9 +122,9 @@ cdef class Arb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import Arb # optional - arb
-            sage: Arb(precision=2) # optional - arb; indirect doctest
-            <type 'sage.rings.real_arb.Arb'>
+            sage: from sage.rings.real_arb import RealBallElement # optional - arb
+            sage: RealBallElement(precision=2) # optional - arb; indirect doctest
+            <type 'sage.rings.real_arb.RealBallElement'>
         """
         arb_init(self.value)
 
@@ -142,8 +142,8 @@ cdef class Arb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import Arb # optional - arb
-            sage: a = Arb(precision=2) # optional - arb; indirect doctest
+            sage: from sage.rings.real_arb import RealBallElement # optional - arb
+            sage: a = RealBallElement(precision=2) # optional - arb; indirect doctest
             sage: del a # optional - arb
         """
         arb_clear(self.value)
@@ -166,13 +166,13 @@ cdef class Arb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import Arb # optional - arb
-            sage: a = Arb(RIF(0, 1))                  # optional - arb
-            sage: b = Arb(1)                          # optional - arb
+            sage: from sage.rings.real_arb import RealBallElement # optional - arb
+            sage: a = RealBallElement(RIF(0, 1))                  # optional - arb
+            sage: b = RealBallElement(1)                          # optional - arb
             Traceback (most recent call last):
             ...
             TypeError: value must be None or a RealIntervalFieldElement.
-            sage: c = Arb() # optional - arb
+            sage: c = RealBallElement() # optional - arb
             Traceback (most recent call last):
             ...
             TypeError: precision must be given.
@@ -208,8 +208,8 @@ cdef class Arb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import Arb # optional - arb
-            sage: a = Arb(RIF(2))                     # optional - arb
+            sage: from sage.rings.real_arb import RealBallElement # optional - arb
+            sage: a = RealBallElement(RIF(2))                     # optional - arb
             sage: a.RealIntervalFieldElement()        # optional - arb
             2
         """
@@ -221,7 +221,7 @@ cdef class Arb(SageObject):
 
         return result
 
-    cpdef Arb psi(self):
+    cpdef RealBallElement psi(self):
         """
         Compute the digamma function with argument self.
 
@@ -231,19 +231,19 @@ cdef class Arb(SageObject):
 
         OUTPUT:
 
-        An :class:`Arb`.
+        An :class:`RealBallElement`.
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import Arb # optional - arb
-            sage: a = Arb(RIF(1))                     # optional - arb
+            sage: from sage.rings.real_arb import RealBallElement # optional - arb
+            sage: a = RealBallElement(RIF(1))                     # optional - arb
             sage: a.psi().RealIntervalFieldElement()  # optional - arb
             -0.577215664901533?
         """
 
-        cdef Arb result
+        cdef RealBallElement result
 
-        result = Arb(precision=self._precision_)
+        result = RealBallElement(precision=self._precision_)
 
         arb_digamma(result.value, self.value, self._precision_)
         return result

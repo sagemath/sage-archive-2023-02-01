@@ -57,17 +57,19 @@ to be aware of.
     software <section-git-install>` if you don't already have it.
   - Then you will need to go through a short process to :ref:`configure git
     <section-git-setup-name>` for use with Trac.
-  - An overview of the Sage development process, assuming you have ``git``
-    installed and know the basics of how to use it, is in the :ref:`concise
-    development guide <chapter-walkthrough>`.
-  - More advanced :ref:`tricks and tips <section-git-tricks-and-tips>` for
-    ``git`` are linked below.
-  - For those unfamiliar with revision control, please start by reading
-    about :ref:`collaborative development with Git-Trac <chapter-git_trac>`,
+  - Assuming you have ``git`` installed and know the basics of how to use it,
+    the next step is the overview of the Sage development flow in the
+    :ref:`concise development guide <chapter-walkthrough>`.
+
+    - (More advanced :ref:`tricks and tips <section-git-tricks-and-tips>` for
+      ``git`` are linked below.)
+
+  - For those unfamiliar with ``git`` or revision control, please start by
+    reading about :ref:`collaborative development with Git-Trac <chapter-git_trac>`,
     which provides some easier interface with git and Trac, both for newbies
     and power users.
   - Alternately, one can do certain amounts of Sage development without
-    having git installed, by using Sage's own internal installation of git
+    having ``git`` installed, by using Sage's own internal installation of ``git``
     and the :ref:`Sage dev scripts <chapter-devscript>`.  This is mainly
     intended as a bridge to full use of git once one becomes more comfortable
     with the system.
@@ -141,8 +143,8 @@ Basics of Writing and Testing Sage Code
    coding_basics
    doctesting
 
-
------------------
+Advanced Sage Coding Details
+----------------------------
 
 .. toctree::
    :maxdepth: 3

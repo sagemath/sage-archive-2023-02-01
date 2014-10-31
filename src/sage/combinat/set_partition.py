@@ -48,6 +48,7 @@ from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
 from functools import reduce
 
+
 class SetPartition(ClonableArray):
     """
     A partition of a set.
@@ -1404,7 +1405,7 @@ class SetPartitions_setparts(SetPartitions_set):
 
         This algorithm counts for each block of the partition the
         number of ways to fill it using values from the set.  Then,
-        for each distinct value `v` of block, we divide the result by
+        for each distinct value `v` of block size, we divide the result by
         the number of ways to arrange the blocks of size `v` in the
         set partition.
 
@@ -1425,7 +1426,7 @@ class SetPartitions_setparts(SetPartitions_set):
 
         TESTS::
 
-            sage: all((len(SetPartitions(size, part)) == SetPartitions(size, part).cardinality() for size in xrange(8) for part in Partitions(size)))
+            sage: all((len(SetPartitions(size, part)) == SetPartitions(size, part).cardinality() for size in range(8) for part in Partitions(size)))
             True
             sage: sum((SetPartitions(13, p).cardinality() for p in Partitions(13))) == SetPartitions(13).cardinality()
             True
@@ -1438,7 +1439,9 @@ class SetPartitions_setparts(SetPartitions_set):
             cardinal *= remaining_subset_size.binomial(subset_size)
             remaining_subset_size -= subset_size
 
-        repetitions = (Integer(rep).factorial() for rep in self.parts.to_exp_dict().values() if rep != 1)
+        repetitions = (Integer(rep).factorial()
+                       for rep in self.parts.to_exp_dict().values()
+                       if rep != 1)
         cardinal /= prod(repetitions)
         return Integer(cardinal)
 
@@ -1760,6 +1763,3 @@ def cyclic_permutations_of_set_partition_iterator(set_part):
         for right in cyclic_permutations_of_set_partition_iterator(set_part[1:]):
             for perm in CyclicPermutations(set_part[0]):
                 yield [perm] + right
-
-
-

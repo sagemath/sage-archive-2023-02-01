@@ -14,13 +14,6 @@ error control.
 GNU General Public License v2+
 
 
-== SPKG Maintainers ==
-
-* Karen Kohl
-* Laura Peskin
-* Fredrik Johansson
-
-
 == Upstream Contact ==
 
 * Fredrik Johansson:  fredrik.johansson@gmail.com

@@ -491,7 +491,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: threegame[1, 1, 1][0] = 2
             sage: threegame[1, 1, 1][1] = 6
             sage: threegame[1, 1, 1][2] = 4
-            sage: threegame.obtain_Nash() # optional - gambit
+            sage: threegame.obtain_Nash()
             Traceback (most recent call last):
             ...
             NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
@@ -506,6 +506,28 @@ class NormalFormGame(SageObject, MutableMapping):
             Traceback (most recent call last):
             ...
             ValueError: matrices must be the same size
+
+        Note that when initiating, a single argument must be passed::
+
+            sage: p1 = matrix([[1, 2], [3, 4]])
+            sage: p2 = matrix([[3, 3], [1, 4], [6, 6]])
+            sage: error = NormalFormGame(p1, p2)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() takes at most 2 arguments (3 given)
+
+        When initiating, argument passed must be a list or nothing::
+
+            sage: error = NormalFormGame({4:6, 6:9})
+            Traceback (most recent call last):
+            ...
+            TypeError: Generator function must be a list or nothing
+
+        When passing nothing, the utilities then need to be entered manually::
+
+            sage: game = NormalFormGame()
+            sage: game
+            {}
 
         """
         self.players = []

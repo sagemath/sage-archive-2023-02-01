@@ -576,7 +576,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         else:
             return (max-min)*z + min*self(1,1)
 
-    cpdef bint is_exact(self): # except -2: # I don't know what this is for - TCS
+    cpdef bint is_exact(self) except -2:
         """
         Returns whether or not this field is exact, which is always ``False``.
 

@@ -212,9 +212,7 @@ class NumberField_relative(NumberField_generic):
             sage: l.<b> = k.extension(x^2 + 3/5)
             doctest:...: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
             sage: b
-            Traceback (most recent call last):
-            ...
-            PariError: incorrect type in core2partial
+            <repr(<sage.rings.number_field.number_field_element.NumberFieldElement_relative at 0x...>) failed: sage.libs.pari.gen.PariError: incorrect type in core2partial (t_FRAC)>
 
         However, if the polynomial is linear, rational coefficients should work::
 
@@ -909,7 +907,8 @@ class NumberField_relative(NumberField_generic):
             ValueError: Length must be equal to the degree of this number field
 
         TESTS:
-        Examples from Trac ticket \#4727::
+
+        Examples from Trac ticket :trac:`4727`::
 
             sage: K.<j,b> = QQ[sqrt(-1), sqrt(2)]
             sage: j
@@ -923,17 +922,17 @@ class NumberField_relative(NumberField_generic):
             sage: K((b*j + 1/2).list())
             sqrt2*I + 1/2
 
-        Examples from Trac \#4869::
+        Examples from Trac :trac:`4869`::
 
             sage: K.<z> = CyclotomicField(7)
             sage: Ky.<y> = PolynomialRing(K)
             sage: L.<a> = K.extension(y^2 + 1)
-            sage: K(K.polynomial_ring().random_element())
+            sage: K(K.polynomial_ring().random_element()) # random
             -12*z^2 + 1/2*z - 1/95
-            sage: L(L.polynomial_ring().random_element())
+            sage: L(L.polynomial_ring().random_element()) # random
             (z^5 + 1/3*z^4 - z^3 + z^2 - z + 2/3)*a + 1/4*z^5 - 7/2*z^4 + 5/3*z^3 - 1/4*z^2 + 3/2*z - 1
 
-        Examples from Trac \#11307::
+        Examples from :trac:`11307`::
 
             sage: L = NumberField([x^2 + 1, x^2 - 3], 'a')
             sage: L(L)
@@ -1082,7 +1081,7 @@ class NumberField_relative(NumberField_generic):
         pol = element.polynomial('y')
         t2 = pol(a).lift()
         if check:
-            t1 = self.pari_rnf().rnfeltreltoabs(pol._pari_())
+            t1 = self.pari_rnf().rnfeltreltoabs(pol).lift()
             assert t1 == t2
         return t2
 
@@ -1167,7 +1166,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: k.<a> = NumberField([x^3 + 2, x^2 + 2])
             sage: k._pari_base_bnf()
-            [[;], matrix(0,9), [;], ... 0]
+            [[;], matrix(0,3), [;], ...]
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         return abs_base.pari_bnf(proof, units)
@@ -1305,10 +1304,10 @@ class NumberField_relative(NumberField_generic):
         Galois conjugate::
 
             sage: for g in G:
-            ...     if L1.is_isomorphic_relative(L2, g.as_hom()):
-            ...         print g.as_hom()
+            ....:   if L1.is_isomorphic_relative(L2, g.as_hom()):
+            ....:       print g.as_hom()
             Ring endomorphism of Number Field in z9 with defining polynomial x^6 + x^3 + 1
-              Defn: z9 |--> -z9^4 - z9
+              Defn: z9 |--> z9^4
         """
         if is_RelativeNumberField(other):
             s_base_field = self.base_field()
@@ -1582,10 +1581,10 @@ class NumberField_relative(NumberField_generic):
             x^4 + 7/6*x^2 + 1/144
         """
         try:
-            return self.__pari_polynomial.change_variable_name(name)
+            return self._pari_polynomial.change_variable_name(name)
         except AttributeError:
-            self.__pari_polynomial = self._pari_rnfequation()[0].change_variable_name(name)
-            return self.__pari_polynomial
+            self._pari_polynomial = self._pari_rnfequation()[0].change_variable_name(name)
+            return self._pari_polynomial
 
     @cached_method
     def pari_rnf(self):
@@ -1597,7 +1596,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: k.<a> = NumberField([x^4 + 3, x^2 + 2])
             sage: k.pari_rnf()
-            [x^4 + 3, [], [[108, 0; 0, 108], 3], [8, 0; 0, 8], [], [], [[1, x - 1, x^2 - 1, x^3 - x^2 - x - 3], ..., 0]
+            [x^4 + 3, [[364, -10*x^7 - 87*x^5 - 370*x^3 - 41*x], 1/364], [[108, 0; 0, 108], 3], ...]
         """
         return self._pari_base_nf().rnfinit(self.pari_relative_polynomial())
 
@@ -2329,7 +2328,7 @@ class NumberField_relative(NumberField_generic):
             ...
             ValueError: The element b is not in the base field
         """
-        polmodmod_xy = self.pari_rnf().rnfeltabstorel( self(element)._pari_() )
+        polmodmod_xy = self.pari_rnf().rnfeltabstorel( self(element)._pari_('x') )
         # polmodmod_xy is a POLMOD with POLMOD coefficients in general.
         # These POLMOD coefficients represent elements of the base field K.
         # We do two lifts so we get a polynomial. We need the simplify() to
@@ -2466,7 +2465,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 3])
             sage: P = K.prime_factors(5)[0]; P
-            Fractional ideal (5, (-1/2*b - 5/2)*a + 5/2*b - 11/2)
+            Fractional ideal (5, (-1/2*b - 5/2)*a + 5/2*b - 9/2)
             sage: u = K.uniformizer(P)
             sage: u.valuation(P)
             1

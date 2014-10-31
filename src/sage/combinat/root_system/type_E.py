@@ -148,7 +148,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: LE6.simple_roots()
             Finite family {1: (1/2, -1/2, -1/2, -1/2, -1/2, -1/2, -1/2, 1/2), 2: (1, 1, 0, 0, 0, 0, 0, 0), 3: (-1, 1, 0, 0, 0, 0, 0, 0), 4: (0, -1, 1, 0, 0, 0, 0, 0), 5: (0, 0, -1, 1, 0, 0, 0, 0), 6: (0, 0, 0, -1, 1, 0, 0, 0)}
         """
-        assert(i in self.index_set())
+        if i not in self.index_set():
+            raise ValueError("{} is not in the index set".format(i))
         return self.Base[i-1]
 
     def negative_roots(self):

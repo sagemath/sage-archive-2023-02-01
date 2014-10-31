@@ -272,13 +272,30 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def random_element(self):
         """
-        Returns a random point on this elliptic curve.
+        Return a random point on this elliptic curve, uniformly chosen
+        among all rational points.
 
-        If `q` is small, finds all points and returns one at random.
-        Otherwise, returns the point at infinity with probability
-        `1/(q+1)` where the base field has cardinality `q`, and then
-        picks random `x`-coordinates from the base field until one
-        gives a rational point.
+        ALGORITHM:
+
+        Choose the point at infinity with probability `1/(2q + 1)`.
+        Otherwise, take a random element from the field as x-coordinate
+        and compute the possible y-coordinates. Return the i'th
+        possible y-coordinate, where i is randomly chosen to be 0 or 1.
+        If the i'th y-coordinate does not exist (either there is no
+        point with the given x-coordinate or we hit a 2-torsion point
+        with i == 1), try again.
+
+        This gives a uniform distribution because you can imagine
+        `2q + 1` buckets, one for the point at infinity and 2 for each
+        element of the field (representing the x-coordinates). This
+        gives a 1-to-1 map of elliptic curve points into buckets. At
+        every iteration, we simply choose a random bucket until we find
+        a bucket containing a point.
+
+        AUTHOR:
+
+        - Jeroen Demeyer (2014-09-09): choose points uniformly random,
+          see :trac:`16951`.
 
         EXAMPLES::
 
@@ -296,7 +313,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: k.<a> = GF(7^5)
             sage: E = EllipticCurve(k,[2,4])
             sage: P = E.random_element(); P
-            (2*a^4 + 3*a^2 + 4*a : 3*a^4 + 6*a^2 + 5 : 1)
+            (5*a^4 + 3*a^3 + 2*a^2 + a + 4 : 2*a^4 + 3*a^3 + 4*a^2 + a + 5 : 1)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
@@ -307,7 +324,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: k.<a> = GF(2^5)
             sage: E = EllipticCurve(k,[a^2,a,1,a+1,1])
             sage: P = E.random_element(); P
-            (a^4 + a^2 + 1 : a^3 + a : 1)
+            (a^4 + a : a^4 + a^3 + a^2 : 1)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
@@ -345,28 +362,20 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             1
 
         """
-        random = current_randstate().c_rand_double
         k = self.base_field()
-        q = k.order()
-
-        # For small fields we find all the rational points and pick
-        # one at random.  Note that the group can be trivial for
-        # q=2,3,4 only (see #8311) so these cases need special
-        # treatment.
-
-        if q < 5:
-            pts = self.points() # will be cached
-            return pts[ZZ.random_element(len(pts))]
-
-
-        # The following allows the origin self(0) to be picked
-        if random() <= 1/float(q+1):
-            return self(0)
+        n = 2 * k.order() + 1
 
         while True:
+            # Choose the point at infinity with probability 1/(2q + 1)
+            i = ZZ.random_element(n)
+            if not i:
+                return self.point(0)
+
             v = self.lift_x(k.random_element(), all=True)
-            if v:
-                return v[int(random() * len(v))]
+            try:
+                return v[i % 2]
+            except IndexError:
+                pass
 
     random_point = random_element
 
@@ -907,15 +916,21 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             self._order = self.cardinality_bsgs()
             return self._order
 
-        kj=GF(p**j_deg,name='a',modulus=j_pol)
-        jkj=kj.gen() if j_deg>1 else j_pol.roots(multiplicities=False)[0]
+        # Let jkj be the j-invariant as element of the smallest finite
+        # field over which j is defined.
+        if j_deg == 1:
+            # j_pol is of the form X - j
+            jkj = -j_pol[0]
+        else:
+            jkj = GF(p**j_deg, name='a', modulus=j_pol).gen()
 
         # recursive call which will do all the real work:
         Ej = EllipticCurve_from_j(jkj)
         N=Ej.cardinality(extension_degree=d//j_deg)
 
         # if curve ia a (quadratic) twist of the "standard" one:
-        if not self.is_isomorphic(EllipticCurve_from_j(j)): N=2*(q+1)-N
+        if not self.is_isomorphic(EllipticCurve_from_j(j)):
+            N = 2*(q+1) - N
 
         self._order = N
         return self._order
@@ -1329,7 +1344,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
             sage: E=EllipticCurve(GF(41),[2,5])
             sage: E.abelian_group()
-            Additive abelian group isomorphic to Z/2 + Z/22 ...
+            Additive abelian group isomorphic to Z/22 + Z/2 ...
 
         ::
 

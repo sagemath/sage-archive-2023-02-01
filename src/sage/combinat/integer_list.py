@@ -77,7 +77,7 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: integer_list.first(36, 9, 9, f([3,3,3,2,1,4,2,0,0]), f([7,6,5,5,5,5,5,4,4]), -2, 1)
         [7, 6, 5, 5, 5, 4, 3, 1, 0]
     """
-    # Check, trivial cases, and standardize min_length to be at least 1
+    # Check trivial cases, and standardize min_length to be at least 1
     if n < 0:
         return None
     if max_length <= 0:
@@ -397,97 +397,6 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
             yield f
             f = succ(f)
 
-def list(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
-    """
-    .. WARNING::
-
-       THIS FUNCTION IS DEPRECATED! Use ``IntegersListsLex(...)`` instead.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.integer_list as integer_list
-        sage: g = lambda x: lambda i: x
-        sage: integer_list.list(0,0,infinity,g(1),g(infinity),0,infinity)
-        [[]]
-        sage: integer_list.list(0,0,infinity,g(1),g(infinity),0,0)
-        [[]]
-        sage: integer_list.list(0, 0, 0, g(1), g(infinity), 0, 0)
-        [[]]
-        sage: integer_list.list(0, 0, 0, g(0), g(infinity), 0, 0)
-        [[]]
-        sage: integer_list.list(0, 0, infinity, g(1), g(infinity), 0, infinity)
-        [[]]
-        sage: integer_list.list(1, 0, infinity, g(1), g(infinity), 0, infinity)
-        [[1]]
-        sage: integer_list.list(0, 1, infinity, g(1), g(infinity), 0, infinity)
-        []
-        sage: integer_list.list(0, 1, infinity, g(0), g(infinity), 0, infinity)
-        [[0]]
-        sage: integer_list.list(3, 0, 2, g(0), g(infinity), -infinity, infinity)
-        [[3], [2, 1], [1, 2], [0, 3]]
-        sage: partitions = (0, infinity, g(0), g(infinity), -infinity, 0)
-        sage: partitions_min_2 = (0, infinity, g(2), g(infinity), -infinity, 0)
-        sage: compositions = (0, infinity, g(1), g(infinity), -infinity, infinity)
-        sage: integer_vectors = lambda l: (l, l, g(0), g(infinity), -infinity, infinity)
-        sage: lower_monomials = lambda c: (len(c), len(c), g(0), lambda i: c[i], -infinity, infinity)
-        sage: upper_monomials = lambda c: (len(c), len(c), g(0), lambda i: c[i], -infinity, infinity)
-        sage: constraints = (0, infinity, g(1), g(infinity), -1, 0)
-        sage: integer_list.list(6, *partitions)
-        [[6],
-         [5, 1],
-         [4, 2],
-         [4, 1, 1],
-         [3, 3],
-         [3, 2, 1],
-         [3, 1, 1, 1],
-         [2, 2, 2],
-         [2, 2, 1, 1],
-         [2, 1, 1, 1, 1],
-         [1, 1, 1, 1, 1, 1]]
-        sage: integer_list.list(6, *constraints)
-        [[6],
-         [3, 3],
-         [3, 2, 1],
-         [2, 2, 2],
-         [2, 2, 1, 1],
-         [2, 1, 1, 1, 1],
-         [1, 1, 1, 1, 1, 1]]
-        sage: integer_list.list(1, *partitions_min_2)
-        []
-        sage: integer_list.list(2, *partitions_min_2)
-        [[2]]
-        sage: integer_list.list(3, *partitions_min_2)
-        [[3]]
-        sage: integer_list.list(4, *partitions_min_2)
-        [[4], [2, 2]]
-        sage: integer_list.list(5, *partitions_min_2)
-        [[5], [3, 2]]
-        sage: integer_list.list(6, *partitions_min_2)
-        [[6], [4, 2], [3, 3], [2, 2, 2]]
-        sage: integer_list.list(7, *partitions_min_2)
-        [[7], [5, 2], [4, 3], [3, 2, 2]]
-        sage: integer_list.list(9, *partitions_min_2)
-        [[9], [7, 2], [6, 3], [5, 4], [5, 2, 2], [4, 3, 2], [3, 3, 3], [3, 2, 2, 2]]
-        sage: integer_list.list(10, *partitions_min_2)
-        [[10],
-         [8, 2],
-         [7, 3],
-         [6, 4],
-         [6, 2, 2],
-         [5, 5],
-         [5, 3, 2],
-         [4, 4, 2],
-         [4, 3, 3],
-         [4, 2, 2, 2],
-         [3, 3, 2, 2],
-         [2, 2, 2, 2, 2]]
-        sage: integer_list.list(4, *compositions)
-        [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
-    """
-    #from sage.misc.superseded import deprecation
-    #deprecation(13605, 'list(...) is deprecated. Use list(IntegerListLex(...) instead.')
-    return __builtin__.list(iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope))
-
 def upper_regular(comp, min_slope, max_slope):
     """
     Return the uppest regular composition above ``comp``.
@@ -806,9 +715,8 @@ class IntegerListsLex(Parent):
     by the upper bound on the parts, and ``[3,3]`` is erroneously
     included in the result::
 
-        sage: list(IntegerListsLex(6, max_part=3,max_slope=-1))
+        sage: list(IntegerListsLex(6, max_part=3, max_slope=-1))
         [[3, 3], [3, 2, 1]]
-
 
     With some work, this could be fixed without affecting the overall
     complexity and efficiency. Also, the generation algorithm could be
@@ -945,30 +853,38 @@ class IntegerListsLex(Parent):
 
         if floor is None:
             self.floor_list = []
-        elif isinstance(floor, __builtin__.list):
-            self.floor_list = floor
-            # Make sure the floor list will make the list satisfy the constraints
-            if max_slope != float('+inf'):
-                for i in reversed(range(len(self.floor_list)-1)):
-                    self.floor_list[i] = max(self.floor_list[i], self.floor_list[i+1] - max_slope)
-            if min_slope != float('-inf'):
-                for i in range(1, len(self.floor_list)):
-                    self.floor_list[i] = max(self.floor_list[i], self.floor_list[i-1] + min_slope)
         else:
-            self.floor = floor
+            try:
+                # Is ``floor`` an iterable?
+                self.floor_list = __builtin__.list(floor) # not ``floor[:]`` because we want
+                                                          # ``self.floor_list`` mutable, and
+                                                          # applying [:] to a tuple gives a
+                                                          # tuple.
+                # Make sure the floor list will make the list satisfy the constraints
+                if max_slope != float('+inf'):
+                    for i in reversed(range(len(self.floor_list)-1)):
+                        self.floor_list[i] = max(self.floor_list[i], self.floor_list[i+1] - max_slope)
+                if min_slope != float('-inf'):
+                    for i in range(1, len(self.floor_list)):
+                        self.floor_list[i] = max(self.floor_list[i], self.floor_list[i-1] + min_slope)
+            except TypeError:
+                self.floor = floor
         if ceiling is None:
             self.ceiling_list = []
-        elif isinstance(ceiling, __builtin__.list):
-            self.ceiling_list = ceiling
-            # Make sure the ceiling list will make the list satisfy the constraints
-            if max_slope != float('+inf'):
-                for i in range(1, len(self.ceiling_list)):
-                    self.ceiling_list[i] = min(self.ceiling_list[i], self.ceiling_list[i-1] + max_slope)
-            if min_slope != float('-inf'):
-                for i in reversed(range(len(self.ceiling_list)-1)):
-                    self.ceiling_list[i] = min(self.ceiling_list[i], self.ceiling_list[i+1] - min_slope)
         else:
-            self.ceiling = ceiling
+            try:
+                # Is ``ceiling`` an iterable?
+                self.ceiling_list = __builtin__.list(ceiling)
+                # Make sure the ceiling list will make the list satisfy the constraints
+                if max_slope != float('+inf'):
+                    for i in range(1, len(self.ceiling_list)):
+                        self.ceiling_list[i] = min(self.ceiling_list[i], self.ceiling_list[i-1] + max_slope)
+                if min_slope != float('-inf'):
+                    for i in reversed(range(len(self.ceiling_list)-1)):
+                        self.ceiling_list[i] = min(self.ceiling_list[i], self.ceiling_list[i+1] - min_slope)
+            except TypeError:
+                # ``ceiling`` is not an iterable.
+                self.ceiling = ceiling
         if length is not None:
             min_length = length
             max_length = length
@@ -1143,7 +1059,7 @@ class IntegerListsLex(Parent):
         """
         args = self.build_args()
         for n in self.n_range:
-            l =  first(n, *args)
+            l = first(n, *args)
             while l is not None:
                 yield self._element_constructor_(l)
                 l = next(l, *args)
@@ -1169,7 +1085,7 @@ class IntegerListsLex(Parent):
         args = self.build_args()
         c = ZZ(0)
         for n in self.n_range:
-            l =  first(n, *args)
+            l = first(n, *args)
             while l is not None:
                 c += 1
                 l = next(l, *args)

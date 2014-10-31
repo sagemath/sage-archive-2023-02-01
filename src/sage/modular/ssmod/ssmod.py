@@ -21,13 +21,13 @@ EXAMPLES::
     [
     (Vector space of degree 33 and dimension 1 over Finite Field of size 97
     Basis matrix:
-    [ 0  0  0  1 96 96  1 96 96  0  2 96 96  0  1  0  1  2 95  0  1  1  0  1  0 95  0 96 95  1 96  0  2], True),
+    [ 0  0  0  1 96 96  1  0 95  1  1  1  1 95  2 96  0  0 96  0 96  0 96  2 96 96  0  1  0  2  1 95  0], True),
     (Vector space of degree 33 and dimension 1 over Finite Field of size 97
     Basis matrix:
-    [ 0  1 96 75 16 81 22 17 17  0  0 80 80  1 16 40 74  0  0 96 81 23 57 74  0  0  0 24  0 23 73  0  0], True),
+    [ 0  1 96 16 75 22 81  0  0 17 17 80 80  0  0 74 40  1 16 57 23 96 81  0 74 23  0 24  0  0 73  0  0], True),
     (Vector space of degree 33 and dimension 1 over Finite Field of size 97
     Basis matrix:
-    [ 0  1 96 90 90  7  7  6 91  0  0 91  6 13  7  0 91  0  0 84 90  6  0  6  0  0  0 90  0 91  7  0  0], True)
+    [ 0  1 96 90 90  7  7  0  0 91  6  6 91  0  0 91  0 13  7  0  6 84 90  0  6 91  0 90  0  0  7  0  0], True)
     ]
     sage: len(D)
     9

@@ -41,6 +41,7 @@ AUTHORS:
 
 from sage.categories.homset        import Hom
 from sage.functions.all            import sqrt
+from sage.libs.pari.gen            import PariError
 from sage.matrix.constructor       import matrix, identity_matrix
 from sage.misc.cachefunc           import cached_method
 from sage.misc.misc                import subsets
@@ -603,8 +604,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             (x^4*y + (2 + O(5^20))*x^2*y^3 - x*y^4 + (2 + O(5^20))*y^5)/(x^2*y -
             x*y^2 + y^3)
 
-        .. TODO:: It would be nice to get this to actually be a polynomial.
-
         ::
 
             sage: L.<t> = PolynomialRing(QQ)
@@ -652,69 +651,73 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: p = PP((c,1))
             sage: ff.nth_iterate(p,4) == ff.nth_iterate(p,2)
             True
-       """
-        if self.domain() != self.codomain():
-            raise TypeError("Must have same domain and codomain to iterate")
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        if is_ProjectiveSpace(self.domain()) is False:
-            raise NotImplementedError("Not implemented for subschemes")
-        if self.domain().dimension_relative() > 1:
-            raise TypeError("Does not make sense in dimension >1")
 
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(CC, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+(1+CC.0)*y^2,y^2])
+            sage: f.dynatomic_polynomial(2)
+            x^2 + x*y + (2.00000000000000 + 1.00000000000000*I)*y^2
+
+        ::
+
+            sage: L.<t> = PolynomialRing (QuadraticField(2).maximal_order())
+            sage: P.<x, y> = ProjectiveSpace (L.fraction_field() , 1 )
+            sage: H = Hom (P, P )
+            sage: f = H ([x^2 + (t ^ 2 + 1) * y^2 , y^2 ])
+            sage: f.dynatomic_polynomial(2)
+            x^2 + x*y + (t^2 + 2)*y^2
+       """
+        if self.domain().ngens() > 2:
+            raise TypeError("Does not make sense in dimension >1")
         if (isinstance(period, (list, tuple)) is False):
             period = [0, period]
-        try:
-            period[0] = ZZ(period[0])
-            period[1] = ZZ(period[1])
-        except TypeError:
-            raise TypeError("Period and preperiod must be integers")
-        if period[1] <= 0:
-                raise AttributeError("Period must be at least 1")
-
         if period[0] != 0:
             m = period[0]
             fm = self.nth_iterate_map(m)
-            fm1 = self.nth_iterate_map(m - 1)
-            n = period[1]
+            fm1 = self.nth_iterate_map(m-1)
+            n = period [1]
             PHI = 1;
             x = self.domain().gen(0)
             y = self.domain().gen(1)
             F = self._polys
             f = F
-            for d in range(1, n + 1):
+            for d in range(1, n+1):
                 if n % d == 0:
-                    PHI = PHI * ((y * F[0] - x * F[1]) ** moebius(n / d))
-                if d != n: #avoid extra iteration
+                    PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(n/d))
+                if d != n: # avoid extra iteration
                     F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
             if m != 0:
-                PHI = PHI(fm._polys) / PHI(fm1._polys)
+                PHI = PHI(fm._polys)/ PHI(fm1._polys )
         else:
-            PHI = 1;
+            PHI = 1
             x = self.domain().gen(0)
             y = self.domain().gen(1)
             F = self._polys
             f = F
             for d in range(1, period[1] + 1):
-                if period[1] % d == 0:
-                    PHI = PHI * ((y * F[0] - x * F[1]) ** moebius(period[1] / d))
-                if d != period[1]: #avoid extra iteration
+                if period[1] % d == 0 :
+                    PHI = PHI * ((y*F[0] - x*F[1]) ** moebius(period[1]/d))
+                if d != period[1]: # avoid extra iteration
                     F = [f[0](F[0], F[1]), f[1](F[0], F[1])]
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
-        from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
-        if (self.domain().base_ring() == RealField()
-            or self.domain().base_ring() == ComplexField()):
-            PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
-        elif isinstance(self.domain().base_ring(), (PolynomialRing_general, MPolynomialRing_generic)):
-            from sage.rings.padics.generic_nodes import is_pAdicField, is_pAdicRing
-            from sage.rings.function_field.function_field import is_FunctionField
-            BR = self.domain().base_ring().base_ring()
-            if is_pAdicField(BR) or is_pAdicRing(BR) or is_FunctionField(BR):
-                raise NotImplementedError("Not implemented")
-            PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
-            #do it again to divide out by denominators of coefficients
-            PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
-        if PHI.denominator() == 1:
-            PHI = self.coordinate_ring()(PHI)
+        try:
+            QR = PHI.numerator().quo_rem(PHI.denominator())
+            if QR[1] == 0:
+                return(QR[0])
+        except TypeError: # something Singular can't handle
+            pass
+        from sage.rings.padics.generic_nodes import is_pAdicField, is_pAdicRing
+        BR = self.domain().base_ring().base_ring()
+        if not (is_pAdicRing(BR) or is_pAdicField(BR)):
+            try:
+                PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
+                # do it again to divide out by denominators of coefficients
+                PHI = PHI.numerator()._maxima_().divide(PHI.denominator())[0].sage()
+                if PHI.denominator() == 1:
+                    PHI = self.coordinate_ring()(PHI)
+            except TypeError: #something Maxima can't handle
+                pass
         return(PHI)
 
     def nth_iterate_map(self, n):
@@ -966,9 +969,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-y^2,y^2])
             sage: f.dehomogenize((0,1))
-            Scheme morphism:
-              From: Affine Space of dimension 1 over Rational Field
-              To:   Affine Space of dimension 1 over Rational Field
+            Scheme endomorphism of Affine Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x) to
                     ((-x^2 + 1)/x^2)
 
@@ -1166,7 +1167,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def resultant(self, normalize=False):
         r"""
-        Computes the resultant of the defining polynomials of ``self`` if ``self`` is a map on the projective line.
+        Computes the resultant of the defining polynomials of ``self`` if ``self`` is a map in `\mathbb{P}^n`
 
         If ``normalize`` is ``True``, then first normalize the coordinate
         functions with :meth:`normalize_coordinates`.
@@ -1195,21 +1196,62 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([t*x^2+t*y^2,6*y^2])
             sage: f.resultant()
             2*t^2
-        """
-        if self.domain().dimension_relative() > 1:
-            raise TypeError("Only for dimension 1, use self.primes_of_bad_reduction() to get bad primes")
+
+        ::
+
+            sage: R.<t> = PolynomialRing(GF(17))
+            sage: P.<x,y,z> = ProjectiveSpace(R,2)
+            sage: H = Hom(P,P)
+            sage: f = H([t*x^2+t*y^2,6*y^2,2*t*z^2])
+            sage: f.resultant()
+            13*t^8
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = Hom(P,P)
+            sage: F = H([x^2+y^2,6*y^2,10*x*z+z^2+y^2])
+            sage: F.resultant()
+            1296
+
+        ::
+
+            sage: R.<t>=PolynomialRing(QQ)
+            sage: s = (t^3+t+1).roots(QQbar)[0][0]
+            sage: P.<x,y>=ProjectiveSpace(QQbar,1)
+            sage: H = Hom(P,P)
+            sage: f = H([s*x^3-13*y^3,y^3-15*y^3])
+            sage: f.resultant()
+            871.6925062959149?
+            """
+
+        if self.domain().dimension_relative() != self.codomain().dimension_relative():
+            raise ValueError("Domain and Codomain should be of same dimension")
         if normalize is True:
             F = copy(self)
             F.normalize_coordinates()
         else:
             F = self
-        x = self.domain().gen(0)
-        y = self.domain().gen(1)
-        d = self.degree()
-        f = F[0].substitute({y:1})
-        g = F[1].substitute({y:1})
-        res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f._pari_().polresultant(g, x))
-        return(self.codomain().base_ring()(res))
+
+        if self.domain().dimension_relative() == 1:
+            x = self.domain().gen(0)
+            y = self.domain().gen(1)
+            d = self.degree()
+            F = self
+            f = F[0].substitute({y:1})
+            g = F[1].substitute({y:1})
+            #Try to use pari first, as it is faster for one dimensional case
+            #however the coercion from a Pari object to a sage object breaks 
+            #in the case of QQbar, so we just pass it into the macaulay resultant
+            try:
+                res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f._pari_().polresultant(g, x))
+                return(self.domain().base_ring()(res))
+            except (TypeError, PariError):
+                pass
+        #Otherwise, use Macaulay
+        R = F[0].parent()
+        res = R.macaulay_resultant(F._polys)
+        return res #Coercion here is not necessary as it is already done in Macaulay Resultant
 
     @cached_method
     def primes_of_bad_reduction(self, check=True):
@@ -1655,8 +1697,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def multiplier(self, P, n, check=True):
         r"""
-        Returns the multiplier of ``self`` at the `QQ`-rational point ``P`` of period ``n``.
-        ``self`` must be an endomorphism of projective space
+        Returns the multiplier of ``self`` point ``P`` of period ``n``.
+        ``self`` must be an endomorphism.
 
         INPUT:
 
@@ -1723,15 +1765,15 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Traceback (most recent call last):
             ...
             ValueError: (0 : 1) is not periodic of period 1
-
-        ..  TODO:: would be better to keep the dehomogenizations for reuse
         """
         if not self.is_endomorphism():
-            raise NotImplementedError("Must be an endomorphism of projective space")
+            raise TypeError("Must be an endomorphism")
         if check:
             if self.nth_iterate(P, n) != P:
                 raise ValueError("%s is not periodic of period %s" % (P, n))
-        N = self.domain().dimension_relative()
+            if n < 1:
+                raise ValueError("Period must be a positive integer")
+        N = self.domain().ambient_space().dimension_relative()
         l = identity_matrix(FractionField(self.codomain().base_ring()), N, N)
         Q = P
         Q.normalize_coordinates()
@@ -2812,8 +2854,8 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
     def orbit_structure(self, P):
         r"""
-        Every point is preperiodic over a finite field. This funtion returns the pair `[m,n]` where `m` is the
-        preperiod and `n` the period of the point ``P`` by ``self``.
+        Every point is preperiodic over a finite field. This function returns the pair `[m,n]` where `m` is the
+        preperiod and `n` is the period of the point ``P`` by ``self``.
 
         INPUT:
 
@@ -2827,7 +2869,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
             sage: P.<x,y,z> = ProjectiveSpace(GF(5),2)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+y^2,y^2,z^2 + y*z])
+            sage: f = H([x^2 + y^2,y^2,z^2 + y*z])
             sage: f.orbit_structure(P(2,1,2))
             [0, 6]
 
@@ -2844,7 +2886,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
             sage: P.<x,y> = ProjectiveSpace(GF(13),1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2-y^2,y^2])
+            sage: f = H([x^2 - y^2,y^2])
             sage: f.orbit_structure(P(3,4))
             [2, 3]
         """

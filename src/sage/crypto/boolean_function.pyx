@@ -36,7 +36,7 @@ from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 from cpython.string cimport *
 
 # for details about the implementation of hamming_weight_int,
@@ -105,7 +105,7 @@ cdef long yellow_code(unsigned long a):
         m ^= (m<<s)
     return r
 
-cdef reed_muller(unsigned long *f, int ldn):
+cdef reed_muller(mp_limb_t* f, int ldn):
     r"""
     The Reed Muller transform (also known as binary Moebius transform)
     is an orthogonal transform. For a function `f` defined by
@@ -555,11 +555,11 @@ cdef class BooleanFunction(SageObject):
             ...
             ValueError: unknown output format
         """
-        if format is 'bin':
+        if format == 'bin':
             return tuple(self)
-        if format is 'int':
+        if format == 'int':
             return tuple(map(int,self))
-        if format is 'hex':
+        if format == 'hex':
             S = ""
             S = ZZ(self.truth_table(),2).str(16)
             S = "0"*((1<<(self._nvariables-2)) - len(S)) + S
@@ -947,7 +947,7 @@ cdef class BooleanFunction(SageObject):
             True
             sage: g = BooleanFunction( f.annihilator(3) )
             sage: set([ fi*g(i) for i,fi in enumerate(f) ])
-            set([0])
+            {0}
         """
         # NOTE: this is a toy implementation
         from sage.rings.polynomial.pbori import BooleanPolynomialRing

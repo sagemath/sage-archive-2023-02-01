@@ -1558,7 +1558,7 @@ def matrix_centralizer_cardinalities_length_two(n, q = None, selftranspose = Fal
         (q^4 - q^2, 1/2*q^4 - 1/2*q^3)]
         sage: from sage.combinat.similarity_class_type import dictionary_from_generator
         sage: dictionary_from_generator(matrix_centralizer_cardinalities_length_two(2, q = 2))
-        {96: 4, 32: 4, 4: 4, 16: 2, 8: 8, 12: 4, 48: 2}
+        {4: 4, 8: 8, 12: 4, 16: 2, 32: 4, 48: 2, 96: 4}
     """
     if q is None:
         q = FractionField(QQ['q']).gen()

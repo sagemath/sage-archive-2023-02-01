@@ -948,8 +948,17 @@ class PolynomialConverter(Converter):
             x
             sage: _.parent()
             Univariate Polynomial Ring in x over Rational Field
+            sage: y = var('y')
+            sage: p = PolynomialConverter(x*y, ring=SR['x'])
+            sage: p.symbol(y)
+            y
         """
-        return self.ring(repr(ex))
+        try:
+            #The symbol is one of the polynomial generators
+            return self.ring(repr(ex))
+        except TypeError:
+            #The symbol should go into the base ring
+            return self.base_ring(repr(ex))
 
     def pyobject(self, ex, obj):
         """
@@ -1071,6 +1080,9 @@ def polynomial(ex, base_ring=None, ring=None):
          t^2 - 2*s*t + 1
          sage: _.parent()
          Univariate Polynomial Ring in t over Symbolic Ring
+
+         sage: polynomial(x*y, ring=SR['x'])
+         y*x
 
          sage: polynomial(y - sqrt(x), ring=SR[y])
          y - sqrt(x)
@@ -1330,7 +1342,7 @@ class FastCallableConverter(Converter):
             pi
             sage: etb = ExpressionTreeBuilder(vars=['x'], domain=RDF)
             sage: pi._fast_callable_(etb)
-            3.14159265359
+            3.141592653589793
         """
         from sage.symbolic.constants import Constant
         if isinstance(obj, Constant):
@@ -1381,6 +1393,7 @@ class FastCallableConverter(Converter):
             sage: (x^7)._fast_callable_(etb)
             ipow(v_0, 7)
             sage: f(x)=1/pi/x; plot(f,2,3)
+            Graphics object consisting of 1 graphics primitive
         """
         # This used to convert the operands first.  Doing it this way
         # instead gives a chance to notice powers with an integer

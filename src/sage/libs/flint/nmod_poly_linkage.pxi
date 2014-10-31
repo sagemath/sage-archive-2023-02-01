@@ -17,7 +17,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.flint.nmod_poly cimport *, nmod_poly_t
+from sage.libs.flint.nmod_poly cimport *
 from sage.libs.flint.ulong_extras cimport *
 
 include "sage/ext/stdsage.pxi"

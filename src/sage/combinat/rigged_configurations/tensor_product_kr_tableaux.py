@@ -313,10 +313,9 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         """
         self.dims = B
         self.letters = CrystalOfLetters(cartan_type.classical())
-        tensor_prod = []
-        for rect_dims in B:
-            tensor_prod.append(KirillovReshetikhinTableaux(cartan_type, rect_dims[0], rect_dims[1]))
-        FullTensorProductOfRegularCrystals.__init__(self, tuple(tensor_prod), cartan_type=cartan_type)
+        tensor_prod = tuple(KirillovReshetikhinTableaux(cartan_type, rect_dims[0], rect_dims[1])
+                            for rect_dims in B)
+        FullTensorProductOfRegularCrystals.__init__(self, tensor_prod, cartan_type=cartan_type)
         # This is needed to override the module_generators set in FullTensorProductOfRegularCrystals
         self.module_generators = HighestWeightTensorKRT(self)
         self.rename("Tensor product of Kirillov-Reshetikhin tableaux of type %s and factor(s) %s"%(\
@@ -455,6 +454,42 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
         """
         return FullTensorProductOfRegularCrystals(tuple(x.kirillov_reshetikhin_crystal() for x in self.crystals),
                                            cartan_type=self.cartan_type())
+
+    def tensor(self, *crystals, **options):
+        """
+        Return the tensor product of ``self`` with ``crystals``.
+
+        If ``crystals`` is a list of (a tensor product of) KR tableaux, this
+        returns a :class:`TensorProductOfKirillovReshetikhinTableaux`.
+
+        EXAMPLES::
+
+            sage: TP = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[1,3],[3,1]])
+            sage: K = crystals.KirillovReshetikhin(['A', 3, 1], 2, 2, model='KR')
+            sage: TP.tensor(K, TP)
+            Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1]
+             and factor(s) ((1, 3), (3, 1), (2, 2), (1, 3), (3, 1))
+
+            sage: C = crystals.KirillovReshetikhin(['A',3,1], 3, 1, model='KN')
+            sage: TP.tensor(K, C)
+            Full tensor product of the crystals
+             [Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and shape (1, 3),
+              Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and shape (3, 1),
+              Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and shape (2, 2),
+              Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(3,1)]
+        """
+        ct = self._cartan_type
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
+        if all(isinstance(B, (KirillovReshetikhinTableaux, TensorProductOfKirillovReshetikhinTableaux))
+               and B.cartan_type() == ct for B in crystals):
+            dims = list(self.dims)
+            for B in crystals:
+                if isinstance(B, TensorProductOfKirillovReshetikhinTableaux):
+                    dims += B.dims
+                elif isinstance(B, KirillovReshetikhinTableaux):
+                    dims.append([B._r, B._s])
+            return TensorProductOfKirillovReshetikhinTableaux(ct, dims)
+        return super(TensorProductOfKirillovReshetikhinTableaux, self).tensor(*crystals, **options)
 
 TensorProductOfKirillovReshetikhinTableaux.Element = TensorProductOfKirillovReshetikhinTableauxElement
 

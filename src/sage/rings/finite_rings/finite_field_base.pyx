@@ -54,8 +54,7 @@ cdef class FiniteFieldIterator:
 
         EXAMPLES::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = iter(FiniteField_ext_pari(9, 'a')) # indirect doctest
+            sage: k = iter(FiniteField(9, 'a', impl='pari_mod')) # indirect doctest
             sage: isinstance(k, sage.rings.finite_rings.finite_field_base.FiniteFieldIterator)
             True
         """
@@ -68,8 +67,7 @@ cdef class FiniteFieldIterator:
 
         EXAMPLE::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = iter(FiniteField_ext_pari(9, 'a'))
+            sage: k = iter(FiniteField(9, 'a', impl='pari_mod'))
             sage: k.next() # indirect doctest
             0
         """
@@ -351,8 +349,7 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(8, 'a')
+            sage: k = FiniteField(8, 'a', impl='pari_mod')
             sage: i = iter(k); i # indirect doctest
             <sage.rings.finite_rings.finite_field_base.FiniteFieldIterator object at ...>
             sage: i.next()
@@ -370,9 +367,22 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: k = FiniteField(73^2, 'a')
-            sage: K = FiniteField(73^3, 'b') ; b = K.0
-            sage: L = FiniteField(73^4, 'c') ; c = L.0
+        Between prime fields::
+
+            sage: k0 = FiniteField(73, modulus='primitive')
+            sage: k1 = FiniteField(73)
+            sage: k0._is_valid_homomorphism_(k1, (k1(5),) )
+            True
+            sage: k1._is_valid_homomorphism_(k0, (k0(1),) )
+            True
+
+        Now for extension fields::
+
+            sage: k.<a> = FiniteField(73^2)
+            sage: K.<b> = FiniteField(73^3)
+            sage: L.<c> = FiniteField(73^4)
+            sage: k0._is_valid_homomorphism_(k, (k(5),) )
+            True
             sage: k.hom([c]) # indirect doctest
             Traceback (most recent call last):
             ...
@@ -389,10 +399,10 @@ cdef class FiniteField(Field):
             ...
             TypeError: images do not define a valid homomorphism
         """
-        if not codomain.characteristic().divides(self.characteristic()):
-            raise ValueError, "no map from %s to %s" % (self, codomain)
+        if self.characteristic() != codomain.characteristic():
+            raise ValueError("no map from %s to %s" % (self, codomain))
         if len(im_gens) != 1:
-            raise ValueError, "only one generator for finite fields."
+            raise ValueError("only one generator for finite fields")
 
         return self.modulus()(im_gens[0]).is_zero()
 
@@ -759,15 +769,21 @@ cdef class FiniteField(Field):
 
     def modulus(self):
         r"""
-        Return the minimal polynomial of the generator of self (over an
-        appropriate base field).
+        Return the minimal polynomial of the generator of ``self`` over
+        the prime finite field.
 
-        The minimal polynomial of an element `a` in a field is the unique
-        irreducible polynomial of smallest degree with coefficients in the base
-        field that has `a` as a root. In finite field extensions, `\GF{p^n}`,
-        the base field is `\GF{p}`. Here are several examples::
+        The minimal polynomial of an element `a` in a field is the
+        unique monic irreducible polynomial of smallest degree with
+        coefficients in the base field that has `a` as a root. In
+        finite field extensions, `\GF{p^n}`, the base field is `\GF{p}`.
 
-            sage: F.<a> = GF(7^2, 'a'); F
+        OUTPUT:
+
+        - a monic polynomial over `\GF{p}` in the variable `x`.
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(7^2); F
             Finite Field in a of size 7^2
             sage: F.polynomial_ring()
             Univariate Polynomial Ring in a over Finite Field of size 7
@@ -790,15 +806,115 @@ cdef class FiniteField(Field):
 
         Here is an example with a degree 3 extension::
 
-            sage: G.<b> = GF(7^3, 'b'); G
+            sage: G.<b> = GF(7^3); G
             Finite Field in b of size 7^3
             sage: g = G.modulus(); g
             x^3 + 6*x^2 + 4
             sage: g.degree(); G.degree()
             3
             3
+
+        For prime fields, this returns `x - 1` unless a custom modulus
+        was given when constructing this field::
+
+            sage: k = GF(199)
+            sage: k.modulus()
+            x + 198
+            sage: var('x')
+            x
+            sage: k = GF(199, modulus=x+1)
+            sage: k.modulus()
+            x + 1
+
+        The given modulus is always made monic::
+
+            sage: k.<a> = GF(7^2, modulus=2*x^2-3, impl="pari_ffelt")
+            sage: k.modulus()
+            x^2 + 2
+
+        TESTS:
+
+        We test the various finite field implementations::
+
+            sage: GF(2, impl="modn").modulus()
+            x + 1
+            sage: GF(2, impl="givaro").modulus()
+            x + 1
+            sage: GF(2, impl="ntl").modulus()
+            x + 1
+            sage: GF(2, impl="modn", modulus=x).modulus()
+            x
+            sage: GF(2, impl="givaro", modulus=x).modulus()
+            x
+            sage: GF(2, impl="ntl", modulus=x).modulus()
+            x
+            sage: GF(13^2, 'a', impl="givaro", modulus=x^2+2).modulus()
+            x^2 + 2
+            sage: GF(13^2, 'a', impl="pari_mod", modulus=x^2+2).modulus()
+            x^2 + 2
+            sage: GF(13^2, 'a', impl="pari_ffelt", modulus=x^2+2).modulus()
+            x^2 + 2
         """
-        return self.polynomial_ring("x")(self.polynomial().list())
+        # Normally, this is set by the constructor of the implementation
+        try:
+            return self._modulus
+        except AttributeError:
+            pass
+
+        from sage.rings.all import PolynomialRing
+        from constructor import GF
+        R = PolynomialRing(GF(self.characteristic()), 'x')
+        self._modulus = R((-1,1))  # Polynomial x - 1
+        return self._modulus
+
+    def polynomial(self, name=None):
+        """
+        Return the minimal polynomial of the generator of ``self`` over
+        the prime finite field.
+
+        INPUT:
+
+        - ``name`` -- a variable name to use for the polynomial. By
+          default, use the name given when constructing this field.
+
+        OUTPUT:
+
+        - a monic polynomial over `\GF{p}` in the variable ``name``.
+
+        .. SEEALSO::
+
+            Except for the ``name`` argument, this is identical to the
+            :meth:`modulus` method.
+
+        EXAMPLES::
+
+            sage: k.<a> = FiniteField(9, impl='pari_mod')
+            sage: k.polynomial('x')
+            x^2 + 2*x + 2
+            sage: k.polynomial()
+            a^2 + 2*a + 2
+
+            sage: F = FiniteField(9, 'a', impl='pari_ffelt')
+            sage: F.polynomial()
+            a^2 + 2*a + 2
+
+            sage: F = FiniteField(7^20, 'a', impl='pari_ffelt')
+            sage: f = F.polynomial(); f
+            a^20 + a^12 + 6*a^11 + 2*a^10 + 5*a^9 + 2*a^8 + 3*a^7 + a^6 + 3*a^5 + 3*a^3 + a + 3
+            sage: f(F.gen())
+            0
+
+            sage: k.<a> = GF(2^20, impl='ntl')
+            sage: k.polynomial()
+            a^20 + a^10 + a^9 + a^7 + a^6 + a^5 + a^4 + a + 1
+            sage: k.polynomial('FOO')
+            FOO^20 + FOO^10 + FOO^9 + FOO^7 + FOO^6 + FOO^5 + FOO^4 + FOO + 1
+            sage: a^20
+            a^10 + a^9 + a^7 + a^6 + a^5 + a^4 + a + 1
+        """
+        if name is None:
+            name = self.variable_name()
+        return self.modulus().change_variable_name(name)
 
     def unit_group_exponent(self):
         """
@@ -851,19 +967,6 @@ cdef class FiniteField(Field):
         """
         return [self.random_element() for i in range(4)]
 
-    def polynomial(self):
-        """
-        Return the defining polynomial of this finite field.
-
-        EXAMPLES::
-
-            sage: f = GF(27,'a').polynomial(); f
-            a^3 + 2*a + 1
-            sage: parent(f)
-            Univariate Polynomial Ring in a over Finite Field of size 3
-        """
-        raise NotImplementedError
-
     def polynomial_ring(self, variable_name=None):
         """
         Returns the polynomial ring over the prime subfield in the
@@ -876,7 +979,7 @@ cdef class FiniteField(Field):
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.finite_rings.constructor import FiniteField as GF
+        from sage.rings.finite_rings.constructor import GF
 
         if variable_name is None and self.__polynomial_ring is not None:
             return self.__polynomial_ring
@@ -962,7 +1065,7 @@ cdef class FiniteField(Field):
         if is_FiniteField(R):
             if R is self:
                 return True
-            from sage.rings.residue_field import ResidueField_generic
+            from residue_field import ResidueField_generic
             if isinstance(R, ResidueField_generic):
                 return False
             if R.characteristic() == self.characteristic():

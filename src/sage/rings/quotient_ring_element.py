@@ -617,7 +617,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: a.__cmp__(b)
             1
 
-        See :trac:`7797`:
+        See :trac:`7797`::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
@@ -625,9 +625,18 @@ class QuotientRingElement(ring_element.RingElement):
             sage: Q.0^4    # indirect doctest
             ybar*zbar*zbar*xbar + ybar*zbar*zbar*ybar + ybar*zbar*zbar*zbar
 
+        The issue from :trac:`8005` was most likely fixed as part of
+        :trac:`9138`::
+
+            sage: F = GF(5)
+            sage: R.<x,y>=F[]
+            sage: I=Ideal(R, [x, y])
+            sage: S.<x1,y1>=QuotientRing(R,I)
+            sage: x1^4
+            0
+
         """
-        #if self.__rep == other.__rep or ((self.__rep - other.__rep) in self.parent().defining_ideal()):
-        #    return 0
+
         # A containment test is not implemented for univariate polynomial
         # ideals. There are cases in which one would not like to add
         # elements of different degrees. The whole quotient stuff relies

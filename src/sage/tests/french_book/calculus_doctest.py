@@ -203,7 +203,7 @@ Sage example in ./calculus.tex, line 583::
     sage: x, y, z = var('x, y, z')
     sage: solve([x^2 * y * z == 18, x * y^3 * z == 24,\
     ....:        x * y * z^4 == 3], x, y, z)
-    [[x == (-2.76736473308 - 1.71347969911*I), y == (-0.570103503963 + 2.00370597877*I), z == (-0.801684337646 - 0.14986077496*I)], ...]
+    [[x == (-2.767364733... - 1.713479699...*I), y == (-0.5701035039... + 2.003705978...*I), z == (-0.8016843376... - 0.1498607749...*I)], ...]
 
 Sage example in ./calculus.tex, line 597::
 
@@ -327,6 +327,7 @@ Sage example in ./calculus.tex, line 898::
 Sage example in ./calculus.tex, line 914::
 
     sage: plot(u(x), x, 1, 40)
+    Graphics object consisting of 1 graphics primitive
 
 Sage example in ./calculus.tex, line 929::
 

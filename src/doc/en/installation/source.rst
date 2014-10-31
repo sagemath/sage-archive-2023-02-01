@@ -57,19 +57,17 @@ Prerequisites
 General requirements
 ~~~~~~~~~~~~~~~~~~~~
 
-This section details the technical prerequisites needed on any platform. See
-`System-specific requirements`_ and `Installing prerequisites`_ for details
-on how to acquire these. :ref:`Mac OS X <section_macprereqs>` has
-special instructions as developer tools do not come standard.
+This section details the technical prerequisites needed on all platforms. See
+also the `System-specific requirements`_ below.
 
-Your computer comes with at least 5 GB of free disk space running one of the
+Your computer comes with at least 6 GB of free disk space running one of the
 supported versions of an operating system listed at
 http://wiki.sagemath.org/SupportedPlatforms.
 It is recommended to have at least 2 GB of RAM, but you might get away
 with less (be sure to have some swap space in this case).
 
 In addition to standard `POSIX <http://en.wikipedia.org/wiki/POSIX>`_ utilities
-and a `bash <http://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_-compatible shell,
+and the `bash <http://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_ shell,
 the following standard command-line development tools must be installed on your
 computer:
 
@@ -107,8 +105,8 @@ Although some of Sage is written in `Python <http://www.python.org/>`_, you do
 not need Python pre-installed on your computer, since the Sage installation
 includes virtually everything you need.
 
-After extracting the Sage tarball, the subdirectory :file:`spkg` contains the
-source distributions for everything on which Sage depends.
+After extracting the Sage tarball, the subdirectory :file:`upstream`
+contains the source distributions for everything on which Sage depends.
 We emphasize that all of this software is included with Sage, so you do not
 have to worry about trying to download and install any one of these packages
 (such as Python, for example) yourself.
@@ -127,7 +125,7 @@ On recent Debian or Ubuntu systems, the **dpkg-dev** package is needed for
 `multiarch <http://wiki.debian.org/Multiarch>`_ support.
 
 On Cygwin, the **lapack** and **liblapack-devel** packages are required to
-provide ATLAS support as the ATLAS spkg is not built by default.
+provide ATLAS support as the Sage package for ATLAS is not built by default.
 
 Installing prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -325,7 +323,7 @@ you need to follow specific installation steps described in
 
 Although all necessary components are provided through Sage optional packages,
 i.e. you can install a local version of `OpenSSL <http://www.openssl.org>`_
-by using Sage's **openssl** spkg and running ``sage -i openssl`` as suggested
+by using Sage's **openssl** package and running ``sage -i openssl`` as suggested
 in :ref:`section_notebook_ssl` (this requires an Internet connection),
 you might prefer to install OpenSSL and the OpenSSL development headers
 globally on your system.

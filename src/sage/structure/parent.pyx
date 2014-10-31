@@ -1243,36 +1243,28 @@ cdef class Parent(category_object.CategoryObject):
             sage: 3/2 in RIF
             True
 
-        because
-
-        ::
-
-            sage: RIF(3/2).endpoints()
-            (1.50000000000000, 1.50000000000000)
-
-        i.e., the RIF-element has equal endpoints and therefore is exact::
+        because ``3/2`` has an exact representation in ``RIF`` (i.e. can be
+        represented as an interval that contains exactly one value)::
 
             sage: RIF(3/2).is_exact()
             True
 
-        On the other hand we have
+        On the other hand, we have
 
         ::
 
             sage: 2/3 in RIF
             False
 
-        because
-
-        ::
-
-            sage: RIF(2/3).endpoints()
-            (0.666666666666666, 0.666666666666667)
-
-        i.e., the RIF-element has different endpoints and therefore is
-        exact::
+        because ``2/3`` has no exact representation in ``RIF``. Since
+        ``RIF(2/3)`` is a nontrivial interval, it can not be equal to anything
+        (not even itself)::
 
             sage: RIF(2/3).is_exact()
+            False
+            sage: RIF(2/3).endpoints()
+            (0.666666666666666, 0.666666666666667)
+            sage: RIF(2/3) == RIF(2/3)
             False
 
         TESTS:

@@ -1866,8 +1866,8 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             return t
         W = WeylGroup(['A', k, 1], prefix='s')
         w = cls.straighten_input(t, k)
-        weight =  tuple(w[i].length() for i in range(len(w)-1,-1,-1))
-        inner_shape = Core(inner_shape, k+1)
+        weight = tuple(w[i].length() for i in range(len(w) - 1, -1, -1))
+        inner_shape = Core(inner_shape, k + 1)
         outer_shape = (W.prod(w)*W(inner_shape.to_grassmannian())).affine_grassmannian_to_core()
         return WeakTableaux_factorized_permutation(k, [outer_shape, inner_shape], weight)(w)
 
@@ -1987,9 +1987,10 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             ...
             ValueError: The weight of the parent does not agree with the weight of the tableau!
         """
-        weight =  tuple(self[i].length() for i in range(len(self)-1,-1,-1))
+        weight = tuple(self[i].length() for i in range(len(self) - 1, -1, -1))
         if not self.parent()._weight == weight:
-            raise ValueError("The weight of the parent does not agree with the weight of the tableau!")
+            raise ValueError("The weight of the parent does not agree "
+                             "with the weight of the tableau!")
         W = self[0].parent()
         outer = (W.prod(self)*W((self._inner_shape).to_grassmannian())).affine_grassmannian_to_core()
         if self.parent()._outer_shape != outer:

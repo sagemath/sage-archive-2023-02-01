@@ -29,4 +29,3 @@ diff -ru src/setuptools/command/easy_install.py b/setuptools/command/easy_instal
  
      def add(self, dist):
          """Add `dist` to the distribution map"""
-Only in src/setuptools/command: easy_install.py.orig

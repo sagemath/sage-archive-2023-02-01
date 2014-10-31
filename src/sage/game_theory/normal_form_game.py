@@ -897,7 +897,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def obtain_Nash(self, algorithm=False, maximization=True):
         r"""
-        A function to return the Nash equilibrium for a game.
+        A function to return the Nash equilibrium for the game.
         Optional arguments can be used to specify the algorithm used.
         If no algorithm is passed then an attempt is made to use the most
         appropriate algorithm.
@@ -950,8 +950,8 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [2,6],
             ....:             [3,1]])
             sage: g = NormalFormGame([A, B])
-            sage: g.obtain_Nash(maximization=False)
-            [[(1, 0, 0), (0, 1)]]
+            sage: g.obtain_Nash()
+            [[(4/5, 1/5, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)], [(1, 0, 0), (1, 0)]]
 
         Here is a slightly larger game::
 
@@ -1142,13 +1142,16 @@ class NormalFormGame(SageObject, MutableMapping):
 
         Due to the nature of the linear equations solved in this algorithm
         some negative vectors can be returned. Here is a test that ensures
-        this doesn't happen::
+        this doesn't happen (the particular payoff matrices chosen give a
+        linear system that would have negative valued vectors as solution)::
 
             sage: a = matrix([[-13, 59],
             ....:             [27, 86]])
             sage: b = matrix([[14, 6],
             ....:             [58, -14]])
             sage: c = NormalFormGame([a, b])
+            sage: c._solve_enumeration()
+            [[(0, 1), (1, 0)]]
         """
 
         M1, M2 = self.payoff_matrices()

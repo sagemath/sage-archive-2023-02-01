@@ -1,7 +1,8 @@
 r"""
 Filtered modules
 
-We require all `F_i / F_{i-1}` to be modules for all `i`.
+Consider a filtered module `M = \cup_{i \in I} F_i`. We require
+all `F_i / F_{i-1}` to be modules for all `i`.
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>

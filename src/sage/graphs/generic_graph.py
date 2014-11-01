@@ -12392,104 +12392,6 @@ class GenericGraph(GenericGraph_pyx):
             return []
         return [v for v in e if e[v]==r]
 
-    def diameter(self, method=None, source=None):
-        """
-        Returns the largest distance between any two vertices. Returns Infinity
-        if the (di)graph is not connected.
-
-        For unweighted Graphs, it is possible to use the ``2sweep`` and
-        ``multi-sweep`` lower bound methods as well as the ``iFUB`` fast exact
-        algorithm instead of the ``standard`` exhaustive algorithm. See the
-        documentation of the :meth:sage.graphs.distances_all_pairs.diameter for
-        more details.
-
-        The input parameter ``source`` is used only for the ``2sweep``,
-        ``multi-sweep``, and ``iFUB`` methods.
-
-        INPUTS:
-
-        - ``method`` -- (default: 'iFUB') this parameter is used only for
-          undirected graphs. It specifies the algorithm to use among:
-
-            - ``'standard'`` -- Computes the diameter of the input (di)graph as
-              the largest eccentricity of its vertices. This is the classical
-              method with time complexity in `O(nm)`.
-
-            - ``'2sweep'`` -- Computes a lower bound on the diameter of an
-              unweighted undirected graph using 2 BFS, as proposed in [MLH08]_.
-              It first selects a vertex `v` that is at largest distance from an
-              initial vertex source using BFS. Then it performs a second BFS
-              from `v`. The largest distance from `v` is returned as a lower
-              bound on the diameter of `G`.  The time complexity of this method
-              is linear in the size of `G`.
-
-            - ``'multi-sweep'`` -- Computes a lower bound on the diameter of an
-              unweighted undirected graph using several iterations of the
-              ``2sweep`` algorithms [CGH+13]_. Roughly, it first uses ``2sweep``
-              to identify two vertices `u` and `v` that are far apart. Then it
-              selects a vertex `w` that is at same distance from `u` and `v`.
-              This vertex `w` will serve as the new source for another iteration
-              of the ``2sweep`` algorithm that may improve the current lower
-              bound on the diameter. This process is repeated as long as the
-              lower bound on the diameter is improved.
-
-            - ``'iFUB'`` -- The iFUB (iterative Fringe Upper Bound) algorithm,
-              proposed in [CGI+10]_, computes the exact value of the diameter of
-              an unweighted undirected graph. This algorithm uses as a
-              subroutine the ``multi-sweep`` lower bound computation method in
-              order to start an iterative procedure whose goal is both to refine
-              the lower bound value itself and to properly tune an upper bound
-              value, until the two values coincide. The worst case time
-              complexity of the iFUB algorithm is `O(nm)`, but it can be very
-              fast in practice. See [CGH+13]_ for more details. Notice that
-              [CGH+13]_ uses ``4sweep`` (two iterations of ``2sweep``) instead
-              of ``multi-sweep``. However, this those not affect the validity of
-              the algorithm since we are only trying to improve the selection of
-              the starting vertex of the iterative procedure.
-
-        - ``source`` -- (default: None) This parameter is used only for
-          undirected graphs. It specifies the vertex from which to start the
-          first BFS. If ``source==None``, an arbitrary vertex of the graph is
-          chosen. Raise an error if the initial vertex is not in `G`.  This
-          parameter is not used when ``method=='standard'``.
-
-
-        EXAMPLES::
-
-            sage: G = graphs.PetersenGraph()
-            sage: G.diameter()
-            2
-            sage: G = Graph( { 0 : [], 1 : [], 2 : [1] } )
-            sage: G.diameter()
-            +Infinity
-
-        Although max( ) is usually defined as -Infinity, since the diameter
-        will never be negative, we define it to be zero::
-
-            sage: G = graphs.EmptyGraph()
-            sage: G.diameter()
-            0
-
-        Comparison of exact methods::
-
-            sage: G = graphs.RandomBarabasiAlbert(100, 2)
-            sage: d1 = G.diameter(method='standard')
-            sage: d2 = G.diameter(method='iFUB')
-            sage: d3 = G.diameter(method='iFUB', source=G.random_vertex())
-            sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
-
-        Comparison of lower bound methods::
-
-            sage: lb2 = G.diameter(method='2sweep')
-            sage: lbm = G.diameter(method='multi-sweep')
-            sage: if not (lb2<=lbm and lbm<=d3): print "Something goes wrong!"
-        """
-        if self.order()==0:
-            return 0
-        if self.is_directed() or method=='standard':
-            return max(self.eccentricity())
-        else:
-            return sage.graphs.distances_all_pairs.diameter(self, method=method, source=source)
 
 
     def distance_graph(self, dist):
@@ -18212,6 +18114,7 @@ import types
 import sage.graphs.distances_all_pairs
 GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all_pairs.distances_distribution, None, GenericGraph)
 GenericGraph.wiener_index = types.MethodType(sage.graphs.distances_all_pairs.wiener_index, None, GenericGraph)
+GenericGraph.diameter = types.MethodType(sage.graphs.distances_all_pairs.diameter, None, GenericGraph)
 
 # From Python modules
 import sage.graphs.line_graph

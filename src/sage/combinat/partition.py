@@ -2029,12 +2029,11 @@ class Partition(CombinatorialObject, Element):
         p = list(self)
         if p == []:
             return self
-        else:
-            l = len(p)
-            conj =  [l]*p[-1]
-            for i in xrange(l-1,0,-1):
-                conj.extend([i]*(p[i-1] - p[i]))
-            return Partition(conj)
+        l = len(p)
+        conj = [l] * p[-1]
+        for i in xrange(l - 1, 0, -1):
+            conj.extend([i] * (p[i - 1] - p[i]))
+        return Partition(conj)
 
     def suter_diagonal_slide(self, n, exp=1):
         r"""
@@ -4111,13 +4110,12 @@ class Partition(CombinatorialObject, Element):
             (-q^2*t^3 + 1)/(-q^3*t^2 + 1)
         """
         QQqt = PolynomialRing(QQ, ['q', 't'])
-        (q,t) = QQqt.gens()
+        (q, t) = QQqt.gens()
         if i < len(self) and j < self[i]:
-            res =  (1-q**self.arm_length(i,j) * t**(self.leg_length(i,j)+1))
+            res = (1-q**self.arm_length(i,j) * t**(self.leg_length(i,j)+1))
             res /= (1-q**(self.arm_length(i,j)+1) * t**self.leg_length(i,j))
             return res
-        else:
-            return ZZ.one()
+        return ZZ.one()
 
     def atom(self):
         """

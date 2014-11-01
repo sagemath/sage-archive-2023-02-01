@@ -175,18 +175,18 @@ class SetShuffleProduct(SageObject):
             sage: list(SetShuffleProduct([[1,2],[3]], [[4]]))
             [[1, 2, 4], [4, 1, 2], [1, 4, 2], [3, 4], [4, 3]]
             sage: list(SetShuffleProduct([[1,2],[3,4]], [[1,4]], element_constructor=set))  #rando
-            [set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 2, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4]),
-             set([1, 3, 4])]
+            [{1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 2, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4},
+             {1, 3, 4}]
         """
         def shuffle_elements(pair):
             return ShuffleProduct(*pair, element_constructor=self._element_constructor_)

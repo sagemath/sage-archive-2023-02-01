@@ -11,14 +11,14 @@ AUTHORS:
 
 - David Harvey: doctests
 
-- Julian Rueth: fixes for exp() and log(), implemented gcd
+- Julian Rueth: fixes for exp() and log(), implemented gcd, xgcd
 
 """
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed@math.harvard.edu>
-#                     2007 William Stein <wstein@gmail.com>
-#                     2013 Julian Rueth <julian.rueth@gmail.com>
+#                     2007      William Stein <wstein@gmail.com>
+#                     2013-2014 Julian Rueth <julian.rueth@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -700,35 +700,168 @@ cdef class pAdicGenericElement(LocalGenericElement):
     #    """
     #    raise NotImplementedError
 
-    #def gamma(self):
-    #    raise NotImplementedError
+    def dwork_expansion(self, bd=20):
+        r"""
+        Return the value of a function defined by Dwork.
+
+        Used to compute the `p`-adic Gamma function, see :meth:`gamma`.
+
+        INPUT:
+
+        - ``bd`` -- integer. Is a bound for precision, defaults to 20
+
+        OUTPUT:
+
+        A ``p``-- adic integer.
+
+        .. NOTE::
+
+            This is based on GP code written by Fernando Rodriguez
+            Villegas (http://www.ma.utexas.edu/cnt/cnt-frames.html).
+            William Stein sped it up for GP
+            (http://sage.math.washington.edu/home/wstein/www/home/wbhart/pari-2.4.2.alpha/src/basemath/trans2.c).
+            The output is a `p`-adic integer from Dwork's expansion,
+            used to compute the `p`-adic gamma function as in [RV]_
+            section 6.2.
+
+        REFERENCES:
+
+        .. [RV] Rodriguez Villegas, Fernando. Experimental Number Theory.
+           Oxford Graduate Texts in Mathematics 13, 2007.
+
+        EXAMPLES::
+
+            sage: R = Zp(17)
+            sage: x = R(5+3*17+13*17^2+6*17^3+12*17^5+10*17^(14)+5*17^(17)+O(17^(19)))
+            sage: x.dwork_expansion(18)
+            16 + 7*17 + 11*17^2 + 4*17^3 + 8*17^4 + 10*17^5 + 11*17^6 + 6*17^7 
+            + 17^8 + 8*17^10 + 13*17^11 + 9*17^12 + 15*17^13  + 2*17^14 + 6*17^15 
+            + 7*17^16 + 6*17^17 + O(17^18)
+
+            sage: R = Zp(5)
+            sage: x = R(3*5^2+4*5^3+1*5^4+2*5^5+1*5^(10)+O(5^(20)))
+            sage: x.dwork_expansion()
+            4 + 4*5 + 4*5^2 + 4*5^3 + 2*5^4 + 4*5^5 + 5^7 + 3*5^9 + 4*5^10 + 3*5^11 
+            + 5^13 + 4*5^14 + 2*5^15 + 2*5^16 + 2*5^17 + 3*5^18 + O(5^20)
+        """
+        R = self.parent()
+        p = R.prime()
+        s = R.one().add_bigoh(bd)
+        t = s
+        u = [s]
+        for j in range(1, p):
+            u.append(u[j-1] / j)
+        for k in range(1, bd):
+            u[0] = ((u[-1] + u[0]) / k) >> 1
+            for j in range(1, p):
+                u[j] = (u[j-1] + u[j]) / (j + k * p )
+            t *= (self + k - 1)
+            s += t * (u[0] << k)
+        return R(-s)
+
+    def gamma(self, algorithm='pari'):
+        r"""
+        Return the value of the `p`-adic Gamma function.
+
+        INPUT:
+
+        - ``algorithm`` -- string. Can be set to ``'pari'`` to call
+          the pari function, or ``'sage'`` to call the function
+          implemented in sage.  set to ``'pari'`` by default, since
+          pari is about 10 times faster than sage.
+
+        OUTPUT:
+
+        - a `p`-adic integer
+
+        .. NOTE::
+
+            This is based on GP code written by Fernando Rodriguez
+            Villegas (http://www.ma.utexas.edu/cnt/cnt-frames.html).
+            William Stein sped it up for GP
+            (http://sage.math.washington.edu/home/wstein/www/home/wbhart/pari-2.4.2.alpha/src/basemath/trans2.c).
+            The 'sage' version uses dwork_expansion() to compute the
+            `p`-adic gamma function of self as in [RV]_ section 6.2.
+
+        EXAMPLES:
+
+        This example illustrates ``x.gamma()`` for `x` a `p`-adic unit::
+
+            sage: R = Zp(7)
+            sage: x = R(2+3*7^2+4*7^3+O(7^20))
+            sage: x.gamma('pari')
+            1 + 2*7^2 + 4*7^3 + 5*7^4 + 3*7^5 + 7^8 + 7^9 + 4*7^10 + 3*7^12 
+            + 7^13 + 5*7^14 + 3*7^15 + 2*7^16 + 2*7^17 + 5*7^18 + 4*7^19 + O(7^20)
+            sage: x.gamma('sage')
+            1 + 2*7^2 + 4*7^3 + 5*7^4 + 3*7^5 + 7^8 + 7^9 + 4*7^10 + 3*7^12 
+            + 7^13 + 5*7^14 + 3*7^15 + 2*7^16 + 2*7^17 + 5*7^18 + 4*7^19 + O(7^20)
+            sage: x.gamma('pari') == x.gamma('sage')
+            True
+
+        Now ``x.gamma()`` for `x` a `p`-adic integer but not a unit::
+
+            sage: R = Zp(17)
+            sage: x = R(17+17^2+3*17^3+12*17^8+O(17^13))
+            sage: x.gamma('pari')
+            1 + 12*17 + 13*17^2 + 13*17^3 + 10*17^4 + 7*17^5 + 16*17^7 
+            + 13*17^9 + 4*17^10 + 9*17^11 + 17^12 + O(17^13)
+            sage: x.gamma('sage')
+            1 + 12*17 + 13*17^2 + 13*17^3 + 10*17^4 + 7*17^5 + 16*17^7 
+            + 13*17^9 + 4*17^10 + 9*17^11 + 17^12 + O(17^13)
+            sage: x.gamma('pari') == x.gamma('sage')
+            True
+
+        Finally, this function is not defined if `x` is not a `p`-adic integer::
+
+            sage: K = Qp(7)
+            sage: x = K(7^-5 + 2*7^-4 + 5*7^-3 + 2*7^-2 + 3*7^-1 + 3 + 3*7 
+            ....:       + 7^3 + 4*7^4 + 5*7^5 + 6*7^8 + 3*7^9 + 6*7^10 + 5*7^11 + 6*7^12 
+            ....:       + 3*7^13 + 5*7^14 + O(7^15))
+            sage: x.gamma()
+            Traceback (most recent call last):
+            ...
+            ValueError: The p-adic gamma function only works on elements of Zp
+        """
+        if self.valuation() < 0:
+            raise ValueError('The p-adic gamma function only works '
+                             'on elements of Zp')
+        parent = self.parent()
+        if algorithm == 'pari':
+            return parent(self._pari_().gamma())
+        elif algorithm == 'sage':
+            from sage.misc.all import prod
+            p = parent.prime()
+            n = self.precision_absolute()
+            bd = n + 2*n//p
+            if self.is_padic_unit():
+                k = Integer(self.residue())  # leading coefficient of self, non-zero
+                x = (self-k) >> 1
+                return (-1)**(k+1)*x.dwork_expansion(bd)*prod(j + (x << 1) for j in range(1, k))
+            else:
+                return -(self >> 1).dwork_expansion(bd)
 
     @coerce_binop
     def gcd(self, other):
         r"""
-        Return a greatest common divisor of this element and ``other``.
+        Return a greatest common divisor of ``self`` and ``other``.
 
         INPUT:
 
-        - ``other`` -- an element in the same ring.
-
-        OUTPUT:
-
-        The gcd of ``self`` and ``other``.
+        - ``other`` -- an element in the same ring as ``self``
 
         AUTHORS:
 
-        - Julian Rueth (2012-10-19): initial version.
+        - Julian Rueth (2012-10-19): initial version
 
         .. NOTE::
 
             Since the elements are only given with finite precision,
             their greatest common divisor is in general not unique (not even up
             to units). For example `O(3)` is a representative for the elements
-            0 and 3 in the 3-adic ring `\mathbb{Z}_3`. The greatest common
+            0 and 3 in the 3-adic ring `\ZZ_3`. The greatest common
             divisior of `O(3)` and `O(3)` could be (among others) 3 or 0 which
             have different valuation. The algorithm implemented here, will
-            return an element of minimal valuation among the possible greatest
+            return an element of minimal valuation among the possible greatest
             common divisors.
 
         EXAMPLES:
@@ -764,8 +897,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: a.gcd(b)
             O(3^2)
 
-        One could argue that it is mathematically correct to return ``9 +
-        O(3^22)`` instead. However, this would lead to some confusing
+        One could argue that it is mathematically correct to return `9 +
+        O(3^{22})` instead. However, this would lead to some confusing
         behaviour::
 
             sage: alternative_gcd = R(9,22); alternative_gcd
@@ -854,6 +987,180 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return self.parent().zero().add_bigoh(min(self.precision_absolute(),other.precision_absolute()))
 
         return self.parent().uniformiser_pow( min(self.valuation(),other.valuation()) )
+
+    @coerce_binop
+    def xgcd(self, other):
+        r"""
+        Compute the extended gcd of this element and ``other``.
+
+        INPUT:
+
+        - ``other`` -- an element in the same ring
+
+        OUTPUT:
+
+        A tuple ``r``, ``s``, ``t`` such that ``r`` is a greatest common
+        divisor of this element and ``other`` and ``r = s*self + t*other``.
+
+        AUTHORS:
+
+        - Julian Rueth (2012-10-19): initial version
+
+        .. NOTE::
+
+            Since the elements are only given with finite precision, their
+            greatest common divisor is in general not unique (not even up to
+            units). For example `O(3)` is a representative for the elements 0
+            and 3 in the 3-adic ring `\ZZ_3`. The greatest common
+            divisior of `O(3)` and `O(3)` could be (among others) 3 or 0 which
+            have different valuation. The algorithm implemented here, will
+            return an element of minimal valuation among the possible greatest
+            common divisors.
+
+        EXAMPLES:
+
+        The greatest common divisor is either zero or a power of the
+        uniformizing paramter::
+
+            sage: R = Zp(3)
+            sage: R.zero().xgcd(R.zero())
+            (0, 1 + O(3^20), 0)
+            sage: R(3).xgcd(9)
+            (3 + O(3^21), 1 + O(3^20), 0)
+
+        Unlike for :meth:`gcd`, the result is not lifted to the maximal
+        precision possible in the ring; it is such that ``r = s*self +
+        t*other`` holds true::
+
+            sage: a = R(3,2); a
+            3 + O(3^2)
+            sage: b = R(9,3); b
+            3^2 + O(3^3)
+            sage: a.xgcd(b)
+            (3 + O(3^2), 1 + O(3), 0)
+            sage: a.xgcd(0)
+            (3 + O(3^2), 1 + O(3), 0)
+
+        If both elements are zero, then the result is zero with
+        the precision set to the smallest of their precisions::
+
+            sage: a = R.zero(); a
+            0
+            sage: b = R(0,2); b
+            O(3^2)
+            sage: a.xgcd(b)
+            (O(3^2), 0, 1 + O(3^20))
+
+        If only one element is zero, then the result depends on its precision::
+
+            sage: R(9).xgcd(R(0,1))
+            (O(3), 0, 1 + O(3^20))
+            sage: R(9).xgcd(R(0,2))
+            (O(3^2), 0, 1 + O(3^20))
+            sage: R(9).xgcd(R(0,3))
+            (3^2 + O(3^22), 1 + O(3^20), 0)
+            sage: R(9).xgcd(R(0,4))
+            (3^2 + O(3^22), 1 + O(3^20), 0)
+
+        Over a field, the greatest common divisor is either zero (possibly with
+        finite precision) or one::
+
+            sage: K = Qp(3)
+            sage: K(3).xgcd(0)
+            (1 + O(3^20), 3^-1 + O(3^19), 0)
+            sage: K.zero().xgcd(0)
+            (0, 1 + O(3^20), 0)
+            sage: K.zero().xgcd(K(0,2))
+            (O(3^2), 0, 1 + O(3^20))
+            sage: K(3).xgcd(4)
+            (1 + O(3^20), 3^-1 + O(3^19), 0)
+
+        TESTS:
+
+        The implementation also works over extensions::
+
+            sage: K = Qp(3)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^3-3)
+            sage: (a+3).xgcd(3)
+            (1 + O(a^60),
+             a^-1 + 2*a + a^3 + 2*a^4 + 2*a^5 + 2*a^8 + 2*a^9
+              + 2*a^12 + 2*a^13 + 2*a^16 + 2*a^17 + 2*a^20 + 2*a^21 + 2*a^24
+              + 2*a^25 + 2*a^28 + 2*a^29 + 2*a^32 + 2*a^33 + 2*a^36 + 2*a^37
+              + 2*a^40 + 2*a^41 + 2*a^44 + 2*a^45 + 2*a^48 + 2*a^49 + 2*a^52
+              + 2*a^53 + 2*a^56 + 2*a^57 + O(a^59),
+             0)
+
+            sage: R = Zp(3)
+            sage: S.<a> = R[]
+            sage: S.<a> = R.extension(a^3-3)
+            sage: (a+3).xgcd(3)
+            (a + O(a^61),
+             1 + 2*a^2 + a^4 + 2*a^5 + 2*a^6 + 2*a^9 + 2*a^10
+              + 2*a^13 + 2*a^14 + 2*a^17 + 2*a^18 + 2*a^21 + 2*a^22 + 2*a^25
+              + 2*a^26 + 2*a^29 + 2*a^30 + 2*a^33 + 2*a^34 + 2*a^37 + 2*a^38
+              + 2*a^41 + 2*a^42 + 2*a^45 + 2*a^46 + 2*a^49 + 2*a^50 + 2*a^53
+              + 2*a^54 + 2*a^57 + 2*a^58 + O(a^60),
+             0)
+
+            sage: K = Qp(3)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2-2)
+            sage: (a+3).xgcd(3)
+            (1 + O(3^20),
+             2*a + (a + 1)*3 + (2*a + 1)*3^2 + (a + 2)*3^4 + 3^5
+              + (2*a + 2)*3^6 + a*3^7 + (2*a + 1)*3^8 + (a + 2)*3^10 + 3^11
+              + (2*a + 2)*3^12 + a*3^13 + (2*a + 1)*3^14 + (a + 2)*3^16
+              + 3^17 + (2*a + 2)*3^18 + a*3^19 + O(3^20),
+             0)
+
+            sage: R = Zp(3)
+            sage: S.<a> = R[]
+            sage: S.<a> = R.extension(a^2-2)
+            sage: (a+3).xgcd(3)
+            (1 + O(3^20),
+             2*a + (a + 1)*3 + (2*a + 1)*3^2 + (a + 2)*3^4 + 3^5
+              + (2*a + 2)*3^6 + a*3^7 + (2*a + 1)*3^8 + (a + 2)*3^10 + 3^11
+              + (2*a + 2)*3^12 + a*3^13 + (2*a + 1)*3^14 + (a + 2)*3^16 + 3^17
+              + (2*a + 2)*3^18 + a*3^19 + O(3^20),
+             0)
+
+        For elements with a fixed modulus::
+
+            sage: R = ZpFM(3)
+            sage: R(3).xgcd(9)
+            (3 + O(3^20), 1 + O(3^20), O(3^20))
+
+        And elements with a capped absolute precision::
+
+            sage: R = ZpCA(3)
+            sage: R(3).xgcd(9)
+            (3 + O(3^20), 1 + O(3^19), O(3^20))
+
+        """
+        s,t = self.parent().zero(), self.parent().zero()
+        if self.is_zero() and other.is_zero():
+            if self.valuation() <= other.valuation():
+                s = self.parent().one()
+            else:
+                t = self.parent().one()
+        elif self.parent().is_field():
+            if not self.is_zero():
+                s = ~self
+            else:
+                t = ~other
+        elif self.valuation() < other.valuation():
+            if self.is_zero():
+                s = self.parent().one()
+            else:
+                s = self.unit_part().inverse_of_unit()
+        else:
+            if other.is_zero():
+                t = self.parent().one()
+            else:
+                t = other.unit_part().inverse_of_unit()
+
+        return s*self+t*other,s,t
 
     def is_square(self): #should be overridden for lazy elements
         """

@@ -395,12 +395,10 @@ def eta(x):
 
                     \eta(z) = e^{\pi i z / 12} \prod_{n=1}^{\infty}(1-e^{2\pi inz})
 
-
-
     EXAMPLES::
 
         sage: eta(1+I)
-        0.742048775837 + 0.19883137023*I
+        0.7420487758365647 + 0.1988313702299107*I
     """
     try: return x.eta()
     except AttributeError: return CDF(x).eta()
@@ -1214,10 +1212,10 @@ def norm(x):
 
         sage: z = 1 + 2*I
         sage: norm(matrix([[z]]))
-        2.2360679775
+        2.23606797749979
         sage: M = matrix(ZZ, [[1,2,4,3], [-1,0,3,-10]])
-        sage: norm(M)
-        10.6903311292
+        sage: norm(M)  # abs tol 1e-14
+        10.690331129154467
         sage: norm(CDF(z))
         5.0
         sage: norm(CC(z))

@@ -762,7 +762,7 @@ def nintegral(ex, x, a, b,
     Now numerically integrating, we see why the answer is wrong::
 
         sage: f.nintegrate(x,0,1)
-        (-480.00000000000006, 5.329070518200754e-12, 21, 0)
+        (-480.0000000000001, 5.329070518200754e-12, 21, 0)
 
     It is just because every floating point evaluation of return -480.0
     in floating point.
@@ -1075,9 +1075,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: f(x=I)
         (-I + 1)^I
         sage: CDF(f(x=I))
-        2.06287223508 + 0.74500706218*I
+        2.0628722350809046 + 0.7450070621797239*I
         sage: CDF(f.limit(x = I))
-        2.06287223508 + 0.74500706218*I
+        2.0628722350809046 + 0.7450070621797239*I
 
     Notice that Maxima may ask for more information::
 

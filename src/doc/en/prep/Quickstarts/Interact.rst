@@ -29,6 +29,7 @@ look like.  Here we just want a simple plot.
 ::
 
     sage: plot(x^2,(x,-3,3))
+    Graphics object consisting of 1 graphics primitive
 
 Then abstract out the parts you want to change.  We'll be letting the
 user change the function, so let's make that a variable ``f``.
@@ -37,6 +38,7 @@ user change the function, so let's make that a variable ``f``.
 
     sage: f=x^3
     sage: plot(f,(x,-3,3))
+    Graphics object consisting of 1 graphics primitive
 
 This was important because it allowed you to step back and think about
 what you would really be doing.

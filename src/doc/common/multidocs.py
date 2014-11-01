@@ -151,8 +151,13 @@ def get_js_index(app, curdoc):
     """
     from sphinx.search import IndexBuilder, languages
     # FIXME: find the correct lang
-    indexer = IndexBuilder(app.env, 'en',
-                           app.config.html_search_options)
+    sphinx_version=__import__("sphinx").__version__
+    if (sphinx_version < '1.2'):
+        indexer = IndexBuilder(app.env, 'en',
+                               app.config.html_search_options)
+    else:
+        indexer = IndexBuilder(app.env, 'en',
+                               app.config.html_search_options, scoring=None)
     indexfile = os.path.join(app.outdir, curdoc, 'searchindex.js')
     try:
         f = open(indexfile, 'rb')

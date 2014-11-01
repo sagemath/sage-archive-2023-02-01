@@ -1,4 +1,5 @@
 from types cimport *
+from libc.stdio cimport FILE
 
 cdef extern from "gmp.h":
 
@@ -154,10 +155,10 @@ cdef extern from "gmp.h":
     int mpz_tstbit (mpz_t op, unsigned long int bit_index)
 
     # Input and Output Functions
-    # size_t mpz_out_str (file *stream, int base, mpz_t op)
-    # size_t mpz_inp_str (mpz_t rop, file *stream, int base)
-    # size_t mpz_out_raw (file *stream, mpz_t op)
-    # size_t mpz_inp_raw (mpz_t rop, file *stream)
+    size_t mpz_out_str (FILE *stream, int base, mpz_t op)
+    size_t mpz_inp_str (mpz_t rop, FILE *stream, int base)
+    size_t mpz_out_raw (FILE *stream, mpz_t op)
+    size_t mpz_inp_raw (mpz_t rop, FILE *stream)
 
     # Random Number Functions
     void mpz_urandomb (mpz_t rop, gmp_randstate_t state, unsigned long int n)
@@ -182,7 +183,6 @@ cdef extern from "gmp.h":
     size_t mpz_sizeinbase (mpz_t op, int base)
 
     # Special Functions
-    void mpz_array_init (mpz_t integer_array, size_t array_size, mp_size_t fixed_num_bits)
     void * _mpz_realloc (mpz_t integer, mp_size_t new_alloc)
     mp_limb_t mpz_getlimbn (mpz_t op, mp_size_t n)
     size_t mpz_size (mpz_t op)

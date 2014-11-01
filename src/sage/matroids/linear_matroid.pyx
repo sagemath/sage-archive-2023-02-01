@@ -108,7 +108,7 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 from sage.matroids.matroid cimport Matroid
 from basis_exchange_matroid cimport BasisExchangeMatroid
@@ -377,13 +377,13 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         """
         return characteristic(self._A)
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return self._A.is_nonzero(self._prow[x], self._prow[y])   # Not a Sage matrix operation
+        return self._A.is_nonzero(self._prow[x], self._prow[y])
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         """
         Put element indexed by ``x`` into basis, taking out element ``y``.
         Assumptions are that this is a valid basis exchange.
@@ -1659,7 +1659,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             [2, 3, 4, 5, 6]
             sage: M = matroids.CompleteGraphic(5)
             sage: M.cross_ratios()
-            set([])
+            set()
         """
         if hyperlines is None:
             hyperlines = self.flats(self.full_rank() - 2)
@@ -2857,13 +2857,13 @@ cdef class BinaryMatroid(LinearMatroid):
         """
         return 2
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<BinaryMatrix>self._A).get(self._prow[x], y)   # Not a Sage matrix operation
+        return (<BinaryMatrix>self._A).is_nonzero(self._prow[x], y)
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
@@ -3791,13 +3791,13 @@ cdef class TernaryMatroid(LinearMatroid):
         """
         return 3
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<TernaryMatrix>self._A).get(self._prow[x], y)   # Not a Sage matrix operation
+        return (<TernaryMatrix>self._A).is_nonzero(self._prow[x], y)
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
@@ -4585,13 +4585,13 @@ cdef class QuaternaryMatroid(LinearMatroid):
         """
         return 2
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<QuaternaryMatrix>self._A).get(self._prow[x], y)   # Not a Sage matrix operation
+        return (<QuaternaryMatrix>self._A).is_nonzero(self._prow[x], y)
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
@@ -5256,13 +5256,13 @@ cdef class RegularMatroid(LinearMatroid):
         """
         return 0
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<IntegerMatrix>self._A).get(self._prow[x], self._prow[y])   # Not a Sage matrix operation
+        return (<IntegerMatrix>self._A).is_nonzero(self._prow[x], self._prow[y])
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         """
         Put element indexed by ``x`` into basis, taking out element ``y``. Assumptions are that this is a valid basis exchange.
 

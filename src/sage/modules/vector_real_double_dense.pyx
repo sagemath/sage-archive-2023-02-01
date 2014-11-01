@@ -4,14 +4,14 @@ Dense real double vectors using a NumPy backend.
 EXAMPLES:
     sage: v = vector(RDF,[1, pi, sqrt(2)])
     sage: v
-    (1.0, 3.14159265359, 1.41421356237)
+    (1.0, 3.141592653589793, 1.414213562373095)
     sage: type(v)
     <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
     sage: parent(v)
     Vector space of dimension 3 over Real Double Field
     sage: v[0] = 5
     sage: v
-    (5.0, 3.14159265359, 1.41421356237)
+    (5.0, 3.141592653589793, 1.414213562373095)
     sage: loads(dumps(v)) == v
     True
 

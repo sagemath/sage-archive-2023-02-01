@@ -26,7 +26,7 @@ include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 from cpython.list cimport *
 from cpython.object cimport *
-include "sage/ext/python_slice.pxi"
+from cpython.slice cimport PySlice_Check
 from cpython.tuple cimport *
 
 import sage.modules.free_module
@@ -228,7 +228,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [      x       y       0]
             [      0       0 2*x + y]
             sage: d = a.dict(); d
-            {(0, 1): y, (1, 2): 2*x + y, (0, 0): x}
+            {(0, 0): x, (0, 1): y, (1, 2): 2*x + y}
 
         Notice that changing the returned list does not change a (the list
         is a copy)::
@@ -256,16 +256,16 @@ cdef class Matrix(sage.structure.element.Matrix):
             [0 1 2]
             [3 4 5]
             sage: v = a._dict(); v
-            {(0, 1): 1, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): 1, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
 
         If you change a key of the dictionary, the corresponding entry of
         the matrix will be changed (but without clearing any caches of
         computing information about the matrix)::
 
             sage: v[0,1] = -2/3; v
-            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): -2/3, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
             sage: a._dict()
-            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            {(0, 1): -2/3, (0, 2): 2, (1, 0): 3, (1, 1): 4, (1, 2): 5}
             sage: a[0,1]
             -2/3
 
@@ -5120,7 +5120,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M = MatrixSpace(CC, 2)(-1.10220440881763)
             sage: N = ~M
             sage: (N*M).norm()
-            1.0
+            0.9999999999999999
         """
         if not self.base_ring().is_field():
             try:

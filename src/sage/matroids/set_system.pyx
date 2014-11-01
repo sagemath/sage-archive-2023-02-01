@@ -27,7 +27,7 @@ Methods
 #*****************************************************************************
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 # SetSystem
 

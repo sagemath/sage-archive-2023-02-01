@@ -1442,7 +1442,7 @@ class FGP_Module_class(Module):
             sage: type(Hom(M,Q))
             <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
             sage: H.category()
-            Category of hom sets in Category of modules over Integer Ring
+            Category of homsets of modules over Integer Ring
             sage: H.homset_category()
             Category of modules over Integer Ring
 

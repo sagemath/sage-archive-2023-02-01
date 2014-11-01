@@ -427,6 +427,30 @@ class WeakTableau_abstract(ClonableList):
         else:
             print self
 
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: T = WeakTableaux(3, [5,2,1], [1,1,1,1,1,1], representation='core')
+            sage: t = T[0]
+            sage: hash(t) == hash(t)
+            True
+            sage: T = WeakTableaux(3, [2,2,1], [1,1,1,1,1], representation='bounded')
+            sage: t = T[0]
+            sage: hash(t) == hash(t)
+            True
+            sage: T = WeakTableaux(3, [5,2,1], [1,1,1,1,1,1], representation='factorized_permutation')
+            sage: t = T[0]
+            sage: hash(t) == hash(t)
+            True
+        """
+        if self.parent()._representation in ['core', 'bounded']:
+            return hash(tuple(tuple(x) for x in self)) + hash(self.parent().k)
+        else:
+            return super(WeakTableau_abstract, self).__hash__()
+
     def _latex_(self):
         r"""
         Return a latex method for the tableau.
@@ -2433,6 +2457,18 @@ class StrongTableau(ClonableList):
             raise ValueError("The size of the tableau %s and weight %s do not match"%(self.to_standard_list(),self.weight()))
         if not self.is_column_strict_with_weight( self.weight() ):
             raise ValueError("The weight=%s and the markings on the standard tableau=%s do not agree."%(self.weight(),self.to_standard_list()))
+
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: t = StrongTableau([[-1, -1, -2], [2]], 2)
+            sage: hash(t) == hash(t)
+            True
+        """
+        return hash(tuple(tuple(x) for x in self)) + hash(self.parent().k)
 
     def _is_valid_marked( self ):
         r"""

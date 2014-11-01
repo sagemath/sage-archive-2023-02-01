@@ -35,6 +35,7 @@ from __future__ import print_function
 
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
 import doctest, traceback
+import tempfile
 import sage.misc.randstate as randstate
 from util import Timer, RecordingDict, count_noun
 from sources import DictAsObject
@@ -88,14 +89,20 @@ def init_sage():
         <BLANKLINE>
         2
           + x
+
+    The displayhook sorts dictionary keys to simplify doctesting of
+    dictionary output::
+
+        sage: {'a':23, 'b':34, 'au':56, 'bbf':234, 'aaa':234}
+        {'a': 23, 'aaa': 234, 'au': 56, 'b': 34, 'bbf': 234}
     """
     # Do this once before forking.
     import sage.doctest
     sage.doctest.DOCTEST_MODE=True
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
-    import sage.misc.displayhook
-    sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)
+    import sage.repl.display.python_hook
+    sys.displayhook = sage.repl.display.python_hook.DoctestDisplayHook()
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug
@@ -129,8 +136,8 @@ def warning_function(file):
     EXAMPLES::
 
         sage: from sage.doctest.forker import warning_function
-        sage: import os
-        sage: F = os.tmpfile()
+        sage: import tempfile
+        sage: F = tempfile.TemporaryFile()
         sage: wrn = warning_function(F)
         sage: wrn("bad stuff", UserWarning, "myfile.py", 0)
         sage: F.seek(0)
@@ -160,7 +167,7 @@ class SageSpoofInOut(SageObject):
 
     INPUT:
 
-    - ``outfile`` -- (default: ``os.tmpfile()``) a seekable open file
+    - ``outfile`` -- (default: ``tempfile.TemporaryFile()``) a seekable open file
       object to which stdout and stderr should be redirected.
 
     - ``infile`` -- (default: ``open(os.devnull)``) an open file object
@@ -168,13 +175,13 @@ class SageSpoofInOut(SageObject):
 
     EXAMPLES::
 
-        sage: import os, subprocess
+        sage: import subprocess, tempfile
         sage: from sage.doctest.forker import SageSpoofInOut
-        sage: O = os.tmpfile()
+        sage: O = tempfile.TemporaryFile()
         sage: S = SageSpoofInOut(O)
         sage: try:
         ....:     S.start_spoofing()
-        ....:     print "hello world"
+        ....:     print("hello world")
         ....: finally:
         ....:     S.stop_spoofing()
         ....:
@@ -196,8 +203,9 @@ class SageSpoofInOut(SageObject):
 
         TESTS::
 
+            sage: import tempfile
             sage: from sage.doctest.forker import SageSpoofInOut
-            sage: SageSpoofInOut(os.tmpfile(), os.tmpfile())
+            sage: SageSpoofInOut(tempfile.TemporaryFile(), tempfile.TemporaryFile())
             <class 'sage.doctest.forker.SageSpoofInOut'>
         """
         if infile is None:
@@ -205,7 +213,7 @@ class SageSpoofInOut(SageObject):
         else:
             self.infile = infile
         if outfile is None:
-            self.outfile = os.tmpfile()
+            self.outfile = tempfile.TemporaryFile()
         else:
             self.outfile = outfile
         self.spoofing = False
@@ -237,13 +245,13 @@ class SageSpoofInOut(SageObject):
 
         EXAMPLES::
 
-            sage: import os
+            sage: import os, tempfile
             sage: from sage.doctest.forker import SageSpoofInOut
-            sage: O = os.tmpfile()
+            sage: O = tempfile.TemporaryFile()
             sage: S = SageSpoofInOut(O)
             sage: try:
             ....:     S.start_spoofing()
-            ....:     print "this is not printed"
+            ....:     print("this is not printed")
             ....: finally:
             ....:     S.stop_spoofing()
             ....:
@@ -474,10 +482,10 @@ class SageDocTestRunner(doctest.DocTestRunner):
             # simply propagate the exception.
             exception = None
             try:
+                compiler = lambda example:compile(
+                    example.source, filename, "single", compileflags, 1)
                 # Don't blink!  This is where the user's code gets run.
-                compiled = compile(example.source, filename, "single",
-                             compileflags, 1)
-                self.execute(example, compiled, test.globs)
+                self.compile_and_execute(example, compiler, test.globs)
             except SystemExit:
                 raise
             except BaseException:
@@ -485,7 +493,6 @@ class SageDocTestRunner(doctest.DocTestRunner):
             finally:
                 if self.debugger is not None:
                     self.debugger.set_continue() # ==== Example Finished ====
-
             got = self._fakeout.getvalue()  # the actual output
             outcome = FAILURE   # guilty until proved innocent or insane
 
@@ -523,7 +530,6 @@ class SageDocTestRunner(doctest.DocTestRunner):
             if outcome is SUCCESS:
                 if self.options.warn_long and example.walltime > self.options.warn_long:
                     self.report_overtime(out, test, example, got)
-                    failures += 1
                 elif not quiet:
                     self.report_success(out, test, example, got)
             elif outcome is FAILURE:
@@ -748,7 +754,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             digest.update(reduce_hex(e.running_state for e in example.predecessors))
             example.running_state = digest.hexdigest()
 
-    def execute(self, example, compiled, globs):
+    def compile_and_execute(self, example, compiler, globs):
         """
         Runs the given example, recording dependencies.
 
@@ -770,8 +776,11 @@ class SageDocTestRunner(doctest.DocTestRunner):
         INPUT:
 
         - ``example`` -- a :class:`doctest.Example` instance.
-        - ``compiled`` -- a code object produced by compiling ``example.source``
-        - ``globs`` -- a dictionary in which to execute ``compiled``.
+
+        - ``compiler`` -- a callable that, applied to example,
+          produces a code object
+
+        - ``globs`` -- a dictionary in which to execute the code.
 
         OUTPUT:
 
@@ -795,33 +804,33 @@ class SageDocTestRunner(doctest.DocTestRunner):
             False
             sage: doctests, extras = FDS.create_doctests(globs)
             sage: ex0 = doctests[0].examples[0]
-            sage: compiled = compile(ex0.source, '<doctest sage.doctest.forker[0]>', 'single', 32768, 1)
-            sage: DTR.execute(ex0, compiled, globs)
+            sage: compiler = lambda ex: compile(ex.source, '<doctest sage.doctest.forker[0]>', 'single', 32768, 1)
+            sage: DTR.compile_and_execute(ex0, compiler, globs)
             1764
             sage: globs['doctest_var']
             42
             sage: globs.set
-            set(['doctest_var'])
+            {'doctest_var'}
             sage: globs.got
-            set(['Integer'])
+            {'Integer'}
 
         Now we can execute some more doctests to see the dependencies. ::
 
             sage: ex1 = doctests[0].examples[1]
-            sage: compiled = compile(ex1.source, '<doctest sage.doctest.forker[1]>', 'single', 32768, 1)
-            sage: DTR.execute(ex1, compiled, globs)
+            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[1]>', 'single', 32768, 1)
+            sage: DTR.compile_and_execute(ex1, compiler, globs)
             sage: sorted(list(globs.set))
             ['R', 'a']
             sage: globs.got
-            set(['ZZ'])
+            {'ZZ'}
             sage: ex1.predecessors
             []
 
         ::
 
             sage: ex2 = doctests[0].examples[2]
-            sage: compiled = compile(ex2.source, '<doctest sage.doctest.forker[2]>', 'single', 32768, 1)
-            sage: DTR.execute(ex2, compiled, globs)
+            sage: compiler = lambda ex:compile(ex.source, '<doctest sage.doctest.forker[2]>', 'single', 32768, 1)
+            sage: DTR.compile_and_execute(ex2, compiler, globs)
             a + 42
             sage: list(globs.set)
             []
@@ -834,9 +843,12 @@ class SageDocTestRunner(doctest.DocTestRunner):
             globs.start()
         example.sequence_number = len(self.history)
         self.history.append(example)
-        timer = Timer().start()
+        timer = Timer()
         try:
-            exec compiled in globs
+            timer.start()
+            compiled = compiler(example)
+            timer.start()    # reset timer
+            exec(compiled, globs)
         finally:
             timer.stop().annotate(example)
             if isinstance(globs, RecordingDict):
@@ -853,7 +865,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             example.total_state = self.running_global_digest.hexdigest()
             example.doctest_state = self.running_doctest_digest.hexdigest()
 
-    def _failure_header(self, test, example):
+    def _failure_header(self, test, example, message='Failed example:'):
         """
         We strip out ``sage:`` prompts, so we override
         :meth:`doctest.DocTestRunner._failure_header` for better
@@ -898,9 +910,31 @@ class SageDocTestRunner(doctest.DocTestRunner):
             Failed example:
                 doctest_var = Integer(42); doctest_var**Integer(2)
             <BLANKLINE>
+
+        The ``'Failed example:'`` message can be customized::
+
+            sage: print DTR._failure_header(doctests[0], ex, message='Hello there!')
+            **********************************************************************
+            File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
+            Hello there!
+                doctest_var = 42; doctest_var^2
+            <BLANKLINE>
         """
+        out = [self.DIVIDER]
         with OriginalSource(example):
-            return doctest.DocTestRunner._failure_header(self, test, example)
+            if test.filename:
+                if test.lineno is not None and example.lineno is not None:
+                    lineno = test.lineno + example.lineno + 1
+                else:
+                    lineno = '?'
+                out.append('File "%s", line %s, in %s' %
+                           (test.filename, lineno, test.name))
+            else:
+                out.append('Line %s, in %s' % (example.lineno+1, test.name))
+            out.append(message)
+            source = example.source
+            out.append(doctest._indent(source))
+            return '\n'.join(out)
 
     def report_start(self, out, test, example):
         """
@@ -1161,12 +1195,12 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.report_overtime(sys.stdout.write, doctests[0], ex, 'BAD ANSWER\n')
             **********************************************************************
             File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
-            Failed example:
+            Warning, slow doctest:
                 doctest_var = 42; doctest_var^2
             Test ran for 1.23 s
         """
-        out(self._failure_header(test, example) +
-            "Test ran for %.2f s\n"%example.walltime)
+        out(self._failure_header(test, example, 'Warning, slow doctest:') +
+            'Test ran for %.2f s\n' % example.walltime)
 
     def report_unexpected_exception(self, out, test, example, exc_info):
         r"""
@@ -1367,7 +1401,7 @@ class DocTestDispatcher(SageObject):
         for source in self.controller.sources:
             head = self.controller.reporter.report_head(source)
             self.controller.log(head)
-            outtmpfile = os.tmpfile()
+            outtmpfile = tempfile.TemporaryFile()
             result = DocTestTask(source)(self.controller.options, outtmpfile)
             outtmpfile.seek(0)
             output = outtmpfile.read()
@@ -1737,7 +1771,7 @@ class DocTestWorker(multiprocessing.Process):
         # Temporary file for stdout/stderr of the child process.
         # Normally, this isn't used in the master process except to
         # debug timeouts/crashes.
-        self.outtmpfile = os.tmpfile()
+        self.outtmpfile = tempfile.TemporaryFile()
 
         # Create string for the master process to store the messages
         # (usually these are the doctest failures) of the child.
@@ -2011,7 +2045,7 @@ class DocTestTask(object):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: DocTestTask(FDS)
-            <sage.doctest.forker.DocTestTask object at ...>
+            <sage.doctest.forker.DocTestTask object at 0x...>
         """
         self.source = source
 

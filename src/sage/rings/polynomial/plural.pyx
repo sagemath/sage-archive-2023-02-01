@@ -199,7 +199,8 @@ class G_AlgFactory(UniqueFactory):
         # Get the number of names:
         names = tuple(names)
         n = len(names)
-        order = TermOrder(order or 'degrevlex', n)
+        if not isinstance(order, TermOrder):
+            order = TermOrder(order or 'degrevlex', n)
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         P = PolynomialRing(base_ring, n, names, order=order)
@@ -360,10 +361,17 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: H is loads(dumps(H))  # indirect doctest
             True
 
+        Check that :trac:`17224` is fixed::
+
+            sage: from sage.rings.polynomial.term_order import TermOrder
+            sage: F.<x,y> = FreeAlgebra(QQ)
+            sage: g = F.g_algebra({y*x:-x*y}, order=TermOrder('wdegrevlex', [1,2]))
+            sage: loads(dumps(g)) == g
+            True
         """
         return g_Algebra, (self.base_ring(),self._c,self._d,
                             self.variable_names(),
-                            self.term_order().name(),
+                            self.term_order(),
                             self.category())
 
     def __dealloc__(self):
@@ -707,7 +715,7 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: H.relations()
             {z*x: x*z + 2*x, z*y: y*z - 2*y}
             sage: H.relations(add_commutative=True)
-            {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y}
+            {y*x: x*y, z*x: x*z + 2*x, z*y: y*z - 2*y}
 
         """
         if add_commutative:
@@ -2151,7 +2159,7 @@ cdef class NCPolynomial_plural(RingElement):
 
             sage: f = (2*x*y^3*z^2 + (7)*x^2 + (3))
             sage: f.dict()
-            {(0, 0, 0): 3, (2, 0, 0): 7, (1, 2, 3): 2}
+            {(0, 0, 0): 3, (1, 2, 3): 2, (2, 0, 0): 7}
         """
         cdef poly *p
         cdef ring *r

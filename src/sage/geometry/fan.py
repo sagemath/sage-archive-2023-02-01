@@ -147,7 +147,7 @@ the fan. In this case check out
 
     sage: L = fan1.cone_lattice()
     sage: L
-    Finite poset containing 28 elements
+    Finite poset containing 28 elements with distinguished linear extension
     sage: L.bottom()
     0-d cone of Rational polyhedral fan in 3-d lattice M
     sage: L.top()
@@ -854,7 +854,7 @@ def Fan2d(rays, lattice=None):
         ...          (2, -11), (2, -8), (1, 0), (0, -5), (1, -4), (2, 0),
         ...          (1, -6), (2, -7), (2, -5), (-1, -3), (1, -1), (1, -2),
         ...          (0, -4), (2, -3), (2, -1)]).cone_lattice()
-        Finite poset containing 44 elements
+        Finite poset containing 44 elements with distinguished linear extension
 
         sage: Fan2d([(1,1)]).is_complete()
         False
@@ -1306,7 +1306,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: fan = toric_varieties.P1xP1().fan()
             sage: fan.cone_lattice() # indirect doctest
-            Finite poset containing 10 elements
+            Finite poset containing 10 elements with distinguished linear extension
 
         These 10 elements are: 1 origin, 4 rays, 4 generating cones, 1 fan.
 
@@ -1315,7 +1315,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: fan = Fan([quadrant])
             sage: fan.cone_lattice() # indirect doctest
-            Finite poset containing 5 elements
+            Finite poset containing 5 elements with distinguished linear extension
 
         These 5 elements are: 1 origin, 2 rays, 1 generating cone, 1 fan.
 
@@ -1335,7 +1335,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             (2,)
             sage: L = fan.cone_lattice() # indirect doctest
             sage: L
-            Finite poset containing 6 elements
+            Finite poset containing 6 elements with distinguished linear extension
 
         Here we got 1 origin, 3 rays (one is a generating cone),
         1 2-dimensional cone (a generating one), and 1 fan.
@@ -1423,6 +1423,8 @@ class RationalPolyhedralFan(IntegralRayCollection,
             # ray incidence information to the total list, it would be
             # confused with the generating cone in the case of a single cone.
             elements[labels[0]] = FanFace(tuple(range(self.nrays())), ())
+            D = {i:f for i,f in enumerate(elements)}
+            L.relabel(D)
             self._cone_lattice = FinitePoset(L, elements, key = id(self))
 
     def _contains(self, cone):
@@ -1622,10 +1624,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: fan = toric_varieties.P1xP1().fan()
             sage: fan._ray_to_cones(0)
-            frozenset([0, 3])
+            frozenset({0, 3})
             sage: fan._ray_to_cones()
-            (frozenset([0, 3]), frozenset([1, 2]),
-             frozenset([0, 1]), frozenset([2, 3]))
+            (frozenset({0, 3}), frozenset({1, 2}), frozenset({0, 1}), frozenset({2, 3}))
         """
         # This function is close to self(1)[i].star_generator_indices(), but
         # it does not require computation of the cone lattice and is
@@ -1905,7 +1906,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             (2,)
             sage: L = fan.cone_lattice()
             sage: L
-            Finite poset containing 6 elements
+            Finite poset containing 6 elements with distinguished linear extension
 
         These 6 elements are the origin, three rays, one two-dimensional
         cone, and the fan itself\ . Since we do add the fan itself as the
@@ -1946,7 +1947,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan = Fan([cone1])
             sage: L = fan.cone_lattice()
             sage: L
-            Finite poset containing 5 elements
+            Finite poset containing 5 elements with distinguished linear extension
 
         Here these 5 elements correspond to the origin, two rays, one
         generating cone of dimension two, and the whole fan. While this single
@@ -1974,7 +1975,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: cone2 = Cone([(-1,0)])
             sage: fan = Fan([cone1, cone2])
             sage: fan.cone_lattice()
-            Finite poset containing 6 elements
+            Finite poset containing 6 elements with distinguished linear extension
             sage: fan._test_pickling()
         """
         state = copy.copy(self.__dict__)
@@ -2548,11 +2549,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: fan = toric_varieties.dP8().fan()
             sage: fan._2d_echelon_forms()
-            frozenset([[ 1  0 -1  1]
-                       [ 0  1  0 -1], [ 1  0 -1 -1]
-                                      [ 0  1  0 -1], [ 1  0 -1  0]
-                                                     [ 0  1  1 -1], [ 1  0 -1  0]
-                                                                    [ 0  1 -1 -1]])
+            frozenset({[ 1  0 -1 -1]
+                       [ 0  1  0 -1], [ 1  0 -1  0]
+                       [ 0  1 -1 -1], [ 1  0 -1  0]
+                       [ 0  1  1 -1], [ 1  0 -1  1]
+                       [ 0  1  0 -1]})
         """
         from sage.geometry.fan_isomorphism import fan_2d_echelon_forms
         return fan_2d_echelon_forms(self)
@@ -2781,6 +2782,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: fan = toric_varieties.dP6().fan()
             sage: fan.plot()
+            Graphics object consisting of 31 graphics primitives
         """
         tp = ToricPlotter(options, self.lattice().degree(), self.rays())
         result = tp.plot_lattice() + tp.plot_rays() + tp.plot_generators()
@@ -2988,7 +2990,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: fan = Fan([[0,1,3],[3,4],[2,0],[1,2,4]], [(-3, -2, 1), (0, 0, 1), (3, -2, 1), (-1, -1, 1), (1, -1, 1)])
             sage: fan.primitive_collections()
-            [frozenset([0, 4]), frozenset([2, 3]), frozenset([0, 1, 2]), frozenset([1, 3, 4])]
+            [frozenset({0, 4}),
+             frozenset({2, 3}),
+             frozenset({0, 1, 2}),
+             frozenset({1, 3, 4})]
         """
         try:
             return self._primitive_collections
@@ -3275,7 +3280,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: K_extended = fan.complex(extended=True); K_extended
             Chain complex with at most 5 nonzero terms over Integer Ring
             sage: K_extended.homology()
-            {0: 0, 1: 0, 2: 0, 3: 0, -1: 0}
+            {-1: 0, 0: 0, 1: 0, 2: 0, 3: 0}
 
         Homology computations are much faster over `\QQ` if you don't
         care about the torsion coefficients::
@@ -3283,10 +3288,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: toric_varieties.P2_123().fan().complex(extended=True, base_ring=QQ)
             Chain complex with at most 4 nonzero terms over Rational Field
             sage: _.homology()
-            {0: Vector space of dimension 0 over Rational Field,
+            {-1: Vector space of dimension 0 over Rational Field,
+             0: Vector space of dimension 0 over Rational Field,
              1: Vector space of dimension 0 over Rational Field,
-             2: Vector space of dimension 0 over Rational Field,
-             -1: Vector space of dimension 0 over Rational Field}
+             2: Vector space of dimension 0 over Rational Field}
 
         The extended complex is only defined for complete fans::
 

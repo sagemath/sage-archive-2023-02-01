@@ -2384,10 +2384,10 @@ class CDFInterpreter(StackInterpreter):
 
             sage: f(x) = sum(x^k for k in [-20..20])
             sage: f(CDF(1+2j))
-            -10391779.0 + 3349659.5*I
+            -10391778.999999996 + 3349659.499999962*I
             sage: ff = fast_callable(f, CDF)
-            sage: ff(1 + 2j)
-            -10391779.0 + 3349659.5*I
+            sage: ff(1 + 2j)  # rel tol 1e-14
+            -10391779.000000004 + 3349659.49999997*I
             sage: ff.python_calls()
             []
 

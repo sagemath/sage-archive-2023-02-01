@@ -177,7 +177,6 @@ Below are listed all methods and classes defined in this file.
     :meth:`from_cycles` | Returns the permutation with given disjoint-cycle representation ``cycles``.
     :meth:`from_lehmer_code` | Returns the permutation with Lehmer code ``lehmer``.
     :meth:`from_reduced_word` | Returns the permutation corresponding to the reduced word ``rw``.
-    :meth:`robinson_schensted_inverse` | Returns the permutation corresponding to the pair of tableaux `(p,q)`.
     :meth:`bistochastic_as_sum_of_permutations` | Returns a given bistochastic matrix as a nonnegative linear combination of permutations.
     :meth:`descents_composition_list` | Returns a list of all the permutations in a given descent class (i. e., having a given descents composition).
     :meth:`descents_composition_first` | Returns the smallest element of a descent class.
@@ -871,15 +870,20 @@ class Permutation(CombinatorialObject, Element):
             sage: p = Permutation([])
             sage: p.prev()
             False
+
+        Check that :trac:`16913` is fixed::
+
+            sage: Permutation([1,4,3,2]).prev()
+            [1, 4, 2, 3]
         """
 
         p = self[:]
         n = len(self)
         first = -1
 
-        #Starting from the beginning, find the first o such that
+        #Starting from the end, find the first o such that
         #p[o] > p[o+1]
-        for i in range(0, n-1):
+        for i in reversed(range(0, n-1)):
             if p[i] > p[i+1]:
                 first = i
                 break
@@ -889,7 +893,7 @@ class Permutation(CombinatorialObject, Element):
         if first == -1:
             return False
 
-        #Starting from the end, find the first j such that p[j] > p[first]
+        #Starting from the end, find the first j such that p[j] < p[first]
         j = n - 1
         while p[j] > p[first]:
             j -= 1
@@ -3703,7 +3707,11 @@ class Permutation(CombinatorialObject, Element):
         EXAMPLES::
 
             sage: Permutation([3,1,5,4,2]).permutation_poset().cover_relations()
-            [[(2, 1), (5, 2)], [(2, 1), (4, 4)], [(2, 1), (3, 5)], [(1, 3), (4, 4)], [(1, 3), (3, 5)]]
+            [[(2, 1), (5, 2)],
+             [(2, 1), (3, 5)],
+             [(2, 1), (4, 4)],
+             [(1, 3), (3, 5)],
+             [(1, 3), (4, 4)]]
             sage: Permutation([]).permutation_poset().cover_relations()
             []
             sage: Permutation([1,3,2]).permutation_poset().cover_relations()
@@ -4963,6 +4971,8 @@ class Permutations_mset(Permutations):
 
             sage: Permutations([1,2,2]).cardinality()
             3
+            sage: Permutations([1,1,2,2,2]).cardinality()
+            10
         """
         lmset = list(self.mset)
         mset_list = [lmset.index(x) for x in lmset]
@@ -4971,9 +4981,9 @@ class Permutations_mset(Permutations):
             d[i] = d.get(i, 0) + 1
 
         c = factorial(len(lmset))
-        for i in d:
-            if d[i] != 1:
-                c //= factorial(d[i])
+        for i in d.itervalues():
+            if i != 1:
+                c //= factorial(i)
         return ZZ(c)
 
 class Permutations_set(Permutations):
@@ -5860,12 +5870,6 @@ def from_reduced_word(rw):
 
     return Permutations()(p)
 
-from sage.misc.superseded import deprecated_function_alias
-
-# Don't forget to remove the robinson_schensted_inverse entry in the index at
-# the top of the file when this line will be removed
-robinson_schensted_inverse = deprecated_function_alias(8392, RSK_inverse)
-
 def bistochastic_as_sum_of_permutations(M, check = True):
     r"""
     Return the positive sum of permutations corresponding to
@@ -5963,14 +5967,14 @@ def bistochastic_as_sum_of_permutations(M, check = True):
     if n != M.ncols():
         raise ValueError("The matrix is expected to be square")
 
+    if not all([x >= 0 for x in M.list()]):
+        raise ValueError("The matrix should have nonnegative entries")
+
     if check and not M.is_bistochastic(normalized = False):
         raise ValueError("The matrix is not bistochastic")
 
     if not RR.has_coerce_map_from(M.base_ring()):
         raise ValueError("The base ring of the matrix must have a coercion map to RR")
-
-    if not all([x >= 0 for x in M.list()]):
-        raise ValueError("The matrix should have nonnegative entries")
 
     CFM = CombinatorialFreeModule(M.base_ring(), Permutations(n))
     value = 0

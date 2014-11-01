@@ -148,7 +148,9 @@ def Hom(X, Y, category=None, check=True):
     is used::
 
         sage: Hom(X, Y)
-        Set of Morphisms from Integer Ring to Symmetric group of order 3! as a permutation group in Category of monoids
+        Set of Morphisms from Integer Ring
+         to Symmetric group of order 3! as a permutation group
+         in Join of Category of monoids and Category of enumerated sets
 
     Otherwise, if ``category`` is specified, then ``category`` is used,
     after checking that ``X`` and ``Y`` are indeed in ``category``::
@@ -252,7 +254,7 @@ def Hom(X, Y, category=None, check=True):
         sage: Hom(PA,PJ)
         Set of Homomorphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'>
         sage: Hom(PA,PJ).category()
-        Join of Category of hom sets in Category of modules over Rational Field and Category of hom sets in Category of rings
+        Category of homsets of unital magmas and right modules over Rational Field and left modules over Rational Field
         sage: Hom(PA,PJ, Rngs())
         Set of Morphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'> in Category of rngs
 
@@ -375,7 +377,7 @@ def Hom(X, Y, category=None, check=True):
             for O in [X, Y]:
                 try:
                     category_mismatch = O not in category
-                except BaseException:
+                except Exception:
                     # An error should not happen, this here is just to be on
                     # the safe side.
                     category_mismatch = True
@@ -413,7 +415,7 @@ def Hom(X, Y, category=None, check=True):
         if not isinstance(H, WithEqualityById):
             try:
                 H.__class__ = dynamic_class(H.__class__.__name__+"_with_equality_by_id", (WithEqualityById, H.__class__), doccls=H.__class__)
-            except BaseException:
+            except Exception:
                 pass
     return H
 
@@ -464,15 +466,33 @@ def End(X, category=None):
         sage: S.domain()
         Alternating group of order 3!/2 as a permutation group
 
-    To avoid creating superfluous categories, homsets are in the
-    homset category of the lowest category which currently says
-    something specific about its homsets. For example, ``S`` is not
-    in the category of hom sets of the category of groups::
+    To avoid creating superfluous categories, a homset in a category
+    ``Cs()`` is in the homset category of the lowest full super category
+    ``Bs()`` of ``Cs()`` that implements ``Bs.Homsets`` (or the join
+    thereof if there are several). For example, finite groups form a
+    full subcategory of unital magmas: any unital magma morphism
+    between two finite groups is a finite group morphism. Since finite
+    groups currently implement nothing more than unital magmas about
+    their homsets, we have::
 
-        sage: S.category()
-        Category of hom sets in Category of sets
-        sage: End(QQ).category()
-        Category of hom sets in Category of rings
+        sage: G = GL(3,3)
+        sage: G.category()
+        Category of finite groups
+        sage: H = Hom(G,G)
+        sage: H.homset_category()
+        Category of groups
+        sage: H.category()
+        Category of endsets of unital magmas
+
+    Similarly, a ring morphism just needs to preserve addition,
+    multiplication, zero, and one. Accordingly, and since the category
+    of rings implements nothing specific about its homsets, a ring
+    homset is currently constructed in the category of homsets of
+    unital magmas and unital additive magmas::
+
+        sage: H = Hom(ZZ,ZZ,Rings())
+        sage: H.category()
+        Category of endsets of unital magmas and additive unital additive magmas
     """
     return Hom(X,X, category)
 
@@ -503,12 +523,20 @@ class Homset(Set_generic):
         sage: loads(H.dumps()) is H
         True
 
-    Homsets of non-unique parents are non-unique as well::
+    Homsets of unique parents are unique as well::
 
         sage: H = End(AffineSpace(2, names='x,y'))
         sage: loads(dumps(AffineSpace(2, names='x,y'))) is AffineSpace(2, names='x,y')
+        True
+        sage: loads(dumps(H)) is H
+        True
+
+    Conversely, homsets of non-unique parents are non-unique:
+
+        sage: H = End(ProjectiveSpace(2, names='x,y,z'))
+        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) is ProjectiveSpace(2, names='x,y,z')
         False
-        sage: loads(dumps(AffineSpace(2, names='x,y'))) == AffineSpace(2, names='x,y')
+        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) == ProjectiveSpace(2, names='x,y,z')
         True
         sage: loads(dumps(H)) is H
         False
@@ -545,7 +573,7 @@ class Homset(Set_generic):
             sage: H = MyHomset(X, Y, category=1, base = ZZ, check = False)
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.rings.integer.Integer' object has no attribute 'hom_category'
+            AttributeError: 'sage.rings.integer.Integer' object has no attribute 'Homsets'
             sage: P.<t> = ZZ[]
             sage: f = P.hom([1/2*t])
             sage: f.parent().domain()
@@ -586,11 +614,12 @@ class Homset(Set_generic):
             # The above is a lame but fast check that category is a
             # subcategory of Modules(...). That will do until
             # CategoryObject.base_ring will be gone and not prevent
-            # anymore from putting one in Modules.HomCategory.ParentMethods.
+            # anymore from implementing base_ring in Modules.Homsets.ParentMethods.
             # See also #15801.
             base = X.base_ring()
 
-        Parent.__init__(self, base = base, category = category.hom_category())
+        Parent.__init__(self, base = base,
+                        category = category.Endsets() if X is Y else category.Homsets())
 
     def __reduce__(self):
         """
@@ -880,6 +909,86 @@ class Homset(Set_generic):
             return self.element_class_set_morphism(self, x)
 
         raise TypeError("Unable to coerce x (=%s) to a morphism in %s"%(x,self))
+
+    @lazy_attribute
+    def _abstract_element_class(self):
+        """
+        An abstract class for the elements of this homset.
+
+        This class is built from the element class of the homset
+        category and the morphism class of the category.  This makes
+        it possible for a category to provide code for its morphisms
+        and for morphisms of all its subcategories, full or not.
+
+        .. NOTE::
+
+            The element class of ``C.Homsets()`` will be inherited by
+            morphisms in *full* subcategories of ``C``, while the morphism
+            class of ``C`` will be inherited by *all* subcategories of
+            ``C``. Hence, if some feature of a morphism depends on the
+            algebraic properties of the homsets, it should be implemented by
+            ``C.Homsets.ElementMethods``, but if it depends only on the
+            algebraic properties of domain and codomain, it should be
+            implemented in ``C.MorphismMethods``.
+
+            At this point, the homset element classes takes precedence over
+            the morphism classes. But this may be subject to change.
+
+
+        .. TODO::
+
+            - Make sure this class is shared whenever possible.
+            - Flatten join category classes
+
+        .. SEEALSO::
+
+            - :meth:`Parent._abstract_element_class`
+
+        EXAMPLES:
+
+        Let's take a homset of finite commutative groups as example; at
+        this point this is the simplest one to create (gosh)::
+
+            sage: cat = Groups().Finite().Commutative()
+            sage: C3 = PermutationGroup([(1,2,3)])
+            sage: C3._refine_category_(cat)
+            sage: C2 = PermutationGroup([(1,2)])
+            sage: C2._refine_category_(cat)
+            sage: H = Hom(C3, C2, cat)
+            sage: H.homset_category()
+            Category of finite commutative groups
+            sage: H.category()
+            Category of homsets of unital magmas
+            sage: cls = H._abstract_element_class; cls
+            <class 'sage.categories.homsets.Homset_with_category._abstract_element_class'>
+            sage: cls.__bases__ == (H.category().element_class, H.homset_category().morphism_class)
+            True
+
+        A morphism of finite commutative semigroups is also a morphism
+        of semigroups, of magmas, ...; it thus inherits code from all
+        those categories::
+
+            sage: issubclass(cls, Semigroups().Finite().morphism_class)
+            True
+            sage: issubclass(cls, Semigroups().morphism_class)
+            True
+            sage: issubclass(cls, Magmas().Commutative().morphism_class)
+            True
+            sage: issubclass(cls, Magmas().morphism_class)
+            True
+            sage: issubclass(cls, Sets().morphism_class)
+            True
+
+        Recall that FiniteMonoids() is a full subcategory of
+        ``Monoids()``, but not of ``FiniteSemigroups()``. Thus::
+
+            sage: issubclass(cls, Monoids().Finite().Homsets().element_class)
+            True
+            sage: issubclass(cls, Semigroups().Finite().Homsets().element_class)
+            False
+        """
+        class_name = "%s._abstract_element_class"%self.__class__.__name__
+        return dynamic_class(class_name, (self.category().element_class, self.homset_category().morphism_class))
 
     @lazy_attribute
     def element_class_set_morphism(self):

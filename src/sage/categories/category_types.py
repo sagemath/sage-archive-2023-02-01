@@ -17,7 +17,8 @@ This is placed in a separate file from categories.py to avoid circular imports
 from sage.misc.latex import latex
 from sage.misc.unknown import Unknown
 from category import JoinCategory, Category, CategoryWithParameters
-from objects import Objects
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.categories.objects', 'Objects')
 
 ####################################################################
 #   Different types of categories
@@ -218,7 +219,8 @@ class Category_over_base(CategoryWithParameters):
         sage: Algebras(GF(2)).parent_class is Algebras(C).parent_class
         True
 
-        sage: Algebras(ZZ).element_class is Algebras(EuclideanDomains()).element_class
+        sage: C = ZZ.category()
+        sage: Algebras(ZZ).element_class is Algebras(C).element_class
         True
     """
 
@@ -277,7 +279,7 @@ class Category_over_base(CategoryWithParameters):
         EXAMPLES::
 
             sage: Modules(ZZ)._make_named_class_key('element_class')
-            Category of euclidean domains
+            Join of Category of euclidean domains and Category of infinite enumerated sets
             sage: Modules(QQ)._make_named_class_key('parent_class')
             Category of quotient fields
             sage: Schemes(Spec(ZZ))._make_named_class_key('parent_class')

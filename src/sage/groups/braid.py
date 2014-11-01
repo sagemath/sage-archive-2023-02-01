@@ -382,11 +382,14 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(4, 's')
             sage: b = B([1, 2, 3, 1, 2, 1])
             sage: b.plot()
+            Graphics object consisting of 30 graphics primitives
             sage: b.plot(color=["red", "blue", "red", "blue"])
+            Graphics object consisting of 30 graphics primitives
 
             sage: B.<s,t> = BraidGroup(3)
             sage: b = t^-1*s^2
             sage: b.plot(orientation="left-right", color="red")
+            Graphics object consisting of 12 graphics primitives
         """
         from sage.plot.bezier_path import bezier_path
         from sage.plot.plot import Graphics, line
@@ -480,8 +483,11 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(4, 's')
             sage: b = B([1, 2, 3, 1, 2, 1])
             sage: b.plot3d()
+            Graphics3d Object
             sage: b.plot3d(color="red")
+            Graphics3d Object
             sage: b.plot3d(color=["red", "blue", "red", "blue"])
+            Graphics3d Object
         """
         from sage.plot.plot3d.shapes2 import bezier3d
         from sage.plot.colors import rainbow

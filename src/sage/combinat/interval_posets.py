@@ -230,7 +230,7 @@ class TamariIntervalPoset(Element):
         sage: TamariIntervalPoset(2,[(2,1),(1,2)])
         Traceback (most recent call last):
         ...
-        ValueError: Hasse diagram contains cycles.
+        ValueError: Hasse diagram contains cycles
 
         sage: TamariIntervalPoset(3,[(1,3)])
         Traceback (most recent call last):
@@ -2378,7 +2378,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         final_forest = TamariIntervalPosets.final_forest(tree1)
         try:
             return initial_forest.intersection(final_forest)
-        except:
+        except Exception:
             raise ValueError("The two binary trees are not comparable on the Tamari lattice.")
 
     @staticmethod
@@ -2425,7 +2425,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         tree2 = dw2.to_binary_tree_tamari()
         try:
             return TamariIntervalPosets.from_binary_trees(tree1, tree2)
-        except:
+        except Exception:
             raise ValueError("The two Dyck words are not comparable on the Tamari lattice.")
 
     def __call__(self, *args, **keywords):

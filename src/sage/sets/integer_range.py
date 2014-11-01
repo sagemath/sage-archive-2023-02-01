@@ -216,6 +216,10 @@ class IntegerRange(UniqueRepresentation, Parent):
             ValueError: IntegerRange() step argument must not be zero
             sage: IntegerRange(2) is IntegerRange(0, 2)
             True
+            sage: IntegerRange(1.0)
+            Traceback (most recent call last):
+            ...
+            TypeError: end must be Integer or Infinity, not <type 'sage.rings.real_mpfr.RealLiteral'>
         """
         if isinstance(begin, int): begin = Integer(begin)
         if isinstance(end, int): end = Integer(end)
@@ -225,9 +229,12 @@ class IntegerRange(UniqueRepresentation, Parent):
             end = begin
             begin = Integer(0)
         # check of the arguments
-        assert isinstance(begin, (Integer, MinusInfinity, PlusInfinity))
-        assert isinstance(end, (Integer, MinusInfinity, PlusInfinity))
-        assert isinstance(step, Integer)
+        if not isinstance(begin, (Integer, MinusInfinity, PlusInfinity)):
+            raise TypeError("begin must be Integer or Infinity, not %r" % type(begin))
+        if not isinstance(end, (Integer, MinusInfinity, PlusInfinity)):
+            raise TypeError("end must be Integer or Infinity, not %r" % type(end))
+        if not isinstance(step, Integer):
+            raise TypeError("step must be Integer, not %r" % type(step))
         if step.is_zero():
             raise ValueError("IntegerRange() step argument must not be zero")
 
@@ -527,7 +534,8 @@ class IntegerRangeInfinite(IntegerRange):
             Category of facade infinite enumerated sets
             sage: TestSuite(I).run()
         """
-        assert isinstance(begin, Integer)
+        if not isinstance(begin, Integer):
+            raise TypeError("begin should be Integer, not %r" % type(begin))
         self._begin = begin
         self._step = step
         Parent.__init__(self, facade = IntegerRing(), category = InfiniteEnumeratedSets())
@@ -678,13 +686,14 @@ class IntegerRangeFromMiddle(IntegerRange):
             sage: IntegerRange(0, 5, 1, -3)
             Traceback (most recent call last):
             ...
-            AssertionError: middle_point is not in the interval
+            ValueError: middle_point is not in the interval
         """
         self._begin = begin
         self._end = end
         self._step = step
         self._middle_point = middle_point
-        assert middle_point in self, "middle_point is not in the interval"
+        if not middle_point in self:
+            raise ValueError("middle_point is not in the interval")
 
         if (begin != Infinity and begin != -Infinity) and \
              (end != Infinity and end != -Infinity):
@@ -746,8 +755,13 @@ class IntegerRangeFromMiddle(IntegerRange):
             sage: I = IntegerRangeFromMiddle(-Infinity,Infinity,10,0)
             sage: (I.next(0), I.next(10), I.next(-10), I.next(20), I.next(-100))
             (10, -10, 20, -20, 110)
+            sage: I.next(1)
+            Traceback (most recent call last):
+            ...
+            LookupError: 1 not in Integer progression containing 0 with increment 10 and bounded with -Infinity and +Infinity
         """
-        assert (elt in self)
+        if not elt in self:
+            raise LookupError('%r not in %r' % (elt,self))
         n = self._middle_point
         if (elt <= n and self._step > 0) or (elt >= n and self._step < 0):
             right = 2*n-elt+self._step

@@ -268,7 +268,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
           From: NCSF in the Complete basis
           To:   NCSF in the Elementary basis
         sage: f.category()
-        Category of hom sets in Category of modules with basis over Rational Field
+        Category of homsets of modules with basis over Rational Field
         sage: f(elementary[1,2,2])
         S[1, 1, 1, 1, 1] - S[1, 1, 1, 2] - S[1, 2, 1, 1] + S[1, 2, 2]
         sage: g(complete[1,2,2])
@@ -808,6 +808,99 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 dct = {C(map(lambda i: i // n, I)): coeff
                        for (I, coeff) in S(self) if all(i % n == 0 for i in I)}
                 return parent(S._from_dict(dct))
+
+            def bernstein_creation_operator(self, n):
+                r"""
+                Return the image of ``self`` under the `n`-th Bernstein
+                creation operator.
+
+                Let `n` be an integer. The `n`-th Bernstein creation
+                operator `\mathbb{B}_n` is defined as the endomorphism of
+                the space `NSym` of noncommutative symmetric functions
+                which sends every `f` to
+
+                .. MATH::
+
+                    \sum_{i \geq 0} (-1)^i H_{n+i} F_{1^i}^\perp,
+
+                where usual notations are in place (the letter `H` stands
+                for the complete basis of `NSym`, the letter `F` stands
+                for the fundamental basis of the algebra `QSym` of
+                quasisymmetric functions, and `F_{1^i}^\perp` means
+                skewing (:meth:`skew_by`) by `F_{1^i}`). Notice that
+                `F_{1^i}` is nothing other than the elementary symmetric
+                function `e_i`.
+
+                This has been introduced in [BBSSZ2012]_, section 3.1, in
+                analogy to the Bernstein creation operators on the
+                symmetric functions
+                (:meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.bernstein_creation_operator`),
+                and studied further in [BBSSZ2012]_, mainly in the context
+                of immaculate functions
+                (:class:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.I`).
+                In fact, if `(\alpha_1, \alpha_2, \ldots, \alpha_m)` is
+                an `m`-tuple of integers, then
+
+                .. MATH::
+
+                    \mathbb{B}_n I_{(\alpha_1, \alpha_2, \ldots, \alpha_m)}
+                    = I_{(n, \alpha_1, \alpha_2, \ldots, \alpha_m)},
+
+                where `I_{(\alpha_1, \alpha_2, \ldots, \alpha_m)}` is the
+                immaculate function associated to the `m`-tuple
+                `(\alpha_1, \alpha_2, \ldots, \alpha_m)` (see
+                :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.I.immaculate_function`).
+
+                EXAMPLES:
+
+                We get the immaculate functions by repeated application of
+                Bernstein creation operators::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: I = NSym.I()
+                    sage: S = NSym.S()
+                    sage: def immaculate_by_bernstein(xs):
+                    ....:     # immaculate function corresponding to integer
+                    ....:     # tuple ``xs``, computed by iterated application
+                    ....:     # of Bernstein creation operators.
+                    ....:     res = S.one()
+                    ....:     for i in reversed(xs):
+                    ....:         res = res.bernstein_creation_operator(i)
+                    ....:     return res
+                    sage: all( immaculate_by_bernstein(p) == I.immaculate_function(p)
+                    ....:      for p in CartesianProduct(range(-1, 3), range(-1, 3), range(-1, 3)) )
+                    True
+
+                Some examples::
+
+                    sage: S[3,2].bernstein_creation_operator(-2)
+                    S[2, 1]
+                    sage: S[3,2].bernstein_creation_operator(-1)
+                    S[1, 2, 1] - S[2, 2] - S[3, 1]
+                    sage: S[3,2].bernstein_creation_operator(0)
+                    -S[1, 2, 2] - S[1, 3, 1] + S[2, 2, 1] + S[3, 2]
+                    sage: S[3,2].bernstein_creation_operator(1)
+                    S[1, 3, 2] - S[2, 2, 2] - S[2, 3, 1] + S[3, 2, 1]
+                    sage: S[3,2].bernstein_creation_operator(2)
+                    S[2, 3, 2] - S[3, 2, 2] - S[3, 3, 1] + S[4, 2, 1]
+                """
+                # We use the definition of this operator.
+                parent = self.parent()
+                res = parent.zero()
+                if not self:
+                    return res
+                max_degree = max(sum(m) for m, c in self)
+                # ``max_degree`` is now the maximum degree in which ``self``
+                # has a nonzero coefficient.
+                NSym = parent.realization_of()
+                S = NSym.S()
+                F = NSym.dual().F()
+                for i in range(max_degree + 1):
+                    if n + i > 0:
+                        res += (-1) ** i * S[n + i] * self.skew_by(F[[1] * i])
+                    elif n + i == 0:
+                        res += (-1) ** i * self.skew_by(F[[1] * i])
+                return res
 
             def star_involution(self):
                 r"""
@@ -1693,7 +1786,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
                     2*Psi[] + 3*Psi[1, 1, 3, 3, 2, 2] + Psi[2, 2, 4, 4]
                     sage: f.category()
-                    Join of Category of hom sets in Category of modules with basis over Rational Field and Category of hom sets in Category of rings
+                    Category of endsets of unital magmas and right modules over Rational Field and left modules over Rational Field
 
                 When extra properties about the morphism are known, one
                 can specify the category of which it is a morphism::
@@ -1705,7 +1798,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
                     2*Psi[] - 3*Psi[1, 3, 2] + Psi[2, 4]
                     sage: f.category()
-                    Join of Category of hom sets in Category of modules with basis over Rational Field and Category of hom sets in Category of rings
+                    Category of endsets of hopf algebras over Rational Field and graded modules over Rational Field
 
                 If ``anti`` is true, this returns an anti-algebra morphism::
 
@@ -1715,7 +1808,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
                     2*Psi[] + 3*Psi[2, 2, 3, 3, 1, 1] + Psi[4, 4, 2, 2]
                     sage: f.category()
-                    Category of hom sets in Category of modules with basis over Rational Field
+                    Category of endsets of modules with basis over Rational Field
                 """
                 from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
                 return AlgebraMorphism(self, on_generators, **keywords)
@@ -4378,6 +4471,71 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             return I.sum_of_terms( ( (comp_shape, number_of_fCT(comp_content, comp_shape))
                                      for comp_shape in Compositions(sum(comp_content)) ),
                                    distinct=True )
+
+        class Element(CombinatorialFreeModule.Element):
+            """
+            An element in the Immaculate basis.
+            """
+            def bernstein_creation_operator(self, n):
+                r"""
+                Return the image of ``self`` under the `n`-th Bernstein
+                creation operator.
+
+                Let `n` be an integer. The `n`-th Bernstein creation
+                operator `\mathbb{B}_n` is defined as the endomorphism of
+                the space `NSym` of noncommutative symmetric functions
+                given by
+
+                .. MATH::
+
+                    \mathbb{B}_n I_{(\alpha_1, \alpha_2, \ldots, \alpha_m)}
+                    = I_{(n, \alpha_1, \alpha_2, \ldots, \alpha_m)},
+
+                where `I_{(\alpha_1, \alpha_2, \ldots, \alpha_m)}` is the
+                immaculate function associated to the `m`-tuple
+                `(\alpha_1, \alpha_2, \ldots, \alpha_m) \in \ZZ^m`.
+
+                This has been introduced in [BBSSZ2012]_, section 3.1, in
+                analogy to the Bernstein creation operators on the
+                symmetric functions.
+
+                For more information on the `n`-th Bernstein creation
+                operator, see
+                :meth:`NonCommutativeSymmetricFunctions.Bases.ElementMethods.bernstein_creation_operator`.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: I = NSym.I()
+                    sage: b = I[1,3,2,1]
+                    sage: b.bernstein_creation_operator(3)
+                    I[3, 1, 3, 2, 1]
+                    sage: b.bernstein_creation_operator(5)
+                    I[5, 1, 3, 2, 1]
+                    sage: elt = b + 3*I[4,1,2]
+                    sage: elt.bernstein_creation_operator(1)
+                    I[1, 1, 3, 2, 1] + 3*I[1, 4, 1, 2]
+
+                We check that this agrees with the definition on the
+                Complete basis::
+
+                    sage: S = NSym.S()
+                    sage: S(elt).bernstein_creation_operator(1) == S(elt.bernstein_creation_operator(1))
+                    True
+
+                Check on non-positive values of `n`::
+
+                    sage: I[2,2,2].bernstein_creation_operator(-1)
+                    I[1, 1, 1, 2] + I[1, 1, 2, 1] + I[1, 2, 1, 1] - I[1, 2, 2]
+                    sage: I[2,3,2].bernstein_creation_operator(0)
+                    -I[1, 1, 3, 2] - I[1, 2, 2, 2] - I[1, 2, 3, 1] + I[2, 3, 2]
+                """
+                if n <= 0:
+                    return super(NonCommutativeSymmetricFunctions.Immaculate.Element, self).bernstein_creation_operator(n)
+
+                C = Compositions()
+                P = self.parent()
+                return P.sum_of_terms( (C([n] + list(m)), c) for m,c in self )
 
     I = Immaculate
 

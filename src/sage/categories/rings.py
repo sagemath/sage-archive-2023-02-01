@@ -15,7 +15,6 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
-from category import HomCategory
 from functools import reduce
 
 class Rings(CategoryWithAxiom):
@@ -904,9 +903,6 @@ class Rings(CategoryWithAxiom):
             if self == 0: # now 0 != 1
                 return False
             raise NotImplementedError
-
-    class HomCategory(HomCategory):
-        pass
 
 def _gen_names(elts):
     r"""

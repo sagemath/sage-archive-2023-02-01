@@ -37,7 +37,7 @@ cdef class GinacFunction(BuiltinFunction):
 
 cdef class SymbolicFunction(Function):
     # cache hash value
-    cdef long _hash_(self)
+    cdef long _hash_(self) except -1
     cdef bint __hinit
     cdef long __hcache
     cdef _is_registered(self)

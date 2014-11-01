@@ -21,9 +21,7 @@ A group action $G \times S \rightarrow S$ is a functor from $G$ to Sets.
         sage: import gc
         sage: _ = gc.collect()
         sage: A
-        Traceback (most recent call last):
-        ...
-        RuntimeError: This action acted on a set that became garbage collected
+        <repr(<sage.categories.action.Action at 0x...>) failed: RuntimeError: This action acted on a set that became garbage collected>
 
     To avoid garbage collection of the underlying set, it is sufficient to
     create a strong reference to it before the action is created.
@@ -181,9 +179,7 @@ cdef class Action(Functor):
             sage: import gc
             sage: _ = gc.collect()
             sage: A
-            Traceback (most recent call last):
-            ...
-            RuntimeError: This action acted on a set that became garbage collected
+            <repr(<sage.categories.action.Action at 0x...>) failed: RuntimeError: This action acted on a set that became garbage collected>
         """
         S = self.US()
         if S is None:

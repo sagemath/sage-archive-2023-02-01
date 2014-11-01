@@ -7,6 +7,7 @@ TESTS::
     sage: P = E(0,0)
     sage: def get_points(n): return sum([point(list(i*P)[:2], size=3) for i in range(-n,n) if i != 0 and (i*P)[0] < 3])
     sage: sum([get_points(15*n).plot3d(z=n) for n in range(1,10)])
+    Graphics3d Object
 """
 
 #*****************************************************************************
@@ -62,6 +63,7 @@ class Point(GraphicPrimitive_xydata):
     We test creating a point::
 
         sage: point((3,3))
+        Graphics object consisting of 1 graphics primitive
     """
     def __init__(self, xdata, ydata, options):
         """
@@ -90,12 +92,14 @@ class Point(GraphicPrimitive_xydata):
             'How big the point is (i.e., area in points^2=(1/72 inch)^2).'
         """
         return {'alpha':'How transparent the point is.',
+                'faceted': 'If True color the edge of the point. (only for 2D plots)',
+                'hue':'The color given as a hue.',
                 'legend_color':'The color of the legend text',
                 'legend_label':'The label for this item in the legend.',
-                'size': 'How big the point is (i.e., area in points^2=(1/72 inch)^2).',
-                'faceted': 'If True color the edge of the point.',
+                'marker':'the marker symbol for 2D plots only (see documentation of plot() for details)',
+                'markeredgecolor':'the color of the marker edge (only for 2D plots)',
                 'rgbcolor':'The color as an RGB tuple.',
-                'hue':'The color given as a hue.',
+                'size': 'How big the point is (i.e., area in points^2=(1/72 inch)^2).',
                 'zorder':'The layer level in which to draw'}
 
     def _plot3d_options(self, options=None):
@@ -120,10 +124,12 @@ class Point(GraphicPrimitive_xydata):
         if 'size' in options:
             options_3d['size'] = options['size']
             del options['size']
-        if 'faceted' in options:
-            if options['faceted']:
-                raise NotImplementedError("No 3d faceted points.")
-            del options['faceted']
+        if options.pop('faceted', False):
+            raise NotImplementedError("3D points can not be faceted.")
+        for o in ('marker', 'markeredgecolor'): # remove 2D options
+            if o in options:
+                del options[o]
+
         options_3d.update(GraphicPrimitive_xydata._plot3d_options(self, options))
         return options_3d
 
@@ -250,10 +256,11 @@ class Point(GraphicPrimitive_xydata):
         r"""
         TESTS:
 
-        We check to make sure that \#2076 is fixed by verifying all
+        We check to make sure that :trac:`2076` is fixed by verifying all
         the points are red::
 
             sage: point(((1,1), (2,2), (3,3)), rgbcolor=hue(1), size=30)
+            Graphics object consisting of 1 graphics primitive
         """
         options = self.options()
 
@@ -269,9 +276,18 @@ class Point(GraphicPrimitive_xydata):
         z = int(options.pop('zorder', 0))
         s = int(options['size'])
         faceted = options['faceted'] #faceted=True colors the edge of point
+        markeredgecolor = options['markeredgecolor']
+
         scatteroptions={}
-        if not faceted: scatteroptions['edgecolors'] = 'none'
-        subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, zorder=z, label=options['legend_label'], **scatteroptions)
+        if not faceted and markeredgecolor is None:
+            scatteroptions['edgecolors'] = 'none'
+        elif markeredgecolor is not None:
+            scatteroptions['edgecolors'] = to_mpl_color(
+                                              options.pop('markeredgecolor'))
+        scatteroptions['marker'] = options.pop('marker')
+
+        subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, zorder=z,
+                        label=options['legend_label'], **scatteroptions)
 
 
 def point(points, **kwds):
@@ -289,22 +305,27 @@ def point(points, **kwds):
     EXAMPLES::
 
         sage: point((1,2))
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: point((1,2,3))
+        Graphics3d Object
 
     ::
 
         sage: point([(0,0), (1,1)])
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: point([(0,0,1), (1,1,1)])
+        Graphics3d Object
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)
+        Graphics object consisting of 1 graphics primitive
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)]).show(frame=True) # These are equivalent
     """
     try:
@@ -314,8 +335,9 @@ def point(points, **kwds):
         return point3d(points, **kwds)
 
 @rename_keyword(color='rgbcolor', pointsize='size')
-@options(alpha=1, size=10, faceted=False, rgbcolor=(0,0,1),
-         legend_color=None, legend_label=None, aspect_ratio='automatic')
+@options(alpha=1, aspect_ratio='automatic', faceted=False,
+        legend_color=None, legend_label=None, marker='o',
+        markeredgecolor=None, rgbcolor=(0,0,1), size=10)
 def point2d(points, **options):
     r"""
     A point of size ``size`` defined by point = `(x,y)`.
@@ -324,22 +346,39 @@ def point2d(points, **options):
 
     -  ``points`` - either a single point (as a tuple), a list of
        points, a single complex number, or a list of complex numbers.
-
-    Type ``point2d.options`` to see all options.
+    - ``alpha`` -- How transparent the point is.
+    - ``faceted`` -- If True color the edge of the point. (only for 2D plots)
+    - ``hue`` -- The color given as a hue.
+    - ``legend_color`` -- The color of the legend text
+    - ``legend_label`` -- The label for this item in the legend.
+    - ``marker`` -- the marker symbol for 2D plots only (see documentation of
+      :func:`plot` for details)
+    - ``markeredgecolor`` -- the color of the marker edge (only for 2D plots)
+    - ``rgbcolor`` -- The color as an RGB tuple.
+    - ``size`` -- How big the point is (i.e., area in points^2=(1/72 inch)^2).
+    - ``zorder`` -- The layer level in which to draw
 
     EXAMPLES:
 
     A purple point from a single tuple or coordinates::
 
         sage: point((0.5, 0.5), rgbcolor=hue(0.75))
+        Graphics object consisting of 1 graphics primitive
+
+    Points with customized markers and edge colors::
+
+        sage: r = [(random(), random()) for _ in range(10)]
+        sage: point(r, marker='d', markeredgecolor='red', size=20)
+        Graphics object consisting of 1 graphics primitive
 
     Passing an empty list returns an empty plot::
 
         sage: point([])
+        Graphics object consisting of 0 graphics primitives
         sage: import numpy; point(numpy.array([]))
+        Graphics object consisting of 0 graphics primitives
 
-    If you need a 2D point to live in 3-space later,
-    this is possible::
+    If you need a 2D point to live in 3-space later, this is possible::
 
         sage: A=point((1,1))
         sage: a=A[0];a
@@ -355,43 +394,52 @@ def point2d(points, **options):
     Here are some random larger red points, given as a list of tuples::
 
         sage: point(((0.5, 0.5), (1, 2), (0.5, 0.9), (-1, -1)), rgbcolor=hue(1), size=30)
+        Graphics object consisting of 1 graphics primitive
 
     And an example with a legend::
 
         sage: point((0,0), rgbcolor='black', pointsize=40, legend_label='origin')
+        Graphics object consisting of 1 graphics primitive
 
     The legend can be colored::
 
         sage: P = points([(0,0),(1,0)], pointsize=40, legend_label='origin', legend_color='red')
         sage: P + plot(x^2,(x,0,1), legend_label='plot', legend_color='green')
+        Graphics object consisting of 2 graphics primitives
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)
+        Graphics object consisting of 1 graphics primitive
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)]).show(frame=True) # These are equivalent
 
     For plotting data, we can use a logarithmic scale, as long as we are sure
     not to include any nonpositive points in the logarithmic direction::
 
         sage: point([(1,2),(2,4),(3,4),(4,8),(4.5,32)],scale='semilogy',base=2)
+        Graphics object consisting of 1 graphics primitive
 
-    Since Sage Version 4.4 (ticket #8599), the size of a 2d point can be
+    Since Sage Version 4.4 (:trac:`8599`), the size of a 2d point can be
     given by the argument ``size`` instead of ``pointsize``. The argument
     ``pointsize`` is still supported::
 
         sage: point((3,4), size=100)
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: point((3,4), pointsize=100)
+        Graphics object consisting of 1 graphics primitive
 
     We can plot a single complex number::
 
         sage: point(CC(1+I), pointsize=100)
+        Graphics object consisting of 1 graphics primitive
 
     We can also plot a list of complex numbers::
 
         sage: point([CC(I), CC(I+1), CC(2+2*I)], pointsize=100)
+        Graphics object consisting of 1 graphics primitive
 
     """
     from sage.plot.plot import xydata_from_point_list

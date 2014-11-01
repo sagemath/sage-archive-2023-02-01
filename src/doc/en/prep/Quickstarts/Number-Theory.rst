@@ -194,6 +194,7 @@ One more very useful object is the prime counting function
 
     sage: prime_pi(100); plot(prime_pi,1,100)
     25
+    Graphics object consisting of 1 graphics primitive
 
 A very nice aspect of Sage is combining several aspects of mathematics
 together.  It can be very eye\-opening to students to see analytic
@@ -206,6 +207,7 @@ was a cryptographic key!)
     sage: var('x')
     x
     sage: plot(prime_pi,2,10^6,thickness=2)+plot(Li,2,10^6,color='red')+plot(x/ln(x),2,10^6,color='green')
+    Graphics object consisting of 3 graphics primitives
 
 Advanced Number Theory
 ----------------------
@@ -236,6 +238,7 @@ Riemann zeta.
 ::
 
     sage: complex_plot(zeta, (-30,30), (-30,30))
+    Graphics object consisting of 1 graphics primitive
 
 Cryptography
 ------------

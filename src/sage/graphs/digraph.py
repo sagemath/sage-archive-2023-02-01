@@ -3473,24 +3473,28 @@ class DiGraph(GenericGraph):
 
         return g
 
-    def flow_polytope(G):
+    def flow_polytope(self):
         """
-        Return the flow polytope of `G`
+        Return the flow polytope of `self`
 
         The flow polytope of a directed graph is a polytope formed by
-        assigning a nonnegative flow to each of the edges of the graph such that
-        the flow is conserved on internal vertices, and there is a unit of
-        flow entering the sources and leaving the sinks.
+        assigning a nonnegative flow to each of the edges of the graph
+        such that the flow is conserved on internal vertices, and
+        there is a unit of flow entering the sources (vertices of
+        indegree 0) and leaving the sinks (vertices of outdegree 0).
+
+        This requires that there are as many sources as sinks in the
+        graph, otherwise the polytope will be empty.
 
         The faces and volume of these polytopes are of interest. Examples of
         these polytopes are the Chan-Robbins-Yuen polytope and the
-        Pitman-Stanley polytope.
+        Pitman-Stanley polytope [PitSta]_.
 
         EXAMPLES:
 
         A commutative square::
 
-            sage: G = DiGraph({1:[2,3],2:[4],3:[4]})
+            sage: G = DiGraph({1: [2, 3], 2: [4], 3: [4]})
             sage: fl = G.flow_polytope(); fl
             A 1-dimensional polyhedron in QQ^4 defined as the convex hull
             of 2 vertices
@@ -3508,20 +3512,32 @@ class DiGraph(GenericGraph):
              A vertex at (0, 1, 0, 0, 0, 1),
              A vertex at (1, 0, 0, 0, 1, 0),
              A vertex at (1, 0, 0, 1, 0, 1))
+
+        A digraph with one source and two sinks::
+
+            sage: Y = DiGraph({1: [2], 2: [3, 4]})
+            sage: Y.flow_polytope()
+            The empty polyhedron in QQ^3
+
+        REFERENCES:
+
+        .. [PitSta] Jim Pitman, Richard Stanley, "A polytope related to
+           empirical distributions, plane trees, parking functions, and
+           the associahedron", :arxiv:`math/9908029`
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
-        ineqs = [[0] + [Integer(j == u) for j in G.edges()]
-                 for u in G.edges()]
+        ineqs = [[0] + [Integer(j == u) for j in self.edges()]
+                 for u in self.edges()]
 
         eqs = []
-        for u in G:
-            ins = G.incoming_edges(u)
-            outs = G.outgoing_edges(u)
-            eq = [Integer(j in ins) - Integer(j in outs) for j in G.edges()]
+        for u in self:
+            ins = self.incoming_edges(u)
+            outs = self.outgoing_edges(u)
+            eq = [Integer(j in ins) - Integer(j in outs) for j in self.edges()]
 
-            if len(ins) == 0:  # sources
+            if len(ins) == 0:  # sources (indegree 0)
                 eq = [1] + eq
-            elif len(outs) == 0:  # sinks
+            elif len(outs) == 0:  # sinks (outdegree 0)
                 eq = [-1] + eq
             else:
                 eq = [0] + eq

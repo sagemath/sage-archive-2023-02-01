@@ -884,20 +884,21 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
 
     - ``source`` -- Starting node of the BFS.
 
-    - ``distances`` -- array of size ``n`` to store BFS distances from
-      ``source``. This method assumes that this array has already been
-      allocated. However, there is no need to initialize it.
+    - ``distances`` -- array of size ``n`` to store BFS distances from `v`, the
+      vertex at largest distance from ``source`` from which we start the second
+      BFS. This method assumes that this array has already been allocated.
+      However, there is no need to initialize it.
 
     - ``predecessors`` -- array of size ``n`` to store the first predecessor of
-      each vertex during the BFS search from ``source``. The predecessor of the
-      ``source`` is itself. This method assumes that this array has already
-      been allocated. However, it is possible to pass a ``NULL`` pointer in
-      which case the predecessors are not recorded. 
+      each vertex during the BFS search from `v`. The predecessor of `v` is
+      itself. This method assumes that this array has already been allocated.
+      However, it is possible to pass a ``NULL`` pointer in which case the
+      predecessors are not recorded. 
 
     - ``waiting_list`` -- array of size ``n`` to store the order in which the
-      vertices are visited during the BFS search from ``source``. This method
-      assumes that this array has already been allocated. However, there is no
-      need to initialize it.
+      vertices are visited during the BFS search from `v`. This method assumes
+      that this array has already been allocated. However, there is no need to
+      initialize it.
 
     - ``seen`` -- bitset of size ``n`` that must be initialized before calling
       this method (i.e., bitset_init(seen, n)). However, there is no need to
@@ -924,11 +925,7 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
 
 cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
                                             uint32_t ** p_vertices,
-                                            uint32_t source,
-                                            uint32_t * distances,
-                                            uint32_t * predecessors,
-                                            uint32_t * waiting_list,
-                                            bitset_t seen):
+                                            uint32_t source):
     """
     Lower bound on the diameter using multi-sweep.
 
@@ -956,41 +953,27 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
 
     - ``source`` -- Starting node of the BFS.
 
-    - ``distances`` -- array of size ``n`` to store BFS distances from
-      ``source``. This method assumes that this array has already been
-      allocated. However, there is no need to initialize it.
-
-    - ``predecessors`` -- array of size ``n`` to store the first predecessor of
-      each vertex during the BFS search from ``source``. The predecessor of the
-      ``source`` is itself. This method assumes that this array has already
-      been allocated. However, it is possible to pass a ``NULL`` pointer in
-      which case the predecessors are not recorded. 
-
-    - ``waiting_list`` -- array of size ``n`` to store the order in which the
-      vertices are visited during the BFS search from ``source``. This method
-      assumes that this array has already been allocated. However, there is no
-      need to initialize it.
-
-    - ``seen`` -- bitset of size ``n`` that must be initialized before calling
-      this method (i.e., bitset_init(seen, n)). However, there is no need to
-      clear it.
-
     """
     cdef uint32_t LB, tmp, s, m, d, i, j, k
 
-    cdef uint32_t * l_pred
-    if predecessors==NULL:
-        l_pred = <uint32_t *>sage_malloc(n * sizeof(uint32_t))
-        if l_pred==NULL:
-            raise MemoryError()
-    else:
-        l_pred = predecessors
+    # Allocate some arrays and a bitset
+    cdef bitset_t seen
+    bitset_init(seen, n)
+    cdef uint32_t * distances = <uint32_t *>sage_malloc(3 * n * sizeof(uint32_t))
+    if distances==NULL:
+        bitset_free(seen)
+        raise MemoryError()
+    cdef uint32_t * predecessors = distances + n
+    cdef uint32_t * waiting_list = distances + 2 * n
+
 
     # We perform a first 2sweep call from source. If the returned value is a
     # very large number, the graph is not connected and so the diameter is
     # infinite.
-    tmp = diameter_lower_bound_2sweep(n, p_vertices, source, distances, l_pred, waiting_list, seen)
+    tmp = diameter_lower_bound_2sweep(n, p_vertices, source, distances, predecessors, waiting_list, seen)
     if tmp==UINT32_MAX:
+        sage_free(distances)
+        bitset_free(seen)
         return (UINT32_MAX, 0, 0, 0)
 
     # We perform new 2sweep calls for as long as we are able to improve the
@@ -1008,23 +991,20 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
         LB_2 = LB/2
         m = d
         while distances[m]>LB_2:
-            m = l_pred[m]
+            m = predecessors[m]
 
         # We perform a new 2sweep call from m
-        tmp = diameter_lower_bound_2sweep(n, p_vertices, m, distances, l_pred, waiting_list, seen)
+        tmp = diameter_lower_bound_2sweep(n, p_vertices, m, distances, predecessors, waiting_list, seen)
 
-    if predecessors==NULL:
-        sage_free(l_pred)
+    sage_free(distances)
+    bitset_free(seen)
 
     return (LB, s, m, d)
 
 
 cdef uint32_t diameter_iFUB(uint32_t n,
                             uint32_t ** p_vertices,
-                            uint32_t source,
-                            uint32_t *distances,
-                            uint32_t *waiting_list,
-                            bitset_t seen):
+                            uint32_t source):
     """
     Computes the diameter of the input Graph using the iFUB algorithm.
 
@@ -1044,37 +1024,31 @@ cdef uint32_t diameter_iFUB(uint32_t n,
       p_vertices[i+1], then i has no outneighbours.  This data structure is well
       documented in the module sage.graphs.base.static_sparse_graph
 
-    - ``source`` -- Starting node of the BFS.
-
-    - ``distances`` -- array of size ``n`` to store BFS distances from
-      ``source``. This method assumes that this array has already been
-      allocated. However, there is no need to initialize it.
-
-    - ``waiting_list`` -- array of size ``n`` to store the order in which the
-      vertices are visited during the BFS search from ``source``. This method
-      assumes that this array has already been allocated. However, there is no
-      need to initialize it.
-
-    - ``seen`` -- bitset of size ``n`` that must be initialized before calling
-      this method (i.e., bitset_init(seen, n)). However, there is no need to
-      clear it.
+    - ``source`` -- Starting node of the first BFS.
 
     """
     cdef uint32_t i, LB, s, m, d
 
     # We select a vertex m with low eccentricity using multi-sweep
-    LB, s, m, d = diameter_lower_bound_multi_sweep(n, p_vertices, source, distances, NULL, waiting_list, seen)
+    LB, s, m, d = diameter_lower_bound_multi_sweep(n, p_vertices, source)
 
     # If the lower bound is a very large number, it means that the graph is not
     # connected and so the diameter is infinite.
     if LB==UINT32_MAX:
         return LB
 
-    # We initialize some tables
-    cdef uint32_t * layer = <uint32_t *>sage_malloc(2* n * sizeof(uint32_t))
-    if layer == NULL:
+
+    # We allocate some arrays and a bitset
+    cdef bitset_t seen
+    bitset_init(seen, n)    
+    cdef uint32_t * distances = <uint32_t *>sage_malloc(4 * n * sizeof(uint32_t))
+    if distances==NULL:
+        bitset_free(seen)
         raise MemoryError()
-    cdef uint32_t * order  = layer + n
+    cdef uint32_t * waiting_list = distances + n
+    cdef uint32_t * layer        = distances + 2 * n
+    cdef uint32_t * order        = distances + 3 * n
+
 
     # We order the vertices by decreasing layers. This is the inverse order of a
     # BFS from m, and so the inverse order of array waiting_list. Distances are
@@ -1112,7 +1086,9 @@ cdef uint32_t diameter_iFUB(uint32_t n,
         if tmp>LB:
             LB = tmp
 
-    sage_free(layer)
+
+    sage_free(distances)
+    bitset_free(seen)
 
     # We finally return the computed diameter
     return LB
@@ -1170,8 +1146,8 @@ def diameter(G, method='iFUB', source=None):
               distance `ecc(a)` from some vertex `b\in B`.
 
               Consequently, if we have already computed the maximum eccentricity
-              `m` of all vertices in B and if `m>2i`, then we do not need to
-              compute the eccentricity of the vertices in A.
+              `m` of all vertices in `B` and if `m>2i`, then we do not need to
+              compute the eccentricity of the vertices in `A`.
 
           Starting from a vertex `v` obtained through a multi-sweep computation
           (which refines the 4sweep algorithm used in [CGH+13]_), we compute the
@@ -1221,7 +1197,7 @@ def diameter(G, method='iFUB', source=None):
     if n==0:
         return 0
 
-    if method=='standard':
+    if method=='standard' or G.is_directed():
         return max(G.eccentricity())
     elif method is None:
         method = 'iFUB'
@@ -1230,7 +1206,7 @@ def diameter(G, method='iFUB', source=None):
 
     if source is None:
         source = G.vertex_iterator().next()
-    elif not source in G:
+    elif not G.has_vertex(source):
         raise ValueError("The specified source is not a vertex of the input Graph.")
 
 
@@ -1243,32 +1219,32 @@ def diameter(G, method='iFUB', source=None):
     # and we map the source to an int in [0,n-1] 
     cdef uint32_t isource = 0 if source is None else G.vertices().index(source)
 
-
-    # Initialize some tables and a bitset
     cdef bitset_t seen
-    bitset_init(seen, n)
-    cdef uint32_t * waiting_list = <uint32_t *> sage_malloc(2* n * sizeof(uint32_t))
-    if waiting_list == NULL:
-        free_short_digraph(sd)
-        bitset_free(seen)
-        raise MemoryError()
-    cdef uint32_t * c_distances  = waiting_list + n
-
-
+    cdef uint32_t * tab
     cdef int LB
+
     if method=='2sweep':
-        LB = diameter_lower_bound_2sweep(n, sd.neighbors, isource, c_distances, NULL, waiting_list, seen)
+        # We need to allocate arrays and bitset
+        bitset_init(seen, n)
+        tab = <uint32_t *> sage_malloc(2* n * sizeof(uint32_t))
+        if tab == NULL:
+            free_short_digraph(sd)
+            bitset_free(seen)
+            raise MemoryError()
+        
+        LB = diameter_lower_bound_2sweep(n, sd.neighbors, isource, tab, NULL, tab+n, seen)
+
+        bitset_free(seen)
+        sage_free(tab)
 
     elif method=='multi-sweep':
-        LB = diameter_lower_bound_multi_sweep(n, sd.neighbors, isource, c_distances, NULL, waiting_list, seen)[0]
+        LB = diameter_lower_bound_multi_sweep(n, sd.neighbors, isource)[0]
 
     else: # method=='iFUB'
-        LB = diameter_iFUB(n, sd.neighbors, isource, c_distances, waiting_list, seen)
+        LB = diameter_iFUB(n, sd.neighbors, isource)
 
 
     free_short_digraph(sd)
-    bitset_free(seen)
-    sage_free(waiting_list)
 
     if LB<0 or LB>G.order():
         from sage.rings.infinity import Infinity

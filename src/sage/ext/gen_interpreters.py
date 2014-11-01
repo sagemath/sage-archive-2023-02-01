@@ -296,7 +296,7 @@ class StorageType(object):
 
     def cython_decl_type(self):
         r"""
-        Gives the Cython type for a single value of this type (as a string).
+        Give the Cython type for a single value of this type (as a string).
 
         EXAMPLES::
 
@@ -312,7 +312,7 @@ class StorageType(object):
 
     def cython_array_type(self):
         r"""
-        Gives the Cython type for referring to an array of values of
+        Give the Cython type for referring to an array of values of
         this type (as a string).
 
         EXAMPLES::
@@ -352,7 +352,7 @@ class StorageType(object):
 
     def c_decl_type(self):
         r"""
-        Gives the C type for a single value of this type (as a string).
+        Give the C type for a single value of this type (as a string).
 
         EXAMPLES::
 
@@ -368,7 +368,7 @@ class StorageType(object):
 
     def c_ptr_type(self):
         r"""
-        Gives the C type for a pointer to this type (as a reference to
+        Give the C type for a pointer to this type (as a reference to
         either a single value or an array) (as a string).
 
         EXAMPLES::
@@ -385,7 +385,7 @@ class StorageType(object):
 
     def c_reference_type(self):
         r"""
-        Gives the C type which should be used for passing a reference
+        Give the C type which should be used for passing a reference
         to a single value in a call. This is used as the type for the
         return value.
 
@@ -401,7 +401,7 @@ class StorageType(object):
 
     def c_local_type(self):
         r"""
-        Gives the C type used for a value of this type inside an
+        Give the C type used for a value of this type inside an
         instruction.  For assignable/cheap_copy types, this is the
         same as c_decl_type; for auto-reference types, this is the
         pointer type.
@@ -438,7 +438,7 @@ class StorageType(object):
 
     def declare_chunk_class_members(self, name):
         r"""
-        Returns a string giving the declarations of the class members
+        Return a string giving the declarations of the class members
         in a wrapper class for a memory chunk with this storage type
         and the given name.
 
@@ -456,7 +456,7 @@ class StorageType(object):
 
     def alloc_chunk_data(self, name, len):
         r"""
-        Returns a string allocating the memory for the class members for
+        Return a string allocating the memory for the class members for
         a memory chunk with this storage type and the given name.
 
         EXAMPLES::
@@ -482,7 +482,7 @@ class StorageType(object):
 
     def dealloc_chunk_data(self, name):
         r"""
-        Returns a string to be put in the __dealloc__ method of a
+        Return a string to be put in the __dealloc__ method of a
         wrapper class using a memory chunk with this storage type, to
         deallocate the corresponding class members.
 
@@ -560,7 +560,7 @@ class StorageTypeAssignable(StorageType):
 
     def c_decl_type(self):
         r"""
-        Gives the C type for a single value of this type (as a string).
+        Give the C type for a single value of this type (as a string).
 
         EXAMPLES::
 
@@ -574,7 +574,7 @@ class StorageTypeAssignable(StorageType):
 
     def c_local_type(self):
         r"""
-        Gives the C type used for a value of this type inside an
+        Give the C type used for a value of this type inside an
         instruction.  For assignable/cheap_copy types, this is the
         same as c_decl_type; for auto-reference types, this is the
         pointer type.
@@ -683,7 +683,7 @@ class StorageTypePython(StorageTypeAssignable):
 
     def cython_decl_type(self):
         r"""
-        Gives the Cython type for a single value of this type (as a string).
+        Give the Cython type for a single value of this type (as a string).
 
         EXAMPLES::
 
@@ -695,7 +695,7 @@ class StorageTypePython(StorageTypeAssignable):
 
     def declare_chunk_class_members(self, name):
         r"""
-        Returns a string giving the declarations of the class members
+        Return a string giving the declarations of the class members
         in a wrapper class for a memory chunk with this storage type
         and the given name.
 
@@ -713,7 +713,7 @@ class StorageTypePython(StorageTypeAssignable):
 
     def alloc_chunk_data(self, name, len):
         r"""
-        Returns a string allocating the memory for the class members for
+        Return a string allocating the memory for the class members for
         a memory chunk with this storage type and the given name.
 
         EXAMPLES::
@@ -733,7 +733,7 @@ class StorageTypePython(StorageTypeAssignable):
 
     def dealloc_chunk_data(self, name):
         r"""
-        Returns a string to be put in the __dealloc__ method of a
+        Return a string to be put in the __dealloc__ method of a
         wrapper class using a memory chunk with this storage type, to
         deallocate the corresponding class members.
 
@@ -842,7 +842,7 @@ class StorageTypeAutoReference(StorageType):
 
     def c_decl_type(self):
         r"""
-        Gives the C type for a single value of this type (as a string).
+        Give the C type for a single value of this type (as a string).
 
         EXAMPLES::
 
@@ -854,7 +854,7 @@ class StorageTypeAutoReference(StorageType):
 
     def c_local_type(self):
         r"""
-        Gives the C type used for a value of this type inside an
+        Give the C type used for a value of this type inside an
         instruction.  For assignable/cheap_copy types, this is the
         same as c_decl_type; for auto-reference types, this is the
         pointer type.
@@ -869,7 +869,7 @@ class StorageTypeAutoReference(StorageType):
 
     def c_reference_type(self):
         r"""
-        Gives the C type which should be used for passing a reference
+        Give the C type which should be used for passing a reference
         to a single value in a call. This is used as the type for the
         return value.
 
@@ -1057,7 +1057,7 @@ class MemoryChunk(object):
 
     def declare_class_members(self):
         r"""
-        Returns a string giving the declarations of the class members
+        Return a string giving the declarations of the class members
         in a wrapper class for this memory chunk.
 
         EXAMPLES::
@@ -1071,7 +1071,7 @@ class MemoryChunk(object):
 
     def init_class_members(self):
         r"""
-        Returns a string to be put in the __init__ method of a wrapper
+        Return a string to be put in the __init__ method of a wrapper
         class using this memory chunk, to initialize the corresponding
         class members.
 
@@ -1092,7 +1092,7 @@ class MemoryChunk(object):
 
     def dealloc_class_members(self):
         r"""
-        Returns a string to be put in the __dealloc__ method of a wrapper
+        Return a string to be put in the __dealloc__ method of a wrapper
         class using this memory chunk, to deallocate the corresponding
         class members.
 
@@ -1111,7 +1111,7 @@ class MemoryChunk(object):
 
     def declare_parameter(self):
         r"""
-        Returns the string to use to declare the interpreter parameter
+        Return the string to use to declare the interpreter parameter
         corresponding to this memory chunk.
 
         EXAMPLES::
@@ -1125,7 +1125,7 @@ class MemoryChunk(object):
 
     def declare_call_locals(self):
         r"""
-        Returns a string to put in the __call__ method of a wrapper
+        Return a string to put in the __call__ method of a wrapper
         class using this memory chunk, to allocate local variables.
 
         EXAMPLES::
@@ -1139,7 +1139,7 @@ class MemoryChunk(object):
 
     def pass_argument(self):
         r"""
-        Returns the string to pass the argument corresponding to this
+        Return the string to pass the argument corresponding to this
         memory chunk to the interpreter.
 
         EXAMPLES::
@@ -1153,7 +1153,7 @@ class MemoryChunk(object):
 
     def pass_call_c_argument(self):
         r"""
-        Returns the string to pass the argument corresponding to this
+        Return the string to pass the argument corresponding to this
         memory chunk to the interpreter, for use in the call_c method.
         Almost always the same as pass_argument.
 
@@ -1246,7 +1246,7 @@ class MemoryChunkLonglivedArray(MemoryChunk):
 
     def init_class_members(self):
         r"""
-        Returns a string to be put in the __init__ method of a wrapper
+        Return a string to be put in the __init__ method of a wrapper
         class using this memory chunk, to initialize the corresponding
         class members.
 
@@ -1268,7 +1268,7 @@ class MemoryChunkLonglivedArray(MemoryChunk):
 
     def dealloc_class_members(self):
         r"""
-        Returns a string to be put in the __dealloc__ method of a wrapper
+        Return a string to be put in the __dealloc__ method of a wrapper
         class using this memory chunk, to deallocate the corresponding
         class members.
 
@@ -1287,7 +1287,7 @@ class MemoryChunkLonglivedArray(MemoryChunk):
 
     def pass_argument(self):
         r"""
-        Returns the string to pass the argument corresponding to this
+        Return the string to pass the argument corresponding to this
         memory chunk to the interpreter.
 
         EXAMPLES::
@@ -1309,7 +1309,7 @@ class MemoryChunkConstants(MemoryChunkLonglivedArray):
 
     def init_class_members(self):
         r"""
-        Returns a string to be put in the __init__ method of a wrapper
+        Return a string to be put in the __init__ method of a wrapper
         class using this memory chunk, to initialize the corresponding
         class members.
 
@@ -1372,7 +1372,7 @@ for i from 0 <= i < len(args):
 
     def pass_argument(self):
         r"""
-        Returns the string to pass the argument corresponding to this
+        Return the string to pass the argument corresponding to this
         memory chunk to the interpreter.
 
         EXAMPLES::
@@ -1483,7 +1483,7 @@ class MemoryChunkRRRetval(MemoryChunk):
 
     def declare_class_members(self):
         r"""
-        Returns a string giving the declarations of the class members
+        Return a string giving the declarations of the class members
         in a wrapper class for this memory chunk.
 
         EXAMPLES::
@@ -1497,7 +1497,7 @@ class MemoryChunkRRRetval(MemoryChunk):
 
     def declare_call_locals(self):
         r"""
-        Returns a string to put in the __call__ method of a wrapper
+        Return a string to put in the __call__ method of a wrapper
         class using this memory chunk, to allocate local variables.
 
         EXAMPLES::
@@ -1513,7 +1513,7 @@ class MemoryChunkRRRetval(MemoryChunk):
 
     def declare_parameter(self):
         r"""
-        Returns the string to use to declare the interpreter parameter
+        Return the string to use to declare the interpreter parameter
         corresponding to this memory chunk.
 
         EXAMPLES::
@@ -1527,7 +1527,7 @@ class MemoryChunkRRRetval(MemoryChunk):
 
     def pass_argument(self):
         r"""
-        Returns the string to pass the argument corresponding to this
+        Return the string to pass the argument corresponding to this
         memory chunk to the interpreter.
 
         EXAMPLES::
@@ -1541,7 +1541,7 @@ class MemoryChunkRRRetval(MemoryChunk):
 
     def pass_call_c_argument(self):
         r"""
-        Returns the string to pass the argument corresponding to this
+        Return the string to pass the argument corresponding to this
         memory chunk to the interpreter, for use in the call_c method.
 
         EXAMPLES::
@@ -1563,7 +1563,7 @@ class MemoryChunkPythonArguments(MemoryChunk):
 
     def declare_class_members(self):
         r"""
-        Returns a string giving the declarations of the class members
+        Return a string giving the declarations of the class members
         in a wrapper class for this memory chunk.
 
         EXAMPLES::
@@ -1575,7 +1575,7 @@ class MemoryChunkPythonArguments(MemoryChunk):
 
     def init_class_members(self):
         r"""
-        Returns a string to be put in the __init__ method of a wrapper
+        Return a string to be put in the __init__ method of a wrapper
         class using this memory chunk, to initialize the corresponding
         class members.
 
@@ -1682,7 +1682,7 @@ class MemoryChunkPyConstant(MemoryChunk):
 
     def declare_class_members(self):
         r"""
-        Returns a string giving the declarations of the class members
+        Return a string giving the declarations of the class members
         in a wrapper class for this memory chunk.
 
         EXAMPLES::
@@ -1698,7 +1698,7 @@ class MemoryChunkPyConstant(MemoryChunk):
 
     def init_class_members(self):
         r"""
-        Returns a string to be put in the __init__ method of a wrapper
+        Return a string to be put in the __init__ method of a wrapper
         class using this memory chunk, to initialize the corresponding
         class members.
 
@@ -1715,7 +1715,7 @@ class MemoryChunkPyConstant(MemoryChunk):
 
     def declare_parameter(self):
         r"""
-        Returns the string to use to declare the interpreter parameter
+        Return the string to use to declare the interpreter parameter
         corresponding to this memory chunk.
 
         EXAMPLES::
@@ -1729,7 +1729,7 @@ class MemoryChunkPyConstant(MemoryChunk):
 
     def pass_argument(self):
         r"""
-        Returns the string to pass the argument corresponding to this
+        Return the string to pass the argument corresponding to this
         memory chunk to the interpreter.
 
         EXAMPLES::
@@ -3449,7 +3449,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
     def get_interpreter_header(self):
         r"""
-        Returns the header code for the C interpreter.
+        Return the header code for the C interpreter.
 
         EXAMPLES:
 
@@ -3506,7 +3506,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
     def get_interpreter(self):
         r"""
-        Returns the code for the C interpreter.
+        Return the code for the C interpreter.
 
         EXAMPLES:
 
@@ -3629,7 +3629,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
     def get_wrapper(self):
         r"""
-        Returns the code for the Cython wrapper.
+        Return the code for the Cython wrapper.
 
         EXAMPLES:
 
@@ -3964,7 +3964,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
     def get_pxd(self):
         r"""
-        Returns the code for the Cython .pxd file.
+        Return the code for the Cython .pxd file.
 
         EXAMPLES:
 
@@ -4053,7 +4053,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
 def write_if_changed(fn, value):
     r"""
-    Writes value to the file named fn, if value is different than
+    Write value to the file named fn, if value is different than
     the current contents.
 
     EXAMPLES::
@@ -4100,8 +4100,8 @@ def write_if_changed(fn, value):
 
 def build_interp(interp_spec, dir):
     r"""
-    Given an InterpreterSpec, writes the C interpreter and the Cython
-    wrapper (generates a pyx and a pxd file).
+    Given an InterpreterSpec, write the C interpreter and the Cython
+    wrapper (generate a pyx and a pxd file).
 
     EXAMPLES::
 

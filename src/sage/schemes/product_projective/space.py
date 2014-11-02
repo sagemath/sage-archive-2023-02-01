@@ -101,6 +101,8 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
     """
     if isinstance(R, (list, tuple)):
         n, R = R, n
+    if not isinstance(n, (tuple, list)):
+        raise TypeError("Must be a list of dimensions")
     if R is None:
         R = QQ  # default is the rationals
     if isinstance(n[0], ProjectiveSpace_ring):
@@ -202,6 +204,8 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         assert isinstance(N, (tuple, list))
         assert all(x.parent() is ZZ for x in N)
         assert is_CommutativeRing(R)
+        if len(N) < 2:
+            raise ValueError("Must be at least two components for a product")
         AmbientSpace.__init__(self, sum(N), R)
         self._dims = N
         start = 0
@@ -446,7 +450,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         if not isinstance(v, (list, tuple, ETuple)):
             raise TypeError("%s, must be a list or tuple"%v)
         if len(v) != self.ngens():
-            raise ValueError("%v must have %s elements"%(v,self.ngens()))
+            raise ValueError("%s must have %s elements"%(v,self.ngens()))
         index = 0
         splitv = []
         dims=self._dims
@@ -741,8 +745,9 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         EXAMPLES::
 
-            sage: PP = ProductProjectiveSpaces([2,2,2],ZZ,'x')
-            sage: A, phi = PP.affine_patch([0,1,2],True);A
+            sage: PP = ProductProjectiveSpaces([2,2,2], ZZ, 'x')
+            sage: phi = PP.affine_patch([0,1,2], True)
+            sage: phi.domain()
             Affine Space of dimension 6 over Integer Ring
             sage: phi
             Scheme morphism:
@@ -763,7 +768,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
                 raise ValueError("Argument i (= %s) must be between 0 and %s."%(I[i], N[i]))
         try:
             if return_embedding:
-                return self.__affine_patches[I]
+                return self.__affine_patches[I][1]
             else:
                 return self.__affine_patches[I][0]
         except AttributeError:
@@ -780,19 +785,21 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         phi = AA.hom(v,self)
         self.__affine_patches.update({I:(AA,phi)})
         if return_embedding:
-            return AA,phi
+            return phi
         else:
             return AA
 
     @cached_method
-    def segre_embedding(self, PP = None):
+    def segre_embedding(self, PP = None, var='u'):
         r"""
         Returns the Segre embedding of ``self`` into the appropriate projective space.
 
         INPUT:
 
-        -  ``PP`` - (default: None) ambient image projective space;
+        -  ``PP`` -- (default: None) ambient image projective space;
             this is constructed if it is not given.
+
+        - ``var`` -- string, variable name of the image projective space, default `u` (optional)
 
         OUTPUT: Hom -- from self to the appropriate subscheme of projective space
 
@@ -837,8 +844,8 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             raise NotImplementedError("Cannot have more than two components.")
         M = (N[0]+1)*(N[1]+1)-1
 
-        vars = list(self.coordinate_ring().variable_names()) + ['u' + str(i) for i in range(M+1)]
-        R = PolynomialRing(self.base_ring(),self.ngens()+M+1,vars,order='lex')
+        vars = list(self.coordinate_ring().variable_names()) + [var + str(i) for i in range(M+1)]
+        R = PolynomialRing(self.base_ring(),self.ngens()+M+1, vars, order='lex')
 
         #set-up the elimination for the segre embedding
         mapping = []

@@ -18,12 +18,12 @@ AUTHORS:
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/gmp.pxi"
 from cpython.list cimport *
 
 cdef extern from "mpz_pylong.h":
     cdef long mpz_pythonhash(mpz_t src)
 
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement

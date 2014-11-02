@@ -17,39 +17,54 @@ and extend the core Sage libraries, and how to modify Sage's
 documentation. We also discuss how to share your new and modified code
 with other Sage users around the globe.
 
-All development takes place on or via `the Sage Trac server
-<http://trac.sagemath.org>`_,
-including bug reports, fixes, new functionality, and discussions about
-approaches to particular tickets.  Once you start writing code for Sage,
-you will want to carefully read the
-:ref:`conventions and guidelines <section-writing-code-for-sage>` we use.
+It is not necessary to memorize this entire guide to begin working on
+Sage, but careful reading of different sections now will be well worth
+the effort in seamless contributions later.  There are four main things
+to be aware of.
 
-Depending on your previous knowledge, there are several places you can
-start learning about the source code revision control process.
+- All development takes place on or via `the Sage Trac server
+  <http://trac.sagemath.org>`_, including bug reports, fixes,
+  new functionality, and discussions about approaches to particular tickets.
+  If you don't have an account on it, read about how to :ref:`acquire a
+  Trac account <section-trac-account>`.  This is recommended even if you
+  only want to report bugs or request new functionality, not necessarily
+  to help make changes to Sage.
 
--  First, although it is possible to try out bugfixes and explore the
-   code without having a developer account, it is best to :ref:`acquire a
-   Trac account <section-trac-account>` first, then :ref:`configure git
-   <section-git-setup-name>` for use with Trac.
--  An overview of the Sage development process, assuming you have ``git``
-   installed and know the basics of how to use it, is in the :ref:`concise
-   development guide <chapter-walkthrough>`.
--  More advanced :ref:`tricks and tips <section-git-tricks-and-tips>` for
-   ``git`` are linked below.
--  For those unfamiliar with revision control, please start by reading
-   about :ref:`collaborative development with Git-Trac <chapter-git_trac>`,
-   which provides some easier interface with git and Trac, both for newbies
-   and power users.
--  Alternately, one can do certain amounts of Sage development without
-   having git installed, by using Sage's own internal installation of git
-   and the :ref:`Sage dev scripts <chapter-devscript>`.  This is mainly
-   intended as a bridge to full use of git once one becomes more comfortable
-   with the system.
+- Next, if you've never worked on software before, you will want to read
+  about the `prerequisites to compile
+  <http://www.sagemath.org/doc/installation/source.html#prerequisites>`_
+  from the installation guide.  This will allow you to
+  make your changes in the source code work.  Pay close attention
+  to any system-specific requirements.
 
-Finally, if you've never worked on software before, don't forget you
-will need the `prerequisites to compile
-<http://www.sagemath.org/doc/installation/source.html#prerequisites>`_
-in order to make your changes in the source code work.
+- Once you start writing code for Sage, you will want to carefully read the
+  :ref:`conventions and guidelines <section-writing-code-for-sage>` we use.
+  (Looking at newer files and functionality within Sage is another way to
+  get a sense for the the general style, but refer here for details.)
+
+- Finally, in order to share changes with the Sage community, you will
+  need to learn some basics of the source code revision control process.
+  There are several places to start, depending upon your previous knowledge.
+
+  - Don't forget to :ref:`acquire a Trac account <section-trac-account>`.
+  - First, you will need to :ref:`install the 'git' revision control
+    software <section-git-install>` if you don't already have it.
+  - Then you will need to go through a short process to :ref:`configure git
+    <section-git-setup-name>` for use with Trac.
+  - An overview of the Sage development process, assuming you have ``git``
+    installed and know the basics of how to use it, is in the :ref:`concise
+    development guide <chapter-walkthrough>`.
+  - More advanced :ref:`tricks and tips <section-git-tricks-and-tips>` for
+    ``git`` are linked below.
+  - For those unfamiliar with revision control, please start by reading
+    about :ref:`collaborative development with Git-Trac <chapter-git_trac>`,
+    which provides some easier interface with git and Trac, both for newbies
+    and power users.
+  - Alternately, one can do certain amounts of Sage development without
+    having git installed, by using Sage's own internal installation of git
+    and the :ref:`Sage dev scripts <chapter-devscript>`.  This is mainly
+    intended as a bridge to full use of git once one becomes more comfortable
+    with the system.
 
 No matter where you start, good luck and welcome to Sage development!
 

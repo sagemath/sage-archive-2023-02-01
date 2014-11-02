@@ -24,3 +24,6 @@ https://github.com/pkgconf/pkgconf
 == Special Update/Build Instructions ==
 
 * install.patch: Use install script from AC_PROG_INSTALL
+
+Pkgconf is used in bzip2, so we must not use the bzip2-compressed
+tarball.

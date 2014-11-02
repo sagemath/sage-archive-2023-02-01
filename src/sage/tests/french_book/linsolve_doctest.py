@@ -94,7 +94,7 @@ Sage example in ./linsolve.tex, line 822::
   sage: R1 = R[0:3,0:3]
   sage: b1 = transpose(Q)*b
   sage: c = b1[0:3]
-  sage: R1.solve_right(c)  # rel tol 1e-14
+  sage: R1.solve_right(c)  # rel tol 2e-14
   (-1.499999999999999, -0.49999999999999867, 2.7499999999999973)
 
 Sage example in ./linsolve.tex, line 834::

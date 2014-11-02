@@ -399,7 +399,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: T = RealDistribution('t', nu)
         sage: T.get_random_element() # random
         -0.994514581164
-        sage: T.distribution_function(0)
+        sage: T.distribution_function(0)      # rel tol 1e-15
         0.3183098861837906
         sage: T.cum_distribution_function(1)  # rel tol 1e-15
         0.75

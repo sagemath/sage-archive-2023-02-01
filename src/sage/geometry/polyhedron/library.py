@@ -698,6 +698,4 @@ class Polytopes():
         par += [ sum(c) for c in Combinations(generators) if c!=[] ]
         return Polyhedron(vertices=par, base_ring=base_ring)
 
-
-
 polytopes = Polytopes()

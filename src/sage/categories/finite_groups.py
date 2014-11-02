@@ -59,6 +59,22 @@ class FiniteGroups(CategoryWithAxiom):
             """
             return self.group_generators()
 
+        def monoid_generators(self):
+            """
+            Return monoid generators for ``self``.
+
+            For finite groups, the group generators are also monoid
+            generators. Hence, this default implementation calls
+            :meth:`~sage.categories.groups.Groups.ParentMethods.group_generators`.
+
+            EXAMPLES::
+
+                sage: A = AlternatingGroup(4)
+                sage: A.monoid_generators()
+                Family ((2,3,4), (1,2,3))
+            """
+            return self.group_generators()
+
         def cardinality(self):
             """
             Returns the cardinality of ``self``, as per
@@ -116,11 +132,9 @@ class FiniteGroups(CategoryWithAxiom):
             if connecting_set is None:
                 connecting_set = self.gens()
             else:
-                try:
-                    for g in connecting_set:
-                        assert g in self
-                except AssertionError:
-                    raise RuntimeError("Each element of the connecting set must be in the group!")
+                for g in connecting_set:
+                    if not g in self:
+                        raise RuntimeError("Each element of the connecting set must be in the group!")
                 connecting_set = [self(g) for g in connecting_set]
             from sage.graphs.all import DiGraph
             arrows = {}

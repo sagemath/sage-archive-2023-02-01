@@ -255,10 +255,16 @@ below we do the Fateman benchmark over the finite field of order
 ::
 
     sage: P.<x,y,z> = GF(32003)[]
-    sage: p = (x+y+z+1)^20
+    sage: p = (x+y+z+1)^10
     sage: q = p+1
     sage: timeit('p*q')   # random output
+    125 loops, best of 3: 1.53 ms per loop
+
+    sage: p = (x+y+z+1)^20
+    sage: q = p+1
+    sage: timeit('p*q')   # not tested - timeout if SAGE_DEBUG=yes
     5 loops, best of 3: 384 ms per loop
+
     sage: pp = magma(p); qq = magma(q) #optional - magma
     sage: s = 'time w := %s*%s;'%(pp.name(),qq.name()) #optional - magma
     sage: magma.eval(s) #optional - magma

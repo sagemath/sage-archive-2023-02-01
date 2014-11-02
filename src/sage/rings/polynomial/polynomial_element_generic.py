@@ -118,10 +118,10 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f = 5 + w^1997 - w^10000; f
             7*w^10000 + w^1997 + 5
             sage: d = f.dict(); d
-            {0: 5, 10000: 7, 1997: 1}
+            {0: 5, 1997: 1, 10000: 7}
             sage: d[0] = 10
             sage: f.dict()
-            {0: 5, 10000: 7, 1997: 1}
+            {0: 5, 1997: 1, 10000: 7}
         """
         return dict(self.__coeffs)
 
@@ -240,9 +240,9 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<w> = PolynomialRing(CDF, sparse=True)
             sage: f = CDF(1,2) + w^5 - CDF(pi)*w + CDF(e)
             sage: f._repr()
-            '1.0*w^5 - 3.14159265359*w + 3.71828182846 + 2.0*I'
+            '1.0*w^5 - 3.141592653589793*w + 3.718281828459045 + 2.0*I'
             sage: f._repr(name='z')
-            '1.0*z^5 - 3.14159265359*z + 3.71828182846 + 2.0*I'
+            '1.0*z^5 - 3.141592653589793*z + 3.718281828459045 + 2.0*I'
 
         AUTHOR:
 
@@ -297,9 +297,9 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<w> = PolynomialRing(RDF, sparse=True)
             sage: e = RDF(e)
             sage: f = sum(e^n*w^n for n in range(4)); f
-            20.0855369232*w^3 + 7.38905609893*w^2 + 2.71828182846*w + 1.0
+            20.085536923187664*w^3 + 7.3890560989306495*w^2 + 2.718281828459045*w + 1.0
             sage: f[1]
-            2.71828182846
+            2.718281828459045
             sage: f[5]
             0.0
             sage: f[-1]

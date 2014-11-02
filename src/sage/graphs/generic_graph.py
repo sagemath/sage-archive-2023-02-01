@@ -315,6 +315,8 @@ from sage.misc.superseded import deprecation, deprecated_function_alias
 class GenericGraph(GenericGraph_pyx):
     """
     Base class for graphs and digraphs.
+
+    .. automethod:: __eq__
     """
 
     # Nice defaults for plotting arrays of graphs (see sage.misc.functional.show)
@@ -360,11 +362,22 @@ class GenericGraph(GenericGraph_pyx):
 
     def __eq__(self, other):
         """
-        Comparison of self and other. For equality, must be in the same
-        class, have the same settings for loops and multiedges, output the
-        same vertex list (in order) and the same adjacency matrix.
+        Compare self and other for equality.
 
-        Note that this is _not_ an isomorphism test.
+        Do not call this method directly. That is, for ``G.__eq__(H)``
+        write ``G == H``.
+
+        Two graphs are considered equal if the following hold:
+         - they are either both directed, or both undirected;
+         - they have the same settings for loops, multiedges, and
+           weightedness;
+         - they have the same set of vertices;
+         - they have the same (multi)set of arrows/edges, where labels
+           of arrows/edges are taken into account if *and only if*
+           the graphs are considered weighted. See
+           :meth:`~GenericGraph.weighted`.
+
+        Note that this is *not* an isomorphism test.
 
         EXAMPLES::
 
@@ -466,11 +479,9 @@ class GenericGraph(GenericGraph_pyx):
     @cached_method
     def __hash__(self):
         """
-        Only immutable graphs are hashable.
+        Computes a hash for self, if self is immutable.
 
-        The hash value of an immutable graph relies on the tuple
-        of vertices and the tuple of edges. The resulting value
-        is cached.
+        Only immutable graphs are hashable. The resulting value is cached.
 
         EXAMPLE::
 
@@ -488,9 +499,61 @@ class GenericGraph(GenericGraph_pyx):
             sage: G_imm.__hash__() is G_imm.__hash__()
             True
 
+        TESTS:
+
+        Equality and hash do not depend on ordering of vertices. In other words,
+        `G1==G2` can be `True` even when `G1.vertices() == G2.vertices()` is
+        `False`. This is parts 1 and 2 of ticket :trac:`17086`. ::
+
+            sage: import functools
+            sage: @functools.total_ordering
+            ....: class C:
+            ....:     order = ((0,0), (0,1), (1,1), (1,0))
+            ....:     # Hasse diagram:
+            ....:     #   0,0 < 0,1
+            ....:     #    ^     ^
+            ....:     #   1,0 > 1,1
+            ....:     def __init__(self, x):
+            ....:         assert x in self.order
+            ....:         self.x = x
+            ....:     def __repr__(self):
+            ....:         return 'C(%r)' % (self.x,)
+            ....:     # ordering depends on full self.x
+            ....:     def __lt__(self, other):
+            ....:         return self.order.index(self.x) < self.order.index(other.x)
+            ....:     # equality depends only on the second coordinate.
+            ....:     def __eq__(self, other):
+            ....:         return self.x[1] == other.x[1]
+            ....:     def __hash__(self):
+            ....:         return hash(self.x[1])
+            sage: G1 = Graph({C((0, 0)): [], C((0, 1)): []}, immutable=True)
+            sage: G2 = Graph({C((1, 0)): [], C((1, 1)): []}, immutable=True)
+            sage: (G1.vertices(), G2.vertices())
+            ([C((0, 0)), C((0, 1))], [C((1, 1)), C((1, 0))])
+            sage: G1 == G2
+            True
+            sage: G1.__hash__() == G2.__hash__()
+            True
+
+        Hash of unweighted graphs does not depend on edge labels. That is,
+        part 3 of ticket :trac:`17086` is fixed ::
+
+            sage: G1 = Graph({0: {1: 'edge label A'}}, immutable=True)
+            sage: G2 = Graph({0: {1: 'edge label B'}}, immutable=True)
+            sage: G1 == G2
+            True
+            sage: G1.__hash__() == G2.__hash__()
+            True
+
         """
         if getattr(self, "_immutable", False):
-            return hash((tuple(self.vertices()), tuple(self.edges())))
+            edge_items = self.edge_iterator(labels = self._weighted)
+            if self.allows_multiple_edges():
+                from collections import Counter
+                edge_items = Counter(edge_items).items()
+            return hash((frozenset(self.vertex_iterator()),
+                         self._weighted,
+                         frozenset(edge_items)))
         raise TypeError("This graph is mutable, and thus not hashable. "
                         "Create an immutable copy by `g.copy(immutable=True)`")
 
@@ -710,12 +773,15 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Formats
 
-    def __copy__(self, implementation='c_graph', data_structure=None,
+    def __copy__(self, weighted=None, implementation='c_graph', data_structure=None,
                  sparse=None, immutable=None):
         """
         Return a copy of the graph.
 
         INPUT:
+
+         - ``weighted`` boolean (default: ``None``) -- weightedness for
+           the copy. Might change the equality class if not ``None``.
 
          - ``implementation`` - string (default: 'c_graph') the implementation
            goes here.  Current options are only 'networkx' or 'c_graph'.
@@ -757,8 +823,13 @@ class GenericGraph(GenericGraph_pyx):
         .. warning::
 
            Please use this method only if you need to copy but change the
-           underlying implementation.  Otherwise simply do ``copy(g)``
-           instead of ``g.copy()``.
+           underlying implementation or weightedness.  Otherwise simply
+           do ``copy(g)`` instead of ``g.copy()``.
+
+        .. warning::
+
+           If ``weighted`` is passed and is not the weightedness of the
+           original, then the copy will not equal the original.
 
         EXAMPLES::
 
@@ -798,6 +869,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: G2 = copy(G)
             sage: G2 is G
             False
+
+        Argument ``weighted`` affects the equality class::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: H1 = G.copy(weighted=False)
+            sage: H2 = G.copy(weighted=True)
+            sage: [G.weighted(), H1.weighted(), H2.weighted()]
+            [False, False, True]
+            sage: [G == H1, G == H2, H1 == H2]
+            [True, False, False]
+            sage: G.weighted(True)
+            sage: [G == H1, G == H2, H1 == H2]
+            [False, True, False]
 
         TESTS:
 
@@ -919,7 +1003,9 @@ class GenericGraph(GenericGraph_pyx):
             data_structure = "dense"
 
         # Immutable copy of an immutable graph ? return self !
-        if getattr(self, '_immutable', False):
+        # (if okay for weightedness)
+        if (getattr(self, '_immutable', False) and
+                (weighted is None or self._weighted == weighted)):
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             if (isinstance(self._backend, StaticSparseBackend) and
                 implementation=='c_graph' and
@@ -934,7 +1020,10 @@ class GenericGraph(GenericGraph_pyx):
                 data_structure = "sparse"
 
         from copy import copy
-        G = self.__class__(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, data_structure=data_structure)
+        G = self.__class__(self, name=self.name(), pos=copy(self._pos),
+                           boundary=copy(self._boundary), weighted=weighted,
+                           implementation=implementation,
+                           data_structure=data_structure)
 
         attributes_to_copy = ('_assoc', '_embedding')
         for attr in attributes_to_copy:
@@ -952,7 +1041,6 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     setattr(G, attr, copy(old_attr))
 
-        G._weighted = self._weighted
         return G
 
     copy = __copy__
@@ -1166,22 +1254,22 @@ class GenericGraph(GenericGraph_pyx):
             {0: {1: None, 4: None, 5: None},
              1: {0: None, 2: None, 6: None},
              2: {1: None, 3: None, 7: None},
-             3: {8: None, 2: None, 4: None},
-             4: {0: None, 9: None, 3: None},
-             5: {0: None, 8: None, 7: None},
-             6: {8: None, 1: None, 9: None},
-             7: {9: None, 2: None, 5: None},
+             3: {2: None, 4: None, 8: None},
+             4: {0: None, 3: None, 9: None},
+             5: {0: None, 7: None, 8: None},
+             6: {1: None, 8: None, 9: None},
+             7: {2: None, 5: None, 9: None},
              8: {3: None, 5: None, 6: None},
              9: {4: None, 6: None, 7: None}}
             sage: graphs.PetersenGraph().to_dictionary(edge_labels=True,multiple_edges=True)
             {0: {1: [None], 4: [None], 5: [None]},
              1: {0: [None], 2: [None], 6: [None]},
              2: {1: [None], 3: [None], 7: [None]},
-             3: {8: [None], 2: [None], 4: [None]},
-             4: {0: [None], 9: [None], 3: [None]},
-             5: {0: [None], 8: [None], 7: [None]},
-             6: {8: [None], 1: [None], 9: [None]},
-             7: {9: [None], 2: [None], 5: [None]},
+             3: {2: [None], 4: [None], 8: [None]},
+             4: {0: [None], 3: [None], 9: [None]},
+             5: {0: [None], 7: [None], 8: [None]},
+             6: {1: [None], 8: [None], 9: [None]},
+             7: {2: [None], 5: [None], 9: [None]},
              8: {3: [None], 5: [None], 6: [None]},
              9: {4: [None], 6: [None], 7: [None]}}
         """
@@ -4365,7 +4453,9 @@ class GenericGraph(GenericGraph_pyx):
           We implement the algorithm proposed by Tarjan in [Tarjan72]_. The
           original version is recursive. We emulate the recursion using a stack.
 
-        .. SEEALSO:: :meth:`blocks_and_cuts_tree`
+        .. SEEALSO::
+            
+            :meth:`blocks_and_cuts_tree`
 
         EXAMPLES::
 
@@ -4517,7 +4607,9 @@ class GenericGraph(GenericGraph_pyx):
         When ``self`` is biconnected, the tree is reduced to a single node of
         type `B`.
 
-        .. SEEALSO:: :meth:`blocks_and_cut_vertices`
+        .. SEEALSO::
+        
+            :meth:`blocks_and_cut_vertices`
 
         EXAMPLES:
 
@@ -9275,7 +9367,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :meth:`subdivide_edge` -- subdivides one edge
+            - :meth:`subdivide_edge` -- subdivides one edge
         """
         for e in edges:
             self.subdivide_edge(e, k)
@@ -11525,7 +11617,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        A Petersen Graph is not chordal, nor car it be an interval
+        A Petersen Graph is not chordal, nor can it be an interval
         graph ::
 
             sage: g = graphs.PetersenGraph()
@@ -11557,10 +11649,10 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :mod:`Interval Graph Recognition <sage.graphs.pq_trees>`.
-
-        - :meth:`PQ <sage.graphs.pq_trees.PQ>`
-          -- Implementation of PQ-Trees.
+            - :mod:`Interval Graph Recognition <sage.graphs.pq_trees>`.
+    
+            - :meth:`PQ <sage.graphs.pq_trees.PQ>`
+              -- Implementation of PQ-Trees.
 
         """
         self._scream_if_not_simple()
@@ -11807,7 +11899,7 @@ class GenericGraph(GenericGraph_pyx):
             - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate over all
               the copies of `G` contained in `self`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
             sage: G = P.subgraph(range(6))
@@ -13402,40 +13494,45 @@ class GenericGraph(GenericGraph_pyx):
     ### Searches
 
     def breadth_first_search(self, start, ignore_direction=False,
-                             distance=None, neighbors=None):
+                             distance=None, neighbors=None,
+                             report_distance=False):
         """
-        Returns an iterator over the vertices in a breadth-first ordering.
+        Return an iterator over the vertices in a breadth-first ordering.
 
         INPUT:
 
+        - ``start`` -- vertex or list of vertices from which to start
+          the traversal.
 
-        - ``start`` - vertex or list of vertices from which to start
-          the traversal
-
-        - ``ignore_direction`` - (default False) only applies to
-          directed graphs. If True, searches across edges in either
+        - ``ignore_direction`` -- (default ``False``) only applies to
+          directed graphs. If ``True``, searches across edges in either
           direction.
 
-        - ``distance`` - the maximum distance from the ``start`` nodes
-          to traverse.  The ``start`` nodes are distance zero from
+        - ``distance`` -- the maximum distance from the ``start`` nodes
+          to traverse. The ``start`` nodes are distance zero from
           themselves.
 
-        - ``neighbors`` - a function giving the neighbors of a vertex.
+        - ``neighbors`` -- a function giving the neighbors of a vertex.
           The function should take a vertex and return a list of
           vertices.  For a graph, ``neighbors`` is by default the
           :meth:`.neighbors` function of the graph.  For a digraph,
           the ``neighbors`` function defaults to the
           :meth:`.successors` function of the graph.
 
+        - ``report_distance`` -- (default ``False``) If ``True``,
+          reports pairs (vertex, distance) where distance is the
+          distance from the ``start`` nodes. If ``False`` only the
+          vertices are reported.
+
         .. SEEALSO::
 
-        - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
-          -- breadth-first search for fast compiled graphs.
-
-        - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
-          -- depth-first search for fast compiled graphs.
-
-        - :meth:`depth_first_search` -- depth-first search for generic graphs.
+            - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
+              -- breadth-first search for fast compiled graphs.
+    
+            - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
+              -- depth-first search for fast compiled graphs.
+    
+            - :meth:`depth_first_search` -- depth-first search for generic graphs.
 
         EXAMPLES::
 
@@ -13452,7 +13549,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2, 3, 7, 4, 5, 6]
 
-        You can specify a maximum distance in which to search.  A
+        You can specify a maximum distance in which to search. A
         distance of zero returns the ``start`` vertices::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
@@ -13475,7 +13572,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(6,ignore_direction=True,distance=2))
             [6, 3, 7, 0, 5]
 
-        More generally, you can specify a ``neighbors`` function.  For
+        More generally, you can specify a ``neighbors`` function. For
         example, you can traverse the graph backwards by setting
         ``neighbors`` to be the :meth:`.neighbors_in` function of the graph::
 
@@ -13487,6 +13584,25 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(5,neighbors=D.neighbors, distance=2))
             [5, 1, 2, 7, 0, 4, 6]
 
+        It is possible (:trac:`16470`) using the keyword
+        ``report_distance`` to get pairs (vertex, distance) encoding
+        the distance to the starting vertices::
+
+            sage: G = graphs.PetersenGraph()
+            sage: list(G.breadth_first_search(0, report_distance=True))
+            [(0, 0), (1, 1), (4, 1), (5, 1), (2, 2), (6, 2), (3, 2), (9, 2),
+            (7, 2), (8, 2)]
+            sage: list(G.breadth_first_search(0, report_distance=False))
+            [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
+
+            sage: D = DiGraph({0:[1, 3], 1:[0, 2], 2:[0, 3], 3:[4]})
+            sage: D.show()
+            sage: list(D.breadth_first_search(4, neighbors=D.neighbor_in_iterator, report_distance=True))
+            [(4, 0), (3, 1), (0, 2), (2, 2), (1, 3)]
+
+            sage: C = graphs.CycleGraph(4)
+            sage: list(C.breadth_first_search([0,1], report_distance=True))
+            [(0, 0), (1, 0), (3, 1), (2, 1)]
 
         TESTS::
 
@@ -13495,36 +13611,41 @@ class GenericGraph(GenericGraph_pyx):
             [0]
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2]
-
         """
         # Preferably use the Cython implementation
-        if neighbors is None and not isinstance(start,list) and distance is None and hasattr(self._backend,"breadth_first_search"):
-            for v in self._backend.breadth_first_search(start, ignore_direction = ignore_direction):
+        if neighbors is None and not isinstance(start, list) and distance is None and hasattr(self._backend,"breadth_first_search") and not report_distance:
+            for v in self._backend.breadth_first_search(start, ignore_direction=ignore_direction):
                 yield v
         else:
             if neighbors is None:
                 if not self._directed or ignore_direction:
-                    neighbors=self.neighbor_iterator
+                    neighbors = self.neighbor_iterator
                 else:
-                    neighbors=self.neighbor_out_iterator
-            seen=set([])
+                    neighbors = self.neighbor_out_iterator
+            seen = set([])
             if isinstance(start, list):
-                queue=[(v,0) for v in start]
+                queue = [(v, 0) for v in start]
             else:
-                queue=[(start,0)]
+                queue = [(start, 0)]
 
-            for v,d in queue:
-                yield v
+            for v, d in queue:
+                if report_distance:
+                    yield v, d
+                else:
+                    yield v
                 seen.add(v)
 
-            while len(queue)>0:
-                v,d = queue.pop(0)
-                if distance is None or d<distance:
+            while len(queue) > 0:
+                v, d = queue.pop(0)
+                if distance is None or d < distance:
                     for w in neighbors(v):
                         if w not in seen:
                             seen.add(w)
-                            queue.append((w, d+1))
-                            yield w
+                            queue.append((w, d + 1))
+                            if report_distance:
+                                yield w, d + 1
+                            else:
+                                yield w
 
     def depth_first_search(self, start, ignore_direction=False,
                            distance=None, neighbors=None):
@@ -13554,13 +13675,13 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-        - :meth:`breadth_first_search`
-
-        - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
-          -- breadth-first search for fast compiled graphs.
-
-        - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
-          -- depth-first search for fast compiled graphs.
+            - :meth:`breadth_first_search`
+    
+            - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
+              -- breadth-first search for fast compiled graphs.
+    
+            - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
+              -- depth-first search for fast compiled graphs.
 
         EXAMPLES::
 
@@ -13858,8 +13979,10 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: P = graphs.PetersenGraph()
             sage: P.plot() # long time
+            Graphics object consisting of 26 graphics primitives
             sage: PC = P.complement()
             sage: PC.plot() # long time
+            Graphics object consisting of 41 graphics primitives
 
         ::
 
@@ -14151,6 +14274,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.size()
             10
             sage: T.plot() # long time
+            Graphics object consisting of 21 graphics primitives
 
         ::
 
@@ -14161,6 +14285,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: T.size()
             900
             sage: T.plot() # long time
+            Graphics object consisting of 1101 graphics primitives
 
         TESTS:
 
@@ -14229,6 +14354,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: L = C.lexicographic_product(Z); L
             Graph on 10 vertices
             sage: L.plot() # long time
+            Graphics object consisting of 36 graphics primitives
 
         ::
 
@@ -14237,6 +14363,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: L = D.lexicographic_product(P); L
             Graph on 200 vertices
             sage: L.plot() # long time
+            Graphics object consisting of 3501 graphics primitives
 
         TESTS:
 
@@ -14301,6 +14428,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: S = C.strong_product(Z); S
             Graph on 10 vertices
             sage: S.plot() # long time
+            Graphics object consisting of 36 graphics primitives
 
         ::
 
@@ -14309,6 +14437,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: S = D.strong_product(P); S
             Graph on 200 vertices
             sage: S.plot() # long time
+            Graphics object consisting of 1701 graphics primitives
 
         TESTS:
 
@@ -14378,6 +14507,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = Z.disjunctive_product(Z); D
             Graph on 4 vertices
             sage: D.plot() # long time
+            Graphics object consisting of 11 graphics primitives
 
         ::
 
@@ -14385,6 +14515,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = C.disjunctive_product(Z); D
             Graph on 10 vertices
             sage: D.plot() # long time
+            Graphics object consisting of 46 graphics primitives
 
         TESTS:
 
@@ -14454,9 +14585,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.transitive_closure().edges(labels=False)
             [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 3), (2, 4), (2, 5)]
 
+        On an immutable digraph::
+
+            sage: digraphs.Path(5).copy(immutable=True).transitive_closure()
+            Transitive closure of Path: Digraph on 5 vertices
         """
         from copy import copy
-        G = copy(self)
+        G = self.copy(immutable=False)
         G.name('Transitive closure of ' + self.name())
         for v in G:
             # todo optimization opportunity: we are adding edges that
@@ -14574,7 +14709,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = SymmetricGroup(4).cayley_graph()
             sage: set(G.edge_labels())
-            set([1, 2, 3])
+            {1, 2, 3}
 
         We first request the coloring as a function::
 
@@ -14594,9 +14729,9 @@ class GenericGraph(GenericGraph_pyx):
         The default output is a dictionary assigning edges to colors::
 
             sage: G._color_by_label()
-            {'#00ff00': [((1,4,3,2), (1,4,3), 1), ... ((1,2)(3,4), (3,4),     1)],
-             '#ff0000': [((1,4,3,2), (1,4,2), 2), ... ((1,2)(3,4), (1,3,4,2), 2)],
-             '#0000ff': [((1,4,3,2), (1,3,2), 3), ... ((1,2)(3,4), (1,2),     3)]}
+            {'#0000ff': [((1,4,3,2), (1,3,2), 3), ... ((1,2)(3,4), (1,2),     3)],
+             '#00ff00': [((1,4,3,2), (1,4,3), 1), ... ((1,2)(3,4), (3,4),     1)],
+             '#ff0000': [((1,4,3,2), (1,4,2), 2), ... ((1,2)(3,4), (1,3,4,2), 2)]}
 
             sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})
             {'blue':    [((1,4,3,2), (1,4,3), 1), ... ((1,2)(3,4), (3,4),     1)],
@@ -14733,25 +14868,23 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = digraphs.ButterflyGraph(1)
             sage: g.layout()
-            {('1', 1): [2.50..., -0.545...],
-             ('0', 0): [2.22..., 0.832...],
+            {('0', 0): [2.22..., 0.832...],
+             ('0', 1): [0.833..., 0.543...],
              ('1', 0): [1.12..., -0.830...],
-             ('0', 1): [0.833..., 0.543...]}
-
-            sage: 1+1
-            2
-            sage: x = g.layout(layout = "acyclic_dummy", save_pos = True)
-            sage: x =  {('1', 1): [41, 18], ('0', 0): [41, 90], ('1', 0): [140, 90], ('0', 1): [141, 18]}
-
-            {('1', 1): [41, 18], ('0', 0): [41, 90], ('1', 0): [140, 90], ('0', 1): [141, 18]}
-
+             ('1', 1): [2.50..., -0.545...]}
+        
+            sage: g.layout(layout="acyclic_dummy", save_pos=True)
+            {('0', 0): [0.3..., 0],
+             ('0', 1): [0.3..., 1],
+             ('1', 0): [0.6..., 0],
+             ('1', 1): [0.6..., 1]}
 
             sage: g.layout(dim = 3)
-            {('1', 1): [1.07..., -0.260..., 0.927...],
-             ('0', 0): [2.02..., 0.528..., 0.343...],
+            {('0', 0): [2.02..., 0.528..., 0.343...],
+             ('0', 1): [1.61..., 0.260..., -0.927...],
              ('1', 0): [0.674..., -0.528..., -0.343...],
-             ('0', 1): [1.61..., 0.260..., -0.927...]}
-
+             ('1', 1): [1.07..., -0.260..., 0.927...]}
+             
         Here is the list of all the available layout options::
 
             sage: from sage.graphs.graph_plot import layout_options
@@ -14832,6 +14965,7 @@ class GenericGraph(GenericGraph_pyx):
              5: [1.08..., 0.946...]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout = "spring")
+            Graphics object consisting of 34 graphics primitives
         """
         return spring_layout_fast(self, by_component = by_component, **options)
 
@@ -14869,6 +15003,7 @@ class GenericGraph(GenericGraph_pyx):
              5: [1.33..., 2]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout = "ranked", heights = dict( (i,[i, i+7]) for i in range(7) ))
+            Graphics object consisting of 34 graphics primitives
         """
         assert heights is not None
 
@@ -14927,10 +15062,10 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: H = digraphs.ButterflyGraph(1)
             sage: H.layout_extend_randomly({('0',0): (0,0), ('1',1): (1,1)})
-            {('1', 1): (1, 1),
-             ('0', 0): (0, 0),
+            {('0', 0): (0, 0),
+             ('0', 1): [0.0446..., 0.332...],
              ('1', 0): [0.111..., 0.514...],
-             ('0', 1): [0.0446..., 0.332...]}
+             ('1', 1): (1, 1)}
         """
         assert dim == 2 # 3d not yet implemented
         from sage.misc.randstate import current_randstate
@@ -14966,6 +15101,7 @@ class GenericGraph(GenericGraph_pyx):
              5: [0.97...,  -0.22...],
              6: [0.78...,   0.62...]}
             sage: G.plot(layout = "circular")
+            Graphics object consisting of 22 graphics primitives
         """
         assert dim == 2, "3D circular layout not implemented"
         from math import sin, cos, pi
@@ -15017,9 +15153,11 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.BalancedTree(2,4)
             sage: G.plot(layout="tree", tree_root = 0, tree_orientation = "up")
+            Graphics object consisting of 62 graphics primitives
 
             sage: G = graphs.RandomTree(80)
             sage: G.plot(layout="tree", tree_orientation = "right")
+            Graphics object consisting of 160 graphics primitives
 
         TESTS::
 
@@ -15256,13 +15394,16 @@ class GenericGraph(GenericGraph_pyx):
             See http://trac.sagemath.org/15494 for details.
             sage: GP = g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.plot()
+            Graphics object consisting of 22 graphics primitives
 
         We can modify the graphplot object.  Notice that the changes are cumulative::
 
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
+            Graphics object consisting of 22 graphics primitives
             sage: GP.set_vertices(talk=True)
             sage: GP.plot()
+            Graphics object consisting of 22 graphics primitives
         """
         from sage.graphs.graph_plot import GraphPlot
         return GraphPlot(graph=self, options=options)
@@ -15447,6 +15588,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8], 3:[0.6, -0.8], 4:[0.8, 0.3]}
             sage: g = Graph({0:[1], 1:[2], 2:[3], 3:[4], 4:[0]})
             sage: g.plot(pos=pos, layout='spring', iterations=0)
+            Graphics object consisting of 11 graphics primitives
 
         ::
 
@@ -15494,12 +15636,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
+            Graphics object consisting of 14 graphics primitives
 
         ::
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
+            Graphics object consisting of 14 graphics primitives
             sage: t.set_edge_label(0,1,-7)
             sage: t.set_edge_label(0,5,3)
             sage: t.set_edge_label(0,5,99)
@@ -15508,31 +15652,38 @@ class GenericGraph(GenericGraph_pyx):
             sage: t.set_edge_label(2,6,3/2)
             sage: t.set_edge_label(0,4,66)
             sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}, edge_labels=True)
+            Graphics object consisting of 20 graphics primitives
 
         ::
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.plot(layout='tree')
+            Graphics object consisting of 14 graphics primitives
 
         ::
 
             sage: t = DiGraph('JCC???@A??GO??CO??GO??')
             sage: t.plot(layout='tree', tree_root=0, tree_orientation="up")
+            Graphics object consisting of 22 graphics primitives
             sage: D = DiGraph({0:[1,2,3], 2:[1,4], 3:[0]})
             sage: D.plot()
+            Graphics object consisting of 16 graphics primitives
 
             sage: D = DiGraph(multiedges=True,sparse=True)
             sage: for i in range(5):
             ...     D.add_edge((i,i+1,'a'))
             ...     D.add_edge((i,i-1,'b'))
             sage: D.plot(edge_labels=True,edge_colors=D._color_by_label())
+            Graphics object consisting of 34 graphics primitives
             sage: D.plot(edge_labels=True, color_by_label={'a':'blue', 'b':'red'}, edge_style='dashed')
+            Graphics object consisting of 34 graphics primitives
 
             sage: g = Graph({}, loops=True, multiedges=True,sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.plot(edge_labels=True, color_by_label=True, edge_style='dashed')
+            Graphics object consisting of 22 graphics primitives
 
         ::
 
@@ -15550,6 +15701,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = DiGraph({0:{1:'a', 2:'a'}, 1:{0:'b'}, 2:{0:'c'}})
             sage: p = G.plot(edge_labels=True, color_by_label={'a':'yellow', 'b':'purple'}); p
+            Graphics object consisting of 14 graphics primitives
             sage: sorted([x.options()['rgbcolor'] for x in p if isinstance(x, sage.plot.arrow.CurveArrow)])
             ['black', 'purple', 'yellow', 'yellow']
         """
@@ -15575,7 +15727,7 @@ class GenericGraph(GenericGraph_pyx):
               :meth:`sage.graphs.graph_plot_js.gen_html_code`. Depending on
               whether d3js optional package is installed or not, the javascript
               code will be used locally or fetched from d3js.org website by the
-              browser. 
+              browser.
 
         This method accepts any other option understood by
         :meth:`~sage.graphs.generic_graph.GenericGraph.plot` (graph-specific) or
@@ -15679,6 +15831,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.CubeGraph(5)
             sage: G.plot3d(iterations=500, edge_size=None, vertex_size=0.04) # long time
+            Graphics3d Object
 
         We plot a fairly complicated Cayley graph::
 
@@ -15686,6 +15839,7 @@ class GenericGraph(GenericGraph_pyx):
             Alternating group of order 5!/2 as a permutation group
             sage: G = A5.cayley_graph()
             sage: G.plot3d(vertex_size=0.03, edge_size=0.01, vertex_colors={(1,1,1):G.vertices()}, bgcolor=(0,0,0), color_by_label=True, iterations=200) # long time
+            Graphics3d Object
 
         Some Tachyon examples::
 
@@ -16237,7 +16391,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         from sage.graphs.dot2tex_utils import quoted_latex, quoted_str
-        
+
         if self.is_directed():
             graph_string = "digraph"
             default_edge_string = "->"

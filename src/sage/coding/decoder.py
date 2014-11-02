@@ -44,8 +44,7 @@ def syndrome(C, v):
         v = v.list()
     v = V(v)
     coset = [[c + v, (c + v).hamming_weight()] for c in C]
-    coset.sort(lambda x, y: x[1] - y[1])
-    return [x[0] for x in coset]
+    return [x[0] for x in sorted(coset, key=lambda x: x[1])]
 
 def coset_leader(C, v):
     """
@@ -114,7 +113,7 @@ def decode(C, v, algorithm="syndrome"):
     v = V(v)
     if algorithm == "nearest neighbor":
         diffs = [[c - v, (c - v).hamming_weight()] for c in C]
-        diffs.sort(lambda x, y:  x[1] - y[1])
+        diffs.sort(key=lambda x: x[1])
         return diffs[0][0] + v
     if algorithm == "syndrome":
         return -V(syndrome(C, v)[0]) + v

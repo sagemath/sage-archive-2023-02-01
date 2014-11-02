@@ -30,17 +30,73 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 == Special Update/Build Instructions ==
 
 We build readline using ncurses. Readline needs to be told to link
-with libtinfo (part of ncurses), this is what the patch to shobj-conf
-does.
+with libtinfo (part of ncurses), this is what the patch
+0002-ltinfo.patch does.
 
 
 == Patches ==
 
- * shobj-conf.patch: Readline's hand-crafted shared library options
-   are buggy (should be using libtool).
+ * 0001-macports.patch: Changes to shobj.conf for OS/X, from macports:
+     https://trac.macports.org/browser/trunk/dports/devel/readline/files/patch-shobj-conf.diff
+ * 0002-ltinfo.patch: We build readline using ncurses, and for that it
+   needs to be told to link with libtinfo (part of ncurses).
 
 
 == Changelog ==
+
+=== readline-6.3.008 (Erik Massop, June/August 2014) ===
+ * Trac #16480: Upgrade to 6.3.008 (which is latest upstream 6.3 with official
+   patches 001 through 008).
+ * Updated shobj-conf.patch. It used to do these things:
+    1. Add -ltinfo in various places, namely
+         i. to SHOBJ_LIBS for the general case, and
+        ii. to SHLIB_LIBS for the general case and for OS/X.
+    2. Remove case freebsd*-gentoo.
+    3. Remove freebsd[4-9]* at freebsdelf*|dragonfly*.
+    4. Assume ELF if /usr/bin/objformat does not exist on freebsd3* and
+       freebsdaout*.
+    5. Remove MACOSX_DEPLOYMENT_TARGET and do things related to
+       -arch_only on OS/X.
+
+   Change 1 was documented as the single behavior of shobj-conf.patch in
+   section Special Build/Update Instructions.
+
+   I traced the changes to the following commits/versions/tickets:
+    1. 2ab306ac / 6.2.p4 / #14405 (ncurses instead of termcap)
+    2. aa992064 / 6.1 / #9523 (upgrade to 6.1)
+    3. aa992064 / 6.1 / #9523 (upgrade to 6.1)
+    4. e43db4fb / 6.0p2 / #7821 (FreeBSD 3.x and later use ELF)
+    5. 791f64ee / 6.2.p0 / #11882/#11881 (upgrade to 6.2 and OS/X 10.7)
+       This is a patch from macports:
+         https://trac.macports.org/browser/trunk/dports/devel/readline/files/patch-shobj-conf.diff?rev=77217
+
+   I think these are the reasons for the changes:
+    1. Use ncurses instead of termcap.
+    2. Seems unintended. Handling of Gentoo/FreeBSD was introduced
+       upstream and a comment about this was accepted, but code change
+       on next line was not.
+    3. As with change 2 I see no reason for change 3 here. Perhaps, the
+       numeric FreeBSD versions 4-9 were lost in merging patch and
+       changed upstream?
+    4. According to the ticket, objformat was temporarily introduced in
+       FreeBSD 3 to ease the transition from a.out to ELF. When this
+       disappeared again, it made sense to change the default to ELF for
+       freebsd[3-9]*|freebsd[3-9]*|freebsdelf[3-9]*|freebsdaout[3-9]*
+       |dragonfly*, as these are mostly new, ELF-only, FreeBSD versions.
+    5. Build on newer OS/X versions.
+
+   Here is what I have done to these changes:
+    1. Moved to 0002-ltinfo.patch.
+    2. Discarded as I see no good reason.
+    3. Discarded as I see no good reason.
+    4. Discarded as this case became much more restricted, namely
+       freebsd3*|freebsdaout*. For the latter, with a.out in its name,
+       using ELF as the default makes no sense to me. Moreover ELF-based
+       FreeBSD 3 should probably have objformat anyway, so that the
+       default is not used. Hence I think it's better to follow upstream
+       here.
+    5. Used new patch from macports in 0001-macports.patch:
+         https://trac.macports.org/browser/trunk/dports/devel/readline/files/patch-shobj-conf.diff?rev=118664
 
 === readline-6.2.p4 (Volker Braun, 3 April 2013) ===
  * Do not build static libraries

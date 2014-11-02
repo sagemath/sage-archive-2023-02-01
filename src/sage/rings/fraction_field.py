@@ -675,20 +675,25 @@ class FractionField_generic(field.Field):
         """
         Returns a random element in this fraction field.
 
+        The arguments are passed to the random generator of the underlying ring.
+
         EXAMPLES::
 
             sage: F = ZZ['x'].fraction_field()
-            sage: F.random_element()
+            sage: F.random_element()  # random
             (2*x - 8)/(-x^2 + x)
 
         ::
 
-            sage: F.random_element(degree=5)
-            (-12*x^5 - 2*x^4 - x^3 - 95*x^2 + x + 2)/(-x^5 + x^4 - x^3 + x^2)
+            sage: f = F.random_element(degree=5)
+            sage: f.numerator().degree()
+            5
+            sage: f.denominator().degree()
+            5
         """
         return self._element_class(self, self._R.random_element(*args, **kwds),
             self._R._random_nonzero_element(*args, **kwds),
-            coerce = False, reduce=True)
+            coerce=False, reduce=True)
 
 class FractionField_1poly_field(FractionField_generic):
     """

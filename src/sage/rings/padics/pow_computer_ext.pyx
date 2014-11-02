@@ -509,13 +509,13 @@ cdef class PowComputer_ext(PowComputer_class):
 
         if cache_limit > 0:
             ZZ_construct(&(self.small_powers[1]))
-            mpz_to_ZZ(&(self.small_powers[1]), &prime.value)
+            mpz_to_ZZ(&(self.small_powers[1]), prime.value)
 
         sig_on()
         for i from 2 <= i <= cache_limit:
             ZZ_construct(&(self.small_powers[i]))
             ZZ_mul(self.small_powers[i], self.small_powers[i-1], self.small_powers[1])
-        mpz_to_ZZ(&self.top_power, &prime.value)
+        mpz_to_ZZ(&self.top_power, prime.value)
         ZZ_power(self.top_power, self.top_power, prec_cap)
         sig_off()
         mpz_init(self.temp_m)
@@ -585,7 +585,7 @@ cdef class PowComputer_ext(PowComputer_class):
         mpz_clear(self.temp_m)
         ZZ_destruct(&self.temp_z)
 
-    cdef mpz_t* pow_mpz_t_tmp(self, long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, long n):
         """
         Provides fast access to an mpz_t* pointing to self.prime^n.
 
@@ -613,27 +613,12 @@ cdef class PowComputer_ext(PowComputer_class):
             # Exception will be ignored by Cython
             raise ValueError("n must be positive")
         if n <= self.cache_limit:
-            ZZ_to_mpz(&self.temp_m, &(self.small_powers[n]))
+            ZZ_to_mpz(self.temp_m, &(self.small_powers[n]))
         elif n == self.prec_cap:
-            ZZ_to_mpz(&self.temp_m, &self.top_power)
+            ZZ_to_mpz(self.temp_m, &self.top_power)
         else:
             mpz_pow_ui(self.temp_m, self.prime.value, n)
-        return &self.temp_m
-
-    #def _pow_mpz_t_tmp_test(self, n):
-    #    """
-    #    Test for the pow_mpz_t_tmp function.  See that function's documentation for important warnings.
-    #
-    #    EXAMPLES:
-    #    sage: PC = PowComputer_ext_maker(5, 10, 10, 20, False, ntl.ZZ_pX([-5, 0, 1], 5^10), 'small', 'e',ntl.ZZ_pX([1],5^10))
-    #    sage: PC._pow_mpz_t_tmp_test(4) #indirect doctest
-    #    625
-    #    """
-    #    cdef Integer _n = Integer(n)
-    #    if _n < 0: raise ValueError
-    #    cdef Integer ans = PY_NEW(Integer)
-    #    mpz_set(ans.value, self.pow_mpz_t_tmp(mpz_get_si(_n.value))[0])
-    #    return ans
+        return self.temp_m
 
     cdef ZZ_c* pow_ZZ_tmp(self, long n):
         """
@@ -720,9 +705,9 @@ cdef class PowComputer_ext(PowComputer_class):
         return ans
 
 
-    cdef mpz_t* pow_mpz_t_top(self):
+    cdef mpz_srcptr pow_mpz_t_top(self):
         """
-        Returns self.prime^self.prec_cap as an mpz_t*.
+        Returns self.prime^self.prec_cap as an ``mpz_srcptr``.
 
         EXAMPLES::
 
@@ -730,21 +715,8 @@ cdef class PowComputer_ext(PowComputer_class):
             sage: PC._pow_mpz_t_top_test() #indirect doctest
             15625
         """
-        ZZ_to_mpz(&self.temp_m, &self.top_power)
-        return &self.temp_m
-
-    #def _pow_mpz_t_top_test(self):
-    #    """
-    #    Tests the pow_mpz_t_top function
-    #
-    #    EXAMPLES:
-    #    sage: PC = PowComputer_ext_maker(5, 6, 6, 12, False, ntl.ZZ_pX([-5,0,1],5^6),'small', 'e',ntl.ZZ_pX([1],5^6))
-    #    sage: PC._pow_mpz_t_top_test()
-    #    15625
-    #    """
-    #    cdef Integer ans = PY_NEW(Integer)
-    #    mpz_set(ans.value, self.pow_mpz_t_top()[0])
-    #    return ans
+        ZZ_to_mpz(self.temp_m, &self.top_power)
+        return self.temp_m
 
     cdef ZZ_c* pow_ZZ_top(self):
         """
@@ -1192,7 +1164,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         if self.e != 1:
             mpz_init(value)
             tmp = ZZ_p_rep(ZZ_pX_ConstTerm(a[0]))
-            ZZ_to_mpz(&value, &tmp)
+            ZZ_to_mpz(value, &tmp)
             if mpz_divisible_p(value, self.prime.value) != 0:
                 mpz_clear(value)
                 return 1
@@ -1224,7 +1196,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
                 mpz_mod(xnew, xnew, self.temp_m)
             mpz_clear(u)
             mpz_clear(xnew)
-            mpz_to_ZZ(&tmp, &value)
+            mpz_to_ZZ(&tmp, value)
             self.restore_context_capdiv(absprec)
             if ZZ_pX_IsZero(x[0]): # shortcut for the case x = 0
                 ZZ_pX_SetCoeff(x[0], 0, ZZ_to_ZZ_p(tmp))

@@ -30,6 +30,7 @@ from sage.rings.all import (IntegerRing,
 
 from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.morphism import is_RingHomomorphism
+from sage.structure.unique_representation import UniqueRepresentation
 
 def is_Scheme(x):
     """
@@ -104,11 +105,7 @@ class Scheme(Parent):
         from sage.schemes.generic.morphism import is_SchemeMorphism
 
         if X is None:
-            try:
-                from sage.schemes.generic.spec import SpecZ
-                self._base_scheme = SpecZ
-            except ImportError:  # we are currently constructing SpecZ
-                self._base_ring = ZZ
+            self._base_ring = ZZ
         elif is_Scheme(X):
             self._base_scheme = X
         elif is_SchemeMorphism(X):
@@ -122,7 +119,7 @@ class Scheme(Parent):
                              'scheme morphism, or commutative ring.')
 
         from sage.categories.schemes import Schemes
-        if not X:
+        if X is None:
             default_category = Schemes()
         else:
             default_category = Schemes(self.base_scheme())
@@ -133,31 +130,6 @@ class Scheme(Parent):
                 "%s is not a subcategory of %s"%(category, default_category)
 
         Parent.__init__(self, self.base_ring(), category = category)
-
-    def __cmp__(left, right):
-        """
-        Compare two schemes.
-
-        INPUT:
-
-        - ``right`` -- anything. To compare against the scheme
-          ``left``.
-
-        OUTPUT:
-
-        ``+1``, ``0``, or ``-1``.
-
-        EXAMPLES::
-
-            sage: X = Spec(QQ);  Y = Spec(QQ)
-            sage: X == Y
-            True
-            sage: X is Y
-            False
-        """
-        if not is_Scheme(right):
-            return -1
-        return left._cmp_(right)
 
     def union(self, X):
         """
@@ -262,37 +234,35 @@ class Scheme(Parent):
 
         We create some points::
 
-            sage: A(QQ)([1,0])
+            sage: A(QQ)([1, 0])
             (1, 0)
 
         We create the same point by giving the coordinates of the point
         directly::
 
-            sage: A( 1,0 )
+            sage: A(1, 0)
             (1, 0)
-        """
-        if len(args) == 0:
-            raise TypeError('You need to specify at least one argument.')
 
-        S = args[0]
-        if is_CommutativeRing(S):
-            return self.point_homset(S)
-        if is_Scheme(S):
-            return S.Hom(self)
-        from sage.schemes.generic.morphism import SchemeMorphism_point
-        if isinstance(S, (list, tuple)):
-            args = S
-        elif isinstance(S, SchemeMorphism_point):
-            if S.codomain() == self:
-                return S
-        else:
-            # TODO: fix circular import resulting from non-multiple inheritance
-            from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
-            if isinstance(S, EllipticCurvePoint_field):
-                if S.codomain() == self:
+        Check that :trac:`16832` is fixed::
+
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: X=P.subscheme(x^2 - y^2)
+            sage: X(P([4, 4, 1]))
+            (4 : 4 : 1)
+        """
+        if len(args) == 1:
+            from sage.schemes.generic.morphism import SchemeMorphism_point
+            S = args[0]
+            if is_CommutativeRing(S):
+                return self.point_homset(S)
+            elif is_Scheme(S):
+                return S.Hom(self)
+            elif isinstance(S, (list, tuple)):
+                args = S
+            elif isinstance(S, SchemeMorphism_point):
+                if S.codomain() is self:
                     return S
-                else:
-                    return self.point(S)
+                args = S
         return self.point(args)
 
     @cached_method
@@ -368,7 +338,7 @@ class Scheme(Parent):
             except AttributeError:  # legacy code without point_homset
                 return self._point(self, v, check=check)
 
-        return self.point_homset() (v, check=check)
+        return self.point_homset()(v, check=check)
 
     def _point(self):
         """
@@ -679,7 +649,7 @@ class Scheme(Parent):
             <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
 
             sage: Hom(Spec(ZZ), Spec(ZZ)).__class__
-            <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
+            <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category_with_equality_by_id'>
         """
         from sage.schemes.generic.homset import SchemeHomset
         return SchemeHomset(self, Y, category=category, check=check)
@@ -793,7 +763,7 @@ def is_AffineScheme(x):
     """
     return isinstance(x, AffineScheme)
 
-class AffineScheme(Scheme):
+class AffineScheme(UniqueRepresentation, Scheme):
     """
     Class for general affine schemes.
 
@@ -807,7 +777,7 @@ class AffineScheme(Scheme):
         Spectrum of Univariate Polynomial Ring in t over Rational Field
 
         sage: X_abs == X_rel
-        True
+        False
         sage: X_abs.base_ring()
         Integer Ring
         sage: X_rel.base_ring()
@@ -883,62 +853,6 @@ class AffineScheme(Scheme):
         if '_Spec__R' in state:
             state['_AffineScheme__R'] = state.pop('_Spec__R')
         super(AffineScheme, self).__setstate__(state)
-
-    def _cmp_(self, X):
-        """
-        Compare ``self`` and ``X``.
-
-        Affine schemes are compared using comparison of the
-        underlying rings.
-
-        INPUT:
-
-        - ``X`` -- anything
-
-        OUTPUT:
-
-        ``+1``, ``0``, or ``-1``.
-
-        EXAMPLES::
-
-            sage: Spec(QQ) == Spec(QQ)
-            True
-            sage: Spec(QQ) == Spec(ZZ)
-            False
-            sage: Spec(QQ) == 5
-            False
-            sage: Spec(GF(5)) < Spec(GF(7))
-            True
-            sage: Spec(GF(7)) < Spec(GF(5))
-            False
-
-        TESTS::
-
-            sage: Spec(QQ).__cmp__(Spec(ZZ))
-            1
-        """
-        return cmp(self.__R, X.coordinate_ring())
-
-    def __hash__(self):
-        """
-        Return the hash value.
-
-        OUTPUT:
-
-        A 32/64-bit hash value, depending on architecture.
-
-        TESTS::
-
-            sage: hash(Spec(ZZ))
-            -1667718069                 # 32-bit
-            -5659298568736299957        # 64-bit
-
-            sage: hash(Spec(QQ['x','y','z']))
-            -804171295                  # 32-bit
-            -4893002889606114847        # 64-bit
-        """
-        # R is the only defining data, but we'd like to avoid collisions with it.
-        return hash("Spec") ^ hash(self.__R)
 
     def _repr_(self):
         """

@@ -545,7 +545,7 @@ def solve(f, *args, **kwds):
     underlying algorithm in Maxima::
 
         sage: sols = solve([x^3==y,y^2==x],[x,y]); sols[-1], sols[0]
-        ([x == 0, y == 0], [x == (0.309016994375 + 0.951056516295*I),  y == (-0.809016994375 - 0.587785252292*I)])
+        ([x == 0, y == 0], [x == (0.3090169943749475 + 0.9510565162951535*I), y == (-0.8090169943749475 - 0.5877852522924731*I)])
         sage: sols[0][0].rhs().pyobject().parent()
         Complex Double Field
 
@@ -615,7 +615,7 @@ def solve(f, *args, **kwds):
     be implicitly an integer (hence the ``z``)::
 
         sage: solve([cos(x)*sin(x) == 1/2, x+y == 0],x,y)
-        [[x == 1/4*pi + pi*z80, y == -1/4*pi - pi*z80]]
+        [[x == 1/4*pi + pi*z79, y == -1/4*pi - pi*z79]]
 
     Expressions which are not equations are assumed to be set equal
     to zero, as with `x` in the following example::
@@ -726,8 +726,8 @@ def solve(f, *args, **kwds):
 
         sage: var('y,z')
         (y, z)
-        sage: solve([x^2*y*z==18,x*y^3*z==24,x*y*z^4==6],x,y,z)
-        [[x == 3, y == 2, z == 1], [x == (1.33721506733 - 2.68548987407*I), y == (-1.70043427146 + 1.05286432575*I), z == (0.932472229404 - 0.361241666187*I)], ...]
+        sage: solve([x^2 * y * z == 18, x * y^3 * z == 24, x * y * z^4 == 6], x, y, z)
+        [[x == 3, y == 2, z == 1], [x == (1.337215067... - 2.685489874...*I), y == (-1.700434271... + 1.052864325...*I), z == (0.9324722294... - 0.3612416661...*I)], ...]
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression

@@ -3,11 +3,8 @@
 # $SAGE_ROOT/build/Makefile by $SAGE_ROOT/build/install
 ###############################################################################
 
-# Let e.g. SAGE_ROOT/build/install pass options to sage-spkg, i.e. currently
-# "-f", to force rebuilding dependent packages during an upgrade (#9896).
-
 # Do not put an explicit path for sage-spkg here, it will be found in $PATH.
-SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
+SAGE_SPKG = sage-spkg -f
 PIPE = $(SAGE_ROOT)/build/pipestatus
 
 # Tell make not to look for files with these names:
@@ -46,7 +43,6 @@ all-sage: \
      $(INST)/$(FLINTQS) \
      $(INST)/$(FPLLL) \
      $(INST)/$(FREETYPE) \
-     $(INST)/$(GENUS2REDUCTION) \
      $(INST)/$(GAP) \
      $(INST)/$(GD) \
      $(INST)/$(GDMODULE) \
@@ -93,6 +89,7 @@ all-sage: \
      $(INST)/$(PYNAC) \
      $(INST)/$(PYPARSING) \
      $(INST)/$(PYTHON) \
+     $(INST)/$(PYZMQ) \
      $(INST)/$(RATPOINTS) \
      $(INST)/$(R) \
      $(INST)/$(RPY) \
@@ -114,6 +111,7 @@ all-sage: \
      $(INST)/$(TACHYON) \
      $(INST)/$(TORNADO) \
      $(INST)/$(NCURSES) \
+     $(INST)/$(ZEROMQ) \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
      $(INST)/sage \
@@ -164,11 +162,14 @@ $(INST)/prereq: ../configure
 	    fi; )
 	touch $@
 
+$(INST)/$(PATCH):
+	+$(PIPE) "$(SAGE_SPKG) $(PATCH) 2>&1" "tee -a $(SAGE_LOGS)/$(PATCH).log"
+
+$(INST)/$(PKGCONF): $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(PKGCONF) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONF).log"
+
 $(INST)/$(BZIP2): $(INST)/prereq $(INST)/$(PKGCONF)
 	+$(PIPE) "$(SAGE_SPKG) $(BZIP2) 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"
-
-$(INST)/$(PATCH): $(INST)/$(BZIP2)
-	+$(PIPE) "$(SAGE_SPKG) $(PATCH) 2>&1" "tee -a $(SAGE_LOGS)/$(PATCH).log"
 
 ###############################################################################
 # Building normal packages
@@ -282,9 +283,6 @@ $(INST)/$(LINBOX): $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(GIVARO) \
 $(INST)/$(IML): $(INST)/$(MPIR) $(INST)/$(GSL) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(IML) 2>&1" "tee -a $(SAGE_LOGS)/$(IML).log"
 
-$(INST)/$(GENUS2REDUCTION): $(INST)/$(PARI)
-	+$(PIPE) "$(SAGE_SPKG) $(GENUS2REDUCTION) 2>&1" "tee -a $(SAGE_LOGS)/$(GENUS2REDUCTION).log"
-
 $(INST)/$(PALP):
 	+$(PIPE) "$(SAGE_SPKG) $(PALP) 2>&1" "tee -a $(SAGE_LOGS)/$(PALP).log"
 
@@ -309,7 +307,7 @@ $(INST)/$(GAP): $(INST)/$(NCURSES) $(INST)/$(READLINE) $(INST)/$(MPIR)
 $(INST)/$(LIBGAP): $(INST)/$(GAP)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBGAP) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBGAP).log"
 
-$(INST)/$(IPYTHON): $(INST)/$(PYTHON)
+$(INST)/$(IPYTHON): $(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO) $(INST)/$(PYZMQ)
 	+$(PIPE) "$(SAGE_SPKG) $(IPYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(IPYTHON).log"
 
 $(INST)/$(PEXPECT): $(INST)/$(PYTHON)
@@ -353,6 +351,9 @@ $(INST)/$(NETWORKX): $(INST)/$(PYTHON)
 $(INST)/$(MPMATH): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(MPMATH) 2>&1" "tee -a $(SAGE_LOGS)/$(MPMATH).log"
 
+$(INST)/$(ZEROMQ):
+	+$(PIPE) "$(SAGE_SPKG) $(ZEROMQ) 2>&1" "tee -a $(SAGE_LOGS)/$(ZEROMQ).log"
+
 $(INST)/$(ZLIB):
 	+$(PIPE) "$(SAGE_SPKG) $(ZLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ZLIB).log"
 
@@ -374,14 +375,17 @@ $(INST)/$(DATEUTIL): $(INST)/$(PYTHON) $(INST)/$(SIX) $(INST)/$(SETUPTOOLS)
 $(INST)/$(PYPARSING): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(PYPARSING) 2>&1" "tee -a $(SAGE_LOGS)/$(PYPARSING).log"
 
-$(INST)/$(TORNADO): $(INST)/$(PYTHON)
+$(INST)/$(PYZMQ): $(INST)/$(PYTHON) $(INST)/$(ZEROMQ) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(PYZMQ) 2>&1" "tee -a $(SAGE_LOGS)/$(PYZMQ).log"
+
+$(INST)/$(TORNADO): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(TORNADO) 2>&1" "tee -a $(SAGE_LOGS)/$(TORNADO).log"
 
 $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
 		       $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \
 		       $(INST)/$(GDMODULE) $(INST)/$(DATEUTIL) \
 		       $(INST)/$(PKGCONF) $(INST)/$(PYPARSING) \
-                       $(INST)/$(SETUPTOOLS)
+		       $(INST)/$(SETUPTOOLS) $(INST)/$(TORNADO) $(INST)/$(SIX)
 	+$(PIPE) "$(SAGE_SPKG) $(MATPLOTLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(MATPLOTLIB).log"
 
 $(INST)/$(CDDLIB): $(INST)/$(MPIR)
@@ -411,10 +415,10 @@ $(INST)/$(R): $(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(READLINE) $(INST)/$(PK
 $(INST)/$(RPY): $(INST)/$(PYTHON) $(INST)/$(R)
 	+$(PIPE) "$(SAGE_SPKG) $(RPY) 2>&1" "tee -a $(SAGE_LOGS)/$(RPY).log"
 
-$(INST)/$(SYMPY): $(INST)/$(PYTHON)
+$(INST)/$(SYMPY): $(INST)/$(PYTHON) $(INST)/$(MPMATH)
 	+$(PIPE) "$(SAGE_SPKG) $(SYMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMPY).log"
 
-$(INST)/$(CYTHON): $(INST)/$(PYTHON)
+$(INST)/$(CYTHON): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(CYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(CYTHON).log"
 
 $(INST)/$(FLINTQS): $(INST)/$(MPIR)
@@ -475,6 +479,7 @@ $(INST)/sage: \
 		 $(INST)/$(IML) \
 		 $(INST)/$(JINJA2) \
 		 $(INST)/$(LCALC) \
+		 $(INST)/$(LRCALC) \
 		 $(INST)/$(LIBGAP) \
 		 $(INST)/$(LIBPNG) \
 		 $(INST)/$(LINBOX) \
@@ -524,9 +529,6 @@ $(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
 
 $(INST)/$(PILLOW): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PILLOW) 2>&1" "tee -a $(SAGE_LOGS)/$(PILLOW).log"
-
-$(INST)/$(PKGCONF): 
-	+$(PIPE) "$(SAGE_SPKG) $(PKGCONF) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONF).log"
 
 $(INST)/$(PKGCONFIG): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PKGCONFIG) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONFIG).log"

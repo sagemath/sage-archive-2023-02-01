@@ -94,22 +94,16 @@ class SchemeHomsetFactory(UniqueFactory):
         sage: Hom is A3.Hom(A2)
         True
 
-    Here is a tricky point. The Hom-sets are not identical if
-    domains/codomains are isomorphic but not identiacal. Affine spaces are not
-    unique, and hence, when pickling and unpickling the homset together with
-    domain and codomain, we obtain non-unique behaviour::
+    The Hom-sets are identical if the domains and codomains are
+    identical::
 
         sage: loads(Hom.dumps()) is Hom
-        False
-        sage: loads(Hom.dumps()) == Hom
         True
         sage: A3_iso = AffineSpace(QQ,3)
-        sage: [ A3_iso is A3, A3_iso == A3 ]
-        [False, True]
+        sage: A3_iso is A3
+        True
         sage: Hom_iso = A3_iso.Hom(A2)
         sage: Hom_iso is Hom
-        False
-        sage: Hom_iso == Hom
         True
 
     TESTS::
@@ -154,9 +148,10 @@ class SchemeHomsetFactory(UniqueFactory):
             sage: key
             (..., ..., Category of schemes over Integer Ring, False)
             sage: extra
-            {'Y': Affine Space of dimension 2 over Rational Field,
-             'X': Affine Space of dimension 3 over Rational Field,
-             'base_ring': Integer Ring, 'check': False}
+            {'X': Affine Space of dimension 3 over Rational Field,
+             'Y': Affine Space of dimension 2 over Rational Field,
+             'base_ring': Integer Ring,
+             'check': False}
         """
         if is_CommutativeRing(X):
             X = AffineScheme(X)
@@ -247,7 +242,7 @@ class SchemeHomset_generic(HomsetWithBase):
           From: Affine Space of dimension 2 over Rational Field
           To:   Affine Space of dimension 2 over Rational Field
         sage: Hom.category()
-        Category of hom sets in Category of schemes
+        Category of endsets of schemes over Rational Field
     """
     Element = SchemeMorphism
 

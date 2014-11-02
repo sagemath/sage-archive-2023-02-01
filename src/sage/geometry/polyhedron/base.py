@@ -492,35 +492,55 @@ class Polyhedron_base(Element):
         By default, the wireframe is rendered in blue and the fill in green::
 
             sage: square.plot()
+            Graphics object consisting of 6 graphics primitives
             sage: point.plot()
+            Graphics object consisting of 1 graphics primitive
             sage: line.plot()
+            Graphics object consisting of 2 graphics primitives
             sage: cube.plot()
+            Graphics3d Object
             sage: hypercube.plot()
+            Graphics3d Object
 
         Draw the lines in red and nothing else::
 
             sage: square.plot(point=False, line='red', polygon=False)
+            Graphics object consisting of 4 graphics primitives
             sage: point.plot(point=False, line='red', polygon=False)
+            Graphics object consisting of 0 graphics primitives
             sage: line.plot(point=False, line='red', polygon=False)
+            Graphics object consisting of 1 graphics primitive
             sage: cube.plot(point=False, line='red', polygon=False)
+            Graphics3d Object
             sage: hypercube.plot(point=False, line='red', polygon=False)
+            Graphics3d Object
 
         Draw points in red, no lines, and a blue polygon::
 
             sage: square.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            Graphics object consisting of 2 graphics primitives
             sage: point.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            Graphics object consisting of 1 graphics primitive
             sage: line.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            Graphics object consisting of 1 graphics primitive
             sage: cube.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            Graphics3d Object
             sage: hypercube.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            Graphics3d Object
 
         If we instead use the ``fill`` and ``wireframe`` options, the
         coloring depends on the dimension of the object::
 
             sage: square.plot(fill='green', wireframe='red')
+            Graphics object consisting of 6 graphics primitives
             sage: point.plot(fill='green', wireframe='red')
+            Graphics object consisting of 1 graphics primitive
             sage: line.plot(fill='green', wireframe='red')
+            Graphics object consisting of 2 graphics primitives
             sage: cube.plot(fill='green', wireframe='red')
+            Graphics3d Object
             sage: hypercube.plot(fill='green', wireframe='red')
+            Graphics3d Object
 
         TESTS::
 
@@ -3022,7 +3042,7 @@ class Polyhedron_base(Element):
 
             sage: square = polytopes.n_cube(2)
             sage: square.face_lattice()
-            Finite poset containing 10 elements
+            Finite poset containing 10 elements with distinguished linear extension
             sage: list(_)
             [<>, <0>, <1>, <2>, <3>, <0,1>, <0,2>, <2,3>, <1,3>, <0,1,2,3>]
             sage: poset_element = _[6]
@@ -3062,6 +3082,7 @@ class Polyhedron_base(Element):
             sage: [len(x) for x in c5_20_fl.level_sets()] # long time
             [1, 20, 190, 580, 680, 272, 1]
             sage: polytopes.n_cube(2).face_lattice().plot()
+            Graphics object consisting of 27 graphics primitives
             sage: level_sets = polytopes.cross_polytope(2).face_lattice().level_sets()
             sage: print level_sets[0], level_sets[-1]
             [<>] [<0,1,2,3>]
@@ -3504,7 +3525,7 @@ class Polyhedron_base(Element):
         in_str = self.cdd_Vrepresentation()
         in_str += 'volume'
         in_filename = tmp_filename()
-        in_file = file(in_filename,'w')
+        in_file = open(in_filename, 'w')
         in_file.write(in_str)
         in_file.close()
         if verbose: print in_str
@@ -3584,7 +3605,7 @@ class Polyhedron_base(Element):
             2.37764129...
             sage: P5 = polytopes.regular_polygon(5, base_ring=QQ)
             sage: P5.volume()   # rational approximation
-            3387471714099766473500515673753476175274812279494567801326487870013/1424719417220622426561086640229666223984528142237277803327699435400
+            143675742936485206271005807482349119225365261915467953640852591/60427846494832899490396166935397049960830782710733164218307960
             sage: _.n()
             2.37764129...
 

@@ -4,3 +4,4 @@ Yet more lines.
 no info on bad pop
 'pop() takes at most 1 argument (2 given)' while executing 'ticket.update()'
 error on the remote side of the rpc
+remove commit hash set

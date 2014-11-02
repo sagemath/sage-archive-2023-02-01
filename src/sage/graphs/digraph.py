@@ -3475,7 +3475,7 @@ class DiGraph(GenericGraph):
 
     def flow_polytope(self):
         """
-        Return the flow polytope of `self`
+        Return the flow polytope of a digraph.
 
         The flow polytope of a directed graph is a polytope formed by
         assigning a nonnegative flow to each of the edges of the graph
@@ -3489,6 +3489,14 @@ class DiGraph(GenericGraph):
         The faces and volume of these polytopes are of interest. Examples of
         these polytopes are the Chan-Robbins-Yuen polytope and the
         Pitman-Stanley polytope [PitSta]_.
+
+        .. NOTE::
+
+            Flow polytopes can also be built through the ``polytopes.<tab>``
+            object::
+
+                sage: polytopes.flow_polytope(digraphs.Path(5))
+                A 0-dimensional polyhedron in QQ^4 defined as the convex hull of 1 vertex
 
         EXAMPLES:
 
@@ -3549,4 +3557,3 @@ import types
 
 import sage.graphs.comparability
 DiGraph.is_transitive = types.MethodType(sage.graphs.comparability.is_transitive, None, DiGraph)
-

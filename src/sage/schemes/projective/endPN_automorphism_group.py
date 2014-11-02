@@ -5,7 +5,7 @@ AUTHORS:
 
 - Xander Faber, Michelle Manes, Bianca Viray: algorithm and original code
     "Computing Conjugating Sets and Automorphism Groups of Rational Functions"
-    by Xander Faber, Michelle Manes, and Bianca Viray
+    by Xander Faber, Michelle Manes, and Bianca Viray [FMV]
 
 - Joao de Faria, Ben Hutz, Bianca Thompson (11-2013): adaption for inclusion in Sage
 
@@ -20,6 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from copy                          import copy
 from sage.combinat.subset          import Subsets
 from sage.functions.all            import sqrt
 from itertools                     import permutations, combinations
@@ -29,10 +30,11 @@ from sage.misc.functional          import squarefree_part
 from sage.misc.misc_c              import prod
 from sage.rings.arith              import is_square, divisors
 from sage.rings.finite_rings.constructor import GF
+from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.fraction_field     import FractionField
 from sage.rings.integer_ring       import ZZ
 from sage.rings.number_field.number_field import NumberField
-from sage.rings.arith              import gcd, lcm
+from sage.rings.arith              import gcd, lcm, CRT
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field     import QQ
 from sage.sets.primes              import Primes
@@ -44,8 +46,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions = Fals
 
     ALGORITHM:
 
-        See Algorithm 3 in "Computing Conjugating Sets and Automorphism Groups of Rational Functions"
-        by Xander Faber, Michelle Manes, and Bianca Viray
+        See Algorithm 3 in Faber-Manes-Viray [FMV]
 
     INPUT:
 
@@ -86,8 +87,8 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions = Fals
         sage: F.<z> = PolynomialRing(QQ)
         sage: rational_function = (z^2 - 4*z -3)/(-3*z^2 - 2*z + 2)
         sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_QQ_fixedpoints
-        sage: automorphism_group_QQ_fixedpoints(rational_function, True)
-          [z, (-z - 1)/z, -1/(z + 1)]
+        sage: automorphism_group_QQ_fixedpoints(rational_function, True, True)
+          ([z, (-z - 1)/z, -1/(z + 1)], 'Cyclic of order 3')
     """
 
     if rational_function.parent().is_field():
@@ -123,7 +124,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions = Fals
     if return_functions:
         elements = [z]
     else:
-        elements = [matrix(ZZ, 2, [1,0,0,1])]
+        elements = [matrix(F, 2, [1,0,0,1])]
 
     rational_roots = h.roots(multiplicities = False)
 
@@ -131,8 +132,11 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions = Fals
 
     #check if infinity is a fixed point
     if g.degree() < d: #then infinity is a fixed point
-        for T in g.roots(multiplicities = False):#find elements in W of the form
-            alpha = T                           #(infinty, y)
+        #find elements in W of the form (infinty, y)
+        #where W is the set of F-rational points (x,y) such that
+        #x is fixed by phi and phi(y)=x
+        for T in g.roots(multiplicities = False):
+            alpha = T
             zeta = -1
             s = (zeta*z + alpha*(1 - zeta))
             if s(phi(z)) == phi(s(z)):
@@ -180,6 +184,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions = Fals
                              (1 - zeta), (alpha*zeta - beta)]))
 
     #first look at rational fixed points
+    #Subsets is ok since we just needed unordered pair over QQ
     for S in Subsets(rational_roots, 2):
         zeta = -1
         alpha = S[0]
@@ -256,7 +261,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions = Fals
             elif is_square(-3*disc): #psi[0] generates Q(zeta_3)
                 alpha = psi[0].change_ring(L2).roots()[0][0]
                 beta = alpha.trace() - alpha
-                for zeta in [ZZ(1)/ZZ(2)*(1 + isqrt3), ZZ(1)/ZZ(2)*(1 - isqrt3),ZZ(1)/ZZ(2)*(-1 + isqrt3), ZZ(1)/ZZ(2)*(-1 - isqrt3)]:
+                for zeta in [F(1)/F(2)*(1 + isqrt3), F(1)/F(2)*(1 - isqrt3),F(1)/F(2)*(-1 + isqrt3), F(1)/F(2)*(-1 - isqrt3)]:
                     a = (alpha - zeta*beta)/(1 - zeta)
                     d = (alpha*zeta - beta)/(1 - zeta)
                     if a in F and d in F:
@@ -284,7 +289,7 @@ def height_bound(polynomial):
     This function returns a bound on the height of `F`,
     when viewed as an element of `\mathbb{P}^3`
 
-    We have proved that `ht(F) <= 6^{[K:Q]}*M`, where `M` is the Mahler measure of `f`
+    In [FMV] it is proven that `ht(F) <= 6^{[K:Q]}*M`, where `M` is the Mahler measure of `f`
     M is bounded above by `H(f)`, so we return the floor of `6*H(f)`
     (since `ht(F)` is an integer)
 
@@ -329,8 +334,7 @@ def height_bound(polynomial):
 
 def PGL_repn(rational_function):
     r"""
-    Take a linear fraction transformation (an automorphism of `\mathbb{P}^1`)
-    and represent it as a 2x2 matrix (an element of `GL_2`).
+    Take a linear fraction transformation and represent it as a 2x2 matrix.
 
     INPUT:
 
@@ -362,12 +366,13 @@ def PGL_repn(rational_function):
 
 def PGL_order(A):
     r"""
-    Find the multiplicative order of an element ``A`` of `GL_2(R)` that
-    has a finite order as an element of `PGL_2(R)`.
+    Find the multiplicative order of a linear fractional transformation that
+    has a finite order as an element of `PGL_2(R)`. ``A`` can be represented
+    either as a rational function or a 2x2 matrix 
 
     INPUT:
 
-    - ``A`` -- an element of `GL_2(R)`
+    - ``A`` -- a linear fractional transformation
 
     OUTPUT:
 
@@ -379,50 +384,23 @@ def PGL_order(A):
         sage: from sage.schemes.projective.endPN_automorphism_group import PGL_order
         sage: PGL_order(M)
         2
+
+    ::
+
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: from sage.schemes.projective.endPN_automorphism_group import PGL_order
+        sage: PGL_order(-1/x)
+        2
     """
 
     n = 1
-    B = A
+    AA = PGL_repn(A)
+    B = copy(AA)
     while B[0][0] != B[1][1] or B[0][1] != 0 or B[1][0] != 0:
         n = n + 1
-        B = A*B
+        B = AA*B
 
     return n
-
-def get_orders(L):
-    r"""
-    Find the multiplicative orders of a list of linear fractional transformations
-    that have a finite order
-
-    INPUT:
-
-    - ``L`` -- a list of degree 1 rational functions over `R` with finite order
-
-    OUTPUT:
-
-    - a list of positive integers and list of the `GL_2` representation of the
-    elements of `L`
-
-    EXAMPLES::
-
-        sage: R.<x> = PolynomialRing(QQ)
-        sage: L = [x, -x, 1/x, -1/x, (-x + 1)/(x + 1), (x + 1)/(x - 1), (x - 1)/(x + 1),(-x - 1)/(x - 1)]
-        sage: from sage.schemes.projective.endPN_automorphism_group import get_orders
-        sage: get_orders(L)
-        ([1, 2, 2, 2, 2, 2, 4, 4], [[1 0]
-        [0 1], [-1  0]
-        [ 0  1], [0 1]
-        [1 0], [ 0 -1]
-        [ 1  0], [-1  1]
-        [ 1  1], [ 1  1]
-        [ 1 -1], [ 1 -1]
-        [ 1  1], [-1 -1]
-        [ 1 -1]])
-    """
-    auts = [PGL_repn(A) for A in L]
-    auts.sort(key = PGL_order)
-    orders = [PGL_order(A) for A in auts]
-    return orders, auts
 
 def CRT_helper(automorphisms, moduli):
     r"""
@@ -486,11 +464,11 @@ def CRT_automorphisms(automorphisms, order_elts, degree, moduli):
 
     - ``degree`` - a positive integer
 
-    - ``moduli`` -- list of the various `p^k`
+    - ``moduli`` -- list of prime powers, i.e., `p^k`
 
     OUTPUT:
 
-    - a list of automorphisms over `Zmod(M)`.
+    - a list containing a list of automorphisms over `Zmod(M)` and the product of the moduli
 
     EXAMPLES::
 
@@ -503,13 +481,12 @@ def CRT_automorphisms(automorphisms, order_elts, degree, moduli):
         ([[0 1]
         [1 0]], 5)
     """
-    # restrict to automorphisms of degree d
-    d = degree
+    # restrict to automorphisms of degree `degree`
     degree_d_autos = []
     for j in range(len(automorphisms)):
         L = automorphisms[j]
         degree_d_autos.append(
-            [L[i] for i in range(len(L)) if order_elts[j][i] == d])
+            [L[i] for i in range(len(L)) if order_elts[j][i] == degree])
 
     # get list of CRT'ed automorphisms
     return CRT_helper(degree_d_autos, moduli)
@@ -518,7 +495,7 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
                         return_functions = False):
     r"""
     Checks whether an element that is an automorphism of ``rational_function`` modulo `p^k` for various
-    `p`s and `k`s can be lifted to an automorphim over `ZZ`. It uses the fact that every
+    `p` s and `k` s can be lifted to an automorphism over `ZZ`. It uses the fact that every
     automorphism has height at most ``ht_bound``
 
     INPUT:
@@ -529,9 +506,9 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
 
     - ``ht_bound`` - a positive integer
 
-    - ``M`` -- a list of prime powers
+    - ``M`` -- a positive integer, a product of prime powers
 
-    - ``return_functions`` -- Boolean,
+    - ``return_functions`` -- Boolean. default: False (optional)
 
     OUTPUT:
 
@@ -545,13 +522,6 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
         sage: valid_automorphisms([matrix(GF(5),[[0,1],[1,0]])], F, 48, 5, True)
         [1/z]
     """
-#    if rational_function.parent().is_field():
-#        K = rational_function.parent()
-#        R = K.ring()
-#    else:
-#        R = rational_function.parent()
-#        K = R.fraction_field()
-
     z = rational_function.parent().gen(0)
     valid_auto = []
     for A in automorphisms_CRT:
@@ -565,9 +535,7 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
             cc = scalar*c - (scalar*c/M).round()*M
             dd = scalar*d - (scalar*d/M).round()*M
             g = gcd([aa,bb,cc,dd])
-            if  gcd(scalar, M) == 1 and abs(aa) <= ht_bound*g and\
-                abs(bb) <= ht_bound*g and abs(cc) <= ht_bound*g and\
-                abs(dd) <= ht_bound*g:
+            if  gcd(scalar, M) == 1 and max(abs(aa), abs(bb), abs(cc), abs(dd)) <= ht_bound*g:
                 f = ((aa/g)*z + bb/g)/(cc/g*z + dd/g)
                 if rational_function(f(z)) == f(rational_function(z)):
                     if return_functions:
@@ -580,9 +548,9 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
 
 def remove_redundant_automorphisms(automorphisms, order_elts, moduli,integral_autos):
     r"""
-    if an element of Aut_{F_p} has been lifted to `QQ`
+    If an element of Aut_{F_p} has been lifted to `QQ`
     remove that element from `Aut_{F_p}` so we don't
-    attempt to lift that element again unecessarily
+    attempt to lift that element again unnecessarily
 
     INPUT:
 
@@ -653,24 +621,24 @@ def remove_redundant_automorphisms(automorphisms, order_elts, moduli,integral_au
 def automorphism_group_QQ_CRT(rational_function, prime_lower_bound = 4, return_functions = True, iso_type=False):
     r"""
         Determines the complete group of rational automorphisms (under the conjugation action
-        of `PGL(2,QQ)`) for a rational function of one variable.
+        of `PGL(2,QQ)`) for a rational function of one variable, see [FMV] for details.
 
     INPUT:
 
     - ``rational_function`` - a rational function of a univariate polynomial ring over `QQ`
 
     - prime_lower_bound`` -- a positive integer - a lower bound for the primes to use for
-      the Chinese Remainder Theorem step. (optional)
+      the Chinese Remainder Theorem step. default: 4 (optional)
 
     - ``return_functions`` -- Boolean - True returns linear fractional transformations
-      False returns elements of `PGL(2,QQ)` (optional).
+      False returns elements of `PGL(2,QQ)` default: True (optional).
 
     - ``iso_type`` -- Boolean - True returns the isomorphism type of the automorphism group.
         default: False (optional)
 
     OUTPUT:
 
-    - a complete list of automorphisms of `rational_function` as linear fractional transformations
+    - a complete list of automorphisms of `rational_function`
 
     EXAMPLES::
 
@@ -732,10 +700,10 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound = 4, return_f
     # 2*gcd(2*[K:Q] + 1, d^3 - d)
 
     #Determining the set that is used to obtain the height bound
-    h = squarefree_part(f - g*z) # take minimal polynomial of fixed points
+    h = R(prod(x[0] for x in (R(f - g*z)).factor()))# take minimal polynomial of fixed points
     if h.degree() == 2: #if there are only 2 finite fixed points, take preimage of fixed points
         h = h[2]*f**2 + h[1]*f*g + h[0]*g**2
-    elif h.degree() == 1: #if there is just 1 finite fixed points, take preimages under phi^2
+    elif h.degree() == 1: #if there is just 1 finite fixed point, take preimages under phi^2
         psi = phi(phi(z))
         f2 = psi.numerator()
         g2 = psi.denominator()
@@ -763,23 +731,22 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound = 4, return_f
 
     badorders = [1, 12]# order 12 not possible over Q, even though 4 and 6 are
 
-    #over Q, elts of PGL_2 of finite order can only have order dividing 6 or 4,
+    #over QQ, elts of PGL_2 of finite order can only have order dividing 6 or 4,
     # and the finite subgroups can only be cyclic or dihedral (Beauville) so
     # the only possible groups are C_n, D_2n for n|6 or n|4
     # all of these groups have order dividing 24
     while (congruence < (2*MaxH**2)) and len(elements) < gcd(orderaut + [24]):
         if badprimes%p != 0:  #prime of good reduction
-            #hp = h.change_ring(GF(p))
             # compute automorphisms mod p
             phi_p = f.change_ring(GF(p))/g.change_ring(GF(p))
-            orders, sorted_automorphisms = get_orders(automorphism_group_FF(phi_p))
+            sorted_automorphisms = automorphism_group_FF(phi_p)
+            sorted_automorphisms.sort(key = PGL_order)
+            orders = [PGL_order(A) for A in sorted_automorphisms]
 
             automorphisms.append(sorted_automorphisms)
             orderaut.append(len(automorphisms[-1]))
             orderelts.append(orders)
-
-            k = 1
-            primepowers.append(p**k)
+            primepowers.append(p)
 
             # check if we already found 8 or 12 automorphisms
             # and the gcd of orders over Fp and 24 is 24
@@ -794,7 +761,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound = 4, return_f
                 N = gcd(orderaut + [12]) #all orders of elements divide N
                 for order in [O for O in divisors(N) \
                                 if not O in badorders]: #range over all orders
-                    # that are possible over Q such that we haven't already
+                    # that are possible over QQ such that we haven't already
                     # found all elements of that order
 
                     # First count number of elements of particular order
@@ -802,7 +769,6 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound = 4, return_f
                     for L in orderelts:
                         numeltsoffixedorder.append(L.count(order))
                     numelts = min(numeltsoffixedorder)
-                    #
                     # Have some elts of fixed order mod p for each p
                     if numelts != 0:
                         #CRT order d elements together and check if
@@ -812,8 +778,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound = 4, return_f
                         temp = valid_automorphisms(autos, phi, MaxH, M,
                                             return_functions)
                         elements.extend(temp)
-                        #
-                        #
+
                         if (len(elements) == gcd(orderaut + [24])):
                             #found enough automorphisms
                                 if iso_type:
@@ -824,7 +789,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound = 4, return_f
                             # found all elements of order 'order;
                         elif len(temp) != 0:
                             # found some elements of order 'order'
-                            # if an element of Aut_{F_p} has been lifted to Q
+                            # if an element of Aut_{F_p} has been lifted to QQ
                             # remove that element from Aut_{F_p} so we don't
                             # attempt to lift that element again unecessarily
                             automorphisms=remove_redundant_automorphisms(automorphisms,
@@ -848,10 +813,8 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound = 4, return_f
                         if iso_type:
                             return(elements, which_group(elements))
                         return elements
-        else:
-            k = 0
+            congruence = congruence*p
 
-        congruence = congruence*p**k
         p = primes.next(p)
 
     if iso_type:
@@ -862,15 +825,9 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
     r"""
     This function computes automorphism groups over finite fields.
 
-    AUTHORS:
-
-    - Algorithm developed by X. Faber, M. Manes, B. Viray
-    - Last updated June 29, 2012
-
     ALGORITHM:
 
-    See Algorithm 4 in Computing Conjugating Sets and Automorphism Groups of Rational Functions
-        by Xander Faber, Michelle Manes, and Bianca Viray
+    See Algorithm 4 in Faber-Manes-Viray [FMV]
 
     INPUT:
 
@@ -884,7 +841,7 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
         default: False (optional)
 
     - ``return_functions`` -- Boolean, True returns linear fractional transformations
-      False returns elements of `PGL(2)`. (optional)
+      False returns elements of `PGL(2)`. default: False (optional)
 
     OUTPUT:
 
@@ -892,7 +849,7 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
 
     EXAMPLES::
 
-        sage: R.<x> = PolynomialRing(GF(5^2,'t'))
+        sage: R.<x> = PolynomialRing(GF(5^2, 't'))
         sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_FF
         sage: automorphism_group_FF((x^2+x+1)/(x+1))
         [
@@ -902,22 +859,21 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
 
     ::
 
-        sage: R.<x> = PolynomialRing(GF(2^5,'t'))
+        sage: R.<x> = PolynomialRing(GF(2^5, 't'))
         sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_FF
-        sage: automorphism_group_FF(x^(5),True,False,True)
+        sage: automorphism_group_FF(x^(5), True, False, True)
         [Univariate Polynomial Ring in w over Finite Field in b of size 2^5, [w, 1/w]]
 
     ::
 
-        sage: R.<x> = PolynomialRing(GF(2^5,'t'))
+        sage: R.<x> = PolynomialRing(GF(2^5, 't'))
         sage: from sage.schemes.projective.endPN_automorphism_group import automorphism_group_FF
-        sage: automorphism_group_FF(x^(5),False,False,True)
+        sage: automorphism_group_FF(x^(5), False, False, True)
         [x, 1/x]
     """
 
     if absolute==False:
         G = automorphism_group_FF_alg3(rational_function)
-
     else:
         G = automorphism_group_FF_alg2(rational_function)
 
@@ -935,18 +891,16 @@ def automorphism_group_FF(rational_function, absolute=False, iso_type=False, ret
 
     if iso_type == False:
         return G
-
     elif absolute == False:
         return G, which_group(G)
-
     else:
         return G, which_group(G[1])
 
-def field_descent(sigma, yy):
+def field_descent(sigma, y):
     r"""
     Function for descending an element in a field E to a subfield F.
-    Here F, E must be finite fields or number fields. This function determine
-    the unique image of subfield which is ``yy` by the embedding ``sigma`` if it exists.
+    Here F, E must be finite fields or number fields. This function determines
+    the unique image of subfield which is ``y`` by the embedding ``sigma`` if it exists.
     Otherwise returns ``None``.
     This functionality is necessary because Sage does not keep track of subfields.
 
@@ -954,7 +908,7 @@ def field_descent(sigma, yy):
 
     - ``sigma``-- an embedding sigma: `F` -> `E` of fields.
 
-    - ``yy`` --an element of the field `E`
+    - ``y`` --an element of the field `E`
 
     OUTPUT:
 
@@ -969,7 +923,6 @@ def field_descent(sigma, yy):
         sage: field_descent(s, R(1))
         1
     """
-    y = yy
     F = sigma.domain()
     a = F.gen()
 
@@ -980,7 +933,6 @@ def field_descent(sigma, yy):
 
     K = F.prime_subfield()
     R = PolynomialRing(K,'X')
-    X = R.gen(0)
     f = R(sigma(a).polynomial().coeffs())
     g = R(y.polynomial().coeffs())
 
@@ -1002,7 +954,7 @@ def field_descent(sigma, yy):
 
     return x + F(quotient)*a**(steps)
 
-def rational_function_coefficient_descent(rational_function, ssigma, poly_ring):
+def rational_function_coefficient_descent(rational_function, sigma, poly_ring):
     r"""
     Function for descending the coefficients of a rational function from field `E`
     to a subfield `F`. Here `F`, `E` must be finite fields or number fields.
@@ -1014,7 +966,7 @@ def rational_function_coefficient_descent(rational_function, ssigma, poly_ring):
 
     - ``rational_function``--a rational function with coefficients in a field `E`,
 
-    - ``ssigma``-- a field embedding sigma: `F` -> `E`.
+    - ``sigma``-- a field embedding sigma: `F` -> `E`.
 
     - ``poly_ring``-- a polynomial ring `R` with coefficients in `F`.
 
@@ -1042,7 +994,6 @@ def rational_function_coefficient_descent(rational_function, ssigma, poly_ring):
     if rational_function == S(0):
         return poly_ring(0)
 
-    sigma = ssigma
     num=S(rational_function.numerator())
     denom=S(rational_function.denominator())
     f = num.coefficients()
@@ -1054,10 +1005,9 @@ def rational_function_coefficient_descent(rational_function, ssigma, poly_ring):
     if None in ff or None in gg:
         return
 
-    R = poly_ring
-    z = R.gen(0)
-    numer = sum( R(ff[i])*z**fe[i] for i in range(len(ff)) )
-    denom = sum( R(gg[i])*z**ge[i] for i in range(len(gg)) )
+    z = poly_ring.gen(0)
+    numer = sum( poly_ring(ff[i])*z**fe[i] for i in range(len(ff)) )
+    denom = sum( poly_ring(gg[i])*z**ge[i] for i in range(len(gg)) )
     return    numer / denom
 
 def rational_function_coerce(rational_function, sigma, S_polys):
@@ -1108,11 +1058,11 @@ def rational_function_reduce(rational_function):
 
     INPUT:
 
-    - ``rational_function``--rational function `= F/G` in univariate polynomial ring.
+    - ``rational_function`` -- rational function `= F/G` in univariate polynomial ring.
 
     OUTPUT:
 
-    - `(F/gcd(F,G) ) / (G/gcd(F,G))`.
+    - rational function -- `(F/gcd(F,G) ) / (G/gcd(F,G))`.
 
     EXAMPLES::
 
@@ -1130,17 +1080,16 @@ def rational_function_reduce(rational_function):
 
 def three_stable_points(rational_function, invariant_list):
     r"""
-    Implementation of Algorithm 1 for automorphism groups from "Computing
-    Conjugating Sets and Automorphism Groups of Rational Functions" by Xander
-    Faber, Michelle Manes, and Bianca Viray.
+    Implementation of Algorithm 1 for automorphism groups from 
+    Fbaer-Manes-Viary [FMV].
 
     INPUT:
 
-    - ``rational_function``--rational function phi defined over finite
+    - ``rational_function``--rational function `phi` defined over finite
       field `E`.
 
     - ``invariant_list``-- a list of at least `3` points of `\mathbb{P}^1(E)` that
-      is stable under `Aut_phi(E)`.
+      is stable under `Aut_{phi}(E)`.
 
     OUTPUT:
 
@@ -1202,17 +1151,16 @@ def three_stable_points(rational_function, invariant_list):
             s = K(a*z + b) / K(c*z + d)
             if s(phi(z)) == phi(s(z)) and s not in automorphisms:
                 automorphisms.append(s)
-
     return automorphisms
 
 def automorphism_group_FF_alg2(rational_function):
     r"""
     Implementation of algorithm for determining the absolute automorphism
-    group over a finite field, given an invariant set.
+    group over a finite field, given an invariant set., see [FMV].
 
     INPUT:
 
-    - ``rational_function``--a rational function defined over a finite field `F`.
+    - ``rational_function``--a rational function defined over a finite field.
 
     OUTPUT:
 
@@ -1265,14 +1213,12 @@ def automorphism_group_FF_alg2(rational_function):
     if n >= 3:
         T_poly = minimal_fix_poly
         infinity_check = bool(fix.degree() < D+1)
-
     elif n == 2:
         # Infinity is a fixed point
         if bool(fix.degree() < D+1):
             y = fix.roots(multiplicities=False)[0]
             preimage = g*(f(z) - y*g(z))
             infinity_check = 1
-
         # Infinity is not a fixed point
         else:
             C = minimal_fix_poly.coeffs()
@@ -1295,13 +1241,13 @@ def automorphism_group_FF_alg2(rational_function):
         # Infinity is not a fixed point
         else:
             y = fix.roots(multiplicities=False)[0]
-            preimage = f(z) - y*g(z)
+            preimage = R(f(z) - y*g(z))
             minimal_preimage = R(prod(x[0] for x in preimage.factor()))
             if minimal_preimage.degree() + bool(preimage.degree()<D) >= 3:
                 T_poly = minimal_preimage
                 infinity_check = bool(preimage.degree()<D)
             else:
-                preimage2 = phi(phi(z)).numerator() - y*phi(phi(z)).denominator()
+                preimage2 = R(phi(phi(z)).numerator() - y*phi(phi(z)).denominator())
                 T_poly = R(prod(x[0] for x in preimage2.factor() ) )
                 infinity_check = infinity_check = bool(preimage2.degree() < D**2)
 
@@ -1322,16 +1268,16 @@ def automorphism_group_FF_alg2(rational_function):
     Phi = rational_function_coerce(phi, sigma, S)
     return [S, three_stable_points(Phi, T)]
 
-
-def order_p_automorphisms(rational_function, pre_data):
+def order_p_automorphisms(rational_function, pre_image):
     r"""
     Determine the order-p automorphisms given the input data.
+    This is algorithm 4 in Faber-Manes-Viary [FMV].
 
     INPUT:
 
     - ``rational_function``--rational function defined over finite field `F`.
 
-    - ``pre_data``--set of triples `[x, L, f]`, where `x` is an `F`-rational
+    - ``pre_image``--set of triples `[x, L, f]`, where `x` is an `F`-rational
         fixed point of ``rational_function``, `L` is the list of `F`-rational
         pre-images of `x` (excluding `x`), and `f` is the polynomial defining
         the full set of pre-images of `x` (again excluding `x` itself).
@@ -1393,7 +1339,6 @@ def order_p_automorphisms(rational_function, pre_data):
     q = F.cardinality()
     p = F.characteristic()
     r = (q-1) / (p-1) # index of F_p^\times inside F^\times
-    pre_image = pre_data
 
     # Compute the threshold r2 for determining which algorithm to use
     if len(pre_image) > 1:
@@ -1448,7 +1393,6 @@ def order_p_automorphisms(rational_function, pre_data):
         # loop over all F-rational pre-images
         for guy in pre_image:
             pt = guy[0]
-
             # treat case of multiple F-rational fixed points or
             #     1 F-rational fixed point with F-rational pre-images
             if T != []:
@@ -1459,7 +1403,6 @@ def order_p_automorphisms(rational_function, pre_data):
                         s = z + M[i][0] - M[0][0]
                         if s(phi(z)) == phi(s(z)):
                             automorphisms_p.append(s)
-
                 else:
                     u = F(1) / (z - pt[0])
                     u_inv = pt[0] + F(1)/z
@@ -1471,7 +1414,6 @@ def order_p_automorphisms(rational_function, pre_data):
                         s = u_inv( u(z) + uy2 - uy1 )
                         if s(phi(z)) == phi(s(z)):
                             automorphisms_p.append(s)
-
             elif T==[]:
                 # create the extension field generated by pre-images of the unique fixed point
                 T_poly = pre_image[0][2]
@@ -1482,11 +1424,9 @@ def order_p_automorphisms(rational_function, pre_data):
                 S = PolynomialRing(E,'w')
                 w = S.gen(0)
                 E_poly = rational_function_coerce(T_poly, sigma, S)
-
                 # List of roots permuted by elements of order p
                 # Since infinity is F-rational, it won't appear in this list
                 T = [ [alpha, E(1)] for alpha in E_poly.roots(ring=E, multiplicities=False)]
-
 
                 # coerce the rational function and fixed point into E
                 Phi = rational_function_coerce(phi, sigma, S)
@@ -1498,7 +1438,6 @@ def order_p_automorphisms(rational_function, pre_data):
                         s = w + T[i][0] - T[0][0]
                         if s(Phi(w)) == Phi(s(w)):
                             automorphisms_p.append(rational_function_coefficient_descent(s, sigma, R))
-
                 else:
                     u = E(1) / (w - Pt[0])
                     u_inv = Pt[0] + E(1)/w
@@ -1520,11 +1459,12 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
 
     - ``pair``-- a pair of points of `\mathbb{P}^1(E)`.
 
-    - ``quad``-- an indicator if this is a quadratic pair of points
+    - ``quad``-- Boolean: an indicator if this is a quadratic pair of points
 
     OUTPUT:
 
-    - set of automorphisms defined over `E` that fix the pair, excluding the identity.
+    - set of automorphisms with order prime to characteristic defined over `E` that fix
+        the pair, excluding the identity.
 
     EXAMPLES::
 
@@ -1546,25 +1486,26 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
     z = R.gen(0)
     phi = K(rational_function)
     E = R.base_ring()
-    T = pair
     f = phi.numerator()
     g = phi.denominator()
     D = max(f.degree(), g.degree())
 
-    if T[0] == [1,0]:
-        u = K(z - T[1][0])
-        u_inv = K(z + T[1][0])
-    elif T[1] == [1,0]:
-        u = K(E(1) / (z - T[0][0]))
-        u_inv = K( (T[0][0]*z + 1) / z )
+    #assumes the second coordiante of the point is 1
+    if pair[0] == [1,0]:
+        u = K(z - pair[1][0])
+        u_inv = K(z + pair[1][0])
+    elif pair[1] == [1,0]:
+        u = K(E(1) / (z - pair[0][0]))
+        u_inv = K( (pair[0][0]*z + 1) / z )
     else:
-        u = K( (z - T[1][0]) / (z - T[0][0]) )
-        u_inv = K( (T[0][0]*z - T[1][0] ) / (z - 1) )
+        u = K( (z - pair[1][0]) / (z - pair[0][0]) )
+        u_inv = K( (pair[0][0]*z - pair[1][0] ) / (z - 1) )
 
     automorphisms_prime_to_p = []
-
     # Quadratic automorphisms have order dividing q+1 and D, D-1, or D+1
     if quad==True:
+        #need sqrt to get the cardinality of the base field and not the
+        #degree 2 extension
         q = sqrt(E.cardinality())
         zeta = (E.multiplicative_generator())**(q-1)
         for j in [-1,0,1]:
@@ -1591,7 +1532,7 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
 
 def automorphism_group_FF_alg3(rational_function):
     r"""
-    Implementation of Algorithm 3 in the paper by Faber/Manes/Viray
+    Implementation of Algorithm 3 in the paper by Faber/Manes/Viray [FMV]
     for computing the automorphism group over a finite field.
 
     INPUT:
@@ -1639,7 +1580,7 @@ def automorphism_group_FF_alg3(rational_function):
 
     # Compute the set of distinct F-rational and F-quadratic
     # factors of the fixed point polynomial
-    fix = f(z) - z*g(z)
+    fix = R(f(z) - z*g(z))
     linear_fix = gcd(fix, z**q - z);
     quad_temp = fix.quo_rem(linear_fix)[0]
     residual = gcd(quad_temp, z**q - z)
@@ -1672,7 +1613,7 @@ def automorphism_group_FF_alg3(rational_function):
                 Fpre.append([F(1), F(0)]) # infinity is a pre-image of 0
             elif f.degree() == g.degree() and f.leading_coefficient() == y[0]*g.leading_coefficient():
                 Fpre.append([F(1), F(0)]) # infinity is a pre-image of y[0]
-            # remove y[0] as a root of pre-image polynomial ???
+            # remove y[0] as a root of pre-image polynomial
             h = (f - y[0]*g).quo_rem(z-y[0])[0]
             h_common = gcd(h, z-y[0])
             while h_common.degree() > 0:
@@ -1757,15 +1698,12 @@ def automorphism_group_FF_alg3(rational_function):
 
     return automorphisms
 
-################################################################################
 
-
-# Input: a finite list of elements of PGL(2,K) that we know a priori form a group
-# Output: the isomorphism type of the group
-# This function makes heavy use of the classification of finite subgroups of PGL(2,K)
 def which_group(list_of_elements):
     r"""
     Given a finite subgroup of `PGL2` determine its isomorphism class.
+    This function makes heavy use of the classification of finite subgroups of `PGL(2,K)`
+
     INPUT:
 
     - ``list_of_elements``-- a finite list of elements of `PGL(2,K)`
@@ -1794,7 +1732,7 @@ def which_group(list_of_elements):
 
     # invalid input
     if n == 0:
-        return
+        raise(ValueError, "Group must have at least one element")
 
     # define ground field and ambient function field
     rational_function = G[-1]
@@ -1832,14 +1770,12 @@ def which_group(list_of_elements):
                 H.append(h)
             H    = list(set(H))
             if len(H) == n:
-                # return ['Cyclic of order {0}'.format(n), g]
                 return 'Cyclic of order {0}'.format(n)
             if len(H) > max_reg_cyclic[0] and gcd(len(H), p) != p:
                 max_reg_cyclic = [len(H), g, H]
             discard = list(set(discard +H)) # adjoin all new elements to discard
 
     n_reg = max_reg_cyclic[0]
-
     # Test for dihedral subgroup. A subgroup of index 2 is always normal, so the
     # presence of a cyclic subgroup H of index 2 indicates the group is either
     # H x Z/2Z or dihedral. The former occurs only if H has order 1 or 2, both of
@@ -1847,16 +1783,13 @@ def which_group(list_of_elements):
     if 2*n_reg == n:
         for g in G:
             if g not in max_reg_cyclic[2]:
-                # return ['Dihedral of order {0}'.format(n), [max_reg_cyclic[1],g]]
                 return 'Dihedral of order {0}'.format(n)
-
     # Check the p-irregular cases. There is overlap in these cases when p^e = 2,
     # which is dihedral and so already dealt with above. By the classification theorem,
     # these are either p-semi-elementary, PGL(2,q), PSL(2,q), or A_5 when p=3. The latter
     # case is already covered by the remaining sporadic cases below.
     if e > 0:
         if n_reg == m: # p-semi-elementary
-            # return ['{0}-semi-elementary of order {1}'.format(p, n), 'No generator support']
             return '{0}-semi-elementary of order {1}'.format(p, n)
         if n_reg == m / (p**e - 1) and m == p**(2*e) - 1:    # PGL(2)
             return 'PGL(2,{0})'.format(p**e)
@@ -1866,11 +1799,7 @@ def which_group(list_of_elements):
     # Treat sporadic cases
     if n == 12:
         return ['A_4']
-
     elif n == 24:
         return ['S_4']
-
     else:
         return ['A_5']
-
-    return

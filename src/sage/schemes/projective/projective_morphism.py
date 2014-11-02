@@ -2160,10 +2160,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         AUTHORS:
 
         - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray
+
         - Modified by Joao Alberto de Faria, Ben Hutz, Bianca Thompson
 
         REFERENCES:
-        ..[FMV] - "Computing Conjugating Sets and Automorphism Groups of Rational Functions"
+
+        .. [FMV] Computing Conjugating Sets and Automorphism Groups of Rational Functions
             by Xander Faber, Michelle Manes, and Bianca Viray
 
         EXAMPLES::
@@ -3059,7 +3061,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
     def automorphism_group(self, **kwds):
         r"""
         Given a homogenous rational function, this calculates the subsgroup of `PGL2` that is
-        the automorphism group of ``self``.
+        the automorphism group of ``self``, see [FMV] fir algorithm.
 
         INPUT:
 
@@ -3078,12 +3080,9 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         AUTHORS:
 
-        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray
-        - Modified by Joao Alberto de Faria, Ben Hutz, Bianca Thompson
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray\
 
-        REFERENCES:
-        ..[FMV] - "Computing Conjugating Sets and Automorphism Groups of Rational Functions"
-            by Xander Faber, Michelle Manes, and Bianca Viray
+        - Modified by Joao Alberto de Faria, Ben Hutz, Bianca Thompson
 
         EXAMPLES::
 

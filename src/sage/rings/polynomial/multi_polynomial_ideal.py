@@ -4244,6 +4244,14 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: all(I.random_element(degree=1) == 0 for _ in range(100))
             True
 
+        If degree equals the degree of the generators a random linear
+        combination of the generators is returned::
+
+            sage: P.<x,y> = QQ[]
+            sage: I = P.ideal([x^2,y^2])
+            sage: I.random_element(degree=2)
+            52*x^2 - 8/3*y^2
+
         """
         if compute_gb:
             gens = self.groebner_basis()
@@ -4256,7 +4264,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         for f in gens:
             d = degree - f.degree()
-            if d > 0:
+            if d >= 0:
                 h = R.random_element(degree=d, *args, **kwds)
                 r += h*f
         return r

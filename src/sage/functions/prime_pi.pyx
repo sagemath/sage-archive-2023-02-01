@@ -459,7 +459,9 @@ cdef class PrimePi(BuiltinFunction):
         EXAMPLES::
 
             sage: plot(prime_pi, 1, 100)
+            Graphics object consisting of 1 graphics primitive
             sage: prime_pi.plot(-2, sqrt(2501), thickness=2, vertical_lines=False)
+            Graphics object consisting of 16 graphics primitives
         """
         from sage.plot.step import plot_step_function
         if xmax < xmin:

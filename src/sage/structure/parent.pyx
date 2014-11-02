@@ -982,7 +982,7 @@ cdef class Parent(category_object.CategoryObject):
           column, or the meaning is lost.
 
         - ``'element_ascii_art'``: same but for the output of the
-          elements. Used in :mod:`sage.misc.displayhook`.
+          elements. Used in :mod:`sage.repl.display.formatter`.
 
         - ``'element_is_atomic'``: the elements print atomically, that
           is, parenthesis are not required when *printing* out any of

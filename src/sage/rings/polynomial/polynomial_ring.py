@@ -1962,7 +1962,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
     def irreducible_element(self, n, algorithm=None):
         """
-        Construct an irreducible polynomial of degree `n`.
+        Construct a monic irreducible polynomial of degree `n`.
 
         INPUT:
 
@@ -1997,9 +1997,12 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         if n < 1:
             raise ValueError("degree must be at least 1")
 
-        if algorithm is None or algorithm == "random":
+        if algorithm is None:
+            algorithm = "random"
+
+        if algorithm == "random":
             while True:
-                f = self.gen()**n + self.random_element(n - 1)
+                f = self.gen()**n + self.random_element(degree=(0, n - 1))
                 if f.is_irreducible():
                     return f
         elif algorithm == "first_lexicographic":
@@ -2206,6 +2209,46 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         s = PolynomialRing_commutative._repr_(self)
         return s + self._implementation_repr
 
+    def residue_field(self, ideal, names=None):
+        """
+        Return the residue finite field at the given ideal.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(2)[]
+            sage: k.<a> = R.residue_field(t^3+t+1); k
+            Residue field in a of Principal ideal (t^3 + t + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.list()
+            [0, a, a^2, a + 1, a^2 + a, a^2 + a + 1, a^2 + 1, 1]
+            sage: R.residue_field(t)
+            Residue field of Principal ideal (t) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: P = R.irreducible_element(8) * R
+            sage: P
+            Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.<a> = R.residue_field(P); k
+            Residue field in a of Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.cardinality()
+            256
+
+        Non-maximal ideals are not accepted::
+
+            sage: R.residue_field(t^2 + 1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+            sage: R.residue_field(0)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+            sage: R.residue_field(1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+        """
+        ideal = self.ideal(ideal)
+        if not ideal.is_maximal():
+            raise ArithmeticError("ideal is not maximal")
+        return ideal.residue_field(names)
 
 class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
                                  PolynomialRing_dense_mod_n,
@@ -2268,7 +2311,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
 
     def irreducible_element(self, n, algorithm=None):
         """
-        Construct an irreducible polynomial of degree `n`.
+        Construct a monic irreducible polynomial of degree `n`.
 
         INPUT:
 
@@ -2284,12 +2327,20 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             over the field of `p` elements in the database; raise a
             ``RuntimeError`` if it is not found.
 
+          - ``'ffprimroot'``: use the ``ffprimroot()`` function from
+            PARI.
+
           - ``'first_lexicographic'``: return the lexicographically
             smallest irreducible polynomial of degree `n`.
 
           - ``'minimal_weight'``: return an irreducible polynomial of
             degree `n` with minimal number of non-zero coefficients.
             Only implemented for `p = 2`.
+
+          - ``'primitive'``: return a polynomial `f` such that a root of
+            `f` generates the multiplicative group of the finite field
+            extension defined by `f`. This uses the Conway polynomial if
+            possible, otherwise it uses ``ffprimroot``.
 
           - ``'random'``: try random polynomials until an irreducible
             one is found.
@@ -2309,6 +2360,18 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             x^2 + 4*x + 2
             sage: GF(5)['x'].irreducible_element(2, algorithm="adleman-lenstra")
             x^2 + x + 1
+            sage: GF(5)['x'].irreducible_element(2, algorithm="primitive")
+            x^2 + 4*x + 2
+            sage: GF(5)['x'].irreducible_element(32, algorithm="first_lexicographic")
+            x^32 + 2
+            sage: GF(5)['x'].irreducible_element(32, algorithm="conway")
+            Traceback (most recent call last):
+            ...
+            RuntimeError: requested Conway polynomial not in database.
+            sage: GF(5)['x'].irreducible_element(32, algorithm="primitive")
+            x^32 + ...
+
+        In characteristic 2::
 
             sage: GF(2)['x'].irreducible_element(33)
             x^33 + x^13 + x^12 + x^11 + x^10 + x^8 + x^6 + x^3 + 1
@@ -2318,6 +2381,9 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         AUTHORS:
 
         - Peter Bruin (June 2013)
+
+        - Jeroen Demeyer (September 2014): add "ffprimroot" algorithm,
+          see :trac:`8373`.
         """
         from sage.libs.pari.all import pari
         from sage.rings.finite_rings.conway_polynomials import (conway_polynomial,
@@ -2338,6 +2404,12 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             else:
                 algorithm = "adleman-lenstra"
 
+        if algorithm == "primitive":
+            if exists_conway_polynomial(p, n):
+                algorithm = "conway"
+            else:
+                algorithm = "ffprimroot"
+
         if algorithm == "adleman-lenstra":
             return self(pari(p).ffinit(n))
         elif algorithm == "conway":
@@ -2348,6 +2420,8 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             else:
                 # Fallback to PolynomialRing_dense_finite_field.irreducible_element
                 pass
+        elif algorithm == "ffprimroot":
+            return self(pari(p).ffinit(n).ffgen().ffprimroot().charpoly())
         elif algorithm == "minimal_weight":
             if p == 2:
                 return self(GF2X_BuildSparseIrred_list(n))

@@ -1221,7 +1221,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g._row_cond_dominance((0, 1), (0, 1), A)
             False
 
-        or does not have a dominated row:
+        or does not have a dominated row::
 
             sage: g._row_cond_dominance((0, 1), (0, 2), A)
             True
@@ -1268,12 +1268,12 @@ class NormalFormGame(SageObject, MutableMapping):
         # Build linear system for player 1
         for p1_strategy in p1_support:
             if len(p2_support) == 1:
-                for p2_strategy in range(self.players[1].num_strategies):
-                    if M2[p1_strategy][p2_support[0]] < M2[p1_strategy][p2_strategy]:
+                for j in range(self.players[1].num_strategies):
+                    if M2[p1_strategy][p2_support[0]] < M2[p1_strategy][j]:
                         return False
             else:
-                for p2_strategy in range(len(p2_support)):
-                    linearsystem1[p2_strategy, p1_strategy] = M2[p1_strategy][p2_support[p2_strategy]] - M2[p1_strategy][p2_support[p2_strategy-1]]
+                for i in range(len(p2_support)):
+                    linearsystem1[i, p1_strategy] = M2[p1_strategy][p2_support[i]] - M2[p1_strategy][p2_support[i-1]]
             linearsystem1[-1, p1_strategy] = 1
 
         # Build linear system for player 2

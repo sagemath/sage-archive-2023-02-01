@@ -609,7 +609,8 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
     if OA is None:
         master_design = orthogonal_array(k+n_trunc,r,check=False)
         matrix = [range(r)]*k
-        for ((_,uu),) in u:
+        for uu in u:
+            uu = sum(x[1] for x in uu)
             matrix.append(range(uu)+[None]*(r-uu))
         master_design = OA_relabel(master_design, k+n_trunc, r, matrix=matrix)
     else:

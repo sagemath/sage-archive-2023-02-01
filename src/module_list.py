@@ -712,6 +712,10 @@ ext_modules = [
               extra_compile_args=["-DFPLLL_V3_COMPAT"],
               depends = [SAGE_INC + "/fplll/fplll.h"] + flint_depends),
 
+    Extension('sage.libs.gmp.rational_reconstruction',
+              sources = ['sage/libs/gmp/rational_reconstruction.pyx'],
+              libraries = ['gmp']),
+
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
               # For this to work on cygwin, linboxsage *must* be
@@ -729,8 +733,6 @@ ext_modules = [
               include_dirs = [SAGE_INC + "/libLfunction"],
               extra_compile_args=["-O3", "-ffast-math"],
               language = 'c++'),
-
-
 
     Extension('sage.libs.libecm',
               sources = ['sage/libs/libecm.pyx'],

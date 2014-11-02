@@ -4201,12 +4201,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: P.<x,y,z> = GF(127)[]
             sage: I = sage.rings.ideal.Katsura(P)
-            sage: I.random_element(degree=4, compute_gb=True, terms=True)
+            sage: I.random_element(degree=4, compute_gb=True, terms=infinity)
             34*x^4 - 33*x^3*y + 45*x^2*y^2 - 51*x*y^3 - 55*y^4 + 43*x^3*z ... - 28*y - 33*z + 45
 
-        Note tha sampling uniformly at random from the ideal at some large enough degree is equivalent
-        to computing a Gröbner basis. We give an example showing how to compute a Gröbner basis if
-        we can sample uniformly at random from an ideal::
+        Note that sampling uniformly at random from the ideal at some large enough degree is
+        equivalent to computing a Gröbner basis. We give an example showing how to compute a Gröbner
+        basis if we can sample uniformly at random from an ideal::
 
             sage: n = 3; d = 4
             sage: P = PolynomialRing(GF(127), n, 'x')
@@ -4214,7 +4214,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         1. We sample `n^d` uniformly random elements in the ideal::
 
-            sage: F = Sequence(I.random_element(degree=d, compute_gb=True, terms=True) for _ in range(n^d))
+            sage: F = Sequence(I.random_element(degree=d, compute_gb=True, terms=infinity) for _ in range(n^d))
 
         2. We linearize and compute the echelon form::
 

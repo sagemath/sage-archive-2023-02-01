@@ -737,10 +737,14 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         INPUT:
 
         - ``degree`` -- maximal degree (likely to be reached) (default: 2)
-        - ``terms`` -- number of terms requested (default: 5), if it is ``True``
-          then the maximum number of terms is chosen.
+
+        - ``terms`` -- number of terms requested (default: 5). If more
+          terms are requested than exist, then this parameter is
+          silently reduced to the maximum number of available terms.
+
         - ``choose_degree`` -- choose degrees of monomials randomly first
           rather than monomials uniformly random.
+
         - ``**kwargs`` -- passed to the random element generator of the base
           ring
 
@@ -783,15 +787,22 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R.random_element()
             -x^2 + x
 
-        To produce a dense polynomial, pick ``terms=True``::
+        To produce a dense polynomial, pick ``terms=Infinity``::
 
             sage: P.<x,y,z> = GF(127)[]
-            sage: P.random_element(degree=2, terms=True)
+            sage: P.random_element(degree=2, terms=Infinity)
             -55*x^2 - 51*x*y + 5*y^2 + 55*x*z - 59*y*z + 20*z^2 + 19*x - 55*y - 28*z + 17
-            sage: P.random_element(degree=3, terms=True)
+            sage: P.random_element(degree=3, terms=Infinity)
             -54*x^3 + 15*x^2*y - x*y^2 - 15*y^3 + 61*x^2*z - 12*x*y*z + 20*y^2*z - 61*x*z^2 - 5*y*z^2 + 62*z^3 + 15*x^2 - 47*x*y + 31*y^2 - 14*x*z + 29*y*z + 13*z^2 + 61*x - 40*y - 49*z + 30
-            sage: P.random_element(degree=3, terms=True, choose_degree=True)
+            sage: P.random_element(degree=3, terms=Infinity, choose_degree=True)
             57*x^3 - 58*x^2*y + 21*x*y^2 + 36*y^3 + 7*x^2*z - 57*x*y*z + 8*y^2*z - 11*x*z^2 + 7*y*z^2 + 6*z^3 - 38*x^2 - 18*x*y - 52*y^2 + 27*x*z + 4*y*z - 51*z^2 - 63*x + 7*y + 48*z + 14
+
+        The number of terms is silently reduced to the maximum
+        available if more terms are requested::
+
+            sage: P.<x,y,z> = GF(127)[]
+            sage: P.random_element(degree=2, terms=1000)
+            5*x^2 - 10*x*y + 10*y^2 - 44*x*z + 31*y*z + 19*z^2 - 42*x - 50*y - 49*z - 60
 
         """
         k = self.base_ring()
@@ -799,7 +810,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         counts, total = self._precomp_counts(n, degree)
 
-        if terms is True:
+        if terms > total:
             terms = total
 
         if terms is None:
@@ -809,12 +820,10 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 terms = total
 
         if terms < 0:
-            raise TypeError, "Cannot compute polynomial with a negative number of terms."
+            raise TypeError("Cannot compute polynomial with a negative number of terms.")
         elif terms == 0:
             return self._zero_element
         if degree == 0:
-            if terms != 1:
-                raise TypeError, "Cannot compute polynomial with more terms than exist."
             return k.random_element(**kwargs)
 
 
@@ -861,9 +870,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                     if len(M[d]) == 0:
                         M.pop(d) # bookkeeping
                 M = map(tuple, Mbar)
-
-        else:
-            raise TypeError, "Cannot compute polynomial with more terms than exist."
 
         C = [k.random_element(*args,**kwargs) for _ in range(len(M))]
 

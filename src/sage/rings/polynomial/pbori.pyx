@@ -1110,8 +1110,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         -  ``degree`` - maximum degree (default: 2 for len(var_set) > 1, 1 otherwise)
 
-        -  ``terms`` - number of terms (default: 5 for len(var_set) > 2, smaller
-           otherwise), if it is ``True`` then the maximum number of terms is chosen.
+        -  ``terms`` -- number of terms requested (default: 5). If more
+           terms are requested than exist, then this parameter is
+           silently reduced to the maximum number of available terms.
 
         -  ``choose_degree`` - choose degree of monomials
            randomly first, rather than monomials uniformly random
@@ -1144,7 +1145,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         We return uniformly random polynomials up to degree 2::
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
-            sage: B.random_element(terms=True)
+            sage: B.random_element(terms=Infinity)
             a*b + a*c + a*d + b*c + b*d + d
 
         TESTS::
@@ -1155,19 +1156,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             ...
             ValueError: Given degree should be less than or equal to number of variables (3)
 
-        ::
+            sage: P.random_element(degree=1, terms=5)
+            y + 1
 
-            sage: t = P.random_element(degree=1, terms=5)
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot generate random polynomial with 5 terms and maximum degree 1 using 3 variables
-
-        ::
-
-            sage: t = P.random_element(degree=2,terms=5,vars_set=(0,1))
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot generate random polynomial with 5 terms using 2 variables
+            sage: P.random_element(degree=2, terms=5, vars_set=(0,1))
+            x*y + y
 
         We test that :trac:`13845` is fixed::
 
@@ -1201,22 +1194,16 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         if degree > nvars:
             raise ValueError, "Given degree should be less than or equal to number of variables (%s)"%(nvars)
 
-        if Integer(terms-1).nbits() > nvars:
-            raise ValueError, "Cannot generate random polynomial with %s terms using %s variables"%(terms, nvars)
-
         tot_terms=0
         monom_counts = []
         for i from 0 <= i <= degree:
             tot_terms += binomial(nvars,i)
             monom_counts.append(tot_terms)
 
-        if terms is True:
+        if terms > tot_terms:
             terms = tot_terms//2 + (tot_terms%2)
         else:
             terms = Integer(terms)
-
-        if terms > tot_terms:
-            raise ValueError, "Cannot generate random polynomial with %s terms and maximum degree %s using %s variables"%(terms, degree, nvars)
 
         p = self._zero_element
         while len(p) < terms:

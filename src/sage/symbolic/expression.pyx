@@ -9446,7 +9446,7 @@ cdef class Expression(CommutativeRingElement):
             (x, y)
             sage: f = x+y
             sage: f.solve([x, y], solution_dict=True)
-            [{x: -r7, y: r7}]
+            [{x: -r..., y: r...}]
 
         :trac:`16651` fixed::
 

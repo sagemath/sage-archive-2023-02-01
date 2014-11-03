@@ -722,7 +722,7 @@ class Function_Bessel_K(BuiltinFunction):
 
         sage: f = bessel_K(2, x)
         sage: f.diff(x)
-        1/2*bessel_K(3, x) + 1/2*bessel_K(1, x)
+        -1/2*bessel_K(3, x) - 1/2*bessel_K(1, x)
 
         sage: bessel_K(1/2, x)
         bessel_K(1/2, x)
@@ -842,7 +842,7 @@ class Function_Bessel_K(BuiltinFunction):
 
             sage: f(x) = bessel_K(10, x)
             sage: derivative(f, x)
-            x |--> 1/2*bessel_K(11, x) + 1/2*bessel_K(9, x)
+            x |--> -1/2*bessel_K(11, x) - 1/2*bessel_K(9, x)
             sage: nu = var('nu')
             sage: bessel_K(nu, x).diff(nu)
             Traceback (most recent call last):
@@ -850,7 +850,7 @@ class Function_Bessel_K(BuiltinFunction):
             NotImplementedError: derivative with respect to order
         """
         if diff_param == 1:
-            return (bessel_K(n - 1, x) + bessel_K(n + 1, x)) / Integer(2)
+            return -(bessel_K(n - 1, x) + bessel_K(n + 1, x)) / Integer(2)
         else:
             raise NotImplementedError('derivative with respect to order')
 

@@ -1237,10 +1237,16 @@ class NormalFormGame(SageObject, MutableMapping):
             True
         """
         subm = matrix.matrix_from_rows_and_columns(list(p1_sup), list(p2_sup))
-        for strategy in subm.rows():
-                for row in subm.rows():
-                    if strategy != row and all(strategy[i] < row[i]
-                            for i in range(subm.ncols())):
+        nbr_rows = subm.nrows()
+        nbr_cols = subm.ncols()
+        for s in range(nbr_rows):
+            strategy = subm.rows()[s]
+            for r in range(s, nbr_rows):
+                row = subm.rows()[r]
+                if strategy != row:
+                    if all(strategy[i] < row[i] for i in range(nbr_cols)):
+                        return False
+                    if all(row[i] < strategy[i] for i in range(nbr_cols)):
                         return False
         return True
 

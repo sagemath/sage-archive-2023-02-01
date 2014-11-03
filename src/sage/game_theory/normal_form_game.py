@@ -454,8 +454,8 @@ class NormalFormGame(SageObject, MutableMapping):
         [0 0 0]  [0 0 0]
         [0 0 0], [0 0 0]
         )
-        sage: g.obtain_Nash()
-        [[(1, 0, 0), (1, 0, 0)], [(0, 1, 0), (0, 1, 0)], [(0, 0, 1), (0, 0, 1)]]
+        sage: g.obtain_Nash(algorithm='enumeration')
+        [[(1, 0, 0), (1, 0, 0)]]
 
     A good description of degenerate games can be found in [NN2007]_.
 
@@ -980,8 +980,8 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [2,6],
             ....:             [3,1]])
             sage: g = NormalFormGame([A, B])
-            sage: g.obtain_Nash()
-            [[(4/5, 1/5, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)], [(1, 0, 0), (1, 0)]]
+            sage: g.obtain_Nash(algorithm='enumeration')
+            [[(1, 0, 0), (1, 0)], [(4/5, 1/5, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)]]
 
         Here is a slightly larger game::
 

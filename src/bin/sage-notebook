@@ -37,11 +37,17 @@ class NotebookSageNB(object):
             if '=' in x:
                 key, value = x.split('=', 2)
                 logger.debug('keyword argument %s = %s', key, value)
-                value = ast.literal_eval(value)
+                try:
+                    value = ast.literal_eval(value)
+                except ValueError:
+                    logger.debug('cannot evaluate, treat as string')
                 kwds[key] = value
             else:
                 logger.debug('positional argument %s', x)
-                value = ast.literal_eval(x)
+                try:
+                    value = ast.literal_eval(x)
+                except ValueError:
+                    logger.debug('cannot evaluate, treat as string')
                 args.append(value)
         return tuple(args), kwds
 

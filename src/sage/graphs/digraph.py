@@ -3527,6 +3527,13 @@ class DiGraph(GenericGraph):
             sage: Y.flow_polytope()
             The empty polyhedron in QQ^3
 
+        A digraph with one vertex and no edge::
+
+            sage: Z = DiGraph({1: []})
+            sage: Z.flow_polytope()
+            A 0-dimensional polyhedron in QQ^0 defined as the convex hull
+            of 1 vertex
+
         REFERENCES:
 
         .. [PitSta] Jim Pitman, Richard Stanley, "A polytope related to
@@ -3543,12 +3550,13 @@ class DiGraph(GenericGraph):
             outs = self.outgoing_edges(u)
             eq = [Integer(j in ins) - Integer(j in outs) for j in self.edges()]
 
+            const = 0
             if len(ins) == 0:  # sources (indegree 0)
-                eq = [1] + eq
-            elif len(outs) == 0:  # sinks (outdegree 0)
-                eq = [-1] + eq
-            else:
-                eq = [0] + eq
+                const += 1
+            if len(outs) == 0:  # sinks (outdegree 0)
+                const -= 1
+
+            eq = [const] + eq
             eqs.append(eq)
 
         return Polyhedron(ieqs=ineqs, eqns=eqs)

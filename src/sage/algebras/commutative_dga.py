@@ -84,7 +84,7 @@ from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
 
-class DifferentialCGA(UniqueRepresentation, Morphism):
+class Differential(UniqueRepresentation, Morphism):
     r"""
     Differential of a commutative graded algebra.
 
@@ -155,7 +155,7 @@ class DifferentialCGA(UniqueRepresentation, Morphism):
                 raise ValueError("The given dictionary does not determine a degree 1 map")
 
         im_gens = tuple(im_gens.get(x, A.zero()) for x in A.gens())
-        return super(DifferentialCGA, cls).__classcall__(cls, A, im_gens)
+        return super(Differential, cls).__classcall__(cls, A, im_gens)
 
     def __init__(self, A, im_gens):
         r"""
@@ -478,7 +478,7 @@ class DifferentialCGA(UniqueRepresentation, Morphism):
         H_basis_brackets = [CohomologyClass(b) for b in H_basis]
         return CombinatorialFreeModule(A.base_ring(), H_basis_brackets)
 
-class DifferentialCGA_multigraded(DifferentialCGA):
+class Differential_multigraded(Differential):
     """
     Differential of a commutative multigraded algebra.
     """
@@ -496,7 +496,7 @@ class DifferentialCGA_multigraded(DifferentialCGA):
 
             sage: TestSuite(d).run(skip="_test_category")
         """
-        DifferentialCGA.__init__(self, A, im_gens)
+        Differential.__init__(self, A, im_gens)
 
         # Check that the differential has a well-defined degree.
         # diff_deg = [self(x).degree() - x.degree() for x in A.gens()]
@@ -546,7 +546,7 @@ class DifferentialCGA_multigraded(DifferentialCGA):
             [0 1]
         """
         if total or n in ZZ:
-            return DifferentialCGA.differential_matrix(self, total_degree(n))
+            return Differential.differential_matrix(self, total_degree(n))
 
         A = self.domain()
         G = AdditiveAbelianGroup([0] * A._grading_rank)
@@ -595,7 +595,7 @@ class DifferentialCGA_multigraded(DifferentialCGA):
             [0 1]
         """
         if total or n in ZZ:
-            return DifferentialCGA.coboundaries(self, total_degree(n))
+            return Differential.coboundaries(self, total_degree(n))
 
         A = self.domain()
         G = AdditiveAbelianGroup([0] * A._grading_rank)
@@ -642,7 +642,7 @@ class DifferentialCGA_multigraded(DifferentialCGA):
             [1 0]
         """
         if total or n in ZZ:
-            return DifferentialCGA.cocycles(self, total_degree(n))
+            return Differential.cocycles(self, total_degree(n))
 
         A = self.domain()
         G = AdditiveAbelianGroup([0] * A._grading_rank)
@@ -1136,7 +1136,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
     def differential(self, diff):
         """
-        Construct a differential of ``self``.
+        Construct a differential on ``self``.
 
         INPUT:
 
@@ -1147,6 +1147,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
         differential. Any generators which are not specified are
         assumed to have zero differential.
 
+        EXAMPLES::
 
             sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(2,1,1))
             sage: A.differential({y:y*z, z: y*z})
@@ -1154,10 +1155,13 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
               Defn: x --> 0
                     y --> y*z
                     z --> y*z
+            sage: B.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=(1,2,2))
+            sage: d = B.differential({b:a*c, c:a*c})
+            sage: d(b*c)
+            a*b*c + a*c^2
         """
-        return DifferentialCGA(self, diff)
+        return Differential(self, diff)
 
-    # FIXME: This is a name conflict with the class CDGAlgebra
     def CDGAlgebra(self, differential):
         r"""
         Construct a differential graded commutative algebra from ``self``
@@ -1165,12 +1169,15 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         INPUT:
 
-        - ``differential`` -- a dictionary defining a differential
+        - ``differential`` -- a dictionary defining a differential or
+          a map defining a valid differential
 
         The keys of the dictionary are generators of the algebra, and
         the associated values are their targets under the
         differential. Any generators which are not specified are
-        assumed to have zero differential.
+        assumed to have zero differential. Alternatively, the
+        differential can be defined using the :meth:`differential`
+        method; see below for an example.
 
         .. SEEALSO::
 
@@ -1185,8 +1192,19 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 a --> b*c
                 b --> a*c
                 c --> 0
+
+        Note that ``differential`` can also be a map::
+
+            sage: d = A.differential({a: b*c, b: a*c})
+            sage: d
+            Differential of Graded Commutative Algebra with generators ('a', 'b', 'c') in degrees (1, 1, 1) over Rational Field
+              Defn: a --> b*c
+                    b --> a*c
+                    c --> 0
+            sage: A.CDGAlgebra(d) is B
+            True
         """
-        return CDGAlgebra(self, differential)
+        return DifferentialGCAlgebra(self, differential)
 
     # TODO: Do we want a fully spelled out alias?
     # commutative_differential_graded_algebra = CDGAlgebra
@@ -1536,7 +1554,7 @@ class GCAlgebra_multigraded(GCAlgebra):
 
     def differential(self, diff):
         """
-        Return a differential of ``self``.
+        Construct a differential on ``self``.
 
         INPUT:
 
@@ -1556,9 +1574,8 @@ class GCAlgebra_multigraded(GCAlgebra):
                     b --> 0
                     c --> 0
         """
-        return DifferentialCGA_multigraded(self, diff)
+        return Differential_multigraded(self, diff)
 
-    # FIXME: This is a name conflict with the class CDGAlgebra
     def CDGAlgebra(self, differential):
         r"""
         Construct a differential graded commutative algebra from ``self``
@@ -1566,12 +1583,15 @@ class GCAlgebra_multigraded(GCAlgebra):
 
         INPUT:
 
-        - ``differential`` -- a dictionary defining a differential
+        - ``differential`` -- a dictionary defining a differential or
+          a map defining a valid differential
 
         The keys of the dictionary are generators of the algebra, and
         the associated values are their targets under the
         differential. Any generators which are not specified are
-        assumed to have zero differential.
+        assumed to have zero differential. Alternatively, the
+        differential can be defined using the :meth:`differential`
+        method; see below for an example.
 
         .. SEEALSO::
 
@@ -1585,8 +1605,14 @@ class GCAlgebra_multigraded(GCAlgebra):
                a --> c
                b --> 0
                c --> 0
+            sage: d = A.differential({a: c})
+            sage: A.CDGAlgebra(d)
+            Commutative Differential Graded Algebra with generators ('a', 'b', 'c') in degrees ((1, 0), (0, 1), (0, 2)) over Rational Field with differential:
+               a --> c
+               b --> 0
+               c --> 0
         """
-        return CDGAlgebra_multigraded(self, differential)
+        return DifferentialGCAlgebra_multigraded(self, differential)
 
     class Element(GCAlgebra.Element):
         def degree(self, total=False):
@@ -1636,7 +1662,7 @@ class GCAlgebra_multigraded(GCAlgebra):
 ###########################################################
 ## Differential algebras
 
-class CDGAlgebra(GCAlgebra):
+class DifferentialGCAlgebra(GCAlgebra):
     """
     A commutative differential graded algebra.
 
@@ -1654,7 +1680,7 @@ class CDGAlgebra(GCAlgebra):
 
     These algebras should be graded over the integers; multi-graded
     algebras should be constructed using
-    :class:`CDGAlgebra_multigraded` instead.
+    :class:`DifferentialGCAlgebra_multigraded` instead.
 
     Note that a natural way to construct these is to use the
     :func:`GradedCommutativeAlgebra` function and the
@@ -1694,14 +1720,14 @@ class CDGAlgebra(GCAlgebra):
             sage: D2 = A.CDGAlgebra(D1.differential())
             sage: D1 is D2
             True
-            sage: from sage.algebras.commutative_dga import CDGAlgebra
-            sage: D1 is CDGAlgebra(A, {a: b*c, b: a*c, c: 0})
+            sage: from sage.algebras.commutative_dga import DifferentialGCAlgebra
+            sage: D1 is DifferentialGCAlgebra(A, {a: b*c, b: a*c, c: 0})
             True
         """
-        if not isinstance(differential, DifferentialCGA):
+        if not isinstance(differential, Differential):
             differential = A.differential(differential)
         elif differential.parent() != A:
-            differential = DifferentialCGA(A, differential._dic_)
+            differential = Differential(A, differential._dic_)
         return super(GCAlgebra, cls).__classcall__(cls, A, differential)
 
     def __init__(self, A, differential):
@@ -1740,7 +1766,7 @@ class CDGAlgebra(GCAlgebra):
                            degrees=A._degrees,
                            R=A.cover_ring(),
                            I=A.defining_ideal())
-        self._differential = DifferentialCGA(self, differential._dic_)
+        self._differential = Differential(self, differential._dic_)
 
     def graded_commutative_algebra(self):
         """
@@ -2064,14 +2090,15 @@ class CDGAlgebra(GCAlgebra):
             """
             if other.is_zero():
                 return self.is_coboundary()
-            if not isinstance(other, CDGAlgebra.Element) or self.parent() is not other.parent():
+            if (not isinstance(other, DifferentialGCAlgebra.Element)
+                or self.parent() is not other.parent()):
                 raise ValueError('The element {} does not lie in this DGA'.format(other))
             if (self - other).is_homogeneous():
                 return (self - other).is_coboundary()
             else:
                 return (self.is_coboundary() and other.is_coboundary())
 
-class CDGAlgebra_multigraded(CDGAlgebra, GCAlgebra_multigraded):
+class DifferentialGCAlgebra_multigraded(DifferentialGCAlgebra, GCAlgebra_multigraded):
     """
     A commutative differential multi-graded algebras.
 
@@ -2122,7 +2149,7 @@ class CDGAlgebra_multigraded(CDGAlgebra, GCAlgebra_multigraded):
                                        degrees=A._degrees_multi,
                                        R=A.cover_ring(),
                                        I=A.defining_ideal())
-        self._differential = DifferentialCGA_multigraded(self, differential._dic_)
+        self._differential = Differential_multigraded(self, differential._dic_)
 
     def _base_repr(self):
         """
@@ -2134,7 +2161,7 @@ class CDGAlgebra_multigraded(CDGAlgebra, GCAlgebra_multigraded):
             sage: A.CDGAlgebra(differential={a: c})._base_repr()
             "Commutative Differential Graded Algebra with generators ('a', 'b', 'c') in degrees ((1, 0), (0, 1), (0, 2)) over Rational Field"
         """
-        s = CDGAlgebra._base_repr(self)
+        s = DifferentialGCAlgebra._base_repr(self)
         old = '{}'.format(self._degrees)
         new = '{}'.format(self._degrees_multi)
         return s.replace(old, new)
@@ -2277,7 +2304,7 @@ class CDGAlgebra_multigraded(CDGAlgebra, GCAlgebra_multigraded):
         """
         return self._differential.cohomology(n, total)
 
-    class Element(GCAlgebra_multigraded.Element, CDGAlgebra.Element):
+    class Element(GCAlgebra_multigraded.Element, DifferentialGCAlgebra.Element):
         """
         Element class of a commutative differential multi-graded algebra.
         """

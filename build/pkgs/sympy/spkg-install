@@ -11,11 +11,11 @@ cd src/
 rm -rf sympy/mpmath
 rm -rf doc/src/modules/mpmath
 
-echo "Applying patches to upstream sources..."
 for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: '$patch' failed to apply."
+        echo >&2 "Error applying '$patch'"
         exit 1
     fi
 done

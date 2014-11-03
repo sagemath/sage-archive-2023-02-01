@@ -170,7 +170,7 @@ cdef class WrapperElement(AlgebraElement):
 
     cdef _richcmp_c_impl(left, Element right, int op):
         return (<Element>left.val)._richcmp_c(right, op)
-    cdef int _cmp_c_impl(left, Element right):
+    cdef int _cmp_c_impl(left, Element right) except -2:
         return (<Element>left.val)._cmp_c(right)
     cdef base_extend_c_impl(self, Parent R):
         return (<Element>self.val).base_extend_c(R)

@@ -344,7 +344,8 @@ class WeightLatticeRealizations(Category_over_base_ring):
             interpretation of type `A`; see the thematic tutorial on Lie
             Methods and Related Combinatorics in Sage for details.
             """
-            assert i in self.index_set()
+            if i not in self.index_set():
+                raise ValueError("{} is not in the index set".format(i))
             alphai = self.root_system.weight_lattice().simple_root(i)
             # Note: it would be nicer to just return ``self(alpha[i])``,
             # However the embedding from the weight lattice is defined
@@ -845,7 +846,8 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 sage: L.embed_at_level(alpha[1], 1)
                 Lambda[0] + 2*Lambda[1] - Lambda[2]
             """
-            assert self.classical().is_parent_of(x)
+            if not self.classical().is_parent_of(x):
+                raise ValueError("x must be an element of the classical type")
             Lambda = self.fundamental_weights()
             result = self.sum_of_terms(x)
             result += Lambda[0] * (level-result.level()) / (Lambda[0].level())
@@ -865,7 +867,8 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 <type 'sage.rings.integer.Integer'>
             """
             highest_weight = self(highest_weight)
-            assert(highest_weight.is_dominant())
+            if not highest_weight.is_dominant():
+                raise ValueError("the highest weight must be dominant")
             rho = self.rho()
             n = prod([(rho+highest_weight).dot_product(x) for x in self.positive_roots()])
             d = prod([ rho.dot_product(x) for x in self.positive_roots()])

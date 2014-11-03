@@ -1417,9 +1417,9 @@ class FiniteWordPath_all(SageObject):
             A = self.parent().alphabet()
             color = dict( (a, hue(A.rank(a)/float(A.cardinality()))) for a in A )
         it = self.projected_point_iterator(v, ring=ring)
-        if kind is 'right':
+        if kind == 'right':
             start = it.next()
-        elif kind is not 'left':
+        elif kind != 'left':
             raise ValueError('unknown value for kind (=%s)'%kind)
         tout = [point([c], color=color[a], size=size) for a, c in izip(self, it) if a in letters]
         return sum(tout)
@@ -2012,7 +2012,7 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
             sage: P('ab').is_closed()
             False
         """
-        tab = self.parikh_vector()
+        tab = self.abelian_vector()
         return tab[0] == tab[2] and tab[1] == tab[3]
 
     def area(self):

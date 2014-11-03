@@ -6,13 +6,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-unset RM
-
-ROOT_DIR="`pwd`"
-
-INCLUDES="-I$SAGE_LOCAL/include"
-
-CFLAGS="$CFLAGS $INCLUDES -g"
+CFLAGS="$CFLAGS -I$SAGE_LOCAL/include -g"
 
 COMPILER=`testcc.sh $CC`
 
@@ -45,38 +39,40 @@ else
 fi
 
 # otherwise we might run into problems with old headers
+rm -rf "$SAGE_LOCAL/include/m4ri"
 
-if [ -d "$SAGE_LOCAL/include/m4ri" ]; then
-    rm -rf "$SAGE_LOCAL/include/m4ri"
-fi
 
-#build M4RI
+cd src
 
-cd $ROOT_DIR/src/
+# Apply patches
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
 
+# Configure and build M4RI
 ./configure \
     --prefix="$SAGE_LOCAL" \
     --libdir="$SAGE_LOCAL/lib" \
     --enable-shared --disable-static \
     $ENABLE_DEBUG $DISABLE_SSE2
-
 if [ $? -ne 0 ]; then
     echo "Error configuring m4ri"
     exit 1
 fi
 
 $MAKE
-
 if [ $? -ne 0 ]; then
     echo "Error building m4ri"
     exit 1
 fi
 
 $MAKE install
-
 if [ $? -ne 0 ]; then
     echo "Error installing m4ri"
     exit 1
 fi
-
-

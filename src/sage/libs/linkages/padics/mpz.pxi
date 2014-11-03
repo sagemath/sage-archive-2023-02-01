@@ -18,12 +18,12 @@ AUTHORS:
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/gmp.pxi"
 from cpython.list cimport *
 
 cdef extern from "mpz_pylong.h":
     cdef long mpz_pythonhash(mpz_t src)
 
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
@@ -77,7 +77,7 @@ cdef inline int ccmp(mpz_t a, mpz_t b, long prec, bint reduce_a, bint reduce_b, 
     cdef int ans
     if reduce_a or reduce_b:
         mpz_sub(holder.value, a, b)
-        mpz_mod(holder.value, holder.value, &prime_pow.pow_mpz_t_tmp(prec)[0])
+        mpz_mod(holder.value, holder.value, prime_pow.pow_mpz_t_tmp(prec))
         return mpz_sgn(holder.value)
     else:
         ans = mpz_cmp(a,b)

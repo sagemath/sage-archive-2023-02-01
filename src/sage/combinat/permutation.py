@@ -177,7 +177,6 @@ Below are listed all methods and classes defined in this file.
     :meth:`from_cycles` | Returns the permutation with given disjoint-cycle representation ``cycles``.
     :meth:`from_lehmer_code` | Returns the permutation with Lehmer code ``lehmer``.
     :meth:`from_reduced_word` | Returns the permutation corresponding to the reduced word ``rw``.
-    :meth:`robinson_schensted_inverse` | Returns the permutation corresponding to the pair of tableaux `(p,q)`.
     :meth:`bistochastic_as_sum_of_permutations` | Returns a given bistochastic matrix as a nonnegative linear combination of permutations.
     :meth:`descents_composition_list` | Returns a list of all the permutations in a given descent class (i. e., having a given descents composition).
     :meth:`descents_composition_first` | Returns the smallest element of a descent class.
@@ -3708,7 +3707,11 @@ class Permutation(CombinatorialObject, Element):
         EXAMPLES::
 
             sage: Permutation([3,1,5,4,2]).permutation_poset().cover_relations()
-            [[(2, 1), (5, 2)], [(2, 1), (4, 4)], [(2, 1), (3, 5)], [(1, 3), (4, 4)], [(1, 3), (3, 5)]]
+            [[(2, 1), (5, 2)],
+             [(2, 1), (3, 5)],
+             [(2, 1), (4, 4)],
+             [(1, 3), (3, 5)],
+             [(1, 3), (4, 4)]]
             sage: Permutation([]).permutation_poset().cover_relations()
             []
             sage: Permutation([1,3,2]).permutation_poset().cover_relations()
@@ -4968,6 +4971,8 @@ class Permutations_mset(Permutations):
 
             sage: Permutations([1,2,2]).cardinality()
             3
+            sage: Permutations([1,1,2,2,2]).cardinality()
+            10
         """
         lmset = list(self.mset)
         mset_list = [lmset.index(x) for x in lmset]
@@ -4976,9 +4981,9 @@ class Permutations_mset(Permutations):
             d[i] = d.get(i, 0) + 1
 
         c = factorial(len(lmset))
-        for i in d:
-            if d[i] != 1:
-                c //= factorial(d[i])
+        for i in d.itervalues():
+            if i != 1:
+                c //= factorial(i)
         return ZZ(c)
 
 class Permutations_set(Permutations):
@@ -5864,12 +5869,6 @@ def from_reduced_word(rw):
         (p[i-1], p[i]) = (p[i], p[i-1])
 
     return Permutations()(p)
-
-from sage.misc.superseded import deprecated_function_alias
-
-# Don't forget to remove the robinson_schensted_inverse entry in the index at
-# the top of the file when this line will be removed
-robinson_schensted_inverse = deprecated_function_alias(8392, RSK_inverse)
 
 def bistochastic_as_sum_of_permutations(M, check = True):
     r"""

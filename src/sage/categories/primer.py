@@ -202,6 +202,8 @@ Wrap-up: generic algorithms in Sage are organized in a hierarchy of
 bookshelves modelled upon the usual hierarchy of categories provided
 by abstract algebra.
 
+.. _category-primer-parents-elements-categories:
+
 Elements, Parents, Categories
 -----------------------------
 
@@ -1034,6 +1036,8 @@ Along the way, we illustrate that a large hierarchy of categories is
 desirable to model complicated mathematics, and that scaling to
 support such a large hierarchy is the driving motivation for the
 design of the category infrastructure.
+
+.. _category-primer-functorial-constructions:
 
 Functorial constructions
 ------------------------

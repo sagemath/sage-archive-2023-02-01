@@ -4849,6 +4849,11 @@ class Graph(GenericGraph):
 
             sage: Graph([[1, 2]], immutable=True).to_directed()._backend
             <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+
+        :trac:`17005`::
+
+            sage: Graph([[1,2]], immutable=True).to_directed()
+            Digraph on 2 vertices
         """
         if sparse is not None:
             if data_structure is not None:

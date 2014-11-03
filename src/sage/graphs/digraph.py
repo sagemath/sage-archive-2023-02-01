@@ -1170,7 +1170,7 @@ class DiGraph(GenericGraph):
 
         TESTS:
 
-        Immutable graphs yield immutable graphs::
+        Immutable graphs yield immutable graphs (:trac:`17005`)::
 
             sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
             <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>

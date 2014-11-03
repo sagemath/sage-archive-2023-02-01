@@ -539,11 +539,8 @@ class HyperbolicGeodesic(SageObject):
             True
         
         The above tests go through the Upper Half Plane.  It remains to
-        test that the matrices in the models do what we intend.
+        test that the matrices in the models do what we intend. ::
 
-            ::
-
-            sage: H = HyperbolicPlane() # Remove before submitting XXX.
             sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import mobius_transform
             sage: R = H.PD().get_geodesic(-1,1).reflection_involution() 
             sage: bool(mobius_transform(R.matrix(), 0) == 0)
@@ -783,6 +780,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         EXAMPLES::
 
             sage: HyperbolicPlane().UHP().get_geodesic(0, 1).show()
+            Graphics object consisting of 2 graphics primitives
         """
         opts = dict([('axes', False), ('aspect_ratio',1)])
         opts.update(self.graphics_options())
@@ -998,7 +996,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         T1 = matrix([[exp(d/2), 0], [0, exp(-d/2)]])
         T2 = matrix([[cos(pi/4), -sin(pi/4)], [sin(pi/4), cos(pi/4)]])
         isom_mtrx = S.inverse() * (T1 * T2) * S # We need to clean this matrix up.
-        if (isom_mtrx - isom_mtrx.conjugate()).norm() < 2**-9: # Imaginary part is small.
+        if (isom_mtrx - isom_mtrx.conjugate()).norm() < 5*EPSILON: # Imaginary part is small.
             isom_mtrx = (isom_mtrx + isom_mtrx.conjugate()) / 2 # Set it to its real part.
         H = self._model.get_isometry(isom_mtrx)
         return self._model.get_geodesic(H(self._start), H(self._end))
@@ -1222,6 +1220,7 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
         EXAMPLES::
 
             sage: HyperbolicPlane().PD().get_geodesic(0, 1).show()
+            Graphics object consisting of 2 graphics primitives
         """
         opts = dict([('axes', False), ('aspect_ratio',1)])
         opts.update(self.graphics_options())
@@ -1293,6 +1292,7 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
         EXAMPLES::
 
             sage: HyperbolicPlane().KM().get_geodesic((0,0), (1,0)).show()
+            Graphics object consisting of 2 graphics primitives
         """
         from sage.plot.line import line
         opts = dict ([('axes', False), ('aspect_ratio', 1)])
@@ -1333,6 +1333,7 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
             sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
             sage: g = HyperbolicPlane().HM().random_geodesic()
             sage: g.show()
+            Graphics3d Object
         """
         from sage.calculus.var import var
         (x,y,z) = var('x,y,z')

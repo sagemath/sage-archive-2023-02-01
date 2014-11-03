@@ -502,8 +502,11 @@ class HyperbolicPoint(Element):
         EXAMPLES::
 
             sage: HyperbolicPlane().PD().get_point(0).show()
+            Graphics object consisting of 2 graphics primitives
             sage: HyperbolicPlane().KM().get_point((0,0)).show()
+            Graphics object consisting of 2 graphics primitives
             sage: HyperbolicPlane().HM().get_point((0,0,1)).show()
+            Graphics3d Object
         """
         p = self.coordinates()
         if p == infinity:
@@ -577,7 +580,9 @@ class HyperbolicPointUHP(HyperbolicPoint):
         EXAMPLES::
 
             sage: HyperbolicPlane().UHP().get_point(I).show()
+            Graphics object consisting of 2 graphics primitives
             sage: HyperbolicPlane().UHP().get_point(0).show()
+            Graphics object consisting of 2 graphics primitives
             sage: HyperbolicPlane().UHP().get_point(infinity).show()
             Traceback (most recent call last):
             ...

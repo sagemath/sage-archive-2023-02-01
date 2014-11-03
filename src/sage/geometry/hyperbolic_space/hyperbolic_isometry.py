@@ -190,8 +190,8 @@ class HyperbolicIsometry(Morphism):
         if self.domain().is_isometry_group_projective():
             A,B = self.matrix(), other.matrix() # Rename for simplicity
             m = self.matrix().ncols()
-            A = A/sqrt(A.det(), m) # Normalized to have determinant 1
-            B = B/sqrt(B.det(), m)
+            A = A / sqrt(A.det(), m) # Normalized to have determinant 1
+            B = B / sqrt(B.det(), m)
             test_matrix = bool( (A - B).norm() < EPSILON or (A + B).norm() < EPSILON )
         return self.domain() is other.domain() and test_matrix
 
@@ -911,8 +911,6 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
             True
         """
         _image = mobius_transform(self._matrix, p.coordinates())
-        # if not self.preserves_orientation():
-        #     _image = mobius_transform(I*matrix([[0,1],[1,0]]), _image)
         return self.codomain().get_point(_image)
 
     def __mul__(self, other): #PD

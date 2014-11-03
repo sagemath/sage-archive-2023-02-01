@@ -754,7 +754,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
             [   3/4  1/4*I]
             [-1/4*I    3/4]
 
-            ::
+        ::
 
             sage: p, q = PD.get_point(1/2 + I/2), PD.get_point(6/13 + 9/13*I)
             sage: PD.isometry_from_fixed_points(p, q)

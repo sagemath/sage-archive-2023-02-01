@@ -215,6 +215,14 @@ class CoercionUHPtoKM(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: KM = HyperbolicPlane().KM()
+            sage: phi = KM.coerce_map_from(UHP)
+            sage: phi.image_isometry_matrix(identity_matrix(2))
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
         return SL2R_to_SO21(x)
 
@@ -245,6 +253,14 @@ class CoercionUHPtoHM(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: HM = HyperbolicPlane().HM()
+            sage: phi = HM.coerce_map_from(UHP)
+            sage: phi.image_isometry_matrix(identity_matrix(2))
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
         return SL2R_to_SO21(x)
 
@@ -298,7 +314,6 @@ class CoercionPDtoUHP(HyperbolicModelCoercion):
         """
         from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometryPD
         if not HyperbolicIsometryPD._orientation_preserving(x):
-#            x = I*x
             return matrix([[1,I],[I,1]]) * x * matrix([[1,-I],[-I,1]]).conjugate() / Integer(2)
         return matrix([[1,I],[I,1]]) * x * matrix([[1,-I],[-I,1]]) / Integer(2)
 
@@ -312,6 +327,12 @@ class CoercionPDtoKM(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: PD = HyperbolicPlane().PD()
+            sage: KM = HyperbolicPlane().KM()
+            sage: phi = KM.coerce_map_from(PD)
+            sage: phi.image_coordinates(0.5+0.5*I)
+            (0.666666666666667, 0.666666666666667)
         """
         return (2*real(x)/(Integer(1) + real(x)**2 +imag(x)**2),
                 2*imag(x)/(Integer(1) + real(x)**2 + imag(x)**2))
@@ -322,6 +343,14 @@ class CoercionPDtoKM(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: PD = HyperbolicPlane().PD()
+            sage: KM = HyperbolicPlane().KM()
+            sage: phi = KM.coerce_map_from(PD)
+            sage: phi.image_isometry_matrix(matrix([[0,I],[I,0]]))
+            [-1  0  0]
+            [ 0  1  0]
+            [ 0  0 -1]
         """
         return SL2R_to_SO21( matrix(2,[1,I,I,1]) * x *
                              matrix(2,[1,-I,-I,1])/Integer(2) )
@@ -336,6 +365,12 @@ class CoercionPDtoHM(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: PD = HyperbolicPlane().PD()
+            sage: HM = HyperbolicPlane().HM()
+            sage: phi = HM.coerce_map_from(PD)
+            sage: phi.image_coordinates(0.5+0.5*I)
+            (2.00000000000000, 2.00000000000000, 3.00000000000000)
         """
         return vector((
             2*real(x)/(1 - real(x)**2 - imag(x)**2),
@@ -349,6 +384,14 @@ class CoercionPDtoHM(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: PD = HyperbolicPlane().PD()
+            sage: HM = HyperbolicPlane().HM()
+            sage: phi = HM.coerce_map_from(PD)
+            sage: phi.image_isometry_matrix(matrix([[0,I],[I,0]]))
+            [-1  0  0]
+            [ 0  1  0]
+            [ 0  0 -1]
         """
         return SL2R_to_SO21( matrix(2,[1,I,I,1]) * x *
                              matrix(2,[1,-I,-I,1])/Integer(2) )
@@ -388,6 +431,14 @@ class CoercionKMtoUHP(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: KM = HyperbolicPlane().KM()
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: phi = UHP.coerce_map_from(KM)
+            sage: m = matrix([[5/3,0,4/3], [0,1,0], [4/3,0,5/3]])
+            sage: phi.image_isometry_matrix(m)
+            [2*sqrt(1/3)   sqrt(1/3)]
+            [  sqrt(1/3) 2*sqrt(1/3)]
         """
         return SO21_to_SL2R(x)
 
@@ -401,6 +452,12 @@ class CoercionKMtoPD(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: KM = HyperbolicPlane().KM()
+            sage: PD = HyperbolicPlane().PD()
+            sage: phi = PD.coerce_map_from(KM)
+            sage: phi.image_coordinates((0, 0))
+            0
         """
         return ( x[0]/(1 + (1 - x[0]**2 - x[1]**2).sqrt())
                  + I*x[1]/(1 + (1 - x[0]**2 - x[1]**2).sqrt()) )
@@ -411,6 +468,14 @@ class CoercionKMtoPD(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: KM = HyperbolicPlane().KM()
+            sage: PD = HyperbolicPlane().PD()
+            sage: phi = PD.coerce_map_from(KM)
+            sage: m = matrix([[5/3,0,4/3], [0,1,0], [4/3,0,5/3]])
+            sage: phi.image_isometry_matrix(m)
+            [2*sqrt(1/3)   sqrt(1/3)]
+            [  sqrt(1/3) 2*sqrt(1/3)]
         """
         return (matrix(2,[1,-I,-I,1]) * SO21_to_SL2R(x) *
                 matrix(2,[1,I,I,1])/Integer(2))
@@ -441,6 +506,15 @@ class CoercionKMtoHM(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: KM = HyperbolicPlane().KM()
+            sage: HM = HyperbolicPlane().HM()
+            sage: phi = HM.coerce_map_from(KM)
+            sage: m = matrix([[5/3,0,4/3], [0,1,0], [4/3,0,5/3]])
+            sage: phi.image_isometry_matrix(m)
+            [5/3   0 4/3]
+            [  0   1   0]
+            [4/3   0 5/3]
         """
         return x
 
@@ -474,6 +548,13 @@ class CoercionHMtoUHP(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: HM = HyperbolicPlane().HM()
+            sage: UHP = HyperbolicPlane().UHP()
+            sage: phi = UHP.coerce_map_from(HM)
+            sage: phi.image_isometry_matrix(identity_matrix(3))
+            [1 0]
+            [0 1]
         """
         return SO21_to_SL2R(x)
 
@@ -487,6 +568,12 @@ class CoercionHMtoPD(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: HM = HyperbolicPlane().HM()
+            sage: PD = HyperbolicPlane().PD()
+            sage: phi = PD.coerce_map_from(HM)
+            sage: phi.image_coordinates( vector((0,0,1)) )
+            0
         """
         return x[0]/(1 + x[2]) + I*(x[1]/(1 + x[2]))
 
@@ -496,6 +583,13 @@ class CoercionHMtoPD(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: HM = HyperbolicPlane().HM()
+            sage: PD = HyperbolicPlane().PD()
+            sage: phi = PD.coerce_map_from(HM)
+            sage: phi.image_isometry_matrix(identity_matrix(3))
+            [1 0]
+            [0 1]
         """
         return (matrix(2,[1,-I,-I,1]) * SO21_to_SL2R(x) *
                 matrix(2,[1,I,I,1])/Integer(2))
@@ -525,6 +619,14 @@ class CoercionHMtoKM(HyperbolicModelCoercion):
         under ``self``.
 
         EXAMPLES::
+
+            sage: HM = HyperbolicPlane().HM()
+            sage: KM = HyperbolicPlane().KM()
+            sage: phi = KM.coerce_map_from(HM)
+            sage: phi.image_isometry_matrix(identity_matrix(3))
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
         return x
 
@@ -561,7 +663,8 @@ def SL2R_to_SO21(A):
                        Integer(1)/Integer(2)*b**2 + Integer(1)/Integer(2)*c**2 +
                        Integer(1)/Integer(2)*d**2]
                )) # Kill ~0 imaginary parts
-    #B = B.apply_map(attrcall('real')) 
+
+    #B = B.apply_map(attrcall('real'))
     if A.det() > 0:
         return B
     else:

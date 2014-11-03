@@ -620,8 +620,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return False
         H=self._hasse_diagram
         n=H.order()
-        return all(H._rank_dict[a] + H._rank_dict[b] == 
-                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+        return all(H._rank[a] + H._rank[b] ==
+                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in range(n) for b in range(a+1, n))
         return True
 
@@ -661,8 +661,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return False
         H=self._hasse_diagram
         n=H.order()
-        return all(H._rank_dict[a] + H._rank_dict[b] >=
-                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+        return all(H._rank[a] + H._rank[b] >=
+                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in range(n) for b in range(a+1, n))
         return True
 
@@ -698,8 +698,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return False
         H=self._hasse_diagram
         n=H.order()
-        return all(H._rank_dict[a] + H._rank_dict[b] <=
-                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+        return all(H._rank[a] + H._rank[b] <=
+                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in range(n) for b in range(a+1, n))
         return True
 

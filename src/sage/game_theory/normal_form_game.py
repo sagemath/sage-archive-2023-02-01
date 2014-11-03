@@ -258,8 +258,9 @@ class NormalFormGame(SageObject, MutableMapping):
       algorithm is hard coded in Sage and checks through all potential
       supports of a strategy. Supports of a given size with a conditionally
       dominated strategy are ignored. Note: this is not the preferred
-      algorithm. An excellent overview of this algorithm is given in
-      [SLB2008]_.
+      algorithm. The algorithm implemented is a combination of a basic
+      algorithm described in [NN2007]_ and a pruning component described
+      in [SLB2008]_.
 
     Below we show how the two algorithms are called::
 
@@ -1105,6 +1106,15 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _solve_enumeration(self, maximization=True):
         r"""
+        Obtains the Nash equilibria using support enumeration.
+        Algorithm implemented here is Algorithm 3.4 of [NN2007]_
+        with an aspect of pruning from [SLB2008]_.
+
+        1. For each k in 1...min(size of strategy sets)
+        2. For each I,J supports of size k
+        3. Prune: check if supports are dominated
+        4. Solve indifference conditions and check that have Nash Equilibrium.
+
         EXAMPLES:
 
         A Game::

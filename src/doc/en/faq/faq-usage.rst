@@ -574,15 +574,11 @@ to both issues is to either install Sun's Java SDK or to update the
 GNU based Java implementation. As of January 2008 Debian's Java in
 testing works, but stable does have problems.
 
-If you are running a brand new (as of April 2008) Ubuntu 8.04, they
-ship the Java Plugin by IcedTea. This is basically a good idea, but a
-bit too early since it is broken. Either wait for an update or
-uninstall the IcedTea Plugin and install the "SUN Java 6
-Plugin". Later, switch back to IcedTea, since it is based on OpenJDK 7
-(or SUNs Java 7) which is the next Java version. You can check for the
-used plugin in Firefox 3 by typing "about:plugins" into the URL
-bar. Read more about this issue at
-`launchpad <https://bugs.launchpad.net/ubuntu/+source/icedtea-java7/>`_.
+You should use at a Java that is at least version 7. You can use
+either "SUN Java 7" or "SUN Java 8" distributed by Oracle or IcedTea
+based on the OpenJDK 7 or later. You can check for the
+used plugin in Firefox by typing "about:plugins" into the URL
+bar. 
 
 
 May I use Sage tools in a commercial environment?

@@ -1381,13 +1381,14 @@ class ClusterQuiver(SageObject):
             elif data_type == "digraph":
                 next_element = data[0]
             elif data_type == "dig6":
-                next_element =  data[0]
+                next_element = data[0]
             elif data_type == "path":
-                next_element =  data[1]
+                next_element = data[1]
             else:
-                raise ValueError("The parameter for data_type was not recognized.")
+                raise ValueError("The parameter for data_type was "
+                                 "not recognized.")
             if return_paths:
-                yield ( next_element, data[1] )
+                yield (next_element, data[1])
             else:
                 yield next_element
 

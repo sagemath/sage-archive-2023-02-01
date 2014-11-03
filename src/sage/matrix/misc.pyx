@@ -16,6 +16,7 @@ include 'sage/ext/stdsage.pxi'
 
 from sage.ext.mod_int cimport *
 from sage.libs.mpfr cimport *
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
 include 'sage/modules/binary_search.pxi'
 include 'sage/modules/vector_integer_sparse_h.pxi'

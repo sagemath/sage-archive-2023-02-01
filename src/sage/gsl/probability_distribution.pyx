@@ -185,11 +185,11 @@ cdef class SphericalDistribution(ProbabilityDistribution):
     EXAMPLES::
 
         sage: T = SphericalDistribution()
-        sage: T.get_random_element()
-        (-0.2922296724828204, -0.9563459345927822, 0.0020668595602153475)
+        sage: T.get_random_element()  # rel tol 1e-14
+        (-0.2922296724828204, -0.9563459345927822, 0.0020668595602153454)
         sage: T = SphericalDistribution(dimension = 4, rng = 'luxury')
-        sage: T.get_random_element()
-        (-0.03633004347616311, 0.6459885817544099, 0.24825817345598164, 0.7209346430129753)
+        sage: T.get_random_element()  # rel tol 1e-14
+        (-0.0363300434761631, 0.6459885817544098, 0.24825817345598158, 0.7209346430129753)
 
     TESTS:
 
@@ -212,8 +212,8 @@ cdef class SphericalDistribution(ProbabilityDistribution):
         EXAMPLES::
 
             sage: T = SphericalDistribution()
-            sage: T.get_random_element()
-            (-0.2922296724828204, -0.9563459345927822, 0.0020668595602153475)
+            sage: T.get_random_element()  # rel tol 1e-14
+            (-0.2922296724828204, -0.9563459345927822, 0.0020668595602153454)
 
         TESTS:
 
@@ -405,8 +405,8 @@ cdef class RealDistribution(ProbabilityDistribution):
 
         sage: nu = 1
         sage: T = RealDistribution('t', nu)
-        sage: T.get_random_element()
-        -8.404911172800617
+        sage: T.get_random_element()  # rel tol 1e-15
+        -8.404911172800615
         sage: T.distribution_function(0)
         0.3183098861837906
         sage: T.cum_distribution_function(1)  # rel tol 1e-15
@@ -418,8 +418,8 @@ cdef class RealDistribution(ProbabilityDistribution):
 
         sage: nu1 = 9; nu2 = 17
         sage: F = RealDistribution('F', [nu1,nu2])
-        sage: F.get_random_element()
-        1.2392337861152563
+        sage: F.get_random_element()  # rel tol 1e-14
+        1.239233786115256
         sage: F.distribution_function(1)  # rel tol 1e-14
         0.6695025505192798
         sage: F.cum_distribution_function(3.68)  # rel tol 1e-14
@@ -458,8 +458,8 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: a = 2
         sage: b = 2
         sage: T = RealDistribution('beta', [a, b])
-        sage: T.get_random_element()
-        0.7110581877139807
+        sage: T.get_random_element()  # rel tol 1e-14
+        0.7110581877139808
         sage: T.distribution_function(0)
         0.0
         sage: T.cum_distribution_function(1)

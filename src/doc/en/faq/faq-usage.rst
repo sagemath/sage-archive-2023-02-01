@@ -574,6 +574,7 @@ plugins (namely Chrome).  On each browser worksheet there is a
 checkbox which must be checked before a 3-D plot is generated if
 the user wants to use the Java applet (the applet is a little faster
 with complex plots).
+
 The most likely reason for a malfunction is that you do not have
 a Java Run Time Environment (JRE) installed or you have one older than
 version 1.7.  If things work from the command line another possibility

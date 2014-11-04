@@ -589,7 +589,6 @@ If you are using a Sage server over the web and even javascript rendering
 does not work, you may have a problem with your browser's javascript
 engine or have it turned off.
 
-
 May I use Sage tools in a commercial environment?
 """""""""""""""""""""""""""""""""""""""""""""""""
 

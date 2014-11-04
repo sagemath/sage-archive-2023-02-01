@@ -18,15 +18,15 @@ This can be modeled using the following two matrices:
 
 .. MATH::
 
-    A = \begin{pmatrix}
-        3&1\\
-        0&2\\
+    A = \\begin{pmatrix}
+        3&1\\\\
+        0&2\\\\
         \end{pmatrix}
 
 
-    B = \begin{pmatrix}
-        2&1\\
-        0&3\\
+    B = \\begin{pmatrix}
+        2&1\\\\
+        0&3\\\\
         \end{pmatrix}
 
 Matrix `A` represents the utilities of Amy and matrix `B` represents the
@@ -124,15 +124,15 @@ same side then player 1 wins, otherwise player 2 wins:
 
 .. MATH::
 
-    A = \begin{pmatrix}
-        1&-1\\
-        -1&1\\
+    A = \\begin{pmatrix}
+        1&-1\\\\
+        -1&1\\\\
         \end{pmatrix}
 
 
-    B = \begin{pmatrix}
-        -1&1\\
-        1&-1\\
+    B = \\begin{pmatrix}
+        -1&1\\\\
+        1&-1\\\\
         \end{pmatrix}
 
 It should be relatively straightforward to observe, that there is no
@@ -959,7 +959,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
             .. MATH::
 
-                \left(\sum_{j \in S(\rho_2)}^{A_{i,j} - A_{i+1,j}\right){\rho_2}_j
+                \left(\sum_{j \in S(\rho_2)}A_{i,j} - A_{i+1,j}\right){\rho_2}_j
 
             for all `1\leq i \leq |S(\rho_1)|` (where `A` has been modified to only
             contain the row corresponding to `S(\rho_1)`. We also require all

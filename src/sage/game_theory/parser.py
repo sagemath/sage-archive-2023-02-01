@@ -3,8 +3,8 @@ class Parser():
     A class for parsing the outputs of different algorithms called in other
     software packages.
 
-    At present the only parser included is for 'lrs' algorithm however
-    this is actively being expanded to 'gambit'.
+    At present the only parser included is for `lrs` algorithm however
+    this is actively being expanded to `gambit`.
     """
 
     def __init__(self, raw_string):

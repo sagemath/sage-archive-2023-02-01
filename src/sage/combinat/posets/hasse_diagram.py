@@ -593,37 +593,38 @@ class HasseDiagram(DiGraph):
             sage: H._rank is None
             True
         """
-        rank_fcn = {}  # rank_fcn will be the dictionary whose i-th entry
-                       # is the rank of vertex i for every i.
+        # rank[i] is the rank of point i. It is equal to None until the rank of
+        # i is computed
+        rank = [None]*self.order()
         not_found = set(self.vertices())
         while not_found:
             y = not_found.pop()
-            rank_fcn[y] = ZZ.zero()  # We set some vertex to have rank 0
+            rank[y] = 0  # We set some vertex to have rank 0
             component = set([y])
             queue = set([y])
             while queue:  # look at the neighbors of y and set the ranks;
                           # then look at the neighbors of the neighbors ...
                 y = queue.pop()
                 for x in self.neighbors_out(y):
-                    if x not in rank_fcn:
-                        rank_fcn[x] = rank_fcn[y] + 1
+                    if rank[x] is None:
+                        rank[x] = rank[y] + 1
                         queue.add(x)
                         component.add(x)
                 for x in self.neighbors_in(y):
-                    if x not in rank_fcn:
-                        rank_fcn[x] = rank_fcn[y] - 1
+                    if rank[x] is None:
+                        rank[x] = rank[y] - 1
                         queue.add(x)
                         component.add(x)
-                    elif rank_fcn[x] != rank_fcn[y] - 1:
+                    elif rank[x] != rank[y] - 1:
                         return None
             # Normalize the ranks of vertices in the connected component
             # so that smallest is 0:
-            m = min(rank_fcn[j] for j in component)
+            m = min(rank[j] for j in component)
             for j in component:
-                rank_fcn[j] -= m
+                rank[j] -= m
             not_found.difference_update(component)
         #now, all ranks are set.
-        return [rank_fcn[i] for i in range(self.order())]
+        return rank
 
     def rank(self,element=None):
         r"""

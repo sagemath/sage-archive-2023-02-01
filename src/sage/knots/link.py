@@ -1660,6 +1660,243 @@ class Link:
         jones = (poly * (-t) ** (-3 * writhe)).expand()
         return jones.subs({t: t ** (ZZ(-1) / ZZ(4))})
 
+    def linkplot(self):
+        regions = sorted(self.regions(), lambda a,b: len(a) < len(b))
+        regions = regions[:-1]
+        edges = list(set(flatten(self.PD_code())))
+        edges.sort()
+        MLP = MixedIntegerLinearProgram(maximization = True)
+        v = MLP.new_variable(nonnegative=True)
+        for i in range(2*len(edges)):
+            MLP.set_min(v[i], 0)
+        for i in range(len(regions)):
+            cond = 0
+            r = regions[i]
+            es = 4 - len(r)
+            for e in r:
+                if e > 0:
+                    cond = cond + v[2*edges.index(e)] - v[2*edges.index(e) +1]
+                else:
+                    cond = cond - v[2*edges.index(-e)] + v[2*edges.index(-e) + 1]
+            MLP.add_constraint(cond, min=es, max=es)
+        MLP.set_objective(-sum(v.values()))
+        MLP.solve()
+        s = range(len(edges))
+        values = MLP.get_values(v)
+        for i in range(len(edges)):
+            s[i] = int(values[2*i] - values[2*i + 1])
+        segments = {e:[(e,i) for i in range(abs(s[edges.index(e)])+1)] for e in edges}
+        pieces = {tuple(i):[i] for j in segments.values() for i in j}
+        nregions = []
+        for r in regions:
+            nregion = []
+            for e in r:
+                if e>0:
+                    rev =  segments[e][:-1]
+                    sig = sign(s[edges.index(e)])
+                    nregion+=[[a,sig] for a in rev]
+                    nregion.append([segments[e][-1],1])
+                else:
+                    rev = segments[-e][1:]
+                    rev.reverse()
+                    sig = sign(s[edges.index(-e)])
+                    nregion+=[[a,-sig] for a in rev]
+                    nregion.append([segments[-e][0],1])
+            nregions.append(nregion)
+        N = max(segments.keys())+1
+        segments = [i for j in segments.values() for i in j]
+        badregions = filter(lambda a: -1 in [x[1] for x in a], nregions)
+        while len(badregions)>0:
+            badregion = badregions[0]
+            badturns = []
+            a = 0
+            while badregion[a][1] != -1:
+                a+=1
+            c = -1
+            b = a
+            while c != 2:
+                if b == len(badregion)-1:
+                    b = 0
+                else:
+                    b+=1
+                c += badregion[b][1]
+            otherregion = filter(lambda a: badregion[b][0] in [x[0] for x in a], nregions)
+            if len(otherregion) == 1:
+                otherregion = None
+            elif otherregion[0] == badregion:
+                otherregion = otherregion[1]
+            else:
+                otherregion = otherregion[0]
+            N1 = N
+            N = N + 2
+            N2 = N1 + 1
+            segments.append(N1)
+            segments.append(N2)
+            if type(badregion[b][0]) == int:
+                segmenttoadd = filter(lambda x:badregion[b][0] in pieces[x], pieces.keys())
+                if len(segmenttoadd) > 0:
+                    pieces[segmenttoadd[0]].append(N2)
+            else:
+                pieces[tuple(badregion[b][0])].append(N2)
+            if a<b:
+                r1 = badregion[:a]+[[badregion[a][0],0], [N1,1]]+badregion[b:]
+                r2 = badregion[a+1:b] + [[N2,1],[N1,1]]
+            else:
+                r1 =  badregion[b:a]+[[badregion[a][0],0], [N1,1]]
+                r2 = badregion[:b] + [[N2,1],[N1,1]] + badregion[a+1:]
+            if otherregion:
+                c = filter(lambda x:badregion[b][0] == x[0], otherregion)
+                c = otherregion.index(c[0])
+                otherregion.insert(c+1,[N2,otherregion[c][1]])
+                otherregion[c][1]=0
+            nregions.remove(badregion)
+            nregions.append(r1)
+            nregions.append(r2)
+            badregions = filter(lambda a: -1 in [x[1] for x in a], nregions)
+        MLP = MixedIntegerLinearProgram(maximization = True)
+        variables = {}
+        for e in segments:
+            variables[e] = MLP.new_variable(nonnegative=True)
+            MLP.set_min(variables[e][0], 1)
+        for r in nregions:
+            horp = []
+            horm = []
+            verp = []
+            verm = []
+            direction = 0
+            for se in r:
+                if direction % 4 == 0:
+                    horp.append(variables[se[0]][0])
+                elif direction == 1:
+                    verp.append(variables[se[0]][0])
+                elif direction == 2:
+                    horm.append(variables[se[0]][0])
+                elif direction == 3:
+                    verm.append(variables[se[0]][0])
+                if se[1] == 1:
+                    direction += 1
+            MLP.add_constraint(sum(horp)-sum(horm), min=0, max=0)
+            MLP.add_constraint(sum(verp)-sum(verm), min=0, max=0)
+        MLP.set_objective(-sum([x[0] for x in variables.values()]))
+        solved = MLP.solve()
+        lengths = {piece:sum([MLP.get_values(variables[a])[0] for a in pieces[piece]]) for piece in pieces}
+        image = line([])
+        crossings = {tuple(self.PD_code()[0]):(0,0,0)}
+        availables = self.PD_code()[1:]
+        used_edges = []
+        horizontal_eq = 0
+        vertical_eq = 0
+        ims = line([])
+        while len(used_edges) < len(edges):
+            i = 0
+            j = 0
+            while crossings.keys()[i][j] in used_edges:
+                if j < 3:
+                    j += 1
+                else:
+                    j = 0
+                    i+=1
+            c = crossings.keys()[i]
+            e = c[j]
+            used_edges.append(e)
+            direction = (crossings[c][2] - c.index(e)) % 4
+            orien = self.orientation()[self.PD_code().index(list(c))]
+            if s[edges.index(e)] < 0:
+                turn = -1
+            else:
+                turn = 1
+            lengthse = [lengths[(e,i)] for i in range(abs(s[edges.index(e)])+1)]
+            if c.index(e) == 0 or (c.index(e) == 1 and orien == 1) or (c.index(e) == 3 and orien == -1):
+                turn = -turn
+                lengthse.reverse()
+            if c.index(e) % 2 == 0:
+                tailshort=True
+            else:
+                tailshort = False
+            x0 = crossings[c][0]
+            y0 = crossings[c][1]
+            im = []
+            for l1 in range(len(lengthse)):
+                l = lengthse[l1]
+                if direction == 0:
+                    x1 = x0 + l
+                    y1 = y0
+                elif direction == 1:
+                    x1 = x0
+                    y1 = y0 + l
+                elif direction == 2:
+                    x1 = x0 - l
+                    y1 = y0
+                elif direction == 3:
+                    x1 = x0
+                    y1 = y0 -l
+                im.append(([[x0,y0],[x1,y1]], l, direction))
+                direction = (direction + turn) %4
+                x0 = x1
+                y0 = y1
+            direction = (direction - turn) %4
+            c2 = [ee for ee in availables if e in ee]
+            if len(c2) == 1:
+                availables.remove(c2[0])
+                crossings[tuple(c2[0])] = (x1,y1,(direction+c2[0].index(e) + 2) % 4)
+            c2 = [ee for ee in self.PD_code() if (e in ee and ee != list(c))]
+            if c2 == []:
+                headshort = not tailshort
+            else:
+                if c2[0].index(e) % 2 == 0:
+                    headshort = True
+                else:
+                    headshort = False
+            a = deepcopy(im[0][0])
+            b = deepcopy(im[-1][0])
+            if tailshort:
+                im[0][0][0][0] += cmp(a[1][0],im[0][0][0][0])*0.1
+                im[0][0][0][1] += cmp(a[1][1],im[0][0][0][1])*0.1
+            if headshort:
+                im[-1][0][1][0] -= cmp(b[1][0],im[-1][0][0][0])*0.1
+                im[-1][0][1][1] -= cmp(b[1][1],im[-1][0][0][1])*0.1
+            l = line([], axes=False)
+            c = 0
+            p = im[0][0][0]
+            if len(im) == 4 and max([x[1] for x in im]) == 1:
+                l = bezier_path([[im[0][0][0], im[0][0][1], im[-1][0][0], im[-1][0][1]]], axes=False, color='blue')
+                p =  im[-1][0][1]
+            else:
+                while c < len(im)-1:
+                    if im[c][1] > 1:
+                        (a, b) = im[c][0]
+                        if b[0] > a[0]:
+                            e = (b[0] - 1, b[1])
+                        elif b[0] < a[0]:
+                            e = (b[0] + 1, b[1])
+                        elif b[1] > a[1]:
+                            e = (b[0], b[1] - 1)
+                        elif b[1] < a[1]:
+                            e = (b[0] , b[1] + 1)
+                        l += line((p, e), axes=False)
+                        p = e
+                    if im[c+1][1] == 1 and c < len(im) - 2:
+                        xr = round(im[c+2][0][1][0])
+                        yr = round(im[c+2][0][1][1])
+                        xp = xr - im[c+2][0][1][0]
+                        yp = yr - im[c+2][0][1][1]
+                        q = [p[0] + im[c+1][0][1][0] -   im[c+1][0][0][0] -xp , p[1] + im[c+1][0][1][1] - im[c+1][0][0][1] - yp]
+                        l += bezier_path([[p, im[c+1][0][0], im[c+1][0][1], q]], axes=False, color='blue')
+                        c += 2
+                        p = q
+                    else:
+                        if im[c+1][1] == 1:
+                            q = im[c+1][0][1]
+                        else:
+                            q = [im[c+1][0][0][0] + sign(im[c+1][0][1][0] -  im[c+1][0][0][0]), im[c+1][0][0][1] + sign(im[c+1][0][1][1] -  im[c+1][0][0][1])]
+                        l += bezier_path([[p, im[c+1][0][0], q]], axes=False, color ='blue')
+                        p = q
+                        c += 1
+            l += line([p, im[-1][0][1]], axes=False)
+            image += l
+            ims += sum([line(a[0]) for a in im])
+        return image
+
 #********************** Auxillary methods used ********************************
 # rule_1 and rule_2 are used in the orientation method looks for entering,
 # leaving pairs and fill the gaps where ever necessary.

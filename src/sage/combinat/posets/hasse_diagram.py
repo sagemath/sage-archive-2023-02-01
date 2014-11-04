@@ -565,7 +565,7 @@ class HasseDiagram(DiGraph):
         """
         if(self._rank is None):
             return None
-        return lambda x:self._rank[x] # the rank function is just the getitem of the dict
+        return self._rank.__getitem__ # the rank function is just the getitem of the list
 
     @lazy_attribute
     def _rank(self):

@@ -7,7 +7,7 @@ of these games (lrs - interfaced with the lrs library and support enumeration
 built in Sage). The architecture for the class is based on the gambit
 architecture to ensure an easy transition between the two.
 
-At present the algorithms for the enumeration of equilibria only solve 2 player
+At present the algorithms for the computation of equilibria only solve 2 player
 games.
 
 AUTHOR:
@@ -25,13 +25,13 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from collections import MutableMapping
-from itertools import product, combinations, chain
+from itertools import product
 from parser import Parser
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.latex import latex
 from sage.misc.lazy_import import lazy_import
 from sage.misc.misc import powerset
-from sage.rings.all import QQ, ZZ
+from sage.rings.all import QQ
 from sage.structure.sage_object import SageObject
 lazy_import('sage.matrix.constructor', 'matrix')
 lazy_import('sage.matrix.constructor', 'vector')
@@ -91,15 +91,15 @@ class NormalFormGame(SageObject, MutableMapping):
 
     * The second column corresponds to movies.
 
-    Thus if both Amy and Bob choose to play video games: Amy receives a utility
-    of 3 and Bob a utility of 2. If Amy is indeed going to stick with video
-    games Bob has no incentive to deviate (and vice versa).
+    Thus, if both Amy and Bob choose to play video games: Amy receives a
+    utility of 3 and Bob a utility of 2. If Amy is indeed going to stick
+    with video games Bob has no incentive to deviate (and vice versa).
 
     This situation repeats itself if both Amy and Bob choose to watch a movie:
     neither has an incentive to deviate.
 
-    This loosely described situation is referred to as Nash Equilibrium.
-    We can use Sage to find them and more importantly see if there is any
+    This loosely described situation is referred to as a Nash Equilibrium.
+    We can use Sage to find them, and more importantly, see if there is any
     other situation where Amy and Bob have no reason to change their choice
     of action:
 
@@ -112,7 +112,7 @@ class NormalFormGame(SageObject, MutableMapping):
         Normal Form Game with the following utilities: {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
 
     To obtain the Nash equilibria we run the ``obtain_Nash()`` method. In the
-    first few examples we will use the 'support enumeration' algorithm.
+    first few examples, we will use the 'support enumeration' algorithm.
     A discussion about the different algorithms will be given later::
 
         sage: battle_of_the_sexes.obtain_Nash(algorithm='enumeration')
@@ -120,7 +120,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     If we look a bit closer at our output we see that a list of three
     pairs of tuples have been returned. Each of these correspond to a
-    Nash Equilibrium represented as a probability distribution over the
+    Nash Equilibrium, represented as a probability distribution over the
     available strategies:
 
     * `[(1, 0), (1, 0)]` corresponds to the first player only
@@ -184,8 +184,8 @@ class NormalFormGame(SageObject, MutableMapping):
             1&-1\\
             \end{pmatrix}
 
-    It should be relatively straightforward to observe that there is no
-    situation where both players always do the same thing and have no
+    It should be relatively straightforward to observe, that there is no
+    situation, where both players always do the same thing, and have no
     incentive to deviate.
 
     We can plot the utility of player 1 when player 2 is playing a mixed
@@ -199,7 +199,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: p += plot((A * vector([y, 1 - y]))[1], y, 0, 1, color='red', legend_label='$u_1(r_2, (y, 1-y))$')
 
     We see that the only point at which player 1 is indifferent amongst
-    available strategies is when `y=1/2`.
+    the available strategies is when `y=1/2`.
 
     If we compute the Nash equilibria we see that this corresponds to a point
     at which both players are indifferent::
@@ -337,7 +337,8 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: f.obtain_Nash()
         [[(0, 0, 1), (0, 1)]]
 
-    We can use the same syntax as above to create games with more than 2 players::
+    We can use the same syntax as above to create games with
+    more than 2 players::
 
         sage: threegame = NormalFormGame()
         sage: threegame.add_player(2)
@@ -395,8 +396,6 @@ class NormalFormGame(SageObject, MutableMapping):
         ...
         NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
 
-        There are however a variety of such algorithms available in gambit,
-
     Here is a slightly longer game that would take too long to solve with
     ``enumeration``. Consider the following:
 
@@ -430,8 +429,7 @@ class NormalFormGame(SageObject, MutableMapping):
     The equilibrium strategy is thus for both players to state that the value
     of their suitcase is 2.
 
-    Importantly this algorithm is known to fail in the case of a degenerate
-    game. In fact degenerate games can cause problems for most algorithms.
+    Note that degenerate games can cause problems for most algorithms.
     The following example in fact has an infinite quantity of equilibria which
     is evidenced by the two algorithms returning different solutions::
 
@@ -582,9 +580,7 @@ class NormalFormGame(SageObject, MutableMapping):
         instance behave like a dictionary which can be used if a game
         is to be generated without using a matrix.
 
-        Method is needed to make an instance of Normal Form Game
-        behave like a dictionary. Here we set up deleting an element
-        of the utilities dictionary::
+        Here we set up deleting an element of the utilities dictionary::
 
             sage: A = matrix([[2, 5], [0, 4]])
             sage: B = matrix([[2, 0], [5, 4]])
@@ -603,8 +599,7 @@ class NormalFormGame(SageObject, MutableMapping):
         instance behave like a dictionary which can be used if a game
         is to be generated without using a matrix.
 
-        Method is needed to make an instance of Normal Form Game
-        behave like a dictionary. Here we allow for querying a key::
+        Here we allow for querying a key::
 
             sage: A = matrix([[2, 5], [0, 4]])
             sage: B = matrix([[2, 0], [5, 4]])
@@ -626,10 +621,8 @@ class NormalFormGame(SageObject, MutableMapping):
         instance behave like a dictionary which can be used if a game
         is to be generated without using a matrix.
 
-        Method is needed to make an instance of Normal Form Game
-        behave like a dictionary. Here we allow for iteration over
-        the game to correspond to iteration over keys of the utility
-        dictionary::
+        Here we allow for iteration over the game to correspond to
+        iteration over keys of the utility dictionary::
 
             sage: A = matrix([[2, 5], [0, 4]])
             sage: B = matrix([[2, 0], [5, 4]])
@@ -649,9 +642,7 @@ class NormalFormGame(SageObject, MutableMapping):
         instance behave like a dictionary which can be used if a game
         is to be generated without using a matrix.
 
-        Method is needed to make an instance of Normal Form Game
-        behave like a dictionary. Here we set up setting the value
-        of a key::
+        Here we set up setting the value of a key::
 
             sage: A = matrix([[2, 5], [0, 4]])
             sage: B = matrix([[2, 0], [5, 4]])

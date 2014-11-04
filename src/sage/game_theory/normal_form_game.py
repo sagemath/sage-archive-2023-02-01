@@ -939,6 +939,42 @@ class NormalFormGame(SageObject, MutableMapping):
           * ``enumeration`` - This is a very inefficient
             algorithm (in essence a brute force approach).
 
+            1. For each k in 1...min(size of strategy sets)
+            2. For each I,J supports of size k
+            3. Prune: check if supports are dominated
+            4. Solve indifference conditions and check that have Nash Equilibrium.
+
+            Solving the indifference conditions is done by building the
+            corresponding linear system.  If  `\rho_1, \rho_2` are the
+            supports player 1 and 2 respectively.  Then, indifference implies:
+
+            .. MATH::
+
+                u_1(s_1,\rho_2) = u_2(s_2, \rho_2)
+
+            for all `s_1, s_2` in the support of `\rho_1`. This corresponds to:
+
+            .. MATH::
+
+                \sum_{j\in S(\rho_2)}A_{s_1,j}{\rho_2}_j = \sum_{j\in S(\rho_2)}A_{s_2,j}{\rho_2}_j
+
+            for all `s_1, s_2` in the support of `\rho_1` where `A` is the payoff
+            matrix of player 1. Equivalently we can consider consecutive rows of
+            `A` (instead of all pairs of strategies). Thus the corresponding
+            linear system can be written as:
+
+            .. MATH::
+
+                \left(\sum_{j \in S(\rho_2)}^{A_{i,j} - A_{i+1,j}\right){\rho_2}_j
+
+            for all `1\leq i \leq |S(\rho_1)|` (where `A` has been modified to only
+            contain the row corresponding to `S(\rho_1)`. We also require all
+            elements of `\rho_2` to sum to 1:
+
+            .. MATH::
+
+                \sum_{j\in S(\rho_1)}{\rho_2}_j = 1
+
         - ``maximization`` - Whether a player is trying to maximize their
                              utility or minimize it.
 

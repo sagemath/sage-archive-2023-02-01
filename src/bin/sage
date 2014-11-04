@@ -25,7 +25,6 @@ usage() {
     echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
     echo "                         'default', 'sagenb', and 'ipython')"
     echo "  -n, --notebook      -- shortcut for --notebook=default"
-    echo "  -notebook-ipy [...] -- start the Sage IPython notebook"
     echo "  -optional           -- list all optional packages that can be installed"
     echo "  -python [...]       -- run the Python interpreter"
     echo "  -R [...]            -- run Sage's R with given arguments"

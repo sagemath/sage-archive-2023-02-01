@@ -1,11 +1,13 @@
 .. -*- coding: utf-8 -*-
 
+.. linkall
+
 .. _polytutorial:
 
 A Brief Introduction to Polytopes in Sage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. MODULEAUTHOR:: sarah-marie belcastro <smbelcas@toroidalsnark.net>
+.. MODULEAUTHOR:: Sarah-Marie Belcastro <smbelcas@toroidalsnark.net>
 
 If you already know some convex geometry  *a la*  Grünbaum or
 Brøndsted, then you may have itched to get your hands dirty with some
@@ -35,7 +37,7 @@ Of course, you want to know what this object looks like:
 ::
 
     sage: show(P1)
-
+    Graphics object consisting of 6 graphics primitives
 
 .. end of output
 
@@ -46,7 +48,7 @@ hyperplanes are.  Luckily Sage will take care of that for us.
 ::
 
     sage: for q in P1.Hrepresentation():
-    ...      print q
+    ....:    print q
     An inequality (-4, 1) x + 12 >= 0
     An inequality (1, 7) x + 26 >= 0
     An inequality (1, 0) x + 5 >= 0
@@ -58,7 +60,7 @@ That notation is not immediately parseable, because seriously,
 those do not look like equations of lines (or of halfspaces, which is
 really what they are).
 
-``(\-4, 1) x \+ 12 >= 0`` really means  :math:`(-4, 1)\cdot\vec{x} + 12 \geq 0`.
+``(-4, 1) x + 12 >= 0`` really means  :math:`(-4, 1)\cdot\vec{x} + 12 \geq 0`.
 
 So... if you want to define a polytope via inequalities, you have to
 translate each inequality into a vector.  For example,
@@ -69,7 +71,7 @@ translate each inequality into a vector.  For example,
 
     sage: altP1 = Polyhedron(ieqs=[(12, -4, 1), (26, 1, 7),(5,1,0), (28, 2, -9)])
     sage: show(altP1)
-
+    Graphics object consisting of 6 graphics primitives
 
 .. end of output
 
@@ -80,7 +82,7 @@ vertex list, which can be done in two ways:
 ::
 
     sage: for q in P1.Vrepresentation():
-    ...      print q
+    ....:    print q
     A vertex at (-5, -3)
     A vertex at (-5, 2)
     A vertex at (4, 4)
@@ -118,7 +120,7 @@ to a rational\-lattice polytope.  Let's look at that.
 ::
 
     sage: show(P1dual)
-
+    Graphics object consisting of 6 graphics primitives
 
 
 .. end of output
@@ -126,6 +128,7 @@ to a rational\-lattice polytope.  Let's look at that.
 ::
 
     sage: show(P1)+show(P1dual)
+    Graphics object consisting of 12 graphics primitives
 
 
 .. end of output
@@ -137,7 +140,7 @@ very different size.  Let's rescale.
 ::
 
     sage: show((1/4)*P1)+show(4*P1dual)
-
+    Graphics object consisting of 12 graphics primitives
 
 .. end of output
 
@@ -151,7 +154,7 @@ example that makes the issue a bit clearer.
     sage: P2; P2dual = P2.polar(); P2dual; show(P2)+show(P2dual)
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 5 vertices
     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices
-
+    Graphics object consisting of 14 graphics primitives
 
 .. end of output
 
@@ -162,13 +165,13 @@ at this...
 ::
 
     sage: show(P2)+show(-1*P2dual)
-
+    Graphics object consisting of 14 graphics primitives
 
 .. end of output
 
 Here is what's going on. 
 
-If a polytope ``P`` is in `ZZ`, then...
+If a polytope ``P`` is in `\ZZ`, then...
 
 (1) ...the dual is inverted in some way, which is vertically for polygons.
 
@@ -176,7 +179,7 @@ If a polytope ``P`` is in `ZZ`, then...
 
 (3) ...if the origin is not in P, then an error is returned.
 
-However, if a polytope is  *not*  in `ZZ`, for example if it's in `QQ` or
+However, if a polytope is  *not*  in `\ZZ`, for example if it's in `\QQ` or
 ``RDF``, then...
 
 (1') ...the dual is not inverted.
@@ -214,16 +217,19 @@ visualization software such as Javaview and Jmol installed.)
 
 ::
 
-    sage: P3 = Polyhedron(vertices=[(0,0,0), (0,0,1/2), (0,1/2,0), (1/2,0,0), (3/4,1/5,3/2)]); P3; P4 = Polyhedron(vertices=[(-1,1,0),(1,1,0),(-1,0,1), (1,0,1),(0,-1,1),(0,1,1)]); P4; show(P3)+show(P4)
+    sage: P3 = Polyhedron(vertices=[(0,0,0), (0,0,1/2), (0,1/2,0), (1/2,0,0), (3/4,1/5,3/2)]); P3
     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 5 vertices
+    sage: P4 = Polyhedron(vertices=[(-1,1,0),(1,1,0),(-1,0,1), (1,0,1),(0,-1,1),(0,1,1)]); P4
     A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
+    sage: show(P3)+show(P4)
+    Graphics3d Object
 
 .. end of output
 
 ::
 
     sage: show(P3+P4)
-
+    Graphics3d Object
 
 .. end of output
 
@@ -234,14 +240,14 @@ syntaxes!
 ::
 
     sage: int12 = P1.intersection(P2*.5); show(int12)
-
+    Graphics object consisting of 7 graphics primitives
 
 .. end of output
 
 ::
 
     sage: int34 = P3 & P4; show(int34)
-
+    Graphics3d Object
 
 .. end of output
 
@@ -252,7 +258,7 @@ Should one wish to translate, one can.
 
     sage: transP2 = P2.translation([2,1])
     sage: show(P2)+show(transP2)
-
+    Graphics object consisting of 14 graphics primitives
 
 .. end of output
 
@@ -261,27 +267,27 @@ Then of course we can take prisms, pyramids, and bipyramids of polytopes...
 
 ::
 
-    sage: show(P2.prism() )
-
-
-.. end of output
-
-::
-
-    sage: show(P1.pyramid() )
-
+    sage: show(P2.prism())
+    Graphics3d Object
 
 .. end of output
 
 ::
 
-    sage: show(P2dual.bipyramid() )
+    sage: show(P1.pyramid())
+    Graphics3d Object
 
+.. end of output
+
+::
+
+    sage: show(P2dual.bipyramid())
+    Graphics3d Object
 
 .. end of output
 
 Okay, fine.  Yes, Sage has some kinds of polytopes built in.
-If you type polytopes. and then press TAB after the period, you'll get a
+If you type ``polytopes.`` and then press ``TAB`` after the period, you'll get a
 list of pre\-built polytopes.
 
 
@@ -290,7 +296,6 @@ list of pre\-built polytopes.
     sage: P5 = polytopes.n_cube(5)
     sage: P6 = polytopes.cross_polytope(3)
     sage: P7 = polytopes.n_simplex(7)
-    sage: polytopes.
 
 
 .. end of output
@@ -302,7 +307,7 @@ Let's look at a 4\-dimensional polytope.
 
     sage: P8 = polytopes.n_cube(4)
     sage: P8.show()
-
+    Graphics3d Object
 
 .. end of output
 
@@ -312,7 +317,7 @@ We can see it from a different perspective:
 ::
 
     sage: P8.schlegel_projection([2,5,11,17]).show()
-
+    Graphics3d Object
 
 .. end of output
 
@@ -324,21 +329,21 @@ Once you've constructed some polytope, you can ask Sage questions about it.
 
 ::
 
-    sage: P1.contains( [1,0])
+    sage: P1.contains([1,0])
     True
 
 .. end of output
 
 ::
 
-    sage: P1.interior_contains( [3,0])
+    sage: P1.interior_contains([3,0])
     False
 
 .. end of output
 
 ::
 
-    sage: P3.contains( [ 1,0,0])
+    sage: P3.contains([1,0,0])
     False
 
 .. end of output

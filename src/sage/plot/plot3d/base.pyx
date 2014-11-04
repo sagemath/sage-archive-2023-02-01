@@ -68,6 +68,18 @@ cdef class Graphics3d(SageObject):
     .. automethod:: _graphics_
     .. automethod:: __add__
     """
+    def __cinit__(self):
+        """
+        The Cython constructor
+        
+        EXAMPLES::
+
+            sage: gfx = sage.plot.plot3d.base.Graphics3d()
+            sage: gfx._extra_kwds
+            {}
+        """
+        self._extra_kwds = dict()
+    
     def _repr_(self):
         """
         Return a string representation.
@@ -1023,8 +1035,7 @@ end_scene""" % (render_params.antialiasing,
         """
         opts = {}
         opts.update(SHOW_DEFAULTS)
-        if self._extra_kwds is not None:
-            opts.update(self._extra_kwds)
+        opts.update(self._extra_kwds)
         opts.update(kwds)
 
         # Remove all of the keys that are viewing options, since the remaining
@@ -1411,7 +1422,7 @@ class Graphics3dGroup(Graphics3d):
         self.all = list(all)
         self.frame_aspect_ratio(optimal_aspect_ratios([a.frame_aspect_ratio() for a in all]))
         self.aspect_ratio(optimal_aspect_ratios([a.aspect_ratio() for a in all]))
-        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all if a._extra_kwds is not None]))
+        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all]))
 
     def __add__(self, other):
         """

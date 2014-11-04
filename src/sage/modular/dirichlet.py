@@ -1476,7 +1476,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
     def values(self):
         """
-        Returns a list of the values of this character on each integer
+        Return a list of the values of this character on each integer
         between 0 and the modulus.
 
         EXAMPLES::
@@ -1526,84 +1526,61 @@ class DirichletCharacter(MultiplicativeGroupElement):
             return self.__values
         except AttributeError:
             pass
+
         # Build cache of all values of the Dirichlet character.
         # I'm going to do it this way, since in my app the modulus
         # is *always* small and we want to evaluate the character
         # a *lot*.
         G = self.parent()
         R = G.base_ring()
-        zero = R(0)
-        one = R(1)
+
         mod = self.__modulus
+        if mod == 1:
+            self.__values = [R.one_element()]
+            return self.__values
+        elif mod == 2:
+            self.__values = [R.zero_element(), R.one_element()]
+            return self.__values
 
-        if self.is_trivial():  # easy special case
-            x = [ one ] * int(mod)
-
-            for p in mod.prime_divisors():
-                p_mult = p
-                while p_mult < mod:
-                    x[p_mult] = zero
-                    p_mult += p
-            if not (mod == 1):
-                x[0] = zero
-            self.__values = x
-            return x
-
-        result_list = [zero] * mod
-
-        zeta_order = G.zeta_order()
-        zeta = R.zeta(zeta_order)
-        A = rings.Integers(zeta_order)
-        A_zero = A.zero_element()
-        A_one = A.one_element()
-        ZZ = rings.ZZ
-
-        S = G._integers
-
-        R_values = G._zeta_powers
-
+        result_list = [R.zero_element()] * mod
         gens = G.unit_gens()
-        last = [o - 1 for o in G.integers_mod().unit_group().gens_orders()]
-
         ngens = len(gens)
+        orders = G.integers_mod().unit_group().gens_orders()
+
+        A = rings.IntegerModRing(G.zeta_order())
+        R_values = G._zeta_powers
+        val_on_gen = [A(R_values.index(x)) for x in self.values_on_gens()]
+
         exponents = [0] * ngens
-        n = S(1)
+        n = G.integers_mod().one_element()
+        value = A.zero_element()
 
-        value = A_zero
-        val_on_gen = [ A(R_values.index(x)) for x in self.values_on_gens() ]
-
-        final_index = ngens-1
-        stop = last[-1]
-        while exponents[-1] <= stop:
-
-            ########################
+        final_index = ngens - 1
+        stop = orders[-1]
+        while exponents[-1] < stop:
             # record character value on n
             result_list[n] = R_values[value]
             # iterate:
             #   increase the exponent vector by 1,
             #   increase n accordingly, and increase value
-            exponents[0] += 1   # inc exponent
-            value += val_on_gen[0]  # inc value
-            n *= gens[0]
-            ## n %= mod
             i = 0
-            while i < final_index and exponents[i] > last[i]:
+            exponents[0] += 1
+            value += val_on_gen[0]
+            n *= gens[0]
+            while i < final_index and exponents[i] >= orders[i]:
                 exponents[i] = 0
-                # now increment position i+1:
-                exponents[i+1] += 1
-                value += val_on_gen[i+1]
-                n *= gens[i+1]
-                ## n %= mod
                 i += 1
+                exponents[i] += 1
+                value += val_on_gen[i]
+                n *= gens[i]
 
         self.__values = result_list
         return self.__values
 
     def values_on_gens(self):
-        """
-        Returns a tuple of the values of this character on each of the
-        minimal generators of `(\ZZ/N\ZZ)^*`, where
-        `N` is the modulus.
+        r"""
+        Return a tuple of the values of ``self`` on the standard
+        generators of `(\ZZ/N\ZZ)^*`, where `N` is the modulus.
 
         EXAMPLES::
 
@@ -2037,7 +2014,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         for u in self.unit_gens():
             v = u.lift()
             # have to do this, since e.g., unit gens mod 11 are not units mod 22.
-            while arith.GCD(x.modulus(),int(v)) != 1:
+            while x.modulus().gcd(v) != 1:
                 v += self.modulus()
             a.append(R(x(v)))
         return self(a)

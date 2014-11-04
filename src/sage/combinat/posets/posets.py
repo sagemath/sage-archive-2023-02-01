@@ -3096,11 +3096,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P2=Poset( (['c', 'd'], [['c', 'd']]) )
             sage: P=P1.disjoint_union(P2); P
             Finite poset containing 4 elements
-            sage: P.cover_relations()
-            [[(0,'a'), (0, 'b')], [(1, 'c'), (1, 'd')]]
+            sage: sorted(P.cover_relations())
+            [[(0, 'a'), (0, 'b')], [(1, 'c'), (1, 'd')]]
             sage: P=P1.disjoint_union(P2, labels='integers');
             sage: P.cover_relations()
-            [[2,3], [0, 1]]
+            [[2, 3], [0, 1]]
 
             sage: N5=Posets.PentagonPoset(); N5
             Finite lattice containing 5 elements
@@ -3110,14 +3110,14 @@ class FinitePoset(UniqueRepresentation, Parent):
         We show how to get literally direct sum with elements untouched::
 
             sage: P=P1.disjoint_union(P2).relabel(lambda x: x[1])
-            sage: P.cover_relations()
+            sage: sorted(P.cover_relations())
             [['a', 'b'], ['c', 'd']]
 
         """
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('The input is not a finite poset.')
         return Poset(self.hasse_diagram().disjoint_union(other.hasse_diagram(),
-                     labels))
+                                                         labels=labels))
 
     def ordinal_sum(self, other, labels='pairs'):
         """

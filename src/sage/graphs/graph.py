@@ -4900,17 +4900,19 @@ class Graph(GenericGraph):
         from copy import copy
         return copy(self)
 
-    def join(self, other, verbose_relabel=True):
+    def join(self, other, verbose_relabel=None, labels="pairs"):
         """
         Returns the join of self and other.
 
         INPUT:
 
-        - ``verbose_relabel`` - (defaults to True) If True, each vertex `v` in
-          the first graph will be named '0,v' and each vertex u in the second
-          graph will be named'1,u' in the final graph. If False, the vertices
-          of the first graph and the second graph will be relabeled with
-          consecutive integers.
+        - ``verbose_relabel`` - deprecated.
+
+        - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
+          element ``v`` in the first graph will be named ``(0,v)`` and
+          each element ``u`` in ``other`` will be named ``(1,u)`` in
+          the result. If set to 'integers', the elements of the result
+          will be relabeled with consecutive integers.
 
         .. SEEALSO::
 
@@ -4926,7 +4928,7 @@ class Graph(GenericGraph):
             Cycle graph join : Graph on 5 vertices
             sage: J.vertices()
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
-            sage: J = G.join(H, verbose_relabel=False); J
+            sage: J = G.join(H, labels='integers'); J
             Cycle graph join : Graph on 5 vertices
             sage: J.vertices()
             [0, 1, 2, 3, 4]
@@ -4943,13 +4945,20 @@ class Graph(GenericGraph):
             Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
             sage: J.vertices()
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
-            sage: J = G.join(H, verbose_relabel=False); J
+            sage: J = G.join(H, labels='integers'); J
             Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
             sage: J.edges()
             [(0, 3, None), (0, 4, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
         """
-        G = self.disjoint_union(other, verbose_relabel)
-        if not verbose_relabel:
+        if verbose_relabel is not None:
+            deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
+            if verbose_relabel == True:
+                labels="pairs"
+            if verbose_relabel == False:
+                labels="integers"
+
+        G = self.disjoint_union(other, labels=labels)
+        if labels=="integers":
             G.add_edges((u,v) for u in range(self.order())
                         for v in range(self.order(), self.order()+other.order()))
         else:

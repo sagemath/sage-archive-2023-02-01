@@ -10,9 +10,433 @@ architecture to ensure an easy transition between the two.
 At present the algorithms for the computation of equilibria only solve 2 player
 games.
 
+A very simple and well known example of normal form game is referred
+to as the 'Battle of the Sexes' in which two players Amy and Bob
+are modeled.  Amy prefers to play video games and Bob prefers to
+watch a movie.  They both however want to spend their evening together.
+This can be modeled using the following two matrices:
+
+.. MATH::
+
+    A = \begin{pmatrix}
+        3&1\\
+        0&2\\
+        \end{pmatrix}
+
+
+    B = \begin{pmatrix}
+        2&1\\
+        0&3\\
+        \end{pmatrix}
+
+Matrix `A` represents the utilities of Amy and matrix `B` represents the
+utility of Bob. The choices of Amy correspond to the rows of the matrices:
+
+* The first row corresponds to video games.
+
+* The second row corresponds to movies.
+
+Similarly Bob's choices are represented by the columns:
+
+* The first column corresponds to video games.
+
+* The second column corresponds to movies.
+
+Thus, if both Amy and Bob choose to play video games: Amy receives a
+utility of 3 and Bob a utility of 2. If Amy is indeed going to stick
+with video games Bob has no incentive to deviate (and vice versa).
+
+This situation repeats itself if both Amy and Bob choose to watch a movie:
+neither has an incentive to deviate.
+
+This loosely described situation is referred to as a Nash Equilibrium.
+We can use Sage to find them, and more importantly, see if there is any
+other situation where Amy and Bob have no reason to change their choice
+of action:
+
+Here is how we create the game in Sage::
+
+    sage: A = matrix([[3, 1], [0, 2]])
+    sage: B = matrix([[2, 1], [0, 3]])
+    sage: battle_of_the_sexes = NormalFormGame([A, B])
+    sage: battle_of_the_sexes
+    Normal Form Game with the following utilities: {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
+
+To obtain the Nash equilibria we run the ``obtain_Nash()`` method. In the
+first few examples, we will use the 'support enumeration' algorithm.
+A discussion about the different algorithms will be given later::
+
+    sage: battle_of_the_sexes.obtain_Nash(algorithm='enumeration')
+    [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(3/4, 1/4), (1/4, 3/4)]]
+
+If we look a bit closer at our output we see that a list of three
+pairs of tuples have been returned. Each of these correspond to a
+Nash Equilibrium, represented as a probability distribution over the
+available strategies:
+
+* `[(1, 0), (1, 0)]` corresponds to the first player only
+  playing their first strategy and the second player also only playing
+  their first strategy. In other words Amy and Bob both play video games.
+
+* `[(0, 1), (0, 1)]` corresponds to the first player only
+  playing their second strategy and the second player also only playing
+  their second strategy. In other words Amy and Bob both watch movies.
+
+* `[(3/4, 1/4), (1/4, 3/4)]` corresponds to players `mixing` their
+  strategies. Amy plays video games 75% of the time and Bob watches
+  movies 75% of the time. At this equilibrium point Amy and Bob will
+  only ever do the same activity `3/8` of the time.
+
+We can use Sage to compute the expected utility for any mixed strategy
+pair `(\sigma_1, \sigma_2)`. The payoff to player 1 is given by the
+vector/matrix multiplication:
+
+.. MATH::
+
+    \sigma_1 A \sigma_2
+
+The payoff to player 2 is given by:
+
+.. MATH::
+
+    \sigma_1 B \sigma_2
+
+To compute this in Sage we have::
+
+    sage: for ne in battle_of_the_sexes.obtain_Nash(algorithm='enumeration'):
+    ....:     print "Utility for {}: ".format(ne)
+    ....:     print vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])
+    Utility for [(1, 0), (1, 0)]:
+    3 2
+    Utility for [(0, 1), (0, 1)]:
+    2 3
+    Utility for [(3/4, 1/4), (1/4, 3/4)]:
+    3/2 3/2
+
+Allowing players to play mixed strategies ensures that there will always
+be a Nash Equilibrium for a normal form game. This result is called Nash's
+Theorem ([N1950]_).
+
+Let us consider the game called 'matching pennies' where two players each
+present a coin with either HEADS or TAILS showing. If the coins show the
+same side then player 1 wins, otherwise player 2 wins:
+
+
+.. MATH::
+
+    A = \begin{pmatrix}
+        1&-1\\
+        -1&1\\
+        \end{pmatrix}
+
+
+    B = \begin{pmatrix}
+        -1&1\\
+        1&-1\\
+        \end{pmatrix}
+
+It should be relatively straightforward to observe, that there is no
+situation, where both players always do the same thing, and have no
+incentive to deviate.
+
+We can plot the utility of player 1 when player 2 is playing a mixed
+strategy `\sigma_2=(y,1-y)` (so that the utility to player 1 for
+playing strategy `i` is given by the matrix/vector multiplication:
+`(Ay)_i`)::
+
+    sage: y = var('y')
+    sage: A = matrix([[1, -1], [-1, 1]])
+    sage: p = plot((A * vector([y, 1 - y]))[0], y, 0, 1, color='blue', legend_label='$u_1(r_1, (y, 1-y))$', axes_labels=['$y$', ''])
+    sage: p += plot((A * vector([y, 1 - y]))[1], y, 0, 1, color='red', legend_label='$u_1(r_2, (y, 1-y))$')
+
+We see that the only point at which player 1 is indifferent amongst
+the available strategies is when `y=1/2`.
+
+If we compute the Nash equilibria we see that this corresponds to a point
+at which both players are indifferent::
+
+    sage: y = var('y')
+    sage: A = matrix([[1, -1], [-1, 1]])
+    sage: B = matrix([[-1, 1], [1, -1]])
+    sage: matching_pennies = NormalFormGame([A, B])
+    sage: matching_pennies.obtain_Nash(algorithm='enumeration')
+    [[(1/2, 1/2), (1/2, 1/2)]]
+
+The utilities to both players at this Nash equilibrium
+is easily computed::
+
+    sage: [vector([1/2, 1/2]) * M * vector([1/2, 1/2]) for M in matching_pennies.payoff_matrices()]
+    [0, 0]
+
+Note that the above uses the ``payoff_matrices`` method
+which returns the payoff matrices for a 2 player game::
+
+    sage: matching_pennies.payoff_matrices()
+    (
+    [ 1 -1]  [-1  1]
+    [-1  1], [ 1 -1]
+    )
+
+One can also input a single matrix and then a zero sum game is constructed.
+Here is an instance of `Rock-Paper-Scissors-Lizard-Spock
+<http://en.wikipedia.org/wiki/Rock-paper-scissors-lizard-Spock>`_::
+
+    sage: A = matrix([[0, -1, 1, 1, -1],
+    ....:             [1, 0, -1, -1, 1],
+    ....:             [-1, 1, 0, 1 , -1],
+    ....:             [-1, 1, -1, 0, 1],
+    ....:             [1, -1, 1, -1, 0]])
+    sage: g = NormalFormGame([A])
+    sage: g.obtain_Nash(algorithm='enumeration')
+    [[(1/5, 1/5, 1/5, 1/5, 1/5), (1/5, 1/5, 1/5, 1/5, 1/5)]]
+
+We can also study games where players aim to minimize their utility.
+Here is the Prisoner's Dilemma (where players are aiming to reduce
+time spent in prison)::
+
+    sage: A = matrix([[2, 5], [0, 4]])
+    sage: B = matrix([[2, 0], [5, 4]])
+    sage: prisoners_dilemma = NormalFormGame([A, B])
+    sage: prisoners_dilemma.obtain_Nash(algorithm='enumeration', maximization=False)
+    [[(0, 1), (0, 1)]]
+
+When obtaining Nash equilibrium there are 2 algorithms currently available:
+
+* ``lrs``: Reverse search vertex enumeration for 2 player games. This
+  algorithm uses the optional `lrs` package. To install it type ``sage -i
+  lrs`` at the command line. For more information see [A2000]_.
+
+* ``enumeration``: Support enumeration for 2 player games. This
+  algorithm is hard coded in Sage and checks through all potential
+  supports of a strategy. Supports of a given size with a conditionally
+  dominated strategy are ignored. Note: this is not the preferred
+  algorithm. The algorithm implemented is a combination of a basic
+  algorithm described in [NN2007]_ and a pruning component described
+  in [SLB2008]_.
+
+Below we show how the two algorithms are called::
+
+    sage: matching_pennies.obtain_Nash(algorithm='lrs')  # optional - lrs
+    [[(1/2, 1/2), (1/2, 1/2)]]
+    sage: matching_pennies.obtain_Nash(algorithm='enumeration')
+    [[(1/2, 1/2), (1/2, 1/2)]]
+
+Note that if no algorithm argument is passed then the default will be
+selected according to the following order (if the corresponding package is
+installed):
+
+    1. ``lrs`` (requires lrs)
+    2. ``enumeration``
+
+Here is a game being constructed using gambit syntax (note that a
+``NormalFormGame`` object acts like a dictionary with strategy tuples as
+keys and payoffs as their values)::
+
+    sage: f = NormalFormGame()
+    sage: f.add_player(2)
+    sage: f.add_player(2)
+    sage: f[0,0][0] = 1
+    sage: f[0,0][1] = 3
+    sage: f[0,1][0] = 2
+    sage: f[0,1][1] = 3
+    sage: f[1,0][0] = 3
+    sage: f[1,0][1] = 1
+    sage: f[1,1][0] = 4
+    sage: f[1,1][1] = 4
+    sage: f
+    Normal Form Game with the following utilities: {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
+
+Once this game is constructed we can view the payoff matrices and solve the
+game::
+
+    sage: f.payoff_matrices()
+    (
+    [1 2]  [3 3]
+    [3 4], [1 4]
+    )
+    sage: f.obtain_Nash(algorithm='enumeration')
+    [[(0, 1), (0, 1)]]
+
+We can add an extra strategy to the first player::
+
+    sage: f.add_strategy(0)
+    sage: f
+    Normal Form Game with the following utilities: {(0, 1): [2, 3], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [3, 1], (1, 1): [4, 4]}
+
+If we do this and try and obtain the Nash equilibrium or view the payoff
+matrices(without specifying the utilities), an error is returned::
+
+    sage: f.obtain_Nash()
+    Traceback (most recent call last):
+    ...
+    ValueError: utilities have not been populated
+    sage: f.payoff_matrices()
+    Traceback (most recent call last):
+    ...
+    ValueError: utilities have not been populated
+
+Here we populate the missing utilities::
+
+    sage: f[2, 1] = [5, 3]
+    sage: f[2, 0] = [2, 1]
+    sage: f.payoff_matrices()
+    (
+    [1 2]  [3 3]
+    [3 4]  [1 4]
+    [2 5], [1 3]
+    )
+    sage: f.obtain_Nash()
+    [[(0, 0, 1), (0, 1)]]
+
+We can use the same syntax as above to create games with
+more than 2 players::
+
+    sage: threegame = NormalFormGame()
+    sage: threegame.add_player(2)
+    sage: threegame.add_player(2)
+    sage: threegame.add_player(2)
+    sage: threegame[0, 0, 0][0] = 3
+    sage: threegame[0, 0, 0][1] = 1
+    sage: threegame[0, 0, 0][2] = 4
+    sage: threegame[0, 0, 1][0] = 1
+    sage: threegame[0, 0, 1][1] = 5
+    sage: threegame[0, 0, 1][2] = 9
+    sage: threegame[0, 1, 0][0] = 2
+    sage: threegame[0, 1, 0][1] = 6
+    sage: threegame[0, 1, 0][2] = 5
+    sage: threegame[0, 1, 1][0] = 3
+    sage: threegame[0, 1, 1][1] = 5
+    sage: threegame[0, 1, 1][2] = 8
+    sage: threegame[1, 0, 0][0] = 9
+    sage: threegame[1, 0, 0][1] = 7
+    sage: threegame[1, 0, 0][2] = 9
+    sage: threegame[1, 0, 1][0] = 3
+    sage: threegame[1, 0, 1][1] = 2
+    sage: threegame[1, 0, 1][2] = 3
+    sage: threegame[1, 1, 0][0] = 8
+    sage: threegame[1, 1, 0][1] = 4
+    sage: threegame[1, 1, 0][2] = 6
+    sage: threegame[1, 1, 1][0] = 2
+    sage: threegame[1, 1, 1][1] = 6
+    sage: threegame[1, 1, 1][2] = 4
+    sage: threegame
+    Normal Form Game with the following utilities: {(0, 1, 1): [3, 5, 8], (1, 1, 0): [8, 4, 6], (1, 0, 0): [9, 7, 9], (0, 0, 1): [1, 5, 9], (1, 0, 1): [3, 2, 3], (0, 0, 0): [3, 1, 4], (0, 1, 0): [2, 6, 5], (1, 1, 1): [2, 6, 4]}
+
+The above requires a lot of input that could be simplified if there is
+another data structure with our utilities and/or a structure to the
+utilities.  The following example creates a game with a relatively strange
+utility function::
+
+    sage: def utility(strategy_triplet, player):
+    ....:     return sum(strategy_triplet) * player
+    sage: threegame = NormalFormGame()
+    sage: threegame.add_player(2)
+    sage: threegame.add_player(2)
+    sage: threegame.add_player(2)
+    sage: for i, j, k in [(i, j, k) for i in [0,1] for j in [0,1] for k in [0,1]]:
+    ....:     for p in range(3):
+    ....:          threegame[i, j, k][p] = utility([i, j, k], p)
+    sage: threegame
+    Normal Form Game with the following utilities: {(0, 1, 1): [0, 2, 4], (1, 1, 0): [0, 2, 4], (1, 0, 0): [0, 1, 2], (0, 0, 1): [0, 1, 2], (1, 0, 1): [0, 2, 4], (0, 0, 0): [0, 0, 0], (0, 1, 0): [0, 1, 2], (1, 1, 1): [0, 3, 6]}
+
+At present no algorithm has been implemented in Sage for games with
+more than 2 players::
+
+    sage: threegame.obtain_Nash()
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
+
+Here is a slightly longer game that would take too long to solve with
+``enumeration``. Consider the following:
+
+An airline loses two suitcases belonging to two different travelers. Both
+suitcases happen to be identical and contain identical antiques. An
+airline manager tasked to settle the claims of both travelers explains
+that the airline is liable for a maximum of 10 per suitcase, and in order
+to determine an honest appraised value of the antiques the manager
+separates both travelers so they can't confer, and asks them to write down
+the amount of their value at no less than 2 and no larger than 100. He
+also tells them that if both write down the same number, he will treat
+that number as the true dollar value of both suitcases and reimburse both
+travelers that amount.
+However, if one writes down a smaller number than the other, this smaller
+number will be taken as the true dollar value, and both travelers will
+receive that amount along with a bonus/malus: 2 extra will be paid to the
+traveler who wrote down the lower value and a 2 deduction will be taken
+from the person who wrote down the higher amount. The challenge is: what
+strategy should both travelers follow to decide the value they should
+write down?
+
+In the following we create the game (with a max value of 10) and solve it::
+
+    sage: K = 10  # Modifying this value lets us play with games of any size
+    sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
+    sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
+    sage: g = NormalFormGame([A, B])
+    sage: g.obtain_Nash(algorithm='lrs') # optional - lrs
+    [[(1, 0, 0, 0, 0, 0, 0, 0, 0), (1, 0, 0, 0, 0, 0, 0, 0, 0)]]
+
+The equilibrium strategy is thus for both players to state that the value
+of their suitcase is 2.
+
+Note that degenerate games can cause problems for most algorithms.
+The following example in fact has an infinite quantity of equilibria which
+is evidenced by the two algorithms returning different solutions::
+
+    sage: A = matrix([[3,3],[2,5],[0,6]])
+    sage: B = matrix([[3,3],[2,6],[3,1]])
+    sage: degenerate_game = NormalFormGame([A,B])
+    sage: degenerate_game.obtain_Nash(algorithm='lrs') # optional - lrs
+    [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
+    sage: degenerate_game.obtain_Nash(algorithm='enumeration')
+    [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+
+Here is an example with the trivial game where all payoffs are 0::
+
+    sage: g = NormalFormGame()
+    sage: g.add_player(3)
+    sage: g.add_player(3)
+    sage: for key in g:
+    ....:     g[key] = [0, 0]
+    sage: g.payoff_matrices()
+    (
+    [0 0 0]  [0 0 0]
+    [0 0 0]  [0 0 0]
+    [0 0 0], [0 0 0]
+    )
+    sage: g.obtain_Nash(algorithm='enumeration')
+    [[(1, 0, 0), (1, 0, 0)]]
+
+A good description of degenerate games can be found in [NN2007]_.
+
+REFERENCES:
+
+.. [N1950] John Nash.
+   *Equilibrium points in n-person games.*
+   Proceedings of the national academy of sciences 36.1 (1950): 48-49.
+
+.. [NN2007] Nisan, Noam, et al., eds.
+   *Algorithmic game theory.*
+   Cambridge University Press, 2007.
+
+.. [A2000] Avis, David.
+   *A revised implementation of the reverse search vertex enumeration algorithm.*
+   Polytopes-combinatorics and computation
+   Birkhauser Basel, 2000.
+
+.. [MMAT2014] McKelvey, Richard D., McLennan, Andrew M., and Turocy, Theodore L.
+   *Gambit: Software Tools for Game Theory, Version 13.1.2.*
+   http://www.gambit-project.org (2014).
+
+.. [SLB2008] Shoham, Yoav, and Kevin Leyton-Brown.
+   *Multiagent systems: Algorithmic, game-theoretic, and logical foundations.*
+   Cambridge University Press, 2008.
+
 AUTHOR:
 
-    - James Campbell and Vince Knight (06-2014): Original version
+- James Campbell and Vince Knight (06-2014): Original version
+
 """
 
 #*****************************************************************************
@@ -52,436 +476,6 @@ class NormalFormGame(SageObject, MutableMapping):
 
     - ``generator`` - Can be a list of 2 matrices, a single matrix or left
                       blank.
-
-    EXAMPLES:
-
-    Normal form games, also referred to as strategic form games, are used to
-    model situations where agents/players make strategic choices, the outcome
-    of which depends on the strategic choices of all players involved.
-
-    A very simple and well known example of this is referred to as the
-    'Battle of the Sexes' in which two players Amy and Bob are modeled.
-    Amy prefers to play video games and Bob prefers to watch a movie.
-    They both however want to spend their evening together.
-    This can be modeled using the following two matrices:
-
-    .. MATH::
-
-        A = \begin{pmatrix}
-            3&1\\
-            0&2\\
-            \end{pmatrix}
-
-
-        B = \begin{pmatrix}
-            2&1\\
-            0&3\\
-            \end{pmatrix}
-
-    Matrix `A` represents the utilities of Amy and matrix `B` represents the
-    utility of Bob. The choices of Amy correspond to the rows of the matrices:
-
-    * The first row corresponds to video games.
-
-    * The second row corresponds to movies.
-
-    Similarly Bob's choices are represented by the columns:
-
-    * The first column corresponds to video games.
-
-    * The second column corresponds to movies.
-
-    Thus, if both Amy and Bob choose to play video games: Amy receives a
-    utility of 3 and Bob a utility of 2. If Amy is indeed going to stick
-    with video games Bob has no incentive to deviate (and vice versa).
-
-    This situation repeats itself if both Amy and Bob choose to watch a movie:
-    neither has an incentive to deviate.
-
-    This loosely described situation is referred to as a Nash Equilibrium.
-    We can use Sage to find them, and more importantly, see if there is any
-    other situation where Amy and Bob have no reason to change their choice
-    of action:
-
-    Here is how we create the game in Sage::
-
-        sage: A = matrix([[3, 1], [0, 2]])
-        sage: B = matrix([[2, 1], [0, 3]])
-        sage: battle_of_the_sexes = NormalFormGame([A, B])
-        sage: battle_of_the_sexes
-        Normal Form Game with the following utilities: {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
-
-    To obtain the Nash equilibria we run the ``obtain_Nash()`` method. In the
-    first few examples, we will use the 'support enumeration' algorithm.
-    A discussion about the different algorithms will be given later::
-
-        sage: battle_of_the_sexes.obtain_Nash(algorithm='enumeration')
-        [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(3/4, 1/4), (1/4, 3/4)]]
-
-    If we look a bit closer at our output we see that a list of three
-    pairs of tuples have been returned. Each of these correspond to a
-    Nash Equilibrium, represented as a probability distribution over the
-    available strategies:
-
-    * `[(1, 0), (1, 0)]` corresponds to the first player only
-      playing their first strategy and the second player also only playing
-      their first strategy. In other words Amy and Bob both play video games.
-
-    * `[(0, 1), (0, 1)]` corresponds to the first player only
-      playing their second strategy and the second player also only playing
-      their second strategy. In other words Amy and Bob both watch movies.
-
-    * `[(3/4, 1/4), (1/4, 3/4)]` corresponds to players `mixing` their
-      strategies. Amy plays video games 75% of the time and Bob watches
-      movies 75% of the time. At this equilibrium point Amy and Bob will
-      only ever do the same activity `3/8` of the time.
-
-    We can use Sage to compute the expected utility for any mixed strategy
-    pair `(\sigma_1, \sigma_2)`. The payoff to player 1 is given by the
-    vector/matrix multiplication:
-
-    .. MATH::
-
-        \sigma_1 A \sigma_2
-
-    The payoff to player 2 is given by:
-
-    .. MATH::
-
-        \sigma_1 B \sigma_2
-
-    To compute this in Sage we have::
-
-        sage: for ne in battle_of_the_sexes.obtain_Nash(algorithm='enumeration'):
-        ....:     print "Utility for {}: ".format(ne)
-        ....:     print vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])
-        Utility for [(1, 0), (1, 0)]:
-        3 2
-        Utility for [(0, 1), (0, 1)]:
-        2 3
-        Utility for [(3/4, 1/4), (1/4, 3/4)]:
-        3/2 3/2
-
-    Allowing players to play mixed strategies ensures that there will always
-    be a Nash Equilibrium for a normal form game. This result is called Nash's
-    Theorem ([N1950]_).
-
-    Let us consider the game called 'matching pennies' where two players each
-    present a coin with either HEADS or TAILS showing. If the coins show the
-    same side then player 1 wins, otherwise player 2 wins:
-
-
-    .. MATH::
-
-        A = \begin{pmatrix}
-            1&-1\\
-            -1&1\\
-            \end{pmatrix}
-
-
-        B = \begin{pmatrix}
-            -1&1\\
-            1&-1\\
-            \end{pmatrix}
-
-    It should be relatively straightforward to observe, that there is no
-    situation, where both players always do the same thing, and have no
-    incentive to deviate.
-
-    We can plot the utility of player 1 when player 2 is playing a mixed
-    strategy `\sigma_2=(y,1-y)` (so that the utility to player 1 for
-    playing strategy `i` is given by the matrix/vector multiplication:
-    `(Ay)_i`)::
-
-        sage: y = var('y')
-        sage: A = matrix([[1, -1], [-1, 1]])
-        sage: p = plot((A * vector([y, 1 - y]))[0], y, 0, 1, color='blue', legend_label='$u_1(r_1, (y, 1-y))$', axes_labels=['$y$', ''])
-        sage: p += plot((A * vector([y, 1 - y]))[1], y, 0, 1, color='red', legend_label='$u_1(r_2, (y, 1-y))$')
-
-    We see that the only point at which player 1 is indifferent amongst
-    the available strategies is when `y=1/2`.
-
-    If we compute the Nash equilibria we see that this corresponds to a point
-    at which both players are indifferent::
-
-        sage: y = var('y')
-        sage: A = matrix([[1, -1], [-1, 1]])
-        sage: B = matrix([[-1, 1], [1, -1]])
-        sage: matching_pennies = NormalFormGame([A, B])
-        sage: matching_pennies.obtain_Nash(algorithm='enumeration')
-        [[(1/2, 1/2), (1/2, 1/2)]]
-
-    The utilities to both players at this Nash equilibrium
-    is easily computed::
-
-        sage: [vector([1/2, 1/2]) * M * vector([1/2, 1/2]) for M in matching_pennies.payoff_matrices()]
-        [0, 0]
-
-    Note that the above uses the ``payoff_matrices`` method
-    which returns the payoff matrices for a 2 player game::
-
-        sage: matching_pennies.payoff_matrices()
-        (
-        [ 1 -1]  [-1  1]
-        [-1  1], [ 1 -1]
-        )
-
-    One can also input a single matrix and then a zero sum game is constructed.
-    Here is an instance of `Rock-Paper-Scissors-Lizard-Spock
-    <http://en.wikipedia.org/wiki/Rock-paper-scissors-lizard-Spock>`_::
-
-        sage: A = matrix([[0, -1, 1, 1, -1],
-        ....:             [1, 0, -1, -1, 1],
-        ....:             [-1, 1, 0, 1 , -1],
-        ....:             [-1, 1, -1, 0, 1],
-        ....:             [1, -1, 1, -1, 0]])
-        sage: g = NormalFormGame([A])
-        sage: g.obtain_Nash(algorithm='enumeration')
-        [[(1/5, 1/5, 1/5, 1/5, 1/5), (1/5, 1/5, 1/5, 1/5, 1/5)]]
-
-    We can also study games where players aim to minimize their utility.
-    Here is the Prisoner's Dilemma (where players are aiming to reduce
-    time spent in prison)::
-
-        sage: A = matrix([[2, 5], [0, 4]])
-        sage: B = matrix([[2, 0], [5, 4]])
-        sage: prisoners_dilemma = NormalFormGame([A, B])
-        sage: prisoners_dilemma.obtain_Nash(algorithm='enumeration', maximization=False)
-        [[(0, 1), (0, 1)]]
-
-    When obtaining Nash equilibrium there are 2 algorithms currently available:
-
-    * ``lrs``: Reverse search vertex enumeration for 2 player games. This
-      algorithm uses the optional `lrs` package. To install it type ``sage -i
-      lrs`` at the command line. For more information see [A2000]_.
-
-    * ``enumeration``: Support enumeration for 2 player games. This
-      algorithm is hard coded in Sage and checks through all potential
-      supports of a strategy. Supports of a given size with a conditionally
-      dominated strategy are ignored. Note: this is not the preferred
-      algorithm. The algorithm implemented is a combination of a basic
-      algorithm described in [NN2007]_ and a pruning component described
-      in [SLB2008]_.
-
-    Below we show how the two algorithms are called::
-
-        sage: matching_pennies.obtain_Nash(algorithm='lrs')  # optional - lrs
-        [[(1/2, 1/2), (1/2, 1/2)]]
-        sage: matching_pennies.obtain_Nash(algorithm='enumeration')
-        [[(1/2, 1/2), (1/2, 1/2)]]
-
-    Note that if no algorithm argument is passed then the default will be
-    selected according to the following order (if the corresponding package is
-    installed):
-
-        1. ``lrs`` (requires lrs)
-        2. ``enumeration``
-
-    Here is a game being constructed using gambit syntax (note that a
-    ``NormalFormGame`` object acts like a dictionary with strategy tuples as
-    keys and payoffs as their values)::
-
-        sage: f = NormalFormGame()
-        sage: f.add_player(2)
-        sage: f.add_player(2)
-        sage: f[0,0][0] = 1
-        sage: f[0,0][1] = 3
-        sage: f[0,1][0] = 2
-        sage: f[0,1][1] = 3
-        sage: f[1,0][0] = 3
-        sage: f[1,0][1] = 1
-        sage: f[1,1][0] = 4
-        sage: f[1,1][1] = 4
-        sage: f
-        Normal Form Game with the following utilities: {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
-
-    Once this game is constructed we can view the payoff matrices and solve the
-    game::
-
-        sage: f.payoff_matrices()
-        (
-        [1 2]  [3 3]
-        [3 4], [1 4]
-        )
-        sage: f.obtain_Nash(algorithm='enumeration')
-        [[(0, 1), (0, 1)]]
-
-    We can add an extra strategy to the first player::
-
-        sage: f.add_strategy(0)
-        sage: f
-        Normal Form Game with the following utilities: {(0, 1): [2, 3], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [3, 1], (1, 1): [4, 4]}
-
-    If we do this and try and obtain the Nash equilibrium or view the payoff
-    matrices(without specifying the utilities), an error is returned::
-
-        sage: f.obtain_Nash()
-        Traceback (most recent call last):
-        ...
-        ValueError: utilities have not been populated
-        sage: f.payoff_matrices()
-        Traceback (most recent call last):
-        ...
-        ValueError: utilities have not been populated
-
-    Here we populate the missing utilities::
-
-        sage: f[2, 1] = [5, 3]
-        sage: f[2, 0] = [2, 1]
-        sage: f.payoff_matrices()
-        (
-        [1 2]  [3 3]
-        [3 4]  [1 4]
-        [2 5], [1 3]
-        )
-        sage: f.obtain_Nash()
-        [[(0, 0, 1), (0, 1)]]
-
-    We can use the same syntax as above to create games with
-    more than 2 players::
-
-        sage: threegame = NormalFormGame()
-        sage: threegame.add_player(2)
-        sage: threegame.add_player(2)
-        sage: threegame.add_player(2)
-        sage: threegame[0, 0, 0][0] = 3
-        sage: threegame[0, 0, 0][1] = 1
-        sage: threegame[0, 0, 0][2] = 4
-        sage: threegame[0, 0, 1][0] = 1
-        sage: threegame[0, 0, 1][1] = 5
-        sage: threegame[0, 0, 1][2] = 9
-        sage: threegame[0, 1, 0][0] = 2
-        sage: threegame[0, 1, 0][1] = 6
-        sage: threegame[0, 1, 0][2] = 5
-        sage: threegame[0, 1, 1][0] = 3
-        sage: threegame[0, 1, 1][1] = 5
-        sage: threegame[0, 1, 1][2] = 8
-        sage: threegame[1, 0, 0][0] = 9
-        sage: threegame[1, 0, 0][1] = 7
-        sage: threegame[1, 0, 0][2] = 9
-        sage: threegame[1, 0, 1][0] = 3
-        sage: threegame[1, 0, 1][1] = 2
-        sage: threegame[1, 0, 1][2] = 3
-        sage: threegame[1, 1, 0][0] = 8
-        sage: threegame[1, 1, 0][1] = 4
-        sage: threegame[1, 1, 0][2] = 6
-        sage: threegame[1, 1, 1][0] = 2
-        sage: threegame[1, 1, 1][1] = 6
-        sage: threegame[1, 1, 1][2] = 4
-        sage: threegame
-        Normal Form Game with the following utilities: {(0, 1, 1): [3, 5, 8], (1, 1, 0): [8, 4, 6], (1, 0, 0): [9, 7, 9], (0, 0, 1): [1, 5, 9], (1, 0, 1): [3, 2, 3], (0, 0, 0): [3, 1, 4], (0, 1, 0): [2, 6, 5], (1, 1, 1): [2, 6, 4]}
-
-    The above requires a lot of input that could be simplified if there is
-    another data structure with our utilities and/or a structure to the
-    utilities.  The following example creates a game with a relatively strange
-    utility function::
-
-        sage: def utility(strategy_triplet, player):
-        ....:     return sum(strategy_triplet) * player
-        sage: threegame = NormalFormGame()
-        sage: threegame.add_player(2)
-        sage: threegame.add_player(2)
-        sage: threegame.add_player(2)
-        sage: for i, j, k in [(i, j, k) for i in [0,1] for j in [0,1] for k in [0,1]]:
-        ....:     for p in range(3):
-        ....:          threegame[i, j, k][p] = utility([i, j, k], p)
-        sage: threegame
-        Normal Form Game with the following utilities: {(0, 1, 1): [0, 2, 4], (1, 1, 0): [0, 2, 4], (1, 0, 0): [0, 1, 2], (0, 0, 1): [0, 1, 2], (1, 0, 1): [0, 2, 4], (0, 0, 0): [0, 0, 0], (0, 1, 0): [0, 1, 2], (1, 1, 1): [0, 3, 6]}
-
-    At present no algorithm has been implemented in Sage for games with
-    more than 2 players::
-
-        sage: threegame.obtain_Nash()
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
-
-    Here is a slightly longer game that would take too long to solve with
-    ``enumeration``. Consider the following:
-
-    An airline loses two suitcases belonging to two different travelers. Both
-    suitcases happen to be identical and contain identical antiques. An
-    airline manager tasked to settle the claims of both travelers explains
-    that the airline is liable for a maximum of 10 per suitcase, and in order
-    to determine an honest appraised value of the antiques the manager
-    separates both travelers so they can't confer, and asks them to write down
-    the amount of their value at no less than 2 and no larger than 100. He
-    also tells them that if both write down the same number, he will treat
-    that number as the true dollar value of both suitcases and reimburse both
-    travelers that amount.
-    However, if one writes down a smaller number than the other, this smaller
-    number will be taken as the true dollar value, and both travelers will
-    receive that amount along with a bonus/malus: 2 extra will be paid to the
-    traveler who wrote down the lower value and a 2 deduction will be taken
-    from the person who wrote down the higher amount. The challenge is: what
-    strategy should both travelers follow to decide the value they should
-    write down?
-
-    In the following we create the game (with a max value of 10) and solve it::
-
-        sage: K = 10  # Modifying this value lets us play with games of any size
-        sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
-        sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
-        sage: g = NormalFormGame([A, B])
-        sage: g.obtain_Nash(algorithm='lrs') # optional - lrs
-        [[(1, 0, 0, 0, 0, 0, 0, 0, 0), (1, 0, 0, 0, 0, 0, 0, 0, 0)]]
-
-    The equilibrium strategy is thus for both players to state that the value
-    of their suitcase is 2.
-
-    Note that degenerate games can cause problems for most algorithms.
-    The following example in fact has an infinite quantity of equilibria which
-    is evidenced by the two algorithms returning different solutions::
-
-        sage: A = matrix([[3,3],[2,5],[0,6]])
-        sage: B = matrix([[3,3],[2,6],[3,1]])
-        sage: degenerate_game = NormalFormGame([A,B])
-        sage: degenerate_game.obtain_Nash(algorithm='lrs') # optional - lrs
-        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
-        sage: degenerate_game.obtain_Nash(algorithm='enumeration')
-        [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
-
-    Here is an example with the trivial game where all payoffs are 0::
-
-        sage: g = NormalFormGame()
-        sage: g.add_player(3)
-        sage: g.add_player(3)
-        sage: for key in g:
-        ....:     g[key] = [0, 0]
-        sage: g.payoff_matrices()
-        (
-        [0 0 0]  [0 0 0]
-        [0 0 0]  [0 0 0]
-        [0 0 0], [0 0 0]
-        )
-        sage: g.obtain_Nash(algorithm='enumeration')
-        [[(1, 0, 0), (1, 0, 0)]]
-
-    A good description of degenerate games can be found in [NN2007]_.
-
-    REFERENCES:
-
-    .. [N1950] John Nash.
-       *Equilibrium points in n-person games.*
-       Proceedings of the national academy of sciences 36.1 (1950): 48-49.
-
-    .. [NN2007] Nisan, Noam, et al., eds.
-       *Algorithmic game theory.*
-       Cambridge University Press, 2007.
-
-    .. [A2000] Avis, David.
-       *A revised implementation of the reverse search vertex enumeration algorithm.*
-       Polytopes-combinatorics and computation
-       Birkhauser Basel, 2000.
-
-    .. [MMAT2014] McKelvey, Richard D., McLennan, Andrew M., and Turocy, Theodore L.
-       *Gambit: Software Tools for Game Theory, Version 13.1.2.*
-       http://www.gambit-project.org (2014).
-
-    .. [SLB2008] Shoham, Yoav, and Kevin Leyton-Brown.
-       *Multiagent systems: Algorithmic, game-theoretic, and logical foundations.*
-       Cambridge University Press, 2008.
-
 
     """
 

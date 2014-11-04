@@ -184,9 +184,9 @@ class NormalFormGame(SageObject, MutableMapping):
             1&-1\\
             \end{pmatrix}
 
-    It should be relatively straightforward to observe that there is no situation
-    where both players always do the same thing and have no incentive to
-    deviate.
+    It should be relatively straightforward to observe that there is no
+    situation where both players always do the same thing and have no
+    incentive to deviate.
 
     We can plot the utility of player 1 when player 2 is playing a mixed
     strategy `\sigma_2=(y,1-y)` (so that the utility to player 1 for
@@ -227,7 +227,8 @@ class NormalFormGame(SageObject, MutableMapping):
         )
 
     One can also input a single matrix and then a zero sum game is constructed.
-    Here is an instance of `Rock-Paper-Scissors-Lizard-Spock <http://en.wikipedia.org/wiki/Rock-paper-scissors-lizard-Spock>`_::
+    Here is an instance of `Rock-Paper-Scissors-Lizard-Spock
+    <http://en.wikipedia.org/wiki/Rock-paper-scissors-lizard-Spock>`_::
 
         sage: A = matrix([[0, -1, 1, 1, -1],
         ....:             [1, 0, -1, -1, 1],
@@ -294,7 +295,8 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: f
         Normal Form Game with the following utilities: {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
 
-    Once this game is constructed we can view the payoff matrices and solve the game::
+    Once this game is constructed we can view the payoff matrices and solve the
+    game::
 
         sage: f.payoff_matrices()
         (
@@ -369,9 +371,9 @@ class NormalFormGame(SageObject, MutableMapping):
         Normal Form Game with the following utilities: {(0, 1, 1): [3, 5, 8], (1, 1, 0): [8, 4, 6], (1, 0, 0): [9, 7, 9], (0, 0, 1): [1, 5, 9], (1, 0, 1): [3, 2, 3], (0, 0, 0): [3, 1, 4], (0, 1, 0): [2, 6, 5], (1, 1, 1): [2, 6, 4]}
 
     The above requires a lot of input that could be simplified if there is
-    another data structure with our utilities and/or a structure to the utilities.
-    The following example creates a game with a relatively strange utility
-    function::
+    another data structure with our utilities and/or a structure to the
+    utilities.  The following example creates a game with a relatively strange
+    utility function::
 
         sage: def utility(strategy_triplet, player):
         ....:     return sum(strategy_triplet) * player
@@ -662,7 +664,8 @@ class NormalFormGame(SageObject, MutableMapping):
             [0 4], [5 4]
             )
 
-        We can use the dictionary like interface to overwrite a strategy profile::
+        We can use the dictionary like interface to overwrite a strategy
+        profile::
 
             sage: prisoners_dilemma[(0,1)] = [-3,-30]
             sage: prisoners_dilemma.payoff_matrices()
@@ -700,7 +703,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g
             Normal Form Game with the following utilities: {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
         """
-        return "Normal Form Game with the following utilities: {}".format(self.utilities)
+        return "Normal Form Game with the following \
+                    utilities: {}".format(self.utilities)
 
     def _latex_(self):
         r"""
@@ -735,7 +739,8 @@ class NormalFormGame(SageObject, MutableMapping):
         if len(self.players) == 2:
             M1, M2 = self.payoff_matrices()
             return "\left(%s, %s\\right)" % (M1._latex_(), M2._latex_())
-        return latex("Normal Form Game ... {}".format(self.utilities[self.utilities.keys()[-1]]))
+        lastutility = self.utilities[self.utilities.keys()[-1]]
+        return latex("Normal Form Game ... {}".format(lastutility))
 
     def _two_matrix_game(self, matrices):
         r"""
@@ -943,8 +948,8 @@ class NormalFormGame(SageObject, MutableMapping):
           * ``enumeration`` - This is a very inefficient
             algorithm (in essence a brute force approach).
 
-        - ``maximization`` - Whether a player is trying to maximize their utility
-                             or minimize it.
+        - ``maximization`` - Whether a player is trying to maximize their
+                             utility or minimize it.
 
           * When set to ``True`` (default) it is assumed that players
             aim to maximise their utility.
@@ -1088,7 +1093,6 @@ class NormalFormGame(SageObject, MutableMapping):
             m1 = - m1
             m2 = - m2
         game1_str, game2_str = self._Hrepresentation(m1, m2)
-
 
         g1_name = tmp_filename()
         g2_name = tmp_filename()
@@ -1380,8 +1384,10 @@ class NormalFormGame(SageObject, MutableMapping):
             return False
 
         # Check that have pair of best responses
-        p1_payoffs = [sum(v * row[i] for i, v in enumerate(b)) for row in M1.rows()]
-        p2_payoffs = [sum(v * col[j] for j, v in enumerate(a)) for col in M2.columns()]
+        p1_payoffs = [sum(v * row[i] for i, v in enumerate(b)) for row
+                                                                  in M1.rows()]
+        p2_payoffs = [sum(v * col[j] for j, v in enumerate(a)) for col
+                                                               in M2.columns()]
 
         if p1_payoffs.index(max(p1_payoffs)) not in p1_support:
             return False

@@ -729,13 +729,13 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: g.add_player(2)
         sage: g.add_player(2)  # Creating a game with three players
         sage: latex(g)
-        \text{\texttt{<bound{ }method{ }NormalFormGame.{\char`\_}repr{\char`\_}{ }of{ }Normal{ }Form{ }Game{ }with{ }the{ }following{ }utilities:{ }{\char`\{}(0,{ }1,{ }1):{ }[False,{ }False,{ }False],{ }(1,{ }1,{ }0):{ }[False,{ }False,{ }False],{ }(1,{ }0,{ }0):{ }[False,{ }False,{ }False],{ }(0,{ }0,{ }1):{ }[False,{ }False,{ }False],{ }(1,{ }0,{ }1):{ }[False,{ }False,{ }False],{ }(0,{ }0,{ }0):{ }[False,{ }False,{ }False],{ }(0,{ }1,{ }0):{ }[False,{ }False,{ }False],{ }(1,{ }1,{ }1):{ }[False,{ }False,{ }False]{\char`\}}>}}
+        \text{\texttt{Normal{ }Form{ }Game{ }...{ }[False,{ }False,{ }False]}}
 
         """
         if len(self.players) == 2:
             M1, M2 = self.payoff_matrices()
             return "\left(%s, %s\\right)" % (M1._latex_(), M2._latex_())
-        return latex(self._repr_)
+        return latex("Normal Form Game ... {}".format(self.utilities[self.utilities.keys()[-1]]))
 
     def _two_matrix_game(self, matrices):
         r"""

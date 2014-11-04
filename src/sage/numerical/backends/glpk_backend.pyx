@@ -887,7 +887,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.get_objective_value()
             7.5
             sage: p.get_variable_value(0)
-            0.0
+            -0.0
             sage: p.get_variable_value(1)
             1.5
         """
@@ -917,7 +917,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.get_objective_value()
             7.5
             sage: p.get_variable_value(0)
-            0.0
+            -0.0
             sage: p.get_variable_value(1)
             1.5
         """

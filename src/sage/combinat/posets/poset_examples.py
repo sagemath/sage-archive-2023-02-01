@@ -381,22 +381,22 @@ class Posets(object):
             sage: Posets.RandomPoset('junk', 0.5)
             Traceback (most recent call last):
             ...
-            TypeError: number of elements must be an integer, not junk
+            TypeError: Number of elements must be an integer, not junk.
 
             sage: Posets.RandomPoset(-6, 0.5)
             Traceback (most recent call last):
             ...
-            ValueError: number of elements must be non-negative, not -6
+            ValueError: Number of elements must be non-negative, not -6.
 
             sage: Posets.RandomPoset(6, 'garbage')
             Traceback (most recent call last):
             ...
-            TypeError: probability must be a real number, not garbage
+            TypeError: Probability must be a real number, not garbage.
 
             sage: Posets.RandomPoset(6, -0.5)
             Traceback (most recent call last):
             ...
-            ValueError: probability must be between 0 and 1, not -0.5
+            ValueError: Probability must be between 0 and 1, not -0.5.
         """
         from sage.misc.prandom import random
         try:
@@ -408,9 +408,9 @@ class Posets(object):
         try:
             p = float(p)
         except Exception:
-            raise TypeError("probability must be a real number, not {0}".format(p))
+            raise TypeError("Probability must be a real number, not {0}.".format(p))
         if p < 0 or p> 1:
-            raise ValueError("probability must be between 0 and 1, not {0}".format(p))
+            raise ValueError("Probability must be between 0 and 1, not {0}.".format(p))
 
         D = DiGraph(loops=False,multiedges=False)
         D.add_vertices(range(n))

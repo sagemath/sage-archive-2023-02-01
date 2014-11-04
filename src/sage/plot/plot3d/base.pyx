@@ -119,14 +119,21 @@ cdef class Graphics3d(SageObject):
         """
         from sage.structure.graphics_file import (
             Mime, graphics_from_save, GraphicsFile)
-        # First, figure out the graphics format
+        ### First, figure out the best graphics format
         can_view_jmol = (mime_types is None) or (Mime.JMOL in mime_types)
         viewer = self._extra_kwds.get('viewer', None)
+        # make sure viewer is one of the supported options
+        if viewer not in [None, 'jmol', 'tachyon']:
+            import warnings
+            warnings.warn('viewer={0} is not supported'.format(viewer))
+            viewer = None
+        # select suitable default
         if viewer is None:
-            # default to jmol if possible
-            viewer = 'jmol' if can_view_jmol else 'tachyon'
-        # Second, return the corresponding graphics file
-        assert viewer is not None
+            viewer = 'jmol'
+        # fall back to 2d image if necessary
+        if viewer == 'jmol' and not can_view_jmol:
+            viewer = 'tachyon'
+        ### Second, return the corresponding graphics file
         if viewer == 'jmol':
             from sage.misc.temporary_file import tmp_filename
             filename = tmp_filename(
@@ -141,7 +148,7 @@ cdef class Graphics3d(SageObject):
                                       allowed_mime_types=mime_types, 
                                       figsize=figsize, dpi=dpi)
         else:
-            return None   # do not display as graphics
+            assert False   # unreachable
 
     def __str__(self):
         """

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -e
+
+[ -n "${SAGE_ROOT}" ] || SAGE_ROOT="$(pwd)/../../../"
+
+
+# determine latest version.
+GIT_VERSION="$(wget -O - http://docs.mathjax.org/en/latest/installation.html | grep 'Current Version' | sed 's/^.*MathJax-//g' | sed 's/<.*//g')"
+
+
+# fetch and rename latest version.
+wget -O "$SAGE_ROOT/upstream/mathjax-${GIT_VERSION}.tar.gz" "https://github.com/mathjax/MathJax/archive/v${GIT_VERSION}-latest.tar.gz"
+
+
+# update package info
+echo "${GIT_VERSION}" > 'package-version.txt'
+sage -sh 'sage-fix-pkg-checksums'
+
+

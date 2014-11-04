@@ -1,0 +1,27 @@
+= MathJax =
+
+== Description ==
+
+MathJax is a JavaScript library for displaying mathematical formulas.
+Mathjax is used by both sagenb and ipython notebooks.
+
+== License ==
+
+Apache License, version 2.0
+
+== SPKG Maintainers ==
+
+* Thierry Monteil
+
+== Upstream Contact ==
+
+Home page: http://www.mathjax.org/
+
+== Dependencies ==
+
+None.
+
+== Special Update/Build Instructions ==
+
+None.
+

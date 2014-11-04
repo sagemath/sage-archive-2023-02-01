@@ -7,7 +7,7 @@
 A Brief Introduction to Polytopes in Sage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. MODULEAUTHOR:: Sarah-Marie Belcastro <smbelcas@toroidalsnark.net>
+.. MODULEAUTHOR:: sarah-marie belcastro <smbelcas@toroidalsnark.net>
 
 If you already know some convex geometry  *a la*  Grünbaum or
 Brøndsted, then you may have itched to get your hands dirty with some
@@ -151,9 +151,11 @@ example that makes the issue a bit clearer.
 ::
 
     sage: P2 = Polyhedron(vertices = [[-5,0], [-1,1], [-2,0], [1,0], [-2,-1], [-3,-1], [-5,-1]])
-    sage: P2; P2dual = P2.polar(); P2dual; show(P2)+show(P2dual)
+    sage: P2
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 5 vertices
+    sage: P2dual = P2.polar(); P2dual
     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices
+    sage: show(P2)+show(P2dual)
     Graphics object consisting of 14 graphics primitives
 
 .. end of output
@@ -316,7 +318,7 @@ We can see it from a different perspective:
 
 ::
 
-    sage: P8.schlegel_projection([2,5,11,17]).show()
+    sage: P8.schlegel_projection([2,5,11,17]).plot()
     Graphics3d Object
 
 .. end of output

@@ -3,12 +3,14 @@ Points for products of projective spaces
 
 This class builds on the projective space class and its point and morphism classes.
 
-EXAMPLES: We construct products projective spaces of various dimensions over the same ring.::
+EXAMPLES:
+
+We construct products projective spaces of various dimensions over the same ring.::
 
     sage: P1xP1.<x,y, u,v> = ProductProjectiveSpaces(QQ, [1,1])
     sage: P1xP1([2,1, 3,1])
     (2 : 1 , 3 : 1)
-
+"""
 #*****************************************************************************
 # Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #                    Ben Hutz <bn4941@gmail.com>
@@ -18,34 +20,35 @@ EXAMPLES: We construct products projective spaces of various dimensions over the
 # the License, or (at your option) any later version.
 # http://www.gnu.org/licenses/
 #*****************************************************************************
-"""
 from copy import copy
 
 from sage.schemes.generic.morphism import SchemeMorphism
 from sage.schemes.generic.morphism import SchemeMorphism_point
+
 
 class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
     r"""
     The class of points on products of projective spaces.
     The components are projective space points.
 
-    Examples::
+    EXAMPLES::
 
         sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2,1],QQ)
         sage: T.point([1,2,3,4,5]);
         (1/3 : 2/3 : 1 , 4/5 : 1)
     """
-    def __init__(self, parent, polys, check = True):
+    def __init__(self, parent, polys, check=True):
         r"""
         The Python constructor.
 
         INPUT:
 
-            - ``parent`` - Homset
+        - ``parent`` -- Homset
 
-            - ``polys`` - anything that defines a point in the class
+        - ``polys`` -- anything that defines a point in the class
 
-            - ``check`` - Boolean. Whether or not to perform input checks (Default: True)
+        - ``check`` -- Boolean. Whether or not to perform input checks
+          (Default: ``True``)
 
         EXAMPLES::
 
@@ -72,7 +75,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         """
         SchemeMorphism.__init__(self, parent)
         if all(isinstance(P, SchemeMorphism_point) for P in polys):
-            if check == True:
+            if check:
                 Q = []
                 self._points=[]
                 for i in range(len(polys)):
@@ -84,20 +87,22 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             self._points = polys
         else:
             N=parent.codomain().ambient_space().dimension_relative_components()
-            if check == True:
+            if check:
                 parent.codomain()._check_satisfies_equations(polys)
             splitpolys=self.codomain().ambient_space()._factors(polys)
             self._points = [parent.codomain().ambient_space()[i].point(splitpolys[i], check) for i in range(len(N))]
 
     def __getitem__(self, i):
         r"""
-        Return the ``n``-th coordinate point.
+        Return the `i`-th coordinate point.
 
         INPUT:
 
-            - ``i`` - integer
+        - `i` - integer
 
-        OUTPUT: The projective space point that is the ``n``-th coordinate.
+        OUTPUT:
+
+        The projective space point that is the `i`-th coordinate.
 
         EXAMPLES::
 
@@ -116,7 +121,9 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         r"""
         Return a string representation of ``self``.
 
-        OUTPUT: String.
+        OUTPUT:
+
+        String.
 
         EXAMPLES::
 
@@ -137,9 +144,10 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
         OUTPUT:
 
-        - Boolean - True if ``self`` and ``right`` define the same point. False otherwise.
+        - Boolean - ``True`` if ``self`` and ``right`` define the same point.
+          ``False`` otherwise.
 
-        Examples::
+        EXAMPLES::
 
             sage: T = ProductProjectiveSpaces([2,2],ZZ,'x')
             sage: P = T([1,2,3,4,5,6])
@@ -158,13 +166,14 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``right`` - a point on a product of projective spaces
+        - ``right`` -- a point on a product of projective spaces
 
         OUTPUT:
 
-        - Boolean - False if ``self`` and ``right`` define the same point. True otherwise.
+        - Boolean - ``False`` if ``self`` and ``right`` define the same point.
+          ``True`` otherwise.
 
-        Examples::
+        EXAMPLES::
 
             sage: T = ProductProjectiveSpaces([1,1,1],ZZ,'x')
             sage: P = T([1,2,3,4,5,6])
@@ -185,7 +194,9 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
         - ``other`` -- anything. To compare against the point ``self``.
 
-        OUTPUT: ``+1``, ``0``, or ``-1``.
+        OUTPUT:
+
+        ``+1``, ``0``, or ``-1``.
 
         EXAMPLES::
 
@@ -219,7 +230,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
     def __copy__(self):
         r"""
-        Returns a copy of the point ``self``.
+        Return a copy of the point ``self``.
 
         OUTPUT:
 
@@ -242,7 +253,9 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         r"""
         Iterate over the coordinates of the point.
 
-        OUTPUT: An iterator.
+        OUTPUT:
+
+        An iterator.
 
         EXAMPLES::
 
@@ -265,9 +278,11 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         r"""
         Removes common factors (componentwise) from the coordinates of ``self`` (including `-1`).
 
-        OUTPUT: None.
+        OUTPUT:
 
-        Examples::
+        None.
+
+        EXAMPLES::
 
             sage: T.<x,y,z,u,v,w> = ProductProjectiveSpaces([2,2],ZZ)
             sage: P = T.point([5,10,15,4,2,6]);
@@ -281,13 +296,15 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
     def scale_by(self, t):
         r"""
         Scale the coordinates of the point ``self`` by `t`, done componentwise.
-        A ``TypeError`` occurs if the point is not in the base ring of the codomain after scaling.
+
+        A ``TypeError`` occurs if the point is not in the base ring of the
+        codomain after scaling.
 
         INPUT:
 
         - ``t`` -- a ring element
 
-        Examples::
+        EXAMPLES::
 
             sage: T.<x,y,z,u,v,w> = ProductProjectiveSpaces([1,1,1],ZZ)
             sage: P = T.point([5,10,15,4,2,6]);
@@ -295,7 +312,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: P
             (10 : 20 , 15 : 4 , 2 : 6)
         """
-        if isinstance(t,(tuple,list)) == False:
+        if not isinstance(t, (tuple, list)):
             raise TypeError("%s must be a list or tuple"%t)
         if len(t) != self.codomain().ambient_space().num_components():
             raise TypeError("%s must have same number of components as %r"%(t, self))
@@ -305,7 +322,8 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
     def change_ring(self, R, check = True):
         r"""
         Returns a new :class:`ProductProjectiveSpaces_point` which is ``self`` coerced to ``R``.
-        If ``check`` is True, then the initialization checks are performed.
+
+        If ``check`` is ``True``, then the initialization checks are performed.
 
         INPUT:
 
@@ -313,7 +331,9 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
         - ``check`` -- Boolean (optional)
 
-        OUTPUT: :class:`ProductProjectiveSpaces_point`
+        OUTPUT:
+
+        :class:`ProductProjectiveSpaces_point`
 
         EXAMPLES::
 

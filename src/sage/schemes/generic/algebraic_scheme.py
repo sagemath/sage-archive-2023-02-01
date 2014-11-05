@@ -1133,8 +1133,10 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         Return the irreducible components of this algebraic scheme, as
         subschemes of the same ambient space.
 
-        OUTPUT: an immutable sequence of irreducible subschemes of the
-        ambient space of this scheme
+        OUTPUT:
+
+        an immutable sequence of irreducible subschemes of the ambient
+        space of this scheme
 
         The components are cached.
 
@@ -2005,7 +2007,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         - ``point`` -- a point of the projective subscheme.
 
-        OUTPUT
+        OUTPUT:
 
         An affine algebraic scheme (polynomial equations in affine
         space) ``result`` such that
@@ -2117,19 +2119,23 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         self._smooth = (sing_dim <= 0)
         return self._smooth
 
+
 class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_projective):
 
     @cached_method
-    def segre_embedding(self, PP = None):
+    def segre_embedding(self, PP=None):
         r"""
-        Returns the Segre embedding of ``self`` into the appropriate projective space.
+        Return the Segre embedding of ``self`` into the appropriate projective
+        space.
 
         INPUT:
 
-        -  ``PP`` - (default: None) ambient image projective space;
-            this is constructed if it is not given.
+        - ``PP`` -- (default: ``None``) ambient image projective space;
+          this is constructed if it is not given.
 
-        OUTPUT: Hom from ``self`` to the appropriate subscheme of projective space
+        OUTPUT:
+
+        Hom from ``self`` to the appropriate subscheme of projective space
 
         .. TODO::
 
@@ -2201,7 +2207,9 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
         """
         Return the dimension of the algebraic subscheme.
 
-        OUTPUT: Integer.
+        OUTPUT:
+
+        Integer.
 
         EXAMPLES::
 

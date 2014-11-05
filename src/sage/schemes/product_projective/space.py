@@ -8,7 +8,9 @@ ambient spaces for complete intersections. Group actions on them, and
 the interplay with representation theory, provide many interesting
 examples of algebraic varieties.
 
-EXAMPLES: We construct products projective spaces of various dimensions over the same ring.::
+EXAMPLES:
+
+We construct products projective spaces of various dimensions over the same ring.::
 
     sage: P1 = ProjectiveSpace(ZZ,1,'x')
     sage: P2 = ProjectiveSpace(ZZ,2,'y')
@@ -23,7 +25,7 @@ We can also construct the product by specifying the dimensions and the base ring
     sage: P2xP2 = ProductProjectiveSpaces([2, 2], QQ, names=['x', 'y'])
     sage: P2xP2.coordinate_ring().inject_variables()
     Defining x0, x1, x2, y0, y1, y2
-
+"""
 #*****************************************************************************
 # Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #                    Ben Hutz <bn4941@gmail.com>
@@ -33,7 +35,6 @@ We can also construct the product by specifying the dimensions and the base ring
 # the License, or (at your option) any later version.
 # http://www.gnu.org/licenses/
 #*****************************************************************************
-"""
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.all import (PolynomialRing, ZZ, QQ)
@@ -54,7 +55,9 @@ def is_ProductProjectiveSpaces(x):
     `\mathbb{P}^n_R \times \cdots \times \mathbb{P}^m_R`, where `R` is a ring and `n,\ldots,m\geq 0`
     are integers.
 
-    OUTPUT: Boolean
+    OUTPUT:
+
+    Boolean
 
     EXAMPLES::
 
@@ -111,9 +114,9 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
         N = []
         R = None
         for PS in n:
-            if isinstance(PS,ProjectiveSpace_ring)==False:
+            if not isinstance(PS,ProjectiveSpace_ring):
                 raise TypeError("Must be a list of Projective Spaces or (dimensions,base ring,names)")
-            if R == None:
+            if R is None:
                 R = PS.base_ring()
             elif R != PS.base_ring():
                 raise AttributeError("Components must be over the same base ring")
@@ -180,7 +183,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         - ``names`` - a tuple or list of strings. This must either be a single variable name
                     or the complete list of variables.
 
-        Examples::
+        EXAMPLES::
 
             sage: T.<x,y,z,u,v,w> = ProductProjectiveSpaces([2,2],QQ)
             sage: T
@@ -221,7 +224,9 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         r"""
         Return a string representation of ``self``.
 
-        OUTPUT: String.
+        OUTPUT:
+
+        String.
 
         EXAMPLES::
 
@@ -242,9 +247,12 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         If ``v`` is None, the representation of the generic point of
         the product space is returned.
 
-        OUTPUT: String.
+        OUTPUT:
+        
+        String.
 
         EXAMPLES::
+
             sage: T = ProductProjectiveSpaces([1,2,1], QQ, 'x')
             sage: T._repr_generic_point()
             '(x0 : x1 , x2 : x3 : x4 , x5 : x6)'
@@ -274,6 +282,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         on this product space.
 
         EXAMPLES::
+
             sage: T = ProductProjectiveSpaces([1,2,3], ZZ, 'x')
             sage: T._latex_generic_point()
             '\\left(x_{0} : x_{1} , x_{2} : x_{3} : x_{4} , x_{5} : x_{6} : x_{7} : x_{8}\\right)'
@@ -293,9 +302,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         - ``i`` - a positive integer
 
-        OUTPUT: A Projective Space.
+        OUTPUT:
 
-        Examples::
+        A Projective Space.
+
+        EXAMPLES::
 
             sage: T.<a,x,y,z,u,v,w> = ProductProjectiveSpaces([3,2],QQ)
             sage: T[0]
@@ -311,9 +322,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         - ``right`` - a product of projective spaces
 
-        OUTPUT: Boolean
+        OUTPUT:
 
-        Examples::
+        Boolean
+
+        EXAMPLES::
 
             sage: S.<a,x,y,z,u,v,w> = ProductProjectiveSpaces([3,2],QQ)
             sage: T.<x,y,z,u,v,w> = ProductProjectiveSpaces([2,2],QQ)
@@ -336,9 +349,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         r"""
         Return the relative dimension of the product of projective spaces.
 
-        OUTPUT: a positive integer.
+        OUTPUT:
 
-        Examples::
+        a positive integer.
+
+        EXAMPLES::
 
             sage: T.<a,x,y,z,u,v,w> = ProductProjectiveSpaces([3,2],QQ)
             sage: T.dimension_relative()
@@ -350,9 +365,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         r"""
         Return the absolute dimension of the product of projective spaces.
 
-        OUTPUT: a positive integer.
+        OUTPUT:
 
-        Examples::
+        a positive integer.
+
+        EXAMPLES::
 
             sage: T.<x,y,z,u,v,w> = ProductProjectiveSpaces([2,2],GF(17))
             sage: T.dimension_absolute()
@@ -371,9 +388,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         r"""
         Return the relative dimension of the product of projective spaces.
 
-        OUTPUT: a list of positive integers.
+        OUTPUT:
 
-        Examples::
+        a list of positive integers.
+
+        EXAMPLES::
 
             sage: T.<a,x,y,z,u,v,w> = ProductProjectiveSpaces([3,2],QQ)
             sage: T.dimension_relative_components()
@@ -385,9 +404,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         r"""
         Return the absolute dimension of the product of projective spaces.
 
-        OUTPUT: a list of positive integers.
+        OUTPUT:
 
-        Examples::
+        a list of positive integers.
+
+        EXAMPLES::
 
             sage: T.<x,y,z,u,v,w> = ProductProjectiveSpaces([2,2],GF(17))
             sage: T.dimension_absolute_components()
@@ -406,7 +427,9 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         r"""
         Returns the number of components of ``self``.
 
-        OUTPUT: an integer.
+        OUTPUT:
+
+        an integer.
 
         EXAMPLES::
 
@@ -421,7 +444,9 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         Returns the number of generators of ``self``, i.e.,
         the number of variables in the coordinate ring of self
 
-        OUTPUT: an integer.
+        OUTPUT:
+
+        an integer.
 
         EXAMPLES::
 
@@ -439,7 +464,9 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         - ``v`` -- a list or tuple
 
-        OUTPUT: a list of lists
+        OUTPUT:
+
+        a list of lists
 
         EXAMPLES::
 
@@ -474,18 +501,18 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         EXAMPLES::
 
-        sage: P1xP1.<x,y, s,t> = ProductProjectiveSpaces([1,1], QQ)
-        sage: P1xP1._degree(x^2*t + y^2*s)
-        [2, 1]
-        sage: P1xP1._degree(x + s)
-        Traceback (most recent call last):
-        ...
-        ValueError: polynomial is not multi-homogeneous
+            sage: P1xP1.<x,y, s,t> = ProductProjectiveSpaces([1,1], QQ)
+            sage: P1xP1._degree(x^2*t + y^2*s)
+            [2, 1]
+            sage: P1xP1._degree(x + s)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial is not multi-homogeneous
         """
         E = polynomial.exponents()
         d = [sum(t) for t in self._factors(E[0])]
         for k in range(len(E)):
-            if all([d == [sum(t) for t in self._factors(E[k])]]) == False:
+            if not all([d == [sum(t) for t in self._factors(E[k])]]):
                 raise ValueError("polynomial is not multi-homogeneous")
         return d
 
@@ -546,7 +573,9 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         - ``polynomials`` -- tuple of polynomials in the coordinate ring of ``self``
 
-        OUTPUT: tuple of polynomials in the coordinate ring of ``self``
+        OUTPUT:
+
+        tuple of polynomials in the coordinate ring of ``self``
 
         EXAMPLES::
 
@@ -651,14 +680,16 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         This is used both for illustration and testing purposes.
 
-        OUTPUT: a point in the projective space ``self``.
+        OUTPUT:
+
+        a point in the projective space ``self``.
 
         EXAMPLES::
 
-        sage: ProductProjectiveSpaces([1,2,3], ZZ).an_element()
-        (7 : 1 , 7 : 6 : 1 , 7 : 6 : 5 : 1)
-        sage: ProductProjectiveSpaces([3, 2, 1], PolynomialRing(ZZ, 'y')).an_element()
-        (7*y : 6*y : 5*y : 1 , 7*y : 6*y : 1 , 7*y : 1)
+            sage: ProductProjectiveSpaces([1,2,3], ZZ).an_element()
+            (7 : 1 , 7 : 6 : 1 , 7 : 6 : 5 : 1)
+            sage: ProductProjectiveSpaces([3, 2, 1], PolynomialRing(ZZ, 'y')).an_element()
+            (7*y : 6*y : 5*y : 1 , 7*y : 6*y : 1 , 7*y : 1)
         """
         v = [R.an_element() for R in self._components]
         return self(v)
@@ -671,7 +702,9 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         - ``X`` - a list or tuple of equations
 
-        OUTPUT: :class:`AlgebraicScheme_subscheme_projective_cartesian_product`
+        OUTPUT:
+
+        :class:`AlgebraicScheme_subscheme_projective_cartesian_product`
 
         EXAMPLES::
 
@@ -709,7 +742,9 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
         - ``R`` -- commutative ring
 
-        OUTPUT: product of projective spaces over ``R``
+        OUTPUT:
+
+        product of projective spaces over ``R``
 
         .. NOTE::
 
@@ -790,18 +825,21 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             return AA
 
     @cached_method
-    def segre_embedding(self, PP = None, var='u'):
+    def segre_embedding(self, PP=None, var='u'):
         r"""
-        Returns the Segre embedding of ``self`` into the appropriate projective space.
+        Return the Segre embedding of ``self`` into the appropriate
+        projective space.
 
         INPUT:
 
-        -  ``PP`` -- (default: None) ambient image projective space;
+        -  ``PP`` -- (default: ``None``) ambient image projective space;
             this is constructed if it is not given.
 
         - ``var`` -- string, variable name of the image projective space, default `u` (optional)
 
-        OUTPUT: Hom -- from self to the appropriate subscheme of projective space
+        OUTPUT:
+
+        Hom -- from ``self`` to the appropriate subscheme of projective space
 
         .. TODO::
 

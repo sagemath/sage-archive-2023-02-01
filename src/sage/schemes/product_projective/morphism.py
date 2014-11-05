@@ -11,7 +11,7 @@ EXAMPLES::
     Scheme endomorphism of Product of projective spaces P^1 x P^1 over Rational Field
       Defn: Defined by sending (x : y , u : v) to 
             (x^2*u : y^2*v , x*v^2 : y*u^2).
-
+"""
 #*****************************************************************************
 # Copyright (C) 2014 Ben Hutz <bn4941@gmail.com>
 #
@@ -20,15 +20,15 @@ EXAMPLES::
 # the License, or (at your option) any later version.
 # http://www.gnu.org/licenses/
 #*****************************************************************************
-"""
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
+
 
 class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
     r"""
     The class of morphisms on products of projective spaces.
     The components are projective space morphisms.
 
-    Examples::
+    EXAMPLES::
 
         sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2,1],QQ)
         sage: H = T.Hom(T)
@@ -44,11 +44,12 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``parent`` - Homset
+        - ``parent`` -- Homset
 
-        - ``polys`` - anything that defines a point in the class
+        - ``polys`` -- anything that defines a point in the class
 
-        - ``check`` - Boolean. Whether or not to perform input checks (Default: True)
+        - ``check`` -- Boolean. Whether or not to perform input checks
+          (Default:`` True``)
 
         EXAMPLES::
 
@@ -69,7 +70,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             TypeError: polys (=[x^2*u, y^2*w, z^2*u, w^2, z*u]) must be
             multi-homogeneous of the same degrees (by component)
         """
-        if check == True:
+        if check:
             #check multi-homogeneous
             #if self is a subscheme, we may need the lift of the polynomials
             try:
@@ -81,10 +82,10 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
             if is_ProductProjectiveSpaces(target):
                 dims = target.dimension_relative_components()
-                splitpolys=target._factors(polys)
+                splitpolys = target._factors(polys)
                 for m in range(len(splitpolys)):
                     d = target._degree(splitpolys[m][0])
-                    if all(d == target._degree(f) for f in splitpolys[m]) == False:
+                    if not all(d == target._degree(f) for f in splitpolys[m]):
                         raise  TypeError("polys (=%s) must be multi-homogeneous of the same degrees (by component)"%polys)
             else:
                 #we are mapping into some other kind of space
@@ -95,15 +96,15 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
     def __getitem__(self, i):
         r"""
-        Return the ``n``-th coordinate polynomial.
+        Return the `i`-th coordinate polynomial.
 
         INPUT:
 
-            - ``i`` - integer
+        - `i` -- integer
 
         OUTPUT:
 
-        The (multi)-homomgeneous polynomial that is the ``n``-th coordinate.
+        The (multi)-homomgeneous polynomial that is the `i`-th coordinate.
 
         EXAMPLES::
 
@@ -119,7 +120,9 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         r"""
         Return a string representation of ``self``.
 
-        OUTPUT: String.
+        OUTPUT:
+        
+        String.
 
         EXAMPLES::
 
@@ -142,11 +145,14 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
         INPUT:
 
-        - ``P`` - a point in the domain.
+        - ``P`` -- a point in the domain.
 
-        - ``check`` - Boolean - whether or not to perform the input checks on the image point (Default: True)
+        - ``check`` -- Boolean - whether or not to perform the input checks
+          on the image point (Default: ``True``)
 
-        OUTPUT: The image point in the codomain.
+        OUTPUT:
+
+        The image point in the codomain.
 
         EXAMPLES::
 
@@ -157,7 +163,6 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             (4/9 : 0 : 1 , 0 : 1)
         """
         A = self.codomain()
-        f = self.defining_polynomials()
-        Q = P[0]._coords+P[1]._coords
+        Q = P[0]._coords + P[1]._coords
         newP = [f(Q) for f in self.defining_polynomials()]
         return(A.point(newP, check))

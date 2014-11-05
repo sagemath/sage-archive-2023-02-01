@@ -37,7 +37,9 @@ class SchemeHomset_points_product_projective_spaces_ring(SchemeHomset_points):
 
         - ``v`` -- anything that determines a scheme morphism in the Hom-set.
 
-        OUTPUT: The scheme morphism determined by ``v``.
+        OUTPUT:
+
+        The scheme morphism determined by ``v``.
 
         EXAMPLES::
 

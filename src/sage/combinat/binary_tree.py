@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Binary Trees.
+Binary Trees
 
 This module deals with binary trees as mathematical (in particular immutable)
 objects.
@@ -844,8 +844,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:     return True
             sage: all( test_uni_join(p, q) for p in BinaryTrees(3) for q in BinaryTrees(3) )
             True
-            sage: all( test_uni_join(p, q) for p in BinaryTrees(4) for q in BinaryTrees(4) )   # long time
-            True
             sage: p = BinaryTrees(6).random_element(); q = BinaryTrees(6).random_element(); test_uni_join(p, q)
             True
 
@@ -939,18 +937,16 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:     return True
             sage: all( test_uni_meet(p, q) for p in BinaryTrees(3) for q in BinaryTrees(3) )
             True
-            sage: all( test_uni_meet(p, q) for p in BinaryTrees(4) for q in BinaryTrees(4) )   # long time
-            True
             sage: p = BinaryTrees(6).random_element(); q = BinaryTrees(6).random_element(); test_uni_meet(p, q)
             True
 
         Border cases::
 
             sage: b = BinaryTree(None)
-            sage: b.tamari_join(b)
+            sage: b.tamari_meet(b)
             .
             sage: b = BinaryTree([])
-            sage: b.tamari_join(b)
+            sage: b.tamari_meet(b)
             [., .]
         """
         # We use Reading's result that the projection from the symmetric
@@ -3091,7 +3087,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: BinaryTrees(3)   # indirect doctest
             Binary trees of size 3
         """
-        return "Binary trees of size %s"%(self._size)
+        return "Binary trees of size %s" % (self._size)
 
     def __contains__(self, x):
         """
@@ -3140,7 +3136,7 @@ class BinaryTrees_size(BinaryTrees):
         EXAMPLES::
 
             sage: BinaryTrees(5).random_element() # random
-            [., [., [., [., [., .]]]]] 
+            [., [., [., [., [., .]]]]]
             sage: BinaryTrees(0).random_element()
             .
             sage: BinaryTrees(1).random_element()

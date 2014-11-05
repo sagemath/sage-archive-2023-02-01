@@ -2200,7 +2200,7 @@ class Permutation(CombinatorialObject, Element):
         for which `w_{i+1} < v_k`. In either case, place a vertical line at
         the start of the word as well. Now, within each block between
         vertical lines, cyclically shift the entries one place to the
-        right. 
+        right.
 
         For instance, to compute `\phi([1,4,2,5,3])`, the sequence of
         words is
@@ -3636,8 +3636,6 @@ class Permutation(CombinatorialObject, Element):
             ....:     return True
             sage: all( test_uni_join(p, q) for p in Permutations(3) for q in Permutations(3) )
             True
-            sage: all( test_uni_join(p, q) for p in Permutations(4) for q in Permutations(4) )   # long time
-            True
             sage: test_uni_join(Permutation([6, 4, 7, 3, 2, 5, 8, 1]), Permutation([7, 3, 1, 2, 5, 4, 6, 8]))
             True
 
@@ -3754,8 +3752,6 @@ class Permutation(CombinatorialObject, Element):
             ....:     return True
             sage: all( test_uni_meet(p, q) for p in Permutations(3) for q in Permutations(3) )
             True
-            sage: all( test_uni_meet(p, q) for p in Permutations(4) for q in Permutations(4) )   # long time
-            True
             sage: test_uni_meet(Permutation([6, 4, 7, 3, 2, 5, 8, 1]), Permutation([7, 3, 1, 2, 5, 4, 6, 8]))
             True
 
@@ -3778,7 +3774,6 @@ class Permutation(CombinatorialObject, Element):
             sage: r.permutohedron_meet(p, side="left")
             [2, 1, 3]
         """
-        n = self.size()
         return self.reverse().permutohedron_join(other.reverse(), side=side).reverse()
 
     ############
@@ -4433,7 +4428,7 @@ class Permutation(CombinatorialObject, Element):
         `S_m` is defined as the permutation in `S_m` which sends every
         `i \in \{1, 2, \ldots, m\}` to `p^{k_i}(i)`, where `k_i` is the
         smallest positive integer `k` satisfying `p^k(i) \leq m`.
-        
+
         In other words, the Okounkov-Vershik retract of `p` is the
         permutation whose disjoint cycle decomposition is obtained by
         removing all letters strictly greater than `m` from the
@@ -7714,4 +7709,3 @@ register_unpickle_override("sage.combinat.permutation", "Permutation_class", Per
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutationsOfPartition_partition", CyclicPermutationsOfPartition)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutations_mset", CyclicPermutations)
 register_unpickle_override('sage.combinat.permutation_nk', 'PermutationsNK', PermutationsNK)
-

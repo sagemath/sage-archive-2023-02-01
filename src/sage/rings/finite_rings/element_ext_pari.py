@@ -1,5 +1,5 @@
 """
-Elements of Finite Fields
+Finite field elements implemented via PARI's POLMOD type (deprecated)
 
 EXAMPLES::
 

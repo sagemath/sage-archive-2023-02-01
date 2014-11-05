@@ -1439,8 +1439,7 @@ class EllipticCurveIsogeny(Morphism):
         self.__rational_maps_initialized = False
         self.__X_coord_rational_map = None
         self.__Y_coord_rational_map = None
-        self.__dual
-
+        self.__dual = None
 
     # performs the inheritance house keeping
     def __perform_inheritance_housekeeping(self):
@@ -3305,12 +3304,12 @@ class EllipticCurveIsogeny(Morphism):
 
         .. NOTE::
 
-           If `\varphi\colon E \to E_2` is the given isogeny, then the
-           dual is by definition the unique isogeny `\hat\varphi\colon
-           E_2\to E` such that the compositions
-           `\hat\varphi\circ\varphi` and `\varphi\circ\hat\varphi` are
-           the multiplication `[n]` by the degree of `\varphi` on `E`
-           and `E_2` respectively.
+           If `\varphi\colon E \to E_2` is the given isogeny and `n`
+           is its degree, then the dual is by definition the unique
+           isogeny `\hat\varphi\colon E_2\to E` such that the
+           compositions `\hat\varphi\circ\varphi` and
+           `\varphi\circ\hat\varphi` are the multiplication-by-`n`
+           maps on `E` and `E_2`, respectively.
 
         EXAMPLES::
 
@@ -3384,6 +3383,17 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi.dual()
             Isogeny of degree 7 from Elliptic Curve defined by y^2 + x*y = x^3 + 84*x + 34 over Finite Field of size 103 to Elliptic Curve defined by y^2 + x*y = x^3 + x + 102 over Finite Field of size 103
 
+        Check that :trac:`17293` is fixed:
+
+            sage: k.<s> = QuadraticField(2)
+            sage: E = EllipticCurve(k, [-3*s*(4 + 5*s), 2*s*(2 + 14*s + 11*s^2)])
+            sage: phi = E.isogenies_prime_degree(3)[0]
+            sage: (-phi).dual() == -(phi.dual())
+            True
+            sage: phi._EllipticCurveIsogeny__clear_cached_values()  # forget the dual
+            sage: -(phi.dual()) == (-phi).dual()
+            True
+
         """
         if (self.__base_field.characteristic() in [2,3]):
             raise NotImplementedError("Computation of dual isogenies not yet implemented in characteristics 2 and 3")
@@ -3439,7 +3449,7 @@ class EllipticCurveIsogeny(Morphism):
             aut = [a for a in auts if a.u == sc]
             if len(aut) != 1:
                 raise ValueError("There is a bug in dual().")
-            phi_hat.set_post_isomorphism(WeierstrassIsomorphism(E0,aut[0],E0))
+            phi_hat.set_post_isomorphism(aut[0])
 
         self.__dual = phi_hat
 

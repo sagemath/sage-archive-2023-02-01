@@ -521,6 +521,51 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         else:
             raise NotImplementedError("module must be a vector space")
 
+    def eigenspaces(self,extend=True):
+        """
+        Compute a list of subspaces formed by eigenvectors.
+
+        INPUT:
+
+        ``extend`` - determines if field extensions should be considered
+
+        OUTPUT:
+
+        - A list of pairs eigenvalue, eigenspace
+
+        EXAMPLES::
+
+            sage: V=QQ^3
+            sage: h=V.hom([[1,0,0],[0,0,1],[0,-1,0]],V)
+            sage: h.eigenspaces()
+            [(1,
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 0 0]),
+            (-1*I,
+            Vector space of degree 3 and dimension 1 over Algebraic Field
+            Basis matrix:
+            [  0   1 1*I]),
+            (1*I,
+            Vector space of degree 3 and dimension 1 over Algebraic Field
+            Basis matrix:
+            [   0    1 -1*I])]
+
+            sage: h.eigenspaces(extend=False)
+            [(1,
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 0 0])]
+
+
+        """
+        ev=self.eigenvectors(extend)
+        res=[]
+        for vec in ev:
+            vs=Sequence(vec[1]).universe()
+            res.append((vec[0],vs.subspace(vec[1])))
+        return res
+
     def minimal_polynomial(self,var='x'):
         r"""
         Computes the minimal polynomial.

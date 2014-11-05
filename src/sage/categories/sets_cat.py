@@ -1319,7 +1319,10 @@ class Sets(Category_singleton):
                 ...
                 NotImplementedError: unknown cardinality
             """
-            raise NotImplementedError("unknown cardinality")
+            try:
+                return self.point_set().cardinality()
+            except AttributeError:
+                raise NotImplementedError("unknown cardinality")
 
         # Functorial constructions
 

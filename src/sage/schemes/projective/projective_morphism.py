@@ -2462,7 +2462,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         r"""
         Given a rational point `Q` in the domain of ``self``, return all the rational points `P`
         in the domain of ``self`` with `self(P)==Q`. In other words, the set of first pre-images of `Q`.
-        ``self`` must be defined over number fields and be an endomorphism of projective space.
+        ``self`` must be defined over number fields and be an endomorphism.
 
         ALGORITHM:
             Use elimination via groebner bases to find the rational pre-images
@@ -2518,7 +2518,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             TypeError: Point must be in codomain of self
 
         A number field example ::
-            
+
             sage: z = QQ['z'].0
             sage: K.<a> = NumberField(z^2 - 2);
             sage: P.<x,y> = ProjectiveSpace(K,1)
@@ -2608,7 +2608,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                                     new_points.append(copy(P))
                     if good == 1:
                         points = new_points
-                #the dictionary entries now have values for all coordiantes
+                #the dictionary entries now have values for all coordinates
                 #they are the rational solutions to the equations
                 #make them into projective points
                 for i in range(len(points)):
@@ -2625,7 +2625,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         pre-images of those points. In others words, all the rational points which have some
         iterate in the set points. This function repeatedly calls ``rational_preimages``.
         If the degree is at least two, by Northocott, this is always a finite set.
-        ``self`` must be defined over number fields and be an endomorphism of projective space.
+        ``self`` must be defined over number fields and be an endomorphism.
 
         INPUT:
 

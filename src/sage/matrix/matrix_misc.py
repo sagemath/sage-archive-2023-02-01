@@ -203,9 +203,29 @@ def weak_popov_form(M,ascend=True):
 
 def _prm_mul(p1, p2, free_vars_indices, K):
     """
-    MISSING DOCUMENTATION HERE
+    Return the product of `p1` and `p2`, putting free variables to 1.
+
+    In the following example,
+    ``p1 = 1 + t*e_0 + t*e_1``
+    ``p2 = 1 + t*e_0 + t*e_2; 'e_0` free variable;
+    using the fact that `e_i` are nilpotent and setting
+    `e_0 = 1` after performing the product one gets
+    ``p1 * p2 = (1 + 2*t) + (t + t^2)*e_1 + (t + t^2)*e_2 + t^2*e_1*e_2``
+
+    The polynomials are represented in dictionary form; to a
+    variable ``eta_i`` it is associated the key ``1 << i``;
+    so in the following example 'e_1' corresponds to the key '2'
+    and 'e_1*e_2' to the key '6'.
 
     EXAMPLES::
+
+        sage: from sage.matrix.matrix_misc import _prm_mul
+        sage: K = PolynomialRing(ZZ, 't')
+        sage: t = K.gen()
+        sage: p1 = {0: 1, 1: t, 4: t}
+        sage: p2 = {0: 1, 1: t, 2: t}
+        sage: _prm_mul(p1, p2, [0], K)
+        {0: 2*t + 1, 2: t^2 + t, 4: t^2 + t, 6: t^2}
     """
     p = {}
     mask_free = 0
@@ -307,7 +327,7 @@ def permanental_minor_vector(m, permanent_only=False):
     .. [ButPer] P. Butera and M. Pernici "Sums of permanental minors
        using Grassmann algebra", :arxiv:`1406.5337`
     """
-    K = PolynomialRing(m.base_ring(), 'K')
+    K = PolynomialRing(m.base_ring(), 't')
     m = list(m)
     nrows = len(m)
     ncols = len(m[0])

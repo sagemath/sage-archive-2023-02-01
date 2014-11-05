@@ -54,12 +54,15 @@ cdef class FiniteFieldIterator:
 
         EXAMPLES::
 
-            sage: k = iter(FiniteField(9, 'a', impl='pari_mod')) # indirect doctest
+            sage: k = iter(FiniteField(9, 'a', impl='pari_ffelt')) # indirect doctest
+            sage: isinstance(k, sage.rings.finite_rings.finite_field_base.FiniteFieldIterator)
+            True
+            sage: k = iter(FiniteField(16, 'a', impl='ntl')) # indirect doctest
             sage: isinstance(k, sage.rings.finite_rings.finite_field_base.FiniteFieldIterator)
             True
         """
         self.parent = parent
-        self.iter =iter(self.parent.vector_space())
+        self.iter = iter(self.parent.vector_space())
 
     def __next__(self):
         r"""
@@ -67,7 +70,7 @@ cdef class FiniteFieldIterator:
 
         EXAMPLE::
 
-            sage: k = iter(FiniteField(9, 'a', impl='pari_mod'))
+            sage: k = iter(FiniteField(9, 'a', impl='pari_ffelt'))
             sage: k.next() # indirect doctest
             0
         """
@@ -84,8 +87,8 @@ cdef class FiniteFieldIterator:
             [0, a, a^2, a^3, 2*a^2 + 3*a + 4, 2*a^3 + 3*a^2 + 4*a, 3*a^3 + a^2 + 6*a + 1]
             sage: K.<a> = GF(5^9)
             sage: for x in K:
-            ...       if x == a+3: break
-            ...       print x
+            ....:     if x == a+3: break
+            ....:     print x
             0
             1
             2
@@ -349,7 +352,7 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: k = FiniteField(8, 'a', impl='pari_mod')
+            sage: k = FiniteField(8, 'a', impl='pari_ffelt')
             sage: i = iter(k); i # indirect doctest
             <sage.rings.finite_rings.finite_field_base.FiniteFieldIterator object at ...>
             sage: i.next()
@@ -850,8 +853,6 @@ cdef class FiniteField(Field):
             x
             sage: GF(13^2, 'a', impl="givaro", modulus=x^2+2).modulus()
             x^2 + 2
-            sage: GF(13^2, 'a', impl="pari_mod", modulus=x^2+2).modulus()
-            x^2 + 2
             sage: GF(13^2, 'a', impl="pari_ffelt", modulus=x^2+2).modulus()
             x^2 + 2
         """
@@ -888,7 +889,7 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: k.<a> = FiniteField(9, impl='pari_mod')
+            sage: k.<a> = FiniteField(9)
             sage: k.polynomial('x')
             x^2 + 2*x + 2
             sage: k.polynomial()

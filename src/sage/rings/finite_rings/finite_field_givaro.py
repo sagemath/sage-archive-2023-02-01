@@ -352,9 +352,6 @@ class FiniteField_givaro(FiniteField):
             sage: K.<a> = GF(3^10, impl="givaro")
             sage: a^20
             2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
-            sage: L.<b> = GF(3^10, impl="pari_mod")
-            sage: K(b^20)
-            2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
             sage: M.<c> = GF(3^10, impl="pari_ffelt")
             sage: K(c^20)
             2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
@@ -527,21 +524,6 @@ class FiniteField_givaro(FiniteField):
         """
         f = pari(str(self.modulus()))
         return f.subst('x', 'a') * pari("Mod(1,%s)"%self.characteristic())
-
-    def _finite_field_ext_pari_(self):  # todo -- cache
-        """
-        Return a :class:`FiniteField_ext_pari` isomorphic to ``self`` with
-        the same defining polynomial.
-
-        EXAMPLES::
-
-            sage: GF(3^4,'z')._finite_field_ext_pari_()
-            Finite Field in z of size 3^4
-        """
-        f = self.polynomial()
-        import finite_field_ext_pari
-        return finite_field_ext_pari.FiniteField_ext_pari(self.order(),
-                                                          self.variable_name(), f)
 
     def __iter__(self):
         """

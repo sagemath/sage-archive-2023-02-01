@@ -13,7 +13,7 @@ Fast word datatype using an array of unsigned char.
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 
 cimport cython
 from sage.rings.integer cimport Integer, smallInteger
@@ -21,17 +21,9 @@ from sage.rings.rational cimport Rational
 from libc.string cimport memcpy, memcmp
 from sage.combinat.words.word_datatypes cimport WordDatatype
 
-cdef extern from "Python.h":
-    # check functions
-    int PyIndex_Check(object o)
-    int PySlice_Check(object o)
-    int PySequence_Check(object o)
-    int PyNumber_Check(object o)
-
-    # get numbers from Python slice
-    int PySlice_GetIndicesEx(object slice, Py_ssize_t length,
-            Py_ssize_t *start, Py_ssize_t *stop, Py_ssize_t *step,
-            Py_ssize_t *slicelength) except -1
+from cpython.number cimport PyIndex_Check, PyNumber_Check
+from cpython.sequence cimport PySequence_Check
+from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
 
 # the maximum value of a size_t
 cdef size_t SIZE_T_MAX = -(<size_t> 1)

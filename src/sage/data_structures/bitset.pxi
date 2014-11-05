@@ -26,9 +26,9 @@ AUTHORS:
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 from sage.libs.gmp.mpn cimport *
-from sage.misc.bitset cimport *
+from sage.data_structures.bitset cimport *
 
-# Doctests for the functions in this file are in sage/misc/bitset.pyx
+# Doctests for the functions in this file are in sage/data_structures/bitset.pyx
 
 #############################################################################
 # Creating limb patterns
@@ -139,9 +139,7 @@ cdef inline void bitset_copy(bitset_t dst, bitset_t src):
     """
     Copy the bitset src over to the bitset dst, overwriting dst.
 
-    We assume the two sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``dst.limbs == src.limbs``.
     """
     mpn_copyi(dst.bits, src.bits, src.limbs)
 
@@ -177,9 +175,7 @@ cdef inline bint bitset_eq(bitset_t a, bitset_t b):
     Compare bitset a and b.  Return True (i.e., 1) if the sets are
     equal, and False (i.e., 0) otherwise.
 
-    We assume the two sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``a.limbs >= b.limbs``.
     """
     return mpn_cmp(a.bits, b.bits, b.limbs) == 0
 
@@ -189,9 +185,7 @@ cdef inline int bitset_cmp(bitset_t a, bitset_t b):
     identical, and consistently return -1 or 1 for two sets that are
     not equal.
 
-    We assume the two sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``a.limbs >= b.limbs``.
     """
     return mpn_cmp(a.bits, b.bits, b.limbs)
 
@@ -203,6 +197,8 @@ cdef inline int bitset_lex_cmp(bitset_t a, bitset_t b):
     `[0 ... n-1]` are in `a` if and only if they are in `b`, and the
     `(k+1)`st element is in `b` but not ``a``. So `1010 < 1011` and
     `1010111 < 1011000`.
+
+    We assume ``a.limbs == b.limbs``.
 
     INPUT:
 
@@ -227,9 +223,7 @@ cdef inline bint bitset_issubset(bitset_t a, bitset_t b):
     Test whether a is a subset of b (i.e., every element in a is also
     in b).
 
-    We assume the two sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``a.limbs <= b.limbs``.
     """
     cdef mp_size_t i
     for i from 0 <= i < a.limbs:
@@ -242,9 +236,7 @@ cdef inline bint bitset_issuperset(bitset_t a, bitset_t b):
     Test whether a is a superset of b (i.e., every element in b is also
     in a).
 
-    We assume the two sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``a.limbs >= b.limbs``.
     """
     return bitset_issubset(b, a)
 
@@ -400,9 +392,7 @@ cdef inline long bitset_first_diff(bitset_t a, bitset_t b):
     Calculate the index of the first difference between a and b.  If a
     and b are equal, then return -1.
 
-    We assume the two sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``a.limbs == b.limbs``.
     """
     cdef mp_size_t i
     for i from 0 <= i < a.limbs:
@@ -434,9 +424,7 @@ cdef inline long bitset_next_diff(bitset_t a, bitset_t b, mp_bitcnt_t n):
     b, starting at (and including) n.  Return -1 if there are no
     elements differing between a and b from n onwards.
 
-    We assume the two sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``a.limbs == b.limbs``.
     """
     if n >= a.size:
         return -1
@@ -477,9 +465,7 @@ cdef inline void bitset_complement(bitset_t r, bitset_t a):
     """
     Set r to be the complement of a, overwriting r.
 
-    We assume the two sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``r.limbs == a.limbs``.
     """
     mpn_com(r.bits, a.bits, a.limbs)
     bitset_fix(r)
@@ -488,9 +474,7 @@ cdef inline void bitset_not(bitset_t r, bitset_t a):
     """
     Set r to be the complement of a, overwriting r.
 
-    We assume the two sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``r.limbs == a.limbs``.
 
     This function is the same as bitset_complement(r, a).
     """
@@ -500,9 +484,7 @@ cdef inline void bitset_intersection(bitset_t r, bitset_t a, bitset_t b):
     """
     Set r to the intersection of a and b, overwriting r.
 
-    We assume the three sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``a.limbs >= r.limbs == b.limbs``.
     """
     mpn_and_n(r.bits, a.bits, b.bits, b.limbs)
 
@@ -510,9 +492,7 @@ cdef inline void bitset_and(bitset_t r, bitset_t a, bitset_t b):
     """
     Set r to the intersection of a and b, overwriting r.
 
-    We assume the three sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``a.limbs >= r.limbs == b.limbs``.
 
     This function is the same as bitset_intersection(r, a, b).
     """
@@ -522,9 +502,8 @@ cdef inline void bitset_union(bitset_t r, bitset_t a, bitset_t b):
     """
     Set r to the union of a and b, overwriting r.
 
-    We assume the three sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``r.limbs >= a.limbs >= b.limbs`` and either ``r is a``
+    or ``r.limbs == b.limbs``.
     """
     mpn_ior_n(r.bits, a.bits, b.bits, b.limbs)
 
@@ -532,9 +511,8 @@ cdef inline void bitset_or(bitset_t r, bitset_t a, bitset_t b):
     """
     Set r to the union of a and b, overwriting r.
 
-    We assume the three sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``r.limbs >= a.limbs >= b.limbs`` and either ``r is a``
+    or ``r.limbs == b.limbs``.
 
     This function is the same as bitset_union(r, a, b).
     """
@@ -545,9 +523,8 @@ cdef inline void bitset_difference(bitset_t r, bitset_t a, bitset_t b):
     Set r to the difference of a and b (i.e., things in a that are not
     in b), overwriting r.
 
-    We assume the three sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``r.limbs >= a.limbs >= b.limbs`` and either ``r is a``
+    or ``r.limbs == b.limbs``.
     """
     mpn_andn_n(r.bits, a.bits, b.bits, b.limbs)
 
@@ -555,9 +532,8 @@ cdef inline void bitset_symmetric_difference(bitset_t r, bitset_t a, bitset_t b)
     """
     Set r to the symmetric difference of a and b, overwriting r.
 
-    We assume the three sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``r.limbs >= a.limbs >= b.limbs`` and either ``r is a``
+    or ``r.limbs == b.limbs``.
     """
     mpn_xor_n(r.bits, a.bits, b.bits, b.limbs)
 
@@ -565,75 +541,84 @@ cdef inline void bitset_xor(bitset_t r, bitset_t a, bitset_t b):
     """
     Set r to the symmetric difference of a and b, overwriting r.
 
-    We assume the three sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``r.limbs >= a.limbs >= b.limbs`` and either ``r is a``
+    or ``r.limbs == b.limbs``.
 
     This function is the same as bitset_symmetric_difference(r, a, b).
     """
     mpn_xor_n(r.bits, a.bits, b.bits, b.limbs)
+
 
 cdef void bitset_rshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     """
     Shift the bitset ``a`` right by ``n`` bits and store the result in
     ``r``.
 
-    We assume the two sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``a.size <= r.size + n``.
     """
     if n >= a.size:
         mpn_zero(r.bits, r.limbs)
         return
     
-    # Number of limbs on the right which will totally be shifted out
+    # Number of limbs on the right of a which will totally be shifted out
     cdef mp_size_t nlimbs = n >> index_shift
     # Number of bits to shift additionally
     cdef mp_bitcnt_t nbits = n % GMP_LIMB_BITS
 
     if nbits:
         # mpn_rshift only does shifts less than a limb
-        mpn_rshift(r.bits, a.bits + nlimbs, a.limbs - nlimbs, nbits)
+        if a.limbs - nlimbs <= r.limbs:
+            mpn_rshift(r.bits, a.bits + nlimbs, a.limbs - nlimbs, nbits)
+        else:
+            # In this case, we must have a.limbs - nlimbs - 1 == r.limbs
+            mpn_rshift(r.bits, a.bits + nlimbs, r.limbs, nbits)
+            # Add the additional bits from top limb of a
+            r.bits[r.limbs-1] |= a.bits[a.limbs-1] << (GMP_LIMB_BITS - nbits)
     else:
         mpn_copyi(r.bits, a.bits + nlimbs, a.limbs - nlimbs)
 
     # Clear top limbs
-    mpn_zero(r.bits + (r.limbs - nlimbs), nlimbs)
+    if r.limbs + nlimbs >= a.limbs + 1:
+        mpn_zero(r.bits + (r.limbs - nlimbs), r.limbs + nlimbs - a.limbs)
 
 cdef void bitset_lshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     """
     Shift the bitset ``a`` left by ``n`` bits and store the result in
     ``r``.
 
-    We assume the two sets have the same size.  Otherwise, the
-    behavior of this function is undefined and the function may
-    segfault.
+    We assume ``r.size <= a.size + n``.
     """
-    if n >= a.size:
+    if n >= r.size:
         mpn_zero(r.bits, r.limbs)
         return
 
-    # Number of limbs on the left which will totally be shifted out
+    # Number of limbs on the left of r which will totally be shifted out
     cdef mp_size_t nlimbs = n >> index_shift
     # Number of bits to shift additionally
     cdef mp_bitcnt_t nbits = n % GMP_LIMB_BITS
 
+    cdef mp_limb_t out
     if nbits:
         # mpn_lshift only does shifts less than a limb
-        mpn_lshift(r.bits + nlimbs, a.bits, a.limbs - nlimbs, nbits)
+        if r.limbs - nlimbs <= a.limbs:
+            mpn_lshift(r.bits + nlimbs, a.bits, r.limbs - nlimbs, nbits)
+        else:
+            # In this case, we must have r.limbs - nlimbs - 1 == a.limbs
+            out = mpn_lshift(r.bits + nlimbs, a.bits, a.limbs, nbits)
+            r.bits[r.limbs-1] = out
     else:
-        mpn_copyd(r.bits + nlimbs, a.bits, a.limbs - nlimbs)
+        mpn_copyd(r.bits + nlimbs, a.bits, r.limbs - nlimbs)
     bitset_fix(r)
 
     # Clear bottom limbs
     mpn_zero(r.bits, nlimbs)
 
 
-cdef inline void bitset_map(bitset_t r, bitset_t a, m):
+cdef int bitset_map(bitset_t r, bitset_t a, m) except -1:
     """
     Fill bitset ``r`` so ``r == {m[i] for i in a}``.
 
-    We assume that ``m`` has a dictionary interface such that
+    We assume ``m`` has a dictionary interface such that
     ``m[i]`` is an integer in ``[0 ... n-1]`` for all ``i`` in ``a``,
     where ``n`` is the capacity of ``r``.
     """
@@ -643,6 +628,7 @@ cdef inline void bitset_map(bitset_t r, bitset_t a, m):
     while i >= 0:
         bitset_add(r, m[i])
         i = bitset_next(a, i + 1)
+    return 0
 
 #############################################################################
 # Hamming Weights
@@ -672,7 +658,7 @@ cdef char* bitset_chars(char* s, bitset_t bits, char zero=c'0', char one=c'1'):
     s[bits.size] = 0
     return s
 
-cdef void bitset_from_str(bitset_t bits, char* s, char zero=c'0', char one=c'1'):
+cdef int bitset_from_str(bitset_t bits, char* s, char zero=c'0', char one=c'1') except -1:
     """
     Initialize a bitset with a set derived from the character string
     s, where one represents the character indicating set membership.
@@ -681,6 +667,7 @@ cdef void bitset_from_str(bitset_t bits, char* s, char zero=c'0', char one=c'1')
     cdef long i
     for i from 0 <= i < bits.size:
         bitset_set_to(bits, i, s[i] == one)
+    return 0
 
 cdef bitset_string(bitset_t bits):
     """

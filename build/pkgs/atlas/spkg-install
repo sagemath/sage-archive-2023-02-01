@@ -24,7 +24,7 @@ from enums import ATLAS_OSTYPE, ATLAS_MACHTYPE, ATLAS_ISAEXT, make_check_enums
 PATCH_DIR = os.path.join(conf['SPKG_DIR'], 'patches')
 
 # the current lapack source tarball
-LAPACK_TARFILE = os.path.join(conf['SPKG_DIR'], 'src', 'lapack-3.4.2.tar')
+LAPACK_TARFILE = os.path.join(conf['SPKG_DIR'], 'src', 'lapack-3.5.0.tar')
 
 # temporary directory to build everything in
 BUILD_DIR = os.path.join(conf['SPKG_DIR'], 'src', 'ATLAS-build')

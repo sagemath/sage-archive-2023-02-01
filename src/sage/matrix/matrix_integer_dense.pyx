@@ -2726,7 +2726,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         The default reduction parameters are `\delta = 3/4` and `\eta = 0.501`.
         The parameters `\delta` and `\eta` must satisfy: `0.25 < \delta
         \leq 1.0` and `0.5 \leq \eta < \sqrt{\delta}`. Polynomial time
-        complexity is only guaranteed for `\delta < 1`.
+        complexity is only guaranteed for `\delta < 1`. Not every algorithm
+        admits the case `\delta = 1`.
 
         The lattice is returned as a matrix. Also the rank (and the
         determinant) of ``self`` are cached if those are computed during
@@ -2809,6 +2810,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [-3, -1, 13, -1, -4, 2, 3, 4, 5, -1]
             sage: add([Q[i]*M[i] for i in range(n)])
             -1
+
+        The case `\delta = 1` is not always supported::
+
+            sage: L = X.LLL(delta=2)
+            Traceback (most recent call last):
+            ...
+            TypeError: delta must be <= 1
+            sage: L = X.LLL(delta=1)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: infinite loop in LLL
+            sage: L = X.LLL(delta=1, algorithm='NTL:LLL')
+            sage: L[-1]
+            (-100, -3, -1, 13, -1, -4, 2, 3, 4, 5, -1)
 
         TESTS::
 

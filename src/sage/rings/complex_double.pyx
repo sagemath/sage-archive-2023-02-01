@@ -1629,8 +1629,8 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a = CDF(1,1); b = CDF(2,3)
             sage: c = a^b; c # indirect doctest
             -0.163450932107355 + 0.09600498360894891*I
-            sage: c^(1/b)
-            1.0000000000000002 + 1.0*I
+            sage: c^(1/b) # rel tol 2e-16
+            1.0 + 1.0*I
 
         We compute the cube root of `-1` then cube it and observe a
         rounding error::

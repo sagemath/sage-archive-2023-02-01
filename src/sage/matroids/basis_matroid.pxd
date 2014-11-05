@@ -1,4 +1,4 @@
-from sage.misc.bitset cimport bitset_t
+from sage.data_structures.bitset cimport bitset_t
 from matroid cimport Matroid
 from basis_exchange_matroid cimport BasisExchangeMatroid
 from set_system cimport SetSystem
@@ -14,7 +14,6 @@ cdef class BasisMatroid(BasisExchangeMatroid):
     cdef _bases_invariant3_var
     cdef SetSystem _bases_partition3_var
 
-    cdef  bint __is_exchange_pair(self, long x, long y)
     cdef reset_current_basis(self)
 
     cpdef _is_basis(self, X)

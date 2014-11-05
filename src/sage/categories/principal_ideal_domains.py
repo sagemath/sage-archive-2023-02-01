@@ -44,6 +44,20 @@ class PrincipalIdealDomains(Category_singleton):
         """
         return [UniqueFactorizationDomains()]
 
+    def additional_structure(self):
+        """
+        Return ``None``.
+
+        Indeed, the category of principal ideal domains defines no
+        additional structure: a ring morphism between two principal
+        ideal domains is a principal ideal domain morphism.
+
+        EXAMPLES::
+
+            sage: PrincipalIdealDomains().additional_structure()
+        """
+        return None
+
     class ParentMethods:
         pass
 

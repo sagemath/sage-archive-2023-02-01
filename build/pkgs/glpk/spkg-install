@@ -19,6 +19,8 @@ for patch in ../patches/*.patch; do
         exit 1
     fi
 done
+# The following is an easy way to prevent autotools to regenerate its files.
+touch *
 
 # Exit on error
 set -e

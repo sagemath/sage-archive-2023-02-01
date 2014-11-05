@@ -1,11 +1,6 @@
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
+from sage.libs.flint.types cimport fmpz_t, fmpz_poly_t, fmpz_mat_t
 
 cdef extern from "flint/fmpz_mat.h":
-    ctypedef struct fmpz_mat_struct:
-        pass
-    ctypedef fmpz_mat_struct fmpz_mat_t[1]
-
     void fmpz_mat_init(fmpz_mat_t mat, unsigned long rows, unsigned long cols)
     void fmpz_mat_init_set(fmpz_mat_t mat, const fmpz_mat_t src)
     void fmpz_mat_set(fmpz_mat_t result, fmpz_mat_t mat)

@@ -120,7 +120,7 @@ refer to the documentation for ``CGraph``.
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
 
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 cdef class DenseGraph(CGraph):
     """
@@ -346,7 +346,7 @@ cdef class DenseGraph(CGraph):
     # Unlabeled arc functions
     ###################################
 
-    cdef int add_arc_unsafe(self, int u, int v):
+    cdef int add_arc_unsafe(self, int u, int v) except -1:
         """
         Adds arc (u, v) to the graph.
 
@@ -389,7 +389,7 @@ cdef class DenseGraph(CGraph):
         self.check_vertex(v)
         self.add_arc_unsafe(u,v)
 
-    cdef int has_arc_unsafe(self, int u, int v):
+    cdef int has_arc_unsafe(self, int u, int v) except -1:
         """
         Checks whether arc (u, v) is in the graph.
 
@@ -405,7 +405,7 @@ cdef class DenseGraph(CGraph):
         cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
         return (self.edges[place] & word) >> (v & self.radix_mod_mask)
 
-    cpdef bint has_arc(self, int u, int v):
+    cpdef bint has_arc(self, int u, int v) except -1:
         """
         Checks whether arc ``(u, v)`` is in the graph.
 
@@ -429,7 +429,7 @@ cdef class DenseGraph(CGraph):
             return False
         return self.has_arc_unsafe(u,v) == 1
 
-    cdef int del_arc_unsafe(self, int u, int v):
+    cdef int del_arc_unsafe(self, int u, int v) except -1:
         """
         Deletes the arc from u to v, if it exists.
 
@@ -476,7 +476,7 @@ cdef class DenseGraph(CGraph):
     # Neighbor functions
     ###################################
 
-    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size):
+    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         """
         Gives all v such that (u, v) is an arc of the graph.
 
@@ -540,7 +540,7 @@ cdef class DenseGraph(CGraph):
         sage_free(neighbors)
         return output
 
-    cdef int in_neighbors_unsafe(self, int v, int *neighbors, int size):
+    cdef int in_neighbors_unsafe(self, int v, int *neighbors, int size) except -2:
         """
         Gives all u such that (u, v) is an arc of the graph.
 

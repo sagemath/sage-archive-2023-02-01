@@ -307,7 +307,7 @@ $(INST)/$(GAP): $(INST)/$(NCURSES) $(INST)/$(READLINE) $(INST)/$(MPIR)
 $(INST)/$(LIBGAP): $(INST)/$(GAP)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBGAP) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBGAP).log"
 
-$(INST)/$(IPYTHON): $(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO)
+$(INST)/$(IPYTHON): $(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO) $(INST)/$(PYZMQ)
 	+$(PIPE) "$(SAGE_SPKG) $(IPYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(IPYTHON).log"
 
 $(INST)/$(PEXPECT): $(INST)/$(PYTHON)
@@ -418,7 +418,7 @@ $(INST)/$(RPY): $(INST)/$(PYTHON) $(INST)/$(R)
 $(INST)/$(SYMPY): $(INST)/$(PYTHON) $(INST)/$(MPMATH)
 	+$(PIPE) "$(SAGE_SPKG) $(SYMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMPY).log"
 
-$(INST)/$(CYTHON): $(INST)/$(PYTHON)
+$(INST)/$(CYTHON): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(CYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(CYTHON).log"
 
 $(INST)/$(FLINTQS): $(INST)/$(MPIR)

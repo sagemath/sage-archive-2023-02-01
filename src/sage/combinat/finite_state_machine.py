@@ -3465,9 +3465,9 @@ class FiniteStateMachine(SageObject):
         if is_FiniteStateMachine(args[0]):
             return self.composition(*args, **kwargs)
         if hasattr(args[0], '__iter__'):
-            if not kwargs.has_key('full_output'):
+            if not 'full_output' in kwargs:
                 kwargs['full_output'] = False
-            if not kwargs.has_key('list_of_outputs'):
+            if not 'list_of_outputs' in kwargs:
                 kwargs['list_of_outputs'] = False
             return self.process(*args, **kwargs)
         raise TypeError("Do not know what to do with that arguments.")
@@ -11903,13 +11903,13 @@ class FSMProcessIterator(SageObject, collections.Iterator):
              (True, 3, 'i:)'), (True, 3, 'l:)'), (True, 3, 'n:)')]
 
         """
-        if self._current_.has_key(tape_cache.position):
+        if tape_cache.position in self._current_:
             states = self._current_[tape_cache.position]
         else:
             states = self._current_[tape_cache.position] = {}
             heapq.heappush(self._current_positions_, tape_cache.position)
 
-        if states.has_key(state):
+        if state in states:
             existing_tape_cache, existing_outputs = states[state]
             existing_outputs.extend(outputs)
             existing_outputs = [t for t, _ in

@@ -675,6 +675,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         self._compiled = CompiledPolynomialFunction(self.list())
         return self._compiled
 
+    def _get_compiled(self):
+        # For testing
+        return self._compiled
+
     def _fast_float_(self, *vars):
         """
         Returns a quickly-evaluating function on floats.
@@ -3072,7 +3076,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = CDF[]
             sage: f = (x^2 + 2*R(I))^3
             sage: F = f.factor()
-            sage: F  # abs tol 1e-5
+            sage: F  # abs tol 3e-5
             (x - 1.0000138879287663 + 1.0000013435286879*I) * (x - 0.9999942196864997 + 0.9999873009803959*I) * (x - 0.9999918923847313 + 1.0000113554909125*I) * (x + 0.9999908759550227 - 1.0000069659624138*I) * (x + 0.9999985293216753 - 0.9999886153831807*I) * (x + 1.0000105947233 - 1.0000044186544053*I)
             sage: [f(t[0][0]).abs() for t in F] # abs tol 1e-13
             [1.979365054e-14, 1.97936298566e-14, 1.97936990747e-14, 3.6812407475e-14, 3.65211563729e-14, 3.65220890052e-14]
@@ -5357,8 +5361,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-1.0911236359717227 - 0.6299605249474374*I, 1), (3.885780586188048e-16 + 1.2599210498948734*I, 1), (1.0911236359717211 - 0.6299605249474363*I, 1)]
             sage: f.roots(multiplicities=False)  # abs tol 1e-14
             [-1.0911236359717227 - 0.6299605249474374*I, 3.885780586188048e-16 + 1.2599210498948734*I, 1.0911236359717211 - 0.6299605249474363*I]
-            sage: [f(z) for z in f.roots(multiplicities=False)]  # abs tol 1e-12
-            [1.3704315460216776e-15 + 3.3306690738754696e-15*I, 5.287107591627866e-16 + 1.9984014443252818e-15*I, 2.0616104309811867e-16 + 1.7763568394002505e-15*I]
+            sage: [abs(f(z)) for z in f.roots(multiplicities=False)]  # abs tol 1e-14
+            [8.95090418262362e-16, 8.728374398092689e-16, 1.0235750533041806e-15]
             sage: f = i*x^3 + 2; f
             I*x^3 + 2.0
             sage: f.roots()  # abs tol 1e-14
@@ -5610,9 +5614,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: R.<u> = QQ[]
             sage: g = -27*u^14 - 32*u^9
-            sage: g.roots(CDF, multiplicities=False)  # abs tol 1e-15
+            sage: g.roots(CDF, multiplicities=False)  # abs tol 2e-15
             [-1.0345637159435719, 0.0, -0.3196977699902601 - 0.9839285635706636*I, -0.3196977699902601 + 0.9839285635706636*I, 0.8369796279620465 - 0.6081012947885318*I, 0.8369796279620465 + 0.6081012947885318*I]
-            sage: g.roots(CDF)  # abs tol 1e-15
+            sage: g.roots(CDF)  # abs tol 2e-15
             [(-1.0345637159435719, 1), (0.0, 9), (-0.3196977699902601 - 0.9839285635706636*I, 1), (-0.3196977699902601 + 0.9839285635706636*I, 1), (0.8369796279620465 - 0.6081012947885318*I, 1), (0.8369796279620465 + 0.6081012947885318*I, 1)]
 
         This shows that the issue at :trac:`2418` is fixed::

@@ -119,7 +119,7 @@ cdef class GLPKGraphBackend(object):
     cdef int t
     cpdef int write_maxflow(self, char *fname) except -1
     cpdef double maxflow_ffalg(self, u = ?, v = ?) except -1
-    cpdef double cpp(self) except -1
+    cpdef double cpp(self)
 
 
 

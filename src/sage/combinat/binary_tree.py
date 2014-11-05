@@ -1093,7 +1093,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: bt.to_poset(with_leaves=True)
             Finite poset containing 3 elements
             sage: bt.to_poset(with_leaves=True).cover_relations()
-            [[0, 2], [1, 2]]
+            [[1, 2], [0, 2]]
             sage: bt = BinaryTree([])
             sage: bt.to_poset(with_leaves=True,root_to_leaf=True).cover_relations()
             [[0, 1], [0, 2]]
@@ -2945,6 +2945,30 @@ class BinaryTrees_size(BinaryTrees):
         """
         from combinat import catalan_number
         return catalan_number(self._size)
+
+    def random_element(self):
+        r"""
+        Return a random ``BinaryTree`` with uniform probability.
+
+        This method generates a random ``DyckWord`` and then uses a
+        bijection between Dyck words and binary trees.
+
+        EXAMPLES::
+
+            sage: BinaryTrees(5).random_element() # random
+            [., [., [., [., [., .]]]]] 
+            sage: BinaryTrees(0).random_element()
+            .
+            sage: BinaryTrees(1).random_element()
+            [., .]
+
+        TESTS::
+
+            sage: all([BinaryTrees(10).random_element() in BinaryTrees(10) for i in range(20)])
+            True
+        """
+        from sage.combinat.dyck_word import CompleteDyckWords_size
+        return CompleteDyckWords_size(self._size).random_element().to_binary_tree()
 
     def __iter__(self):
         """

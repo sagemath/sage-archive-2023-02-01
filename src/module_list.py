@@ -278,6 +278,16 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.data_structures
+    ##
+    ################################
+
+    Extension('sage.data_structures.bitset',
+              sources = ['sage/data_structures/bitset.pyx'],
+              libraries = ['gmp']),
+
+    ################################
+    ##
     ## sage.ext
     ##
     ################################
@@ -702,6 +712,10 @@ ext_modules = [
               extra_compile_args=["-DFPLLL_V3_COMPAT"],
               depends = [SAGE_INC + "/fplll/fplll.h"] + flint_depends),
 
+    Extension('sage.libs.gmp.rational_reconstruction',
+              sources = ['sage/libs/gmp/rational_reconstruction.pyx'],
+              libraries = ['gmp']),
+
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
               # For this to work on cygwin, linboxsage *must* be
@@ -719,8 +733,6 @@ ext_modules = [
               include_dirs = [SAGE_INC + "/libLfunction"],
               extra_compile_args=["-O3", "-ffast-math"],
               language = 'c++'),
-
-
 
     Extension('sage.libs.libecm',
               sources = ['sage/libs/libecm.pyx'],
@@ -1201,10 +1213,6 @@ ext_modules = [
 
     Extension('sage.misc.allocator',
               sources = ['sage/misc/allocator.pyx']),
-
-    Extension('sage.misc.bitset',
-              sources = ['sage/misc/bitset.pyx'],
-              libraries = ['gmp']),
 
     Extension('sage.misc.cachefunc',
               sources = ['sage/misc/cachefunc.pyx']),
@@ -2109,7 +2117,7 @@ ext_modules = [
     ## sage.schemes
     ##
     ################################
-    
+
     Extension('sage.schemes.projective.projective_morphism_helper',
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]

@@ -2911,7 +2911,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             p = pNext(p)
         return pd
 
-    cdef long _hash_c(self):
+    cdef long _hash_c(self) except -1:
         """
         See ``self.__hash__``
         """

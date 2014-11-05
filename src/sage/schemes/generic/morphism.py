@@ -157,7 +157,7 @@ class SchemeMorphism(Element):
         sage: A2.structure_morphism().domain()
         Affine Space of dimension 2 over Rational Field
         sage: A2.structure_morphism().category()
-        Category of hom sets in Category of schemes
+        Category of homsets of schemes
     """
 
     def __init__(self, parent, codomain=None):
@@ -428,7 +428,7 @@ class SchemeMorphism(Element):
 
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.structure_morphism().category()
-            Category of hom sets in Category of schemes
+            Category of homsets of schemes
         """
         return self.parent().category()
 
@@ -665,9 +665,7 @@ class SchemeMorphism_structure_map(SchemeMorphism):
     EXAMPLES::
 
         sage: Spec(ZZ).structure_morphism()    # indirect doctest
-        Scheme morphism:
-          From: Spectrum of Integer Ring
-          To:   Spectrum of Integer Ring
+        Scheme endomorphism of Spectrum of Integer Ring
           Defn: Structure map
     """
     def __init__(self, parent, codomain=None):

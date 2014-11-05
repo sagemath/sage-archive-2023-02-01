@@ -115,7 +115,7 @@ def Hasse_diagram_from_incidences(atom_to_coatoms, coatom_to_atoms,
         sage: L = sage.geometry.cone.Hasse_diagram_from_incidences(
         ...                       atom_to_coatoms, coatom_to_atoms)
         sage: L
-        Finite poset containing 8 elements
+        Finite poset containing 8 elements with distinguished linear extension
         sage: for level in L.level_sets(): print level
         [((), (0, 1, 2))]
         [((0,), (0, 1)), ((1,), (0, 2)), ((2,), (1, 2))]
@@ -207,6 +207,8 @@ def Hasse_diagram_from_incidences(atom_to_coatoms, coatom_to_atoms,
         atoms, coatoms = face
         elements[labels[index]] = face_constructor(
                         tuple(sorted(atoms)), tuple(sorted(coatoms)), **kwds)
+    D = {i:f for i,f in enumerate(elements)}
+    L.relabel(D)
     return FinitePoset(L, elements, key = key)
 
 

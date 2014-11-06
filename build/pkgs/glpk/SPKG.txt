@@ -34,10 +34,7 @@ http://www.gnu.org/software/glpk/#maintainer
 == Dependencies ==
 
  * GMP/MPIR
- * As of version 4.55, zlib is included in the GLPK sources, and there is
-   no configure flag to use an existing version of zlib.
-   This is circumvented by patching GLPK build system as (at least)
-   Red Hat does.
+ * zlib
 
 == Special Update/Build Instructions == 
 

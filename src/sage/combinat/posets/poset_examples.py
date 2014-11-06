@@ -77,9 +77,9 @@ class Posets(object):
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError("Number of elements must be an integer, not {0}.".format(n))
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n < 0:
-            raise ValueError("Number of elements must be non-negative, not {0}.".format(n))
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
         return FinitePosets_n(n)
 
     @staticmethod
@@ -95,9 +95,9 @@ class Posets(object):
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError("Number of elements must be an integer, not {0}.".format(n))
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n < 0:
-            raise ValueError("Number of elements must be non-negative, not {0}.".format(n))
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
         if n==0:
             return LatticePoset( ([0], []) )
         if n==1:
@@ -139,9 +139,9 @@ class Posets(object):
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError("Number of elements must be an integer, not {0}.".format(n))
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n < 0:
-            raise ValueError("Number of elements must be non-negative, not {0}.".format(n))
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
         return LatticePoset((range(n), [[x,x+1] for x in range(n-1)]))
 
     @staticmethod
@@ -177,9 +177,9 @@ class Posets(object):
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError("Number of elements must be an integer, not {0}.".format(n))
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n < 0:
-            raise ValueError("Number of elements must be non-negative, not {0}.".format(n))
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
         return Poset((range(n), []))
 
     @staticmethod
@@ -240,9 +240,9 @@ class Posets(object):
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError("Number of elements must be an integer, not {0}.".format(n))
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n <= 2:
-            raise ValueError("n must be an integer at least 3.")
+            raise ValueError("n must be an integer at least 3")
         c = [[n-1] for x in range(n)]
         c[0] = [x for x in range(1,n-1)]
         c[n-1] = []
@@ -381,36 +381,36 @@ class Posets(object):
             sage: Posets.RandomPoset('junk', 0.5)
             Traceback (most recent call last):
             ...
-            TypeError: Number of elements must be an integer, not junk.
+            TypeError: number of elements must be an integer, not junk
 
             sage: Posets.RandomPoset(-6, 0.5)
             Traceback (most recent call last):
             ...
-            ValueError: Number of elements must be non-negative, not -6.
+            ValueError: number of elements must be non-negative, not -6
 
             sage: Posets.RandomPoset(6, 'garbage')
             Traceback (most recent call last):
             ...
-            TypeError: Probability must be a real number, not garbage.
+            TypeError: probability must be a real number, not garbage
 
             sage: Posets.RandomPoset(6, -0.5)
             Traceback (most recent call last):
             ...
-            ValueError: Probability must be between 0 and 1, not -0.5.
+            ValueError: probability must be between 0 and 1, not -0.5
         """
         from sage.misc.prandom import random
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError("Number of elements must be an integer, not {0}.".format(n))
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n < 0:
-            raise ValueError("Number of elements must be non-negative, not {0}.".format(n))
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
         try:
             p = float(p)
         except Exception:
-            raise TypeError("Probability must be a real number, not {0}.".format(p))
+            raise TypeError("probability must be a real number, not {0}".format(p))
         if p < 0 or p> 1:
-            raise ValueError("Probability must be between 0 and 1, not {0}.".format(p))
+            raise ValueError("probability must be between 0 and 1, not {0}".format(p))
 
         D = DiGraph(loops=False,multiedges=False)
         D.add_vertices(range(n))

@@ -22,9 +22,6 @@ done
 # The following is an easy way to prevent autotools to regenerate its files.
 touch *
 
-# Exit on error
-set -e
-
 # Note: The following doesn't work with spaces in `$SAGE_LOCAL`, but we don't 
 #       support that anyway, since many upstream packages don't. 
 #       On the other hand, the only packages GLPK uses that Sage provides are 
@@ -59,7 +56,7 @@ if [ "x$SAGE64" = xyes ] ; then
    # but potentially it can be.
 fi
 
-export CFALGS LDFLAGS CPPFLAGS
+export CFLAGS LDFLAGS CPPFLAGS
 
 ./configure --prefix=$SAGE_LOCAL --libdir="$SAGE_LOCAL/lib" --with-gmp --disable-static
 if [ $? -ne 0 ]; then

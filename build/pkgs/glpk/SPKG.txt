@@ -34,11 +34,10 @@ http://www.gnu.org/software/glpk/#maintainer
 == Dependencies ==
 
  * GMP/MPIR
- * As of version 4.55, zlib is included in the GLPK sources, and *that* 
-   version is unconditionally compiled into the GLPK library, so there's 
-   no "external" dependency on it, and there's furthermore -- at least 
-   currently -- no way to make GLPK use an existing version of it, i.e., 
-   Sage's without patching.
+ * As of version 4.55, zlib is included in the GLPK sources, and there is
+   no configure flag to use an existing version of zlib.
+   This is circumvented by patching GLPK build system as (at least)
+   Red Hat does.
 
 == Special Update/Build Instructions == 
 

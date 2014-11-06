@@ -19,8 +19,8 @@ for patch in ../patches/*.patch; do
         exit 1
     fi
 done
-# The following is an easy way to prevent autotools to regenerate its files.
-touch *
+# The following prevents autotools to regenerate its files.
+touch aclocal.m4 configure Makefile.in config.h.in
 
 # Note: The following doesn't work with spaces in `$SAGE_LOCAL`, but we don't 
 #       support that anyway, since many upstream packages don't. 

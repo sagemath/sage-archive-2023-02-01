@@ -523,48 +523,60 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
     def eigenspaces(self,extend=True):
         """
-        Compute a list of subspaces formed by eigenvectors.
+        Compute a list of subspaces formed by eigenvectors of ``self``.
 
         INPUT:
 
-        ``extend`` - determines if field extensions should be considered
+        - ``extend`` -- (default: ``True``) determines if field
+          extensions should be considered
 
         OUTPUT:
 
-        - A list of pairs eigenvalue, eigenspace
+        - a list of pairs ``(eigenvalue, eigenspace)``
 
         EXAMPLES::
 
-            sage: V=QQ^3
-            sage: h=V.hom([[1,0,0],[0,0,1],[0,-1,0]],V)
+            sage: V = QQ^3
+            sage: h = V.hom([[1,0,0],[0,0,1],[0,-1,0]], V)
             sage: h.eigenspaces()
             [(1,
-            Vector space of degree 3 and dimension 1 over Rational Field
-            Basis matrix:
-            [1 0 0]),
-            (-1*I,
-            Vector space of degree 3 and dimension 1 over Algebraic Field
-            Basis matrix:
-            [  0   1 1*I]),
-            (1*I,
-            Vector space of degree 3 and dimension 1 over Algebraic Field
-            Basis matrix:
-            [   0    1 -1*I])]
+              Vector space of degree 3 and dimension 1 over Rational Field
+              Basis matrix:
+              [1 0 0]),
+             (-1*I,
+              Vector space of degree 3 and dimension 1 over Algebraic Field
+              Basis matrix:
+              [  0   1 1*I]),
+             (1*I,
+              Vector space of degree 3 and dimension 1 over Algebraic Field
+              Basis matrix:
+              [   0    1 -1*I])]
 
             sage: h.eigenspaces(extend=False)
             [(1,
-            Vector space of degree 3 and dimension 1 over Rational Field
-            Basis matrix:
-            [1 0 0])]
+              Vector space of degree 3 and dimension 1 over Rational Field
+              Basis matrix:
+              [1 0 0])]
 
+            sage: h = V.hom([[2,1,0], [0,2,0], [0,0,-1]], V)
+            sage: h.eigenspaces()
+            [(-1, Vector space of degree 3 and dimension 1 over Rational Field
+              Basis matrix:
+              [0 0 1]),
+             (2, Vector space of degree 3 and dimension 1 over Rational Field
+              Basis matrix:
+              [0 1 0])]
 
+            sage: h = V.hom([[2,1,0], [0,2,0], [0,0,2]], V)
+            sage: h.eigenspaces()
+            [(2, Vector space of degree 3 and dimension 2 over Rational Field
+              Basis matrix:
+              [0 1 0]
+              [0 0 1])]
         """
-        ev=self.eigenvectors(extend)
-        res=[]
-        for vec in ev:
-            vs=Sequence(vec[1]).universe()
-            res.append((vec[0],vs.subspace(vec[1])))
-        return res
+        ev = self.eigenvectors(extend)
+        return [(vec[0], Sequence(vec[1]).universe().subspace(vec[1]))
+                for vec in ev]
 
     def minimal_polynomial(self,var='x'):
         r"""

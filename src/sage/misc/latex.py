@@ -2392,7 +2392,7 @@ def repr_lincomb(symbols, coeffs):
                 # happens to be a number, then we should put a
                 # multiplication sign in
                 try:
-                    if bv in CC:
+                    if b in CC:
                         s += "%s\cdot %s"%(coeff, b)
                 except Exception:
                     s += "%s%s"%(coeff, b)
@@ -2664,7 +2664,7 @@ def latex_variable_name(x, is_fname=False):
         'x_{\\ast}'
 
     TESTS::
-    
+
         sage: latex_variable_name('_C')  # :trac:`16007`
         'C'
         sage: latex_variable_name('_K1')

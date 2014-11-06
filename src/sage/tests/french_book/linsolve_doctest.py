@@ -48,7 +48,7 @@ Sage example in ./linsolve.tex, line 502::
 
   sage: A = matrix(RDF, [[-1,2],[3,4]])
   sage: b = vector(RDF, [2,3])
-  sage: x = A\b; x  # rel tol 1e-15
+  sage: x = A\b; x  # rel tol 3e-15
   (-0.20000000000000018, 0.9000000000000001)
 
 Sage example in ./linsolve.tex, line 512::

@@ -2728,11 +2728,10 @@ class MPolynomialIdeal_singular_repr(
         over `Z` and `n` the number of variables in
         `R`. This method returns `Q(t)/(1-t)^n`.
 
-        An optional grading can be given, in which case
-        the ''graded'', or ''weighted'' Hilbert series is
-        given.
+        An optional ``grading`` can be given, in which case
+        the graded (or weighted) Hilbert series is given.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5])
@@ -2743,25 +2742,28 @@ class MPolynomialIdeal_singular_repr(
             sage: J.hilbert_series()
             (t^3 - t^2 - t - 1)/(t - 1)
             sage: J.hilbert_series(grading=(10,3))
-            (t^25 + t^24 + t^23 - t^15 - t^14 - t^13 - t^12 - t^11 - t^10 - t^9 - t^8 - t^7 - t^6 - t^5 - t^4 - t^3 - t^2 - t - 1)/(t^12 + t^11 + t^10 - t^2 - t - 1)
+            (t^25 + t^24 + t^23 - t^15 - t^14 - t^13 - t^12 - t^11
+             - t^10 - t^9 - t^8 - t^7 - t^6 - t^5 - t^4 - t^3 - t^2
+             - t - 1)/(t^12 + t^11 + t^10 - t^2 - t - 1)
         """
         if not self.is_homogeneous():
             raise TypeError("Ideal must be homogeneous.")
 
-        from sage.rings.integer import Integer
-
         t = ZZ['t'].gen()
         n = self.ring().ngens()
 
-        if grading != None:
-            if (type(grading) != list and type(grading) != tuple) or any(type(a) != Integer for a in grading):
-                raise AttributeError("Grading for Hilbert Series must be a list or tuple of integers.")
-            else:
-                if type(grading) == list: grading = tuple(grading)
-                result = self.hilbert_numerator(singular,grading)/prod((1-t**grading[i]) for i in xrange(n))
-        else:
-            result = self.hilbert_numerator(singular)/(1-t)**n
-        return result
+        if grading is None:
+            return self.hilbert_numerator(singular) / (1-t)**n
+
+        try:
+            grading = tuple(grading)
+        except (TypeError, ValueError):
+            raise TypeError("Grading must be a list or a tuple.")
+        if any(a not in ZZ for a in grading):
+            raise TypeError("Grading must consist only of integers.")
+
+        return (self.hilbert_numerator(singular, grading)
+                / prod((1 - t**a) for a in grading))
 
     @require_field
     def hilbert_numerator(self, singular=singular_default, grading=None):
@@ -2784,9 +2786,8 @@ class MPolynomialIdeal_singular_repr(
         `R`. This method returns `Q(t)`, the numerator;
         hence the name, `hilbert_numerator`.
 
-        An optional grading can be given, in which case
-        the ''graded'', or ''weighted'' Hilbert numerator is
-        given.
+        An optional ``grading`` can be given, in which case
+        the graded (or weighted) Hilbert series is given.
 
         EXAMPLE::
 
@@ -2805,24 +2806,24 @@ class MPolynomialIdeal_singular_repr(
             raise TypeError("Ideal must be homogeneous.")
 
         import sage.libs.singular
-        from sage.rings.integer import Integer
         hilb = sage.libs.singular.ff.hilb
 
         gb = self.groebner_basis()
         t = ZZ['t'].gen()
         n = self.ring().ngens()
-        gb = MPolynomialIdeal(self.ring(),gb)
-        if grading != None:
-            if (type(grading) != list and type(grading) != tuple) or any(type(a) != Integer for a in grading):
-                raise AttributeError("Grading for Hilbert Series must be a list or tuple of integers.")
-            else:
-                if type(grading) == list: grading = tuple(grading)
-                hs = hilb(gb,1,grading, attributes={gb:{'isSB':1}})
-                result = sum([ZZ(hs[i])*t**i for i in xrange(len(hs)-1)])
+        gb = MPolynomialIdeal(self.ring(), gb)
+        if grading is not None:
+            try:
+                grading = tuple(grading)
+            except (TypeError, ValueError):
+                raise TypeError("Grading must be a list or a tuple.")
+            if any(a not in ZZ for a in grading):
+                raise TypeError("Grading must consist only of integers.")
+
+            hs = hilb(gb, 1, grading, attributes={gb: {'isSB': 1}})
         else:
-            hs = hilb(gb,1, attributes={gb:{'isSB':1}})
-            result = sum([ZZ(hs[i])*t**i for i in xrange(len(hs)-1)])
-        return result
+            hs = hilb(gb, 1, attributes={gb: {'isSB': 1}})
+        return sum([ZZ(hs[i])*t**i for i in xrange(len(hs)-1)])
 
 
     @require_field

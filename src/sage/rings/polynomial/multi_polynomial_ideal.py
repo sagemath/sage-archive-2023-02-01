@@ -2745,6 +2745,21 @@ class MPolynomialIdeal_singular_repr(
             (t^25 + t^24 + t^23 - t^15 - t^14 - t^13 - t^12 - t^11
              - t^10 - t^9 - t^8 - t^7 - t^6 - t^5 - t^4 - t^3 - t^2
              - t - 1)/(t^12 + t^11 + t^10 - t^2 - t - 1)
+
+            sage: J = R.ideal([a^2*b^3, a*b^4 + a^3*b^2])
+            sage: J.hilbert_series(grading=[1,2])
+            (t^11 + t^8 - t^6 - t^5 - t^4 - t^3 - t^2 - t - 1)/(t^2 - 1)
+            sage: J.hilbert_series(grading=[2,1])
+            (2*t^7 - t^6 - t^4 - t^2 - 1)/(t - 1)
+
+        TESTS::
+
+            sage: P.<x,y,z> = PolynomialRing(QQ)
+            sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5])
+            sage: I.hilbert_series(grading=5)
+            Traceback (most recent call last):
+            ...
+            TypeError: Grading must be a list or a tuple of integers.
         """
         if not self.is_homogeneous():
             raise TypeError("Ideal must be homogeneous.")
@@ -2755,13 +2770,7 @@ class MPolynomialIdeal_singular_repr(
         if grading is None:
             return self.hilbert_numerator(singular) / (1-t)**n
 
-        try:
-            grading = tuple(grading)
-        except (TypeError, ValueError):
-            raise TypeError("Grading must be a list or a tuple.")
-        if any(a not in ZZ for a in grading):
-            raise TypeError("Grading must consist only of integers.")
-
+        # The check that ``grading`` is valid input is done by ``hilbert_numerator()``
         return (self.hilbert_numerator(singular, grading)
                 / prod((1 - t**a) for a in grading))
 
@@ -2813,14 +2822,10 @@ class MPolynomialIdeal_singular_repr(
         n = self.ring().ngens()
         gb = MPolynomialIdeal(self.ring(), gb)
         if grading is not None:
-            try:
-                grading = tuple(grading)
-            except (TypeError, ValueError):
-                raise TypeError("Grading must be a list or a tuple.")
-            if any(a not in ZZ for a in grading):
-                raise TypeError("Grading must consist only of integers.")
+            if not isinstance(grading, (list, tuple)) or any(a not in ZZ for a in grading):
+                raise TypeError("Grading must be a list or a tuple of integers.")
 
-            hs = hilb(gb, 1, grading, attributes={gb: {'isSB': 1}})
+            hs = hilb(gb, 1, tuple(grading), attributes={gb: {'isSB': 1}})
         else:
             hs = hilb(gb, 1, attributes={gb: {'isSB': 1}})
         return sum([ZZ(hs[i])*t**i for i in xrange(len(hs)-1)])

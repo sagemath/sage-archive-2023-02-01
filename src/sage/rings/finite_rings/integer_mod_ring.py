@@ -129,29 +129,31 @@ class IntegerModFactory(UniqueFactory):
 
     .. NOTE::
 
-        Testing whether a quotient ring `\ZZ / n\ZZ` is a field can of course be
-        very costly. By default, it is not tested whether `n` is prime or not,
-        in contrast to :func:`~sage.rings.finite_rings.constructor.GF`. If the user
-        is sure that the modulus is prime and wants to avoid a primality test, (s)he
-        can provide ``category=Fields()`` when constructing the quotient ring, and
-        then the result will behave like a field. If the category is not provided
-        during initialisation, and it is found out later that the ring is in fact a
-        field, then the category will be changed at runtime, having the same effect
-        as providing ``Fields()`` during initialisation.
+        Testing whether a quotient ring `\ZZ / n\ZZ` is a field can of
+        course be very costly. By default, it is not tested whether `n`
+        is prime or not, in contrast to
+        :func:`~sage.rings.finite_rings.constructor.GF`. If the user
+        is sure that the modulus is prime and wants to avoid a primality
+        test, (s)he can provide ``category=Fields()`` when constructing
+        the quotient ring, and then the result will behave like a field.
+        If the category is not provided during initialisation, and it is
+        found out later that the ring is in fact a field, then the category
+        will be changed at runtime, having the same effect as providing
+        ``Fields()`` during initialisation.
 
     EXAMPLES::
 
         sage: R = IntegerModRing(5)
         sage: R.category()
-        Join of Category of commutative rings and Category of subquotients of
-        monoids and Category of quotients of semigroups and Category of finite
-        enumerated sets
+        Join of Category of finite commutative rings
+            and Category of subquotients of monoids
+            and Category of quotients of semigroups
         sage: R in Fields()
         True
         sage: R.category()
-        Join of Category of fields and Category of subquotients of monoids and
-        Category of quotients of semigroups and Category of finite enumerated
-        sets
+        Join of Category of finite fields
+            and Category of subquotients of monoids
+            and Category of quotients of semigroups
         sage: S = IntegerModRing(5, is_field=True)
         sage: S is R
         True
@@ -275,7 +277,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     OUTPUT:
 
-	The ring of integers modulo `N`.
+    The ring of integers modulo `N`.
 
     EXAMPLES:
 
@@ -287,7 +289,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: FF
         Ring of integers modulo 29
         sage: FF.category()
-        Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups and Category of finite enumerated sets
+        Join of Category of finite commutative rings
+            and Category of subquotients of monoids
+            and Category of quotients of semigroups
         sage: FF.is_field()
         True
         sage: FF.characteristic()
@@ -344,7 +348,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
         sage: Z16 = IntegerModRing(16)
         sage: Z16.category()
-        Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups and Category of finite enumerated sets
+        Join of Category of finite commutative rings
+            and Category of subquotients of monoids
+            and Category of quotients of semigroups
         sage: Z16.is_field()
         False
         sage: Z16.order()
@@ -388,7 +394,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: I.is_prime()
         True
 
-	::
+    ::
 
         sage: R = IntegerModRing(97)
         sage: a = R(5)
@@ -403,7 +409,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
             sage: FF = IntegerModRing(29)
             sage: TestSuite(FF).run()
-            sage: F19 = IntegerModRing(19, category = Fields())
+            sage: F19 = IntegerModRing(19, is_field=True)
             sage: TestSuite(F19).run()
             sage: F23 = IntegerModRing(23)
             sage: F23 in Fields()
@@ -664,15 +670,15 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
             sage: R = IntegerModRing(127)
             sage: R.category()
-            Join of Category of commutative rings and Category of subquotients
-            of monoids and Category of quotients of semigroups and Category of
-            finite enumerated sets
+            Join of Category of finite commutative rings
+                and Category of subquotients of monoids
+                and Category of quotients of semigroups
             sage: R.is_field()
             True
             sage: R.category()
-            Join of Category of fields and Category of subquotients of monoids
-            and Category of quotients of semigroups and Category of finite
-            enumerated sets
+            Join of Category of finite fields
+                and Category of subquotients of monoids
+                and Category of quotients of semigroups
 
         It is possible to mistakenly put `\ZZ/n\ZZ` into the category of fields.
         In this case, :meth:`is_field` will return True without performing a

@@ -447,7 +447,8 @@ $(INST)/$(ZNPOLY): $(INST)/$(MPIR) $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(ZNPOLY) 2>&1" "tee -a $(SAGE_LOGS)/$(ZNPOLY).log"
 
 $(INST)/$(SAGENB): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PEXPECT) \
-                   $(INST)/$(JINJA2) $(INST)/$(SPHINX) $(INST)/$(DOCUTILS)
+                   $(INST)/$(JINJA2) $(INST)/$(SPHINX) $(INST)/$(DOCUTILS) \
+                   $(INST)/$(MATHJAX)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGENB) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGENB).log"
 
 $(INST)/$(SQLALCHEMY): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)

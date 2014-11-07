@@ -46,3 +46,14 @@ PKG=$(ls -1 src | GREP_OPTIONS= grep sagenb-)
 
 # Install sagenb into site-packages
 easy_install -H None "src/$PKG" || die "Error installing sagenb !"
+
+# let sagenb use mathjax spkg
+cd $SAGE_LOCAL/lib/python/site-packages/sagenb-*.egg/sagenb/data
+if [ -d mathjax ] ; then
+    rm -rf mathjax
+fi
+if [ -h mathjax ] ; then
+    rm mathjax
+fi
+ln -s ../../../../../../share/mathjax/
+

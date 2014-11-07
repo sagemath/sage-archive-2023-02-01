@@ -823,7 +823,7 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         if len(args)!=1:
             return self.element_class(self, *args, **kwds)
         x = args[0]
-        if x==1 or (not x and x != 0):
+        if x==1 or x == [] or x == ():
             return self.one()
         try:
             P = x.parent()

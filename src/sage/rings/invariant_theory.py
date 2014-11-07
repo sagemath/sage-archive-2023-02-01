@@ -2495,20 +2495,20 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
         the output is some (generically non-zero) polynomial::
 
             sage: biquadratic.syzygy(1, 1, 1, 1, 1, 1, 1, x)
-            1/32*x^2 + 2
+            1/64*x^2 + 1
         """
-        return (J**2 / 32 + 
-                2 * F**3
-                -4 * F**2 * Theta*S_prime
-                -4 * F**2 * Theta_prime*S 
-                + 2 * F * S**2 * (Delta_prime * Theta + Theta_prime**2)
-                + 2 * F * S_prime**2 * (Delta * Theta_prime + Theta**2)
-                + 6 * F * S * S_prime * (Theta*Theta_prime - Delta*Delta_prime)
-                + 2 * S**3 * (Delta_prime**2 * Delta - Theta * Theta_prime * Delta_prime)
-                + 2 * S_prime**3 * (Delta**2 * Delta_prime - Theta_prime * Theta * Delta)
-                + 2 * S**2 * S_prime * (
+        return (J**2 / 64
+                + F**3
+                - 2 * F**2 * Theta*S_prime
+                - 2 * F**2 * Theta_prime*S 
+                + F * S**2 * (Delta_prime * Theta + Theta_prime**2)
+                + F * S_prime**2 * (Delta * Theta_prime + Theta**2)
+                + 3 * F * S * S_prime * (Theta*Theta_prime - Delta*Delta_prime)
+                + S**3 * (Delta_prime**2 * Delta - Theta * Theta_prime * Delta_prime)
+                + S_prime**3 * (Delta**2 * Delta_prime - Theta_prime * Theta * Delta)
+                + S**2 * S_prime * (
                     Delta_prime * Delta * Theta_prime - Theta * Theta_prime**2)
-                + 2 * S * S_prime**2 * (
+                + S * S_prime**2 * (
                     Delta * Delta_prime * Theta - Theta_prime * Theta**2)
         )
 

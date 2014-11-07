@@ -11,6 +11,7 @@ AUTHORS:
 
 - Jeroen Demeyer (2012-04-19): split off this file from plot.py (:trac:`12857`)
 - Punarbasu Purkayastha (2012-05-20): Add logarithmic scale (:trac:`4529`)
+- Emily Chen (2013-01-05): Add documentation for :meth:`~sage.plot.graphics.Graphics.show` figsize parameter (:trac:`5956`)
 
 """
 
@@ -1303,9 +1304,12 @@ class Graphics(SageObject):
 
         - ``filename`` - (default: None) string
 
-        - ``dpi`` - dots per inch
+        - ``dpi`` - (default: 100) dots per inch
 
-        - ``figsize`` - [width, height]
+        - ``figsize`` - (default: [8.0,6.0]) [width, height] inches. The
+          maximum value of each of the width and the height can be 327
+          inches, at the default ``dpi`` of 100 dpi, which is just shy of
+          the maximum allowed value of 32768 dots (pixels).
 
         - ``fig_tight`` - (default: True) whether to clip the drawing
           tightly around drawn objects.  If True, then the resulting
@@ -1525,9 +1529,12 @@ class Graphics(SageObject):
             sage: c = circle((1,1), 1, color='red')
             sage: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
 
-        You could also just make the picture larger by changing ``figsize``::
+        You can make the picture larger by changing ``figsize`` with width,
+        height each having a maximum value of 327 inches at default dpi::
 
-            sage: c.show(figsize=8, xmin=-1, xmax=3, ymin=-1, ymax=3)
+            sage: p = ellipse((0,0),4,1)
+            sage: p.show(figsize=[327,10],dpi=100)
+            sage: p.show(figsize=[328,10],dpi=80)
 
         You can turn off the drawing of the axes::
 
@@ -1881,6 +1888,50 @@ class Graphics(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: 'title_pos' must be a list or tuple of two real numbers.
+
+        TESTS:
+
+        The figsize width and height parameters (at default dpi) must be
+        less than 328 inches each, corresponding to the maximum allowed
+        pixels in each direction of 32768.  See :trac:`5956` for more about
+        the next several tests::
+
+            sage: p = ellipse((0,0),4,1)
+            sage: p.show(figsize=[328,10],dpi=100)
+            Traceback (most recent call last):
+            ...
+            ValueError: width and height must each be below 32768
+
+        The following test results in a segmentation fault and should not
+        be doctested.::
+
+            sage: p = ellipse((0,0),4,1)
+            sage: p.show(figsize=[232,232],dpi=100) # not tested
+            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
+            This probably occurred because a *compiled* component of Sage
+            has a bug in it and is not properly wrapped with sig_on(),
+            sig_off(). You might want to run Sage under gdb with 'sage
+            -gdb' to debug this.  Sage will now terminate.
+
+            sage: p.show(figsize=[327,181],dpi=100) # not tested
+            Unhandled SIGSEGV: A segmentation fault occurred in Sage.
+            This probably occurred because a *compiled* component of Sage
+            has a bug in it and is not properly wrapped with sig_on(),
+            sig_off(). You might want to run Sage under gdb with 'sage
+            -gdb' to debug this.  Sage will now terminate.
+
+        The following tests ensure we give a good error message for
+        negative figsizes::
+
+            sage: P = plot(x^2,(x,0,1))
+            sage: P.show(figsize=[-1,1])
+            Traceback (most recent call last):
+            ...
+            AssertionError: figsize should be positive numbers, not -1 and 1
+            sage: P.show(figsize=-1)
+            Traceback (most recent call last):
+            ...
+            AssertionError: figsize should be positive, not -1
 
         """
         if filename is None:
@@ -2396,8 +2447,14 @@ class Graphics(SageObject):
         self.axes_labels(l=axes_labels)
 
         if figsize is not None and not isinstance(figsize, (list, tuple)):
+            # in this case, figsize is a number and should be positive
+            assert figsize > 0, "figsize should be positive, not {0}".format(figsize)
             default_width, default_height=rcParams['figure.figsize']
             figsize=(figsize, default_height*figsize/default_width)
+
+        if figsize is not None:
+            # then the figsize should be two positive numbers
+            assert figsize[0] > 0 and figsize[1] > 0, "figsize should be positive numbers, not {0} and {1}".format(figsize[0],figsize[1])
 
         if figure is None:
             figure=Figure(figsize=figsize)

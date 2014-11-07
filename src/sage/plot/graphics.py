@@ -1927,11 +1927,11 @@ class Graphics(SageObject):
             sage: P.show(figsize=[-1,1])
             Traceback (most recent call last):
             ...
-            AssertionError: figsize should be positive numbers, not -1 and 1
+            ValueError: figsize should be positive numbers, not -1 and 1
             sage: P.show(figsize=-1)
             Traceback (most recent call last):
             ...
-            AssertionError: figsize should be positive, not -1
+            ValueError: figsize should be positive, not -1
 
         """
         if filename is None:
@@ -2448,13 +2448,16 @@ class Graphics(SageObject):
 
         if figsize is not None and not isinstance(figsize, (list, tuple)):
             # in this case, figsize is a number and should be positive
-            assert figsize > 0, "figsize should be positive, not {0}".format(figsize)
-            default_width, default_height=rcParams['figure.figsize']
-            figsize=(figsize, default_height*figsize/default_width)
+            if figsize > 0:
+                default_width, default_height=rcParams['figure.figsize']
+                figsize=(figsize, default_height*figsize/default_width)
+            else:
+                raise ValueError("figsize should be positive, not {0}".format(figsize))
 
         if figsize is not None:
             # then the figsize should be two positive numbers
-            assert figsize[0] > 0 and figsize[1] > 0, "figsize should be positive numbers, not {0} and {1}".format(figsize[0],figsize[1])
+            if not (figsize[0] > 0 and figsize[1] > 0):
+                raise ValueError("figsize should be positive numbers, not {0} and {1}".format(figsize[0],figsize[1]))
 
         if figure is None:
             figure=Figure(figsize=figsize)

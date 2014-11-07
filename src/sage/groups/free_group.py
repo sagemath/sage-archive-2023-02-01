@@ -811,11 +811,19 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             sage: F = FreeGroup(0)
             sage: F([])
             1
+
+        Check that 0 isn't considered the identity::
+
+            sage: F = FreeGroup('x')
+            sage: F(0)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
         if len(args)!=1:
             return self.element_class(self, *args, **kwds)
         x = args[0]
-        if x==1 or not x:
+        if x==1 or (not x and x != 0):
             return self.one()
         try:
             P = x.parent()

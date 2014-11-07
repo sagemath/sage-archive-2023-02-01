@@ -39,14 +39,14 @@ class NotebookSageNB(object):
                 logger.debug('keyword argument %s = %s', key, value)
                 try:
                     value = ast.literal_eval(value)
-                except ValueError:
+                except StandardError:
                     logger.debug('cannot evaluate, treat as string')
                 kwds[key] = value
             else:
                 logger.debug('positional argument %s', x)
                 try:
                     value = ast.literal_eval(x)
-                except ValueError:
+                except StandardError:
                     logger.debug('cannot evaluate, treat as string')
                 args.append(value)
         return tuple(args), kwds

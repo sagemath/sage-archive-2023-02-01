@@ -1,5 +1,5 @@
 """
-Finite Extension Fields implemented via PARI.
+Finite Extension Fields implemented via PARI POLMODs (deprecated).
 
 AUTHORS:
 
@@ -57,6 +57,8 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: P.<x> = PolynomialRing(GF(3))
         sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
         sage: k = FiniteField_ext_pari(9, 'a', modulus=(x^2 + 2*x + 2))
+        doctest:...: DeprecationWarning: The "pari_mod" finite field implementation is deprecated
+        See http://trac.sagemath.org/17297 for details.
         sage: k
         Finite Field in a of size 3^2
         sage: k.is_field()
@@ -135,6 +137,8 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: loads(K.dumps()) == K
         True
         sage: K = FiniteField(7^10, 'b', impl='pari_mod')
+        doctest:...: DeprecationWarning: The "pari_mod" finite field implementation is deprecated
+        See http://trac.sagemath.org/17297 for details.
         sage: loads(K.dumps()) == K
         True
         sage: K = FiniteField(7^10, 'a', impl='pari_mod')
@@ -168,6 +172,9 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k = FiniteField(9, 'a', impl='pari_mod'); k
             Finite Field in a of size 3^2
         """
+        from sage.misc.superseded import deprecation
+        deprecation(17297, 'The "pari_mod" finite field implementation is deprecated')
+
         if element_ext_pari.dynamic_FiniteField_ext_pariElement is None: element_ext_pari._late_import()
         from constructor import FiniteField as GF
         q = integer.Integer(q)

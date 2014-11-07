@@ -1,5 +1,5 @@
 """
-Elements of Finite Fields
+Finite field elements implemented via PARI's POLMOD type (deprecated)
 
 EXAMPLES::
 
@@ -16,6 +16,8 @@ polynomial, i.e., we verify compatibility condition.
 
     sage: f = conway_polynomial(2,63)
     sage: K.<a> = GF(2**63, name='a', modulus=f, impl='pari_mod')
+    doctest:...: DeprecationWarning: The "pari_mod" finite field implementation is deprecated
+    See http://trac.sagemath.org/17297 for details.
     sage: n = f.degree()
     sage: m = 3;
     sage: e = (2^n - 1) / (2^m - 1)

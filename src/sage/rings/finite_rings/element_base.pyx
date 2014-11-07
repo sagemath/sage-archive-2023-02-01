@@ -521,19 +521,19 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         EXAMPLES::
 
-            sage: k.<a> = FiniteField(9, impl='pari_mod')
+            sage: k.<a> = FiniteField(9, impl='givaro', modulus='primitive')
             sage: a.is_square()
             False
             sage: (a**2).is_square()
             True
-            sage: k.<a> = FiniteField(4, impl='pari_mod')
+            sage: k.<a> = FiniteField(4, impl='ntl', modulus='primitive')
             sage: (a**2).is_square()
             True
-            sage: k.<a> = FiniteField(17^5, impl='pari_mod')
-            sage: (a**2).is_square()
-            True
+            sage: k.<a> = FiniteField(17^5, impl='pari_ffelt', modulus='primitive')
             sage: a.is_square()
             False
+            sage: (a**2).is_square()
+            True
 
         ::
 
@@ -571,7 +571,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         EXAMPLES::
 
-            sage: F = FiniteField(7^2, 'a', impl='pari_mod')
+            sage: F = FiniteField(7^2, 'a')
             sage: F(2).square_root()
             4
             sage: F(3).square_root()
@@ -580,7 +580,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             3
             sage: F(4).square_root()
             2
-            sage: K = FiniteField(7^3, 'alpha', impl='pari_mod')
+            sage: K = FiniteField(7^3, 'alpha', impl='pari_ffelt')
             sage: K(3).square_root()
             Traceback (most recent call last):
             ...
@@ -597,7 +597,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17, impl='pari_mod')
+            sage: k.<a> = GF(3^17)
             sage: (a^3 - a - 1).sqrt()
             a^16 + 2*a^15 + a^13 + 2*a^12 + a^10 + 2*a^9 + 2*a^8 + a^7 + a^6 + 2*a^5 + a^4 + 2*a^2 + 2*a + 2
         """

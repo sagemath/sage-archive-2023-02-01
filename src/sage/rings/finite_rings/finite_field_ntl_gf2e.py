@@ -341,22 +341,6 @@ class FiniteField_ntl_gf2e(FiniteField):
         f = self.polynomial()
         return FiniteField_ext_pari(self.order(), self.variable_name(), f)
 
-    def __hash__(self):
-        """
-        Return the hash value of ``self``.
-
-        EXAMPLES::
-
-            sage: k1.<a> = GF(2^16)
-            sage: {k1:1} # indirect doctest
-            {Finite Field in a of size 2^16: 1}
-        """
-        try:
-            return self._hash
-        except AttributeError:
-            self._hash = hash((self.characteristic(),self.polynomial(),self.variable_name(),"ntl_gf2e"))
-            return self._hash
-
     def _pari_modulus(self):
         """
         Return PARI object which is equivalent to the

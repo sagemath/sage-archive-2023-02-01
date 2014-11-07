@@ -43,9 +43,8 @@ class FiniteField_ext_pari(FiniteField_generic):
 
     - ``q`` -- integer, size of the finite field, not prime
 
-    - ``name`` -- variable used for printing element of the finite
-      field.  Also, two finite fields are considered equal if they
-      have the same variable name, and not otherwise.
+    - ``name`` -- variable name used for printing elements of the
+      finite field
 
     - ``modulus`` -- an irreducible polynomial to construct this field.
 
@@ -257,36 +256,6 @@ class FiniteField_ext_pari(FiniteField_generic):
             True
         """
         return self._factory_data[0].reduce_data(self)
-
-    def __cmp__(self, other):
-        """
-        Compare ``self`` to ``other``.
-
-        EXAMPLES::
-
-            sage: k = GF(7^20, 'a', impl='pari_mod')
-            sage: k == loads(dumps(k))
-            True
-        """
-        if not isinstance(other, FiniteField_ext_pari):
-            return cmp(type(self), type(other))
-        return cmp((self.__order, self.variable_name(), self._modulus), (other.__order, other.variable_name(), other._modulus))
-
-    def __richcmp__(left, right, op):
-        r"""
-        Compare ``left`` with ``right``.
-
-        EXAMPLE::
-
-            sage: k.<a> = GF(2^17, impl='pari_mod')
-            sage: j.<b> = GF(2^18, impl='pari_mod')
-            sage: k == j
-            False
-
-            sage: GF(2^17, 'a', impl='pari_mod') == copy(GF(2^17, 'a', impl='pari_mod'))
-            True
-        """
-        return left._richcmp_helper(right, op)
 
     def _pari_one(self):
         r"""
@@ -571,20 +540,3 @@ class FiniteField_ext_pari(FiniteField_generic):
             1024
         """
         return self.__order
-
-    def __hash__(self):
-        """
-        Return the hash of this field.
-
-        EXAMPLES::
-
-            sage: {GF(9, 'a', impl='pari_mod'): 1} # indirect doctest
-            {Finite Field in a of size 3^2: 1}
-            sage: {GF(9, 'b', impl='pari_mod'): 1} # indirect doctest
-            {Finite Field in b of size 3^2: 1}
-        """
-        try:
-            return self.__hash
-        except AttributeError:
-            self.__hash = hash((self.__order, self.variable_name(), self._modulus))
-            return self.__hash

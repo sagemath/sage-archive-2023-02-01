@@ -143,26 +143,6 @@ Basics of Writing and Testing Sage Code
    coding_basics
    doctesting
 
-Advanced Sage Coding Details
-----------------------------
-
-.. toctree::
-   :maxdepth: 3
-
-   coding_in_python
-   coding_in_cython
-   coding_in_other
-
-
-Using Third-Party Code
-----------------------
-
-.. toctree::
-   :maxdepth: 3
-
-   packaging
-   packaging_old_spkgs
-
 Contributing to Manuals and Tutorials
 -------------------------------------
 
@@ -171,6 +151,24 @@ Contributing to Manuals and Tutorials
 
    sage_manuals
 
+Sage Coding Details
+-------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   coding_in_python
+   coding_in_cython
+   coding_in_other
+
+Packaging Third-Party Code
+--------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   packaging
+   packaging_old_spkgs
 
 Sage Notebook Developer Guide
 =============================
@@ -190,5 +188,3 @@ Indices and tables
 
 This work is licensed under a `Creative Commons Attribution-Share Alike
 3.0 License <http://creativecommons.org/licenses/by-sa/3.0/>`_.
-
-

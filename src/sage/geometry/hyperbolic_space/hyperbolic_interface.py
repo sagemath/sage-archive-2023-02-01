@@ -55,12 +55,12 @@ EXAMPLES::
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.misc.abstract_method import abstract_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets
 from sage.categories.realizations import Realizations, Category_realization_of_parent
 from sage.geometry.hyperbolic_space.hyperbolic_model import (
         HyperbolicModelUHP, HyperbolicModelPD,
         HyperbolicModelHM, HyperbolicModelKM)
+
 
 def HyperbolicSpace(n):
     """
@@ -68,13 +68,14 @@ def HyperbolicSpace(n):
 
     EXAMPLES::
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicSpace 
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicSpace
         sage: HyperbolicSpace(2)
         Hyperbolic plane
     """
     if n == 2:
         return HyperbolicPlane()
     raise NotImplementedError("currently only implemented in dimension 2")
+
 
 class HyperbolicPlane(Parent, UniqueRepresentation):
     """
@@ -133,6 +134,7 @@ class HyperbolicPlane(Parent, UniqueRepresentation):
 
     HM = HyperbolicModelHM
     Hyperboloid = HM
+
 
 class HyperbolicModels(Category_realization_of_parent):
     r"""
@@ -223,11 +225,10 @@ class HyperbolicModels(Category_realization_of_parent):
 
             EXAMPLES::
 
-            sage: UHP = HyperbolicPlane().UHP()
-            sage: p1 = UHP.get_point(5 + 7*I)
-            sage: p2 = UHP.get_point(1 + I)
-            sage: p1.dist(p2)
-            arccosh(33/7)
+                sage: UHP = HyperbolicPlane().UHP()
+                sage: p1 = UHP.get_point(5 + 7*I)
+                sage: p2 = UHP.get_point(1 + I)
+                sage: p1.dist(p2)
+                arccosh(33/7)
             """
             return self.parent().dist(self, other)
-

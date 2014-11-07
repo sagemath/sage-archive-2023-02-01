@@ -61,7 +61,6 @@ Some more examples::
 
 from sage.structure.element import Element
 from sage.symbolic.pynac import I
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.latex import latex
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.constructor import matrix
@@ -591,7 +590,7 @@ class HyperbolicPointUHP(HyperbolicPoint):
         p = self.coordinates()
         if p == infinity:
             raise NotImplementedError("can't draw the point infinity")
-        opts = dict([('axes', False), ('aspect_ratio',1)])
+        opts = dict([('axes', False), ('aspect_ratio', 1)])
         opts.update(self.graphics_options())
         opts.update(options)
         from sage.misc.functional import numerical_approx
@@ -611,4 +610,3 @@ class HyperbolicPointUHP(HyperbolicPoint):
                                                               bd_max = cent + 1)
                 pic = bd_pic + pic
         return pic
-

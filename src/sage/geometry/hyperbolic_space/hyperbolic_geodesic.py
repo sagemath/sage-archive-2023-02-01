@@ -1,7 +1,7 @@
 r"""
 Hyperbolic Geodesics
 
-This module implements the abstract base class for geodesics in 
+This module implements the abstract base class for geodesics in
 hyperbolic space of arbitrary dimension.  It also contains the
 implementations for specific models of hyperbolic geometry.
 
@@ -59,6 +59,7 @@ from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'mobius_transform')
+
 
 class HyperbolicGeodesic(SageObject):
     r"""
@@ -138,7 +139,7 @@ class HyperbolicGeodesic(SageObject):
             False
             sage: g.complete()._complete
             True
-        """ 
+        """
         if self._model.is_bounded():
             return (self._start.is_boundary() and self._end.is_boundary())
         return False #All non-bounded geodesics start life incomplete.
@@ -519,7 +520,7 @@ class HyperbolicGeodesic(SageObject):
             Isometry in PD
             [ 1  0]
             [ 0 -1]
-        
+
             sage: RP*gP == gP
             True
 
@@ -537,12 +538,12 @@ class HyperbolicGeodesic(SageObject):
             sage: B = diagonal_matrix([1, -1, 1])
             sage: bool((B - A.matrix()).norm() < 10**-9)
             True
-        
+
         The above tests go through the Upper Half Plane.  It remains to
         test that the matrices in the models do what we intend. ::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import mobius_transform
-            sage: R = H.PD().get_geodesic(-1,1).reflection_involution() 
+            sage: R = H.PD().get_geodesic(-1,1).reflection_involution()
             sage: bool(mobius_transform(R.matrix(), 0) == 0)
             True
         """
@@ -792,15 +793,15 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             # If one of the endpoints is infinity, we replace it with a
             # large finite  point
             if end_1 == CC(infinity):
-                end_1 = (real(end_2) ,(imag(end_2) + 10))
+                end_1 = (real(end_2), (imag(end_2) + 10))
                 end_2 = (real(end_2), imag(end_2))
             elif end_2 == CC(infinity):
                 end_2 = (real(end_1), (imag(end_1) + 10))
-                end_1 = (real(end_1),imag(end_1))
+                end_1 = (real(end_1), imag(end_1))
             from sage.plot.line import line
-            pic = line((end_1,end_2), **opts)
+            pic = line((end_1, end_2), **opts)
             if boundary:
-                cent = min(bd_1,bd_2)
+                cent = min(bd_1, bd_2)
                 bd_dict = {'bd_min': cent - 3, 'bd_max': cent + 3}
                 bd_pic = self._model.get_background_graphic(**bd_dict)
                 pic = bd_pic + pic
@@ -816,8 +817,9 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             from sage.calculus.var import var
             from sage.plot.plot import parametric_plot
             x = var('x')
-            pic= parametric_plot((radius*cos(x) + real(center),radius*sin(x) +
-                                  imag(center)), (x, theta1, theta2), **opts)
+            pic = parametric_plot((radius*cos(x) + real(center),
+                                   radius*sin(x) + imag(center)),
+                                  (x, theta1, theta2), **opts)
             if boundary:
                 # We want to draw a segment of the real line.  The
                 # computations below compute the projection of the
@@ -1141,10 +1143,10 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             True
         """
         B = matrix([[1, 0], [0, -I]])
-        [s, e]= [k.coordinates() for k in self.complete().endpoints()]
+        [s, e] = [k.coordinates() for k in self.complete().endpoints()]
         # outmat below will be returned after we normalize the determinant.
-        outmat =  B * HyperbolicGeodesicUHP._crossratio_matrix(s, p, e)
-        outmat = outmat/outmat.det().sqrt()
+        outmat = B * HyperbolicGeodesicUHP._crossratio_matrix(s, p, e)
+        outmat = outmat / outmat.det().sqrt()
         if abs(outmat - outmat.conjugate()) < 10**-9: # Small imaginary part.
             outmat = (outmat + outmat.conjugate()) / 2 # Set it equal to its real part.
         return outmat
@@ -1235,11 +1237,11 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
         else:
             # If we are here, we know it's not a line
             # So we compute the center and radius of the circle
-            center = (1/(real(bd_1)*imag(bd_2)-real(bd_2)*imag(bd_1))*
+            center = (1/(real(bd_1)*imag(bd_2) - real(bd_2)*imag(bd_1)) *
                 ((imag(bd_2)-imag(bd_1)) + (real(bd_1)-real(bd_2))*I))
             radius = RR(abs(bd_1 - center)) # abs is Euclidean distance
             # Now we calculate the angles for the parametric plot
-            theta1 = CC(end_1- center).arg()
+            theta1 = CC(end_1 - center).arg()
             theta2 = CC(end_2 - center).arg()
             if theta2 < theta1:
                 theta1, theta2 = theta2, theta1
@@ -1349,7 +1351,7 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
         v2 = u2 + v1_ldot_u2*v1
         v2_norm = sqrt(v2[0]**2 + v2[1]**2 - v2[2]**2)
         v2 = v2/v2_norm
-        v2_ldot_u2 =  u2[0]*v2[0] + u2[1]*v2[1] - u2[2]*v2[2]
+        v2_ldot_u2 = u2[0]*v2[0] + u2[1]*v2[1] - u2[2]*v2[2]
         # Now v1 and v2 are Lorentz orthogonal, and |v1| = -1, |v2|=1
         # That is, v1 is unit timelike and v2 is unit spacelike.
         # This means that cosh(x)*v1 + sinh(x)*v2 is unit timelike.
@@ -1361,4 +1363,3 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
             bd_pic = self._model.get_background_graphic()
             pic = bd_pic + pic
         return pic
-

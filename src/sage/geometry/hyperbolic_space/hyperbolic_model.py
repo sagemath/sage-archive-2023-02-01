@@ -16,7 +16,7 @@ manifold equipped with a complete Riemannian metric of constant curvature
 `-1`.  This module records information sufficient to enable computations
 in hyperbolic space without explicitly specifying the underlying set or
 its Riemannian metric.  Although, see the
-`SageManifolds <http://sagemanifolds.obspm.fr/>`_ project if 
+`SageManifolds <http://sagemanifolds.obspm.fr/>`_ project if
 you would like to take this approach.
 
 This module implements the abstract base class for a model of hyperbolic
@@ -47,7 +47,7 @@ not::
 
 The isometry groups of UHP and PD are projective, while that of HM is
 linear:
-    
+
     sage: U.is_isometry_group_projective()
     True
     sage: H.is_isometry_group_projective()
@@ -56,7 +56,7 @@ linear:
 The models are responsible for determining if the coordinates of points
 and the matrix of linear maps are appropriate for constructing points
 and isometries in hyperbolic space:
-  
+
     sage: U.point_in_model(2 + I)
     True
     sage: U.point_in_model(2 - I)
@@ -88,9 +88,7 @@ from sage.misc.lazy_import import lazy_import
 from sage.functions.other import imag, real, sqrt
 from sage.functions.all import arccosh
 from sage.rings.all import CC, RR, RDF
-from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
-from sage.symbolic.constants import pi
 from sage.symbolic.pynac import I
 from sage.matrix.constructor import matrix
 from sage.categories.homset import Hom
@@ -510,7 +508,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
 
     def random_element(self, **kwargs):
         r"""
-        Return a random point in ``self``. 
+        Return a random point in ``self``.
 
         The points are uniformly distributed over the rectangle
         `[-10, 10] \times [0, 10 i]` in the upper half plane model.
@@ -1020,8 +1018,8 @@ class HyperbolicModelUHP(HyperbolicModel):
         real_max = 10
         imag_min = 0
         imag_max = 10
-        p = RR.random_element(min=real_min ,max=real_max) \
-            + I*RR.random_element(min=imag_min, max=imag_max)
+        p = RR.random_element(min=real_min, max=real_max) \
+            + I * RR.random_element(min=imag_min, max=imag_max)
         return self.get_point(p)
 
     ####################
@@ -1222,7 +1220,7 @@ class HyperbolicModelPD(HyperbolicModel):
         """
         if isinstance(p, HyperbolicPoint):
             return p.is_boundary()
-        return bool(abs(abs(CC(p))- 1) < EPSILON)
+        return bool(abs(abs(CC(p)) - 1) < EPSILON)
 
     def isometry_in_model(self, A):
         r"""
@@ -1253,7 +1251,7 @@ class HyperbolicModelPD(HyperbolicModel):
             sage: circ = HyperbolicPlane().PD().get_background_graphic()
         """
         from sage.plot.circle import circle
-        return circle((0,0), 1, axes=False, color='black')
+        return circle((0, 0), 1, axes=False, color='black')
 
 
 #####################################################################
@@ -1481,4 +1479,3 @@ class HyperbolicModelHM(HyperbolicModel):
         (x,y) = var('x,y')
         return plot3d((1 + x**2 + y**2).sqrt(), (x, -x_max, x_max),
                       (y,-x_max, x_max), opacity = hyperboloid_opacity, **bdry_options)
-

@@ -47,12 +47,11 @@ from sage.categories.morphism import Morphism
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from sage.symbolic.pynac import I
 from sage.rings.infinity import infinity
 from sage.misc.latex import latex
-from sage.rings.all import CC, RDF
-from sage.functions.other import real, imag, sqrt
-from sage.functions.all import cos, sin, arccosh, arccos, sign
+from sage.rings.all import RDF
+from sage.functions.other import imag, sqrt
+from sage.functions.all import arccosh, sign
 
 from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
 from sage.geometry.hyperbolic_space.hyperbolic_geodesic import HyperbolicGeodesic
@@ -708,14 +707,14 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
         tau = abs(A.trace())
         a = A.list()
         if A.det() > 0:
-            tf = bool((a[0] - 1)**2 + a[1]**2 + a[2]**2 + (a[3] - 1)**2  < EPSILON)
+            tf = bool((a[0] - 1)**2 + a[1]**2 + a[2]**2 + (a[3] - 1)**2 < EPSILON)
             if tf:
                 return 'identity'
-            if tau -  2 < -EPSILON:
+            if tau - 2 < -EPSILON:
                 return 'elliptic'
-            if tau -2  > -EPSILON and tau -  2 < EPSILON:
+            if tau - 2 > -EPSILON and tau - 2 < EPSILON:
                 return 'parabolic'
-            if tau - 2  > EPSILON:
+            if tau - 2 > EPSILON:
                 return 'hyperbolic'
             raise ValueError("something went wrong with classification:" +
                              " trace is {}".format(A.trace()))
@@ -928,7 +927,7 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
 
         """
         if isinstance(other, HyperbolicIsometry):
-            M = self._cached_isometry*other._cached_isometry 
+            M = self._cached_isometry*other._cached_isometry
             return M.to_model('PD')
         return super(HyperbolicIsometryPD, self).__mul__(other)
 
@@ -1066,7 +1065,7 @@ def mobius_transform(A, z):
         TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
     """
     if A.ncols() == 2 and A.nrows() == 2 and A.det() != 0:
-        (a,b,c,d) = A.list()
+        (a, b, c, d) = A.list()
         if z == infinity:
             if c == 0:
                 return infinity
@@ -1080,4 +1079,3 @@ def mobius_transform(A, z):
         return (a*w + b) / (c*w + d)
     raise TypeError("A must be an invertible 2x2 matrix over the"
                     " complex numbers or a symbolic ring")
-

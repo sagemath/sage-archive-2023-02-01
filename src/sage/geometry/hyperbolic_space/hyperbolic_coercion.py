@@ -334,7 +334,7 @@ class CoercionPDtoKM(HyperbolicModelCoercion):
             sage: phi.image_coordinates(0.5+0.5*I)
             (0.666666666666667, 0.666666666666667)
         """
-        return (2*real(x)/(Integer(1) + real(x)**2 +imag(x)**2),
+        return (2*real(x)/(Integer(1) + real(x)**2 + imag(x)**2),
                 2*imag(x)/(Integer(1) + real(x)**2 + imag(x)**2))
 
     def image_isometry_matrix(self, x):
@@ -422,7 +422,7 @@ class CoercionKMtoUHP(HyperbolicModelCoercion):
         if tuple(x) == (0, 1):
             return infinity
         return ( -x[0]/(x[1] - 1)
-                 + I*(-(sqrt(-x[0]**2 -x[1]**2 + 1) - x[0]**2 - x[1]**2 + 1)
+                 + I*(-(sqrt(-x[0]**2 - x[1]**2 + 1) - x[0]**2 - x[1]**2 + 1)
                       / ((x[1] - 1)*sqrt(-x[0]**2 - x[1]**2 + 1) + x[1] - 1)) )
 
     def image_isometry_matrix(self, x):
@@ -720,6 +720,5 @@ def SO21_to_SL2R(M):
             #d = 0, so ad - bc = -bc = pm 1.
         b = - (det_sign*1)/c
         a = (Integer(1)/Integer(2)*m_4 + Integer(1)/Integer(2)*m_7)/b
-    A = matrix(2,[a,b,c,d])
+    A = matrix(2, [a, b, c, d])
     return A
-

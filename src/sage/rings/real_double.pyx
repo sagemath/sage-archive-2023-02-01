@@ -2221,9 +2221,9 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: RDF(1).dilog()
-            1.64493406685
+            1.6449340668482264
             sage: RDF(2).dilog()
-            2.46740110027
+            2.46740110027234
         """
         return self._new_c(gsl_sf_dilog(self._value))
 

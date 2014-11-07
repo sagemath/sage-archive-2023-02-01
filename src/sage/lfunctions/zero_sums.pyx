@@ -107,9 +107,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve("389a")
             sage: Z = LFunctionZeroSum(E)
             sage: Z.C0()
-            0.566696940498
+            0.5666969404983447
             sage: Z.C0(include_euler_gamma=False)
-            1.1439126054
+            1.1439126053998776
 
         """
         # Computed at initialization
@@ -152,16 +152,16 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: for n in range(12): print(n,cnlist[n])
             (0, 0.0)
             (1, 0.0)
-            (2, 0.69314718056)
-            (3, 0.366204096223)
+            (2, 0.6931471805599453)
+            (3, 0.3662040962227033)
             (4, 0.0)
-            (5, -0.321887582487)
+            (5, -0.32188758248682003)
             (6, 0.0)
-            (7, 0.555974328302)
-            (8, -0.34657359028)
-            (9, 0.610340160371)
+            (7, 0.555974328301518)
+            (8, -0.34657359027997264)
+            (9, 0.6103401603711721)
             (10, 0.0)
-            (11, -0.217990479345)
+            (11, -0.21799047934530644)
 
         """
         if not python_floats:
@@ -196,11 +196,11 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
             sage: Z = LFunctionZeroSum(EllipticCurve("37a"))
             sage: Z.digamma(3.2)
-            0.998838891287
+            0.9988388912865993
             sage: Z.digamma(3.2,include_constant_term=False)
-            1.57605455619
+            1.576054556188132
             sage: Z.digamma(1+I)
-            0.0946503206225 + 1.07667404747*I
+            0.09465032062247625 + 1.076674047468581*I
             sage: Z.digamma(-2)
             +Infinity
 
@@ -212,7 +212,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: Z.digamma(3,include_constant_term=False)
             1.5
             sage: Z.digamma(6,include_constant_term=False)
-            2.28333333333
+            2.283333333333333
 
         """
         # imported here so as to avoid importing Numpy on Sage startup
@@ -277,9 +277,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve([23,100])
             sage: Z = LFunctionZeroSum(E)
             sage: Z.logarithmic_derivative(10)
-            (5.64806674263e-05, 1.09741028598e-34)
+            (5.648066742632698e-05, 1.0974102859764345e-34)
             sage: Z.logarithmic_derivative(2.2)
-            (0.575125706359, 0.024087912697)
+            (0.5751257063594758, 0.024087912696974387)
 
         Increasing the number of terms should see the truncation error
         decrease.
@@ -287,7 +287,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         ::
 
             sage: Z.logarithmic_derivative(2.2,num_terms=50000) # long time
-            (0.575157964506, 0.00898877551916)
+            (0.5751579645060139, 0.008988775519160675)
 
         Attempting to compute values inside the critical strip
         gives infinite error.
@@ -295,7 +295,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         ::
 
             sage: Z.logarithmic_derivative(1.3)
-            (5.44299441392, +Infinity)
+            (5.442994413920786, +Infinity)
 
         Complex inputs and inputs to the left of the critical strip
         are allowed.
@@ -303,16 +303,16 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         ::
 
             sage: Z.logarithmic_derivative(complex(3,-1))
-            (0.0476454857805 + 0.1651383281*I, 6.5846713591e-06)
+            (0.04764548578052381 + 0.16513832809989326*I, 6.584671359095225e-06)
             sage: Z.logarithmic_derivative(complex(-3,-1.1))
-            (-13.9084521732 + 2.59144309907*I, 2.71315847363e-14)
+            (-13.908452173241546 + 2.591443099074753*I, 2.7131584736258447e-14)
 
         The logarithmic derivative has poles at the negative integers.
 
         ::
 
             sage: Z.logarithmic_derivative(-3)
-            (-Infinity, 2.71315847363e-14)
+            (-Infinity, 2.7131584736258447e-14)
 
         """
         if imag(s)==0:
@@ -395,7 +395,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve([23,100])
             sage: Z = LFunctionZeroSum(E)
             sage: Z.completed_logarithmic_derivative(3)
-            (6.64372066048, 6.5846713591e-06)
+            (6.64372066048195, 6.584671359095225e-06)
 
         Complex values are handled. The function is odd about s=1, so
         the value at 2-s should be minus the value at s.
@@ -403,9 +403,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         ::
 
             sage: Z.completed_logarithmic_derivative(complex(-2.2,1))
-            (-6.89808063313 + 0.225570153942*I, 5.62385304981e-11)
+            (-6.898080633125154 + 0.22557015394248361*I, 5.623853049808912e-11)
             sage: Z.completed_logarithmic_derivative(complex(4.2,-1))
-            (6.89808063313 - 0.225570153942*I, 5.62385304981e-11)
+            (6.898080633125154 - 0.22557015394248361*I, 5.623853049808912e-11)
 
         """
         if real(s-1)>=0:
@@ -494,17 +494,17 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: E.lseries().zeros(3)
             [0.000000000, 0.000000000, 2.87609907]
             sage: Z.zerosum(Delta=1,function="sincsquared_fast")
-            2.0375000846
+            2.037500084595065
             sage: Z.zerosum(Delta=1,function="sincsquared_parallel")
-            2.0375000846
+            2.037500084595065
             sage: Z.zerosum(Delta=1,function="sincsquared")
-            2.0375000846
+            2.0375000845950644
             sage: Z.zerosum(Delta=1,tau=2.876,function="sincsquared")
-            1.07555129565
+            1.075551295651154
             sage: Z.zerosum(Delta=1,tau=1.2,function="sincsquared")
-            0.108315553775
+            0.10831555377490683
             sage: Z.zerosum(Delta=1,function="gaussian")
-            2.05689042503
+            2.056890425029435
 
         """
 
@@ -590,14 +590,14 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         ::
 
             sage: Z._zerosum_sincsquared(Delta=1,tau=0)
-            1.01038406984
+            1.0103840698356257
 
         The zero sum also detects a zero at or near 5.003, as expected.
 
         ::
 
             sage: Z._zerosum_sincsquared(Delta=1,tau=5.003)
-            1.01681245469
+            1.0168124546878288
 
         However, there is definitely no zero with imaginary part near 2.5,
         as the sum would have to be at least 1.
@@ -605,7 +605,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         ::
 
             sage: Z._zerosum_sincsquared(Delta=1,tau=2.5)
-            0.0580582108065
+            0.058058210806477814
 
         """
 
@@ -698,7 +698,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             1
             sage: Z = LFunctionZeroSum(E)
             sage: Z._zerosum_gaussian(Delta=1)
-            1.05639507734
+            1.0563950773441664
 
         """
         # imported here so as to avoid importing Numpy on Sage startup
@@ -798,7 +798,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
             sage: Z = LFunctionZeroSum(E)
             sage: Z._zerosum_cauchy(Delta=1,tau=0)
-            0.970107398446
+            0.9701073984459051
 
         The zero sum with tau=6.36 indicates there might be a zero in the
         vicinity.
@@ -806,14 +806,14 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         ::
 
             sage: Z._zerosum_cauchy(Delta=1,tau=6.36261389)
-            2.18090462633
+            2.180904626331156
 
         However, there are no zeros with imaginary part close to 1.5.
 
         ::
 
             sage: Z._zerosum_cauchy(Delta=1,tau=1.5)
-            0.982707203755
+            0.9827072037553375
 
         Because of the weak convergence of the Dirichlet series close to the
         critical line, the bound will in general get *worse* for larger Delta.
@@ -822,9 +822,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         ::
 
             sage: Z._zerosum_cauchy(Delta=1.5)
-            12.9383525898
+            12.93835258975716
             sage: Z._zerosum_cauchy(Delta=1.5,num_terms=100000)
-            10.3951839608
+            10.395183960836599
 
         An error will be thrown if a Delta value >= 2 is passed.
 
@@ -974,16 +974,16 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: for n in range(12): print(n,Z.cn(n))
             (0, 0.0)
             (1, 0.0)
-            (2, 0.69314718056)
-            (3, 0.366204096223)
+            (2, 0.6931471805599453)
+            (3, 0.3662040962227033)
             (4, 0.0)
-            (5, -0.321887582487)
+            (5, -0.32188758248682003)
             (6, 0.0)
-            (7, 0.555974328302)
-            (8, -0.34657359028)
-            (9, 0.610340160371)
+            (7, 0.555974328301518)
+            (8, -0.34657359027997264)
+            (9, 0.6103401603711721)
             (10, 0.0)
-            (11, -0.217990479345)
+            (11, -0.21799047934530644)
 
         """
         n = ZZ(n)
@@ -1174,11 +1174,11 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: E = EllipticCurve("37a")
             sage: Z = LFunctionZeroSum(E)
             sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1))
-            (1, 1.01038406984)
+            (1, 1.0103840698356263)
             sage: E = EllipticCurve("121a")
             sage: Z = LFunctionZeroSum(E);
             sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5))
-            (0, 0.0104712060087)
+            (0, 0.0104712060086507)
 
         """
         # If Delta>6.619, then we will most likely get overflow: some ap values
@@ -1327,11 +1327,11 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: E = EllipticCurve("37a")
             sage: Z = LFunctionZeroSum(E)
             sage: print(E.rank(),Z._zerosum_sincsquared_parallel(Delta=1))
-            (1, 1.01038406984)
+            (1, 1.0103840698356263)
             sage: E = EllipticCurve("121a")
             sage: Z = LFunctionZeroSum(E);
             sage: print(E.rank(),Z._zerosum_sincsquared_parallel(Delta=1.5,ncpus=8))
-            (0, 0.0104712060087)
+            (0, 0.01047120600865063)
 
         """
         # If Delta>6.619, then we will most likely get overflow: some ap values

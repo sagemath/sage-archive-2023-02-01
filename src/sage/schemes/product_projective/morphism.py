@@ -81,7 +81,6 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             target = parent.codomain().ambient_space()
             from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
             if is_ProductProjectiveSpaces(target):
-                dims = target.dimension_relative_components()
                 splitpolys = target._factors(polys)
                 for m in range(len(splitpolys)):
                     d = target._degree(splitpolys[m][0])
@@ -90,7 +89,6 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
             else:
                 #we are mapping into some other kind of space
                 target._validate(polys)
-                dims = [target.dimension_relative()]
 
         SchemeMorphism_polynomial.__init__(self, parent, polys, check)
 

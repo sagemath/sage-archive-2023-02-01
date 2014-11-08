@@ -203,7 +203,7 @@ above describing the first method was an example of this.
     adding the argument ``--warn-links`` to the documentation build
     command as in::
 
-        sage -docbuild --warn-links reference html
+        sage --docbuild --warn-links reference html
 
     In this case, when a link is not resolved Sphinx will issue a
     warning.
@@ -291,7 +291,7 @@ using the Mac app and have placed it in your Applications directory.
     we will open a Sage shell session, where all appropriate Sage
     references already work properly::
 
-        sage -sh
+        sage --sh
 
     From here, you should be able to just type::
 

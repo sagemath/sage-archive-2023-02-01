@@ -1205,7 +1205,7 @@ def gen_laguerre(n,a,x):
 def gen_legendre_P(n,m,x):
     r"""
     Returns the generalized (or associated) Legendre function of the
-    first kind for integers `n > -1, m > -1`.
+    first kind.
 
     The awkward code for when m is odd and 1 results from the fact that
     Maxima is happy with, for example, `(1 - t^2)^3/2`, but
@@ -1232,42 +1232,7 @@ def gen_legendre_P(n,m,x):
         -16695*sqrt(2)
         sage: gen_legendre_P(4, 1, 2.5)
         -583.562373654533*I
-
-    TESTS::
-
-    Check that :trac:`17192` is fixed::
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: gen_legendre_P(0,1,x)
-        0
-
-        sage: gen_legendre_P(-1,1,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n and m must be greater than -1, got n = -1, m = 1
-
-        sage: gen_legendre_P(-7,1,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n and m must be greater than -1, got n = -7, m = 1
-
-        sage: gen_legendre_P(1,-1,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n and m must be greater than -1, got n = 1, m = -1
-
-        sage: gen_legendre_P(1,-7,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n and m must be greater than -1, got n = 1, m = -7
-
-        sage: gen_legendre_P(-7,-7,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n and m must be greater than -1, got n = -7, m = -7
     """
-    if not (n > -1 and m > -1):
-        raise ValueError("n and m must be greater than -1, got n = {0}, m = {1}".format(n,m))
-
     from sage.functions.all import sqrt
     _init()
     if m.mod(2).is_zero() or m.is_one():
@@ -1278,7 +1243,7 @@ def gen_legendre_P(n,m,x):
 def gen_legendre_Q(n,m,x):
     """
     Returns the generalized (or associated) Legendre function of the
-    second kind for integers `n>-1`, `m>-1`.
+    second kind.
 
     Maxima restricts m = n. Hence the cases m n are computed using the
     same recursion used for gen_legendre_P(n,m,x) when m is odd and
@@ -1297,42 +1262,7 @@ def gen_legendre_Q(n,m,x):
         -1/sqrt(-x^2 + 1)
         sage: gen_legendre_Q(2, 4, x).factor()
         48*x/((x + 1)^2*(x - 1)^2)
-
-    TESTS::
-
-    Check that :trac:`17192` is fixed::
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: gen_legendre_Q(0,1,x)
-        -1/sqrt(-x^2 + 1)
-
-        sage: gen_legendre_Q(-1,1,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n and m must be greater than -1, got n = -1, m = 1
-
-        sage: gen_legendre_Q(-7,1,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n and m must be greater than -1, got n = -7, m = 1
-
-        sage: gen_legendre_Q(1,-1,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n and m must be greater than -1, got n = 1, m = -1
-
-        sage: gen_legendre_Q(1,-7,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n and m must be greater than -1, got n = 1, m = -7
-
-        sage: gen_legendre_Q(-7,-7,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n and m must be greater than -1, got n = -7, m = -7
     """
-    if not (n > -1 and m > -1):
-        raise ValueError("n and m must be greater than -1, got n = {0}, m = {1}".format(n,m))
-
     from sage.functions.all import sqrt
     if m <= n:
         _init()
@@ -1486,8 +1416,7 @@ def laguerre(n,x):
 
 def legendre_P(n,x):
     """
-    Returns the Legendre polynomial of the first kind for integers
-    `n > -1`.
+    Returns the Legendre polynomial of the first kind.
 
     REFERENCE:
 
@@ -1507,34 +1436,13 @@ def legendre_P(n,x):
         [-484  547]
         sage: legendre_P(3, GF(11)(5))
         8
-
-    TESTS::
-
-    Check that :trac:`17192` is fixed::
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: legendre_P(0,x)
-        1
-
-        sage: legendre_P(-1,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be greater than -1, got n = -1
-
-        sage: legendre_P(-7,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be greater than -1, got n = -7
     """
-    if not (n > -1):
-        raise ValueError("n must be greater than -1, got n = {0}".format(n))
-
     _init()
     return sage_eval(maxima.eval('legendre_p(%s,x)'%ZZ(n)), locals={'x':x})
 
 def legendre_Q(n,x):
     """
-    Returns the Legendre function of the second kind for integers
-    `n > -1`.
+    Returns the Legendre function of the second kind.
 
     Computed using Maxima.
 
@@ -1549,27 +1457,7 @@ def legendre_Q(n,x):
         443/16*I*pi + 443/16*log(3) - 365/12
         sage: legendre_Q(4, 2.0)
         0.00116107583162324 + 86.9828465962674*I
-
-    TESTS::
-
-    Check that :trac:`17192` is fixed::
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: legendre_Q(0,x)
-        1/2*log(-(x + 1)/(x - 1))
-
-        sage: legendre_Q(-1,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be greater than -1, got n = -1
-
-        sage: legendre_Q(-7,x)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be greater than -1, got n = -7
     """
-    if not (n > -1):
-        raise ValueError("n must be greater than -1, got n = {0}".format(n))
-
     _init()
     return sage_eval(maxima.eval('legendre_q(%s,x)'%ZZ(n)), locals={'x':x})
 

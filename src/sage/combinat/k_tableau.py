@@ -4516,26 +4516,24 @@ class StrongTableaux(UniqueRepresentation, Parent):
         m = -min(marks) # the largest marked cell
         transeq = [] # start with the empty list and append on the right
         sh = Core(map(len,T), k+1)
-        for v in range(m,0,-1):
-            for j in range(len(LL[0]),-len(LL)-1,-1):
-                if -v in [LL[i][i+j] for i in range(len(LL)) if len(LL[i])>j+i and i+j>=0]:
-                    for l in range(k):
-                        msh = sh.affine_symmetric_group_action([j-l,j+1],transposition=True)
-                        # my worry here is that the affine symmetric group action might apply an invalid
-                        # transposition but get something of the right length anyway.  How do I test if it is applying
-                        # a valid or invalid transposition?
-                        if msh.length()==sh.length()-1:
-                            # if applying t_{j-l,j+1} reduces the size of the shape by 1
-                            skewcells = SkewPartition([sh.to_partition(),msh.to_partition()]).cells()
-                            valcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]!=j] # values in all the cells except content j
-                            regcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]==j] # values in the cells with content j
-                            if all(x==v for x in valcells) and regcells==[-v]:
-                                # if all labels that are not content j are v and the label
-                                # with content j = -v
-                                MM = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]
-                                transeq = self.marked_CST_to_transposition_sequence(MM,k)
-                                if not transeq is None:
-                                    return [[j-l, j+1]]+transeq
+        j = max([ c-r for r in range(len(LL)) for c in range(len(LL[r])) if LL[r][c]==-m ])
+        for l in range(k):
+            msh = sh.affine_symmetric_group_action([j-l,j+1],transposition=True)
+            # my worry here is that the affine symmetric group action might apply an invalid
+            # transposition but get something of the right length anyway.  How do I test if it is applying
+            # a valid or invalid transposition?
+            if msh.length()==sh.length()-1:
+                # if applying t_{j-l,j+1} reduces the size of the shape by 1
+                skewcells = SkewPartition([sh.to_partition(),msh.to_partition()]).cells()
+                valcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]!=j] # values in all the cells except content j
+                regcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]==j] # values in the cells with content j
+                if all(x==m for x in valcells) and regcells==[-m]:
+                    # if all labels that are not content j are v and the label
+                    # with content j = -m
+                    MM = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]
+                    transeq = self.marked_CST_to_transposition_sequence(MM,k)
+                    if not transeq is None:
+                        return [[j-l, j+1]]+transeq
 
     @classmethod
     def transpositions_to_standard_strong( self, transeq, k, emptyTableau=[] ):

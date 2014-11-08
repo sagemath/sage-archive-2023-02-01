@@ -1,4 +1,3 @@
-
 """
 Univariate Polynomial Rings
 
@@ -38,7 +37,7 @@ Saving and loading of polynomial rings works::
     Sparse Univariate Polynomial Ring in y over Integer Ring
 
 Rings with different variable names are not equal; in fact,
-by trac ticket #9944, poynomial rings are equal if and only
+by :trac:`9944`, polynomial rings are equal if and only
 if they are identic (which should be the  case for all parent
 structures in Sage)::
 
@@ -62,7 +61,7 @@ We create a polynomial ring over a quaternion algebra::
     sage: g * f
     w^2 + (i + j)*w - k
 
-Trac ticket #9944 introduced some changes related with
+:trac:`9944` introduced some changes related with
 coercion. Previously, a dense and a sparse polynomial ring with the
 same variable name over the same base ring evaluated equal, but of
 course they were not identical.Coercion maps are cached - but if a
@@ -562,7 +561,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         Caveat: There is no coercion from a dense into a sparse
         polynomial ring. So, when adding a dense and a sparse
-        polynomial, the result will be dense. See trac ticket #9944.
+        polynomial, the result will be dense. See :trac:`9944`.
 
         EXAMPLES::
 
@@ -591,7 +590,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                       To:   Univariate Polynomial Ring in x over Rational Field
 
         Here we test against the change in the coercions introduced
-        in trac ticket #9944::
+        in :trac:`9944`::
 
             sage: R.<x> = PolynomialRing(QQ, sparse=True)
             sage: S.<x> = QQ[]

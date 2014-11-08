@@ -64,7 +64,7 @@ if DEVEL:
 # compiler flag -Og is used. See also
 # * http://trac.sagemath.org/sage_trac/ticket/14460
 # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
-if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.][89]' >/dev/null """, shell=True) == 0:
+if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
     extra_compile_args.append('-fno-tree-dominator-opts')
 
 # Generate interpreters

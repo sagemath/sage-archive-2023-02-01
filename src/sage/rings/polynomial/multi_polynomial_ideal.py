@@ -2796,7 +2796,7 @@ class MPolynomialIdeal_singular_repr(
         hence the name, `hilbert_numerator`.
 
         An optional ``grading`` can be given, in which case
-        the graded (or weighted) Hilbert series is given.
+        the graded (or weighted) Hilbert numerator is given.
 
         EXAMPLE::
 

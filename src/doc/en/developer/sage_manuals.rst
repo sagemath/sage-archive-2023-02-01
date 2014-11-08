@@ -253,12 +253,12 @@ create a tutorial.
 * Once you have created a worksheet and are satisfied with the text and
   computations, download it to a directory.
 
-  * We will assume here that the worksheet is called ``Tutorial.sws``
-    and the directory is called ``make_tutorial``.  We also assume that
-    ``sage`` is your Sage command; if it is not in your ``PATH`` then replace
-    this with the path to your Sage installation, such as
-    ``/Applications/Sage-6.2.app/Contents/Resources/sage/sage`` if you are
-    using the Mac app and have placed it in your Applications directory.
+We will assume here that the worksheet is called ``Tutorial.sws``
+and the directory is called ``make_tutorial``.  We also assume that
+``sage`` is your Sage command; if it is not in your ``PATH`` then replace
+this with the path to your Sage installation, such as
+``/Applications/Sage-6.2.app/Contents/Resources/sage/sage`` if you are
+using the Mac app and have placed it in your Applications directory.
 
 * Next, you will need an optional package to parse your worksheet.  Use the
   command::

@@ -3,7 +3,7 @@ Normal Form games with N players.
 
 This module implements a class for normal form games (strategic form games)
 [NN2007]_. At present 2 algorithms are implemented to compute equilibria
-of these games (lrs - interfaced with the lrs library and support enumeration
+of these games (``'lrs'`` - interfaced with the 'lrs' library and support enumeration
 built in Sage). The architecture for the class is based on the gambit
 architecture to ensure an easy transition between gambit and sage.
 At present the algorithms for the computation of equilibria only solve 2 player
@@ -140,13 +140,14 @@ incentive to deviate.
 
 We can plot the utility of player 1 when player 2 is playing a mixed
 strategy `\sigma_2=(y,1-y)` (so that the utility to player 1 for
-playing strategy `i` is given by the matrix/vector multiplication:
-`(Ay)_i`)::
+playing the `i`th strategy is given by the matrix/vector multiplication
+`(Ay)_i`, ie the `i`th element of the matrix/vector multiplication
+`Ay`) ::
 
     sage: y = var('y')
     sage: A = matrix([[1, -1], [-1, 1]])
     sage: p = plot((A * vector([y, 1 - y]))[0], y, 0, 1, color='blue', legend_label='$u_1(r_1, (y, 1-y))$', axes_labels=['$y$', ''])
-    sage: p += plot((A * vector([y, 1 - y]))[1], y, 0, 1, color='red', legend_label='$u_1(r_2, (y, 1-y))$')
+    sage: p += plot((A * vector([y, 1 - y]))[1], y, 0, 1, color='red', legend_label='$u_1(r_2, (y, 1-y))$'); p
 
 We see that the only point at which player 1 is indifferent amongst
 the available strategies is when `y=1/2`.
@@ -201,11 +202,11 @@ time spent in prison)::
 
 When obtaining Nash equilibrium there are 2 algorithms currently available:
 
-* ``lrs``: Reverse search vertex enumeration for 2 player games. This
-  algorithm uses the optional `lrs` package. To install it type ``sage -i
+* ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
+  algorithm uses the optional 'lrs' package. To install it type ``sage -i
   lrs`` at the command line. For more information see [A2000]_.
 
-* ``enumeration``: Support enumeration for 2 player games. This
+* ``'enumeration'``: Support enumeration for 2 player games. This
   algorithm is hard coded in Sage and checks through all potential
   supports of a strategy. Supports of a given size with a conditionally
   dominated strategy are ignored. Note: this is not the preferred
@@ -224,8 +225,8 @@ Note that if no algorithm argument is passed then the default will be
 selected according to the following order (if the corresponding package is
 installed):
 
-    1. ``lrs`` (requires lrs)
-    2. ``enumeration``
+    1. ``'lrs'`` (requires 'lrs')
+    2. ``'enumeration'``
 
 Here is a game being constructed using gambit syntax (note that a
 ``NormalFormGame`` object acts like a dictionary with strategy tuples as
@@ -347,7 +348,7 @@ more than 2 players::
     NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
 
 Here is a slightly longer game that would take too long to solve with
-``enumeration``. Consider the following:
+``'enumeration'``. Consider the following:
 
 An airline loses two suitcases belonging to two different travelers. Both
 suitcases happen to be identical and contain identical antiques. An
@@ -359,6 +360,7 @@ the amount of their value at no less than 2 and no larger than 100. He
 also tells them that if both write down the same number, he will treat
 that number as the true dollar value of both suitcases and reimburse both
 travelers that amount.
+
 However, if one writes down a smaller number than the other, this smaller
 number will be taken as the true dollar value, and both travelers will
 receive that amount along with a bonus/malus: 2 extra will be paid to the
@@ -530,7 +532,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ...
             ValueError: matrices must be the same size
 
-        Note that when initiating, a single argument must be passed::
+        Note that when initializing, a single argument must be passed::
 
             sage: p1 = matrix([[1, 2], [3, 4]])
             sage: p2 = matrix([[3, 3], [1, 4], [6, 6]])
@@ -648,7 +650,7 @@ class NormalFormGame(SageObject, MutableMapping):
             [0 4], [5 4]
             )
 
-        We can use the dictionary like interface to overwrite a strategy
+        We can use the dictionary-like interface to overwrite a strategy
         profile::
 
             sage: prisoners_dilemma[(0,1)] = [-3,-30]
@@ -717,14 +719,14 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: g.add_player(2)
         sage: g.add_player(2)  # Creating a game with three players
         sage: latex(g)
-        \text{\texttt{Normal{ }Form{ }Game{ }...{ }[False,{ }False,{ }False]}}
+        \text{\texttt{Normal{ }Form{ }Game{ }...[False,{ }False,{ }False]{\char`\}}}}
+
 
         """
         if len(self.players) == 2:
             M1, M2 = self.payoff_matrices()
             return "\left(%s, %s\\right)" % (M1._latex_(), M2._latex_())
-        lastutility = self.utilities[self.utilities.keys()[-1]]
-        return latex("Normal Form Game ... {}".format(lastutility))
+        return latex(self.__str__())
 
     def _two_matrix_game(self, matrices):
         r"""
@@ -926,10 +928,10 @@ class NormalFormGame(SageObject, MutableMapping):
         - ``algorithm`` - the following algorithms should be available through
                           this function:
 
-          * ``"lrs"`` - This algorithm is only suited for 2 player games.
+          * ``'lrs'`` - This algorithm is only suited for 2 player games.
             See the lrs web site (http://cgm.cs.mcgill.ca/~avis/C/lrs.html).
 
-          * ``enumeration`` - This is a very inefficient
+          * ``'enumeration'`` - This is a very inefficient
             algorithm (in essence a brute force approach).
 
             1. For each k in 1...min(size of strategy sets)
@@ -979,7 +981,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
-        A game with 1 equilibria when ``maximization`` is ``True`` and 3 when
+        A game with 1 equilibrium when ``maximization`` is ``True`` and 3 when
         ``maximization`` is ``False``::
 
             sage: A = matrix([[10, 500, 44],

@@ -31,9 +31,57 @@ from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.free_module import CombinatorialFreeModule
 
 class AssociatedGradedAlgebra(CombinatorialFreeModule):
-    """
-    The associated graded algebra `\mathrm{gr} A` corresponding to
-    a filtered algebra `A`.
+    r"""
+    The associated graded algebra `\operatorname{gr} A`
+    of a filtered-algebra-with-basis `A`.
+
+    Let `A` be a filtered algebra with basis over a
+    commutative ring `R`. Let `(F_0, F_1, F_2, \ldots)` be
+    its filtration, let `(b_i)_{i \in I}` be its basis,
+    and consider the partition of the set `I` into subsets
+    `I_0, I_1, I_2, \ldots` which is part of the data of
+    a filtered algebra with basis. The *associated graded
+    algebra* (or, for short, just *graded algebra*) of
+    `A` is a graded algebra with basis defined as follows:
+
+    We know (see :class:`FilteredModulesWithBasis`) that
+    `A` (being a filtered `R`-module with basis) canonically
+    becomes a graded `R`-module with basis. (Its `n`-th
+    graded component, for every `n \in \NN`, is the
+    `R`-submodule of `A` spanned by `(b_i)_{i \in I_n}`.)
+    We define a multiplication `*` on this graded `R`-module
+    `A` (not to be mistaken for the multiplication of the
+    original algebra `A`) by requiring that
+
+    .. MATH::
+
+        b_i * b_j = \left( \text{the }
+        (n+m)\text{-th homogeneous component of }
+        b_i b_j \right)
+        \qquad \text{for all } n, m \in \NN \text{ and }
+        i \in I_n \text{ and } j \in I_m
+
+    (or, equivalently,
+
+    .. MATH::
+
+        u * v = \left( \text{the }
+        (n+m)\text{-th homogeneous component of }
+        uv \right)
+        \qquad \text{for all } n, m \in \NN
+        \text{ and any homogeneous elements } u
+        \text{ and } v \text{ of respective degrees }
+        n \text{ and } m
+
+    ).
+
+    Thus, `(A, *)` is a graded `R`-algebra with basis.
+    This is called the associated graded algebra of `A`,
+    and denoted by `\operatorname{gr} A`.
+
+    Notice that the multiplication `*` of this associated
+    graded algebra depends not only on the filtered algebra
+    `A`, but also on its basis.
 
     INPUT:
 
@@ -43,6 +91,8 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
 
         sage: A = Algebras(QQ).WithBasis().Filtered().example()
         sage: grA = A.graded_algebra()
+        sage: grA.category()
+        Category of graded algebras with basis over Rational Field
         sage: x,y,z = map(lambda s: grA.algebra_generators()[s], ['x','y','z'])
         sage: x
         bar(U['x'])
@@ -51,8 +101,10 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
         sage: A(y) * A(x) + A(z)
         U['x']*U['y']
 
-    We note that the conversion between ``A`` and ``grA`` is the canonical
-    ``QQ``-module isomorphism::
+    We note that the conversion between ``A`` and ``grA`` is
+    the canonical ``QQ``-module isomorphism stemming from the
+    fact that the underlying ``QQ``-modules of ``A`` and
+    ``grA`` are the same::
 
         sage: grA(A.an_element())
         bar(U['x']^2*U['y']^2*U['z']^3)
@@ -104,7 +156,7 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
 
             sage: A = Algebras(QQ).WithBasis().Filtered().example()
             sage: A.graded_algebra()
-            Graded Algebra of An example of a filtered module with basis:
+            Graded Algebra of An example of a filtered algebra with basis:
              the universal enveloping algebra of Lie algebra of RR^3
              with cross product over Rational Field
         """
@@ -118,19 +170,19 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
 
             sage: A = Algebras(QQ).WithBasis().Filtered().example()
             sage: latex(A.graded_algebra())
-            \mathrm{gr}\; ...
+            \operatorname{gr} ...
         """
         from sage.misc.latex import latex
-        return "\\mathrm{gr}\; " + latex(self._A)
+        return "\\operatorname{gr} " + latex(self._A)
 
     def _element_constructor_(self, x):
         """
         Construct an element of ``self`` from ``x``.
 
-        .. NOTE::
-
-            This constructs an element from the filtered algebra ``A``
-            by the canonical module isomorphism.
+        This constructs an element from the filtered algebra `A`
+        by the canonical module isomorphism (stemming from the
+        fact that `A` and the associated graded algebra `A`
+        have the same underlying `R`-module).
 
         EXAMPLES::
 

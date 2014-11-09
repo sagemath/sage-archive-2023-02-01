@@ -1,8 +1,15 @@
 r"""
 Filtered modules
 
-Consider a filtered module `M = \cup_{i \in I} F_i`. We require
-all `F_i / F_{i-1}` to be modules for all `i`.
+A *filtered module* over a commutative ring `R` is an
+`R`-module `M` equipped with a sequence `(F_0, F_1, F_2, \ldots)`
+of `R`-submodules satisfying
+`F_0 \subseteq F_1 \subseteq F_2 \subseteq \cdots` and
+`M = \cup_{i \geq 0} F_i`. This sequence is called the
+*filtration* of the given module `M`.
+
+(More general notions of filtered modules exist, but are not
+currently implemented in Sage.)
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -70,13 +77,13 @@ class FilteredModulesCategory(RegressiveCovariantConstructionCategory, Category_
         :meth:`__classget__` method which would get in the way upon
         attribute access::
 
-                sage: F = FilteredAlgebrasWithBasis
-                sage: F._foo = F._base_category_class[0]
-                sage: F._foo
-                Traceback (most recent call last):
-                ...
-                AssertionError: base category class for <...AlgebrasWithBasis'> mismatch;
-                expected <...Algebras'>, got <...FilteredAlgebrasWithBasis'>
+            sage: F = FilteredAlgebrasWithBasis
+            sage: F._foo = F._base_category_class[0]
+            sage: F._foo
+            Traceback (most recent call last):
+            ...
+            AssertionError: base category class for <...AlgebrasWithBasis'> mismatch;
+            expected <...Algebras'>, got <...FilteredAlgebrasWithBasis'>
         """
         module_name = cls.__module__.replace("filtered_","")
         import sys
@@ -129,10 +136,15 @@ class FilteredModules(FilteredModulesCategory):
     r"""
     The category of filtered modules.
 
-    A `R`-module `M` is *filtered* if there exists a `R`-module
-    isomorphism `A = \bigcup_{i \in I} F_i`, where `I` is a
-    totally ordered additive abelian group, such that
-    `F_{i-1} \subseteq F_i` for all `i \in I`.
+    A *filtered module* over a commutative ring `R` is an
+    `R`-module `M` equipped with a sequence `(F_0, F_1, F_2, \ldots)`
+    of `R`-submodules satisfying
+    `F_0 \subseteq F_1 \subseteq F_2 \subseteq \cdots` and
+    `M = \cup_{i \geq 0} F_i`. This sequence is called the
+    *filtration* of the given module `M`.
+
+    (More general notions of filtered modules exist, but are not
+    currently implemented in Sage.)
 
     EXAMPLES::
 
@@ -148,7 +160,7 @@ class FilteredModules(FilteredModulesCategory):
 
     def extra_super_categories(self):
         r"""
-        Adds :class:`VectorSpaces` to the super categories of ``self`` if
+        Add :class:`VectorSpaces` to the super categories of ``self`` if
         the base ring is a field.
 
         EXAMPLES::
@@ -186,6 +198,10 @@ class FilteredModules(FilteredModulesCategory):
         def Connected(self):
             r"""
             Return the full subcategory of the connected objects of ``self``.
+
+            A filtered `R`-module `M` with filtration
+            `(F_0, F_1, F_2, \ldots)` is said to be 
+            *connected* if `F_0` is isomorphic to `R`.
 
             EXAMPLES::
 

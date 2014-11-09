@@ -3,7 +3,7 @@ class Parser():
     A class for parsing the outputs of different algorithms called in other
     software packages.
 
-    At present the only parser included is for 'lrs' algorithm however
+    At present the only parser included is for ``'lrs'`` algorithm however
     this is actively being expanded to 'gambit'.
     """
 
@@ -86,19 +86,19 @@ class Parser():
 
         TESTS::
 
-            sage: from sage.game_theory.parser import Parser  # optional - lrs
-            sage: from subprocess import Popen, PIPE  # optional - lrs
-            sage: A = matrix([[1, 2], [3, 2]])  # optional - lrs
-            sage: g = NormalFormGame([A])  # optional - lrs
-            sage: game1_str, game2_str = g._Hrepresentation(A, -A)  # optional - lrs
-            sage: g1_name = tmp_filename()  # optional - lrs
-            sage: g2_name = tmp_filename()  # optional - lrs
-            sage: g1_file = file(g1_name, 'w')  # optional - lrs
-            sage: g2_file = file(g2_name, 'w')  # optional - lrs
-            sage: g1_file.write(game1_str)  # optional - lrs
-            sage: g1_file.close()  # optional - lrs
-            sage: g2_file.write(game2_str)  # optional - lrs
-            sage: g2_file.close()  # optional - lrs
+            sage: from sage.game_theory.parser import Parser
+            sage: from subprocess import Popen, PIPE
+            sage: A = matrix([[1, 2], [3, 2]])
+            sage: g = NormalFormGame([A])
+            sage: game1_str, game2_str = g._Hrepresentation(A, -A)
+            sage: g1_name = tmp_filename()
+            sage: g2_name = tmp_filename()
+            sage: g1_file = file(g1_name, 'w')
+            sage: g2_file = file(g2_name, 'w')
+            sage: g1_file.write(game1_str)
+            sage: g1_file.close()
+            sage: g2_file.write(game2_str)
+            sage: g2_file.close()
             sage: process = Popen(['nash', g1_name, g2_name], stdout=PIPE)  # optional - lrs
             sage: lrs_output = [row for row in process.stdout]  # optional - lrs
 

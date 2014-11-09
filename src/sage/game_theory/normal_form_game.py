@@ -347,7 +347,7 @@ more than 2 players::
     NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
 
 Here is a slightly longer game that would take too long to solve with
-``enumeration``. Consider the following:
+``'enumeration'``. Consider the following:
 
 An airline loses two suitcases belonging to two different travelers. Both
 suitcases happen to be identical and contain identical antiques. An

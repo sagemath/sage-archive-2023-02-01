@@ -3,7 +3,7 @@ Normal Form games with N players.
 
 This module implements a class for normal form games (strategic form games)
 [NN2007]_. At present 2 algorithms are implemented to compute equilibria
-of these games (lrs - interfaced with the lrs library and support enumeration
+of these games (``'lrs'`` - interfaced with the 'lrs' library and support enumeration
 built in Sage). The architecture for the class is based on the gambit
 architecture to ensure an easy transition between gambit and sage.
 At present the algorithms for the computation of equilibria only solve 2 player
@@ -201,11 +201,11 @@ time spent in prison)::
 
 When obtaining Nash equilibrium there are 2 algorithms currently available:
 
-* ``lrs``: Reverse search vertex enumeration for 2 player games. This
-  algorithm uses the optional `lrs` package. To install it type ``sage -i
+* ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
+  algorithm uses the optional 'lrs' package. To install it type ``sage -i
   lrs`` at the command line. For more information see [A2000]_.
 
-* ``enumeration``: Support enumeration for 2 player games. This
+* ``'enumeration'``: Support enumeration for 2 player games. This
   algorithm is hard coded in Sage and checks through all potential
   supports of a strategy. Supports of a given size with a conditionally
   dominated strategy are ignored. Note: this is not the preferred
@@ -224,8 +224,8 @@ Note that if no algorithm argument is passed then the default will be
 selected according to the following order (if the corresponding package is
 installed):
 
-    1. ``lrs`` (requires lrs)
-    2. ``enumeration``
+    1. ``'lrs'`` (requires 'lrs')
+    2. ``'enumeration'``
 
 Here is a game being constructed using gambit syntax (note that a
 ``NormalFormGame`` object acts like a dictionary with strategy tuples as
@@ -926,10 +926,10 @@ class NormalFormGame(SageObject, MutableMapping):
         - ``algorithm`` - the following algorithms should be available through
                           this function:
 
-          * ``"lrs"`` - This algorithm is only suited for 2 player games.
+          * ``'lrs'`` - This algorithm is only suited for 2 player games.
             See the lrs web site (http://cgm.cs.mcgill.ca/~avis/C/lrs.html).
 
-          * ``enumeration`` - This is a very inefficient
+          * ``'enumeration'`` - This is a very inefficient
             algorithm (in essence a brute force approach).
 
             1. For each k in 1...min(size of strategy sets)

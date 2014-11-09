@@ -360,6 +360,7 @@ the amount of their value at no less than 2 and no larger than 100. He
 also tells them that if both write down the same number, he will treat
 that number as the true dollar value of both suitcases and reimburse both
 travelers that amount.
+
 However, if one writes down a smaller number than the other, this smaller
 number will be taken as the true dollar value, and both travelers will
 receive that amount along with a bonus/malus: 2 extra will be paid to the
@@ -531,7 +532,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ...
             ValueError: matrices must be the same size
 
-        Note that when initiating, a single argument must be passed::
+        Note that when initializing, a single argument must be passed::
 
             sage: p1 = matrix([[1, 2], [3, 4]])
             sage: p2 = matrix([[3, 3], [1, 4], [6, 6]])
@@ -649,7 +650,7 @@ class NormalFormGame(SageObject, MutableMapping):
             [0 4], [5 4]
             )
 
-        We can use the dictionary like interface to overwrite a strategy
+        We can use the dictionary-like interface to overwrite a strategy
         profile::
 
             sage: prisoners_dilemma[(0,1)] = [-3,-30]
@@ -980,7 +981,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
-        A game with 1 equilibria when ``maximization`` is ``True`` and 3 when
+        A game with 1 equilibrium when ``maximization`` is ``True`` and 3 when
         ``maximization`` is ``False``::
 
             sage: A = matrix([[10, 500, 44],

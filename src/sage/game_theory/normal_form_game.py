@@ -179,7 +179,7 @@ which returns the payoff matrices for a 2 player game::
 
 One can also input a single matrix and then a zero sum game is constructed.
 Here is an instance of `Rock-Paper-Scissors-Lizard-Spock
-<http://en.wikipedia.org/wiki/Rock-paper-scissors-lizard-Spock>`_::
+<http://www.samkass.com/theories/RPSSL.html>`_::
 
     sage: A = matrix([[0, -1, 1, 1, -1],
     ....:             [1, 0, -1, -1, 1],

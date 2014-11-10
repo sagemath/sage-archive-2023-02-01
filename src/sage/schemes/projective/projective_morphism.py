@@ -1659,8 +1659,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             10.7632079329219
         """
         BR = self.domain().base_ring()
-        if not BR in NumberFields:
-            raise NotImplemenetedError("Must be a number field")
+        if not BR in NumberFields():
+            raise NotImplementedError("Must be a number field")
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if prec is None:
@@ -1674,30 +1674,32 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         U = self.global_height(prec) + R(binomial(N + d, d)).log()
         #compute lower bound - from explicit polynomials of Nullstellensatz
         CR = self.domain().coordinate_ring()
-        try:
-            Def_polys = BR.defining_polynomial()
-        except AttributeError:
-            Def_polys = []
-        I = CR.ideal(self.defining_polynomials(), Def_polys)
+        CR = CR.change_ring(BR) #lift only works over fields
+        I = CR.ideal(self.defining_polynomials())
         MCP = []
         for k in range(N + 1):
             CoeffPolys = (CR.gen(k) ** D).lift(I)
+            print CoeffPolys
             Res = 1
-            h = 1
             for j in range(len(CoeffPolys)):
                 if CoeffPolys[j] != 0:
+                    #make this a list comprehension 
                     for i in range(len(CoeffPolys[j].coefficients())):
                         Res = lcm(Res, abs(CoeffPolys[j].coefficients()[i].denominator()))
-                        h = max(h, abs(CoeffPolys[j].coefficients()[i].numerator()))
-            MCP.append([Res, Res * h]) #since we need to clear denominators
-        maxh = 1
+            h = max([c.global_height() for g in CoeffPolys for c in (Res*g).coefficients()])
+            MCP.append([Res, h]) #since we need to clear denominators
+        print MCP
+        maxh = 0
         gcdRes = 0
         for k in range(len(MCP)):
             gcdRes = gcd(gcdRes, MCP[k][0])
             maxh = max(maxh, MCP[k][1])
-        L = abs(R(gcdRes / ((N + 1) * binomial(N + D - d, D - d) * maxh)).log())
-
+        print maxh
+        print R(gcdRes).log()
+        print R((N + 1) * binomial(N + D - d, D - d)).log()
+        L = abs( R(gcdRes).log() - R((N + 1) * binomial(N + D - d, D - d)).log() - maxh)
         C = max(U, L) #height difference dh(P) - L <= h(f(P)) <= dh(P) +U
+        print U,L
         return(C / (d - 1))
 
     def multiplier(self, P, n, check=True):

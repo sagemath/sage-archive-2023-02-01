@@ -229,7 +229,7 @@ installed):
     2. ``'enumeration'``
 
 Here is a game being constructed using gambit syntax (note that a
-``NormalFormGame`` object acts like a dictionary with strategy tuples as
+``NormalFormGame`` object acts like a dictionary with pure strategy tuples as
 keys and payoffs as their values)::
 
     sage: f = NormalFormGame()
@@ -419,7 +419,7 @@ REFERENCES:
 
 .. [N1950] John Nash.
    *Equilibrium points in n-person games.*
-   Proceedings of the national academy of sciences 36.1 (1950): 48-49.
+   Proceedings of the National Academy of Sciences 36.1 (1950): 48-49.
 
 .. [NN2007] Nisan, Noam, et al., eds.
    *Algorithmic game theory.*

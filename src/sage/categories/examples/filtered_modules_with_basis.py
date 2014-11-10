@@ -16,7 +16,7 @@ from sage.combinat.partition import Partitions
 class FilteredPartitionModule(CombinatorialFreeModule):
     r"""
     This class illustrates an implementation of a filtered module
-    with basis: the free module over partitions.
+    with basis: the free module on the set of all partitions.
 
     INPUT:
 

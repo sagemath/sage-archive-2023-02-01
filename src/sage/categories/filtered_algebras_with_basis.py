@@ -1,5 +1,12 @@
 r"""
 Filtered algebras with basis
+
+A filtered algebra with basis over a commutative ring `R`
+is a filtered algebra over `R` endowed with the structure
+of a filtered module with basis (with the same underlying
+filtered-module structure). See
+:class:`FilteredAlgebras` and
+:class:`FilteredModulesWithBasis` for these two notions.
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -36,7 +43,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
                 sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
                 sage: A.graded_algebra()
-                Graded Algebra of An example of a filtered module with basis:
+                Graded Algebra of An example of a filtered algebra with basis:
                  the universal enveloping algebra of
                  Lie algebra of RR^3 with cross product over Integer Ring
             """
@@ -47,9 +54,6 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
         def is_homogeneous(self):
             r"""
             Return whether ``self`` is homogeneous.
-
-            An element `x` is homogeneous if `x \in F_i \setminus F_{i-1}`
-            for some `i`.
 
             EXAMPLES::
 
@@ -74,7 +78,8 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
         def homogeneous_degree(self):
             """
-            The degree of ``self``.
+            The degree of a nonzero homogeneous element ``self`` in the
+            filtered module.
 
             .. NOTE::
 

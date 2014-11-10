@@ -1,5 +1,37 @@
 r"""
 Filtered modules with basis
+
+A *filtered module with basis* over a commutative ring `R`
+means (for the purpose of this code) a filtered `R`-module
+`M` with filtration `(F_0, F_1, F_2, \ldots)` endowed with a
+basis `(b_i)_{i \in I}` of `M` and a partition of the set
+`I` into subsets `I_0, I_1, I_2, \ldots` (which can be
+empty) such that for every `n \in \NN`, the subfamily
+`(b_i)_{i \in I_0 \cup I_1 \cup \cdots \cup I_n}` is a basis
+of the `R`-submodule `F_n`.
+
+For every `n \in \NN`, the `R`-submodule of `M` spanned by
+`(b_i)_{i \in I_n}` is called the `*n*-th graded component*
+of the filtered-module-with-basis `M`; the elements of
+this submodule are referred to as *homogeneous elements of
+degree `n`*. The `R`-module `M` is the direct sum of its
+`n`-th graded components over all `n \in \NN`, and thus
+becomes a graded `R`-module with basis. Conversely, any
+graded `R`-module with basis canonically becomes a filtered
+`R`-module with basis (by defining `F_n` as the direct sum
+of the `0`-th, `1`-st, ..., `n`-th graded components, and
+`I_n` as the indexing set of the basis of the `n`-th graded
+component). Hence, the notion of a filtered `R`-module with
+basis is equivalent to the notion of a graded `R`-module
+with basis. However, the *category* of filtered `R`-modules
+with basis is not the category of graded `R`-modules with
+basis. Indeed, the *morphisms* of filtered `R`-modules with
+basis are defined to be morphisms of `R`-modules which send
+each `F_n` of the domain to the corresponding `F_n` of the
+target; in contrast, the morphisms of graded `R`-modules
+with basis must preserve each homogeneous component. Also,
+the notion of a filtered algebra with basis differs from
+that of a graded algebra with basis.
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -13,6 +45,21 @@ from sage.categories.filtered_modules import FilteredModulesCategory
 class FilteredModulesWithBasis(FilteredModulesCategory):
     """
     The category of filtered modules with a distinguished basis.
+
+    A *filtered module with basis* over a commutative ring `R`
+    means (for the purpose of this code) a filtered `R`-module
+    `M` with filtration `(F_0, F_1, F_2, \ldots)` endowed with a
+    basis `(b_i)_{i \in I}` of `M` and a partition of the set
+    `I` into subsets `I_0, I_1, I_2, \ldots` (which can be
+    empty) such that for every `n \in \NN`, the subfamily
+    `(b_i)_{i \in I_0 \cup I_1 \cup \cdots \cup I_n}` is a basis
+    of the `R`-submodule `F_n`.
+
+    For every `n \in \NN`, the `R`-submodule of `M` spanned by
+    `(b_i)_{i \in I_n}` is called the `*n*-th graded component*
+    of the filtered-module-with-basis `M`; the elements of
+    this submodule are referred to as *homogeneous elements of
+    degree `n`*.
 
     EXAMPLES::
 
@@ -40,16 +87,19 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
         def basis(self, d=None):
             r"""
-            Return the basis for (an homogeneous component of) ``self``.
+            Return the basis for (the ``d``-th homogeneous component
+            of) ``self``.
 
             INPUT:
 
-            - ``d`` -- (optional, default ``None``) non negative integer
+            - ``d`` -- (optional, default ``None``) nonnegative integer
               or ``None``
 
             If ``d`` is ``None``, returns a basis of the module.
             Otherwise, returns the basis of the homogeneous component
-            of degree ``d`` (i.e., of `F_d \setminus F_{d-1}`).
+            of degree ``d`` (i.e., the subfamily of the basis of the
+            whole module which consists only of the basis vectors
+            lying in `F_d \setminus F_{d-1}`).
 
             EXAMPLES::
 
@@ -76,9 +126,6 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             r"""
             Return whether ``self`` is homogeneous.
 
-            An element `x` is homogeneous if `x \in F_i \setminus F_{i-1}`
-            for some `i`.
-
             EXAMPLES::
 
                 sage: A = ModulesWithBasis(ZZ).Filtered().example()
@@ -104,10 +151,8 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
         def degree(self):
             r"""
-            The degree of ``self`` in the filtered module.
-
-            The degree of an element `x` is the value `i` such that
-            `x \in F_i \setminus F_{i-1}`.
+            The degree of a nonzero homogeneous element ``self`` in the
+            filtered module.
 
             .. NOTE::
 
@@ -141,6 +186,13 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             Return the homogeneous component of degree ``n`` of this
             element.
 
+            Let `m` be an element of a filtered `R`-module `M` with
+            basis. Then, `m` can be uniquely written in the form
+            `m = m_0 + m_1 + m_2 + \ldots`, where each `m_i` is a
+            homogeneous element of degree `i`. For `n \in \NN`, we
+            define the homogeneous component of degree `n` of the
+            element `m` to be `m_n`.
+
             EXAMPLES::
 
                 sage: A = ModulesWithBasis(ZZ).Filtered().example()
@@ -159,7 +211,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
             TESTS:
 
-            Check that this really return ``A.zero()`` and not a plain ``0``::
+            Check that this really returns ``A.zero()`` and not a plain ``0``::
 
                 sage: x.homogeneous_component(3).parent() is A
                 True
@@ -173,6 +225,9 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             """
             Return the sum of the homogeneous components of degree
             strictly less than ``n`` of ``self``.
+
+            See :meth:`homogeneous_component` for the notion of a
+            homogeneous component.
 
             EXAMPLES::
 

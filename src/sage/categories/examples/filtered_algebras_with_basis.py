@@ -12,7 +12,6 @@ from sage.categories.filtered_algebras_with_basis import FilteredAlgebrasWithBas
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
 from sage.sets.family import Family
-from sage.misc.misc import powerset
 
 class PBWBasisCrossProduct(CombinatorialFreeModule):
     r"""
@@ -63,11 +62,11 @@ class PBWBasisCrossProduct(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: AlgebrasWithBasis(QQ).Filtered().example()
-            An example of a filtered module with basis:
+            An example of a filtered algebra with basis:
              the universal enveloping algebra of
              Lie algebra of RR^3 with cross product over Rational Field
         """
-        return "An example of a filtered module with basis: the universal enveloping algebra of Lie algebra of RR^3 with cross product over {}".format(self.base_ring())
+        return "An example of a filtered algebra with basis: the universal enveloping algebra of Lie algebra of RR^3 with cross product over {}".format(self.base_ring())
 
     def algebra_generators(self):
         """

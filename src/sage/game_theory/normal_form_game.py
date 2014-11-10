@@ -1259,7 +1259,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g = NormalFormGame()
             sage: A = matrix([[1, 1, 5], [2, 2, 0]])
             sage: g._row_cond_dominance((0, 1), (0, 1), A)
-            False
+            <BLANKLINE>
 
         or does not have a dominated row::
 
@@ -1275,9 +1275,9 @@ class NormalFormGame(SageObject, MutableMapping):
                 row = subm.rows()[r]
                 if strategy != row:
                     if all(strategy[i] < row[i] for i in range(nbr_cols)):
-                        return False
+                        return None
                     if all(row[i] < strategy[i] for i in range(nbr_cols)):
-                        return False
+                        return None
         return True
 
     def _solve_indifference(self, p1_support, p2_support, M1, M2):

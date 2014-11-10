@@ -693,8 +693,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g
             Normal Form Game with the following utilities: {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
         """
-        return "Normal Form Game with the following \
-                    utilities: {}".format(self.utilities)
+        base_str = "Normal Form Game with the following utilities: {}"
+        return base_str.format(self.utilities)
 
     def _latex_(self):
         r"""

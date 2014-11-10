@@ -233,8 +233,8 @@ Here is a game being constructed using gambit syntax (note that a
 keys and payoffs as their values)::
 
     sage: f = NormalFormGame()
-    sage: f.add_player(2)
-    sage: f.add_player(2)
+    sage: f.add_player(2)  # Adding first player with 2 strategies
+    sage: f.add_player(2)  # Adding second player with 2 strategies
     sage: f[0,0][0] = 1
     sage: f[0,0][1] = 3
     sage: f[0,1][0] = 2
@@ -292,9 +292,9 @@ We can use the same syntax as above to create games with
 more than 2 players::
 
     sage: threegame = NormalFormGame()
-    sage: threegame.add_player(2)
-    sage: threegame.add_player(2)
-    sage: threegame.add_player(2)
+    sage: threegame.add_player(2)  # Adding first player with 2 strategies
+    sage: threegame.add_player(2)  # Adding second player with 2 strategies
+    sage: threegame.add_player(2)  # Adding third player with 2 strategies
     sage: threegame[0, 0, 0][0] = 3
     sage: threegame[0, 0, 0][1] = 1
     sage: threegame[0, 0, 0][2] = 4
@@ -330,9 +330,9 @@ utility function::
     sage: def utility(strategy_triplet, player):
     ....:     return sum(strategy_triplet) * player
     sage: threegame = NormalFormGame()
-    sage: threegame.add_player(2)
-    sage: threegame.add_player(2)
-    sage: threegame.add_player(2)
+    sage: threegame.add_player(2)  # Adding first player with 2 strategies
+    sage: threegame.add_player(2)  # Adding second player with 2 strategies
+    sage: threegame.add_player(2)  # Adding third player with 2 strategies
     sage: for i, j, k in [(i, j, k) for i in [0,1] for j in [0,1] for k in [0,1]]:
     ....:     for p in range(3):
     ....:          threegame[i, j, k][p] = utility([i, j, k], p)
@@ -396,8 +396,8 @@ is evidenced by the two algorithms returning different solutions::
 Here is an example with the trivial game where all payoffs are 0::
 
     sage: g = NormalFormGame()
-    sage: g.add_player(3)
-    sage: g.add_player(3)
+    sage: g.add_player(3)  # Adding first player with 3 strategies
+    sage: g.add_player(3)  # Adding second player with 3 strategies
     sage: for key in g:
     ....:     g[key] = [0, 0]
     sage: g.payoff_matrices()
@@ -489,9 +489,9 @@ class NormalFormGame(SageObject, MutableMapping):
         Can have games with more than 2 players::
 
             sage: threegame = NormalFormGame()
-            sage: threegame.add_player(2)
-            sage: threegame.add_player(2)
-            sage: threegame.add_player(2)
+            sage: threegame.add_player(2)  # Adding first player with 2 strategies
+            sage: threegame.add_player(2)  # Adding second player with 2 strategies
+            sage: threegame.add_player(2)  # Adding third player with 2 strategies
             sage: threegame[0, 0, 0][0] = 3
             sage: threegame[0, 0, 0][1] = 1
             sage: threegame[0, 0, 0][2] = 4
@@ -715,8 +715,8 @@ class NormalFormGame(SageObject, MutableMapping):
         LaTeX method shows nothing interesting for games with more players::
 
         sage: g = NormalFormGame()
-        sage: g.add_player(2)
-        sage: g.add_player(2)
+        sage: g.add_player(2)  # Adding first player with 2 strategies
+        sage: g.add_player(2)  # Adding second player with 2 strategies
         sage: g.add_player(2)  # Creating a game with three players
         sage: latex(g)
         \text{\texttt{Normal{ }Form{ }Game{ }...[False,{ }False,{ }False]{\char`\}}}}
@@ -768,9 +768,9 @@ class NormalFormGame(SageObject, MutableMapping):
         obtain payoff matrices::
 
             sage: g = NormalFormGame()
-            sage: g.add_player(2)
-            sage: g.add_player(2)
-            sage: g.add_player(2)
+            sage: g.add_player(2)  # Adding first player with 2 strategies
+            sage: g.add_player(2)  # Adding second player with 2 strategies
+            sage: g.add_player(2)  # Adding third player with 2 strategies
             sage: g.payoff_matrices()
             Traceback (most recent call last):
             ...
@@ -780,8 +780,8 @@ class NormalFormGame(SageObject, MutableMapping):
         then an error is also raised::
 
             sage: g = NormalFormGame()
-            sage: g.add_player(1)
-            sage: g.add_player(1)
+            sage: g.add_player(1)  # Adding first player with 1 strategy
+            sage: g.add_player(1)  # Adding second player with 1 strategy
             sage: g.payoff_matrices()
             Traceback (most recent call last):
             ...
@@ -819,9 +819,9 @@ class NormalFormGame(SageObject, MutableMapping):
         EXAMPLES::
 
             sage: g = NormalFormGame()
-            sage: g.add_player(2)
-            sage: g.add_player(1)
-            sage: g.add_player(1)
+            sage: g.add_player(2)  # Adding first player with 2 strategies
+            sage: g.add_player(1)  # Adding second player with 1 strategy
+            sage: g.add_player(1)  # Adding third player with 1 strategy
             sage: g
             Normal Form Game with the following utilities: {(1, 0, 0): [False, False, False], (0, 0, 0): [False, False, False]}
         """

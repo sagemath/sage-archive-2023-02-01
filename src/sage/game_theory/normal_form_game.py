@@ -61,11 +61,11 @@ Here is how we create the game in Sage::
     sage: battle_of_the_sexes
     Normal Form Game with the following utilities: {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
 
-To obtain the Nash equilibria we run the ``obtain_Nash()`` method. In the
+To obtain the Nash equilibria we run the ``obtain_nash()`` method. In the
 first few examples, we will use the 'support enumeration' algorithm.
 A discussion about the different algorithms will be given later::
 
-    sage: battle_of_the_sexes.obtain_Nash(algorithm='enumeration')
+    sage: battle_of_the_sexes.obtain_nash(algorithm='enumeration')
     [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(3/4, 1/4), (1/4, 3/4)]]
 
 If we look a bit closer at our output we see that a list of three
@@ -102,7 +102,7 @@ The payoff to player 2 is given by:
 
 To compute this in Sage we have::
 
-    sage: for ne in battle_of_the_sexes.obtain_Nash(algorithm='enumeration'):
+    sage: for ne in battle_of_the_sexes.obtain_nash(algorithm='enumeration'):
     ....:     print "Utility for {}: ".format(ne)
     ....:     print vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])
     Utility for [(1, 0), (1, 0)]:
@@ -159,7 +159,7 @@ at which both players are indifferent::
     sage: A = matrix([[1, -1], [-1, 1]])
     sage: B = matrix([[-1, 1], [1, -1]])
     sage: matching_pennies = NormalFormGame([A, B])
-    sage: matching_pennies.obtain_Nash(algorithm='enumeration')
+    sage: matching_pennies.obtain_nash(algorithm='enumeration')
     [[(1/2, 1/2), (1/2, 1/2)]]
 
 The utilities to both players at this Nash equilibrium
@@ -187,7 +187,7 @@ Here is an instance of `Rock-Paper-Scissors-Lizard-Spock
     ....:             [-1, 1, -1, 0, 1],
     ....:             [1, -1, 1, -1, 0]])
     sage: g = NormalFormGame([A])
-    sage: g.obtain_Nash(algorithm='enumeration')
+    sage: g.obtain_nash(algorithm='enumeration')
     [[(1/5, 1/5, 1/5, 1/5, 1/5), (1/5, 1/5, 1/5, 1/5, 1/5)]]
 
 We can also study games where players aim to minimize their utility.
@@ -197,7 +197,7 @@ time spent in prison)::
     sage: A = matrix([[2, 5], [0, 4]])
     sage: B = matrix([[2, 0], [5, 4]])
     sage: prisoners_dilemma = NormalFormGame([A, B])
-    sage: prisoners_dilemma.obtain_Nash(algorithm='enumeration', maximization=False)
+    sage: prisoners_dilemma.obtain_nash(algorithm='enumeration', maximization=False)
     [[(0, 1), (0, 1)]]
 
 When obtaining Nash equilibrium there are 2 algorithms currently available:
@@ -216,9 +216,9 @@ When obtaining Nash equilibrium there are 2 algorithms currently available:
 
 Below we show how the two algorithms are called::
 
-    sage: matching_pennies.obtain_Nash(algorithm='lrs')  # optional - lrs
+    sage: matching_pennies.obtain_nash(algorithm='lrs')  # optional - lrs
     [[(1/2, 1/2), (1/2, 1/2)]]
-    sage: matching_pennies.obtain_Nash(algorithm='enumeration')
+    sage: matching_pennies.obtain_nash(algorithm='enumeration')
     [[(1/2, 1/2), (1/2, 1/2)]]
 
 Note that if no algorithm argument is passed then the default will be
@@ -254,7 +254,7 @@ game::
     [1 2]  [3 3]
     [3 4], [1 4]
     )
-    sage: f.obtain_Nash(algorithm='enumeration')
+    sage: f.obtain_nash(algorithm='enumeration')
     [[(0, 1), (0, 1)]]
 
 We can add an extra strategy to the first player::
@@ -266,7 +266,7 @@ We can add an extra strategy to the first player::
 If we do this and try and obtain the Nash equilibrium or view the payoff
 matrices(without specifying the utilities), an error is returned::
 
-    sage: f.obtain_Nash()
+    sage: f.obtain_nash()
     Traceback (most recent call last):
     ...
     ValueError: utilities have not been populated
@@ -285,7 +285,7 @@ Here we populate the missing utilities::
     [3 4]  [1 4]
     [2 5], [1 3]
     )
-    sage: f.obtain_Nash()
+    sage: f.obtain_nash()
     [[(0, 0, 1), (0, 1)]]
 
 We can use the same syntax as above to create games with
@@ -342,7 +342,7 @@ utility function::
 At present no algorithm has been implemented in Sage for games with
 more than 2 players::
 
-    sage: threegame.obtain_Nash()
+    sage: threegame.obtain_nash()
     Traceback (most recent call last):
     ...
     NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
@@ -375,7 +375,7 @@ In the following we create the game (with a max value of 10) and solve it::
     sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
     sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
     sage: g = NormalFormGame([A, B])
-    sage: g.obtain_Nash(algorithm='lrs') # optional - lrs
+    sage: g.obtain_nash(algorithm='lrs') # optional - lrs
     [[(1, 0, 0, 0, 0, 0, 0, 0, 0), (1, 0, 0, 0, 0, 0, 0, 0, 0)]]
 
 The equilibrium strategy is thus for both players to state that the value
@@ -388,9 +388,9 @@ is evidenced by the two algorithms returning different solutions::
     sage: A = matrix([[3,3],[2,5],[0,6]])
     sage: B = matrix([[3,3],[2,6],[3,1]])
     sage: degenerate_game = NormalFormGame([A,B])
-    sage: degenerate_game.obtain_Nash(algorithm='lrs') # optional - lrs
+    sage: degenerate_game.obtain_nash(algorithm='lrs') # optional - lrs
     [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
-    sage: degenerate_game.obtain_Nash(algorithm='enumeration')
+    sage: degenerate_game.obtain_nash(algorithm='enumeration')
     [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
 
 Here is an example with the trivial game where all payoffs are 0::
@@ -406,7 +406,7 @@ Here is an example with the trivial game where all payoffs are 0::
     [0 0 0]  [0 0 0]
     [0 0 0], [0 0 0]
     )
-    sage: g.obtain_Nash(algorithm='enumeration')
+    sage: g.obtain_nash(algorithm='enumeration')
     [[(1, 0, 0), (1, 0, 0)]]
 
 A good description of degenerate games can be found in [NN2007]_.
@@ -516,7 +516,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: threegame[1, 1, 1][0] = 2
             sage: threegame[1, 1, 1][1] = 6
             sage: threegame[1, 1, 1][2] = 4
-            sage: threegame.obtain_Nash()
+            sage: threegame.obtain_nash()
             Traceback (most recent call last):
             ...
             NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
@@ -916,7 +916,7 @@ class NormalFormGame(SageObject, MutableMapping):
             results.append(all(type(i) is not bool for i in profile))
         return all(results)
 
-    def obtain_Nash(self, algorithm=False, maximization=True):
+    def obtain_nash(self, algorithm=False, maximization=True):
         r"""
         A function to return the Nash equilibrium for the game.
         Optional arguments can be used to specify the algorithm used.
@@ -993,9 +993,9 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3, 4, 1],
             ....:             [4, 1, 20]])
             sage: g=NormalFormGame([A, B])
-            sage: g.obtain_Nash(algorithm='lrs') # optional - lrs
+            sage: g.obtain_nash(algorithm='lrs') # optional - lrs
             [[(0, 0, 0, 1), (0, 0, 1)]]
-            sage: g.obtain_Nash(algorithm='lrs', maximization=False) # optional - lrs
+            sage: g.obtain_nash(algorithm='lrs', maximization=False) # optional - lrs
             [[(2/3, 1/12, 1/4, 0), (6333/8045, 247/8045, 293/1609)], [(3/4, 0, 1/4, 0), (0, 11/307, 296/307)], [(5/6, 1/6, 0, 0), (98/99, 1/99, 0)]]
 
         This particular game has 3 Nash equilibria::
@@ -1007,7 +1007,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [2,6],
             ....:             [3,1]])
             sage: g = NormalFormGame([A, B])
-            sage: g.obtain_Nash(algorithm='enumeration')
+            sage: g.obtain_nash(algorithm='enumeration')
             [[(1, 0, 0), (1, 0)], [(4/5, 1/5, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)]]
 
         Here is a slightly larger game::
@@ -1021,7 +1021,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3, 4, 1],
             ....:             [4, 1, 2]])
             sage: g=NormalFormGame([A, B])
-            sage: g.obtain_Nash(algorithm='enumeration')
+            sage: g.obtain_nash(algorithm='enumeration')
             [[(0, 0, 3/4, 1/4), (1/28, 27/28, 0)]]
 
         2 random matrices::
@@ -1037,9 +1037,9 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:                   [1, -1, 3, -3, 2],
             ....:                   [8, -4, 1, 1, -17]])
             sage: fivegame = NormalFormGame([player1, player2])
-            sage: fivegame.obtain_Nash(algorithm='enumeration')
+            sage: fivegame.obtain_nash(algorithm='enumeration')
             [[(1, 0, 0, 0, 0), (0, 1, 0, 0, 0)]]
-            sage: fivegame.obtain_Nash(algorithm='lrs') # optional - lrs
+            sage: fivegame.obtain_nash(algorithm='lrs') # optional - lrs
             [[(1, 0, 0, 0, 0), (0, 1, 0, 0, 0)]]
 
 
@@ -1052,7 +1052,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [2,6],
             ....:             [3,1]])
             sage: g = NormalFormGame([A, B])
-            sage: g.obtain_Nash(algorithm='enumeration')
+            sage: g.obtain_nash(algorithm='enumeration')
             [[(1, 0, 0), (1, 0)], [(4/5, 1/5, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)]]
 
 

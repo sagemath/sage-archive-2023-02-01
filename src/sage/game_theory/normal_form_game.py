@@ -378,8 +378,12 @@ In the following we create the game (with a max value of 10) and solve it::
     sage: g.obtain_nash(algorithm='lrs') # optional - lrs
     [[(1, 0, 0, 0, 0, 0, 0, 0, 0), (1, 0, 0, 0, 0, 0, 0, 0, 0)]]
 
-The equilibrium strategy is thus for both players to state that the value
-of their suitcase is 2.
+The output is a pair of vectors (as before) showing the Nash equilibrium.
+In particular it here shows that out of the 10 possible strategies both
+players should choose the first. Recall that the above considers a reduced
+version of the game where individuals can claim integer values between 2
+and 10.  The equilibrium strategy is thus for both players to state that
+the value of their suitcase is 2.
 
 Note that degenerate games can cause problems for most algorithms.
 The following example in fact has an infinite quantity of equilibria which

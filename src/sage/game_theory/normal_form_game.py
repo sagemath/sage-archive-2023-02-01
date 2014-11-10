@@ -967,7 +967,7 @@ class NormalFormGame(SageObject, MutableMapping):
                 \left(\sum_{j \in S(\rho_2)}A_{i,j} - A_{i+1,j}\right){\rho_2}_j
 
             for all `1\leq i \leq |S(\rho_1)|` (where `A` has been modified to only
-            contain the row corresponding to `S(\rho_1)`. We also require all
+            contain the rows corresponding to `S(\rho_1)`). We also require all
             elements of `\rho_2` to sum to 1:
 
             .. MATH::
@@ -1344,24 +1344,34 @@ class NormalFormGame(SageObject, MutableMapping):
 
         # Build linear system for player 1
         for p1_strategy in p1_support:
-            if len(p2_support) == 1:  # Checking particular case of supports of pure strategies
-                for j in range(self.players[1].num_strategies):
-                    if M2[p1_strategy][p2_support[0]] < M2[p1_strategy][j]:
+            # Checking particular case of supports of pure strategies
+            if len(p2_support) == 1:
+                for p2_strategy in range(self.players[1].num_strategies):
+                    if M2[p1_strategy][p2_support[0]] < \
+                            M2[p1_strategy][p2_strategy]:
                         return False
             else:
-                for i in range(len(p2_support)):
-                    linearsystem1[i, p1_strategy] = M2[p1_strategy][p2_support[i]] - M2[p1_strategy][p2_support[i-1]]  # Coefficients of linear system that ensure indifference between two consecutive strategies of the support of p1
+                for p2_strategy_pair in range(len(p2_support)):
+                    # Coefficients of linear system that ensure indifference between two consecutive strategies of the support of p1
+                    linearsystem1[p2_strategy_pair, p1_strategy] = \
+                            M2[p1_strategy][p2_support[p2_strategy_pair]] -\
+                              M2[p1_strategy][p2_support[p2_strategy_pair-1]]
             linearsystem1[-1, p1_strategy] = 1  # Coefficients of linear system to ensure that vector is probability
 
         # Build linear system for player 2
         for p2_strategy in p2_support:
-            if len(p1_support) == 1:  # Checking particular case of supports of pure strategies
-                for i in range(self.players[0].num_strategies):
-                    if M1[p1_support[0]][p2_strategy] < M1[i][p2_strategy]:
+            # Checking particular case of supports of pure strategies
+            if len(p1_support) == 1:
+                for p1_strategy in range(self.players[0].num_strategies):
+                    if M1[p1_support[0]][p2_strategy] < \
+                            M1[p1_strategy][p2_strategy]:
                         return False
             else:
-                for j in range(len(p1_support)):
-                    linearsystem2[j, p2_strategy] = M1[p1_support[j]][p2_strategy] - M1[p1_support[j-1]][p2_strategy]  # Coefficients of linear system that ensure indifference between two consecutive strategies of the support of p1
+                for p1_strategy_pair in range(len(p1_support)):
+                    # Coefficients of linear system that ensure indifference between two consecutive strategies of the support of p1
+                    linearsystem2[p1_strategy_pair, p2_strategy] = \
+                            M1[p1_support[p1_strategy_pair]][p2_strategy] -\
+                              M1[p1_support[p1_strategy_pair-1]][p2_strategy]
             linearsystem2[-1, p2_strategy] = 1  # Coefficients of linear system that ensure that vector is probability
 
         # Create rhs of linear systems

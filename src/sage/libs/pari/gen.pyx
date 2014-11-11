@@ -8998,22 +8998,18 @@ cdef class gen(sage.structure.element.RingElement):
         return P.new_gen(order(self.g))
 
     def znprimroot(self):
-        """
-        Return a primitive root modulo self, whenever it exists.
-
-        This is a generator of the group `(\ZZ/n\ZZ)^*`, whenever
-        this group is cyclic, i.e. if `n=4` or `n=p^k` or
-        `n=2p^k`, where `p` is an odd prime and `k`
-        is a natural number.
+        r"""
+        Return a primitive root modulo ``self``, whenever it exists.
 
         INPUT:
 
+        - ``self`` -- an integer `n` such that `|n|` is equal to 1, 2,
+          4, a power of an odd prime, or twice a power of an odd prime
 
-        -  ``self`` - positive integer equal to 4, or a power
-           of an odd prime, or twice a power of an odd prime
+        OUTPUT:
 
-
-        OUTPUT: gen
+        A generator (type ``t_INTMOD``) of `(\ZZ/n\ZZ)^*`.  Note that
+        this group is cyclic if and only if `n` is of the above form.
 
         EXAMPLES::
 
@@ -9026,6 +9022,41 @@ cdef class gen(sage.structure.element.RingElement):
         """
         pari_catch_sig_on()
         return P.new_gen(znprimroot(self.g))
+
+    def znstar(self):
+        r"""
+        Return the structure of the group `(\ZZ/n\ZZ)^*`.
+
+        INPUT:
+
+        - ``self`` -- any integer `n` (type ``t_INT``)
+
+        OUTPUT:
+
+        A triple `[\phi(n), [d_1, \ldots, d_k], [x_1, \ldots, x_k]]`,
+        where
+
+        - `\phi(n)` is the order of `(\ZZ/n\ZZ)^*`;
+
+        - `d_1, \ldots, d_k` are the unique integers greater than 1
+          with `d_k \mid d_{k-1} \mid \ldots \mid d_1` such that
+          `(\ZZ/n\ZZ)^*` is isomorphic to `\prod_{i=1}^k \ZZ/d_k\ZZ`;
+
+        - `x_1, \ldots, x_k` are the images of the standard generators
+          under some isomorphism from `\prod_{i=1}^k \ZZ/d_k\ZZ` to
+          `(\ZZ/n\ZZ)^*`.
+
+        EXAMPLES::
+
+            sage: pari(0).znstar()
+            [2, [2], [-1]]
+            sage: pari(96).znstar()
+            [32, [8, 2, 2], [Mod(37, 96), Mod(79, 96), Mod(65, 96)]]
+            sage: pari(-5).znstar()
+            [4, [4], [Mod(2, 5)]]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(znstar(self.g))
 
     def __abs__(self):
         return self.abs()

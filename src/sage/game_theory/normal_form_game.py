@@ -5,7 +5,7 @@ This module implements a class for normal form games (strategic form games)
 [NN2007]_. At present 2 algorithms are implemented to compute equilibria
 of these games (``'lrs'`` - interfaced with the 'lrs' library and support enumeration
 built in Sage). The architecture for the class is based on the gambit
-architecture to ensure an easy transition between gambit and sage.
+architecture to ensure an easy transition between gambit and Sage.
 At present the algorithms for the computation of equilibria only solve 2 player
 games.
 

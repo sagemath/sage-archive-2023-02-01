@@ -166,8 +166,10 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.functions.other import floor
 from sage.misc.bitset import Bitset
-from libc.stdint cimport uint16_t, uint32_t, uint64_t
+from libc.stdint cimport uint16_t, uint32_t, uint64_t, INT32_MAX
 include "sage/ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/misc/bitset.pxi"
 
 
 # Defining a pair of vertices as a C struct
@@ -267,19 +269,23 @@ cdef inline int __hyp__(unsigned short ** distances, int a, int b, int c, int d)
 
 cdef tuple __hyperbolicity_basic_algorithm__(int N,
                                              unsigned short **  distances,
+                                             use_bounds = True,
                                              verbose = False):
     """
     Returns **twice** the hyperbolicity of a graph, and a certificate.
 
     This method implements the basic algorithm for computing the hyperbolicity
-    of a graph, that is iterating over all 4-tuples. See the module's
-    documentation for more details.
+    of a graph, that is iterating over all 4-tuples, with a cutting rule
+    proposed in [Soto11]_. See the module's documentation for more details.
 
     INPUTS:
 
     - ``N`` -- number of vertices of the graph.
 
     - ``distances`` -- path distance matrix (see the distance_all_pairs module).
+
+    - ``use_bounds`` -- (default: ``True``) is boolean. Uses a cutting rule
+      proposed in [Soto11]_ when set to ``True``.
 
     - ``verbose`` -- (default: ``False``) is boolean. Set to True to display
       some information during execution.
@@ -294,25 +300,53 @@ cdef tuple __hyperbolicity_basic_algorithm__(int N,
     - ``certificate`` -- 4-tuple of vertices maximizing the value `h`. If no
       such 4-tuple is found, the empty list [] is returned.
     """
-    cdef int a, b, c, d, S1, S2, S3, hh, h_LB
+    cdef int a, b, c, d, hh, h_LB
     cdef list certificate
 
     h_LB = -1
-    for 0 <= a < N-3:
-        for a < b < N-2:
-            for b < c < N-1:
-                for c < d < N:
+    if use_bounds:
+        for 0 <= a < N-3:
+            for a < b < N-2:
 
-                    # We compute the hyperbolicity of the 4-tuple
-                    hh = __hyp__(distances, a, b, c, d)
+                # We use the cutting rule proposed in [Soto11]_
+                if 2*distances[a][b] <= h_LB:
+                    continue
 
-                    # We compare the value with previously known bound
-                    if hh > h_LB:
-                        h_LB = hh
-                        certificate = [a, b, c, d]
+                for b < c < N-1:
 
-                        if verbose:
-                            print 'New lower bound:',ZZ(hh)/2
+                    # We use the cutting rule proposed in [Soto11]_
+                    if 2*distances[a][c] <= h_LB or 2*distances[b][c] <= h_LB:
+                        continue
+
+                    for c < d < N:
+
+                        # We compute the hyperbolicity of the 4-tuple
+                        hh = __hyp__(distances, a, b, c, d)
+
+                        # We compare the value with previously known bound
+                        if hh > h_LB:
+                            h_LB = hh
+                            certificate = [a, b, c, d]
+
+                            if verbose:
+                                print 'New lower bound:', ZZ(hh)/2
+
+    else:
+        for 0 <= a < N-3:
+            for a < b < N-2:
+                for b < c < N-1:
+                    for c < d < N:
+
+                        # We compute the hyperbolicity of the 4-tuple
+                        hh = __hyp__(distances, a, b, c, d)
+
+                        # We compare the value with previously known bound
+                        if hh > h_LB:
+                            h_LB = hh
+                            certificate = [a, b, c, d]
+
+                            if verbose:
+                                print 'New lower bound:',ZZ(hh)/2
 
     # Last, we return the computed value and the certificate
     if h_LB != -1:
@@ -779,6 +813,10 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
           - ``'basic'`` is an exhaustive algorithm considering all possible
             4-tuples and so have time complexity in `O(n^4)`.
 
+          - ``'basic+'`` uses a cutting rule proposed in [Soto11]_ to
+            significantly reduce the overall computation time of the ``'basic'``
+            algorithm.
+
           - ``'cuts'`` is an exact algorithm proposed in [CCL12_]. It considers
             the 4-tuples in an ordering allowing to cut the search space as soon
             as a new lower bound is found (see the module's documentation). This
@@ -851,6 +889,8 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         (1/2, [0, 1, 2, 3], 1/2)
         sage: hyperbolicity(G,algorithm='basic')
         (1/2, [0, 1, 2, 3], 1/2)
+        sage: hyperbolicity(G,algorithm='basic+')
+        (1/2, [0, 1, 2, 3], 1/2)
         sage: hyperbolicity(G,algorithm='dom')
         (0, [0, 2, 8, 9], 1)
 
@@ -877,10 +917,11 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         sage: for i in xrange(10): # long time
         ...       G = graphs.RandomBarabasiAlbert(100,2)
         ...       d1,_,_ = hyperbolicity(G,algorithm='basic')
+        ...       d4,_,_ = hyperbolicity(G,algorithm='basic+')
         ...       d2,_,_ = hyperbolicity(G,algorithm='cuts')
         ...       d3,_,_ = hyperbolicity(G,algorithm='cuts+')
         ...       l3,_,u3 = hyperbolicity(G,approximation_factor=2)
-        ...       if d1!=d2 or d1<d3 or l3>d1 or u3<d1:
+        ...       if d1!=d4 or d1!=d2 or d1<d3 or l3>d1 or u3<d1:
         ...          print "That's not good!"
 
     TESTS:
@@ -931,7 +972,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
     """
     if not isinstance(G,Graph):
         raise ValueError("The input parameter must be a Graph.")
-    if not algorithm in ['basic', 'cuts', 'cuts+', 'dom']:
+    if not algorithm in ['basic', 'basic+', 'cuts', 'cuts+', 'dom']:
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
     if approximation_factor is None:
         approximation_factor = 1.0
@@ -1057,8 +1098,10 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
                 hh, certif, hh_UB = __hyperbolicity__(N, distances, D, hyp, 1.0, 0.0, elim, verbose)
                 hh_UB = min( hh+8, D)
 
-            elif algorithm == 'basic':
-                hh, certif = __hyperbolicity_basic_algorithm__(N, distances, verbose)
+            elif algorithm in ['basic', 'basic+']:
+                sig_on()
+                hh, certif = __hyperbolicity_basic_algorithm__(N, distances, use_bounds=algorithm=='basic+', verbose)
+                sig_off()
                 hh_UB = hh
 
             # We test if the new computed value improves upon previous value.

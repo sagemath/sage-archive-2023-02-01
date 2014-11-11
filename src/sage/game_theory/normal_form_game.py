@@ -1240,26 +1240,26 @@ class NormalFormGame(SageObject, MutableMapping):
 
         potential_support_pairs = [pair for pair in CartesianProduct(*potential_supports) if len(pair[0]) == len(pair[1])]
 
-#################################################################################
+################################################################################
 # With conditional dominance
-#        equilibria = []
-#        for pair in potential_support_pairs:
-#            # Check if any supports are dominated for row player
-#            if (self._row_cond_dominance(pair[0], pair[1], M1)
-#                # Check if any supports are dominated for col player
-#               and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
-#                    result = self._solve_indifference(pair[0], pair[1], M1, M2)
-#                    if result:
-#                        equilibria.append([result[0], result[1]])
+        equilibria = []
+        for pair in potential_support_pairs:
+            # Check if any supports are dominated for row player
+            if (self._row_cond_dominance(pair[0], pair[1], M1)
+                # Check if any supports are dominated for col player
+               and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
+                    result = self._solve_indifference(pair[0], pair[1], M1, M2)
+                    if result:
+                        equilibria.append([result[0], result[1]])
 #################################################################################
 
 #################################################################################
 # With conditional dominance
-        equilibria = []
-        for pair in potential_support_pairs:
-            result = self._solve_indifference(pair[0], pair[1], M1, M2)
-            if result:
-                equilibria.append([result[0], result[1]])
+#        equilibria = []
+#        for pair in potential_support_pairs:
+#            result = self._solve_indifference(pair[0], pair[1], M1, M2)
+#            if result:
+#                equilibria.append([result[0], result[1]])
 #################################################################################
         return equilibria
 

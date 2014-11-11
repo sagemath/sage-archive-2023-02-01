@@ -411,7 +411,7 @@ Here is an example with the trivial game where all payoffs are 0::
     [0 0 0], [0 0 0]
     )
     sage: g.obtain_nash(algorithm='enumeration')
-    [[(1, 0, 0), (1, 0, 0)]]
+    [[(1, 0, 0), (1, 0, 0)], [(1, 0, 0), (0, 1, 0)], [(1, 0, 0), (0, 0, 1)], [(0, 1, 0), (1, 0, 0)], [(0, 1, 0), (0, 1, 0)], [(0, 1, 0), (0, 0, 1)], [(0, 0, 1), (1, 0, 0)], [(0, 0, 1), (0, 1, 0)], [(0, 0, 1), (0, 0, 1)]]
 
 A good description of degenerate games can be found in [NN2007]_.
 
@@ -1221,6 +1221,12 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: c = NormalFormGame([a, b])
             sage: c._solve_enumeration()
             [[(0, 1), (1, 0)]]
+
+        Here is a test that failed during development::
+
+            sage: N = NormalFormGame([matrix(2,[0,-1,-2,-1]),matrix(2,[1,0,0,2])])
+            sage: N.obtain_nash(algorithm='enumeration')
+            [[(2/3, 1/3), (0, 1)], [(0, 1), (0, 1)], [(1, 0), (1, 0)]]
         """
 
         M1, M2 = self.payoff_matrices()
@@ -1234,15 +1240,27 @@ class NormalFormGame(SageObject, MutableMapping):
 
         potential_support_pairs = [pair for pair in CartesianProduct(*potential_supports) if len(pair[0]) == len(pair[1])]
 
+#################################################################################
+# With conditional dominance
+#        equilibria = []
+#        for pair in potential_support_pairs:
+#            # Check if any supports are dominated for row player
+#            if (self._row_cond_dominance(pair[0], pair[1], M1)
+#                # Check if any supports are dominated for col player
+#               and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
+#                    result = self._solve_indifference(pair[0], pair[1], M1, M2)
+#                    if result:
+#                        equilibria.append([result[0], result[1]])
+#################################################################################
+
+#################################################################################
+# With conditional dominance
         equilibria = []
         for pair in potential_support_pairs:
-            # Check if any supports are dominated for row player
-            if (self._row_cond_dominance(pair[0], pair[1], M1)
-                # Check if any supports are dominated for col player
-               and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
-                    result = self._solve_indifference(pair[0], pair[1], M1, M2)
-                    if result:
-                        equilibria.append([result[0], result[1]])
+            result = self._solve_indifference(pair[0], pair[1], M1, M2)
+            if result:
+                equilibria.append([result[0], result[1]])
+#################################################################################
         return equilibria
 
     def _row_cond_dominance(self, p1_sup, p2_sup, matrix):
@@ -1411,6 +1429,17 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: Z._is_NE([2/9, 0, 7/9], [0, 3/4, 1/4], (0, 2), (1, 2), X, Y)
             True
 
+            sage: A = matrix(2, [0, -1, -2, -1])
+            sage: B = matrix(2, [1, 0, 0, 2])
+            sage: N = NormalFormGame([A, B])
+            sage: N._is_NE([1, 0], [1, 0], (0,), (0,), A, B)
+            True
+            sage: N._is_NE([0, 1], [0, 1], (1,), (1,), A, B)
+            True
+            sage: N._is_NE([1, 0], [0, 1], (0,), (1,), A, B)
+            False
+            sage: N._is_NE([0, 1], [1, 0], (1,), (0,), A, B)
+            False
         """
         # Check that supports are obeyed
         if not (all([a[i] > 0 for i in p1_support]) and
@@ -1420,14 +1449,16 @@ class NormalFormGame(SageObject, MutableMapping):
             return False
 
         # Check that have pair of best responses
+
         p1_payoffs = [sum(v * row[i] for i, v in enumerate(b)) for row
                                                                   in M1.rows()]
         p2_payoffs = [sum(v * col[j] for j, v in enumerate(a)) for col
                                                                in M2.columns()]
 
-        if p1_payoffs.index(max(p1_payoffs)) not in p1_support:
+        #if p1_payoffs.index(max(p1_payoffs)) not in p1_support:
+        if not any(i in p1_support for i, x in enumerate(p1_payoffs) if x == max(p1_payoffs)):
             return False
-        if p2_payoffs.index(max(p2_payoffs)) not in p2_support:
+        if not any(i in p2_support for i, x in enumerate(p2_payoffs) if x == max(p2_payoffs)):
             return False
 
         return True

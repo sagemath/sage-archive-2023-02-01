@@ -164,7 +164,6 @@ from sage.graphs.distances_all_pairs cimport c_distances_all_pairs
 from sage.rings.arith import binomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
-from sage.functions.other import floor
 from sage.misc.bitset import Bitset
 from libc.stdint cimport uint16_t, uint32_t, uint64_t, INT32_MAX
 include "sage/ext/stdsage.pxi"
@@ -610,47 +609,6 @@ cdef inline distances_and_far_apart_pairs(gg,
 ######################################################################
 # Compute the hyperbolicity using a path decreasing length ordering
 ######################################################################
-
-cdef inline _invert_cells(pair * tab, uint32_t idxa, uint32_t idxb):
-    cdef pair tmp = tab[idxa]
-    tab[idxa] = tab[idxb]
-    tab[idxb] = tmp
-
-
-cdef _order_pairs_according_elimination(elim, int N, pair *pairs, uint32_t nb_pairs, uint32_t *last_pair):
-    r"""
-    Re-order the pairs of vertices according the set of eliminated vertices.
-
-    We put pairs of vertices with an extremity in ``elim`` at the end of the
-    array of pairs.  We record the positions of the first pair of vertices in
-    ``elim``.  If ``elim`` is empty, the ordering is unchanged and we set
-    ``last_pair=nb_pairs``.
-    """
-    cdef uint32_t j, jmax
-
-    jmax = nb_pairs-1
-    if nb_pairs<=1 or not elim:
-        last_pair[0] = nb_pairs
-    else:
-        B = Bitset(iter(elim))
-        j = 0
-        while j<jmax:
-
-            if pairs[j].s in B or pairs[j].t in B:
-                while (pairs[jmax].s in B or pairs[jmax].t in B) and (j<jmax):
-                    jmax -= 1
-
-                if j<jmax:
-                    _invert_cells(pairs, j, jmax)
-
-                if jmax>0:
-                    jmax -= 1
-
-            else: # This pair is at a correct position.
-                j += 1
-
-        # We record the position of the first pair of vertices in elim
-        last_pair[0] = jmax+1
 
 cdef tuple __hyperbolicity__(int N,
                              unsigned short **  distances,

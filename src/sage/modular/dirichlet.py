@@ -493,15 +493,18 @@ class DirichletCharacter(MultiplicativeGroupElement):
             'Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1'
 
         """
-        mapst = ''
-        for i in range(len(self.values_on_gens())):
+        s = 'Dirichlet character modulo %s of conductor %s' % (self.modulus(), self.conductor())
+        r = len(self.values_on_gens())
+        if r != 0:
+            s += ' mapping '
+        for i in range(r):
             if i != 0:
-                mapst += ', '
-            mapst += str(self.parent().unit_gens()[i]) + ' |--> ' + str(self.values_on_gens()[i])
-        return 'Dirichlet character modulo %s of conductor %s mapping %s'%(self.modulus(), self.conductor(), mapst)
+                s += ', '
+            s += str(self.parent().unit_gens()[i]) + ' |--> ' + str(self.values_on_gens()[i])
+        return s
 
     def _latex_(self):
-        """
+        r"""
         LaTeX representation of self.
 
         EXAMPLES::
@@ -511,13 +514,15 @@ class DirichletCharacter(MultiplicativeGroupElement):
             \hbox{Dirichlet character modulo } 16 \hbox{ of conductor } 16 \hbox{ mapping } 15 \mapsto 1,\ 5 \mapsto \zeta_{4}
         """
         from sage.misc.latex import latex
-        mapst = ''
-        for i in range(len(self.values_on_gens())):
+        s = r'\hbox{Dirichlet character modulo } %s \hbox{ of conductor } %s' % (self.modulus(), self.conductor())
+        r = len(self.values_on_gens())
+        if r != 0:
+            s += r' \hbox{ mapping } '
+        for i in range(r):
             if i != 0:
-                mapst += r',\ '
-            mapst += self.parent().unit_gens()[i]._latex_() + ' \mapsto ' + self.values_on_gens()[i]._latex_()
-        return r'\hbox{Dirichlet character modulo } %s \hbox{ of conductor } %s \hbox{ mapping } %s' \
-                 % (self.modulus(), self.conductor(), mapst)
+                s += r',\ '
+            s += self.parent().unit_gens()[i]._latex_() + r' \mapsto ' + self.values_on_gens()[i]._latex_()
+        return s
 
     def base_ring(self):
         """
@@ -722,7 +727,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         Conductors that are divisible by various powers of 2 present some problems as the multiplicative group modulo `2^k` is trivial for `k = 1` and non-cyclic for `k \ge 3`::
 
             sage: (DirichletGroup(18).0).decomposition()
-            [Dirichlet character modulo 2 of conductor 1 mapping , Dirichlet character modulo 9 of conductor 9 mapping 2 |--> zeta6]
+            [Dirichlet character modulo 2 of conductor 1, Dirichlet character modulo 9 of conductor 9 mapping 2 |--> zeta6]
             sage: (DirichletGroup(36).0).decomposition()
             [Dirichlet character modulo 4 of conductor 4 mapping 3 |--> -1, Dirichlet character modulo 9 of conductor 1 mapping 2 |--> 1]
             sage: (DirichletGroup(72).0).decomposition()
@@ -1558,7 +1563,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         R_values = G._zeta_powers
 
         gens = G.unit_gens()
-        last = [ x.multiplicative_order()-1 for x in G.unit_gens() ]
+        last = [o - 1 for o in G.integers_mod().unit_group().gens_orders()]
 
         ngens = len(gens)
         exponents = [0] * ngens
@@ -2314,20 +2319,14 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             sage: G.gen(2)
             Traceback (most recent call last):
             ...
-            IndexError: n(=2) must be between 0 and 1
+            IndexError: tuple index out of range
 
         ::
 
             sage: G.gen(-1)
-            Traceback (most recent call last):
-            ...
-            IndexError: n(=-1) must be between 0 and 1
+            Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4
         """
-        n = int(n)
-        g = self.gens()
-        if n<0 or n>=len(g):
-            raise IndexError("n(=%s) must be between 0 and %s"%(n,len(g)-1))
-        return g[n]
+        return self.gens()[n]
 
     def gens(self):
         """
@@ -2349,12 +2348,10 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         ord = self.zeta_order()
         M = self._module
         zero = M(0)
+        orders = self.integers_mod().unit_group().gens_orders()
         for i in range(len(ug)):
             z = zero.__copy__()
-            z[i] = ord//arith.GCD(ord,ug[i].multiplicative_order())
-            #vals = list(one)
-            #vals[i] = zeta**(ord//arith.GCD(ord,ug[i].multiplicative_order()))
-            #vals[i] = ord//arith.GCD(ord,ug[i].multiplicative_order())
+            z[i] = ord//arith.GCD(ord, orders[i])
             self._gens.append(DirichletCharacter(self, z, check=False))
         self._gens = tuple(self._gens)
         return self._gens

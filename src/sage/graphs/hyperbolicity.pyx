@@ -167,7 +167,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.misc.bitset import Bitset
 from libc.stdint cimport uint16_t, uint32_t, uint64_t
-include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/misc/bitset.pxi"
 
@@ -269,8 +269,8 @@ cdef inline int __hyp__(unsigned short ** distances, int a, int b, int c, int d)
 
 cdef tuple __hyperbolicity_basic_algorithm__(int N,
                                              unsigned short **  distances,
-                                             use_bounds = True,
-                                             verbose = False):
+                                             use_bounds,
+                                             verbose):
     """
     Returns **twice** the hyperbolicity of a graph, and a certificate.
 
@@ -646,8 +646,12 @@ cdef tuple __hyperbolicity__(int N,
 
     if verbose:
         print "Current 2 connected component has %d vertices and diameter %d" %(N,D)
-        print "Number of (far-apart) pairs: %d\t(%d pairs in total)" %(nb_p, binomial(N, 2))
-        print "Repartition of (far-apart) pairs:", [ (i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0]
+        if far_apart_pairs == NULL:
+            print "Number of pairs: %d" %(nb_p)
+            print "Repartition of pairs:", [ (i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0]
+        else:
+            print "Number of far-apart pairs: %d\t(%d pairs in total)" %(nb_p, binomial(N, 2))
+            print "Repartition of far-apart pairs:", [ (i, nb_pairs_of_length[i]) for i in range(1, D+1) if nb_pairs_of_length[i]>0]
 
 
     approximation_factor = min(approximation_factor, D)
@@ -697,7 +701,7 @@ cdef tuple __hyperbolicity__(int N,
 
         pairs_of_length_l1 = pairs_of_length[l1]
         pairs_of_length_l2 = pairs_of_length[l2]
-        nb_pairs_of_length_l1 = last_pair[l1]
+        nb_pairs_of_length_l1 = nb_pairs_of_length[l1]
         nb_pairs_of_length_l2 = nb_pairs_of_length[l2]
 
         for x from 0 <= x < nb_pairs_of_length_l1:
@@ -706,46 +710,46 @@ cdef tuple __hyperbolicity__(int N,
             dist_a = distances[a]
             dist_b = distances[b]
 
-             # We do not want to test pairs of pairs twice if l1 == l2
-             for y from (x+1 if l1==l2 else 0) <= y < nb_pairs_of_length_l2:
-                 c = pairs_of_length_l2[y].s
-                 d = pairs_of_length_l2[y].t
+            # We do not want to test pairs of pairs twice if l1 == l2
+            for y from (x+1 if l1==l2 else 0) <= y < nb_pairs_of_length_l2:
+                c = pairs_of_length_l2[y].s
+                d = pairs_of_length_l2[y].t
 
-                 # We compute the hyperbolicity of the 4-tuple. We have S1 = l1
-                 # + l2, and the order in which pairs are visited allow us to
-                 # claim that S1 = max( S1, S2, S3 ). If at some point S1 is not
-                 # the maximum value, the order ensures that the maximum value
-                 # has previously been checked.
-                 S2 = dist_a[c] + dist_b[d]
-                 S3 = dist_a[d] + dist_b[c]
-                 if S2 > S3:
-                     hh = S1 - S2
-                 else:
-                     hh = S1 - S3
+                # We compute the hyperbolicity of the 4-tuple. We have S1 = l1 +
+                # l2, and the order in which pairs are visited allow us to claim
+                # that S1 = max( S1, S2, S3 ). If at some point S1 is not the
+                # maximum value, the order ensures that the maximum value has
+                # previously been checked.
+                S2 = dist_a[c] + dist_b[d]
+                S3 = dist_a[d] + dist_b[c]
+                if S2 > S3:
+                    hh = S1 - S2
+                else:
+                    hh = S1 - S3
 
-                 if h < hh or not certificate:
-                     # We update current bound on the hyperbolicity and the
-                     # search space, unless hh==0 and two vertices are equal.
-                     if h>0 or not (a==c or a==d or b==c or b==d):
-                         h = hh
-                         certificate = [a, b, c, d]
+                if h < hh or not certificate:
+                    # We update current bound on the hyperbolicity and the
+                    # search space, unless hh==0 and two vertices are equal.
+                    if h>0 or not (a==c or a==d or b==c or b==d):
+                        h = hh
+                        certificate = [a, b, c, d]
 
-                         if verbose:
-                             print "New lower bound:",ZZ(hh)/2
+                        if verbose:
+                            print "New lower bound:",ZZ(hh)/2
 
-                         # If we cannot improve further, we stop
-                         if l2 <= h:
-                             STOP = 1
-                             h_UB = h
-                             break
+                        # If we cannot improve further, we stop
+                        if l2 <= h:
+                            STOP = 1
+                            h_UB = h
+                            break
 
-                         # Termination if required approximation is found
-                         if (h_UB <= h*approximation_factor) or (h_UB-h <= additive_gap):
-                             STOP = 2
-                             break
+                        # Termination if required approximation is found
+                        if (h_UB <= h*approximation_factor) or (h_UB-h <= additive_gap):
+                            STOP = 2
+                            break
 
-             if STOP:
-                 break
+            if STOP:
+                break
 
         if STOP:
             break
@@ -761,7 +765,7 @@ cdef tuple __hyperbolicity__(int N,
         return ( -1, [], h_UB )
     else:
         # When using far-apart pairs, the loops may end
-    return (h, certificate, h_UB if STOP==2 else h)
+        return (h, certificate, h_UB if STOP==2 else h)
 
 
 def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=None, verbose = False):
@@ -1093,7 +1097,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
 
             elif algorithm in ['basic', 'basic+']:
                 sig_on()
-                hh, certif = __hyperbolicity_basic_algorithm__(N, distances, use_bounds=algorithm=='basic+', verbose)
+                hh, certif = __hyperbolicity_basic_algorithm__(N, distances, algorithm=='basic+', verbose)
                 sig_off()
                 hh_UB = hh
 

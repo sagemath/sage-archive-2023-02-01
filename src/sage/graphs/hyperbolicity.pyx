@@ -145,6 +145,7 @@ AUTHORS:
 
 - David Coudert (2012): initial version, exact and approximate algorithm,
   distribution, sampling
+- David Coudert (2014): improved exact algorithm using far-apart pairs
 
 
 Methods
@@ -165,7 +166,7 @@ from sage.rings.arith import binomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
 from sage.misc.bitset import Bitset
-from libc.stdint cimport uint16_t, uint32_t, uint64_t, INT32_MAX
+from libc.stdint cimport uint16_t, uint32_t, uint64_t
 include "sage/ext/stdsage.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/misc/bitset.pxi"
@@ -352,109 +353,6 @@ cdef tuple __hyperbolicity_basic_algorithm__(int N,
         return ( h_LB, certificate )
     else:
         return ( -1, [] )
-
-
-######################################################################
-# Decomposition methods
-######################################################################
-
-def elimination_ordering_of_simplicial_vertices(G, max_degree=4, verbose=False):
-    r"""
-    Return an elimination ordering of simplicial vertices.
-
-    An elimination ordering of simplicial vertices is an elimination ordering of
-    the vertices of the graphs such that the induced subgraph of their neighbors
-    is a clique. More precisely, as long as the graph has a vertex ``u`` such
-    that the induced subgraph of its neighbors is a clique, we remove ``u`` from
-    the graph, add it to the elimination ordering (list of vertices), and
-    repeat. This method is inspired from the decomposition of a graph by
-    clique-separators.
-
-    INPUTS:
-
-    - ``G`` -- a Graph
-
-    - ``max_degree`` -- (default: 4) maximum degree of the vertices to consider.
-      The running time of this method depends on the value of this parameter.
-
-    - ``verbose`` -- (default: ``False``) is boolean set to ``True`` to display
-      some information during execution.
-
-    OUTPUT:
-
-    - ``elim`` -- A ordered list of vertices such that vertex ``elim[i]`` is
-      removed before vertex ``elim[i+1]``.
-
-    TESTS:
-
-    Giving anything else than a Graph::
-
-        sage: from sage.graphs.hyperbolicity import elimination_ordering_of_simplicial_vertices
-        sage: elimination_ordering_of_simplicial_vertices([])
-        Traceback (most recent call last):
-        ...
-        ValueError: The input parameter must be a Graph.
-
-    Giving two small bounds on degree::
-
-        sage: from sage.graphs.hyperbolicity import elimination_ordering_of_simplicial_vertices
-        sage: elimination_ordering_of_simplicial_vertices(Graph(), max_degree=0)
-        Traceback (most recent call last):
-        ...
-        ValueError: The parameter max_degree must be > 0.
-
-    Giving a graph built from a bipartite graph plus an edge::
-
-        sage: G = graphs.CompleteBipartiteGraph(2,10)
-        sage: G.add_edge(0,1)
-        sage: from sage.graphs.hyperbolicity import elimination_ordering_of_simplicial_vertices
-        sage: elimination_ordering_of_simplicial_vertices(G)
-        [2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 1, 11]
-        sage: elimination_ordering_of_simplicial_vertices(G,max_degree=1)
-        []
-    """
-    if verbose:
-        print 'Entering elimination_ordering_of_simplicial_vertices'
-
-    if not isinstance(G,Graph):
-        raise ValueError("The input parameter must be a Graph.")
-    elif max_degree < 1:
-        raise ValueError("The parameter max_degree must be > 0.")
-
-    # We make a copy of the graph. We use a NetworkX graph since modifications
-    # are a bit faster this way.
-    import networkx
-    ggnx = networkx.empty_graph()
-    for u,v in G.edge_iterator(labels=None):
-        ggnx.add_edge(u,v)
-
-    from sage.combinat.combination import Combinations
-    cdef list elim = []
-    cdef set L = set()
-
-    # We identify vertices of degree at most max_degree
-    for u,d in ggnx.degree_iter():
-        if d<=max_degree:
-            L.add(u)
-
-    while L:
-        # We pick up a vertex and check if the induced subgraph of its neighbors
-        # is a clique. If True, we record it, remove it from the graph, and
-        # update the list of vertices of degree at most max_degree.
-        u = L.pop()
-        X = ggnx.neighbors(u)
-        if all(ggnx.has_edge(v,w) for v,w in Combinations(X,2).list()):
-            elim.append(u)
-            ggnx.remove_node(u)
-            for v,d in ggnx.degree_iter(X):
-                if d<=max_degree:
-                    L.add(v)
-
-    if verbose:
-        print 'Propose to eliminate',len(elim),'of the',G.num_verts(),'vertices'
-        print 'End elimination_ordering_of_simplicial_vertices'
-
-    return elim
 
 
 ######################################################################

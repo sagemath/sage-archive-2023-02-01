@@ -47,42 +47,64 @@ Hyperbolicity
     proposed in [FIV12]_.  This remains very long for large-scale graphs, and
     much harder to implement.
 
+    Several improvements over the naive algorithm have been proposed and are
+    implemented in the current module.
 
-    An improvement over the naive algorithm has been proposed in [CCL12]_, and
-    is implemented in the current module. Like the naive algorithm, it has
-    complexity `O(n^4)` but behaves much better in practice. It uses the
-    following fact :
+    - It is shown in [Soto11]_ that `hyp(a, b, c, d)` is upper bounded by the
+      smallest distance between the vertices in `\{a,b,c,d\}` divided by 2.
 
-      Assume that `S_1 = dist(a, b) + dist(c, d)` is the largest among
+      .. MATH::
+
+          hyp(a, b, c, d) \leq \min_{u,v\in\{a,b,c,d\}}\frac{dist(u,v)}{2}
+
+      This result is used to reduce the number of tested 4-tuples in the naive
+      implementation.
+
+    - Another upper bound on `hyp(a, b, c, d)` has been proved in [CCL12]_. It
+      is used to design an algorithm with worse case time complexity in `O(n^4)`
+      but that behaves much better in practice.
+
+      Assume that `S_1 = dist(a, b) + dist(c, d)` is the largest sum among
       `S_1,S_2,S_3`. We have
 
       .. MATH::
 
-        S_2 + S_3 =& dist(a, c) + dist(b, d) + dist(a, d) + dist(b, c)\\
-        =& [ dist(a, c) + dist(b, c) ] + [ dist(a, d) + dist(b, d)]\\
-        \geq &dist(a,b) + dist(a,b)\\
-        \geq &2dist(a,b)\\
+          S_2 + S_3 =& dist(a, c) + dist(b, d) + dist(a, d) + dist(b, c)\\
+          =& [ dist(a, c) + dist(b, c) ] + [ dist(a, d) + dist(b, d)]\\
+          \geq &dist(a,b) + dist(a,b)\\
+          \geq &2dist(a,b)\\
 
       Now, since `S_1` is the largest sum, we have
 
       .. MATH::
 
-        hyp(a, b, c, d) =& S_1 - \max\{S_2, S_3\}\\
-        \leq& S_1 - \frac{S_2+ S_3}{2}\\
-        \leq& S_1 - dist(a, b)\\
-        =& dist(c, d)\\
+          hyp(a, b, c, d) =& S_1 - \max\{S_2, S_3\}\\
+          \leq& S_1 - \frac{S_2+ S_3}{2}\\
+          \leq& S_1 - dist(a, b)\\
+          =& dist(c, d)\\
 
       We obtain similarly that `hyp(a, b, c, d) \leq dist(a, b)`.  Consequently,
       in the implementation, we ensure that `S_1` is larger than `S_2` and `S_3`
       using an ordering of the pairs by decreasing lengths. Furthermore, we use
       the best value `h` found so far to cut exploration.
 
-    The worst case time complexity of this algorithm is `O(n^4)`, but it
-    performs very well in practice since it cuts the search space.  This
-    algorithm can be turned into an approximation algorithm since at any step of
-    its execution we maintain an upper and a lower bound. We can thus stop
-    execution as soon as a multiplicative approximation factor or an additive
-    one is proven.
+      The worst case time complexity of this algorithm is `O(n^4)`, but it
+      performs very well in practice since it cuts the search space.  This
+      algorithm can be turned into an approximation algorithm since at any step
+      of its execution we maintain an upper and a lower bound. We can thus stop
+      execution as soon as a multiplicative approximation factor or an additive
+      one is proven.
+
+    - The notion of ''far-apart pairs'' has been introduced in [Soto11]_ to
+      further reduce the number of 4-tuples to consider. We say that the pair
+      `(a,b)` is far-apart if for every `w` in `V\setminus\{a,b\}` we have
+      `dist(w,a)+dist(a,b) > dist(w,b)` and `dist(w,b)+dist(a,b) > dist(w,a)`,
+      and determining the set of far-apart pairs can be done in time `O(nm)`
+      using BFS. Now, it is proved in [Soto11]_ that there exists two far-apart
+      pairs `(a,b)` and `(c,d)` satisfying `\delta(G) = hyp(a, b, c, d)/2`. For
+      instance, the `n\times m`-grid has only two far-apart pairs, and so
+      computing its hyperbolicity is immediate.
+
 
 TODO:
 
@@ -114,6 +136,10 @@ REFERENCES:
 
 .. [Gromov87] M. Gromov. Hyperbolic groups. Essays in Group Theory, 8:75--263,
    1987.
+
+.. [Soto11] M. A. Soto Gomez. 2011. Quelques proprietes topologiques des graphes
+   et applications a internet et aux reseaux. Ph.D. Dissertation. Univ. Paris
+   Diderot (Paris 7).
 
 AUTHORS:
 

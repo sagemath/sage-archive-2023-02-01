@@ -462,7 +462,7 @@ def elimination_ordering_of_simplicial_vertices(G, max_degree=4, verbose=False):
 # Greedy dominating set
 ######################################################################
 
-def _greedy_dominating_set(H):
+def _greedy_dominating_set(H, verbose=False):
     r"""
     Returns a greedy approximation of a dominating set
     """
@@ -474,6 +474,10 @@ def _greedy_dominating_set(H):
             seen.add(u)
             DOM.append(u)
             seen.update(H.neighbor_iterator(u))
+
+    if verbose:
+        print "Greedy dominating set:", sorted(list(DOM))
+
     return DOM
 
 ######################################################################
@@ -1090,7 +1094,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
             elif algorithm == 'dom':
                 # Computes a dominating set DOM of H, and computes the
                 # hyperbolicity considering only vertices in DOM
-                DOM = _greedy_dominating_set(H)
+                DOM = _greedy_dominating_set(H, verbose=verbose)
                 elim = [u for u in H.vertex_iterator() if not u in DOM]
                 # We need at least 4 vertices
                 while len(DOM)<4:

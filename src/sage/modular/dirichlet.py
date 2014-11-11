@@ -176,29 +176,28 @@ class DirichletCharacter(MultiplicativeGroupElement):
     """
     def __init__(self, parent, x, check=True):
         r"""
-        Create with ``DirichletCharacter(parent, values_on_gens)``
+        Create a Dirichlet character with specified values on
+        generators of `(\ZZ/n\ZZ)^*`.
 
         INPUT:
 
-
-        -  ``parent`` - DirichletGroup, a group of Dirichlet
+        - ``parent`` -- :class:`DirichletGroup`, a group of Dirichlet
            characters
 
-        -  ``x``
+        - ``x`` -- one of the following:
 
-           - tuple (or list) of ring elements, the values of the
-             Dirichlet character on the chosen generators of
-             `(\ZZ/N\ZZ)^*`.
+           - tuple or list of ring elements: the values of the
+             Dirichlet character on the standard generators of
+             `(\ZZ/N\ZZ)^*` as returned by
+             :meth:`sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic.unit_gens`.
 
-           - Vector over Z/eZ, where e is the order of the root of
-             unity.
-
+           - vector over `\ZZ/e\ZZ`, where `e` is the order of the
+             standard root of unity for ``parent``.
 
         OUTPUT:
 
-
-        -  ``DirichletCharacter`` - a Dirichlet character
-
+        The Dirichlet character defined by `x` (type
+        :class:`DirichletCharacter`).
 
         EXAMPLES::
 
@@ -219,13 +218,27 @@ class DirichletCharacter(MultiplicativeGroupElement):
             12
             sage: loads(e.dumps()) == e
             True
+
+        TESTS::
+
+        Check that :trac:`17283` is fixed::
+
+            sage: k.<i> = CyclotomicField(4)
+            sage: G = DirichletGroup(192)
+            sage: G([i, -1, -1])
+            Traceback (most recent call last):
+            ...
+            ValueError: incompatible orders of values on generators
         """
         MultiplicativeGroupElement.__init__(self, parent)
         self.__modulus = parent.modulus()
         if check:
             if len(x) != len(parent.unit_gens()):
-                raise ValueError("wrong number of values(=%s) on unit gens (want %s)"%( \
-                       x,len(parent.unit_gens())))
+                raise ValueError("wrong number of values (= %s) on generators (want %s)"
+                                 % (x, len(parent.unit_gens())))
+            elif not all (map(lambda u, v: u.multiplicative_order().divides(v),
+                              x, parent.integers_mod().unit_group().gens_orders())):
+                raise ValueError("incompatible orders of values on generators")
             if free_module_element.is_FreeModuleElement(x):
                 self.__element = parent._module(x)
             else:

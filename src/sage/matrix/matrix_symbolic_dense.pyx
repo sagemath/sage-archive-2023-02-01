@@ -157,7 +157,7 @@ cimport matrix
 
 cdef maxima
 
-from sage.calculus.calculus import symbolic_expression_from_maxima_string, var_cmp, maxima
+from sage.calculus.calculus import symbolic_expression_from_maxima_string, maxima
 
 cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
     def _new_c(self):
@@ -361,9 +361,9 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         In this example we take the symbolic answer and make it
         numerical at the end::
 
-            sage: exp(matrix(SR, [[1.2, 5.6], [3,4]])).change_ring(RDF)
-            [346.557487298 661.734590934]
-            [354.500673715 677.424782765]
+            sage: exp(matrix(SR, [[1.2, 5.6], [3,4]])).change_ring(RDF)  # rel tol 1e-15
+            [ 346.5574872980695  661.7345909344504]
+            [354.50067371488416  677.4247827652946]
 
         Another example involving the reversed identity matrix, which
         we clumsily create::
@@ -588,9 +588,8 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             sage: m.variables()
             (a, b, c, x, y)
         """
-        vars = list(set(sum([op.variables() for op in self.list()], ())))
-        vars.sort(var_cmp)
-        return tuple(vars)
+        vars = set(sum([op.variables() for op in self.list()], ()))
+        return tuple(sorted(vars, key=repr))
 
     def arguments(self):
         """

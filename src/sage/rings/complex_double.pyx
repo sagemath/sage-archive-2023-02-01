@@ -23,7 +23,7 @@ EXAMPLES::
     sage: type(CDF.0)
     <type 'sage.rings.complex_double.ComplexDoubleElement'>
     sage: ComplexDoubleElement(sqrt(2),3)
-    1.41421356237 + 3.0*I
+    1.4142135623730951 + 3.0*I
     sage: parent(CDF(-2))
     Complex Double Field
 
@@ -80,6 +80,8 @@ cimport sage.rings.integer
 
 from sage.structure.element cimport RingElement, Element, ModuleElement, FieldElement
 from sage.structure.parent  cimport Parent
+from sage.structure.parent_gens import ParentWithGens
+from sage.categories.morphism cimport Morphism
 
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport PariInstance
@@ -89,19 +91,16 @@ cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 import complex_number
 
-cdef RR, CC, RDF
 import complex_field
-CC = complex_field.ComplexField()
+cdef CC = complex_field.ComplexField()
 
 import real_mpfr
-RR = real_mpfr.RealField()
+cdef RR = real_mpfr.RealField()
 
-from real_double import RealDoubleElement, RDF
+from real_double cimport RealDoubleElement, double_repr, double_str
+from real_double import RDF
 from sage.rings.integer_ring import ZZ
 
-
-from sage.structure.parent_gens import ParentWithGens
-from sage.categories.morphism cimport Morphism
 
 def is_ComplexDoubleField(x):
     """
@@ -222,11 +221,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: CDF.random_element()
-            -0.436810529675 + 0.736945423566*I
+            -0.43681052967509904 + 0.7369454235661859*I
             sage: CDF.random_element(-10,10,-10,10)
-            -7.08874026302 - 9.54135400334*I
+            -7.088740263015161 - 9.54135400334003*I
             sage: CDF.random_element(-10^20,10^20,-2,2)
-            -7.58765473764e+19 + 0.925549022839*I
+            -7.587654737635711e+19 + 0.925549022838656*I
         """
         cdef randstate rstate = current_randstate()
         global _CDF
@@ -290,7 +289,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF(0,1) # indirect doctest
             1.0*I
             sage: CDF(2/3) # indirect doctest
-            0.666666666667
+            0.6666666666666666
             sage: CDF(5) # indirect doctest
             5.0
             sage: CDF('i') # indirect doctest
@@ -306,7 +305,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF(pari("I"))
             1.0*I
             sage: CDF(pari("x^2 + x + 1").polroots()[0])
-            -0.5 - 0.866025403784*I
+            -0.5 - 0.8660254037844386*I
 
         A ``TypeError`` is raised if the coercion doesn't make sense::
 
@@ -322,7 +321,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: a = ComplexField(200)(-2).sqrt(); a
             1.4142135623730950488016887242096980785696718753769480731767*I
             sage: b = CDF(a); b
-            1.41421356237*I
+            1.4142135623730951*I
             sage: a.parent()(b)
             1.4142135623730951454746218587388284504413604736328125000000*I
             sage: a.parent()(b) == b
@@ -534,7 +533,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         EXAMPLES::
 
             sage: CDF.pi()
-            3.14159265359
+            3.141592653589793
         """
         return self(3.1415926535897932384626433832)
 
@@ -566,8 +565,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: CDF.zeta(7)
-            0.623489801859 + 0.781831482468*I
+            sage: CDF.zeta(7)  # rel tol 1e-15
+            0.6234898018587336 + 0.7818314824680298*I
             sage: CDF.zeta(1)
             1.0
             sage: CDF.zeta()
@@ -965,7 +964,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: s1 = CDF(exp(I)); s1
-            0.540302305868 + 0.841470984808*I
+            0.5403023058681398 + 0.8414709848078965*I
             sage: s1._interface_init_()
             '0.54030230586813977 + 0.84147098480789650*I'
             sage: s1 == CDF(gp(s1))
@@ -988,12 +987,62 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return CC(self)._maxima_init_(I)
 
-    def __repr__(self):
+    def __str__(self):
         """
-        Return print version of ``self``.
+        Return the informal string representation of ``self``.
 
         EXAMPLES::
 
+            sage: print CDF(0, 2/3)
+            0.666666666667*I
+            sage: a = CDF(2,-3)
+            sage: print a  # indirect doctest
+            2.0 - 3.0*I
+            sage: print a^2
+            -5.0 - 12.0*I
+            sage: print 1/CDF(0,0)
+            NaN + NaN*I
+            sage: print CDF(oo,1)
+            +infinity + 1.0*I
+            sage: print CDF(1,oo)
+            1.0 + +infinity*I
+            sage: print CDF(1,-oo)
+            1.0 - +infinity*I
+            sage: print CC(CDF(1,-oo))
+            1.00000000000000 - +infinity*I
+            sage: print CDF(oo,oo)
+            +infinity + +infinity*I
+            sage: print CC(CDF(oo,oo))
+            +infinity + +infinity*I
+            sage: print CDF(0)
+            0.0
+        """
+        cdef double x = self._complex.dat[0]
+        cdef double y = self._complex.dat[1]
+        if x == 0:
+            if y == 0:
+                return "0.0"
+            s = ''
+        else:
+            s = double_str(x)
+            if y == 0:
+                return s
+            elif y < 0:
+                s += " - "
+                y = -y
+            else:
+                s += " + "
+
+        return s + double_str(y) + "*I"
+
+    def _repr_(self):
+        """
+        Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: CDF(0, 2/3)
+            0.6666666666666666*I
             sage: a = CDF(2,-3); a # indirect doctest
             2.0 - 3.0*I
             sage: a^2
@@ -1015,27 +1064,25 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(0)
             0.0
         """
-        if self._complex.dat[0]:
-            # real part is nonzero
-            s = double_to_str(self._complex.dat[0])
-        else:
-            # real part is zero
-            if self._complex.dat[1]:   # imag is nonzero
-                s = ''
-            else:
-                return double_to_str(self._complex.dat[0]) # imag is zero
-
+        cdef double x = self._complex.dat[0]
         cdef double y = self._complex.dat[1]
-        if y:
-            if s != "":
-                if y < 0:
-                    s = s+" - "
-                    y = -y
-                else:
-                    s = s+" + "
-            t = double_to_str(y)
-            s += t + "*I"
-        return s
+        if x == 0:
+            if y == 0:
+                # Not sure what to do with the signs of the real and
+                # imaginary zeros, let's not print any sign.
+                return "0.0"
+            s = ''
+        else:
+            s = double_repr(x)
+            if y == 0:
+                return s
+            elif y < 0:
+                s += " - "
+                y = -y
+            else:
+                s += " + "
+
+        return s + double_repr(y) + "*I"
 
     def _latex_(self):
         """
@@ -1132,8 +1179,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(2,-3)._div_(CDF(1,-2))
-            1.6 + 0.2*I
+            sage: CDF(2,-3)._div_(CDF(1,-2))  # rel tol 1e-15
+            1.5999999999999999 + 0.19999999999999998*I
         """
         return self._new_c(gsl_complex_div(self._complex, (<ComplexDoubleElement>right)._complex))
 
@@ -1149,9 +1196,9 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: ~CDF(2,1)
-            0.4 - 0.2*I
+            0.39999999999999997 - 0.19999999999999998*I
             sage: 1/CDF(2,1)
-            0.4 - 0.2*I
+            0.39999999999999997 - 0.19999999999999998*I
 
         The inverse of 0 is ``NaN`` (it doesn't raise an exception)::
 
@@ -1219,11 +1266,11 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1,0).arg()
             0.0
             sage: CDF(0,1).arg()
-            1.57079632679
+            1.5707963267948966
             sage: CDF(0,-1).arg()
-            -1.57079632679
+            -1.5707963267948966
             sage: CDF(-1,0).arg()
-            3.14159265359
+            3.141592653589793
         """
         return RealDoubleElement(gsl_complex_arg(self._complex))
 
@@ -1234,11 +1281,11 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: abs(CDF(1,2)) # indirect doctest
-            2.2360679775
+            2.23606797749979
             sage: abs(CDF(1,0)) # indirect doctest
             1.0
-            sage: abs(CDF(-2,3))   # slightly random-ish arch dependent output
-            3.6055512754639891
+            sage: abs(CDF(-2,3))
+            3.605551275463989
         """
         return RealDoubleElement(gsl_complex_abs(self._complex))
 
@@ -1252,8 +1299,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(2,3).abs()   # slightly random-ish arch dependent output
-            3.6055512754639891
+            sage: CDF(2,3).abs()
+            3.605551275463989
         """
         return RealDoubleElement(gsl_complex_abs(self._complex))
 
@@ -1267,11 +1314,11 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(6).argument()
             0.0
             sage: CDF(i).argument()
-            1.57079632679
+            1.5707963267948966
             sage: CDF(-1).argument()
-            3.14159265359
+            3.141592653589793
             sage: CDF(-1 - 0.000001*i).argument()
-            -3.14159165359
+            -3.1415916535897934
         """
         return RealDoubleElement(gsl_complex_arg(self._complex))
 
@@ -1343,9 +1390,9 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1.1,0.1).logabs()
-            0.0994254293726
+            0.09942542937258267
             sage: log(abs(CDF(1.1,0.1)))
-            0.0994254293726
+            0.09942542937258259
 
         ::
 
@@ -1421,12 +1468,12 @@ cdef class ComplexDoubleElement(FieldElement):
         We compute several square roots::
 
             sage: a = CDF(2,3)
-            sage: b = a.sqrt(); b
-            1.67414922804 + 0.89597747613*I
-            sage: b^2
+            sage: b = a.sqrt(); b  # rel tol 1e-15
+            1.6741492280355401 + 0.8959774761298381*I
+            sage: b^2  # rel tol 1e-15
             2.0 + 3.0*I
             sage: a^(1/2)
-            1.67414922804 + 0.89597747613*I
+            1.6741492280355401 + 0.895977476129838*I
 
         We compute the square root of -1::
 
@@ -1437,7 +1484,7 @@ cdef class ComplexDoubleElement(FieldElement):
         We compute all square roots::
 
             sage: CDF(-2).sqrt(all=True)
-            [1.41421356237*I, -1.41421356237*I]
+            [1.4142135623730951*I, -1.4142135623730951*I]
             sage: CDF(0).sqrt(all=True)
             [0.0]
         """
@@ -1462,12 +1509,12 @@ cdef class ComplexDoubleElement(FieldElement):
 
             sage: a = CDF(125)
             sage: a.nth_root(3)
-            5.0
+            5.000000000000001
             sage: a = CDF(10, 2)
-            sage: [r^5 for r in a.nth_root(5, all=True)]
-            [10.0 + 2.0*I, 10.0 + 2.0*I, 10.0 + 2.0*I, 10.0 + 2.0*I, 10.0 + 2.0*I]
-            sage: abs(sum(a.nth_root(111, all=True))) # random but close to zero
-            6.00659385991e-14
+            sage: [r^5 for r in a.nth_root(5, all=True)]  # rel tol 1e-14
+            [9.999999999999998 + 2.0*I, 9.999999999999993 + 2.000000000000002*I, 9.999999999999996 + 1.9999999999999907*I, 9.999999999999993 + 2.0000000000000004*I, 9.999999999999998 + 1.9999999999999802*I]
+            sage: abs(sum(a.nth_root(111, all=True)))  # rel tol 0.1
+            1.1057313523818259e-13
         """
         if not self:
             return [self] if all else self
@@ -1565,7 +1612,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
             sage: a = CDF(1,1); b = CDF(2,3)
             sage: a._pow_(b)
-            -0.163450932107 + 0.0960049836089*I
+            -0.163450932107355 + 0.09600498360894891*I
         """
         return self._new_c(gsl_complex_pow(self._complex, a._complex))
 
@@ -1581,17 +1628,17 @@ cdef class ComplexDoubleElement(FieldElement):
 
             sage: a = CDF(1,1); b = CDF(2,3)
             sage: c = a^b; c # indirect doctest
-            -0.163450932107 + 0.0960049836089*I
-            sage: c^(1/b)
+            -0.163450932107355 + 0.09600498360894891*I
+            sage: c^(1/b) # rel tol 2e-16
             1.0 + 1.0*I
 
         We compute the cube root of `-1` then cube it and observe a
         rounding error::
 
             sage: a = CDF(-1)^(1/3); a
-            0.5 + 0.866025403784*I
-            sage: a^3                  # slightly random-ish arch dependent output
-            -1.0 + 1.22460635382e-16*I
+            0.5000000000000001 + 0.8660254037844386*I
+            sage: a^3  # rel tol 1e-4
+            -1.0 + 1.2246467991473532e-16*I
 
         We raise to symbolic powers::
 
@@ -1625,14 +1672,14 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).exp()
-            1.46869393992 + 2.28735528718*I
+            1.4686939399158851 + 2.2873552871788423*I
 
         We numerically verify a famous identity to the precision of a double::
 
             sage: z = CDF(0, 2*pi); z
-            6.28318530718*I
-            sage: exp(z)         # somewhat random-ish output depending on platform
-            1.0 - 2.44921270764e-16*I
+            6.283185307179586*I
+            sage: exp(z)  # rel tol 1e-4
+            1.0 - 2.4492935982947064e-16*I
         """
         return self._new_c(gsl_complex_exp(self._complex))
 
@@ -1649,7 +1696,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).log()
-            0.34657359028 + 0.785398163397*I
+            0.34657359027997264 + 0.7853981633974483*I
 
         This is the only example different from the GSL::
 
@@ -1677,7 +1724,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).log10()
-            0.150514997832 + 0.34109408846*I
+            0.15051499783199057 + 0.3410940884604603*I
         """
         if self == 0:
             return RDF(0).log()
@@ -1693,8 +1740,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).log_b(10)
-            0.150514997832 + 0.34109408846*I
+            sage: CDF(1,1).log_b(10)  # rel tol 1e-15
+            0.15051499783199057 + 0.3410940884604603*I
         """
         cdef ComplexDoubleElement _b
         if self == 0:
@@ -1719,7 +1766,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).sin()
-            1.29845758142 + 0.634963914785*I
+            1.2984575814159773 + 0.6349639147847361*I
         """
         return self._new_c(gsl_complex_sin(self._complex))
 
@@ -1734,7 +1781,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).cos()
-            0.833730025131 - 0.988897705763*I
+            0.8337300251311491 - 0.9888977057628651*I
         """
         return self._new_c(gsl_complex_cos(self._complex))
 
@@ -1749,7 +1796,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).tan()
-            0.27175258532 + 1.08392332734*I
+            0.27175258531951174 + 1.0839233273386946*I
         """
         return self._new_c(gsl_complex_tan(self._complex))
 
@@ -1763,8 +1810,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).sec()
-            0.498337030555 + 0.591083841721*I
+            sage: CDF(1,1).sec()  # rel tol 1e-15
+            0.4983370305551868 + 0.591083841721045*I
         """
         return self._new_c(gsl_complex_sec(self._complex))
 
@@ -1778,8 +1825,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).csc()
-            0.62151801717 - 0.303931001628*I
+            sage: CDF(1,1).csc()  # rel tol 1e-15
+            0.6215180171704284 - 0.30393100162842646*I
         """
         return self._new_c(gsl_complex_csc(self._complex))
 
@@ -1793,8 +1840,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).cot()
-            0.217621561854 - 0.868014142896*I
+            sage: CDF(1,1).cot()  # rel tol 1e-15
+            0.21762156185440268 - 0.8680141428959249*I
         """
         return self._new_c(gsl_complex_cot(self._complex))
 
@@ -1810,7 +1857,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).arcsin()
-            0.666239432493 + 1.06127506191*I
+            0.6662394324925152 + 1.0612750619050357*I
         """
         return self._new_c(gsl_complex_arcsin(self._complex))
 
@@ -1823,7 +1870,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).arccos()
-            0.904556894302 - 1.06127506191*I
+            0.9045568943023814 - 1.0612750619050357*I
         """
         return self._new_c(gsl_complex_arccos(self._complex))
 
@@ -1836,7 +1883,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).arctan()
-            1.0172219679 + 0.402359478109*I
+            1.0172219678978514 + 0.4023594781085251*I
         """
         return self._new_c(gsl_complex_arctan(self._complex))
 
@@ -1847,8 +1894,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).arccsc()
-            0.452278447151 - 0.530637530953*I
+            sage: CDF(1,1).arccsc()  # rel tol 1e-15
+            0.45227844715119064 - 0.5306375309525178*I
         """
         return self._new_c(gsl_complex_arccsc(self._complex))
 
@@ -1859,8 +1906,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).arccot()
-            0.553574358897 - 0.402359478109*I
+            sage: CDF(1,1).arccot()  # rel tol 1e-15
+            0.5535743588970452 - 0.4023594781085251*I
         """
         return self._new_c(gsl_complex_arccot(self._complex))
 
@@ -1880,7 +1927,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).sinh()
-            0.634963914785 + 1.29845758142*I
+            0.6349639147847361 + 1.2984575814159773*I
         """
         return self._new_c(gsl_complex_sinh(self._complex))
 
@@ -1896,7 +1943,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).cosh()
-            0.833730025131 + 0.988897705763*I
+            0.8337300251311491 + 0.9888977057628651*I
         """
         return self._new_c(gsl_complex_cosh(self._complex))
 
@@ -1912,7 +1959,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).tanh()
-            1.08392332734 + 0.27175258532*I
+            1.0839233273386946 + 0.27175258531951174*I
         """
         return self._new_c(gsl_complex_tanh(self._complex))
 
@@ -1928,8 +1975,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).sech()
-            0.498337030555 - 0.591083841721*I
+            sage: CDF(1,1).sech()  # rel tol 1e-15
+            0.4983370305551868 - 0.591083841721045*I
         """
         return self._new_c(gsl_complex_sech(self._complex))
 
@@ -1944,8 +1991,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).csch()
-            0.303931001628 - 0.62151801717*I
+            sage: CDF(1,1).csch()  # rel tol 1e-15
+            0.30393100162842646 - 0.6215180171704284*I
         """
         return self._new_c(gsl_complex_csch(self._complex))
 
@@ -1960,8 +2007,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).coth()
-            0.868014142896 - 0.217621561854*I
+            sage: CDF(1,1).coth()  # rel tol 1e-15
+            0.8680141428959249 - 0.21762156185440268*I
         """
         return self._new_c(gsl_complex_coth(self._complex))
 
@@ -1977,7 +2024,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).arcsinh()
-            1.06127506191 + 0.666239432493*I
+            1.0612750619050357 + 0.6662394324925152*I
         """
         return self._new_c(gsl_complex_arcsinh(self._complex))
 
@@ -1990,7 +2037,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).arccosh()
-            1.06127506191 + 0.904556894302*I
+            1.0612750619050357 + 0.9045568943023814*I
         """
         return self._new_c(gsl_complex_arccosh(self._complex))
 
@@ -2003,7 +2050,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).arctanh()
-            0.402359478109 + 1.0172219679*I
+            0.4023594781085251 + 1.0172219678978514*I
         """
         return self._new_c(gsl_complex_arctanh(self._complex))
 
@@ -2014,8 +2061,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).arcsech()
-            0.530637530953 - 1.11851787964*I
+            sage: CDF(1,1).arcsech()  # rel tol 1e-15
+            0.5306375309525176 - 1.118517879643706*I
         """
         return self._new_c(gsl_complex_arcsech(self._complex))
 
@@ -2026,8 +2073,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).arccsch()
-            0.530637530953 - 0.452278447151*I
+            sage: CDF(1,1).arccsch()  # rel tol 1e-15
+            0.5306375309525178 - 0.45227844715119064*I
         """
         return self._new_c(gsl_complex_arccsch(self._complex))
 
@@ -2038,8 +2085,8 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).arccoth()
-            0.402359478109 - 0.553574358897*I
+            sage: CDF(1,1).arccoth()  # rel tol 1e-15
+            0.4023594781085251 - 0.5535743588970452*I
         """
         return self._new_c(gsl_complex_arccoth(self._complex))
 
@@ -2073,11 +2120,11 @@ cdef class ComplexDoubleElement(FieldElement):
         We compute a few values of :meth:`eta()`::
 
             sage: CDF(0,1).eta()
-            0.768225422326
+            0.7682254223260566
             sage: CDF(1,1).eta()
-            0.742048775837 + 0.19883137023*I
+            0.7420487758365647 + 0.1988313702299107*I
             sage: CDF(25,1).eta()
-            0.742048775837 + 0.19883137023*I
+            0.7420487758365647 + 0.1988313702299107*I
 
         :meth:`eta()` works even if the inputs are large::
 
@@ -2090,21 +2137,21 @@ cdef class ComplexDoubleElement(FieldElement):
         of `e` omitted::
 
             sage: CDF(0,1).eta(True)
-            0.998129069926
+            0.9981290699259585
 
         We compute :meth:`eta()` to low precision directly from the
         definition::
 
             sage: z = CDF(1,1); z.eta()
-            0.742048775837 + 0.19883137023*I
+            0.7420487758365647 + 0.1988313702299107*I
             sage: i = CDF(0,1); pi = CDF(pi)
             sage: exp(pi * i * z / 12) * prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
-            0.742048775837 + 0.19883137023*I
+            0.7420487758365647 + 0.19883137022991068*I
 
         The optional argument allows us to omit the fractional part::
 
-            sage: z.eta(omit_frac=True)  # abs tol 1e-12
-            0.998129069926 - 8.12769318782e-22*I
+            sage: z.eta(omit_frac=True)
+            0.9981290699259585
             sage: pi = CDF(pi)
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])  # abs tol 1e-12
             0.998129069926 + 4.59084695545e-19*I
@@ -2119,8 +2166,9 @@ cdef class ComplexDoubleElement(FieldElement):
 
         You can also use functional notation::
 
-            sage: z = CDF(1,1) ; eta(z)
-            0.742048775837 + 0.19883137023*I
+            sage: z = CDF(1,1)
+            sage: eta(z)
+            0.7420487758365647 + 0.1988313702299107*I
         """
         cdef GEN a, b, c, y, t
 
@@ -2169,8 +2217,8 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: i = CDF(I)
-            sage: (1+i).agm(2-i)
-            1.62780548487 + 0.136827548397*I
+            sage: (1+i).agm(2-i)  # rel tol 1e-15
+            1.6278054848727064 + 0.1368275483973686*I
 
         An example to show that the returned value depends on the algorithm
         parameter::
@@ -2178,11 +2226,11 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a = CDF(-0.95,-0.65)
             sage: b = CDF(0.683,0.747)
             sage: a.agm(b, algorithm='optimal')
-            -0.371591652352 + 0.319894660207*I
-            sage: a.agm(b, algorithm='principal')
-            0.338175462986 - 0.0135326969565*I
+            -0.3715916523517613 + 0.31989466020683*I
+            sage: a.agm(b, algorithm='principal')  # rel tol 1e-15
+            0.33817546298618006 - 0.013532696956540503*I
             sage: a.agm(b, algorithm='pari')
-            0.080689185076 + 0.239036532686*I
+            -0.37159165235176134 + 0.31989466020683005*I
 
         Some degenerate cases::
 
@@ -2243,9 +2291,9 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,2).dilog()
-            -0.0594747986738 + 2.07264797177*I
+            -0.059474798673809476 + 2.0726479717747566*I
             sage: CDF(10000000,10000000).dilog()
-            -134.411774491 + 38.793962999*I
+            -134.411774490731 + 38.79396299904504*I
         """
         return self._new_from_gen(self._pari_().dilog())
 
@@ -2259,7 +2307,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(5,0).gamma()
             24.0
             sage: CDF(1,1).gamma()
-            0.498015668118 - 0.154949828302*I
+            0.49801566811835607 - 0.15494982830181067*I
             sage: CDF(0).gamma()
             Infinity
             sage: CDF(-1,0).gamma()
@@ -2284,13 +2332,13 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: CDF(1,1).gamma_inc(CDF(2,3))
-            0.00209691486365 - 0.0599819136554*I
+            0.0020969148636468277 - 0.059981913655449706*I
             sage: CDF(1,1).gamma_inc(5)
-            -0.00137813093622 + 0.00651982002312*I
+            -0.001378130936215849 + 0.006519820023119819*I
             sage: CDF(2,0).gamma_inc(CDF(1,1))
-            0.707092096346 - 0.42035364096*I
+            0.7070920963459381 - 0.4203536409598115*I
         """
-        return self._new_from_gen(self._pari_().incgam(t))
+        return self._new_from_gen(self._pari_().incgam(t, precision=53))
 
     def zeta(self):
         """
@@ -2300,9 +2348,9 @@ cdef class ComplexDoubleElement(FieldElement):
 
             sage: z = CDF(1, 1)
             sage: z.zeta()
-            0.582158059752 - 0.926848564331*I
+            0.5821580597520036 - 0.9268485643308071*I
             sage: zeta(z)
-            0.582158059752 - 0.926848564331*I
+            0.5821580597520036 - 0.9268485643308071*I
             sage: zeta(CDF(1))
             Infinity
         """
@@ -2324,7 +2372,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: z = (1/2)*(1 + RDF(sqrt(3)) *CDF.0); z
-            0.5 + 0.866025403784*I
+            0.5 + 0.8660254037844387*I
             sage: p = z.algdep(5); p
             x^3 + 1
             sage: p.factor()
@@ -2475,27 +2523,6 @@ def ComplexDoubleField():
 
 from sage.misc.parser import Parser
 cdef cdf_parser = Parser(float, float,  {"I" : _CDF.gen(), "i" : _CDF.gen()})
-
-cdef extern from "math.h":
-       int isfinite(double x)
-       int isnan(double x)
-       int isinf(double x)
-
-cdef double_to_str(double x):
-    """
-    Convert a double to a string.
-    """
-    if isfinite(x):
-        return str(x)
-    if isnan(x):
-        return "NaN"
-    # C99 only guarantees that isinf() returns a nonzero value (actually: 1) if x is an
-    # infinity (positive or negative). Modern Linux distros return -1 or +1 depending
-    # on the sign of infinity, but that is not the case on OS X or Solaris
-    if isinf(x) != 0 and x < 0:
-        return '-infinity'
-    elif isinf(x) != 0 and x > 0:
-        return '+infinity'
 
 cdef inline double complex extract_double_complex(ComplexDoubleElement x):
     """

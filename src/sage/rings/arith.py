@@ -764,6 +764,11 @@ def prime_powers(start, stop=None):
         sage: type(v[0])      # trac #922
         <type 'sage.rings.integer.Integer'>
 
+        sage: prime_powers(0,1)
+        []
+        sage: prime_powers(0,2)
+        [1]
+
         sage: prime_powers("foo")
         Traceback (most recent call last):
         ...
@@ -775,45 +780,39 @@ def prime_powers(start, stop=None):
         TypeError: stop must be an integer, bar is not an integer
 
     """
-    from sage.rings.integer import Integer
+    from integer import Integer
     # check to ensure that both inputs are positive integers
     if not isinstance(start, (int, Integer)):
         raise TypeError("start must be an integer, {} is not an integer".format(start))
     if not (isinstance(stop, (int, Integer)) or stop is None):
         raise TypeError("stop must be an integer, {} is not an integer".format(stop))
 
+    ZZ_1 = Integer(1)
+
     # coerce inputs that are ints into Integers for efficiency
     start = Integer(start)
-    if(stop is not None):
+    if stop is not None:
         stop = Integer(stop)
-
-    # deal with the case in which only one input is given
-    if stop is None:
-        start, stop = 1, Integer(start)
+    else:  # deal with the case in which only one input is given
+        start, stop = ZZ_1, Integer(start)
 
     # inserted to prevent an error from occurring
-    if stop < 1:
-        return [];
+    if stop <= ZZ_1 or start >= stop:
+        return []
 
     # find all the primes in the given range
     from fast_arith import prime_range
-    temp = prime_range(stop)
-    output = [p for p in temp if p>=start]
+    output = []
 
-    if start <= 1:
-        output.append(Integer(1))
+    if start <= ZZ_1:
+        output.append(ZZ_1)
 
-    s = stop.sqrt()
-    for p in temp:
-        # if p > the square root of stop, p^2 will be outside the given
-        # range
-        if p > s:
-            break
-        q = p*p
-        # check if each power of p falls within the given range
+    for p in prime_range(stop):
+        q = p
+        while q < start:
+            q *= p
         while q < stop:
-            if start <= q:
-                output.append(q)
+            output.append(q)
             q *= p
 
     output.sort()
@@ -1333,7 +1332,7 @@ def divisors(n):
         sage: divisors(K.ideal(3))
         [Fractional ideal (1), Fractional ideal (3), Fractional ideal (-a + 2), Fractional ideal (-a - 2)]
         sage: divisors(K.ideal(35))
-        [Fractional ideal (1), Fractional ideal (35), Fractional ideal (5*a), Fractional ideal (5), Fractional ideal (a), Fractional ideal (7)]
+        [Fractional ideal (1), Fractional ideal (5), Fractional ideal (a), Fractional ideal (7), Fractional ideal (5*a), Fractional ideal (35)]
 
     TESTS::
 
@@ -1559,8 +1558,8 @@ def gcd(a, b=None, **kwargs):
 
         sage: R.<x>=QQ[]
         sage: S.<x>=ZZ[]
-        sage: p = S.random_element()
-        sage: q = R.random_element()
+        sage: p = S.random_element(degree=(0,10))
+        sage: q = R.random_element(degree=(0,10))
         sage: parent(gcd(1/p,q))
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: parent(gcd([1/p,q]))
@@ -1708,8 +1707,8 @@ def lcm(a, b=None):
 
         sage: R.<x>=QQ[]
         sage: S.<x>=ZZ[]
-        sage: p = S.random_element()
-        sage: q = R.random_element()
+        sage: p = S.random_element(degree=(0,5))
+        sage: q = R.random_element(degree=(0,5))
         sage: parent(lcm([1/p,q]))
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
@@ -1949,6 +1948,59 @@ XGCD = xgcd
 ##         r = new_r; s = new_s
 ##     return (a, p*psign, q*qsign)
 
+def xkcd(n=""):
+    r"""
+    This function is similar to the xgcd function, but behaves
+    in a completely different way.
+
+    INPUT:
+
+    -  ``n`` - an integer (optional)
+
+    OUTPUT:
+
+    This function outputs nothing it just prints something. Note that this
+    function does not feel itself at ease in a html deprived environment.
+
+    EXAMPLES::
+
+        sage: xkcd(353) # optional - internet
+        <html><font color='black'><h1>Python</h1><img src="http://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div></font></html>
+    """
+    import contextlib
+    import urllib2
+    import json
+    from sage.misc.html import html
+
+    data = None
+    url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)
+
+    try:
+        with contextlib.closing(urllib2.urlopen(url)) as f:
+            data = f.read()
+    except urllib2.HTTPError as error:
+        if error.getcode() == 400: # this error occurs when asking for a non valid comic number
+            raise RuntimeError("Could not obtain comic data from {}. Maybe you should enable time travel!".format(url))
+    except urllib2.URLError:
+        pass
+
+    if n == 1024:
+        data = None
+
+    if data:
+        data = json.loads(data)
+        img = data['img']
+        alt = data['alt']
+        title = data['safe_title']
+        link = "http://xkcd.com/{}".format(data['num'])
+        html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
+            + '<div>Source: <a href="{0}" target="_blank">{0}</a></div>'.format(link))
+        return
+
+    # TODO: raise this error in such a way that it's not clear that
+    # it is produced by sage, see http://xkcd.com/1024/
+    html('<script> alert("Error: -41"); </script>')
+
 def inverse_mod(a, m):
     """
     The inverse of the ring element a modulo m.
@@ -2093,15 +2145,14 @@ def rational_reconstruction(a, m, algorithm='fast'):
 
     INPUT:
 
-    - ``a`` - an integer
+    - ``a`` -- an integer
 
-    - ``m`` - a modulus
+    - ``m`` -- a modulus
 
-    - ``algorithm`` - (default: 'fast')
+    - ``algorithm`` -- (default: 'fast')
 
-      - ``'fast'`` - a fast compiled implementation
-
-      - ``'python'`` - a slow pure python implementation
+      - ``'fast'`` - a fast implementation using direct MPIR calls
+        in Cython.
 
     OUTPUT:
 
@@ -2140,95 +2191,37 @@ def rational_reconstruction(a, m, algorithm='fast'):
         sage: rational_reconstruction(400,1000)
         Traceback (most recent call last):
         ...
-        ValueError: Rational reconstruction of 400 (mod 1000) does not exist.
+        ArithmeticError: rational reconstruction of 400 (mod 1000) does not exist
 
     ::
 
-        sage: rational_reconstruction(3,292393, algorithm='python')
+        sage: rational_reconstruction(3, 292393)
         3
         sage: a = Integers(292393)(45/97); a
         204977
-        sage: rational_reconstruction(a,292393, algorithm='python')
+        sage: rational_reconstruction(a, 292393, algorithm='fast')
         45/97
-        sage: a = Integers(292393)(45/97); a
-        204977
-        sage: rational_reconstruction(a,292393, algorithm='fast')
-        45/97
-        sage: rational_reconstruction(293048,292393, algorithm='fast')
+        sage: rational_reconstruction(293048, 292393)
         Traceback (most recent call last):
         ...
-        ValueError: Rational reconstruction of 655 (mod 292393) does not exist.
-        sage: rational_reconstruction(293048,292393, algorithm='python')
+        ArithmeticError: rational reconstruction of 655 (mod 292393) does not exist
+        sage: rational_reconstruction(0, 0)
         Traceback (most recent call last):
         ...
-        ValueError: Rational reconstruction of 655 (mod 292393) does not exist.
-
-    TESTS:
-
-    Check that ticket #9345 is fixed::
-
-        sage: rational_reconstruction(1, 0)
+        ZeroDivisionError: rational reconstruction with zero modulus
+        sage: rational_reconstruction(0, 1, algorithm="foobar")
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: The modulus cannot be zero
-        sage: rational_reconstruction(randint(-10^6, 10^6), 0)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError: The modulus cannot be zero
+        ValueError: unknown algorithm 'foobar'
     """
     if algorithm == 'fast':
         return ZZ(a).rational_reconstruction(m)
     elif algorithm == 'python':
-        return _rational_reconstruction_python(a,m)
+        from sage.misc.superseded import deprecation
+        deprecation(17180, 'The %r algorithm for rational_reconstruction is deprecated' % algorithm)
+        return ZZ(a).rational_reconstruction(m)
     else:
-        raise ValueError("unknown algorithm")
-
-def _rational_reconstruction_python(a,m):
-    """
-    Internal fallback function for rational_reconstruction; see
-    documentation of that function for details.
-
-    INPUT:
-
-    - ``a`` - an integer
-
-    - ``m`` - a modulus
-
-    EXAMPLES::
-
-        sage: from sage.rings.arith import _rational_reconstruction_python
-        sage: _rational_reconstruction_python(20,31)
-        -2/3
-        sage: _rational_reconstruction_python(11323,100000)
-        119/53
-    """
-    a = int(a); m = int(m)
-    a %= m
-    if a == 0 or m==0:
-        return ZZ(0)/ZZ(1)
-    if m < 0:
-        m = -m
-    if a < 0:
-        a = m-a
-    if a == 1:
-        return ZZ(1)/ZZ(1)
-    u = m
-    v = a
-    bnd = math.sqrt(m/2)
-    U = (1,0,u)
-    V = (0,1,v)
-    while abs(V[2]) > bnd:
-        q = U[2]/V[2]  # floor is implicit
-        T = (U[0]-q*V[0], U[1]-q*V[1], U[2]-q*V[2])
-        U = V
-        V = T
-    x = abs(V[1])
-    y = V[2]
-    if V[1] < 0:
-        y *= -1
-    if x <= bnd and GCD(x,y) == 1:
-        return ZZ(y) / ZZ(x)
-    raise ValueError("Rational reconstruction of %s (mod %s) does not exist."%(a,m))
+        raise ValueError("unknown algorithm %r" % algorithm)
 
 def mqrr_rational_reconstruction(u, m, T):
     r"""
@@ -2443,7 +2436,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
         sage: K.<i> = QuadraticField(-1)
         sage: factor(122 - 454*i)
-        (-1) * (-i - 4) * (-3*i - 2) * (-i - 2)^3 * (i + 1)^3
+        (-3*i - 2) * (-i - 2)^3 * (i + 1)^3 * (i + 4)
 
     To access the data in a factorization::
 
@@ -4530,6 +4523,8 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     b = QQ(b).numerator() * QQ(b).denominator()
 
     if algorithm == "pari":
+        if p == -1:
+            p = 0
         return ZZ(pari(a).hilbert(b,p))
 
     elif algorithm == 'direct':
@@ -5511,13 +5506,13 @@ def sort_complex_numbers_for_display(nums):
         sage: sort_c = sort_complex_numbers_for_display
         sage: nums = [CDF(i) for i in range(3)]
         sage: for i in range(3):
-        ...       nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
-        ...                       RDF.random_element()))
-        ...       nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
-        ...                       RDF.random_element()))
+        ....:     nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
+        ....:                     RDF.random_element()))
+        ....:     nums.append(CDF(i + RDF.random_element(-3e-11, 3e-11),
+        ....:                     RDF.random_element()))
         sage: shuffle(nums)
         sage: sort_c(nums)
-        [0.0, 1.0, 2.0, -2.862406201e-11 - 0.708874026302*I, 2.2108362707e-11 - 0.436810529675*I, 1.00000000001 - 0.758765473764*I, 0.999999999976 - 0.723896589334*I, 1.99999999999 - 0.456080101207*I, 1.99999999999 + 0.609083628313*I]
+        [0.0, 1.0, 2.0, -2.862406201002009e-11 - 0.7088740263015161*I, 2.2108362706985576e-11 - 0.43681052967509904*I, 1.0000000000138833 - 0.7587654737635712*I, 0.9999999999760288 - 0.7238965893336062*I, 1.9999999999874383 - 0.4560801012073723*I, 1.9999999999869107 + 0.6090836283134269*I]
     """
     if len(nums) == 0:
         return nums
@@ -5655,7 +5650,7 @@ def dedekind_sum(p, q, algorithm='default'):
         sage: dedekind_sum(3^54 - 1, 2^93 + 1, algorithm='pari')
         459340694971839990630374299870/29710560942849126597578981379
 
-    Pari uses a different definition if the inputs are not coprime::
+    We check consistency of the results::
 
         sage: dedekind_sum(5, 7, algorithm='default')
         -1/14
@@ -5668,7 +5663,7 @@ def dedekind_sum(p, q, algorithm='default'):
         sage: dedekind_sum(6, 8, algorithm='flint')
         -1/8
         sage: dedekind_sum(6, 8, algorithm='pari')
-        -1/24
+        -1/8
 
     REFERENCES:
 

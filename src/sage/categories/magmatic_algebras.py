@@ -69,6 +69,29 @@ class MagmaticAlgebras(Category_over_base_ring):
         # might want the infrastructure to take this join for us.
         return Category.join([(Magmas() & AdditiveMagmas()).Distributive(), Modules(R)], as_list=True)
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of (magmatic) algebras defines no new
+        structure: a morphism of modules and of magmas between two
+        (magmatic) algebras is a (magmatic) algebra morphism.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO::
+
+            This category should be a :class:`CategoryWithAxiom`, the
+            axiom specifying the compability between the magma and
+            module structure.
+
+        EXAMPLES::
+
+            sage: from sage.categories.magmatic_algebras import MagmaticAlgebras
+            sage: MagmaticAlgebras(ZZ).additional_structure()
+        """
+        return None
+
     Associative = LazyImport('sage.categories.associative_algebras', 'AssociativeAlgebras', at_startup=True)
     Unital = LazyImport('sage.categories.unital_algebras', 'UnitalAlgebras', at_startup=True)
 

@@ -45,12 +45,11 @@ def Spec(R, S=None):
         Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Finite Field in a of size 7^2
         sage: TestSuite(X).run(skip=["_test_an_element", "_test_elements", "_test_some_elements"])
 
-    Applying ``Spec`` twice gives equal but non-identical output::
+    Applying ``Spec`` twice to the same ring gives identical output
+    (see :trac:`17008`)::
 
         sage: A = Spec(ZZ); B = Spec(ZZ)
         sage: A is B
-        False
-        sage: A == B
         True
 
     A ``TypeError`` is raised if the input is not a commutative ring::
@@ -151,6 +150,12 @@ class SpecFunctor(Functor, UniqueRepresentation):
             sage: F(RR) # indirect doctest
             Spectrum of Real Field with 53 bits of precision
         """
+        # The second argument of AffineScheme defaults to None.
+        # However, AffineScheme has unique representation, so there is
+        # a difference between calling it with or without explicitly
+        # giving this argument.
+        if self._base_ring is None:
+            return AffineScheme(A)
         return AffineScheme(A, self._base_ring)
 
     def _apply_functor_to_morphism(self, f):

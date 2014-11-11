@@ -42,7 +42,6 @@ TESTS::
 
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 include "sage/libs/pari/decl.pxi"
@@ -65,6 +64,7 @@ from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport PariInstance
 
 from integer_ring import ZZ
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.structure.element import bin_op
@@ -1193,7 +1193,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 0.is_norm(K)
             True
             sage: (1/7).is_norm(K, element=True)
-            (True, -1/7*beta - 3/7)
+            (True, 1/7*beta + 3/7)
             sage: (1/10).is_norm(K, element=True)
             (False, None)
             sage: (1/691).is_norm(QQ, element=True)
@@ -3531,8 +3531,8 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
 
     - Paul Zimmermann, Jeroen Demeyer (:trac:`14416`)
     """
-    cdef __mpz_struct* a = <__mpz_struct*>(mpq_numref(x))
-    cdef __mpz_struct* b = <__mpz_struct*>(mpq_denref(x))
+    cdef mpz_ptr a = mpq_numref(x)
+    cdef mpz_ptr b = mpq_denref(x)
     cdef int resultsign = mpz_sgn(a)
 
     if resultsign == 0:
@@ -3590,7 +3590,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
         remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
 
     # Convert abs(q) to a 64-bit integer.
-    cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
+    cdef mp_limb_t* q_limbs = (<mpz_ptr>q)._mp_d
     cdef uint64_t q64
     if sizeof(mp_limb_t) >= 8:
         q64 = q_limbs[0]
@@ -3649,47 +3649,6 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
         d = -d
     return ldexp(d, shift)
 
-
-def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
-    """
-    Find the rational reconstruction of ``a mod m``, if it exists.
-
-    INPUT:
-
-    -  ``a`` - Integer
-
-    -  ``m`` - Integer
-
-    OUTPUT:
-
-    -  ``x`` - rings.rational.Rational
-
-    EXAMPLES::
-
-        sage: Integers(100)(2/3)
-        34
-        sage: sage.rings.rational.pyrex_rational_reconstruction(34, 100)
-        2/3
-
-    TEST:
-
-    Check that ticket #9345 is fixed::
-
-        sage: sage.rings.rational.pyrex_rational_reconstruction(0,0)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError: The modulus cannot be zero
-        sage: sage.rings.rational.pyrex_rational_reconstruction(ZZ.random_element(-10^6, 10^6), 0)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError: The modulus cannot be zero
-    """
-    if not m.__nonzero__():
-        raise ZeroDivisionError("The modulus cannot be zero")
-    cdef Rational x
-    x = <Rational> PY_NEW(Rational)
-    mpq_rational_reconstruction(x.value, a.value, m.value)
-    return x
 
 def make_rational(s):
     """

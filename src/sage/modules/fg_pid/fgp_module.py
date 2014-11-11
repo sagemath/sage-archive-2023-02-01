@@ -73,16 +73,15 @@ the technical note has a V that need not be equal to V0, in general. ::
     [0 0 1]
     [0 2 0]
 
-Create elements of M0 either by coercing in elements of V0, getting
-generators, or coercing in a list or tuple or coercing in 0.  Coercing
-in a list or tuple takes the corresponding linear combination of the
-generators of M0. ::
+Create elements of M0 either by coercing in elements of V0, getting generators,
+or coercing in a list or tuple or coercing in 0. Finally, one can express an
+element as a linear combination of the smith form generators ::
 
     sage: M0(V0.0)
     (0, 14)
     sage: M0(V0.0 + W0.0)  # no difference modulo W0
     (0, 14)
-    sage: M0([3,20])
+    sage: M0.linear_combination_of_smith_form_gens([3,20])
     (3, 4)
     sage: 3*M0.0 + 20*M0.1
     (3, 4)
@@ -99,7 +98,6 @@ coerces to V0, then take the equivalence class modulo W0. ::
     (0, 14)
     sage: x.additive_order()
     16
-
 
 Similarly, we construct V1 and W1, and the quotient M1, in a completely different
 2-dimensional ambient space. ::
@@ -178,7 +176,7 @@ TESTS::
     sage: W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
     sage: Q = FGP_Module(V, W); Q
     Finitely generated module V/W over Integer Ring with invariants (4, 12)
-    sage: Q([1,3])
+    sage: Q.linear_combination_of_smith_form_gens([1,3])
     (1, 3)
     sage: Q(V([1,3,4]))
     (0, 11)
@@ -222,6 +220,7 @@ from fgp_element  import DEBUG, FGP_Element
 from fgp_morphism import FGP_Morphism, FGP_Homset
 from sage.rings.all import Integer, ZZ, lcm
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecation
 
 import sage.misc.weak_dict
 from functools import reduce
@@ -611,16 +610,13 @@ class FGP_Module_class(Module):
             sage: x.parent() is Q
             True
         """
-#        print '_element_constructor_', x, check
-        if isinstance(x, (list,tuple)):
-            try:
-                x = self.optimized()[0].V().linear_combination_of_basis(x)
-            except ValueError as msg:
-                raise TypeError(msg)
-        elif isinstance(x, FGP_Element):
+        if isinstance(x, FGP_Element):
             x = x.lift()
+        elif isinstance(x,(list,tuple)):
+            deprecation(16261, "The default behaviour changed! If you"
+                               " *really* want a linear combination of smith"
+                               " generators, use .linear_combination_of_smith_form_gens.")
         return self.element_class(self, self._V(x))
-
 
     def linear_combination_of_smith_form_gens(self, x):
         r"""
@@ -1314,12 +1310,13 @@ class FGP_Module_class(Module):
             sage: V = span([[1/14,3/14],[0,1/2]],ZZ); W = ZZ^2
             sage: Q = V/W; Q
             Finitely generated module V/W over Integer Ring with invariants (2, 14)
-            sage: Q([1,11]).additive_order()
+            sage: Q.linear_combination_of_smith_form_gens([1,11]).additive_order()
             14
-            sage: f = Q.hom([Q([1,11]), Q([1,3])]); f
+            sage: f = Q.hom([Q.linear_combination_of_smith_form_gens([1,11]), Q.linear_combination_of_smith_form_gens([1,3])]); f
             Traceback (most recent call last):
             ...
             ValueError: phi must send optimized submodule of M.W() into N.W()
+
 
         """
         if len(im_gens) == 0:
@@ -1445,7 +1442,7 @@ class FGP_Module_class(Module):
             sage: type(Hom(M,Q))
             <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
             sage: H.category()
-            Category of hom sets in Category of modules over Integer Ring
+            Category of homsets of modules over Integer Ring
             sage: H.homset_category()
             Category of modules over Integer Ring
 

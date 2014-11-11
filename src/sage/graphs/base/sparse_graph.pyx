@@ -189,7 +189,7 @@ for both of these uses.
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
 
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 cdef enum:
     BT_REORDERING_CONSTANT = 145533211
@@ -507,7 +507,7 @@ cdef class SparseGraph(CGraph):
     # Unlabeled arc functions
     ###################################
 
-    cdef int add_arc_unsafe(self, int u, int v) except? -1:
+    cdef int add_arc_unsafe(self, int u, int v) except -1:
         """
         Adds arc (u, v) to the graph with no label.
 
@@ -566,7 +566,7 @@ cdef class SparseGraph(CGraph):
         self.check_vertex(v)
         self.add_arc_unsafe(u,v)
 
-    cdef int has_arc_unsafe(self, int u, int v):
+    cdef int has_arc_unsafe(self, int u, int v) except -1:
         """
         Checks whether arc (u, v) is in the graph.
 
@@ -589,7 +589,7 @@ cdef class SparseGraph(CGraph):
                 temp = temp.right
         return 0
 
-    cpdef bint has_arc(self, int u, int v):
+    cpdef bint has_arc(self, int u, int v) except -1:
         """
         Checks whether arc ``(u, v)`` is in the graph.
 
@@ -613,7 +613,7 @@ cdef class SparseGraph(CGraph):
             return False
         return self.has_arc_unsafe(u,v)
 
-    cdef int del_arc_unsafe(self, int u, int v):
+    cdef int del_arc_unsafe(self, int u, int v) except -1:
         """
         Deletes *all* arcs from u to v.
 
@@ -627,7 +627,9 @@ cdef class SparseGraph(CGraph):
         """
         cdef int i = (u * self.hash_length) + (v & self.hash_mask)
         cdef int compared, left_len, right_len
-        cdef SparseGraphBTNode *temp, **left_child, **right_child
+        cdef SparseGraphBTNode *temp
+        cdef SparseGraphBTNode **left_child
+        cdef SparseGraphBTNode **right_child
         cdef SparseGraphBTNode **parent = &self.vertices[i]
         cdef SparseGraphLLNode *labels
 
@@ -749,7 +751,7 @@ cdef class SparseGraph(CGraph):
     # Neighbor functions
     ###################################
 
-    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
+    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         """
         Gives all v such that (u, v) is an arc of the graph.
 
@@ -936,7 +938,7 @@ cdef class SparseGraph(CGraph):
 
         return l
 
-    cdef int in_neighbors_unsafe(self, int v, int *neighbors, int size):
+    cdef int in_neighbors_unsafe(self, int v, int *neighbors, int size) except -2:
         """
         Gives all u such that (u, v) is an arc of the graph.
 
@@ -1027,7 +1029,7 @@ cdef class SparseGraph(CGraph):
     # Labeled arc functions
     ###################################
 
-    cdef int add_arc_label_unsafe(self, int u, int v, int l) except? -1:
+    cdef int add_arc_label_unsafe(self, int u, int v, int l) except -1:
         """
         Adds arc (u, v) to the graph with label l.
 
@@ -1283,7 +1285,8 @@ cdef class SparseGraph(CGraph):
         cdef int i = (u * self.hash_length) + (v & self.hash_mask)
         cdef int compared
         cdef SparseGraphBTNode **parent = &self.vertices[i]
-        cdef SparseGraphLLNode **labels, *label
+        cdef SparseGraphLLNode **labels
+        cdef SparseGraphLLNode *label
         while parent[0] != NULL:
             compared = compare(parent[0].vertex, v)
             if compared > 0:

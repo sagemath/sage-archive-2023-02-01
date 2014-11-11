@@ -56,7 +56,7 @@ graphs. Here is what they can do
     :widths: 30, 70
     :delim: |
 
-    :meth:`~Digraph.path_semigroup` | Returns the (partial) semigroup formed by the paths of the digraph.
+    :meth:`~DiGraph.path_semigroup` | Returns the (partial) semigroup formed by the paths of the digraph.
 
 **Connectivity:**
 
@@ -82,6 +82,7 @@ graphs. Here is what they can do
     :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
     :meth:`~DiGraph.is_transitive` | Returns whether the digraph is transitive or not.
     :meth:`~DiGraph.is_aperiodic` | Returns whether the digraph is aperiodic or not.
+    :meth:`~DiGraph.period` | Returns the period of the digraph.
     :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
     :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
     :meth:`~DiGraph.topological_sort` | Returns a topological sort of the digraph if it is acyclic
@@ -100,7 +101,6 @@ Methods
 """
 
 from sage.rings.integer import Integer
-from sage.misc.superseded import deprecated_function_alias
 from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
@@ -138,12 +138,14 @@ class DiGraph(GenericGraph):
 
         sage: g = digraphs.ButterflyGraph(3)
         sage: g.plot()
+        Graphics object consisting of 81 graphics primitives
 
     You can also use the collection of pre-defined graphs, then create a
     digraph from them. ::
 
         sage: g = DiGraph(graphs.PetersenGraph())
         sage: g.plot()
+        Graphics object consisting of 50 graphics primitives
 
     Calling ``Digraph`` on a graph returns the original graph in which every
     edge is replaced by two different edges going toward opposite directions.
@@ -169,12 +171,14 @@ class DiGraph(GenericGraph):
     connected components with only two lines::
 
         sage: for component in g.connected_components():
-        ...      g.subgraph(component).plot()
+        ....:      g.subgraph(component).plot()
+        Graphics object consisting of 50 graphics primitives
 
     The same methods works for strongly connected components ::
 
         sage: for component in g.strongly_connected_components():
-        ...      g.subgraph(component).plot()
+        ....:      g.subgraph(component).plot()
+        Graphics object consisting of 50 graphics primitives
 
 
     INPUT:
@@ -763,28 +767,25 @@ class DiGraph(GenericGraph):
                     break
             num_verts = data.nrows()
         elif format == 'incidence_matrix':
-            try:
-                positions = []
-                for c in data.columns():
-                    NZ = c.nonzero_positions()
-                    if len(NZ) != 2:
-                        msg += "There must be two nonzero entries (-1 & 1) per column."
-                        assert False
-                    L = sorted(uniq(c.list()))
-                    if L != [-1,0,1]:
-                        msg += "Each column represents an edge: -1 goes to 1."
-                        assert False
-                    if c[NZ[0]] == -1:
-                        positions.append(tuple(NZ))
-                    else:
-                        positions.append((NZ[1],NZ[0]))
-                if loops      is None: loops     = False
-                if weighted   is None: weighted  = False
-                if multiedges is None:
-                    total = len(positions)
-                    multiedges = (  len(uniq(positions)) < total  )
-            except AssertionError:
-                raise ValueError(msg)
+            positions = []
+            for c in data.columns():
+                NZ = c.nonzero_positions()
+                if len(NZ) != 2:
+                    msg += "There must be two nonzero entries (-1 & 1) per column."
+                    raise ValueError(msg)
+                L = sorted(uniq(c.list()))
+                if L != [-1,0,1]:
+                    msg += "Each column represents an edge: -1 goes to 1."
+                    raise ValueError(msg)
+                if c[NZ[0]] == -1:
+                    positions.append(tuple(NZ))
+                else:
+                    positions.append((NZ[1],NZ[0]))
+            if loops      is None: loops     = False
+            if weighted   is None: weighted  = False
+            if multiedges is None:
+                total = len(positions)
+                multiedges = (  len(uniq(positions)) < total  )
             num_verts = data.nrows()
         elif format == 'DiGraph':
             if loops is None: loops = data.allows_loops()
@@ -1136,8 +1137,7 @@ class DiGraph(GenericGraph):
             sage: DiGraph({0:[1,2,3],4:[5,1]}).to_directed()
             Digraph on 6 vertices
         """
-        from copy import copy
-        return copy(self)
+        return self.copy()
 
     def to_undirected(self, implementation='c_graph', data_structure=None,
                       sparse=None):
@@ -1167,11 +1167,18 @@ class DiGraph(GenericGraph):
             [(0, 1), (0, 2), (1, 0)]
             sage: G.edges(labels=False)
             [(0, 1), (0, 2)]
+
+        TESTS:
+
+        Immutable graphs yield immutable graphs::
+
+            sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
         """
         if sparse is not None:
-            deprecation(14806,"The 'sparse' keyword has been deprecated, and "
-                        "is now replaced by 'data_structure' which has a different "
-                        "meaning. Please consult the documentation.")
+            if data_structure is not None:
+                raise ValueError("The 'sparse' argument is an alias for "
+                                 "'data_structure'. Please do not define both.")
             data_structure = "sparse" if sparse else "dense"
 
         if data_structure is None:
@@ -1184,16 +1191,23 @@ class DiGraph(GenericGraph):
             else:
                 data_structure = "static_sparse"
         from sage.graphs.all import Graph
-        G = Graph(name=self.name(), pos=self._pos, boundary=self._boundary,
-                  multiedges=self.allows_multiple_edges(), loops=self.allows_loops(),
-                  implementation=implementation, data_structure=data_structure)
-        G.name(self.name())
+        G = Graph(name=self.name(),
+                  pos=self._pos,
+                  boundary=self._boundary,
+                  multiedges=self.allows_multiple_edges(),
+                  loops=self.allows_loops(),
+                  implementation=implementation,
+                  data_structure=data_structure if data_structure!="static_sparse" else "sparse")
         G.add_vertices(self.vertex_iterator())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):
             from copy import copy
             G._embedding = copy(self._embedding)
         G._weighted = self._weighted
+
+        if data_structure == "static_sparse":
+            G=G.copy(data_structure=data_structure)
+
         return G
 
     ### Edge Handlers
@@ -1307,8 +1321,6 @@ class DiGraph(GenericGraph):
         """
         return iter(set(self._backend.iterator_in_nbrs(vertex)))
 
-    predecessor_iterator = deprecated_function_alias(7634, neighbor_in_iterator)
-
     def neighbors_in(self, vertex):
         """
         Returns the list of the in-neighbors of a given vertex.
@@ -1322,8 +1334,6 @@ class DiGraph(GenericGraph):
             [1, 4]
         """
         return list(self.neighbor_in_iterator(vertex))
-
-    predecessors = deprecated_function_alias(7634, neighbors_in)
 
     def neighbor_out_iterator(self, vertex):
         """
@@ -1342,8 +1352,6 @@ class DiGraph(GenericGraph):
         """
         return iter(set(self._backend.iterator_out_nbrs(vertex)))
 
-    successor_iterator = deprecated_function_alias(7634, neighbor_out_iterator)
-
     def neighbors_out(self, vertex):
         """
         Returns the list of the out-neighbors of a given vertex.
@@ -1357,8 +1365,6 @@ class DiGraph(GenericGraph):
             [1, 2, 3]
         """
         return list(self.neighbor_out_iterator(vertex))
-
-    successors = deprecated_function_alias(7634, neighbors_out)
 
     ### Degree functions
 
@@ -1378,13 +1384,9 @@ class DiGraph(GenericGraph):
             3
         """
         if vertices in self:
-            for d in self.in_degree_iterator(vertices):
-                return d # (weird, but works: only happens once!)
+            return self._backend.in_degree(vertices)
         elif labels:
-            di = {}
-            for v, d in self.in_degree_iterator(vertices, labels=labels):
-                di[v] = d
-            return di
+            return {v:d for v, d in self.in_degree_iterator(vertices, labels=labels)}
         else:
             return list(self.in_degree_iterator(vertices, labels=labels))
 
@@ -1418,24 +1420,12 @@ class DiGraph(GenericGraph):
         """
         if vertices is None:
             vertices = self.vertex_iterator()
-        elif vertices in self:
-            d = 0
-            for e in self.incoming_edge_iterator(vertices):
-                d += 1
-            yield d
-            return
         if labels:
             for v in vertices:
-                d = 0
-                for e in self.incoming_edge_iterator(v):
-                    d += 1
-                yield (v, d)
+                yield (v, self.in_degree(v))
         else:
             for v in vertices:
-                d = 0
-                for e in self.incoming_edge_iterator(v):
-                    d += 1
-                yield d
+                yield self.in_degree(v)
 
     def in_degree_sequence(self):
         r"""
@@ -1474,19 +1464,9 @@ class DiGraph(GenericGraph):
             1
         """
         if vertices in self:
-
-            try:
-                return self._backend.out_degree(vertices)
-
-            except AttributeError:
-                for d in self.out_degree_iterator(vertices):
-                    return d # (weird, but works: only happens once!)
-
+            return self._backend.out_degree(vertices)
         elif labels:
-            di = {}
-            for v, d in self.out_degree_iterator(vertices, labels=labels):
-                di[v] = d
-            return di
+            return {v:d for v, d in self.out_degree_iterator(vertices, labels=labels)}
         else:
             return list(self.out_degree_iterator(vertices, labels=labels))
 
@@ -1520,24 +1500,12 @@ class DiGraph(GenericGraph):
         """
         if vertices is None:
             vertices = self.vertex_iterator()
-        elif vertices in self:
-            d = 0
-            for e in self.outgoing_edge_iterator(vertices):
-                d += 1
-            yield d
-            return
         if labels:
             for v in vertices:
-                d = 0
-                for e in self.outgoing_edge_iterator(v):
-                    d += 1
-                yield (v, d)
+                yield (v, self.out_degree(v))
         else:
             for v in vertices:
-                d = 0
-                for e in self.outgoing_edge_iterator(v):
-                    d += 1
-                yield d
+                yield self.out_degree(v)
 
     def out_degree_sequence(self):
         r"""
@@ -2903,9 +2871,7 @@ class DiGraph(GenericGraph):
 
         """
         from sage.quivers.path_semigroup import PathSemigroup
-        # If self is immutable, then the copy is really cheap:
-        # __copy__ just returns self.
-        return PathSemigroup(self.copy(immutable=True))
+        return PathSemigroup(self)
 
     ### Directed Acyclic Graphs (DAGs)
 
@@ -3109,10 +3075,11 @@ class DiGraph(GenericGraph):
             sage: H.layout_acyclic_dummy()
             Traceback (most recent call last):
             ...
-            AssertionError: `self` should be an acyclic graph
+            ValueError: `self` should be an acyclic graph
         """
         if heights is None:
-            assert self.is_directed_acyclic(), "`self` should be an acyclic graph"
+            if not self.is_directed_acyclic():
+                raise ValueError("`self` should be an acyclic graph")
             levels = self.level_sets()
             levels = [sorted(z) for z in levels]
             heights = dict([[i, levels[i]] for i in range(len(levels))])
@@ -3414,9 +3381,88 @@ class DiGraph(GenericGraph):
             sage: g.is_aperiodic()
             True
 
+        .. SEEALSO::
+
+            :meth:`period`
         """
         import networkx
         return networkx.is_aperiodic(self.networkx_graph(copy=False))
+
+    def period(self):
+        r"""
+        Return the period of the current ``DiGraph``.
+
+        The period of a directed graph is the largest integer that
+        divides the length of every cycle in the graph, cf.
+        :wikipedia:`Aperiodic_graph`.
+
+        EXAMPLES:
+
+        The following graph has period ``2``::
+
+            sage: g = DiGraph({0: [1], 1: [0]})
+            sage: g.period()
+            2
+
+        The following graph has a cycle of length 2 and a cycle of length 3,
+        so it has period ``1``::
+
+            sage: g = DiGraph({0: [1, 4], 1: [2], 2: [0], 4: [0]})
+            sage: g.period()
+            1
+
+        Here is an example of computing the period of a digraph which is
+        not strongly connected. By definition, it is the :func:`gcd` of
+        the periods of its strongly connected components::
+
+            sage: g = DiGraph({-1: [-2], -2: [-3], -3: [-1],
+            ....:     1: [2], 2: [1]})
+            sage: g.period()
+            1
+            sage: sorted([s.period() for s
+            ....:         in g.strongly_connected_components_subgraphs()])
+            [2, 3]
+
+        ALGORITHM:
+
+        See the networkX implementation of ``is_aperiodic``, that is based
+        on breadth first search.
+
+        .. SEEALSO::
+
+            :meth:`is_aperiodic`
+        """
+        from sage.rings.arith import gcd
+
+        g = 0
+
+        for component in self.strongly_connected_components():
+            levels = dict((s, None) for s in component)
+            vertices_in_scc = levels # considers level as a set
+            s = component[0]
+            levels[s] = 0
+            this_level = [s]
+            l = 1
+            while this_level:
+                next_level = []
+                for u in this_level:
+                    # we have levels[u] == l-1
+                    for v in self.neighbor_out_iterator(u):
+                        # ignore edges leaving the component
+                        if v not in vertices_in_scc:
+                            continue
+                        level_v = levels[v]
+                        if level_v is not None: # Non-Tree Edge
+                            g = gcd(g, l - level_v)
+                            if g == 1:
+                                return 1
+                        else: # Tree Edge
+                            next_level.append(v)
+                            levels[v] = l
+                this_level = next_level
+                l += 1
+
+        return g
 
 import types
 

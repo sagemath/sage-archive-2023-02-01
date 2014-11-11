@@ -105,6 +105,7 @@ def AffineSpace(n, R=None, names='x'):
             names = ''
         else:
             raise TypeError("You must specify the variables names of the coordinate ring.")
+    names = normalize_names(n, names)
     if R in _Fields:
         if is_FiniteField(R):
             return AffineSpace_finite_field(n, R, names)
@@ -160,7 +161,6 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: AffineSpace(3, Zp(5), 'y')
             Affine Space of dimension 3 over 5-adic Ring with capped relative precision 20
         """
-        names = normalize_names(n, names)
         AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
         AffineScheme.__init__(self, self.coordinate_ring(), R)
@@ -564,12 +564,12 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         INPUT:
 
 
-        -  ``i`` - integer (default: dimension of self = last
+        -  ``i`` -- integer (default: dimension of self = last
            coordinate) determines which projective embedding to compute. The
            embedding is that which has a 1 in the i-th coordinate, numbered
            from 0.
 
-        -  ``PP`` - (default: None) ambient projective space, i.e.,
+        -  ``PP`` -- (default: None) ambient projective space, i.e.,
            codomain of morphism; this is constructed if it is not
            given.
 
@@ -598,6 +598,12 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: pi = AA.projective_embedding(2)
             sage: pi(z)
             (3 : 4 : 1)
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(ZZ,2)
+            sage: A.projective_embedding(2).codomain().affine_patch(2) == A
+            True
         """
         n = self.dimension_relative()
         if i is None:
@@ -607,15 +613,25 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
                 i = int(n)
         else:
             i = int(i)
+
         try:
-            return self.__projective_embedding[i]
+            phi = self.__projective_embedding[i]
+            #assume that if you've passed in a new codomain you want to override
+            #the existing embedding
+            if PP is None or phi.codomain() == PP:
+                return(phi)
         except AttributeError:
             self.__projective_embedding = {}
         except KeyError:
             pass
+
+        #if no ith embedding exists, we may still be here with PP==None
         if PP is None:
             from sage.schemes.projective.projective_space import ProjectiveSpace
             PP = ProjectiveSpace(n, self.base_ring())
+        elif PP.dimension_relative() != n:
+            raise ValueError("Projective Space must be of dimension %s"%(n))
+
         R = self.coordinate_ring()
         v = list(R.gens())
         if n < 0 or n >self.dimension_relative():
@@ -623,6 +639,8 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         v.insert(i, R(1))
         phi = self.hom(v, PP)
         self.__projective_embedding[i] = phi
+        #make affine patch and projective embedding match
+        PP.affine_patch(i,self)
         return phi
 
     def subscheme(self, X):

@@ -67,16 +67,14 @@ The following patches are applied:
    executable program.  Introduced in Trac #16178 (Build maxima fasl
    without asdf).
 
- * infodir.patch: Correct the path to the Info directory.
+ * infodir.patch: Correct the path to the Info directory.  Introduced
+   in Trac #11348 (maxima test fails when install tree is moved).
 
  * matrixexp.patch: Fix matrixexp(matrix([%i*%pi])), which broke after
    Maxima 5.29.1.  Introduced in Trac #13973.
 
- * maxima_bug_2526.patch: Fix for Maxima bug #2526 (abs_integrate
-   fails on integrate(sqrt(x + sqrt(x)), x)).  Introduced in Trac
-   #13364 (Upgrade Maxima to 5.29.1).
-
  * maxima.system.patch: Set c::*compile-in-constants* to t.
+   Introduced in Trac #11966 (OS X 10.7 Lion: Maxima fails to build).
 
  * undoing_true_false_printing_patch.patch: Revert an upstream change
    causing '?' to be printed around some words.  Introduced in Trac

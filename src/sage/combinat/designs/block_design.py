@@ -3,8 +3,7 @@ Block designs
 
 A *block design* is a set together with a family of subsets (repeated subsets
 are allowed) whose members are chosen to satisfy some set of properties that are
-deemed useful for a particular application. See :wikipedia:`Block_design`. It is
-an object equivalent to an incidence structure.
+deemed useful for a particular application. See :wikipedia:`Block_design`.
 
 REFERENCES:
 
@@ -160,7 +159,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
 
 def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
     """
-    Returns a projective geometry design.
+    Return a projective geometry design.
 
     A projective geometry design of parameters `n,d,F` has for points the lines
     of `F^{n+1}`, and for blocks the `d+1`-dimensional subspaces of `F^{n+1}`,
@@ -221,7 +220,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
     if algorithm == "gap":   # Requires GAP's Design
         from sage.interfaces.gap import gap
         gap.load_package("design")
-        gap.eval("D := PGPointFlatBlockDesign( %s, %s, %d )"%(n,q,d))
+        gap.eval("D := PGPointFlatBlockDesign( %s, %s, %d )"%(n,F.order(),d))
         v = eval(gap.eval("D.v"))
         gblcks = eval(gap.eval("D.blocks"))
         gB = []
@@ -263,7 +262,7 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
         sage: designs.DesarguesianProjectivePlaneDesign(6)
         Traceback (most recent call last):
         ...
-        ValueError: the order of a finite field must be a prime power.
+        ValueError: the order of a finite field must be a prime power
     """
     K = FiniteField(n, 'x')
     n2 = n**2
@@ -374,7 +373,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
 
 def projective_plane(n, check=True, existence=False):
     r"""
-    Returns a projective plane of order ``n`` as a 2-design.
+    Return a projective plane of order ``n`` as a 2-design.
 
     A finite projective plane is a 2-design with `n^2+n+1` lines (or blocks) and
     `n^2+n+1` points. For more information on finite projective planes, see the
@@ -460,7 +459,7 @@ def projective_plane(n, check=True, existence=False):
 
 def AffineGeometryDesign(n, d, F):
     r"""
-    Returns an Affine Geometry Design.
+    Return an Affine Geometry Design.
 
     INPUT:
 

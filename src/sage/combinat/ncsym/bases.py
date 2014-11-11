@@ -482,9 +482,6 @@ class NCSymBases(Category_realization_of_parent):
                  + q{{1, 3}, {2}} # q{{1, 3}, {2}}
             """
             if self.internal_coproduct_on_basis is not NotImplemented:
-                # TODO: if self is a coalgebra, then one would want
-                # to create a morphism of algebras with basis instead
-                # should there be a method self.coproduct_hom_category?
                 return Hom(self, tensor([self, self]),
                            ModulesWithBasis(self.base_ring()))(on_basis=self.internal_coproduct_on_basis)
             elif hasattr(self, "internal_coproduct_by_coercion"):

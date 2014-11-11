@@ -144,7 +144,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef Rational x
         x = Rational()
-        mpq_vector_get_entry(&x.value, &self._matrix[i], j)
+        mpq_vector_get_entry(x.value, &self._matrix[i], j)
         return x
 
     def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
@@ -197,7 +197,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
                 c = nonzero_positions_in_columns[j]
                 for k from 0 <= k < v.num_nonzero:
                     if v.positions[k] in c:
-                        mpq_vector_get_entry(&y, &right._matrix[v.positions[k]], j)
+                        mpq_vector_get_entry(y, &right._matrix[v.positions[k]], j)
                         mpq_mul(x, v.entries[k], y)
                         mpq_add(s, s, x)
                 mpq_vector_set_entry(&ans._matrix[i], j, s)
@@ -251,7 +251,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
                 c = nonzero_positions_in_columns[j]
                 for k from 0 <= k < v.num_nonzero:
                     if v.positions[k] in c:
-                        mpq_vector_get_entry(&y, &right._matrix[v.positions[k]], j)
+                        mpq_vector_get_entry(y, &right._matrix[v.positions[k]], j)
                         mpq_mul(x, v.entries[k], y)
                         mpq_add(s, s, x)
                 mpq_set(ans._matrix[i][j], s)

@@ -14,6 +14,7 @@ from sage.categories.crystals import Crystals
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.tensor import TensorProductsCategory
 
 class ClassicalCrystals(Category_singleton):
     """
@@ -83,6 +84,23 @@ class ClassicalCrystals(Category_singleton):
             Highest weight crystal of type A_3 of highest weight omega_1
         """
         return Crystals().example(n)
+
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of classical crystals defines no
+        additional structure: it only states that its objects are
+        `U_q(\mathfrak{g})`-crystals, where `\mathfrak{g}` is of
+        finite type.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: ClassicalCrystals().additional_structure()
+        """
+        return None
 
 
     class ParentMethods:
@@ -451,4 +469,19 @@ class ClassicalCrystals(Category_singleton):
             A = self.parent().cartan_type().opposition_automorphism()
             hw = [A[i] for i in hw]
             return self.to_lowest_weight()[0].e_string(hw)
+
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of classical crystals constructed by tensor
+        product of classical crystals.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: ClassicalCrystals().TensorProducts().extra_super_categories()
+                [Category of classical crystals]
+            """
+            return [self.base_category()]
 

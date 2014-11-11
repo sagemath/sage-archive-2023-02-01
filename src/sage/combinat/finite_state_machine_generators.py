@@ -30,9 +30,9 @@ for more details and a lot of examples.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
     :meth:`~TransducerGenerators.Wait` | Returns a transducer writing ``False`` until first (or k-th) true input is read.
-    :meth:`~TransducerGenerators.weight` | Returns a transducer realizing the Hamming weight
+    :meth:`~TransducerGenerators.weight` | Returns a transducer realizing the Hamming weight.
     :meth:`~TransducerGenerators.GrayCode` | Returns a transducer realizing binary Gray code.
-    :meth:`~TransducerGenerators.Recursion` | Returns a transducer defined by recursions
+    :meth:`~TransducerGenerators.Recursion` | Returns a transducer defined by recursions.
 
 AUTHORS:
 

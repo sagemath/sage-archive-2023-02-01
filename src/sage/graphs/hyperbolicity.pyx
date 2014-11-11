@@ -481,6 +481,133 @@ def _greedy_dominating_set(H, verbose=False):
     return DOM
 
 ######################################################################
+# Distances and far-apart pairs
+######################################################################
+
+from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph
+
+cdef inline distances_and_far_apart_pairs(gg,
+                                          unsigned short * distances,
+                                          unsigned short * far_apart_pairs):
+    """
+    Compute both distances between all pairs and far-apart pairs.
+
+    See the module's documentation for the definition of far-apart pairs.
+
+    This method assumes that the arays distances and far_apart_pairs have been
+    allocated with size `n^2`.
+    """
+
+    cdef int n = gg.order()
+    cdef int i
+
+    if distances == NULL or far_apart_pairs == NULL:
+        raise ValueError("This method can only be used to compute both "+
+                         "distances and far-apart pairs.")
+    elif n > <unsigned short> -1:
+        # Computing the distances/far_apart_pairs can only be done if we have
+        # less than MAX_UNSIGNED_SHORT vertices.
+        raise ValueError("The graph backend contains more than "+
+                         str(<unsigned short> -1)+" nodes and we cannot "+
+                         "compute the matrix of distances/far-apart pairs on "+
+                         "something like that !")
+
+    # The vertices which have already been visited
+    cdef bitset_t seen
+    bitset_init(seen, n)
+
+    # The list of waiting vertices, the beginning and the end of the list
+    cdef uint32_t * waiting_list = <uint32_t *> sage_malloc(n * sizeof(uint32_t))
+    if waiting_list == NULL:
+        sage_free(seen)
+        raise MemoryError("Unable to allocate array 'waiting_list' with size %d." %(n))
+    cdef uint32_t waiting_beginning = 0
+    cdef uint32_t waiting_end = 0
+
+    cdef uint32_t source
+    cdef uint32_t v, u
+
+    cdef unsigned short ** c_far_apart = <unsigned short **> sage_malloc(n * sizeof(unsigned short*))
+    if c_far_apart == NULL:
+        bitset_free(seen)
+        sage_free(waiting_list)
+        raise MemoryError("Unable to allocate array 'c_far_apart' with size %d." %(n))
+
+    # All pairs are initially far-apart
+    memset(far_apart_pairs, 1, n * n * sizeof(unsigned short))
+    for i from 0 <= i < n:
+        c_far_apart[i] = far_apart_pairs + i * n
+        c_far_apart[i][i] = 0
+
+
+    # Copying the whole graph to obtain the list of neighbors quicker than by
+    # calling out_neighbors. This data structure is well documented in the
+    # module sage.graphs.base.static_sparse_graph
+    cdef short_digraph sd
+    init_short_digraph(sd, gg)
+    cdef uint32_t ** p_vertices = sd.neighbors
+    cdef uint32_t * p_tmp
+    cdef uint32_t * end
+    
+    cdef unsigned short * c_distances = distances
+
+    # We run n different BFS taking each vertex as a source
+    for source from 0 <= source < n:
+
+        # The source is seen
+        bitset_clear(seen)
+        bitset_add(seen, source)
+        c_distances[source] = 0
+
+        # and added to the queue
+        waiting_list[0] = source
+        waiting_beginning = 0
+        waiting_end = 0
+
+        # For as long as there are vertices left to explore
+        while waiting_beginning <= waiting_end:
+
+            # We pick the first one
+            v = waiting_list[waiting_beginning]
+
+            p_tmp = p_vertices[v]
+            end = p_vertices[v+1]
+
+            # Iterating over all the outneighbors u of v
+            while p_tmp < end:
+                u = p_tmp[0]
+
+                # If we notice one of these neighbors is not seen yet, we set
+                # its parameters and add it to the queue to be explored later.
+                if not bitset_in(seen, u):
+                    c_distances[u] = c_distances[v]+1
+                    bitset_add(seen, u)
+                    waiting_end += 1
+                    waiting_list[waiting_end] = u
+
+                if c_distances[u] == c_distances[v]+1:
+                    # v is on the path from source to u
+                    c_far_apart[source][v] = 0
+                    c_far_apart[v][source] = 0
+
+                p_tmp += 1
+
+            waiting_beginning += 1
+
+        # If not all the vertices have been met
+        for v from 0 <= v < n:
+            if not bitset_in(seen, v):
+                c_distances[v] = -1
+
+        c_distances += n
+
+    bitset_free(seen)
+    sage_free(waiting_list)
+    free_short_digraph(sd)
+    sage_free(c_far_apart)
+
+
+######################################################################
 # Compute the hyperbolicity using a path decreasing length ordering
 ######################################################################
 

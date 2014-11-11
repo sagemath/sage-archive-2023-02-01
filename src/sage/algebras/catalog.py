@@ -10,10 +10,14 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 ``algebras.<tab>`` to the see the currently implemented named algebras.
 
 - :class:`algebras.Clifford <sage.algebras.clifford_algebra.CliffordAlgebra>`
+- :class:`algebras.DifferentialWeyl
+  <sage.algebras.weyl_algebra.DifferentialWeylAlgebra>`
 - :class:`algebras.Exterior <sage.algebras.clifford_algebra.ExteriorAlgebra>`
 - :class:`algebras.FiniteDimensional
   <sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra.FiniteDimensionalAlgebra>`
 - :class:`algebras.Free <sage.algebras.free_algebra.FreeAlgebraFactory>`
+- :func:`algebras.GradedCommutative
+  <sage.algebras.commutative_dga.GradedCommutativeAlgebra>`
 - :class:`algebras.Group <sage.algebras.group_algebra_new.GroupAlgebra>`
 - :class:`algebras.Hall <sage.algebras.hall_algebra.HallAlgebra>`
 - :class:`algebras.IwahoriHecke
@@ -25,8 +29,6 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Shuffle <sage.algebras.shuffle_algebra.ShuffleAlgebra>`
 - :class:`algebras.Steenrod
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`
-- :class:`algebras.DifferentialWeyl
-  <sage.algebras.weyl_algebra.DifferentialWeylAlgebra>`
 """
 
 from sage.algebras.free_algebra import FreeAlgebra as Free
@@ -43,5 +45,6 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra', 'NilCoxeter')
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra', 'Hall')
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
+lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion
 

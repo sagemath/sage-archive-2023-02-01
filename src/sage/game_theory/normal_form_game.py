@@ -1222,11 +1222,15 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: c._solve_enumeration()
             [[(0, 1), (1, 0)]]
 
-        Here is a test that failed during development because of error in `check_NE`::
+        Here is a test that failed during development because of error in
+        `check_NE`.  Note that 1 equilibrium is missing:
+        `[(2/3, 1/3), (0, 1)]` however this equilibrium has supports of
+        different sizes. This only occurs in degenerate games and is
+        not supported in the `enumeration` algorithm::
 
             sage: N = NormalFormGame([matrix(2,[0,-1,-2,-1]),matrix(2,[1,0,0,2])])
             sage: N._solve_enumeration()
-            [[(2/3, 1/3), (0, 1)], [(0, 1), (0, 1)], [(1, 0), (1, 0)]]
+            [[(1, 0), (1, 0)], [(0, 1), (0, 1)]]
 
         Here is another::
 

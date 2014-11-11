@@ -2494,46 +2494,7 @@ class FiniteStateMachine(SageObject):
         :attr:`on_duplicate_transition` and methods
         :meth:`.determine_alphabets`,
         :meth:`.construct_final_word_out` on the new machine,
-        respectively. ::
-
-            sage: FiniteStateMachine(F, initial_states=[1])
-            Traceback (most recent call last):
-            ...
-            ValueError: initial_states cannot be specified when
-            copying another finite state machine.
-            sage: FiniteStateMachine(F, final_states=[1])
-            Traceback (most recent call last):
-            ...
-            ValueError: final_states cannot be specified when
-            copying another finite state machine.
-            sage: FiniteStateMachine(F, input_alphabet=[1])
-            Traceback (most recent call last):
-            ...
-            ValueError: input_alphabet cannot be specified when
-            copying another finite state machine.
-            sage: FiniteStateMachine(F, output_alphabet=[1])
-            Traceback (most recent call last):
-            ...
-            ValueError: output_alphabet cannot be specified when
-            copying another finite state machine.
-            sage: from sage.combinat.finite_state_machine import (
-            ....:     duplicate_transition_add_input)
-            sage: FiniteStateMachine(F,
-            ....:     on_duplicate_transition=duplicate_transition_add_input)
-            Traceback (most recent call last):
-            ...
-            ValueError: on_duplicate_transition cannot be specified when
-            copying another finite state machine.
-            sage: FiniteStateMachine(F, determine_alphabets=False)
-            Traceback (most recent call last):
-            ...
-            ValueError: determine_alphabets cannot be specified when
-            copying another finite state machine.
-            sage: FiniteStateMachine(F, with_final_word_out=[1])
-            Traceback (most recent call last):
-            ...
-            ValueError: with_final_word_out cannot be specified when
-            copying another finite state machine.
+        respectively.
 
     The following examples demonstrate the use of ``on_duplicate_transition``::
 
@@ -2624,6 +2585,49 @@ class FiniteStateMachine(SageObject):
         sage: t4 = FSMTransition(c, d)
         sage: FiniteStateMachine([t1, t2, t3, t4])
         Finite state machine with 4 states
+
+    We test that no input parameter is allowed when creating a finite
+    state machine from an existing instance::
+
+        sage: F = FiniteStateMachine()
+        sage: FiniteStateMachine(F, initial_states=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: initial_states cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, final_states=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: final_states cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, input_alphabet=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: input_alphabet cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, output_alphabet=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: output_alphabet cannot be specified when
+        copying another finite state machine.
+        sage: from sage.combinat.finite_state_machine import (
+        ....:     duplicate_transition_add_input)
+        sage: FiniteStateMachine(F,
+        ....:     on_duplicate_transition=duplicate_transition_add_input)
+        Traceback (most recent call last):
+        ...
+        ValueError: on_duplicate_transition cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, determine_alphabets=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: determine_alphabets cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, with_final_word_out=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: with_final_word_out cannot be specified when
+        copying another finite state machine.
     """
 
     on_duplicate_transition = duplicate_transition_ignore

@@ -2605,7 +2605,8 @@ class FiniteStateMachine(SageObject):
 
     .. SEEALSO::
 
-        :class:`FiniteStateMachine`, :meth:`determine_alphabets`
+        :class:`FiniteStateMachine`, :meth:`determine_alphabets`,
+        :attr:`output_alphabet`
     """
 
     output_alphabet = None
@@ -2620,7 +2621,8 @@ class FiniteStateMachine(SageObject):
 
     .. SEEALSO::
 
-        :class:`FiniteStateMachine`, :meth:`determine_alphabets`
+        :class:`FiniteStateMachine`, :meth:`determine_alphabets`,
+        :attr:`input_alphabet`
     """
 
     #*************************************************************************

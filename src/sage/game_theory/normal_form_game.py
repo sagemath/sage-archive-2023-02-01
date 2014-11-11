@@ -1222,12 +1222,18 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: c._solve_enumeration()
             [[(0, 1), (1, 0)]]
 
-        Here is a test that failed during development::
+        Here is a test that failed during development because of error in `check_NE`::
 
             sage: N = NormalFormGame([matrix(2,[0,-1,-2,-1]),matrix(2,[1,0,0,2])])
-            sage: N.obtain_nash(algorithm='enumeration')
+            sage: N._solve_enumeration()
             [[(2/3, 1/3), (0, 1)], [(0, 1), (0, 1)], [(1, 0), (1, 0)]]
-        """
+
+        Here is another::
+
+            sage: N = NormalFormGame([matrix(2,[7,-8,-4,-8,7,0]),matrix(2,[-9,-1,-8,3,2,3])])
+            sage: N._solve_enumeration()
+            [[(0, 1), (0, 0, 1)]]
+            """
 
         M1, M2 = self.payoff_matrices()
         if maximization is False:
@@ -1429,6 +1435,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: Z._is_NE([2/9, 0, 7/9], [0, 3/4, 1/4], (0, 2), (1, 2), X, Y)
             True
 
+        Checking pure strategies are not forgotten::
+
             sage: A = matrix(2, [0, -1, -2, -1])
             sage: B = matrix(2, [1, 0, 0, 2])
             sage: N = NormalFormGame([A, B])
@@ -1440,6 +1448,10 @@ class NormalFormGame(SageObject, MutableMapping):
             False
             sage: N._is_NE([0, 1], [1, 0], (1,), (0,), A, B)
             False
+
+            sage: A = matrix(3, [-7, -5,  5, 5,  5,  3,  1, -6,  1])
+            sage: B = matrix(3, [-9, 7, 9, 6, -2, -3, -4, 6, -10])
+            sage: N = NormalFormGame([A, B])
         """
         # Check that supports are obeyed
         if not (all([a[i] > 0 for i in p1_support]) and

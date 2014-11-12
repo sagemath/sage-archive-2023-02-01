@@ -10,9 +10,6 @@ Website: http://gf2x.gforge.inria.fr/
 == License ==
  * GNU GPLv2+.
 
-== SPKG Maintainers ==
- * Jean-Pierre Flori
-
 == Upstream Contact ==
  * Richard Brent
  * Pierrick Gaudry
@@ -40,14 +37,3 @@ Website: http://gf2x.gforge.inria.fr/
    code used by autotools for generation of the build system. This patches
    those files, so that autotools need not be installed.
 
-== Changelog ==
-
-=== gf2x-1.1.p1 (Jean-Pierre Flori, Erik Massop, 19 June 2014) ===
-  * Trac #15316: Use --libdir and make SAGE_FAT_BINARY work.
-  * Trac #16481: Use stricter sse-2 check for gf2x
-
-=== gf2x-1.1.p0 (Jean-Pierre Flori, 6 August 2013) ===
-  * Trac #15014: Let gf2x build a shared library on Cygwin.
-
-=== gf2x-1.1 (Jean-Pierre Flori, 4 June 2013) ===
-  * Trac #2114: gf2x-1.1.

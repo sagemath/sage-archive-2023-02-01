@@ -1428,9 +1428,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [3 4], 1
             )
             sage: a.echelonize(algorithm="padic")
-            sage: a._cache
-            {'in_echelon_form': True,
-             'pivots': (0, 1)}
+            sage: sorted(a._cache.items())
+            [('in_echelon_form', True), ('pivots', (0, 1))]
         """
 
         x = self.fetch('in_echelon_form')

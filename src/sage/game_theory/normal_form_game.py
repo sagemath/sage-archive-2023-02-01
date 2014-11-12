@@ -66,7 +66,7 @@ first few examples, we will use the 'support enumeration' algorithm.
 A discussion about the different algorithms will be given later::
 
     sage: battle_of_the_sexes.obtain_nash(algorithm='enumeration')
-    [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(3/4, 1/4), (1/4, 3/4)]]
+    [[(0, 1), (0, 1)], [(3/4, 1/4), (1/4, 3/4)], [(1, 0), (1, 0)]]
 
 If we look a bit closer at our output we see that a list of three
 pairs of tuples have been returned. Each of these correspond to a
@@ -105,12 +105,12 @@ To compute this in Sage we have::
     sage: for ne in battle_of_the_sexes.obtain_nash(algorithm='enumeration'):
     ....:     print "Utility for {}: ".format(ne)
     ....:     print vector(ne[0]) * A * vector(ne[1]), vector(ne[0]) * B * vector(ne[1])
-    Utility for [(1, 0), (1, 0)]:
-    3 2
     Utility for [(0, 1), (0, 1)]:
     2 3
     Utility for [(3/4, 1/4), (1/4, 3/4)]:
     3/2 3/2
+    Utility for [(1, 0), (1, 0)]:
+    3 2
 
 Allowing players to play mixed strategies ensures that there will always
 be a Nash Equilibrium for a normal form game. This result is called Nash's
@@ -393,9 +393,9 @@ is evidenced by the two algorithms returning different solutions::
     sage: B = matrix([[3,3],[2,6],[3,1]])
     sage: degenerate_game = NormalFormGame([A,B])
     sage: degenerate_game.obtain_nash(algorithm='lrs') # optional - lrs
-    [[(1, 0, 0), (1, 0)], [(1, 0, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+    [[(0, 1/3, 2/3), (1/3, 2/3)], [(1, 0, 0), (2/3, 1/3)], [(1, 0, 0), (1, 0)]]
     sage: degenerate_game.obtain_nash(algorithm='enumeration')
-    [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+    [[(0, 1/3, 2/3), (1/3, 2/3)], [(1, 0, 0), (1, 0)]]
 
 Here is an example with the trivial game where all payoffs are 0::
 
@@ -411,7 +411,7 @@ Here is an example with the trivial game where all payoffs are 0::
     [0 0 0], [0 0 0]
     )
     sage: g.obtain_nash(algorithm='enumeration')
-    [[(1, 0, 0), (1, 0, 0)], [(1, 0, 0), (0, 1, 0)], [(1, 0, 0), (0, 0, 1)], [(0, 1, 0), (1, 0, 0)], [(0, 1, 0), (0, 1, 0)], [(0, 1, 0), (0, 0, 1)], [(0, 0, 1), (1, 0, 0)], [(0, 0, 1), (0, 1, 0)], [(0, 0, 1), (0, 0, 1)]]
+    [[(0, 0, 1), (0, 0, 1)], [(0, 0, 1), (0, 1, 0)], [(0, 0, 1), (1, 0, 0)], [(0, 1, 0), (0, 0, 1)], [(0, 1, 0), (0, 1, 0)], [(0, 1, 0), (1, 0, 0)], [(1, 0, 0), (0, 0, 1)], [(1, 0, 0), (0, 1, 0)], [(1, 0, 0), (1, 0, 0)]]
 
 A good description of degenerate games can be found in [NN2007]_.
 
@@ -1012,7 +1012,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3,1]])
             sage: g = NormalFormGame([A, B])
             sage: g.obtain_nash(algorithm='enumeration')
-            [[(1, 0, 0), (1, 0)], [(4/5, 1/5, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+            [[(0, 1/3, 2/3), (1/3, 2/3)], [(4/5, 1/5, 0), (2/3, 1/3)], [(1, 0, 0), (1, 0)]]
 
         Here is a slightly larger game::
 
@@ -1057,8 +1057,24 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3,1]])
             sage: g = NormalFormGame([A, B])
             sage: g.obtain_nash(algorithm='enumeration')
-            [[(1, 0, 0), (1, 0)], [(4/5, 1/5, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)]]
+            [[(0, 1/3, 2/3), (1/3, 2/3)], [(4/5, 1/5, 0), (2/3, 1/3)], [(1, 0, 0), (1, 0)]]
 
+        Note that outputs for all algorithms are as lists of lists of
+        tuples and the equilibria have been sorted so that all algorithms give
+        a comparable output::
+
+            sage: enumeration_eqs = g.obtain_nash(algorithm='enumeration')
+            sage: [[type(s) for s in eq] for eq in enumeration_eqs]
+            [[<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>]]
+            sage: lrs_eqs = g.obtain_nash(algorithm='lrs')  # optional - lrs
+            sage: [[type(s) for s in eq] for eq in lrs_eqs]  # optional - lrs
+            [[<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>]]
+            sage: enumeration_eqs == sorted(enumeration_eqs)
+            True
+            sage: lrs_eqs == sorted(lrs_eqs)  # optional - lrs
+            True
+            sage: lrs_eqs == enumeration_eqs  # optional - lrs
+            True
 
         """
         if len(self.players) > 2:
@@ -1125,7 +1141,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:              [-4, 6, -10]])
         sage: biggame = NormalFormGame([p1, p2])
         sage: biggame._solve_lrs() # optional - lrs
-        [[(1/3, 2/3, 0), (0, 1/6, 5/6)], [(1/3, 2/3, 0), (1/7, 0, 6/7)], [(1, 0, 0), (0, 0, 1)], [(0, 1, 0), (1, 0, 0)]]
+        [[(0, 1, 0), (1, 0, 0)], [(1/3, 2/3, 0), (0, 1/6, 5/6)], [(1/3, 2/3, 0), (1/7, 0, 6/7)], [(1, 0, 0), (0, 0, 1)]]
         """
         m1, m2 = self.payoff_matrices()
         if maximization is False:
@@ -1145,7 +1161,7 @@ class NormalFormGame(SageObject, MutableMapping):
         process = Popen(['nash', g1_name, g2_name], stdout=PIPE)
         lrs_output = [row for row in process.stdout]
         nasheq = Parser(lrs_output).format_lrs()
-        return nasheq
+        return sorted(nasheq)
 
     def _solve_enumeration(self, maximization=True):
         r"""
@@ -1192,7 +1208,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: t = matrix([[3, 2], [-1, 0]])
             sage: example = NormalFormGame([s, t])
             sage: example._solve_enumeration()
-            [[(1, 0), (1, 0)], [(0, 1), (0, 1)], [(1/2, 1/2), (1/2, 1/2)]]
+            [[(0, 1), (0, 1)], [(1/2, 1/2), (1/2, 1/2)], [(1, 0), (1, 0)]]
 
         Another::
 
@@ -1206,7 +1222,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3, 2, 1, 1]])
             sage: C = NormalFormGame([A, B])
             sage: C._solve_enumeration()
-            [[(1, 0, 0, 0), (0, 0, 1, 0)], [(0, 0, 0, 1), (1, 0, 0, 0)], [(2/7, 0, 0, 5/7), (5/11, 0, 6/11, 0)]]
+            [[(0, 0, 0, 1), (1, 0, 0, 0)], [(2/7, 0, 0, 5/7), (5/11, 0, 6/11, 0)], [(1, 0, 0, 0), (0, 0, 1, 0)]]
 
         Again::
 
@@ -1218,7 +1234,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [5, 4, 6]])
             sage: Z = NormalFormGame([X, Y])
             sage: Z._solve_enumeration()
-            [[(1, 0, 0), (0, 1, 0)], [(0, 0, 1), (0, 0, 1)], [(2/9, 0, 7/9), (0, 3/4, 1/4)]]
+            [[(0, 0, 1), (0, 0, 1)], [(2/9, 0, 7/9), (0, 3/4, 1/4)], [(1, 0, 0), (0, 1, 0)]]
 
         TESTS:
 
@@ -1243,13 +1259,13 @@ class NormalFormGame(SageObject, MutableMapping):
 
             sage: N = NormalFormGame([matrix(2,[0,-1,-2,-1]),matrix(2,[1,0,0,2])])
             sage: N._solve_enumeration()
-            [[(1, 0), (1, 0)], [(0, 1), (0, 1)]]
+            [[(0, 1), (0, 1)], [(1, 0), (1, 0)]]
 
         In this instance the `lrs` algorithm is able to find all three equilibria::
 
             sage: N = NormalFormGame([matrix(2,[0,-1,-2,-1]),matrix(2,[1,0,0,2])])
             sage: N.obtain_nash(algorithm='lrs')  # optional t- lrs
-            [[(2/3, 1/3), (0, 1)], [(0, 1), (0, 1)], [(1, 0), (1, 0)]]
+            [[(0, 1), (0, 1)], [(2/3, 1/3), (0, 1)], [(1, 0), (1, 0)]]
 
         Here is another::
 
@@ -1277,8 +1293,8 @@ class NormalFormGame(SageObject, MutableMapping):
                and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
                     result = self._solve_indifference(pair[0], pair[1], M1, M2)
                     if result:
-                        equilibria.append([result[0], result[1]])
-        return equilibria
+                        equilibria.append([tuple(result[0]), tuple(result[1])])
+        return sorted(equilibria)
 
     def _row_cond_dominance(self, p1_sup, p2_sup, matrix):
         r"""

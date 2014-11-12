@@ -393,7 +393,7 @@ is evidenced by the two algorithms returning different solutions::
     sage: B = matrix([[3,3],[2,6],[3,1]])
     sage: degenerate_game = NormalFormGame([A,B])
     sage: degenerate_game.obtain_nash(algorithm='lrs') # optional - lrs
-    [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (2/3, 1/3)]]
+    [[(1, 0, 0), (1, 0)], [(1, 0, 0), (2/3, 1/3)], [(0, 1/3, 2/3), (1/3, 2/3)]]
     sage: degenerate_game.obtain_nash(algorithm='enumeration')
     [[(1, 0, 0), (1, 0)], [(0, 1/3, 2/3), (1/3, 2/3)]]
 
@@ -1108,11 +1108,11 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: p2 = matrix([[0, 1, 1, 3, 1],
         ....:              [3, 9, 44, -1, -1],
         ....:              [1, -4, -1, -3, 1],
-        ....:              [1, 0, 1, 0, 0,],
+        ....:              [1, 0, 0, 0, 0,],
         ....:              [1, -3, 1, 21, -2]])
         sage: biggame = NormalFormGame([p1, p2])
         sage: biggame._solve_lrs() # optional - lrs
-        [[(0, 0, 0, 20/21, 1/21), (11/12, 0, 0, 1/12, 0)], [(0, 0, 0, 1, 0), (9/10, 0, 1/10, 0, 0)]]
+        [[(0, 0, 0, 20/21, 1/21), (11/12, 0, 0, 1/12, 0)]]
 
 
         Another game that failed during development::
@@ -1125,6 +1125,7 @@ class NormalFormGame(SageObject, MutableMapping):
         ....:              [-4, 6, -10]])
         sage: biggame = NormalFormGame([p1, p2])
         sage: biggame._solve_lrs() # optional - lrs
+        [[(1/3, 2/3, 0), (0, 1/6, 5/6)], [(1/3, 2/3, 0), (1/7, 0, 6/7)], [(1, 0, 0), (0, 0, 1)], [(0, 1, 0), (1, 0, 0)]]
         """
         m1, m2 = self.payoff_matrices()
         if maximization is False:

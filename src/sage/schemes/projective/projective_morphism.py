@@ -1688,18 +1688,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                         Res = lcm(Res, abs(CoeffPolys[j].coefficients()[i].denominator()))
             h = max([c.global_height() for g in CoeffPolys for c in (Res*g).coefficients()])
             MCP.append([Res, h]) #since we need to clear denominators
-        print MCP
         maxh = 0
         gcdRes = 0
         for k in range(len(MCP)):
             gcdRes = gcd(gcdRes, MCP[k][0])
             maxh = max(maxh, MCP[k][1])
-        print maxh
-        print R(gcdRes).log()
-        print R((N + 1) * binomial(N + D - d, D - d)).log()
         L = abs( R(gcdRes).log() - R((N + 1) * binomial(N + D - d, D - d)).log() - maxh)
         C = max(U, L) #height difference dh(P) - L <= h(f(P)) <= dh(P) +U
-        print U,L
         return(C / (d - 1))
 
     def multiplier(self, P, n, check=True):

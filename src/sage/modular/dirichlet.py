@@ -2,18 +2,14 @@
 r"""
 Dirichlet characters
 
-A ``DirichletCharacter`` is the extension of a
-homomorphism
+A :class:`DirichletCharacter` is the extension of a homomorphism
 
 .. math::
 
-       (\ZZ/N\ZZ)^* \to R^*,
+    (\ZZ/N\ZZ)^* \to R^*,
 
-
-for some ring `R`, to the map
-`\ZZ/N\ZZ \to R` obtained by sending those
-`x\in\ZZ/N\ZZ` with `\gcd(N,x)>1` to
-`0`.
+for some ring `R`, to the map `\ZZ/N\ZZ \to R` obtained by sending
+those `x\in\ZZ/N\ZZ` with `\gcd(N,x)>1` to `0`.
 
 EXAMPLES::
 
@@ -24,9 +20,7 @@ EXAMPLES::
     sage: e.order()
     12
 
-This illustrates a canonical coercion.
-
-::
+This illustrates a canonical coercion::
 
     sage: e = DirichletGroup(5, QQ).0
     sage: f = DirichletGroup(5,CyclotomicField(4)).0
@@ -170,6 +164,7 @@ def is_DirichletCharacter(x):
     """
     return isinstance(x, DirichletCharacter)
 
+
 class DirichletCharacter(MultiplicativeGroupElement):
     """
     A Dirichlet character
@@ -221,29 +216,33 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         TESTS::
 
-        Check that :trac:`17283` is fixed::
+        It is checked that the orders of the elements in `x` are
+        admissible (see :trac:`17283`)::
 
             sage: k.<i> = CyclotomicField(4)
             sage: G = DirichletGroup(192)
             sage: G([i, -1, -1])
             Traceback (most recent call last):
             ...
-            ValueError: incompatible orders of values on generators
+            ValueError: incompatible orders of values (= [zeta16^4, -1, -1]) on generators (want (2, 16, 2))
         """
         MultiplicativeGroupElement.__init__(self, parent)
         self.__modulus = parent.modulus()
         if check:
-            if len(x) != len(parent.unit_gens()):
-                raise ValueError("wrong number of values (= %s) on generators (want %s)"
-                                 % (x, len(parent.unit_gens())))
-            elif not all (map(lambda u, v: u.multiplicative_order().divides(v),
-                              x, parent.integers_mod().unit_group().gens_orders())):
-                raise ValueError("incompatible orders of values on generators")
+            orders = parent.integers_mod().unit_group().gens_orders()
+            if len(x) != len(orders):
+                raise ValueError("wrong number of values (= {}) on generators (want {})".format(x, len(orders)))
             if free_module_element.is_FreeModuleElement(x):
-                self.__element = parent._module(x)
+                x = parent._module(x)
+                if any(map(lambda u, v: v*u != 0, x, orders)):
+                    raise ValueError("incompatible orders of values (= {}) on generators (want {})".format(x, orders))
+                self.__element = x
             else:
                 R = parent.base_ring()
-                self.__values_on_gens = tuple([R(z) for z in x])
+                x = map(R, x)
+                if R.is_exact() and any(map(lambda u, v: u**v != 1, x, orders)):
+                    raise ValueError("incompatible orders of values (= {}) on generators (want {})".format(x, orders))
+                self.__values_on_gens = tuple(x)
         else:
             if free_module_element.is_FreeModuleElement(x):
                 self.__element = x

@@ -9040,10 +9040,10 @@ cdef class gen(sage.structure.element.RingElement):
 
         - `d_1, \ldots, d_k` are the unique integers greater than 1
           with `d_k \mid d_{k-1} \mid \ldots \mid d_1` such that
-          `(\ZZ/n\ZZ)^*` is isomorphic to `\prod_{i=1}^k \ZZ/d_k\ZZ`;
+          `(\ZZ/n\ZZ)^*` is isomorphic to `\prod_{i=1}^k \ZZ/d_i\ZZ`;
 
         - `x_1, \ldots, x_k` are the images of the standard generators
-          under some isomorphism from `\prod_{i=1}^k \ZZ/d_k\ZZ` to
+          under some isomorphism from `\prod_{i=1}^k \ZZ/d_i\ZZ` to
           `(\ZZ/n\ZZ)^*`.
 
         EXAMPLES::

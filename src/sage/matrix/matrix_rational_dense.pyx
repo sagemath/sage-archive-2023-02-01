@@ -1430,6 +1430,16 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: a.echelonize(algorithm="padic")
             sage: sorted(a._cache.items())
             [('in_echelon_form', True), ('pivots', (0, 1))]
+            sage: a = Matrix(QQ, [[1,3],[3,4]])
+            sage: a.det(); a._clear_denom()
+            -5
+            (
+            [1 3]
+            [3 4], 1
+            )
+            sage: a.echelonize(algorithm="multimodular")
+            sage: sorted(a._cache.items())
+            [('in_echelon_form', True), ('pivots', (0, 1))]
         """
 
         x = self.fetch('in_echelon_form')
@@ -1453,7 +1463,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             pivots = self._echelonize_multimodular(height_guess, proof, **kwds)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
-        self._clear_cache()
         self.cache('in_echelon_form', True)
 
         if pivots is None:
@@ -1597,6 +1606,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         t = verbose('Computing echelonization of %s x %s matrix over QQ using p-adic nullspace algorithm.'%
                     (self.nrows(), self.ncols()))
         A, _ = self._clear_denom()
+        self._clear_cache()
         t = verbose('  Got integral matrix', t)
         pivots, nonpivots, X, d = A._rational_echelon_via_solve()
         t = verbose('  Computed ZZ-echelon using p-adic algorithm.', t)
@@ -1634,6 +1644,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     def _echelonize_multimodular(self, height_guess=None, proof=None, **kwds):
         cdef Matrix_rational_dense E
         E = self._echelon_form_multimodular(height_guess, proof=proof, **kwds)
+        self._clear_cache()
         cdef Py_ssize_t i, j
         cdef mpq_t *row0, *row1
         for i from 0 <= i < self._nrows:
@@ -1645,8 +1656,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def _echelon_form_multimodular(self, height_guess=None, proof=None):
         """
-        Returns reduced row-echelon form using a multi-modular algorithm.
-        Does not change self.
+        Return reduced row-echelon form using a multi-modular algorithm.
+        This does not change ``self``.
 
         REFERENCE:
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
+if [ -z "$SAGE_LOCAL" ]; then
+   echo >&2 "SAGE_LOCAL undefined ... exiting"
+   echo >&2 "Maybe run 'sage -sh'?"
    exit 1
 fi
 
@@ -33,20 +33,19 @@ cd src
             --with-gfortran="$GFORTRAN_FILENAME" \
             --enable-sage
 if [ $? -ne 0 ]; then
-  echo "Error configuring the compiler wrapper."
+  echo >&2 "Error configuring the compiler wrapper."
   exit 1
 fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-  echo "Error building the compiler wrapper."
+  echo >&2 "Error building the compiler wrapper."
   exit 1
 fi
 
 $MAKE install
 if [ $? -ne 0 ]; then
-  echo "Error installing the gcc wrapper."
+  echo >&2 "Error installing the gcc wrapper."
   exit 1
 fi
-
 

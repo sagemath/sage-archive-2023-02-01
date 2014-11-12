@@ -10,14 +10,10 @@ compile Sage more easily.
 
 GPL v2+
 
-== SPKG Maintainers ==
-
- * Volker Braun <vbraun.name@gmail.com>
-
 == Upstream Contact ==
 
 https://bitbucket.org/vbraun/compilerwrapper
-Volker Braun <vbraun.name@stp.dias.ie>
+Volker Braun <vbraun.name@gmail.com>
 
 == Dependencies ==
 

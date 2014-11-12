@@ -76,6 +76,48 @@ class Parser():
             -1 1 0
             end
             <BLANKLINE>
+
+        A game that gave errors during development::
+
+            sage: from sage.game_theory.parser import Parser
+            sage: A = matrix([[-7, -5, 5],
+            ....:             [5, 5, 3],
+            ....:             [1, -6, 1]])
+            sage: B = matrix([[-9, 7, 9],
+            ....:             [6, -2, -3],
+            ....:             [-4, 6, -10]])
+            sage: g = NormalFormGame([A, B])
+            sage: raw_string = g._Hrepresentation(A, B)
+            sage: P = Parser(raw_string)
+            sage: print P.raw_string[0]
+            H-representation
+            linearity 1 7
+            begin
+            7 5 rational
+            0 1 0 0 0
+            0 0 1 0 0
+            0 0 0 1 0
+            0  9 -6  4  1
+            0 -7  2 -6  1
+            0 -9  3  10  1
+            -1 1 1 1 0
+            end
+            <BLANKLINE>
+
+            sage: print P.raw_string[1]
+            H-representation
+            linearity 1 7
+            begin
+            7 5 rational
+            0 7 5 -5  1
+            0 -5 -5 -3  1
+            0 -1 6 -1  1
+            0 1 0 0 0
+            0 0 1 0 0
+            0 0 0 1 0
+            -1 1 1 1 0
+            end
+            <BLANKLINE>
         """
         self.raw_string = raw_string
 

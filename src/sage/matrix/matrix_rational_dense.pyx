@@ -1364,19 +1364,21 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     def echelonize(self, algorithm='default',
                    height_guess=None, proof=None, **kwds):
         """
+        Transform the matrix ``self`` into reduced row echelon form
+        in place.
+
         INPUT:
 
+        -  ``algorithm``:
 
-        -  ``algorithm``
+          - ``'default'`` (default): use heuristic choice
 
-          - 'default' (default): use heuristic choice
+          - ``'padic'``: an algorithm based on the IML p-adic solver.
 
-          - 'padic': an algorithm based on the IML p-adic solver.
-
-          - 'multimodular': uses a multimodular algorithm the uses
+          - ``'multimodular'``: uses a multimodular algorithm the uses
             linbox modulo many primes.
 
-          -  'classical': just clear each column using Gauss elimination
+          - ``'classical'``: just clear each column using Gauss elimination
 
         -  ``height_guess, **kwds`` - all passed to the
            multimodular algorithm; ignored by the p-adic algorithm.
@@ -1384,14 +1386,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         -  ``proof`` - bool or None (default: None, see
            proof.linear_algebra or sage.structure.proof). Passed to the
            multimodular algorithm. Note that the Sage global default is
-           proof=True.
-
+           ``proof=True``.
 
         OUTPUT:
 
-
-        -  ``matrix`` - the reduced row echelon for of self.
-
+        Nothing. The matrix ``self`` is transformed into reduced row
+        echelon form in place.
 
         EXAMPLES::
 
@@ -1414,6 +1414,23 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [      0       1       0  -5/157]
             [      0       0       1 238/157]
             [      0       0       0       0]
+
+        TESTS:
+
+        Echelonizing a matrix in place throws away the cache of
+        the old matrix (:trac:`14506`)::
+
+            sage: a = Matrix(QQ, [[1,2],[3,4]])
+            sage: a.det(); a._clear_denom()
+            -2
+            (
+            [1 2]
+            [3 4], 1
+            )
+            sage: a.echelonize(algorithm="padic")
+            sage: a._cache
+            {'in_echelon_form': True,
+             'pivots': (0, 1)}
         """
 
         x = self.fetch('in_echelon_form')
@@ -1437,6 +1454,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             pivots = self._echelonize_multimodular(height_guess, proof, **kwds)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
+        self._clear_cache()
         self.cache('in_echelon_form', True)
 
         if pivots is None:

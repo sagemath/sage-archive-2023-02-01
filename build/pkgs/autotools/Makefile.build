@@ -866,7 +866,7 @@ $(SAGE_LOCAL)/libtool-2.4.3: libtool-2.4.3/.tarball-version $(SAGE_LOCAL)/bin/m4
 	export MAKE='$(MAKE) -j1' ; \
 	export AUTOCONF_VERSION=2.62 ; \
 	export AUTOMAKE_VERSION=1.11.1 ; \
-	cd libtool-2.4.3 && bash -c 'set -e; ./bootstrap --skip-git --skip-po --gnulib-srcdir=../../src/gnulib' && \
+	cd libtool-2.4.3 && bash bootstrap --skip-git --skip-po --gnulib-srcdir=../../src/gnulib && \
 	    ./configure --prefix="$(SAGE_LOCAL)/libtool-2.4.3" && \
 	    $$MAKE && $$MAKE install
 	# Remove all files except for the .* files

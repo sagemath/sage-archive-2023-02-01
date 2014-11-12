@@ -156,29 +156,22 @@ write_make_rules() {
         fi
 
         # Figure out how to bootstrap
-        if [ -d gnulib ]; then
-            bootstrap_launch="./"
-            # Let bootstrap use our clone of the gnulib repository.
-            bootstrap_opts=" --skip-git --skip-po --gnulib-srcdir=../../src/gnulib"
-        else
-            bootstrap_launch="source "
-            # Let bootstrap use our clone of the gnulib repository.
-            bootstrap_opts=""
-        fi
         if [ -f configure ]; then
             bootstrap=
+        elif [ -d gnulib ]; then
+            bootstrap="bash bootstrap --skip-git --skip-po --gnulib-srcdir=../../src/gnulib && "
         elif [ -f bootstrap.sh ]; then
-            bootstrap="bash -c 'set -e; ${bootstrap_launch}bootstrap.sh${bootstrap_opts}' && "
+            bootstrap="bash -c 'set -e; source bootstrap.sh' && "
         elif [ -f bootstrap ]; then
-            bootstrap="bash -c 'set -e; ${bootstrap_launch}bootstrap${bootstrap_opts}' && "
+            bootstrap="bash -c 'set -e; source bootstrap' && "
         else
             bootstrap="autoreconf -i -I m4 && "
         fi
+
         if [ -f autoheader.sh ]; then
             # Work around Autoconf bootstrap bug
             bootstrap="${bootstrap}touch autoupdate.sh && "
         fi
-
 
         # Write make rules
         echo "# Extract sources from git repository serially"

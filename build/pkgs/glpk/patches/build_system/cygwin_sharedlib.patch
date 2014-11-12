@@ -63,7 +63,7 @@ diff -druN glpk-4.55.orig/src/Makefile.am glpk-4.55.new/src/Makefile.am
  -version-info 37:2:1 \
 --export-symbols-regex '^glp_*'
 +-export-symbols-regex '^glp_*' \
-+$(LIGLPK_LDFLAGS)
++$(LIBGLPK_LDFLAGS)
  
  libglpk_la_SOURCES = \
  avl.c \

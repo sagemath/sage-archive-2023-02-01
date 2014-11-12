@@ -80,6 +80,7 @@ def BinaryReedMullerCode(r,k):
     AUTHOR: David Joyner (11-2005)
     """
     F = GF(2)
+    gap.load_package("guava")
     gap.eval("C:=ReedMullerCode("+str(r)+", "+str(k)+")")
     gap.eval("G:=GeneratorMat(C)")
     k = int(gap.eval("Length(G)"))
@@ -123,6 +124,7 @@ def QuasiQuadraticResidueCode(p):
     AUTHOR: David Joyner (11-2005)
     """
     F = GF(2)
+    gap.load_package("guava")
     gap.eval("C:=QQRCode("+str(p)+")")
     gap.eval("G:=GeneratorMat(C)")
     k = int(gap.eval("Length(G)"))
@@ -159,6 +161,7 @@ def RandomLinearCodeGuava(n,k,F):
     current_randstate().set_seed_gap()
 
     q = F.order()
+    gap.load_package("guava")
     gap.eval("C:=RandomLinearCode("+str(n)+","+str(k)+", GF("+str(q)+"))")
     gap.eval("G:=GeneratorMat(C)")
     k = int(gap.eval("Length(G)"))

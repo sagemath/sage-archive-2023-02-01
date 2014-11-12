@@ -27,13 +27,19 @@ Compute a product of Schur functions; return the coefficients in the
 Schur expansion::
 
     sage: lrcalc.mult([2,1], [2,1])
-    {[3, 3]: 1, [4, 2]: 1, [3, 1, 1, 1]: 1, [4, 1, 1]: 1, [2, 2, 2]: 1, [3, 2, 1]: 2, [2, 2, 1, 1]: 1}
+    {[2, 2, 1, 1]: 1,
+     [2, 2, 2]: 1,
+     [3, 1, 1, 1]: 1,
+     [3, 2, 1]: 2,
+     [3, 3]: 1,
+     [4, 1, 1]: 1,
+     [4, 2]: 1}
 
 Same product, but include only partitions with at most 3 rows.  This
 corresponds to computing in the representation ring of gl(3)::
 
     sage: lrcalc.mult([2,1], [2,1], 3)
-    {[3, 3]: 1, [4, 2]: 1, [3, 2, 1]: 2, [2, 2, 2]: 1, [4, 1, 1]: 1}
+    {[2, 2, 2]: 1, [3, 2, 1]: 2, [3, 3]: 1, [4, 1, 1]: 1, [4, 2]: 1}
 
 We can also compute the fusion product, here for sl(3) and level 2::
 
@@ -43,25 +49,38 @@ We can also compute the fusion product, here for sl(3) and level 2::
 Compute the expansion of a skew Schur function::
 
     sage: lrcalc.skew([3,2,1],[2,1])
-    {[3]: 1, [1, 1, 1]: 1, [2, 1]: 2}
+    {[1, 1, 1]: 1, [2, 1]: 2, [3]: 1}
 
 Compute the coproduct of a Schur function::
 
     sage: lrcalc.coprod([3,2,1])
-    {([2, 1, 1], [1, 1]): 1, ([3, 1, 1], [1]): 1, ([2, 1], [3]): 1, ([2, 1, 1], [2]): 1, ([3, 2, 1], []): 1,
-    ([3, 1], [2]): 1, ([3, 2], [1]): 1, ([2, 1], [2, 1]): 2, ([1, 1, 1], [2, 1]): 1, ([2, 2], [2]): 1, ([2, 2, 1], [1]): 1,
-    ([2, 2], [1, 1]): 1, ([3, 1], [1, 1]): 1}
+    {([1, 1, 1], [2, 1]): 1,
+     ([2, 1], [2, 1]): 2,
+     ([2, 1], [3]): 1,
+     ([2, 1, 1], [1, 1]): 1,
+     ([2, 1, 1], [2]): 1,
+     ([2, 2], [1, 1]): 1,
+     ([2, 2], [2]): 1,
+     ([2, 2, 1], [1]): 1,
+     ([3, 1], [1, 1]): 1,
+     ([3, 1], [2]): 1,
+     ([3, 1, 1], [1]): 1,
+     ([3, 2], [1]): 1,
+     ([3, 2, 1], []): 1}
 
 Multiply two Schubert polynomials::
 
     sage: lrcalc.mult_schubert([4,2,1,3], [1,4,2,5,3])
-    {[5, 4, 1, 2, 3]: 1, [5, 3, 1, 4, 2]: 1, [4, 5, 1, 3, 2]: 1, [6, 2, 1, 4, 3, 5]: 1}
+    {[4, 5, 1, 3, 2]: 1,
+     [5, 3, 1, 4, 2]: 1,
+     [5, 4, 1, 2, 3]: 1,
+     [6, 2, 1, 4, 3, 5]: 1}
 
 Same product, but include only permutations of 5 elements in the result.
 This corresponds to computing in the cohomology ring of Fl(5)::
 
     sage: lrcalc.mult_schubert([4,2,1,3], [1,4,2,5,3], 5)
-    {[5, 4, 1, 2, 3]: 1, [5, 3, 1, 4, 2]: 1, [4, 5, 1, 3, 2]: 1}
+    {[4, 5, 1, 3, 2]: 1, [5, 3, 1, 4, 2]: 1, [5, 4, 1, 2, 3]: 1}
 
 List all Littlewood-Richardson tableaux of skew shape `\mu/\nu`; in
 this example `\mu=[3,2,1]` and `\nu=[2,1]`. Specifying a third entry
@@ -79,12 +98,17 @@ this example `\mu=[3,2,1]` and `\nu=[2,1]`. Specifying a third entry
 
 .. seealso::
 
-- :func:`lrcoef`
-- :func:`mult`
-- :func:`coprod`
-- :func:`skew`
-- :func:`lrskew`
-- :func:`mult_schubert`
+    - :func:`lrcoef`
+    
+    - :func:`mult`
+    
+    - :func:`coprod`
+    
+    - :func:`skew`
+    
+    - :func:`lrskew`
+    
+    - :func:`mult_schubert`
 
 .. rubric:: Underlying algorithmic in lrcalc
 
@@ -430,9 +454,9 @@ def mult(part1, part2, maxrows=None, level=None):
         sage: sorted(mult([2,1],[2,1],maxrows=2).items())
         [([3, 3], 1), ([4, 2], 1)]
         sage: mult([2,1],[3,2,1],3)
-        {[3, 3, 3]: 1, [5, 2, 2]: 1, [5, 3, 1]: 1, [4, 4, 1]: 1, [4, 3, 2]: 2}
+        {[3, 3, 3]: 1, [4, 3, 2]: 2, [4, 4, 1]: 1, [5, 2, 2]: 1, [5, 3, 1]: 1}
         sage: mult([2,1],[2,1],3,3)
-        {[3, 3]: 1, [3, 2, 1]: 2, [2, 2, 2]: 1, [4, 1, 1]: 1}
+        {[2, 2, 2]: 1, [3, 2, 1]: 2, [3, 3]: 1, [4, 1, 1]: 1}
         sage: mult([2,1],[2,1],None,3)
         Traceback (most recent call last):
         ...

@@ -4,37 +4,52 @@ all.py -- much of sage is imported into this module, so you don't
 
 TESTS:
 
-    This is to test #10570. If the number of stackframes at startup
-    changes due to a patch you made, please check that this was an
-    intended effect of your patch.
+This is to test :trac:`10570`. If the number of stackframes at startup
+changes due to a patch you made, please check that this was an
+intended effect of your patch.
 
-    ::
+::
 
-        sage: import gc
-        sage: import inspect
-        sage: from sage import *
-        sage: frames=[x for x in gc.get_objects() if inspect.isframe(x)]
+    sage: import gc
+    sage: import inspect
+    sage: from sage import *
+    sage: frames = [x for x in gc.get_objects() if inspect.isframe(x)]
 
-    We exclude the known files and check to see that there are no others::
+We exclude the known files and check to see that there are no others::
 
-        sage: import os
-        sage: allowed = [os.path.join("lib","python","threading.py")]
-        sage: allowed.append(os.path.join("lib","python","multiprocessing"))
-        sage: allowed.append(os.path.join("sage","doctest"))
-        sage: allowed.append(os.path.join("bin","sage-runtests"))
-        sage: allowed.append(os.path.join("site-packages","IPython"))
-        sage: allowed.append(os.path.join("bin","sage-ipython"))
-        sage: allowed.append("<ipython console>")
-        sage: allowed.append("<doctest sage.all[3]>")
-        sage: allowed.append(os.path.join("sage","combinat","species","generating_series.py"))
-        sage: for i in frames:
-        ....:     filename, lineno, funcname, linelist, indx = inspect.getframeinfo(i)
-        ....:     for nm in allowed:
-        ....:         if nm in filename:
-        ....:             break
-        ....:     else:
-        ....:         print filename
-        ....:
+    sage: import os
+    sage: allowed = [os.path.join("lib","python","threading.py")]
+    sage: allowed.append(os.path.join("lib","python","multiprocessing"))
+    sage: allowed.append(os.path.join("sage","doctest"))
+    sage: allowed.append(os.path.join("bin","sage-runtests"))
+    sage: allowed.append(os.path.join("site-packages","IPython"))
+    sage: allowed.append(os.path.join("bin","sage-ipython"))
+    sage: allowed.append("<ipython console>")
+    sage: allowed.append("<doctest sage.all[3]>")
+    sage: allowed.append(os.path.join("sage","combinat","species","generating_series.py"))
+    sage: for i in frames:
+    ....:     filename, lineno, funcname, linelist, indx = inspect.getframeinfo(i)
+    ....:     for nm in allowed:
+    ....:         if nm in filename:
+    ....:             break
+    ....:     else:
+    ....:         print filename
+    ....:
+
+Check that the Sage Notebook is not imported at startup (see
+:trac:`15335`)::
+
+    sage: sagenb
+    Traceback (most recent call last):
+    ...
+    NameError: name 'sagenb' is not defined
+
+Check lazy import of ``interacts``::
+
+    sage: type(interacts)
+    <type 'sage.misc.lazy_import.LazyImport'>
+    sage: interacts
+    <module 'sage.interacts.all' from '...'>
 """
 
 #*****************************************************************************
@@ -50,6 +65,7 @@ TESTS:
 
 import os, sys
 import operator
+import math
 
 from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
@@ -69,10 +85,12 @@ from sage.ext.c_lib import AlarmInterrupt, SignalError
 
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
+from sage.repl.all       import *
 
 from sage.misc.sh import sh
 
 from sage.libs.all       import *
+from sage.data_structures.all import *
 from sage.doctest.all    import *
 try:
     from sage.dev.all    import *
@@ -154,10 +172,14 @@ from sage.tensor.all     import *
 
 from sage.matroids.all   import *
 
-# The new separated Sage notebook
-from sagenb.notebook.all import *
+from sage.game_theory.all import *
 
-import sage.interacts.all as interacts
+# Lazily import notebook functions and interacts (#15335)
+lazy_import('sagenb.notebook.notebook_object', 'notebook')
+lazy_import('sagenb.notebook.notebook_object', 'inotebook')
+lazy_import('sagenb.notebook.sage_email', 'email')
+lazy_import('sagenb.notebook.interact', 'interact')
+lazy_import('sage.interacts', 'all', 'interacts')
 from sage.interacts.debugger import debug
 
 from copy import copy, deepcopy
@@ -165,19 +187,6 @@ from copy import copy, deepcopy
 # The code executed here uses a large amount of Sage components
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
-
-#Deprecate the is_* functions from the top level
-#All of these functions should be removed from the top level
-#after a few releases, and this code should be removed.
-#--Mike Hansen 9/25/2008
-message = "\nUsing %(name)s from the top level is deprecated since it was designed to be used by developers rather than end users.\nIt most likely does not do what you would expect it to do.  If you really need to use it, import it from the module that it is defined in."
-sage.misc.superseded.deprecated_callable_import(
-    10107, None, globals(), locals(),
-    [name for name in globals().keys() if name.startswith('is_') and name[3].isupper()],
-    message)
-
-del message, name
-
 
 ###########################################################
 #### WARNING:
@@ -193,7 +202,7 @@ del message, name
 #try:
 #    import resource   # unix only...
 #    resource.setrlimit(resource.RLIMIT_AS, (-1,-1))
-#except StandardError:
+#except Exception:
 #    pass
 
 # very useful 2-letter shortcuts
@@ -205,21 +214,11 @@ ZZ = IntegerRing()
 # overwritten by the user, unless they want to change the meaning of
 # int and real in the interpreter (which is a potentially valid thing
 # to do, and doesn't mess up anything else in the Sage library).
-# E.g., typing "int = ZZ" in the Sage interpreter makes int literals
-# acts as Python ints again.
 
 
-
-# Some shorter shortcuts:
-# Q = QQ
-# Z = ZZ
-# C = CC
-#i = CC.gen(0)
 true = True
 false = False
-
 oo = infinity
-#x = PolynomialRing(QQ,'x').gen()
 
 from sage.misc.copying import license
 copying = license

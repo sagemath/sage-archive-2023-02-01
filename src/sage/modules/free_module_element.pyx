@@ -996,7 +996,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return sib.name('vector')(self.base_ring(),
                                       [sib(e, 2) for e in self])
 
-    def _numerical_approx(self, prec=None, digits=None):
+    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
         r"""
         Implements numerical approximation of a free module element
         by calling the ``n()`` method on all of its entries.
@@ -1114,7 +1114,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: u
             (0.5000, 0.0000, 0.0000, 0.3333, 0.0000, 0.0000, 0.0000, 0.2500)
         """
-        return vector([e.n(prec, digits) for e in self])
+        return vector([e.n(prec, digits, algorithm) for e in self])
 
     def transpose(self):
         r"""
@@ -1461,7 +1461,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v = vector([1..5]); abs(v)
             sqrt(55)
             sage: v = vector(RDF, [1..5]); abs(v)
-            7.4161984871
+            7.416198487095663
         """
         return sum([x**2 for x in self.list()]).sqrt()
 
@@ -1507,9 +1507,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: v=vector(RDF,[1,2,3])
             sage: v.norm(5)
-            3.07738488539
+            3.077384885394063
             sage: v.norm(pi/2)
-            4.2165958647
+            4.216595864704748
             sage: _=var('a b c d p'); v=vector([a, b, c, d])
             sage: v.norm(p)
             (abs(a)^p + abs(b)^p + abs(c)^p + abs(d)^p)^(1/p)
@@ -1981,6 +1981,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: A = plot(v)
             sage: B = v.plot()
             sage: A+B # should just show one vector
+            Graphics object consisting of 2 graphics primitives
 
         Examples of the plot types::
 
@@ -1988,53 +1989,64 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: B = plot(v, plot_type='point', color='green', size=20)
             sage: C = plot(v, plot_type='step') # calls v.plot_step()
             sage: A+B+C
+            Graphics object consisting of 3 graphics primitives
 
         You can use the optional arguments for :meth:`plot_step`::
 
             sage: eps = 0.1
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
 
         Three-dimensional examples::
 
             sage: v = vector(RDF, (1,2,1))
             sage: plot(v) # defaults to an arrow plot
+            Graphics3d Object
 
         ::
 
             sage: plot(v, plot_type='arrow')
+            Graphics3d Object
 
         ::
 
             sage: from sage.plot.plot3d.shapes2 import frame3d
             sage: plot(v, plot_type='point')+frame3d((0,0,0), v.list())
+            Graphics3d Object
 
         ::
 
             sage: plot(v, plot_type='step') # calls v.plot_step()
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
 
         With greater than three coordinates, it defaults to a step plot::
 
             sage: v = vector(RDF, (1,2,3,4))
             sage: plot(v)
+            Graphics object consisting of 1 graphics primitive
 
         One dimensional vectors are plotted along the horizontal axis of
         the coordinate plane::
 
             sage: plot(vector([1]))
+            Graphics object consisting of 1 graphics primitive
 
         An optional start argument may also be specified by a tuple, list, or vector::
 
             sage: u = vector([1,2]); v = vector([2,5])
             sage: plot(u, start=v)
+            Graphics object consisting of 1 graphics primitive
 
         TESTS::
 
             sage: u = vector([1,1]); v = vector([2,2,2]); z=(3,3,3)
             sage: plot(u) #test when start=None
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
@@ -2117,6 +2129,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: eps=0.1
             sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
             sage: v.plot_step(eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
         """
         if res is None:
             res = self.degree()
@@ -3440,7 +3453,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             sage: r=vector([t,t^2,sin(t)])
             sage: vec,answers=r.nintegral(t,0,1)
             sage: vec
-            (0.5, 0.333333333333, 0.459697694132)
+            (0.5, 0.3333333333333334, 0.4596976941318602)
             sage: type(vec)
             <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
             sage: answers
@@ -4032,7 +4045,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
         TESTS:
 
-        Test that 11751 is fixed::
+        Test that :trac:`11751` is fixed::
 
             sage: K.<x> = QQ[]
             sage: M = FreeModule(K, 1, sparse=True)
@@ -4056,6 +4069,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: R = L.span([{0:x, 1:x^2}])
             sage: R.basis()[0][0].parent()
             Univariate Polynomial Ring in x over Rational Field
+
+        Test that :trac:`17101` is fixed::
+
+            sage: v = vector([RIF(-1, 1)], sparse=True)
+            sage: v.is_zero()
+            False
         """
         #WARNING: In creation, we do not check that the i pairs satisfy
         #     0 <= i < degree.
@@ -4070,7 +4089,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 x = entries
                 entries = {}
                 for i in xrange(self.degree()):
-                    if x[i] != 0:
+                    if x[i]:
                         entries[i] = x[i]
                 copy = False
             if not isinstance(entries, dict):
@@ -4101,7 +4120,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         cdef object v, e
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
         for i, a in left._entries.iteritems():
-            if e.has_key(i):
+            if i in e:
                 sum = (<RingElement>a)._add_(<RingElement> e[i])
                 if sum:
                     e[i] = sum
@@ -4122,7 +4141,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         cdef object v, e
         e = dict(left._entries)   # dict to make a copy
         for i, a in (<FreeModuleElement_generic_sparse>right)._entries.iteritems():
-            if e.has_key(i):
+            if i in e:
                 diff = (<RingElement> e[i])._sub_(<RingElement>a)
                 if diff:
                     e[i] = diff
@@ -4182,7 +4201,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
         z = left.base_ring()(0)
         for i, a in left._entries.iteritems():
-            if e.has_key(i):
+            if i in e:
                 z += (<RingElement>a)._mul_(<RingElement> e[i])
         return z
 
@@ -4199,7 +4218,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
         v = PyDict_New()
         for i, a in left._entries.iteritems():
-            if e.has_key(i):
+            if i in e:
                 prod = (<RingElement>a)._mul_(<RingElement> e[i])
                 if prod:
                     v[i] = prod
@@ -4317,7 +4336,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             if i < 0 or i >= degree:
                 raise IndexError("index must be between %s and %s"%(-degree,
                                 degree-1))
-            if self._entries.has_key(i):
+            if i in self._entries:
                 return self._entries[i]
             return self.base_ring()(0)  # optimize this somehow
 
@@ -4335,7 +4354,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             0
         """
         i = int(i)
-        if self._entries.has_key(i):
+        if i in self._entries:
             return self._entries[i]
         return self.base_ring()(0)  # optimize this somehow
 
@@ -4358,15 +4377,13 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         This lack of bounds checking causes trouble later::
 
             sage: v
-            Traceback (most recent call last):
-            ...
-            IndexError: list assignment index out of range
+            <repr(<sage.modules.free_module_element.FreeModuleElement_generic_sparse at 0x...>) failed: IndexError: list assignment index out of range>
         """
         if not self._is_mutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")
         i = int(i)
         if x == 0:
-            if self._entries.has_key(i):
+            if i in self._entries:
                 del self._entries[i]
             return
         self._entries[i] = x
@@ -4512,7 +4529,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         return len(self._entries)
 
-    def _numerical_approx(self, prec=None, digits=None):
+    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
         Returns a numerical approximation of self by calling the n() method
         on all of its entries.
@@ -4529,5 +4546,6 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: _.parent()
             Sparse vector space of dimension 3 over Real Field with 75 bits of precision
         """
-        return vector(dict([(e[0],e[1].n(prec, digits)) for e in self._entries.iteritems()]), sparse=True)
+        return vector(dict([(e[0], e[1].n(prec, digits, algorithm)) for e in
+                            self._entries.iteritems()]), sparse=True)
 

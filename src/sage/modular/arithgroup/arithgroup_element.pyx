@@ -18,6 +18,7 @@ from sage.structure.element cimport MultiplicativeGroupElement, MonoidElement, E
 from sage.rings.all import ZZ
 import sage.matrix.all as matrix
 from sage.matrix.matrix_integer_2x2 import Matrix_integer_2x2 as mi2x2
+from sage.modular.cusps import Cusp
 
 M2Z = matrix.MatrixSpace(ZZ,2)
 
@@ -35,14 +36,14 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
 
         INPUT:
 
-        - parent - an arithmetic subgroup
+        - ``parent`` -- an arithmetic subgroup
 
-        - x - data defining a 2x2 matrix over ZZ
-          which lives in parent
+        - `x` -- data defining a 2x2 matrix over ZZ
+                 which lives in parent
 
-        - check - if True, check that parent
-          is an arithmetic subgroup, and that
-          x defines a matrix of determinant 1.
+        - ``check`` -- if True, check that parent is an arithmetic
+                       subgroup, and that `x` defines a matrix of
+                       determinant `1`.
 
         We tend not to create elements of arithmetic subgroups that aren't
         SL2Z, in order to avoid coercion issues (that is, the other arithmetic
@@ -107,9 +108,9 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         from all import SL2Z
         oldparent, kwdict = state
         self._set_parent(SL2Z)
-        if kwdict.has_key('_ArithmeticSubgroupElement__x'):
+        if '_ArithmeticSubgroupElement__x' in kwdict:
             self.__x = kwdict['_ArithmeticSubgroupElement__x']
-        elif kwdict.has_key('_CongruenceSubgroupElement__x'):
+        elif '_CongruenceSubgroupElement__x' in kwdict:
             self.__x = kwdict['_CongruenceSubgroupElement__x']
         else:
             raise ValueError, "Don't know how to unpickle %s" % repr(state)
@@ -137,6 +138,17 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         return "%s"%self.__x
 
+    def _latex_(self):
+        """
+        Return latex representation of self.
+
+        EXAMPLES::
+
+            sage: Gamma1(5)([6,1,5,1])._latex_()
+            '\\left(\\begin{array}{rr}\n6 & 1 \\\\\n5 & 1\n\\end{array}\\right)'
+        """
+        return '%s' % self.__x._latex_()
+        
     def __richcmp__(left, right, int op):
         r"""
         Rich comparison.
@@ -333,9 +345,47 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             sage: C.<i> = ComplexField()
             sage: g.acton(i)
             0.0649241146711636 + 0.000843170320404721*I
-        """
-        return (self.__x[0,0]*z + self.__x[0,1])/(self.__x[1,0]*z + self.__x[1,1])
 
+        An example with the cusp infinity::
+
+            sage: g.acton(infinity)
+            1/15
+
+        An example which maps a finite cusp to infinity::
+
+            sage: g.acton(-31/15)
+            +Infinity
+
+        Note that when acting on instances of cusps the return value
+        is still a rational number or infinity (Note the presence of
+        '+', which does not show up for cusp instances)::
+
+            sage: g.acton(Cusp(-31/15))
+            +Infinity
+
+        TESTS:
+
+        We cover the remaining case, i.e., infinity mapped to infinity::
+
+            sage: G([1, 4, 0, 1]).acton(infinity)
+            +Infinity
+
+        """
+        from sage.rings.infinity import is_Infinite, infinity
+        if is_Infinite(z):
+            if self.__x[1,0] != 0:
+                return self.__x[0,0]/self.__x[1,0]
+            else:
+                return infinity
+        if hasattr(z, 'denominator') and hasattr(z, 'numerator'):
+            p, q = z.numerator(), z.denominator()
+            P = self.__x[0,0]*p+self.__x[0,1]*q
+            Q = self.__x[1,0]*p+self.__x[1,1]*q
+            if Q == 0 and P != 0: 
+                return infinity
+            else:
+                return P/Q
+        return (self.__x[0,0]*z + self.__x[0,1])/(self.__x[1,0]*z + self.__x[1,1])
 
     def __getitem__(self, q):
         r"""
@@ -365,8 +415,10 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         EXAMPLE::
 
             sage: (SL2Z.1).__reduce__()
-            (Modular Group SL(2,Z), ([1 1]
-            [0 1],))
+            (Modular Group SL(2,Z), (
+            [1 1]
+            [0 1]
+            ))
         """
         from all import SL2Z
         return SL2Z, (self.__x,)

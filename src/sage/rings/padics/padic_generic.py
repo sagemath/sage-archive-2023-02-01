@@ -94,7 +94,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         elif isinstance(print_mode, str):
             print_mode = {'mode': print_mode}
         for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
-            if not print_mode.has_key(option):
+            if option not in print_mode:
                 print_mode[option] = self._printer.dict()[option]
         return print_mode
 
@@ -476,17 +476,17 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             if not isinstance(print_mode, dict):
                 print_mode = dict(print_mode)
             for option in ['mode', 'pos', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
-                if print_mode.has_key(option):
+                if option in print_mode:
                     print_mode["print_" + option] = print_mode[option]
                     del print_mode[option]
-                elif not print_mode.has_key("print_" + option):
-                    if kwds.has_key("print_" + option):
+                elif "print_" + option not in print_mode:
+                    if "print_" + option in kwds:
                         print_mode["print_" + option] = kwds["print_" + option]
                     else:
                         print_mode["print_" + option] = self._printer.dict()[option]
             for option in ['ram_name', 'unram_name', 'var_name']:
-                if not print_mode.has_key(option):
-                    if kwds.has_key(option):
+                if option not in print_mode:
+                    if option in kwds:
                         print_mode[option] = kwds[option]
                     else:
                         print_mode[option] = self._printer.dict()[option]
@@ -768,6 +768,45 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             p = 4
         return self(p)._exp(self.precision_cap())
 
+    def frobenius_endomorphism(self, n=1):
+        """
+        INPUT:
+                     
+        -  ``n`` -- an integer (default: 1)
+
+        OUTPUT:
+
+        The `n`-th power of the absolute arithmetic Frobenius
+        endomorphism on this field.
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: Frob = K.frobenius_endomorphism(); Frob
+            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            sage: Frob(a) == a.frobenius()
+            True
+
+        We can specify a power:: 
+
+            sage: K.frobenius_endomorphism(2)
+            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^(3^2) on the residue field
+
+        The result is simplified if possible::
+
+            sage: K.frobenius_endomorphism(6)
+            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            sage: K.frobenius_endomorphism(5)
+            Identity endomorphism of Unramified Extension of 3-adic Field ...
+
+        Comparisons work::
+
+            sage: K.frobenius_endomorphism(6) == Frob
+            True
+        """
+        from morphism import FrobeniusEndomorphism_padics
+        return FrobeniusEndomorphism_padics(self, n)
+
     def _test_elements_eq_transitive(self, **options):
         """
         The operator ``==`` is not transitive for `p`-adic numbers. We disable
@@ -809,12 +848,12 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
     if isinstance(print_options, str):
         print_options = {'mode': print_options}
     elif not isinstance(print_options, dict):
-        raise TypeError, "print_options must be a dictionary or a string"
+        raise TypeError("print_options must be a dictionary or a string")
     if pos is not None:
         print_options['pos'] = pos
     if ram_name is not None:
         print_options['ram_name'] = ram_name
     for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
-        if not print_options.has_key(option):
+        if option not in print_options:
             print_options[option] = obj._printer.dict()[option]
     return pAdicPrinter(obj, print_options)

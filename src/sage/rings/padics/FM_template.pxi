@@ -311,9 +311,21 @@ cdef class FMElement(pAdicTemplateElement):
             True
             sage: R(3)^1000 #indirect doctest
             1 + 4*11^2 + 3*11^3 + 7*11^4 + O(11^5)
+
+        TESTS:
+
+        We check that :trac:`15640` is resolved::
+
+            sage: R(11)^-1
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot invert non-unit
         """
         cdef FMElement ans = self._new_c()
         cdef Integer right = Integer(_right)
+        if right < 0:
+            self = ~self
+            mpz_neg(right.value, right.value)
         cpow(ans.value, self.value, right.value, self.prime_pow.prec_cap, self.prime_pow)
         return ans
 
@@ -550,7 +562,7 @@ cdef class FMElement(pAdicTemplateElement):
                     aprec < right.prime_pow.prec_cap,
                     self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         Comparison of units, used in equality testing.
 
@@ -854,6 +866,44 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
         self._zero = R._element_constructor(R, 0)
         self._section = pAdicConvert_FM_ZZ(R)
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).coerce_map_from(ZZ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: g(6) == f(6)
+            True
+        """
+        _slots['_zero'] = self._zero
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).coerce_map_from(ZZ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: g(6) == f(6)
+            True
+        """
+        self._zero = _slots['_zero']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
+
     cpdef Element _call_(self, x):
         """
         Evaluation.
@@ -947,7 +997,7 @@ cdef class pAdicConvert_FM_ZZ(RingMap):
             sage: f = ZpFM(5).coerce_map_from(ZZ).section(); type(f)
             <type 'sage.rings.padics.padic_fixed_mod_element.pAdicConvert_FM_ZZ'>
             sage: f.category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
@@ -994,6 +1044,42 @@ cdef class pAdicConvert_QQ_FM(Morphism):
         """
         Morphism.__init__(self, Hom(QQ, R, SetsWithPartialMaps()))
         self._zero = R._element_constructor(R, 0)
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).convert_map_from(QQ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+        """
+        _slots['_zero'] = self._zero
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).convert_map_from(QQ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+        """
+        self._zero = _slots['_zero']
+        Morphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """

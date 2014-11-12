@@ -100,14 +100,11 @@ def base_field(x):
     try:
         return x.base_field()
     except AttributeError:
-        try:
-            y = x.base_ring()
-            if is_field(y):
-                return y
-            else:
-                raise AttributeError, "The base ring of %s is not a field"%x
-        except StandardError:
-            raise
+        y = x.base_ring()
+        if is_field(y):
+            return y
+        else:
+            raise AttributeError("The base ring of %s is not a field"%x)
 
 def basis(x):
     """
@@ -182,11 +179,23 @@ def characteristic_polynomial(x, var='x'):
         T^10 + T^6 + T^5 + 4*T^4 + T^3 + 2*T^2 + 3*T + 3
         sage: characteristic_polynomial(alpha, 'T')
         T^10 + T^6 + T^5 + 4*T^4 + T^3 + 2*T^2 + 3*T + 3
+
+    Ensure the variable name of the polynomial does not conflict with
+    variables used within the matrix, and that non-integral powers of
+    variables don't confuse the computation (:trac:`14403`)::
+
+        sage: y = var('y')
+        sage: a = matrix([[x,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+        sage: characteristic_polynomial(a).list()
+        [x, -3*x - 1, 3*x + 3, -x - 3, 1]
+        sage: b = matrix([[y^(1/2),0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+        sage: charpoly(b).list()
+        [sqrt(y), -3*sqrt(y) - 1, 3*sqrt(y) + 3, -sqrt(y) - 3, 1]
     """
     try:
         return x.charpoly(var)
     except AttributeError:
-        raise NotImplementedError, "computation of charpoly of x (=%s) not implemented"%x
+        raise NotImplementedError("computation of charpoly of x (={}) not implemented".format(x))
 
 charpoly = characteristic_polynomial
 
@@ -386,12 +395,10 @@ def eta(x):
 
                     \eta(z) = e^{\pi i z / 12} \prod_{n=1}^{\infty}(1-e^{2\pi inz})
 
-
-
     EXAMPLES::
 
         sage: eta(1+I)
-        0.742048775837 + 0.19883137023*I
+        0.7420487758365647 + 0.1988313702299107*I
     """
     try: return x.eta()
     except AttributeError: return CDF(x).eta()
@@ -543,10 +550,15 @@ def symbolic_sum(expression, *args, **kwds):
 
     - ``b`` - upper endpoint of the sum
 
-    - ``algorithm`` - (default: 'maxima')  one of
-      - 'maxima' - use Maxima (the default)
-      - 'maple' - (optional) use Maple
-      - 'mathematica' - (optional) use Mathematica
+    - ``algorithm`` - (default: ``'maxima'``)  one of
+
+      - ``'maxima'`` - use Maxima (the default)
+
+      - ``'maple'`` - (optional) use Maple
+
+      - ``'mathematica'`` - (optional) use Mathematica
+
+      - ``'giac'`` - (optional) use Giac
 
     EXAMPLES::
 
@@ -563,6 +575,41 @@ def symbolic_sum(expression, *args, **kwds):
 
         sage: sum(1/k^5, k, 1, oo)
         zeta(5)
+
+    .. WARNING::
+    
+        This function only works with symbolic expressions. To sum any
+        other objects like list elements or function return values,
+        please use python summation, see
+        http://docs.python.org/library/functions.html#sum
+
+        In particular, this does not work::
+        
+            sage: n = var('n')
+            sage: list=[1,2,3,4,5]
+            sage: sum(list[n],n,0,3)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (=n) to an integer
+            
+        Use python ``sum()`` instead::
+        
+            sage: sum(list[n] for n in range(4))
+            10
+            
+        Also, only a limited number of functions are recognized in symbolic sums::
+        
+            sage: sum(valuation(n,2),n,1,5)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
+            
+        Again, use python ``sum()``::
+        
+            sage: sum(valuation(n+1,2) for n in range(5))
+            3
+            
+        (now back to the Sage ``sum`` examples)
 
     A well known binomial identity::
 
@@ -590,7 +637,7 @@ def symbolic_sum(expression, *args, **kwds):
         sage: sum(2^(-k)/(k*(k+1)), k, 1, oo)
         -log(2) + 1
 
-    Another binomial identity (trac #7952)::
+    Another binomial identity (:trac:`7952`)::
 
         sage: t,k,i = var('t,k,i')
         sage: sum(binomial(i+t,t),i,0,k)
@@ -638,7 +685,7 @@ def symbolic_sum(expression, *args, **kwds):
         sage: sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional - maple
         (x + 1)^n
 
-    Python ints should work as limits of summation (trac #9393)::
+    Python ints should work as limits of summation (:trac:`9393`)::
 
         sage: sum(x, x, 1r, 5r)
         15
@@ -720,15 +767,22 @@ def integral(x, *args, **kwds):
         2
 
     Another symbolic integral, from :trac:`11238`, that used to return
-    zero incorrectly; with maxima 5.26.0 one gets 1/2*sqrt(pi)*e^(1/4),
-    whereas with 5.29.1 the expression is less pleasant, but still
-    has the same value::
+    zero incorrectly; with Maxima 5.26.0 one gets
+    ``1/2*sqrt(pi)*e^(1/4)``, whereas with 5.29.1, and even more so
+    with 5.33.0, the expression is less pleasant, but still has the
+    same value.  Unfortunately, the computation takes a very long time
+    with the default settings, so we temporarily use the Maxima
+    setting ``domain: real``::
 
+        sage: sage.calculus.calculus.maxima('domain: real')
+        real
         sage: f = exp(-x) * sinh(sqrt(x))
         sage: t = integrate(f, x, 0, Infinity); t            # long time
-        1/4*(sqrt(pi)*(erf(1) - 1) + sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) - 1/4*(sqrt(pi)*(erf(1) - 1) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4)
+        1/4*sqrt(pi)*(erf(1) - 1)*e^(1/4) - 1/4*(sqrt(pi)*(erf(1) - 1) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) + 1/4*sqrt(pi)*e^(1/4) - 1/2*e^(1/4) + 1/2*e^(-3/4)
         sage: t.simplify_exp()  # long time
         1/2*sqrt(pi)*e^(1/4)
+        sage: sage.calculus.calculus.maxima('domain: complex')
+        complex
 
     An integral which used to return -1 before maxima 5.28. See :trac:`12842`::
 
@@ -981,7 +1035,7 @@ def lift(x):
     try:
         return x.lift()
     except AttributeError:
-        raise ArithmeticError, "no lift defined."
+        raise ArithmeticError("no lift defined.")
 
 def log(x,b=None):
     r"""
@@ -1158,10 +1212,10 @@ def norm(x):
 
         sage: z = 1 + 2*I
         sage: norm(matrix([[z]]))
-        2.2360679775
+        2.23606797749979
         sage: M = matrix(ZZ, [[1,2,4,3], [-1,0,3,-10]])
-        sage: norm(M)
-        10.6903311292
+        sage: norm(M)  # abs tol 1e-14
+        10.690331129154467
         sage: norm(CDF(z))
         5.0
         sage: norm(CC(z))
@@ -1213,10 +1267,10 @@ def numerator(x):
     return x.numerator()
 
 # Following is the top-level numerical_approx function.
-# Implement a ._numerical_approx(prec, digits) method for your
+# Implement a ._numerical_approx(prec, digits, algorithm) method for your
 # objects to enable the three top-level functions and three methods
 
-def numerical_approx(x, prec=None, digits=None):
+def numerical_approx(x, prec=None, digits=None, algorithm=None):
     r"""
     Returns a numerical approximation of an object ``x`` with at
     least ``prec`` bits (or decimal ``digits``) of precision.
@@ -1231,10 +1285,13 @@ def numerical_approx(x, prec=None, digits=None):
 
     -  ``x`` - an object that has a numerical_approx
        method, or can be coerced into a real or complex field
-    -  ``prec (optional)`` - an integer (bits of
+    -  ``prec`` (optional) - an integer (bits of
        precision)
-    -  ``digits (optional)`` - an integer (digits of
+    -  ``digits`` (optional) - an integer (digits of
        precision)
+    -  ``algorithm`` (optional) - a string specifying
+       the algorithm to use for functions that implement
+       more than one
 
     If neither the ``prec`` or ``digits`` are specified,
     the default is 53 bits of precision.  If both are
@@ -1371,7 +1428,7 @@ def numerical_approx(x, prec=None, digits=None):
         [18.1681536508882, -0.0840768254441065 - 0.219026148480291*I, -0.0840768254441065 + 0.219026148480291*I]
 
     Make sure we've rounded up log(10,2) enough to guarantee
-    sufficient precision (trac #10164)::
+    sufficient precision (:trac:`10164`)::
 
         sage: ks = 4*10**5, 10**6
         sage: check_str_length = lambda k: len(str(numerical_approx(1+10**-k,digits=k+1)))-1 >= k+1
@@ -1387,6 +1444,10 @@ def numerical_approx(x, prec=None, digits=None):
         sage: len(str(n(golden_ratio, digits=5000000)))  # long time (4s on sage.math, 2012)
         5000001
 
+    Check that :trac:`14778` is fixed::
+
+        sage: n(0, algorithm='foo')
+        0.000000000000000
     """
     if prec is None:
         if digits is None:
@@ -1394,7 +1455,7 @@ def numerical_approx(x, prec=None, digits=None):
         else:
             prec = int((digits+1) * LOG_TEN_TWO_PLUS_EPSILON) + 1
     try:
-        return x._numerical_approx(prec)
+        return x._numerical_approx(prec, algorithm=algorithm)
     except AttributeError:
         from sage.rings.complex_double import is_ComplexDoubleElement
         from sage.rings.complex_number import is_ComplexNumber
@@ -1650,7 +1711,7 @@ def sqrt(x):
     EXAMPLES::
 
         sage: numerical_sqrt(10.1)
-        doctest:1: DeprecationWarning: numerical_sqrt is deprecated, use sqrt(x, prec=n) instead
+        doctest:...: DeprecationWarning: numerical_sqrt is deprecated, use sqrt(x, prec=n) instead
         See http://trac.sagemath.org/5404 for details.
         3.17804971641414
         sage: numerical_sqrt(9)

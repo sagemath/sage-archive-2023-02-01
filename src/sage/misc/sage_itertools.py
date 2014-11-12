@@ -79,7 +79,7 @@ def min_cmp(L, cmp=None):
     try:
         m = iterator.next()
     except StopIteration:
-        raise ValueError, "min_cmp() arg is an empty sequence"
+        raise ValueError("min_cmp() arg is an empty sequence")
     for item in iterator:
         if cmp(item, m) < 0:
             m = item
@@ -134,7 +134,7 @@ def max_cmp(L, cmp=None):
     try:
         m = iterator.next()
     except StopIteration:
-        raise ValueError, "max_cmp() arg is an empty sequence"
+        raise ValueError("max_cmp() arg is an empty sequence")
     for item in iterator:
         if cmp(item, m) > 0:
             m = item

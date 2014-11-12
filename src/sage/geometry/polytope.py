@@ -90,7 +90,7 @@ class Polytope(SageObject):
 
     def __add__(self, other):
         if not isinstance(other, Polytope):
-            raise TypeError, "other (=%s) must be a polytope"%other
+            raise TypeError("other (=%s) must be a polytope"%other)
         output_file = tmp_filename()
         infile1 = tmp_filename()
         open(infile1,'w').write(self.__data)
@@ -102,7 +102,7 @@ class Polytope(SageObject):
         stdin.close()
         err = stderr.read()
         if len(err) > 0:
-            raise RuntimeError, err
+            raise RuntimeError(err)
         print stdout.read(), err
         S = polymake.from_data(open(output_file).read())
         os.unlink(infile1)
@@ -138,10 +138,10 @@ class Polytope(SageObject):
         polymake_processes = Popen([polymake_command, F, cmd],stdout=PIPE,stderr=PIPE)
         ans, err = polymake_processes.communicate()
         if len(err) > 0:
-            raise RuntimeError, err
+            raise RuntimeError(err)
         if len(ans) == 0:
-            raise ValueError, "%s\nError executing polymake command %s"%(
-                err,cmd)
+            raise ValueError("%s\nError executing polymake command %s"%(
+                err,cmd))
         self.__data = open(F).read()
         return ans
 
@@ -260,7 +260,7 @@ class Polymake:
         try:
             d = open(tmp_file).read()
         except IOError:
-            raise RuntimeError, "You may need to install the polymake package"
+            raise RuntimeError("You may need to install the polymake package")
         return Polytope(d, name)
 
     def reconfigure(self):

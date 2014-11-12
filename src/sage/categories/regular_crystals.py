@@ -20,8 +20,7 @@ Regular Crystals
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
-from sage.combinat.subset import Subsets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.tensor import TensorProductsCategory
 
 class RegularCrystals(Category_singleton):
     r"""
@@ -103,11 +102,29 @@ class RegularCrystals(Category_singleton):
         from sage.categories.crystals import Crystals
         return Crystals().example(n)
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of regular crystals defines no new
+        structure: it only relates `\varepsilon_a` and `\varphi_a` to
+        `e_a` and `f_a` respectively.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: RegularCrystals().additional_structure()
+        """
+        return None
+
     class ParentMethods:
 
         # TODO: this could be a method in Crystals.Algebras.ElementMethods, so that
         # one could do:
-        #   sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
+        #   sage: C = crystals.Tableaux(['A',2], shape=[2,1])
         #   sage: M = C.algebra(QQ)
         #   sage: m = M.an_element()
         #   sage: m.demazure_operator([1,4,2])
@@ -129,7 +146,7 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: T = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: C = CombinatorialFreeModule(QQ,T)
                 sage: t = T.highest_weight_vector()
                 sage: b = 2*C(t)
@@ -139,7 +156,7 @@ class RegularCrystals(Category_singleton):
 
             The Demazure operator is idempotent::
 
-                sage: T = CrystalOfTableaux("A1",shape=[4])
+                sage: T = crystals.Tableaux("A1",shape=[4])
                 sage: C = CombinatorialFreeModule(QQ,T)
                 sage: b = C(T.module_generators[0]); b
                 B[[[1, 1, 1, 1]]]
@@ -179,7 +196,7 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',3], shape=[2,1])
+                sage: T = crystals.Tableaux(['A',3], shape=[2,1])
                 sage: T._test_stembridge_local_axioms()
                 True
                 sage: T._test_stembridge_local_axioms(verbose=True)
@@ -214,7 +231,7 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(1).epsilon(1)
                 0
                 sage: C(2).epsilon(1)
@@ -234,7 +251,7 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(1).phi(1)
                 1
                 sage: C(2).phi(1)
@@ -254,7 +271,7 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C(1).weight()
                 (1, 0, 0, 0, 0, 0)
             """
@@ -293,7 +310,7 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: T = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: t = T(rows=[[1,2],[2]])
                 sage: t.demazure_operator_simple(2)
                 B[[[1, 2], [2]]] + B[[[1, 3], [2]]] + B[[[1, 3], [3]]]
@@ -303,14 +320,14 @@ class RegularCrystals(Category_singleton):
                 sage: t.demazure_operator_simple(1)
                 0
 
-                sage: K = KirillovReshetikhinCrystal(['A',2,1],2,1)
+                sage: K = crystals.KirillovReshetikhin(['A',2,1],2,1)
                 sage: t = K(rows=[[3],[2]])
                 sage: t.demazure_operator_simple(0)
                 B[[[2, 3]]] + B[[[1, 2]]]
 
             TESTS::
 
-                sage: K = KirillovReshetikhinCrystal(['A',2,1],1,1)
+                sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
                 sage: x = K.an_element(); x
                 [[1]]
                 sage: x.demazure_operator_simple(0)
@@ -349,7 +366,7 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: T = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: t=T(rows=[[1,2],[2]])
                 sage: t.stembridgeDelta_depth(1,2)
                 0
@@ -371,7 +388,7 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: T = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: t=T(rows=[[1,2],[2]])
                 sage: t.stembridgeDelta_rise(1,2)
                 -1
@@ -393,7 +410,7 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: T = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: t=T(rows=[[1,1],[2]])
                 sage: t.stembridgeDel_depth(1,2)
                 0
@@ -415,7 +432,7 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: T = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: t=T(rows=[[1,1],[2]])
                 sage: t.stembridgeDel_rise(1,2)
                 -1
@@ -440,14 +457,14 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: T = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: t=T(rows=[[1,1],[2]])
                 sage: t.stembridgeTriple(1,2)
                 sage: s=T(rows=[[1,2],[2]])
                 sage: s.stembridgeTriple(1,2)
                 (-1, 0, -1)
 
-                sage: T = CrystalOfTableaux(['B',2], shape=[2,1])
+                sage: T = crystals.Tableaux(['B',2], shape=[2,1])
                 sage: t=T(rows=[[1,2],[2]])
                 sage: t.stembridgeTriple(1,2)
                 (-2, 0, -2)
@@ -489,7 +506,7 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: T = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: t=T(rows=[[1,1],[2]])
                 sage: t._test_stembridge_local_axioms()
                 True
@@ -498,6 +515,7 @@ class RegularCrystals(Category_singleton):
                 sage: t._test_stembridge_local_axioms(verbose=True)
                 True
             """
+            from sage.combinat.subset import Subsets
             tester = self._tester(**options)
             goodness=True
             if index_set is None: index_set=self.index_set()
@@ -535,4 +553,18 @@ class RegularCrystals(Category_singleton):
             tester.assertTrue(goodness)
             return goodness
 
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of regular crystals constructed by tensor
+        product of regular crystals.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: RegularCrystals().TensorProducts().extra_super_categories()
+                [Category of regular crystals]
+            """
+            return [self.base_category()]
 

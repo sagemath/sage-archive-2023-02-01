@@ -4,6 +4,13 @@ Algebras
 .. toctree::
    :maxdepth: 2
 
+   sage/algebras/clifford_algebra
+
+   sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra
+   sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_element
+   sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_ideal
+   sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_morphism
+
    sage/algebras/free_algebra
    sage/algebras/free_algebra_element
 
@@ -26,5 +33,7 @@ Algebras
    sage/algebras/steenrod/steenrod_algebra_bases
    sage/algebras/steenrod/steenrod_algebra_misc
    sage/algebras/steenrod/steenrod_algebra_mult
+
+   sage/algebras/weyl_algebra
 
 .. include:: ../footer.txt

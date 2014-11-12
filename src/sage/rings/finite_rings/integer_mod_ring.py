@@ -197,7 +197,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: FF
         Ring of integers modulo 29
         sage: FF.category()
-        Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups and Category of finite enumerated sets
+        Join of Category of finite commutative rings and
+         Category of subquotients of monoids and
+         Category of quotients of semigroups
         sage: FF.is_field()
         True
         sage: FF.characteristic()
@@ -237,7 +239,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
         sage: Z16 = IntegerModRing(16)
         sage: Z16.category()
-        Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups and Category of finite enumerated sets
+        Join of Category of finite commutative rings and
+         Category of subquotients of monoids and
+         Category of quotients of semigroups
         sage: Z16.is_field()
         False
         sage: Z16.order()
@@ -940,12 +944,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         except (NotImplementedError, PariError):
             raise TypeError("error coercing to finite field")
         except TypeError:
-            if sage.interfaces.all.is_GapElement(x):
+            if sage.interfaces.gap.is_GapElement(x):
                 from sage.interfaces.gap import intmod_gap_to_sage
                 try:
                     y = intmod_gap_to_sage(x)
                     return self.coerce(y)
-                except (ValueError, IndexError, TypeError), msg:
+                except (ValueError, IndexError, TypeError) as msg:
                     raise TypeError("{}\nerror coercing to finite field".format(msg))
 
             raise # Continue up with the original TypeError
@@ -1037,7 +1041,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 return integer_mod.IntegerMod_to_IntegerMod(S, self)
             except TypeError:
                 pass
-        to_ZZ = integer_ring.ZZ.coerce_map_from(S)
+        to_ZZ = integer_ring.ZZ._internal_coerce_map_from(S)
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
 
@@ -1056,7 +1060,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: Z11 == Z11, Z11 == Z12, Z11 == Z13, Z11 == F
             (True, False, False, False)
         """
-        if type(other) is not type(self):   # so that GF(p) =/= Z/pZ
+        if not isinstance(other, type(self)):   # so that GF(p) =/= Z/pZ
             return cmp(type(self), type(other))
         return cmp(self.__order, other.__order)
 

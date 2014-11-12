@@ -65,10 +65,11 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
             sage: from sage.combinat.ncsym.bases import NCSymOrNCSymDualBases
             sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
             sage: NCSymOrNCSymDualBases(NCSym).super_categories()
-            [Category of realizations of Symmetric functions in non-commuting variables over the Rational Field,
+            [Category of realizations of Symmetric functions in
+              non-commuting variables over the Rational Field,
              Category of graded hopf algebras with basis over Rational Field,
-             Join of Category of graded hopf algebras over Rational Field
-                 and Category of realizations of hopf algebras over Rational Field]
+             Join of Category of realizations of hopf algebras over Rational Field
+              and Category of graded algebras over Rational Field]
         """
         R = self.base().base_ring()
         from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
@@ -481,9 +482,6 @@ class NCSymBases(Category_realization_of_parent):
                  + q{{1, 3}, {2}} # q{{1, 3}, {2}}
             """
             if self.internal_coproduct_on_basis is not NotImplemented:
-                # TODO: if self is a coalgebra, then one would want
-                # to create a morphism of algebras with basis instead
-                # should there be a method self.coproduct_hom_category?
                 return Hom(self, tensor([self, self]),
                            ModulesWithBasis(self.base_ring()))(on_basis=self.internal_coproduct_on_basis)
             elif hasattr(self, "internal_coproduct_by_coercion"):

@@ -314,6 +314,8 @@ from sage.rings.integer import GCD_list, LCM_list
 
 from sage.rings.real_mpfr import RealField, mpfr_prec_min
 from sage.rings.complex_field import ComplexField
+from sage.rings.complex_double import CDF
+
 from sage.rings.real_lazy import RLF, CLF
 from sage.combinat.dict_addition import dict_linear_combination, dict_addition
 from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field_c import \
@@ -389,7 +391,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         # getting the optional argument "bracket" right
         if isinstance(bracket,str) and len(bracket) % 2 == 0:
             bracket_len = len(bracket)
-            bracket = (bracket[:bracket_len/2],bracket[bracket_len/2:])
+            bracket = (bracket[:bracket_len//2],bracket[bracket_len//2:])
         else:
             raise ValueError("The given bracket %s is not a string of even length."%bracket)
 
@@ -933,7 +935,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
             sage: UCF = UniversalCyclotomicField()
             sage: UCF.zumbroich_basis_indices(8)
-            set([(8, 1), (8, 3), (8, 0), (8, 2)])
+            {(8, 1), (8, 3), (8, 0), (8, 2)}
         """
         return ZumbroichBasisIndices().indices(n)
 
@@ -955,10 +957,10 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
             sage: UCF = UniversalCyclotomicField()
             sage: UCF.zumbroich_basis(8)
-            set([E(8)^3, 1, E(4), E(8)])
+            {E(8)^3, E(4), E(8), 1}
 
             sage: UCF.zumbroich_basis(9)
-            set([E(9)^2, E(3)^2, E(9)^5, E(9)^4, E(3), E(9)^7])
+            {E(9)^5, E(9)^4, E(3)^2, E(3), E(9)^7, E(9)^2}
         """
         return set(self.gen(n,k) for n,k in self.zumbroich_basis_indices(n))
 
@@ -1267,6 +1269,26 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 P = self.parent().coerce_embedding().codomain()
                 return AA(P(self))
             raise TypeError("No conversion of %s to the real algebraic field AA."%str(self))
+
+        def __float__(self):
+            r"""
+            Returns ``self`` as a float if ``self`` is real. Raises an error otherwise.
+
+            EXAMPLES::
+
+                sage: UCF.<E> = UniversalCyclotomicField()
+
+                sage: float(E(5)+E(5)^(-1))
+                0.6180339887498949
+
+                sage: float(E(5))
+                Traceback (most recent call last):
+                ...
+                ValueError: E(5) is not real
+            """
+            if self.is_real():
+                return float(CDF(self).real_part())
+            raise ValueError("{} is not real".format(self))
 
         def _rational_(self):
             r"""
@@ -2025,11 +2047,11 @@ class ZumbroichBasisIndices(UniqueRepresentation, Parent):
             sage: from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import ZumbroichBasisIndices
 
             sage: ZumbroichBasisIndices().indices(6)
-            set([(6, 4), (6, 2)])
+            {(6, 4), (6, 2)}
             sage: ZumbroichBasisIndices().indices(12)
-            set([(12, 7), (12, 4), (12, 11), (12, 8)])
+            {(12, 7), (12, 4), (12, 11), (12, 8)}
             sage: ZumbroichBasisIndices().indices(24)
-            set([(24, 19), (24, 8), (24, 17), (24, 16), (24, 14), (24, 1), (24, 22), (24, 11)])
+            {(24, 19), (24, 8), (24, 17), (24, 16), (24, 14), (24, 1), (24, 22), (24, 11)}
         """
         if not n%m == 0:
             raise ValueError('%s does not divide %s.'%(m,n))

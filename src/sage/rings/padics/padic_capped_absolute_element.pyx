@@ -107,18 +107,28 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5, 10); a = R(17); pari(a) #indirect doctest
+            sage: R = ZpCA(5, 10); a = R(17); pari(a) #indirect doctest
             2 + 3*5 + O(5^10)
-            sage: pari(R(0))
-            0
             sage: pari(R(0,5))
             O(5^5)
+            sage: pari(R(0,5)).debug()
+            [&=...] PADIC(lg=5):... (precp=0,valp=5):... ... ... ...
+                p : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+              p^l : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+                I : [&=...] INT(lg=2):... (0,lgefint=2):... 
         """
-        # holder is defined in the linkage file
-        cdef long val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
+        cdef long val
+        # Let val be the valuation of self, holder (defined in the
+        # linkage file) be the unit part.
+        if mpz_sgn(self.value) == 0:
+            # Special case for zero: maximal valuation and 0 unit part
+            val = self.absprec
+            mpz_set_ui(holder.value, 0)
+        else:
+            val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
         return P.new_gen_from_padic(val, self.absprec - val,
                                     self.prime_pow.prime.value,
-                                    self.prime_pow.pow_mpz_t_tmp(self.absprec - val)[0],
+                                    self.prime_pow.pow_mpz_t_tmp(self.absprec - val),
                                     holder.value)
 
     def _integer_(self, Z=None):
@@ -161,7 +171,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             raise ValueError, "cannot reduce modulo a negative power of p"
         cdef long aprec = mpz_get_ui((<Integer>absprec).value)
         modulus = PY_NEW(Integer)
-        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
+        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
         selfvalue = PY_NEW(Integer)
         mpz_set(selfvalue.value, self.value)
         return Mod(selfvalue, modulus)
@@ -200,14 +210,14 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             mpz_set_ui(ans.value, 1)
             return ans
         mpz_init(ppow_minus_one)
-        mpz_sub_ui(ppow_minus_one, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0], 1)
+        mpz_sub_ui(ppow_minus_one, self.prime_pow.pow_mpz_t_tmp(self.absprec), 1)
         if mpz_cmp(self.value, ppow_minus_one) == 0:
             ans = PY_NEW(Integer)
             mpz_set_ui(ans.value, 2)
             mpz_clear(ppow_minus_one)
             return ans
         # check if self is an approximation to a teichmuller lift:
-        mpz_powm(ppow_minus_one, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
+        mpz_powm(ppow_minus_one, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_tmp(self.absprec))
         if mpz_cmp(ppow_minus_one, self.value) == 0:
             mpz_clear(ppow_minus_one)
             return self.residue(1).multiplicative_order()

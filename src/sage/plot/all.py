@@ -1,4 +1,4 @@
-from graphics import show_default, Graphics, is_Graphics
+from graphics import show_default, Graphics
 from plot import plot, graphics_array, list_plot, parametric_plot, polar_plot
 from plot import plot_loglog, plot_semilogx, plot_semilogy
 from plot import list_plot_loglog, list_plot_semilogx, list_plot_semilogy
@@ -23,7 +23,7 @@ lazy_import("sage.plot.complex_plot",["complex_plot"])
 
 from arc import arc
 
-from animate import Animation as animate
+from animate import animate
 
 from plot3d.tachyon import Tachyon
 

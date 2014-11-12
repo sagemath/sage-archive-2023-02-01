@@ -9,18 +9,18 @@ A :class:`PartitionTuple` is a tuple of partitions. That is, an ordered
     n = \lvert \mu \rvert = \lvert \mu^{(1)} \rvert +
     \lvert \mu^{(2)} \rvert + \cdots + \lvert \mu^{(k)} \rvert
 
-then `\mu` is a `k`-partition of `n`.
+then we say that `\mu` is a `k`-partition of `n`.
 
 In representation theory partition tuples arise as the natural indexing
 set for the ordinary irreducible representations of:
 
-- the wreath products of cyclic groups with symmetric groups
+- the wreath products of cyclic groups with symmetric groups,
 - the Ariki-Koike algebras, or the cyclotomic Hecke algebras of
-  the complex reflection groups of type `G(r,1,n)`
-- the degenerate cyclotomic Hecke algebras of type `G(r,1,n)`
+  the complex reflection groups of type `G(r,1,n)`,
+- the degenerate cyclotomic Hecke algebras of type `G(r,1,n)`.
 
-When these algebras are not semisimple partition, tuples index an important
-class of modules for the algebras which are generalisations of the Specht
+When these algebras are not semisimple, partition tuples index an important
+class of modules for the algebras, which are generalisations of the Specht
 modules of the symmetric groups.
 
 Tuples of partitions also index the standard basis of the higher level
@@ -117,6 +117,17 @@ enumerated sets::
      ([], [1], [1]),
      ([], [], [2]),
      ([], [], [1, 1])]
+    sage: PartitionTuples(2,3).list()
+    [([3], []),
+     ([2, 1], []),
+     ([1, 1, 1], []),
+     ([2], [1]),
+     ([1, 1], [1]),
+     ([1], [2]),
+     ([1], [1, 1]),
+     ([], [3]),
+     ([], [2, 1]),
+     ([], [1, 1, 1])]
 
 One tuples of partitions are naturally in bijection with partitions and, as far
 as possible, partition tuples attempts to identify one tuples with partitions::
@@ -473,7 +484,7 @@ class PartitionTuple(CombinatorialObject,Element):
         """
         return self.level()
 
-    def _repr_(self, compact=False):
+    def _repr_(self, compact=None):
         """
         Return a string representation of ``self`` depending on
         :meth:`PartitionTuples.global_options`.
@@ -515,10 +526,9 @@ class PartitionTuple(CombinatorialObject,Element):
             2, 1 | 3, 2 | 1^3
             sage: PartitionTuples.global_options.reset()
         """
-        if compact:
+        if compact is not None:
             from sage.misc.superseded import deprecation
-            deprecation(13605, 'compact option is deprecated. Use PartitionTuples.global_options instead.')
-            return self._repr_compact_high()
+            deprecation(16933, 'compact argument is deprecated.')
 
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
@@ -553,6 +563,8 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_exp_low()
             '1, 2 | 2, 3 | 1^3'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_exp_low()
+            '- | 2, 3 | 1^3'
         """
         return ' | '.join(nu._repr_exp_low() for nu in self)
 
@@ -565,6 +577,8 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1,1,1,1,1,1,1,1]))._repr_exp_high()
             '2, 1 | 3, 2 | 1^10'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_exp_high()
+            '- | 3, 2 | 1^3'
         """
         return ' | '.join(nu._repr_exp_high() for nu in self)
 
@@ -577,8 +591,10 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_compact_low()
             '1,2|2,3|1^3'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_compact_low()
+            '-|2,3|1^3'
         """
-        return '%s' % '|'.join('-' if mu==[] else mu._repr_compact_low() for mu in self)
+        return '%s' % '|'.join(mu._repr_compact_low() for mu in self)
 
     def _repr_compact_high(self):
         """
@@ -589,8 +605,10 @@ class PartitionTuple(CombinatorialObject,Element):
 
             sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_compact_high()
             '2,1|3,2|1^3'
+            sage: PartitionTuple(([],[3,2],[1,1,1]))._repr_compact_high()
+            '-|3,2|1^3'
         """
-        return '%s' % '|'.join('-' if mu==[] else mu._repr_compact_high() for mu in self)
+        return '%s' % '|'.join(mu._repr_compact_high() for mu in self)
 
     # override default string representation which is str(self._list)
     __str__=lambda self: self._repr_()

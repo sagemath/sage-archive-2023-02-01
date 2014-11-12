@@ -108,7 +108,7 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 from sage.matroids.matroid cimport Matroid
 from basis_exchange_matroid cimport BasisExchangeMatroid
@@ -377,13 +377,13 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         """
         return characteristic(self._A)
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return self._A.is_nonzero(self._prow[x], self._prow[y])   # Not a Sage matrix operation
+        return self._A.is_nonzero(self._prow[x], self._prow[y])
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         """
         Put element indexed by ``x`` into basis, taking out element ``y``.
         Assumptions are that this is a valid basis exchange.
@@ -908,7 +908,11 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             False
             sage: M1.is_field_equivalent(M3)
             True
+            sage: M1.is_field_equivalent(M1)
+            True
         """
+        if self is other:
+            return True
         if self.base_ring() != other.base_ring():
             return False
         if self.groundset() != other.groundset():
@@ -1655,7 +1659,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             [2, 3, 4, 5, 6]
             sage: M = matroids.CompleteGraphic(5)
             sage: M.cross_ratios()
-            set([])
+            set()
         """
         if hyperlines is None:
             hyperlines = self.flats(self.full_rank() - 2)
@@ -1897,8 +1901,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 i += 1
             if i < self._representation.nrows():
                 raise ValueError("provided column has too few entries")
-            E = copy(self._E)
-            E.append(element)
+            E = self._E + (element,)
             return type(self)(matrix=self._representation.augment(cl), groundset=E)
         elif col is not None:
             raise ValueError("can only specify column relative to fixed representation. Run self._matrix_() first.")
@@ -1997,8 +2000,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 i += 1
             if i < self._representation.ncols():
                 raise ValueError("provided row has too few entries")
-            E = copy(self._E)
-            E.append(element)
+            E = self._E + (element,)
             col = type(self._representation)(self._representation.nrows() + 1, 1, ring=self.base_ring())
             col.set_unsafe(self._representation.nrows(), 0, self._one)
             return type(self)(matrix=self._representation.stack(rw).augment(col), groundset=E)
@@ -2046,7 +2048,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             M = type(self._A)(self.full_rank(), self.size() + 1, self._basic_representation())
         else:
             M = type(self._A)(self._representation.nrows(), self.size() + 1, self._representation)
-        E = self._E + [element]
+        E = self._E + (element,)
         D = {}
         for i from 0 <= i < self.size():
             D[E[i]] = i
@@ -2097,7 +2099,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         else:
             M = type(self._A)(self._representation.nrows() + 1, self.size() + 1, self._representation)
         M.set_unsafe(M.nrows() - 1, M.ncols() - 1, self._one)
-        E = self._E + [element]
+        E = self._E + (element,)
         D = {}
         for i from 0 <= i < self.size():
             D[E[i]] = i
@@ -2402,7 +2404,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
     cpdef linear_extensions(self, element=None, F=None, simple=False, fundamentals=None):
         r"""
-        Create a list of linear matroids represented by single-element
+        Create a list of linear matroids represented by rank-preserving single-element
         extensions of this linear matroid representation.
 
         INPUT:
@@ -2416,8 +2418,9 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
         OUTPUT:
 
-        A list of linear matroids represented by single-element extensions of
-        this linear matroid representation.
+        A list of linear matroids represented by rank-preserving single-element extensions of
+        this linear matroid representation. In particular, the extension by a coloop is not 
+        generated.
 
         If one or more of the above inputs is given, the list is restricted to
         matroids
@@ -2470,7 +2473,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
     cpdef linear_coextensions(self, element=None, F=None, cosimple=False, fundamentals=None):
         r"""
-        Create a list of linear matroids represented by single-element
+        Create a list of linear matroids represented by corank-preserving single-element
         coextensions of this linear matroid representation.
 
         INPUT:
@@ -2484,8 +2487,9 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
         OUTPUT:
 
-        A list of linear matroids represented by single-element coextensions
-        of this linear matroid representation.
+        A list of linear matroids represented by corank-preserving single-element 
+        coextensions of this linear matroid representation. In particular, the coextension 
+        by a loop is not generated. 
 
         If one or more of the above inputs is given, the list is restricted to
         coextensions
@@ -2853,13 +2857,13 @@ cdef class BinaryMatroid(LinearMatroid):
         """
         return 2
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<BinaryMatrix>self._A).get(self._prow[x], y)   # Not a Sage matrix operation
+        return (<BinaryMatrix>self._A).is_nonzero(self._prow[x], y)
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
@@ -3787,13 +3791,13 @@ cdef class TernaryMatroid(LinearMatroid):
         """
         return 3
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<TernaryMatrix>self._A).get(self._prow[x], y)   # Not a Sage matrix operation
+        return (<TernaryMatrix>self._A).is_nonzero(self._prow[x], y)
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
@@ -4581,13 +4585,13 @@ cdef class QuaternaryMatroid(LinearMatroid):
         """
         return 2
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<QuaternaryMatrix>self._A).get(self._prow[x], y)   # Not a Sage matrix operation
+        return (<QuaternaryMatrix>self._A).is_nonzero(self._prow[x], y)
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
@@ -5252,13 +5256,13 @@ cdef class RegularMatroid(LinearMatroid):
         """
         return 0
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<IntegerMatrix>self._A).get(self._prow[x], self._prow[y])   # Not a Sage matrix operation
+        return (<IntegerMatrix>self._A).is_nonzero(self._prow[x], self._prow[y])
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         """
         Put element indexed by ``x`` into basis, taking out element ``y``. Assumptions are that this is a valid basis exchange.
 

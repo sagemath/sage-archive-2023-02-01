@@ -173,29 +173,21 @@ class UnitGroup(AbelianGroupWithValues_class):
         sage: UK = K.unit_group()
         sage: UK.ngens()
         6
-        sage: UK.gen(0) # random
-        -z^11
-        sage: UK.gen(1) # random
-        z^5 + z^3
-        sage: UK.gen(2) # random
-        z^6 + z^5
-        sage: UK.gen(3) # random
-        z^9 + z^7 + z^5
-        sage: UK.gen(4) # random
-        z^9 + z^5 + z^4 + 1
-        sage: UK.gen(5) # random
-        z^5 + z
+        sage: UK.gen(5)
+        u5
+        sage: UK.gen(5).value()
+        z^6 + z^4
 
     An S-unit group::
 
         sage: SUK = UnitGroup(K,S=21); SUK
-        S-unit group with structure C26 x Z x Z x Z x Z x Z x Z x Z x Z x Z x Z of Cyclotomic Field of order 13 and degree 12 with S = (Fractional ideal (3, z^3 - z - 1), Fractional ideal (3, z^3 + z^2 + z - 1), Fractional ideal (3, z^3 + z^2 - 1), Fractional ideal (3, z^3 - z^2 - z - 1), Fractional ideal (7))
+        S-unit group with structure C26 x Z x Z x Z x Z x Z x Z x Z x Z x Z x Z of Cyclotomic Field of order 13 and degree 12 with S = (Fractional ideal (3, z^3 + z^2 - 1), Fractional ideal (3, z^3 + z^2 + z - 1), Fractional ideal (3, z^3 - z - 1), Fractional ideal (3, z^3 - z^2 - z - 1), Fractional ideal (7))
         sage: SUK.rank()
         10
         sage: SUK.zeta_order()
         26
         sage: SUK.log(21*z)
-        (6, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
+        (13, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
     """
     # This structure is not a parent in the usual sense. The
     # "elements" are NumberFieldElement_absolute. Instead, they should
@@ -260,9 +252,9 @@ class UnitGroup(AbelianGroupWithValues_class):
         if not S:
             S = self.__S = ()
         else:
-            if type(S)==list:
+            if isinstance(S, list):
                 S = tuple(S)
-            if not type(S)==tuple:
+            if not isinstance(S, tuple):
                 try:
                     S = tuple(K.ideal(S).prime_factors())
                 except (NameError, TypeError, ValueError):
@@ -346,14 +338,14 @@ class UnitGroup(AbelianGroupWithValues_class):
         try:
             u = K(u)
         except TypeError:
-            raise ValueError, "%s is not an element of %s"%(u,K)
+            raise ValueError("%s is not an element of %s"%(u,K))
         if self.__S:
             m = pK.bnfissunit(self.__S_unit_data, pari(u)).mattranspose()
             if m.ncols()==0:
-                raise ValueError, "%s is not an S-unit"%u
+                raise ValueError("%s is not an S-unit"%u)
         else:
             if not u.is_integral() or u.norm().abs() != 1:
-                raise ValueError, "%s is not a unit"%u
+                raise ValueError("%s is not a unit"%u)
             m = pK.bnfisunit(pari(u)).mattranspose()
 
         # convert column matrix to a list:
@@ -427,7 +419,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: K.<b> = NumberField(x^2+1)
             sage: U = UnitGroup(K)
             sage: zs = U.roots_of_unity(); zs
-            [-b, -1, b, 1]
+            [b, -1, -b, 1]
             sage: [ z**U.zeta_order() for z in zs ]
             [1, 1, 1, 1]
         """
@@ -493,9 +485,9 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: K.<b> = NumberField(x^2+1)
             sage: U = UnitGroup(K)
             sage: U.zeta(4)
-            -b
+            b
             sage: U.zeta(4,all=True)
-            [-b, b]
+            [b, -b]
             sage: U.zeta(3)
             Traceback (most recent call last):
             ...
@@ -508,7 +500,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         K = self.number_field()
         n = ZZ(n)
         if n <= 0:
-            raise ValueError, "n (=%s) must be positive"%n
+            raise ValueError("n (=%s) must be positive"%n)
         if n == 1:
             if all:
                 return [K(1)]
@@ -529,7 +521,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             if all:
                 return []
             else:
-                raise ValueError, "n (=%s) does not divide order of generator"%n
+                raise ValueError("n (=%s) does not divide order of generator"%n)
 
     def number_field(self):
         """
@@ -599,7 +591,7 @@ class UnitGroup(AbelianGroupWithValues_class):
            sage: SUK = UnitGroup(K,S=2)
            sage: v = (3,1,4,1,5,9,2)
            sage: u = SUK.exp(v); u
-           -997204*z^11 - 2419728*z^10 - 413812*z^9 - 413812*z^8 - 2419728*z^7 - 997204*z^6 - 2129888*z^4 - 1616524*z^3 + 149364*z^2 - 1616524*z - 2129888
+           180*z^10 - 280*z^9 + 580*z^8 - 720*z^7 + 948*z^6 - 924*z^5 + 948*z^4 - 720*z^3 + 580*z^2 - 280*z + 180
            sage: SUK.log(u)
            (3, 1, 4, 1, 5, 9, 2)
            sage: SUK.log(u) == v
@@ -645,7 +637,7 @@ class UnitGroup(AbelianGroupWithValues_class):
            sage: SUK = UnitGroup(K,S=2)
            sage: v = (3,1,4,1,5,9,2)
            sage: u = SUK.exp(v); u
-           -997204*z^11 - 2419728*z^10 - 413812*z^9 - 413812*z^8 - 2419728*z^7 - 997204*z^6 - 2129888*z^4 - 1616524*z^3 + 149364*z^2 - 1616524*z - 2129888
+           180*z^10 - 280*z^9 + 580*z^8 - 720*z^7 + 948*z^6 - 924*z^5 + 948*z^4 - 720*z^3 + 580*z^2 - 280*z + 180
            sage: SUK.log(u)
            (3, 1, 4, 1, 5, 9, 2)
            sage: SUK.log(u) == v

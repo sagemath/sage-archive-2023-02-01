@@ -65,7 +65,6 @@ from code_bounds import (codesize_upper_bound,
                          mrrw1_bound_asymp)
 
 from linear_code import (LinearCode, LinearCodeFromVectorSpace,
-                         hamming_weight,
                          best_known_linear_code,
                          best_known_linear_code_www,
                          bounds_minimum_distance,

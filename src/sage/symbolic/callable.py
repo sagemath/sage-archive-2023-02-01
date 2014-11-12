@@ -171,7 +171,7 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
             Callable function ring with arguments (x, y)
         """
         if R is not SR:
-            raise ValueError, "Can only make callable symbolic expression rings from the Symbolic Ring"
+            raise ValueError("Can only make callable symbolic expression rings from the Symbolic Ring")
         return CallableSymbolicExpressionRing(self.arguments())
 
     def arguments(self):
@@ -235,7 +235,6 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
 
         - Bobby Moretti: thanks to William Stein for the rules
         """
-        from sage.calculus.calculus import var_cmp
         a = self.arguments()
         b = x.arguments()
 
@@ -248,7 +247,7 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
         done = False
         i = 0
         while not done and i < min(len(a), len(b)):
-            if var_cmp(a[i], b[i]) == 0:
+            if repr(a[i]) == repr(b[i]):
                 new_list.append(a[i])
                 i += 1
             else:
@@ -264,9 +263,7 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
             if not b[j] in temp:
                 temp.add(b[j])
 
-        temp = list(temp)
-        temp.sort(var_cmp)
-        new_list.extend(temp)
+        new_list.extend(sorted(temp, key=repr))
         return tuple(new_list)
 
 
@@ -494,7 +491,7 @@ class CallableSymbolicExpressionRingFactory(UniqueFactory):
                 args, = args
             for arg in args:
                 if not is_SymbolicVariable(arg):
-                    raise TypeError, "Must construct a function with a tuple (or list) of variables."
+                    raise TypeError("Must construct a function with a tuple (or list) of variables.")
             args = tuple(args)
         return args
 

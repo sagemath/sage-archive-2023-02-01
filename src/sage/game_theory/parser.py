@@ -180,6 +180,10 @@ class Parser():
             sage: lrs_output = [row for row in process.stdout]  # optional - lrs
             sage: print lrs_output[5:-4]
             ['\n', '***** 5 5 rational\n', '2  0  1/6  5/6  10/3 \n', '2  1/7  0  6/7  23/7 \n', '1  1/3  2/3  0  1 \n', '\n', '2  0  0  1  5 \n', '1  1  0  0  9 \n', '\n', '2  1  0  0  5 \n', '1  0  1  0  6 \n', '\n', '*Number of equilibria found: 4\n', '*Player 1: vertices=6 bases=7 pivots=10\n', '*Player 2: vertices=4 bases=2 pivots=14\n']
+
+            sage: nasheq = Parser(lrs_output).format_lrs()  # optional - lrs
+            sage: nasheq  # optional - lrs
+            [[(1/3, 2/3, 0), (0, 1/6, 5/6)], [(1/3, 2/3, 0), (1/7, 0, 6/7)], [(0, 1, 0), (1, 0, 0)], [(1, 0, 0), (0, 0, 1)]]
         """
         from sage.misc.sage_eval import sage_eval
         p2_strategies = []

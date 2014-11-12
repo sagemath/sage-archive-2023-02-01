@@ -1232,6 +1232,12 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: N._solve_enumeration()
             [[(1, 0), (1, 0)], [(0, 1), (0, 1)]]
 
+        In this instance the `lrs` algorithm is able to find all three equilibria::
+
+            sage: N = NormalFormGame([matrix(2,[0,-1,-2,-1]),matrix(2,[1,0,0,2])])
+            sage: N.obtain_nash(algorithm='lrs')  # optional - lrs
+            [[(2/3, 1/3), (0, 1)], [(0, 1), (0, 1)], [(1, 0), (1, 0)]]
+
         Here is another::
 
             sage: N = NormalFormGame([matrix(2,[7,-8,-4,-8,7,0]),matrix(2,[-9,-1,-8,3,2,3])])
@@ -1250,8 +1256,6 @@ class NormalFormGame(SageObject, MutableMapping):
 
         potential_support_pairs = [pair for pair in CartesianProduct(*potential_supports) if len(pair[0]) == len(pair[1])]
 
-################################################################################
-# With conditional dominance
         equilibria = []
         for pair in potential_support_pairs:
             # Check if any supports are dominated for row player
@@ -1261,16 +1265,6 @@ class NormalFormGame(SageObject, MutableMapping):
                     result = self._solve_indifference(pair[0], pair[1], M1, M2)
                     if result:
                         equilibria.append([result[0], result[1]])
-#################################################################################
-
-#################################################################################
-# With conditional dominance
-#        equilibria = []
-#        for pair in potential_support_pairs:
-#            result = self._solve_indifference(pair[0], pair[1], M1, M2)
-#            if result:
-#                equilibria.append([result[0], result[1]])
-#################################################################################
         return equilibria
 
     def _row_cond_dominance(self, p1_sup, p2_sup, matrix):

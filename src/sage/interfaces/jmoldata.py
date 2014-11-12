@@ -64,7 +64,7 @@ class JmolData(SageObject):
             return False
 
         import re
-        java_version = re.search("version.*[1][.][567]", version)
+        java_version = re.search("version.*[1][.][78]", version)
         return java_version is not None
 
     def export_image(self,

@@ -352,9 +352,6 @@ class FiniteField_givaro(FiniteField):
             sage: K.<a> = GF(3^10, impl="givaro")
             sage: a^20
             2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
-            sage: L.<b> = GF(3^10, impl="pari_mod")
-            sage: K(b^20)
-            2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
             sage: M.<c> = GF(3^10, impl="pari_ffelt")
             sage: K(c^20)
             2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
@@ -516,25 +513,6 @@ class FiniteField_givaro(FiniteField):
         """
         return self._cache.fetch_int(n)
 
-    def __hash__(self):
-        """
-        The hash of a Givaro finite field is a hash over it's
-        characteristic polynomial and the string 'givaro'.
-
-        EXAMPLES::
-
-            sage: {GF(3^4, 'a'):1} # indirect doctest
-            {Finite Field in a of size 3^4: 1}
-        """
-        try:
-            return self._hash
-        except AttributeError:
-            if self.degree() > 1:
-                self._hash = hash((self.characteristic(), self.polynomial(), self.variable_name(), "givaro"))
-            else:
-                self._hash = hash((self.characteristic(), self.variable_name(), "givaro"))
-            return self._hash
-
     def _pari_modulus(self):
         """
         Return the modulus of ``self`` in a format for PARI.
@@ -546,21 +524,6 @@ class FiniteField_givaro(FiniteField):
         """
         f = pari(str(self.modulus()))
         return f.subst('x', 'a') * pari("Mod(1,%s)"%self.characteristic())
-
-    def _finite_field_ext_pari_(self):  # todo -- cache
-        """
-        Return a :class:`FiniteField_ext_pari` isomorphic to ``self`` with
-        the same defining polynomial.
-
-        EXAMPLES::
-
-            sage: GF(3^4,'z')._finite_field_ext_pari_()
-            Finite Field in z of size 3^4
-        """
-        f = self.polynomial()
-        import finite_field_ext_pari
-        return finite_field_ext_pari.FiniteField_ext_pari(self.order(),
-                                                          self.variable_name(), f)
 
     def __iter__(self):
         """

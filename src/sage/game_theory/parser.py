@@ -183,17 +183,19 @@ class Parser():
 
             sage: nasheq = Parser(lrs_output).format_lrs()  # optional - lrs
             sage: nasheq  # optional - lrs
-            [[(1/3, 2/3, 0), (0, 1/6, 5/6)], [(1/3, 2/3, 0), (1/7, 0, 6/7)], [(0, 1, 0), (1, 0, 0)], [(1, 0, 0), (0, 0, 1)]]
+            [[(1/3, 2/3, 0), (0, 1/6, 5/6)], [(1/3, 2/3, 0), (1/7, 0, 6/7)], [(1, 0, 0), (0, 0, 1)], [(0, 1, 0), (1, 0, 0)]]
         """
+        equilibria = []
         from sage.misc.sage_eval import sage_eval
-        p2_strategies = []
-        p1_strategies = []
-        for i in self.raw_string:
-            if i.startswith('2'):
-                nums = [sage_eval(k) for k in i.split()]
-                p2_strategies.append(tuple(nums[1:-1]))
-            elif i.startswith('1'):
-                nums = [sage_eval(k) for k in i.split()]
-                p1_strategies.append(tuple(nums[1:-1]))
+        from itertools import groupby
+        for collection in [list(x[1]) for x in groupby(self.raw_string[7:], lambda x: x=='\n')]:
+            if collection[0].startswith('2'):
+                s1 = tuple([sage_eval(k) for k in collection[-1].split()][1:-1])
+                for s2 in collection[:-1]:
+                    s2 = tuple([sage_eval(k) for k in s2.split()][1:-1])
+                    equilibria.append([s1, s2])
 
-        return [list(a) for a in zip(p1_strategies, p2_strategies)]
+        return equilibria
+
+
+

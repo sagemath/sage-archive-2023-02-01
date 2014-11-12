@@ -230,7 +230,7 @@ class MatrixGroup_base(Group):
             return 'Matrix group over {0} with {1} generators'.format(
                 self.base_ring(), self.ngens())
         else:
-            from sage.misc.displayhook import format_list
+            from sage.repl.display.util import format_list
             return 'Matrix group over {0} with {1} generators {2}'.format(
                 self.base_ring(), self.ngens(), format_list(self.gens()))
 
@@ -462,7 +462,7 @@ class MatrixGroup_generic(MatrixGroup_base):
         if not (cat is None or (cat is G.category() and cat is self.category())):
             raise TypeError
         if not is_MatrixGroup(G):
-            raise TypeError, "G (=%s) must be a matrix group."%G
+            raise TypeError("G (=%s) must be a matrix group."%G)
         import homset
         return homset.MatrixGroupHomset(self, G)
 
@@ -494,7 +494,7 @@ class MatrixGroup_generic(MatrixGroup_base):
         v = Sequence(x)
         U = v.universe()
         if not is_MatrixGroup(U):
-            raise TypeError, "u (=%s) must have universe a matrix group."%U
+            raise TypeError("u (=%s) must have universe a matrix group."%U)
         return self.Hom(U)(x)
 
 

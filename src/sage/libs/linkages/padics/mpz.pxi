@@ -18,12 +18,12 @@ AUTHORS:
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/gmp.pxi"
 from cpython.list cimport *
 
 cdef extern from "mpz_pylong.h":
     cdef long mpz_pythonhash(mpz_t src)
 
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
@@ -133,7 +133,7 @@ cdef inline bint creduce(mpz_t out, mpz_t a, long prec, PowComputer_class prime_
 
     - returns True if the reduction is zero; False otherwise.
     """
-    mpz_mod(out, a, prime_pow.pow_mpz_t_tmp(prec)[0])
+    mpz_mod(out, a, prime_pow.pow_mpz_t_tmp(prec))
     return mpz_sgn(out) == 0
 
 cdef inline bint creduce_small(mpz_t out, mpz_t a, long prec, PowComputer_class prime_pow) except -1:
@@ -155,9 +155,9 @@ cdef inline bint creduce_small(mpz_t out, mpz_t a, long prec, PowComputer_class 
     - returns True if the reduction is zero; False otherwise.
     """
     if mpz_sgn(a) < 0:
-        mpz_add(out, a, prime_pow.pow_mpz_t_tmp(prec)[0])
-    elif mpz_cmp(a, prime_pow.pow_mpz_t_tmp(prec)[0]) >= 0:
-        mpz_sub(out, a, prime_pow.pow_mpz_t_tmp(prec)[0])
+        mpz_add(out, a, prime_pow.pow_mpz_t_tmp(prec))
+    elif mpz_cmp(a, prime_pow.pow_mpz_t_tmp(prec)) >= 0:
+        mpz_sub(out, a, prime_pow.pow_mpz_t_tmp(prec))
     else:
         mpz_set(out, a)
     return mpz_sgn(out) == 0
@@ -224,7 +224,7 @@ cdef inline bint cisunit(mpz_t a, PowComputer_class prime_pow) except -1:
 
 cdef inline int cshift(mpz_t out, mpz_t a, long n, long prec, PowComputer_class prime_pow, bint reduce_afterward) except -1:
     """
-    Mulitplies by a power of the uniformizer.
+    Multiplies by a power of the uniformizer.
 
     INPUT:
 
@@ -238,10 +238,10 @@ cdef inline int cshift(mpz_t out, mpz_t a, long n, long prec, PowComputer_class 
     - ``reduce_afterward`` -- whether to reduce afterward.
     """
     if n > 0:
-        mpz_mul(out, a, prime_pow.pow_mpz_t_tmp(n)[0])
+        mpz_mul(out, a, prime_pow.pow_mpz_t_tmp(n))
     elif n < 0:
         sig_on()
-        mpz_fdiv_q(out, a, prime_pow.pow_mpz_t_tmp(-n)[0])
+        mpz_fdiv_q(out, a, prime_pow.pow_mpz_t_tmp(-n))
         sig_off()
     else: # elif a != out:
         mpz_set(out, a)
@@ -250,7 +250,7 @@ cdef inline int cshift(mpz_t out, mpz_t a, long n, long prec, PowComputer_class 
 
 cdef inline int cshift_notrunc(mpz_t out, mpz_t a, long n, long prec, PowComputer_class prime_pow) except -1:
     """
-    Mulitplies by a power of the uniformizer, assuming that the
+    Multiplies by a power of the uniformizer, assuming that the
     valuation of a is at least -n.
 
     INPUT:
@@ -265,10 +265,10 @@ cdef inline int cshift_notrunc(mpz_t out, mpz_t a, long n, long prec, PowCompute
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     if n > 0:
-        mpz_mul(out, a, prime_pow.pow_mpz_t_tmp(n)[0])
+        mpz_mul(out, a, prime_pow.pow_mpz_t_tmp(n))
     elif n < 0:
         sig_on()
-        mpz_divexact(out, a, prime_pow.pow_mpz_t_tmp(-n)[0])
+        mpz_divexact(out, a, prime_pow.pow_mpz_t_tmp(-n))
         sig_off()
     else:
         mpz_set(out, a)
@@ -303,7 +303,7 @@ cdef inline int cinvert(mpz_t out, mpz_t a, long prec, PowComputer_class prime_p
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     cdef bint success
-    success = mpz_invert(out, a, prime_pow.pow_mpz_t_tmp(prec)[0])
+    success = mpz_invert(out, a, prime_pow.pow_mpz_t_tmp(prec))
     if not success:
         raise ZeroDivisionError
     
@@ -339,7 +339,7 @@ cdef inline int cdivunit(mpz_t out, mpz_t a, mpz_t b, long prec, PowComputer_cla
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     cdef bint success
-    success = mpz_invert(out, b, prime_pow.pow_mpz_t_tmp(prec)[0])
+    success = mpz_invert(out, b, prime_pow.pow_mpz_t_tmp(prec))
     if not success:
         raise ZeroDivisionError
     mpz_mul(out, a, out)
@@ -408,7 +408,7 @@ cdef inline int cpow(mpz_t out, mpz_t a, mpz_t n, long prec, PowComputer_class p
     - ``prec`` -- a long, the working absolute precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    mpz_powm(out, a, n, prime_pow.pow_mpz_t_tmp(prec)[0])
+    mpz_powm(out, a, n, prime_pow.pow_mpz_t_tmp(prec))
 
 cdef inline int ccopy(mpz_t out, mpz_t a, PowComputer_class prime_pow) except -1:
     """
@@ -467,11 +467,11 @@ cdef inline long chash(mpz_t a, long ordp, long prec, PowComputer_class prime_po
     if ordp == 0:
         return mpz_pythonhash(a)
     elif ordp > 0:
-        mpz_mul(holder.value, a, prime_pow.pow_mpz_t_tmp(ordp)[0])
+        mpz_mul(holder.value, a, prime_pow.pow_mpz_t_tmp(ordp))
         return mpz_pythonhash(holder.value)
     else:
         n = mpz_pythonhash(a)
-        d = mpz_pythonhash(prime_pow.pow_mpz_t_tmp(-ordp)[0])
+        d = mpz_pythonhash(prime_pow.pow_mpz_t_tmp(-ordp))
         if d == 1:
             return n
         n = n ^ d
@@ -530,8 +530,8 @@ cdef clist(mpz_t a, long prec, bint pos, PowComputer_class prime_pow):
             mpz_sub(holder.value, holder.value, list_elt.value)
             mpz_divexact(holder.value, holder.value, prime_pow.prime.value)
             if neg:
-                if mpz_cmp(holder.value, prime_pow.pow_mpz_t_tmp(curpower)[0]) >= 0:
-                    mpz_sub(holder.value, holder.value, prime_pow.pow_mpz_t_tmp(curpower)[0])
+                if mpz_cmp(holder.value, prime_pow.pow_mpz_t_tmp(curpower)) >= 0:
+                    mpz_sub(holder.value, holder.value, prime_pow.pow_mpz_t_tmp(curpower))
             PyList_Append(ans, list_elt)
     return ans
 
@@ -557,31 +557,31 @@ cdef int cteichmuller(mpz_t out, mpz_t value, long prec, PowComputer_class prime
         return 0
     if prec <= 0:
         raise ValueError
-    if mpz_sgn(value) < 0 or mpz_cmp(value, prime_pow.pow_mpz_t_tmp(prec)[0]) >= 0:
-        mpz_mod(out, value, prime_pow.pow_mpz_t_tmp(prec)[0])
+    if mpz_sgn(value) < 0 or mpz_cmp(value, prime_pow.pow_mpz_t_tmp(prec)) >= 0:
+        mpz_mod(out, value, prime_pow.pow_mpz_t_tmp(prec))
     else:
         mpz_set(out, value)
-    # holder.value = 1 / Mod(1 - p, prime_pow.pow_mpz_t_tmp(prec)[0])
-    mpz_sub(holder.value, prime_pow.pow_mpz_t_tmp(prec)[0], prime_pow.prime.value)
+    # holder.value = 1 / Mod(1 - p, prime_pow.pow_mpz_t_tmp(prec))
+    mpz_sub(holder.value, prime_pow.pow_mpz_t_tmp(prec), prime_pow.prime.value)
     mpz_add_ui(holder.value, holder.value, 1)
-    mpz_invert(holder.value, holder.value, prime_pow.pow_mpz_t_tmp(prec)[0])
-    # Consider x as Mod(value, prime_pow.pow_mpz_t_tmp(prec)[0])
+    mpz_invert(holder.value, holder.value, prime_pow.pow_mpz_t_tmp(prec))
+    # Consider x as Mod(value, prime_pow.pow_mpz_t_tmp(prec))
     # holder2.value = x + holder.value*(x^p - x)
-    mpz_powm(holder2.value, out, prime_pow.prime.value, prime_pow.pow_mpz_t_tmp(prec)[0])
+    mpz_powm(holder2.value, out, prime_pow.prime.value, prime_pow.pow_mpz_t_tmp(prec))
     mpz_sub(holder2.value, holder2.value, out)
     mpz_mul(holder2.value, holder2.value, holder.value)
     mpz_add(holder2.value, holder2.value, out)
-    mpz_mod(holder2.value, holder2.value, prime_pow.pow_mpz_t_tmp(prec)[0])
+    mpz_mod(holder2.value, holder2.value, prime_pow.pow_mpz_t_tmp(prec))
     # while x != holder2.value:
     #     x = holder2.value
     #     holder2.value = x + holder.value*(x^p - x)
     while mpz_cmp(out, holder2.value) != 0:
         mpz_set(out, holder2.value)
-        mpz_powm(holder2.value, out, prime_pow.prime.value, prime_pow.pow_mpz_t_tmp(prec)[0])
+        mpz_powm(holder2.value, out, prime_pow.prime.value, prime_pow.pow_mpz_t_tmp(prec))
         mpz_sub(holder2.value, holder2.value, out)
         mpz_mul(holder2.value, holder2.value, holder.value)
         mpz_add(holder2.value, holder2.value, out)
-        mpz_mod(holder2.value, holder2.value, prime_pow.pow_mpz_t_tmp(prec)[0])
+        mpz_mod(holder2.value, holder2.value, prime_pow.pow_mpz_t_tmp(prec))
 
 cdef int cconv(mpz_t out, x, long prec, long valshift, PowComputer_class prime_pow) except -2:
     """
@@ -607,25 +607,25 @@ cdef int cconv(mpz_t out, x, long prec, long valshift, PowComputer_class prime_p
         x = x.lift()
     if PY_TYPE_CHECK(x, Integer):
         if valshift > 0:
-            mpz_divexact(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(valshift)[0])
-            mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
+            mpz_divexact(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(valshift))
+            mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
         elif valshift < 0:
             raise RuntimeError("Integer should not have negative valuation")
         else:
-            mpz_mod(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(prec)[0])
+            mpz_mod(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(prec))
     elif PY_TYPE_CHECK(x, Rational):
         if valshift == 0:
-            mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec)[0])
+            mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
             mpz_mul(out, out, mpq_numref((<Rational>x).value))
         elif valshift < 0:
-            mpz_divexact(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(-valshift)[0])
-            mpz_invert(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
+            mpz_divexact(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(-valshift))
+            mpz_invert(out, out, prime_pow.pow_mpz_t_tmp(prec))
             mpz_mul(out, out, mpq_numref((<Rational>x).value))
         else:
-            mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec)[0])
-            mpz_divexact(holder.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift)[0])
+            mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
+            mpz_divexact(holder.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift))
             mpz_mul(out, out, holder.value)
-        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
+        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
     else:
         raise NotImplementedError("No conversion defined")
 
@@ -652,13 +652,13 @@ cdef inline long cconv_mpz_t(mpz_t out, mpz_t x, long prec, bint absolute, PowCo
     """
     cdef long val
     if absolute:
-        mpz_mod(out, x, prime_pow.pow_mpz_t_tmp(prec)[0])
+        mpz_mod(out, x, prime_pow.pow_mpz_t_tmp(prec))
     elif mpz_sgn(x) == 0:
         mpz_set_ui(out, 0)
         return maxordp
     else:
         val = mpz_remove(out, x, prime_pow.prime.value)
-        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
+        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
         return val
 
 cdef inline int cconv_mpz_t_out(mpz_t out, mpz_t x, long valshift, long prec, PowComputer_class prime_pow) except -1:
@@ -678,7 +678,7 @@ cdef inline int cconv_mpz_t_out(mpz_t out, mpz_t x, long valshift, long prec, Po
     elif valshift < 0:
         raise ValueError("negative valuation")
     else:
-        mpz_mul(out, x, prime_pow.pow_mpz_t_tmp(valshift)[0])
+        mpz_mul(out, x, prime_pow.pow_mpz_t_tmp(valshift))
 
 cdef inline long cconv_mpq_t(mpz_t out, mpq_t x, long prec, bint absolute, PowComputer_class prime_pow) except? -10000:
     """
@@ -706,24 +706,24 @@ cdef inline long cconv_mpq_t(mpz_t out, mpq_t x, long prec, bint absolute, PowCo
     if prec <= 0:
         raise ValueError
     if absolute:
-        success = mpz_invert(out, mpq_denref(x), prime_pow.pow_mpz_t_tmp(prec)[0])
+        success = mpz_invert(out, mpq_denref(x), prime_pow.pow_mpz_t_tmp(prec))
         if not success:
             raise ValueError("p divides denominator")
         mpz_mul(out, out, mpq_numref(x))
-        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
+        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
     elif mpq_sgn(x) == 0:
         mpz_set_ui(out, 0)
         return maxordp
     else:
         denval = mpz_remove(out, mpq_denref(x), prime_pow.prime.value)
-        mpz_invert(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
+        mpz_invert(out, out, prime_pow.pow_mpz_t_tmp(prec))
         if denval == 0:
             numval = mpz_remove(holder.value, mpq_numref(x), prime_pow.prime.value)
             mpz_mul(out, out, holder.value)
         else:
             numval = 0
             mpz_mul(out, out, mpq_numref(x))
-        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
+        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
         return numval - denval
 
 cdef inline int cconv_mpq_t_out(mpq_t out, mpz_t x, long valshift, long prec, PowComputer_class prime_pow) except -1:
@@ -737,12 +737,12 @@ cdef inline int cconv_mpq_t_out(mpq_t out, mpz_t x, long valshift, long prec, Po
     -` ``prec`` -- a long, the precision of ``x``, used in rational reconstruction
     - ``prime_pow`` -- a PowComputer for the ring
     """
-    mpq_rational_reconstruction(out, x, prime_pow.pow_mpz_t_tmp(prec)[0])
+    mpq_rational_reconstruction(out, x, prime_pow.pow_mpz_t_tmp(prec))
 
     # if valshift is nonzero then we starte with x as a p-adic unit,
     # so there will be no powers of p in the numerator or denominator
     # and the following operations yield reduced rationals.
     if valshift > 0:
-        mpz_mul(mpq_numref(out), mpq_numref(out), prime_pow.pow_mpz_t_tmp(valshift)[0])
+        mpz_mul(mpq_numref(out), mpq_numref(out), prime_pow.pow_mpz_t_tmp(valshift))
     elif valshift < 0:
-        mpz_mul(mpq_denref(out), mpq_denref(out), prime_pow.pow_mpz_t_tmp(-valshift)[0])
+        mpz_mul(mpq_denref(out), mpq_denref(out), prime_pow.pow_mpz_t_tmp(-valshift))

@@ -244,8 +244,8 @@ class PHC_Object:
         sol_data += jan_bar
         start_data += str(sol_count) + ' ' + str(var_number) + '\n'
         start_data += jan_bar + sol_data
-        if start_filename != None:
-            start_file = file(start_filename,'w')
+        if start_filename is not None:
+            start_file = open(start_filename, 'w')
             start_file.write(start_data)
             start_file.close()
         return start_data
@@ -427,7 +427,7 @@ class PHC:
         input = self._input_file(polys)
         if verbose:
             print "Writing the input file to %s"%input_filename
-        open(input_filename,'w').write(input)
+        open(input_filename, 'w').write(input)
 
         if verbose:
             print "The following file will be the input polynomial file to phc."
@@ -449,7 +449,7 @@ class PHC:
             print read_stuff
         child_phc.close()
         if not os.path.exists(output_filename):
-            raise RuntimeError, "The output file does not exist; something went wrong running phc."
+            raise RuntimeError("The output file does not exist; something went wrong running phc.")
 
         # Delete the input file
         os.unlink(input_filename)
@@ -479,7 +479,7 @@ class PHC:
             '2\nx^2 - 2*x + y - 1;\nx^2 + y^2 - 1;\n'
         """
         if not isinstance(polys, (list, tuple)):
-            raise TypeError, 'polys must be a list or tuple'
+            raise TypeError('polys must be a list or tuple')
         s = '%s\n'%len(polys)
         for f in polys:
             s += f._repr_() + ';\n'           # note the semicolon *terminators*
@@ -514,7 +514,7 @@ class PHC:
         """
 
         if not os.path.exists(input_filename):
-            raise RuntimeError, "The file containing output from phc (" + input_filename + ") cannot be found"
+            raise RuntimeError("The file containing output from phc (" + input_filename + ") cannot be found")
 
         fh = open(input_filename)
         line_idx = 0
@@ -603,13 +603,13 @@ class PHC:
         # Probably unnecessarily redundant from the start_from function
         if start_filename_or_string.find('THE SOLUTIONS') != -1:
             start_filename = sage.misc.misc.tmp_filename()
-            start_file = file(start_filename,'w')
+            start_file = open(start_filename, 'w')
             start_file.write(start_filename_or_string)
             start_file.close()
         elif os.path.exists(start_filename_or_string):
             start_filename = start_filename_or_string
         else:
-            raise RuntimeError, "There is something wrong with your start string or filename"
+            raise RuntimeError("There is something wrong with your start string or filename")
 
         return self._output_from_command_list(['phc','0','0','A',start_filename, 'y','1','0','n','k','2','a','1',str(c_skew),'0','0','2'], polys, verbose = verbose)
 
@@ -744,7 +744,7 @@ class PHC:
         try:
             return mixed_vol
         except NameError:
-            raise RuntimeError, "Mixed volume not found in output; something went wrong running phc."
+            raise RuntimeError("Mixed volume not found in output; something went wrong running phc.")
 
 
     def start_from(self, start_filename_or_string, polys, input_ring, path_track_file = None, verbose = False):
@@ -779,19 +779,19 @@ class PHC:
 
         if start_filename_or_string.find('THE SOLUTIONS') != -1:
             start_filename = sage.misc.misc.tmp_filename()
-            start_file = file(start_filename,'w')
+            start_file = open(start_filename,'w')
             start_file.write(start_filename_or_string)
             start_file.close()
         elif os.path.exists(start_filename_or_string):
             start_filename = start_filename_or_string
         else:
-            raise RuntimeError, "There is something wrong with your start string or filename"
+            raise RuntimeError("There is something wrong with your start string or filename")
 
         # Get the input polynomial text
         input = self._input_file(polys)
         if verbose:
             print "Writing the input file to %s"%input_filename
-        open(input_filename,'w').write(input)
+        open(input_filename, 'w').write(input)
 
         if verbose:
             print "The following file will be the input polynomial file to phc."
@@ -820,7 +820,7 @@ class PHC:
             phc_dialog = child_phc.read(size = 40)
             print phc_dialog
         child_phc.sendline('0')
-        if path_track_file == None:
+        if path_track_file is None:
             child_phc.sendline('0')
         else:
             child_phc.sendline('2')
@@ -832,7 +832,7 @@ class PHC:
         #close down the process:
         child_phc.close()
         if not os.path.exists(output_filename):
-            raise RuntimeError, "The output file does not exist; something went wrong running phc."
+            raise RuntimeError("The output file does not exist; something went wrong running phc.")
 
         # Read the output produced by PHC
         out = open(output_filename).read()
@@ -877,7 +877,7 @@ class PHC:
         input = self._input_file(polys)
         if verbose:
             print "Writing the input file to %s"%input_filename
-        open(input_filename,'w').write(input)
+        open(input_filename, 'w').write(input)
 
         if verbose:
             print "The following file will be the input polynomial file to phc."
@@ -900,10 +900,10 @@ class PHC:
                 print os.system('which phc') + '  PHC needs to be installed and in your path'
                 raise RuntimeError
             # todo -- why? etc.
-            raise RuntimeError, open(log_filename).read() + "\nError running phc."
+            raise RuntimeError(open(log_filename).read() + "\nError running phc.")
 
         if not os.path.exists(output_filename):
-            raise RuntimeError, "The output file does not exist; something went wrong running phc."
+            raise RuntimeError("The output file does not exist; something went wrong running phc.")
 
         # Read the output produced by PHC
         out = open(output_filename).read()

@@ -58,7 +58,7 @@ class p_iter_fork:
         """
         self.ncpus = int(ncpus)
         if self.ncpus != ncpus:  # check that there wasn't a roundoff
-            raise TypeError, "ncpus must be an integer"
+            raise TypeError("ncpus must be an integer")
         self.timeout = float(timeout)  # require a float
         self.verbose = verbose
         self.reset_interfaces = reset_interfaces

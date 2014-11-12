@@ -681,6 +681,23 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         """
         return self._type.classical().relabel(self._relabelling)
 
+    def basic_untwisted(self):
+        r"""
+        Return the basic untwisted Cartan type associated with this affine
+        Cartan type.
+
+        Given an affine type `X_n^{(r)}`, the basic untwisted type is `X_n`.
+        In other words, it is the classical Cartan type that is twisted to
+        obtain ``self``.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['A', 5, 2]).relabel({0:1, 1:0, 2:2, 3:3})
+            sage: ct.basic_untwisted()
+            ['A', 5]
+        """
+        return self._type.basic_untwisted()
+
     def special_node(self):
         r"""
         Returns a special node of the Dynkin diagram

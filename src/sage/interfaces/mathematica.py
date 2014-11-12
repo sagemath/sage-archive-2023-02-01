@@ -399,7 +399,7 @@ class Mathematica(Expect):
     """
     Interface to the Mathematica interpreter.
     """
-    def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
+    def __init__(self, maxread=100, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
         Expect.__init__(self,
                         name = 'mathematica',
                         prompt = 'In[[0-9]+]:=',
@@ -509,7 +509,7 @@ remote connection to a server running Mathematica -- for hints, type
         #out = self.eval(cmd)
         out = self._eval_line(cmd, allow_use_file=True)
         if len(out) > 8:
-            raise TypeError, "Error executing code in Mathematica\nCODE:\n\t%s\nMathematica ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Mathematica\nCODE:\n\t%s\nMathematica ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var, ascii_art=False):
         """
@@ -743,8 +743,8 @@ class MathematicaElement(ExpectElement):
         # Get Mathematica's output and perform preliminary formatting
         res = self._sage_repr()
         if '"' in res:
-            raise NotImplementedError, "String conversion from Mathematica \
-                does not work.  Mathematica's output was: %s" % res
+            raise NotImplementedError("String conversion from Mathematica \
+                does not work.  Mathematica's output was: %s" % res)
 
         # Find all the mathematica functions, constants and symbolic variables
         # present in `res`.  Convert MMA functions and constants to their
@@ -779,13 +779,13 @@ class MathematicaElement(ExpectElement):
             elif m.end() < len(res) and res[m.end()] == '(':
                 for t in autotrans:
                     f = find_func(t(m.group()), create_when_missing = False)
-                    if f != None:
+                    if f is not None:
                         lsymbols[m.group()] = f
                         break
                 else:
-                    raise NotImplementedError, "Don't know a Sage equivalent \
+                    raise NotImplementedError("Don't know a Sage equivalent \
                         for Mathematica function '%s'.  Please specify one \
-                        manually using the 'locals' dictionary" % m.group()
+                        manually using the 'locals' dictionary" % m.group())
             # Check if Sage has an equivalent constant
             else:
                 for t in autotrans:
@@ -798,8 +798,8 @@ class MathematicaElement(ExpectElement):
             return symbolic_expression_from_string(res, lsymbols,
                 accept_sequence=True)
         except Exception:
-            raise NotImplementedError, "Unable to parse Mathematica \
-                output: %s" % res
+            raise NotImplementedError("Unable to parse Mathematica \
+                output: %s" % res)
 
     def __str__(self):
         P = self._check_valid()
@@ -890,7 +890,7 @@ class MathematicaFunctionElement(FunctionElement):
 
 
 # An instance
-mathematica = Mathematica(script_subdirectory='user')
+mathematica = Mathematica()
 
 def reduce_load(X):
     return mathematica(X)

@@ -1,5 +1,9 @@
 r"""
 Shuffle product of words
+
+.. SEEALSO::
+    The module :mod:`sage.combinat.shuffle` contains a more general
+    implementation of shuffle product.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -352,8 +356,7 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
 
             #Choose r of these filled places
             for subset in Subsets(filled_places, r):
-                places_to_fill = unfilled_places + list(subset)
-                places_to_fill.sort()
+                places_to_fill = sorted(unfilled_places + list(subset))
 
                 #Fill in w2 into the places
                 i = 0

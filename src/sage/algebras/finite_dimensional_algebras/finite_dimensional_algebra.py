@@ -23,6 +23,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.ring import Algebra
 
 from sage.misc.cachefunc import cached_method
+from functools import reduce
 
 
 class FiniteDimensionalAlgebra(Algebra):
@@ -214,6 +215,25 @@ class FiniteDimensionalAlgebra(Algebra):
             [e0, e1]
         """
         return list(self.gens())
+
+    def __iter__(self):
+        """
+        Iterates over the elements of ``self``.
+
+        EXAMPLES::
+
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: list(A)
+            [0, e0, 2*e0, e1, e0 + e1, 2*e0 + e1, 2*e1, e0 + 2*e1, 2*e0 + 2*e1]
+
+        This is used in the :class:`Testsuite`'s when ``self`` is
+        finite.
+        """
+        if not self.is_finite():
+            raise NotImplementedError("object does not support iteration")
+        V = self.zero_element().vector().parent()
+        for v in V:
+            yield self(v)
 
     def _ideal_class_(self, n=0):
         """
@@ -633,7 +653,7 @@ class FiniteDimensionalAlgebra(Algebra):
             ValueError: algebra is not local
         """
         if self.degree() == 0:
-            raise ValueError, "the zero algebra is not local"
+            raise ValueError("the zero algebra is not local")
         if not(self.is_unitary() and self.is_commutative()
                and (self._assume_associative or self.is_associative())):
             raise TypeError("algebra must be unitary, commutative and associative")

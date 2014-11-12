@@ -119,15 +119,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         sage: EllipticCurve([i, i - 1, i + 1, 24*i + 15, 14*i + 35])
         Elliptic Curve defined by y^2 + i*x*y + (i+1)*y = x^3 + (i-1)*x^2 + (24*i+15)*x + (14*i+35) over Number Field in i with defining polynomial x^2 + 1
     """
-    def __init__(self, x, y=None):
+    def __init__(self, K, ainvs):
         r"""
-        Allow some ways to create an elliptic curve over a number
-        field in addition to the generic ones.
-
-        INPUT:
-
-        - ``x``, ``y`` -- see examples.
-
         EXAMPLES:
 
         A curve from the database of curves over `\QQ`, but over a larger field:
@@ -142,26 +135,41 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in i with defining polynomial x^2 + 1
 
         """
-        if y is None:
-            if isinstance(x, list):
-                ainvs = x
-                field = ainvs[0].parent()
-        else:
-            if isinstance(y, str):
-                from sage.databases.cremona import CremonaDatabase
-                field = x
-                X = CremonaDatabase()[y]
-                ainvs = list(X.a_invariants())
-            else:
-                field = x
-                ainvs = y
-        if not (isinstance(field, Ring) and isinstance(ainvs,list)):
-            raise TypeError
+        self._known_points = []
+        EllipticCurve_field.__init__(self, K, ainvs)
 
-        EllipticCurve_field.__init__(self, [field(x) for x in ainvs])
-        self._point = ell_point.EllipticCurvePoint_number_field
+    _point = ell_point.EllipticCurvePoint_number_field
 
-    def simon_two_descent(self, verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
+    def base_extend(self, R):
+        """
+        Return the base extension of ``self`` to `R`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a3')
+            sage: K = QuadraticField(-5, 'a')
+            sage: E.base_extend(K)
+            Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 + 5
+
+        Check that non-torsion points are remembered when extending
+        the base field (see :trac:`16034`)::
+
+            sage: E = EllipticCurve([1, 0, 1, -1751, -31352])
+            sage: K.<d> = QuadraticField(5)
+            sage: E.gens()
+            [(52 : 111 : 1)]
+            sage: EK = E.base_extend(K)
+            sage: EK.gens()
+            [(52 : 111 : 1)]
+
+        """
+        E = super(EllipticCurve_number_field, self).base_extend(R)
+        if isinstance(E, EllipticCurve_number_field):
+            E._known_points = [E(map(R, P.xy())) for P in self._known_points if not P.is_zero()]
+        return E
+
+    def simon_two_descent(self, verbose=0, lim1=2, lim3=4, limtriv=2,
+                          maxprob=20, limbigprime=30, known_points=None):
         r"""
         Return lower and upper bounds on the rank of the Mordell-Weil
         group `E(K)` and a list of points.
@@ -186,6 +194,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         - ``limbigprime`` -- (default: 30) to distinguish between
           small and large prime numbers. Use probabilistic tests for
           large primes. If 0, don't use probabilistic tests.
+
+        - ``known_points`` -- (default: None) list of known points on
+          the curve
 
         OUTPUT: a triple ``(lower, upper, list)`` consisting of
 
@@ -243,18 +254,20 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: v = E.simon_two_descent(verbose=2)
             K = bnfinit(y^2 + 7);
             a = Mod(y,K.pol);
-            bnfellrank(K, [0,0,0,1,a]);
+            bnfellrank(K, [0, 0, 0, 1, a], [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]);
              elliptic curve: Y^2 = x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)
               A = 0
               B = Mod(1, y^2 + 7)
               C = Mod(y, y^2 + 7)
+            <BLANKLINE>
               Computing L(S,2)
-              L(S,2) = [Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y + 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1/2*y - 1/2, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x + Mod(-1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+              L(S,2) = [Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y + 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+            <BLANKLINE>
               Computing the Selmer group
               #LS2gen = 2
                LS2gen = [Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
               Search for trivial points on the curve
-             Trivial points on the curve = [[1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
+             Trivial points on the curve = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)], [1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
               zc = Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
               Hilbert symbol (Mod(2, y^2 + 7),Mod(-5, y^2 + 7)) =
               zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
@@ -263,17 +276,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
               zc*z1^2 = Mod(Mod(2*y - 2, y^2 + 7)*x + Mod(2*y + 10, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
               quartic: (-1/2*y + 1/2)*Y^2 = x^4 + (-3*y - 15)*x^2 + (-8*y - 16)*x + (-11/2*y - 15/2)
               reduced: Y^2 = (-1/2*y + 1/2)*x^4 - 4*x^3 + (-3*y + 3)*x^2 + (2*y - 2)*x + (1/2*y + 3/2)
-              not ELS at [2, [0, 1]~, 1, 1, [1, 1]~]
+              not ELS at [2, [0, 1]~, 1, 1, [1, -2; 1, 0]]
               zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-              comes from the trivial point [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]
+              comes from the trivial point [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]
               m1 = 1
               m2 = 1
             #S(E/K)[2]    = 2
             #E(K)/2E(K)   = 2
             #III(E/K)[2]  = 1
             rank(E/K)     = 1
-             listpoints = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
-            v =  [1, 1, [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]]
+             listpoints = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]
+            v = [1, 1, [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]]
             sage: v
             (1, 1, [(1/2*a + 3/2 : -a - 2 : 1)])
 
@@ -303,10 +316,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K = CyclotomicField(43).subfields(3)[0][0]
             sage: E = EllipticCurve(K, '37')
             sage: E.simon_two_descent()  # long time (4s on sage.math, 2013)
-            (3, 3, [(0 : 0 : 1), (1/2*zeta43_0^2 + 3/2*zeta43_0 - 2 : -zeta43_0^2 - 4*zeta43_0 + 3 : 1)])
-
+            (3, 3, [(0 : 0 : 1), (-1/4*zeta43_0^2 - 1/2*zeta43_0 + 3 : -3/8*zeta43_0^2 - 3/4*zeta43_0 + 4 : 1)])
         """
         verbose = int(verbose)
+        if known_points is None:
+            known_points = self._known_points
+        known_points = [self(P) for P in known_points]
+
+        # We deliberately do not use known_points as a key in the
+        # following caching code, so that calling E.gens() a second
+        # time (when known_points may have increased) will not cause
+        # another execution of simon_two_descent.
         try:
             result = self._simon_two_descent_data[lim1,lim3,limtriv,maxprob,limbigprime]
             if verbose == 0:
@@ -316,10 +336,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
         except KeyError:
             pass
 
-        t = simon_two_descent(self,
-                              verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
-                              maxprob=maxprob, limbigprime=limbigprime)
+        t = simon_two_descent(self, verbose=verbose,
+                              lim1=lim1, lim3=lim3, limtriv=limtriv,
+                              maxprob=maxprob, limbigprime=limbigprime,
+                              known_points=known_points)
         self._simon_two_descent_data[lim1,lim3,limtriv,maxprob,limbigprime] = t
+        self._known_points.extend([P for P in t[2]
+                                   if P not in self._known_points])
         return t
 
     def division_field(self, p, names, map=False, **kwds):
@@ -336,7 +359,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         - ``map`` -- (default: ``False``) also return an embedding of
           the :meth:`base_field` into the resulting field.
 
-        - ``kwds`` -- additional keywords passed to 
+        - ``kwds`` -- additional keywords passed to
           :func:`sage.rings.number_field.splitting_field.splitting_field`.
 
         OUTPUT:
@@ -796,7 +819,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<v> = NumberField(x^2 + 161*x - 150)
             sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
             sage: E.global_integral_model()
-            Elliptic Curve defined by y^2 + (-502639783*v+465618899)*x*y + (-6603604211463489399460860*v+6117229527723443603191500)*y = x^3 + (1526887622075335620*v-1414427901517840500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
+            Elliptic Curve defined by y^2 + (2094779518028859*v-1940492905300351)*x*y + (477997268472544193101178234454165304071127500*v-442791377441346852919930773849502871958097500)*y = x^3 + (26519784690047674853185542622500*v-24566525306469707225840460652500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
 
         :trac:`14476`::
 
@@ -926,7 +949,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = NumberField(x^2+1)
             sage: E = EllipticCurve([1 + i, 0, 1, 0, 0])
             sage: E.local_data()
-            [Local data at Fractional ideal (i - 2):
+            [Local data at Fractional ideal (2*i + 1):
             Reduction type: bad non-split multiplicative
             Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
             Minimal discriminant valuation: 1
@@ -1486,7 +1509,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Fractional ideal (21*i - 3)
             sage: K.<a>=NumberField(x^2-x+3)
             sage: EllipticCurve([1 + a , -1 + a , 1 + a , -11 + a , 5 -9*a  ]).conductor()
-            Fractional ideal (6*a)
+            Fractional ideal (-6*a)
 
         A not so well known curve with everywhere good reduction::
 
@@ -1580,7 +1603,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             proof = sage.structure.proof.proof.get_flag(None, "number_field")
         K = self.base_ring()
         if K.class_number() != 1:
-            raise ValueError, "global minimal models only exist in general for class number 1"
+            raise ValueError("global minimal models only exist in general for class number 1")
 
         E = self.global_integral_model()
         primes = E.base_ring()(E.discriminant()).support()
@@ -1625,16 +1648,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
        try:
            place = K.ideal(place)
        except TypeError:
-           raise TypeError, "The parameter must be an ideal of the base field of the elliptic curve"
+           raise TypeError("The parameter must be an ideal of the base field of the elliptic curve")
        if not place.is_prime():
-           raise ValueError, "The ideal must be prime."
+           raise ValueError("The ideal must be prime.")
        disc = self.discriminant()
        if not K.ideal(disc).valuation(place) == 0:
            local_data=self.local_data(place)
            if local_data.has_good_reduction():
                Fv = OK.residue_field(place)
                return local_data.minimal_model().change_ring(Fv)
-           raise ValueError, "The curve must have good reduction at the place."
+           raise ValueError("The curve must have good reduction at the place.")
        Fv = OK.residue_field(place)
        return self.change_ring(Fv)
 
@@ -1879,7 +1902,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         T = self.torsion_subgroup() # make sure it is cached
         return sorted(T.points())           # these are also cached in T
 
-    def rank_bounds(self,verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
+    def rank_bounds(self, **kwds):
         r"""
         Returns the lower and upper bounds using :meth:`~simon_two_descent`.
         The results of :meth:`~simon_two_descent` are cached.
@@ -1905,6 +1928,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         - ``limbigprime`` -- (default: 30) to distinguish between
           small and large prime numbers. Use probabilistic tests for
           large primes. If 0, don't use probabilistic tests.
+
+        - ``known_points`` -- (default: None) list of known points on
+          the curve
 
         OUTPUT:
 
@@ -1948,15 +1974,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
         http://www.math.unicaen.fr/~simon/.
 
         """
-
-        lower, upper, gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
+        lower, upper, gens = self.simon_two_descent(**kwds)
         # this was corrected in trac 13593. upper is the dimension
         # of the 2-selmer group, so we can certainly remove the
         # 2-torsion of the Mordell-Weil group.
         upper -= self.two_torsion_rank()
         return lower, upper
 
-    def rank(self,verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
+    def rank(self, **kwds):
         r"""
         Return the rank of this elliptic curve, if it can be determined.
 
@@ -1981,6 +2006,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         - ``limbigprime`` -- (default: 30) to distinguish between
           small and large prime numbers. Use probabilistic tests for
           large primes. If 0, don't use probabilistic tests.
+
+        - ``known_points`` -- (default: None) list of known points on
+          the curve
 
         OUTPUT:
 
@@ -2022,14 +2050,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
         http://www.math.unicaen.fr/~simon/.
 
         """
-
-        lower,upper = self.rank_bounds(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
+        lower, upper = self.rank_bounds(**kwds)
         if lower == upper:
             return lower
         else:
-            raise ValueError, 'There is insufficient data to determine the rank - 2-descent gave lower bound %s and upper bound %s' % (lower, upper)
+            raise ValueError('There is insufficient data to determine the rank - 2-descent gave lower bound %s and upper bound %s' % (lower, upper))
 
-    def gens(self,verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
+    def gens(self, **kwds):
         r"""
         Return some points of infinite order on this elliptic curve.
 
@@ -2062,6 +2089,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
           small and large prime numbers. Use probabilistic tests for
           large primes. If 0, don't use probabilistic tests.
 
+        - ``known_points`` -- (default: None) list of known points on
+          the curve
+
         OUTPUT:
 
         A set of points of infinite order given by the Simon two-descent.
@@ -2085,12 +2115,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<y> = NumberField(x^4 + x^2 - 7)
             sage: E = EllipticCurve(K, [1, 0, 5*y^2 + 16, 0, 0])
-            sage: E.rank()
-            1
             sage: E.gens(lim1=1, lim3=1)
             []
-            sage: E.gens()  # long time (about 3 s)
-            [(-369/25*y^3 + 539/25*y^2 - 1178/25*y + 1718/25 : -27193/125*y^3 + 39683/125*y^2 - 86816/125*y + 126696/125 : 1)]
+            sage: E.rank(), E.gens()  # long time (about 3 s)
+            (1, [(9/25*y^2 + 26/25 : -229/125*y^3 - 67/25*y^2 - 731/125*y - 213/25 : 1)])
 
         Here is a curve of rank 2, yet the list contains many points::
 
@@ -2127,8 +2155,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         Uses Denis Simon's PARI/GP scripts from
         http://www.math.unicaen.fr/~simon/.
         """
-        lower,upper,gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
-        return gens
+        _ = self.simon_two_descent(**kwds)
+        return self._known_points
 
     def period_lattice(self, embedding):
         r"""
@@ -2190,6 +2218,23 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
         return PeriodLattice_ell(self,embedding)
+
+    def height_function(self):
+        """
+        Return the canonical height function attached to self.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^2 - 5)
+            sage: E = EllipticCurve(K, '11a3')
+            sage: E.height_function()
+            EllipticCurveCanonicalHeight object associated to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 - 5
+
+        """
+        if not hasattr(self, '_height_function'):
+            from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
+            self._height_function = EllipticCurveCanonicalHeight(self)
+        return self._height_function
 
     def is_isogenous(self, other, proof=True, maxnorm=100):
         """
@@ -2266,10 +2311,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = QuadraticField(-1)
             sage: E1 = EllipticCurve([i + 1, 0, 1, -240*i - 400, -2869*i - 2627])
             sage: E1.conductor()
-            Fractional ideal (4*i + 7)
+            Fractional ideal (-4*i - 7)
             sage: E2 = EllipticCurve([1+i,0,1,0,0])
             sage: E2.conductor()
-            Fractional ideal (4*i + 7)
+            Fractional ideal (-4*i - 7)
             sage: E1.is_isogenous(E2)  # long time (2s on sage.math, 2014)
             Traceback (most recent call last):
             ...
@@ -2304,12 +2349,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         """
         if not is_EllipticCurve(other):
-            raise ValueError, "Second argument is not an Elliptic Curve."
+            raise ValueError("Second argument is not an Elliptic Curve.")
         if self.is_isomorphic(other):
             return True
         K = self.base_field()
         if K != other.base_field():
-            raise ValueError, "Second argument must be defined over the same number field."
+            raise ValueError("Second argument must be defined over the same number field.")
 
         E1 = self.integral_model()
         E2 = other.integral_model()
@@ -2350,7 +2395,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # At this point is is highly likely that the curves are
         # isogenous, but we have not proved it.
 
-        raise NotImplementedError, "Curves appear to be isogenous (same conductor, isogenous modulo all primes of norm up to %s), but no isogeny has been constructed." % (10*maxnorm)
+        raise NotImplementedError("Curves appear to be isogenous (same conductor, isogenous modulo all primes of norm up to %s), but no isogeny has been constructed." % (10*maxnorm))
 
     def isogeny_degree(self, other):
         """
@@ -2583,3 +2628,191 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [5]
         """
         return gal_reps_number_field.GaloisRepresentation(self)
+
+    def cm_discriminant(self):
+        """
+        Returns the CM discriminant of the `j`-invariant of this curve.
+
+        OUTPUT:
+
+        An integer `D` which is either `0` if this curve `E` does not
+        have Complex Multiplication) (CM), or an imaginary quadratic
+        discriminant if `j(E)` is the `j`-invariant of the order with
+        discriminant `D`.
+
+        .. note::
+
+           If `E` has CM but the discriminant `D` is not a square in
+           the base field `K` then the extra endomorphisms will not be
+           defined over `K`.  See also :meth:`has_rational_cm`.
+
+        EXAMPLES::
+
+            sage: EllipticCurve(j=0).cm_discriminant()
+            -3
+            sage: EllipticCurve(j=1).cm_discriminant()
+            Traceback (most recent call last):
+            ...
+            ValueError: Elliptic Curve defined by y^2 + x*y = x^3 + 36*x + 3455 over Rational Field does not have CM
+            sage: EllipticCurve(j=1728).cm_discriminant()
+            -4
+            sage: EllipticCurve(j=8000).cm_discriminant()
+            -8
+            sage: K.<a> = QuadraticField(5)
+            sage: EllipticCurve(j=282880*a + 632000).cm_discriminant()
+            -20
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000).cm_discriminant()
+            -108
+        """
+        try:
+            D = self._CMD
+        except AttributeError:
+            pass
+        else:
+            if D:
+                return D
+            else:
+                raise ValueError("%s does not have CM"%self)
+
+        from sage.schemes.elliptic_curves.cm import is_cm_j_invariant
+        flag, df =  is_cm_j_invariant(self.j_invariant())
+        if flag:
+            d, f = df
+            self._CMD = d*f**2
+            return self._CMD
+        self._CMD = 0 # special cached value to indicate no CM
+        raise ValueError("%s does not have CM"%self)
+
+    def has_cm(self):
+        """
+        Returns whether or not this curve has a CM `j`-invariant.
+
+        OUTPUT:
+
+        ``True`` if this curve has CM over the algebraic closure
+        of the base field, otherwise ``False``.  See also
+        :meth:`cm_discriminant()` and :meth:`has_rational_cm`.
+
+        .. note::
+
+           Even if `E` has CM in this sense (that its `j`-invariant is
+           a CM `j`-invariant), since the associated negative
+           discriminant `D` is not a square in the base field `K`, the
+           extra endomorphisms will not be defined over `K`.  See also
+           the method :meth:`has_rational_cm` which tests whether `E`
+           has extra endomorphisms defined over `K` or a given
+           extension of `K`.
+
+        EXAMPLES::
+
+            sage: EllipticCurve(j=0).has_cm()
+            True
+            sage: EllipticCurve(j=1).has_cm()
+            False
+            sage: EllipticCurve(j=1728).has_cm()
+            True
+            sage: EllipticCurve(j=8000).has_cm()
+            True
+            sage: K.<a> = QuadraticField(5)
+            sage: EllipticCurve(j=282880*a + 632000).has_cm()
+            True
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000).has_cm()
+            True
+        """
+        try:
+            D = self.cm_discriminant()
+        except ValueError:
+            return False
+        return True
+
+    def has_rational_cm(self, field=None):
+        """
+        Returns whether or not this curve has CM defined over its
+        base field or a given extension.
+
+        INPUT:
+
+        - ``field`` -- a field, which should be an extension of the
+          base field of the curve.  If ``field`` is ``None`` (the
+          default), it is taken to be the base field of the curve.
+
+        OUTPUT:
+
+        ``True`` if the ring of endomorphisms of this curve over
+        the given field is larger than `\ZZ`; otherwise ``False``.
+        See also :meth:`cm_discriminant()` and :meth:`has_cm`.
+
+        .. note::
+
+           If `E` has CM but the discriminant `D` is not a square in
+           the given field `K` then the extra endomorphisms will not
+           be defined over `K`, and this function will return
+           ``False``.  See also :meth:`has_cm`.  To obtain the CM
+           discriminant, use :meth:`cm_discriminant()`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(j=0)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: D = E.cm_discriminant(); D
+            -3
+            sage: E.has_rational_cm(QuadraticField(D))
+            True
+
+            sage: E = EllipticCurve(j=1728)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: D = E.cm_discriminant(); D
+            -4
+            sage: E.has_rational_cm(QuadraticField(D))
+            True
+
+        Higher degree examples::
+
+            sage: K.<a> = QuadraticField(5)
+            sage: E = EllipticCurve(j=282880*a + 632000)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: E.cm_discriminant()
+            -20
+            sage: E.has_rational_cm(K.extension(x^2+5,'b'))
+            True
+
+        An error is raised if a field is given which is not an extension of the base field::
+
+            sage: E.has_rational_cm(QuadraticField(-20))
+            Traceback (most recent call last):
+            ...
+            ValueError: Error in has_rational_cm: Number Field in a with defining polynomial x^2 + 20 is not an extension field of Number Field in a with defining polynomial x^2 - 5
+
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: E = EllipticCurve(j=31710790944000*a^2 + 39953093016000*a + 50337742902000)
+            sage: E.has_cm()
+            True
+            sage: E.has_rational_cm()
+            False
+            sage: D = E.cm_discriminant(); D
+            -108
+            sage: E.has_rational_cm(K.extension(x^2+108,'b'))
+            True
+        """
+        try:
+            D = self.cm_discriminant()
+        except ValueError:
+            return False
+        if field is None:
+            return self.base_field()(D).is_square()
+        if self.base_field().embeddings(field):
+            D = field(D)
+            return D.is_square()
+        raise ValueError("Error in has_rational_cm: %s is not an extension field of %s"
+                         % (field,self.base_field()))

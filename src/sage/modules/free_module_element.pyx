@@ -1461,7 +1461,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v = vector([1..5]); abs(v)
             sqrt(55)
             sage: v = vector(RDF, [1..5]); abs(v)
-            7.4161984871
+            7.416198487095663
         """
         return sum([x**2 for x in self.list()]).sqrt()
 
@@ -1507,9 +1507,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: v=vector(RDF,[1,2,3])
             sage: v.norm(5)
-            3.07738488539
+            3.077384885394063
             sage: v.norm(pi/2)
-            4.2165958647
+            4.216595864704748
             sage: _=var('a b c d p'); v=vector([a, b, c, d])
             sage: v.norm(p)
             (abs(a)^p + abs(b)^p + abs(c)^p + abs(d)^p)^(1/p)
@@ -1981,6 +1981,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: A = plot(v)
             sage: B = v.plot()
             sage: A+B # should just show one vector
+            Graphics object consisting of 2 graphics primitives
 
         Examples of the plot types::
 
@@ -1988,53 +1989,64 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: B = plot(v, plot_type='point', color='green', size=20)
             sage: C = plot(v, plot_type='step') # calls v.plot_step()
             sage: A+B+C
+            Graphics object consisting of 3 graphics primitives
 
         You can use the optional arguments for :meth:`plot_step`::
 
             sage: eps = 0.1
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
 
         Three-dimensional examples::
 
             sage: v = vector(RDF, (1,2,1))
             sage: plot(v) # defaults to an arrow plot
+            Graphics3d Object
 
         ::
 
             sage: plot(v, plot_type='arrow')
+            Graphics3d Object
 
         ::
 
             sage: from sage.plot.plot3d.shapes2 import frame3d
             sage: plot(v, plot_type='point')+frame3d((0,0,0), v.list())
+            Graphics3d Object
 
         ::
 
             sage: plot(v, plot_type='step') # calls v.plot_step()
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
 
         With greater than three coordinates, it defaults to a step plot::
 
             sage: v = vector(RDF, (1,2,3,4))
             sage: plot(v)
+            Graphics object consisting of 1 graphics primitive
 
         One dimensional vectors are plotted along the horizontal axis of
         the coordinate plane::
 
             sage: plot(vector([1]))
+            Graphics object consisting of 1 graphics primitive
 
         An optional start argument may also be specified by a tuple, list, or vector::
 
             sage: u = vector([1,2]); v = vector([2,5])
             sage: plot(u, start=v)
+            Graphics object consisting of 1 graphics primitive
 
         TESTS::
 
             sage: u = vector([1,1]); v = vector([2,2,2]); z=(3,3,3)
             sage: plot(u) #test when start=None
+            Graphics object consisting of 1 graphics primitive
 
         ::
 
@@ -2117,6 +2129,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: eps=0.1
             sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
             sage: v.plot_step(eps=eps, xmax=5, hue=0)
+            Graphics object consisting of 1 graphics primitive
         """
         if res is None:
             res = self.degree()
@@ -3440,7 +3453,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             sage: r=vector([t,t^2,sin(t)])
             sage: vec,answers=r.nintegral(t,0,1)
             sage: vec
-            (0.5, 0.333333333333, 0.459697694132)
+            (0.5, 0.3333333333333334, 0.4596976941318602)
             sage: type(vec)
             <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
             sage: answers
@@ -4032,7 +4045,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
         TESTS:
 
-        Test that 11751 is fixed::
+        Test that :trac:`11751` is fixed::
 
             sage: K.<x> = QQ[]
             sage: M = FreeModule(K, 1, sparse=True)
@@ -4056,6 +4069,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: R = L.span([{0:x, 1:x^2}])
             sage: R.basis()[0][0].parent()
             Univariate Polynomial Ring in x over Rational Field
+
+        Test that :trac:`17101` is fixed::
+
+            sage: v = vector([RIF(-1, 1)], sparse=True)
+            sage: v.is_zero()
+            False
         """
         #WARNING: In creation, we do not check that the i pairs satisfy
         #     0 <= i < degree.
@@ -4070,7 +4089,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 x = entries
                 entries = {}
                 for i in xrange(self.degree()):
-                    if x[i] != 0:
+                    if x[i]:
                         entries[i] = x[i]
                 copy = False
             if not isinstance(entries, dict):
@@ -4358,9 +4377,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         This lack of bounds checking causes trouble later::
 
             sage: v
-            Traceback (most recent call last):
-            ...
-            IndexError: list assignment index out of range
+            <repr(<sage.modules.free_module_element.FreeModuleElement_generic_sparse at 0x...>) failed: IndexError: list assignment index out of range>
         """
         if not self._is_mutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")

@@ -86,10 +86,10 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             sage: TestSuite(Sym.kBoundedSubspace(1)).run(skip=["_test_not_implemented_methods"])
         """
         if not isinstance(k, (int, Integer)) or (k < 1):
-            raise ValueError, "k must be a positive integer"
+            raise ValueError("k must be a positive integer")
 
         if not isinstance(Sym,SymmetricFunctions):
-            raise ValueError, "Sym must be an algebra of symmetric functions"
+            raise ValueError("Sym must be an algebra of symmetric functions")
 
         self.indices = ConstantFunction(Partitions_all_bounded(k))
 
@@ -113,10 +113,10 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
         if t == 1:
             s = ks.ambient()
             kh = self.khomogeneous(); h = kh.ambient()
-            h_to_s   = s.coerce_map_from(h)
+            h_to_s   = s._internal_coerce_map_from(h)
             kh_to_ks = ks.retract * h_to_s * kh.lift
             ks.register_coercion(kh_to_ks)
-            s_to_h   = h.coerce_map_from(s)
+            s_to_h   = h._internal_coerce_map_from(s)
             ks_to_kh = kh.retract * s_to_h * ks.lift
             kh.register_coercion(ks_to_kh)
         # temporary workaround until handled by trac 125959
@@ -148,9 +148,7 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             sage: KB.retract(s[2,1,1])
             Traceback (most recent call last):
             ...
-            ValueError: s[2, 1, 1] is not in the image of Generic morphism:
-              From: 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1
-              To:   Symmetric Functions over Rational Field in the Schur basis
+            ValueError: s[2, 1, 1] is not in the image
         """
         s = self.ambient().schur()
         ks = self.kschur()
@@ -198,7 +196,7 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             sage: TestSuite(kh3).run()
         """
         if self.t!=1:
-            raise ValueError, "This basis only exists for t=1"
+            raise ValueError("This basis only exists for t=1")
         return kHomogeneous(self)
 
     def K_kschur(self):
@@ -228,7 +226,7 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             ValueError: This basis only exists for t=1
         """
         if self.t!=1:
-            raise ValueError, "This basis only exists for t=1"
+            raise ValueError("This basis only exists for t=1")
         return K_kSchur(self)
 
 
@@ -287,7 +285,10 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             sage: KBB = KBoundedSubspaceBases(KB); KBB
             Category of k bounded subspace bases of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field
             sage: KBB.super_categories()
-            [Category of realizations of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field, Join of Category of graded coalgebras with basis over Univariate Polynomial Ring in t over Rational Field and Category of subobjects of sets]
+            [Category of realizations of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field,
+             Join of Category of graded modules with basis over Univariate Polynomial Ring in t over Rational Field
+                 and Category of coalgebras with basis over Univariate Polynomial Ring in t over Rational Field
+                 and Category of subobjects of sets]
         """
         R = self.base().base_ring()
         category = GradedHopfAlgebrasWithBasis(R) if self.t == 1 else GradedCoalgebrasWithBasis(R)
@@ -327,8 +328,8 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 else:
                     raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
             #x is an element of the basis enumerated set;
-            elif x in self._basis_keys:
-                return self.monomial(self._basis_keys(x))
+            elif x in self._indices:
+                return self.monomial(self._indices(x))
             raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
         def _convert_map_from_(self,Q):
@@ -346,7 +347,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             """
             P = self.lift.codomain()
             if P.has_coerce_map_from(Q):
-                return self.retract * P.coerce_map_from(Q)
+                return self.retract * P._internal_coerce_map_from(Q)
             return None
 
         def __getitem__(self, c, *rest):
@@ -388,7 +389,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 else:
                     c = Partition(list(c))
 
-            if c not in self._basis_keys:
+            if c not in self._indices:
                 raise TypeError("do not know how to make %s an element of %s"%(c,self))
             return self.monomial(c)
 
@@ -580,7 +581,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
     class ElementMethods:
 
-        __mul__ = Magmas.ElementMethods.__mul__.im_func
+        __mul__ = Magmas.ElementMethods.__mul__.__func__
 
         def _mul_(self, other):
             r"""
@@ -606,10 +607,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 sage: ks(f)
                 Traceback (most recent call last):
                 ...
-                ValueError: s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + (t+1)*s[4, 2] + (t+1)*s[5, 1] + t*s[6] is not in the image of Generic morphism:
-                  From: 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
-                  To:   Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the Schur basis
-
+                ValueError: s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + (t+1)*s[4, 2] + (t+1)*s[5, 1] + t*s[6] is not in the image
                 sage: Sym = SymmetricFunctions(QQ)
                 sage: ks = Sym.kschur(3,1)
                 sage: f = ks[2]*ks[3,1]; f
@@ -715,9 +713,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 sage: ks[3,1,1].omega()
                 Traceback (most recent call last):
                 ...
-                ValueError: t*s[2, 1, 1, 1] + s[3, 1, 1] is not in the image of Generic morphism:
-                From: 3-bounded Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
-                To:   Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Schur basis
+                ValueError: t*s[2, 1, 1, 1] + s[3, 1, 1] is not in the image
             """
             return self.parent()(self.lift().omega())
 
@@ -887,9 +883,7 @@ class kSchur(CombinatorialFreeModule):
         sage: ks3(s([4]))
         Traceback (most recent call last):
         ...
-        ValueError: s[4] is not in the image of Generic morphism:
-          From: 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
-          To:   Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the Schur basis
+        ValueError: s[4] is not in the image
 
     Note that the product of `k`-Schur functions is not guaranteed to be in the
     space spanned by the `k`-Schurs. In general, we only have that a
@@ -1002,10 +996,10 @@ class kSchur(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.im_func
-    _convert_map_from_ = KBoundedSubspaceBases.ParentMethods._convert_map_from_.im_func
-    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.im_func
+    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.__func__
+    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
+    _convert_map_from_ = KBoundedSubspaceBases.ParentMethods._convert_map_from_.__func__
+    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
     _element_constructor = _element_constructor_
 
     def _repr_(self):
@@ -1221,11 +1215,11 @@ class kHomogeneous(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.im_func
+    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.__func__
+    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
     _convert_map_from_ =\
-            KBoundedSubspaceBases.ParentMethods._convert_map_from_.im_func
-    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.im_func
+            KBoundedSubspaceBases.ParentMethods._convert_map_from_.__func__
+    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
     _element_constructor = _element_constructor_
 
     def _repr_(self):
@@ -1299,9 +1293,9 @@ class K_kSchur(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.im_func
-    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.im_func
+    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.__func__
+    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
+    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
     _element_constructor = _element_constructor_
 
     def _repr_(self):
@@ -1508,7 +1502,7 @@ class K_kSchur(CombinatorialFreeModule):
             ValueError: Partition should be 3-bounded
         """
         if la != [] and (la[0] > self.k):
-            raise  ValueError, "Partition should be %d-bounded"%self.k
+            raise  ValueError("Partition should be %d-bounded"%self.k)
         return self._DualGrothendieck(Partition(la))
 
     def K_k_Schur_non_commutative_variables(self,la):

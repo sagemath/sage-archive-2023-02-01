@@ -741,8 +741,8 @@ class ToricLattice_generic(FreeModule_generic_pid):
         else:
             base_ring = None
         if base_ring is None or base_ring is ZZ:
-            return ToricLattice_sublattice(self.ambient_module(),
-                                           *args, **kwds)
+            gens = args[0] if args else kwds["gens"]
+            return ToricLattice_sublattice(self.ambient_module(), gens)
         else:
             return super(ToricLattice_generic, self).span(*args, **kwds)
 
@@ -982,6 +982,7 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
 
             sage: N = ToricLattice(3)
             sage: N.plot()
+            Graphics3d Object
         """
         if "show_lattice" not in options:
             # Unless user made an explicit decision, we assume that lattice
@@ -1128,10 +1129,12 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
             sage: N = ToricLattice(3)
             sage: sublattice = N.submodule_with_basis([(1,1,0), (3,2,1)])
             sage: sublattice.plot()
+            Graphics3d Object
 
         Now we plot both the ambient lattice and its sublattice::
 
             sage: N.plot() + sublattice.plot(point_color="red")
+            Graphics3d Object
         """
         if "show_lattice" not in options:
             # Unless user made an explicit decision, we assume that lattice
@@ -1385,19 +1388,19 @@ class ToricLattice_quotient(FGP_Module_class):
             'You may only specify a positive direction in the codimension one case.'
         quotient_generator = self.gen(0)
         lattice = self.V().ambient_module()
-        if (positive_point!=None) and (positive_dual_point==None):
+        if (positive_point is not None) and (positive_dual_point is None):
             assert positive_point in lattice, 'positive_point must be a lattice point.'
             point_quotient = self(positive_point)
             scalar_product = quotient_generator.vector()[0] * point_quotient.vector()[0]
             if scalar_product==0:
-                raise ValueError, str(positive_point)+' is zero in the quotient.'
-        elif (positive_point==None) and (positive_dual_point!=None):
+                raise ValueError(str(positive_point)+' is zero in the quotient.')
+        elif (positive_point is None) and (positive_dual_point is not None):
             assert positive_dual_point in lattice.dual(), 'positive_dual_point must be a dual lattice point.'
             scalar_product = quotient_generator.lift() * positive_dual_point
             if scalar_product==0:
-                raise ValueError, str(positive_dual_point)+' is zero on the lift of the quotient generator.'
+                raise ValueError(str(positive_dual_point)+' is zero on the lift of the quotient generator.')
         else:
-            raise ValueError, 'You may not specify both positive_point and positive_dual_point.'
+            raise ValueError('You may not specify both positive_point and positive_dual_point.')
         self._flip_sign_of_generator = (scalar_product<0)
 
     def gens(self):

@@ -21,13 +21,13 @@ EXAMPLES::
     [
     (Vector space of degree 33 and dimension 1 over Finite Field of size 97
     Basis matrix:
-    [ 0  0  0  1 96 96  1 96 96  0  2 96 96  0  1  0  1  2 95  0  1  1  0  1  0 95  0 96 95  1 96  0  2], True),
+    [ 0  0  0  1 96 96  1  0 95  1  1  1  1 95  2 96  0  0 96  0 96  0 96  2 96 96  0  1  0  2  1 95  0], True),
     (Vector space of degree 33 and dimension 1 over Finite Field of size 97
     Basis matrix:
-    [ 0  1 96 75 16 81 22 17 17  0  0 80 80  1 16 40 74  0  0 96 81 23 57 74  0  0  0 24  0 23 73  0  0], True),
+    [ 0  1 96 16 75 22 81  0  0 17 17 80 80  0  0 74 40  1 16 57 23 96 81  0 74 23  0 24  0  0 73  0  0], True),
     (Vector space of degree 33 and dimension 1 over Finite Field of size 97
     Basis matrix:
-    [ 0  1 96 90 90  7  7  6 91  0  0 91  6 13  7  0 91  0  0 84 90  6  0  6  0  0  0 90  0 91  7  0  0], True)
+    [ 0  1 96 90 90  7  7  0  0 91  6  6 91  0  0 91  0 13  7  0  6 84 90  0  6 91  0 90  0  0  7  0  0], True)
     ]
     sage: len(D)
     9
@@ -193,7 +193,7 @@ def Phi_polys(L, x, j):
     - Iftikhar Burhanuddin -- burhanud@usc.edu
     """
     if not(L in [2,3,5,7,11]):
-        raise ValueError, "L should be either 2,3,5,7 or 11. For other values use ClassicalModularPolynomialDatabase()."
+        raise ValueError("L should be either 2,3,5,7 or 11. For other values use ClassicalModularPolynomialDatabase().")
 
     j_tmp = 1
     j_pow = [j_tmp]
@@ -486,7 +486,7 @@ def dimension_supersingular_module(prime, level=1):
     - Iftikhar Burhanuddin - burhanud@usc.edu
     """
     if not(rings.Integer(prime).is_prime()):
-        raise ValueError, "%s is not a prime"%prime
+        raise ValueError("%s is not a prime"%prime)
 
     if level == 1:
         return Gamma0(prime).dimension_modular_forms(2)
@@ -534,7 +534,7 @@ def supersingular_D(prime):
     - Iftikhar Burhanuddin - burhanud@usc.edu
     """
     if not(rings.Integer(prime).is_prime()):
-        raise ValueError, "%s is not a prime"%prime
+        raise ValueError("%s is not a prime"%prime)
 
     #Making picking D more intelligent
     D = -1
@@ -581,12 +581,12 @@ def supersingular_j(FF):
     - Iftikhar Burhanuddin -- burhanud@usc.edu
     """
     if not(FF.is_field()) or not(FF.is_finite()):
-        raise ValueError, "%s is not a finite field"%FF
+        raise ValueError("%s is not a finite field"%FF)
     prime = FF.characteristic()
     if not(rings.Integer(prime).is_prime()):
-        raise ValueError, "%s is not a prime"%prime
+        raise ValueError("%s is not a prime"%prime)
     if not(rings.Integer(FF.cardinality())) == rings.Integer(prime**2):
-        raise ValueError, "%s is not a quadratic extension"%FF
+        raise ValueError("%s is not a quadratic extension"%FF)
     if rings.kronecker(-1, prime) != 1:
         j_invss = 1728                 #(2^2 * 3)^3
     elif rings.kronecker(-2, prime) != 1:
@@ -652,11 +652,11 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         """
 
         if not prime.is_prime():
-            raise ValueError, "the argument prime must be a prime number"
+            raise ValueError("the argument prime must be a prime number")
         if prime.divides(level):
-            raise ValueError, "the argument level must be coprime to the argument prime"
+            raise ValueError("the argument level must be coprime to the argument prime")
         if level != 1:
-            raise NotImplementedError, "supersingular modules of level > 1 not yet implemented"
+            raise NotImplementedError("supersingular modules of level > 1 not yet implemented")
         self.__prime = prime
         from sage.rings.all import FiniteField
         self.__finite_field = FiniteField(prime**2,'a')

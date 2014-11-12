@@ -10,16 +10,15 @@ Coxeter Groups
 # With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling, Christian Stump, Mark Shimozono
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
+from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.misc import attrcall, uniq
-from sage.misc.superseded import deprecation
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.groups import Groups
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.sage_object import have_same_parent
-from sage.combinat.finite_class import FiniteCombinatorialClass
 from sage.misc.flatten import flatten
 from copy import copy
 
@@ -33,7 +32,7 @@ class CoxeterGroups(Category_singleton):
 
     `I` is the *index set* of `W` and `|I|` is the *rank* of `W`.
 
-    See http://en.wikipedia.org/wiki/Coxeter_group for details.
+    See :Wikipedia:`Coxeter_group` for details.
 
     EXAMPLES::
 
@@ -67,6 +66,19 @@ class CoxeterGroups(Category_singleton):
     .. TODO:: add a demo of usual computations on Coxeter groups.
 
     .. SEEALSO:: :class:`WeylGroups`, :mod:`sage.combinat.root_system`
+
+    .. WARNING::
+
+        It is assumed that morphisms in this category preserve the
+        distinguished choice of simple reflections. In particular,
+        subobjects in this category are parabolic subgroups. In this
+        sense, this category might be better named ``Coxeter
+        Systems``. In the long run we might want to have two distinct
+        categories, one for Coxeter groups (with morphisms being just
+        group morphisms) and one for Coxeter systems::
+
+            sage: CoxeterGroups().is_full_subcategory(Groups())
+            False
 
     TESTS::
 
@@ -108,6 +120,9 @@ class CoxeterGroups(Category_singleton):
             [Category of groups, Category of enumerated sets]
         """
         return [Groups(), EnumeratedSets()]
+
+    Finite = LazyImport('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
+    Algebras = LazyImport('sage.categories.coxeter_group_algebras', 'CoxeterGroupAlgebras')
 
     class ParentMethods:
 
@@ -386,7 +401,7 @@ class CoxeterGroups(Category_singleton):
 
             """
             if not i in self.index_set():
-                raise ValueError, "%s is not in the Dynkin node set %s"%(i,self.index_set())
+                raise ValueError("%s is not in the Dynkin node set %s"%(i,self.index_set()))
             return self.one().apply_simple_reflection(i) # don't care about left/right
 
         @cached_method
@@ -447,7 +462,7 @@ class CoxeterGroups(Category_singleton):
 
         semigroup_generators = group_generators
 
-        def simple_projection(self, i, side = 'right', length_increasing = True, toward_max = None):
+        def simple_projection(self, i, side = 'right', length_increasing = True):
             r"""
             INPUT:
 
@@ -487,14 +502,11 @@ class CoxeterGroups(Category_singleton):
 
             """
             if not (i in self.index_set() or i == 0):
-                raise ValueError, "%s is not 0 and not in the Dynkin node set %s"%(i, self.index_set())
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
+                raise ValueError("%s is not 0 and not in the Dynkin node set %s"%(i, self.index_set()))
             return lambda x: x.apply_simple_projection(i, side = side, length_increasing = length_increasing)
 
         @cached_method
-        def simple_projections(self, side = 'right', length_increasing = True, toward_max = None):
+        def simple_projections(self, side = 'right', length_increasing = True):
             r"""
             Returns the family of simple projections, also known as 0-Hecke or Demazure operators.
 
@@ -545,9 +557,6 @@ class CoxeterGroups(Category_singleton):
                 (1, 3, 2, 0)
             """
             from sage.sets.family import Family
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projections is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
             return Family(self.index_set(), lambda i: self.simple_projection(i, side = side, length_increasing = length_increasing))
 
         def demazure_product(self,Q):
@@ -629,7 +638,63 @@ class CoxeterGroups(Category_singleton):
                 [2 3 1]
             """
             from sage.groups.matrix_gps.coxeter_group import CoxeterMatrixGroup
-            return CoxeterMatrixGroup(self.coxeter_matrix(), index_set=self.index_set())
+            return CoxeterMatrixGroup(self.coxeter_matrix(),
+                                      index_set=self.index_set())
+
+        def elements_of_length(self, n):
+            r"""
+            Return all elements of length `n`.
+
+            EXAMPLES::
+
+                sage: A = AffinePermutationGroup(['A',2,1])
+                sage: [len(list(A.elements_of_length(i))) for i in [0..5]]
+                [1, 3, 6, 9, 12, 15]
+
+                sage: W = CoxeterGroup(['H',3])
+                sage: [len(list(W.elements_of_length(i))) for i in range(4)]
+                [1, 3, 5, 7]
+
+                sage: W = CoxeterGroup(['A',2])
+                sage: [len(list(W.elements_of_length(i))) for i in range(6)]
+                [1, 2, 2, 1, 0, 0]
+            """
+            I = self.weak_order_ideal(ConstantFunction(True), side='right')
+            return I.elements_of_depth_iterator(n)
+
+        def random_element_of_length(self, n):
+            r"""
+            Return a random element of length ``n`` in ``self``.
+
+            Starts at the identity, then chooses an upper cover at random.
+
+            Not very uniform: actually constructs a uniformly random
+            reduced word of length `n`. Thus we most likely get
+            elements with lots of reduced words!
+
+            EXAMPLES::
+
+                sage: A = AffinePermutationGroup(['A', 7, 1])
+                sage: p = A.random_element_of_length(10)
+                sage: p in A
+                True
+                sage: p.length() == 10
+                True
+
+                sage: W = CoxeterGroup(['A', 4])
+                sage: p = W.random_element_of_length(5)
+                sage: p in W
+                True
+                sage: p.length() == 5
+                True
+            """
+            from sage.misc.prandom import randint
+            x = self.one()
+            for i in xrange(1, n + 1):
+                antiD = x.descents(positive=True)
+                rnd = randint(0, len(antiD) - 1)
+                x = x.apply_simple_reflection_right(antiD[rnd])
+            return x
 
         # TODO: Groups() should have inverse() call __invert__
         # With strong doc stating that this is just a convenience for the user
@@ -723,11 +788,11 @@ class CoxeterGroups(Category_singleton):
             :meth:`.has_left_descent` and :meth:`.has_right_descent`.
             """
             if not isinstance(positive, bool):
-                raise TypeError, "%s is not a boolean"%(bool)
+                raise TypeError("%s is not a boolean"%(bool))
             if side == 'right':
                 return self.has_right_descent(i) != positive
             if side != 'left':
-                raise ValueError, "%s is neither 'right' nor 'left'"%(side)
+                raise ValueError("%s is neither 'right' nor 'left'"%(side))
             return self.has_left_descent(i)  != positive
 
 #        @abstract_method(optional = True)
@@ -843,7 +908,7 @@ class CoxeterGroups(Category_singleton):
 
                 TODO: side, index_set, positive
             """
-            if index_set==None:
+            if index_set is None:
                 index_set=self.parent().index_set()
             return [ i for i in index_set if self.has_descent(i, side = side, positive = positive) ]
 
@@ -1121,7 +1186,7 @@ v            EXAMPLES::
                     return self
                 self = self.apply_simple_reflection(i, side = side)
 
-        def apply_simple_projection(self, i, side = 'right', length_increasing = True, toward_max = None):
+        def apply_simple_projection(self, i, side = 'right', length_increasing = True):
             r"""
             INPUT:
 
@@ -1158,11 +1223,6 @@ v            EXAMPLES::
                 s1*s2*s3*s4*s3
 
             """
-
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ElementMethods.apply_simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
-
             if self.has_descent(i, side = side, positive = length_increasing):
                 return self.apply_simple_reflection(i, side=side)
             return self
@@ -1214,9 +1274,11 @@ v            EXAMPLES::
             from sage.combinat.backtrack import SearchForest
             W = self.parent()
             if not predicate(W.one()):
-                return FiniteCombinatorialClass([])
+                from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+                return FiniteEnumeratedSet([])
             s = W.simple_reflections()
-            def succ((u,v)):
+            def succ(u_v):
+                (u, v) = u_v
                 for i in v.descents(side = 'left'):
                     u1 = u * s[i]
                     if i == u1.first_descent() and predicate(u1):
@@ -1657,7 +1719,7 @@ v            EXAMPLES::
 
             """
             if not have_same_parent(self, other):
-                raise TypeError, "%s and %s do not have the same parent"%(self, other)
+                raise TypeError("%s and %s do not have the same parent"%(self, other))
             # could first compare the length, when that information is cheap
             desc = other.first_descent()
             if desc is not None:
@@ -1721,7 +1783,7 @@ v            EXAMPLES::
                 ...           assert u.permutohedron_lequal(v, side='left') == P4toW(u).weak_le(P4toW(v), side='left')
             """
             if not have_same_parent(self, other):
-                raise TypeError, "%s and %s do not have the same parent"%(self,other)
+                raise TypeError("%s and %s do not have the same parent"%(self,other))
             # could first compare the length, when that information is cheap
             prefix_side = 'left' if side == 'right' else 'right'
 
@@ -1821,10 +1883,10 @@ v            EXAMPLES::
                 if isinstance(element, (tuple)):
                     element = [x for x in element]
                 if not isinstance(element, (list)):
-                    raise TypeError, "Bad Coxeter group element input: %s"%(element)
+                    raise TypeError("Bad Coxeter group element input: %s"%(element))
                 I = self.parent().index_set()
                 if not all(i in I for i in element):
-                    raise ValueError, "%s does not have all its members in the index set of the %s"%(element, self.parent())
+                    raise ValueError("%s does not have all its members in the index set of the %s"%(element, self.parent()))
                 # the copy is so that if we need to reverse the list, the original will not
                 # get reversed
                 the_word = copy(element)
@@ -1862,10 +1924,10 @@ v            EXAMPLES::
             # else require that ``element`` is a list or tuple of index_set elements
             else:
                 if not isinstance(element, (tuple,list)):
-                    raise TypeError, "Bad Coxeter group element input: %s"%(element)
+                    raise TypeError("Bad Coxeter group element input: %s"%(element))
                 I = self.parent().index_set()
                 if not all(i in I for i in element):
-                    raise ValueError, "%s does not have all its members in the index set of the %s"%(element, self.parent())
+                    raise ValueError("%s does not have all its members in the index set of the %s"%(element, self.parent()))
                 the_word = element
             for i in the_word:
                 if self.has_descent(i, side = 'left'):
@@ -1911,11 +1973,11 @@ v            EXAMPLES::
             """
 
             if self != self.coset_representative(index_set):
-                raise ValueError, "%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(self.reduced_word(),index_set)
+                raise ValueError("%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(self.reduced_word(),index_set))
             if w != w.coset_representative(index_set):
-                raise ValueError, "%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(w.reduced_word(),index_set)
+                raise ValueError("%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(w.reduced_word(),index_set))
             if not self.bruhat_le(w):
-                raise ValueError, "Must have %s <= %s"%(self.reduced_word(), w.reduced_word())
+                raise ValueError("Must have %s <= %s"%(self.reduced_word(), w.reduced_word()))
             if w.is_one():
                 return w
             i = w.first_descent(side = 'left')
@@ -1960,7 +2022,7 @@ v            EXAMPLES::
             vmin = self.coset_representative(index_set)
             wmin = w.coset_representative(index_set)
             if not vmin.bruhat_le(wmin):
-                raise ValueError, "Must have %s <= %s mod the parabolic subgroup with index set %s"%(self.reduced_word(), w.reduced_word(), index_set)
+                raise ValueError("Must have %s <= %s mod the parabolic subgroup with index set %s"%(self.reduced_word(), w.reduced_word(), index_set))
             vJ = vmin.inverse() * self
             dsp = vmin.deodhar_factor_element(wmin,index_set)
             return wmin * vJ.min_demazure_product_greater(dsp)
@@ -1996,7 +2058,7 @@ v            EXAMPLES::
             vmin = self.coset_representative(index_set)
             wmin = w.coset_representative(index_set)
             if not wmin.bruhat_le(vmin):
-                raise ValueError, "Must have %s <= %s mod the parabolic subgroup with index set %s"%(w.reduced_word(), self.reduced_word(), index_set)
+                raise ValueError("Must have %s <= %s mod the parabolic subgroup with index set %s"%(w.reduced_word(), self.reduced_word(), index_set))
 
             vJ = vmin.inverse() * self
             dsp = wmin.deodhar_factor_element(vmin,index_set)
@@ -2118,4 +2180,3 @@ v            EXAMPLES::
                 [[1, 2, 3]]
             """
             return self.weak_covers(side = side, index_set = index_set, positive = True)
-

@@ -90,7 +90,7 @@ would cause us a problem later. We will therefore redefine our
 Cartesian product so that its elements are represented by tuples::
 
     sage: Cards = CartesianProduct(Values, Suits).map(tuple)
-    sage: Cards.an_element()               # todo: not implemented (see #10963)
+    sage: Cards.an_element()
     ('King', 'Hearts')
 
 Now we can define a set of cards::
@@ -661,8 +661,9 @@ model the set `\mathcal P(\mathcal P(\mathcal P(E)))` and
 calculate its cardinality (`2^{2^{2^4}}`)::
 
     sage: E = Set([1,2,3,4])
-    sage: S = Subsets(Subsets(Subsets(E)))
-    sage: n = S.cardinality(); n              # long time (10s on sage.math, 2012)
+    sage: S = Subsets(Subsets(Subsets(E))); S
+    Subsets of Subsets of Subsets of {1, 2, 3, 4}
+    sage: n = S.cardinality(); n
     2003529930406846464979072351560255750447825475569751419265016973...
 
 which is roughly `2\cdot 10^{19728}`::
@@ -672,11 +673,9 @@ which is roughly `2\cdot 10^{19728}`::
 
 or ask for its `237102124`-th element::
 
-    sage: S.unrank(237102123)                 # not tested (20s, 2012)
-    {{{2}, {3}, {1, 2, 3, 4}, {1, 2}, {1, 4}, {}, {2, 3, 4},
-    {1, 2, 4}, {3, 4}, {4}, {2, 3}, {1, 2, 3}}, {{2}, {3},
-    {1, 2, 3, 4}, {1, 2}, {1, 4}, {2, 3, 4}, {3, 4},
-    {1, 3, 4}, {1}, {1, 3}, {1, 2, 3}}}
+    sage: S.unrank(237102123)
+    {{{2, 4}, {1, 4}, {}, {1, 3, 4}, {1, 2, 4}, {4}, {2, 3}, {1, 3}, {2}},
+      {{1, 3}, {2, 4}, {1, 2, 4}, {}, {3, 4}}}
 
 It would be physically impossible to construct explicitly all the
 elements of `S`, as there are many more of them than there are
@@ -691,8 +690,7 @@ sets::
     sage: len(S)
     Traceback (most recent call last):
     ...
-    AttributeError: __len__ has been removed; use .cardinality()
-    instead
+    OverflowError: Python int too large to convert to C long
 
 Partitions of integers
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -866,6 +864,7 @@ Partial orders on a set of `8` elements, up to isomorphism::
 ::
 
     sage: C.unrank(20).plot()
+    Graphics object consisting of 20 graphics primitives
 
 .. image:: ../../media/a_poset.png
 
@@ -922,7 +921,7 @@ The command below should return 16, but it is not yet implemented::
     sage: C.cardinality()
     Traceback (most recent call last):
     ...
-    AttributeError: 'MatrixSpace' object has no attribute 'cardinality'
+    NotImplementedError: unknown cardinality
 
 .. topic:: Exercise
 
@@ -1662,14 +1661,23 @@ capabilities for the study of polytopes, in the present application it
 only produces a list of lattice points, without providing either an
 iterator or non-naive counting::
 
-    sage: A=random_matrix(ZZ,3,6,x=7)
-    sage: L=LatticePolytope(A)
-    sage: L.points()                                  # random
-    [1 6 6 2 5 5 6 5 4 5 4 5 4 2 5 3 4 5 3 4 5 3 3]
-    [4 4 2 6 4 1 3 2 3 3 4 4 3 4 3 4 4 4 4 4 4 5 5]
-    [3 1 1 6 5 1 1 2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 5]
+    sage: A = random_matrix(ZZ, 6, 3, x=7)
+    sage: L = LatticePolytope(A.rows())
+    sage: L.points_pc()                               # random
+    M(4, 1, 0),
+    M(0, 3, 5),
+    M(2, 2, 3),
+    M(6, 1, 3),
+    M(1, 3, 6),
+    M(6, 2, 3),
+    M(3, 2, 4),
+    M(3, 2, 3),
+    M(4, 2, 4),
+    M(4, 2, 3),
+    M(5, 2, 3)
+    in 3-d lattice M
     sage: L.npoints()                                 # random
-    23
+    11
 
 This polytope can be visualized in 3D with ``L.plot3d()`` (see
 :ref:`figure-polytope`).

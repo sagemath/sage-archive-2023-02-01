@@ -2,11 +2,10 @@ from sage.rings.all import *
 
 def pari(x):
     """
-    Return the pari object constructed from a Sage object.
+    Return the PARI object constructed from a Sage/Python object.
 
-    The work is done by the __call__ method of the class PariInstance,
-    which in turn passes the work to any class which has its own
-    method _pari_().
+    For Sage types, this uses the `_pari_()` method on the object if
+    possible and otherwise it uses the string representation.
 
     EXAMPLES::
 
@@ -73,11 +72,11 @@ def pari(x):
 
         sage: K.<a> = NumberField(x^3 - 2)
         sage: pari(K)
-        [y^3 - 2, [1, 1], -108, 1, [[1, 1.25992104989487, 1.58740105196820; 1, -0.629960524947437 - 1.09112363597172*I, -0.793700525984100 + 1.37472963699860*I], [1, 1.25992104989487, 1.58740105196820; 1, -1.72108416091916, 0.581029111014503; 1, 0.461163111024285, -2.16843016298270], [1, 1, 2; 1, -2, 1; 1, 0, -2], [3, 0, 0; 0, 0, 6; 0, 6, 0], [6, 0, 0; 0, 6, 0; 0, 0, 3], [2, 0, 0; 0, 0, 1; 0, 1, 0], [2, [0, 0, 2; 1, 0, 0; 0, 1, 0]]], [1.25992104989487, -0.629960524947437 - 1.09112363597172*I], [1, y, y^2], [1, 0, 0; 0, 1, 0; 0, 0, 1], [1, 0, 0, 0, 0, 2, 0, 2, 0; 0, 1, 0, 1, 0, 0, 0, 0, 2; 0, 0, 1, 0, 1, 0, 1, 0, 0]]
+        [y^3 - 2, [1, 1], -108, 1, [[1, 1.25992104989487, 1.58740105196820; 1, -0.629960524947437 + 1.09112363597172*I, -0.793700525984100 - 1.37472963699860*I], [1, 1.25992104989487, 1.58740105196820; 1, 0.461163111024285, -2.16843016298270; 1, -1.72108416091916, 0.581029111014503], [1, 1, 2; 1, 0, -2; 1, -2, 1], [3, 0, 0; 0, 0, 6; 0, 6, 0], [6, 0, 0; 0, 6, 0; 0, 0, 3], [2, 0, 0; 0, 0, 1; 0, 1, 0], [2, [0, 0, 2; 1, 0, 0; 0, 1, 0]], []], [1.25992104989487, -0.629960524947437 + 1.09112363597172*I], [1, y, y^2], [1, 0, 0; 0, 1, 0; 0, 0, 1], [1, 0, 0, 0, 0, 2, 0, 2, 0; 0, 1, 0, 1, 0, 0, 0, 0, 2; 0, 0, 1, 0, 1, 0, 1, 0, 0]]
 
         sage: E = EllipticCurve('37a1')
         sage: pari(E)
-        [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, [0.837565435283323, 0.269594436405445, -1.10715987168877]~, 2.99345864623196, -2.45138938198679*I, 0.942638555913623, 1.32703057887968*I, 7.33813274078958]
+        [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, Vecsmall([1]), [Vecsmall([64, 1])], [0, 0, 0, 0, 0, 0, 0, 0]]
 
     Conversion from basic Python types::
 
@@ -99,6 +98,13 @@ def pari(x):
         sage: pari("dummy = 0; kill(dummy)")
         sage: type(pari("dummy = 0; kill(dummy)"))
         <type 'NoneType'>
+
+    TESTS::
+
+        sage: pari(None)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cannot convert None to pari
     """
     from sage.libs.pari.all import pari
     return pari(x)
@@ -239,7 +245,7 @@ def python(z, locals=None):
         tx = z.real().type()
         ty = z.imag().type()
         if tx in ["t_INTMOD", "t_PADIC"] or ty in ["t_INTMOD", "t_PADIC"]:
-            raise NotImplementedError, "No conversion to python available for t_COMPLEX with t_INTMOD or t_PADIC components"
+            raise NotImplementedError("No conversion to python available for t_COMPLEX with t_INTMOD or t_PADIC components")
         if tx == "t_REAL" or ty == "t_REAL":
             xprec = z.real().precision() # will be 0 if exact
             yprec = z.imag().precision() # will be 0 if exact
@@ -256,7 +262,7 @@ def python(z, locals=None):
             return QuadraticField(-1,'i')([python(c) for c in list(z)])
         if tx == "t_INT" or ty == "t_INT":
             return QuadraticField(-1,'i').ring_of_integers()([python(c) for c in list(z)])
-        raise NotImplementedError, "No conversion to python available for t_COMPLEX with components %s"%(tx,ty)
+        raise NotImplementedError("No conversion to python available for t_COMPLEX with components %s"%(tx,ty))
     elif t == "t_VEC":
         return [python(x) for x in z.python_list()]
     elif t == "t_VECSMALL":

@@ -8,9 +8,7 @@ Principal ideal domains
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
-from sage.misc.cachefunc import cached_method
 from sage.categories.unique_factorization_domains import UniqueFactorizationDomains
 
 class PrincipalIdealDomains(Category_singleton):
@@ -45,6 +43,20 @@ class PrincipalIdealDomains(Category_singleton):
             [Category of unique factorization domains]
         """
         return [UniqueFactorizationDomains()]
+
+    def additional_structure(self):
+        """
+        Return ``None``.
+
+        Indeed, the category of principal ideal domains defines no
+        additional structure: a ring morphism between two principal
+        ideal domains is a principal ideal domain morphism.
+
+        EXAMPLES::
+
+            sage: PrincipalIdealDomains().additional_structure()
+        """
+        return None
 
     class ParentMethods:
         pass

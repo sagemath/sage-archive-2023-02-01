@@ -46,6 +46,7 @@ ask whether p is a closed path, plot it and many other::
     sage: p.is_closed()
     False
     sage: p.plot()
+    Graphics object consisting of 3 graphics primitives
 
 To obtain a list of all the available word path specific functions,
 use ``help(p)``::
@@ -105,12 +106,14 @@ Some built-in combinatorial classes of paths::
     sage: d = D('()()()(())'); d
     Path: ()()()(())
     sage: d.plot()
+    Graphics object consisting of 3 graphics primitives
 
 ::
 
     sage: P = WordPaths('abcdef', steps='triangle_grid')
     sage: p = P('babaddefadabcadefaadfafabacdefa')
     sage: p.plot()
+    Graphics object consisting of 3 graphics primitives
 
 Vector steps may be in more than 2 dimensions::
 
@@ -119,6 +122,7 @@ Vector steps may be in more than 2 dimensions::
     Word Paths over 3 steps
     sage: p = P('abcabcabcabcaabacabcababcacbabacacabcaccbcac')
     sage: p.plot()
+    Graphics3d Object
 
 ::
 
@@ -135,6 +139,7 @@ Vector steps may be in more than 2 dimensions::
     sage: CubePaths = WordPaths('abcABC', steps='cube_grid'); CubePaths
     Word Paths on the cube grid
     sage: CubePaths('abcabaabcabAAAAA').plot()
+    Graphics3d Object
 
 The input data may be a str, a list, a tuple,
 a callable or a finite iterator::
@@ -325,7 +330,7 @@ def WordPaths(alphabet, steps=None):
         elif alphabet.cardinality() == 6:
             steps = 'hexagonal_grid'
         else:
-            raise TypeError, "Unable to make a class WordPaths from %s"%alphabet
+            raise TypeError("Unable to make a class WordPaths from %s"%alphabet)
 
     #Returns the class of WordPaths according to the given type of paths
     if isinstance(steps, str):
@@ -342,7 +347,7 @@ def WordPaths(alphabet, steps=None):
         elif steps == 'dyck':
             return WordPaths_dyck(alphabet=alphabet)
         else:
-            raise TypeError, "Unknown type of steps : %s"%steps
+            raise TypeError("Unknown type of steps : %s"%steps)
     else:
         return WordPaths_all(alphabet=alphabet, steps=steps)
 
@@ -381,7 +386,7 @@ class WordPaths_all(Words_over_OrderedAlphabet):
             sage: WordPaths('abcd',[(2,1),(2,4)])
             Word Paths over 4 steps
             sage: _.letters_to_steps()
-            {'a': (2, 1), 'c': (-2, -1), 'b': (2, 4), 'd': (-2, -4)}
+            {'a': (2, 1), 'b': (2, 4), 'c': (-2, -1), 'd': (-2, -4)}
 
         TESTS::
 
@@ -414,8 +419,8 @@ class WordPaths_all(Words_over_OrderedAlphabet):
         ls = len(steps)
         la = alphabet.cardinality()
         if la != ls and la != 2*ls:
-            raise TypeError,"size of steps (=%s) must equal the size \
-of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinality())
+            raise TypeError("size of steps (=%s) must equal the size \
+of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinality()))
 
         #Construction of the steps
         from sage.structure.element import Vector
@@ -425,11 +430,11 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
             try:
                 vsteps = map(vector, steps)
             except (TypeError):
-                raise ValueError, "Can't make vectors from steps"
+                raise ValueError("Can't make vectors from steps")
         try:
             s = sum(vsteps)
         except (TypeError, AttributeError):
-            raise ValueError, "Can't make summable vectors from steps"
+            raise ValueError("Can't make summable vectors from steps")
 
         #Complete vsteps with the opposite vectors if needed
         if la == 2 * ls:
@@ -1404,7 +1409,7 @@ class FiniteWordPath_all(SageObject):
         dimension = self.parent().vector_space().dimension()
         if not dimension in (3, 4):
             msg = "The dimension of the vector space (=%s) must be 3 or 4"%dimension
-            raise TypeError, msg
+            raise TypeError(msg)
         if letters is None:
             letters = self.parent().alphabet()
         if color is None:
@@ -1412,10 +1417,10 @@ class FiniteWordPath_all(SageObject):
             A = self.parent().alphabet()
             color = dict( (a, hue(A.rank(a)/float(A.cardinality()))) for a in A )
         it = self.projected_point_iterator(v, ring=ring)
-        if kind is 'right':
+        if kind == 'right':
             start = it.next()
-        elif kind is not 'left':
-            raise ValueError, 'unknown value for kind (=%s)'%kind
+        elif kind != 'left':
+            raise ValueError('unknown value for kind (=%s)'%kind)
         tout = [point([c], color=color[a], size=size) for a, c in izip(self, it) if a in letters]
         return sum(tout)
 
@@ -1450,6 +1455,7 @@ class FiniteWordPath_all(SageObject):
             sage: p
             Path: 1213121121312121312112131213121121312121...
             sage: p[:20].plot()
+            Graphics object consisting of 3 graphics primitives
 
         The ``ring`` argument allows to change the precision of the
         projected steps::
@@ -1458,7 +1464,7 @@ class FiniteWordPath_all(SageObject):
             sage: p
             Path: 1213121121312121312112131213121121312121...
             sage: p.parent().letters_to_steps()
-            {'1': (-0.53, 0.00), '3': (0.41, 0.88), '2': (0.75, -0.48)}
+            {'1': (-0.53, 0.00), '2': (0.75, -0.48), '3': (0.41, 0.88)}
         """
         if v is None:
             v = self.directive_vector()
@@ -1534,25 +1540,30 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
             sage: P = WordPaths('abAB')
             sage: P('abababAABAB').plot()
+            Graphics object consisting of 3 graphics primitives
 
         A closed path on the square grid::
 
             sage: P('abababAABABB').plot()
+            Graphics object consisting of 4 graphics primitives
 
         A dyck path::
 
             sage: P = WordPaths('()', steps='dyck')
             sage: P('()()()((()))').plot()
+            Graphics object consisting of 3 graphics primitives
 
         A path in the triangle grid::
 
             sage: P = WordPaths('abcdef', steps='triangle_grid')
             sage: P('abcdedededefab').plot()
+            Graphics object consisting of 3 graphics primitives
 
         A polygon of length 220 that tiles the plane in two ways::
 
             sage: P = WordPaths('abAB')
             sage: P('aBababAbabaBaBABaBabaBaBABAbABABaBabaBaBABaBababAbabaBaBABaBabaBaBABAbABABaBABAbAbabAbABABaBABAbABABaBabaBaBABAbABABaBABAbAbabAbABAbAbabaBababAbABAbAbabAbABABaBABAbAbabAbABAbAbabaBababAbabaBaBABaBababAbabaBababAbABAbAbab').plot()
+            Graphics object consisting of 4 graphics primitives
 
         With gridlines::
 
@@ -1562,7 +1573,9 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
             sage: P = WordPaths('abAB')
             sage: P().plot()
+            Graphics object consisting of 3 graphics primitives
             sage: sum(map(plot,map(P,['a','A','b','B'])))
+            Graphics object consisting of 12 graphics primitives
         """
         G = Graphics()
         pts = list(self.points())
@@ -1710,6 +1723,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
         A closed path::
 
             sage: P('acbd').plot_directive_vector()
+            Graphics object consisting of 0 graphics primitives
         """
         start = self.start_point()
         end = self.end_point()
@@ -1738,7 +1752,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
         """
         if not self.is_closed():
-            raise TypeError, "the path must be closed to compute its area"
+            raise TypeError("the path must be closed to compute its area")
         return NotImplemented
 
     def height(self):
@@ -1954,10 +1968,12 @@ class FiniteWordPath_3d(FiniteWordPath_all):
             sage: p = P('ababab'); p
             Path: ababab
             sage: p.plot()
+            Graphics3d Object
 
             sage: P = WordPaths('abcABC', steps='cube_grid')
             sage: p = P('abcabcAABBC')
             sage: p.plot()
+            Graphics3d Object
 
         """
         #The following line seems not to work for 3d
@@ -1996,7 +2012,7 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
             sage: P('ab').is_closed()
             False
         """
-        tab = self.parikh_vector()
+        tab = self.abelian_vector()
         return tab[0] == tab[2] and tab[1] == tab[3]
 
     def area(self):
@@ -2058,7 +2074,7 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
 
         """
         if not self.is_closed():
-            raise TypeError, "the path must be closed to compute its area"
+            raise TypeError("the path must be closed to compute its area")
         return abs(self._area_vh())
 
     def _area_vh(path, x=0, y=0):
@@ -2097,7 +2113,7 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
             elif move == A:
                 area -= y
                 x -= 1
-        return area/2
+        return area // 2
 
     def is_simple(self):
         r"""

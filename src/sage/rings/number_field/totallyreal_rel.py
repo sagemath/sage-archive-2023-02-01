@@ -95,7 +95,7 @@ from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_total
 from sage.libs.pari.all import pari
 from sage.rings.all import ZZ, QQ
 
-import math, bisect, sys
+import math, sys
 
 
 def integral_elements_in_box(K, C):
@@ -193,11 +193,11 @@ def integral_elements_in_box(K, C):
         i += 1
 
     from sage.geometry.lattice_polytope import LatticePolytope
-    P = LatticePolytope(matrix(M).transpose())
+    P = LatticePolytope(M)
     S = []
 
     try:
-        pts = P.points().transpose()
+        pts = P.points_pc()
     except ValueError:
         return []
 
@@ -313,9 +313,9 @@ class tr_data_rel:
             # currently unknown; e.g., if k == -1, then we can iterate
             # over polynomials, and if k == n-1, then we have finished iterating.
             if a[len(a)-1] != 1:
-                raise ValueError, "a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1]
+                raise ValueError("a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1])
 
-            raise NotImplementedError, "These have not been checked."
+            raise NotImplementedError("These have not been checked.")
 
             k = m-len(a)
             self.k = k
@@ -342,7 +342,7 @@ class tr_data_rel:
             self.gnk[k+1] = [[0] + [binomial(j,k+1)*v(a[j]) for j in range (k+2,m+1)] for v in self.Foo]
         else:
             # Bad input!
-            raise ValueError, "a has length %s > m+1"%len(a)
+            raise ValueError("a has length %s > m+1"%len(a))
 
     def incr(self, f_out, verbose=False, haltk=0):
         r"""
@@ -562,7 +562,7 @@ class tr_data_rel:
                     betak = self.beta[k]
                     akmin = [-numpy.polyval(gnks[j], betak[j][mk+1]) - \
                                abs(numpy.polyval(gnkm1s[j], betak[j][mk+1]))*eps_global for j in range(self.d)]
-                    for i in range(1,(mk+1)/2+1):
+                    for i in range(1,(mk+1)//2+1):
                         # Use the fact that f(z) <= f(x)+|f'(x)|eps if |x-z| < eps
                         # for sufficiently small eps, f(z) = 0, and f''(z) < 0.
                         akmin = [max(akmin[j],
@@ -571,7 +571,7 @@ class tr_data_rel:
 
                     akmax = [-numpy.polyval(gnks[j], betak[j][mk]) + \
                                abs(numpy.polyval(gnkm1s[j], betak[j][mk]))*eps_global for j in range(self.d)]
-                    for i in range(1,mk/2+1):
+                    for i in range(1,mk//2+1):
                         akmax = [min(akmax[j],
                                     -numpy.polyval(gnks[j], betak[j][mk-2*i]) + \
                                        abs(numpy.polyval(gnkm1s[j], betak[j][mk-2*i])*eps_global)) for j in range(self.d)]
@@ -728,15 +728,14 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         try:
             m = Integer(m)
         except TypeError:
-            raise TypeError, "cannot coerce m (= %s) to an integer" % m
+            raise TypeError("cannot coerce m (= %s) to an integer" % m)
     if (m < 1):
-        raise ValueError, "m must be at least 1."
+        raise ValueError("m must be at least 1.")
 
     n = F.degree()*m
 
     # Initialize
-    S = []
-    Srel = []
+    S = {}        # dictionary of the form {(d, fabs): f, ...}
     dB_odlyzko = odlyzko_bound_totallyreal(n)
     dB = math.ceil(40000*dB_odlyzko**n)
     counts = [0,0,0,0]
@@ -803,20 +802,13 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
                         ng = pari([nf,zk]).polredabs()
 
                         # Check if K is contained in the list.
-                        found = False
-                        ind = bisect.bisect_left(S, [d,ng])
-                        while ind < len(S) and S[ind][0] == d:
-                            if S[ind][1] == ng:
-                                if verbose:
-                                    print "but is not new"
-                                found = True
-                                break
-                            ind += 1
-                        if not found:
+                        if (d, ng) in S:
+                            if verbose:
+                                print "but is not new"
+                        else:
                             if verbose:
                                 print "and is new!"
-                            S.insert(ind, [d,ng])
-                            Srel.insert(ind, Fx(f_out))
+                            S[(d, ng)] = Fx(f_out)
                     else:
                         if verbose:
                             print "has discriminant", abs(d), "> B"
@@ -847,9 +839,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
             d = K.absolute_discriminant()
             if abs(d) <= B:
                 ng = Kabs_pari.polredabs()
-                ind = bisect.bisect_left(S, [d,ng])
-                S.insert(ind, [d,ng])
-                Srel.insert(ind, Fx([-1,1,1]))
+                S[(d, ng)] = Fx([-1,1,1])
         elif F.degree() == 2:
             for ff in [[1,-7,13,-7,1],[1,-8,14,-7,1]]:
                 f = Fx(ff).factor()[0][0]
@@ -859,9 +849,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
                 d = K.absolute_discriminant()
                 if abs(d) <= B:
                     ng = Kabs_pari.polredabs()
-                    ind = bisect.bisect_left(S, [d,ng])
-                    S.insert(ind, [d,ng])
-                    Srel.insert(ind, f)
+                    S[(d, ng)] = f
     elif m == 3:
         if Fx([-1,6,-5,1]).is_irreducible():
             K = F.extension(Fx([-1,6,-5,1]), 'tK')
@@ -870,12 +858,14 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
             d = K.absolute_discriminant()
             if abs(d) <= B:
                 ng = Kabs_pari.polredabs()
-                ind = bisect.bisect_left(S, [d,ng])
-                S.insert(ind, [d,ng])
-                Srel.insert(ind, Fx([-1,6,-5,1]))
+                S[(d, ng)] = Fx([-1,6,-5,1])
+
+    # Convert S to a sorted list of triples [d, fabs, f], taking care
+    # to use cmp() and not the comparison operators on PARI polynomials.
+    S = [[s[0], s[1], t] for s, t in S.items()]
+    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
 
     # Now check for isomorphic fields
-    S = [[S[i][0],S[i][1],Srel[i]] for i in range(len(S))]
     weed_fields(S)
 
     # Output.
@@ -969,7 +959,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
     S = []
     counts = [0,0,0,0]
     if len(divisors(n)) > 4:
-        raise ValueError, "Only implemented for n = p*q with p,q prime"
+        raise ValueError("Only implemented for n = p*q with p,q prime")
     for d in divisors(n):
         if d > 1 and d < n:
             Sds = enumerate_totallyreal_fields_prim(d, int(math.floor((1.*B)**(1.*d/n))), verbose=verbose)
@@ -991,7 +981,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
                         if EF.degree() == n and EF.disc() <= B:
                             S.append([EF.disc(), pari(EF.absolute_polynomial())])
     S += enumerate_totallyreal_fields_prim(n, B, verbose=verbose)
-    S.sort()
+    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
     weed_fields(S)
 
     # Output.

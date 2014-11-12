@@ -155,14 +155,14 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 - 1
     """
     if not isinstance(ring, PolynomialRing_commutative):
-        raise TypeError, "ring must be a polynomial ring"
+        raise TypeError("ring must be a polynomial ring")
     if not isinstance(polynomial, polynomial_element.Polynomial):
-        raise TypeError, "must be a polynomial"
+        raise TypeError("must be a polynomial")
     if not polynomial.parent() == ring:
-        raise TypeError, "polynomial must be in ring"
+        raise TypeError("polynomial must be in ring")
     c = polynomial.leading_coefficient()
     if not c.is_unit():
-        raise TypeError, "polynomial must have unit leading coefficient"
+        raise TypeError("polynomial must have unit leading coefficient")
     if names is None:
         names = tuple([x + 'bar' for x in ring.variable_names()])
     else:
@@ -265,11 +265,13 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage: first_class == Q.__class__
         False
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
-        ['cartesian_product', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift', 'xgcd']
+        ['cartesian_product', 'euclidean_degree', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift', 'quo_rem', 'xgcd']
 
-    As one can see, the elements are now inheriting additional methods: lcm and gcd. Even though
-    ``Q.an_element()`` belongs to the old and not to the new element class, it still inherits
-    the new methods from the category of fields::
+    As one can see, the elements are now inheriting additional
+    methods: lcm and gcd. Even though ``Q.an_element()`` belongs to
+    the old and not to the new element class, it still inherits the
+    new methods from the category of fields, thanks to
+    :meth:`Element.__getattr__`::
 
         sage: isinstance(Q.an_element(),Q.element_class)
         False
@@ -287,7 +289,6 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage: TestSuite(Q(x)).run()
         sage: isinstance(Q(x), Q.element_class)
         True
-
     """
     Element = PolynomialQuotientRingElement
 
@@ -303,13 +304,13 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
         """
         if not isinstance(ring, PolynomialRing_commutative):
-            raise TypeError, "R must be a univariate polynomial ring."
+            raise TypeError("R must be a univariate polynomial ring.")
 
         if not isinstance(polynomial, polynomial_element.Polynomial):
-            raise TypeError, "f must be a Polynomial"
+            raise TypeError("f must be a Polynomial")
 
         if polynomial.parent() != ring:
-            raise TypeError, "f must have parent R"
+            raise TypeError("f must have parent R")
 
         self.__ring = ring
         self.__polynomial = polynomial
@@ -441,7 +442,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         try:
             return self.element_class(self, self.__ring(x), check=False)
         except TypeError:
-            raise TypeError, "unable to convert %s into an element of %s"%(x,repr(self))
+            raise TypeError("unable to convert %s into an element of %s"%(x,repr(self)))
 
     def _coerce_map_from_(self, R):
         """
@@ -771,7 +772,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             gamma
         """
         if n != 0:
-            raise IndexError, "Only one generator."
+            raise IndexError("Only one generator.")
         try:
             return self.__gen
         except AttributeError:
@@ -845,10 +846,10 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             17*alpha + 1
         """
         if self.characteristic() != 0:
-            raise ArithmeticError, "Polynomial quotient ring is not isomorphic to a number field (it has positive characteristic)."
+            raise ArithmeticError("Polynomial quotient ring is not isomorphic to a number field (it has positive characteristic).")
 
         if not isinstance(self.base_ring(), sage.rings.rational_field.RationalField):
-            raise NotImplementedError, "Computation of number field only implemented for quotients of the polynomial ring over the rational field."
+            raise NotImplementedError("Computation of number field only implemented for quotients of the polynomial ring over the rational field.")
         return sage.rings.number_field.all.NumberField(self.modulus(), self.variable_name())
 
     def order(self):
@@ -951,7 +952,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: len(iso_classes[1][1])
             2
         """
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         K = self.base_ring()
         if not is_NumberField(K) or not self.__polynomial.is_squarefree():
             raise NotImplementedError
@@ -1234,11 +1235,11 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
             sage: L.S_units([])
-            [(-1/2*a + 1/2, 6), ((-1/3*a + 1)*b^2 - 4/3*a*b - 4/3*a - 3, +Infinity), (2/3*a*b^2 + (2/3*a + 2)*b - 4/3*a + 3, +Infinity)]
+            [(-1/2*a + 1/2, 6), ((1/3*a - 1)*b^2 + 4/3*a*b + 5/6*a + 7/2, +Infinity), ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity)]
             sage: L.S_units([K.ideal(1/2*a - 3/2)])
-            [((-1/6*a - 1/2)*b^2 + (1/3*a + 1)*b - 2/3*a - 2, +Infinity), (-1/2*a + 1/2, 6), ((-1/3*a + 1)*b^2 - 4/3*a*b - 4/3*a - 3, +Infinity), (2/3*a*b^2 + (2/3*a + 2)*b - 4/3*a + 3, +Infinity)]
+            [((-1/6*a - 1/2)*b^2 + (1/3*a - 1)*b + 4/3*a, +Infinity), (-1/2*a + 1/2, 6), ((1/3*a - 1)*b^2 + 4/3*a*b + 5/6*a + 7/2, +Infinity), ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity)]
             sage: L.S_units([K.ideal(2)])
-            [((1/6*a + 1/2)*b^2 + (-1/3*a - 1)*b + 2/3*a + 1, +Infinity), ((-1/6*a - 1/2)*b^2 + (1/3*a + 1)*b - 1/6*a - 3/2, +Infinity), ((-1/2*a + 1/2)*b^2 + (a - 1)*b - 3/2*a + 3/2, +Infinity), (-1/2*a + 1/2, 6), ((-1/3*a + 1)*b^2 - 4/3*a*b - 4/3*a - 3, +Infinity), (2/3*a*b^2 + (2/3*a + 2)*b - 4/3*a + 3, +Infinity)]
+            [((-1/2*a + 1/2)*b^2 + (-a - 1)*b - 3, +Infinity), ((-1/6*a - 1/2)*b^2 + (1/3*a - 1)*b + 5/6*a - 1/2, +Infinity), ((1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a - 1/2, +Infinity), (-1/2*a + 1/2, 6), ((1/3*a - 1)*b^2 + 4/3*a*b + 5/6*a + 7/2, +Infinity), ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity)]
 
         Note that all the returned values live where we expect them to::
 
@@ -1314,14 +1315,14 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
             sage: L.units()
-            [(-1/2*a + 1/2, 6), ((-1/3*a + 1)*b^2 - 4/3*a*b - 4/3*a - 3, +Infinity), (2/3*a*b^2 + (2/3*a + 2)*b - 4/3*a + 3, +Infinity)]
+            [(-1/2*a + 1/2, 6), ((1/3*a - 1)*b^2 + 4/3*a*b + 5/6*a + 7/2, +Infinity), ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity)]
             sage: L.<b> = K.extension(y^3 + 5)
             sage: L.unit_group()
             Unit group with structure C6 x Z x Z of Number Field in b with defining polynomial x^3 + 5 over its base field
             sage: L.unit_group().gens()    # abstract generators
             (u0, u1, u2)
             sage: L.unit_group().gens_values()
-            [-1/2*a + 1/2, (-1/3*a + 1)*b^2 - 4/3*a*b - 4/3*a - 3, 2/3*a*b^2 + (2/3*a + 2)*b - 4/3*a + 3]
+            [-1/2*a + 1/2, (1/3*a - 1)*b^2 + 4/3*a*b + 5/6*a + 7/2, (-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2]
 
         Note that all the returned values live where we expect them to::
 

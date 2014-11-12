@@ -127,7 +127,7 @@ Functions
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 include "sage/misc/binary_matrix.pxi"
 from libc.stdint cimport uint64_t, uint32_t, INT32_MAX
 from sage.graphs.base.c_graph cimport CGraph
@@ -964,7 +964,7 @@ def floyd_warshall(gg, paths = True, distances = False):
 
         sage: u,v = g.random_vertex(), g.random_vertex()
         sage: p = [v]
-        sage: while p[0] != None:
+        sage: while p[0] is not None:
         ...     p.insert(0,path[u][p[0]])
         sage: len(p) == dist[u][v] + 2
         True

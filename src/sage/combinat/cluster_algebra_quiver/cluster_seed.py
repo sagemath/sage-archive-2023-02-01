@@ -26,6 +26,7 @@ import time
 from sage.structure.sage_object import SageObject
 from copy import copy
 from sage.rings.all import QQ, infinity
+from sage.rings.integer_ring import ZZ
 from sage.rings.all import FractionField, PolynomialRing
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.sets.all import Set
@@ -92,7 +93,7 @@ class ClusterSeed(SageObject):
         from quiver import ClusterQuiver
 
         # constructs a cluster seed from a cluster seed
-        if type(data) is ClusterSeed:
+        if isinstance(data, ClusterSeed):
             if frozen:
                 print "The input \'frozen\' is ignored"
             self._M = copy( data._M )
@@ -106,7 +107,7 @@ class ClusterSeed(SageObject):
             self._is_principal = data._is_principal
 
         # constructs a cluster seed from a quiver
-        elif type(data) is ClusterQuiver:
+        elif isinstance(data, ClusterQuiver):
             if frozen:
                 print "The input \'frozen\' is ignored"
 
@@ -126,7 +127,7 @@ class ClusterSeed(SageObject):
             quiver = ClusterQuiver( data, frozen=frozen )
             self.__init__( quiver )
 
-        if is_principal != None:
+        if is_principal is not None:
             self._is_principal = is_principal
 
     def __eq__(self, other):
@@ -144,7 +145,7 @@ class ClusterSeed(SageObject):
             sage: S.__eq__( T )
             True
         """
-        return type( other ) is ClusterSeed and self._M == other._M and self._cluster == other._cluster
+        return isinstance(other, ClusterSeed) and self._M == other._M and self._cluster == other._cluster
 
     def _repr_(self):
         r"""
@@ -809,11 +810,11 @@ class ClusterSeed(SageObject):
             seq = [sequence]
         else:
             seq = sequence
-        if type( seq ) is tuple:
+        if isinstance(seq, tuple):
             seq = list( seq )
-        if not type( seq ) is list:
+        if not isinstance(seq, list):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
-        if not type(inplace) is bool:
+        if not isinstance(inplace, bool):
             raise ValueError('The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.')
         if any( v not in V for v in seq ):
             v = filter( lambda v: v not in V, seq )[0]
@@ -1835,9 +1836,7 @@ class ClusterSeed(SageObject):
             raise ValueError('The variable class can - for infinite types - only be computed up to a given depth')
 
         var_iter = self.variable_class_iter( depth=depth, ignore_bipartite_belt=ignore_bipartite_belt )
-        Vs = [ var for var in var_iter ]
-        Vs.sort(cmp=cmp)
-        return Vs
+        return sorted(var_iter)
 
     def is_finite( self ):
         r"""
@@ -1854,7 +1853,7 @@ class ClusterSeed(SageObject):
             False
         """
         mt = self.mutation_type()
-        if type(mt) is str:
+        if isinstance(mt, str):
             return False
         else:
             return mt.is_finite()
@@ -2089,15 +2088,15 @@ def PathSubset(n,m):
 
         sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import PathSubset
         sage: PathSubset(4,0)
-        set([1, 3, 5, 7])
+        {1, 3, 5, 7}
         sage: PathSubset(4,1)
-        set([1, 3, 5, 6, 7])
+        {1, 3, 5, 6, 7}
         sage: PathSubset(4,2)
-        set([1, 2, 3, 5, 6, 7])
+        {1, 2, 3, 5, 6, 7}
         sage: PathSubset(4,3)
-        set([1, 2, 3, 4, 5, 6, 7])
+        {1, 2, 3, 4, 5, 6, 7}
         sage: PathSubset(4,4)
-        set([0, 1, 2, 3, 4, 5, 6, 7])
+        {0, 1, 2, 3, 4, 5, 6, 7}
     """
     from sage.misc.misc import union
     from sage.functions.other import floor
@@ -2129,7 +2128,7 @@ def SetToPath(T):
         sage: SetToPath(PathSubset(4,4))
         [1, 0, 3, 2, 5, 4, 7, 6]
     """
-    n = (max(T)+1)/2
+    n = (max(T)+1) // 2
     ans = [1]
     for i in range(n-1):
         if 2*i in T:
@@ -2261,7 +2260,7 @@ class ClusterVariable(FractionFieldElement):
         """
         if self._variable_type == 'frozen variable':
             raise ValueError('The variable is frozen.')
-        if type(self._mutation_type) is str:
+        if isinstance(self._mutation_type, str):
             raise ValueError('The cluster algebra for %s is not of finite type.'%self._repr_())
         else:
             if self._mutation_type is None:
@@ -2269,7 +2268,10 @@ class ClusterVariable(FractionFieldElement):
             if self._mutation_type.is_finite():
                 from sage.combinat.root_system.root_system import RootSystem
                 # the import above is used in the line below
-                exec "Phi = RootSystem("+self._mutation_type._repr_()+")"
+                mt = self._mutation_type._repr_()
+                # mt is a string of the shape "['A', 15]"
+                # where A is a single letter and 15 is an integer
+                Phi = RootSystem([mt[2: 3], ZZ(mt[6: -1])])
                 Phiplus = Phi.root_lattice().simple_roots()
                 if self.denominator() == 1:
                     return -Phiplus[ self.numerator().degrees().index(1) + 1 ]

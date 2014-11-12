@@ -252,7 +252,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: SkewTableau([[None,None,None,2,3],[None,1],[None],[2]]).inner_shape()
             [3, 1, 1]
         """
-        return Partition(filter(lambda x: x != 0, [row.count(None) for row in self]))
+        return Partition([x for x in (row.count(None) for row in self) if x != 0])
 
     def shape(self):
         r"""
@@ -302,7 +302,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: SkewTableau([[None, 2], [1, 3]]).size()
             3
         """
-        return sum([len(filter(lambda x: x is not None,row)) for row in self])
+        return sum(len([x for x in row if x is not None]) for row in self)
 
     def conjugate(self):
         """
@@ -564,7 +564,7 @@ class SkewTableau(CombinatorialObject, Element):
             [[None, 1], [1]]
         """
         t = self[:]
-        return SkewTableau( filter(lambda z: z != [], map(lambda x: filter(lambda y: y is None or y <= n, x), t)) )
+        return SkewTableau( [z for z in map(lambda x: [y for y in x if y is None or y <= n], t) if z != []] )
 
     def restriction_outer_shape(self, n):
         """
@@ -707,7 +707,7 @@ class SkewTableau(CombinatorialObject, Element):
         outer_corners = self.outer_shape().corners()
         if corner is not None:
             if tuple(corner) not in inner_corners:
-                raise ValueError, "corner must be an inner corner"
+                raise ValueError("corner must be an inner corner")
         else:
             if len(inner_corners) == 0:
                 return self
@@ -1062,7 +1062,7 @@ class SkewTableau(CombinatorialObject, Element):
         if not self.is_ribbon():
             raise ValueError("self must be a ribbon")
         from sage.combinat.ribbon_shaped_tableau import RibbonShapedTableau
-        r =  [ [i for i in row if i is not None] for row in self]
+        r = [[i for i in row if i is not None] for row in self]
         return RibbonShapedTableau(r)
 
     def filling(self):
@@ -1075,13 +1075,13 @@ class SkewTableau(CombinatorialObject, Element):
             sage: t.filling()
             [[1], [2, 3]]
         """
-        return [ [i for i in row if i is not None] for row in self ]
+        return [[i for i in row if i is not None] for row in self]
 
     def cells_by_content(self, c):
         """
         Return the coordinates of the cells in ``self`` with content ``c``.
 
-        ::
+        EXAMPLES::
 
             sage: s = SkewTableau([[None,1,2],[3,4,5],[6]])
             sage: s.cells_by_content(0)
@@ -1139,7 +1139,7 @@ class SkewTableau(CombinatorialObject, Element):
 
     def cells(self):
         """
-        Returns the cells in ``self``.
+        Return the cells in ``self``.
 
         EXAMPLES::
 
@@ -1216,8 +1216,8 @@ class SkewTableau(CombinatorialObject, Element):
 
 def _label_skew(list, sk):
     """
-    Returns a filled in a standard skew tableaux given an ordered list
-    of the coordinates to filled in.
+    Return a filled-in standard skew tableau given an ordered list
+    of the coordinates to fill in.
 
     EXAMPLES::
 
@@ -1285,7 +1285,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
 
     def __contains__(self, x):
         """
-        Checks if ``x`` is a skew tableaux.
+        Checks if ``x`` is a skew tableau.
 
         EXAMPLES::
 
@@ -1571,7 +1571,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
         """
         Return the number of standard skew tableaux with shape of the skew
         partition ``skp``. This uses a formula due to Aitken
-        (see Cor. 7.16.3 of [Sta1999]_).
+        (see Cor. 7.16.3 of [Sta-EC2]_).
 
         EXAMPLES::
 

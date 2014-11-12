@@ -9,7 +9,7 @@ import arith
 from sage.libs.all import PariError
 from power_series_ring_element import is_PowerSeries
 import rational_field
-from polynomial.all import is_MPolynomialRing
+from polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
 import power_series_poly
 
 cdef class PowerSeries_mpoly(PowerSeries):

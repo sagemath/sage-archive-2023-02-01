@@ -539,7 +539,7 @@ class SageInputBuilder:
             self._locals[loc_name] = x
             return SIE_literal_stringrep(self, loc_name)
         else:
-            raise ValueError, "Can't convert %r to sage_input form"%x
+            raise ValueError("Can't convert {} to sage_input form".format(x))
 
     def preparse(self):
         r"""
@@ -1009,12 +1009,12 @@ class SageInputBuilder:
         if not parent in self._parent_gens:
             self(parent)
             if not parent in self._parent_gens:
-                raise ValueError, "%s did not register generators for sage_input" % parent
+                raise ValueError("{} did not register generators for sage_input".format(parent))
 
         gens = self._parent_gens[parent]
 
         if n > len(gens):
-            raise ValueError, "%s registered only %d generators for sage_input" % (parent, len(gens))
+            raise ValueError("{} registered only {} generators for sage_input".format(parent, len(gens)))
 
         return gens[n]
 
@@ -1428,7 +1428,7 @@ class SageInputExpression(object):
         """
         return SIE_getattr(self._sie_builder, self, attr)
 
-    def _graphics_(self):
+    def _graphics_(self, **kwds):
         """
         Disable graphical output.
 
@@ -1440,10 +1440,10 @@ class SageInputExpression(object):
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib.name('x')
-            sage: sie._graphics_()
-            False
+            sage: sie._graphics_() is None
+            True
         """
-        return False
+        return None
 
     def __pow__(self, other):
         r"""
@@ -2372,7 +2372,7 @@ class SIE_binary(SageInputExpression):
             fop = ' - '
             prec = _prec_addsub
         else:
-            raise ValueError, 'Unhandled op %s in SIE_binary' % op
+            raise ValueError('Unhandled op {} in SIE_binary'.format(op))
 
         lhs = sif.format(self._sie_operands[0], prec)
         rhs = sif.format(self._sie_operands[1], prec+1)
@@ -2494,7 +2494,7 @@ class SIE_unary(SageInputExpression):
         elif op == '~':
             prec = _prec_bitnot
         else:
-            raise ValueError, 'Unhandled op %s in SIE_unary' % op
+            raise ValueError('Unhandled op {} in SIE_unary'.format(op))
 
         if rprec is None: rprec = prec
 
@@ -3086,7 +3086,7 @@ class SIE_assign(SageInputExpression):
             ...
             ValueError: Cannot format SIE_assign as expression
         """
-        raise ValueError, "Cannot format SIE_assign as expression"
+        raise ValueError("Cannot format SIE_assign as expression")
 
     def _sie_format_statement(self, sif):
         r"""
@@ -3212,14 +3212,14 @@ class SageInputFormatter:
 
             sage: sif = SageInputFormatter()
             sage: sif._names, sif._dup_names
-            (set([]), {})
+            (set(), {})
             sage: sif.register_name('x')
             sage: sif.register_name('y')
             sage: sif._names, sif._dup_names
-            (set(['y', 'x']), {})
+            ({'x', 'y'}, {})
             sage: sif.register_name('x')
             sage: sif._names, sif._dup_names
-            (set(['y', 'x']), {'x': 0})
+            ({'x', 'y'}, {'x': 0})
         """
         if name is None: name = 'si'
 
@@ -3294,8 +3294,8 @@ def verify_same(a, b):
     if is_Element(a):
         assert(a.parent() == b.parent())
     else:
-        assert(type(a) == type(b))
-    if type(a) == float:
+        assert(isinstance(a, type(b)))
+    if isinstance(a, float):
         # The IEEE floating-point standard recommends that NaN != NaN
         # Sage doesn't do this for RDF or RR, but Python does for floats.
         # So we need to consider the cases: a is/is not NaN, b is/is not NaN.

@@ -42,7 +42,6 @@ TESTS::
 
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 include "sage/libs/pari/decl.pxi"
@@ -65,6 +64,7 @@ from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport PariInstance
 
 from integer_ring import ZZ
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.structure.element import bin_op
@@ -1193,7 +1193,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 0.is_norm(K)
             True
             sage: (1/7).is_norm(K, element=True)
-            (True, -1/7*beta - 3/7)
+            (True, 1/7*beta + 3/7)
             sage: (1/10).is_norm(K, element=True)
             (False, None)
             sage: (1/691).is_norm(QQ, element=True)
@@ -1232,7 +1232,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if not element:
             return self.is_norm(L, element=True, proof=proof)[0]
 
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         if not is_NumberField(L):
             raise ValueError, "L (=%s) must be a NumberField in is_norm" % L
         if L.degree() == 1 or self.is_zero():
@@ -1314,7 +1314,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         - Marco Streng (2010-12-03)
         """
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         if not is_NumberField(K):
             raise ValueError, "K must be a NumberField in bnfisnorm"
 
@@ -1948,6 +1948,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             0.3333333333333333
             sage: float(1/10)
             0.1
+            sage: n = QQ(902834098234908209348209834092834098); float(n)
+            9.028340982349083e+35
 
         TESTS:
 
@@ -2940,6 +2942,26 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpz_cdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
         return n
 
+    def trunc(self):
+        """
+        Round this rational number to the nearest integer toward zero.
+
+        EXAMPLES::
+
+            sage: (5/3).trunc()
+            1
+            sage: (-5/3).trunc()
+            -1
+            sage: QQ(42).trunc()
+            42
+            sage: QQ(-42).trunc()
+            -42
+        """
+        cdef integer.Integer n
+        n = integer.Integer()
+        mpz_tdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
+        return n
+
     def round(Rational self, mode="away"):
         """
         Returns the nearest integer to ``self``, rounding away from 0 by
@@ -3167,6 +3189,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             True
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
+
+
+    #Function alias for checking if the number is a integer.Added to solve ticket 15500    
+    is_integer = is_integral
+
 
     def is_S_integral(self, S=[]):
         r"""
@@ -3430,7 +3457,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
 
     TESTS::
 
-        sage: q= QQ(); float(q)
+        sage: q = QQ(); float(q)
         0.0
         sage: q = 2^-10000; float(q)
         0.0
@@ -3504,8 +3531,8 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
 
     - Paul Zimmermann, Jeroen Demeyer (:trac:`14416`)
     """
-    cdef __mpz_struct* a = <__mpz_struct*>(mpq_numref(x))
-    cdef __mpz_struct* b = <__mpz_struct*>(mpq_denref(x))
+    cdef mpz_ptr a = mpq_numref(x)
+    cdef mpz_ptr b = mpq_denref(x)
     cdef int resultsign = mpz_sgn(a)
 
     if resultsign == 0:
@@ -3547,10 +3574,9 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
     cdef mpz_t q, r
     mpz_init(q)
     mpz_init(r)
-    cdef bint remainder_is_zero
+    cdef int remainder_is_zero
     if shift > 0:
-        mpz_tdiv_r_2exp(r, a, shift)
-        remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
+        remainder_is_zero = mpz_divisible_2exp_p(a, shift)
         mpz_tdiv_q_2exp(q, a, shift)
     else:
         mpz_mul_2exp(q, a, -shift)
@@ -3563,8 +3589,8 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
     if remainder_is_zero:
         remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
 
-    # Convert q to a 64-bit integer.
-    cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
+    # Convert abs(q) to a 64-bit integer.
+    cdef mp_limb_t* q_limbs = (<mpz_ptr>q)._mp_d
     cdef uint64_t q64
     if sizeof(mp_limb_t) >= 8:
         q64 = q_limbs[0]
@@ -3603,6 +3629,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
             remainder_is_zero = ((q64 & mask) == 0)
         q64 = q64 >> add_shift
 
+    # Round q64 from 54 to 53 bits of precision.
     if ((q64 & 1) == 0):
         # Round towards zero
         pass
@@ -3611,6 +3638,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
             # Remainder is non-zero: round away from zero
             q64 += 1
         else:
+            # Halfway case: round to even
             q64 += (q64 & 2) - 1
 
     # The conversion of q64 to double is *exact*.
@@ -3621,47 +3649,6 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
         d = -d
     return ldexp(d, shift)
 
-
-def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
-    """
-    Find the rational reconstruction of ``a mod m``, if it exists.
-
-    INPUT:
-
-    -  ``a`` - Integer
-
-    -  ``m`` - Integer
-
-    OUTPUT:
-
-    -  ``x`` - rings.rational.Rational
-
-    EXAMPLES::
-
-        sage: Integers(100)(2/3)
-        34
-        sage: sage.rings.rational.pyrex_rational_reconstruction(34, 100)
-        2/3
-
-    TEST:
-
-    Check that ticket #9345 is fixed::
-
-        sage: sage.rings.rational.pyrex_rational_reconstruction(0,0)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError: The modulus cannot be zero
-        sage: sage.rings.rational.pyrex_rational_reconstruction(ZZ.random_element(-10^6, 10^6), 0)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError: The modulus cannot be zero
-    """
-    if not m.__nonzero__():
-        raise ZeroDivisionError("The modulus cannot be zero")
-    cdef Rational x
-    x = <Rational> PY_NEW(Rational)
-    mpq_rational_reconstruction(x.value, a.value, m.value)
-    return x
 
 def make_rational(s):
     """
@@ -3741,7 +3728,7 @@ cdef class Z_to_Q(Morphism):
               From: Rational Field
               To:   Integer Ring
         """
-        return Q_to_Z(self._codomain, self._domain)
+        return Q_to_Z(self._codomain, self.domain())
 
 cdef class Q_to_Z(Map):
     r"""

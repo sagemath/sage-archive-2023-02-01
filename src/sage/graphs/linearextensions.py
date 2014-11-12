@@ -266,7 +266,7 @@ class LinearExtensions(CombinatorialClass):
                 return True
             return False
         else:
-            raise ValueError, "Bad letter!"
+            raise ValueError("Bad letter!")
 
     def generate_linear_extensions(self, i):
         """

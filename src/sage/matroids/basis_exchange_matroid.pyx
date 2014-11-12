@@ -37,9 +37,7 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/misc/bitset.pxi'
-
-DEF BINT_EXCEPT = -2 ** 31 - 1
+include 'sage/data_structures/bitset.pxi'
 
 from matroid cimport Matroid
 from set_system cimport SetSystem
@@ -255,21 +253,21 @@ cdef class BasisExchangeMatroid(Matroid):
         return frozenset(F)
 
     # this method needs to be overridden by child class
-    cdef bint __is_exchange_pair(self, long x, long y) except BINT_EXCEPT:
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         """
         Test if current_basis-x + y is a basis
         """
         raise NotImplementedError
 
     # if this method is overridden by a child class, the child class needs to call this method
-    cdef bint __exchange(self, long x, long y) except BINT_EXCEPT:
+    cdef int __exchange(self, long x, long y) except -1:
         """
         put current_basis <-- current_basis-x + y
         """
         bitset_discard(self._current_basis, x)
         bitset_add(self._current_basis, y)
 
-    cdef __move(self, bitset_t X, bitset_t Y):
+    cdef int __move(self, bitset_t X, bitset_t Y) except -1:
         """
         Change current_basis to minimize intersection with ``X``, maximize intersection with ``Y``.
         """
@@ -283,7 +281,7 @@ cdef class BasisExchangeMatroid(Matroid):
                     bitset_discard(Y, y)
                     bitset_discard(X, x)
                     if bitset_isempty(Y):
-                        return
+                        return 0
                     break
                 else:
                     y = bitset_next(Y, y + 1)
@@ -431,7 +429,7 @@ cdef class BasisExchangeMatroid(Matroid):
         self.__move(self._inside, self._outside)
         bitset_intersection(R, self._current_basis, Y)
 
-    cdef bint __is_independent(self, bitset_t F):
+    cdef bint __is_independent(self, bitset_t F) except -1:
         """
         Bitpacked version of ``is_independent``.
         """
@@ -1225,6 +1223,8 @@ cdef class BasisExchangeMatroid(Matroid):
         Compute a flat-element invariant of the matroid.
         """
         cdef bitset_t *flats, *todo
+        if self._groundset_size == 0:
+            return {}, tuple()
         flats = <bitset_t*>sage_malloc((k + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((k + 1) * sizeof(bitset_t))
 
@@ -1336,7 +1336,7 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem BB
         BB = SetSystem(self._E)
-        if r < 0:
+        if r < 0 or r > self.full_rank():
             return BB
         bitset_clear(self._input)
         bitset_set_first_n(self._input, r)
@@ -1390,15 +1390,20 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NB
         NB = SetSystem(self._E)
-        if r < 0:
+        if r < 0 or r > self.size():
             return NB
         bitset_clear(self._input)
         bitset_set_first_n(self._input, r)
         repeat = True
-        while repeat:
-            if not self.__is_independent(self._input):
+        if r > self.full_rank():
+            while repeat:
                 NB._append(self._input)
-            repeat = nxksrd(self._input, self._groundset_size, r, True)
+                repeat = nxksrd(self._input, self._groundset_size, r, True)
+        else:    
+            while repeat:
+                if not self.__is_independent(self._input):
+                    NB._append(self._input)
+                repeat = nxksrd(self._input, self._groundset_size, r, True)
         NB.resize()
         return NB
 
@@ -1451,6 +1456,8 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f
@@ -1498,6 +1505,8 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f, corank
@@ -1546,6 +1555,8 @@ cdef class BasisExchangeMatroid(Matroid):
 
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f, corank
@@ -1595,6 +1606,8 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f

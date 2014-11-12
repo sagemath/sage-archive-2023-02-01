@@ -17,12 +17,9 @@ Here is some terminology used in this file:
 #******************************************************************************
 
 from sage.misc.abstract_method import abstract_method
-from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
-from sage.categories.posets import Posets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.category_with_axiom import CategoryWithAxiom
 
-class FinitePosets(Category):
+class FinitePosets(CategoryWithAxiom):
     r"""
     The category of finite posets i.e. finite sets with a partial
     order structure.
@@ -32,7 +29,7 @@ class FinitePosets(Category):
         sage: FinitePosets()
         Category of finite posets
         sage: FinitePosets().super_categories()
-        [Category of posets, Category of finite enumerated sets]
+        [Category of posets, Category of finite sets]
         sage: FinitePosets().example()
         NotImplemented
 
@@ -41,21 +38,11 @@ class FinitePosets(Category):
     TESTS::
 
         sage: C = FinitePosets()
+        sage: C is Posets().Finite()
+        True
         sage: TestSuite(C).run()
 
     """
-    @cached_method
-    def super_categories(self):
-        r"""
-        Returns a list of the (immediate) super categories of
-        ``self``, as per :meth:`Category.super_categories`.
-
-        EXAMPLES::
-
-            sage: FinitePosets().super_categories()
-            [Category of posets, Category of finite enumerated sets]
-        """
-        return [Posets(), FiniteEnumeratedSets()]
 
     class ParentMethods:
 
@@ -101,7 +88,15 @@ class FinitePosets(Category):
                 sage: P.is_selfdual()
                 True
             """
-            return self.is_isomorphic( self.dual() )
+            # Two quick checks before full isomorphic test.
+            if sorted(self._hasse_diagram.in_degree()) != sorted(self._hasse_diagram.out_degree()):
+                return False
+            levels_orig=[len(x) for x in self._hasse_diagram.level_sets()]
+            dual_poset_hasse=self._hasse_diagram.reverse()
+            levels_dual=[len(x) for x in dual_poset_hasse.level_sets()]
+            if levels_orig != levels_dual:
+                return False
+            return self._hasse_diagram.is_isomorphic(dual_poset_hasse)
 
 
         ##########################################################################
@@ -273,7 +268,7 @@ class FinitePosets(Category):
 
                 sage: P = Poset((Subsets([1,2,3]), attrcall("issubset")))
                 sage: I = P.order_ideal([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{}, {1}, {3}, {2}, {1, 2}, {2, 3}]
+                [{}, {3}, {2}, {2, 3}, {1}, {1, 2}]
 
             Then, we retrieve the generators of this ideal::
 
@@ -284,7 +279,7 @@ class FinitePosets(Category):
             the minimal generators for an order filter::
 
                 sage: I = P.order_filter([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{1}, {1, 3}, {1, 2}, {2, 3}, {1, 2, 3}]
+                [{2, 3}, {1}, {1, 2}, {1, 3}, {1, 2, 3}]
                 sage: P.order_ideal_generators(I, direction='up')
                 {{2, 3}, {1}}
 
@@ -312,7 +307,7 @@ class FinitePosets(Category):
 
                 sage: P = Poset((Subsets([1,2,3]), attrcall("issubset")))
                 sage: I = P.order_filter([Set([1,2]), Set([2,3]), Set([1])]); I
-                [{1}, {1, 3}, {1, 2}, {2, 3}, {1, 2, 3}]
+                [{2, 3}, {1}, {1, 2}, {1, 3}, {1, 2, 3}]
                 sage: P.order_filter_generators(I)
                 {{2, 3}, {1}}
 
@@ -362,22 +357,22 @@ class FinitePosets(Category):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: P.order_ideal_complement_generators([1])
-                set([2])
+                {2}
                 sage: P.order_ideal_complement_generators([3])
-                set([])
+                set()
                 sage: P.order_ideal_complement_generators([1,2])
-                set([3])
+                {3}
                 sage: P.order_ideal_complement_generators([1,2,3])
-                set([])
+                set()
 
                 sage: P.order_ideal_complement_generators([1], direction="down")
-                set([2])
+                {2}
                 sage: P.order_ideal_complement_generators([3], direction="down")
-                set([1, 2])
+                {1, 2}
                 sage: P.order_ideal_complement_generators([1,2], direction="down")
-                set([])
+                set()
                 sage: P.order_ideal_complement_generators([1,2,3], direction="down")
-                set([])
+                set()
 
             .. WARNING::
 
@@ -1204,9 +1199,9 @@ class FinitePosets(Category):
                 ....:     # send order ideal `I` to a `T`-labelling of `P`.
                 ....:     dct = {v: TT(v in I) for v in P}
                 ....:     return (TT, dct, TT(1), TT(0))
-                sage: all( indicator_labelling(P.rowmotion(I))
-                ....:      == P.birational_rowmotion(indicator_labelling(I))
-                ....:      for I in P.order_ideals_lattice() )
+                sage: all(indicator_labelling(P.rowmotion(I))
+                ....:     == P.birational_rowmotion(indicator_labelling(I))
+                ....:     for I in P.order_ideals_lattice(facade=True))
                 True
 
             TESTS:
@@ -1266,17 +1261,17 @@ class FinitePosets(Category):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: P.panyushev_orbits()
-                [[set([2]), set([1])], [set([]), set([1, 2]), set([3])]]
+                [[{2}, {1}], [set(), {1, 2}, {3}]]
                 sage: P.panyushev_orbits(element_constructor=list)
                 [[[2], [1]], [[], [1, 2], [3]]]
                 sage: P.panyushev_orbits(element_constructor=frozenset)
-                [[frozenset([2]), frozenset([1])],
-                 [frozenset([]), frozenset([1, 2]), frozenset([3])]]
+                [[frozenset({2}), frozenset({1})],
+                 [frozenset(), frozenset({1, 2}), frozenset({3})]]
                 sage: P.panyushev_orbits(element_constructor=tuple)
                 [[(2,), (1,)], [(), (1, 2), (3,)]]
                 sage: P = Poset( {} )
                 sage: P.panyushev_orbits()
-                [[set([])]]
+                [[set()]]
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning the orbits.
@@ -1374,7 +1369,7 @@ class FinitePosets(Category):
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning the orbits.
-            OI = set(self.order_ideals_lattice())
+            OI = set(self.order_ideals_lattice(facade=True))
             orbits = []
             while OI:
                 A = OI.pop()
@@ -1431,32 +1426,32 @@ class FinitePosets(Category):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: list(P.panyushev_orbit_iter(set([1, 2])))
-                [set([1, 2]), set([3]), set([])]
+                [{1, 2}, {3}, set()]
                 sage: list(P.panyushev_orbit_iter([1, 2]))
-                [set([1, 2]), set([3]), set([])]
+                [{1, 2}, {3}, set()]
                 sage: list(P.panyushev_orbit_iter([2, 1]))
-                [set([1, 2]), set([3]), set([])]
+                [{1, 2}, {3}, set()]
                 sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=list))
                 [[1, 2], [3], []]
                 sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=frozenset))
-                [frozenset([1, 2]), frozenset([3]), frozenset([])]
+                [frozenset({1, 2}), frozenset({3}), frozenset()]
                 sage: list(P.panyushev_orbit_iter(set([1, 2]), element_constructor=tuple))
                 [(1, 2), (3,), ()]
 
                 sage: P = Poset( {} )
                 sage: list(P.panyushev_orbit_iter([]))
-                [set([])]
+                [set()]
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.panyushev_orbit_iter([2], stop=False)
                 sage: Piter.next()
-                set([2])
+                {2}
                 sage: Piter.next()
-                set([3])
+                {3}
                 sage: Piter.next()
-                set([2])
+                {2}
                 sage: Piter.next()
-                set([3])
+                {3}
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning an orbit of a given
@@ -1520,34 +1515,34 @@ class FinitePosets(Category):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: list(P.rowmotion_orbit_iter(set([1, 2])))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.rowmotion_orbit_iter([1, 2]))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.rowmotion_orbit_iter([2, 1]))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=list))
                 [[1, 2], [1, 2, 3], []]
                 sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=frozenset))
-                [frozenset([1, 2]), frozenset([1, 2, 3]), frozenset([])]
+                [frozenset({1, 2}), frozenset({1, 2, 3}), frozenset()]
                 sage: list(P.rowmotion_orbit_iter(set([1, 2]), element_constructor=tuple))
                 [(1, 2), (1, 2, 3), ()]
 
                 sage: P = Poset( {} )
                 sage: list(P.rowmotion_orbit_iter([]))
-                [set([])]
+                [set()]
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.rowmotion_orbit_iter([1, 2, 3], stop=False)
                 sage: Piter.next()
-                set([1, 2, 3])
+                {1, 2, 3}
                 sage: Piter.next()
-                set([1, 2, 3, 4])
+                {1, 2, 3, 4}
                 sage: Piter.next()
-                set([])
+                set()
                 sage: Piter.next()
-                set([1])
+                {1}
                 sage: Piter.next()
-                set([1, 2, 3])
+                {1, 2, 3}
 
                 sage: P = Poset({ 1: [4], 2: [4, 5], 3: [5] })
                 sage: list(P.rowmotion_orbit_iter([1, 2], element_constructor=list))
@@ -1631,15 +1626,15 @@ class FinitePosets(Category):
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: list(P.toggling_orbit_iter([1, 3, 1], set([1, 2])))
-                [set([1, 2])]
+                [{1, 2}]
                 sage: list(P.toggling_orbit_iter([1, 2, 3], set([1, 2])))
-                [set([1, 2]), set([]), set([1, 2, 3])]
+                [{1, 2}, set(), {1, 2, 3}]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2])))
-                [set([1, 2]), set([1, 2, 3]), set([])]
+                [{1, 2}, {1, 2, 3}, set()]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=list))
                 [[1, 2], [1, 2, 3], []]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=frozenset))
-                [frozenset([1, 2]), frozenset([1, 2, 3]), frozenset([])]
+                [frozenset({1, 2}), frozenset({1, 2, 3}), frozenset()]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], set([1, 2]), element_constructor=tuple))
                 [(1, 2), (1, 2, 3), ()]
                 sage: list(P.toggling_orbit_iter([3, 2, 1], [2, 1], element_constructor=tuple))
@@ -1647,20 +1642,20 @@ class FinitePosets(Category):
 
                 sage: P = Poset( {} )
                 sage: list(P.toggling_orbit_iter([], []))
-                [set([])]
+                [set()]
 
                 sage: P = Poset({ 1: [2, 3], 2: [4], 3: [4], 4: [] })
                 sage: Piter = P.toggling_orbit_iter([1, 2, 4, 3], [1, 2, 3], stop=False)
                 sage: Piter.next()
-                set([1, 2, 3])
+                {1, 2, 3}
                 sage: Piter.next()
-                set([1])
+                {1}
                 sage: Piter.next()
-                set([])
+                set()
                 sage: Piter.next()
-                set([1, 2, 3])
+                {1, 2, 3}
                 sage: Piter.next()
-                set([1])
+                {1}
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning an orbit of a given
@@ -1682,7 +1677,7 @@ class FinitePosets(Category):
                     next = self.order_ideal_toggles(next, vs)
                     yield element_constructor(next)
 
-        def order_ideals_lattice(self, as_ideals=True):
+        def order_ideals_lattice(self, as_ideals=True, facade=False):
             r"""
             Return the lattice of order ideals of a poset ``self``,
             ordered by inclusion.
@@ -1713,7 +1708,7 @@ class FinitePosets(Category):
                 sage: J = P.order_ideals_lattice(); J
                 Finite lattice containing 8 elements
                 sage: list(J)
-                [{}, {0}, {0, 2}, {0, 1}, {0, 1, 2}, {0, 2, 3}, {0, 1, 2, 3}, {0, 1, 2, 3, 4}]
+                [{}, {0}, {0, 2}, {0, 2, 3}, {0, 1}, {0, 1, 2}, {0, 1, 2, 3}, {0, 1, 2, 3, 4}]
 
             As a lattice on antichains::
 
@@ -1738,17 +1733,19 @@ class FinitePosets(Category):
             if as_ideals:
                 from sage.misc.misc import attrcall
                 from sage.sets.set import Set
-                ideals = [Set( self.order_ideal(antichain) ) for antichain in self.antichains()]
-                return LatticePoset((ideals,attrcall("issubset")))
+                ideals = [Set(self.order_ideal(antichain))
+                          for antichain in self.antichains()]
+                return LatticePoset((ideals, attrcall("issubset")),
+                                    facade=facade)
             else:
                 from sage.misc.cachefunc import cached_function
                 antichains = [tuple(a) for a in self.antichains()]
                 @cached_function
-                def is_above(a,xb):
-                    return any(self.is_lequal(xa,xb) for xa in a)
-                def cmp(a,b):
-                    return all(is_above(a,xb) for xb in b)
-                return LatticePoset((antichains,cmp))
+                def is_above(a, xb):
+                    return any(self.is_lequal(xa, xb) for xa in a)
+                def cmp(a, b):
+                    return all(is_above(a, xb) for xb in b)
+                return LatticePoset((antichains, cmp), facade=facade)
 
         @abstract_method(optional = True)
         def antichains(self):
@@ -1787,4 +1784,6 @@ class FinitePosets(Category):
                 sage: list(Poset().directed_subsets('up'))
                 [[]]
             """
+            if direction != 'up' and direction != 'down':
+                raise ValueError("Direction must be either 'up' or 'down'.")
             return self.antichains().map(lambda elements: self.directed_subset(elements, direction))

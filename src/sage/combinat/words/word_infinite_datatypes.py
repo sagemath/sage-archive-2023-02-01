@@ -53,9 +53,9 @@ class WordDatatype_callable(WordDatatype):
 
             sage: from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable
             sage: WordDatatype_callable(Words(),lambda n:n%3)
-            <class 'sage.combinat.words.word_infinite_datatypes.WordDatatype_callable'>
+            <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
             sage: WordDatatype_callable(Words([0,1,2]),lambda n:n%3)
-            <class 'sage.combinat.words.word_infinite_datatypes.WordDatatype_callable'>
+            <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
         """
         self._len = Infinity if length is None else length
         self._func = callable
@@ -76,7 +76,7 @@ class WordDatatype_callable(WordDatatype):
 
             sage: from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable
             sage: s = WordDatatype_callable(Words(), lambda n:n%3+10, length=10); s
-            <class 'sage.combinat.words.word_infinite_datatypes.WordDatatype_callable'>
+            <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
             sage: it = iter(s)
             sage: [it.next() for _ in range(10)]
             [10, 11, 12, 10, 11, 12, 10, 11, 12, 10]
@@ -236,7 +236,7 @@ class WordDatatype_callable(WordDatatype):
             if self._len is Infinity:
                 if not(key.start is None) and key.start < 0 or \
                         not(key.stop is None) and key.stop < 0:
-                    raise ValueError, "for infinite words, start and stop values cannot be negative"
+                    raise ValueError("for infinite words, start and stop values cannot be negative")
                 step = 1 if key.step is None else key.step
                 if step > 0:
                     start = 0 if key.start is None else key.start
@@ -244,7 +244,7 @@ class WordDatatype_callable(WordDatatype):
                                 int(max(0,ceil((key.stop-start)/float(step))))
                 else:
                     if key.start is None or key.start < 0:
-                        raise ValueError, "start value must be nonnegative for negative step values"
+                        raise ValueError("start value must be nonnegative for negative step values")
                     start = key.start
                     stop = 0 if key.stop is None else key.stop
                     length = int(max(0,ceil((key.stop-start)/float(step))))
@@ -268,11 +268,11 @@ class WordDatatype_callable(WordDatatype):
         else:
             if key < 0:
                 if self._len is Infinity:
-                    raise IndexError, "cannot use a negative index with an infinite word"
+                    raise IndexError("cannot use a negative index with an infinite word")
                 else:
                     key = self._len + key
             elif key >= self._len:
-                raise IndexError, "word index out of range"
+                raise IndexError("word index out of range")
             return self._func(key)
 
     def __reduce__(self):
@@ -593,7 +593,7 @@ class WordDatatype_iter(WordDatatype):
         if length is None or length is Infinity:
             self._len = Infinity
             self._data = iter
-        elif length is 'unknown' or length is 'finite':
+        elif length == 'unknown' or length == 'finite':
             self._len = None
             self._data = iter
         else:
@@ -796,7 +796,7 @@ class WordDatatype_iter(WordDatatype):
             if self._len is Infinity:
                 if not(key.start is None) and key.start < 0 or \
                         not(key.stop is None) and key.stop < 0:
-                    raise ValueError, "for infinite words, start and stop values cannot be negative"
+                    raise ValueError("for infinite words, start and stop values cannot be negative")
                 step = 1 if key.step is None else key.step
                 if step >= 0:
                     start = 0 if key.start is None else key.start
@@ -808,7 +808,7 @@ class WordDatatype_iter(WordDatatype):
                     return self._parent(data, length=length)
                 else:
                     if key.start is None or key.start < 0:
-                        raise ValueError, "start value must be nonnegative for negative step values"
+                        raise ValueError("start value must be nonnegative for negative step values")
                     start = key.start
                     stop = 0 if key.stop is None else key.stop
                     length = int(max(0,ceil((key.stop-start)/float(step))))
@@ -837,9 +837,9 @@ class WordDatatype_iter(WordDatatype):
         else:
             if key < 0:
                 if self._len is Infinity:
-                    raise IndexError, "cannot use negative indices with infinite words"
+                    raise IndexError("cannot use negative indices with infinite words")
                 elif self._len is None:
-                    raise IndexError, "cannot use negative indices with words of unknown length"
+                    raise IndexError("cannot use negative indices with words of unknown length")
                 else:
                     key = self.length() + key
             it = iter(self)
@@ -850,7 +850,7 @@ class WordDatatype_iter(WordDatatype):
                     a = it.next()
                     counter += 1
                 except StopIteration:
-                    raise IndexError, "word index out of range"
+                    raise IndexError("word index out of range")
             return a
 
     def __reduce__(self):
@@ -1125,7 +1125,7 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
                         self._list.append(self._gen.next())
                         self._last_index += 1
                     except StopIteration:
-                        raise IndexError, "word index out of range"
+                        raise IndexError("word index out of range")
                 return self._list[key]
 
     def __reduce__(self):

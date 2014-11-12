@@ -18,7 +18,7 @@ or :meth:`~sage.geometry.poylhedron.base.face_lattice` to get the
 whole face lattice as a poset::
 
     sage: P.face_lattice()
-    Finite poset containing 28 elements
+    Finite poset containing 28 elements with distinguished linear extension
 
 The faces are printed in shorthand notation where each integer is the
 index of a vertex/ray/line in the same order as the containing
@@ -299,7 +299,7 @@ class PolyhedronFace(SageObject):
             (An inequality (0, -1) x + 1 >= 0,)
             ()
         """
-        if index==None:
+        if index is None:
             return self._ambient_Hrepresentation
         else:
             return self._ambient_Hrepresentation[index]
@@ -341,7 +341,7 @@ class PolyhedronFace(SageObject):
             (A vertex at (-1, -1), A vertex at (-1, 1),
              A vertex at (1, -1), A vertex at (1, 1))
         """
-        if index==None:
+        if index is None:
             return self._ambient_Vrepresentation
         else:
             return self._ambient_Vrepresentation[index]

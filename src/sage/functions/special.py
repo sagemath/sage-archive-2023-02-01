@@ -148,135 +148,6 @@ implemented here.
    solution, called Kummer's function `M(a,b,x)`, which is not
    implemented.)
 
--  Jacobi elliptic functions can be thought of as generalizations
-   of both ordinary and hyperbolic trig functions. There are twelve
-   Jacobian elliptic functions. Each of the twelve corresponds to an
-   arrow drawn from one corner of a rectangle to another.
-
-   ::
-
-                    n ------------------- d
-                    |                     |
-                    |                     |
-                    |                     |
-                    s ------------------- c
-
-   Each of the corners of the rectangle are labeled, by convention, s,
-   c, d and n. The rectangle is understood to be lying on the complex
-   plane, so that s is at the origin, c is on the real axis, and n is
-   on the imaginary axis. The twelve Jacobian elliptic functions are
-   then pq(x), where p and q are one of the letters s,c,d,n.
-
-   The Jacobian elliptic functions are then the unique
-   doubly-periodic, meromorphic functions satisfying the following
-   three properties:
-
-
-   #. There is a simple zero at the corner p, and a simple pole at the
-      corner q.
-
-   #. The step from p to q is equal to half the period of the function
-      pq(x); that is, the function pq(x) is periodic in the direction pq,
-      with the period being twice the distance from p to q. Also, pq(x)
-      is also periodic in the other two directions as well, with a period
-      such that the distance from p to one of the other corners is a
-      quarter period.
-
-   #. If the function pq(x) is expanded in terms of x at one of the
-      corners, the leading term in the expansion has a coefficient of 1.
-      In other words, the leading term of the expansion of pq(x) at the
-      corner p is x; the leading term of the expansion at the corner q is
-      1/x, and the leading term of an expansion at the other two corners
-      is 1.
-
-
-   We can write
-
-   .. math::
-
-      pq(x)=\frac{pr(x)}{qr(x)}
-
-
-   where `p`, `q`, and `r` are any of the
-   letters `s`, `c`, `d`, `n`, with
-   the understanding that `ss=cc=dd=nn=1`.
-
-   Let
-
-   .. math::
-
-         u=\int_0^\phi \frac{d\theta} {\sqrt {1-m \sin^2 \theta}}
-
-
-   Then the *Jacobi elliptic function* `sn(u)` is given by
-
-   .. math::
-
-        {sn}\; u = \sin \phi
-
-   and `cn(u)` is given by
-
-   .. math::
-
-       {cn}\; u = \cos \phi
-
-   and
-
-   .. math::
-
-     {dn}\; u = \sqrt {1-m\sin^2 \phi}.
-
-   To emphasize the dependence on `m`, one can write
-   `sn(u,m)` for example (and similarly for `cn` and
-   `dn`). This is the notation used below.
-
-   For a given `k` with `0 < k < 1` they therefore are
-   solutions to the following nonlinear ordinary differential
-   equations:
-
-
-   -  `\mathrm{sn}\,(x;k)` solves the differential equations
-
-      .. math::
-
-          \frac{\mathrm{d}^2 y}{\mathrm{d}x^2} + (1+k^2) y - 2 k^2 y^3 = 0,
-
-      and
-
-      .. math::
-
-         \left(\frac{\mathrm{d} y}{\mathrm{d}x}\right)^2 = (1-y^2) (1-k^2 y^2).
-
-   -  `\mathrm{cn}\,(x;k)` solves the differential equations
-
-
-      .. math::
-
-         \frac{\mathrm{d}^2 y}{\mathrm{d}x^2} + (1-2k^2) y + 2 k^2 y^3 = 0,
-
-      and `\left(\frac{\mathrm{d} y}{\mathrm{d}x}\right)^2 = (1-y^2) (1-k^2 + k^2 y^2)`.
-
-   -  `\mathrm{dn}\,(x;k)` solves the differential equations
-
-      .. math::
-
-         \frac{\mathrm{d}^2 y}{\mathrm{d}x^2} - (2 - k^2) y + 2 y^3 = 0,
-
-      and `\left(\frac{\mathrm{d} y}{\mathrm{d}x}\right)^2= y^2 (1 - k^2 - y^2)`.
-
-      If `K(m)` denotes the complete elliptic integral of the
-      first kind (denoted ``elliptic_kc``), the elliptic functions
-      `sn (x,m)` and `cn (x,m)` have real periods
-      `4K(m)`, whereas `dn (x,m)` has a period
-      `2K(m)`. The limit `m\rightarrow 0` gives
-      `K(0) = \pi/2` and trigonometric functions:
-      `sn(x, 0) = \sin x`, `cn(x, 0) = \cos x`,
-      `dn(x, 0) = 1`. The limit `m \rightarrow 1` gives
-      `K(1) \rightarrow \infty` and hyperbolic functions:
-      `sn(x, 1) = \tanh x`,
-      `cn(x, 1) = \mbox{\rm sech} x`,
-      `dn(x, 1) = \mbox{\rm sech} x`.
-
    -  The incomplete elliptic integrals (of the first kind, etc.) are:
 
       .. math::
@@ -297,11 +168,6 @@ REFERENCES:
 
 - http://en.wikipedia.org/wiki/Helmholtz_equation
 
-- http://en.wikipedia.org/wiki/Jacobi's_elliptic_functions
-
-- A. Khare, U. Sukhatme, 'Cyclic Identities Involving
-  Jacobi Elliptic Functions', Math ArXiv, math-ph/0201004
-
 - Online Encyclopedia of Special Function
   http://algo.inria.fr/esf/index.html
 
@@ -318,7 +184,8 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 .. warning::
 
    SciPy's versions are poorly documented and seem less
-   accurate than the Maxima and PARI versions.
+   accurate than the Maxima and PARI versions; typically they are limited
+   by hardware floats precision.
 """
 
 #*****************************************************************************
@@ -341,10 +208,16 @@ from sage.plot.plot import plot
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import ZZ, RR, RDF
+from sage.misc.latex import latex
+from sage.rings.all import ZZ, RR, RDF, CDF
 from sage.functions.other import real, imag, log_gamma
-from sage.symbolic.function import BuiltinFunction
+from sage.symbolic.function import BuiltinFunction, is_inexact
+from sage.symbolic.expression import Expression
 from sage.calculus.calculus import maxima
+from sage.structure.element import get_coercion_model
+from sage.libs.mpmath import utils as mpmath_utils
+from sage.functions.all import sqrt, cot, exp
+from sage.symbolic.all import I
 
 _done = False
 def _init():
@@ -364,7 +237,7 @@ def _init():
 
         sage: from sage.functions.special import airy_ai
         sage: airy_ai(1.0)
-        0.135292416313
+        0.1352924163128814
         sage: sage.functions.special._done
         True
     """
@@ -384,7 +257,7 @@ def meval(x):
 
         sage: from sage.functions.special import airy_ai
         sage: airy_bi(1.0)
-        1.20742359495
+        1.207423594952871
     """
     return maxima(x).sage()
 
@@ -431,11 +304,11 @@ class MaximaFunction(BuiltinFunction):
         TESTS:
 
         Check if complex numbers in the arguments are converted to maxima
-        correctly :trac:`7557`::
+        correctly (see :trac:`7557`)::
 
-            sage: t = jacobi('sn',1.2+2*I*elliptic_kc(1-.5),.5)
-            sage: t._maxima_init_(maxima)
-            '0.88771548861927...*%i'
+            sage: t = f(1.2+2*I*elliptic_kc(1-.5),.5)
+            sage: t._maxima_init_(maxima)  # abs tol 1e-13
+            '0.88771548861928029 - 1.7301614091485560e-15*%i'
             sage: t.n() # abs tol 1e-13
             0.887715488619280 - 1.79195288804672e-15*I
 
@@ -473,7 +346,7 @@ class MaximaFunction(BuiltinFunction):
         """
         parent = kwds['parent']
         if hasattr(parent, 'prec') and parent.prec() > 53:
-            raise NotImplementedError, "%s not implemented for precision > 53"%self.name()
+            raise NotImplementedError("%s not implemented for precision > 53"%self.name())
         _init()
         return parent(maxima("%s, numer"%self._maxima_init_evaled_(*args)))
 
@@ -652,19 +525,15 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
     """
     if algorithm=="scipy":
         if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
+            raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
-        ans = str(scipy.special.hyperu(float(alpha),float(beta),float(x)))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        return RDF(scipy.special.hyperu(float(alpha),float(beta),float(x)))
     elif algorithm=='pari':
         from sage.libs.pari.all import pari
         R = RealField(prec)
         return R(pari(R(alpha)).hyperu(R(beta), R(x), precision=prec))
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def spherical_bessel_J(n, var, algorithm="maxima"):
     r"""
@@ -684,12 +553,12 @@ def spherical_bessel_J(n, var, algorithm="maxima"):
     """
     if algorithm=="scipy":
         from scipy.special.specfun import sphj
-        return sphj(int(n), float(var))[1][-1]
+        return CDF(sphj(int(n), float(var))[1][-1])
     elif algorithm == 'maxima':
         _init()
         return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def spherical_bessel_Y(n,var, algorithm="maxima"):
     r"""
@@ -706,16 +575,12 @@ def spherical_bessel_Y(n,var, algorithm="maxima"):
     """
     if algorithm=="scipy":
         import scipy.special
-        ans = str(scipy.special.sph_yn(int(n),float(var)))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        return CDF(scipy.special.sph_yn(int(n),float(var)))
     elif algorithm == 'maxima':
         _init()
         return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def spherical_hankel1(n, var):
     r"""
@@ -745,22 +610,129 @@ def spherical_hankel2(n,x):
     """
     return maxima_function("spherical_hankel2")(ZZ(n), x)
 
-def spherical_harmonic(m,n,x,y):
+
+class SphericalHarmonic(BuiltinFunction):
     r"""
-    Returns the spherical Harmonic function of the second kind for
-    integers `n > -1`, `|m|\leq n`. Reference:
-    Merzbacher 9.64.
+    Returns the spherical harmonic function `Y_n^m(\theta, \varphi)`.
+
+    For integers `n > -1`, `|m| \leq n`, simplification is done automatically.
+    Numeric evaluation is supported for complex `n` and `m`.
+
+    Reference: Merzbacher 9.64
 
     EXAMPLES::
 
-        sage: x,y = var('x,y')
-        sage: spherical_harmonic(3,2,x,y)
+        sage: x, y = var('x, y')
+        sage: spherical_harmonic(3, 2, x, y)
         15/4*sqrt(7/30)*cos(x)*e^(2*I*y)*sin(x)^2/sqrt(pi)
-        sage: spherical_harmonic(3,2,1,2)
+        sage: spherical_harmonic(3, 2, 1, 2)
         15/4*sqrt(7/30)*cos(1)*e^(4*I)*sin(1)^2/sqrt(pi)
+        sage: spherical_harmonic(3 + I, 2., 1, 2)
+        -0.351154337307488 - 0.415562233975369*I
+        sage: latex(spherical_harmonic(3, 2, x, y, hold=True))
+        Y_{3}^{2}\left(x, y\right)
+        sage: spherical_harmonic(1, 2, x, y)
+        0
     """
-    _init()
-    return meval("spherical_harmonic(%s,%s,%s,%s)"%(ZZ(m),ZZ(n),x,y))
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: n, m, theta, phi = var('n m theta phi')
+            sage: spherical_harmonic(n, m, theta, phi)._sympy_()
+            Ynm(n, m, theta, phi)
+        """
+        BuiltinFunction.__init__(self, 'spherical_harmonic', nargs=4,
+                                 conversions=dict(
+                                    maple='SphericalY',
+                                    mathematica= 'SphericalHarmonicY',
+                                    maxima='spherical_harmonic',
+                                    sympy='Ynm'))
+
+    def _eval_(self, n, m, theta, phi, **kwargs):
+        r"""
+        TESTS::
+
+            sage: x, y = var('x y')
+            sage: spherical_harmonic(1, 2, x, y)
+            0
+            sage: spherical_harmonic(1, -2, x, y)
+            0
+            sage: spherical_harmonic(1/2, 2, x, y)
+            spherical_harmonic(1/2, 2, x, y)
+            sage: spherical_harmonic(3, 2, x, y)
+            15/4*sqrt(7/30)*cos(x)*e^(2*I*y)*sin(x)^2/sqrt(pi)
+            sage: spherical_harmonic(3, 2, 1, 2)
+            15/4*sqrt(7/30)*cos(1)*e^(4*I)*sin(1)^2/sqrt(pi)
+            sage: spherical_harmonic(3 + I, 2., 1, 2)
+            -0.351154337307488 - 0.415562233975369*I
+        """
+        from sage.structure.coerce import parent
+        cc = get_coercion_model().canonical_coercion
+        coerced = cc(phi, cc(theta, cc(n, m)[0])[0])[0]
+        if is_inexact(coerced) and not isinstance(coerced, Expression):
+            return self._evalf_(n, m, theta, phi, parent=parent(coerced))
+        elif n in ZZ and m in ZZ and n > -1:
+            if abs(m) > n:
+                return ZZ(0)
+            return meval("spherical_harmonic({},{},{},{})".format(
+                ZZ(n), ZZ(m), maxima(theta), maxima(phi)))
+        return
+
+    def _evalf_(self, n, m, theta, phi, parent, **kwds):
+        r"""
+        TESTS::
+
+            sage: spherical_harmonic(3 + I, 2, 1, 2).n(100)
+            -0.35115433730748836508201061672 - 0.41556223397536866209990358597*I
+            sage: spherical_harmonic(I, I, I, I).n()
+            7.66678546069894 - 0.265754432549751*I
+        """
+        from mpmath import spherharm
+        return mpmath_utils.call(spherharm, n, m, theta, phi, parent=parent)
+
+    def _derivative_(self, n, m, theta, phi, diff_param):
+        r"""
+        TESTS::
+
+            sage: n, m, theta, phi = var('n m theta phi')
+            sage: spherical_harmonic(n, m, theta, phi).diff(theta)
+            m*cot(theta)*spherical_harmonic(n, m, theta, phi)
+             + sqrt(-(m + n + 1)*(m - n))*e^(-I*phi)*spherical_harmonic(n, m + 1, theta, phi)
+            sage: spherical_harmonic(n, m, theta, phi).diff(phi)
+            I*m*spherical_harmonic(n, m, theta, phi)
+        """
+        if diff_param == 2:
+            return (m * cot(theta) * spherical_harmonic(n, m, theta, phi) +
+                    sqrt((n - m) * (n + m + 1)) * exp(-I * phi) *
+                    spherical_harmonic(n, m + 1, theta, phi))
+        if diff_param == 3:
+            return I * m * spherical_harmonic(n, m, theta, phi)
+
+        raise ValueError('only derivative with respect to theta or phi'
+                         ' supported')
+
+    def _latex_(self):
+        r"""
+        TESTS::
+
+            sage: latex(spherical_harmonic)
+            Y_n^m
+        """
+        return r"Y_n^m"
+
+    def _print_latex_(self, n, m, theta, phi):
+        r"""
+        TESTS::
+
+            sage: y = var('y')
+            sage: latex(spherical_harmonic(3, 2, x, y, hold=True))
+            Y_{3}^{2}\left(x, y\right)
+        """
+        return r"Y_{{{}}}^{{{}}}\left({}, {}\right)".format(
+                 latex(n), latex(m), latex(theta), latex(phi))
+
+spherical_harmonic = SphericalHarmonic()
 
 ####### elliptic functions and integrals
 
@@ -796,6 +768,12 @@ def elliptic_j(z):
        sage: elliptic_j(z).real().round()
        -32768
 
+    ::
+
+       sage: tau = (1 + sqrt(-163))/2
+       sage: (-elliptic_j(tau.n(100)).real().round())^(1/3)
+       640320
+
    """
    CC = z.parent()
    from sage.rings.complex_field import is_ComplexField
@@ -804,57 +782,9 @@ def elliptic_j(z):
       try:
          z = CC(z)
       except ValueError:
-         raise ValueError, "elliptic_j only defined for complex arguments."
+         raise ValueError("elliptic_j only defined for complex arguments.")
    from sage.libs.all import pari
    return CC(pari(z).ellj())
-
-def jacobi(sym,x,m):
-    r"""
-    Here sym = "pq", where p,q in c,d,n,s. This returns the value of
-    the Jacobi function pq(x,m), as described in the documentation for
-    Sage's "special" module. There are a total of 12 functions
-    described by this.
-
-    EXAMPLES::
-
-        sage: jacobi("sn",1,1)
-        tanh(1)
-        sage: jacobi("cd",1,1/2)
-        jacobi_cd(1, 1/2)
-        sage: RDF(jacobi("cd",1,1/2))
-        0.724009721659
-        sage: RDF(jacobi("cn",1,1/2)); RDF(jacobi("dn",1,1/2)); RDF(jacobi("cn",1,1/2)/jacobi("dn",1,1/2))
-        0.595976567672
-        0.823161001632
-        0.724009721659
-        sage: jsn = jacobi("sn",x,1)
-        sage: P = plot(jsn,0,1)
-
-    To view this, type P.show().
-    """
-    return maxima_function("jacobi_%s"%sym)(x,m)
-
-def inverse_jacobi(sym,x,m):
-    """
-    Here sym = "pq", where p,q in c,d,n,s. This returns the value of
-    the inverse Jacobi function `pq^{-1}(x,m)`. There are a
-    total of 12 functions described by this.
-
-    EXAMPLES::
-
-        sage: jacobi("sn",1/2,1/2)
-        jacobi_sn(1/2, 1/2)
-        sage: float(jacobi("sn",1/2,1/2))
-        0.4707504736556572
-        sage: float(inverse_jacobi("sn",0.47,1/2))
-        0.4990982313222196
-        sage: float(inverse_jacobi("sn",0.4707504,0.5))
-        0.4999999114665548
-        sage: P = plot(inverse_jacobi('sn', x, 0.5), 0, 1, plot_points=20)
-
-    Now to view this, just type show(P).
-    """
-    return maxima_function("inverse_jacobi_%s"%sym)(x,m)
 
 #### elliptic integrals
 
@@ -878,18 +808,15 @@ class EllipticE(MaximaFunction):
         2*round(z/pi) + sin(z)
         sage: elliptic_e(z, 0)
         z
-        sage: elliptic_e(0.5, 0.1)
+        sage: elliptic_e(0.5, 0.1)  # abs tol 2e-15
         0.498011394498832
-
-        sage: loads(dumps(elliptic_e))
-        elliptic_e
     """
     def __init__(self):
         """
-        EXAMPLES::
+        TESTS::
 
-            sage: elliptic_e(0.5, 0.1)
-            0.498011394498832
+            sage: loads(dumps(elliptic_e))
+            elliptic_e
         """
         MaximaFunction.__init__(self, "elliptic_e")
 

@@ -159,36 +159,67 @@ class RiggedPartition(CombinatorialObject):
             sage: latex(RC(partition_list=[[2],[2,2],[2,1],[2]])[2])
             {
             \begin{array}[t]{r|c|c|l}
-            \cline{2-3} 0 &\phantom{|}&\phantom{|}& 0 \\
+             \cline{2-3} 0 &\phantom{|}&\phantom{|}& 0 \\
              \cline{2-3} -1 &\phantom{|}& \multicolumn{2 }{l}{ -1 } \\
              \cline{2-2} 
             \end{array}
             }
+
+        TESTS:
+
+        Check that this prints using the French convention::
+
+            sage: RC = RiggedConfigurations(['D',5,1], [[2,1], [1,2]])
+            sage: RiggedConfigurations.global_options(convention='French')
+            sage: latex(RC(partition_list=[[3],[3,1],[1,1],[1],[1]])[1])
+            {
+            \begin{array}[t]{r|c|c|c|l}
+             \cline{2-2} 0 &\phantom{|}& \multicolumn{3 }{l}{ 0 } \\
+             \cline{2-4} -2 &\phantom{|}&\phantom{|}&\phantom{|}& -2 \\
+             \cline{2-4}
+            \end{array}
+            }
+            sage: RiggedConfigurations.global_options.reset()
         """
         num_rows = len(self._list)
         if num_rows == 0:
             return "{\\emptyset}"
 
         num_cols = self._list[0]
-        ret_string = ("{\n\\begin{array}[t]{r|" + "c|"*num_cols + "l}\n"
-                       + "\\cline{2-" + repr(1 + num_cols) + "} "
-                       + latex(self.vacancy_numbers[0]))
-        for i, row_len in enumerate(self._list):
+        ret_string = "{\n\\begin{array}[t]{r|" + "c|"*num_cols + "l}\n"
 
-            ret_string += " &" + "\\phantom{|}&"*row_len
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurationOptions
+        if RiggedConfigurationOptions['convention'] == 'English':
+            ret_string += "\\cline{2-%s} "%(1+num_cols) + latex(self.vacancy_numbers[0])
+            for i, row_len in enumerate(self._list):
 
-            if num_cols == row_len:
-                ret_string += " " + latex(self.rigging[i])
-            else:
-                ret_string += " \\multicolumn{" + repr(num_cols - row_len + 1)
-                ret_string += "}{l}{" + latex(self.rigging[i]) + "}"
+                ret_string += " &" + "\\phantom{|}&"*row_len
 
-            ret_string += " \\\\\n"
+                if num_cols == row_len:
+                    ret_string += " " + latex(self.rigging[i])
+                else:
+                    ret_string += " \\multicolumn{" + repr(num_cols - row_len + 1)
+                    ret_string += "}{l}{" + latex(self.rigging[i]) + "}"
 
-            ret_string += "\\cline{2-" + repr(1 + row_len) + "} "
-            if i != num_rows - 1 and row_len != self._list[i + 1]:
-                ret_string += latex(self.vacancy_numbers[i + 1])
-        ret_string += "\n\\end{array}\n}"
+                ret_string += " \\\\\n"
+
+                ret_string += "\\cline{2-" + repr(1 + row_len) + "} "
+                if i != num_rows - 1 and row_len != self._list[i + 1]:
+                    ret_string += latex(self.vacancy_numbers[i + 1])
+            ret_string += "\n\\end{array}\n}"
+        else:
+            for i, row_len in enumerate(reversed(self._list)):
+                ret_string += "\\cline{2-%s} "%(1 + row_len) + latex(self.vacancy_numbers[-i-1])
+                ret_string += " &" + "\\phantom{|}&"*row_len
+
+                if num_cols == row_len:
+                    ret_string += " " + latex(self.rigging[-i-1])
+                else:
+                    ret_string += " \\multicolumn{" + repr(num_cols - row_len + 1)
+                    ret_string += "}{l}{" + latex(self.rigging[-i-1]) + "}"
+
+                ret_string += " \\\\\n"
+            ret_string += "\\cline{2-%s}\n\\end{array}\n}"%(1 + num_cols)
 
         return ret_string
 
@@ -268,7 +299,8 @@ class RiggedPartition(CombinatorialObject):
             i -= 1
 
         # Add the remaining cells
-        sum_cells += end_column * (i + 1)
+        if i > -1:
+            sum_cells += end_column * (i + 1)
 
         return sum_cells
 
@@ -442,12 +474,12 @@ class RiggedPartitionTypeB(RiggedPartition):
             -2[][]-2
             -2[]-2
             <BLANKLINE>
-            sage: RiggedConfigurations.use_half_width_boxes_type_B = False
+            sage: RiggedConfigurations.global_options(half_width_boxes_type_B=False)
             sage: elt
             -2[ ][ ]-2
             -2[ ]-2
             <BLANKLINE>
-            sage: RiggedConfigurations.use_half_width_boxes_type_B = True
+            sage: RiggedConfigurations.global_options.reset()
         """
         # If it is empty, return saying so
         if len(self._list) == 0:
@@ -460,8 +492,8 @@ class RiggedPartitionTypeB(RiggedPartition):
             itr = enumerate(self._list)
         ret_str = ""
 
-        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
-        if RiggedConfigurations.use_half_width_boxes_type_B:
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurationOptions
+        if RiggedConfigurationOptions['half_width_boxes_type_B']:
             box_str = "[]"
         else:
             box_str = "[ ]"
@@ -489,50 +521,65 @@ class RiggedPartitionTypeB(RiggedPartition):
             sage: RP = RC(partition_list=[[],[2]])[1]
             sage: latex(RP)
             {
-            \begin{array}[t]{r|@{}c@{}|@{}c@{}|l}
-            \cline{2-3} -4 &\phantom{a}&\phantom{a}& -4 \\
+            \begin{array}[t]{r|c|c|l}
+             \cline{2-3} -4 &\phantom{a}&\phantom{a}& -4 \\
              \cline{2-3} 
             \end{array}
             }
-            sage: RiggedConfigurations.use_half_width_boxes_type_B = False
+            sage: RiggedConfigurations.global_options(half_width_boxes_type_B=False)
             sage: latex(RP)
             {
-            \begin{array}[t]{r|@{}c@{}|@{}c@{}|l}
-            \cline{2-3} -4 &\phantom{X|}&\phantom{X|}& -4 \\
+            \begin{array}[t]{r|c|c|l}
+             \cline{2-3} -4 &\phantom{X|}&\phantom{X|}& -4 \\
              \cline{2-3} 
             \end{array}
             }
-            sage: RiggedConfigurations.use_half_width_boxes_type_B = True
+            sage: RiggedConfigurations.global_options.reset()
         """
         num_rows = len(self._list)
         if num_rows == 0:
             return "{\\emptyset}"
         
-        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
-        if RiggedConfigurations.use_half_width_boxes_type_B:
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurationOptions
+        if RiggedConfigurationOptions['half_width_boxes_type_B']:
             box_str = "\\phantom{a}&"
         else:
             box_str = "\\phantom{X|}&"
 
         num_cols = self._list[0]
-        ret_string = ("{\n\\begin{array}[t]{r|" + "@{}c@{}|"*num_cols + "l}\n"
-                       + "\\cline{2-" + repr(1 + num_cols) + "} "
-                       + repr(self.vacancy_numbers[0]))
-        for i, row_len in enumerate(self._list):
-            ret_string += " &" + box_str*row_len
+        ret_string = "{\n\\begin{array}[t]{r|" + "c|"*num_cols + "l}\n"
 
-            if num_cols == row_len:
-                ret_string += " " + latex(self.rigging[i])
-            else:
-                ret_string += " \\multicolumn{" + repr(num_cols - row_len + 1)
-                ret_string += "}{l}{" + latex(self.rigging[i]) + "}"
+        if RiggedConfigurationOptions['convention'] == 'English':
+            ret_string += "\\cline{2-%s} "%(1+num_cols) + latex(self.vacancy_numbers[0])
+            for i, row_len in enumerate(self._list):
+                ret_string += " &" + box_str*row_len
 
-            ret_string += " \\\\\n"
+                if num_cols == row_len:
+                    ret_string += " " + latex(self.rigging[i])
+                else:
+                    ret_string += " \\multicolumn{" + repr(num_cols - row_len + 1)
+                    ret_string += "}{l}{" + latex(self.rigging[i]) + "}"
 
-            ret_string += "\\cline{2-" + repr(1 + row_len) + "} "
-            if i != num_rows - 1 and row_len != self._list[i + 1]:
-                ret_string += repr(self.vacancy_numbers[i + 1])
-        ret_string += "\n\\end{array}\n}"
+                ret_string += " \\\\\n"
+
+                ret_string += "\\cline{2-" + repr(1 + row_len) + "} "
+                if i != num_rows - 1 and row_len != self._list[i + 1]:
+                    ret_string += latex(self.vacancy_numbers[i + 1])
+            ret_string += "\n\\end{array}\n}"
+        else:
+            for i, row_len in enumerate(reversed(self._list)):
+                ret_string += "\\cline{2-%s} "%(1 + row_len)
+                ret_string += latex(self.vacancy_numbers[-i-1])
+                ret_string += " &" + box_str*row_len
+
+                if num_cols == row_len:
+                    ret_string += " " + latex(self.rigging[-i-1])
+                else:
+                    ret_string += " \\multicolumn{" + repr(num_cols - row_len + 1)
+                    ret_string += "}{l}{" + latex(self.rigging[-i-1]) + "}"
+
+                ret_string += " \\\\\n"
+            ret_string += "\\cline{2-%s}\n\\end{array}\n}"%(1 + num_cols)
 
         return ret_string
 

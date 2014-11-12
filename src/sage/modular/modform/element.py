@@ -19,6 +19,8 @@ from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
 from sage.misc.misc import verbose
 from sage.modular.dirichlet import DirichletGroup
+from sage.misc.superseded import deprecated_function_alias
+
 
 def is_ModularFormElement(x):
     """
@@ -62,9 +64,9 @@ def delta_lseries(prec=53,
         0.0374412812685155
     """
     from sage.lfunctions.all import Dokchitser
-    key = (prec, max_imaginary_part, max_asymp_coeffs)
+    # key = (prec, max_imaginary_part, max_asymp_coeffs)
     L = Dokchitser(conductor = 1,
-                   gammaV = [0,1],
+                   gammaV = [0, 1],
                    weight = 12,
                    eps = 1,
                    prec = prec)
@@ -150,9 +152,9 @@ class ModularForm_abstract(ModuleElement):
             ArithmeticError: Modular forms must be in the same ambient space.
         """
         if not isinstance(other, ModularForm_abstract):
-            raise TypeError, "Second argument must be a modular form."
+            raise TypeError("Second argument must be a modular form.")
         if self.parent().ambient() != other.parent().ambient():
-            raise ArithmeticError, "Modular forms must be in the same ambient space."
+            raise ArithmeticError("Modular forms must be in the same ambient space.")
 
     def __call__(self, x, prec=None):
         """
@@ -421,7 +423,7 @@ class ModularForm_abstract(ModuleElement):
             for g in gens:
                 df = self.parent().diamond_bracket_operator(g)(self)
                 if df != (df[i] / self[i]) * self:
-                    raise ValueError, "Form is not an eigenvector for <%s>" % g
+                    raise ValueError("Form is not an eigenvector for <%s>" % g)
                 vals.append(df[i] / self[i])
             return G(vals)
 
@@ -491,7 +493,7 @@ class ModularForm_abstract(ModuleElement):
             prec = self.parent().prec()
         prec = rings.Integer(prec)
         if prec < 0:
-            raise ValueError, "prec (=%s) must be at least 0"%prec
+            raise ValueError("prec (=%s) must be at least 0"%prec)
         try:
             current_prec, f = self.__q_expansion
         except AttributeError:
@@ -522,8 +524,169 @@ class ModularForm_abstract(ModuleElement):
         """
         raise NotImplementedError
 
-    # this function lives here so it is inherited by Newform (which does *not* derive from ModularFormElement)
-    def cuspform_lseries(self, prec=53,
+    # The methods period() and lseries() below currently live
+    # in ModularForm_abstract so they are inherited by Newform (which
+    # does *not* derive from ModularFormElement).
+
+    def period(self, M, prec=53):
+        r"""
+        Return the period of ``self`` with respect to `M`.
+
+        INPUT:
+
+        - ``self`` -- a cusp form `f` of weight 2 for `Gamma_0(N)`
+
+        - ``M`` -- an element of `\Gamma_0(N)`
+
+        - ``prec`` -- (default: 53) the working precision in bits.  If
+          `f` is a normalised eigenform, then the output is correct to
+          approximately this number of bits.
+
+        OUTPUT:
+
+        A numerical approximation of the period `P_f(M)`.  This period
+        is defined by the following integral over the complex upper
+        half-plane, for any `\alpha` in `\Bold{P}^1(\QQ)`:
+
+        .. math::
+
+            P_f(M) = 2 \pi i \int_\alpha^{M(\alpha)} f(z) dz.
+
+        This is independent of the choice of `\alpha`.
+
+        EXAMPLES::
+
+            sage: C = Newforms(11, 2)[0]
+            sage: m = C.group()(matrix([[-4, -3], [11, 8]]))
+            sage: C.period(m)
+            -0.634604652139776 - 1.45881661693850*I
+
+            sage: f = Newforms(15, 2)[0]
+            sage: g = Gamma0(15)(matrix([[-4, -3], [15, 11]]))
+            sage: f.period(g)  # abs tol 1e-15
+            2.17298044293747e-16 - 1.59624222213178*I
+
+        If `E` is an elliptic curve over `\QQ` and `f` is the newform
+        associated to `E`, then the periods of `f` are in the period
+        lattice of `E` up to an integer multiple::
+
+            sage: E = EllipticCurve('11a3')
+            sage: f = E.newform()
+            sage: g = Gamma0(11)([3, 1, 11, 4])
+            sage: f.period(g)
+            0.634604652139777 + 1.45881661693850*I
+            sage: omega1, omega2 = E.period_lattice().basis()
+            sage: -2/5*omega1 + omega2
+            0.634604652139777 + 1.45881661693850*I
+
+        The integer multiple is 5 in this case, which is explained by
+        the fact that there is a 5-isogeny between the elliptic curves
+        `J_0(5)` and `E`.
+
+        The elliptic curve `E` has a pair of modular symbols attached
+        to it, which can be computed using the method
+        `:meth:~sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
+        These can be used to express the periods of `f` as exact
+        linear combinations of a basis for the period lattice of `E`::
+
+            sage: s = E.modular_symbol(sign=+1)
+            sage: t = E.modular_symbol(sign=-1)
+            sage: s(3/11), t(3/11)
+            (1/10, 1)
+            sage: s(3/11)*omega1 + t(3/11)*omega2.imag()*I
+            0.634604652139777 + 1.45881661693850*I
+
+        ALGORITHM:
+
+        We use the series expression from [Cremona]_, Chapter II,
+        Proposition 2.10.3.  The algorithm sums the first `T` terms of
+        this series, where `T` is chosen in such a way that the result
+        would approximate `P_f(M)` with an absolute error of at most
+        `2^{-\text{prec}}` if all computations were done exactly.
+
+        Since the actual precision is finite, the output is currently
+        *not* guaranteed to be correct to ``prec`` bits of precision.
+
+        REFERENCE:
+
+        .. [Cremona] J. E. Cremona, Algorithms for Modular Elliptic
+           Curves.  Cambridge University Press, 1997.
+
+        TESTS::
+
+            sage: C = Newforms(11, 2)[0]
+            sage: g = Gamma0(15)(matrix([[-4, -3], [15, 11]]))
+            sage: C.period(g)
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix [-4 -3]
+                              [15 11]
+            is not an element of Congruence Subgroup Gamma0(11)
+            sage: f = Newforms(Gamma0(15), 4)[0]
+            sage: f.period(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: period pairing only defined for cusp forms of weight 2
+            sage: S = Newforms(Gamma1(17), 2, names='a')
+            sage: f = S[1]
+            sage: g = Gamma1(17)([18, 1, 17, 1])
+            sage: f.period(g)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: period pairing only implemented for cusp forms of trivial character
+            sage: E = ModularForms(Gamma0(4), 2).eisenstein_series()[0]
+            sage: gamma = Gamma0(4)([1, 0, 4, 1])
+            sage: E.period(gamma)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Don't know how to compute Atkin-Lehner matrix acting on this space (try using a newform constructor instead)
+
+        """
+        R = rings.RealField(prec)
+
+        N = self.level()
+        if not self.character().is_trivial():
+            raise NotImplementedError('period pairing only implemented for cusp forms of trivial character')
+        if self.weight() != 2:
+            raise ValueError('period pairing only defined for cusp forms of weight 2')
+        if not isinstance(self, (Newform, ModularFormElement_elliptic_curve)):
+            print('Warning: not a newform, precision not guaranteed')
+
+        M = self.group()(M)
+        # coefficients of the matrix M
+        (b, c, d) = (M.b(), M.c() / N, M.d())
+        if d == 0:
+            return R.zero_element()
+        if d < 0:
+            (b, c, d) = (-b, -c, -d)
+
+        twopi = 2 * R.pi()
+        I = R.complex_field().gen()
+        rootN = R(N).sqrt()
+
+        eps = self.atkin_lehner_eigenvalue()
+        mu_N = (-twopi / rootN).exp()
+        mu_dN = (-twopi / d / rootN).exp()
+        mu_d = (twopi * I / d).exp()
+
+        # We bound the tail of the series by means of the triangle
+        # inequality and the following bounds (tau(n) = #divisors(n)):
+        #       mu_N <= mu_dN
+        #   |a_n(f)| <= tau(n)*sqrt(n)  (holds if f is a newform)
+        #     tau(n) <= sqrt(3)*sqrt(n) for all n >= 1
+        # This gives a correct but somewhat coarse lower bound on the
+        # number of terms needed.  We ignore rounding errors.
+        numterms = (((1 - mu_dN) * R(2)**(-prec)
+                     / ((abs(eps - 1) + 2) * R(3).sqrt())).log()
+                    / mu_dN.log()).ceil()
+        coeff = self.coefficients(numterms)
+
+        return sum((coeff[n - 1] / n)
+                   *((eps - 1) * mu_N ** n
+                     + mu_dN ** n * (mu_d ** (n * b) - eps * mu_d ** (n * c)))
+                   for n in range(1, numterms + 1))
+
+    def lseries(self, conjugate=0, prec=53,
                          max_imaginary_part=0,
                          max_asymp_coeffs=40):
         r"""
@@ -534,6 +697,8 @@ class ModularForm_abstract(ModuleElement):
         for computing with the L-series of the cusp form.
 
         INPUT:
+
+        - ``conjugate`` - (default: 0), integer between 0 and degree-1
 
         - ``prec`` - integer (bits precision)
 
@@ -548,16 +713,36 @@ class ModularForm_abstract(ModuleElement):
         EXAMPLES::
 
            sage: f = CuspForms(2,8).newforms()[0]
-           sage: L = f.cuspform_lseries()
+           sage: L = f.lseries()
            sage: L(1)
            0.0884317737041015
            sage: L(0.5)
            0.0296568512531983
 
+        For non-rational newforms we can specify a conjugate::
+
+           sage: f = Newforms(43, names='a')[1]
+           sage: L = f.lseries(conjugate=0)
+           sage: L(1)
+           0.620539857407845
+           sage: L = f.lseries(conjugate=1)
+           sage: L(1)
+           0.921328017272472
+
+        We compute with the L-series of the Eisenstein series `E_4`::
+
+           sage: f = ModularForms(1,4).0
+           sage: L = f.lseries()
+           sage: L(1)
+           -0.0304484570583933
+           sage: L = eisenstein_series_lseries(4)
+           sage: L(1)
+           -0.0304484570583933
+
         Consistency check with delta_lseries (which computes coefficients in pari)::
 
            sage: delta = CuspForms(1,12).0
-           sage: L = delta.cuspform_lseries()
+           sage: L = delta.lseries()
            sage: L(1)
            0.0374412812685155
            sage: L = delta_lseries()
@@ -568,35 +753,73 @@ class ModularForm_abstract(ModuleElement):
 
             sage: E=EllipticCurve('37b2')
             sage: h=Newforms(37)[1]
-            sage: Lh = h.cuspform_lseries()
+            sage: Lh = h.lseries()
             sage: LE=E.lseries()
             sage: Lh(1), LE(1)
             (0.725681061936153, 0.725681061936153)
-            sage: CuspForms(1, 30).0.cuspform_lseries().eps
+            sage: CuspForms(1, 30).0.lseries().eps
             -1
+
+        We can change the precision (in bits)
+
+            sage: f = Newforms(389, names='a')[0]
+            sage: L = f.lseries(prec=30)
+            sage: abs(L(1)) < 2^-30
+            True
+            sage: L = f.lseries(prec=53)
+            sage: abs(L(1)) < 2^-53
+            True
+            sage: L = f.lseries(prec=100)
+            sage: abs(L(1)) < 2^-100
+            True
+
+            sage: f = Newforms(27, names='a')[0]
+            sage: L = f.lseries()
+            sage: L(1)
+            0.588879583428483
         """
-        if self.q_expansion().list()[0] !=0:
-            raise TypeError,"f = %s is not a cusp form"%self
         from sage.lfunctions.all import Dokchitser
-        key = (prec, max_imaginary_part, max_asymp_coeffs)
+        # key = (prec, max_imaginary_part, max_asymp_coeffs)
         l = self.weight()
         N = self.level()
         w = self.atkin_lehner_eigenvalue()
         if w is None:
-            raise ValueError, "Form is not an eigenform for Atkin-Lehner"
-        e = (-1)**(l/2)*w
+            raise ValueError("Form is not an eigenform for Atkin-Lehner")
+        e = (-1) ** (l // 2) * w
+
+        if self.q_expansion()[0] == 0:
+            poles = []  # cuspidal
+        else:
+            poles = [l] # non-cuspidal
+
         L = Dokchitser(conductor = N,
-                       gammaV = [0,1],
+                       gammaV = [0, 1],
                        weight = l,
                        eps = e,
+                       poles = poles,
                        prec = prec)
-        s = 'coeff = %s;'%self.q_expansion(prec).list()
+        # Find out how many coefficients of the Dirichlet series are needed
+        # in order to compute to the required precision
+        num_coeffs = L.num_coeffs()
+        coeffs = self.q_expansion(num_coeffs+1).padded_list()
+
+        # renormalize so that coefficient of q is 1
+        b = coeffs[1]
+        if b != 1:
+            invb = 1/b
+            coeffs = (invb*c for c in coeffs)
+
+        # compute the requested embedding
+        emb = self.base_ring().embeddings(rings.ComplexField(prec))[conjugate]
+        s = 'coeff = %s;'% map(emb, coeffs)
         L.init_coeffs('coeff[k+1]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)
         L.check_functional_equation()
         L.rename('L-series associated to the cusp form %s'%self)
         return L
+
+    cuspform_lseries = deprecated_function_alias(16917, lseries)
 
 class Newform(ModularForm_abstract):
     def __init__(self, parent, component, names, check=True):
@@ -626,17 +849,17 @@ class Newform(ModularForm_abstract):
         """
         if check:
             if not space.is_ModularFormsSpace(parent):
-                raise TypeError, "parent must be a space of modular forms"
+                raise TypeError("parent must be a space of modular forms")
             if not is_ModularSymbolsSpace(component):
-                raise TypeError, "component must be a space of modular symbols"
+                raise TypeError("component must be a space of modular symbols")
             if parent.group() != component.group():
-                raise ValueError, "parent and component must be defined by the same congruence subgroup"
+                raise ValueError("parent and component must be defined by the same congruence subgroup")
             if parent.weight() != component.weight():
-                raise ValueError, "parent and component must have the same weight"
+                raise ValueError("parent and component must have the same weight")
             if not component.is_cuspidal():
-                raise ValueError, "component must be cuspidal"
+                raise ValueError("component must be cuspidal")
             if not component.is_simple():
-                raise ValueError, "component must be simple"
+                raise ValueError("component must be simple")
         extension_field = component.eigenvalue(1,name=names).parent()
         if extension_field != parent.base_ring(): # .degree() != 1 and rings.is_NumberField(extension_field):
             assert extension_field.base_field() == parent.base_ring()
@@ -892,7 +1115,6 @@ class Newform(ModularForm_abstract):
         """
         return self._defining_modular_symbols().q_eigenform_character(self._name())
 
-
     def atkin_lehner_eigenvalue(self, d=None):
         r"""
         Return the eigenvalue of the Atkin-Lehner operator W_d acting on this newform
@@ -937,7 +1159,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
         """
         if not isinstance(parent, space.ModularFormsSpace):
-            raise TypeError, "First argument must be an ambient space of modular forms."
+            raise TypeError("First argument must be an ambient space of modular forms.")
         element.HeckeModuleElement.__init__(self, parent, x)
 
     def _compute_q_expansion(self, prec):
@@ -1034,7 +1256,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         # first ensure the levels are equal
         if self.level() != other.level():
-            raise NotImplementedError, "Cannot multiply forms of different levels"
+            raise NotImplementedError("Cannot multiply forms of different levels")
 
         # find out about characters
         try:
@@ -1061,61 +1283,8 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         return newparent.base_extend(newqexp.base_ring())(newqexp)
 
-    def modform_lseries(self, prec=53,
-                        max_imaginary_part=0,
-                        max_asymp_coeffs=40):
-        r"""
-        Return the L-series of the weight `k` modular form
-        `f` on `\mathrm{SL}_2(\ZZ)`.
-
-        This actually returns an interface to Tim Dokchitser's program
-        for computing with the L-series of the modular form.
-
-        INPUT:
-
-        - ``prec`` - integer (bits precision)
-
-        - ``max_imaginary_part`` - real number
-
-        - ``max_asymp_coeffs`` - integer
-
-        OUTPUT:
-
-        The L-series of the modular form.
-
-        EXAMPLES:
-
-        We compute with the L-series of the Eisenstein series `E_4`::
-
-           sage: f = ModularForms(1,4).0
-           sage: L = f.modform_lseries()
-           sage: L(1)
-           -0.0304484570583933
-        """
-        a = self.q_expansion(prec).list()
-        if a[0] == 0:
-            raise TypeError,"f = %s is a cusp form; please use f.cuspform_lseries() instead!"%self
-        if self.level() != 1:
-            raise TypeError, "f = %s is not a modular form for SL_2(Z)"%self
-        from sage.lfunctions.all import Dokchitser
-        key = (prec, max_imaginary_part, max_asymp_coeffs)
-        l = self.weight()
-        L = Dokchitser(conductor = 1,
-                       gammaV = [0,1],
-                       weight = l,
-                       eps = (-1)**l,
-                       poles = [l],
-                       prec = prec)
-        b = a[1]
-        for i in range(len(a)):    ##to renormalize so that coefficient of q is 1
-            a[i] =(1/b)*a[i]
-        s = 'coeff = %s;'%a
-        L.init_coeffs('coeff[k+1]',pari_precode = s,
-                      max_imaginary_part=max_imaginary_part,
-                      max_asymp_coeffs=max_asymp_coeffs)
-        L.check_functional_equation()
-        L.rename('L-series associated to the weight %s modular form on SL_2(Z)'%l)
-        return L
+    modform_lseries = deprecated_function_alias(16917,
+            ModularForm_abstract.lseries)
 
     def atkin_lehner_eigenvalue(self, d=None):
         r"""
@@ -1135,8 +1304,8 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         try:
             f = self.parent().atkin_lehner_operator(d)(self)
         except NotImplementedError:
-            raise NotImplementedError, "Don't know how to compute Atkin-Lehner matrix acting on this space" \
-                + " (try using a newform constructor instead)"
+            raise NotImplementedError("Don't know how to compute Atkin-Lehner matrix acting on this space" \
+                + " (try using a newform constructor instead)")
         if f == self:
             return 1
         elif f == -self:
@@ -1306,14 +1475,14 @@ class EisensteinSeries(ModularFormElement):
         N = parent.level()
         K = parent.base_ring()
         if chi.parent().modulus() != N or psi.parent().modulus() != N:
-            raise ArithmeticError, "Incompatible moduli"
+            raise ArithmeticError("Incompatible moduli")
         if chi.parent().base_ring() != K or psi.parent().base_ring() != K:
-            raise ArithmeticError, "Incompatible base rings"
+            raise ArithmeticError("Incompatible base rings")
         t = int(t)
         #if not isinstance(t, int): raise TypeError, "weight must be an int"
         if parent.weight() == 2 and chi.is_trivial() \
                and psi.is_trivial() and t==1:
-            raise ArithmeticError, "If chi and psi are trivial and k=2, then t must be >1."
+            raise ArithmeticError("If chi and psi are trivial and k=2, then t must be >1.")
         ModularFormElement.__init__(self, parent, vector)
         self.__chi = chi
         self.__psi = psi
@@ -1413,24 +1582,24 @@ class EisensteinSeries(ModularFormElement):
             [15/11*zeta10^3 - 9/11*zeta10^2 - 26/11*zeta10 - 10/11, 1, 4*zeta10 + 1]
         """
         c0, chi, psi, K, n, t, L, M = self.__defining_parameters()
-        zero = K(0)
+        zero = K.zero()
         k = self.weight()
         v = []
         for i in X:
-            if i==0:
+            if i == 0:
                 v.append(c0)
                 continue
-            if i%t != 0:
+            if i % t != 0:
                 v.append(zero)
             else:
-                m = i//t
-                v.append(sum([psi(n)*chi(m/n)*n**(k-1) for \
-                               n in rings.divisors(m)]))
+                m = i // t
+                v.append(sum([psi(d) * chi(m / d) * d ** (k - 1)
+                              for d in rings.divisors(m)]))
         return v
 
     def __defining_parameters(self):
-        """
-        Return defining parameters for self.
+        r"""
+        Return defining parameters for ``self``.
 
         EXAMPLES::
 

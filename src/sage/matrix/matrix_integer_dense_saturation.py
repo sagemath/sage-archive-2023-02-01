@@ -80,7 +80,7 @@ def random_sublist_of_size(k, n):
         [0, 1, 3, 4, 5, 7, 8]
     """
     if n > k:
-        raise ValueError, "n must be <= len(v)"
+        raise ValueError("n must be <= len(v)")
     if n == k:
         return range(k)
     if n >= k//2+5:
@@ -98,8 +98,7 @@ def random_sublist_of_size(k, n):
         z = randrange(k)
         if not z in w:
             w.add(z)
-    w = list(w)
-    w.sort()
+    w = sorted(w)
     return w
 
 def solve_system_with_difficult_last_row(B, A):
@@ -135,7 +134,7 @@ def solve_system_with_difficult_last_row(B, A):
         else:
             break
     D = B.matrix_from_rows(range(C.nrows()-1))
-    N = D._rational_kernel_iml()
+    N = D._rational_kernel_flint()
     if N.ncols() != 1:
         verbose("Difficult solve quickly failed.  Using direct approach.")
         return B.solve_right(A)

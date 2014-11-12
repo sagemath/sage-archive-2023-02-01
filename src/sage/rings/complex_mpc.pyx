@@ -576,7 +576,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         else:
             return (max-min)*z + min*self(1,1)
 
-    cpdef bint is_exact(self): # except -2: # I don't know what this is for - TCS
+    cpdef bint is_exact(self) except -2:
         """
         Returns whether or not this field is exact, which is always ``False``.
 
@@ -2238,7 +2238,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: C, i = MPComplexField(30).objgen()
-            sage: (1+i).gamma_inc(2 + 3*i)
+            sage: (1+i).gamma_inc(2 + 3*i)  # abs tol 2e-10
             0.0020969149 - 0.059981914*I
             sage: (1+i).gamma_inc(5)
             -0.0013781309 + 0.0065198200*I
@@ -2246,7 +2246,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             0.70709210 - 0.42035364*I
 
         """
-        return self._parent(self._pari_().incgam(t))
+        return self._parent(self._pari_().incgam(t, precision=self.prec()))
 
     def zeta(self):
         """
@@ -2422,7 +2422,7 @@ cdef class MPCtoMPC(Map):
               To:   Complex Field with 10 bits of precision
         """
         cdef MPComplexNumber y
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         y._set(z)
         return y
 
@@ -2439,7 +2439,7 @@ cdef class MPCtoMPC(Map):
               From: Complex Field with 10 bits of precision
               To:   Complex Field with 100 bits of precision
         """
-        return MPCtoMPC(self._codomain, self._domain)
+        return MPCtoMPC(self.codomain(), self.domain())
 
 cdef class INTEGERtoMPC(Map):
     cpdef Element _call_(self, x):
@@ -2460,7 +2460,7 @@ cdef class INTEGERtoMPC(Map):
         cdef MPComplexNumber y
         cdef mpc_rnd_t rnd
         rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         mpc_set_z(y.value, (<Integer>x).value, rnd)
         return y
 
@@ -2483,7 +2483,7 @@ cdef class MPFRtoMPC(Map):
         cdef MPComplexNumber y
 #        cdef mpc_rnd_t rnd
 #        rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
 #        mpc_set_fr(y.value, (<RealNumber>x).value, rnd)
         y._set(x)
         return y
@@ -2507,7 +2507,7 @@ cdef class CCtoMPC(Map):
         cdef MPComplexNumber y
         cdef mpc_rnd_t rnd
         rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         mpc_set_fr_fr(y.value, (<ComplexNumber>z).__re, (<ComplexNumber>z).__im, rnd)
         return y
 

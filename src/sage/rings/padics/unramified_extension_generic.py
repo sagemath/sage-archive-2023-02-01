@@ -209,7 +209,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
             a + O(5^20)
         """
         if n != 0:
-            raise IndexError, "only one generator"
+            raise IndexError("only one generator")
         return self([0,1])
 
     def uniformizer_pow(self, n):

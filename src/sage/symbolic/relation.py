@@ -204,7 +204,7 @@ Conversion to Maxima::
     sage: x = var('x')
     sage: eq = (x^(3/5) >= pi^2 + e^i)
     sage: eq._maxima_init_()
-    '(x)^(3/5) >= ((%pi)^(2))+(exp(0+%i*1))'
+    '(_SAGE_VAR_x)^(3/5) >= ((%pi)^(2))+(exp(0+%i*1))'
     sage: e1 = x^3 + x == sin(2*x)
     sage: z = e1._maxima_()
     sage: z.parent() is sage.calculus.calculus.maxima
@@ -406,19 +406,19 @@ def test_relation_maxima(relation):
         try:
             s = m.parent()._eval_line('is (equal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
         except TypeError as msg:
-            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
 
     elif relation.operator() == operator.ne: # operator is not equal
         try:
             s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
         except TypeError as msg:
-            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
 
     else: # operator is < or > or <= or >=, which Maxima handles fine
         try:
             s = m.parent()._eval_line('is (%s)'%repr(m))
         except TypeError as msg:
-            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
 
     if s == 'true':
         return True
@@ -545,7 +545,7 @@ def solve(f, *args, **kwds):
     underlying algorithm in Maxima::
 
         sage: sols = solve([x^3==y,y^2==x],[x,y]); sols[-1], sols[0]
-        ([x == 0, y == 0], [x == (0.309016994375 + 0.951056516295*I),  y == (-0.809016994375 - 0.587785252292*I)])
+        ([x == 0, y == 0], [x == (0.3090169943749475 + 0.9510565162951535*I), y == (-0.8090169943749475 - 0.5877852522924731*I)])
         sage: sols[0][0].rhs().pyobject().parent()
         Complex Double Field
 
@@ -615,7 +615,7 @@ def solve(f, *args, **kwds):
     be implicitly an integer (hence the ``z``)::
 
         sage: solve([cos(x)*sin(x) == 1/2, x+y == 0],x,y)
-        [[x == 1/4*pi + pi*z78, y == -1/4*pi - pi*z78]]
+        [[x == 1/4*pi + pi*z79, y == -1/4*pi - pi*z79]]
 
     Expressions which are not equations are assumed to be set equal
     to zero, as with `x` in the following example::
@@ -719,7 +719,15 @@ def solve(f, *args, **kwds):
         sage: solve([x == 1], (1, a))
         Traceback (most recent call last):
         ...
-        TypeError: 1 is not a valid variable.
+        TypeError: (1, a) are not valid variables.
+
+    Test that the original version of a system in the French Sage book
+    now works (:trac:`14306`)::
+
+        sage: var('y,z')
+        (y, z)
+        sage: solve([x^2 * y * z == 18, x * y^3 * z == 24, x * y * z^4 == 6], x, y, z)
+        [[x == 3, y == 2, z == 1], [x == (1.337215067... - 2.685489874...*I), y == (-1.700434271... + 1.052864325...*I), z == (0.9324722294... - 0.3612416661...*I)], ...]
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression
@@ -756,7 +764,7 @@ def solve(f, *args, **kwds):
     try:
         f = [s for s in f if s is not True]
     except TypeError:
-        raise ValueError, "Unable to solve %s for %s"%(f, args)
+        raise ValueError("Unable to solve %s for %s"%(f, args))
 
     if any(s is False for s in f):
         return []
@@ -771,7 +779,7 @@ def solve(f, *args, **kwds):
             s = m.to_poly_solve(variables)
         except TypeError as mess: # if that gives an error, raise an error.
             if "Error executing code in Maxima" in str(mess):
-                raise ValueError, "Sage is unable to determine whether the system %s can be solved for %s"%(f,args)
+                raise ValueError("Sage is unable to determine whether the system %s can be solved for %s"%(f,args))
             else:
                 raise
 
@@ -917,7 +925,7 @@ def solve_mod(eqns, modulus, solution_dict = False):
     eqns = [eq if is_Expression(eq) else (eq.lhs()-eq.rhs()) for eq in eqns]
     modulus = Integer(modulus)
     if modulus < 1:
-        raise ValueError, "the modulus must be a positive integer"
+        raise ValueError("the modulus must be a positive integer")
     vars = list(set(sum([list(e.variables()) for e in eqns], [])))
     vars.sort(key=repr)
 

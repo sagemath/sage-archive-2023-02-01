@@ -85,10 +85,12 @@ from sage.ext.c_lib import AlarmInterrupt, SignalError
 
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
+from sage.repl.all       import *
 
 from sage.misc.sh import sh
 
 from sage.libs.all       import *
+from sage.data_structures.all import *
 from sage.doctest.all    import *
 try:
     from sage.dev.all    import *
@@ -170,6 +172,8 @@ from sage.tensor.all     import *
 
 from sage.matroids.all   import *
 
+from sage.game_theory.all import *
+
 # Lazily import notebook functions and interacts (#15335)
 lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
@@ -183,19 +187,6 @@ from copy import copy, deepcopy
 # The code executed here uses a large amount of Sage components
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
-
-#Deprecate the is_* functions from the top level
-#All of these functions should be removed from the top level
-#after a few releases, and this code should be removed.
-#--Mike Hansen 9/25/2008
-message = "\nUsing %(name)s from the top level is deprecated since it was designed to be used by developers rather than end users.\nIt most likely does not do what you would expect it to do.  If you really need to use it, import it from the module that it is defined in."
-sage.misc.superseded.deprecated_callable_import(
-    10107, None, globals(), locals(),
-    [name for name in globals().keys() if name.startswith('is_') and name[3].isupper()],
-    message)
-
-del message, name
-
 
 ###########################################################
 #### WARNING:
@@ -223,21 +214,11 @@ ZZ = IntegerRing()
 # overwritten by the user, unless they want to change the meaning of
 # int and real in the interpreter (which is a potentially valid thing
 # to do, and doesn't mess up anything else in the Sage library).
-# E.g., typing "int = ZZ" in the Sage interpreter makes int literals
-# acts as Python ints again.
 
 
-
-# Some shorter shortcuts:
-# Q = QQ
-# Z = ZZ
-# C = CC
-#i = CC.gen(0)
 true = True
 false = False
-
 oo = infinity
-#x = PolynomialRing(QQ,'x').gen()
 
 from sage.misc.copying import license
 copying = license

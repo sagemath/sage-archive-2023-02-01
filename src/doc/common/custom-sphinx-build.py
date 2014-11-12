@@ -28,7 +28,8 @@ useless_chatter = (
     re.compile('^looking for now-outdated files... none found'),
     re.compile('^building \[.*\]: targets for 0 source files that are out of date'),
     re.compile('^loading pickled environment... done'),
-    re.compile('^loading cross citations... done \([0-9]* citations\).')
+    re.compile('^loading cross citations... done \([0-9]* citations\).'),
+    re.compile('WARNING: favicon file \'favicon.ico\' does not exist')
     )
 
 # replacements: pairs of regular expressions and their replacements,
@@ -48,7 +49,6 @@ if 'inventory' in sys.argv:
 
 # warnings: regular expressions (or strings) indicating a problem with
 # docbuilding. Raise an exception if any of these occur.
-
 warnings = (re.compile('Segmentation fault'),
             re.compile('SEVERE'),
             re.compile('ERROR'),
@@ -56,8 +56,24 @@ warnings = (re.compile('Segmentation fault'),
             re.compile('Exception occurred'),
             re.compile('Sphinx error'))
 
+# We want all warnings to actually be errors.
+# Exceptions:
+# - warnings upon building the LaTeX documentation
+# - undefined labels upon the first pass of the compilation: some
+#   cross links may legitimately not yet be resolvable at this point.
 if 'latex' not in sys.argv:
-    warnings += (re.compile('WARNING'),)
+    if 'multidoc_first_pass=1' in sys.argv:
+        # Catch all warnings except 'WARNING: undefined label'
+        warnings += (re.compile('WARNING: (?!undefined label)'),)
+    else:
+        warnings += (re.compile('WARNING:'),)
+
+
+# Do not error out at the first warning, sometimes there is more
+# information. So we run until the end of the file and only then raise
+# the error.
+ERROR_MESSAGE = None
+
 
 class SageSphinxLogger(object):
     """
@@ -73,12 +89,20 @@ class SageSphinxLogger(object):
         self._color = stream.isatty()
         prefix = prefix[0:self.prefix_len]
         prefix = ('[{0:'+str(self.prefix_len)+'}]').format(prefix)
-        color = { 1:'darkgreen', 2:'red' }
-        color = color.get(stream.fileno(), 'lightgray')
+        self._is_stdout = (stream.fileno() == 1)
+        self._is_stderr = (stream.fileno() == 2)
+        if self._is_stdout:
+            color = 'darkgreen'
+        elif self._is_stderr:
+            color = 'red'
+        else:
+            color = 'lightgray'
         self._prefix = sphinx.util.console.colorize(color, prefix)
 
-
     def _filter_out(self, line):
+        if ERROR_MESSAGE and self._is_stdout:
+            # swallow non-errors after an error occurred
+            return True
         line = re.sub(self.ansi_color, '', line)
         global useless_chatter
         for regex in useless_chatter:
@@ -86,12 +110,15 @@ class SageSphinxLogger(object):
                 return True
         return False
 
-    def _warnings(self, line):
+    def _check_warnings(self, line):
+        global ERROR_MESSAGE
+        if ERROR_MESSAGE:
+            return  # we already have found an error
         global warnings
         for regex in warnings:
             if regex.search(line) is not None:
-                return True
-        return False
+                ERROR_MESSAGE = line
+                return
 
     def _log_line(self, line):
         if self._filter_out(line):
@@ -104,8 +131,7 @@ class SageSphinxLogger(object):
             line = self.ansi_color.sub('', line)
         self._stream.write(line)
         self._stream.flush()
-        if self._warnings(line):
-            raise OSError(line)
+        self._check_warnings(line)
 
     _line_buffer = ''
 
@@ -186,3 +212,8 @@ try:
 finally:
     sys.stdout = saved_stdout
     sys.stderr = saved_stderr
+
+if ERROR_MESSAGE and ABORT_ON_ERROR:
+    sys.stdout.flush()
+    sys.stderr.flush()
+    raise OSError(ERROR_MESSAGE)

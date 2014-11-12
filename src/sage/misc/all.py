@@ -73,8 +73,6 @@ lazy_import('sage.misc.attached_files', [
         'attach', 'detach', 'attached_files', 'load_attach_path',
         'reset_load_attach_path', 'load_attach_mode'])
 
-from interpreter import preparser
-
 from sage_eval import sage_eval, sageobj
 
 from sage_input import sage_input
@@ -83,8 +81,6 @@ from cython import cython_lambda, cython_create_local_so
 from cython_c import cython
 pyrex = cython # synonym -- for now
 sagex = cython # synonym -- for now
-
-from prun import prun
 
 from persist import save, load, dumps, loads, db, db_save
 
@@ -172,8 +168,6 @@ from prandom import *
 from sage_unittest import TestSuite
 
 from explain_pickle import explain_pickle, unpickle_newobj, unpickle_global, unpickle_build, unpickle_instantiate, unpickle_persistent, unpickle_extension, unpickle_appends
-
-from bitset import FrozenBitset, Bitset
 
 from decorators import specialize, sage_wraps, infix_operator
 

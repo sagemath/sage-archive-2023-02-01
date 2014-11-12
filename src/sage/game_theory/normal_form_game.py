@@ -1113,6 +1113,18 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: biggame = NormalFormGame([p1, p2])
         sage: biggame._solve_lrs() # optional - lrs
         [[(0, 0, 0, 20/21, 1/21), (11/12, 0, 0, 1/12, 0)], [(0, 0, 0, 1, 0), (9/10, 0, 1/10, 0, 0)]]
+
+
+        Another game that failed during development::
+
+        sage: p1 = matrix([[-7, -5, 5],
+        ....:              [5, 5, 3],
+        ....:              [1, -6, 1]])
+        sage: p2 = matrix([[-9, 7, 9],
+        ....:              [6, -2, -3],
+        ....:              [-4, 6, -10]])
+        sage: biggame = NormalFormGame([p1, p2])
+        sage: biggame._solve_lrs() # optional - lrs
         """
         m1, m2 = self.payoff_matrices()
         if maximization is False:
@@ -1235,7 +1247,7 @@ class NormalFormGame(SageObject, MutableMapping):
         In this instance the `lrs` algorithm is able to find all three equilibria::
 
             sage: N = NormalFormGame([matrix(2,[0,-1,-2,-1]),matrix(2,[1,0,0,2])])
-            sage: N.obtain_nash(algorithm='lrs')  # optional - lrs
+            sage: N.obtain_nash(algorithm='lrs')  # optional t- lrs
             [[(2/3, 1/3), (0, 1)], [(0, 1), (0, 1)], [(1, 0), (1, 0)]]
 
         Here is another::

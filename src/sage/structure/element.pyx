@@ -1491,7 +1491,7 @@ cdef class MonoidElement(Element):
         x = self._parent.one_element()
         l = [x]
         for i in xrange(n - 1):
-            x *= self
+            x = x * self
             l.append(x)
         return l
 
@@ -1867,7 +1867,7 @@ cdef class RingElement(ModuleElement):
         x = self._parent.one_element()
         l = [x]
         for i in xrange(n - 1):
-            x *= self
+            x = x * self
             l.append(x)
         return l
 

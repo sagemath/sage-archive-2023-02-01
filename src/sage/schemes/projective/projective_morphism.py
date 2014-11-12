@@ -50,6 +50,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all                import Integer, moebius
 from sage.rings.arith              import gcd, lcm, next_prime, binomial, primes
 from sage.rings.complex_field      import ComplexField
+from sage.categories.number_fields import NumberFields
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
@@ -1297,6 +1298,15 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.primes_of_bad_reduction()
             [2, 3, 7, 13, 31]
 
+        ::
+            sage: R.<z> = QQ[]
+            sage: K.<a> = NumberField(z^2 - 2)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = Hom(P,P)
+            sage: f = H([1/3*x^2+1/a*y^2,y^2])
+            sage: f.primes_of_bad_reduction()
+            [Fractional ideal (a), Fractional ideal (3)]
+
         This is an example where check=False returns extra primes::
 
             sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
@@ -1307,13 +1317,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.primes_of_bad_reduction()
             [5, 37, 2239, 304432717]
         """
-        if self.base_ring() != ZZ and self.base_ring() != QQ:
-            raise TypeError("Must be ZZ or QQ")
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if is_ProjectiveSpace(self.domain()) is False or is_ProjectiveSpace(self.codomain()) is False:
             raise NotImplementedError
         R = self.coordinate_ring()
         F = self._polys
+        K = FractionField(self.codomain().base_ring())
+        if self.base_ring() in NumberFields and self.base_ring != QQ:
+           F = copy(self)
+           F.normalize_coordinates()
+           return (K(F.resultant()).support())
+        elif self.base_ring() != ZZ and self.base_ring() != QQ:
+            raise TypeError("Base Ring must be ZZ or NumberField") 
         if R.base_ring().is_field():
             J = R.ideal(F)
         else:

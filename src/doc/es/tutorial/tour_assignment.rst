@@ -42,8 +42,7 @@ Sage provee todo lo relacionado a operaciones matemáticas básicas:
     38
 
 El cálculo de una expresión tal como ``3^2*4 + 2%5`` depende de
-el órden en que las operaciones son aplicadas; ésto se especifica en
-la "tabla de precedencia de operadores" en :ref:`section-precedence`.
+el órden en que las operaciones son aplicadas.
 
 Sage tambien provee muchas funciones matemáticas conocidas; he aquí
 solo unos cuantos ejemplos:

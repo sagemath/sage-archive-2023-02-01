@@ -106,15 +106,15 @@ Puedes usar Sage de varias maneras.
 
 -  **Interfáz gráfico del Notebook:** Permite usar Sage en forma interactiva 
    desde el navegador web. Véase la sección que trata sobre el
-   Notebook en el manual de referencia y :ref:`section-notebook` abajo,
+   Notebook en el manual de referencia,
 
--  **Línea de comandos interactiva:** Véase :ref:`chapter-interactive_shell`,
+-  **Línea de comandos interactiva:**,
 
 -  **Programs:** Escribiendo programas compilados e interpretados en
-   Sage (Véase :ref:`section-loadattach` y :ref:`section-compile`), y
+   Sage y
 
 -  **Scripts:** Escribiendo scripts (archivos de órdenes) independientes en Python
-   que utilizan la biblioteca Sage (Véase :ref:`section-standalone`).
+   que utilizan la biblioteca Sage.
 
 
 Metas a largo plazo para Sage

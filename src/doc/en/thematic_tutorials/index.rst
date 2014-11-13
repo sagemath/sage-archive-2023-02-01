@@ -65,6 +65,11 @@ Coding Theory
 .. Monoids, Groups, representation Theory
 .. --------------------------------------
 
+Geometry
+========
+
+* :ref:`polytutorial`
+
 Combinatorics
 =============
 

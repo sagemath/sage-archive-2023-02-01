@@ -710,6 +710,18 @@ class Projection(SageObject):
                 pass
 
     def show(self, *args, **kwds):
+        """
+        Deprecated method to show the projection as a graphics
+        object.  Use ``Projection.plot()`` instead.
+
+        EXAMPLE::
+
+            sage: P8 = polytopes.n_cube(4)
+            sage: P8.schlegel_projection([2,5,11,17]).show()
+            doctest:...: DeprecationWarning: use Projection.plot instead
+            See http://trac.sagemath.org/16625 for details.
+            Graphics3d Object
+        """
         from sage.misc.superseded import deprecation
         deprecation(16625, 'use Projection.plot instead')
         return self.plot(*args, **kwds)

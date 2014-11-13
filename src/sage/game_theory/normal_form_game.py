@@ -469,8 +469,6 @@ lazy_import('sage.misc.package', 'is_package_installed')
 lazy_import('sage.misc.temporary_file', 'tmp_filename')
 lazy_import('sage.rings.arith', 'lcm')
 lazy_import('sage.rings.rational', 'Rational')
-lazy_import('subprocess', 'PIPE')
-lazy_import('subprocess', 'Popen')
 
 
 class NormalFormGame(SageObject, MutableMapping):
@@ -1144,6 +1142,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: biggame._solve_lrs() # optional - lrs
         [[(0, 1, 0), (1, 0, 0)], [(1/3, 2/3, 0), (0, 1/6, 5/6)], [(1/3, 2/3, 0), (1/7, 0, 6/7)], [(1, 0, 0), (0, 0, 1)]]
         """
+        from subprocess import PIPE, Popen
         m1, m2 = self.payoff_matrices()
         if maximization is False:
             m1 = - m1

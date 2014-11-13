@@ -19,9 +19,13 @@ You may have to run ``sage -i arb`` to use the arb library.
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
+include "sage/ext/stdsage.pxi"
+
+import sage.categories.sets_cat
 from sage.libs.arb.arb cimport *
 from sage.libs.mpfr cimport mpfr_inits2, mpfr_clears, mpfr_t
-from sage.rings.real_mpfi import RealIntervalField
+from sage.misc.cachefunc import cached_function
+from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
 
 cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long precision):
     """
@@ -85,9 +89,133 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision
     mpfr_clear(right)
 
 
+@cached_function
+def RealBallField(unsigned long precision=53):
+    r"""
+    Return the :class:`real ball field <RealBallField_class>`
+    with the given precision.
+
+    INPUT:
+
+    - ``precision`` -- an integer `\ge 2`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.real_arb import RealBallField
+        sage: RBF = RealBallField()
+        sage: RealBallField() is RBF
+        True
+    """
+    return RealBallField_class(precision)
+
+cdef class RealBallField_class(Parent):
+    r"""
+    The field of real balls.
+
+    INPUT:
+
+    - ``precision`` -- an integer `\ge 2`.
+
+    Do not construct this class directly, but use
+    :func:`RealBallField` instead.
+
+    EXAMPLES::
+
+        sage: from sage.rings.real_arb import RealBallField
+        sage: RBF = RealBallField() # indirect doctest
+        sage: RBF(1)
+
+    TESTS::
+
+        sage: RealBallField(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: Precision must be at least 2.
+        sage: RealBallField(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: Precision must be at least 2.
+        sage: from sage.rings.real_arb import RealBallField_class
+        sage: R1 = RealBallField_class(53)
+        sage: R2 = RealBallField_class(53)
+        sage: R1 is R2
+        False
+    """
+    Element = RealBallElement
+
+    def __init__(self, unsigned long precision=53):
+        r"""
+        Initialize the real ball field.
+
+        INPUT:
+
+        - ``precision`` -- an integer `\ge 2`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField
+            sage: RBF = RealBallField()
+            sage: RBF(1)
+        """
+        if precision < 2:
+            raise ValueError("Precision must be at least 2.")
+        super(RealBallField_class, self).__init__(categories=[sage.categories.sets_cat.Sets])
+        self.precision = precision
+
+    def _repr_(self):
+        r"""
+        String representation of ``self``.
+
+        INPUT:
+
+        None.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField
+            sage: RealBallField()
+            Real ball field with 53 bits precision
+            sage: RealBallField(106)
+            Real ball field with 106 bits precision
+        """
+        return "Real ball field with %d bits precision" % self.precision
+
+    def _coerce_map_from_(self, S):
+        r"""
+        Return a coercion map from `S` to ``self``, or ``True``, or ``None.``
+
+        Currently, the only coercion is from :class:`RealIntervalField_class`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField
+            sage: RealBallField()._coerce_map_from_(RIF)
+            True
+            sage: RealBallField()._coerce_map_from_(SR)
+            False
+        """
+        if isinstance(S, RealIntervalField_class):
+            return True
+        return False
+
+    def _element_constructor_(self, *args, **kwds):
+        r"""
+        Construct a :class:`RealBallElement`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField # optional: arb
+            sage: RBF = RealBallField() # optional: arb
+            sage: RBF(RIF(1)) # optional: arb; indirect doctest
+        """
+        return self.element_class(self, *args, **kwds)
+
+    def _an_element_(self):
+        return self._element_constructor_(self)
 
 
-cdef class RealBallElement(SageObject):
+
+cdef class RealBallElement(Element):
     """
     Hold one ``arb_t`` of the `Arb library
     <http://fredrikj.net/arb/>`_
@@ -102,12 +230,13 @@ cdef class RealBallElement(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.rings.real_arb import RealBallElement # optional - arb
-        sage: a = RealBallElement(RIF(1))                     # optional - arb
+        sage: from sage.rings.real_arb import RealBallField # optional - arb
+        sage: a = RealBallField()(RIF(1))                     # optional - arb; indirect doctest
         sage: b = a.psi()                         # optional - arb
         sage: b.RealIntervalFieldElement()        # optional - arb
         -0.577215664901533?
     """
+
     def __cinit__(self):
         """
         Allocate memory for the encapsulated value.
@@ -122,8 +251,8 @@ cdef class RealBallElement(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import RealBallElement # optional - arb
-            sage: RealBallElement(precision=2) # optional - arb; indirect doctest
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField()(RIF(1)) # optional - arb; indirect doctest
             <type 'sage.rings.real_arb.RealBallElement'>
         """
         arb_init(self.value)
@@ -142,23 +271,23 @@ cdef class RealBallElement(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import RealBallElement # optional - arb
-            sage: a = RealBallElement(precision=2) # optional - arb; indirect doctest
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: a = RealBallField()(RIF(1)) # optional - arb; indirect doctest
             sage: del a # optional - arb
         """
         arb_clear(self.value)
 
-    def __init__(self, value=None, unsigned long precision=0):
+    def __init__(self, RealBallField_class parent, value=None):
         """
         Initialize Arb using value.
 
         INPUT:
 
+        - ``parent`` -- a :class:`RealBallField`.
+
         - ``value`` -- (default: ``None``) ``None`` or a
           :class:`RealIntervalFieldElement`.
 
-        - ``precision`` -- (default: ``0``) zero or an integer
-          `\ge 2`. Must be given unless ``value`` is not ``None``.
 
         OUTPUT:
 
@@ -166,33 +295,40 @@ cdef class RealBallElement(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import RealBallElement # optional - arb
-            sage: a = RealBallElement(RIF(0, 1))                  # optional - arb
-            sage: b = RealBallElement(1)                          # optional - arb
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField()(RIF(0, 1))                  # optional - arb; indirect doctest
+            sage: RealBallField()(1)                          # optional - arb
+            sage: RealBallField()(x)                          # optional - arb
             Traceback (most recent call last):
             ...
             TypeError: value must be None or a RealIntervalFieldElement.
-            sage: c = RealBallElement() # optional - arb
-            Traceback (most recent call last):
-            ...
-            TypeError: precision must be given.
         """
-        cdef RealIntervalFieldElement element
-        cdef int prec
+        super(RealBallElement, self).__init__(parent)
 
         if value is None:
-            if precision > 0:
-                self._precision_ = precision
-            else:
-                raise TypeError("precision must be given.")
-        elif isinstance(value, RealIntervalFieldElement):
-            element = <RealIntervalFieldElement> value
-            self._precision_ = value.parent().precision()
-            mpfi_to_arb(self.value, element.value, self._precision_)
+            return
 
-        else:
-            raise TypeError("value must be None or a "
+        if not isinstance(value, RealIntervalFieldElement):
+            try:
+                value = RealIntervalField(
+                    (<RealBallField_class> self._parent).precision)(value)
+            except TypeError:
+                raise TypeError("value must be None or a "
                             "RealIntervalFieldElement.")
+
+        mpfi_to_arb(self.value,
+                    (<RealIntervalFieldElement> value).value,
+                    (<RealBallField_class> self._parent).precision)
+
+    cdef RealBallElement _new(self):
+        """
+        Return a new real ball element with parent ``self``.
+        """
+        cdef RealBallElement x
+        x = PY_NEW(RealBallElement)
+        x._parent = self._parent
+        return x
+
 
     cpdef RealIntervalFieldElement RealIntervalFieldElement(self):
         """
@@ -208,16 +344,18 @@ cdef class RealBallElement(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import RealBallElement # optional - arb
-            sage: a = RealBallElement(RIF(2))                     # optional - arb
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: a = RealBallField()(RIF(2))                     # optional - arb
             sage: a.RealIntervalFieldElement()        # optional - arb
             2
         """
 
         cdef RealIntervalFieldElement result
 
-        result = RealIntervalField(self._precision_)(0)
-        arb_to_mpfi(result.value, self.value, self._precision_)
+        result = RealIntervalField((<RealBallField_class> self._parent).precision)(0)
+        arb_to_mpfi(result.value,
+                    self.value,
+                    (<RealBallField_class> self._parent).precision)
 
         return result
 
@@ -235,15 +373,16 @@ cdef class RealBallElement(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import RealBallElement # optional - arb
-            sage: a = RealBallElement(RIF(1))                     # optional - arb
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: a = RealBallField()(RIF(1))                     # optional - arb
             sage: a.psi().RealIntervalFieldElement()  # optional - arb
             -0.577215664901533?
         """
 
         cdef RealBallElement result
 
-        result = RealBallElement(precision=self._precision_)
+        result = self._new()
 
-        arb_digamma(result.value, self.value, self._precision_)
+        arb_digamma(result.value, self.value,
+                    (<RealBallField_class> self._parent).precision)
         return result

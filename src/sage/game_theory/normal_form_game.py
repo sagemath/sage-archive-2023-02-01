@@ -148,6 +148,7 @@ playing strategy number `i` is given by the matrix/vector multiplication
     sage: A = matrix([[1, -1], [-1, 1]])
     sage: p = plot((A * vector([y, 1 - y]))[0], y, 0, 1, color='blue', legend_label='$u_1(r_1, (y, 1-y))$', axes_labels=['$y$', ''])
     sage: p += plot((A * vector([y, 1 - y]))[1], y, 0, 1, color='red', legend_label='$u_1(r_2, (y, 1-y))$'); p
+    Graphics object consisting of 2 graphics primitives
 
 We see that the only point at which player 1 is indifferent amongst
 the available strategies is when `y=1/2`.

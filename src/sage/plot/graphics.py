@@ -1907,18 +1907,19 @@ class Graphics(SageObject):
 
             sage: p = ellipse((0,0),4,1)
             sage: #p.show(figsize=[232,232],dpi=100) # not tested
+            ------------------------------------------------------------------------
             Unhandled SIGSEGV: A segmentation fault occurred in Sage.
-            This probably occurred because a *compiled* component of Sage
-            has a bug in it and is not properly wrapped with sig_on(),
-            sig_off(). You might want to run Sage under gdb with 'sage
-            -gdb' to debug this.  Sage will now terminate.
-
+            This probably occurred because a *compiled* component of Sage has a bug
+            in it and is not properly wrapped with sig_on(), sig_off().
+            Sage will now terminate.
+            ------------------------------------------------------------------------
             sage: #p.show(figsize=[327,181],dpi=100) # not tested
+            ------------------------------------------------------------------------
             Unhandled SIGSEGV: A segmentation fault occurred in Sage.
-            This probably occurred because a *compiled* component of Sage
-            has a bug in it and is not properly wrapped with sig_on(),
-            sig_off(). You might want to run Sage under gdb with 'sage
-            -gdb' to debug this.  Sage will now terminate.
+            This probably occurred because a *compiled* component of Sage has a bug
+            in it and is not properly wrapped with sig_on(), sig_off().
+            Sage will now terminate.
+            ------------------------------------------------------------------------
 
         The following tests ensure we give a good error message for
         negative figsizes::
@@ -1927,12 +1928,20 @@ class Graphics(SageObject):
             sage: P.show(figsize=[-1,1])
             Traceback (most recent call last):
             ...
-            ValueError: figsize should be positive numbers, not -1 and 1
+            ValueError: figsize should be positive numbers, not -1.0 and 1.0
             sage: P.show(figsize=-1)
             Traceback (most recent call last):
             ...
-            ValueError: figsize should be positive, not -1
-
+            ValueError: figsize should be positive, not -1.0
+            sage: P.show(figsize=x^2)
+            Traceback (most recent call last):
+            ...
+            TypeError: figsize should be a positive number, not x^2
+            sage: P.show(figsize=[2,3,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: figsize should be a positive number or a list of two positive numbers, not [2, 3, 4]
+            sage: P.show(figsize=[sqrt(2),sqrt(3)])
         """
         if filename is None:
             filename = graphics_filename()
@@ -2448,7 +2457,10 @@ class Graphics(SageObject):
 
         if figsize is not None and not isinstance(figsize, (list, tuple)):
             # in this case, figsize is a number and should be positive
-            figsize = float(figsize) # to pass to mpl
+            try:
+                figsize = float(figsize) # to pass to mpl
+            except TypeError:
+                raise TypeError("figsize should be a positive number, not {0}".format(figsize))
             if figsize > 0:
                 default_width, default_height=rcParams['figure.figsize']
                 figsize=(figsize, default_height*figsize/default_width)
@@ -2457,6 +2469,8 @@ class Graphics(SageObject):
 
         if figsize is not None:
             # then the figsize should be two positive numbers
+            if len(figsize) != 2:
+                raise ValueError("figsize should be a positive number or a list of two positive numbers, not {0}".format(figsize))
             figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
             if not (figsize[0] > 0 and figsize[1] > 0):
                 raise ValueError("figsize should be positive numbers, not {0} and {1}".format(figsize[0],figsize[1]))
@@ -3382,7 +3396,8 @@ class GraphicsArray(SageObject):
 
         -  ``dpi`` - dots per inch
 
-        -  ``figsize`` - width or [width, height]
+        -  ``figsize`` - width or [width, height] See documentation
+           for :meth:`sage.plot.graphics.Graphics.show` for more details.
 
         -  ``axes`` - (default: True)
 
@@ -3457,7 +3472,9 @@ class GraphicsArray(SageObject):
 
         -  ``dpi`` - dots per inch
 
-        -  ``figsize`` - width or [width, height]
+        -  ``figsize`` - width or [width, height]  See the
+           documentation for :meth:`sage.plot.graphics.Graphics.show`
+           for more information.
 
         -  ``axes`` - (default: True)
 

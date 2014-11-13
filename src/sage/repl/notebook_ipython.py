@@ -11,8 +11,13 @@ Sage-Enhanced IPython Notebook
 import os
 import copy
 
-from IPython.html.notebookapp import NotebookApp
 from IPython import Config
+try:
+    # Fails if we do not have ssl
+    from IPython.html.notebookapp import NotebookApp
+except ImportError:
+    NotebookApp = object
+    
 
 from sage.env import DOT_SAGE, SAGE_EXTCODE, SAGE_DOC
 from sage.repl.interpreter import (
@@ -39,6 +44,26 @@ DEFAULT_SAGE_NOTEBOOK_CONFIG = Config(
 )
 
 
+def have_prerequisites():
+    """
+    Check that we have all prerequisites to run the IPython notebook.
+
+    In particular, the IPython notebook requires OpenSSL whether or
+    not you are using https. See trac:`17318`.
+
+    OUTPUT:
+
+    Boolean.
+
+    EXAMPLES::
+
+        sage: from sage.repl.notebook_ipython import have_prerequisites
+        sage: have_prerequisites() in [True, False]
+        True
+    """
+    return NotebookApp != object   # that is, import worked
+
+
 class SageNotebookApp(NotebookApp):
     name = u'sage-notebook-ipython'
     crash_handler_class = SageCrashHandler
@@ -54,11 +79,11 @@ class SageNotebookApp(NotebookApp):
             sage: d = tmp_dir()
             sage: IPYTHONDIR = os.environ['IPYTHONDIR']
             sage: os.environ['IPYTHONDIR'] = d
-            sage: app = SageNotebookApp()
-            sage: app.load_config_file()    # random output
+            sage: app = SageNotebookApp()   # optional - ssl
+            sage: app.load_config_file()    # optional - ssl, random output
             2014-09-16 23:57:35.6 [SageNotebookApp] Created profile dir: 
             u'/home/vbraun/.sage/temp/desktop.localdomain/1490/dir_ZQupP5/profile_default'
-            sage: app.notebook_dir          # random output
+            sage: app.notebook_dir          # random output, optional - ssl
             u'/home/vbraun/'
             sage: os.environ['IPYTHONDIR'] = IPYTHONDIR
         """
@@ -82,13 +107,13 @@ class SageNotebookApp(NotebookApp):
             sage: d = tmp_dir()
             sage: IPYTHONDIR = os.environ['IPYTHONDIR']
             sage: os.environ['IPYTHONDIR'] = d
-            sage: app = SageNotebookApp()
-            sage: app.kernel_argv
+            sage: app = SageNotebookApp()   # optional - ssl
+            sage: app.kernel_argv           # optional - ssl
             []
-            sage: app.init_kernel_argv()    # random output
+            sage: app.init_kernel_argv()    # optional - ssl, random output
             2014-09-16 23:57:35.6 [SageNotebookApp] Created profile dir: 
             u'/home/vbraun/.sage/temp/desktop.localdomain/1490/dir_ZQupP5/profile_default'
-            sage: app.kernel_argv
+            sage: app.kernel_argv           # optional - ssl
             [u"--IPKernelApp.parent_appname='sage-notebook-ipython'",
              '--profile-dir',
              u'/.../profile_default',

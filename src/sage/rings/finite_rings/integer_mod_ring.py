@@ -1085,7 +1085,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return cmp(type(self), type(other))
         return cmp(self.__order, other.__order)
 
-    def unit_gens(self):
+    def unit_gens(self, **kwds):
         r"""
         Returns generators for the unit group `(\ZZ/N\ZZ)^*`.
 
@@ -1110,6 +1110,16 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: IntegerModRing(next_prime(10^30)).unit_gens()
             (5,)
 
+        The choice of generators is affected by the optional keyword
+        ``algorithm``; this can be ``'sage'`` (default) or ``'pari'``.
+        See :meth:`unit_group` for details.
+
+            sage: A = Zmod(55)
+            sage: A.unit_gens(algorithm='sage')
+            (12, 46)
+            sage: A.unit_gens(algorithm='pari')
+            (2, 21)
+
         TESTS::
 
             sage: IntegerModRing(2).unit_gens()
@@ -1118,8 +1128,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             (3,)
             sage: IntegerModRing(8).unit_gens()
             (7, 5)
+
         """
-        return self.unit_group().gens_values()
+        return self.unit_group(**kwds).gens_values()
 
     def unit_group_exponent(self):
         """

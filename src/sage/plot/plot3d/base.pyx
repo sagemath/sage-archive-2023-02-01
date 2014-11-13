@@ -64,7 +64,22 @@ pi = RDF.pi()
 cdef class Graphics3d(SageObject):
     """
     This is the baseclass for all 3d graphics objects.
+
+    .. automethod:: _graphics_
+    .. automethod:: __add__
     """
+    def __cinit__(self):
+        """
+        The Cython constructor
+        
+        EXAMPLES::
+
+            sage: gfx = sage.plot.plot3d.base.Graphics3d()
+            sage: gfx._extra_kwds
+            {}
+        """
+        self._extra_kwds = dict()
+    
     def _repr_(self):
         """
         Return a string representation.
@@ -81,30 +96,59 @@ cdef class Graphics3d(SageObject):
         """
         return str(self)
 
-    def _graphics_(self):
+    def _graphics_(self, mime_types=None, figsize=None, dpi=None):
         """
-        Show graphics.
+        Magic graphics method.
 
         The presence of this method is used by the displayhook to
         decide that we want to see a graphical output by default.
 
-        OUTPUT:
+        INPUT/OUTPUT:
 
-        Return ``True`` if graphical output was generated (might not
-        be shown in doctest mode), otherwise ``False``.
+        See :meth:`sage.plot.graphics.Graphics._graphics_` for details.
 
         EXAMPLES::
 
             sage: S = sphere((0, 0, 0), 1)
-            sage: S._graphics_()
-            True
+            sage: S._graphics_(mime_types={'image/png'})
+            Graphics file image/png
             sage: S  # also productes graphics
             Graphics3d Object
             sage: [S, S]
             [Graphics3d Object, Graphics3d Object]
         """
-        self.show()
-        return True
+        from sage.structure.graphics_file import (
+            Mime, graphics_from_save, GraphicsFile)
+        ### First, figure out the best graphics format
+        can_view_jmol = (mime_types is None) or (Mime.JMOL in mime_types)
+        viewer = self._extra_kwds.get('viewer', None)
+        # make sure viewer is one of the supported options
+        if viewer not in [None, 'jmol', 'tachyon']:
+            import warnings
+            warnings.warn('viewer={0} is not supported'.format(viewer))
+            viewer = None
+        # select suitable default
+        if viewer is None:
+            viewer = 'jmol'
+        # fall back to 2d image if necessary
+        if viewer == 'jmol' and not can_view_jmol:
+            viewer = 'tachyon'
+        ### Second, return the corresponding graphics file
+        if viewer == 'jmol':
+            from sage.misc.temporary_file import tmp_filename
+            filename = tmp_filename(
+                ext=os.path.extsep + Mime.extension(Mime.JMOL))
+            self.save(filename)
+            return GraphicsFile(filename, Mime.JMOL)
+        elif viewer == 'tachyon':
+            preference = [Mime.PNG, Mime.JPG]
+            figsize = self._extra_kwds.get('figsize', figsize)
+            dpi = self._extra_kwds.get('dpi', dpi)
+            return graphics_from_save(self.save, preference,
+                                      allowed_mime_types=mime_types, 
+                                      figsize=figsize, dpi=dpi)
+        else:
+            assert False   # unreachable
 
     def __str__(self):
         """
@@ -998,8 +1042,7 @@ end_scene""" % (render_params.antialiasing,
         """
         opts = {}
         opts.update(SHOW_DEFAULTS)
-        if self._extra_kwds is not None:
-            opts.update(self._extra_kwds)
+        opts.update(self._extra_kwds)
         opts.update(kwds)
 
         # Remove all of the keys that are viewing options, since the remaining
@@ -1283,6 +1326,8 @@ end_scene""" % (render_params.antialiasing,
 
     def save(self, filename, **kwds):
         """
+        Save to file.
+
         Save the graphic to an image file (of type: PNG, BMP, GIF, PPM, or TIFF)
         rendered using Tachyon, or pickle it (stored as an SOBJ so you can load it
         later) depending on the file extension you give the filename.
@@ -1322,7 +1367,6 @@ end_scene""" % (render_params.antialiasing,
         ext = os.path.splitext(filename)[1].lower()
         if ext == '' or ext == '.sobj':
             SageObject.save(self, filename)
-            return
         elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif', '.jpg', '.jpeg']:
             opts = self._process_viewing_options(kwds)
             T = self._prepare_for_tachyon(
@@ -1341,6 +1385,17 @@ end_scene""" % (render_params.antialiasing,
             if ext != '.png':
                 import PIL.Image as Image
                 Image.open(out_filename).save(filename)
+        elif filename.endswith('.spt.zip'):
+            # Jmol zip archive
+            opts = self._process_viewing_options(kwds)
+            zoom = opts['zoom']
+            T = self._prepare_for_jmol(
+                opts['frame'],
+                opts['axes'],
+                opts['frame_aspect_ratio'],
+                opts['aspect_ratio'],
+                zoom)
+            T.export_jmol(filename, zoom=zoom*100, **kwds)
         else:
             raise ValueError('filetype not supported by save()')
 
@@ -1374,7 +1429,7 @@ class Graphics3dGroup(Graphics3d):
         self.all = list(all)
         self.frame_aspect_ratio(optimal_aspect_ratios([a.frame_aspect_ratio() for a in all]))
         self.aspect_ratio(optimal_aspect_ratios([a.aspect_ratio() for a in all]))
-        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all if a._extra_kwds is not None]))
+        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all]))
 
     def __add__(self, other):
         """

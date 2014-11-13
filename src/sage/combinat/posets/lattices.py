@@ -106,8 +106,37 @@ class FiniteMeetSemilattice(FinitePoset):
             sage: M._repr_()
             'Finite meet-semilattice containing 4 elements'
         """
-        return "Finite meet-semilattice containing %s elements"\
-                %self._hasse_diagram.order()
+        s  = "Finite meet-semilattice containing %s elements" %self._hasse_diagram.order()
+        if self._with_linear_extension:
+            s += " with distinguished linear extension"
+        return s
+
+    def meet_matrix(self):
+        """
+        Return a matrix whose ``(i,j)`` entry is ``k``, where
+        ``self.linear_extension()[k]`` is the meet (greatest lower bound) of
+        ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
+
+        EXAMPLES::
+
+            sage: P = LatticePoset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]], facade = False)
+            sage: M = P.meet_matrix(); M
+            [0 0 0 0 0 0 0 0]
+            [0 1 0 1 0 0 0 1]
+            [0 0 2 2 2 0 2 2]
+            [0 1 2 3 2 0 2 3]
+            [0 0 2 2 4 0 2 4]
+            [0 0 0 0 0 5 5 5]
+            [0 0 2 2 2 5 6 6]
+            [0 1 2 3 4 5 6 7]
+            sage: M[P(4).vertex,P(3).vertex] == P(0).vertex
+            True
+            sage: M[P(5).vertex,P(2).vertex] == P(2).vertex
+            True
+            sage: M[P(5).vertex,P(2).vertex] == P(5).vertex
+            False
+        """
+        return self._hasse_diagram.meet_matrix()
 
     def meet(self,x,y):
         r"""
@@ -229,8 +258,37 @@ class FiniteJoinSemilattice(FinitePoset):
             sage: J._repr_()
             'Finite join-semilattice containing 4 elements'
         """
-        return "Finite join-semilattice containing %s elements"\
-                %self._hasse_diagram.order()
+        s = "Finite join-semilattice containing %s elements"%self._hasse_diagram.order()
+        if self._with_linear_extension:
+            s += " with distinguished linear extension"
+        return s
+
+    def join_matrix(self):
+        """
+        Return a matrix whose ``(i,j)`` entry is ``k``, where
+        ``self.linear_extension()[k]`` is the join (least upper bound) of
+        ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
+
+        EXAMPLES::
+
+            sage: P = LatticePoset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]], facade = False)
+            sage: J = P.join_matrix(); J
+            [0 1 2 3 4 5 6 7]
+            [1 1 3 3 7 7 7 7]
+            [2 3 2 3 4 6 6 7]
+            [3 3 3 3 7 7 7 7]
+            [4 7 4 7 4 7 7 7]
+            [5 7 6 7 7 5 6 7]
+            [6 7 6 7 7 6 6 7]
+            [7 7 7 7 7 7 7 7]
+            sage: J[P(4).vertex,P(3).vertex] == P(7).vertex
+            True
+            sage: J[P(5).vertex,P(2).vertex] == P(5).vertex
+            True
+            sage: J[P(5).vertex,P(2).vertex] == P(2).vertex
+            False
+        """
+        return self._hasse_diagram.join_matrix()
 
     def join(self,x,y):
         r"""
@@ -367,12 +425,22 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L._repr_()
             'Finite lattice containing 4 elements'
         """
-        return "Finite lattice containing %s elements"%self._hasse_diagram.order()
+        s = "Finite lattice containing %s elements"%self._hasse_diagram.order()
+        if self._with_linear_extension:
+            s += " with distinguished linear extension"
+        return s
 
     def is_distributive(self):
         r"""
-        Returns ``True`` if the lattice is distributive, and ``False``
+        Return ``True`` if the lattice is distributive, and ``False``
         otherwise.
+
+        A lattice `(L, \vee, \wedge)` is distributive if meet
+        distributes over join: `x \wedge (y \vee z) = (x \wedge y)
+        \vee (x \wedge z)` for every `x,y,z \in L` just like `x \cdot
+        (y+z)=x \cdot y + x \cdot z` in normal arithmetic. For duality
+        in lattices it follows that then also join distributes over
+        meet.
 
         EXAMPLES::
 
@@ -383,7 +451,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_distributive()
             False
         """
-        return self._hasse_diagram.is_distributive_lattice()
+        if self.cardinality() == 0: return True
+        return (self.is_graded() and 
+         self.rank() == len(self.join_irreducibles()) ==
+         len(self.meet_irreducibles()))
 
     def is_complemented(self):
         r"""
@@ -402,25 +473,78 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         return self._hasse_diagram.is_complemented_lattice()
 
-    def complements(self):
+    def complements(self, element=None):
         r"""
-        Returns all elements in ``self`` that have a complement.
+        Return the list of complements of an element in the lattice,
+        or the dictionary of complements for all elements.
 
-        A complement of ``x`` is an element ``y`` such that the meet
-        of ``x`` and ``y`` is the bottom element of ``self`` and the
-        join of ``x`` and ``y`` is the top element of ``self``.
+        Elements `x` and `y` are complements if their meet and join
+        are respectively the bottom and the top element of the lattice.
+
+        INPUT:
+
+        - ``element`` - an element of the poset whose complement is
+          returned. If ``None`` (default) then dictionary of
+          complements for all elements having at least one
+          complement is returned.
 
         EXAMPLES::
 
-            sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
-            sage: L.complements()
-            [4, 3, 3, 2, 0]
+            sage: L=LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
+            sage: C = L.complements()
 
-            sage: L = LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
-            sage: L.complements()
-            [4, None, None, None, 0]
+        Let us check that `'a'` and `'b'` are complements of each other::
+
+            sage: 'a' in C['b']
+            True
+            sage: 'b' in C['a']
+            True
+
+        Full list of complements::
+
+            sage: L.complements() # random
+            {0: [1], 1: [0], 'a': ['b', 'c'], 'b': ['c', 'a'], 'c': ['b', 'a']}
+
+            sage: L=LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: L.complements() # random
+            {0: [4], 4: [0]}
+            sage: L.complements(1)
+            []
+
+        TESTS::
+
+            sage: L=LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
+            sage: for v,v_complements in L.complements().items():
+            ....:     for v_c in v_complements:
+            ....:         assert L.meet(v,v_c) == L.bottom()
+            ....:         assert L.join(v,v_c) == L.top()
         """
-        return self._hasse_diagram.complements()
+        if element is None:
+            jn = self.join_matrix()
+            mt = self.meet_matrix()
+            n = self.cardinality()
+            zero = 0
+            one = n-1
+            c = [[] for x in range(n)]
+            for x in range(n):
+                for y in range(x,n):
+                    if jn[x][y]==one and mt[x][y]==zero:
+                        c[x].append(y)
+                        c[y].append(x)
+
+            comps={}
+            for i in range(n):
+                if len(c[i]) > 0:
+                    comps[self._vertex_to_element(i)] = (
+                        [self._vertex_to_element(x) for x in c[i]] )
+            return comps
+
+        # Looking for complements of one element.
+        if not element in self:
+            raise ValueError("element (=%s) not in poset"%element)
+        return [x for x in self if
+         self.meet(x, element)==self.bottom() and
+         self.join(x, element)==self.top()]
 
     def is_atomic(self):
         r"""
@@ -460,78 +584,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
-    def is_upper_semimodular(L):
+    def is_modular(self):
         r"""
-        Return ``True`` if ``self`` is an upper semimodular lattice and
-        ``False`` otherwise.
+        Return ``True`` if the lattice is modular and ``False`` otherwise.
 
-        A lattice is upper semimodular if for any `x` in the poset that is
-        covered by `y` and `z`, both `y` and `z` are covered by their join.
+        A lattice is modular if `x \le b` implies `x \vee (a \wedge b)=
+        (x \vee a) \wedge b` for every `a` and `b`. There are other equivalent
+        definitions, see :wikipedia:`Modular_lattice`.
 
-        EXAMPLES::
-
-            sage: L = posets.DiamondPoset(5)
-            sage: L.is_upper_semimodular()
-            True
-
-            sage: L = posets.PentagonPoset()
-            sage: L.is_upper_semimodular()
-            False
-
-            sage: L = posets.ChainPoset(6)
-            sage: L.is_upper_semimodular()
-            True
-
-            sage: L = LatticePoset(posets.IntegerPartitions(4))
-            sage: L.is_upper_semimodular()
-            True
-        """
-        if not L.is_ranked():
-            return False
-        for p in L.list():
-            cover_list = L.upper_covers(p)
-            for (i,q) in enumerate(cover_list):
-                for r in cover_list[i+1:]:
-                    qr = L.join(q,r)
-                    if not (L.covers(q,qr) and L.covers(r,qr)):
-                        return False
-        return True
-
-    def is_lower_semimodular(L):
-        r"""
-        Return ``True`` if ``self`` is a lower semimodular lattice and
-        ``False`` otherwise.
-
-        A lattice is lower semimodular if for any `x` in the poset that covers
-        `y` and `z`, both `y` and `z` cover their meet.
-
-        EXAMPLES::
-
-            sage: L = posets.DiamondPoset(5)
-            sage: L.is_lower_semimodular()
-            True
-
-            sage: L = posets.PentagonPoset()
-            sage: L.is_lower_semimodular()
-            False
-
-            sage: L = posets.ChainPoset(6)
-            sage: L.is_lower_semimodular()
-            True
-        """
-        return L.dual().is_upper_semimodular()
-
-    def is_modular(L):
-        r"""
-        Return ``True`` if ``self`` is a modular lattice and ``False``
-        otherwise.
-
-        A lattice is modular if it is both upper semimodular and lower
-        semimodular.
-
-        See :wikipedia:`Modular_lattice`
-
-        See also :meth:`is_upper_semimodular` and :meth:`is_lower_semimodular`
+        See also :meth:`is_upper_semimodular` and :meth:`is_lower_semimodular`.
 
         EXAMPLES::
 
@@ -550,9 +611,97 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
             sage: L.is_modular()
             False
-        """
-        return L.is_upper_semimodular() and L.is_lower_semimodular()
 
+        ALGORITHM:
+
+        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
+        """
+        if not self.is_ranked():
+            return False
+        H=self._hasse_diagram
+        n=H.order()
+        return all(H._rank_dict[a] + H._rank_dict[b] == 
+                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+                   for a in range(n) for b in range(a+1, n))
+        return True
+
+    def is_upper_semimodular(self):
+        r"""
+        Return ``True`` if the lattice is upper semimodular and
+        ``False`` otherwise.
+
+        A lattice is upper semimodular if for any `x` in the poset that is
+        covered by `y` and `z`, both `y` and `z` are covered by their join.
+
+        See also :meth:`is_modular` and :meth:`is_lower_semimodular`.
+
+        EXAMPLES::
+
+            sage: L = posets.DiamondPoset(5)
+            sage: L.is_upper_semimodular()
+            True
+
+            sage: L = posets.PentagonPoset()
+            sage: L.is_upper_semimodular()
+            False
+
+            sage: L = posets.ChainPoset(6)
+            sage: L.is_upper_semimodular()
+            True
+
+            sage: L = LatticePoset(posets.IntegerPartitions(4))
+            sage: L.is_upper_semimodular()
+            True
+
+        ALGORITHM:
+
+        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
+        """
+        if not self.is_ranked():
+            return False
+        H=self._hasse_diagram
+        n=H.order()
+        return all(H._rank_dict[a] + H._rank_dict[b] >=
+                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+                   for a in range(n) for b in range(a+1, n))
+        return True
+
+    def is_lower_semimodular(self):
+        r"""
+        Return ``True`` if the lattice is lower semimodular and
+        ``False`` otherwise.
+
+        A lattice is lower semimodular if for any `x` in the poset that covers
+        `y` and `z`, both `y` and `z` cover their meet.
+
+        See also :meth:`is_modular` and :meth:`is_upper_semimodular`.
+
+        EXAMPLES::
+
+            sage: L = posets.DiamondPoset(5)
+            sage: L.is_lower_semimodular()
+            True
+
+            sage: L = posets.PentagonPoset()
+            sage: L.is_lower_semimodular()
+            False
+
+            sage: L = posets.ChainPoset(6)
+            sage: L.is_lower_semimodular()
+            True
+
+        ALGORITHM:
+
+        Based on pp. 286-287 of Enumerative Combinatorics, Vol 1 [EnumComb1]_.
+        """
+        if not self.is_ranked():
+            return False
+        H=self._hasse_diagram
+        n=H.order()
+        return all(H._rank_dict[a] + H._rank_dict[b] <=
+                   H._rank_dict[H._meet[a,b]] + H._rank_dict[H._join[a,b]]
+                   for a in range(n) for b in range(a+1, n))
+        return True
 
 ####################################################################################
 

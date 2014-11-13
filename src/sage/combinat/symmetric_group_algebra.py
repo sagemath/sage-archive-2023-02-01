@@ -1502,14 +1502,14 @@ def epsilon_ik(itab, ktab, star=0):
     if kt == it:
         res = epsilon(itab)
     elif (it, kt) in epsilon_ik_cache:
-        res =  epsilon_ik_cache[(it,kt)]
+        res = epsilon_ik_cache[(it, kt)]
     else:
         eik = e_ik(it, kt, star)
         QSn = eik.parent()
         mul = QSn.right_action_product
-        epsilon_ik_cache[(it,kt)] = mul(mul(epsilon(it, star+1), eik),
-                                        epsilon(kt, star+1)) * (1/kappa(it.shape()))
-        res =  epsilon_ik_cache[(it,kt)]
+        epsilon_ik_cache[(it, kt)] = mul(mul(epsilon(it, star+1), eik),
+                                         epsilon(kt, star+1)) * (1/kappa(it.shape()))
+        res = epsilon_ik_cache[(it, kt)]
 
     return res
 
@@ -1543,11 +1543,11 @@ def epsilon(tab, star=0):
         res = epsilon_cache[t]
     else:
         if t.size() == 2:
-            epsilon_cache[t] = e(t)*(1 / kappa(t.shape()))
-            res =  epsilon_cache[t]
+            epsilon_cache[t] = e(t) * (1 / kappa(t.shape()))
+            res = epsilon_cache[t]
         elif t == Tableau([[1]]):
             epsilon_cache[t] = e(t)
-            res =  epsilon_cache[t]
+            res = epsilon_cache[t]
         else:
             et = e(t)
             QSn = et.parent()

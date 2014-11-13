@@ -1,58 +1,31 @@
-diff -ur setuptools-2.0.1-orig/setuptools/command/easy_install.py setuptools-2.0.1/setuptools/command/easy_install.py
---- setuptools-2.0.1-orig/setuptools/command/easy_install.py	2013-12-13 17:31:51.000000000 +0100
-+++ setuptools-2.0.1/setuptools/command/easy_install.py	2014-02-28 20:03:44.805017754 +0100
-@@ -26,6 +26,7 @@
- import warnings
- import site
- import struct
-+import fcntl
- from glob import glob
- from distutils import log, dir_util
- 
-@@ -1432,12 +1433,14 @@
-         for path in yield_lines(self.paths):
+diff -ru src/setuptools/command/easy_install.py b/setuptools/command/easy_install.py
+--- src/setuptools/command/easy_install.py	2014-10-31 14:42:35.779973945 +0100
++++ b/setuptools/command/easy_install.py	2014-10-31 15:07:53.067034724 +0100
+@@ -1446,6 +1446,11 @@
              list(map(self.add, find_distributions(path, True)))
  
--    def _load(self):
--        self.paths = []
-+    def _load(self, lock=True, paths=[]):
-+        self.paths = list(paths)
+     def _load(self):
++        # Lock self.filename until save() is called
++        import fcntl
++        self.lock = open(self.filename, 'a')
++        fcntl.flock(self.lock, fcntl.LOCK_EX)
++
+         self.paths = []
          saw_import = False
          seen = dict.fromkeys(self.sitedirs)
-         if os.path.isfile(self.filename):
-             f = open(self.filename,'rt')
-+            if lock:
-+                fcntl.flock(f, fcntl.LOCK_SH)
-             for line in f:
-                 if line.startswith('import'):
-                     saw_import = True
-@@ -1465,10 +1468,12 @@
- 
+@@ -1479,6 +1484,7 @@
      def save(self):
          """Write changed .pth file back to disk"""
--        if not self.dirty:
--            return
-+        lock = open(self.filename, 'a')
-+        fcntl.flock(lock, fcntl.LOCK_EX)
-+        self._load(lock=False, paths=self.paths)
+         if not self.dirty:
++            self.lock.close()
+             return
  
--        data = '\n'.join(map(self.make_relative,self.paths))
-+        relative_paths = set(map(self.make_relative,self.paths))
-+        data = '\n'.join(relative_paths)
-         if data:
-             log.debug("Saving %s", self.filename)
-             data = (
-@@ -1486,11 +1491,12 @@
-             f.write(data)
-             f.close()
- 
--        elif os.path.exists(self.filename):
-+        else:
-             log.debug("Deleting empty %s", self.filename)
+         data = '\n'.join(map(self.make_relative,self.paths))
+@@ -1504,6 +1510,7 @@
              os.unlink(self.filename)
  
          self.dirty = False
-+        lock.close()
++        self.lock.close()
  
      def add(self, dist):
          """Add `dist` to the distribution map"""

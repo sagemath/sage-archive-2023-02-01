@@ -960,11 +960,11 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
     # test that there is no triple-edge or higher multiplicity and that there is at most one double-edge.
     if dg.has_multiple_edges():
         multiple_edges = dg.multiple_edges(labels=False)
-        if len( multiple_edges ) > 2:
+        if len(multiple_edges) > 2:
             return _false_return(14)
-        elif len( multiple_edges ) ==  2:
+        elif len(multiple_edges) == 2:
             # we think of the double-edge as a long_cycle, an unoriented 2-cycle.
-            long_cycle = [ multiple_edges, ['A',n-1,1] ]
+            long_cycle = [multiple_edges, ['A', n - 1, 1]]
 
     # creating a dictionary of in-, out- and total degrees
     dict_in_out = {}

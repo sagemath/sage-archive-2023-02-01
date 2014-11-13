@@ -11,8 +11,6 @@ Functions and Methods
 ----------------------
 """
 
-
-from sage.misc.superseded import deprecated_function_alias
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
@@ -229,11 +227,6 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
     import scipy.optimize
     xmin, fval, iter, funcalls = scipy.optimize.fminbound(f, a, b, full_output=1, xtol=tol, maxfun=maxfun)
     return fval, xmin
-
-
-find_maximum_on_interval = deprecated_function_alias(2607, find_local_maximum)
-find_minimum_on_interval = deprecated_function_alias(2607, find_local_minimum)
-
 
 def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
     r"""

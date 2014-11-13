@@ -2461,18 +2461,36 @@ cdef class gen(sage.structure.element.RingElement):
 
     def Strexpand(gen x):
         """
-        Strexpand(x): Concatenate the entries of the vector x into a single
-        string, performing tilde expansion.
+        Concatenate the entries of the vector `x` into a single string,
+        then perform tilde expansion and environment variable expansion
+        similar to shells.
 
-        .. note::
+        INPUT:
 
-           I have no clue what the point of this function is. - William
+        - ``x`` -- PARI gen. Either a vector or an element which is then
+          treated like `[x]`.
+
+        OUTPUT:
+
+        - PARI string (type ``t_STR``)
+
+        EXAMPLES::
+
+            sage: pari('"~/subdir"').Strexpand()     # random
+            "/home/johndoe/subdir"
+            sage: pari('"$SAGE_LOCAL"').Strexpand()  # random
+            "/usr/local/sage/local"
+
+        TESTS::
+
+            sage: a = pari('"$HOME"')
+            sage: a.Strexpand() != a
+            True
         """
         if typ(x.g) != t_VEC:
-            raise TypeError, "x must be of type t_VEC."
+            x = P.vector(1, [x])
         pari_catch_sig_on()
         return P.new_gen(Strexpand(x.g))
-
 
     def Strtex(gen x):
         r"""
@@ -2481,15 +2499,12 @@ cdef class gen(sage.structure.element.RingElement):
 
         INPUT:
 
-
-        -  ``x`` - gen
-
+        - ``x`` -- PARI gen. Either a vector or an element which is then
+          treated like `[x]`.
 
         OUTPUT:
 
-
-        -  ``gen`` - PARI t_STR (string)
-
+        - PARI string (type ``t_STR``)
 
         EXAMPLES::
 
@@ -9482,7 +9497,9 @@ def init_pari_stack(s=8000000):
 
 
 cdef gen objtogen(s):
-    """Convert any Sage/Python object to a PARI gen"""
+    """
+    Convert any Sage/Python object to a PARI gen.
+    """
     cdef GEN g
     cdef Py_ssize_t length, i
     cdef mpz_t mpz_int
@@ -9533,6 +9550,9 @@ cdef gen objtogen(s):
         for i from 0 <= i < length:
             v[i] = objtogen(s[i])
         return v
+
+    if s is None:
+        raise ValueError("Cannot convert None to pari")
 
     # Simply use the string representation
     return objtogen(str(s))

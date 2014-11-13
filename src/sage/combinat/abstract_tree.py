@@ -1218,7 +1218,7 @@ class AbstractTree(object):
                     # ==> n & n & ... & n' & n' & ...
                     try:
                         mat[i] += sep + mat2[i]
-                    except:
+                    except Exception:
                         if i >= lmat:
                             if i != 0:
                                 # mat[i] does not exist but

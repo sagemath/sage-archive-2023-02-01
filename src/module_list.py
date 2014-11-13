@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-import os, sys
-from distutils.core import setup
+import os
 from distutils.extension import Extension
-from sage.env import *
+from sage.env import SAGE_LOCAL
 
 SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
@@ -276,6 +275,16 @@ ext_modules = [
 
     Extension('sage.crypto.boolean_function',
               sources = ['sage/crypto/boolean_function.pyx']),
+
+    ################################
+    ##
+    ## sage.data_structures
+    ##
+    ################################
+
+    Extension('sage.data_structures.bitset',
+              sources = ['sage/data_structures/bitset.pyx'],
+              libraries = ['gmp']),
 
     ################################
     ##
@@ -703,6 +712,10 @@ ext_modules = [
               extra_compile_args=["-DFPLLL_V3_COMPAT"],
               depends = [SAGE_INC + "/fplll/fplll.h"] + flint_depends),
 
+    Extension('sage.libs.gmp.rational_reconstruction',
+              sources = ['sage/libs/gmp/rational_reconstruction.pyx'],
+              libraries = ['gmp']),
+
     Extension('sage.libs.linbox.linbox',
               sources = ['sage/libs/linbox/linbox.pyx'],
               # For this to work on cygwin, linboxsage *must* be
@@ -720,8 +733,6 @@ ext_modules = [
               include_dirs = [SAGE_INC + "/libLfunction"],
               extra_compile_args=["-O3", "-ffast-math"],
               language = 'c++'),
-
-
 
     Extension('sage.libs.libecm',
               sources = ['sage/libs/libecm.pyx'],
@@ -752,11 +763,9 @@ ext_modules = [
 
     Extension('sage.libs.pari.pari_instance',
               sources = ["sage/libs/pari/pari_instance.pyx"],
-              language="c",
-              extra_compile_args = ["-std=c99",  "-D_XPG6"],
-              libraries = [ 'pari',  'gmp','flint'],
-              depends =  flint_depends),
-
+              extra_compile_args = ["-std=c99", "-D_XPG6"],
+              libraries = [ 'pari', 'gmp', 'flint'],
+              depends = flint_depends),
 
     Extension('sage.libs.ppl',
               sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc'],
@@ -1063,7 +1072,7 @@ ext_modules = [
               extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
-              depends = [SAGE_INC + '/m4ri/m4ri.h']+ flint_depends),
+              depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_integer_sparse',
               sources = ['sage/matrix/matrix_integer_sparse.pyx'],
@@ -1080,16 +1089,15 @@ ext_modules = [
               libraries = ['m4rie', 'm4ri', 'm'],
               depends = [SAGE_INC + "/m4rie/m4rie.h"],
               include_dirs = [SAGE_INC + '/m4rie'],
-              extra_compile_args = m4ri_extra_compile_args,
-              language="c"),
+              extra_compile_args = m4ri_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_dense',
               sources = ['sage/matrix/matrix_modn_dense.pyx'],
               language="c++",
-              extra_compile_args = ["-D_XPG6"]+ m4ri_extra_compile_args,
+              extra_compile_args = ["-D_XPG6"] + m4ri_extra_compile_args,
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
-              depends = [SAGE_INC + '/m4ri/m4ri.h']+ flint_depends),
+              depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
@@ -1101,7 +1109,8 @@ ext_modules = [
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
               language="c++",
               libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
-              extra_compile_args = ["-D_XPG6" '-DDISABLE_COMMENTATOR']+ m4ri_extra_compile_args + givaro_extra_compile_args),
+              extra_compile_args = ["-D_XPG6", "-DDISABLE_COMMENTATOR"]
+                    + m4ri_extra_compile_args + givaro_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_sparse',
               sources = ['sage/matrix/matrix_modn_sparse.pyx'],
@@ -1116,11 +1125,10 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
-              language="c",
-              extra_compile_args = ["-std=c99",  "-D_XPG6"]+ m4ri_extra_compile_args,
+              extra_compile_args = ["-std=c99", "-D_XPG6"] + m4ri_extra_compile_args,
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'ntl', 'gmp', 'm', 'flint', BLAS, BLAS2],
-              depends = [SAGE_INC + '/m4ri/m4ri.h']+ flint_depends),
+              depends = [SAGE_INC + '/m4ri/m4ri.h'] + flint_depends),
 
     Extension('sage.matrix.matrix_rational_sparse',
               sources = ['sage/matrix/matrix_rational_sparse.pyx'],
@@ -1205,10 +1213,6 @@ ext_modules = [
 
     Extension('sage.misc.allocator',
               sources = ['sage/misc/allocator.pyx']),
-
-    Extension('sage.misc.bitset',
-              sources = ['sage/misc/bitset.pyx'],
-              libraries = ['gmp']),
 
     Extension('sage.misc.cachefunc',
               sources = ['sage/misc/cachefunc.pyx']),
@@ -1320,7 +1324,7 @@ ext_modules = [
     Extension('sage.modular.modsym.apply',
               sources = ['sage/modular/modsym/apply.pyx'],
               libraries = ["flint", "gmp", "gmpxx", "m", "stdc++"],
-              extra_compile_args=["-std=c99",  "-D_XPG6"],
+              extra_compile_args=["-std=c99", "-D_XPG6"],
               depends = flint_depends),
 
     Extension('sage.modular.modsym.relation_matrix_pyx',
@@ -1529,7 +1533,7 @@ ext_modules = [
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
-              extra_compile_args=["-std=c99",  "-D_XPG6"],
+              extra_compile_args=["-std=c99", "-D_XPG6"],
               libraries = (['gsl', BLAS, BLAS2, 'pari', 'gmp', 'm'])),
 
     Extension('sage.rings.complex_interval',
@@ -2113,7 +2117,7 @@ ext_modules = [
     ## sage.schemes
     ##
     ################################
-    
+
     Extension('sage.schemes.projective.projective_morphism_helper',
               sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]

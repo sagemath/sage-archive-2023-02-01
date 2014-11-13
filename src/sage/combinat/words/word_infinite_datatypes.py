@@ -593,7 +593,7 @@ class WordDatatype_iter(WordDatatype):
         if length is None or length is Infinity:
             self._len = Infinity
             self._data = iter
-        elif length is 'unknown' or length is 'finite':
+        elif length == 'unknown' or length == 'finite':
             self._len = None
             self._data = iter
         else:

@@ -427,6 +427,30 @@ class WeakTableau_abstract(ClonableList):
         else:
             print self
 
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: T = WeakTableaux(3, [5,2,1], [1,1,1,1,1,1], representation='core')
+            sage: t = T[0]
+            sage: hash(t) == hash(t)
+            True
+            sage: T = WeakTableaux(3, [2,2,1], [1,1,1,1,1], representation='bounded')
+            sage: t = T[0]
+            sage: hash(t) == hash(t)
+            True
+            sage: T = WeakTableaux(3, [5,2,1], [1,1,1,1,1,1], representation='factorized_permutation')
+            sage: t = T[0]
+            sage: hash(t) == hash(t)
+            True
+        """
+        if self.parent()._representation in ['core', 'bounded']:
+            return hash(tuple(tuple(x) for x in self)) + hash(self.parent().k)
+        else:
+            return super(WeakTableau_abstract, self).__hash__()
+
     def _latex_(self):
         r"""
         Return a latex method for the tableau.
@@ -1842,8 +1866,8 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             return t
         W = WeylGroup(['A', k, 1], prefix='s')
         w = cls.straighten_input(t, k)
-        weight =  tuple(w[i].length() for i in range(len(w)-1,-1,-1))
-        inner_shape = Core(inner_shape, k+1)
+        weight = tuple(w[i].length() for i in range(len(w) - 1, -1, -1))
+        inner_shape = Core(inner_shape, k + 1)
         outer_shape = (W.prod(w)*W(inner_shape.to_grassmannian())).affine_grassmannian_to_core()
         return WeakTableaux_factorized_permutation(k, [outer_shape, inner_shape], weight)(w)
 
@@ -1963,9 +1987,10 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             ...
             ValueError: The weight of the parent does not agree with the weight of the tableau!
         """
-        weight =  tuple(self[i].length() for i in range(len(self)-1,-1,-1))
+        weight = tuple(self[i].length() for i in range(len(self) - 1, -1, -1))
         if not self.parent()._weight == weight:
-            raise ValueError("The weight of the parent does not agree with the weight of the tableau!")
+            raise ValueError("The weight of the parent does not agree "
+                             "with the weight of the tableau!")
         W = self[0].parent()
         outer = (W.prod(self)*W((self._inner_shape).to_grassmannian())).affine_grassmannian_to_core()
         if self.parent()._outer_shape != outer:
@@ -2249,7 +2274,7 @@ class StrongTableau(ClonableList):
         """
         INPUT:
 
-        - ``parent`` - an instance of ``StrongTableaux``
+        - ``parent`` -- an instance of ``StrongTableaux``
         - ``T`` -- standard marked strong (possibly skew) `k`-tableau or a semistandard
           marked strong (possibly skew) `k`-tableau with inner cells represented by
           ``None``
@@ -2365,7 +2390,7 @@ class StrongTableau(ClonableList):
             if weight is not None and tuple(weight)!=count_marks:
                 raise ValueError("Weight = %s and tableau = %s do not agree"%(weight, T))
             tijseq = StrongTableaux.marked_CST_to_transposition_sequence(T, k)
-            if len(tijseq)<sum(list(count_marks)):
+            if tijseq is None or len(tijseq)<sum(list(count_marks)):
                 raise ValueError("Unable to parse strong marked tableau : %s"%T)
             T = StrongTableaux.transpositions_to_standard_strong( tijseq, k, [[None]*r for r in inner_shape] ) # build from scratch
             T = T.set_weight( count_marks )
@@ -2433,6 +2458,18 @@ class StrongTableau(ClonableList):
             raise ValueError("The size of the tableau %s and weight %s do not match"%(self.to_standard_list(),self.weight()))
         if not self.is_column_strict_with_weight( self.weight() ):
             raise ValueError("The weight=%s and the markings on the standard tableau=%s do not agree."%(self.weight(),self.to_standard_list()))
+
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: t = StrongTableau([[-1, -1, -2], [2]], 2)
+            sage: hash(t) == hash(t)
+            True
+        """
+        return hash(tuple(tuple(x) for x in self)) + hash(self.parent().k)
 
     def _is_valid_marked( self ):
         r"""
@@ -3858,7 +3895,7 @@ class StrongTableau(ClonableList):
         """
         Return a list of transpositions corresponding to ``self``.
 
-        Given a strong column strict tableau ``self`` returns the the list of transpositions
+        Given a strong column strict tableau ``self`` returns the list of transpositions
         which when applied to the left of an empty tableau gives the corresponding strong
         standard tableau.
 
@@ -3885,7 +3922,7 @@ class StrongTableau(ClonableList):
             sage: StrongTableau([],4).to_transposition_sequence()
             []
         """
-        return StrongTableaux.marked_CST_to_transposition_sequence( self.to_list(), self.k )
+        return StrongTableaux.marked_CST_to_transposition_sequence( self.to_standard_list(), self.k )
 
 class StrongTableaux(UniqueRepresentation, Parent):
 
@@ -4436,14 +4473,14 @@ class StrongTableaux(UniqueRepresentation, Parent):
         """
         Return a list of transpositions corresponding to ``T``.
 
-        Given a strong column strict tableau ``T`` returns the the list of transpositions
+        Given a strong column strict tableau ``T`` returns the list of transpositions
         which when applied to the left of an empty tableau gives the corresponding strong
         standard tableau.
 
         INPUT:
 
-        - ``T`` - a non-empty column strict tableau as a list of lists
-        - ``k`` - a positive integer
+        - ``T`` -- a non-empty column strict tableau as a list of lists
+        - ``k`` -- a positive integer
 
         OUTPUT:
 
@@ -4451,12 +4488,19 @@ class StrongTableaux(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: StrongTableaux.marked_CST_to_transposition_sequence([[-1, -1, -1], [1]], 2)
+            sage: CST_to_trans = StrongTableaux.marked_CST_to_transposition_sequence
+            sage: CST_to_trans([[-1, -1, -1], [1]], 2)
             [[2, 3], [1, 2], [0, 1]]
-            sage: StrongTableaux.marked_CST_to_transposition_sequence([], 2)
+            sage: CST_to_trans([], 2)
             []
-            sage: StrongTableaux.marked_CST_to_transposition_sequence([[-2, -2, -2], [2]], 2)
+            sage: CST_to_trans([[-2, -2, -2], [2]], 2)
             [[2, 3], [1, 2], [0, 1]]
+            sage: CST_to_trans([[-1, -2, -2, -2, -2], [-2, 2], [2]], 3)
+            [[4, 5], [3, 4], [2, 3], [1, 2], [-1, 0], [0, 1]]
+            sage: CST_to_trans([[-1, -2, -5, 5, -5, 5, -5], [-3, -4, 5, 5], [5]],3)
+            [[5, 7], [3, 5], [2, 3], [0, 1], [-1, 0], [1, 2], [0, 1]]
+            sage: CST_to_trans([[-1, -2, -3, 4, -7], [-4, -6], [-5, 6]],3)
+            [[4, 5], [-1, 1], [-2, -1], [-1, 0], [2, 3], [1, 2], [0, 1]]
 
         TESTS::
 
@@ -4466,6 +4510,8 @@ class StrongTableaux(UniqueRepresentation, Parent):
             []
         """
         LL = list(T)
+        if LL==[] or all(v is None for v in sum(LL,[])):
+            return []
         marks = [v for row in T for v in row if v is not None and v<0]+[0]
         m = -min(marks) # the largest marked cell
         transeq = [] # start with the empty list and append on the right
@@ -4480,15 +4526,16 @@ class StrongTableaux(UniqueRepresentation, Parent):
                         # a valid or invalid transposition?
                         if msh.length()==sh.length()-1:
                             # if applying t_{j-l,j+1} reduces the size of the shape by 1
-                            valcells = [LL[c[0]][c[1]] for c in SkewPartition([sh.to_partition(),msh.to_partition()]).cells()]
-                            if all(x is not None for x in valcells) and all(abs(x)==v for x in valcells) and [x for x in valcells if x==-v] == [-v]:
-                                # if all values are \pm v and exactly one of them is -v
-                                transeq.append([j-l, j+1])
-                                LL = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]
-                                sh = msh
-                                if LL==[]:
-                                    return transeq
-        return transeq
+                            skewcells = SkewPartition([sh.to_partition(),msh.to_partition()]).cells()
+                            valcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]!=j] # values in all the cells except content j
+                            regcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]==j] # values in the cells with content j
+                            if all(x==v for x in valcells) and regcells==[-v]:
+                                # if all labels that are not content j are v and the label
+                                # with content j = -v
+                                MM = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]
+                                transeq = self.marked_CST_to_transposition_sequence(MM,k)
+                                if not transeq is None:
+                                    return [[j-l, j+1]]+transeq
 
     @classmethod
     def transpositions_to_standard_strong( self, transeq, k, emptyTableau=[] ):

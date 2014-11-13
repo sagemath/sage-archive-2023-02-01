@@ -97,7 +97,6 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.misc.superseded import deprecated_function_alias
 
 TableauOptions=GlobalOptions(name='tableaux',
     doc=r"""
@@ -628,7 +627,8 @@ class Tableau(CombinatorialObject, Element):
 
     def __div__(self, t):
         """
-        Return the skew tableau ``self``/``t``.
+        Return the skew tableau ``self``/``t``, where ``t`` is a partition
+        contained in the shape of ``self``.
 
         EXAMPLES::
 
@@ -651,11 +651,12 @@ class Tableau(CombinatorialObject, Element):
         if not self.shape().contains(t):
             raise ValueError("the shape of the tableau must contain the partition")
 
-        st = copy.deepcopy(self._list)
+        st = [list(row) for row in self._list]    # create deep copy of t
 
-        for i in range(len(t)):
-            for j in range(t[i]):
-                st[i][j] = None
+        for i, t_i in enumerate(t):
+            st_i = st[i]
+            for j in range(t_i):
+                st_i[j] = None
 
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(st)
@@ -1067,6 +1068,7 @@ class Tableau(CombinatorialObject, Element):
             return SemistandardTableau(list(t))
         return t
 
+    @combinatorial_map(name="standardization")
     def standardization(self, check=True):
         r"""
         Return the standardization of ``self``, assuming ``self`` is a
@@ -1224,9 +1226,9 @@ class Tableau(CombinatorialObject, Element):
     @combinatorial_map(name ='reading word permutation')
     def reading_word_permutation(self):
         """
-        Return the permutation obtained by reading the entries of ``self``
-        row by row, starting with the bottommost row (in English
-        notation).
+        Return the permutation obtained by reading the entries of the
+        standardization of ``self`` row by row, starting with the
+        bottommost row (in English notation).
 
         EXAMPLES::
 
@@ -1243,7 +1245,8 @@ class Tableau(CombinatorialObject, Element):
     def entries(self):
         """
         Return a list of all entries of ``self``, in the order obtained
-        by reading across the rows from top to bottom.
+        by reading across the rows from top to bottom (in English
+        notation).
 
         EXAMPLES::
 
@@ -1359,8 +1362,18 @@ class Tableau(CombinatorialObject, Element):
             False
             sage: Tableau([[5, 3], [2, 4]]).is_column_strict()
             False
+            sage: Tableau([[]]).is_column_strict()
+            True
+            sage: Tableau([[1, 4, 2]]).is_column_strict()
+            True
+            sage: Tableau([[1, 4, 2], [2, 5]]).is_column_strict()
+            True
+            sage: Tableau([[1, 4, 2], [2, 3]]).is_column_strict()
+            False
         """
-        return all(self[r-1][c]<self[r][c] for (r,c) in self.cells() if r>0)
+        def tworow(a, b):
+            return all(a[i] < b_i for i, b_i in enumerate(b))
+        return all(tworow(self[r], self[r+1]) for r in range(len(self)-1))
 
     def is_standard(self):
         """
@@ -1428,6 +1441,7 @@ class Tableau(CombinatorialObject, Element):
     def vertical_flip(self):
         """
         Return the tableau obtained by vertically flipping the tableau ``self``.
+
         This only works for rectangular tableaux.
 
         EXAMPLES::
@@ -1444,6 +1458,8 @@ class Tableau(CombinatorialObject, Element):
         """
         Return the tableau obtained by rotating ``self`` by `180` degrees.
 
+        This only works for rectangular tableaux.
+
         EXAMPLES::
 
             sage: Tableau([[1,2],[3,4]]).rotate_180()
@@ -1457,6 +1473,9 @@ class Tableau(CombinatorialObject, Element):
     def cells(self):
         """
         Return a list of the coordinates of the cells of ``self``.
+
+        Coordinates start at `0`, so the northwesternmost cell (in
+        English notation) has coordinates `(0, 0)`.
 
         EXAMPLES::
 
@@ -1739,82 +1758,14 @@ class Tableau(CombinatorialObject, Element):
             sage: t.anti_restrict(5)
             [[None, None, None], [None, None]]
         """
-        t = list(copy.deepcopy(self))
+        t = [list(row) for row in self._list]  # create deep copy of t
 
-        for row in xrange(len(t)):
-            for col in xrange(len(t[row])):
-                if t[row][col] <= n:
-                    t[row][col] = None
+        for row in t:
+            for col in xrange(len(row)):
+                if row[col] <= n:
+                    row[col] = None
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(t)
-
-    def up(self):
-        """
-        Deprecated in :trac:`7983` since this is an operation on standard
-        tableaux.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2]])
-            sage: [x for x in t.up()]
-            doctest:...: DeprecationWarning: Tableau.up() is deprecated since it is an operation on standard tableaux.
-            See http://trac.sagemath.org/7983 for details.
-            [[[1, 2, 3]], [[1, 2], [3]]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(7983,'Tableau.up() is deprecated since it is an operation on standard tableaux.')
-        return StandardTableau(self).up()
-
-    def up_list(self):
-        """
-        Deprecated in :trac:`7983` since this is an operation on standard
-        tableaux.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2]])
-            sage: t.up_list()
-            doctest:...: DeprecationWarning: Tableau.up_list() is deprecated since it is an operation on standard tableaux.
-            See http://trac.sagemath.org/7983 for details.
-            [[[1, 2, 3]], [[1, 2], [3]]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(7983,'Tableau.up_list() is deprecated since it is an operation on standard tableaux.')
-        return StandardTableau(self).up_list()
-
-    def down(self):
-        """
-        Deprecated in :trac:`7983` since this is an operation on standard
-        tableaux.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2],[3]])
-            sage: [x for x in t.down()]
-            doctest:...: DeprecationWarning: Tableau.down() is deprecated since it is an operation on standard tableaux.
-            See http://trac.sagemath.org/7983 for details.
-            [[[1, 2]]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(7983,'Tableau.down() is deprecated since it is an operation on standard tableaux.')
-        return StandardTableau(self).down()
-
-    def down_list(self):
-        """
-        Deprecated in :trac:`7983` since this is an operation on standard
-        tableaux.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2],[3]])
-            sage: t.down_list()
-            doctest:...: DeprecationWarning: Tableau.down_list() is deprecated since it is an operation on standard tableaux.
-            See http://trac.sagemath.org/7983 for details.
-            [[[1, 2]]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(7983,'Tableau.down_list() is deprecated since it is an operation on standard tableaux.')
-        return StandardTableau(self).down_list()
 
     def to_list(self):
         """
@@ -2018,9 +1969,12 @@ class Tableau(CombinatorialObject, Element):
         """
         Multiply two tableaux using Schensted's bump.
 
-        This product makes the set of tableaux into an associative monoid.
-        The empty tableau is the unit in this monoid. See pp. 11-12 of
-        [Ful1997]_.
+        This product makes the set of semistandard tableaux into an
+        associative monoid. The empty tableau is the unit in this monoid.
+        See pp. 11-12 of [Ful1997]_.
+
+        The same product operation is implemented in a different way in
+        :meth:`slide_multiply`.
 
         EXAMPLES::
 
@@ -2033,7 +1987,7 @@ class Tableau(CombinatorialObject, Element):
             raise TypeError("right must be a Tableau")
 
         row = len(right)
-        product = copy.deepcopy(left)
+        product = Tableau([list(a) for a in left._list])   # create deep copy of left
         while row > 0:
             row -= 1
             for i in right[row]:
@@ -2044,10 +1998,13 @@ class Tableau(CombinatorialObject, Element):
         """
         Multiply two tableaux using jeu de taquin.
 
-        This product makes the set of tableaux into an associative monoid.
-        The empty tableau is the unit in this monoid.
+        This product makes the set of semistandard tableaux into an
+        associative monoid. The empty tableau is the unit in this monoid.
 
         See pp. 15 of [Ful1997]_.
+
+        The same product operation is implemented in a different way in
+        :meth:`bump_multiply`.
 
         EXAMPLES::
 
@@ -2175,6 +2132,12 @@ class Tableau(CombinatorialObject, Element):
         """
         Return the image of ``self`` under the inverse promotion operator.
 
+        .. WARNING::
+
+            You might know this operator as the promotion operator
+            (without "inverse") -- literature does not agree on the
+            name.
+
         The inverse promotion operator, applied to a tableau `t`, does the
         following:
 
@@ -2195,8 +2158,15 @@ class Tableau(CombinatorialObject, Element):
 
         When ``self`` is a standard tableau of size ``n + 1``, this definition of
         inverse promotion is the map called "promotion" in [Sg2011]_ (p. 23) and
-        in [St2009]_, and is the inverse of the map called "promotion" in
+        in [Stan2009]_, and is the inverse of the map called "promotion" in
         [Hai1992]_ (p. 90).
+
+        .. WARNING::
+
+            To my (Darij's) knowledge, the fact that the above "inverse
+            promotion operator" really is the inverse of the promotion
+            operator :meth:`promotion` for semistandard tableaux has never
+            been proven in literature. Corrections are welcome.
 
         EXAMPLES::
 
@@ -2266,6 +2236,13 @@ class Tableau(CombinatorialObject, Element):
         r"""
         Return the image of ``self`` under the promotion operator.
 
+        .. WARNING::
+
+            You might know this operator as the inverse promotion
+            operator -- literature does not agree on the name. You
+            might also be looking for the Lapointe-Lascoux-Morse
+            promotion operator (:meth:`promotion_operator`).
+
         The promotion operator, applied to a tableau `t`, does the following:
 
         Iterate over all letters `n+1` in the tableau `t`, from left to right.
@@ -2285,7 +2262,14 @@ class Tableau(CombinatorialObject, Element):
 
         When ``self`` is a standard tableau of size ``n + 1``, this definition of
         promotion is precisely the one given in [Hai1992]_ (p. 90). It is the
-        inverse of the maps called "promotion" in [Sg2011]_ (p. 23) and in [St2009]_.
+        inverse of the maps called "promotion" in [Sg2011]_ (p. 23) and in [Stan2009]_.
+
+        .. WARNING::
+
+            To my (Darij's) knowledge, the fact that the above promotion
+            operator really is the inverse of the "inverse promotion
+            operator" :meth:`promotion_inverse` for semistandard tableaux
+            has never been proven in literature. Corrections are welcome.
 
         REFERENCES:
 
@@ -2795,15 +2779,35 @@ class Tableau(CombinatorialObject, Element):
         else:
             return Tableau([])
 
-    katabolism = deprecated_function_alias(13605, catabolism)
-    katabolism_sequence = deprecated_function_alias(13605, catabolism_sequence)
-    lambda_katabolism = deprecated_function_alias(13605, lambda_catabolism)
-    reduced_lambda_katabolism = deprecated_function_alias(13605, reduced_lambda_catabolism)
-    katabolism_projector = deprecated_function_alias(13605, catabolism_projector)
-
-
     def promotion_operator(self, i):
         """
+        Return a list of semistandard tableaux obtained by the `i`-th
+        Lapointe-Lascoux-Morse promotion operator from the
+        semistandard tableau ``self``.
+
+        .. WARNING:
+
+            This is not Schuetzenberger's jeu-de-taquin promotion!
+            For the latter, see :meth:`promotion` and
+            :meth:`promotion_inverse`.
+
+        This operator is defined by taking the maximum entry `m` of
+        `T`, then adding a horizontal `i`-strip to `T` in all possible
+        ways, each time filling this strip with `m+1`'s, and finally
+        letting the permutation
+        `\sigma_1 \sigma_2 \cdots \sigma_m = (2, 3, \ldots, m+1, 1)`
+        act on each of the resulting tableaux via the
+        Lascoux-Schuetzenberger action
+        (:meth:`symmetric_group_action_on_values`). This method
+        returns the list of all resulting tableaux. See [LLM01]_ for
+        the purpose of this operator.
+
+        REFERENCES:
+
+        .. [LLM01] L. Lapointe, A. Lascoux, J. Morse.
+           *Tableau atoms and a new Macdonald positivity conjecture*.
+           :arxiv:`math/0008073v2`.
+
         EXAMPLES::
 
             sage: t = Tableau([[1,2],[3]])
@@ -2822,6 +2826,13 @@ class Tableau(CombinatorialObject, Element):
              [[1, 1, 1, 3], [2, 2]],
              [[1, 1, 1, 2, 3], [2]]]
 
+        The example from [LLM01]_ p. 12::
+
+            sage: Tableau([[1,1],[2,2]]).promotion_operator(3)
+            [[[1, 1, 1], [2, 2], [3, 3]],
+             [[1, 1, 1, 3], [2, 2], [3]],
+             [[1, 1, 1, 3, 3], [2, 2]]]
+
         TESTS::
 
             sage: Tableau([]).promotion_operator(2)
@@ -2835,7 +2846,7 @@ class Tableau(CombinatorialObject, Element):
         perm = permutation.from_reduced_word(range(1, len(weight)+1))
         l = part.add_horizontal_border_strip(i)
         ltab = [ from_chain( chain + [next] ) for next in l ]
-        return [ x.symmetric_group_action_on_values(perm) for x in ltab]
+        return [ x.symmetric_group_action_on_values(perm) for x in ltab ]
 
 
     ##################################
@@ -2861,16 +2872,75 @@ class Tableau(CombinatorialObject, Element):
         return from_shape_and_word(self.shape(), w)
 
     def symmetric_group_action_on_values(self, perm):
-        """
+        r"""
+        Return the image of the semistandard tableau ``self`` under the
+        action of the permutation ``perm`` using the
+        Lascoux-Schuetzenberger action of the symmetric group `S_n` on
+        the semistandard tableaux with ceiling `n`.
+
+        If `n` is a nonnegative integer, then the
+        Lascoux-Schuetzenberger action is a group action of the
+        symmetric group `S_n` on the set of semistandard Young tableaux
+        with ceiling `n` (that is, with entries taken from the set
+        `\{1, 2, \ldots, n\}`. It is defined as follows:
+
+        Let `i \in \{1, 2, \ldots, n-1\}`, and let `T` be a
+        semistandard tableau with ceiling `n`. Let `w` be the reading
+        word (:meth:`to_word`) of `T`. Replace all letters `i` in `w`
+        by closing parentheses, and all letters `i+1` in `w` by
+        opening parentheses. Whenever an opening parenthesis stands
+        left of a closing parenthesis without there being any
+        parentheses inbetween (it is allowed to have letters
+        inbetween as long as they are not parentheses), consider these
+        two parentheses as matched with each other, and replace them
+        back by the letters `i+1` and `i`. Repeat this procedure until
+        there are no more opening parentheses standing left of closing
+        parentheses. Then, let `a` be the number of opening
+        parentheses in the word, and `b` the number of closing
+        parentheses (notice that all opening parentheses are left of
+        all closing parentheses). Replace the first `a` parentheses
+        by the letters `i`, and replace the remaining `b` parentheses
+        by the letters `i+1`. Let `w'` be the resulting word. Let
+        `T'` be the tableau with the same shape as `T` but with reading
+        word `w'`. This tableau `T'` can be shown to be semistandard.
+        We define the image of `T` under the action of the simple
+        transposition `s_i = (i, i+1) \in S_n` to be this tableau `T'`.
+        It can be shown that these actions `s_1, s_2, \ldots, s_{n-1}`
+        satisfy the Moore-Coxeter relations of `S_n`, and thus this
+        extends to a unique action of the symmetric group `S_n` on
+        the set of semistandard tableaux with ceiling `n`. This is the
+        Lascoux-Schuetzenberger action.
+
+        This action of the symmetric group `S_n` on the set of all
+        semistandard tableaux of given shape `\lambda` with entries
+        in `\{ 1, 2, \ldots, n \}` is the one defined in
+        [Loth02]_ Theorem 5.6.3. In particular, the action of `s_i`
+        is denoted by `\sigma_i` in said source. (Beware of the typo
+        in the definition of `\sigma_i`: it should say
+        `\sigma_i ( a_i^r a_{i+1}^s ) = a_i^s a_{i+1}^r`, not
+        `\sigma_i ( a_i^r a_{i+1}^s ) = a_i^s a_{i+1}^s`.)
+
         EXAMPLES::
 
             sage: t = Tableau([[1,1,3,3],[2,3],[3]])
             sage: t.symmetric_group_action_on_values([1,2,3])
             [[1, 1, 3, 3], [2, 3], [3]]
+            sage: t.symmetric_group_action_on_values([2,1,3])
+            [[1, 2, 3, 3], [2, 3], [3]]
+            sage: t.symmetric_group_action_on_values([3,1,2])
+            [[1, 2, 2, 2], [2, 3], [3]]
+            sage: t.symmetric_group_action_on_values([2,3,1])
+            [[1, 1, 1, 1], [2, 2], [3]]
             sage: t.symmetric_group_action_on_values([3,2,1])
             [[1, 1, 1, 1], [2, 3], [3]]
             sage: t.symmetric_group_action_on_values([1,3,2])
             [[1, 1, 2, 2], [2, 2], [3]]
+
+        TESTS::
+
+            sage: t = Tableau([])
+            sage: t.symmetric_group_action_on_values([])
+            []
         """
         return self.raise_action_from_words(symmetric_group_action_on_values, perm)
 
@@ -2915,7 +2985,7 @@ class Tableau(CombinatorialObject, Element):
 
     def symmetric_group_action_on_entries(self, w):
         r"""
-        Returns the tableau obtained form this tableau by acting by the
+        Return the tableau obtained form this tableau by acting by the
         permutation ``w``.
 
         Let `T` be a standard tableau of size `n`, then the action of
@@ -2956,7 +3026,7 @@ class Tableau(CombinatorialObject, Element):
         Return ``True`` if ``self`` is a key tableau or ``False`` otherwise.
 
         A tableau is a *key tableau* if the set of entries in the `j`-th
-        column are a subset of the set of entries in the `(j-1)`-st column.
+        column is a subset of the set of entries in the `(j-1)`-st column.
 
         REFERENCES:
 
@@ -3311,10 +3381,6 @@ class SemistandardTableau(Tableau):
 
         if not all(isinstance(c,(int,Integer)) and c>0 for row in t for c in row):
             raise ValueError("entries must be positive integers"%t)
-
-        valid_entries=range(1,1+max(sum((list(row) for row in t),[])))
-        if not all(c in valid_entries for row in t for c in row):
-            raise ValueError("the entries must be in %s"%(t,valid_entries))
 
         if any(row[c]>row[c+1] for row in t for c in range(len(row)-1)):
             raise ValueError("The rows of %s are not weakly increasing"%t)
@@ -3694,7 +3760,7 @@ class StandardTableau(SemistandardTableau):
         the tableau. This yields a new standard tableau.
 
         This definition of inverse promotion is the map called "promotion" in
-        [Sg2011]_ (p. 23) and in [St2009]_, and is the inverse of the map
+        [Sg2011]_ (p. 23) and in [Stan2009]_, and is the inverse of the map
         called "promotion" in [Hai1992]_ (p. 90).
 
         See the :meth:`~sage.combinat.tableau.promotion_inverse` method for a
@@ -3738,7 +3804,7 @@ class StandardTableau(SemistandardTableau):
 
         This definition of promotion is precisely the one given in [Hai1992]_
         (p. 90). It is the inverse of the maps called "promotion" in [Sg2011]_
-        (p. 23) and in [St2009]_.
+        (p. 23) and in [Stan2009]_.
 
         See the :meth:`~sage.combinat.tableau.promotion` method for a
         more general operator.
@@ -3775,7 +3841,6 @@ def from_chain(chain):
                 res[j][k] = i -1
     return Tableau(res)
 
-@rename_keyword(deprecation=13605, order='convention')
 def from_shape_and_word(shape, w, convention="French"):
     r"""
     Returns a tableau from a shape and word.
@@ -4563,8 +4628,8 @@ class SemistandardTableaux(Tableaux):
             return True
         elif Tableaux.__contains__(self, t) and all(c>0 for row in t for c in row) \
                 and all(row[i] <= row[i+1] for row in t for i in range(len(row)-1)) \
-                and all(t[r][c] < t[r+1][c] for c in range(len(t[0]))
-                        for r in range(len(t)-1) if len(t[r+1]) > c):
+                and all(t[r][c] < t[r+1][c]
+                        for r in range(len(t)-1) for c in range(len(t[r+1]))):
             return self.max_entry is None or max(flatten(t)) <= self.max_entry
         else:
             return False
@@ -5616,6 +5681,79 @@ class StandardTableaux_size(StandardTableaux):
 
         return tableaux_number
 
+    def random_element(self):
+        r"""
+        Return a random ``StandardTableau`` with uniform probability.
+
+        This algorithm uses the fact that the Robinson-Schensted
+        correspondence returns a pair of identical standard Young
+        tableaux (SYTs) if and only if the permutation was an involution.
+        Thus, generating a random SYT is equivalent to generating a
+        random involution.
+
+        To generate an involution, we first need to choose its number of
+        fixed points `k` (if the size of the involution is even, the
+        number of fixed points will be even, and if the size is odd, the
+        number of fixed points will be odd). To do this, we choose a
+        random integer `r` between 0 and the number `N` of all
+        involutions of size `n`. We then decompose the interval
+        `\{ 1, 2, \ldots, N \}` into subintervals whose lengths are the
+        numbers of involutions of size `n` with respectively `0`, `1`,
+        `\ldots`, `\left \lfloor N/2 \right \rfloor` fixed points. The
+        interval in which our random integer `r` lies then decides how
+        many fixed points our random involution will have. We then
+        place those fixed points randomly and then compute a perfect
+        matching (an involution without fixed points) on the remaining
+        values.
+
+        EXAMPLES::
+
+            sage: StandardTableaux(5).random_element() # random
+            [[1, 4, 5], [2], [3]] 
+            sage: StandardTableaux(0).random_element()
+            []
+            sage: StandardTableaux(1).random_element()
+            [[1]]
+
+        TESTS::
+
+            sage: all([StandardTableaux(10).random_element() in StandardTableaux(10) for i in range(20)])
+            True
+        """
+        from sage.misc.prandom import randrange
+        from sage.rings.arith import binomial
+        from sage.misc.prandom import sample
+        from sage.combinat.perfect_matching import PerfectMatchings
+        from sage.combinat.permutation import from_cycles
+        # We compute the number of involutions of size ``size``.
+        involution_index = randrange(0, StandardTableaux(self.size).cardinality())
+        # ``involution_index`` is our random integer `r`.
+        partial_sum = 0
+        fixed_point_number = self.size % 2
+        # ``fixed_point_number`` will become `k`.
+        while True:
+            # We add the number of involutions with ``fixed_point_number``
+            # fixed points.
+            partial_sum += binomial(self.size, fixed_point_number) * \
+                           prod(xrange(1, self.size - fixed_point_number , 2))
+            # If the partial sum is greater than the involution index,
+            # then the random involution that we want to generate has
+            # ``fixed_point_number`` fixed points.
+            if partial_sum > involution_index:
+                break
+            fixed_point_number += 2
+        # We generate a subset of size "fixed_point_number" of the set {1,
+        # ..., size}.
+        fixed_point_positions = set(sample(xrange(1, self.size + 1), fixed_point_number))
+        # We generate a list of tuples which will form the cycle
+        # decomposition of our random involution. This list contains
+        # singletons (corresponding to the fixed points of the
+        # involution) and pairs (forming a perfect matching on the
+        # remaining values).
+        permutation_cycle_rep = [(fixed_point,) for fixed_point in fixed_point_positions] + \
+                                list(PerfectMatchings(set(range(1, self.size + 1)) - set(fixed_point_positions)).random_element())
+        return from_cycles(self.size, permutation_cycle_rep).robinson_schensted()[0]
+
 
 class StandardTableaux_shape(StandardTableaux):
     """
@@ -5984,9 +6122,8 @@ def symmetric_group_action_on_values(word, perm):
         [2, 2, 1]
     """
     w = list(word)
-    ts = permutation.Permutation(perm).reduced_word()
-    for j in reversed(range(len(ts))):
-        r = ts[j]
+    ts = permutation.Permutations()(perm).reduced_word()
+    for r in reversed(ts):
         l = r + 1
         places_r, places_l = unmatched_places(w, l, r)
 
@@ -5996,11 +6133,11 @@ def symmetric_group_action_on_values(word, perm):
         ma = max(nbl, nbr)
         dif = ma - min(nbl, nbr)
         if ma == nbl:
-            for i in range(dif):
-                w[places_l[i]] = r
+            for i in places_l[:dif]:
+                w[i] = r
         else:
-            for i in range(nbr-dif,ma):
-                w[places_r[i]] = l
+            for i in places_r[nbr-dif:ma]:
+                w[i] = l
     return w
 
 # October 2012: fixing outdated pickles which use classed being deprecated

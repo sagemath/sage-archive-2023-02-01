@@ -810,7 +810,7 @@ class SetPartition(ClonableArray):
             # Standardizing sub_parts (the cur variable not being reset
             # to 1 gives us the offset we want):
             mins = list(map(min, sub_parts))
-            over_max = max(list(map(max, sub_parts))) + 1
+            over_max = max(map(max, sub_parts)) + 1
             temp = [[] for i in range(len(part))]
             while min(mins) != over_max:
                 m = min(mins)

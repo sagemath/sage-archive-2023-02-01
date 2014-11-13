@@ -438,7 +438,7 @@ class SBox(SageObject):
         """
         A = self.difference_distribution_matrix().__copy__()
         A[0,0] = 0
-        return max(list(map(abs, A.list())))
+        return max(map(abs, A.list()))
 
     def maximal_difference_probability(self):
         r"""
@@ -532,7 +532,7 @@ class SBox(SageObject):
         """
         A = self.linear_approximation_matrix().__copy__()
         A[0,0] = 0
-        return max(list(map(abs, A.list())))
+        return max(map(abs, A.list()))
 
     def maximal_linear_bias_relative(self):
         """

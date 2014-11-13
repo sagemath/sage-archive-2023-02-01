@@ -3013,7 +3013,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         facets = list(map(frozenset, [ c.ambient_ray_indices() for c in self.generating_cones() ]))
         # print "facets = " + str(facets)
         all_points = frozenset( range(0,self.nrays()) )
-        d_max = max(list(map(len,facets)))+1
+        d_max = max(map(len,facets))+1
         SR = []
         for d in range(1,d_max):
             checked = set([])

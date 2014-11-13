@@ -527,7 +527,7 @@ class Permutation(CombinatorialObject, Element):
              all(isinstance(x, tuple) for x in l)):
             if len(l) >= 1 and (isinstance(l[0],(int,Integer)) or len(l[0]) > 0):
                 if isinstance(l[0], tuple):
-                    n = max( list(map(max, l)) )
+                    n = max(map(max, l))
                     return from_cycles(n, list(map(list, l)))
                 else:
                     n = max(l)

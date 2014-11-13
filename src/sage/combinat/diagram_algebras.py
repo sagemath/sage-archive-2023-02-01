@@ -1221,7 +1221,7 @@ def is_planar(sp):
         sage: da.is_planar( da.to_set_partition([[1,-1],[2,-2]]))
         True
     """
-    to_consider = list(map(list, sp))
+    to_consider = map(list, sp)
 
     #Singletons don't affect planarity
     to_consider = [x for x in to_consider if len(x) > 1]
@@ -1426,7 +1426,7 @@ def to_set_partition(l, k=None):
         if l == []:
             return SetPartition([])
         else:
-            k = max( [max( list(map(abs, x)) ) for x in l] )
+            k = max( (max( map(abs, x) ) for x in l) )
 
     to_be_added = Set( range(1, k+1) + [-1*x for x in range(1, k+1)] )
 

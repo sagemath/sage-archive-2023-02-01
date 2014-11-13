@@ -67,7 +67,7 @@ AUTHORS:
 
 import sage.misc.prandom as random
 
-from sage.rings.arith import factor
+from sage.rings.arith import factor, primitive_root
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.field as field
 import integer_mod
@@ -173,32 +173,6 @@ default_category = JoinCategory((CommutativeRings(), FiniteEnumeratedSets()))
 ZZ = integer_ring.IntegerRing()
 
 
-def _unit_gens_primecase(p):
-    r"""
-    Return the smallest generator of `(\ZZ/p\ZZ)^*` and its order.
-
-    EXAMPLES::
-
-        sage: from sage.rings.finite_rings.integer_mod_ring import _unit_gens_primecase
-        sage: _unit_gens_primecase(17)
-        (3, 16)
-    """
-    ord = integer.Integer(p - 1)
-    P = ord.prime_divisors()
-    one = integer_mod.Mod(1, p)
-    x = 1
-    while x < p:
-        generator = True
-        z = integer_mod.Mod(x, p)
-        for q in P:
-            if z**(ord//q) == one:
-                generator = False
-                break
-        if generator:
-            return z, ord
-        x += 1
-    assert False, "didn't find primitive root for p={}".format(p)
-
 def _unit_gens_primepowercase(p, r):
     r"""
     Return a list of generators for `(\ZZ/p^r\ZZ)^*` and their orders.
@@ -206,6 +180,8 @@ def _unit_gens_primepowercase(p, r):
     EXAMPLES::
 
         sage: from sage.rings.finite_rings.integer_mod_ring import _unit_gens_primepowercase
+        sage: _unit_gens_primepowercase(17, 1)
+        [(3, 16)]
         sage: _unit_gens_primepowercase(3, 3)
         [(2, 18)]
     """
@@ -219,18 +195,8 @@ def _unit_gens_primepowercase(p, r):
                 (integer_mod.Mod(5, pr), integer.Integer(2**(r - 2)))]
 
     # odd prime
-    if r == 1:
-        return [_unit_gens_primecase(p)]
-    R = IntegerModRing(p**r)
-    x = R(_unit_gens_primecase(p)[0].lift())
-    n = p**(r-2) * (p - 1)
-    b = 0
-    while b < p:
-        z = x + R(b*p)
-        if z**n != R.one_element():
-            return [(z, integer.Integer(p**(r - 1) * (p - 1)))]
-        b += 1
-    assert False, "p={}, r={}, couldn't find generator".format(p, r)
+    return [(integer_mod.Mod(primitive_root(p**r, check=False), p**r),
+             integer.Integer(p**(r - 1) * (p - 1)))]
 
 
 class IntegerModRing_generic(quotient_ring.QuotientRing_generic):

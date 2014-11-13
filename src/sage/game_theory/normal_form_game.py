@@ -141,7 +141,7 @@ incentive to deviate.
 We can plot the utility of player 1 when player 2 is playing a mixed
 strategy `\sigma_2=(y,1-y)` (so that the utility to player 1 for
 playing strategy number `i` is given by the matrix/vector multiplication
-`(Ay)_i`, ie the `i`th element of the matrix/vector multiplication
+`(Ay)_i`, ie element in position `i` of the matrix/vector multiplication
 `Ay`) ::
 
     sage: y = var('y')

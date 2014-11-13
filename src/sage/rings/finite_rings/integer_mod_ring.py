@@ -1253,6 +1253,10 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         from sage.groups.abelian_gps.values import AbelianGroupWithValues
         if algorithm == 'sage':
             n = self.order()
+            # TODO: remove this special case, i.e. use the empty set
+            # to generate (ZZ/ZZ)^* (see Trac ticket 17337)
+            if n == 1:
+                return AbelianGroupWithValues([self.zero_element()], [1])
             gens = []
             orders = []
             for p, r in self.factored_order():

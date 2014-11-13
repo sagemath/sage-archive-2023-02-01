@@ -1902,18 +1902,18 @@ class Graphics(SageObject):
             ...
             ValueError: width and height must each be below 32768
 
-        The following test results in a segmentation fault and should not
-        be doctested.::
+        The following tests result in a segmentation fault and should not
+        be run or doctested::
 
             sage: p = ellipse((0,0),4,1)
-            sage: p.show(figsize=[232,232],dpi=100) # not tested
+            sage: #p.show(figsize=[232,232],dpi=100) # not tested
             Unhandled SIGSEGV: A segmentation fault occurred in Sage.
             This probably occurred because a *compiled* component of Sage
             has a bug in it and is not properly wrapped with sig_on(),
             sig_off(). You might want to run Sage under gdb with 'sage
             -gdb' to debug this.  Sage will now terminate.
 
-            sage: p.show(figsize=[327,181],dpi=100) # not tested
+            sage: #p.show(figsize=[327,181],dpi=100) # not tested
             Unhandled SIGSEGV: A segmentation fault occurred in Sage.
             This probably occurred because a *compiled* component of Sage
             has a bug in it and is not properly wrapped with sig_on(),
@@ -2448,6 +2448,7 @@ class Graphics(SageObject):
 
         if figsize is not None and not isinstance(figsize, (list, tuple)):
             # in this case, figsize is a number and should be positive
+            figsize = float(figsize) # to pass to mpl
             if figsize > 0:
                 default_width, default_height=rcParams['figure.figsize']
                 figsize=(figsize, default_height*figsize/default_width)
@@ -2456,6 +2457,7 @@ class Graphics(SageObject):
 
         if figsize is not None:
             # then the figsize should be two positive numbers
+            figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
             if not (figsize[0] > 0 and figsize[1] > 0):
                 raise ValueError("figsize should be positive numbers, not {0} and {1}".format(figsize[0],figsize[1]))
 

@@ -287,7 +287,7 @@ using the Mac app and have placed it in your Applications directory.
   However, you probably want to check whether it looks right first.  So
   next we will compile this file to html documentation.
 
-  * Following the instructions of ``sage --sws2rst --sphinxify``,
+  * Follow the instructions of ``sage --sws2rst --sphinxify``.  First,
     we will open a Sage shell session, where all appropriate Sage
     references already work properly::
 
@@ -305,7 +305,8 @@ using the Mac app and have placed it in your Applications directory.
     * Enter a name for you
     * Type ``y`` for the question about using MathJax
 
-    Now just do::
+    Keep note of the instructions; the main other thing to do is add
+    your file's name to ``index.rst``, and then just do::
 
         make html
 

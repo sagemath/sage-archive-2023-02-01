@@ -327,7 +327,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         ::
 
             sage: ModularForms(Gamma1(1),12).character()
-            Dirichlet character modulo 1 of conductor 1 mapping 
+            Dirichlet character modulo 1 of conductor 1
         """
         return self.__character
 

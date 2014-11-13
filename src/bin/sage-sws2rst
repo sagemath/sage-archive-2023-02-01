@@ -19,7 +19,8 @@ EXAMPLES::
     sage --sws2rst file.sws
 
 The sws file should be in the current directory; using an
-absolute path will result in an error.
+absolute or relative path to a different one will nonetheless
+be processed in the current directory.
 
 AUTHOR:
 
@@ -48,10 +49,7 @@ from optparse import OptionParser
 def process_sws(file_name):
 
     sws_file = tarfile.open(file_name, mode='r:bz2')
-    #TODO: python complains about using tempnam, but I don't
-    #know hot to fix it or see any danger
-#    tempname = os.tempnam('.')
-    tempname = os.path.join(tempfile.gettempdir(), file_name)
+    tempname = tempfile.mkdtemp()
     sws_file.extractall(tempname)
     base_name = os.path.split(os.path.splitext(file_name)[0])[1]
     base_name_clean = base_name.replace(' ','_')
@@ -125,7 +123,8 @@ Examples:
 Remark:
 
     The sws file(s) should be in the current directory; using an
-    absolute path will result in an error."""
+    absolute or relative path to a different directory will still
+    process in the current directory."""
 
 sphinxify_text = r"""
 
@@ -180,10 +179,4 @@ if len(args) < 1:
 
 for file_name in args:
     print "Processing "+file_name
-    try:
-        process_sws(file_name)
-    except Exception as e:
-        print "Unable to process file ('%s')" % file_name
-        print "Error message: %s" % e
-        print "Exiting."
-        sys.exit(1)
+    process_sws(file_name)

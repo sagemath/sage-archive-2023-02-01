@@ -545,7 +545,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         TESTS::
 
             sage: IntegerModRing(1).multiplicative_subgroups()
-            ((),)
+            ((0,),)
             sage: IntegerModRing(2).multiplicative_subgroups()
             ((),)
             sage: IntegerModRing(3).multiplicative_subgroups()

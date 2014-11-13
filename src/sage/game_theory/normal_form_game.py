@@ -140,7 +140,7 @@ incentive to deviate.
 
 We can plot the utility of player 1 when player 2 is playing a mixed
 strategy `\sigma_2=(y,1-y)` (so that the utility to player 1 for
-playing the `i`th strategy is given by the matrix/vector multiplication
+playing strategy number `i` is given by the matrix/vector multiplication
 `(Ay)_i`, ie the `i`th element of the matrix/vector multiplication
 `Ay`) ::
 
@@ -1131,7 +1131,7 @@ class NormalFormGame(SageObject, MutableMapping):
         [[(0, 0, 0, 20/21, 1/21), (11/12, 0, 0, 1/12, 0)]]
 
 
-        Another game that failed during development::
+        Another test::
 
         sage: p1 = matrix([[-7, -5, 5],
         ....:              [5, 5, 3],
@@ -1251,11 +1251,10 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: c._solve_enumeration()
             [[(0, 1), (1, 0)]]
 
-        Here is a test that failed during development because of error in
-        `check_NE`.  Note that 1 equilibrium is missing:
-        `[(2/3, 1/3), (0, 1)]` however this equilibrium has supports of
-        different sizes. This only occurs in degenerate games and is
-        not supported in the `enumeration` algorithm::
+        Testing against an error in `_is_NE`.  Note that 1 equilibrium is
+        missing: `[(2/3, 1/3), (0, 1)]` however this equilibrium has
+        supports of different sizes. This only occurs in degenerate games
+        and is not supported in the `enumeration` algorithm::
 
             sage: N = NormalFormGame([matrix(2,[0,-1,-2,-1]),matrix(2,[1,0,0,2])])
             sage: N._solve_enumeration()
@@ -1264,7 +1263,7 @@ class NormalFormGame(SageObject, MutableMapping):
         In this instance the `lrs` algorithm is able to find all three equilibria::
 
             sage: N = NormalFormGame([matrix(2,[0,-1,-2,-1]),matrix(2,[1,0,0,2])])
-            sage: N.obtain_nash(algorithm='lrs')  # optional t- lrs
+            sage: N.obtain_nash(algorithm='lrs')  # optional - lrs
             [[(0, 1), (0, 1)], [(2/3, 1/3), (0, 1)], [(1, 0), (1, 0)]]
 
         Here is another::
@@ -1479,6 +1478,16 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix(3, [-7, -5,  5, 5,  5,  3,  1, -6,  1])
             sage: B = matrix(3, [-9, 7, 9, 6, -2, -3, -4, 6, -10])
             sage: N = NormalFormGame([A, B])
+            sage: N._is_NE([1, 0, 0], [0, 0, 1], (0,), (2,), A, B)
+            True
+            sage: N._is_NE([0, 1, 0], [1, 0, 0], (1,), (0,), A, B)
+            True
+            sage: N._is_NE([0, 1, 0], [0, 1, 0], (1,), (1,), A, B)
+            False
+            sage: N._is_NE([0, 0, 1], [0, 1, 0], (2,), (1,), A, B)
+            False
+            sage: N._is_NE([0, 0, 1], [0, 0, 1], (2,), (2,), A, B)
+            False
         """
         # Check that supports are obeyed
         if not (all([a[i] > 0 for i in p1_support]) and

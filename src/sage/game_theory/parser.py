@@ -77,7 +77,7 @@ class Parser():
             end
             <BLANKLINE>
 
-        A game that gave errors during development::
+        Another test::
 
             sage: from sage.game_theory.parser import Parser
             sage: A = matrix([[-7, -5, 5],

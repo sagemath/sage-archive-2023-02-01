@@ -90,7 +90,7 @@ Sage también puede calcular autovalores ("eigenvalues") y autovectores
 (La sintaxis de la salida de ``eigenvectors_left`` es una lista de
 tuplas: (autovalor, autovector, multiplicidad).)  Los autovalores
 y autovectores sobre ``QQ`` o ``RR`` también se pueden calcular
-usando Maxima (ver :ref:`section-maxima` más abajo).
+usando Maxima.
 
 Como ya indicamos en :ref:`section-rings`, el anillo sobre el que se 
 define una matriz afecta algunas de sus propiedades. En las líneas que 
@@ -115,7 +115,7 @@ considere la matriz como una matriz de enteros (si el argumento es
 (El comando ``echelon_form`` devuelve una forma escalonada de la matriz)
 
 Espacios de matrices
--------------
+--------------------
 
 Creamos el espacio :math:`\text{Mat}_{3\times 3}(\QQ)` matrices 
 `3 \times 3` con coeficientes racionales::

@@ -1638,6 +1638,14 @@ cdef class gen(sage.structure.element.RingElement):
 
         - `n` (gen) -- a non-negative integer
 
+        OUTPUT:
+
+        0 if `n<0`, otherwise the Hurwitz-Kronecker class number of
+        `n`.  This is `0` if `n\equiv1,2\mod4`, `-1/12` when `n=0`,
+        and otherwise it is the number of classes of positive definite
+        binary quadratic forms with discriminant `-n`, each weighted
+        by the number of its automorphisms.
+
         .. note::
 
            If `n` is large (more than `5*10^5`), the result is
@@ -1645,10 +1653,11 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
 
-        The Hurwitx class number is 0 is n is congruent to 1 or 2 modulo 4::
-            sage: pari(-10007).qfbhclassno()
+        The Hurwitz class number is 0 if n is congruent to 1 or 2 modulo 4::
+
+            sage: pari(10009).qfbhclassno()
             0
-            sage: pari(-2).qfbhclassno()
+            sage: pari(2).qfbhclassno()
             0
 
         It is -1/12 for n=0::
@@ -1670,6 +1679,127 @@ cdef class gen(sage.structure.element.RingElement):
         """
         pari_catch_sig_on()
         return P.new_gen(hclassno(n.g))
+
+    def qfbclassno(gen d, long flag=0):
+        r"""
+        Computes the class number of the quadratic order of discriminant `d`.
+
+        INPUT:
+
+        - `d` (gen) -- a quadratic discriminant, which is an integer
+          congruent to `0` or `1`\mod4`, not a square.
+
+        - ``flag`` (long int) -- if 0 (default), uses Euler product
+          and the functional equation for `d>0` or Shanks's method for
+          `d<0`; if 1, uses Euler products and the functional equation
+          in both cases.
+
+        OUTPUT:
+
+        The class number of the quadratic order with discriminant `d`.
+
+        .. warning::
+
+           Using Euler products and the functional equation is
+           reliable but has complexity `O(|d|^{1/2})`.  Using Shanks's
+           method for `d<0` is `O(|d|^{1/4})` but this function may give
+           incorrect results when the class group has many cyclic
+           factors, because implementing Shanks's method in full
+           generality slows it down immensely. It is therefore
+           strongly recommended to double-check results using either
+           the version with ``flag`` = 1 or the function
+           ``quadclassunit``. The result is unconditionally correct
+           for `-d < 2e10`.
+
+        EXAMPLES::
+
+           sage: pari(-4).qfbclassno()
+           1
+           sage: pari(-23).qfbclassno()
+           3
+           sage: pari(-104).qfbclassno()
+           6
+
+           sage: pari(109).qfbclassno()
+           1
+           sage: pari(10001).qfbclassno()
+           16
+           sage: pari(10001).qfbclassno(flag=1)
+           16
+
+        TESTS:
+
+        The input must be congruent to `0` or `1\mod4` and not a square::
+
+           sage: pari(3).qfbclassno()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in classno2: disc % 4 > 1
+           sage: pari(4).qfbclassno()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in classno2: issquare(disc) = 1
+        """
+        pari_catch_sig_on()
+        return P.new_gen(qfbclassno0(d.g, flag))
+
+    def quadclassunit(gen d, long precision=0):
+        r"""
+        Returns the class group of a quadratic order of discriminant `d`.
+
+        INPUT:
+
+        - `d` (gen) -- a quadratic discriminant, which is an integer
+          congruent to `0` or `1`\mod4`, not a square.
+
+        OUTPUT:
+
+        (h,cyc,gen,reg) where:
+
+        - h is the class number
+        - cyc is the class group structure (list of invariants)
+        - gen is the class group generators (list of quadratic forms)
+        - reg is the regulator
+
+        ALGORITHM:
+
+        Buchmann-McCurley's sub-exponential algorithm
+
+        EXAMPLES::
+
+           sage: pari(-4).quadclassunit()
+           [1, [], [], 1]
+           sage: pari(-23).quadclassunit()
+           [3, [3], [Qfb(2, 1, 3)], 1]
+           sage: pari(-104).quadclassunit()
+           [6, [6], [Qfb(5, -4, 6)], 1]
+
+           sage: pari(109).quadclassunit()
+           [1, [], [], 5.56453508676047]
+           sage: pari(10001).quadclassunit() # random generators
+           [16, [16], [Qfb(10, 99, -5, 0.E-38)], 5.29834236561059]
+           sage: pari(10001).quadclassunit()[0]
+           16
+           sage: pari(10001).quadclassunit()[1]
+           [16]
+           sage: pari(10001).quadclassunit()[3]
+           5.29834236561059
+
+        TESTS:
+
+        The input must be congruent to `0` or `1\mod4` and not a square::
+
+           sage: pari(3).quadclassunit()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in Buchquad: disc % 4 > 1
+           sage: pari(4).quadclassunit()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in Buchquad: issquare(disc) = 1
+        """
+        pari_catch_sig_on()
+        return P.new_gen(quadclassunit0(d.g, 0, NULL, prec_bits_to_words(precision)))
 
     def ispseudoprime(gen self, long flag=0):
         """

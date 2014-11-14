@@ -48,3 +48,4 @@ much code written for S runs unaltered under R.
    Cygwin64.
  * 3.1 : Upstream now handles some of these issues. Some examples changed.
  * 3.1.1 : mostly bugfixes. No changes
+ * 3.1.2 : mostly bugfixes. No changes (again)

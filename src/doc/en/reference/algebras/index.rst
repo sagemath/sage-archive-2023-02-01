@@ -6,6 +6,8 @@ Algebras
 
    sage/algebras/clifford_algebra
 
+   sage/algebras/commutative_dga
+
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_element
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_ideal

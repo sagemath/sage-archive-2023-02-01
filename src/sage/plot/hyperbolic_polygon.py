@@ -4,9 +4,11 @@ Triangles in hyperbolic geometry
 AUTHORS:
 
 - Hartmut Monien (2011 - 08)
+- Vincent Delecroix (2014 - 11)
 """
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>,
+#                     2014 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -20,47 +22,49 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.bezier_path import BezierPath
-from sage.plot.colors import to_mpl_color
 from sage.plot.misc import options, rename_keyword
 from sage.rings.all import CC
 
-class HyperbolicTriangle(BezierPath):
+class HyperbolicPolygon(BezierPath):
     """
-    Primitive class for hyberbolic triangle type. See ``hyperbolic_triangle?``
-    for information about plotting a hyperbolic triangle in the complex plane.
+    Primitive class for hyberbolic polygon type.
+
+    See ``hyperbolic_polygon?`` for information about plotting a hyperbolic
+    polygon in the complex plane.
 
     INPUT:
 
-    - ``a,b,c`` - coordinates of the hyperbolic triangle in the upper
-      complex plane
+    - ``pts`` - coordinates of the polygon (as complex numbers)
 
     - ``options`` - dict of valid plot options to pass to constructor
 
     EXAMPLES:
 
-    Note that constructions should use ``hyperbolic_triangle``::
+    Note that constructions should use ``hyperbolic_polygon`` or
+    ``hyperbolic_triangle``::
 
-         sage: from sage.plot.hyperbolic_triangle import HyperbolicTriangle
-         sage: print HyperbolicTriangle(0, 1/2, I, {})
-         Hyperbolic triangle (0.000000000000000, 0.500000000000000, 1.00000000000000*I)
+         sage: from sage.plot.hyperbolic_polygon import HyperbolicPolygon
+         sage: print HyperbolicPolygon([0, 1/2, I], {})
+         Hyperbolic polygon (0.000000000000000, 0.500000000000000, 1.00000000000000*I)
     """
-    def __init__(self, A, B, C, options):
+    def __init__(self, pts, options):
         """
-        Initialize HyperbolicTriangle:
+        Initialize HyperbolicPolygon:
 
         Examples::
 
-            sage: from sage.plot.hyperbolic_triangle import HyperbolicTriangle
-            sage: print HyperbolicTriangle(0, 1/2, I, {})
-            Hyperbolic triangle (0.000000000000000, 0.500000000000000, 1.00000000000000*I)
+            sage: from sage.plot.hyperbolic_polygon import HyperbolicPolygon
+            sage: print HyperbolicPolygon([0, 1/2, I], {})
+            Hyperbolic polygon (0.000000000000000, 0.500000000000000, 1.00000000000000*I)
         """
-        A, B, C = (CC(A), CC(B), CC(C))
+        pts = map(CC, pts)
         self.path = []
-        self._hyperbolic_arc(A, B, True);
-        self._hyperbolic_arc(B, C);
-        self._hyperbolic_arc(C, A);
+        self._hyperbolic_arc(pts[0], pts[1], True)
+        for i in range(1,len(pts)-1):
+            self._hyperbolic_arc(pts[i],pts[i+1])
+        self._hyperbolic_arc(pts[-1],pts[0])
         BezierPath.__init__(self, self.path, options)
-        self.A, self.B, self.C = (A, B, C)
+        self._pts = pts
 
     def _repr_(self):
         """
@@ -68,11 +72,11 @@ class HyperbolicTriangle(BezierPath):
 
         TESTS::
 
-            sage: from sage.plot.hyperbolic_triangle import HyperbolicTriangle
-            sage: HyperbolicTriangle(0, 1/2, I,{})._repr_()
-            'Hyperbolic triangle (0.000000000000000, 0.500000000000000, 1.00000000000000*I)'
+            sage: from sage.plot.hyperbolic_polygon import HyperbolicPolygon
+            sage: HyperbolicPolygon([0, 1/2, I], {})._repr_()
+            'Hyperbolic polygon (0.000000000000000, 0.500000000000000, 1.00000000000000*I)'
         """
-        return "Hyperbolic triangle (%s, %s, %s)" % (self.A, self.B, self.C)
+        return "Hyperbolic polygon ({})".format(", ".join(map(str,self._pts)))
 
     def _hyperbolic_arc(self, z0, z3, first=False):
         """
@@ -109,13 +113,58 @@ class HyperbolicTriangle(BezierPath):
                               (z2.real(), z2.imag()),
                               (z3.real(), z3.imag())]);
 
+
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=False, thickness=1, rgbcolor="blue", zorder=2, linestyle='solid')
 
+def hyperbolic_polygon(pts, **options):
+    r"""
+    Return a hyperbolic polygon in the hyperbolic plane with vertices ``pts``.
+
+    Type ``?hyperbolic_polygon`` to see all options.
+
+    INPUT:
+
+    - ``pts`` -- a list or tuple of complex numbers
+
+    OPTIONS:
+
+    - ``alpha`` - default: 1
+
+    - ``fill`` - default: False
+
+    - ``thickness`` - default: 1
+
+    - ``rgbcolor`` - default: 'blue'
+
+    - ``linestyle`` - (default: ``'solid'``) The style of the line, which is
+      one of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``, or ``'--'``,
+      ``':'``, ``'-'``, ``'-.'``, respectively.
+
+    EXAMPLES:
+
+    Show a hyperbolic polygons with coordinates `-1`, `3i`, `2+2i`, `1+i`::
+
+        sage: hyperbolic_polygon([-1,3*I,2+2*I,1+I])
+        Graphics object consisting of 1 graphics primitive
+
+    With more options
+
+        sage: hyperbolic_polygon([-1,3*I,2+2*I,1+I], fill=True, color='red')
+        Graphics object consisting of 1 graphics primitive
+    """
+    from sage.plot.all import Graphics
+    g = Graphics()
+    g._set_extra_kwds(g._extract_kwds_for_show(options))
+    g.add_primitive(HyperbolicPolygon(pts, options))
+    g.set_aspect_ratio(1)
+    return g
+
 def hyperbolic_triangle(a, b, c, **options):
     """
-    Return a hyperbolic triangle in the complex hyperbolic plane with points
-    (a, b, c). Type ``?hyperbolic_triangle`` to see all options.
+    Return a hyperbolic triangle in the hyperbolic plane with vertices ``(a,b,c)``.
+
+    Type ``?hyperbolic_polygon`` to see all options.
 
     INPUT:
 
@@ -148,9 +197,4 @@ def hyperbolic_triangle(a, b, c, **options):
          sage: hyperbolic_triangle(0, 1, 2+i, fill=true, rgbcolor='red', linestyle='--')
          Graphics object consisting of 1 graphics primitive
     """
-    from sage.plot.all import Graphics
-    g = Graphics()
-    g._set_extra_kwds(g._extract_kwds_for_show(options))
-    g.add_primitive(HyperbolicTriangle(a, b, c, options))
-    g.set_aspect_ratio(1)
-    return g
+    return hyperbolic_polygon((a,b,c), **options)

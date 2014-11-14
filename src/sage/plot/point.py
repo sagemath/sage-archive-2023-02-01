@@ -302,6 +302,11 @@ def point(points, **kwds):
     For information regarding additional arguments, see either point2d?
     or point3d?.
 
+    .. NOTE::
+
+        If you want to use an iterator as input, you should rather use
+        either ``point2d`` or ``point3d`` instead.
+
     EXAMPLES::
 
         sage: point((1,2))

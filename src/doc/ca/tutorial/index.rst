@@ -822,7 +822,7 @@ També podem aconseguir una descomposició en fraccions parcials, per exemple de
 
     sage: f = 1/((1+x)*(x-1))
     sage: f.partial_fraction(x)
-    1/2/(x - 1) - 1/2/(x + 1)
+    -1/2/(x + 1) + 1/2/(x - 1)
 
 
 Gràfics
@@ -843,10 +843,12 @@ gràfiques del Sage a la documentació
 Per dibuixar un cercle groc de radi 1, centrat a l'origen, fem::
 
     sage: circle((0,0), 1, rgbcolor=(1,1,0))
+    Graphics object consisting of 1 graphics primitive
 
 I un cercle sòlid::
 
     sage: circle((0,0), 1, rgbcolor=(1,1,0), fill=True)
+    Graphics object consisting of 1 graphics primitive
 
 També podem assignar el cercle a una variable. Llavors no obtindrem cap dibuix::
 
@@ -879,6 +881,7 @@ Així obtenim el gràfic d'una funció bàsica:
 ::
 
     sage: plot(cos, (-5,5))
+    Graphics object consisting of 1 graphics primitive
 
 Si primer alliberem una variable, podem obtenir gràfics de funcions paramètriques:
 
@@ -886,6 +889,7 @@ Si primer alliberem una variable, podem obtenir gràfics de funcions paramètriq
 
     sage: x = var('x')
     sage: parametric_plot((cos(x),sin(x)^3),(x,0,2*pi),rgbcolor=hue(0.6))
+    Graphics object consisting of 1 graphics primitive
 
 
 Podem combinar diversos gràfics en una de sol:
@@ -908,6 +912,7 @@ a frontera. Per exemple, un deltoide verd:
     ....: 2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,3/4,1/2))
     sage: p
+    Graphics object consisting of 1 graphics primitive
 
 Si no volem veure els eixos, utilitzem ``show(p, axes=false)``.
 
@@ -931,6 +936,7 @@ construirem en Sage:
 
     sage: v = [(sin(x),x) for x in srange(-2*float(pi),2*float(pi),0.1)]
     sage: line(v)
+    Graphics object consisting of 1 graphics primitive
 
 Finalment, un exemple d'un gràfic de corbes de nivell:
 
@@ -938,6 +944,7 @@ Finalment, un exemple d'un gràfic de corbes de nivell:
 
     sage: f = lambda x,y: cos(x*y)
     sage: contour_plot(f, (-4, 4), (-4, 4))
+    Graphics object consisting of 1 graphics primitive
 
 Gràfics tridimensionals
 -------------------------
@@ -952,6 +959,7 @@ Per visualitzar una funció de la forma `f(x,y) = z` utilitzem ``plot3d``:
 
     sage: x, y = var('x,y')
     sage: plot3d(x^2 + y^2, (x,-2,2), (y,-2,2))
+    Graphics3d Object
 
 També podem utilitzar ``parametric_plot3d`` per visualitzar
 una superfície paramètrica on cadascuna de les coordenades `x, y, z`
@@ -966,6 +974,7 @@ paramètricament de la manera següent:
     sage: f_y(u, v) = v
     sage: f_z(u, v) = u^2 + v^2
     sage: parametric_plot3d([f_x, f_y, f_z], (u, -2, 2), (v, -2, 2))
+    Graphics3d Object
 
 Finalment, podem utilitzar ``implicit_plot3d``,
 per visualitzar les corbes de nivell d'una funció com `f(x, y, z)`. Aquesta
@@ -975,6 +984,7 @@ ordre visualitza una esfera utilitzant la fórmula clàssica:
 
     sage: x, y, z = var('x, y, z')
     sage: implicit_plot3d(x^2 + y^2 + z^2 - 4, (x,-2, 2), (y,-2, 2), (z,-2, 2))
+    Graphics3d Object
 
 Índexs i taules
 ===============

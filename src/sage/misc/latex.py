@@ -59,7 +59,7 @@ import random
 import subprocess
 import types
 
-from sage.misc.temporary_file import tmp_dir, graphics_filename
+from sage.misc.temporary_file import tmp_dir
 import sage_eval
 from sage.misc.sage_ostools import have_program
 from sage.misc.cachefunc import cached_function, cached_method
@@ -2177,6 +2177,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
             print(MathJax().eval(objects, mode=mode, combine_all=combine_all))
         else:
             base_dir = os.path.abspath("")
+            from sage.misc.temporary_file import graphics_filename
             png_file = graphics_filename()
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
@@ -2483,8 +2484,9 @@ def pretty_print_default(enable=True):
         sage: 'foo'
         'foo'
     """
-    import sys
-    sys.displayhook.formatter.set_display('typeset' if enable else 'simple')
+    from sage.repl.rich_output import get_display_manager
+    dm = get_display_manager()
+    dm.preferences.text = 'mathjax' if enable else None
 
 
 common_varnames = ['alpha',

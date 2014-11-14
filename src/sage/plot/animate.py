@@ -43,12 +43,14 @@ Animate using FFmpeg_ instead of ImageMagick::
 Animate as an APNG_::
 
     sage: a.apng()  # long time
+    doctest:...: DeprecationWarning: use tmp_filename instead
+    See http://trac.sagemath.org/17234 for details.
 
 An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
 
     sage: E = animate((graphics_array([[ellipse((0,0),a,b,angle=t,xmin=-3,xmax=3)+circle((0,0),3,color='blue') for a in range(1,3)] for b in range(2,4)]) for t in sxrange(0,pi/4,.15)))
-    sage: E         # animations produced from a generator do not have a known length
-    Animation with unknown number of frames
+    sage: str(E)    # animations produced from a generator do not have a known length
+    'Animation with unknown number of frames'
     sage: E.show()  # optional -- ImageMagick
 
 A simple animation of a circle shooting up to the right::
@@ -116,7 +118,7 @@ import struct
 import zlib
 
 from sage.structure.sage_object import SageObject
-from sage.misc.temporary_file import tmp_dir, graphics_filename
+from sage.misc.temporary_file import tmp_dir, tmp_filename, graphics_filename
 import plot
 import sage.misc.misc
 import sage.misc.viewer
@@ -203,8 +205,9 @@ class Animation(SageObject):
     Do not convert input iterator to a list, but ensure that
     the frame count is known after rendering the frames::
 
-        sage: a = animate((plot(x^p, (x,0,2)) for p in sxrange(1,2,.1))); a
-        Animation with unknown number of frames
+        sage: a = animate((plot(x^p, (x,0,2)) for p in sxrange(1,2,.1)))
+        sage: str(a)
+        'Animation with unknown number of frames'
         sage: a.png()    # long time
         '.../'
         sage: len(a)     # long time
@@ -618,19 +621,37 @@ the animate command can be saved in PNG image format.
 See www.imagemagick.org and www.ffmpeg.org for more information."""
                 raise OSError(msg)
 
+    def _rich_repr_(self, display_manager, **kwds):
+        """
+        Rich Output Magic Method
+
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: a = animate([plot(x^2 + n) for n in range(4)], ymin=0, ymax=4)
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: a._rich_repr_(dm)
+            OutputImageGif container
+        """
+        OutputImageGif = display_manager.types.OutputImageGif
+        if OutputImageGif not in display_manager.supported_output():
+            return
+        return display_manager.graphics_from_save(
+            self.save, kwds, '.gif', OutputImageGif)
+
     def show(self, delay=20, iterations=0):
         r"""
         Show this animation.
 
         INPUT:
 
-
         -  ``delay`` - (default: 20) delay in hundredths of a
            second between frames
 
         -  ``iterations`` - integer (default: 0); number of
            iterations of animation. If 0, loop forever.
-
 
         .. note::
 
@@ -667,11 +688,9 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
-        filename = graphics_filename(ext='.gif')
-        self.gif(savefile=filename, delay=delay, iterations=iterations)
-        if not (sage.doctest.DOCTEST_MODE or plot.EMBEDDED_MODE):
-            os.system('%s %s 2>/dev/null 1>/dev/null &'%(
-                sage.misc.viewer.browser(), filename))
+        from sage.repl.rich_output import get_display_manager
+        dm = get_display_manager()
+        dm.display_immediately(self, delay=delay, iterations=iterations)
 
     def _have_ffmpeg(self):
         """

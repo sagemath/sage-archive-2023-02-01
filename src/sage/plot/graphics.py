@@ -29,9 +29,8 @@ AUTHORS:
 import os
 import sage.misc.misc
 from sage.misc.html import html
-from sage.misc.temporary_file import tmp_filename, graphics_filename
+from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
-from sage.structure.graphics_file import GraphicsFile
 from sage.misc.decorators import suboptions
 from colors import rgbcolor
 
@@ -132,7 +131,7 @@ class Graphics(SageObject):
         sage: isinstance(g2, Graphics)
         True
 
-    .. automethod:: _graphics_
+    .. automethod:: _rich_repr_
     """
 
     def __init__(self):
@@ -822,55 +821,44 @@ class Graphics(SageObject):
         """
         return self.__str__()
 
-    def _graphics_(self, mime_types=None, figsize=None, dpi=None):
+    def _rich_repr_(self, display_manager, **kwds):
         """
-        Magic graphics method.
+        Rich Output Magic Method
 
-        The presence of this method is used by the displayhook to
-        decide that we want to see a graphical output by default.
-
-        INPUT:
-        
-        - ``mime_types`` -- set of mime types (as strings).
-
-        - ``figsize`` -- pair of integers (optional). The desired
-          graphics size in pixels. Suggested, but need not be
-          respected by the output.
-
-        - ``dpi`` -- integer (optional). The desired resolution in
-          dots per inch. Suggested, but need not be respected by the
-          output.
-
-        OUTPUT:
-
-        Return an instance of
-        :class:`sage.structure.graphics_file.GraphicsFile`
-        encapsulating a suitable image file. If ``mime_types`` is
-        specified, the resulting file format must match one of these.
-
-        Alternatively, this method can return ``None`` to indicate
-        that textual representation is preferable and/or no graphics
-        with the desired mime type can be generated.
+        See :mod:`sage.repl.rich_output` for details.
 
         EXAMPLES::
 
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
             sage: g = Graphics()
-            sage: g._graphics_()
-            Graphics file image/png
-
-            sage: [g, g]
-            [Graphics object consisting of 0 graphics primitives,
-             Graphics object consisting of 0 graphics primitives]
-
-            sage: g._graphics_(mime_types={'foo/bar'}) is None
-            True
+            sage: g._rich_repr_(dm)
+            OutputImagePng container
         """
-        from sage.structure.graphics_file import Mime, graphics_from_save
-        preference = [Mime.PNG, Mime.SVG, Mime.JPG, Mime.PDF]
-        return graphics_from_save(self.save, preference,
-                                  allowed_mime_types=mime_types, 
-                                  figsize=figsize, dpi=dpi)
-
+        types = display_manager.types
+        prefer_raster = (
+            ('.png', types.OutputImagePng),
+            ('.jpg', types.OutputImageJpg),
+            ('.gif', types.OutputImageGif),
+        )
+        prefer_vector = (
+            ('.svg', types.OutputImageSvg),
+            ('.pdf', types.OutputImagePdf),
+        )
+        graphics = display_manager.preferences.graphics
+        if graphics == 'disable':
+            return
+        elif graphics == 'raster' or graphics is None:
+            preferred = prefer_raster + prefer_vector
+        elif graphics == 'vector':
+            preferred = prefer_vector + prefer_raster
+        else:
+            raise ValueError('unknown graphics output preference')
+        for file_ext, output_container in preferred:
+            if output_container in display_manager.supported_output():
+                return display_manager.graphics_from_save(
+                    self.save, kwds, file_ext, output_container)
+    
     def __str__(self):
         r"""
         Return string representation of this plot.
@@ -1266,8 +1254,7 @@ class Graphics(SageObject):
     # NOTE: If you intend to use a new parameter in show(), you should update
     # this dictionary to contain the default value for that parameter.
 
-    SHOW_OPTIONS = dict(filename=None,
-                        # axes options
+    SHOW_OPTIONS = dict(# axes options
                         axes=None, axes_labels=None, axes_pad=None,
                         base=None, scale=None,
                         xmin=None, xmax=None, ymin=None, ymax=None,
@@ -1298,11 +1285,15 @@ class Graphics(SageObject):
                 shadow=False, title=None)
     def show(self, filename=None, linkmode=False, **kwds):
         r"""
-        Show this graphics image with the default image viewer.
+        Show this graphics image immediately.
+
+        This method attempts to display the graphics immediately,
+        without waiting for the currently running code (if any) to
+        return to the command line. Be careful, calling it from within
+        a loop will potentially launch a large number of external
+        viewer programs.
 
         OPTIONAL INPUT:
-
-        - ``filename`` - (default: None) string
 
         - ``dpi`` - (default: 100) dots per inch
 
@@ -1367,9 +1358,6 @@ class Graphics(SageObject):
           (default: None) a dictionary of MATPLOTLIB options for the
           rendering of the grid lines, the horizontal grid lines or the
           vertical grid lines, respectively.
-
-        - ``linkmode`` - (default: False) If True a string containing a link
-            to the produced file is returned.
 
         - ``transparent`` - (default: False) If True, make the background transparent.
 
@@ -1950,21 +1938,34 @@ class Graphics(SageObject):
             ...
             ValueError: figsize should be a positive number or a list of two positive numbers, not [2, 3, 4]
             sage: P.show(figsize=[sqrt(2),sqrt(3)])
+
+        TESTS::
+
+            sage: P = plot(x^2,(x,0,1))
+            sage: P.show(linkmode=True)
+            doctest:...: DeprecationWarning: the filename and linkmode arguments are deprecated, use save() to save
+            See http://trac.sagemath.org/17234 for details.
+            doctest:...: DeprecationWarning: use tmp_filename instead
+            See http://trac.sagemath.org/17234 for details.
+            "<img src='cell:///...png'>"
         """
-        if filename is None:
-            filename = graphics_filename()
-
-        self.save(filename, **kwds)
-
-        if sage.plot.plot.EMBEDDED_MODE:
+        if filename or linkmode:
+            from sage.misc.superseded import deprecation
+            deprecation(17234,'the filename and linkmode arguments are deprecated, '
+                        'use save() to save')
+            if filename is None:
+                from sage.misc.temporary_file import graphics_filename
+                filename = graphics_filename()
+            self.save(filename, **kwds)
             if linkmode:
                 return "<img src='cell://%s'>" % filename
             else:
                 html("<img src='cell://%s'>" % filename)
                 return
-
-        gfx = GraphicsFile(filename, mime_type='image/png')
-        gfx.launch_viewer()
+            
+        from sage.repl.rich_output import get_display_manager
+        dm = get_display_manager()
+        dm.display_immediately(self, **kwds)
 
     def xmin(self, xmin=None):
         """
@@ -2418,9 +2419,10 @@ class Graphics(SageObject):
         ``typeset`` must not be set to an arbitrary string::
 
             sage: plot(x, typeset='garbage')
-            doctest:...: FormatterWarning: Exception in text/plain formatter: 
-            typeset must be set to one of 'default', 'latex', or 'type1'; got 'garbage'.
-            None
+            doctest:...: RichReprWarning: Exception in _rich_repr_ while
+            displaying object: typeset must be set to one of 'default', 
+            'latex', or 'type1'; got 'garbage'.
+            Graphics object consisting of 1 graphics primitive
 
         We verify that numerical options are changed to float before saving (:trac:`14741`).
         By default, Sage 5.10 changes float objects to the `RealLiteral` type.
@@ -2948,9 +2950,8 @@ class Graphics(SageObject):
 
         INPUT:
 
-        - ``filename`` -- a string (default: autogenerated), the filename and
-          the image format given by the extension, which can be one of the
-          following:
+        - ``filename`` -- string. The filename and the image format
+          given by the extension, which can be one of the following:
 
             * ``.eps``,
 
@@ -3036,12 +3037,10 @@ class Graphics(SageObject):
         fig_tight = options.pop('fig_tight')
 
         if filename is None:
-            try:
-                filename = options.pop('filename')
-            except KeyError:
-                # Put this in except (not in pop()) such that the file is
-                # only created when needed.
-                filename = graphics_filename()
+            from sage.misc.superseded import deprecation
+            deprecation(17234,'the filename argument is now mandatory')
+            from sage.misc.temporary_file import graphics_filename
+            filename = graphics_filename()
         ext = os.path.splitext(filename)[1].lower()
 
         if ext not in ALLOWED_EXTENSIONS:
@@ -3113,7 +3112,7 @@ class GraphicsArray(SageObject):
     GraphicsArray takes a (`m` x `n`) list of lists of
     graphics objects and plots them all on one canvas.
 
-    .. automethod:: _graphics_
+    .. automethod:: _rich_repr_
     """
     def __init__(self, array):
         """
@@ -3186,26 +3185,43 @@ class GraphicsArray(SageObject):
         """
         return self.__str__()
 
-    def _graphics_(self, mime_types=None, figsize=None, dpi=None):
+    def _rich_repr_(self, display_manager, **kwds):
         """
-        Magic graphics method.
+        Rich Output Magic Method
 
-        See :meth:`sage.plot.graphics.Graphics._graphics_` for details.
+        See :mod:`sage.repl.rich_output` for details.
 
         EXAMPLES::
 
-            sage: from sage.plot.graphics import GraphicsArray
-            sage: g = GraphicsArray([])
-            sage: g._graphics_()
-            Graphics file image/png
-            sage: g._graphics_(mime_types={'foo/bar'}) is None
-            True
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: g = graphics_array([Graphics(), Graphics()], 1, 2)
+            sage: g._rich_repr_(dm)
+            OutputImagePng container
         """
-        from sage.structure.graphics_file import Mime, graphics_from_save
-        preference = [Mime.PNG, Mime.SVG, Mime.JPG, Mime.PDF]
-        return graphics_from_save(self.save, preference,
-                                  allowed_mime_types=mime_types, 
-                                  figsize=figsize, dpi=dpi)
+        types = display_manager.types
+        prefer_raster = (
+            ('.png', types.OutputImagePng),
+            ('.jpg', types.OutputImageJpg),
+            ('.gif', types.OutputImageGif),
+        )
+        prefer_vector = (
+            ('.svg', types.OutputImageSvg),
+            ('.pdf', types.OutputImagePdf),
+        )
+        graphics = display_manager.preferences.graphics
+        if graphics == 'disable':
+            return
+        elif graphics == 'raster' or graphics is None:
+            preferred = prefer_raster + prefer_vector
+        elif graphics == 'vector':
+            preferred = prefer_vector + prefer_raster
+        else:
+            raise ValueError('unknown graphics output preference')
+        for file_ext, output_container in preferred:
+            if output_container in display_manager.supported_output():
+                return display_manager.graphics_from_save(
+                    self.save, kwds, file_ext, output_container)
 
     def __str__(self):
         """
@@ -3362,17 +3378,6 @@ class GraphicsArray(SageObject):
         """
         return len(self._glist)
 
-# This does not work, and can never have worked!
-# To make this work, one would also change the
-# dimensions of the array, but it's not clear there
-# is a canonical way to do this.
-#
-#    def append(self, g):
-#        """
-#        Appends a graphic to the array.
-#        """
-#        self._glist.append(g)
-
     def append(self, g):
         """
         Appends a graphic to the array.  Currently
@@ -3387,20 +3392,32 @@ class GraphicsArray(SageObject):
             ...
             NotImplementedError: Appending to a graphics array is not yet implemented
         """
+        # Not clear if there is a way to do this
         raise NotImplementedError('Appending to a graphics array is not yet implemented')
-
 
     def save(self, filename=None, dpi=DEFAULT_DPI, figsize=None, axes=None,
              **kwds):
         r"""
-        Save the ``graphics_array`` to a png called ``filename``.
-
-        We loop over all graphics objects in the array and add them to
-        a subplot and then render that.
+        Save the graphics array.
 
         INPUT:
 
-        -  ``filename`` - (default: None) string
+        - ``filename`` -- string. The filename and the image format
+          given by the extension, which can be one of the following:
+
+            * ``.eps``,
+
+            * ``.pdf``,
+
+            * ``.png``,
+
+            * ``.ps``,
+
+            * ``.sobj`` (for a Sage object you can load later),
+
+            * ``.svg``,
+
+            * empty extension will be treated as ``.sobj``.
 
         -  ``dpi`` - dots per inch
 
@@ -3418,12 +3435,15 @@ class GraphicsArray(SageObject):
 
         TESTS::
 
-            sage: graphics_array([]).save()
-            sage: graphics_array([[]]).save()
+            sage: graphics_array([]).save(F)
+            sage: graphics_array([[]]).save(F)
         """
         if figsize is not None:
             self._set_figsize_(figsize)
         if filename is None:
+            from sage.misc.superseded import deprecation
+            deprecation(17234,'the filename argument is now mandatory')
+            from sage.misc.temporary_file import graphics_filename
             filename = graphics_filename()
 
         #glist is a list of Graphics objects:
@@ -3444,7 +3464,7 @@ class GraphicsArray(SageObject):
             g.matplotlib(filename, figure=figure, sub=subplot,
                          verify=do_verify, axes = axes, **kwds)
         g.save(filename, dpi=dpi, figure=figure, sub=subplot,
-               verify=do_verify, axes = axes, **kwds)
+               verify=do_verify, axes=axes, **kwds)
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
@@ -3464,19 +3484,21 @@ class GraphicsArray(SageObject):
 
             sage: plots = [[plot(m*cos(x + n*pi/4), (x,0, 2*pi)) for n in range(3)] for m in range(1,3)]
             sage: G = graphics_array(plots)
-            sage: G.save_image(tmp_filename()+'.png')
+            sage: G.save_image(tmp_filename(ext='.png'))
         """
         self.save(filename, *args, **kwds)
 
-
-    def show(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
-             axes=None, **kwds):
+    def show(self, **kwds):
         r"""
-        Show this graphics array using the default viewer.
+        Show this graphics array immediately.
+
+        This method attempts to display the graphics immediately,
+        without waiting for the currently running code (if any) to
+        return to the command line. Be careful, calling it from within
+        a loop will potentially launch a large number of external
+        viewer programs.
 
         OPTIONAL INPUT:
-
-        -  ``filename`` - (default: None) string
 
         -  ``dpi`` - dots per inch
 
@@ -3499,8 +3521,6 @@ class GraphicsArray(SageObject):
             sage: G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
             sage: G.show(axes=False)
         """
-        if filename is None:
-            filename = graphics_filename()
-        self.save(filename, dpi=dpi, figsize=figsize, axes=axes, **kwds)
-        gfx = GraphicsFile(filename, mime_type='image/png')
-        gfx.launch_viewer()
+        from sage.repl.rich_output import get_display_manager
+        dm = get_display_manager()
+        dm.display_immediately(self, **kwds)

@@ -65,6 +65,7 @@ manager activated by the magic function: ``%display ascii_art``::
           ]
     ***** ]
     sage: shell.run_cell('%display simple')
+    sage: shell.quit()
 
 ::
 

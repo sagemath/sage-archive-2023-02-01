@@ -1428,19 +1428,20 @@ class SageInputExpression(object):
         """
         return SIE_getattr(self._sie_builder, self, attr)
 
-    def _graphics_(self, **kwds):
+    def _rich_repr_(self, display_manager, **kwds):
         """
-        Disable graphical output.
+        Disable rich output.
 
         This is necessary because otherwise our :meth:`__getattr__`
         would be called.
 
         EXAMPLES::
 
+            sage: from sage.repl.rich_output import get_display_manager
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib.name('x')
-            sage: sie._graphics_() is None
+            sage: sie._rich_repr_(get_display_manager()) is None
             True
         """
         return None

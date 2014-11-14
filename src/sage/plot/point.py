@@ -29,6 +29,8 @@ TESTS::
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 from sage.plot.primitive import GraphicPrimitive_xydata
+import collections
+
 
 # TODO: create _allowed_options for 3D point classes to
 # improve bad option handling in plot3d?
@@ -332,7 +334,18 @@ def point(points, **kwds):
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)
         Graphics object consisting of 1 graphics primitive
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)]).show(frame=True) # These are equivalent
+
+    One can not use iterators (:trac:`13890`)::
+
+        sage: point(iter([(1,1,1)]))
+        Traceback (most recent call last):
+        ...
+        TypeError: for iterators, please use instead point2d or point3d
     """
+    if isinstance(points, collections.Iterator):
+        raise TypeError('for iterators, please use instead '
+                        'point2d or point3d')
+
     try:
         return point2d(points, **kwds)
     except (ValueError, TypeError):

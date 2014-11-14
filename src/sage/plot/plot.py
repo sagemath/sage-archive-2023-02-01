@@ -565,7 +565,7 @@ def xydata_from_point_list(points):
         ([0.0, 1.0], [0.0, 0.0])
 
     This function should work for anything than can be turned into a
-    list, such as iterators and such (see ticket #10478)::
+    list, such as iterators and such (see :trac:`10478`)::
 
         sage: xydata_from_point_list(iter([(0,0), (sqrt(3), 2)]))
         ([0.0, 1.7320508075688772], [0.0, 2.0])

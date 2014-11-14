@@ -267,11 +267,27 @@ class MatchingGame(SageObject):
             sage: g = MatchingGame(3)
             sage: TestSuite(g).run()
 
-        ::
-
             sage: g2 = MatchingGame(QQ(3))
             sage: g == g2
             True
+
+        The above shows that the input can be either two  dictionaries
+        or an integer::
+
+            sage: g = MatchingGame(suit, 3)
+            Traceback (most recent call last):
+            ...
+            TypeError: generator must be an integer or a pair of 2 dictionaries
+
+            sage: g = MatchingGame(matrix(2, [1, 2, 3, 4]))
+            Traceback (most recent call last):
+            ...
+            TypeError: generator must be an integer or a pair of 2 dictionaries
+
+            sage: g = MatchingGame('1,2,3', 'A,B,C')
+            Traceback (most recent call last):
+            ...
+            TypeError: generator must be an integer or a pair of 2 dictionaries
         """
         self._suitors = []
         self._reviewers = []

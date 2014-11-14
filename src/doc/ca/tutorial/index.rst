@@ -121,7 +121,7 @@ Cal tenir en compte que la indentació determina l'inici i fi dels blocs i que, 
 
 .. skip
 
- ::
+::
 
     sage: if condicio1:
     ....:     bloc1
@@ -306,6 +306,8 @@ per la que s'hagi de fer
 una sèrie d'operacions és::
 
 .. skip
+
+::
 
     def f(x1, x2, ..., xn):
         ...
@@ -699,11 +701,11 @@ Per trobar les solucions d'un sistema lineal `x m=v` on
 mentre que per resoldre el sistema `x m=v` tenim
 ``m.solve_right()``. ::
 
-    sage: m=matrix(Integers(),[[0,1],[2,0]])
+    sage: m = matrix(Integers(),[[0,1],[2,0]])
     sage: m
     [0 1]
     [2 0]
-    sage: v=vector(Integers(),[2,2])
+    sage: v = vector(Integers(),[2,2])
     sage: v
     (2, 2)
     sage: m.solve_left(v)

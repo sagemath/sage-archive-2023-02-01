@@ -16,7 +16,7 @@ sys.path.append(os.environ['SAGE_DOC'])
 from common.conf import *
 
 # General information about the project.
-project = u"Tutorial de Sage"
+project = u"Introducció de Sage"
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -28,6 +28,6 @@ htmlhelp_basename = 'TutorialdeSage'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', 'TutorialdeSage.tex', u'Tutorial de Sage',
+  ('index', 'TutorialdeSage.tex', u'Introducció de Sage',
    u'The Sage Development Team', 'manual'),
 ]

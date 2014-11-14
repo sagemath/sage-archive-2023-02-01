@@ -2,12 +2,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-==============================
-Benvinguts al tutorial de Sage
-==============================
+=================================
+Benvinguts al introducció de Sage
+=================================
 
 Sage és un programari matemàtic gratuït i de codi obert que dóna suport a la recerca i l'ensenyament en àlgebra, geometria, teoria de nombres, criptografia,
-càlcul numèric, i àrees relacionades. Tant el model de desenvolupament de Sage com la tecnologia pròpia de Sage es distingeixen per un èmfasi extremadament fort en el fet de ser lliure, en la comunitat, la cooperació i la col·laboració: estem construint el cotxe, no pas reinventant  la roda. L'objectiu global de Sage és el de crear una alternativa viable, lliure, i de codi obert als paquets de Maple, Mathematica, Magma, i MATLAB.
+càlcul numèric, i àrees relacionades. Tant el model de desenvolupament de Sage com la tecnologia pròpia de Sage es distingeixen per un èmfasi extremadament fort en el fet de ser lliure, en la comunitat, la cooperació i la col.laboració: estem construint el cotxe, no pas reinventant  la roda. L'objectiu global de Sage és el de crear una alternativa viable, lliure, i de codi obert als paquets de Maple, Mathematica, Magma, i MATLAB.
 
 Aquest tutorial és una introducció al Sage basada en un manual escrit per Maria Bras-Amorós. Es pot llegir bé sigui en HTML o en PDF.
 
@@ -185,7 +185,7 @@ Conjunts i seqüències
 ---------------------
 
 Tant els conjunts (``set``) com les seqüències (``list``)
-són col·leccions d'objectes.
+són col.leccions d'objectes.
 Un conjunt no és ordenat, per tant, un element pot ser en un
 conjunt com a molt una vegada.
 Una seqüència, en canvi,
@@ -303,7 +303,7 @@ Funcions
 La declaració general d'una funció
 de `n` arguments
 per la que s'hagi de fer 
-una sèrie d'operacions és::
+una sèrie d'operacions és:
 
 .. skip
 
@@ -439,7 +439,7 @@ Booleans
 - ``is_field()`` determina si un conjunt és un cos.
 - ``is_unit()`` determina si un element és invertible.
 
-L'exemple que segueix pot ser il·lustratiu::
+L'exemple que segueix pot ser il.lustratiu::
 
     sage: is_prime(19)
     True
@@ -491,8 +491,11 @@ repetim els primers exemples::
     [[x == 5, y == 1]]
     sage: solve([x^2 + y^2 == 1, y^2 == x^3 + x + 1], x, y)
     [[x == -1/2*I*sqrt(3) - 1/2, y == -sqrt(-1/2*I*sqrt(3) + 3/2)], [x == -1/2*I*sqrt(3) - 1/2, y == sqrt(-1/2*I*sqrt(3) + 3/2)], [x == 1/2*I*sqrt(3) - 1/2, y == -sqrt(1/2*I*sqrt(3) + 3/2)], [x == 1/2*I*sqrt(3) - 1/2, y == sqrt(1/2*I*sqrt(3) + 3/2)], [x == 0, y == -1], [x == 0, y == 1]]
-    sage: solutions = solve([sqrt(x) + sqrt(y) == 5, x + y == 10], x, y,solution_dict = True); solutions
-    [{x: -5/2*I*sqrt(5) + 5, y: 5/2*I*sqrt(5) + 5}, {x: 5/2*I*sqrt(5) + 5, y: -5/2*I*sqrt(5) + 5}]
+    sage: solutions = solve([sqrt(x) + sqrt(y) == 5, x + y == 10], x, y,solution_dict = True)
+    sage: len(solutions)
+    2
+    sage: type(solutions[0])
+    <type 'dict'>
     sage: for sol in solutions: print sol[x].n(digits=3), ",", sol[y].n(digits=3)
     5.00 - 5.59*I , 5.00 + 5.59*I
     5.00 + 5.59*I , 5.00 - 5.59*I
@@ -578,7 +581,7 @@ o bé:
 
 Queda així definida també `a` com la classe de la indeterminada dels polinomis sobre :math:`F = \mathbb{Z}/p\mathbb{Z}` tal que :math:`K = F[x]/(f(x))`. Només podem obviar la variable `a` quan `n=1`.
 
-També podem definir cossos finits forçant un determinat polinomi `f` de l'anell de polinomis sobre :math:`\mathbb{Z}/p\mathbb{Z}` i de grau `n` utilitzant::
+També podem definir cossos finits forçant un determinat polinomi `f` de l'anell de polinomis sobre :math:`\mathbb{Z}/p\mathbb{Z}` i de grau `n` utilitzant:
 
 .. skip
 
@@ -991,7 +994,7 @@ ordre visualitza una esfera utilitzant la fórmula clàssica:
 Índexs i taules
 ===============
 
-..  [Jmol] Jmol: un visualitzador d'estructures químiques en 3D, de codi obert i escrit en Java.  http://www.jmol.org/.
+..  [Jmol] Jmol: un visualitzador d'estructures químiques en 3D, de codi obert i escrit en Java i Javascript.  http://www.jmol.org/.
 
 * :ref:`genindex`
 * :ref:`search`

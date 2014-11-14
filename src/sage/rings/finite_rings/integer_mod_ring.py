@@ -181,7 +181,7 @@ class IntegerModFactory(UniqueFactory):
         Traceback (most recent call last):
         ...
         ValueError: THIS SAGE SESSION MIGHT BE SERIOUSLY COMPROMISED!
-        The order 21 is not prime, but this ring has been put
+        The order 15 is not prime, but this ring has been put
         into the category of fields. This may already have consequences
         in other parts of Sage. Either it was a mistake of the user,
         or a probabilitstic primality test has failed.
@@ -271,7 +271,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     INPUT:
 
-    - ``order`` -- an integer 1
+    - ``order`` -- an integer
 
     - ``category`` -- a subcategory of ``CommutativeRings()`` (the default)
 
@@ -711,11 +711,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         else:
             if self.category().is_subcategory(Fields()):
                 raise ValueError("""THIS SAGE SESSION MIGHT BE SERIOUSLY COMPROMISED!
-The order 21 is not prime, but this ring has been put
+The order {} is not prime, but this ring has been put
 into the category of fields. This may already have consequences
 in other parts of Sage. Either it was a mistake of the user,
 or a probabilitstic primality test has failed.
-In the latter case, please inform the developers.""")
+In the latter case, please inform the developers.""".format(self.order()))
         return is_prime
 
     @cached_method

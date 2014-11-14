@@ -63,7 +63,7 @@ cdef class StaticSparseCGraph(CGraph):
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
         """
-        cdef int i, tmp
+        cdef int i, j, tmp
         has_labels = any(not l is None for _,_,l in G.edge_iterator())
         self._directed = G.is_directed()
 
@@ -927,6 +927,8 @@ class StaticSparseBackend(CGraphBackend):
 
             sage: Graph({0:[0]},immutable=True).degree(0)
             2
+            sage: Graph({0:[0],1:[0,1,1,1]},immutable=True).degree(1)
+            7
         """
         try:
             v = self._vertex_to_int[v]

@@ -208,12 +208,44 @@ class MatchingGame(SageObject):
         ....:         4: (1, 0)}
         sage: g = MatchingGame([suit, revr])
 
-    Can create a game from an integer which then requires
-    a bespoke creation of preferences::
+    Can create a game from an integer. This gives default set of preference
+    functions::
 
         sage: g = MatchingGame(3)
         sage: g
         A matching game with 3 suitors and 3 reviewers
+
+     We have an empty set of preferences for a default named set of
+     preferences::
+
+        sage: for s in g.suitors():
+        ....:     s, s.pref
+        (1, [])
+        (2, [])
+        (3, [])
+        sage: for r in g.reviewers():
+        ....:     r, r.pref
+        (-1, [])
+        (-2, [])
+        (-3, [])
+
+     Before trying to solve such a game the algorithm will check if it is
+     complete or not::
+
+        sage: g.solve()
+        Traceback (most recent call last):
+        ...
+        ValueError: suitor preferences are not complete
+
+    To be able to obtain the stable matching we must input the preferences:
+
+        sage: for s in g.suitors():
+        ....:   s.pref = (-1, -2, -3)
+        sage: for r in g.reviewers():
+        ....:   r.pref = (1, 2, 3)
+        sage: g.solve()
+        {1: -1, 2: -2, 3: -3}
+
 
     REFERENCES:
 

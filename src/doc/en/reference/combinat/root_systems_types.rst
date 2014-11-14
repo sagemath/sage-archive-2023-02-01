@@ -6,6 +6,7 @@ Root System Types
 
    ../sage/combinat/root_system/type_affine
    ../sage/combinat/root_system/type_dual
+   ../sage/combinat/root_system/type_marked
    ../sage/combinat/root_system/type_reducible
    ../sage/combinat/root_system/type_relabel
    ../sage/combinat/root_system/type_A

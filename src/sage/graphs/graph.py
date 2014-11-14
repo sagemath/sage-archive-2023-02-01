@@ -4849,6 +4849,11 @@ class Graph(GenericGraph):
 
             sage: Graph([[1, 2]], immutable=True).to_directed()._backend
             <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+
+        :trac:`17005`::
+
+            sage: Graph([[1,2]], immutable=True).to_directed()
+            Digraph on 2 vertices
         """
         if sparse is not None:
             if data_structure is not None:
@@ -4866,12 +4871,14 @@ class Graph(GenericGraph):
             else:
                 data_structure = "static_sparse"
         from sage.graphs.all import DiGraph
-        D = DiGraph(name=self.name(),
-                    pos=self._pos,
-                    boundary=self._boundary,
-                    multiedges=self.allows_multiple_edges(),
-                    implementation=implementation,
-                    data_structure=data_structure if data_structure!="static_sparse" else "sparse")
+        D = DiGraph(name           = self.name(),
+                    pos            = self._pos,
+                    boundary       = self._boundary,
+                    multiedges     = self.allows_multiple_edges(),
+                    loops          = self.allows_loops(),
+                    implementation = implementation,
+                    data_structure = (data_structure if data_structure!="static_sparse"
+                                      else "sparse")) # we need a mutable copy
 
         D.add_vertices(self.vertex_iterator())
         for u,v,l in self.edge_iterator():
@@ -4883,7 +4890,7 @@ class Graph(GenericGraph):
         D._weighted = self._weighted
 
         if data_structure == "static_sparse":
-            D=D.copy(data_structure=data_structure)
+            D = D.copy(data_structure=data_structure)
 
         return D
 
@@ -4897,8 +4904,7 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().to_undirected()
             Petersen graph: Graph on 10 vertices
         """
-        from copy import copy
-        return copy(self)
+        return self.copy()
 
     def join(self, other, verbose_relabel=True):
         """

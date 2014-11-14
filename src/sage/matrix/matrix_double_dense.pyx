@@ -3878,7 +3878,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: a=matrix([[1, 1e-4r, 1+1e-100jr], [1e-8+3j, 0, 1e-58r]])
+            sage: a = matrix(CDF, [[1, 1e-4r, 1+1e-100jr], [1e-8+3j, 0, 1e-58r]])
             sage: a
             [           1.0         0.0001 1.0 + 1e-100*I]
             [ 1e-08 + 3.0*I            0.0          1e-58]
@@ -3888,9 +3888,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: a.zero_at(1e-4)
             [  1.0   0.0   1.0]
             [3.0*I   0.0   0.0]
-
-
-
         """
         global numpy
         cdef Matrix_double_dense M

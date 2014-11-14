@@ -400,6 +400,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             -4.0 + 1.0*I
             sage: CDF.has_coerce_map_from(ComplexField(20))
             False
+            sage: CDF.has_coerce_map_from(complex)
+            True
         """
         from integer_ring import ZZ
         from rational_field import QQ
@@ -408,8 +410,13 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         from complex_field import ComplexField, ComplexField_class
         CC = ComplexField()
         from complex_number import CCtoCDF
-        if S in [int, float, ZZ, QQ, RDF, RLF] or isinstance(S, RealField_class) and S.prec() >= 53:
+        if S in [int, float, ZZ, QQ, RDF, RLF]:
             return FloatToCDF(S)
+        if isinstance(S, RealField_class):
+            if S.prec() >= 53:
+                return FloatToCDF(S)
+            else:
+                return None
         elif RR.has_coerce_map_from(S):
             return FloatToCDF(RR) * RR._internal_coerce_map_from(S)
         elif isinstance(S, ComplexField_class) and S.prec() >= 53:

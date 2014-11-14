@@ -4,7 +4,8 @@ r"""
 sage-sws2rst
 ============
 
-Translate a Sage worksheet file (.sws) into an rst file.
+Translate a Sage worksheet file (.sws) into an rst file. The result is
+saved in the current working directory.
 
 Usage::
 
@@ -18,22 +19,26 @@ EXAMPLES::
 
     sage --sws2rst file.sws
 
-The sws file should be in the current directory; using an
-absolute or relative path to a different one will nonetheless
-be processed in the current directory.
+AUTHORS:
 
-AUTHOR:
-
-    - Pablo Angulo (January 2011): Initial version
-    - Karl-Dieter Crisman (June 2012): Documentation
-      and minor refinements
+- Pablo Angulo (January 2011): Initial version
+- Karl-Dieter Crisman (June 2012): Documentation
+  and minor refinements
+- Karl-Dieter Crisman (November 2014): Correct use of temporary files,
+  see :trac:`17308`.
 """
-#############################################################################
+
+#*****************************************************************************
 #       Copyright (C) 2011 Pablo Angulo
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#       Copyright (C) 2012-2014 Karl-Dieter Crisman
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#############################################################################
+#*****************************************************************************
+
 import sys
 import tarfile
 import os
@@ -47,7 +52,6 @@ from optparse import OptionParser
 
 # function where everything happens
 def process_sws(file_name):
-
     sws_file = tarfile.open(file_name, mode='r:bz2')
     tempname = tempfile.mkdtemp()
     sws_file.extractall(tempname)
@@ -105,12 +109,13 @@ def process_sws(file_name):
 # Set the parser
 usage = r"""
 
-    sage -sws2rst [options]  <source sws file> ...
+    sage --sws2rst [options]  <source sws file> ...
 
 Translate a Sage worksheet file (.sws) into an reStructuredText
 (.rst) file.  At least one sws file argument is required; all sws
 files will be parsed and translated.  Spaces in the names of the
-worksheet will be converted to underscores.
+worksheet will be converted to underscores. The resulting files will
+be stored in the current working directory.
 
 Examples:
 
@@ -119,12 +124,7 @@ Examples:
     sage --sws2rst -h # this help message prints
     sage --sws2rst --sphinxify # information about how to use
                                # Sphinx to compile your rst file
-
-Remark:
-
-    The sws file(s) should be in the current directory; using an
-    absolute or relative path to a different directory will still
-    process in the current directory."""
+"""
 
 sphinxify_text = r"""
 

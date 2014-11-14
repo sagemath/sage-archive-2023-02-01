@@ -5314,7 +5314,6 @@ cdef class RegularMatroid(LinearMatroid):
         S = "Regular matroid of rank " + str(self.rank()) + " on " + str(self.size()) + " elements with " + str(self.bases_count()) + " bases"
         return S
 
-    x
     cpdef bases_count(self):
         """
         Count the number of bases.

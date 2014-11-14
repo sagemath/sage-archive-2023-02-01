@@ -67,6 +67,21 @@ class MatchingGame(SageObject):
         (M, K, J, L) & \text{ if } s=D.\\
         \end{cases}
 
+    INPUT:
+
+    Two potential inputs are accepted (see below to see the effect of each):
+
+    - ``reviewer/suitors_preferences`` -- a dictionary containing the
+    preferences of all players:
+
+     * key - each reviewer/suitors
+     * value - a tuple of suitors/reviewers
+
+    OR:
+
+    - ``integer`` -- an integer simply representing the number of reviewers
+    and suitors.
+
     To implement the above game in Sage::
 
         sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),

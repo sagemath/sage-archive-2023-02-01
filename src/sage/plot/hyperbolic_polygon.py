@@ -1,10 +1,10 @@
 """
-Triangles in hyperbolic geometry
+Polygons and triangles in hyperbolic geometry
 
 AUTHORS:
 
-- Hartmut Monien (2011 - 08)
-- Vincent Delecroix (2014 - 11)
+- Hartmut Monien (2011-08)
+- Vincent Delecroix (2014-11)
 """
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>,
@@ -25,6 +25,7 @@ from sage.plot.bezier_path import BezierPath
 from sage.plot.misc import options, rename_keyword
 from sage.rings.all import CC
 
+
 class HyperbolicPolygon(BezierPath):
     """
     Primitive class for hyberbolic polygon type.
@@ -34,14 +35,14 @@ class HyperbolicPolygon(BezierPath):
 
     INPUT:
 
-    - ``pts`` - coordinates of the polygon (as complex numbers)
+    - ``pts`` -- coordinates of the polygon (as complex numbers)
 
-    - ``options`` - dict of valid plot options to pass to constructor
+    - ``options`` -- dict of valid plot options to pass to constructor
 
     EXAMPLES:
 
-    Note that constructions should use ``hyperbolic_polygon`` or
-    ``hyperbolic_triangle``::
+    Note that constructions should use :func:`hyperbolic_polygon` or
+    :func:`hyperbolic_triangle`::
 
          sage: from sage.plot.hyperbolic_polygon import HyperbolicPolygon
          sage: print HyperbolicPolygon([0, 1/2, I], {})
@@ -49,9 +50,9 @@ class HyperbolicPolygon(BezierPath):
     """
     def __init__(self, pts, options):
         """
-        Initialize HyperbolicPolygon:
+        Initialize HyperbolicPolygon.
 
-        Examples::
+        EXAMPLES::
 
             sage: from sage.plot.hyperbolic_polygon import HyperbolicPolygon
             sage: print HyperbolicPolygon([0, 1/2, I], {})
@@ -60,15 +61,15 @@ class HyperbolicPolygon(BezierPath):
         pts = map(CC, pts)
         self.path = []
         self._hyperbolic_arc(pts[0], pts[1], True)
-        for i in range(1,len(pts)-1):
-            self._hyperbolic_arc(pts[i],pts[i+1])
-        self._hyperbolic_arc(pts[-1],pts[0])
+        for i in range(1, len(pts) - 1):
+            self._hyperbolic_arc(pts[i], pts[i + 1])
+        self._hyperbolic_arc(pts[-1], pts[0])
         BezierPath.__init__(self, self.path, options)
         self._pts = pts
 
     def _repr_(self):
         """
-        String representation of HyperbolicArc.
+        String representation of HyperbolicPolygon.
 
         TESTS::
 
@@ -76,7 +77,7 @@ class HyperbolicPolygon(BezierPath):
             sage: HyperbolicPolygon([0, 1/2, I], {})._repr_()
             'Hyperbolic polygon (0.000000000000000, 0.500000000000000, 1.00000000000000*I)'
         """
-        return "Hyperbolic polygon ({})".format(", ".join(map(str,self._pts)))
+        return "Hyperbolic polygon ({})".format(", ".join(map(str, self._pts)))
 
     def _hyperbolic_arc(self, z0, z3, first=False):
         """
@@ -85,7 +86,7 @@ class HyperbolicPolygon(BezierPath):
         hyperbolic plane.
         """
         if (z0-z3).real() == 0:
-            self.path.append([(z0.real(),z0.imag()), (z3.real(),z3.imag())])
+            self.path.append([(z0.real(), z0.imag()), (z3.real(), z3.imag())])
             return
         z0, z3 = (CC(z0), CC(z3))
         if z0.imag() == 0 and z3.imag() == 0:
@@ -106,17 +107,17 @@ class HyperbolicPolygon(BezierPath):
             self.path.append([(z0.real(), z0.imag()),
                               (z1.real(), z1.imag()),
                               (z2.real(), z2.imag()),
-                              (z3.real(), z3.imag())]);
+                              (z3.real(), z3.imag())])
             first = False
         else:
             self.path.append([(z1.real(), z1.imag()),
                               (z2.real(), z2.imag()),
-                              (z3.real(), z3.imag())]);
+                              (z3.real(), z3.imag())])
 
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, fill=False, thickness=1, rgbcolor="blue", zorder=2, linestyle='solid')
-
+@options(alpha=1, fill=False, thickness=1, rgbcolor="blue", zorder=2,
+         linestyle='solid')
 def hyperbolic_polygon(pts, **options):
     r"""
     Return a hyperbolic polygon in the hyperbolic plane with vertices ``pts``.
@@ -129,26 +130,26 @@ def hyperbolic_polygon(pts, **options):
 
     OPTIONS:
 
-    - ``alpha`` - default: 1
+    - ``alpha`` -- default: 1
 
-    - ``fill`` - default: False
+    - ``fill`` -- default: ``False``
 
-    - ``thickness`` - default: 1
+    - ``thickness`` -- default: 1
 
-    - ``rgbcolor`` - default: 'blue'
+    - ``rgbcolor`` -- default: ``'blue'``
 
-    - ``linestyle`` - (default: ``'solid'``) The style of the line, which is
+    - ``linestyle`` -- (default: ``'solid'``) The style of the line, which is
       one of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``, or ``'--'``,
       ``':'``, ``'-'``, ``'-.'``, respectively.
 
     EXAMPLES:
 
-    Show a hyperbolic polygons with coordinates `-1`, `3i`, `2+2i`, `1+i`::
+    Show a hyperbolic polygon with coordinates `-1`, `3i`, `2+2i`, `1+i`::
 
         sage: hyperbolic_polygon([-1,3*I,2+2*I,1+I])
         Graphics object consisting of 1 graphics primitive
 
-    With more options
+    With more options::
 
         sage: hyperbolic_polygon([-1,3*I,2+2*I,1+I], fill=True, color='red')
         Graphics object consisting of 1 graphics primitive
@@ -160,6 +161,7 @@ def hyperbolic_polygon(pts, **options):
     g.set_aspect_ratio(1)
     return g
 
+
 def hyperbolic_triangle(a, b, c, **options):
     """
     Return a hyperbolic triangle in the hyperbolic plane with vertices ``(a,b,c)``.
@@ -168,17 +170,17 @@ def hyperbolic_triangle(a, b, c, **options):
 
     INPUT:
 
-    - ``a, b, c`` - complex numbers in the upper half complex plane
+    - ``a, b, c`` -- complex numbers in the upper half complex plane
 
     OPTIONS:
 
-    - ``alpha`` - default: 1
+    - ``alpha`` -- default: 1
 
-    - ``fill`` - default: False
+    - ``fill`` -- default: ``False``
 
-    - ``thickness`` - default: 1
+    - ``thickness`` -- default: 1
 
-    - ``rgbcolor`` - default: 'blue'
+    - ``rgbcolor`` -- default: ``'blue'``
 
     - ``linestyle`` - (default: ``'solid'``) The style of the line, which is
       one of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``, or ``'--'``,
@@ -186,15 +188,15 @@ def hyperbolic_triangle(a, b, c, **options):
 
     EXAMPLES:
 
-    Show a hyperbolic triangle with coordinates 0, `1/2+i\sqrt{3}/2` and
+    Show a hyperbolic triangle with coordinates `0, 1/2+i\sqrt{3}/2` and
     `-1/2+i\sqrt{3}/2`::
 
          sage: hyperbolic_triangle(0, -1/2+I*sqrt(3)/2, 1/2+I*sqrt(3)/2)
          Graphics object consisting of 1 graphics primitive
 
-    A hyperbolic triangle with coordinates 0, 1 and 2+i and a dashed line::
+    A hyperbolic triangle with coordinates `0, 1` and `2+i` and a dashed line::
 
          sage: hyperbolic_triangle(0, 1, 2+i, fill=true, rgbcolor='red', linestyle='--')
          Graphics object consisting of 1 graphics primitive
     """
-    return hyperbolic_polygon((a,b,c), **options)
+    return hyperbolic_polygon((a, b, c), **options)

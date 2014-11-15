@@ -656,7 +656,7 @@ class Color(object):
         if isinstance(color, Color):
             color = color._rgb
         if isinstance(color, (list, tuple)) and len(color) == 3:
-            color = list(map(float, color))
+            color = map(float, color)
             return Color(rgbcolor([(1 - fraction) * a + fraction * b
                                    for a, b in zip(self._rgb, color)]))
         raise TypeError("%s must be a Color or float-convertible 3-tuple/list" % (color, ))
@@ -1264,7 +1264,7 @@ def float_to_html(r, g, b):
     from sage.rings.integer import Integer
     from math import floor
 
-    r, g, b = list(map(mod_one, (r, g, b)))
+    r, g, b = map(mod_one, (r, g, b))
     rr = Integer(int(floor(r * 255))).str(base = 16)
     gg = Integer(int(floor(g * 255))).str(base = 16)
     bb = Integer(int(floor(b * 255))).str(base = 16)

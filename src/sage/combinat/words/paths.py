@@ -424,7 +424,7 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
 
         #Construction of the steps
         from sage.structure.element import Vector
-        if all([isinstance(x, Vector) for x in steps]):
+        if all((isinstance(x, Vector) for x in steps)):
             vsteps = steps
         else:
             try:

@@ -3607,7 +3607,7 @@ class Graph(GenericGraph):
             b = bound
         else:
             try:
-                b = dict(zip(vertices,list(map(bound, vertices))))
+                b = dict(zip(vertices,map(bound, vertices)))
 
             except TypeError:
                 b = dict(zip(vertices, [bound]*n))
@@ -4215,7 +4215,7 @@ class Graph(GenericGraph):
             matching = g.matching()
 
             # If the maximum matching has weight at most 1, we are done !
-            if sum([x[2] for x in matching]) <= 1:
+            if sum((x[2] for x in matching)) <= 1:
                 break
 
             # Otherwise, we add a new constraint

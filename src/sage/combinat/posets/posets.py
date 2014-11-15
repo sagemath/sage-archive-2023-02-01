@@ -1896,7 +1896,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.compare_elements(1,2)
 
         """
-        i, j = list(map(self._element_to_vertex,(x,y)))
+        i, j = map(self._element_to_vertex,(x,y))
         if i == j:
             return 0
         elif self._hasse_diagram.is_less_than(i, j):
@@ -2536,7 +2536,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: sum([Q.mobius_function(Q(0),v) for v in Q])
             0
         """
-        i,j = list(map(self._element_to_vertex,(x,y)))
+        i,j = map(self._element_to_vertex,(x,y))
         return self._hasse_diagram.mobius_function(i,j)
 
     def mobius_function_matrix(self, ring = ZZ, sparse = False):

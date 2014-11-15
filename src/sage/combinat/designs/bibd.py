@@ -324,7 +324,7 @@ def steiner_triple_system(n):
         raise EmptySetError("Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6")
 
     from sage.sets.set import Set
-    sts = Set([Set(list(map(T,x))) for x in sts])
+    sts = Set([Set((T(y) for y in x)) for x in sts])
 
     return BalancedIncompleteBlockDesign(n, sts, name=name,check=False)
 

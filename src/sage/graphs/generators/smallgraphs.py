@@ -3471,7 +3471,7 @@ def McLaughlinGraph():
     from sage.sets.set import Set
 
     blocks = WittDesign(23).blocks()
-    blocks = list(map(Set, blocks))
+    blocks = map(Set, blocks)
     B = [b for b in blocks if 0 in b]
     C = [b for b in blocks if not 0 in b]
     g = Graph()

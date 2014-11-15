@@ -115,7 +115,7 @@ class SetPartitionsAk_k(SetPartitions_set):
             True
         """
         self.k = k
-        SetPartitions_set.__init__(self, frozenset(range(1,k+1) + [-1*x for x in range(1,k+1)]))
+        SetPartitions_set.__init__(self, frozenset(list(range(1,k+1)) + [-1*x for x in range(1,k+1)]))
 
     Element = SetPartitionsXkElement
 
@@ -139,7 +139,7 @@ class SetPartitionsAkhalf_k(SetPartitions_set):
             True
         """
         self.k = k
-        SetPartitions_set.__init__( self, frozenset(range(1,k+2) + [-1*x for x in range(1,k+1)]) )
+        SetPartitions_set.__init__( self, frozenset(list(range(1,k+2)) + [-1*x for x in range(1,k+1)]) )
 
     Element = SetPartitionsXkElement
 
@@ -747,7 +747,7 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
              {{1, 3}, {-3, -1}, {2, -2}, {4, -4}},
              {{1, 2}, {-3, -1}, {4, -4}, {3, -2}}]
         """
-        set = range(1,self.k+1) + [-1*x for x in range(1,self.k+1)]
+        set = list(range(1,self.k+1)) + [-1*x for x in range(1,self.k+1)]
         for sp in SetPartitions(set, [2]*(len(set)//2) ):
             yield self.element_class(self, Set(list(sp)) + Set([Set([self.k+1, -self.k -1])]))
 
@@ -1577,10 +1577,8 @@ def is_planar(sp):
         sage: pa.is_planar( pa.to_set_partition([[1,-1],[2,-2]]))
         True
     """
-    to_consider = list(map(list, sp))
-
     #Singletons don't affect planarity
-    to_consider = [x for x in to_consider if len(x) > 1]
+    to_consider = [x for x in map(list, sp) if len(x) > 1]
     n = len(to_consider)
 
     for i in range(n):
@@ -1796,7 +1794,7 @@ def to_set_partition(l,k=None):
         else:
             k = max( (max( map(abs, x) ) for x in l) )
 
-    to_be_added = Set( range(1, k+1) + [-1*x for x in range(1, k+1)] )
+    to_be_added = Set( list(range(1, k+1)) + [-1*x for x in range(1, k+1)] )
 
     sp = []
     for part in l:

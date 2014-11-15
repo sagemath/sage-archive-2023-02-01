@@ -382,7 +382,7 @@ def trigonometric_properties_triangle(
     # Returns an angle (in radians) when sides a and b
     # are adjacent and the side c is opposite to the angle
     def angle(a, b, c):
-        a,b,c = list(map(float,[a,b,c]))
+        a,b,c = map(float,[a,b,c])
         return acos((b**2 + c**2 - a**2)/(2.0*b*c))
 
     # Returns the area of a triangle when an angle alpha

@@ -349,7 +349,7 @@ class MatlabElement(ExpectElement):
         entries = matlab.strip_answer(matlab.eval("mat2str({0})".format(self.name())))
         entries = entries.strip()[1:-1].replace(';', ' ')
         entries = list(map(R, entries.split(' ')))
-        nrows, ncols = list(map(int, str(self.size()).strip().split()))
+        nrows, ncols = map(int, str(self.size()).strip().split())
         m = matrix(R, nrows, ncols, entries)
         return m
 

@@ -172,7 +172,7 @@ class FiniteMeetSemilattice(FinitePoset):
             0
 
         """
-        i, j = list(map(self._element_to_vertex,(x,y)))
+        i, j = map(self._element_to_vertex,(x,y))
         return self._vertex_to_element(self._hasse_diagram._meet[i,j])
 
 ####################################################################################
@@ -324,7 +324,7 @@ class FiniteJoinSemilattice(FinitePoset):
             3
 
         """
-        i, j = list(map(self._element_to_vertex,(x,y)))
+        i, j = map(self._element_to_vertex,(x,y))
         return self._vertex_to_element(self._hasse_diagram._join[i,j])
 
 ####################################################################################

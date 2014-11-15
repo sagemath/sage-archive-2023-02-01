@@ -4643,7 +4643,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.graphs.graph import Graph
         B, C = self.blocks_and_cut_vertices()
-        B = list(map(tuple, B))
+        B = map(tuple, B)
         G = Graph()
         for bloc in B:
             G.add_vertex(('B', bloc))
@@ -7435,7 +7435,7 @@ class GenericGraph(GenericGraph_pyx):
             edges = path_to_labelled_edges(path)
 
             # minimum capacity available on the whole path
-            epsilon = min([x[2] for x in edges])
+            epsilon = min((x[2] for x in edges))
 
             flow_intensity = flow_intensity + epsilon
 
@@ -18427,7 +18427,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         if g_has_multiple_edges:
 
             # Compute the multiplicity the label
-            multiplicity = lambda x : sum([y[1] for y in x])
+            multiplicity = lambda x : sum((y[1] for y in x))
 
             # Sort the edge according to their multiplicity
             edge_partition = sorted([[multiplicity(el),part] for el, part in sorted(edge_partition)])

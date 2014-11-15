@@ -202,7 +202,7 @@ class FourTi2(object):
         except IOError:
             return matrix(ZZ, 0, 0)
 
-        nrows, ncols = list(map(ZZ, lines.pop(0).strip().split()))
+        nrows, ncols = map(ZZ, lines.pop(0).strip().split())
         return matrix(ZZ, nrows, ncols,
                       [list(map(ZZ, line.strip().split())) for line in lines
                        if line.strip() != ""])

@@ -4063,7 +4063,7 @@ class SandpileDivisor(dict):
         mat_file.write(str(n)+' ')
         mat_file.write(str(n)+'\n')
         for r in L:
-            mat_file.write(join(list(map(str,r))))
+            mat_file.write(join(map(str,r)))
             mat_file.write('\n')
         mat_file.close()
         # relations file

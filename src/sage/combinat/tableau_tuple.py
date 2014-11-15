@@ -491,7 +491,7 @@ class TableauTuple(CombinatorialObject,Element):
                 if row == 0 and self[c] == []:
                     line += '     -'
                 elif row < len(self[c]):
-                    line += '   '+''.join(["%3s"%str(x) for x in self[c][row]])+'   '*(col_len[c]-len(self[c][row]))
+                    line += '   '+''.join(("%3s"%str(x) for x in self[c][row]))+'   '*(col_len[c]-len(self[c][row]))
                 else:
                     line += '   '+'   '*col_len[c]
             diag.append(line)

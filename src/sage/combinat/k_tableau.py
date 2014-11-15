@@ -2528,7 +2528,7 @@ class StrongTableau(ClonableList):
         """
         T = self.to_standard_list()
         size = Core([len(t) for t in T], self.k+1).length()
-        inner_size = Core([len(y) for y in map(lambda row: [x for x in row if x is None], T) if len(y)>0], self.k+1).length()
+        inner_size = Core([y for y in (len([x for x in row if x is None]) for row in T) if y > 0], self.k+1).length()
         if len(uniq([v for v in flatten(list(T)) if v in ZZ and v<0]))!=size-inner_size:
             return False # TT does not have exactly self.size() marked cells
         for i in range(len(T)):

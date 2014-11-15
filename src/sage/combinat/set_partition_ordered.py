@@ -146,7 +146,7 @@ class OrderedSetPartition(ClonableArray):
             sage: OrderedSetPartition([])
             []
         """
-        P = OrderedSetPartitions( reduce(lambda x,y: x.union(y), list(map(Set, parts)), Set([])) )
+        P = OrderedSetPartitions( reduce(lambda x,y: x.union(y), map(Set, parts), Set([])) )
         return P.element_class(P, parts)
 
     def __init__(self, parent, s):

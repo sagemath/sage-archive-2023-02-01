@@ -7055,9 +7055,9 @@ class FiniteStateMachine(SageObject):
                                        initial_states=new_initial_states)
 
         for state in F.states():
-            if all([s.is_final for s in state.label()]):
+            if all((s.is_final for s in state.label())):
                 state.is_final = True
-            state.color = tuple([s.color for s in state.label()])
+            state.color = tuple((s.color for s in state.label()))
 
         return F
 

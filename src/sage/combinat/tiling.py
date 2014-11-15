@@ -732,7 +732,7 @@ class Polyomino(SageObject):
         if not len(box) == self._dimension:
             raise ValueError("Dimension of input box must match the "
                              "dimension of the polyomino")
-        minxyz, maxxyz = list(map(vector, self.bounding_box()))
+        minxyz, maxxyz = map(vector, self.bounding_box())
         size = maxxyz - minxyz
         cano = self.canonical()
         for v in xmrange(vector(box) - vector(size), tuple):

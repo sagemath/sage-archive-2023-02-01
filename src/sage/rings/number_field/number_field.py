@@ -4192,7 +4192,7 @@ class NumberField_generic(number_field_base.NumberField):
             for r in f.polcompositum(g):
                 if not any(r.nfisisom(s) for s in C):
                     C.append(r)
-            C = list(map(R, C))
+            C = map(R, C)
 
             q = sum(1 for r in C if r.degree() != max(m, n))
             if q == 1 and name != sv and name != ov:
@@ -6955,7 +6955,7 @@ class NumberField_absolute(NumberField_generic):
             return NumberField_generic.order(self)
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
-        gens = list(map(self, gens))
+        gens = map(self, gens)
         return self._order(tuple(gens), **kwds)
 
     @cached_method

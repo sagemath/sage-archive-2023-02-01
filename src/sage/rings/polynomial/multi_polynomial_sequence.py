@@ -830,7 +830,7 @@ class PolynomialSequence_generic(Sequence_generic):
         if is_PolynomialSequence(right) and right.ring() == self.ring():
             return PolynomialSequence(self.ring(), self.parts() + right.parts())
 
-        elif isinstance(right,(tuple,list)) and all([x.parent() == self.ring() for x in right]):
+        elif isinstance(right,(tuple,list)) and all((x.parent() == self.ring() for x in right)):
             return PolynomialSequence(self.ring(), self.parts() + (right,))
 
         elif isinstance(right,MPolynomialIdeal) and (right.ring() is self.ring() or right.ring() == self.ring()):

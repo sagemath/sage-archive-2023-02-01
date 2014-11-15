@@ -232,7 +232,7 @@ def show_pentaminos(box=(5,8,2)):
 
     # hack to set the aspect ratio to 1
     a,b = G.bounding_box()
-    a,b = list(map(vector, (a,b)))
+    a,b = map(vector, (a,b))
     G.frame_aspect_ratio(tuple(b-a))
 
     return G
@@ -366,7 +366,7 @@ class QuantuminoState(SageObject):
 
         # hack to set the aspect ratio to 1
         a,b = G.bounding_box()
-        a,b = list(map(vector, (a,b)))
+        a,b = map(vector, (a,b))
         G.frame_aspect_ratio(tuple(b-a))
 
         return G

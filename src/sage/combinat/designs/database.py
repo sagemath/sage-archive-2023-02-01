@@ -3766,7 +3766,7 @@ def DM_60_6_1():
     onezero = G((1,0))
 
     for R in zip(*M60):
-        a,b,c,d,e,f = list(map(G,R))
+        a,b,c,d,e,f = map(G,R)
         M60b.append([a,b,c,d,e,f])
         M60b.append([c,a,b,e,f,d])
         M60b.append([b,c,a,f,d,e])

@@ -174,7 +174,7 @@ class PerfectMatching(ElementWrapper):
         if (isinstance(p, list) or isinstance(p, tuple)) and (
                 all([isinstance(x, list) or isinstance(x, tuple) for x in p])):
             objects = Set(flatten(p))
-            data = (list(map(tuple, p)))
+            data = list(map(tuple, p))
             #check if the data are correct
             if not all([len(t) == 2 for t in data]):
                 raise ValueError("%s is not a valid perfect matching:\n"
@@ -185,7 +185,7 @@ class PerfectMatching(ElementWrapper):
         # Second case: p is a permutation or a list of integers, we have to
         # check if it is a fix-point-free involution.
         elif ((isinstance(p, list) and
-               all([(isinstance(x, Integer) or isinstance(x, int)) for x in p]))
+               all(((isinstance(x, Integer) or isinstance(x, int)) for x in p)))
               or isinstance(p, Permutation)):
             p = Permutation(p)
             n = len(p)

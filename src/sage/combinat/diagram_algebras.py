@@ -1275,7 +1275,7 @@ def is_planar(sp):
                         if row is ap:
                             sr = Set(rng)
                         else:
-                            sr = Set([-1*x for x in rng])
+                            sr = Set((-1*x for x in rng))
 
                         sj = Set(to_consider[j])
                         intersection = sr.intersection(sj)
@@ -1428,7 +1428,7 @@ def to_set_partition(l, k=None):
         else:
             k = max( (max( map(abs, x) ) for x in l) )
 
-    to_be_added = Set( range(1, k+1) + [-1*x for x in range(1, k+1)] )
+    to_be_added = Set( list(range(1, k+1)) + [-1*x for x in range(1, k+1)] )
 
     sp = []
     for part in l:
@@ -1521,7 +1521,7 @@ def set_partition_composition(sp1, sp2):
             if len(cc) > 1:
                 total_removed += 1
         else:
-            res.append( Set([x[0] for x in new_cc]) )
+            res.append( Set((x[0] for x in new_cc)) )
 
     return (SetPartition(Set(res)), total_removed)
 

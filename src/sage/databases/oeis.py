@@ -1791,7 +1791,7 @@ class FancyTuple(tuple):
             4: 4
         """
         length = len(str(len(self)-1))
-        return '\n'.join([('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]) for i in range(len(self))])
+        return '\n'.join((('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]) for i in range(len(self))))
 
 oeis = OEIS()
 

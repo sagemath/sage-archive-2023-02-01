@@ -393,9 +393,9 @@ class Tableau(CombinatorialObject, Element):
             sage: Tableaux.global_options.reset()
         """
         if self.parent().global_options('convention') == "English":
-            return '\n'.join(["".join(["%3s"%str(x) for x in row]) for row in self])
+            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in self])
         else:
-            return '\n'.join(["".join(["%3s"%str(x) for x in row]) for row in reversed(self)])
+            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in reversed(self)])
 
     def _repr_compact(self):
         """

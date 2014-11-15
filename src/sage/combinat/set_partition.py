@@ -404,7 +404,7 @@ class SetPartition(ClonableArray):
             sage: S([[1,3],[2,4]])
             {{1, 3}, {2, 4}}
         """
-        return '{' + ', '.join(['{' + repr(sorted(x))[1:-1] + '}' for x in self]) + '}'
+        return '{' + ', '.join(('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + '}'
 
     def _latex_(self):
         r"""
@@ -560,7 +560,7 @@ class SetPartition(ClonableArray):
             sage: x.apply_permutation(q)
             {{1, 4, 5}, {2, 3}}
         """
-        return self.__class__(self.parent(), [Set(list(map(p, B))) for B in self])
+        return self.__class__(self.parent(), [Set(map(p, B)) for B in self])
 
     def is_noncrossing(self):
         r"""
@@ -842,7 +842,7 @@ class SetPartition(ClonableArray):
             [{}]
         """
         L = [SetPartitions(part) for part in self]
-        return [SetPartition(sum(list(map(list, x)), [])) for x in CartesianProduct(*L)]
+        return [SetPartition(sum(map(list, x), [])) for x in CartesianProduct(*L)]
 
     def coarsenings(self):
         """
@@ -1018,7 +1018,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         # Check that all parts are disjoint
-        base_set = reduce( lambda x,y: x.union(y), list(map(Set, x)), Set([]) )
+        base_set = reduce( lambda x,y: x.union(y), map(Set, x), Set([]) )
         if len(base_set) != sum(map(len, x)):
             return False
 

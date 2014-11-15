@@ -1522,7 +1522,7 @@ def isotopism(p):
     if isinstance(p, tuple):
         # We have a single cycle:
         if isinstance(p[0], Integer):
-            return Permutation(tuple([x+1 for x in p]))
+            return Permutation(tuple((x+1 for x in p)))
 
         # We have a tuple of cycles:
         if isinstance(p[0], tuple):
@@ -2320,7 +2320,7 @@ def group_to_LatinSquare(G):
     """
 
     if isinstance(G, GapElement):
-        rows = [list(x) for x in list(gap.MultiplicationTable(G))]
+        rows = (list(x) for x in list(gap.MultiplicationTable(G)))
         new_rows = []
 
         for x in rows:

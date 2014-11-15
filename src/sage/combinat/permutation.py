@@ -2455,7 +2455,7 @@ class Permutation(CombinatorialObject, Element):
         for d in descents:
             pp = p[:d] + [p[d+1], p[d]] + p[d+2:]
             z = lambda x: x + [d+1]
-            rws += (list(map(z, P(pp).reduced_words())))
+            rws += list(map(z, P(pp).reduced_words()))
 
         return rws
 
@@ -4675,7 +4675,7 @@ class Permutations(Parent, UniqueRepresentation):
                     return Permutations_nk(n,k)
             else:
                 #In this case, we have that n is a list
-                if list(map(n.index, n)) == range(len(n)):
+                if list(map(n.index, n)) == list(range(len(n))):
                     if k is None:
                         return Permutations_set(n)
                     else:
@@ -4922,7 +4922,7 @@ class Permutations_mset(Permutations):
         mset = self.mset
         n = len(self.mset)
         lmset = list(mset)
-        mset_list = sorted([lmset.index(x) for x in lmset])
+        mset_list = sorted((lmset.index(x) for x in lmset))
 
         yield self.element_class(self, [lmset[x] for x in mset_list])
 
@@ -5092,7 +5092,7 @@ class Permutations_set(Permutations):
         s = self._set
         n = len(s)
         lset = list(s)
-        set_list = sorted([lset.index(x) for x in lset])
+        set_list = sorted((lset.index(x) for x in lset))
 
         yield self.element_class(self, [lset[x] for x in set_list])
 
@@ -5376,7 +5376,7 @@ class Arrangements(Permutations):
             True
         """
         mset = tuple(mset)
-        if list(map(mset.index, mset)) == range(len(mset)):
+        if list(map(mset.index, mset)) == list(range(len(mset))):
             return Arrangements_setk(mset, k)
         return Arrangements_msetk(mset, k)
 
@@ -6786,7 +6786,7 @@ class CyclicPermutations(Permutations_mset):
             content = [1]*len(self.mset)
         else:
             content = [0]*len(self.mset)
-            index_list = list(map(self.mset.index, self.mset))
+            index_list = map(self.mset.index, self.mset)
             for i in index_list:
                 content[i] += 1
 

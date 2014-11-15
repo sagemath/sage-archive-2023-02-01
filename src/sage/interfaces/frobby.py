@@ -153,8 +153,8 @@ class Frobby:
         lines.pop(0)
         resul=0
         for l in lines:
-            lis=list(map(int,l.split()))
-            resul+=lis[0]+prod([ring.gen(i)**lis[i+1] for i in range(len(lis)-1)])
+            lis = list(map(int,l.split()))
+            resul += lis[0]+prod([ring.gen(i)**lis[i+1] for i in range(len(lis)-1)])
         return resul
 
     def associated_primes(self, monomial_ideal):
@@ -184,7 +184,7 @@ class Frobby:
         lines.pop(0)
         if lines[-1]=='':
             lines.pop(-1)
-        lists=[list(map(int,a.split())) for a in lines]
+        lists = [list(map(int,a.split())) for a in lines]
         def to_monomial(exps):
             return [v ** e for v, e in zip(monomial_ideal.ring().gens(), exps) if e != 0]
         return [monomial_ideal.ring().ideal(to_monomial(a)) for a in lists]

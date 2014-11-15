@@ -1333,6 +1333,12 @@ class GraphGenerators():
             sage: len(list(gen))  # optional plantri
             3
 
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: gen = graphs.planar_graphs(4, dual=True)  # optional plantri
+            sage: [len(u) for u in list(gen)]  # optional plantri
+            ?
+
         The cycle of length 4 is the only 2-connected bipartite planar graph
         on 4 vertices::
 
@@ -1541,6 +1547,11 @@ class GraphGenerators():
             5
             sage: len([g for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3, exact_connectivity=True)]) # optional plantri
             1
+
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: [len(g) for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3, dual=True)]  # optional plantri
+            [14, 14, 14, 14, 14]
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):
@@ -1690,6 +1701,11 @@ class GraphGenerators():
 
             sage: len([g for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True)])  # optional plantri
             2
+
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: [len(g) for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True, dual=True)]  # optional plantri
+            [10, 10]
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):

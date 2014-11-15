@@ -626,9 +626,26 @@ class MatchingGame(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: a suitor with name "D" already exists
+
+        If we add a suitor without passing a name then the name
+        of the suitor will not use one that is already chosen.
+
+            sage: suit = {0: (-1,  -2),
+            ....:         2: (-2, -2)}
+            sage: revr = {-1: (0, 1),
+            ....:         -2: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: g.suitors()
+            (0, 2)
+
+            sage: g.add_suitor()
+            sage: g.suitors()
+            (0, 2, 3)
         """
         if name is None:
             name = len(self._suitors) + 1
+            while name in self._suitors:
+                name += 1
         if any(s._name == name for s in self._suitors):
             raise ValueError('a suitor with name "{}" already exists'.format(name))
 
@@ -680,9 +697,26 @@ class MatchingGame(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: a reviewer with name "10" already exists
+
+        If we add a reviewer without passing a name then the name
+        of the reviewer will not use one that is already chosen.
+
+            sage: suit = {0: (-1,  -2),
+            ....:         1: (-2, -2)}
+            sage: revr = {-1: (0, 1),
+            ....:         -3: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: g.reviewers()
+            (-3, -1)
+
+            sage: g.add_reviewer()
+            sage: g.reviewers()
+            (-3, -1, -4)
         """
         if name is None:
             name = -len(self._reviewers) - 1
+            while name in self._reviewers:
+                name -= 1
         if any(r._name == name for r in self._reviewers):
             raise ValueError('a reviewer with name "{}" already exists'.format(name))
 

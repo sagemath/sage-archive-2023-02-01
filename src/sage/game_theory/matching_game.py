@@ -466,7 +466,7 @@ class MatchingGame(SageObject):
 
     def _is_solved(self):
         r"""
-        Raise an error if the game has been solved yet.
+        Raise an error if the game has not been solved yet.
 
         EXAMPLES::
 

@@ -382,6 +382,15 @@ class MatchingGame(SageObject):
             sage: g2 = MatchingGame([suit, revr])
             sage: g == g2
             True
+
+            sage: suit1 = {0: (3, 4), 1: (3, 4)}
+            sage: revr1 = {3: (0, 1), 4: (1, 0)}
+            sage: g1 = MatchingGame([suit1, revr1])
+            sage: suit2 = {0: (4, 3), 1: (3, 4)}
+            sage: revr1 = {3: (1, 0), 4: (1, 0)}
+            sage: g2 = MatchingGame([suit, revr])
+            sage: g == g2
+            False
         """
         return (isinstance(other, MatchingGame)
                 and set(self._suitors) == set(other._suitors)

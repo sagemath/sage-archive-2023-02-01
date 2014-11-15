@@ -340,7 +340,7 @@ class MatchingGame(SageObject):
             A matching game with 2 suitors and 2 reviewers
         """
         return 'A matching game with {} suitors and {} reviewers'.format(
-                    len(self._reviewers), len(self._suitors))
+                    len(self._suitors), len(self._reviewers))
 
     def _latex_(self):
         r"""

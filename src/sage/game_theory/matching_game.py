@@ -175,6 +175,75 @@ class MatchingGame(SageObject):
          9: -3,
         10: -2}
 
+    Note that we can also combine the two ways of creating a game. For example
+    here is an initial matching game::
+
+        sage: suitrs = {'Romeo': ('Juliet', 'Rosaline'),
+        ....:            'Mercutio': ('Juliet', 'Rosaline')}
+        sage: revwrs = {'Juliet': ('Romeo', 'Mercutio'),
+        ....:           'Rosaline': ('Mercutio', 'Romeo')}
+        sage: g = MatchingGame(suitrs, revwrs)
+
+    Let us assume that all of a sudden a new pair of suitors and reviewers is
+    added but their names are not known::
+
+        sage: g.add_reviewer()
+        sage: g.add_suitor()
+        sage: g.reviewers()
+        ('Rosaline', 'Juliet', -3)
+        sage: g.suitors()
+        ('Mercutio', 'Romeo', 3)
+
+    Note that when adding a reviewer or a suitor all preferences are wiped::
+
+        sage: for s in g.suitors():
+        ....:     print s, s.pref
+        'Mercutio' []
+        'Romeo' []
+        3 []
+        sage: for r in g.reviewers():
+        ....:     print r, r.pref
+        'Rosaline' []
+        'Juliet' []
+        -3 []
+
+    If we now try to solve the game we will get an error as we have not
+    specified the preferences which will need to be updated::
+
+        sage: g.solve()
+        Traceback (most recent call last):
+        ...
+        ValueError: suitor preferences are not complete
+
+    Here we update the preferences so that the new reviewers and suitors
+    don't affect things too much (they prefer each other and are the least
+    preferred of the others)::
+
+        sage: g.suitors()[0].pref = suitrs['Mercutio'] + (-3,)
+        sage: g.suitors()[1].pref = suitrs['Romeo'] + (-3,)
+        sage: g.suitors()[2].pref = (-3, 'Juliet', 'Rosaline')
+        sage: g.reviewers()[0].pref = revwrs['Rosaline'] + (3,)
+        sage: g.reviewers()[1].pref = revwrs['Juliet'] + (3,)
+        sage: g.reviewers()[2].pref = (3, 'Romeo', 'Mercutio')
+
+    Now the game can be solved::
+
+        sage: g.solve()
+        {'Mercutio': 'Rosaline', 3: -3, 'Romeo': 'Juliet'}
+
+    Note that the above could be equivalently (and more simply) carried out
+    by simply updated the original preference dictionaries::
+
+        sage: for key in suitrs:
+        ....:     suitrs[key] = suitrs[key] + (-3,)
+        sage: for key in revwrs:
+        ....:     revwrs[key] = revwrs[key] + (3,)
+        sage: suitrs[3] = (-3, 'Juliet', 'Rosaline')
+        sage: revwrs[-3] = (3, 'Romeo', 'Mercutio')
+        sage: g = MatchingGame(suitrs, revwrs)
+        sage: g.solve()
+        {'Mercutio': 'Rosaline', 3: -3, 'Romeo': 'Juliet'}
+
     It can be shown that the Gale-Shapley algorithm will return the stable
     matching that is optimal from the point of view of the suitors and is in
     fact the worst possible matching from the point of view of the reviewers.

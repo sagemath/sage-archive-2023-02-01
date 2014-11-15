@@ -564,26 +564,31 @@ where it says::
 The show command for plotting 3-D objects does not work.
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Since Sage 2.9.2, we have switched to using
-`Jmol <http://jmol.sourceforge.net>`_,
-a Java applet, for 3-D plotting. There are several possibilities for
-the cause of the malfunction. You do not have Java installed at all or
-the Java installed is an older GNU based alternative Java
-implementation, which causes some yet to determine problem. A solution
-to both issues is to either install Sun's Java SDK or to update the
-GNU based Java implementation. As of January 2008 Debian's Java in
-testing works, but stable does have problems.
+The default live 3-D plotting for Sage 6.4+ uses
+`Jmol/JSmol <http://jmol.sourceforge.net>`_
+for viewing. From the command line the Jmol Java application is used,
+and for in browser viewing either pure javascript or a Java applet
+is used.  By default in browsers pure javascript is used to avoid
+the problems with some browsers that do not support java applet
+plugins (namely Chrome).  On each browser worksheet there is a
+checkbox which must be checked before a 3-D plot is generated if
+the user wants to use the Java applet (the applet is a little faster
+with complex plots).
 
-If you are running a brand new (as of April 2008) Ubuntu 8.04, they
-ship the Java Plugin by IcedTea. This is basically a good idea, but a
-bit too early since it is broken. Either wait for an update or
-uninstall the IcedTea Plugin and install the "SUN Java 6
-Plugin". Later, switch back to IcedTea, since it is based on OpenJDK 7
-(or SUNs Java 7) which is the next Java version. You can check for the
-used plugin in Firefox 3 by typing "about:plugins" into the URL
-bar. Read more about this issue at
-`launchpad <https://bugs.launchpad.net/ubuntu/+source/icedtea-java7/>`_.
+The most likely reason for a malfunction is that you do not have
+a Java Run Time Environment (JRE) installed or you have one older than
+version 1.7.  If things work from the command line another possibility
+is that your browser does not have the proper plugin to support Java
+applets (at present, 2014, plugins do not work with most versions of
+Chrome).  Make sure you have installed either the IcedTea browser
+plugin (for linux see your package manager), see:
+`IcedTea <http://icedtea.classpath.org/wiki/IcedTea-Web>`_,
+or the Oracle Java plugin see:
+`Java <https://java.com/en/download/help/index_installing.xml>`_.
 
+If you are using a Sage server over the web and even javascript rendering 
+does not work, you may have a problem with your browser's javascript
+engine or have it turned off.
 
 May I use Sage tools in a commercial environment?
 """""""""""""""""""""""""""""""""""""""""""""""""

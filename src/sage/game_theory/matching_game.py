@@ -539,6 +539,30 @@ class MatchingGame(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: reviewer preferences are not complete
+
+        Suitor preferences have repetitions::
+
+            sage: suit = {0: (3,  4),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 0, 1),
+            ....:         4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: g._is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: reviewer preferences contain repetitions
+
+        Reviewer preferences have repetitions::
+
+            sage: suit = {0: (3,  4, 3),
+            ....:         1: (3, 4)}
+            sage: revr = {3: (0, 1),
+            ....:         4: (1, 0)}
+            sage: g = MatchingGame([suit, revr])
+            sage: g._is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: suitor preferences contain repetitions
         """
         if len(self._suitors) != len(self._reviewers):
             raise ValueError("must have the same number of reviewers as suitors")
@@ -550,6 +574,14 @@ class MatchingGame(SageObject):
         for reviewer in self._reviewers:
             if set(reviewer.pref) != set(self._suitors):
                 raise ValueError("reviewer preferences are not complete")
+
+        for reviewer in self._reviewers:
+            if len(set(reviewer.pref)) < len(reviewer.pref):
+                raise ValueError("reviewer preferences contain repetitions")
+
+        for suitor in self._suitors:
+            if len(set(suitor.pref)) < len(suitor.pref):
+                raise ValueError("suitor preferences contain repetitions")
 
     def add_suitor(self, name=None):
         r"""

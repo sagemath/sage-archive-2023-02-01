@@ -83,8 +83,8 @@ if [ "$UNAME" = "CYGWIN" ]; then
 fi
 
 if [ "$SAGE_FAT_BINARY" = yes ]; then
-    echo "Disabling ICU for a binary build"
-    R_CONFIGURE="--without-ICU $R_CONFIGURE"
+    echo "Disabling ICU, OpenMP for a binary build"
+    R_CONFIGURE="--without-ICU --disable-openmp $R_CONFIGURE"
 elif [ "$UNAME" = "SunOS" ]; then
     # Note by David Kirkby, 16th Feb 2010. Even after adding the iconv library
     # R would not build properly on Solaris 10, complaining of undefined symbols

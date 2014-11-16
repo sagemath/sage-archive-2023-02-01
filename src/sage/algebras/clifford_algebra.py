@@ -18,7 +18,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from copy import copy
 
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
-from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.categories.modules_with_basis import ModuleMorphismByLinearity
 from sage.categories.poor_man_map import PoorManMap
@@ -536,7 +535,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         self._quadratic_form = Q
         R = Q.base_ring()
         if category is None:
-            category = GradedAlgebrasWithBasis(R)
+            category = AlgebrasWithBasis(R).Filtered()
         indices = SubsetsSorted(range(Q.dim()))
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
@@ -1049,8 +1048,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         f = lambda x: self.prod(self._from_dict( {(j,): m[j,i] for j in range(n)},
                                                  remove_zeros=True )
                                 for i in x)
-        return Cl.module_morphism(on_basis=f, codomain=self,
-                                  category=GradedAlgebrasWithBasis(self.base_ring()))
+        cat = AlgebrasWithBasis(self.base_ring()).Filtered()
+        return Cl.module_morphism(on_basis=f, codomain=self, category=cat)
 
     def lift_isometry(self, m, names=None):
         r"""
@@ -1114,8 +1113,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
         f = lambda x: Cl.prod(Cl._from_dict( {(j,): m[j,i] for j in range(n)},
                                              remove_zeros=True )
                               for i in x)
-        return self.module_morphism(on_basis=f, codomain=Cl,
-                                    category=GradedAlgebrasWithBasis(self.base_ring()))
+
+        cat = AlgebrasWithBasis(self.base_ring()).Filtered()
+        return self.module_morphism(on_basis=f, codomain=Cl, category=cat)
 
     # This is a general method for finite dimensional algebras with bases
     #   and should be moved to the corresponding category once there is
@@ -1562,7 +1562,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         f = lambda x: E.prod(E._from_dict( {(j,): phi[j,i] for j in range(n)},
                                            remove_zeros=True )
                              for i in x)
-        return self.module_morphism(on_basis=f, codomain=E, category=GradedAlgebrasWithBasis(R))
+        return self.module_morphism(on_basis=f, codomain=E, category=GradedHopfAlgebrasWithBasis(R))
 
     def volume_form(self):
         """

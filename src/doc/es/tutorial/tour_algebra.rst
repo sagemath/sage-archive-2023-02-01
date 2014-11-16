@@ -1,18 +1,18 @@
 Álgebra Y Cálculo Básicos
 ==========================
 
-Sage puede efectuar varios cómputos relacionados al algebra y cálculo básicos:
+Sage puede efectuar cómputos relacionados al algebra y cálculo básicos:
 por ejemplo, encontrar soluciones de ecuaciones, diferenciación, integración y transformadas de Laplace.
 Véa la documentación "Construcciones En Sage"  para más ejemplos.
 
 Resolviendo Ecuaciones
 ----------------------
 
-Resolviendo Ecuaciones Con Exactitud
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Resolviendo Ecuaciones De Manera Exacta
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-La función ``solve`` resuelve ecuaciones. Para usarla, primero especifica
-algunas variables; luego los argumentos de ``solve`` son una ecuación (o un
+La función ``solve`` resuelve ecuaciones. Para usarla, primero no olvides especificar
+algunas variables. Los argumentos de ``solve`` son una ecuación (o un
 sistema de ecuaciones), junto con las variables a resolver:
 
 ::
@@ -21,7 +21,7 @@ sistema de ecuaciones), junto con las variables a resolver:
     sage: solve(x^2 + 3*x + 2, x)
     [x == -2, x == -1]
 
-Puedes resolver ecuaciones para una variable en terminos de otras:
+Puedes resolver ecuaciones en una variable respecto de las demás:
 
 ::
 
@@ -29,7 +29,7 @@ Puedes resolver ecuaciones para una variable en terminos de otras:
     sage: solve([x^2 + b*x + c == 0],x)
     [x == -1/2*b - 1/2*sqrt(b^2 - 4*c), x == -1/2*b + 1/2*sqrt(b^2 - 4*c)]
 
-Puedes también resolver para varias variables:
+Puedes también resolver ecuaciones en varias variables:
 
 ::
 
@@ -38,8 +38,8 @@ Puedes también resolver para varias variables:
     [[x == 5, y == 1]]
 
 El siguiente ejemplo del uso de Sage para resolver un sistema de ecuaciones
-no-lineales fué proporcionado por Jason Grout: primero, resolvemos el sistema
-simbolicamente:
+no-lineales fue proporcionado por Jason Grout: primero, resolvemos el sistema
+simbólicamente:
 
 ::
 
@@ -51,7 +51,7 @@ simbolicamente:
     sage: solve([eq1,eq2,eq3,p==1],p,q,x,y)
     [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(5)*sqrt(2) - 2/3], [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(5)*sqrt(2) - 2/3]]
 
-Para aproximaciones numéricas de las soluciones, puedes usar en lugar de ello:
+Si queremos aproximaciones numéricas de las soluciones, podemos usar lo siguiente:
 
 .. link
 
@@ -62,7 +62,7 @@ Para aproximaciones numéricas de las soluciones, puedes usar en lugar de ello:
     [[1.0000000, 8.0000000, -4.8830369, -0.13962039],
      [1.0000000, 8.0000000, 3.5497035, -1.1937129]]
 
-(La función ``n`` imprime una aproximacion numérica, y el
+(La función ``n`` imprime una aproximación numérica, y el
 argumento es el número de bits de precisión.)
 
 Resolviendo Ecuaciones Numéricamente
@@ -70,7 +70,7 @@ Resolviendo Ecuaciones Numéricamente
 
 A menudo, ``solve`` no podrá encontrar una solución exacta para
 la ecuación o ecuaciones especificadas.  Cuando falla, puedes usar
-``find_root`` para encontrar una solución numérica.  Por ejemplo, ``solve`` nó
+``find_root`` para encontrar una solución numérica.  Por ejemplo, ``solve`` no
 devuelve nada interesante para la siguiente ecuación::
 
     sage: theta = var('theta')
@@ -89,7 +89,7 @@ Diferenciación, Integración, etc.
 
 Sage sabe cómo diferenciar e integrar muchas funciones.
 Por ejemplo, para diferenciar :math:`\sin(u)` con respecto a :math:`u`,
-haga lo siguiente:
+haz lo siguiente:
 
 ::
 
@@ -105,7 +105,7 @@ Para calcular la cuarta derivada de :math:`\sin(x^2)`:
     16*x^4*sin(x^2) - 48*x^2*cos(x^2) - 12*sin(x^2)
 
 Para calcular las derivadas parciales de :math:`x^2+17y^2` con
-respecto a *x* y *y*, respectivamente:
+respecto a *x* e *y*, respectivamente:
 
 ::
 
@@ -113,10 +113,10 @@ respecto a *x* y *y*, respectivamente:
     sage: f = x^2 + 17*y^2
     sage: f.diff(x)
     2*x
-    sage: f.diff(y)                                
+    sage: f.diff(y)
     34*y
 
-Nos pasamos a integrales, tanto indefinidas como definidas.
+También podemos calcular integrales, tanto indefinidas como definidas.
 Para calcular :math:`\int x\sin(x^2)\, dx` y :math:`\int_0^1 \frac{x}{x^2+1}\, dx`
 
 ::
@@ -126,7 +126,7 @@ Para calcular :math:`\int x\sin(x^2)\, dx` y :math:`\int_0^1 \frac{x}{x^2+1}\, d
     sage: integral(x/(x^2+1), x, 0, 1)
     1/2*log(2)
 
-Para calcular la descomposición en fracciones parciales de
+Para calcular la descomposición en fracciones simples de
 :math:`\frac{1}{x^2-1}`:
 
 ::
@@ -141,7 +141,7 @@ Resolviendo Ecuaciones Diferenciales
 ------------------------------------
 
 Puedes usar a Sage para investigar ecuaciones diferenciales ordinarias.
-Para resolver the ecuación :math:`x'+x-1=0`:
+Para resolver la ecuación :math:`x'+x-1=0`:
 
 ::
 
@@ -151,12 +151,12 @@ Para resolver the ecuación :math:`x'+x-1=0`:
     sage: desolve(DE, [x,t])
     (_C + e^t)*e^(-t)
 
-Esto utiliza el interfáz a Maxima de Sage [Max]_, asi que su resultado puede ser
-un poco diferente de otros resultados de Sage. En este caso, esto dice que la
+Esto utiliza el interfaz a Maxima de Sage [Max]_, por lo que el resultado puede
+diferir de otros resultados de Sage. En este caso, la salida nos dice que la
 solución general a la ecuación diferencial es :math:`x(t) = e^{-t}(e^{t}+c)`.
 
 También puedes calcular transformadas de Laplace; la transformada de Laplace
-de :math:`t^2e^t -\sin(t)` es calculada como sigue:
+de :math:`t^2e^t -\sin(t)` se calcula como sigue:
 
 ::
 
@@ -166,15 +166,15 @@ de :math:`t^2e^t -\sin(t)` es calculada como sigue:
     sage: f.laplace(t,s)
     -1/(s^2 + 1) + 2/(s - 1)^3
 
-Aquí está un ejemplo más complicado. El desplazamiento desde el equilibrio
-(respectivamente) para un resorte acoplado sujeto a una pared a la izquierda
+Veamos un ejemplo más complicado. El desplazamiento desde el punto de equilibrio
+de dos resortes acoplados, sujetos a una pared a la izquierda
 
 ::
 
-    |------\/\/\/\/\---|mass1|----\/\/\/\/\/----|mass2|
-             spring1               spring2
+    |------\/\/\/\/\---|masa1|----\/\/\/\/\/----|masa2|
+             resorte1               resorte2
 
-está modelado por el sistema de ecuaciónes diferenciales de segundo órden
+está modelado por el sistema de ecuaciones diferenciales de segundo órden
 
 .. math::
 
@@ -184,7 +184,7 @@ está modelado por el sistema de ecuaciónes diferenciales de segundo órden
 
 donde :math:`m_{i}` es la masa del objeto *i*, :math:`x_{i}` es
 el desplazamiento desde el equilibrio de la masa *i*, y :math:`k_{i}`
-es la constante de resorte para el resorte *i*.
+es la constante de elasticidad del resorte *i*.
 
 **Ejemplo:** Utiliza Sage para resolver el problema de arriba con
 :math:`m_{1}=2`, :math:`m_{2}=1`, :math:`k_{1}=4`,
@@ -200,7 +200,7 @@ la notación :math:`x=x_{1}`, :math:`y=x_{2}`):
     sage: lde1 = de1.laplace("t","s"); lde1
     2*(-%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s)-2*'laplace(y(t),t,s)+6*'laplace(x(t),t,s)
 
-Esto es dificil de leer, pero dice que
+El resultado puede ser difícil de leer, pero significa que
 
 .. math:: -2x'(0) + 2s^2*X(s) - 2sx(0) - 2Y(s) + 6X(s) = 0
 
@@ -227,9 +227,9 @@ Introduce las condiciones iniciales para :math:`x(0)`, :math:`x'(0)`,
 
     sage: var('s X Y')
     (s, X, Y)
-    sage: eqns = [(2*s^2+6)*X-2*Y == 6*s, -2*X +(s^2+2)*Y == 3*s] 
+    sage: eqns = [(2*s^2+6)*X-2*Y == 6*s, -2*X +(s^2+2)*Y == 3*s]
     sage: solve(eqns, X,Y)
-    [[X == 3*(s^3 + 3*s)/(s^4 + 5*s^2 + 4), 
+    [[X == 3*(s^3 + 3*s)/(s^4 + 5*s^2 + 4),
       Y == 3*(s^3 + 5*s)/(s^4 + 5*s^2 + 4)]]
 
 Ahora toma la transformada inversa de Laplace para obtener la respuesta:
@@ -248,7 +248,7 @@ Por tanto, la solución es
 .. math:: x_1(t) = \cos(2t) + 2\cos(t), \quad x_2(t) = 4\cos(t) - \cos(2t).
 
 
-Esto puede graficarse paramétricamente usando
+La solución puede dibujarse paramétricamente usando
 
 ::
 
@@ -257,7 +257,7 @@ Esto puede graficarse paramétricamente usando
     ....: (0, 2*pi), rgbcolor=hue(0.9))
     sage: show(P)
 
-Los componentes individuales pueden graficarse usando
+Los componentes individuales pueden dibujarse usando
 
 ::
 
@@ -279,7 +279,7 @@ ecuaciones de primer órden. Dado un problema con valor inicial de la forma
 .. math::
 
     y'=f(x,y)
-    y(a)=c 
+    y(a)=c
 
 queremos encontrar el valor aproximado de la solución en :math:`x=b` con :math:`b>a`.
 
@@ -288,38 +288,37 @@ Recuerda de la definición de derivada que
 .. math::  y'(x) \approx \frac{y(x+h)-y(x)}{h},
 
 
-donde :math:`h>0` está dado y és pequeño. Ésto junto con la ED
-dan :math:`f(x,y(x))\approx
-\frac{y(x+h)-y(x)}{h}`. Ahora resuelve para :math:`y(x+h)`:
+donde :math:`h>0` está dado y es pequeño. Ésto, junto con la ED, dan
+:math:`f(x,y(x))\approx \frac{y(x+h)-y(x)}{h}`. Ahora resuelve para :math:`y(x+h)`:
 
 .. math::   y(x+h) \approx y(x) + h*f(x,y(x)).
 
 
-Si llamamos a :math:`h f(x,y(x))` el "término de corrección" (por falta de
-algo mejor), llamamos a :math:`y(x)` the "el viejo valor de *y*", y
-llamamos a :math:`y(x+h)` el "nuevo valor de *y*", entonces ésta
+Si llamamos a :math:`h f(x,y(x))` el "término de corrección" (a falta de
+algo mejor), llamamos a :math:`y(x)` "el valor viejo de *y*", y
+llamamos a :math:`y(x+h)` el "nuevo valor de *y*", entonces, esta
 aproximación puede re-expresarse como
 
 .. math::   y_{nuevo} \approx y_{viejo} + h*f(x,y_{viejo}).
 
 
 Si descomponemos el intervalo desde *a* a *b* en *n* pasos, de modo que
-:math:`h=\frac{b-a}{n}`, entonces podemos registrar la información para
-éste método en una tabla.
+:math:`h=\frac{b-a}{n}`, podemos guardar la información dada por
+este método en una tabla.
 
 ============== ==================   ================
 :math:`x`      :math:`y`            :math:`hf(x,y)`
 ============== ==================   ================
 :math:`a`      :math:`c`            :math:`hf(a,c)`
 :math:`a+h`    :math:`c+hf(a,c)`    ...
-:math:`a+2h`   ...                   
+:math:`a+2h`   ...
 ...
 :math:`b=a+nh` ???                  ...
-============== ==================   ================  
+============== ==================   ================
 
 
-La meta es llenar todos los espacios de la tabla, una fila a
-la véz, hasta que lleguemos a la casilla ???, que és la
+La meta es llenar todos los espacios de la tabla, una fila cada
+la vez, hasta que lleguemos a la casilla ???, que será la
 aproximación del método de Euler para :math:`y(b)`.
 
 La idea para los sistemas de EDOs es similar.
@@ -345,9 +344,9 @@ de primer órden (usando :math:`x=z`, :math:`y=z'`) y aplicar el método de Eule
 
 Por tanto, :math:`z(1)\approx 0.75`.
 
-Tambien podemos graficar los puntos :math:`(x,y)` para obtener una representación
-aproximada de la curva. La función ``eulers_method_2x2_plot`` hará esto;
-para poder usarla, necesitamos definir las funciones *f* y
+También podemos dibujar los puntos :math:`(x,y)` para obtener una representación
+aproximada de la curva. La función que hace esto es ``eulers_method_2x2_plot``.
+Para poder usarla, necesitamos definir las funciones *f* y
 *g* que toman un argumento con tres coordenadas: (*t*, *x*,*y*).
 
 ::
@@ -357,7 +356,7 @@ para poder usarla, necesitamos definir las funciones *f* y
     sage: P = eulers_method_2x2_plot(f,g, 0.0, 0.75, 0.0, 0.1, 1.0)
 
 A estas alturas, ``P`` está guardando dos gráficas: ``P[0]``, el gráfico de *x*
-vs. *t*, y ``P[1]``, el gráfico de *y* vs. *t*. Podemos graficar ámbas como sigue:
+vs. *t*, y ``P[1]``, el gráfico de *y* vs. *t*. Podemos mostrar ámbas como sigue:
 
 .. link
 
@@ -370,9 +369,9 @@ Funciones Especiales
 --------------------
 
 Se han implementado varios polinomios ortogonales y funciones especiales,
-utilizando a PARI [GAP]_ como Maxima [Max]_. Estos están
-documentados en las secciones apropiadas ("Polinomios Ortogonales"
-y "Funciones Especiales", respectivamente) de el manual de referencia de Sage.
+utilizando tanto PARI [GAP]_ como Maxima [Max]_. Estas funciones están
+documentadas en las secciones apropiadas ("Polinomios Ortogonales"
+y "Funciones Especiales", respectivamente) del manual de referencia de Sage.
 
 ::
 
@@ -386,8 +385,8 @@ y "Funciones Especiales", respectivamente) de el manual de referencia de Sage.
     sage: bessel_I(2,1.1).n()  # los últimos digitos son al azar
     0.16708949925104...
 
-Hasta este punto, Sage unicamente ha encapsulado estas funciones para uso numérico.
-Para uso simbólico, por favor utiliza el interfáz a Maxima directamente, como en
+Hasta este punto, Sage únicamente ha encapsulado estas funciones para uso numérico.
+Para uso simbólico, por favor utiliza directamente la interfaz a Maxima, como en
 el siguiente ejemplo:
 
 ::

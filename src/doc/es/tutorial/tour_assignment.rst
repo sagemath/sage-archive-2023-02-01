@@ -3,7 +3,7 @@ Asignación, Igualdad y Aritmética
 ====================================
 
 Con algunas excepciones menores, Sage utiliza el lenguaje de programación Python,
-de modo que la mayoría de libros introductorios en Python te ayudarán a aprender Sage.
+de modo que la mayoría de los libros introductorios sobre Python te ayudarán a aprender Sage.
 
 Sage utiliza ``=`` para la asignación. Utiliza ``==``, ``<=``, ``>=``, ``<`` y ``>`` para
 la comparación:
@@ -22,7 +22,7 @@ la comparación:
     sage: a == 5
     True
 
-Sage provee todo lo relacionado a operaciones matemáticas básicas:
+Sage provee todo lo relacionado con las operaciones matemáticas básicas:
 
 ::
 
@@ -44,20 +44,20 @@ Sage provee todo lo relacionado a operaciones matemáticas básicas:
 El cálculo de una expresión tal como ``3^2*4 + 2%5`` depende de
 el órden en que las operaciones son aplicadas.
 
-Sage tambien provee muchas funciones matemáticas conocidas; he aquí
+Sage también provee muchas funciones matemáticas conocidas; he aquí
 solo unos cuantos ejemplos:
 
 ::
 
     sage: sqrt(3.4)
-    1.84390889145858 
+    1.84390889145858
     sage: sin(5.135)
-    -0.912021158525540 
+    -0.912021158525540
     sage: sin(pi/3)
     1/2*sqrt(3)
 
-Como lo demuestra el último ejemplo, algunas expresiones matemáticas devuelven
-valores 'exáctos', en lugar de aproximaciones numéricas. Para obtener una
+Como demuestra el último ejemplo, algunas expresiones matemáticas devuelven
+valores 'exactos', en lugar de aproximaciones numéricas. Para obtener una
 aproximación numérica, utilice la función ``n`` o el método
 ``n`` (ámbas tienen un nombre más largo, ``numerical_approx``, y
 la función ``N`` es la misma que ``n``)). Éstas toman argumentos opcionales
@@ -76,12 +76,12 @@ el número predeterminado es de 53 bits de precisión.
     sage: sin(10).n(digits=5)
     -0.54402
     sage: N(sin(10),digits=10)
-    -0.5440211109 
+    -0.5440211109
     sage: numerical_approx(pi, prec=200)
     3.1415926535897932384626433832795028841971693993751058209749
 
 Python es un lenguaje de tipado dinámico, de modo que el valor referido por cada
-variable tiene un tipo asociado con él, pero una variable dada puede
+variable tiene un tipo asociado. Pero una variable dada puede
 contener valores de cualquier tipo Python dentro de un ámbito dado:
 
 ::
@@ -100,7 +100,7 @@ El lenguaje de programación C, que es un lenguaje de tipado estático, es muy
 diferente; una variable declarada como int solo puede contener un int
 en su ámbito.
 
-Una fuente posible de confusión en Python és el que un entero
+Una fuente posible de confusión en Python es el que un entero
 literal que comienza con un cero es tratado como un número octal,
 es decir, un número en base 8.
 

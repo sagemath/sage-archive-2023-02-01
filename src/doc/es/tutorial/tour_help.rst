@@ -14,10 +14,10 @@ de interrogación:
     sage: tan?
     Type:        <class 'sage.calculus.calculus.Function_tan'>
     Definition:  tan( [noargspec] )
-    Docstring: 
-    
+    Docstring:
+
         The tangent function
-    
+
         EXAMPLES:
             sage: tan(pi)
             0
@@ -34,10 +34,10 @@ de interrogación:
     sage: log2?
     Type:        <class 'sage.functions.constants.Log2'>
     Definition:  log2( [noargspec] )
-    Docstring: 
-    
+    Docstring:
+
         The natural logarithm of the real number 2.
-        
+
         EXAMPLES:
             sage: log2
             log2
@@ -64,10 +64,10 @@ de interrogación:
     File:        sage/local/lib/python2.5/site-packages/sage/games/sudoku.py
     Type:        <type 'function'>
     Definition:  sudoku(A)
-    Docstring: 
-    
+    Docstring:
+
         Solve the 9x9 Sudoku puzzle defined by the matrix A.
-    
+
         EXAMPLE:
             sage: A = matrix(ZZ,9,[5,0,0, 0,8,0, 0,4,9, 0,0,0, 5,0,0,
         0,3,0, 0,6,7, 3,0,0, 0,0,1, 1,5,0, 0,0,0, 0,0,0, 0,0,0, 2,0,8, 0,0,0,
@@ -94,12 +94,12 @@ de interrogación:
             [6 3 5 1 7 2 8 9 4]
             [4 9 1 8 5 6 7 2 3]
 
-Sage tambien provee 'Completación tabular': teclee las primeras letras de
-una función y luego oprima la tecla de Tab. Por ejemplo, si tecleas ``ta``
+Sage también provee 'Autocompletado con el tabulador': teclea las primeras letras de
+una función y luego oprime la tecla del tabulador. Por ejemplo, si tecleas ``ta``
 seguido por ``TAB``, Sage imprimirá
 ``tachyon, tan, tanh, taylor``.
-Esto proporciona una buena manera de encontrar
-los nombres de funciones y otras estructuras en Sage.
+Esto proporciona una buena manera de encontrar los nombres de funciones y otras
+estructuras en Sage.
 
 
 .. _section-functions:
@@ -108,7 +108,7 @@ Funciones, Indentación Y Conteo
 ====================================
 
 Para definir una nueva función en Sage, utilice el comando ``def`` y el signo de dos puntos
-despues de la lista de nombres de variable. Por ejemplo:
+después de la lista de nombres de variable. Por ejemplo:
 
 ::
 
@@ -120,15 +120,16 @@ despues de la lista de nombres de variable. Por ejemplo:
     sage: is_even(3)
     False
 
-Nota: Dependiendo de cual versión de el tutorial estas viendo, puede que veas 
+Nota: Dependiendo de la versión del tutorial que estás leyendo, puede que veas 
 tres puntos ``...`` en la segunda línea de este ejemplo.
 No los incluyas; son solo para enfatizar que el código está indentado.
-Siempre que este séa el caso, presiona [Return/Enter] una vez al final de el bloque
+Siempre que este sea el caso, presiona [Return/Enter] una vez al final del bloque
 para insertar una línea en blanco y concluir la definición de la función.
 
 No tienes que especificar los tipos de ninguno de los argumentos de entrada.
-Puedes especificar multiples entradas, cada una de las cuales puede tener un valor predeterminado opcional.
-Por ejemplo, la función de abajo tiene un valor predeterminado ``divisor=2`` si no se especifica ``divisor``.
+Puedes especificar múltiples entradas, cada una de las cuales puede tener un
+valor predeterminado opcional. Por ejemplo, la función de abajo tiene un valor
+predeterminado ``divisor=2`` si no se especifica el valor de ``divisor``.
 
 ::
 
@@ -141,8 +142,9 @@ Por ejemplo, la función de abajo tiene un valor predeterminado ``divisor=2`` si
     sage: is_divisible_by(6, 5)
     False
 
-Tambien puedes especificar explícitamente una o ámbas de las entradas cuando llames
-la función; si especificas las entradas explícitamente, puedes darlas en cualquier órden:
+También puedes especificar explícitamente una o ambas de las entradas cuando
+llames a la función; si especificas las entradas explícitamente, puedes darlas
+en cualquier órden:
 
 .. link
 
@@ -153,11 +155,11 @@ la función; si especificas las entradas explícitamente, puedes darlas en cualq
     sage: is_divisible_by(divisor=2, number=6)
     True
 
-En Python, los bloques de código no se encierran entre llaves o
-bloques begin...end como en muchos otros languajes. En vez de ello, los bloques de código
+En Python, los bloques de código no se encierran entre llaves o bloques begin...end
+como en muchos otros lenguajes. En vez de ello, los bloques de código
 se indican por medio de la indentación, la cual se debe agrupar con exactitud.
 Por ejemplo, el siguiente es un error de sintáxis porque la declaración ``return``
-no está indentada la misma cantidad como las otras lineas por encima de ella.
+no está indentada al mismo nivel que las otras líneas por encima de ella.
 
 .. skip
 
@@ -172,7 +174,7 @@ no está indentada la misma cantidad como las otras lineas por encima de ella.
     Syntax Error:
            return v
 
-Si arreglas la indentación, la función trabaja:
+Si arreglas la indentación, la función se ejecutará:
 
 ::
 
@@ -185,8 +187,8 @@ Si arreglas la indentación, la función trabaja:
     sage: even(10)
     [4, 6, 8]
 
-El punto y coma no se necesita al final de las líneas; una línea és, en muchos casos,
-finalizada al iniciar una nueva línea. Sin embargo, puedes poner multiples declaraciones
+El punto y coma no es necesario al final de las líneas. Una línea termina, en muchos casos,
+por un carácter de nueva línea. Sin embargo, puedes poner múltiples declaraciones
 en una línea, separadas por punto y coma:
 
 ::
@@ -203,7 +205,7 @@ una barra invertida como terminación:
     ...      3
     5
 
-En Sage, se hace el conteo iterando sobre un rango de enteros. Por ejemplo,
+En Sage, se cuenta iterando sobre un rango de enteros. Por ejemplo,
 la primer línea de abajo es exactamente igual a ``for(i=0; i<3; i++)`` en C++ o Java:
 
 ::
@@ -224,7 +226,7 @@ La primer línea de abajo es igual a ``for(i=2;i<5;i++)``.
     3
     4
 
-El tercer argumento controla el incremento, de modo que la siguiente es igual a
+El tercer argumento controla el incremento, de modo que lo siguiente es igual a
 ``for(i=1;i<6;i+=2)``.
 
 ::
@@ -235,9 +237,9 @@ El tercer argumento controla el incremento, de modo que la siguiente es igual a
     3
     5
 
-A menudo querrás crear una bonita tabla para presentar números que
-has calculado utilizando Sage. Una manera fácil de hacer esto es usando
-formateado de cadenas. Abajo, creamos tres columnas cada una con un ancho exacto de 6
+A menudo, querrás crear una tabla para presentar números que has calculado
+utilizando Sage. Una manera sencilla de hacer esto es usando el formateado de
+cadenas. Abajo, creamos tres columnas, cada una con un ancho exácto de 6 caracteres 
 y hacemos una tabla de cuadrados y cubos.
 
 ::
@@ -251,15 +253,15 @@ y hacemos una tabla de cuadrados y cubos.
          4     16     64
 
 La estructura de datos más básica en Sage es la lista, la cual es -- como
-el nombre lo sugiere -- solo una lista de objetos arbitrarios.
-Por ejemplo, el comando ``range`` que hemos usamos crea una lista:
+sugiere su nombre -- solo una lista de objetos arbitrarios.
+Por ejemplo, el comando ``range`` que hemos usado crea una lista:
 
 ::
 
     sage: range(2,10)
     [2, 3, 4, 5, 6, 7, 8, 9]
 
-He aqui una lista más complicada:
+He aquí una lista más complicada:
 
 ::
 
@@ -267,7 +269,7 @@ He aqui una lista más complicada:
     sage: v
     [1, 'hello', 2/3, sin(x^3)]
 
-El indexado de una lista está basado en el cero, como en muchos lenguajes de programación.
+El indexado de una lista comienza en el cero, como en muchos lenguajes de programación.
 
 .. link
 
@@ -278,7 +280,7 @@ El indexado de una lista está basado en el cero, como en muchos lenguajes de pr
     sage: v[3]
     sin(x^3)
 
-Utiliza ``len(v)`` para obtener la longitud de ``v``, utiliza ``v.append(obj)`` para
+La función ``len(v)`` devuelve la longitud de ``v``. Utiliza ``v.append(obj)`` para
 añadir un nuevo objeto al final de ``v``, y utiliza ``del v[i]`` para borrar
 el :math:`i-ésimo` elemento de ``v``:
 
@@ -296,7 +298,7 @@ el :math:`i-ésimo` elemento de ``v``:
     [1, 2/3, sin(x^3), 1.50000000000000]
 
 Otra estructura de datos importante es el diccionario (o array asociativo).
-Éste funciona como una lista, excepto que puede ser indexado con casi
+Funciona como una lista, excepto que puede ser indexado con casi
 cualquier objeto (los índices deben ser immutables):
 
 ::
@@ -307,11 +309,11 @@ cualquier objeto (los índices deben ser immutables):
     sage: d[e]
     pi
 
-Tambien puedes definir nuevos tipos de datos usando clases. El encapsulado
-de objetos matemáticos con clases es una técnica poderosa que puede
+También puedes definir nuevos tipos de datos usando clases. El encapsulado
+de objetos matemáticos con clases es una técnica potente que puede
 ayudar a simplificar y organizar tus programas en Sage. Abajo, definimos una
-clase que representa la lista of enteros positivos pares hasta *n*;
-se deriva de el tipo incorporado ``list``.
+clase que representa la lista de enteros positivos pares hasta *n*;
+se deriva de el tipo básico ``list``.
 
 ::
 
@@ -323,7 +325,7 @@ se deriva de el tipo incorporado ``list``.
     ...           return "Even positive numbers up to n."
 
 El método ``__init__`` se llama para inicializar al objeto cuando
-és creado; el método ``__repr__`` imprime el objeto.
+es creado; el método ``__repr__`` imprime el objeto.
 Llamamos al método constructor de listas en la segunda línea del
 método ``__init__``. A continuación, creamos un objeto de clase ``Evens``:
 
@@ -336,7 +338,7 @@ método ``__init__``. A continuación, creamos un objeto de clase ``Evens``:
     Even positive numbers up to n.
 
 Observe que ``e`` se imprime usando el método ``__repr__`` que hemos definido.
-Para ver la lista subyacente de numeros, utilice la función ``list``:
+Para ver la lista subyacente de números, utilice la función ``list``:
 
 .. link
 
@@ -345,7 +347,7 @@ Para ver la lista subyacente de numeros, utilice la función ``list``:
     sage: list(e)
     [2, 4, 6, 8, 10]
 
-Tambien podemos accesar al atributo ``n`` o tratar a ``e`` como una lista.
+También podemos acceder al atributo ``n`` o tratar a ``e`` como una lista.
 
 .. link
 

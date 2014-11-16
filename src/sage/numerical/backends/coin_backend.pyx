@@ -53,6 +53,7 @@ cdef class CoinBackend(GenericBackend):
         Destructor function
         """
         del self.si
+        del self.model
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         r"""
@@ -755,6 +756,9 @@ cdef class CoinBackend(GenericBackend):
 
         model.branchAndBound()
 
+        del self.model
+        self.model = model
+
         if model.solver().isAbandoned():
             raise MIPSolverException("CBC : The solver has abandoned!")
 
@@ -769,9 +773,6 @@ cdef class CoinBackend(GenericBackend):
 
         elif not model.solver().isProvenOptimal():
             raise MIPSolverException("CBC : Unknown error")
-
-        del self.model
-        self.model = model
 
     cpdef get_objective_value(self):
         r"""

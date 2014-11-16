@@ -96,7 +96,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             Otherwise, returns the basis of the homogeneous component
             of degree ``d`` (i.e., the subfamily of the basis of the
             whole module which consists only of the basis vectors
-            lying in `F_d \setminus F_{d-1}`).
+            lying in `F_d \setminus \bigcup_{i<d} F_i`).
 
             EXAMPLES::
 

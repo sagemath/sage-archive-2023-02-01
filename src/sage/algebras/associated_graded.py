@@ -35,33 +35,51 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     The associated graded algebra `\operatorname{gr} A`
     of a filtered algebra with basis `A`.
 
-    Let `A` be a filtered algebra with basis over a
-    commutative ring `R`. Let `(F_i)_{i \in I}` be
-    its filtration, let `(b_x)_{x \in X}` be its basis,
-    and consider the partition of the set `X = \bigsqcup_{i \in I} X_i`,
-    which is part of the data of a filtered algebra with basis. The
-    *associated graded algebra* (or, for short, just *graded algebra*)
-    of `A` is a graded algebra with basis defined as follows.
-
-    We know (see
-    :class:`~sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis`)
-    that `A` (being a filtered `R`-module with basis) canonically
-    becomes a graded `R`-module with basis. (Its `i`-th
-    graded component, for every `i \in I`, is the
-    `R`-submodule of `A` spanned by `(b_x)_{x \in X_i}`.)
-    Let `u \in F_i` and `v \in F_j` and suppose
-    `u v = \sum_{k \leq i + j} m_k` where `m_k` is in the `k`-th
-    homogeneous component. We define a multiplication `*` on this
-    graded `R`-module `A` (not to be mistaken for the multiplication
-    of the original algebra `A`) by requiring that
+    Let `A` be a filtered algebra with basis over a commutative
+    ring `R`. Let `(F_i)_{i \in I}` be the filtration of `A`, and
+    define
 
     .. MATH::
 
-        u * v = m_{i+j}.
+        G_i = F_i / \sum_{j < i} F_j
 
-    Thus, `(A, *)` is a graded `R`-algebra with basis.
-    This is called the associated graded algebra of `A`,
-    and denoted by `\operatorname{gr} A`.
+    and then
+
+    .. MATH::
+
+        \operatorname{gr} A = \bigoplus_{i \in I} G_i.
+
+    There are canonical projections `p_i : F_i \to G_i` for
+    every `i \in I`. Moreover `\operatorname{gr} A` is naturally a
+    graded module with `G_i` being the `i`-th graded component.
+
+    Let `u \in G_i` and `v \in G_j` with lifts `u' \in F_i`
+    and `v' \in F_j` respectively. Therefore we define
+    multiplication `*` on `\operatorname{gr} A` (not to be mistaken
+    for the multiplication of the original algebra `A`) by
+
+    .. MATH::
+
+        u * v = p_{i+j}(u' v').
+
+    The *associated graded algebra* (or, for short, just *graded algebra*)
+    of `A` is the graded algebra `\operatorname{gr} A`.
+
+    In particular, let `(b_x)_{x \in X}` be the basis of `A`,
+    and consider the partition of the set `X = \bigsqcup_{i \in I} X_i`,
+    which is part of the data of a filtered algebra with basis.
+    We know (see
+    :class:`~sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis`)
+    that `A` (being a filtered `R`-module with basis) is canonically
+    isomorphic to `\operatorname{gr} A` as an `R`-module. Therefore
+    the `k`-th graded component `G_k` can be identified with
+    the span of `(b_x)_{x \in X_k}`, or equivalently the
+    `k`-th homogeneous component of `A`. Suppose
+    that `u' v' = \sum_{k \leq i+j} m_k` where `m_k \in G_k` (which
+    has been identified with the `k`-th homogeneous component of `A`).
+    Then `u * v = m_{i+j}`. We also note that the choice of
+    identification of `G_k` with the `k`-th homogeneous component
+    depends on the given basis.
 
     INPUT:
 

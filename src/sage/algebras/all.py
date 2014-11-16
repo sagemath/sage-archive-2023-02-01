@@ -18,6 +18,8 @@ Algebras
 #*****************************************************************************
 from sage.misc.lazy_import import lazy_import
 
+import sage.algebras.catalog as algebras
+
 from quatalg.all import *
 
 # Algebra base classes
@@ -47,3 +49,4 @@ lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')
 from clifford_algebra import CliffordAlgebra, ExteriorAlgebra
 from weyl_algebra import DifferentialWeylAlgebra
 
+lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra')

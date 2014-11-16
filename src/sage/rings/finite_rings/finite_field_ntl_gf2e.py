@@ -27,7 +27,6 @@ Test backwards compatibility::
 
 from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.libs.pari.all import pari
-from finite_field_ext_pari import FiniteField_ext_pari
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 
@@ -126,7 +125,7 @@ class FiniteField_ntl_gf2e(FiniteField):
             sage: k2.<a> = GF(2^17)
             sage: k1 == k2
             False
-            sage: k3 = k1._finite_field_ext_pari_()
+            sage: k3.<a> = GF(2^16, impl="pari_ffelt")
             sage: k1 == k3
             False
 
@@ -318,44 +317,6 @@ class FiniteField_ntl_gf2e(FiniteField):
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
         """
         return self._cache.fetch_int(number)
-
-    def _finite_field_ext_pari_(self):
-        """
-        Return a :class:`FiniteField_ext_pari` isomorphic to ``self`` with
-        the same defining polynomial.
-
-        .. NOTE::
-
-            This method will vanish eventually because that implementation of
-            finite fields will be deprecated.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^20)
-            sage: kP = k._finite_field_ext_pari_()
-            sage: kP
-            Finite Field in a of size 2^20
-            sage: type(kP)
-            <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
-        """
-        f = self.polynomial()
-        return FiniteField_ext_pari(self.order(), self.variable_name(), f)
-
-    def __hash__(self):
-        """
-        Return the hash value of ``self``.
-
-        EXAMPLES::
-
-            sage: k1.<a> = GF(2^16)
-            sage: {k1:1} # indirect doctest
-            {Finite Field in a of size 2^16: 1}
-        """
-        try:
-            return self._hash
-        except AttributeError:
-            self._hash = hash((self.characteristic(),self.polynomial(),self.variable_name(),"ntl_gf2e"))
-            return self._hash
 
     def _pari_modulus(self):
         """

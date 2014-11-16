@@ -44,14 +44,11 @@ class FiniteField_pari_ffelt(FiniteField):
 
     .. NOTE::
 
-        - Direct construction of FiniteField_pari_ffelt objects
-          requires specifying a characteristic and a modulus.
-          To construct a finite field by specifying a cardinality and
-          an algorithm for finding an irreducible polynomial, use the
-          FiniteField constructor with ``impl='pari_ffelt'``.
-
-        - Two finite fields are considered equal if and only if they
-          have the same cardinality, variable name, and modulus.
+        Direct construction of :class:`FiniteField_pari_ffelt` objects
+        requires specifying a characteristic and a modulus.  To
+        construct a finite field by specifying a cardinality and an
+        algorithm for finding an irreducible polynomial, use the
+        ``FiniteField`` constructor with ``impl='pari_ffelt'``.
 
     EXAMPLES:
 
@@ -130,23 +127,6 @@ class FiniteField_pari_ffelt(FiniteField):
 
     Element = FiniteFieldElement_pari_ffelt
 
-    def __hash__(self):
-        """
-        Return the hash of this field.
-
-        EXAMPLE::
-
-            sage: {GF(9, 'a', impl='pari_ffelt'): 1} # indirect doctest
-            {Finite Field in a of size 3^2: 1}
-            sage: {GF(9, 'b', impl='pari_ffelt'): 1} # indirect doctest
-            {Finite Field in b of size 3^2: 1}
-        """
-        try:
-            return self.__hash
-        except AttributeError:
-            self.__hash = hash((self.cardinality(), self.variable_name(), self._modulus))
-            return self.__hash
-
     def __reduce__(self):
         """
         For pickling.
@@ -160,43 +140,6 @@ class FiniteField_pari_ffelt(FiniteField):
             True
         """
         return self._factory_data[0].reduce_data(self)
-
-    def __cmp__(self, other):
-        """
-        Compare ``self`` to ``other``.
-
-        EXAMPLES::
-
-            sage: k = FiniteField(7^20, 'a', impl='pari_ffelt')
-            sage: k == k
-            True
-            sage: k2 = FiniteField(7^20, 'a', impl='pari_ffelt')
-            sage: k2 == k
-            True
-            sage: kb = FiniteField(7^20, 'b', impl='pari_ffelt')
-            sage: kb == k
-            False
-        """
-        if not isinstance(other, FiniteField_pari_ffelt):
-            return cmp(type(self), type(other))
-        return cmp((self.cardinality(), self.variable_name(), self._modulus),
-                   (other.cardinality(), other.variable_name(), other._modulus))
-
-    def __richcmp__(left, right, op):
-        """
-        Compare ``left`` with ``right``.
-
-        EXAMPLE::
-
-            sage: k = FiniteField(2^17, 'a', impl='pari_ffelt')
-            sage: j = FiniteField(2^18, 'b', impl='pari_ffelt')
-            sage: k == j
-            False
-
-            sage: k == copy(k)
-            True
-        """
-        return left._richcmp_helper(right, op)
 
     def gen(self, n=0):
         """

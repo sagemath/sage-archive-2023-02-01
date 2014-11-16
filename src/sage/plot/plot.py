@@ -97,24 +97,33 @@ We draw a circle and a curve::
     sage: circle((1,1), 1) + plot(x^2, (x,0,5))
     Graphics object consisting of 2 graphics primitives
 
-Notice that the aspect ratio of the above plot makes the plot very tall because
-the plot adopts the default aspect ratio of the circle (to make the circle appear
-like a circle).  We can change the aspect ratio to be what we normally expect for a plot
-by explicitly asking for an 'automatic' aspect ratio::
+Notice that the aspect ratio of the above plot makes the plot very tall
+because the plot adopts the default aspect ratio of the circle (to make
+the circle appear like a circle).  We can change the aspect ratio to be
+what we normally expect for a plot by explicitly asking for an
+'automatic' aspect ratio::
 
     sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), aspect_ratio='automatic')
 
-The aspect ratio describes the apparently height/width ratio of a unit square.  If you want the vertical units to be twice as big as the horizontal units, specify an aspect ratio of 2::
+The aspect ratio describes the apparently height/width ratio of a unit
+square.  If you want the vertical units to be twice as big as the
+horizontal units, specify an aspect ratio of 2::
 
     sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), aspect_ratio=2)
 
-The ``figsize`` option adjusts the figure size.  The default figsize is 4.  To make a figure that is roughly twice as big, use ``figsize=8``::
+The ``figsize`` option adjusts the figure size.  The default figsize is
+4.  To make a figure that is roughly twice as big, use ``figsize=8``::
 
     sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), figsize=8)
 
-You can also give separate horizontal and vertical dimensions::
+You can also give separate horizontal and vertical dimensions.  Both
+will be measured in inches::
 
     sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), figsize=[4,8])
+
+However, do not make the figsize too big (e.g. one dimension greater
+than 327 or both in the mid-200s) as this will lead to errors or crashes.
+See :meth:`~sage.plot.graphics.Graphics.show` for full details.
 
 Note that the axes will not cross if the data is not on both sides of
 both axes, even if it is quite close::

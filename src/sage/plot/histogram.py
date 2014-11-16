@@ -52,7 +52,11 @@ class Histogram(GraphicPrimitive):
         """
         import numpy as np
         self.datalist=np.asarray(datalist,dtype=float)
-        GraphicPrimitive.__init__(self, options)        
+        if 'linestyle' in options:
+            from sage.plot.misc import get_matplotlib_linestyle
+            options['linestyle'] = get_matplotlib_linestyle(
+                    options['linestyle'], return_type='long')
+        GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):
         """
@@ -126,7 +130,7 @@ class Histogram(GraphicPrimitive):
                 'alpha': 'How transparent the plot is',
                 'hue':'The color of the bars given as a hue.',
                 'fill':'(True or False, default True) Whether to fill the bars',
-                'hatch': 'What symbol to fill with - one of "/", "\", "|", "-", "+", "x", "o", "O", ".", "*"',
+                'hatch': 'What symbol to fill with - one of "/", "\\", "|", "-", "+", "x", "o", "O", ".", "*"',
                 'linewidth':'Width of the lines defining the bars',
                 'linestyle':'Style of line, one of "solid", "dashed", "dotted", "dashdot"',
                 'zorder':'The layer level to draw the histogram',
@@ -187,6 +191,50 @@ def histogram(datalist, **options):
     Computes and draws the histogram for list(s) of numerical data.
     See examples for the many options; even more customization is
     available using matplotlib directly.
+
+    INPUT:
+
+    - ``datalist`` -- A list, or a list of lists, of numerical data
+    - ``align`` -- (default: "mid") How the bars align inside of each bin.
+      Acceptable values are "left", "right" or "mid"
+    - ``alpha`` -- (float in [0,1], default: 1) The transparency of the plot
+    - ``bins`` -- The number of sections in which to divide the range. Also
+      can be a sequence of points within the range that create the
+      partition
+    - ``color`` -- The color of the face of the bars or list of colors if
+      multiple data sets are given
+    - ``cumulative`` -- (boolean - default: False) If True, then
+      a histogram is computed in which each bin gives the counts in that
+      bin plus all bins for smaller values.  Negative values give
+      a reversed direction of accumulation
+    - ``edgecolor`` -- The color of the the border of each bar
+    - ``fill`` -- (boolean - default: True) Whether to fill the bars
+    - ``hatch`` -- (default: None) symbol to fill the bars with - one of
+      "/", "\\", "|", "-", "+", "x", "o", "O", ".", "*", "" (or None)
+    - ``hue`` -- The color of the bars given as a hue. See
+      :mod:`~sage.plot.colors.hue` for more information on the hue
+    - ``label`` -- A string label for each data list given
+    - ``linewidth`` -- (float) width of the lines defining the bars
+    - ``linestyle`` -- (default: 'solid') Style of the line. One of 'solid'
+      or '-', 'dashed' or '--', 'dotted' or ':', 'dashdot' or '-.'
+    - ``normed`` -- (boolean - default: False) If True, the counts are
+      normalized to form a probability density.
+    - ``range`` -- A list [min, max] which define the range of the
+      histogram. Values outside of this range are treated as outliers and
+      omitted from counts
+    - ``rwidth`` -- (float in [0,1], default: 1) The relative width of the bars
+      as a fraction of the bin width
+    - ``stacked`` -- (boolean - default: False) If True, multiple data are
+      stacked on top of each other
+    - ``weights`` -- (list) A sequence of weights the same length as the data
+      list. If supplied, then each value contributes its associated weight
+      to the bin count
+    - ``zorder`` -- (integer) the layer level at which to draw the histogram
+
+    note::
+
+        The ``weights`` option works only with a single list. List of lists
+        representing multiple data are not supported.
 
     EXAMPLES:
 

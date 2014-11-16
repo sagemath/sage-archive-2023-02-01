@@ -35,7 +35,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.superseded import deprecated_function_alias
 from sage.rings.all import ZZ
 from combinat import CombinatorialObject
 from cartesian_product import CartesianProduct
@@ -950,8 +949,6 @@ class Composition(CombinatorialObject, Element):
         """
         return Compositions()(map(len,self.refinement_splitting(J)))
 
-    refinement = deprecated_function_alias(13243, refinement_splitting_lengths)
-
     def major_index(self):
         """
         Return the major index of ``self``. The major index is
@@ -1180,8 +1177,8 @@ class Composition(CombinatorialObject, Element):
             return SkewPartition([[],[]])
 
         return SkewPartition(
-            [ filter(lambda x: x != 0, [l for l in reversed(outer)]),
-              filter(lambda x: x != 0, [l for l in reversed(inner)])])
+            [ [x for x in reversed(outer) if x != 0],
+              [x for x in reversed(inner) if x != 0] ])
 
 
     def shuffle_product(self, other, overlap=False):
@@ -1484,7 +1481,7 @@ class Compositions(Parent, UniqueRepresentation):
     preferably consider using ``IntegerVectors`` instead::
 
         sage: Compositions(2, length=3, min_part=0).list()
-        doctest:... RuntimeWarning: Currently, setting min_part=0 produces Composition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!
+        doctest:...: RuntimeWarning: Currently, setting min_part=0 produces Composition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!
         [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
 
         sage: list(IntegerVectors(2, 3))
@@ -1765,7 +1762,7 @@ class Compositions(Parent, UniqueRepresentation):
         if code == [0]:
             return []
 
-        L = filter(lambda x: code[x]==1, range(len(code))) #the positions of the letter 1
+        L = [x for x in range(len(code)) if code[x]==1] #the positions of the letter 1
         return self.element_class(self, [L[i]-L[i-1] for i in range(1, len(L))] + [len(code)-L[-1]])
 
 # Allows to unpickle old constrained Compositions_constraints objects.
@@ -1927,6 +1924,33 @@ class Compositions_n(Compositions):
         else:
             return 0
 
+    def random_element(self):
+        r"""
+        Return a random ``Composition`` with uniform probability.
+
+        This method generates a random binary word starting with a 1
+        and then uses the bijection between compositions and their code.
+
+        EXAMPLES::
+
+            sage: Compositions(5).random_element() # random
+            [2, 1, 1, 1]
+            sage: Compositions(0).random_element()
+            []
+            sage: Compositions(1).random_element()
+            [1]
+
+        TESTS::
+
+            sage: all([Compositions(10).random_element() in Compositions(10) for i in range(20)])
+            True
+        """
+        from sage.misc.prandom import choice
+
+        if self.n == 0:
+            return Compositions()([])
+        return Compositions().from_code([1] + [choice([0,1]) for _ in range(self.n - 1)])
+
     def __iter__(self):
         """
         Iterate over the compositions of `n`.
@@ -1945,60 +1969,6 @@ class Compositions_n(Compositions):
         for i in range(1,self.n+1):
             for c in Compositions_n(self.n-i):
                 yield self.element_class(self, [i]+list(c))
-
-def from_descents(descents, nps=None):
-    r"""
-    This has been deprecated in :trac:`14063`. Use
-    :meth:`Compositions.from_descents()` instead.
-
-    EXAMPLES::
-
-        sage: [x-1 for x in Composition([1, 1, 3, 4, 3]).to_subset()]
-        [0, 1, 4, 8]
-        sage: sage.combinat.composition.from_descents([1,0,4,8],12)
-        doctest:1: DeprecationWarning: from_descents is deprecated. Use Compositions().from_descents instead.
-        See http://trac.sagemath.org/14063 for details.
-        [1, 1, 3, 4, 3]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14063, 'from_descents is deprecated. Use Compositions().from_descents instead.')
-    return Compositions().from_descents(descents, nps)
-
-def composition_from_subset(S, n):
-    r"""
-    This has been deprecated in :trac:`14063`. Use
-    :meth:`Compositions.from_subset()` instead.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.composition import composition_from_subset
-        sage: composition_from_subset([2,1,5,9], 12)
-        doctest:1: DeprecationWarning: composition_from_subset is deprecated. Use Compositions().from_subset instead.
-        See http://trac.sagemath.org/14063 for details.
-        [1, 1, 3, 4, 3]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14063, 'composition_from_subset is deprecated. Use Compositions().from_subset instead.')
-    return Compositions().from_subset(S, n)
-
-def from_code(code):
-    r"""
-    This has been deprecated in :trac:`14063`. Use
-    :meth:`Compositions.from_code()` instead.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.composition as composition
-        sage: Composition([4,1,2,3,5]).to_code()
-        [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
-        sage: composition.from_code(_)
-        doctest:1: DeprecationWarning: from_code is deprecated. Use Compositions().from_code instead.
-        See http://trac.sagemath.org/14063 for details.
-        [4, 1, 2, 3, 5]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14063, 'from_code is deprecated. Use Compositions().from_code instead.')
-    return Compositions().from_code(code)
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)

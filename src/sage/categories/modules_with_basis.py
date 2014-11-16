@@ -3,34 +3,37 @@ Modules With Basis
 
 AUTHORS:
 
-- Nicolas M. Thiery (2008-2010): initial revision
+- Nicolas M. Thiery (2008-2014): initial revision, axiomatization
 - Jason Bandlow and Florent Hivert (2010): Triangular Morphisms
 - Christian Stump (2010): :trac:`9648` module_morphism's to a wider class
   of codomains
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.lazy_import import LazyImport
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall
-from sage.misc.superseded import deprecated_function_alias
 from sage.misc.sage_itertools import max_cmp, min_cmp
-from sage.categories.all import Sets, CommutativeAdditiveSemigroups, Modules, HomCategory
+from sage.categories.homsets import HomsetsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
-from sage.categories.category_types import Category_over_base_ring
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.morphism import SetMorphism, Morphism
-from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.homset import Hom
+from sage.categories.sets_cat import Sets
+from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
+from sage.categories.modules import Modules
 from sage.structure.element import Element, parent
 
-class ModulesWithBasis(Category_over_base_ring):
+class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
     """
     The category of modules with a distinguished basis.
 
@@ -44,18 +47,22 @@ class ModulesWithBasis(Category_over_base_ring):
         sage: ModulesWithBasis(ZZ).super_categories()
         [Category of modules over Integer Ring]
 
-    If the base ring is actually a field, this is a subcategory of
-    the category of abstract vector fields::
+    If the base ring is actually a field, this constructs instead the
+    category of vector spaces with basis::
 
-        sage: ModulesWithBasis(RationalField()).super_categories()
-        [Category of vector spaces over Rational Field]
+        sage: ModulesWithBasis(QQ)
+        Category of vector spaces with basis over Rational Field
+
+        sage: ModulesWithBasis(QQ).super_categories()
+        [Category of modules with basis over Rational Field,
+         Category of vector spaces over Rational Field]
 
     Let `X` and `Y` be two modules with basis. We can build `Hom(X,Y)`::
 
         sage: X = CombinatorialFreeModule(QQ, [1,2]); X.__custom_name = "X"
         sage: Y = CombinatorialFreeModule(QQ, [3,4]); Y.__custom_name = "Y"
         sage: H = Hom(X, Y); H
-        Set of Morphisms from X to Y in Category of modules with basis over Rational Field
+        Set of Morphisms from X to Y in Category of vector spaces with basis over Rational Field
 
     The simplest morphism is the zero map::
 
@@ -108,9 +115,9 @@ class ModulesWithBasis(Category_over_base_ring):
     Some more playing around with categories and higher order homsets::
 
         sage: H.category()
-        Category of hom sets in Category of modules with basis over Rational Field
+        Category of homsets of modules with basis over Rational Field
         sage: Hom(H, H).category()
-        Category of hom sets in Category of modules over Rational Field
+        Category of endsets of homsets of modules with basis over Rational Field
 
     .. TODO:: ``End(X)`` is an algebra.
 
@@ -119,42 +126,33 @@ class ModulesWithBasis(Category_over_base_ring):
         sage: TestSuite(ModulesWithBasis(ZZ)).run()
     """
 
-    @cached_method
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: ModulesWithBasis(QQ).super_categories()
-            [Category of vector spaces over Rational Field]
-            sage: ModulesWithBasis(ZZ).super_categories()
-            [Category of modules over Integer Ring]
-        """
-        return [Modules(self.base_ring())]
-
     def _call_(self, x):
         """
-        Construct a module with basis from the data in ``x``.
+        Construct a module with basis (resp. vector space) from the data in ``x``.
 
         EXAMPLES::
 
-            sage: C = ModulesWithBasis(QQ)
+            sage: CZ = ModulesWithBasis(ZZ); CZ
+            Category of modules with basis over Integer Ring
+            sage: CQ = ModulesWithBasis(QQ); CQ
+            Category of vector spaces with basis over Rational Field
 
         ``x`` is returned unchanged if it is already in this category::
 
-            sage: C(CombinatorialFreeModule(QQ, ('a','b','c')))
-            Free module generated by {'a', 'b', 'c'} over Rational Field
-            sage: C(QQ^3)
-            Vector space of dimension 3 over Rational Field
+            sage: CZ(CombinatorialFreeModule(ZZ, ('a','b','c')))
+            Free module generated by {'a', 'b', 'c'} over Integer Ring
+            sage: CZ(ZZ^3)
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
         If needed (and possible) the base ring is changed appropriately::
 
-            sage: C(ZZ^3)                       # indirect doctest
+            sage: CQ(ZZ^3)                       # indirect doctest
             Vector space of dimension 3 over Rational Field
 
         If ``x`` itself is not a module with basis, but there is a
         canonical one associated to it, the later is returned::
 
-            sage: C(AbelianVariety(Gamma0(37))) # indirect doctest
+            sage: CQ(AbelianVariety(Gamma0(37))) # indirect doctest
             Vector space of dimension 4 over Rational Field
         """
         try:
@@ -180,6 +178,9 @@ class ModulesWithBasis(Category_over_base_ring):
         """
         return self.base_ring().is_field()
 
+    FiniteDimensional = LazyImport('sage.categories.finite_dimensional_modules_with_basis', 'FiniteDimensionalModulesWithBasis')
+    Graded = LazyImport('sage.categories.graded_modules_with_basis', 'GradedModulesWithBasis')
+
     class ParentMethods:
         @cached_method
         def basis(self):
@@ -199,7 +200,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
             """
             from sage.combinat.family import Family
-            return Family(self._basis_keys, self.monomial)
+            return Family(self._indices, self.monomial)
 
         def module_morphism(self, on_basis = None, diagonal = None, triangular = None, **keywords):
             r"""
@@ -259,7 +260,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 From: X
                 To:   Y
                 sage: phi.category_for()
-                Category of modules with basis over Rational Field
+                Category of vector spaces with basis over Rational Field
                 sage: x = X.basis(); y = Y.basis()
                 sage: phi(x[1] + x[3])
                 B[1] + 2*B[2] + B[3] + 2*B[4]
@@ -410,30 +411,27 @@ class ModulesWithBasis(Category_over_base_ring):
             """
             EXAMPLES::
 
-                sage: QS3 = SymmetricGroupAlgebra(QQ,3)
-                sage: QS3                 # indirect doctest
-                Symmetric group algebra of order 3 over Rational Field
-                sage: QS3.rename("QS3")
-                sage: QS3                 # indirect doctest
-                QS3
+                sage: class FooBar(CombinatorialFreeModule): pass
+                sage: C = FooBar(QQ, (1,2,3)); C # indirect doctest
+                Free module generated by {1, 2, 3} over Rational Field
 
-                sage: class Blah(Parent):
-                ....:     pass
-                sage: Blah(category = ModulesWithBasis(QQ))
-                <class '__main__.Blah_with_category'>
+                sage: C._name = "foobar"; C
+                foobar over Rational Field
 
-            FIXME: this implementation is not generic; it uses the
-            ``_name`` attribute if available (as is the case for
-            instances of :class:`CombinatorialFreeModule`), and
-            otherwise returns the name of the class as per Python's
-            default ``repr``. However, having it here rather than in
-            :class:`CombinatorialFreeModule` allows subcategories for
-            overriding it.
+                sage: C.rename("barfoo"); C
+                barfoo
+
+                sage: class FooBar(Parent):
+                ....:     def basis(self): return Family({1:"foo", 2:"bar"})
+                ....:     def base_ring(self): return QQ
+                sage: FooBar(category = ModulesWithBasis(QQ))
+                Free module generated by [1, 2] over Rational Field
             """
             if hasattr(self, "_name"):
-                return self._name + " over %s"%self.base_ring()
+                name = self._name
             else:
-                return repr(type(self))
+                name = "Free module generated by {}".format(self.basis().keys())
+            return name + " over {}".format(self.base_ring())
 
 
         def tensor(*parents):
@@ -850,8 +848,47 @@ class ModulesWithBasis(Category_over_base_ring):
 
                 sage: B.zero()      # This actually failed at some point!!! See #8890
                 0
+
+                sage: y = B.zero().map_support(lambda i: i/0); y
+                0
+                sage: y.parent() is B
+                True
             """
             return self.parent().sum_of_terms( (f(m), c) for m,c in self )
+
+        def map_support_skip_none(self, f):
+            """
+            Mapping a function on the support.
+
+            INPUT:
+
+            - ``f`` -- an endofunction on the indices of the free module
+
+            Returns a new element of ``self.parent()`` obtained by
+            applying the function `f` to all of the objects indexing
+            the basis elements.
+
+            EXAMPLES::
+
+                sage: B = CombinatorialFreeModule(ZZ, [-1, 0, 1])
+                sage: x = B.an_element(); x
+                2*B[-1] + 2*B[0] + 3*B[1]
+                sage: x.map_support_skip_none(lambda i: -i if i else None)
+                3*B[-1] + 2*B[1]
+
+            ``f`` needs not be injective::
+
+                sage: x.map_support_skip_none(lambda i: 1 if i else None)
+                5*B[1]
+
+            TESTS::
+
+                sage: y = x.map_support_skip_none(lambda i: None); y
+                0
+                sage: y.parent() is B
+                True
+            """
+            return self.parent().sum_of_terms( (fm,c) for (fm,c) in ((f(m), c) for m,c in self) if fm is not None)
 
         def map_item(self, f):
             """
@@ -884,22 +921,8 @@ class ModulesWithBasis(Category_over_base_ring):
                 sage: a = s([2,1]) + s([1,1,1])
                 sage: a.map_item(f)
                 2*s[2, 1] + 2*s[3]
-
-            The following methods are deprecated::
-
-                sage: a.map_term(f)
-                doctest:...: DeprecationWarning: map_term is deprecated. Please use map_item instead.
-                See http://trac.sagemath.org/8890 for details.
-                2*s[2, 1] + 2*s[3]
-                sage: a.map_mc(f)
-                doctest:...: DeprecationWarning: map_mc is deprecated. Please use map_item instead.
-                See http://trac.sagemath.org/8890 for details.
-                2*s[2, 1] + 2*s[3]
             """
             return self.parent().sum_of_terms( f(m,c) for m,c in self )
-
-        map_term = deprecated_function_alias(8890, map_item)
-        map_mc   = deprecated_function_alias(8890, map_item)
 
         def tensor(*elements):
             """
@@ -920,11 +943,7 @@ class ModulesWithBasis(Category_over_base_ring):
             parents = [parent(element) for element in elements]
             return tensor(parents)._tensor_of_elements(elements) # good name???
 
-    class HomCategory(HomCategory):
-        """
-        The category of homomorphisms sets `Hom(X,Y)` for `X`, `Y`
-        modules with basis.
-        """
+    class Homsets(HomsetsCategory):
         class ParentMethods:
             def __call_on_basis__(self, **options):
                 """
@@ -987,45 +1006,42 @@ class ModulesWithBasis(Category_over_base_ring):
                     sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4], category = category); Y.rename("Y")
                     sage: H = Hom(X, Y)
                     sage: H.zero().category_for()
-                    Category of finite dimensional modules with basis over Rational Field
+                    Category of finite dimensional vector spaces with basis over Rational Field
                 """
                 return self.domain().module_morphism(codomain = self.codomain(),
                                                      **options)
 
-        class ElementMethods:
+    class MorphismMethods:
+        @cached_method
+        def on_basis(self):
             """
-            Abstract class for morphisms of modules with basis.
+            Return the action of this morphism on basis elements.
+
+            OUTPUT:
+
+            - a function from the indices of the basis of the domain to
+              the codomain
+
+            EXAMPLES::
+
+                sage: X = CombinatorialFreeModule(QQ, [1,2,3]);   X.rename("X")
+                sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); Y.rename("Y")
+                sage: H = Hom(X, Y)
+                sage: x = X.basis()
+
+                sage: f = H(lambda x: Y.zero()).on_basis()
+                sage: f(2)
+                0
+
+                sage: f = lambda i: Y.monomial(i) + 2*Y.monomial(i+1)
+                sage: g = H(on_basis = f).on_basis()
+                sage: g(2)
+                B[2] + 2*B[3]
+                sage: g == f
+                True
             """
-            @cached_method
-            def on_basis(self):
-                """
-                Return the action of this morphism on basis elements.
-
-                OUTPUT:
-
-                - a function from the indices of the basis of the domain to
-                  the codomain
-
-                EXAMPLES::
-
-                    sage: X = CombinatorialFreeModule(QQ, [1,2,3]);   X.rename("X")
-                    sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); Y.rename("Y")
-                    sage: H = Hom(X, Y)
-                    sage: x = X.basis()
-
-                    sage: f = H(lambda x: Y.zero()).on_basis()
-                    sage: f(2)
-                    0
-
-                    sage: f = lambda i: Y.monomial(i) + 2*Y.monomial(i+1)
-                    sage: g = H(on_basis = f).on_basis()
-                    sage: g(2)
-                    B[2] + 2*B[3]
-                    sage: g == f
-                    True
-                """
-                monomial = self.domain().monomial
-                return lambda t: self(monomial(t))
+            monomial = self.domain().monomial
+            return lambda t: self(monomial(t))
 
     class CartesianProducts(CartesianProductsCategory):
         """
@@ -1038,9 +1054,11 @@ class ModulesWithBasis(Category_over_base_ring):
             EXAMPLES::
 
                 sage: ModulesWithBasis(QQ).CartesianProducts().extra_super_categories()
-                [Category of modules with basis over Rational Field]
+                [Category of vector spaces with basis over Rational Field]
                 sage: ModulesWithBasis(QQ).CartesianProducts().super_categories()
-                [Category of modules with basis over Rational Field, Category of Cartesian products of sets]
+                [Category of Cartesian products of modules with basis over Rational Field,
+                 Category of vector spaces with basis over Rational Field,
+                 Category of Cartesian products of vector spaces over Rational Field]
             """
             return [self.base_category()]
 
@@ -1073,9 +1091,11 @@ class ModulesWithBasis(Category_over_base_ring):
             EXAMPLES::
 
                 sage: ModulesWithBasis(QQ).TensorProducts().extra_super_categories()
-                [Category of modules with basis over Rational Field]
+                [Category of vector spaces with basis over Rational Field]
                 sage: ModulesWithBasis(QQ).TensorProducts().super_categories()
-                [Category of modules with basis over Rational Field]
+                [Category of tensor products of modules with basis over Rational Field,
+                 Category of vector spaces with basis over Rational Field,
+                 Category of tensor products of vector spaces over Rational Field]
             """
             return [self.base_category()]
 
@@ -1220,8 +1240,8 @@ class ModulesWithBasis(Category_over_base_ring):
 
                 sage: ModulesWithBasis(ZZ).DualObjects().extra_super_categories()
                 [Category of modules over Integer Ring]
-                sage: ModulesWithBasis(QQ).DualObjects().extra_super_categories()
-                [Category of vector spaces over Rational Field]
+                sage: ModulesWithBasis(QQ).DualObjects().super_categories()
+                [Category of duals of vector spaces over Rational Field, Category of duals of modules with basis over Rational Field]
             """
             return [Modules(self.base_category().base_ring())]
 
@@ -1336,7 +1356,7 @@ class ModuleMorphismByLinearity(Morphism):
     def on_basis(self):
         """
         Return the action of this morphism on basis elements, as per
-        :meth:`ModulesWithBasis.HomCategory.ElementMethods.on_basis`.
+        :meth:`ModulesWithBasis.Homsets.ElementMethods.on_basis`.
 
         OUTPUT:
 

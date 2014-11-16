@@ -212,7 +212,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import Integer, PolynomialRing, is_Polynomial, is_MPolynomial, QQ
+from sage.rings.all import Integer, PolynomialRing, QQ
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 import sage.combinat.partition
 from sage.combinat.partition import _Partitions, Partitions
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
@@ -220,6 +222,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc import prod, uniq
 from copy import copy
+from functools import reduce
 
 
 def SymmetricFunctionAlgebra(R, basis="schur"):
@@ -283,14 +286,16 @@ def is_SymmetricFunctionAlgebra(x):
 
 def zee(part):
     r"""
-    Return the size of the centralizer of permutations of cycle type ``part``.
+    Return the size of the centralizer of any permutation of cycle type
+    ``part``.
 
-    Note that the size of the centralizer is the inner product between `p(part)` and
-    itself where `p` is the power-sum symmetric functions.
+    Note that the size of the centralizer is the inner product between
+    ``p(part)`` and itself, where `p` is the power-sum symmetric
+    functions.
 
     INPUT:
 
-    -  ``part`` -- an integer partition (for example, [2,1,1])
+    - ``part`` -- an integer partition (for example, ``[2,1,1]``)
 
     OUTPUT:
 
@@ -382,12 +387,12 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             sage: Sym = SymmetricFunctions(QQ)
             sage: bases = SymmetricFunctionsBases(Sym)
             sage: bases.super_categories()
-            [Category of graded hopf algebras with basis over Rational Field, Category of realizations of Symmetric Functions over Rational Field, Category of commutative rings]
+            [Category of commutative graded hopf algebras with basis over Rational Field,
+             Category of realizations of Symmetric Functions over Rational Field]
         """
         from sage.categories.all import CommutativeRings, GradedHopfAlgebrasWithBasis
-        return [GradedHopfAlgebrasWithBasis(self.base().base_ring()),
-                Realizations(self.base()),
-                CommutativeRings()]
+        return [GradedHopfAlgebrasWithBasis(self.base().base_ring()).Commutative(),
+                Realizations(self.base())]
 
     class ParentMethods:
 
@@ -407,7 +412,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: s.is_integral_domain()
                 True
 
-            The following doctest is disabled pending :trac:`10963`::
+            The following doctest is disabled pending :trac:`15475`::
 
                 sage: s = SymmetricFunctions(Zmod(14)).s() # not tested
                 sage: s.is_integral_domain() # not tested
@@ -2020,11 +2025,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s.set_print_style('lex')
         """
         if ps == 'lex':
-            self.print_options(monomial_cmp = lambda x,y: cmp(x,y))
+            self.print_options(generator_cmp = lambda x,y: cmp(x,y))
         elif ps == 'length':
-            self.print_options(monomial_cmp = lambda x,y: cmp(len(x), len(y)))
+            self.print_options(generator_cmp = lambda x,y: cmp(len(x), len(y)))
         elif ps == 'maximal_part':
-            self.print_options(monomial_cmp = lambda x,y: cmp(_lmax(x), _lmax(y)))
+            self.print_options(generator_cmp = lambda x,y: cmp(_lmax(x), _lmax(y)))
         else:
             raise ValueError("the print style must be one of lex, length, or maximal_part ")
         self._print_style = ps
@@ -2094,8 +2099,9 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         OUTPUT:
 
-        - The coproduct acting on ``elt``, the result is an element of the
-          tensor squared of the basis ``self``
+        - The image of ``elt`` under the comultiplication (=coproduct)
+          of the coalgebra of symmetric functions. The result is an
+          element of the tensor squared of the basis ``self``.
 
         EXAMPLES::
 
@@ -4148,6 +4154,123 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         result_in_h_basis = h._from_dict(dct)
         return parent(result_in_h_basis)
 
+    def bernstein_creation_operator(self, n):
+        r"""
+        Return the image of ``self`` under the `n`-th Bernstein creation
+        operator.
+
+        Let `n` be an integer. The `n`-th Bernstein creation operator
+        `\mathbf{B}_n` is defined as the endomorphism of the space
+        `Sym` of symmetric functions which sends every `f` to
+
+        .. MATH::
+
+            \sum_{i \geq 0} (-1)^i h_{n+i} e_i^\perp,
+
+        where usual notations are in place (`h` stands for the complete
+        homogeneous symmetric functions, `e` for the elementary ones,
+        and `e_i^\perp` means skewing (:meth:`skew_by`) by `e_i`).
+
+        This has been studied in [BBSSZ2012]_, section 2.2, where the
+        following rule is given for computing `\mathbf{B}_n` on a
+        Schur function: If `(\alpha_1, \alpha_2, \ldots, \alpha_n)` is
+        an `n`-tuple of integers (positive or not), then
+
+        .. MATH::
+
+            \mathbf{B}_n s_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}
+            = s_{(n, \alpha_1, \alpha_2, \ldots, \alpha_n)}.
+
+        Here, `s_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}` is the
+        "Schur function" associated to the `n`-tuple
+        `(\alpha_1, \alpha_2, \ldots, \alpha_n)`, and defined by
+        literally applying the Jacobi-Trudi identity, i.e., by
+
+        .. MATH::
+
+            s_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}
+            = \det \left( (h_{\alpha_i - i + j})_{i, j = 1, 2, \ldots, n} \right).
+
+        This notion of a Schur function clearly extends the classical
+        notion of Schur function corresponding to a partition, but is
+        easily reduced to the latter (in fact, for any `n`-tuple
+        `\alpha` of integers, one easily sees that `s_\alpha` is
+        either `0` or minus-plus a Schur function corresponding to a
+        partition; and it is easy to determine which of these is the
+        case and find the partition by a combinatorial algorithm).
+
+        EXAMPLES:
+
+        Let us check that what this method computes agrees with the
+        definition::
+
+            sage: Sym = SymmetricFunctions(ZZ)
+            sage: e = Sym.e()
+            sage: h = Sym.h()
+            sage: s = Sym.s()
+            sage: def bernstein_creation_by_def(n, f):
+            ....:     # `n`-th Bernstein creation operator applied to `f`
+            ....:     # computed according to its definition.
+            ....:     res = f.parent().zero()
+            ....:     if not f:
+            ....:         return res
+            ....:     max_degree = max(sum(m) for m, c in f)
+            ....:     for i in range(max_degree + 1):
+            ....:         if n + i >= 0:
+            ....:             res += (-1) ** i * h[n + i] * f.skew_by(e[i])
+            ....:     return res
+            sage: all( bernstein_creation_by_def(n, s[l]) == s[l].bernstein_creation_operator(n)
+            ....:      for n in range(-2, 3) for l in Partitions(4) )
+            True
+            sage: all( bernstein_creation_by_def(n, s[l]) == s[l].bernstein_creation_operator(n)
+            ....:      for n in range(-3, 4) for l in Partitions(3) )
+            True
+            sage: all( bernstein_creation_by_def(n, e[l]) == e[l].bernstein_creation_operator(n)
+            ....:      for n in range(-3, 4) for k in range(3) for l in Partitions(k) )
+            True
+
+        Some examples::
+
+            sage: s[3,2].bernstein_creation_operator(3)
+            s[3, 3, 2]
+            sage: s[3,2].bernstein_creation_operator(1)
+            -s[2, 2, 2]
+            sage: h[3,2].bernstein_creation_operator(-2)
+            h[2, 1]
+            sage: h[3,2].bernstein_creation_operator(-1)
+            h[2, 1, 1] - h[2, 2] - h[3, 1]
+            sage: h[3,2].bernstein_creation_operator(0)
+            -h[3, 1, 1] + h[3, 2]
+            sage: h[3,2].bernstein_creation_operator(1)
+            -h[2, 2, 2] + h[3, 2, 1]
+            sage: h[3,2].bernstein_creation_operator(2)
+            -h[3, 3, 1] + h[4, 2, 1]
+        """
+        # We use the formula for the Bernstein creation operator on
+        # a Schur function given in the docstring.
+        from sage.combinat.partition import _Partitions
+        parent = self.parent()
+        s = parent.realization_of().schur()
+        res = s.zero()
+        for m, c in s(self): # m = monomial (= corresponding partition), c = coefficient
+            # Add ``c * s[m].bernstein_creation_operator()`` to ``res``.
+            # There is a simple combinatorial algorithm for this (using
+            # the Jacobi-Trudi formula), which returns either 0 or
+            # minus-plus a single Schur function.
+            for j, p in enumerate(m + [0]):
+                # The "+ [0]" is important and corresponds to moving the ``n``
+                # to the very end!
+                if n == p - j - 1:
+                    break
+                if n > p - j - 1:
+                    if n + j < 0:
+                        break
+                    m_new = [k - 1 for k in m[:j]] + [n + j] + m[j:]
+                    m_new = _Partitions(m_new)
+                    res += (-1) ** j * c * s[m_new]
+                    break
+        return parent(res)
+
     def _expand(self, condition, n, alphabet = 'x'):
         r"""
         Expand the symmetric function as a symmetric polynomial in ``n``
@@ -4323,9 +4446,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             0
         """
         if exact:
-            res = dict( filter( lambda x: sum(x[0]) == d, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if sum(x[0]) == d)
         else:
-            res = dict( filter( lambda x: sum(x[0]) <= d, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if sum(x[0]) <= d)
         return self.parent()._from_dict(res)
 
     def restrict_partition_lengths(self, l, exact = True):
@@ -4356,9 +4479,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             s[1] + s[2, 1] + s[4]
         """
         if exact:
-            res = dict( filter( lambda x: len(x[0]) == l, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if len(x[0]) == l)
         else:
-            res = dict( filter( lambda x: len(x[0]) <= l, self._monomial_coefficients.items()) )
+            res = dict(x for x in self._monomial_coefficients.items() if len(x[0]) <= l)
         return self.parent()._from_dict(res)
 
     def restrict_parts(self, n):
@@ -4380,7 +4503,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: z.restrict_parts(1)
             s[1] + s[1, 1, 1]
         """
-        res = dict( filter( lambda x: _lmax(x[0]) <= n, self._monomial_coefficients.items()) )
+        res = dict(x for x in self._monomial_coefficients.items() if _lmax(x[0]) <= n)
         return self.parent()._from_dict(res)
 
     def expand(self, n, alphabet = 'x'):

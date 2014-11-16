@@ -281,7 +281,7 @@ class MeetSemilatticeElement(PosetElement):
 
         EXAMPLES::
 
-            sage: D = Posets.DiamondPoset(5)
+            sage: D = Posets.DiamondPoset(5,facade=False)
             sage: D(1) * D(2)
             0
             sage: D(1) * D(1)
@@ -300,7 +300,7 @@ class JoinSemilatticeElement(PosetElement):
 
         EXAMPLES::
 
-            sage: D = Posets.DiamondPoset(5)
+            sage: D = Posets.DiamondPoset(5,facade=False)
             sage: D(1) + D(2)
             4
             sage: D(1) + D(1)

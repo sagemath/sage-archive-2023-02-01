@@ -15,16 +15,16 @@ Classes and methods
 
 """
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 from sage.misc.cachefunc import cached_method
 from sage.graphs.base.static_dense_graph cimport dense_graph_init
 
-cdef inline int bitset_are_disjoint(unsigned long * b1, unsigned long * b2, int width):
+cdef inline bint bitset_are_disjoint(mp_limb_t* b1, mp_limb_t* b2, mp_size_t width):
     r"""
     Tests whether two bitsets of length width*sizeof(unsigned int) have an empty
     intersection.
     """
-    cdef int i
+    cdef mp_size_t i
     for i in range(width):
         if b1[i]&b2[i]:
             return False
@@ -33,7 +33,7 @@ cdef inline int bitset_are_disjoint(unsigned long * b1, unsigned long * b2, int 
 cdef inline int ismaximal(binary_matrix_t g, int n, bitset_t s):
     cdef int i
     for i in range(n):
-        if (not bitset_in(s,i)) and bitset_are_disjoint(g.rows[i],s.bits,g.width):
+        if (not bitset_in(s,i)) and bitset_are_disjoint(<mp_limb_t*>(g.rows[i]), s.bits, g.width):
             return False
 
     return True
@@ -245,7 +245,7 @@ cdef class IndependentSets:
             if bitset_in(current_set,i):
 
                 # We have found an independent set !
-                if bitset_are_disjoint(self.g.rows[i],current_set.bits,self.g.width):
+                if bitset_are_disjoint(<mp_limb_t*>(self.g.rows[i]), current_set.bits, self.g.width):
 
                     # Saving that set
                     bitset_copy(tmp, current_set)
@@ -391,7 +391,7 @@ cdef class IndependentSets:
             bitset_add(s, i)
 
             # Checking that the set s is independent
-            if not bitset_are_disjoint(self.g.rows[i],s.bits,self.g.width):
+            if not bitset_are_disjoint(<mp_limb_t*>(self.g.rows[i]), s.bits, self.g.width):
                 return False
 
         if self.maximal and not ismaximal(self.g, self.n,s):

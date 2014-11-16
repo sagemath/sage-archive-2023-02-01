@@ -1,5 +1,5 @@
 r"""
-Information System on Graph Classes and their Inclusions
+ISGCI: Information System on Graph Classes and their Inclusions
 
 This module implements an interface to the `ISGCI <http://www.graphclasses.org/>`_ database in Sage.
 
@@ -591,7 +591,7 @@ class GraphClasses(UniqueRepresentation):
             sage: type(t)
             <type 'list'>
             sage: t[0]
-            {'super': 'gc_2', 'sub': 'gc_1'}
+            {'sub': 'gc_1', 'super': 'gc_2'}
         """
         self.classes()
         return self.inclusions()

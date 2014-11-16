@@ -101,7 +101,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             True
         """
         ct = CartanType(ct)
-        if prefix == None:
+        if prefix is None:
             if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
             else:
@@ -121,7 +121,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self._base_ring = base_ring
         self._space = RootSystem(self._cartan_type).ambient_space()
         self._origin = self._space.zero()
-        if prefix == None:
+        if prefix is None:
             if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
             else:
@@ -925,7 +925,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: v = A2._space([3,1,0])
             sage: d = dict([(x,1) for x in v.orbit()])
             sage: A2._char_from_weights(d)
-            {(2, 2, 0): -1, (3, 1, 0): 1, (2, 1, 1): -1}
+            {(2, 1, 1): -1, (2, 2, 0): -1, (3, 1, 0): 1}
         """
         hdict = {}
         ddict = mdict.copy()

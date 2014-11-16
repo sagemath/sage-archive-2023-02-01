@@ -70,11 +70,11 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: [ e.root(i,j,p2=1) for i in xrange(e.n) for j in xrange(i+1,e.n) ]
             [(1, -1, 0, 0), (1, 0, -1, 0), (1, 0, 0, -1), (0, 1, -1, 0), (0, 1, 0, -1), (0, 0, 1, -1)]
         """
-        if i == j or j == None:
+        if i == j or j is None:
             return (-1)**p1*self.monomial(i)
-        if k == None:
+        if k is None:
             return (-1)**p1*self.monomial(i) + (-1)**p2*self.monomial(j)
-        if l == None:
+        if l is None:
             return (-1)**p1*self.monomial(i) + (-1)**p2*self.monomial(j)+(-1)**p3*self.monomial(k)
         return (-1)**p1*self.monomial(i) + (-1)**p2*self.monomial(j)+(-1)**p3*self.monomial(k)+(-1)**p4*self.monomial(l)
 
@@ -242,6 +242,28 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         return "F_4"
 
     AmbientSpace = AmbientSpace
+
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['F',4]).coxeter_number()
+            12
+        """
+        return 12
+
+    def dual_coxeter_number(self):
+        """
+        Return the dual Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['F',4]).dual_coxeter_number()
+            9
+        """
+        return 9
 
     def dynkin_diagram(self):
         """

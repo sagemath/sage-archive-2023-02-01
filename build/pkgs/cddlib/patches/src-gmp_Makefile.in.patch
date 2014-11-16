@@ -2,7 +2,7 @@ diff --git a/src.bak/src-gmp/Makefile.in b/src/src-gmp/Makefile.in
 index f88c83f..3470dc9 100644
 --- a/src.bak/src-gmp/Makefile.in
 +++ b/src/src-gmp/Makefile.in
-@@ -37,7 +37,8 @@ bin_PROGRAMS = scdd_gmp$(EXEEXT) lcdd_gmp$(EXEEXT) \
+@@ -37,7 +37,8 @@
  	projection_gmp$(EXEEXT) adjacency_gmp$(EXEEXT) \
  	allfaces_gmp$(EXEEXT) testshoot_gmp$(EXEEXT) \
  	testcdd1_gmp$(EXEEXT) testcdd2_gmp$(EXEEXT) \
@@ -12,7 +12,7 @@ index f88c83f..3470dc9 100644
  subdir = src-gmp
  DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-@@ -57,6 +58,10 @@ am_allfaces_gmp_OBJECTS = allfaces.$(OBJEXT)
+@@ -57,6 +58,10 @@
  allfaces_gmp_OBJECTS = $(am_allfaces_gmp_OBJECTS)
  allfaces_gmp_LDADD = $(LDADD)
  allfaces_gmp_DEPENDENCIES = ../lib-src-gmp/libcddgmp.la
@@ -23,7 +23,7 @@ index f88c83f..3470dc9 100644
  am_fourier_gmp_OBJECTS = fourier.$(OBJEXT)
  fourier_gmp_OBJECTS = $(am_fourier_gmp_OBJECTS)
  fourier_gmp_LDADD = $(LDADD)
-@@ -114,19 +119,19 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+@@ -114,19 +119,19 @@
  	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
  	$(LDFLAGS) -o $@
  SOURCES = $(adjacency_gmp_SOURCES) $(allfaces_gmp_SOURCES) \
@@ -55,15 +55,20 @@ index f88c83f..3470dc9 100644
  ETAGS = etags
  CTAGS = ctags
  DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-@@ -254,6 +259,7 @@ testcdd2_gmp_SOURCES = testcdd2.c
+@@ -254,10 +259,10 @@
  testlp1_gmp_SOURCES = testlp1.c
  testlp2_gmp_SOURCES = testlp2.c
  testlp3_gmp_SOURCES = testlp3.c
 +cdd_both_reps_gmp_SOURCES = cdd_both_reps.c
  # cddmathlink_SOURCES                = cddmathlink.c cddmlio.h cddmlio.c
  LDADD = ../lib-src-gmp/libcddgmp.la
- AM_LDFLAGS = -L$(gmplibdir)
-@@ -326,6 +332,9 @@ adjacency_gmp$(EXEEXT): $(adjacency_gmp_OBJECTS) $(adjacency_gmp_DEPENDENCIES)
+-AM_LDFLAGS = -L$(gmplibdir)
+-INCLUDES = -I../lib-src-gmp -I$(gmpincludedir)
++INCLUDES = -I../lib-src-gmp
+ AM_CPPFLAGS = -DGMPRATIONAL
+ all: all-am
+ 
+@@ -326,6 +331,9 @@
  allfaces_gmp$(EXEEXT): $(allfaces_gmp_OBJECTS) $(allfaces_gmp_DEPENDENCIES) 
  	@rm -f allfaces_gmp$(EXEEXT)
  	$(LINK) $(allfaces_gmp_OBJECTS) $(allfaces_gmp_LDADD) $(LIBS)
@@ -73,7 +78,7 @@ index f88c83f..3470dc9 100644
  fourier_gmp$(EXEEXT): $(fourier_gmp_OBJECTS) $(fourier_gmp_DEPENDENCIES) 
  	@rm -f fourier_gmp$(EXEEXT)
  	$(LINK) $(fourier_gmp_OBJECTS) $(fourier_gmp_LDADD) $(LIBS)
-@@ -368,6 +377,7 @@ distclean-compile:
+@@ -368,6 +376,7 @@
  
  @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adjacency.Po@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allfaces.Po@am__quote@

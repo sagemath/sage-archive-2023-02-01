@@ -270,7 +270,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             starting_weight = P.sum(starting_weight[j-offset]*Lambda[j] for j in R.index_set())
 
         #set defaults
-        if highest_weight_crystal == None:
+        if highest_weight_crystal is None:
             highest_weight_crystal = True
 
         if not starting_weight.is_dominant():
@@ -487,7 +487,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
                 G.setdefault(x, {}) # does nothing if there's a default
                 for i in I:
                     xfi = x.f(i)
-                    if xfi != None:
+                    if xfi is not None:
                         G[x][xfi] = i
                         recently_visited.add(xfi)
             if len(recently_visited) == 0: # No new nodes, nothing more to do
@@ -680,7 +680,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         j = 0
         temp = self
         temp = temp.e(i)
-        while temp != None:
+        while temp is not None:
             j+=1
             temp = temp.e(i)
 
@@ -812,10 +812,14 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
         ::
 
-            sage: C=crystals.AlcovePaths(['A',2],[1,1])
-            sage: x=C( () ).f(1)
-            sage: x._folding_data(2)
-            {(alpha[1] + alpha[2], 1): 1, 'infinity': 1, (alpha[2], 0): 1}
+            sage: C = crystals.AlcovePaths(['A',2],[1,1])
+            sage: x = C( () ).f(1)
+            sage: fd = x._folding_data(2);   fd    # # random output
+            {(alpha[2], 0): 1, (alpha[1] + alpha[2], 1): 1, 'infinity': 1}
+            sage: fd['infinity']
+            1
+            sage: fd.values()
+            [1, 1, 1]
         """
         Parent = self.parent()
 
@@ -1127,9 +1131,6 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             return 1
 
 CrystalOfAlcovePaths.Element = CrystalOfAlcovePathsElement
-#deprecate the old name
-from sage.misc.superseded import deprecated_function_alias
-ClassicalCrystalOfAlcovePaths = deprecated_function_alias(14143, CrystalOfAlcovePaths)
 
 class RootsWithHeight(UniqueRepresentation, Parent):
     r"""

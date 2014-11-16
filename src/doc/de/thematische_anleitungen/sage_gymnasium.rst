@@ -607,6 +607,7 @@ darstellen::
 
     sage: f(x) = x^2
     sage: plot(f)
+    Graphics object consisting of 1 graphics primitive
 
 Sage versucht einen vernünftigen Bereich von x-Werten zu finden, um den Funktionsgraphen
 darzustellen. Falls dies nicht dem gewünschten Bereich entspricht, können wir diesen mit
@@ -615,6 +616,7 @@ die y-Achse den zu darstellenden Bereich festlegen::
 
     sage: f(x) = x^2
     sage: plot(f, xmin=-12, xmax=12, ymin=-10, ymax=150)
+    Graphics object consisting of 1 graphics primitive
 
 Wollen wir mehrere Funktionsgraphen im selben Koordinatensystem darstellen, können wir
 die beiden Plots einzeln erstellen und in Variabeln abspeichern. Dies verhindert, dass
@@ -625,6 +627,7 @@ zusammen anzuzeigen. Die Plots werden mit einem ``+``-Zeichen zusammengefügt. M
     sage: graph1 = plot(x^2 + 1, color="green", xmin = 0, xmax = 3)
     sage: graph2 = plot(e^x, color="red", xmin = 0, xmax = 3)
     sage: plot(graph1 + graph2, )
+    Graphics object consisting of 2 graphics primitives
 
 Optionen, welche für beide Plots gültig sind (z.B. ``xmin`` oder ``xmax``) müssen auch bei
 beiden Plots angegeben werden, da sonst Sage sonst beim Graph, wo es nicht angegeben wird wie
@@ -648,6 +651,7 @@ Wie wir oben gelernt haben, können wir den Wertebereich einfach einschränken::
 
     sage: f(x)=(x^2 +1)/(x^2-1)
     sage: plot(f, xmin=-2, xmax=2, ymin=-10, ymax = 10)
+    Graphics object consisting of 1 graphics primitive
 
 Nun haben wir nur noch das Problem, dass der Graph zwei unerwünschte senkrechte Linien an den
 Polstellen hat. Dies kann mit der Option ``detect_poles`` verhindert werden. Falls wir die
@@ -655,12 +659,14 @@ Option auf ``True`` stellen, werden die Linien nicht mehr dargestellt::
 
     sage: f(x)=(x^2 +1)/(x^2-1)
     sage: plot(f, xmin=-2, xmax=2, ymin=-10, ymax = 10, detect_poles=True)
+    Graphics object consisting of 4 graphics primitives
 
 Möchten wir hingegen die vertikalen Asymptoten trotzdem darstellen, aber nicht in derselben
 Farbe wie den Funktionsgraphen, können wir die Option ``detect_poles`` auf ``"show"`` stellen::
 
     sage: f(x)=(x^2 +1)/(x^2-1)
     sage: plot(f, xmin=-2, xmax=2, ymin=-10, ymax = 10, detect_poles="show")
+    Graphics object consisting of 6 graphics primitives
 
 Logarithmen
 ===========
@@ -905,6 +911,7 @@ Die Addition von Vektoren könnte also zum Beispiel wie folgt veranschaulicht we
     sage: v2 = arrow((3,4), (6,1))
     sage: sum_v1_v2 = arrow((0,0), (6,1), color='red')
     sage: plot(v1 + v2 + sum_v1_v2)
+    Graphics object consisting of 3 graphics primitives
 
 Falls die Vektorpfeile zu dick oder zu dünn sind, kann mit der ``width`` Option die Strichbreite angepasst werden.
 Der Plot-Befehl besitzt eine ``gridlines`` option, welche wir auf ``true`` setzen können, falls Gitternetzlinien
@@ -914,6 +921,7 @@ in der Grafik erwünscht sind::
     sage: v2 = arrow((3,4), (6,1), width=5)
     sage: sum_v1_v2 = arrow((0,0), (6,1), color='red', width=6)
     sage: plot(v1 + v2 + sum_v1_v2, gridlines=true)
+    Graphics object consisting of 3 graphics primitives
 
 Analysis
 ========
@@ -978,6 +986,7 @@ wir sogenannte Python List Comprehensions [#listcomp]_ benutzen, um die Liste zu
     sage: a(n) = 1/n^2
     sage: punkte = [(n, a(n)) for n in range(1,10)]
     sage: scatter_plot(punkte)
+    Graphics object consisting of 1 graphics primitive
 
 
 Mit den Funktion ``range()`` geben wir an, welchen Bereich wir gerne darstellen möchten. Dabei wird
@@ -993,6 +1002,7 @@ darzustellen::
     sage: plot1 = scatter_plot(points)
     sage: plot2 = plot(a(x), xmin=1, xmax=5.4)
     sage: plot(plot1 + plot2)
+    Graphics object consisting of 2 graphics primitives
 
 
 Grenzwerte

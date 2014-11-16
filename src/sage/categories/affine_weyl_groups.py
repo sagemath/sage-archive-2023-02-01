@@ -9,10 +9,8 @@ Affine Weyl Groups
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.weyl_groups import WeylGroups
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 
 class AffineWeylGroups(Category_singleton):
     """
@@ -30,7 +28,7 @@ class AffineWeylGroups(Category_singleton):
         sage: C = AffineWeylGroups(); C
         Category of affine weyl groups
         sage: C.super_categories()
-        [Category of weyl groups, Category of infinite enumerated sets]
+        [Category of infinite weyl groups]
 
         sage: C.example()
         NotImplemented
@@ -49,9 +47,27 @@ class AffineWeylGroups(Category_singleton):
         EXAMPLES::
 
             sage: AffineWeylGroups().super_categories()
-            [Category of weyl groups, Category of infinite enumerated sets]
+            [Category of infinite weyl groups]
         """
-        return [WeylGroups(), InfiniteEnumeratedSets()]
+        return [WeylGroups().Infinite()]
+
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of affine Weyl groups defines no
+        additional structure: affine Weyl groups are a special class
+        of Weyl groups.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: AffineWeylGroups().additional_structure()
+        """
+        return None
 
     class ParentMethods:
 
@@ -165,7 +181,7 @@ class AffineWeylGroups(Category_singleton):
             rword = self.reduced_word()
             kp1 = self.parent().n
             for i in range(len(rword)):
-                for c in filter( lambda x: (x[1]-x[0])%kp1==rword[-i-1], out.outside_corners()):
+                for c in (x for x in out.outside_corners() if (x[1]-x[0])%kp1 == rword[-i-1] ):
                     out = out.add_cell(c[0],c[1])
             return Core(out._list,kp1)
 

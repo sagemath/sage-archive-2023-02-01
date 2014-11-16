@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Miscellaneous p-adic functions
+Miscellaneous `p`-adic functions
 
-p-adic functions from ell_rational_field.py, moved here to reduce
+`p`-adic functions from ell_rational_field.py, moved here to reduce
 crowding in that file.
 """
 
@@ -37,7 +37,7 @@ import math
 import sage.misc.misc as misc
 import sage.matrix.all as matrix
 sqrt = math.sqrt
-import monsky_washnitzer
+import sage.schemes.hyperelliptic_curves.monsky_washnitzer
 import sage.schemes.hyperelliptic_curves.hypellfrob
 
 def __check_padic_hypotheses(self, p):
@@ -165,7 +165,7 @@ def padic_lseries(self, p, normalize='L_ratio', use_eclib=True):
 
 def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
     r"""
-    Computes the cyclotomic p-adic regulator of this curve.
+    Computes the cyclotomic `p`-adic regulator of this curve.
 
 
     INPUT:
@@ -1549,7 +1549,7 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
         # Need to increase precision a little to compensate for precision
         # losses during the computation. (See monsky_washnitzer.py
         # for more details.)
-        adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
+        adjusted_prec = sage.schemes.hyperelliptic_curves.monsky_washnitzer.adjusted_prec(p, prec)
 
         if check:
             trace = None
@@ -1561,7 +1561,7 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
 
         R, x = rings.PolynomialRing(base_ring, 'x').objgen()
         Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())
-        frob_p = monsky_washnitzer.matrix_of_frobenius(
+        frob_p = sage.schemes.hyperelliptic_curves.monsky_washnitzer.matrix_of_frobenius(
                          Q, p, adjusted_prec, trace)
 
 

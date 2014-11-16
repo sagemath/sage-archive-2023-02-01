@@ -399,7 +399,7 @@ class Mathematica(Expect):
     """
     Interface to the Mathematica interpreter.
     """
-    def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
+    def __init__(self, maxread=100, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
         Expect.__init__(self,
                         name = 'mathematica',
                         prompt = 'In[[0-9]+]:=',
@@ -779,7 +779,7 @@ class MathematicaElement(ExpectElement):
             elif m.end() < len(res) and res[m.end()] == '(':
                 for t in autotrans:
                     f = find_func(t(m.group()), create_when_missing = False)
-                    if f != None:
+                    if f is not None:
                         lsymbols[m.group()] = f
                         break
                 else:
@@ -890,7 +890,7 @@ class MathematicaFunctionElement(FunctionElement):
 
 
 # An instance
-mathematica = Mathematica(script_subdirectory='user')
+mathematica = Mathematica()
 
 def reduce_load(X):
     return mathematica(X)

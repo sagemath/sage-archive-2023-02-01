@@ -9,7 +9,9 @@ AUTHORS:
 
 - William Stein (2008)
 
-TODO: - finish integrating tachyon - good default lights, camera
+.. TODO::
+
+    finish integrating tachyon -- good default lights, camera
 """
 
 #*****************************************************************************
@@ -31,6 +33,7 @@ TODO: - finish integrating tachyon - good default lights, camera
 from cpython.list cimport *
 
 import os
+from functools import reduce
 from math import atan2
 from random import randint
 import zipfile
@@ -61,7 +64,22 @@ pi = RDF.pi()
 cdef class Graphics3d(SageObject):
     """
     This is the baseclass for all 3d graphics objects.
+
+    .. automethod:: _graphics_
+    .. automethod:: __add__
     """
+    def __cinit__(self):
+        """
+        The Cython constructor
+        
+        EXAMPLES::
+
+            sage: gfx = sage.plot.plot3d.base.Graphics3d()
+            sage: gfx._extra_kwds
+            {}
+        """
+        self._extra_kwds = dict()
+    
     def _repr_(self):
         """
         Return a string representation.
@@ -78,29 +96,59 @@ cdef class Graphics3d(SageObject):
         """
         return str(self)
 
-    def _graphics_(self):
+    def _graphics_(self, mime_types=None, figsize=None, dpi=None):
         """
-        Show graphics.
+        Magic graphics method.
 
         The presence of this method is used by the displayhook to
         decide that we want to see a graphical output by default.
 
-        OUTPUT:
+        INPUT/OUTPUT:
 
-        Return ``True`` if graphical output was generated (might not
-        be shown in doctest mode), otherwise ``False``.
+        See :meth:`sage.plot.graphics.Graphics._graphics_` for details.
 
         EXAMPLES::
 
             sage: S = sphere((0, 0, 0), 1)
-            sage: S._graphics_()
-            True
+            sage: S._graphics_(mime_types={'image/png'})
+            Graphics file image/png
             sage: S  # also productes graphics
+            Graphics3d Object
             sage: [S, S]
             [Graphics3d Object, Graphics3d Object]
         """
-        self.show()
-        return True
+        from sage.structure.graphics_file import (
+            Mime, graphics_from_save, GraphicsFile)
+        ### First, figure out the best graphics format
+        can_view_jmol = (mime_types is None) or (Mime.JMOL in mime_types)
+        viewer = self._extra_kwds.get('viewer', None)
+        # make sure viewer is one of the supported options
+        if viewer not in [None, 'jmol', 'tachyon']:
+            import warnings
+            warnings.warn('viewer={0} is not supported'.format(viewer))
+            viewer = None
+        # select suitable default
+        if viewer is None:
+            viewer = 'jmol'
+        # fall back to 2d image if necessary
+        if viewer == 'jmol' and not can_view_jmol:
+            viewer = 'tachyon'
+        ### Second, return the corresponding graphics file
+        if viewer == 'jmol':
+            from sage.misc.temporary_file import tmp_filename
+            filename = tmp_filename(
+                ext=os.path.extsep + Mime.extension(Mime.JMOL))
+            self.save(filename)
+            return GraphicsFile(filename, Mime.JMOL)
+        elif viewer == 'tachyon':
+            preference = [Mime.PNG, Mime.JPG]
+            figsize = self._extra_kwds.get('figsize', figsize)
+            dpi = self._extra_kwds.get('dpi', dpi)
+            return graphics_from_save(self.save, preference,
+                                      allowed_mime_types=mime_types, 
+                                      figsize=figsize, dpi=dpi)
+        else:
+            assert False   # unreachable
 
     def __str__(self):
         """
@@ -117,11 +165,13 @@ cdef class Graphics3d(SageObject):
         Addition of objects adds them to the same scene.
 
         EXAMPLES::
+
             sage: A = sphere((0,0,0), 1, color='red')
             sage: B = dodecahedron((2, 0, 0), color='yellow')
             sage: A+B
+            Graphics3d Object
 
-        For convenience, we take 0 and None to be the additive identity::
+        For convenience, we take 0 and ``None`` to be the additive identity::
 
             sage: A + 0 is A
             True
@@ -132,6 +182,7 @@ cdef class Graphics3d(SageObject):
         having to provide an empty starting object::
 
             sage: sum(point3d((cos(n), sin(n), n)) for n in [0..10, step=.1])
+            Graphics3d Object
 
         A Graphics 3d object can also be added a 2d graphic object::
 
@@ -150,23 +201,25 @@ cdef class Graphics3d(SageObject):
 
     def _set_extra_kwds(self, kwds):
         """
-        Allows one to pass rendering arguments on as if they were set in the constructor.
+        Allow one to pass rendering arguments on as if they were set
+        in the constructor.
 
         EXAMPLES::
 
             sage: S = sphere((0, 0, 0), 1)
             sage: S._set_extra_kwds({'aspect_ratio': [1, 2, 2]})
             sage: S
+            Graphics3d Object
         """
         self._extra_kwds = kwds
 
     def aspect_ratio(self, v=None):
         """
-        Sets or gets the preferred aspect ratio of self.
+        Set or get the preferred aspect ratio of ``self``.
 
         INPUT:
 
-        - ``v`` -- (default: None) must be a list or tuple of length three,
+        - ``v`` -- (default: ``None``) must be a list or tuple of length three,
           or the integer ``1``. If no arguments are provided then the
           default aspect ratio is returned.
 
@@ -196,13 +249,13 @@ cdef class Graphics3d(SageObject):
 
     def frame_aspect_ratio(self, v=None):
         """
-        Sets or gets the preferred frame aspect ratio of self.
+        Set or get the preferred frame aspect ratio of ``self``.
 
         INPUT:
 
-        - ``v`` -- (default: None) must be a list or tuple of length three,
-          or the integer ``1``. If no arguments are provided then the
-          default frame aspect ratio is returned.
+        - ``v`` -- (default: ``None``) must be a list or tuple of
+          length three, or the integer ``1``. If no arguments are
+          provided then the default frame aspect ratio is returned.
 
         EXAMPLES::
 
@@ -234,8 +287,10 @@ cdef class Graphics3d(SageObject):
 
     def _safe_bounding_box(self):
         """
-        Returns a bounding box but where no side length is 0. This is used
-        to avoid zero-division errors for pathological plots.
+        Return a bounding box but where no side length is 0.
+
+        This is used to avoid zero-division errors for pathological
+        plots.
 
         EXAMPLES::
 
@@ -256,13 +311,14 @@ cdef class Graphics3d(SageObject):
 
     def bounding_box(self):
         """
-        Returns the lower and upper corners of a 3d bounding box for self.
-        This is used for rendering and self should fit entirely within this
-        box.
+        Return the lower and upper corners of a 3d bounding box for ``self``.
+
+        This is used for rendering and ``self`` should fit entirely
+        within this box.
 
         Specifically, the first point returned should have x, y, and z
-        coordinates should be the respective infimum over all points in self,
-        and the second point is the supremum.
+        coordinates should be the respective infimum over all points
+        in ``self``, and the second point is the supremum.
 
         The default return value is simply the box containing the origin.
 
@@ -278,9 +334,11 @@ cdef class Graphics3d(SageObject):
 
     def transform(self, **kwds):
         """
-        Apply a transformation to self, where the inputs are passed onto a
-        TransformGroup object. Mostly for internal use; see the translate,
-        scale, and rotate methods for more details.
+        Apply a transformation to ``self``, where the inputs are
+        passed onto a TransformGroup object.
+
+        Mostly for internal use; see the translate, scale, and rotate
+        methods for more details.
 
         EXAMPLES::
 
@@ -291,13 +349,15 @@ cdef class Graphics3d(SageObject):
 
     def translate(self, *x):
         """
-        Return self translated by the given vector (which can be given either
-        as a 3-iterable or via positional arguments).
+        Return ``self`` translated by the given vector (which can be
+        given either as a 3-iterable or via positional arguments).
 
         EXAMPLES::
 
             sage: icosahedron() + sum(icosahedron(opacity=0.25).translate(2*n, 0, 0) for n in [1..4])
+            Graphics3d Object
             sage: icosahedron() + sum(icosahedron(opacity=0.25).translate([-2*n, n, n^2]) for n in [1..4])
+            Graphics3d Object
 
         TESTS::
 
@@ -309,13 +369,13 @@ cdef class Graphics3d(SageObject):
             sage: G.translate(-1, 5, 0).bounding_box()
             ((-2.0, 4.0, -1.0), (0.0, 6.0, 1.0))
         """
-        if len(x)==1:
+        if len(x) == 1:
             x = x[0]
         return self.transform(trans=x)
 
     def scale(self, *x):
         """
-        Returns self scaled in the x, y, and z directions.
+        Return ``self`` scaled in the x, y, and z directions.
 
         EXAMPLES::
 
@@ -328,6 +388,7 @@ cdef class Graphics3d(SageObject):
 
             sage: G = sphere((0, 0, 0), 1)
             sage: G.scale(2)
+            Graphics3d Object
             sage: G.scale(1, 2, 1/2).show(aspect_ratio=1)
             sage: G.scale(2).bounding_box()
             ((-2.0, -2.0, -2.0), (2.0, 2.0, 2.0))
@@ -337,8 +398,8 @@ cdef class Graphics3d(SageObject):
         return self.transform(scale=x)
 
     def rotate(self, v, theta):
-        """
-        Returns self rotated about the vector `v` by `theta` radians.
+        r"""
+        Return ``self`` rotated about the vector `v` by `\theta` radians.
 
         EXAMPLES::
 
@@ -358,7 +419,7 @@ cdef class Graphics3d(SageObject):
 
     def rotateX(self, theta):
         """
-        Returns self rotated about the `x`-axis by the given angle.
+        Return ``self`` rotated about the `x`-axis by the given angle.
 
         EXAMPLES::
 
@@ -366,11 +427,11 @@ cdef class Graphics3d(SageObject):
             sage: G = Cone(1/5, 1) + Cone(1/5, 1, opacity=.25).rotateX(pi/2)
             sage: G.show(aspect_ratio=1)
         """
-        return self.rotate((1,0,0), theta)
+        return self.rotate((1, 0, 0), theta)
 
     def rotateY(self, theta):
         """
-        Returns self rotated about the `y`-axis by the given angle.
+        Return ``self`` rotated about the `y`-axis by the given angle.
 
         EXAMPLES::
 
@@ -378,11 +439,11 @@ cdef class Graphics3d(SageObject):
             sage: G = Cone(1/5, 1) + Cone(1/5, 1, opacity=.25).rotateY(pi/3)
             sage: G.show(aspect_ratio=1)
         """
-        return self.rotate((0,1,0), theta)
+        return self.rotate((0, 1, 0), theta)
 
     def rotateZ(self, theta):
         """
-        Returns self rotated about the `z`-axis by the given angle.
+        Return ``self`` rotated about the `z`-axis by the given angle.
 
         EXAMPLES::
 
@@ -390,12 +451,13 @@ cdef class Graphics3d(SageObject):
             sage: G = Box(1/2, 1/3, 1/5) + Box(1/2, 1/3, 1/5, opacity=.25).rotateZ(pi/5)
             sage: G.show(aspect_ratio=1)
         """
-        return self.rotate((0,0,1), theta)
-
+        return self.rotate((0, 0, 1), theta)
 
     def viewpoint(self):
         """
-        Returns the viewpoint of this plot. Currently only a stub for x3d.
+        Return the viewpoint of this plot.
+
+        Currently only a stub for x3d.
 
         EXAMPLES::
 
@@ -407,7 +469,7 @@ cdef class Graphics3d(SageObject):
 
     def default_render_params(self):
         """
-        Returns an instance of RenderParams suitable for plotting this object.
+        Return an instance of RenderParams suitable for plotting this object.
 
         EXAMPLES::
 
@@ -418,8 +480,10 @@ cdef class Graphics3d(SageObject):
 
     def testing_render_params(self):
         """
-        Returns an instance of RenderParams suitable for testing this object.
-        In particular, it opens up '/dev/null' as an auxiliary zip file for jmol.
+        Return an instance of RenderParams suitable for testing this object.
+
+        In particular, it opens up '/dev/null' as an auxiliary zip
+        file for jmol.
 
         EXAMPLES::
 
@@ -560,8 +624,10 @@ end_scene""" % (render_params.antialiasing,
 
     def obj(self):
         """
-        An .obj scene file (as a string) containing the this object. A
-        .mtl file of the same name must also be produced for coloring.
+        An .obj scene file (as a string) containing the this object.
+
+        A .mtl file of the same name must also be produced for
+        coloring.
 
         EXAMPLES::
 
@@ -699,10 +765,11 @@ end_scene""" % (render_params.antialiasing,
 
     def json_repr(self, render_params):
         """
-        A (possibly nested) list of strings. Each entry is formatted as JSON, so
-        that a JavaScript client could eval it and get an object. Each object
-        has fields to encapsulate the faces and vertices of self. This
-        representation is intended to be consumed by the canvas3d viewer backend.
+        A (possibly nested) list of strings. Each entry is formatted
+        as JSON, so that a JavaScript client could eval it and get an
+        object. Each object has fields to encapsulate the faces and
+        vertices of ``self``. This representation is intended to be
+        consumed by the canvas3d viewer backend.
 
         EXAMPLES::
 
@@ -715,10 +782,12 @@ end_scene""" % (render_params.antialiasing,
     def jmol_repr(self, render_params):
         r"""
         A (possibly nested) list of strings which will be concatenated and
-        used by jmol to render self. (Nested lists of strings are used
-        because otherwise all the intermediate concatenations can kill
-        performance). This may refer to several remove files, which
-        are stored in render_parames.output_archive.
+        used by jmol to render ``self``.
+
+        (Nested lists of strings are used because otherwise all the
+        intermediate concatenations can kill performance). This may
+        refer to several remove files, which are stored in
+        render_parames.output_archive.
 
         EXAMPLES::
 
@@ -734,10 +803,12 @@ end_scene""" % (render_params.antialiasing,
     def tachyon_repr(self, render_params):
         r"""
         A (possibly nested) list of strings which will be concatenated and
-        used by tachyon to render self. (Nested lists of strings are used
-        because otherwise all the intermediate concatenations can kill
-        performance). This may include a reference to color information which
-        is stored elsewhere.
+        used by tachyon to render ``self``.
+
+        (Nested lists of strings are used because otherwise all the
+        intermediate concatenations can kill performance). This may
+        include a reference to color information which is stored
+        elsewhere.
 
         EXAMPLES::
 
@@ -753,10 +824,12 @@ end_scene""" % (render_params.antialiasing,
     def obj_repr(self, render_params):
         """
         A (possibly nested) list of strings which will be concatenated and
-        used to construct an .obj file of self. (Nested lists of strings are
-        used because otherwise all the intermediate concatenations can kill
-        performance). This may include a reference to color information which
-        is stored elsewhere.
+        used to construct an .obj file of ``self``.
+
+        (Nested lists of strings are used because otherwise all the
+        intermediate concatenations can kill performance). This may
+        include a reference to color information which is stored
+        elsewhere.
 
         EXAMPLES::
 
@@ -794,7 +867,7 @@ end_scene""" % (render_params.antialiasing,
         EXAMPLES::
 
             sage: sage.plot.plot3d.base.Graphics3d().texture_set()
-            set([])
+            set()
 
             sage: G = tetrahedron(color='red') + tetrahedron(color='yellow') + tetrahedron(color='red', opacity=0.5)
             sage: [t for t in G.texture_set() if t.color == colors.red] # we should have two red textures
@@ -806,10 +879,11 @@ end_scene""" % (render_params.antialiasing,
 
     def mtl_str(self):
         """
-        Returns the contents of a .mtl file, to be used to provide coloring
+        Return the contents of a .mtl file, to be used to provide coloring
         information for an .obj file.
 
         EXAMPLES::
+
             sage: G = tetrahedron(color='red') + tetrahedron(color='yellow', opacity=0.5)
             sage: print G.mtl_str()
             newmtl ...
@@ -834,7 +908,7 @@ end_scene""" % (render_params.antialiasing,
         Try to reduce the depth of the scene tree by consolidating groups
         and transformations.
 
-        The generic Graphics3d object can't be made flatter.
+        The generic Graphics3d object cannot be made flatter.
 
         EXAMPLES::
 
@@ -968,8 +1042,7 @@ end_scene""" % (render_params.antialiasing,
         """
         opts = {}
         opts.update(SHOW_DEFAULTS)
-        if self._extra_kwds is not None:
-            opts.update(self._extra_kwds)
+        opts.update(self._extra_kwds)
         opts.update(kwds)
 
         # Remove all of the keys that are viewing options, since the remaining
@@ -1021,8 +1094,7 @@ end_scene""" % (render_params.antialiasing,
         """
         INPUT:
 
-
-        -  ``viewer`` - string (default: 'jmol'), how to view
+        -  ``viewer`` -- string (default: 'jmol'), how to view
            the plot
 
            * 'jmol': Interactive 3D viewer using Java
@@ -1034,33 +1106,33 @@ end_scene""" % (render_params.antialiasing,
            * 'canvas3d': Web-based 3D viewer powered by JavaScript and
              <canvas> (notebook only)
 
-        -  ``filename`` - string (default: a temp file); file
+        -  ``filename`` -- string (default: a temp file); file
            to save the image to
 
-        -  ``verbosity`` - display information about rendering
+        -  ``verbosity`` -- display information about rendering
            the figure
 
-        -  ``figsize`` - (default: 5); x or pair [x,y] for
+        -  ``figsize`` -- (default: 5); x or pair [x,y] for
            numbers, e.g., [5,5]; controls the size of the output figure. E.g.,
            with Tachyon the number of pixels in each direction is 100 times
            figsize[0]. This is ignored for the jmol embedded renderer.
 
-        -  ``aspect_ratio`` - (default: "automatic") - aspect
+        -  ``aspect_ratio`` -- (default: "automatic") -- aspect
            ratio of the coordinate system itself. Give [1,1,1] to make spheres
            look round.
 
-        -  ``frame_aspect_ratio`` - (default: "automatic")
+        -  ``frame_aspect_ratio`` -- (default: "automatic")
            aspect ratio of frame that contains the 3d scene.
 
-        -  ``zoom`` - (default: 1) how zoomed in
+        -  ``zoom`` -- (default: 1) how zoomed in
 
-        -  ``frame`` - (default: True) if True, draw a
+        -  ``frame`` -- (default: True) if True, draw a
            bounding frame with labels
 
-        -  ``axes`` - (default: False) if True, draw coordinate
+        -  ``axes`` -- (default: False) if True, draw coordinate
            axes
 
-        -  ``**kwds`` - other options, which make sense for particular
+        -  ``**kwds`` -- other options, which make sense for particular
            rendering engines
 
         CHANGING DEFAULTS: Defaults can be uniformly changed by importing a
@@ -1073,6 +1145,7 @@ end_scene""" % (render_params.antialiasing,
         This sphere will not have a frame around it::
 
             sage: sphere((0,0,0))
+            Graphics3d Object
 
         We change the default back::
 
@@ -1081,6 +1154,7 @@ end_scene""" % (render_params.antialiasing,
         Now this sphere is enclosed in a frame::
 
             sage: sphere((0,0,0))
+            Graphics3d Object
 
         EXAMPLES: We illustrate use of the ``aspect_ratio`` option::
 
@@ -1100,6 +1174,7 @@ end_scene""" % (render_params.antialiasing,
         from :func:`~sage.plot.plot.plot` are dealt with properly::
 
             sage: plot(vector([1,2,3]))
+            Graphics3d Object
 
         We use the 'canvas3d' backend from inside the notebook to get a view of
         the plot rendered inline using HTML canvas::
@@ -1218,7 +1293,7 @@ end_scene""" % (render_params.antialiasing,
             ext = 'canvas3d'
 
         if ext is None:
-            raise ValueError, "Unknown 3d plot type: %s" % viewer
+            raise ValueError("Unknown 3d plot type: %s" % viewer)
 
         if not DOCTEST_MODE and not EMBEDDED_MODE:
             if verbosity:
@@ -1251,15 +1326,17 @@ end_scene""" % (render_params.antialiasing,
 
     def save(self, filename, **kwds):
         """
+        Save to file.
+
         Save the graphic to an image file (of type: PNG, BMP, GIF, PPM, or TIFF)
         rendered using Tachyon, or pickle it (stored as an SOBJ so you can load it
         later) depending on the file extension you give the filename.
 
         INPUT:
 
-        - ``filename`` - Specify where to save the image or object.
+        - ``filename`` -- Specify where to save the image or object.
 
-        - ``**kwds`` - When specifying an image file to be rendered by Tachyon,
+        - ``**kwds`` -- When specifying an image file to be rendered by Tachyon,
           any of the viewing options accepted by show() are valid as keyword
           arguments to this function and they will behave in the same way.
           Accepted keywords include: ``viewer``, ``verbosity``, ``figsize``,
@@ -1290,7 +1367,6 @@ end_scene""" % (render_params.antialiasing,
         ext = os.path.splitext(filename)[1].lower()
         if ext == '' or ext == '.sobj':
             SageObject.save(self, filename)
-            return
         elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif', '.jpg', '.jpeg']:
             opts = self._process_viewing_options(kwds)
             T = self._prepare_for_tachyon(
@@ -1309,8 +1385,19 @@ end_scene""" % (render_params.antialiasing,
             if ext != '.png':
                 import PIL.Image as Image
                 Image.open(out_filename).save(filename)
+        elif filename.endswith('.spt.zip'):
+            # Jmol zip archive
+            opts = self._process_viewing_options(kwds)
+            zoom = opts['zoom']
+            T = self._prepare_for_jmol(
+                opts['frame'],
+                opts['axes'],
+                opts['frame_aspect_ratio'],
+                opts['aspect_ratio'],
+                zoom)
+            T.export_jmol(filename, zoom=zoom*100, **kwds)
         else:
-            raise ValueError, 'filetype not supported by save()'
+            raise ValueError('filetype not supported by save()')
 
 
 
@@ -1325,8 +1412,6 @@ SHOW_DEFAULTS = {'viewer':'jmol',
                  'axes':False}
 
 
-
-
 class Graphics3dGroup(Graphics3d):
     """
     This class represents a collection of 3d objects. Usually they are formed
@@ -1337,21 +1422,24 @@ class Graphics3dGroup(Graphics3d):
         EXAMPLES::
 
             sage: sage.plot.plot3d.base.Graphics3dGroup([icosahedron(), dodecahedron(opacity=.5)])
+            Graphics3d Object
             sage: type(icosahedron() + dodecahedron(opacity=.5))
             <class 'sage.plot.plot3d.base.Graphics3dGroup'>
         """
         self.all = list(all)
         self.frame_aspect_ratio(optimal_aspect_ratios([a.frame_aspect_ratio() for a in all]))
         self.aspect_ratio(optimal_aspect_ratios([a.aspect_ratio() for a in all]))
-        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all if a._extra_kwds is not None]))
+        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all]))
 
     def __add__(self, other):
         """
         We override this here to make large sums more efficient.
 
         EXAMPLES::
+
             sage: G = sum(tetrahedron(opacity=1-t/11).translate(t, 0, 0) for t in range(10))
             sage: G
+            Graphics3d Object
             sage: len(G.all)
             10
         """
@@ -1364,7 +1452,7 @@ class Graphics3dGroup(Graphics3d):
     def bounding_box(self):
         """
         Box that contains the bounding boxes of
-        all the objects that make up self.
+        all the objects that make up ``self``.
 
         EXAMPLES::
 
@@ -1395,8 +1483,11 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = dodecahedron(color='red', opacity=.5) + icosahedron(color='blue')
             sage: G
+            Graphics3d Object
             sage: G.transform(scale=(2,1/2,1))
+            Graphics3d Object
             sage: G.transform(trans=(1,1,3))
+            Graphics3d Object
         """
         T = TransformGroup(self.all, **kwds)
         T._set_extra_kwds(self._extra_kwds)
@@ -1408,8 +1499,10 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = dodecahedron(color='red', opacity=.5) + icosahedron((3, 0, 0), color='blue')
             sage: G
+            Graphics3d Object
             sage: G.set_texture(color='yellow')
             sage: G
+            Graphics3d Object
         """
         for g in self.all:
             g.set_texture(**kwds)
@@ -1530,7 +1623,9 @@ class Graphics3dGroup(Graphics3d):
         EXAMPLES::
 
             sage: G = sum([circle((0, 0), t) for t in [1..10]], sphere()); G
+            Graphics3d Object
             sage: G.flatten()
+            Graphics3d Object
             sage: len(G.all)
             2
             sage: len(G.flatten().all)
@@ -1551,13 +1646,15 @@ class Graphics3dGroup(Graphics3d):
 
 class TransformGroup(Graphics3dGroup):
     """
-    This class is a container for a group of objects with a common transformation.
+    This class is a container for a group of objects with a common
+    transformation.
     """
     def __init__(self, all=[], rot=None, trans=None, scale=None, T=None):
         """
         EXAMPLES::
 
             sage: sage.plot.plot3d.base.TransformGroup([sphere()], trans=(1,2,3)) + point3d((0,0,0))
+            Graphics3d Object
 
         The are usually constructed implicitly::
 
@@ -1565,7 +1662,6 @@ class TransformGroup(Graphics3dGroup):
             <class 'sage.plot.plot3d.base.TransformGroup'>
             sage: type(dodecahedron().scale(2))
             <class 'sage.plot.plot3d.base.TransformGroup'>
-
         """
         Graphics3dGroup.__init__(self, all)
         self._rot = rot
@@ -1583,8 +1679,8 @@ class TransformGroup(Graphics3dGroup):
 
     def bounding_box(self):
         """
-        Returns the bounding box of self, i.e. the box containing the
-        contents of self after applying the transformation.
+        Return the bounding box of ``self``, i.e., the box containing the
+        contents of ``self`` after applying the transformation.
 
         EXAMPLES::
 
@@ -1708,7 +1804,7 @@ class TransformGroup(Graphics3dGroup):
 
     def get_transformation(self):
         """
-        Returns the actual transformation object associated with self.
+        Return the actual transformation object associated with ``self``.
 
         EXAMPLES::
 
@@ -1763,10 +1859,14 @@ class TransformGroup(Graphics3dGroup):
 
             sage: G = dodecahedron(color='red', opacity=.5) + icosahedron(color='blue')
             sage: G
+            Graphics3d Object
             sage: G.transform(scale=(2,1/2,1))
+            Graphics3d Object
             sage: G.transform(trans=(1,1,3))
+            Graphics3d Object
         """
         return Graphics3d.transform(self, **kwds)
+
 
 class Viewpoint(Graphics3d):
     """
@@ -1796,7 +1896,6 @@ class Viewpoint(Graphics3d):
         return "<Viewpoint position='%s %s %s'/>"%self.pos
 
 
-
 cdef class PrimitiveObject(Graphics3d):
     """
     This is the base class for the non-container 3d objects.
@@ -1814,7 +1913,9 @@ cdef class PrimitiveObject(Graphics3d):
         EXAMPLES::
 
             sage: G = dodecahedron(color='red'); G
+            Graphics3d Object
             sage: G.set_texture(color='yellow'); G
+            Graphics3d Object
         """
         if not is_Texture(texture):
             texture = Texture(texture, **kwds)
@@ -1836,7 +1937,7 @@ cdef class PrimitiveObject(Graphics3d):
 
             sage: G = dodecahedron(color='red')
             sage: G.texture_set()
-            set([Texture(texture..., red, ff0000)])
+            {Texture(texture..., red, ff0000)}
         """
         return set([self.texture])
 
@@ -1928,7 +2029,7 @@ class BoundingSphere(SageObject):
 
     def __add__(self, other):
         """
-        Returns the bounding sphere containing both terms.
+        Return the bounding sphere containing both terms.
 
         EXAMPLES::
 
@@ -1938,7 +2039,7 @@ class BoundingSphere(SageObject):
             sage: BoundingSphere((0,0,0), 1) + BoundingSphere((0,0,100), 1)
             Center (0.0, 0.0, 50.0) radius 51.0
             sage: BoundingSphere((0,0,0), 1) + BoundingSphere((1,1,1), 2)
-            Center (0.788675134595, 0.788675134595, 0.788675134595) radius 2.36602540378
+            Center (0.7886751345948128, 0.7886751345948128, 0.7886751345948128) radius 2.36602540378
 
         Treat None and 0 as the identity::
 
@@ -1960,7 +2061,7 @@ class BoundingSphere(SageObject):
 
     def transform(self, T):
         """
-        Returns the bounding sphere of this sphere acted on by T. This always
+        Return the bounding sphere of this sphere acted on by T. This always
         returns a new sphere, even if the resulting object is an ellipsoid.
 
         EXAMPLES::
@@ -2079,7 +2180,11 @@ class RenderParams(SageObject):
 
     def unique_name(self, desc="name"):
         """
-        Returns a unique identifier starting with desc.
+        Return a unique identifier starting with ``desc``.
+
+        INPUT:
+
+        - ``desc`` (string) -- the prefix of the names (default 'name')
 
         EXAMPLES::
 
@@ -2096,6 +2201,7 @@ class RenderParams(SageObject):
         else:
             self._uniq_counter += 1
         return "%s_%s" % (desc, self._uniq_counter)
+
 
 def flatten_list(L):
     """
@@ -2155,6 +2261,7 @@ def min3(v):
     """
     return tuple([min([a[i] for a in v]) for i in range(3)])
 
+
 def max3(v):
     """
     Return the componentwise maximum of a list of 3-tuples.
@@ -2167,8 +2274,11 @@ def max3(v):
     """
     return tuple([max([a[i] for a in v]) for i in range(3)])
 
+
 def point_list_bounding_box(v):
     """
+    Return the bounding box of a list of points.
+
     EXAMPLES::
 
         sage: from sage.plot.plot3d.base import point_list_bounding_box
@@ -2187,13 +2297,16 @@ def point_list_bounding_box(v):
         point_c_update_finite_upper_bound(&high, cur)
     return ((low.x, low.y, low.z), (high.x, high.y, high.z))
 
+
 def optimal_aspect_ratios(ratios):
+    """
+    """
     # average the aspect ratios
     n = len(ratios)
     if n > 0:
         return [max([z[i] for z in ratios]) for i in range(3)]
-    else:
-        return [1.0,1.0,1.0]
+    return [1.0, 1.0, 1.0]
+
 
 def optimal_extra_kwds(v):
     """
@@ -2204,7 +2317,6 @@ def optimal_extra_kwds(v):
         return {}
     a = dict(v[0])   # make a copy!
     for b in v[1:]:
-        for k,w in b.iteritems():
+        for k, w in b.iteritems():
             a[k] = w
     return a
-

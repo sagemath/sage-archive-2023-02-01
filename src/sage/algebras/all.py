@@ -21,13 +21,13 @@ from sage.misc.lazy_import import lazy_import
 from quatalg.all import *
 
 # Algebra base classes
-from algebra import Algebra, is_Algebra
+from algebra import Algebra
 
 # Ring element base classes
-from algebra_element import AlgebraElement, is_AlgebraElement
+from algebra_element import AlgebraElement
 
 
-from free_algebra import FreeAlgebra, is_FreeAlgebra
+from free_algebra import FreeAlgebra
 from free_algebra_quotient import FreeAlgebraQuotient
 
 from steenrod.all import *
@@ -43,3 +43,7 @@ lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra')
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra')
 
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')
+
+from clifford_algebra import CliffordAlgebra, ExteriorAlgebra
+from weyl_algebra import DifferentialWeylAlgebra
+

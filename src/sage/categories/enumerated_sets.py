@@ -9,10 +9,11 @@ Enumerated Sets
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from category_types import Category
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_cat import EmptySetError
+from sage.categories.cartesian_product import CartesianProductsCategory
 
 class EnumeratedSets(Category_singleton):
     """
@@ -94,6 +95,20 @@ class EnumeratedSets(Category_singleton):
         """
         return [Sets()]
 
+    def additional_structure(self):
+        """
+        Return ``None``.
+
+        Indeed, morphisms of enumerated sets are not required to
+        preserve the enumeration.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: EnumeratedSets().additional_structure()
+        """
+        return None
 
     def _call_(self, X):
         """
@@ -214,30 +229,6 @@ class EnumeratedSets(Category_singleton):
                 return self._iterator_from_list()
             else:
                 raise NotImplementedError("iterator called but not implemented")
-
-        def cardinality(self):
-            """
-            The cardinality of ``self``.
-
-            ``self.cardinality()`` should return the cardinality of the set
-            ``self`` as a sage :class:`Integer` or as ``infinity``.
-
-            This if the default implementation from the category
-            ``EnumeratedSets()`` it returns ``NotImplementedError`` since one does
-            not know whether the set is finite or not.
-
-            EXAMPLES::
-
-                sage: class broken(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...
-                sage: broken().cardinality()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: unknown cardinality
-            """
-            raise NotImplementedError("unknown cardinality")
 
         def list(self):
             """
@@ -447,7 +438,7 @@ class EnumeratedSets(Category_singleton):
                 except (TypeError, ValueError, IndexError):
                     break
 
-                if u == None:
+                if u is None:
                     break
                 else:
                     yield u
@@ -694,3 +685,23 @@ class EnumeratedSets(Category_singleton):
                 7
             """
             return self.parent().rank(self)
+
+    Finite   = LazyImport('sage.categories.finite_enumerated_sets', 'FiniteEnumeratedSets', at_startup=True)
+    Infinite = LazyImport('sage.categories.infinite_enumerated_sets', 'InfiniteEnumeratedSets', at_startup=True)
+
+    class CartesianProducts(CartesianProductsCategory):
+
+        class ParentMethods:
+            def __iter__(self):
+                r"""
+                Iterates over the elements of self.
+
+                EXAMPLE::
+
+                    sage: F33 = GF(2).cartesian_product(GF(2))
+                    sage: list(F33)
+                    [(0, 0), (0, 1), (1, 0), (1, 1)]
+                """
+                from itertools import product
+                for x in product(*self._sets):
+                    yield self._cartesian_product_of_elements(x)

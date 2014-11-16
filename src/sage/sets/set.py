@@ -146,32 +146,6 @@ def Set(X=frozenset()):
         return Set_object_enumerated(list(X))
     return Set_object(X)
 
-def EnumeratedSet(X):
-    """
-    Return the enumerated set associated to ``X``.
-
-    The input object ``X`` must be finite.
-
-    EXAMPLES::
-
-        sage: EnumeratedSet([1,1,2,3])
-        doctest:1: DeprecationWarning: EnumeratedSet is deprecated; use Set instead.
-        See http://trac.sagemath.org/8930 for details.
-        {1, 2, 3}
-        sage: EnumeratedSet(ZZ)
-        Traceback (most recent call last):
-        ...
-        ValueError: X (=Integer Ring) must be finite
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(8930, 'EnumeratedSet is deprecated; use Set instead.')
-    try:
-        if not X.is_finite():
-            raise ValueError("X (=%s) must be finite"%X)
-    except AttributeError:
-        pass
-    return Set_object_enumerated(X)
-
 def is_Set(x):
     """
     Returns ``True`` if ``x`` is a Sage :class:`Set_object` (not to be confused
@@ -806,7 +780,7 @@ class Set_object_enumerated(Set_object):
             sage: X
             {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: X.set()
-            set([0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1])
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: type(X.set())
             <type 'set'>
             sage: type(X)
@@ -825,13 +799,13 @@ class Set_object_enumerated(Set_object):
             sage: X
             {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: s = X.set(); s
-            set([0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1])
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: hash(s)
             Traceback (most recent call last):
             ...
             TypeError: unhashable type: 'set'
             sage: s = X.frozenset(); s
-            frozenset([0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1])
+            frozenset({0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1})
             sage: hash(s)
             -1390224788            # 32-bit
              561411537695332972    # 64-bit

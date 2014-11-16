@@ -26,7 +26,7 @@ from sage.modules.free_module_element import vector
 
 ## TO DO -- Add second argument
 #  def __call__(self,v,w=None):
-#    if w==None:
+#    if w is None:
 #        return half(v * self._matrix_() * v)
 #    else:
 #      return v * self._matrix_() * w
@@ -59,7 +59,7 @@ def disc(self):
     if is_odd(self.dim()):
       return  self.base_ring()(self.det() / 2)      ## This is not so good for characteristic 2.
     else:
-      return (-1)**(self.dim()/2) * self.det()
+      return (-1)**(self.dim()//2) * self.det()
 
 
 def content(self):
@@ -317,8 +317,7 @@ def hasse_conductor(self):
         10
     """
     D = self.disc()
-    return prod(filter(lambda p: self.hasse_invariant(p) == -1,
-                       map(lambda x: x[0], factor(2 * self.level()))))
+    return prod([x[0] for x in factor(2 * self.level()) if self.hasse_invariant(x[0]) == -1])
 
 def clifford_invariant(self, p):
     """
@@ -393,8 +392,7 @@ def clifford_conductor(self):
 
     """
     D = self.disc()
-    return prod(filter(lambda p: self.clifford_invariant(p) == -1,
-                       map(lambda x: x[0], factor(2 * self.level()))))
+    return prod([x[0] for x in factor(2 * self.level()) if self.clifford_invariant(x[0]) == -1])
 
 
 ### Genus theory

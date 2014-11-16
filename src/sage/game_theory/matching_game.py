@@ -988,8 +988,21 @@ class Player(object):
             sage: q = Player(10)
             sage: p == q
             True
+
+        If players have different preferences then they are not considered to
+        satisfy equality::
+
+            sage: p.pref = (1, 2)
+            sage: q.pref = (2, 1)
+            sage: p == q
+            False
+
+            sage: p.pref = q.pref
+            sage: q.pref = (2, 1)
+            sage: p == q
+            True
         """
         if isinstance(other, Player):
-            return self._name == other._name
+            return self._name == other._name and self.pref == other.pref
         return self._name == other
 

@@ -21,7 +21,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from sage.structure.parent import Parent
 from sage.misc.all import cached_method
 from sage.rings.all import (IntegerRing,
@@ -29,8 +28,11 @@ from sage.rings.all import (IntegerRing,
                             Rationals)
 
 from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.ideal import is_Ideal
 from sage.rings.morphism import is_RingHomomorphism
 from sage.structure.unique_representation import UniqueRepresentation
+
+from sage.schemes.generic.point import SchemeTopologicalPoint_prime_ideal
 
 def is_Scheme(x):
     """
@@ -93,14 +95,16 @@ class Scheme(Parent):
         """
         Construct a scheme.
 
-        TESTS::
+        TESTS:
+
+        The full test suite works since :trac:`7946`::
 
             sage: R.<x, y> = QQ[]
             sage: I = (x^2 - y^2)*R
             sage: RmodI = R.quotient(I)
             sage: X = Spec(RmodI)
-            sage: TestSuite(X).run(skip = ["_test_an_element", "_test_elements",
-            ...                            "_test_some_elements", "_test_category"]) # See #7946
+            sage: TestSuite(X).run()
+
         """
         from sage.schemes.generic.morphism import is_SchemeMorphism
 
@@ -162,7 +166,7 @@ class Scheme(Parent):
 
         TESTS:
 
-        This shows that issue at trac ticket 7389 is solved::
+        This shows that issue at :trac:`7389` is solved::
 
             sage: S = Spec(ZZ)
             sage: f = S.identity_morphism()
@@ -912,7 +916,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
             sage: P = S(ZZ.ideal(3)); P
             Point on Spectrum of Integer Ring defined by the Principal ideal (3) of Integer Ring
             sage: type(P)
-            <class 'sage.schemes.generic.point.SchemeTopologicalPoint_prime_ideal'>
+            <class 'sage.schemes.generic.point.AffineScheme_with_category.element_class'>
             sage: S(ZZ.ideal(next_prime(1000000)))
             Point on Spectrum of Integer Ring defined by the Principal ideal (1000003) of Integer Ring
 
@@ -936,15 +940,69 @@ class AffineScheme(UniqueRepresentation, Scheme):
             Set of morphisms
               From: Spectrum of Integer Ring
               To:   Spectrum of Integer Ring
+
+        For affine or projective varieties, passing the correct number
+        of elements of the base ring constructs the rational point
+        with these elements as coordinates::
+
+            sage: S = AffineSpace(ZZ, 1)
+            sage: S(0)
+            (0)
+
+        To prevent confusion with this usage, topological points must
+        be constructed by explicitly specifying a prime ideal, not
+        just generators::
+
+            sage: R = S.coordinate_ring()
+            sage: S(R.ideal(0))
+            Point on Affine Space of dimension 1 over Integer Ring defined by the Ideal (0) of Multivariate Polynomial Ring in x over Integer Ring
+
+        This explains why the following example raises an error rather
+        than constructing the topological point defined by the prime
+        ideal `(0)` as one might expect::
+
+            sage: S = Spec(ZZ)
+            sage: S(0)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot call Spectrum of Integer Ring with arguments (0,)
         """
         if len(args) == 1:
-            from sage.rings.ideal import is_Ideal
             x = args[0]
-            if is_Ideal(x) and x.ring() is self.coordinate_ring():
-                from sage.schemes.generic.point import SchemeTopologicalPoint_prime_ideal
-                return SchemeTopologicalPoint_prime_ideal(self, x)
+            if ((isinstance(x, self.element_class) and (x.parent() is self or x.parent() == self))
+                or (is_Ideal(x) and x.ring() is self.coordinate_ring())):
+                # Construct a topological point from x.
+                return self._element_constructor_(x)
+        try:
+            # Construct a scheme homset or a scheme-valued point from
+            # args using the generic Scheme.__call__() method.
+            return super(AffineScheme, self).__call__(*args)
+        except NotImplementedError:
+            # This arises from self._morphism() not being implemented.
+            # We must convert it into a TypeError to keep the coercion
+            # system working.
+            raise TypeError('cannot call %s with arguments %s' % (self, args))
 
-        return super(AffineScheme, self).__call__(*args)
+    Element = SchemeTopologicalPoint_prime_ideal
+
+    def _element_constructor_(self, x):
+        """
+        Construct a topological point from `x`.
+
+        TESTS::
+
+            sage: S = Spec(ZZ)
+            sage: S(ZZ.ideal(0))
+            Point on Spectrum of Integer Ring defined by the Principal ideal (0) of Integer Ring
+        """
+        if isinstance(x, self.element_class):
+            if x.parent() is self:
+                return x
+            elif x.parent() == self:
+                return self.element_class(self, x.prime_ideal())
+        elif is_Ideal(x) and x.ring() is self.coordinate_ring():
+            return self.element_class(self, x)
+        raise TypeError('cannot convert %s to a topological point of %s' % (x, self))
 
     def _an_element_(self):
         r"""

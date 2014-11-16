@@ -1,12 +1,13 @@
 r"""
-Filtered algebras with basis
+Filtered Algebras With Basis
 
 A filtered algebra with basis over a commutative ring `R`
 is a filtered algebra over `R` endowed with the structure
 of a filtered module with basis (with the same underlying
 filtered-module structure). See
-:class:`FilteredAlgebras` and
-:class:`FilteredModulesWithBasis` for these two notions.
+:class:`~sage.categories.filtered_algebras.FilteredAlgebras` and
+:class:`~sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis`
+for these two notions.
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -19,7 +20,8 @@ from sage.categories.filtered_modules import FilteredModulesCategory
 
 class FilteredAlgebrasWithBasis(FilteredModulesCategory):
     """
-    The category of filtered algebras with a distinguished basis.
+    The category of filtered algebras with a distinguished
+    homogeneous basis.
 
     EXAMPLES::
 

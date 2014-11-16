@@ -1,15 +1,20 @@
 r"""
-Filtered modules
+Filtered Modules
 
-A *filtered module* over a commutative ring `R` is an
-`R`-module `M` equipped with a sequence `(F_0, F_1, F_2, \ldots)`
-of `R`-submodules satisfying
-`F_0 \subseteq F_1 \subseteq F_2 \subseteq \cdots` and
-`M = \cup_{i \geq 0} F_i`. This sequence is called the
-*filtration* of the given module `M`.
+A *filtered module* over a commutative ring `R` with a totally ordered
+indexing set `I` (typically `I = \NN`) is an `R`-module `M` equipped
+with a sequence `(F_i)_{i \in I}` of `R`-submodules satisfying
+`F_i \subseteq F_j` if `i \leq j` for all `i,j \in I` and
+`M = \bigcup_{i \in I} F_i`. This sequence is called a *filtration*
+of the given module `M`.
 
-(More general notions of filtered modules exist, but are not
-currently implemented in Sage.)
+.. TODO::
+
+    Implement a notion for decreasing filtrations: where `F_j \subseteq F_i`.
+
+.. TODO::
+
+    Implement filtrations for all concrete categories.
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -136,15 +141,12 @@ class FilteredModules(FilteredModulesCategory):
     r"""
     The category of filtered modules.
 
-    A *filtered module* over a commutative ring `R` is an
-    `R`-module `M` equipped with a sequence `(F_0, F_1, F_2, \ldots)`
-    of `R`-submodules satisfying
-    `F_0 \subseteq F_1 \subseteq F_2 \subseteq \cdots` and
-    `M = \cup_{i \geq 0} F_i`. This sequence is called the
-    *filtration* of the given module `M`.
-
-    (More general notions of filtered modules exist, but are not
-    currently implemented in Sage.)
+    A *filtered module* over a commutative ring `R` with a totally ordered
+    indexing set `I` (typically `I = \NN`) is an `R`-module `M` equipped
+    with a sequence `(F_i)_{i \in I}` of `R`-submodules satisfying
+    `F_i \subseteq F_j` if `i \leq j` for all `i, j \in I` and
+    `M = \bigcup_{i \in I} F_i`. This sequence is called a *filtration*
+    of the given module `M`.
 
     EXAMPLES::
 
@@ -156,6 +158,10 @@ class FilteredModules(FilteredModulesCategory):
     TESTS::
 
         sage: TestSuite(Modules(ZZ).Filtered()).run()
+
+    REFERENCES:
+
+    - :wikipedia:`Filtration_(mathematics)`
     """
 
     def extra_super_categories(self):

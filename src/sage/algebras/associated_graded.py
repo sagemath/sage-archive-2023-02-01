@@ -1,5 +1,5 @@
 r"""
-Associated Graded Algebras
+Associated Graded Algebras To Filtered Algebras
 
 AUTHORS:
 
@@ -33,61 +33,41 @@ from sage.combinat.free_module import CombinatorialFreeModule
 class AssociatedGradedAlgebra(CombinatorialFreeModule):
     r"""
     The associated graded algebra `\operatorname{gr} A`
-    of a filtered-algebra-with-basis `A`.
+    of a filtered algebra with basis `A`.
 
     Let `A` be a filtered algebra with basis over a
-    commutative ring `R`. Let `(F_0, F_1, F_2, \ldots)` be
-    its filtration, let `(b_i)_{i \in I}` be its basis,
-    and consider the partition of the set `I` into subsets
-    `I_0, I_1, I_2, \ldots` which is part of the data of
-    a filtered algebra with basis. The *associated graded
-    algebra* (or, for short, just *graded algebra*) of
-    `A` is a graded algebra with basis defined as follows:
+    commutative ring `R`. Let `(F_i)_{i \in I}` be
+    its filtration, let `(b_x)_{x \in X}` be its basis,
+    and consider the partition of the set `X = \bigsqcup_{i \in I} X_i`,
+    which is part of the data of a filtered algebra with basis. The
+    *associated graded algebra* (or, for short, just *graded algebra*)
+    of `A` is a graded algebra with basis defined as follows.
 
-    We know (see :class:`FilteredModulesWithBasis`) that
-    `A` (being a filtered `R`-module with basis) canonically
-    becomes a graded `R`-module with basis. (Its `n`-th
-    graded component, for every `n \in \NN`, is the
-    `R`-submodule of `A` spanned by `(b_i)_{i \in I_n}`.)
-    We define a multiplication `*` on this graded `R`-module
-    `A` (not to be mistaken for the multiplication of the
-    original algebra `A`) by requiring that
-
-    .. MATH::
-
-        b_i * b_j = \left( \text{the }
-        (n+m)\text{-th homogeneous component of }
-        b_i b_j \right)
-        \qquad \text{for all } n, m \in \NN \text{ and }
-        i \in I_n \text{ and } j \in I_m
-
-    (or, equivalently,
+    We know (see
+    :class:`~sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis`)
+    that `A` (being a filtered `R`-module with basis) canonically
+    becomes a graded `R`-module with basis. (Its `i`-th
+    graded component, for every `i \in I`, is the
+    `R`-submodule of `A` spanned by `(b_x)_{x \in X_i}`.)
+    Let `u \in F_i` and `v \in F_j` and suppose
+    `u v = \sum_{k \leq i + j} m_k` where `m_k` is in the `k`-th
+    homogeneous component. We define a multiplication `*` on this
+    graded `R`-module `A` (not to be mistaken for the multiplication
+    of the original algebra `A`) by requiring that
 
     .. MATH::
 
-        u * v = \left( \text{the }
-        (n+m)\text{-th homogeneous component of }
-        uv \right)
-        \qquad \text{for all } n, m \in \NN
-        \text{ and any homogeneous elements } u
-        \text{ and } v \text{ of respective degrees }
-        n \text{ and } m
-
-    ).
+        u * v = m_{i+j}.
 
     Thus, `(A, *)` is a graded `R`-algebra with basis.
     This is called the associated graded algebra of `A`,
     and denoted by `\operatorname{gr} A`.
 
-    Notice that the multiplication `*` of this associated
-    graded algebra depends not only on the filtered algebra
-    `A`, but also on its basis.
-
     INPUT:
 
     - ``A`` -- a filtered algebra
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: A = Algebras(QQ).WithBasis().Filtered().example()
         sage: grA = A.graded_algebra()
@@ -119,6 +99,15 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
         The algebra ``A`` must currently be an instance of (a subclass of)
         :class:`CombinatorialFreeModule`. This should work with any algebra
         with a basis.
+
+    .. TODO::
+
+        Implement a version of for filtered algebras without a
+        distinguished basis.
+
+    REFERENCES:
+
+    - :wikipedia:`Filtered_algebra#Associated_graded_algebra`
     """
     def __init__(self, A, category=None):
         """

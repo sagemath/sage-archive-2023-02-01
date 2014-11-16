@@ -4,6 +4,8 @@ Algebras
 .. toctree::
    :maxdepth: 2
 
+   sage/algebras/associated_graded
+
    sage/algebras/clifford_algebra
 
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra

@@ -6,7 +6,11 @@ Algebras
 
    sage/algebras/associated_graded
 
+   sage/algebras/catalog
+
    sage/algebras/clifford_algebra
+
+   sage/algebras/commutative_dga
 
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_element

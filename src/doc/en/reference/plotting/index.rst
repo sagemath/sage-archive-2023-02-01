@@ -29,6 +29,6 @@
    sage/plot/text
    sage/plot/colors
    sage/plot/hyperbolic_arc
-   sage/plot/hyperbolic_triangle
+   sage/plot/hyperbolic_polygon
 
 .. include:: ../footer.txt

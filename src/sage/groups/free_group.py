@@ -805,11 +805,25 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             sage: a,b = F.gens()
             sage: G(a^2*b^-3*a^-1)
             a^2*b^-3*a^-1
+
+        Check that :trac:`17246` is fixed::
+
+            sage: F = FreeGroup(0)
+            sage: F([])
+            1
+
+        Check that 0 isn't considered the identity::
+
+            sage: F = FreeGroup('x')
+            sage: F(0)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
         if len(args)!=1:
             return self.element_class(self, *args, **kwds)
         x = args[0]
-        if x==1:
+        if x==1 or x == [] or x == ():
             return self.one()
         try:
             P = x.parent()

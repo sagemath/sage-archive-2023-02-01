@@ -219,7 +219,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
     OUTPUT:
 
-    ``FinitePoset`` -- an instance of the :class:`FinitePoset`` class.
+    ``FinitePoset`` -- an instance of the :class:`FinitePoset` class.
 
     If ``category`` is specified, then the poset is created in this
     category instead of :class:`FinitePosets`.

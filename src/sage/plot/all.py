@@ -32,4 +32,4 @@ from colors import Color, hue, rainbow, colors, colormaps
 from step import plot_step_function
 
 from hyperbolic_arc import hyperbolic_arc
-from hyperbolic_triangle import hyperbolic_triangle
+from hyperbolic_polygon import hyperbolic_triangle, hyperbolic_polygon

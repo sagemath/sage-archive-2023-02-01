@@ -189,7 +189,7 @@ class IncidenceStructure(object):
 
         sage: blocks = [[0,1],[2,0],[1,2]]  # a list of lists of integers
         sage: I = designs.IncidenceStructure(3, blocks, copy=False)
-        sage: I.blocks(copy=False) is blocks
+        sage: I._blocks is blocks
         True
     """
     def __init__(self, points=None, blocks=None, incidence_matrix=None,
@@ -292,9 +292,6 @@ class IncidenceStructure(object):
         """
         Iterator over the blocks.
 
-        Note that it is faster to call for the method ``.blocks(copy=True)``
-        (but in that case the output should not be modified).
-
         EXAMPLES::
 
             sage: sts = designs.steiner_triple_system(9)
@@ -310,7 +307,8 @@ class IncidenceStructure(object):
             ['a', 'b']
         """
         if self._point_to_index is None:
-            for b in self._blocks: yield b[:]
+            for b in self._blocks:
+                yield b[:]
         else:
             for b in self._blocks:
                 yield [self._points[i] for i in b]
@@ -577,24 +575,16 @@ class IncidenceStructure(object):
     __copy__ = copy
 
 
-    def ground_set(self, copy=True):
+    def ground_set(self):
         r"""
         Return the ground set (i.e the list of points).
-
-        INPUT:
-
-        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
-          pointer toward the object's internal data is given. Set it to
-          ``False`` only if you know what you are doing.
 
         EXAMPLES::
 
             sage: designs.IncidenceStructure(3, [[0,1],[0,2]]).ground_set()
             [0, 1, 2]
         """
-        if copy:
-            return self._points[:]
-        return self._points
+        return self._points[:]
 
     def num_points(self):
         r"""
@@ -624,15 +614,9 @@ class IncidenceStructure(object):
         """
         return len(self._blocks)
 
-    def blocks(self, copy=True):
+    def blocks(self):
         """
         Return the list of blocks.
-
-        INPUT:
-
-        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
-          pointer toward the object's internal data is given. Set it to
-          ``False`` only if you know what you are doing.
 
         EXAMPLES::
 
@@ -640,21 +624,11 @@ class IncidenceStructure(object):
             sage: BD.blocks()
             [[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]
 
-        What you should pay attention to::
-
-            sage: blocks = BD.blocks(copy=False)
-            sage: del blocks[0:6]
-            sage: BD
-            Incidence structure with 7 points and 1 blocks
-
         """
-        if copy:
-            if self._point_to_index is None:
-                return [b[:] for b in self._blocks]
-            else:
-                return [[self._points[i] for i in b] for b in self._blocks]
+        if self._point_to_index is None:
+            return [b[:] for b in self._blocks]
         else:
-            return self._blocks
+            return [[self._points[i] for i in b] for b in self._blocks]
 
     def block_sizes(self):
         r"""
@@ -1265,7 +1239,7 @@ class IncidenceStructure(object):
             gens = [[tuple([i-1 for i in cycle]) for cycle in g] for g in gens]
         return PermutationGroup(gens, domain=self._points)
 
-    def is_resolvable(self, certificate=False, solver=None, verbose=0, copy=True, check=True):
+    def is_resolvable(self, certificate=False, solver=None, verbose=0, check=True):
         r"""
         Test whether the hypergraph is resolvable
 
@@ -1294,10 +1268,6 @@ class IncidenceStructure(object):
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
-
-        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
-          pointer toward the object's internal data is given. Set it to
-          ``False`` only if you know what you are doing.
 
         - ``check`` (boolean) -- whether to check that output is correct before
           returning it. As this is expected to be useless (but we are cautious
@@ -1346,15 +1316,10 @@ class IncidenceStructure(object):
 
         TESTS::
 
-            sage: _,cls1 = AG.is_resolvable(certificate=True, copy=True)
-            sage: _,cls2 = AG.is_resolvable(certificate=True, copy=True)
+            sage: _,cls1 = AG.is_resolvable(certificate=True)
+            sage: _,cls2 = AG.is_resolvable(certificate=True)
             sage: cls1 is cls2
             False
-
-            sage: _,cls1 = AG.is_resolvable(certificate=True, copy=False)
-            sage: _,cls2 = AG.is_resolvable(certificate=True, copy=False)
-            sage: cls1 is cls2
-            True
         """
         if self._classes is None:
             degrees = set(self.degree().itervalues())
@@ -1404,13 +1369,10 @@ class IncidenceStructure(object):
             return (False, []) if certificate else False
 
         if certificate:
-            if copy:
-                if self._point_to_index is None:
-                    classes = [[block[:] for block in classs] for classs in self._classes]
-                else:
-                    classes = [[[self._points[i] for i in block] for block in classs] for classs in self._classes]
+            if self._point_to_index is None:
+                classes = [[block[:] for block in classs] for classs in self._classes]
             else:
-                classes = self._classes
+                classes = [[[self._points[i] for i in block] for block in classs] for classs in self._classes]
 
             return (True, classes)
 
@@ -1766,15 +1728,9 @@ class GroupDivisibleDesign(IncidenceStructure):
             assert is_group_divisible_design(self._groups,self._blocks,self.num_points(),G,K,lambd)
 
 
-    def groups(self, copy=True):
+    def groups(self):
         r"""
         Return the groups of the Group-Divisible Design.
-
-        INPUT:
-
-        - ``copy`` (boolean) -- ``True`` by default. When set to ``False``, a
-          pointer toward the object's internal data is given. Set it to
-          ``False`` only if you know what you are doing.
 
         EXAMPLE::
 
@@ -1802,9 +1758,7 @@ class GroupDivisibleDesign(IncidenceStructure):
              ['p', 'q', 'r', 's', 't'],
              ['u', 'v', 'w', 'x', 'y']]
         """
-        if copy is False:
-            return self._groups
-        elif self._point_to_index is None:
+        if self._point_to_index is None:
             return [list(g) for g in self._groups]
         else:
             return [[self._points[i] for i in g] for g in self._groups]
@@ -1822,7 +1776,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             Group Divisible Design on 40 points of type 10^4
         """
         from string import join
-        group_sizes = map(len, self.groups(copy=False))
+        group_sizes = map(len, self._groups)
 
         gdd_type = ["{}^{}".format(s,group_sizes.count(s))
                     for s in sorted(set(group_sizes))]

@@ -4850,6 +4850,81 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             b = Integer(b)
         return mpz_kronecker(self.value, (<Integer>b).value)
 
+    def class_number(self, proof=True):
+        r"""
+        Returns the class number of the quadratic order with this discriminant.
+
+        INPUT:
+
+        - ``self`` -- an integer congruent to `0` or `1\mod4` which is
+          not a square
+
+        - ``proof`` (boolean, default ``True``) -- if ``False`` then
+          for negative disscriminants a faster algorithm is used by
+          the PARI library which is known to give incorrect results
+          when the class group has many cyclic factors.
+
+        OUTPUT:
+
+        (integer) the class number of the quadratic order with this
+        discriminant.
+
+        .. NOTE::
+
+           This is not always equal to the number of classes of
+           primitive binary quadratic forms of discriminant `D`, which
+           is equal to the narrow class number. The two notions are
+           the same when `D<0`, or `D>0` and the fundamental unit of
+           the order has negative norm; otherwise the number of
+           classes of forms is twice this class number.
+
+        EXAMPLES::
+
+            sage: (-163).class_number()
+            1
+            sage: (-104).class_number()
+            6
+            sage: [((4*n+1),(4*n+1).class_number()) for n in [21..29]]
+            [(85, 2),
+            (89, 1),
+            (93, 1),
+            (97, 1),
+            (101, 1),
+            (105, 2),
+            (109, 1),
+            (113, 1),
+            (117, 1)]
+
+        TESTS:
+
+        The integer must not be a square or an error is raised::
+
+           sage: 100.class_number()
+           Traceback (most recent call last):
+           ...
+           ValueError: class_number not defined for square integers
+
+
+        The integer must be 0 or 1 mod 4 or an error is raised::
+
+           sage: 10.class_number()
+           Traceback (most recent call last):
+           ...
+           ValueError: class_number only defined for integers congruent to 0 or 1 modulo 4
+           sage: 3.class_number()
+           Traceback (most recent call last):
+           ...
+           ValueError: class_number only defined for integers congruent to 0 or 1 modulo 4
+
+
+        """
+        if self.is_square():
+            raise ValueError("class_number not defined for square integers")
+        if not self%4 in [0,1]:
+            raise ValueError("class_number only defined for integers congruent to 0 or 1 modulo 4")
+        flag =  self < 0 and proof
+        return pari(self).qfbclassno(flag).sage()
+
     def radical(self, *args, **kwds):
         r"""
         Return the product of the prime divisors of self. Computing

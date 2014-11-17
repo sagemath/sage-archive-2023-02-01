@@ -1473,6 +1473,28 @@ cdef class MonoidElement(Element):
             raise RuntimeError, "__pow__ dummy argument not used"
         return generic_power_c(self,n,None)
 
+    def powers(self, n):
+        r"""
+        Return the list `[x^0, x^1, \ldots, x^{n-1}]`.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(4)
+            sage: g = G([2, 3, 4, 1])
+            sage: g.powers(4)
+            [(), (1,2,3,4), (1,3)(2,4), (1,4,3,2)]
+        """
+        if n < 0:
+            raise ValueError("negative number of powers requested")
+        elif n == 0:
+            return []
+        x = self._parent.one_element()
+        l = [x]
+        for i in xrange(n - 1):
+            x = x * self
+            l.append(x)
+        return l
+
     def __nonzero__(self):
         return True
 
@@ -1828,6 +1850,26 @@ cdef class RingElement(ModuleElement):
         if dummy is not None:
             raise RuntimeError, "__pow__ dummy argument not used"
         return generic_power_c(self,n,None)
+
+    def powers(self, n):
+        r"""
+        Return the list `[x^0, x^1, \ldots, x^{n-1}]`.
+
+        EXAMPLES::
+
+            sage: 5.powers(3)
+            [1, 5, 25]
+        """
+        if n < 0:
+            raise ValueError("negative number of powers requested")
+        elif n == 0:
+            return []
+        x = self._parent.one_element()
+        l = [x]
+        for i in xrange(n - 1):
+            x = x * self
+            l.append(x)
+        return l
 
     ##################################
     # Division

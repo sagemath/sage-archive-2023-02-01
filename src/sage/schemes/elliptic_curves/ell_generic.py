@@ -2472,6 +2472,10 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
         """
         Draw a graph of this elliptic curve.
 
+        The plot method is only implemented when there is a natural coercion
+        from the base ring of ``self`` to ``RR``. In this case, ``self`` is
+        plotted as if it was defined over ``RR``.
+
         INPUT:
 
         -  ``xmin, xmax`` - (optional) points will be computed at
@@ -2532,6 +2536,14 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
             Traceback (most recent call last):
             ...
             ValueError: no bounded component for this curve
+
+        An elliptic curve defined over the Complex Field can not be plotted::
+
+            sage: E = EllipticCurve(CC, [0,0,1,-1,0])
+            sage: E.plot()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Plotting of curves over Complex Field with 53 bits of precision not implemented yet
         """
         RR = rings.RealField()
         K = self.base_ring()

@@ -253,7 +253,7 @@ class qsieve_nonblock:
 
         EXAMPLES::
 
-            sage: n = next_prime(2^110)*next_prime(2^100)
+            sage: n = next_prime(2^310)*next_prime(2^300)
             sage: qs = qsieve(n, block=False)
             sage: qs
             Proper factors so far: []

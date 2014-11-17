@@ -747,17 +747,22 @@ cdef class CoinBackend(GenericBackend):
         cdef OsiSolverInterface * si = self.si
 
         cdef CbcModel * model
+        cdef int old_logLevel = self.model.logLevel()
+
         model = new CbcModel(si[0])
-        model.setLogLevel(self.model.logLevel())
+        del self.model
+        self.model = model
+        
+        #we immediately commit to the new model so that the user has access
+        #to it even when something goes wrong.
+
+        model.setLogLevel(old_logLevel)
 
         # multithreading
         import multiprocessing
         model.setNumberThreads(multiprocessing.cpu_count())
 
         model.branchAndBound()
-
-        del self.model
-        self.model = model
 
         if model.solver().isAbandoned():
             raise MIPSolverException("CBC : The solver has abandoned!")
@@ -773,6 +778,8 @@ cdef class CoinBackend(GenericBackend):
 
         elif not model.solver().isProvenOptimal():
             raise MIPSolverException("CBC : Unknown error")
+
+        return 0
 
     cpdef get_objective_value(self):
         r"""

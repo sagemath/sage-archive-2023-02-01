@@ -36,14 +36,14 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     of a filtered algebra with basis `A`.
 
     Let `A` be a filtered algebra with basis over a commutative
-    ring `R`. Let `(F_i)_{i \in I}` be the filtration of `A`, and
-    define
+    ring `R`. Let `(F_i)_{i \in I}` be the filtration of `A`, with
+    `I` being a totally ordered set. Define
 
     .. MATH::
 
         G_i = F_i / \sum_{j < i} F_j
 
-    and then
+    for every `i \in I`, and then
 
     .. MATH::
 
@@ -51,26 +51,29 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
 
     There are canonical projections `p_i : F_i \to G_i` for
     every `i \in I`. Moreover `\operatorname{gr} A` is naturally a
-    graded module with `G_i` being the `i`-th graded component.
+    graded `R`-module with `G_i` being the `i`-th graded component.
 
-    Let `u \in G_i` and `v \in G_j` with lifts `u' \in F_i`
-    and `v' \in F_j` respectively. Therefore we define
+    Let `u \in G_i` and `v \in G_j`, and let `u' \in F_i` and
+    `v' \in F_j` be lifts of `u` and `v`, respectively (so that
+    `u = p_i(u')` and `v = p_j(v')`). Then, we define a
     multiplication `*` on `\operatorname{gr} A` (not to be mistaken
     for the multiplication of the original algebra `A`) by
 
     .. MATH::
 
-        u * v = p_{i+j}(u' v').
+        u * v = p_{i+j} (u' v').
 
-    The *associated graded algebra* (or, for short, just *graded algebra*)
-    of `A` is the graded algebra `\operatorname{gr} A`.
+    The *associated graded algebra* (or, for short, just
+    *graded algebra*) of `A` is the graded algebra
+    `\operatorname{gr} A` (endowed with this multiplication).
 
     In particular, let `(b_x)_{x \in X}` be the basis of `A`,
-    and consider the partition of the set `X = \bigsqcup_{i \in I} X_i`,
-    which is part of the data of a filtered algebra with basis.
-    We know (see
+    and consider the partition `X = \bigsqcup_{i \in I} X_i` of
+    the set `X`, which is part of the data of a filtered
+    algebra with basis. We know (see
     :class:`~sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis`)
     that `A` (being a filtered `R`-module with basis) is canonically
+    (when the basis is considered to be part of the data)
     isomorphic to `\operatorname{gr} A` as an `R`-module. Therefore
     the `k`-th graded component `G_k` can be identified with
     the span of `(b_x)_{x \in X_k}`, or equivalently the
@@ -79,11 +82,20 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     has been identified with the `k`-th homogeneous component of `A`).
     Then `u * v = m_{i+j}`. We also note that the choice of
     identification of `G_k` with the `k`-th homogeneous component
-    depends on the given basis.
+    of `A` depends on the given basis.
+
+    In this class, the `R`-module isomorphism from `A` to
+    `\operatorname{gr} A` is implemented as
+    :meth:`to_graded_conversion` and also as the default
+    conversion from `A` to `\operatorname{gr} A`. Its
+    inverse map is implemented as
+    :meth:`from_graded_conversion`. The projection
+    `p_i : F_i \to G_i` is implemented as
+    :meth:`projection` ``(i)``.
 
     INPUT:
 
-    - ``A`` -- a filtered algebra
+    - ``A`` -- a filtered algebra with basis
 
     EXAMPLES::
 
@@ -102,7 +114,7 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     We note that the conversion between ``A`` and ``grA`` is
     the canonical ``QQ``-module isomorphism stemming from the
     fact that the underlying ``QQ``-modules of ``A`` and
-    ``grA`` are the same::
+    ``grA`` are isomorphic::
 
         sage: grA(A.an_element())
         bar(U['x']^2*U['y']^2*U['z']^3)
@@ -120,8 +132,8 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
 
     .. TODO::
 
-        Implement a version of for filtered algebras without a
-        distinguished basis.
+        Implement a version of associated graded algebra for
+        filtered algebras without a distinguished basis.
 
     REFERENCES:
 
@@ -138,8 +150,11 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
             sage: TestSuite(grA).run(elements=[prod(grA.algebra_generators())])
         """
         if A not in AlgebrasWithBasis(A.base_ring()).Filtered():
-            raise ValueError("the base algebra must be filtered")
+            raise ValueError("the base algebra must be filtered and with basis")
         self._A = A
+
+        base_ring = A.base_ring()
+        self.base_one = base_ring.one()
 
         if category is None:
             category = A.category().Graded()
@@ -148,11 +163,11 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
             opts['bracket'] = '('
         opts['prefix'] = opts['prefix'] + 'bar'
 
-        CombinatorialFreeModule.__init__(self, A.base_ring(), A.indices(),
+        CombinatorialFreeModule.__init__(self, base_ring, A.indices(),
                                          category=category, **opts)
 
         # Setup the conversion back
-        phi = self.module_morphism(lambda x: A.monomial(x), codomain=A)
+        phi = self.module_morphism(diagonal=lambda x: self.base_one, codomain=A)
         self._A.register_conversion(phi)
 
     def _repr_(self):
@@ -183,13 +198,15 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
         return "\\operatorname{gr} " + latex(self._A)
 
     def _element_constructor_(self, x):
-        """
+        r"""
         Construct an element of ``self`` from ``x``.
 
-        This constructs an element from the filtered algebra `A`
-        by the canonical module isomorphism (stemming from the
-        fact that `A` and the associated graded algebra `A`
-        have the same underlying `R`-module).
+        If ``self`` `= \operatorname{gr} A` for a filtered algebra
+        `A`, and if ``x`` is an element of `A`, then this returns
+        the image of `x` under the canonical `R`-module
+        isomorphism `A \to \operatorname{gr} A`. (In this case,
+        this is equivalent to calling
+        ``self.to_graded_conversion()(x)``.)
 
         EXAMPLES::
 
@@ -204,6 +221,90 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
             if x.parent() is self._A:
                 return self._from_dict(dict(x))
         return super(AssociatedGradedAlgebra, self)._element_constructor_(x)
+
+    # Maps
+
+    def to_graded_conversion(self):
+        r"""
+        Return the canonical `R`-module isomorphism
+        `A \to \operatorname{gr} A` induced by the basis of `A`.
+
+        This is an isomorphism of `R`-modules, not of algebras. See
+        the class-wide documentation :class:`AssociatedGradedAlgebra`.
+
+        .. SEEALSO::
+
+            :meth:`from_graded_conversion`.
+
+        EXAMPLES::
+
+            sage: A = Algebras(QQ).WithBasis().Filtered().example()
+            sage: grA = A.graded_algebra()
+            sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
+            U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+            sage: grA.to_graded_conversion()(p)
+            bar(U['x']^2*U['y']^2*U['z']^3) + bar(U['x']) + 2*bar(1)
+        """
+        return self._A.module_morphism(diagonal=lambda x: self.base_one,
+                                       codomain=self)
+
+    def from_graded_conversion(self):
+        r"""
+        Return the inverse of the canonical `R`-module isomorphism
+        `A \to \operatorname{gr} A` induced by the basis of `A`.
+
+        This is an isomorphism of `R`-modules, not of algebras. See
+        the class-wide documentation :class:`AssociatedGradedAlgebra`.
+
+        .. SEEALSO::
+
+            :meth:`to_graded_conversion`.
+
+        EXAMPLES::
+
+            sage: A = Algebras(QQ).WithBasis().Filtered().example()
+            sage: grA = A.graded_algebra()
+            sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
+            U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+            sage: q = grA.to_graded_conversion()(p)
+            sage: grA.from_graded_conversion()(q) == p
+            True
+        """
+        return self.module_morphism(diagonal=lambda x: self.base_one,
+                                    codomain=self._A)
+
+    def projection(self, i):
+        r"""
+        Return the `i`-th projection `p_i : F_i \to G_i` (in the
+        notations of the class-wide documentation
+        :class:`AssociatedGradedAlgebra`).
+
+        This method actually does not return the map `p_i` itself,
+        but an extension of `p_i` to the whole `R`-module `A`.
+        This extension is the composition of the `R`-module
+        isomorphism `A \to \operatorname{gr} A` with the canonical
+        projection of the graded `R`-module `\operatorname{gr} A`
+        onto its `i`-th graded component `G_i`. The codomain of
+        this map is `\operatorname{gr} A`, although its actual
+        image is `G_i`.
+
+        EXAMPLES::
+
+            sage: A = Algebras(QQ).WithBasis().Filtered().example()
+            sage: grA = A.graded_algebra()
+            sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
+            U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+            sage: grA.projection(7)(p)
+            bar(U['x']^2*U['y']^2*U['z']^3)
+            sage: grA.projection(8)(p)
+            0
+        """
+        base_zero = self.base_ring().zero()
+        return self._A.module_morphism(diagonal=lambda x:
+                                                (self.base_one if
+                                                 self._A.degree_on_basis(x) == i
+                                                 else base_zero),
+                                       codomain=self)
 
     def gen(self, *args, **kwds):
         """
@@ -227,6 +328,9 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
         """
         Return the algebra generators of ``self``.
 
+        This assumes that the algebra generators of `A` provided by
+        its ``algebra_generators`` method are homogeneous.
+
         EXAMPLES::
 
             sage: A = Algebras(QQ).WithBasis().Filtered().example()
@@ -241,6 +345,8 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     def one_basis(self):
         """
         Return the basis index of the element `1`.
+
+        This assumes that the unity `1` of `A` belongs to `F_0`.
 
         EXAMPLES::
 

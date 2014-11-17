@@ -4,16 +4,18 @@ Filtered Modules With Basis
 A *filtered module with basis* over a commutative ring `R`
 means (for the purpose of this code) a filtered `R`-module
 `M` with filtration `(F_i)_{i \in I}` (typically `I = \NN`)
-endowed with a basis `(b_j)_{j \in J}` of `M` and a partition of
-the set `J = \bigsqcup_{i \in I} J_i` (which can be empty) such
-that for every `n \in I`, the subfamily `(b_j)_{j \in U_n}`, where
-`U_n = \bigcup_{i \leq n} J_i`, is a basis of the `R`-submodule `F_n`.
+endowed with a basis `(b_j)_{j \in J}` of `M` and a partition
+`J = \bigsqcup_{i \in I} J_i` of the set `J` (it is allowed
+that some `J_i` are empty) such that for every `n \in I`,
+the subfamily `(b_j)_{j \in U_n}`, where
+`U_n = \bigcup_{i \leq n} J_i`, is a basis of the
+`R`-submodule `F_n`.
 
 For every `i \in I`, the `R`-submodule of `M` spanned by
 `(b_j)_{j \in J_i}` is called the `i`-*th graded component*
-of the filtered module with basis `M`; the elements of
-this submodule are referred to as *homogeneous elements of
-degree* `i`.
+(aka the `i`-*th homogeneous component*) of the filtered
+module with basis `M`; the elements of this submodule are
+referred to as *homogeneous elements of degree* `i`.
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -31,23 +33,28 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
     A *filtered module with basis* over a commutative ring `R`
     means (for the purpose of this code) a filtered `R`-module
     `M` with filtration `(F_i)_{i \in I}` (typically `I = \NN`)
-    endowed with a basis `(b_j)_{j \in J}` of `M` and a partition of
-    the set `J = \bigsqcup_{i \in I} J_i` (which can be empty) such
-    that for every `n \in I`, the subfamily `(b_j)_{j \in U_n}`, where
-    `U_n = \bigcup_{i \leq n} J_i`, is a basis of the `R`-submodule `F_n`.
+    endowed with a basis `(b_j)_{j \in J}` of `M` and a partition
+    `J = \bigsqcup_{i \in I} J_i` of the set `J` (it is allowed
+    that some `J_i` are empty) such that for every `n \in I`,
+    the subfamily `(b_j)_{j \in U_n}`, where
+    `U_n = \bigcup_{i \leq n} J_i`, is a basis of the
+    `R`-submodule `F_n`.
 
     For every `i \in I`, the `R`-submodule of `M` spanned by
-    `(b_j)_{j \in J_i}` is called the `i`-*th graded component* of the
-    filtered module with basis `M`; the elements of this submodule are
-    referred to as *homogeneous elements of degree* `i`. The `R`-module
-    `M` is the direct sum of its `i`-th graded components over
-    all `i \in I`, and thus becomes a graded `R`-module with basis.
-    Conversely, any graded `R`-module with basis canonically becomes a filtered
-    `R`-module with basis (by defining `F_n = \bigoplus_{i \leq n} G_i`
-    where `G_i` is the `i`-th graded component and `J_i` as the indexing
-    set of the basis of the `i`-th graded component). Hence, the notion
-    of a filtered `R`-module with basis is equivalent to the notion of
-    a graded `R`-module with basis.
+    `(b_j)_{j \in J_i}` is called the `i`-*th graded component*
+    (aka the `i`-*th homogeneous component*) of the filtered
+    module with basis `M`; the elements of this submodule are
+    referred to as *homogeneous elements of degree* `i`.
+    The `R`-module `M` is the direct sum of its `i`-th graded
+    components over all `i \in I`, and thus becomes a graded
+    `R`-module with basis.
+    Conversely, any graded `R`-module with basis canonically
+    becomes a filtered `R`-module with basis (by defining
+    `F_n = \bigoplus_{i \leq n} G_i` where `G_i` is the `i`-th
+    graded component, and defining `J_i` as the indexing set
+    of the basis of the `i`-th graded component). Hence, the
+    notion of a filtered `R`-module with basis is equivalent
+    to the notion of a graded `R`-module with basis.
 
     However, the *category* of filtered `R`-modules with basis is not
     the category of graded `R`-modules with basis. Indeed, the *morphisms*
@@ -57,6 +64,22 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
     with basis must preserve each homogeneous component. Also,
     the notion of a filtered algebra with basis differs from
     that of a graded algebra with basis.
+
+    .. NOTE::
+
+        Currently, to make use of the functionality of this class,
+        an instance of ``FilteredModulesWithBasis`` should fulfill
+        the contract of a :class:`CombinatorialFreeModule` (most
+        likely by inheriting from it). It should also have the
+        indexing set `J` encoded as its ``_indices`` attribute,
+        and ``_indices.subset(basis=i)`` should yield the subset
+        `J_i` (as an iterable). If the latter conditions are not
+        satisfied, then :meth:`basis` must be overridden.
+
+    .. TODO::
+
+        This deserves to be handled better, and the contracts
+        involved might also profit from some explicit writing-up.
 
     EXAMPLES::
 
@@ -92,7 +115,9 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             - ``d`` -- (optional, default ``None``) nonnegative integer
               or ``None``
 
-            If ``d`` is ``None``, returns a basis of the module.
+            OUTPUT:
+
+            If ``d`` is ``None``, returns the basis of the module.
             Otherwise, returns the basis of the homogeneous component
             of degree ``d`` (i.e., the subfamily of the basis of the
             whole module which consists only of the basis vectors
@@ -177,6 +202,12 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             if not self.is_homogeneous():
                 raise ValueError("element is not homogeneous")
             return self.parent().degree_on_basis(self.leading_support())
+
+#        .. TODO::
+#
+#            maximal_degree. This actually does not depend on the basis
+#            and can probably be copied, up to doctests, from
+#            filtered_algebras_with_basis.py.
 
         def homogeneous_component(self, n):
             """

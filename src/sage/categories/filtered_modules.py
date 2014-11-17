@@ -3,9 +3,9 @@ Filtered Modules
 
 A *filtered module* over a commutative ring `R` with a totally ordered
 indexing set `I` (typically `I = \NN`) is an `R`-module `M` equipped
-with a sequence `(F_i)_{i \in I}` of `R`-submodules satisfying
-`F_i \subseteq F_j` if `i \leq j` for all `i,j \in I` and
-`M = \bigcup_{i \in I} F_i`. This sequence is called a *filtration*
+with a family `(F_i)_{i \in I}` of `R`-submodules satisfying
+`F_i \subseteq F_j` for all `i,j \in I` having `i \leq j`, and
+`M = \bigcup_{i \in I} F_i`. This family is called a *filtration*
 of the given module `M`.
 
 .. TODO::
@@ -139,13 +139,13 @@ class FilteredModulesCategory(RegressiveCovariantConstructionCategory, Category_
 
 class FilteredModules(FilteredModulesCategory):
     r"""
-    The category of filtered modules.
+    The category of filtered modules over a given commutative ring `R`.
 
     A *filtered module* over a commutative ring `R` with a totally ordered
     indexing set `I` (typically `I = \NN`) is an `R`-module `M` equipped
-    with a sequence `(F_i)_{i \in I}` of `R`-submodules satisfying
-    `F_i \subseteq F_j` if `i \leq j` for all `i, j \in I` and
-    `M = \bigcup_{i \in I} F_i`. This sequence is called a *filtration*
+    with a family `(F_i)_{i \in I}` of `R`-submodules satisfying
+    `F_i \subseteq F_j` for all `i,j \in I` having `i \leq j`, and
+    `M = \bigcup_{i \in I} F_i`. This family is called a *filtration*
     of the given module `M`.
 
     EXAMPLES::
@@ -206,8 +206,9 @@ class FilteredModules(FilteredModulesCategory):
             Return the full subcategory of the connected objects of ``self``.
 
             A filtered `R`-module `M` with filtration
-            `(F_0, F_1, F_2, \ldots)` is said to be 
-            *connected* if `F_0` is isomorphic to `R`.
+            `(F_0, F_1, F_2, \ldots)` (indexed by `\NN`)
+            is said to be *connected* if `F_0` is isomorphic
+            to `R`.
 
             EXAMPLES::
 

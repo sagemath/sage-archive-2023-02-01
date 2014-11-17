@@ -1349,8 +1349,9 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                                               for _ in range(l)])
                 return R( sum(1 for w in words_to_check if check_word(w)) )
 
+            from sage.combinat.partition import Partitions_n
             r = m.sum_of_terms([(mu, coeff_of_m_mu_in_result(mu))
-                                for mu in Partitions(n)],
+                                for mu in Partitions_n(n)],
                                distinct=True)
             return self(r)
 

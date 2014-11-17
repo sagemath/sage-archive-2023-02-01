@@ -702,9 +702,9 @@ So können wir zum Beispiel Sage die Zerlegung
 .. math:: \log(10^5) = 5\log(2) + 5\log(5)
 
 machen lassen.  In diesem Fall benutzen wir nicht ``simplify_full()``, sondern
-die ähnliche Funktion ``simplify_exp``::
+die ähnliche Funktion ``canonicalize_radical``::
 
-    sage: log(10^5).simplify_exp()
+    sage: log(10^5).canonicalize_radical()
     5*log(5) + 5*log(2)
 
 Diese Gesetze können auch umgekehrt verwendet werden, wie in diesem Beispiel::

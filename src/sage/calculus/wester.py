@@ -120,7 +120,7 @@ explicit calls to Maxima or other systems.
     (e^x - 1)/(e^(1/2*x) + 1)
     sage: g
     e^(1/2*x) - 1
-    sage: f.simplify_radical()
+    sage: f.canonicalize_radical()
     e^(1/2*x) - 1
     sage: g
     e^(1/2*x) - 1

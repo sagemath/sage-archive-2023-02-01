@@ -2155,7 +2155,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<a> = NumberField(x^3 + x - 1, embedding=0.68)
             sage: b = SR(a); b # indirect doctest
             (1/18*sqrt(31)*sqrt(3) + 1/2)^(1/3) - 1/3/(1/18*sqrt(31)*sqrt(3) + 1/2)^(1/3)
-            sage: (b^3 + b - 1).simplify_radical()
+            sage: (b^3 + b - 1).canonicalize_radical()
             0
 
         Make sure we got the right one::

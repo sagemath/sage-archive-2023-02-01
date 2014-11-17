@@ -75,7 +75,7 @@ Sage example in ./calculus.tex, line 254::
 
 Sage example in ./calculus.tex, line 260::
 
-    sage: f = (e^x-1) / (1+e^(x/2)); f.simplify_exp()
+    sage: f = (e^x-1) / (1+e^(x/2)); f.canonicalize_radical()
     e^(1/2*x) - 1
 
 Sage example in ./calculus.tex, line 266::
@@ -99,9 +99,9 @@ Sage example in ./calculus.tex, line 306::
 
 Sage example in ./calculus.tex, line 318::
 
-    sage: f = sqrt(abs(x)^2); f.simplify_radical()
+    sage: f = sqrt(abs(x)^2); f.canonicalize_radical()
     abs(x)
-    sage: f = log(x*y); f.simplify_radical()
+    sage: f = log(x*y); f.canonicalize_radical()
     log(x) + log(y)
 
 Sage example in ./calculus.tex, line 371::
@@ -644,7 +644,7 @@ Sage example in ./sol/calculus.tex, line 230::
     sage: assume(8*n+1>0)
     sage: u(n) = integrate((4*sqrt(2)-8*t^3-4*sqrt(2)*t^4\
     ....:                  -8*t^5) * t^(8*n), t, 0, 1/sqrt(2))
-    sage: (u(n)-v(n)).simplify_radical()
+    sage: (u(n)-v(n)).canonicalize_radical()
     0
 
 Sage example in ./sol/calculus.tex, line 258::
@@ -653,7 +653,7 @@ Sage example in ./sol/calculus.tex, line 258::
     sage: J = integrate((4*sqrt(2)-8*t^3 \
     ....:      - 4*sqrt(2)*t^4-8*t^5)\
     ....:      / (1-t^8), t, 0, 1/sqrt(2))
-    sage: J.simplify_radical()
+    sage: J.canonicalize_radical()
     pi + 2*log(sqrt(2) + 1) + 2*log(sqrt(2) - 1)
 
 Sage example in ./sol/calculus.tex, line 272::

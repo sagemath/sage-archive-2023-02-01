@@ -992,6 +992,10 @@ class Player(object):
 
     def __eq__(self, other):
         r"""
+
+        Tests equality of two players. This only checks the name of the player
+        and not their preferences.
+
         TESTS::
 
             sage: from sage.game_theory.matching_game import Player
@@ -1003,6 +1007,14 @@ class Player(object):
             sage: from sage.game_theory.matching_game import Player
             sage: p = Player(10)
             sage: q = Player(10)
+            sage: p == q
+            True
+
+            sage: from sage.game_theory.matching_game import Player
+            sage: p = Player(10)
+            sage: q = Player(10)
+            sage: p.pref = (1, 2)
+            sage: p.pref = (2, 1)
             sage: p == q
             True
         """

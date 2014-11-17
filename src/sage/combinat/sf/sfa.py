@@ -3224,8 +3224,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: F = FractionField(QQ['q','t'])
             sage: mq = SymmetricFunctions(F).macdonald().Q()
             sage: mh = SymmetricFunctions(F).macdonald().H()
-            sage: all( all( mq(p).itensor(mh(r)) == mh(r).itensor(mq(p)) for r in Partitions(4) )
-            ....:      for p in Partitions(3) )   # long time
+            sage: all( all( mq(p).itensor(mh(r)) == mh(r).itensor(mq(p))   # long time
+            ....:           for r in Partitions(4) )
+            ....:      for p in Partitions(3) )
             True
 
         Let us check (on examples) Proposition 5.2 of Gelfand, Krob, Lascoux, Leclerc,
@@ -3242,10 +3243,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:     for partition_pair, coeff in w.coproduct():
             ....:         result += coeff * w.parent()(u).itensor(partition_pair[0]) * w.parent()(v).itensor(partition_pair[1])
             ....:     return result
-            sage: all( all( all( tensor_copr(e[u], s[v], m[w]) == (e[u] * s[v]).itensor(m[w])
+            sage: all( all( all( tensor_copr(e[u], s[v], m[w])   # long time
+            ....:                == (e[u] * s[v]).itensor(m[w])
             ....:                for w in Partitions(5) )
             ....:           for v in Partitions(2) )
-            ....:      for u in Partitions(3) )   # long time
+            ....:      for u in Partitions(3) )
             True
 
         Some examples from Briand, Orellana, Rosas, "The stability of the Kronecker
@@ -3271,7 +3273,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             sage: s = SymmetricFunctions(QQ).s()
             sage: a = s([8,8])
-            sage: a.itensor(a)
+            sage: a.itensor(a) # long time
             s[4, 4, 4, 4] + s[5, 5, 3, 3] + s[5, 5, 5, 1] + s[6, 4, 4, 2]
              + s[6, 6, 2, 2] + s[6, 6, 4] + s[7, 3, 3, 3] + s[7, 5, 3, 1]
              + s[7, 7, 1, 1] + s[8, 4, 2, 2] + s[8, 4, 4] + s[8, 6, 2]
@@ -3293,7 +3295,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             sage: s = SymmetricFunctions(ZZ).s()
             sage: a = s([8,8])
-            sage: a.itensor(a)
+            sage: a.itensor(a) # long time
             s[4, 4, 4, 4] + s[5, 5, 3, 3] + s[5, 5, 5, 1] + s[6, 4, 4, 2]
              + s[6, 6, 2, 2] + s[6, 6, 4] + s[7, 3, 3, 3] + s[7, 5, 3, 1]
              + s[7, 7, 1, 1] + s[8, 4, 2, 2] + s[8, 4, 4] + s[8, 6, 2]
@@ -4417,7 +4419,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         The Frobenius endomorphisms are multiplicative::
 
-            sage: all( all( s(lam).frobenius(3) * s(mu).frobenius(3)
+            sage: all( all( s(lam).frobenius(3) * s(mu).frobenius(3) # long time
             ....:           == (s(lam) * s(mu)).frobenius(3)
             ....:           for mu in Partitions(3) )
             ....:      for lam in Partitions(3) )

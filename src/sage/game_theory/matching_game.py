@@ -717,7 +717,7 @@ class MatchingGame(SageObject):
         of the suitor will not use one that is already chosen.
 
             sage: suit = {0: (-1,  -2),
-            ....:         2: (-2, -2)}
+            ....:         2: (-2, -1)}
             sage: revr = {-1: (0, 1),
             ....:         -2: (1, 0)}
             sage: g = MatchingGame([suit, revr])
@@ -787,8 +787,8 @@ class MatchingGame(SageObject):
         If we add a reviewer without passing a name then the name
         of the reviewer will not use one that is already chosen.
 
-            sage: suit = {0: (-1,  -2),
-            ....:         1: (-2, -2)}
+            sage: suit = {0: (-1,  -3),
+            ....:         1: (-3, -1)}
             sage: revr = {-1: (0, 1),
             ....:         -3: (1, 0)}
             sage: g = MatchingGame([suit, revr])

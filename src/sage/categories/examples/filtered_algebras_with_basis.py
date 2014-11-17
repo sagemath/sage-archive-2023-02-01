@@ -49,7 +49,7 @@ class PBWBasisCrossProduct(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: A = AlgebrasWithBasis(QQ).Filtered().example()
-            sage: x,y,z = [A.algebra_generators()[i] for i in ['x','y','z']]
+            sage: x,y,z = A.algebra_generators()
             sage: TestSuite(A).run(elements=[x*y+z])
         """
         I = IndexedFreeAbelianMonoid(['x', 'y', 'z'], prefix='U')
@@ -78,12 +78,12 @@ class PBWBasisCrossProduct(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: A = AlgebrasWithBasis(QQ).Filtered().example()
-            sage: key = lambda x: x.leading_support().to_word_list()
-            sage: sorted(A.algebra_generators(), key=key)
+            sage: list(A.algebra_generators())
             [U['x'], U['y'], U['z']]
         """
         G = self._indices.monoid_generators()
-        return Family({x: self.monomial(G[x]) for x in G.keys()})
+        I = sorted(G.keys())
+        return Family(I, lambda x: self.monomial(G[x]))
 
     def one_basis(self):
         """

@@ -1418,6 +1418,26 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: dI = QSym.dI()
                     sage: dI(F[2]).dendriform_less(dI[1, 2])
                     dI[2, 1, 2]
+
+                We check with the identity element::
+
+                    sage: M.one().dendriform_less(M[1,2])
+                    0
+                    sage: M[1,2].dendriform_less(M.one())
+                    M[1, 2]
+
+                The operation `\prec` is not symmetric, nor if
+                `a \prec b \neq 0`, then `b \prec a = 0` (as it would be
+                for a single monomial)::
+
+                    sage: M[1,2,1].dendriform_less(M[1,2])
+                    M[1, 1, 2, 1, 2] + 2*M[1, 1, 2, 2, 1] + M[1, 1, 2, 3]
+                     + M[1, 1, 4, 1] + 2*M[1, 2, 1, 1, 2] + M[1, 2, 1, 2, 1]
+                     + M[1, 2, 1, 3] + M[1, 2, 2, 2] + M[1, 3, 1, 2]
+                     + M[1, 3, 2, 1] + M[1, 3, 3]
+                    sage: M[1,2].dendriform_less(M[1,2,1])
+                    M[1, 1, 2, 1, 2] + 2*M[1, 1, 2, 2, 1] + M[1, 1, 2, 3]
+                     + M[1, 1, 4, 1] + M[1, 2, 1, 2, 1] + M[1, 3, 2, 1]
                 """
                 # Convert to the monomial basis, there do restricted
                 # shuffle product, then convert back to self.parent().

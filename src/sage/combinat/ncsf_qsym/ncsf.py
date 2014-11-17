@@ -1674,7 +1674,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 INPUT:
 
-                - ``n`` -- A nonnegative integer; the number of variables
+                - ``n`` -- a nonnegative integer; the number of variables
                   in the expansion
                 - ``alphabet`` -- (default: ``'x'``); the alphabet in
                   which ``self`` is to be expanded
@@ -1689,7 +1689,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: NSym = NonCommutativeSymmetricFunctions(QQ)
                     sage: S = NSym.S()
                     sage: S[3].expand(3)
-                    x0^3 + x0^2*x1 + x0^2*x2 + x0*x1^2 + x0*x1*x2 + x0*x2^2 + x1^3 + x1^2*x2 + x1*x2^2 + x2^3
+                    x0^3 + x0^2*x1 + x0^2*x2 + x0*x1^2 + x0*x1*x2
+                     + x0*x2^2 + x1^3 + x1^2*x2 + x1*x2^2 + x2^3
                     sage: L = NSym.L()
                     sage: L[3].expand(3)
                     x2*x1*x0
@@ -1699,14 +1700,14 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     x2*x1*x0 + x3*x1*x0 + x3*x2*x0 + x3*x2*x1
                     sage: Psi = NSym.Psi()
                     sage: Psi[2, 1].expand(3)
-                    x0^3 + x0^2*x1 + x0^2*x2 + x0*x1*x0 + x0*x1^2 + x0*x1*x2 + x0*x2*x0
-                     + x0*x2*x1 + x0*x2^2 - x1*x0^2 - x1*x0*x1 - x1*x0*x2 + x1^2*x0
-                     + x1^3 + x1^2*x2 + x1*x2*x0 + x1*x2*x1 + x1*x2^2 - x2*x0^2
-                     - x2*x0*x1 - x2*x0*x2 - x2*x1*x0 - x2*x1^2 - x2*x1*x2
-                     + x2^2*x0 + x2^2*x1 + x2^3
+                    x0^3 + x0^2*x1 + x0^2*x2 + x0*x1*x0 + x0*x1^2 + x0*x1*x2
+                     + x0*x2*x0 + x0*x2*x1 + x0*x2^2 - x1*x0^2 - x1*x0*x1
+                     - x1*x0*x2 + x1^2*x0 + x1^3 + x1^2*x2 + x1*x2*x0
+                     + x1*x2*x1 + x1*x2^2 - x2*x0^2 - x2*x0*x1 - x2*x0*x2
+                     - x2*x1*x0 - x2*x1^2 - x2*x1*x2 + x2^2*x0 + x2^2*x1 + x2^3
 
                 One can use a different set of variables by adding an optional
-                argument ``alphabet=...`` ::
+                argument ``alphabet=...``::
 
                     sage: L[3].expand(4, alphabet="y")
                     y2*y1*y0 + y3*y1*y0 + y3*y2*y0 + y3*y2*y1
@@ -1722,7 +1723,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
                     sage: S = NSym.S()
                     sage: S[3].expand(3)
-                    x0^3 + x0^2*x1 + x0^2*x2 + x0*x1^2 + x0*x1*x2 + x0*x2^2 + x1^3 + x1^2*x2 + x1*x2^2 + x2^3
+                    x0^3 + x0^2*x1 + x0^2*x2 + x0*x1^2 + x0*x1*x2
+                     + x0*x2^2 + x1^3 + x1^2*x2 + x1*x2^2 + x2^3
 
                 .. TODO::
 
@@ -1741,14 +1743,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     # integer) in the first `i` of the variables.
                     if k == 0:
                         return P.one()
-                    elif k > i:
+                    if k > i:
                         return P.zero()
-                    else:
-                        return x[i-1] * image_of_L_k(k - 1, i - 1) + image_of_L_k(k, i - 1)
+                    return x[i-1] * image_of_L_k(k - 1, i - 1) + image_of_L_k(k, i - 1)
                 def on_basis(comp):
                     return P.prod((image_of_L_k(k, n) for k in comp))
-                return L._apply_module_morphism(L(self), lambda comp: on_basis(comp),
-                                                codomain = P)
+                return L._apply_module_morphism(L(self), on_basis, codomain=P)
 
 
     class MultiplicativeBases(Category_realization_of_parent):

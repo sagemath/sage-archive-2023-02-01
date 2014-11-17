@@ -909,15 +909,12 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
             - It is the sum of the fundamental quasisymmetric
               functions `F_{\operatorname{Des} \sigma}` over all
-              permutations `\sigma` which have cycle type `\lambda`.
-              See
+              permutations `\sigma` which have cycle type `\lambda`. See
               :class:`sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Fundamental`
-              for the definition of fundamental quasisymmetric
-              functions, and
-              :meth:`~sage.combinat.permutation.Permutation.cycle_type`
-              for that of cycle type. For a permutation `\sigma`, we
-              use `\operatorname{Des} \sigma` to denote the descent
-              composition
+              for the definition of fundamental quasisymmetric functions,
+              and :meth:`~sage.combinat.permutation.Permutation.cycle_type`
+              for that of cycle type. For a permutation `\sigma`, we use
+              `\operatorname{Des} \sigma` to denote the descent composition
               (:meth:`~sage.combinat.permutation.Permutation.descents_composition`)
               of `\sigma`. Again, this definition makes the symmetry
               of `\mathbf{GR}_\lambda` far from obvious.
@@ -932,9 +929,13 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
               where `p_d` denotes the `d`-th power-sum symmetric
               function. This `\mathbf{GR}_{\left(n\right)}` is also
               denoted by `L_n`. Now, `\mathbf{GR}_\lambda` is defined
-              as the product
-              `h_{m_1} \left[L_1\right] \cdot h_{m_2} \left[L_2\right]
-              \cdot h_{m_3} \left[L_3\right] \cdots`,
+              as the product:
+
+              .. MATH::
+
+                  h_{m_1} \left[L_1\right] \cdot h_{m_2} \left[L_2\right]
+                  \cdot h_{m_3} \left[L_3\right] \cdots,
+
               where `m_i` denotes the multiplicity of the part `i` in
               `\lambda`, and where the square brackets stand for
               plethysm (:meth:`plethysm`). This definition makes
@@ -946,9 +947,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
             INPUT:
 
-            - ``lam`` -- a partition or a positive integer (in the
-              latter case, it is understood to mean the partition
-              ``[lam]``)
+            - ``lam`` -- a partition or a positive integer (in the latter
+              case, it is understood to mean the partition ``[lam]``)
 
             OUTPUT:
 
@@ -981,8 +981,9 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: h.gessel_reutenauer(5)
                 h[2, 1, 1, 1] - h[2, 2, 1] - h[3, 1, 1] + h[3, 2] + h[4, 1] - h[5]
                 sage: h.gessel_reutenauer(6)
-                h[2, 1, 1, 1, 1] - h[2, 2, 1, 1] - h[2, 2, 2] - 2*h[3, 1, 1, 1]
-                 + 5*h[3, 2, 1] - 2*h[3, 3] + h[4, 1, 1] - h[4, 2] - h[5, 1] + h[6]
+                h[2, 1, 1, 1, 1] - h[2, 2, 1, 1] - h[2, 2, 2]
+                 - 2*h[3, 1, 1, 1] + 5*h[3, 2, 1] - 2*h[3, 3] + h[4, 1, 1]
+                 - h[4, 2] - h[5, 1] + h[6]
 
             Gessel-Reutenauer functions indexed by partitions::
             
@@ -1066,7 +1067,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             """
             if lam in ZZ:
                 lam = [lam]
-            lam = sage.combinat.partition.Partitions()(lam)
+            lam = _Partitions(lam)
             R = self.base_ring()
             # We use [GR1993]_ Theorem 3.6 and work over `\QQ` to
             # compute the Gessel-Reutenauer symmetric function.
@@ -1075,41 +1076,42 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
                 p = self.realization_of().power()
                 h = self.realization_of().complete()
-                partitions = p.basis().keys()
                 mu = sage.rings.arith.Moebius()
                 from sage.rings.arith import squarefree_divisors
                 def component(i, g): # == h_g[L_i]
-                    L_i = p.sum_of_terms([(partitions([d] * (i//d)), R(mu(d)))
+                    L_i = p.sum_of_terms([(_Partitions([d] * (i//d)), R(mu(d)))
                                           for d in squarefree_divisors(i)],
                                          distinct=True) / i
                     return p(h[g]).plethysm(L_i)
-                return self(p.prod((component(i, g) for i, g in m.items())))
-            else:
-                # comp_parent is the parent that is going to be used for
-                # computations. In most cases it will just be self.
-                comp_parent = self
-                # Now let's try to find out what basis self is in, and
-                # construct the corresponding basis of symmetric functions
-                # over QQ.
-                corresponding_parent_over_QQ = self.corresponding_basis_over(QQ)
-                if corresponding_parent_over_QQ is None:
-                    # This is the case where the corresponding basis
-                    # over QQ cannot be found. This can have two reasons:
-                    # Either the basis depends on variables (like the
-                    # Macdonald symmetric functions), or its basis_name()
-                    # is not identical to the name of the method on
-                    # SymmetricFunctions(QQ) that builds it. Either way,
-                    # give up looking for the corresponding parent, and
-                    # transform everything into the Schur basis (very
-                    # slow!) instead.
-                    comp_parent = self.realization_of().schur()
-                    from sage.combinat.sf.sf import SymmetricFunctions
-                    corresponding_parent_over_QQ = SymmetricFunctions(QQ).schur()
-                corresponding_result = corresponding_parent_over_QQ.gessel_reutenauer(lam)
-                comp_base_ring = comp_parent.base_ring()
-                result = comp_parent.sum_of_terms([(nu, comp_base_ring(c))
-                                                   for nu, c in corresponding_result])
-                return self(result)    # just in case comp_parent != self.
+                return self( p.prod(component(i, g) for i, g in m.items()) )
+
+            # The base ring does not coerce into `\QQ`
+
+            # comp_parent is the parent that is going to be used for
+            # computations. In most cases it will just be self.
+            comp_parent = self
+            # Now let's try to find out what basis self is in, and
+            # construct the corresponding basis of symmetric functions
+            # over QQ.
+            corresponding_parent_over_QQ = self.corresponding_basis_over(QQ)
+            if corresponding_parent_over_QQ is None:
+                # This is the case where the corresponding basis
+                # over QQ cannot be found. This can have two reasons:
+                # Either the basis depends on variables (like the
+                # Macdonald symmetric functions), or its basis_name()
+                # is not identical to the name of the method on
+                # SymmetricFunctions(QQ) that builds it. Either way,
+                # give up looking for the corresponding parent, and
+                # transform everything into the Schur basis (very
+                # slow!) instead.
+                comp_parent = self.realization_of().schur()
+                from sage.combinat.sf.sf import SymmetricFunctions
+                corresponding_parent_over_QQ = SymmetricFunctions(QQ).schur()
+            corresponding_result = corresponding_parent_over_QQ.gessel_reutenauer(lam)
+            comp_base_ring = comp_parent.base_ring()
+            result = comp_parent.sum_of_terms((nu, comp_base_ring(c))
+                                               for nu, c in corresponding_result)
+            return self(result)    # just in case comp_parent != self.
 
         def carlitz_shareshian_wachs(self, n, d, s, comparison=None):
             r"""
@@ -1339,15 +1341,16 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                     if sum((1 for i in range(n-1) if w[i] == w[i+1])) != s:
                         return False
                     return (w[0] > w[-1])
+
             def coeff_of_m_mu_in_result(mu):
                 # Compute the coefficient of the monomial symmetric
                 # function ``m[mu]`` in the result.
                 words_to_check = Permus_mset([i for (i, l) in enumerate(mu)
                                               for _ in range(l)])
-                return R(sum((1 for w in words_to_check if check_word(w))))
-            from sage.combinat.partition import Partitions_n
+                return R( sum(1 for w in words_to_check if check_word(w)) )
+
             r = m.sum_of_terms([(mu, coeff_of_m_mu_in_result(mu))
-                                for mu in Partitions_n(n)],
+                                for mu in Partitions(n)],
                                distinct=True)
             return self(r)
 

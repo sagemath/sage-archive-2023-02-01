@@ -1404,16 +1404,16 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     2*M[2, 1, 1, 2] + M[2, 1, 2, 1] + M[2, 1, 3] + M[2, 2, 2]
                     sage: F = QSym.F()
                     sage: F[2, 1].dendriform_less(F[1, 2])
-                    F[1, 1, 2, 1, 1] + F[1, 1, 2, 2] + F[1, 1, 3, 1] + F[1, 2, 1, 2] + F[1, 2, 2, 1]
-                     + F[1, 2, 3] + F[2, 1, 1, 2] + F[2, 1, 2, 1] + F[2, 1, 3] + F[2, 2, 2]
+                    F[1, 1, 2, 1, 1] + F[1, 1, 2, 2] + F[1, 1, 3, 1]
+                     + F[1, 2, 1, 2] + F[1, 2, 2, 1] + F[1, 2, 3]
+                     + F[2, 1, 1, 2] + F[2, 1, 2, 1] + F[2, 1, 3] + F[2, 2, 2]
 
                 The operation `\prec` can be used to recursively
                 construct the dual immaculate basis: For every positive
                 integer `m` and every composition `I`, the dual
                 immaculate function `\operatorname{dI}_{[m, I]}` of the
                 composition `[m, I]` (this composition is `I` with `m`
-                prepended to it) is
-                `F_{[m]} \prec \operatorname{dI}_I`. ::
+                prepended to it) is `F_{[m]} \prec \operatorname{dI}_I`. ::
 
                     sage: dI = QSym.dI()
                     sage: dI(F[2]).dendriform_less(dI[1, 2])
@@ -1421,20 +1421,21 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 """
                 # Convert to the monomial basis, there do restricted
                 # shuffle product, then convert back to self.parent().
-                parent = self.parent()
-                M = parent.realization_of().M()
+                P = self.parent()
+                M = P.realization_of().M()
                 a = M(self)
                 b = M(other)
                 res = M.zero()
                 for I, I_coeff in a:
-                    if len(I) == 0:
+                    if not I:
                         continue
                     i_head = I[0]
                     I_tail = Composition(I[1:])
                     for J, J_coeff in b:
                         shufpro = I_tail.shuffle_product(J, overlap=True)
-                        res += J_coeff * M.sum_of_monomials((Composition([i_head] + list(K)) for K in shufpro))
-                return parent(res)
+                        res += J_coeff * M.sum_of_monomials(Composition([i_head] + list(K))
+                                                            for K in shufpro)
+                return P(res)
 
             def dendriform_leq(self, other):
                 r"""
@@ -1474,7 +1475,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`dendriform_lesser`
+                    :meth:`dendriform_less`
 
                 INPUT:
 
@@ -1499,8 +1500,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                      + 2*F[2, 2, 2] + F[2, 3, 1] + F[3, 1, 2] + F[3, 2, 1] + F[3, 3]
                 """
                 # This might be somewhat slow...
-                parent = self.parent()
-                return self * other - parent(other.dendriform_less(self))
+                P = self.parent()
+                return self * P(other) - P(other.dendriform_less(self))
 
             def expand(self, n, alphabet='x'):
                 r"""

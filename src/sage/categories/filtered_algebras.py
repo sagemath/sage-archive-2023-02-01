@@ -20,8 +20,8 @@ class FilteredAlgebras(FilteredModulesCategory):
     (whose underlying `R`-module structure is identical with
     that of the `R`-algebra `A`) such that the indexing set `I`
     (typically `I = \NN`) is also an additive abelian monoid,
-    `F_0 = \{ 0 \}`, and `F_i \cdot F_j \subseteq F_{i+j}`
-    for all `i, j \in I`.
+    the unity `1` of `A` belongs to `F_0`, and we have
+    `F_i \cdot F_j \subseteq F_{i+j}` for all `i, j \in I`.
 
     EXAMPLES::
 
@@ -48,7 +48,8 @@ class FilteredAlgebras(FilteredModulesCategory):
             .. TODO::
 
                 Implement a version of the associated graded algebra
-                without a distinguished basis.
+                which does not require ``self`` to have a
+                distinguished basis.
 
             EXAMPLES::
 

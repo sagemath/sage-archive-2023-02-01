@@ -41,6 +41,9 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
             """
             Return the associated graded algebra to ``self``.
 
+            See :class:`~sage.algebras.associated_graded.AssociatedGradedAlgebra`
+            for the definition and the properties of this.
+
             EXAMPLES::
 
                 sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
@@ -53,11 +56,14 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
             return AssociatedGradedAlgebra(self)
 
     class ElementMethods:
+
         def is_homogeneous(self):
             r"""
             Return whether ``self`` is homogeneous.
 
-            EXAMPLES::
+            EXAMPLES:
+
+            Here is a case where the algebra is graded::
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                 sage: (x, y) = (S[2], S[3])
@@ -66,6 +72,23 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 sage: (x^3 - y^2).is_homogeneous()
                 True
                 sage: ((x + y)^2).is_homogeneous()
+                False
+
+            Let us now test a filtered algebra (but remember that the
+            notion of homogeneity now depends on the choice of a
+            basis)::
+
+                sage: A = AlgebrasWithBasis(QQ).Filtered().example()
+                sage: x,y,z = A.algebra_generators()
+                sage: (x*y).is_homogeneous()
+                True
+                sage: (y*x).is_homogeneous()
+                False
+                sage: A.one().is_homogeneous()
+                True
+                sage: A.zero().is_homogeneous()
+                True
+                sage: (A.one()+x).is_homogeneous()
                 False
             """
             degree_on_basis = self.parent().degree_on_basis
@@ -87,11 +110,13 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
                This raises an error if the element is not homogeneous.
                To obtain the maximum of the degrees of the homogeneous
-               summands, use :meth:`maximal_degree`
+               summands, use :meth:`maximal_degree`.
 
             .. SEEALSO:: :meth:`maximal_degree`
 
-            EXAMPLES::
+            EXAMPLES:
+
+            First, an example where the algebra is graded::
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                 sage: (x, y) = (S[2], S[3])
@@ -103,6 +128,21 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 Traceback (most recent call last):
                 ...
                 ValueError: element is not homogeneous
+
+            Let us now test a filtered algebra (but remember that the
+            notion of homogeneity now depends on the choice of a
+            basis)::
+
+                sage: A = AlgebrasWithBasis(QQ).Filtered().example()
+                sage: x,y,z = A.algebra_generators()
+                sage: (x*y).homogeneous_degree()
+                2
+                sage: (y*x).homogeneous_degree()
+                Traceback (most recent call last):
+                ...
+                ValueError: element is not homogeneous
+                sage: A.one().homogeneous_degree()
+                0
 
             TESTS::
 
@@ -123,11 +163,18 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
         def maximal_degree(self):
             """
-            The maximum of the degrees of the homogeneous summands.
+            The maximum of the degrees of the homogeneous components
+            of ``self``.
+
+            This is also the smallest `i` such that ``self`` belongs
+            to `F_i`. Hence, it does not depend on the basis of the
+            parent of ``self``.
 
             .. SEEALSO:: :meth:`homogeneous_degree`
 
-            EXAMPLES::
+            EXAMPLES:
+
+            First, we test this on a graded algebra::
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                 sage: (x, y) = (S[2], S[3])
@@ -137,6 +184,23 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 6
                 sage: ((1 + x)^3).maximal_degree()
                 6
+
+            Let us now test a filtered algebra::
+
+                sage: A = AlgebrasWithBasis(QQ).Filtered().example()
+                sage: x,y,z = A.algebra_generators()
+                sage: (x*y).maximal_degree()
+                2
+                sage: (y*x).maximal_degree()
+                2
+                sage: A.one().maximal_degree()
+                0
+                sage: A.zero().maximal_degree()
+                Traceback (most recent call last):
+                ...
+                ValueError: the zero element does not have a well-defined degree
+                sage: (A.one()+x).maximal_degree()
+                1
 
             TESTS::
 

@@ -98,8 +98,8 @@ class FilteredPartitionModule(CombinatorialFreeModule):
     # This could be a default implementation
     def degree_on_basis(self, t):
         """
-        The degree of the element determined by the partition ``t`` in
-        this filtered module.
+        The degree of the basis element indexed by the partition ``t``
+        in this filtered module.
 
         INPUT:
 
@@ -122,7 +122,7 @@ class FilteredPartitionModule(CombinatorialFreeModule):
 
     def _repr_(self):
         """
-        Print representation
+        Print representation of ``self``.
 
         EXAMPLES::
 

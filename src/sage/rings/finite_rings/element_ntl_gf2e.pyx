@@ -141,36 +141,22 @@ cdef class Cache_ntl_gf2e(SageObject):
     but includes many functions that were previously included in
     the parent (see :trac:`12062`).
     """
-    def __init__(self, parent, k, modulus):
+    def __init__(self, parent, Py_ssize_t k, modulus):
         """
         Initialization.
 
         TESTS::
 
-            sage: k.<a> = GF(2^8)
+            sage: k.<a> = GF(2^8, impl="ntl")
         """
         cdef GF2X_c ntl_m, ntl_tmp
         cdef GF2_c c
         cdef Py_ssize_t i
 
         late_import()
-        if isinstance(modulus,str):
-            if modulus == "minimal_weight":
-                GF2X_BuildSparseIrred(ntl_m, k)
-            elif modulus == "first_lexicographic":
-                GF2X_BuildIrred(ntl_m, k)
-            elif modulus == "random":
-                current_randstate().set_seed_ntl(False)
-                GF2X_BuildSparseIrred(ntl_tmp, k)
-                GF2X_BuildRandomIrred(ntl_m, ntl_tmp)
-            else:
-                raise ValueError("Modulus parameter not understood")
-        elif PY_TYPE_CHECK(modulus, list) or PY_TYPE_CHECK(modulus, tuple):
-            for i from 0 <= i < len(modulus):
-                GF2_conv_long(c, int(modulus[i]))
-                GF2X_SetCoeff(ntl_m, i, c)
-        else:
-            raise ValueError("Modulus parameter not understood")
+        for i in range(k + 1):
+            GF2_conv_long(c, modulus[i])
+            GF2X_SetCoeff(ntl_m, i, c)
         GF2EContext_construct_GF2X(&self.F, &ntl_m)
 
         self._parent = <FiniteField?>parent
@@ -178,8 +164,13 @@ cdef class Cache_ntl_gf2e(SageObject):
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._zero_element).x,0)
         self._one_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._one_element).x,1)
-        self._gen = self._new()
-        GF2E_from_str(&self._gen.x, "[0 1]")
+        if k > 1:
+            self._gen = self._new()
+            GF2E_from_str(&self._gen.x, "[0 1]")
+        elif modulus[0]:
+            self._gen = self._one_element
+        else:
+            self._gen = self._zero_element
 
     def __dealloc__(self):
         GF2EContext_destruct(&self.F)
@@ -289,9 +280,6 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             sage: K.<a> = GF(2^19, impl="ntl")
             sage: a^20
-            a^6 + a^3 + a^2 + a
-            sage: L.<b> = GF(2^19, impl="pari_mod")
-            sage: K(b^20)
             a^6 + a^3 + a^2 + a
             sage: M.<c> = GF(2^19, impl="pari_ffelt")
             sage: K(c^20)
@@ -524,7 +512,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(2^8) # indirect doctest
+            sage: k.<a> = GF(2^8, impl="ntl") # indirect doctest
         """
         if parent is None:
             return
@@ -1079,7 +1067,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(2^8)
+            sage: k.<a> = GF(2^8, impl="ntl")
             sage: b = a^3 + a
             sage: b.minpoly()
             x^4 + x^3 + x^2 + x + 1

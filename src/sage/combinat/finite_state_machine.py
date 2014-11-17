@@ -66,6 +66,8 @@ Manipulation
     :meth:`~FiniteStateMachine.delete_state` | Delete a state
     :meth:`~FiniteStateMachine.add_transition` | Add a transition
     :meth:`~FiniteStateMachine.add_transitions_from_function` | Add transitions
+    :attr:`~FiniteStateMachine.input_alphabet` | Input alphabet
+    :attr:`~FiniteStateMachine.output_alphabet` | Output alphabet
     :attr:`~FiniteStateMachine.on_duplicate_transition` | Hook for handling duplicate transitions
     :meth:`~FiniteStateMachine.add_from_transition_function` | Add transitions by a transition function
     :meth:`~FiniteStateMachine.delete_transition` | Delete a transition
@@ -285,7 +287,7 @@ Anyhow, we got the following finite state machine::
     sage: fsm
     Finite state machine with 2 states
 
-We can also obtain the underlying directed graph by
+We can also obtain the underlying :class:`directed graph <DiGraph>` by
 
 ::
 
@@ -2677,11 +2679,19 @@ class FiniteStateMachine(SageObject):
 
     #.  The input-data can be an other instance of a finite state machine::
 
-            sage: FiniteStateMachine(FiniteStateMachine([]))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: F = FiniteStateMachine()
+            sage: G = Transducer(F)
+            sage: G == F
+            True
 
+        The other parameters cannot be specified in that case. If you
+        want to change these, use the attributes
+        :attr:`FSMState.is_initial`, :attr:`FSMState.is_final`,
+        :attr:`input_alphabet`, :attr:`output_alphabet`,
+        :attr:`on_duplicate_transition` and methods
+        :meth:`.determine_alphabets`,
+        :meth:`.construct_final_word_out` on the new machine,
+        respectively.
 
     The following examples demonstrate the use of ``on_duplicate_transition``::
 
@@ -2773,14 +2783,96 @@ class FiniteStateMachine(SageObject):
         sage: FiniteStateMachine([t1, t2, t3, t4])
         Finite state machine with 4 states
 
+    We test that no input parameter is allowed when creating a finite
+    state machine from an existing instance::
+
+        sage: F = FiniteStateMachine()
+        sage: FiniteStateMachine(F, initial_states=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: initial_states cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, final_states=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: final_states cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, input_alphabet=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: input_alphabet cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, output_alphabet=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: output_alphabet cannot be specified when
+        copying another finite state machine.
+        sage: from sage.combinat.finite_state_machine import (
+        ....:     duplicate_transition_add_input)
+        sage: FiniteStateMachine(F,
+        ....:     on_duplicate_transition=duplicate_transition_add_input)
+        Traceback (most recent call last):
+        ...
+        ValueError: on_duplicate_transition cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, determine_alphabets=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: determine_alphabets cannot be specified when
+        copying another finite state machine.
+        sage: FiniteStateMachine(F, with_final_word_out=[1])
+        Traceback (most recent call last):
+        ...
+        ValueError: with_final_word_out cannot be specified when
+        copying another finite state machine.
+
     .. automethod:: __call__
     """
 
     on_duplicate_transition = duplicate_transition_ignore
     """
-    Which function to call when a duplicate transition is inserted. See
-    the documentation of the parameter ``on_duplicate_transition`` of
-    the class :class:`FiniteStateMachine` for details.
+    Which function to call when a duplicate transition is inserted.
+
+    It can be set by the parameter ``on_duplicate_transition`` when
+    initializing a finite state machine, see
+    :class:`FiniteStateMachine`.
+
+    .. SEEALSO::
+
+        :class:`FiniteStateMachine`, :meth:`is_Markov_chain`,
+        :meth:`markov_chain_simplification`
+    """
+
+    input_alphabet = None
+    """
+    A list of letters representing the input alphabet of the finite
+    state machine.
+
+    It can be set by the parameter ``input_alphabet`` when initializing
+    a finite state machine, see :class:`FiniteStateMachine`.
+
+    It can also be set by the method :meth:`determine_alphabets`.
+
+    .. SEEALSO::
+
+        :class:`FiniteStateMachine`, :meth:`determine_alphabets`,
+        :attr:`output_alphabet`
+    """
+
+    output_alphabet = None
+    """
+    A list of letters representing the output alphabet of the finite
+    state machine.
+
+    It can be set by the parameter ``output_alphabet`` when initializing
+    a finite state machine, see :class:`FiniteStateMachine`.
+
+    It can also be set by the method :meth:`determine_alphabets`.
+
+    .. SEEALSO::
+
+        :class:`FiniteStateMachine`, :meth:`determine_alphabets`,
+        :attr:`input_alphabet`
     """
 
     #*************************************************************************
@@ -2810,6 +2902,42 @@ class FiniteStateMachine(SageObject):
         if store_states_dict:
             self._states_dict_ = {}
 
+        self._allow_composition_ = True
+
+        if is_FiniteStateMachine(data):
+            if initial_states is not None:
+                raise ValueError(
+                    "initial_states cannot be specified when copying "
+                    "another finite state machine.")
+            if final_states is not None:
+                raise ValueError(
+                    "final_states cannot be specified when copying "
+                    "another finite state machine.")
+            if input_alphabet is not None:
+                raise ValueError(
+                    "input_alphabet cannot be specified when copying "
+                    "another finite state machine.")
+            if output_alphabet is not None:
+                raise ValueError(
+                    "output_alphabet cannot be specified when copying "
+                    "another finite state machine.")
+            if on_duplicate_transition is not None:
+                raise ValueError(
+                    "on_duplicate_transition cannot be specified when "
+                    "copying another finite state machine.")
+            if determine_alphabets is not None:
+                raise ValueError(
+                    "determine_alphabets cannot be specified when "
+                    "copying another finite state machine.")
+            if with_final_word_out is not None:
+                raise ValueError(
+                    "with_final_word_out cannot be specified when "
+                    "copying another finite state machine.")
+
+            self._copy_from_other_(data)
+            return
+
+
         if initial_states is not None:
             if not hasattr(initial_states, '__iter__'):
                 raise TypeError('Initial states must be iterable ' \
@@ -2838,8 +2966,6 @@ class FiniteStateMachine(SageObject):
 
         if data is None:
             pass
-        elif is_FiniteStateMachine(data):
-            raise NotImplementedError
         elif hasattr(data, 'iteritems'):
             # data is a dict (or something similar),
             # format: key = from_state, value = iterator of transitions
@@ -2896,8 +3022,6 @@ class FiniteStateMachine(SageObject):
 
         if with_final_word_out is not None:
             self.construct_final_word_out(with_final_word_out)
-
-        self._allow_composition_ = True
 
 
     #*************************************************************************
@@ -2975,9 +3099,7 @@ class FiniteStateMachine(SageObject):
             new = self.__class__()
         else:
             new = new_class()
-        new.input_alphabet = deepcopy(self.input_alphabet, memo)
-        new.output_alphabet = deepcopy(self.output_alphabet, memo)
-        new.on_duplicate_transition = self.on_duplicate_transition
+        new._copy_from_other_(self, memo=memo, empty=True)
         return new
 
 
@@ -2999,26 +3121,8 @@ class FiniteStateMachine(SageObject):
             sage: deepcopy(F)
             Finite state machine with 1 states
         """
-        relabel = hasattr(self, '_deepcopy_relabel_')
-        new = self.empty_copy(memo=memo)
-        relabel_iter = itertools.count(0)
-        for state in self.iter_states():
-            if relabel:
-                if self._deepcopy_labels_ is None:
-                    state._deepcopy_relabel_ = next(relabel_iter)
-                elif hasattr(self._deepcopy_labels_, '__call__'):
-                    state._deepcopy_relabel_ = self._deepcopy_labels_(state.label())
-                elif hasattr(self._deepcopy_labels_, '__getitem__'):
-                    state._deepcopy_relabel_ = self._deepcopy_labels_[state.label()]
-                else:
-                    raise TypeError("labels must be None, a callable "
-                                    "or a dictionary.")
-            s = deepcopy(state, memo)
-            if relabel:
-                del state._deepcopy_relabel_
-            new.add_state(s)
-        for transition in self.iter_transitions():
-            new.add_transition(deepcopy(transition, memo))
+        new = self.__class__()
+        new._copy_from_other_(self)
         return new
 
 
@@ -3054,6 +3158,57 @@ class FiniteStateMachine(SageObject):
 
         """
         return deepcopy(self, memo)
+
+    def _copy_from_other_(self, other, memo=None, empty=False):
+        """
+        Copy all data from other to self, to be used in the constructor.
+
+        INPUT:
+
+        - ``other`` -- a :class:`FiniteStateMachine`.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLE::
+
+            sage: A = Automaton([(0, 0, 0)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: B = Automaton()
+            sage: B._copy_from_other_(A)
+            sage: A == B
+            True
+        """
+        if memo is None:
+            memo = {}
+        self.input_alphabet = deepcopy(other.input_alphabet, memo)
+        self.output_alphabet = deepcopy(other.output_alphabet, memo)
+        self.on_duplicate_transition = other.on_duplicate_transition
+
+        if not empty:
+            relabel = hasattr(other, '_deepcopy_relabel_')
+            relabel_iter = itertools.count(0)
+            for state in other.iter_states():
+                if relabel:
+                    if other._deepcopy_labels_ is None:
+                        state._deepcopy_relabel_ = next(relabel_iter)
+                    elif hasattr(other._deepcopy_labels_, '__call__'):
+                        state._deepcopy_relabel_ = \
+                            other._deepcopy_labels_(state.label())
+                    elif hasattr(other._deepcopy_labels_, '__getitem__'):
+                        state._deepcopy_relabel_ = \
+                            other._deepcopy_labels_[state.label()]
+                    else:
+                        raise TypeError("labels must be None, a callable "
+                                        "or a dictionary.")
+                s = deepcopy(state, memo)
+                if relabel:
+                    del state._deepcopy_relabel_
+                self.add_state(s)
+            for transition in other.iter_transitions():
+                self.add_transition(deepcopy(transition, memo))
 
 
     def relabeled(self, memo=None, labels=None):
@@ -3465,9 +3620,9 @@ class FiniteStateMachine(SageObject):
         if is_FiniteStateMachine(args[0]):
             return self.composition(*args, **kwargs)
         if hasattr(args[0], '__iter__'):
-            if not kwargs.has_key('full_output'):
+            if not 'full_output' in kwargs:
                 kwargs['full_output'] = False
-            if not kwargs.has_key('list_of_outputs'):
+            if not 'list_of_outputs' in kwargs:
                 kwargs['list_of_outputs'] = False
             return self.process(*args, **kwargs)
         raise TypeError("Do not know what to do with that arguments.")
@@ -8253,7 +8408,7 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        A graph.
+        A :class:`directed graph <DiGraph>`.
 
         EXAMPLES::
 
@@ -8270,6 +8425,8 @@ class FiniteStateMachine(SageObject):
             Transition from 'A' to 'A': 0|1
             sage: T.graph()
             Looped digraph on 1 vertex
+
+        .. SEEALSO:: :class:`DiGraph`
         """
         if edge_labels == 'words_in_out':
             label_fct = lambda t:t._in_out_label_()
@@ -11903,13 +12060,13 @@ class FSMProcessIterator(SageObject, collections.Iterator):
              (True, 3, 'i:)'), (True, 3, 'l:)'), (True, 3, 'n:)')]
 
         """
-        if self._current_.has_key(tape_cache.position):
+        if tape_cache.position in self._current_:
             states = self._current_[tape_cache.position]
         else:
             states = self._current_[tape_cache.position] = {}
             heapq.heappush(self._current_positions_, tape_cache.position)
 
-        if states.has_key(state):
+        if state in states:
             existing_tape_cache, existing_outputs = states[state]
             existing_outputs.extend(outputs)
             existing_outputs = [t for t, _ in

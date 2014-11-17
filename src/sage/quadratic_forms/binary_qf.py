@@ -639,6 +639,89 @@ class BinaryQF(SageObject):
         b1 = self(v + w) - a1 - c1
         return BinaryQF([a1, b1, c1])
 
+    def small_prime_value(self, Bmax=1000):
+        r"""
+        Returns a prime represented by this (primitive positive definite) binary form.
+
+        INPUT:
+
+        - ``Bmax`` -- a positive bound on the representing integers.
+
+        OUTPUT:
+
+        A prime number represented by the form.
+
+        .. note::
+
+            This is a very elementary implementation which just substitutes
+            values until a prime is found.
+
+        EXAMPLES::
+
+            sage: [Q.small_prime_value() for Q in BinaryQF_reduced_representatives(-23, primitive_only=True)]
+            [23, 2, 2]
+            sage: [Q.small_prime_value() for Q in BinaryQF_reduced_representatives(-47, primitive_only=True)]
+            [47, 2, 2, 3, 3]
+        """
+        from sage.sets.all import Set
+        from sage.misc.all import srange
+        d = self.discriminant()
+        B = 10
+        while True:
+            llist = list(Set([self(x,y) for x in srange(-B,B) for y in srange(B)]))
+            llist = [l for l in llist if l.is_prime()]
+            llist.sort()
+            if llist:
+                return llist[0]
+            if B >= Bmax:
+                raise ValueError("Unable to find a prime value of %s" % self)
+            B += 10
+
+    def solve_integer(self, n):
+        r"""
+        Solve `Q(x,y) = n` in integers `x` and `y` where `Q` is this
+        quadratic form.
+
+        INPUT:
+
+        - ``Q`` (BinaryQF) -- a positive definite primitive integral
+          binary quadratic form
+
+        - ``n`` (int) -- a positive integer
+
+        OUTPUT:
+
+        A tuple (x,y) of integers satisfying `Q(x,y) = n` or ``None``
+        if no such `x` and `y` exist.
+
+        EXAMPLES::
+
+            sage: Qs = BinaryQF_reduced_representatives(-23,primitive_only=True)
+            sage: Qs
+            [x^2 + x*y + 6*y^2, 2*x^2 - x*y + 3*y^2, 2*x^2 + x*y + 3*y^2]
+            sage: [Q.solve_integer(3) for Q in Qs]
+            [None, (0, 1), (0, 1)]
+            sage: [Q.solve_integer(5) for Q in Qs]
+            [None, None, None]
+            sage: [Q.solve_integer(6) for Q in Qs]
+            [(0, 1), (-1, 1), (1, 1)]
+        """
+        a, b, c = self
+        d = self.discriminant()
+        if d >= 0 or a <= 0:
+            raise ValueError("%s is not positive definite" % self)
+        ad = -d
+        an4 = 4*a*n
+        a2 = 2*a
+        from sage.misc.all import srange
+        for y in srange(0, 1+an4//ad):
+            z2 = an4 + d*y**2
+            for z in z2.sqrt(extend=False, all=True):
+                if a2.divides(z-b*y):
+                    x = (z-b*y)//a2
+                    return (x,y)
+        return None
+
 def BinaryQF_reduced_representatives(D, primitive_only=False):
     r"""
     Returns a list of inequivalent reduced representatives for the

@@ -1102,7 +1102,7 @@ cdef class CRElement(pAdicTemplateElement):
         rprec = aprec - self.ordp
         return ccmp(self.unit, right.unit, rprec, rprec < self.relprec, rprec < right.relprec, self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         Comparison of units, used in equality testing.
 
@@ -1726,9 +1726,9 @@ cdef class pAdicConvert_CR_ZZ(RingMap):
             sage: f = Qp(5).coerce_map_from(ZZ).section(); type(f)
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicConvert_CR_ZZ'>
             sage: f.category()
-            Category of hom sets in Category of sets with partial maps
+            Category of homsets of sets with partial maps
             sage: Zp(5).coerce_map_from(ZZ).section().category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.is_field() or R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
@@ -1937,7 +1937,7 @@ cdef class pAdicConvert_CR_QQ(RingMap):
             sage: f = Qp(5).coerce_map_from(QQ).section(); type(f)
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicConvert_CR_QQ'>
             sage: f.category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, QQ, SetsWithPartialMaps()))

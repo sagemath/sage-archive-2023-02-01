@@ -413,14 +413,31 @@ class ComplexField_class(field.Field):
             True
             sage: ComplexField(200).has_coerce_map_from(CDF)
             False
+            sage: ComplexField(53).has_coerce_map_from(complex)
+            True
+            sage: ComplexField(200).has_coerce_map_from(complex)
+            False
         """
         RR = self._real_field()
         if RR.has_coerce_map_from(S):
             return complex_number.RRtoCC(RR, self) * RR._internal_coerce_map_from(S)
-        if is_ComplexField(S) and S._prec >= self._prec:
-            return self._generic_convert_map(S)
+        if is_ComplexField(S):
+            if self._prec <= S._prec:
+                return self._generic_convert_map(S)
+            else:
+                return None
+        if S is complex:
+            if self._prec <= 53:
+                return self._generic_convert_map(S)
+            else:
+                return None
         late_import()
-        if S in [AA, QQbar, CLF, RLF] or (S == CDF and self._prec <= 53):
+        if S is CDF:
+            if self._prec <= 53:
+                return self._generic_convert_map(S)
+            else:
+                return None
+        if S in [AA, QQbar, CLF, RLF]:
             return self._generic_convert_map(S)
         return self._coerce_map_via([CLF], S)
 

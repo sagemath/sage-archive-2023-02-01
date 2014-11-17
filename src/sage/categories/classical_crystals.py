@@ -85,6 +85,23 @@ class ClassicalCrystals(Category_singleton):
         """
         return Crystals().example(n)
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of classical crystals defines no
+        additional structure: it only states that its objects are
+        `U_q(\mathfrak{g})`-crystals, where `\mathfrak{g}` is of
+        finite type.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: ClassicalCrystals().additional_structure()
+        """
+        return None
+
 
     class ParentMethods:
 

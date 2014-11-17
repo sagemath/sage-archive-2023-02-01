@@ -474,7 +474,8 @@ def insertion_tableau(skp, perm, evaluation, tableau, length):
         tableau[-(k+1)] += [0]* ( skp[0][k] - partc[k] - len(tableau[-(k+1)]))
 
     ## We construct a tableau from the southwest corner to the northeast one
-    tableau =  [[0]*(skp[0][k] - partc[k]) for k in reversed(range(len(tableau), len(skp[0])))] + tableau
+    tableau = [[0] * (skp[0][k] - partc[k])
+               for k in reversed(range(len(tableau), len(skp[0])))] + tableau
 
     tableau = SkewTableaux().from_expr([skp[1], tableau]).conjugate()
     tableau = tableau.to_expr()[1]
@@ -625,7 +626,8 @@ def spin_rec(t, nexts, current, part, weight, length):
     #compute the contribution of the ribbons added at
     #the current node
     for perms in [current[i][1] for i in range(len(current))]:
-        perm =  [partp[i] + len(partp)-(i+1)-perms[i] for i in range(len(partp))]
+        perm = [partp[i] + len(partp) - (i + 1) - perms[i]
+                for i in range(len(partp))]
         perm.reverse()
         perm = Word(perm).standard_permutation()
         tmp.append( (weight[-1]*(length-1)-perm.number_of_inversions()) )

@@ -55,6 +55,7 @@ Elliptic curves over number fields
    sage/schemes/elliptic_curves/ell_torsion
    sage/schemes/elliptic_curves/gal_reps
    sage/schemes/elliptic_curves/gal_reps_number_field
+   sage/schemes/elliptic_curves/isogeny_class
 
    sage/schemes/elliptic_curves/sha_tate
    sage/schemes/elliptic_curves/cm

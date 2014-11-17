@@ -16,7 +16,6 @@ called.
     :widths: 30, 70
     :delim: |
 
-    :func:`simple_wilson_construction` | Return an `OA(k,rm + \sum u_i)` from Wilson construction.
     :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_3` | Return an `OA(k,nm+i)`.
     :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_4` | Return a `OA(k,nm+rs)`.
     :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_5` | Return an `OA(k,nm+r+s+t)`.
@@ -33,68 +32,6 @@ Functions
 """
 
 from orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
-
-def simple_wilson_construction(k,r,m,u,explain_construction=False):
-    r"""
-    Return an `OA(k,rm + \sum u_i)` from Wilson construction.
-
-    INPUT:
-
-    - ``k,r,m`` -- integers
-
-    - ``u`` -- list of positive integers
-
-    - ``explain_construction`` (boolean) -- return a string describing
-      the construction.
-
-    .. TODO::
-
-        As soon as wilson construction accepts an empty master design we should
-        remove this intermediate functions.
-
-    .. SEEALSO::
-
-        :func:`~sage.combinat.designs.orthogonal_arrays.wilson_construction`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import simple_wilson_construction
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-
-        sage: OA = simple_wilson_construction(6,7,12,())
-        sage: is_orthogonal_array(OA,6,84)
-        True
-
-        sage: OA = simple_wilson_construction(4,5,7,(3,))
-        sage: is_orthogonal_array(OA,4,38)
-        True
-
-        sage: OA = simple_wilson_construction(5,7,7,(4,5))
-        sage: is_orthogonal_array(OA,5,58)
-        True
-
-        sage: print designs.orthogonal_arrays.explain_construction(9,115)
-        Wilson's construction n=13.8+11 with master design OA(9+1,13)
-    """
-    from sage.combinat.designs.orthogonal_arrays import OA_relabel
-    n = r*m + sum(u)
-    n_trunc = len(u)
-
-    if explain_construction:
-        from string import join
-        if u:
-            return (("Wilson's construction n={}.{}+{} with master design OA({}+{},{})")
-                    .format(r,m,join(map(str,u),"+"),k,len(u),r))
-        else:
-            return ("Product of orthogonal arrays n={}.{}").format(r,m)
-
-    OA = orthogonal_array(k+n_trunc,r,check=False)
-    matrix = [range(r)]*k
-    for uu in u:
-        matrix.append(range(uu)+[None]*(r-uu))
-    OA = OA_relabel(OA,k+n_trunc,r,matrix=matrix)
-
-    return wilson_construction(OA,k,r,m,n_trunc,u,False)
 
 def construction_3_3(k,n,m,i,explain_construction=False):
     r"""
@@ -151,7 +88,7 @@ def construction_3_3(k,n,m,i,explain_construction=False):
     # Truncated version
     OA = [B[:k]+[0 if x == 0 else None for x in B[k:]] for B in OA]
 
-    OA = wilson_construction(OA,k,n,m,i,[1]*i,check=False)[:-i]
+    OA = wilson_construction(OA,k,n,m,[1]*i,check=False)[:-i]
     matrix = [range(m)+range(n*m,n*m+i)]*k
     OA.extend(OA_relabel(orthogonal_array(k,m+i),k,m+i,matrix=matrix))
     assert is_orthogonal_array(OA,k,n*m+i)
@@ -235,7 +172,7 @@ def construction_3_4(k,n,m,r,s,explain_construction=False):
         matrix[-1][x] = i
 
     OA = OA_relabel(master_design,k+r+1,n, matrix=matrix)
-    OA = wilson_construction(OA,k,n,m,r+1,[1]*r+[s],check=False)
+    OA = wilson_construction(OA,k,n,m,[1]*r+[s],check=False)
     return OA
 
 def construction_3_5(k,n,m,r,s,t,explain_construction=False):
@@ -330,7 +267,7 @@ def construction_3_5(k,n,m,r,s,t,explain_construction=False):
         r3[x] = i
 
     OA = OA_relabel(master_design, k+3,q, matrix=[range(q)]*k+[r1,r2,r3])
-    OA = wilson_construction(OA,k,q,m,3,[r,s,t], check=False)
+    OA = wilson_construction(OA,k,q,m,[r,s,t], check=False)
     return OA
 
 def construction_3_6(k,n,m,i,explain_construction=False):
@@ -384,7 +321,7 @@ def construction_3_6(k,n,m,i,explain_construction=False):
     OA = OA_and_oval(n)
     OA = [B[:k+i] for B in OA]
     OA = [B[:k] + [x if x==0 else None for x in B[k:]] for B in OA]
-    OA = wilson_construction(OA,k,n,m,i,[1]*i)
+    OA = wilson_construction(OA,k,n,m,[1]*i)
     assert is_orthogonal_array(OA,k,n*m+i)
     return OA
 
@@ -799,7 +736,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
                 R[-4] = None
         sizes.insert(0,d)
 
-    return wilson_construction(OA,k,n,m,len(sizes),sizes, check=False)
+    return wilson_construction(OA,k,n,m,sizes, check=False)
 
 def thwart_lemma_4_1(k,n,m,explain_construction=False):
     r"""
@@ -927,7 +864,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
             if B[k+i] >= n-2:
                 B[k+i] = None
 
-    return wilson_construction(OA,k,n,m,4,[n-2,]*4,check=False)
+    return wilson_construction(OA,k,n,m,[n-2,]*4,check=False)
 
 def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
     r"""

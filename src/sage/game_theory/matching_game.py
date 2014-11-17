@@ -475,8 +475,8 @@ class MatchingGame(SageObject):
             False
         """
         return (isinstance(other, MatchingGame)
-                and set(self._suitors) == set(other._suitors)
-                and set(self._reviewers) == set(other._reviewers)
+                and self._suitors == other._suitors
+                and self._reviewers == other._reviewers
                 and all(r1.pref == r2.pref for r1, r2 in
                     zip(self._reviewers, other._reviewers))
                 and all(s1.pref == s2.pref for s1, s2 in

@@ -452,18 +452,33 @@ class MatchingGame(SageObject):
             sage: g == g2
             True
 
+        Here the two sets of suitors have different preferences::
+
+            sage: suit1 = {0: (3, 4), 1: (3, 4)}
+            sage: revr1 = {3: (1, 0), 4: (1, 0)}
+            sage: g1 = MatchingGame([suit1, revr1])
+            sage: suit2 = {0: (4, 3), 1: (3, 4)}
+            sage: revr2 = {3: (1, 0), 4: (1, 0)}
+            sage: g2 = MatchingGame([suit2, revr2])
+            sage: g == g2
+            False
+
+        Here the two sets of reviewers have different preferences::
+
             sage: suit1 = {0: (3, 4), 1: (3, 4)}
             sage: revr1 = {3: (0, 1), 4: (1, 0)}
             sage: g1 = MatchingGame([suit1, revr1])
-            sage: suit2 = {0: (4, 3), 1: (3, 4)}
-            sage: revr1 = {3: (1, 0), 4: (1, 0)}
-            sage: g2 = MatchingGame([suit, revr])
+            sage: suit2 = {0: (3, 4), 1: (3, 4)}
+            sage: revr2 = {3: (1, 0), 4: (0, 1)}
+            sage: g2 = MatchingGame([suit2, revr2])
             sage: g == g2
             False
         """
         return (isinstance(other, MatchingGame)
                 and set(self._suitors) == set(other._suitors)
-                and set(self._reviewers) == set(other._reviewers))
+                and set(self._reviewers) == set(other._reviewers)
+                and all(reviewer.pref == other._reviewers[j].pref for j, reviewer in enumerate(self._reviewers))
+                and all(suitor.pref == other._suitors[j].pref for j, suitor in enumerate(self._suitors)))
 
     def __hash__(self):
         """
@@ -988,21 +1003,8 @@ class Player(object):
             sage: q = Player(10)
             sage: p == q
             True
-
-        If players have different preferences then they are not considered to
-        satisfy equality::
-
-            sage: p.pref = (1, 2)
-            sage: q.pref = (2, 1)
-            sage: p == q
-            False
-
-            sage: p.pref = q.pref
-            sage: q.pref = (2, 1)
-            sage: p == q
-            True
         """
         if isinstance(other, Player):
-            return self._name == other._name and self.pref == other.pref
+            return self._name == other._name
         return self._name == other
 

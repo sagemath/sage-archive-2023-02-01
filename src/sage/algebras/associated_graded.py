@@ -154,7 +154,7 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
         self._A = A
 
         base_ring = A.base_ring()
-        self.base_one = base_ring.one()
+        base_one = base_ring.one()
 
         if category is None:
             category = A.category().Graded()
@@ -167,7 +167,7 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
                                          category=category, **opts)
 
         # Setup the conversion back
-        phi = self.module_morphism(diagonal=lambda x: self.base_one, codomain=A)
+        phi = self.module_morphism(diagonal=lambda x: base_one, codomain=A)
         self._A.register_conversion(phi)
 
     def _repr_(self):
@@ -245,7 +245,8 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
             sage: grA.to_graded_conversion()(p)
             bar(U['x']^2*U['y']^2*U['z']^3) + bar(U['x']) + 2*bar(1)
         """
-        return self._A.module_morphism(diagonal=lambda x: self.base_one,
+        base_one = self.base_ring().one()
+        return self._A.module_morphism(diagonal=lambda x: base_one,
                                        codomain=self)
 
     def from_graded_conversion(self):
@@ -270,7 +271,8 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
             sage: grA.from_graded_conversion()(q) == p
             True
         """
-        return self.module_morphism(diagonal=lambda x: self.base_one,
+        base_one = self.base_ring().one()
+        return self.module_morphism(diagonal=lambda x: base_one,
                                     codomain=self._A)
 
     def projection(self, i):
@@ -300,8 +302,9 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
             0
         """
         base_zero = self.base_ring().zero()
+        base_one = self.base_ring().one()
         return self._A.module_morphism(diagonal=lambda x:
-                                                (self.base_one if
+                                                (base_one if
                                                  self._A.degree_on_basis(x) == i
                                                  else base_zero),
                                        codomain=self)

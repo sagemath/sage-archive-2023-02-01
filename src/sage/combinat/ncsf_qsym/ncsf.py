@@ -1110,7 +1110,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     L[3, 6]
                     sage: L(S[1,3].omega_involution())
                     L[3, 1]
-                    sage: L((S[9,1] - S[8,2] + 2*S[6,4] - 3*S[3] + 4*S[[]]).omega_involution())
+                    sage: L((S[9,1] - S[8,2] + 2*S[6,4] - 3*S[3] + 4*S[[]]).omega_involution()) # long time
                     4*L[] + L[1, 9] - L[2, 8] - 3*L[3] + 2*L[4, 6]
                     sage: L((S[3,3] - 2*S[2]).omega_involution())
                     -2*L[2] + L[3, 3]

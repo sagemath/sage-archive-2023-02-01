@@ -2580,7 +2580,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 True
                 sage: M(QS(M.an_element())) == M.an_element()
                 True
-                sage: TestSuite(QS).run()
+                sage: TestSuite(QS).run() # long time
             """
             CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
                                              prefix='QS', bracket=False,
@@ -3408,7 +3408,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             TESTS::
 
                 sage: M = QuasiSymmetricFunctions(QQ).M()
-                sage: all( all( M(HWL[I] * HWL[J]) == M(HWL[I]) * M(HWL[J])
+                sage: all( all( M(HWL[I] * HWL[J]) == M(HWL[I]) * M(HWL[J])  # long time
                 ....:           for I in Compositions(3) )
                 ....:      for J in Compositions(3) )
                 True

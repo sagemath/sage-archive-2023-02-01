@@ -471,12 +471,17 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     ################################################
     def echelonize(self, height_guess=None, proof=True, **kwds):
         """
+        Transform the matrix ``self`` into reduced row echelon form
+        in place.
+
         INPUT:
             height_guess, proof, **kwds -- all passed to the multimodular algorithm; ignored
                                            by the p-adic algorithm.
 
         OUTPUT:
-            matrix -- the reduced row echelon for of self.
+
+        Nothing. The matrix ``self`` is transformed into reduced row
+        echelon form in place.
 
         ALGORITHM: a multimodular algorithm.
 

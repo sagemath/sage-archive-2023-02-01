@@ -1364,19 +1364,21 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     def echelonize(self, algorithm='default',
                    height_guess=None, proof=None, **kwds):
         """
+        Transform the matrix ``self`` into reduced row echelon form
+        in place.
+
         INPUT:
 
+        -  ``algorithm``:
 
-        -  ``algorithm``
+          - ``'default'`` (default): use heuristic choice
 
-          - 'default' (default): use heuristic choice
+          - ``'padic'``: an algorithm based on the IML p-adic solver.
 
-          - 'padic': an algorithm based on the IML p-adic solver.
-
-          - 'multimodular': uses a multimodular algorithm the uses
+          - ``'multimodular'``: uses a multimodular algorithm the uses
             linbox modulo many primes.
 
-          -  'classical': just clear each column using Gauss elimination
+          - ``'classical'``: just clear each column using Gauss elimination
 
         -  ``height_guess, **kwds`` - all passed to the
            multimodular algorithm; ignored by the p-adic algorithm.
@@ -1384,14 +1386,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         -  ``proof`` - bool or None (default: None, see
            proof.linear_algebra or sage.structure.proof). Passed to the
            multimodular algorithm. Note that the Sage global default is
-           proof=True.
-
+           ``proof=True``.
 
         OUTPUT:
 
-
-        -  ``matrix`` - the reduced row echelon for of self.
-
+        Nothing. The matrix ``self`` is transformed into reduced row
+        echelon form in place.
 
         EXAMPLES::
 
@@ -1414,6 +1414,32 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [      0       1       0  -5/157]
             [      0       0       1 238/157]
             [      0       0       0       0]
+
+        TESTS:
+
+        Echelonizing a matrix in place throws away the cache of
+        the old matrix (:trac:`14506`)::
+
+            sage: a = Matrix(QQ, [[1,2],[3,4]])
+            sage: a.det(); a._clear_denom()
+            -2
+            (
+            [1 2]
+            [3 4], 1
+            )
+            sage: a.echelonize(algorithm="padic")
+            sage: sorted(a._cache.items())
+            [('in_echelon_form', True), ('pivots', (0, 1))]
+            sage: a = Matrix(QQ, [[1,3],[3,4]])
+            sage: a.det(); a._clear_denom()
+            -5
+            (
+            [1 3]
+            [3 4], 1
+            )
+            sage: a.echelonize(algorithm="multimodular")
+            sage: sorted(a._cache.items())
+            [('in_echelon_form', True), ('pivots', (0, 1))]
         """
 
         x = self.fetch('in_echelon_form')
@@ -1580,6 +1606,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         t = verbose('Computing echelonization of %s x %s matrix over QQ using p-adic nullspace algorithm.'%
                     (self.nrows(), self.ncols()))
         A, _ = self._clear_denom()
+        self._clear_cache()
         t = verbose('  Got integral matrix', t)
         pivots, nonpivots, X, d = A._rational_echelon_via_solve()
         t = verbose('  Computed ZZ-echelon using p-adic algorithm.', t)
@@ -1617,6 +1644,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     def _echelonize_multimodular(self, height_guess=None, proof=None, **kwds):
         cdef Matrix_rational_dense E
         E = self._echelon_form_multimodular(height_guess, proof=proof, **kwds)
+        self._clear_cache()
         cdef Py_ssize_t i, j
         cdef mpq_t *row0, *row1
         for i from 0 <= i < self._nrows:
@@ -1628,8 +1656,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def _echelon_form_multimodular(self, height_guess=None, proof=None):
         """
-        Returns reduced row-echelon form using a multi-modular algorithm.
-        Does not change self.
+        Return reduced row-echelon form using a multi-modular algorithm.
+        This does not change ``self``.
 
         REFERENCE:
 

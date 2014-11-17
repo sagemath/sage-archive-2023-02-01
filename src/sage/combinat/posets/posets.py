@@ -2659,6 +2659,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Convert a poset `P` to meet-semilattice and use it like
         ``MeetSemilattice(P).join_matrix()``.
         """
+        from sage.misc.superseded import deprecation
         deprecation(17216, "Function moved from posets to lattices.")
         return self._hasse_diagram.meet_matrix()
 
@@ -2689,6 +2690,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Convert a poset `P` to join-semilattice and use it like
         ``JoinSemilattice(P).join_matrix()``.
         """
+        from sage.misc.superseded import deprecation
         deprecation(17216, "Function moved from posets to lattices.")
         return self._hasse_diagram.join_matrix()
 

@@ -14,20 +14,10 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc_c import prod
 from copy import copy
 
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
-from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
-from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
-from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
-from sage.rings.all import ZZ
-from sage.rings.infinity import infinity
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.family import Family
-from sage.sets.positive_integers import PositiveIntegers
-from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.free_module import CombinatorialFreeModule
 
 class AssociatedGradedAlgebra(CombinatorialFreeModule):
@@ -35,9 +25,9 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     The associated graded algebra `\operatorname{gr} A`
     of a filtered algebra with basis `A`.
 
-    Let `A` be a filtered algebra with basis over a commutative
-    ring `R`. Let `(F_i)_{i \in I}` be the filtration of `A`, with
-    `I` being a totally ordered set. Define
+    Let `A` be a filtered algebra over a commutative ring `R`.
+    Let `(F_i)_{i \in I}` be the filtration of `A`, with `I` being
+    a totally ordered set. Define
 
     .. MATH::
 
@@ -67,7 +57,8 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     *graded algebra*) of `A` is the graded algebra
     `\operatorname{gr} A` (endowed with this multiplication).
 
-    In particular, let `(b_x)_{x \in X}` be the basis of `A`,
+    Now, assume that `A` is a filtered `R`-algebra with basis.
+    Let `(b_x)_{x \in X}` be the basis of `A`,
     and consider the partition `X = \bigsqcup_{i \in I} X_i` of
     the set `X`, which is part of the data of a filtered
     algebra with basis. We know (see
@@ -84,13 +75,20 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     identification of `G_k` with the `k`-th homogeneous component
     of `A` depends on the given basis.
 
+    The basis `(b_x)_{x \in X}` of `A` gives rise to a basis
+    of `\operatorname{gr} A`. This latter basis is still indexed
+    by the elements of `X`, and consists of the images of the
+    `b_x` under the `R`-module isomorphism from `A` to
+    `\operatorname{gr} A`. It makes `\operatorname{gr} A` into
+    a graded `R`-algebra with basis.
+
     In this class, the `R`-module isomorphism from `A` to
     `\operatorname{gr} A` is implemented as
     :meth:`to_graded_conversion` and also as the default
     conversion from `A` to `\operatorname{gr} A`. Its
     inverse map is implemented as
-    :meth:`from_graded_conversion`. The projection
-    `p_i : F_i \to G_i` is implemented as
+    :meth:`from_graded_conversion`.
+    The projection `p_i : F_i \to G_i` is implemented as
     :meth:`projection` ``(i)``.
 
     INPUT:
@@ -127,8 +125,8 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     .. TODO::
 
         The algebra ``A`` must currently be an instance of (a subclass of)
-        :class:`CombinatorialFreeModule`. This should work with any algebra
-        with a basis.
+        :class:`CombinatorialFreeModule`. This should work with any
+        filtered algebra with a basis.
 
     .. TODO::
 
@@ -202,8 +200,8 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
         Construct an element of ``self`` from ``x``.
 
         If ``self`` `= \operatorname{gr} A` for a filtered algebra
-        `A`, and if ``x`` is an element of `A`, then this returns
-        the image of `x` under the canonical `R`-module
+        `A` with basis, and if ``x`` is an element of `A`, then
+        this returns the image of `x` under the canonical `R`-module
         isomorphism `A \to \operatorname{gr} A`. (In this case,
         this is equivalent to calling
         ``self.to_graded_conversion()(x)``.)
@@ -301,8 +299,9 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
             sage: grA.projection(8)(p)
             0
         """
-        base_zero = self.base_ring().zero()
-        base_one = self.base_ring().one()
+        base_ring = self.base_ring()
+        base_zero = base_ring.zero()
+        base_one = base_ring.one()
         return self._A.module_morphism(diagonal=lambda x:
                                                 (base_one if
                                                  self._A.degree_on_basis(x) == i
@@ -347,7 +346,8 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
     @cached_method
     def one_basis(self):
         """
-        Return the basis index of the element `1`.
+        Return the basis index of the element `1` of
+        `\operatorname{gr} A`.
 
         This assumes that the unity `1` of `A` belongs to `F_0`.
 

@@ -2252,7 +2252,7 @@ class CategoryWithAxiom(Category):
             elif axiom == "Connected" and "graded " in result:
                 result = result.replace("graded ", "graded connected ", 1)
             elif axiom == "Connected" and "filtered " in result:
-                    result = result.replace("filtered ", "filtered connected ", 1)
+                result = result.replace("filtered ", "filtered connected ", 1)
             elif axiom == "Endset" and "homsets" in result:
                 # Without the space at the end to handle Homsets().Endset()
                 result = result.replace("homsets", "endsets", 1)

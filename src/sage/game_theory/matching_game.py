@@ -477,8 +477,10 @@ class MatchingGame(SageObject):
         return (isinstance(other, MatchingGame)
                 and set(self._suitors) == set(other._suitors)
                 and set(self._reviewers) == set(other._reviewers)
-                and all(reviewer.pref == other._reviewers[j].pref for j, reviewer in enumerate(self._reviewers))
-                and all(suitor.pref == other._suitors[j].pref for j, suitor in enumerate(self._suitors)))
+                and all(r1.pref == r2.pref for r1, r2 in
+                    zip(self._reviewers, other._reviewers))
+                and all(s1.pref == s2.pref for s1, s2 in
+                    zip(self._suitors, other._suitors)))
 
     def __hash__(self):
         """

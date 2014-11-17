@@ -1110,7 +1110,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     L[3, 6]
                     sage: L(S[1,3].omega_involution())
                     L[3, 1]
-                    sage: L((S[9,1] - S[8,2] + 2*S[6,4] - 3*S[3] + 4*S[[]]).omega_involution())
+                    sage: L((S[9,1] - S[8,2] + 2*S[6,4] - 3*S[3] + 4*S[[]]).omega_involution()) # long time
                     4*L[] + L[1, 9] - L[2, 8] - 3*L[3] + 2*L[4, 6]
                     sage: L((S[3,3] - 2*S[2]).omega_involution())
                     -2*L[2] + L[3, 3]
@@ -1665,6 +1665,91 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     m{{1}, {2, 3}} + m{{1, 2, 3}}
                 """
                 return self.parent().to_ncsym(self)
+
+            def expand(self, n, alphabet='x'):
+                r"""
+                Expand the noncommutative symmetric function into an
+                element of a free algebra in ``n`` indeterminates of
+                an alphabet, which by default is ``'x'``.
+
+                INPUT:
+
+                - ``n`` -- a nonnegative integer; the number of variables
+                  in the expansion
+                - ``alphabet`` -- (default: ``'x'``); the alphabet in
+                  which ``self`` is to be expanded
+
+                OUTPUT:
+
+                - An expansion of ``self`` into the ``n`` variables
+                  specified by ``alphabet``.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
+                    sage: S = NSym.S()
+                    sage: S[3].expand(3)
+                    x0^3 + x0^2*x1 + x0^2*x2 + x0*x1^2 + x0*x1*x2
+                     + x0*x2^2 + x1^3 + x1^2*x2 + x1*x2^2 + x2^3
+                    sage: L = NSym.L()
+                    sage: L[3].expand(3)
+                    x2*x1*x0
+                    sage: L[2].expand(3)
+                    x1*x0 + x2*x0 + x2*x1
+                    sage: L[3].expand(4)
+                    x2*x1*x0 + x3*x1*x0 + x3*x2*x0 + x3*x2*x1
+                    sage: Psi = NSym.Psi()
+                    sage: Psi[2, 1].expand(3)
+                    x0^3 + x0^2*x1 + x0^2*x2 + x0*x1*x0 + x0*x1^2 + x0*x1*x2
+                     + x0*x2*x0 + x0*x2*x1 + x0*x2^2 - x1*x0^2 - x1*x0*x1
+                     - x1*x0*x2 + x1^2*x0 + x1^3 + x1^2*x2 + x1*x2*x0
+                     + x1*x2*x1 + x1*x2^2 - x2*x0^2 - x2*x0*x1 - x2*x0*x2
+                     - x2*x1*x0 - x2*x1^2 - x2*x1*x2 + x2^2*x0 + x2^2*x1 + x2^3
+
+                One can use a different set of variables by adding an optional
+                argument ``alphabet=...``::
+
+                    sage: L[3].expand(4, alphabet="y")
+                    y2*y1*y0 + y3*y1*y0 + y3*y2*y0 + y3*y2*y1
+
+                TESTS::
+
+                    sage: (3*S([])).expand(2)
+                    3
+                    sage: L[4,2].expand(0)
+                    0
+                    sage: S([]).expand(0)
+                    1
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: S = NSym.S()
+                    sage: S[3].expand(3)
+                    x0^3 + x0^2*x1 + x0^2*x2 + x0*x1^2 + x0*x1*x2
+                     + x0*x2^2 + x1^3 + x1^2*x2 + x1*x2^2 + x2^3
+
+                .. TODO::
+
+                    So far this is only implemented on the elementary
+                    basis, and everything else goes through coercion.
+                    Maybe it is worth shortcutting some of the other
+                    bases?
+                """
+                NSym = self.parent().realization_of()
+                L = NSym.L()
+                from sage.algebras.free_algebra import FreeAlgebra
+                P = FreeAlgebra(NSym.base_ring(), n, alphabet)
+                x = P.gens()
+                def image_of_L_k(k, i):
+                    # Return the expansion of `L_k` (for `k` nonnegative
+                    # integer) in the first `i` of the variables.
+                    if k == 0:
+                        return P.one()
+                    if k > i:
+                        return P.zero()
+                    return x[i-1] * image_of_L_k(k - 1, i - 1) + image_of_L_k(k, i - 1)
+                def on_basis(comp):
+                    return P.prod((image_of_L_k(k, n) for k in comp))
+                return L._apply_module_morphism(L(self), on_basis, codomain=P)
+
 
     class MultiplicativeBases(Category_realization_of_parent):
         """

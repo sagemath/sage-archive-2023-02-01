@@ -11,9 +11,9 @@ REFERENCES:
    functions and the Solomon descent algebra*, J. Algebra **177** (1995),
    no. 3, 967-982. http://www.mat.uniroma1.it/people/malvenuto/Duality.pdf
 
-.. [Reiner2013] Victor Reiner, *Hopf algebras in combinatorics*,
-   17 January 2013.
-   http://www.math.umn.edu/~reiner/Classes/HopfComb.pdf
+.. [GriRei2014] Darij Grinberg, Victor Reiner,
+   *Hopf algebras in combinatorics*,
+   30 September 2014. :arxiv:`1409.8356v1`.
 
 .. [Mal1993] Claudia Malvenuto, *Produits et coproduits des fonctions
    quasi-symetriques et de l'algebre des descentes*,
@@ -147,7 +147,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     a bialgebra). These quasi-symmetric functions are actual polynomials
     then, not just power series.
 
-    Chapter 5 of [Reiner2013]_ and Section 11 of [HazWitt1]_ are devoted
+    Chapter 5 of [GriRei2014]_ and Section 11 of [HazWitt1]_ are devoted
     to quasi-symmetric functions, as are Malvenuto's thesis [Mal1993]_
     and part of Chapter 7 of [Sta-EC2]_.
 
@@ -411,13 +411,16 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: The relation with symmetric functions
 
-    The quasi-symmetric functions are a ring which contain the symmetric functions
-    as a subring.  The Monomial quasi-symmetric functions are related to the
-    monomial symmetric functions by
+    The quasi-symmetric functions are a ring which contain the
+    symmetric functions as a subring.  The Monomial quasi-symmetric
+    functions are related to the monomial symmetric functions by
 
     .. MATH::
 
-        m_\lambda = \sum_{\mathrm{sort}(I) = \lambda} M_I.
+        m_\lambda = \sum_{\operatorname{sort}(I) = \lambda} M_I
+
+    (where `\operatorname{sort}(I)` denotes the result of sorting
+    the entries of `I` in decreasing order).
 
     There are methods to test if an expression in the quasi-symmetric
     functions is a symmetric function and, if it is, send it to an
@@ -962,7 +965,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: F([]).internal_coproduct()
                     F[] # F[]
 
-                The implementations on the ``F`` and ``M`` bases play nicely
+                The implementations on the ``F`` and ``M`` bases agree
                 with each other::
 
                     sage: M = QuasiSymmetricFunctions(ZZ).M()
@@ -1352,6 +1355,174 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 dct = {I.complement(): coeff for (I, coeff) in F(self)}
                 return parent(F._from_dict(dct))
 
+            def dendriform_less(self, other):
+                r"""
+                Return the result of applying the dendriform smaller
+                operation to the two quasi-symmetric functions ``self``
+                and ``other``.
+
+                The dendriform smaller operation is a binary operation,
+                denoted by `\prec` and written infix, on the ring of
+                quasi-symmetric functions. It can be defined as a
+                restriction of a binary operation (denoted by `\prec`
+                and written infix as well) on the ring of formal power
+                series `R[[x_1, x_2, x_3, \ldots]]`, which is defined
+                as follows: If `m` and `n` are two monomials in
+                `x_1, x_2, x_3, \ldots`, then we let `m \prec n` be
+                the product `mn` if the smallest positive integer `i`
+                for which `x_i` occurs in `m` is smaller than the
+                smallest positive integer `j` for which `x_j` occurs
+                in `n` (this is understood to be false when `m = 1`,
+                and true when `m \neq 1` and `n = 1`), and we let
+                `m \prec n` be `0` otherwise. Having thus defined
+                `\prec` on monomials, we extend `\prec` to a binary
+                operation on `R[[x_1, x_2, x_3, \ldots]]` by requiring
+                it to be continuous (in both inputs) and `R`-bilinear.
+                It is easily seen that `QSym \prec QSym \subseteq
+                QSym`, so that `\prec` restricts to a binary operation
+                on `QSym`.
+
+                .. SEEALSO::
+
+                    :meth:`dendriform_leq`
+
+                INPUT:
+
+                - ``other`` -- a quasi-symmetric function over the
+                  same base ring as ``self``
+
+                OUTPUT:
+
+                The quasi-symmetric function ``self`` `\prec`
+                ``other``, written in the basis of ``self``.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(QQ)
+                    sage: M = QSym.M()
+                    sage: M[2, 1].dendriform_less(M[1, 2])
+                    2*M[2, 1, 1, 2] + M[2, 1, 2, 1] + M[2, 1, 3] + M[2, 2, 2]
+                    sage: F = QSym.F()
+                    sage: F[2, 1].dendriform_less(F[1, 2])
+                    F[1, 1, 2, 1, 1] + F[1, 1, 2, 2] + F[1, 1, 3, 1]
+                     + F[1, 2, 1, 2] + F[1, 2, 2, 1] + F[1, 2, 3]
+                     + F[2, 1, 1, 2] + F[2, 1, 2, 1] + F[2, 1, 3] + F[2, 2, 2]
+
+                The operation `\prec` can be used to recursively
+                construct the dual immaculate basis: For every positive
+                integer `m` and every composition `I`, the dual
+                immaculate function `\operatorname{dI}_{[m, I]}` of the
+                composition `[m, I]` (this composition is `I` with `m`
+                prepended to it) is `F_{[m]} \prec \operatorname{dI}_I`. ::
+
+                    sage: dI = QSym.dI()
+                    sage: dI(F[2]).dendriform_less(dI[1, 2])
+                    dI[2, 1, 2]
+
+                We check with the identity element::
+
+                    sage: M.one().dendriform_less(M[1,2])
+                    0
+                    sage: M[1,2].dendriform_less(M.one())
+                    M[1, 2]
+
+                The operation `\prec` is not symmetric, nor if
+                `a \prec b \neq 0`, then `b \prec a = 0` (as it would be
+                for a single monomial)::
+
+                    sage: M[1,2,1].dendriform_less(M[1,2])
+                    M[1, 1, 2, 1, 2] + 2*M[1, 1, 2, 2, 1] + M[1, 1, 2, 3]
+                     + M[1, 1, 4, 1] + 2*M[1, 2, 1, 1, 2] + M[1, 2, 1, 2, 1]
+                     + M[1, 2, 1, 3] + M[1, 2, 2, 2] + M[1, 3, 1, 2]
+                     + M[1, 3, 2, 1] + M[1, 3, 3]
+                    sage: M[1,2].dendriform_less(M[1,2,1])
+                    M[1, 1, 2, 1, 2] + 2*M[1, 1, 2, 2, 1] + M[1, 1, 2, 3]
+                     + M[1, 1, 4, 1] + M[1, 2, 1, 2, 1] + M[1, 3, 2, 1]
+                """
+                # Convert to the monomial basis, there do restricted
+                # shuffle product, then convert back to self.parent().
+                P = self.parent()
+                M = P.realization_of().M()
+                a = M(self)
+                b = M(other)
+                res = M.zero()
+                for I, I_coeff in a:
+                    if not I:
+                        continue
+                    i_head = I[0]
+                    I_tail = Composition(I[1:])
+                    for J, J_coeff in b:
+                        shufpro = I_tail.shuffle_product(J, overlap=True)
+                        res += J_coeff * M.sum_of_monomials(Composition([i_head] + list(K))
+                                                            for K in shufpro)
+                return P(res)
+
+            def dendriform_leq(self, other):
+                r"""
+                Return the result of applying the dendriform
+                smaller-or-equal operation to the two quasi-symmetric
+                functions ``self`` and ``other``.
+
+                The dendriform smaller-or-equal operation is a binary
+                operation, denoted by `\preceq` and written infix, on
+                the ring of quasi-symmetric functions. It can be
+                defined as a restriction of a binary operation
+                (denoted by `\preceq` and written infix as well) on
+                the ring of formal power series
+                `R[[x_1, x_2, x_3, \ldots]]`, which is defined as
+                follows: If `m` and `n` are two monomials in
+                `x_1, x_2, x_3, \ldots`, then we let `m \preceq n` be
+                the product `mn` if the smallest positive integer `i`
+                for which `x_i` occurs in `m` is smaller or equal to
+                the smallest positive integer `j` for which `x_j`
+                occurs in `n` (this is understood to be false when
+                `m = 1` and `n \neq 1`, and true when `n = 1`), and we
+                let `m \preceq n` be `0` otherwise. Having thus
+                defined `\preceq` on monomials, we extend `\preceq` to
+                a binary operation on `R[[x_1, x_2, x_3, \ldots]]` by
+                requiring it to be continuous (in both inputs) and
+                `R`-bilinear. It is easily seen that
+                `QSym \preceq QSym \subseteq QSym`, so that `\preceq`
+                restricts to a binary operation on `QSym`.
+
+                This operation `\preceq` is related to the dendriform
+                smaller relation `\prec` (:meth:`dendriform_lesser`).
+                Namely, if we define a binary operation `\succ` on
+                `QSym` by `a \succ b = b \prec a`, then
+                `(QSym, \preceq, \succ)` is a dendriform `R`-algebra.
+                Thus, any `a, b \in QSym` satisfy
+                `a \preceq b = ab - b \prec a`.
+
+                .. SEEALSO::
+
+                    :meth:`dendriform_less`
+
+                INPUT:
+
+                - ``other`` -- a quasi-symmetric function over the
+                  same base ring as ``self``
+
+                OUTPUT:
+
+                The quasi-symmetric function ``self`` `\preceq`
+                ``other``, written in the basis of ``self``.
+
+                EXAMPLES::
+
+                    sage: QSym = QuasiSymmetricFunctions(QQ)
+                    sage: M = QSym.M()
+                    sage: M[2, 1].dendriform_leq(M[1, 2])
+                    2*M[2, 1, 1, 2] + M[2, 1, 2, 1] + M[2, 1, 3] + M[2, 2, 2]
+                     + M[3, 1, 2] + M[3, 2, 1] + M[3, 3]
+                    sage: F = QSym.F()
+                    sage: F[2, 1].dendriform_leq(F[1, 2])
+                    F[2, 1, 1, 2] + F[2, 1, 2, 1] + F[2, 1, 3] + F[2, 2, 1, 1]
+                     + 2*F[2, 2, 2] + F[2, 3, 1] + F[3, 1, 2] + F[3, 2, 1] + F[3, 3]
+                """
+                # This might be somewhat slow...
+                P = self.parent()
+                return self * P(other) - P(other.dendriform_less(self))
+
             def expand(self, n, alphabet='x'):
                 r"""
                 Expand the quasi-symmetric function into ``n`` variables in
@@ -1640,8 +1811,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             the reduced Lyndon compositions (i. e., compositions
             which are Lyndon words and have the gcd of their entries
             equal to `1`) form a set of free polynomial generators
-            for `\mathrm{QSym}`. See [Haz2004]_ for a major part
-            of the proof.
+            for `\mathrm{QSym}`. See [GriRei2014]_, Chapter 6, for
+            the proof, and [Haz2004]_ for a major part of it.
 
             INPUT:
 
@@ -1867,6 +2038,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 # that appears in self appears with the same coefficient.
                 # We use a dictionary to keep track of the coefficient
                 # and how many rearrangements of the composition we've seen.
+                from sage.combinat.permutation import Permutations_mset
                 d = {}
                 for (I, coeff) in self:
                     partition = I.to_partition()
@@ -1878,7 +2050,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                         else:
                             d[partition][1] += 1
                 # make sure we've seen each rearrangement of the composition
-                return all(d[partition][1] == Permutations(partition).cardinality()
+                return all(d[partition][1] == Permutations_mset(partition).cardinality()
                             for partition in d)
 
             def to_symmetric_function(self):
@@ -2408,7 +2580,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 True
                 sage: M(QS(M.an_element())) == M.an_element()
                 True
-                sage: TestSuite(QS).run()
+                sage: TestSuite(QS).run() # long time
             """
             CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
                                              prefix='QS', bracket=False,
@@ -2718,13 +2890,15 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         largest term of the `n`-th shuffle power of a Lyndon word is
         the `n`-fold concatenation of this Lyndon word with
         itself, occurring `n!` times in that shuffle power. But this
-        can be deduced from Section 2 of [Rad1979]_.) More precisely,
-        he showed that `\mathrm{QSym}` is generated, as a free
-        commutative `\mathbf{k}`-algebra, by the elements
-        `\lambda^n(M_I)`, where `n` ranges over the positive integers,
-        and `I` ranges over all compositions which are Lyndon words
-        and whose entries have gcd `1`. Here, `\lambda^n` denotes the
-        `n`-th lambda operation as explained in
+        can be deduced from Section 2 of [Rad1979]_. See also
+        Chapter 6 of [GriRei2014]_, specifically Theorem 6.99, for a
+        complete proof.) More precisely, he showed that
+        `\mathrm{QSym}` is generated, as a free commutative
+        `\mathbf{k}`-algebra, by the elements `\lambda^n(M_I)`, where
+        `n` ranges over the positive integers, and `I` ranges over
+        all compositions which are Lyndon words and whose entries
+        have gcd `1`. Here, `\lambda^n` denotes the `n`-th lambda
+        operation as explained in
         :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Monomial.lambda_of_monomial`.
 
         Thus, products of these generators form a `\mathbf{k}`-module
@@ -3234,7 +3408,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             TESTS::
 
                 sage: M = QuasiSymmetricFunctions(QQ).M()
-                sage: all( all( M(HWL[I] * HWL[J]) == M(HWL[I]) * M(HWL[J])
+                sage: all( all( M(HWL[I] * HWL[J]) == M(HWL[I]) * M(HWL[J])  # long time
                 ....:           for I in Compositions(3) )
                 ....:      for J in Compositions(3) )
                 True

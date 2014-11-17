@@ -53,6 +53,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.height` | Return the height (number of elements in the longest chain) of the poset.
     :meth:`~FinitePoset.incomparability_graph` | Returns the incomparability graph of the poset.
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
+    :meth:`~FinitePoset.interval_iterator` | Returns an iterator for the intervals of the poset.
     :meth:`~FinitePoset.interval_number` | Returns the number of intervals in the poset.
     :meth:`~FinitePoset.is_bounded` | Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
     :meth:`~FinitePoset.is_chain` | Returns True if the poset is totally ordered, and False otherwise.
@@ -104,7 +105,6 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.relations` | Returns a list of all relations of the poset.
     :meth:`~FinitePoset.show` | Shows the Graphics object corresponding the Hasse diagram of the poset.
     :meth:`~FinitePoset.subposet` | Returns the poset containing elements with partial order induced by that of self.
-    :meth:`~FinitePoset.strict_interval_iterator` | Returns an iterator for the intervals of the poset (except the singletons).
     :meth:`~FinitePoset.top` | Returns the top element of the poset, if it exists.
     :meth:`~FinitePoset.unwrap` | Unwraps an element of this poset
     :meth:`~FinitePoset.upper_covers_iterator` | Returns an iterator for the upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
@@ -152,7 +152,7 @@ from sage.graphs.digraph_generators import digraphs
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.misc.superseded import deprecation, deprecated_function_alias
+from sage.misc.superseded import deprecation
 
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
@@ -1644,7 +1644,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`interval_number`, :meth:`strict_interval_iterator`
+            :meth:`interval_number`, :meth:`interval_iterator`
 
         EXAMPLES::
 
@@ -2247,7 +2247,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         label_dict = { (a,b):f(a,b) for a,b in self.cover_relations_iterator() }
         if return_raising_chains:
             raising_chains = {}
-        for a,b in self.strict_interval_iterator():
+        for a,b in self.interval_iterator(strict=True):
             P = self.subposet(self.interval(a,b))
             max_chains = sorted( [ [ label_dict[(chain[i],chain[i+1])] for i in range(len(chain)-1) ] for chain in P.maximal_chains() ] )
             if max_chains[0] != sorted(max_chains[0]) or any( max_chains[i] == sorted(max_chains[i]) for i in range(1,len(max_chains)) ):
@@ -3214,25 +3214,29 @@ class FinitePoset(UniqueRepresentation, Parent):
             return JoinSemilattice(G)
         return Poset(G)
 
-    def strict_interval_iterator(self):
+    def interval_iterator(self, strict=False):
         """
-        Returns an iterator over all pairs `x<y` in ``self``.
+        Returns an iterator over all pairs `x < y` in ``self``.
 
-        This is an iterator over intervals not reduced to one element.
+        INPUT:
 
-        See rather :meth:`relations_iterator` for an iterator over
-        all intervals.
+        - ``strict`` -- boolean (default ``False``) if ``True``, returns
+          an iterator over intervals not reduced to one element.
 
         EXAMPLES::
 
-            sage: list(Posets.PentagonPoset().strict_interval_iterator())
+            sage: P = posets.PentagonPoset()
+            sage: list(P.interval_iterator(strict=True))
             [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], [2, 4], [3, 4]]
+
+            sage: len(list(P.interval_iterator()))
+            13
 
         .. SEEALSO:: :meth:`maximal_chains`, :meth:`chains`, :meth:`relations_iterator`
         """
-        return self.chains().elements_of_depth_iterator(2)
-
-    interval_iterator = deprecated_function_alias(17354, strict_interval_iterator)
+        if strict:
+            return self.chains().elements_of_depth_iterator(2)
+        return self.relations_iterator()
 
     def interval_number(self):
         """

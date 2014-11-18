@@ -146,24 +146,14 @@ class Schemes(Category):
 
 
     class Homsets(HomsetsCategory):
-        def extra_super_categories(self):
-            """
-            EXAMPLES::
+        """
+        TESTS::
 
-                sage: Schemes().Homsets().extra_super_categories()
-                []
-                sage: Schemes().Homsets().super_categories()
-                [Category of objects]
+            sage: Schemes().Homsets().super_categories()
+            [Category of homsets]
 
-            .. TODO::
-
-                 What category structure is there on Homsets of schemes?
-
-            .. TODO:: check that the result above is correct now
-            """
-            return []
-
-
+        .. TODO:: shall there be any additional category structure on Homsets of hecke modules?
+        """
 
 #############################################################
 # Schemes over a given base scheme.

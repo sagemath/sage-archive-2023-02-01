@@ -459,6 +459,32 @@ class MatchingGame(SageObject):
             sage: g2 = MatchingGame([suit2, revr2])
             sage: g == g2
             False
+
+        Note that if two games are created with players ordered differently
+        they can still be equal::
+
+            sage: g1 = MatchingGame(1)
+            sage: g1.add_reviewer(-2)
+            sage: g1.add_reviewer(-3)
+            sage: g1.add_suitor(3)
+            sage: g1.add_suitor(2)
+            sage: g1.reviewers()
+            (-1, -2, -3)
+            sage: g1.suitors()
+            (1, 3, 2)
+
+            sage: g2 = MatchingGame(1)
+            sage: g2.add_reviewer(-2)
+            sage: g2.add_reviewer(-3)
+            sage: g2.add_suitor(2)
+            sage: g2.add_suitor(3)
+            sage: g2.reviewers()
+            (-1, -2, -3)
+            sage: g2.suitors()
+            (1, 2, 3)
+
+            sage: g1 == g2
+            True
         """
         return (isinstance(other, MatchingGame)
                 and set(self._suitors) == set(other._suitors)

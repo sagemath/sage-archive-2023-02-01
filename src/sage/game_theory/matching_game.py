@@ -118,8 +118,9 @@ class MatchingGame(SageObject):
     To obtain the stable matching in Sage we use the ``solve`` method which
     uses the extended Gale-Shapley algorithm [DI1989]_::
 
-        sage: m.solve()
-        {'J': 'A', 'M': 'B', 'L': 'D', 'K': 'C'}
+        sage: D = m.solve()
+        sage: D.items()
+        [('K', 'C'), ('J', 'A'), ('M', 'B'), ('L', 'D')]
 
     Matchings have a natural representations as bipartite graphs::
 

@@ -1,21 +1,12 @@
-cdef extern from "stdlib.h":
-    ctypedef int size_t
-    void free(void *ptr)
-
 from sage.libs.mpfr cimport *
 
-cdef extern from "mpfr.h":
-    # to know sign of zeros
-    int  mpfr_signbit (mpfr_t)
-
 cdef extern from "mpc.h":
-    ctypedef void* mpc_t
     ctypedef struct __mpc_struct:
         mpfr_t re
         mpfr_t im
-    ctypedef __mpc_struct* mpc_t
-    ctypedef mpc_t mpc_ptr
-    ctypedef mpc_t mpc_srcptr
+    ctypedef __mpc_struct mpc_t[1]
+    ctypedef __mpc_struct* mpc_ptr
+    ctypedef __mpc_struct* mpc_srcptr
 
     ctypedef enum mpc_rnd_t:
         MPC_RNDNN = 0
@@ -109,7 +100,7 @@ cdef extern from "mpc.h":
 
 
     # Power functions and logarithm
-    int  mpc_sqrt (mpc_t, mpc_t, mpc_rnd_t)
+    int mpc_sqrt (mpc_t, mpc_t, mpc_rnd_t)
     int mpc_exp (mpc_t, mpc_t, mpc_rnd_t)
     int mpc_log (mpc_t, mpc_t, mpc_rnd_t)
     int mpc_pow (mpc_t rop, mpc_t op1, mpc_t op2, mpc_rnd_t rnd)

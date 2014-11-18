@@ -293,7 +293,7 @@ class CFiniteSequence(FractionFieldElement):
         """
         Return textual definition of sequence.
 
-        TESTS:
+        TESTS::
 
             sage: R.<x> = QQ[]
             sage: CFiniteSequence(1/x^5)

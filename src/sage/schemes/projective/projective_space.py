@@ -53,6 +53,8 @@ two lines.
 AUTHORS:
 
 - Ben Hutz: (June 2012): support for rings
+
+- Ben Hutz (9/2014): added support for cartesian products
 """
 
 #*****************************************************************************
@@ -844,6 +846,32 @@ class ProjectiveSpace_ring(AmbientSpace):
         H = Hom(self,self)
         return(H(F))
 
+    def cartesian_product(self, other):
+        r"""
+        Return the cartesian product of the projective spaces ``self`` and
+        ``other``.
+
+        INPUT:
+
+        - ``other`` - A projective space with the same base ring as ``self``
+
+        OUTPUT:
+
+        - A cartesian product of projective spaces
+
+        EXAMPLES::
+
+            sage: P1 = ProjectiveSpace(QQ,1,'x')
+            sage: P2 = ProjectiveSpace(QQ,2,'y')
+            sage: PP = P1.cartesian_product(P2); PP
+            Product of projective spaces P^1 x P^2 over Rational Field
+            sage: PP.gens()
+            (x0, x1, y0, y1, y2)
+        """
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        return ProductProjectiveSpaces([self, other])
+
+
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
         """
@@ -1021,8 +1049,14 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
 
             sage: P1=ProjectiveSpace(GF(7),1,'x')
             sage: P1.rational_points_dictionary()
-            {(1 : 0): 7, (0 : 1): 0, (1 : 1): 1, (2 : 1): 2, (3 : 1): 3, (4 : 1): 4,
-            (5 : 1): 5, (6 : 1): 6}
+            {(0 : 1): 0,
+             (1 : 0): 7,
+             (1 : 1): 1,
+             (2 : 1): 2,
+             (3 : 1): 3,
+             (4 : 1): 4,
+             (5 : 1): 5,
+             (6 : 1): 6}
         """
         n = self.dimension_relative()
         R = self.base_ring()

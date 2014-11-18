@@ -279,6 +279,23 @@ class Magmas(Category_singleton):
 
     class Unital(CategoryWithAxiom):
 
+        def additional_structure(self):
+            r"""
+            Return ``self``.
+
+            Indeed, the category of unital magmas defines an
+            additional structure, namely the unit of the magma which
+            shall be preserved by morphisms.
+
+            .. SEEALSO:: :meth:`Category.additional_structure`
+
+            EXAMPLES::
+
+                sage: Magmas().Unital().additional_structure()
+                Category of unital magmas
+            """
+            return self
+
         class ParentMethods:
             @cached_method
             def one(self):
@@ -337,7 +354,6 @@ class Magmas(Category_singleton):
                 # Check that one is immutable by asking its hash;
                 tester.assertEqual(type(one.__hash__()), int)
                 tester.assertEqual(one.__hash__(), one.__hash__())
-
 
         class SubcategoryMethods:
 
@@ -399,7 +415,7 @@ class Magmas(Category_singleton):
                     sage: C.extra_super_categories();
                     [Category of unital magmas]
                     sage: C.axioms()
-                    frozenset(['Unital'])
+                    frozenset({'Unital'})
 
                     sage: Monoids().CartesianProducts().is_subcategory(Monoids())
                     True
@@ -838,6 +854,9 @@ class Magmas(Category_singleton):
 
         def extra_super_categories(self):
             """
+            This implements the fact that a subquotient (and therefore
+            a quotient or subobject) of a finite set is finite.
+
             EXAMPLES::
 
                 sage: Semigroups().CartesianProducts().extra_super_categories()
@@ -849,7 +868,7 @@ class Magmas(Category_singleton):
 
         def example(self):
             """
-            Returns an example of cartesian product of magmas
+            Return an example of cartesian product of magmas.
 
             EXAMPLES::
 

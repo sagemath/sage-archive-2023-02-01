@@ -288,6 +288,7 @@ class GraphPlot(SageObject):
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
+            Graphics object consisting of 14 graphics primitives
 
         TESTS:
 
@@ -299,11 +300,11 @@ class GraphPlot(SageObject):
             sage: g = graphs.FruchtGraph()
             sage: gp = g.graphplot()
             sage: set(map(type, flatten(gp._pos.values())))
-            set([<type 'float'>])
+            {<type 'float'>}
             sage: g = graphs.BullGraph()
             sage: gp = g.graphplot(save_pos=True)
             sage: set(map(type, flatten(gp._pos.values())))
-            set([<type 'float'>])
+            {<type 'float'>}
 
         """
         self._pos = self._graph.layout(**self._options)
@@ -325,8 +326,10 @@ class GraphPlot(SageObject):
             sage: GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.set_vertices(talk=True)
             sage: GP.plot()
+            Graphics object consisting of 22 graphics primitives
             sage: GP.set_vertices(vertex_colors='pink', vertex_shape='^')
             sage: GP.plot()
+            Graphics object consisting of 22 graphics primitives
         """
         # Handle base vertex options
         voptions = {}
@@ -438,8 +441,10 @@ class GraphPlot(SageObject):
             sage: GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
+            Graphics object consisting of 22 graphics primitives
             sage: GP.set_edges(edge_color='black')
             sage: GP.plot()
+            Graphics object consisting of 22 graphics primitives
 
             sage: d = DiGraph({}, loops=True, multiedges=True, sparse=True)
             sage: d.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
@@ -447,8 +452,10 @@ class GraphPlot(SageObject):
             sage: GP = d.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
+            Graphics object consisting of 24 graphics primitives
             sage: GP.set_edges(edge_color='black')
             sage: GP.plot()
+            Graphics object consisting of 24 graphics primitives
 
         TESTS::
 
@@ -804,6 +811,7 @@ class GraphPlot(SageObject):
             sage: pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8], 3:[0.6, -0.8], 4:[0.8, 0.3]}
             sage: g = Graph({0:[1], 1:[2], 2:[3], 3:[4], 4:[0]})
             sage: g.graphplot(pos=pos, layout='spring', iterations=0).plot()
+            Graphics object consisting of 11 graphics primitives
 
             sage: G = Graph()
             sage: P = G.graphplot().plot()
@@ -819,12 +827,14 @@ class GraphPlot(SageObject):
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}).plot()
+            Graphics object consisting of 14 graphics primitives
 
         ::
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}).plot()
+            Graphics object consisting of 14 graphics primitives
             sage: t.set_edge_label(0,1,-7)
             sage: t.set_edge_label(0,5,3)
             sage: t.set_edge_label(0,5,99)
@@ -833,6 +843,7 @@ class GraphPlot(SageObject):
             sage: t.set_edge_label(2,6,3/2)
             sage: t.set_edge_label(0,4,66)
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}, edge_labels=True).plot()
+            Graphics object consisting of 20 graphics primitives
 
         ::
 
@@ -855,15 +866,18 @@ class GraphPlot(SageObject):
             ...     D.add_edge((i,i+1,'a'))
             ...     D.add_edge((i,i-1,'b'))
             sage: D.graphplot(edge_labels=True,edge_colors=D._color_by_label()).plot()
+            Graphics object consisting of 34 graphics primitives
 
             sage: g = Graph({}, loops=True, multiedges=True, sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed').plot()
+            Graphics object consisting of 22 graphics primitives
 
         The ``edge_style`` option may be provided in the short format too::
 
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='--').plot()
+            Graphics object consisting of 22 graphics primitives
 
         TESTS:
 
@@ -871,6 +885,7 @@ class GraphPlot(SageObject):
 
             sage: g = Graph({})
             sage: g.plot(title='empty graph', axes=True)
+            Graphics object consisting of 0 graphics primitives
 
         Check for invalid inputs::
 

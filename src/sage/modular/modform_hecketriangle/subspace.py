@@ -1,5 +1,5 @@
 r"""
-Modular forms for Hecke triangle groups
+Subspaces of modular forms for Hecke triangle groups
 
 AUTHORS:
 
@@ -23,16 +23,20 @@ from sage.categories.all import Modules
 from sage.modules.free_module_element import vector
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
+from sage.matrix.constructor import matrix
 
 from hecke_triangle_groups import HeckeTriangleGroup
 from abstract_space import FormsSpace_abstract
 
 
-def canonical_parameters(ambient_space, basis):
+def canonical_parameters(ambient_space, basis, check=True):
     r"""
     Return a canonical version of the parameters.
     In particular the list/tuple ``basis`` is replaced by a
     tuple of linearly independent elements in the ambient space.
+
+    If ``check=False`` (default: ``True``) then ``basis``
+    is assumed to already be a basis.
 
     EXAMPLES::
 
@@ -45,16 +49,14 @@ def canonical_parameters(ambient_space, basis):
           1 + 26208*q^3 + 530712*q^4 + O(q^5)))
     """
 
-    new_coord_basis = []
-    new_basis = []
-
-    for v in basis:
-        v_coord = ambient_space(v).ambient_coordinate_vector()
-        if not ambient_space.ambient_module().are_linearly_dependent(new_coord_basis + [v_coord]):
-            new_coord_basis += [v_coord]
-            new_basis += [ambient_space(v)]
-
-    basis = tuple(new_basis)
+    if check:
+        coord_matrix = matrix([ambient_space(v).ambient_coordinate_vector() for v in basis])
+        pivots = coord_matrix.transpose().pivots()
+        new_basis = [ambient_space(basis[l]) for l in pivots]
+        basis = tuple(new_basis)
+    else:
+        basis = [ambient_space(v) for v in basis]
+        basis = tuple(basis)
 
     return (ambient_space, basis)
 
@@ -110,7 +112,7 @@ def ModularFormsSubSpace(*args, **kwargs):
 
         generators = [ambient_space(gen) for gen in generators]
         return SubSpaceForms(ambient_space, generators)
-    except NotImplementedError:
+    except (NotImplementedError, AttributeError):
         return ambient_space
 
 
@@ -118,9 +120,9 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Submodule of (Hecke) forms in the given ambient space for the given basis.
     """
-            
+
     @staticmethod
-    def __classcall__(cls, ambient_space, basis=()):
+    def __classcall__(cls, ambient_space, basis=(), check=True):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -134,10 +136,12 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        (ambient_space, basis) = canonical_parameters(ambient_space, basis)
-        return super(SubSpaceForms,cls).__classcall__(cls, ambient_space=ambient_space, basis=basis)
+        (ambient_space, basis) = canonical_parameters(ambient_space, basis, check)
 
-    def __init__(self, ambient_space, basis):
+        # we return check=True to ensure only one cached instance
+        return super(SubSpaceForms,cls).__classcall__(cls, ambient_space=ambient_space, basis=basis, check=True)
+
+    def __init__(self, ambient_space, basis, check):
         r"""
         Return the Submodule of (Hecke) forms in ``ambient_space`` for the given ``basis``.
 
@@ -148,13 +152,17 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         - ``basis``          -- A tuple of (not necessarily linearly independent)
                                 elements of ``ambient_space``.
 
+        - ``check``          -- If ``True`` (default) then a maximal linearly
+                                independent subset of ``basis`` is choosen. Otherwise
+                                it is assumed that ``basis`` is linearly independent.
+
         OUTPUT:
 
         The corresponding submodule.
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiCuspForms
             sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: MF
             ModularForms(n=6, k=20, ep=1) over Integer Ring
@@ -188,6 +196,16 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
             sage: subspace.is_ambient()
             False
+
+            sage: MF = QuasiCuspForms(n=infinity, k=12, ep=1)
+            sage: MF.dimension()
+            4
+            sage: subspace = MF.subspace([MF.Delta(), MF.E4()*MF.f_inf()*MF.E2()*MF.f_i(), MF.E4()*MF.f_inf()*MF.E2()^2, MF.E4()*MF.f_inf()*(MF.E4()-MF.E2()^2)])
+            sage: subspace.default_prec(3)
+            sage: subspace
+            Subspace of dimension 3 of QuasiCuspForms(n=+Infinity, k=12, ep=1) over Integer Ring
+            sage: subspace.gens()
+            [q + 24*q^2 + O(q^3), q - 24*q^2 + O(q^3), q - 8*q^2 + O(q^3)]
         """
 
         FormsSpace_abstract.__init__(self, group=ambient_space.group(), base_ring=ambient_space.base_ring(), k=ambient_space.weight(), ep=ambient_space.ep(), n=ambient_space.hecke_n())
@@ -219,7 +237,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         # return "Subspace with basis {} of {}".format([v.as_ring_element() for v in self.basis()], self._ambient_space)
         return "Subspace of dimension {} of {}".format(len(self._basis), self._ambient_space)
 
-    def change_ring(self, new_base_ring):   
+    def change_ring(self, new_base_ring):
         r"""
         Return the same space as ``self`` but over a new base ring ``new_base_ring``.
 
@@ -231,9 +249,25 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: subspace.change_ring(CC)
             Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Complex Field with 53 bits of precision
         """
-                            
-        return self.__class__.__base__(self._ambient_space.change_ring(new_base_ring), self._basis)
- 
+
+        return self.__class__.__base__(self._ambient_space.change_ring(new_base_ring), self._basis, check=False)
+
+    def change_ambient_space(self, new_ambient_space):
+        r"""
+        Return a new subspace with the same basis but inside a different ambient space
+        (if possible).
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiModularForms
+            sage: MF = ModularForms(n=6, k=20, ep=1)
+            sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
+            sage: new_ambient_space = QuasiModularForms(n=6, k=20, ep=1)
+            sage: subspace.change_ambient_space(new_ambient_space)    # long time
+            Subspace of dimension 2 of QuasiModularForms(n=6, k=20, ep=1) over Integer Ring
+        """
+        return self.__class__.__base__(new_ambient_space, self._basis, check=False)
+
     @cached_method
     def contains_coeff_ring(self):
         r"""
@@ -352,7 +386,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``v``- An element of ``self``.
+        - ``v`` -- An element of ``self``.
 
         OUTPUT:
 
@@ -363,7 +397,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.modform_hecketriangle.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiCuspForms
             sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([(MF.Delta()*MF.E4()^2).as_ring_element(), MF.gen(0)])
             sage: subspace.coordinate_vector(MF.gen(0) + MF.Delta()*MF.E4()^2).parent()
@@ -377,6 +411,14 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             Vector space of dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: subspace.coordinate_vector(subspace.gen(0))
             (1, 0)
+
+            sage: MF = QuasiCuspForms(n=infinity, k=12, ep=1)
+            sage: subspace = MF.subspace([MF.Delta(), MF.E4()*MF.f_inf()*MF.E2()*MF.f_i(), MF.E4()*MF.f_inf()*MF.E2()^2, MF.E4()*MF.f_inf()*(MF.E4()-MF.E2()^2)])
+            sage: el = MF.E4()*MF.f_inf()*(7*MF.E4() - 3*MF.E2()^2)
+            sage: subspace.coordinate_vector(el)
+            (7, 0, -3)
+            sage: subspace.ambient_coordinate_vector(el)
+            (7, 21/(8*d), 0, -3)
         """
 
         return self._module.coordinate_vector(self.ambient_coordinate_vector(v))

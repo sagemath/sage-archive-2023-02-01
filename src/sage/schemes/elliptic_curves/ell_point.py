@@ -624,6 +624,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: E = EllipticCurve('389a')
             sage: P = E([-1,1])
             sage: P.plot(pointsize=30, rgbcolor=(1,0,0))
+            Graphics object consisting of 1 graphics primitive
         """
         if self.is_zero():
             return plot.text("$\\infty$", (-3, 3), **args)

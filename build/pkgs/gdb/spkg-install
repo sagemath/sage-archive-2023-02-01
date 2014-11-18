@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+
+LDFLAGS="${LDFLAGS} -L${SAGE_LOCAL}/lib"
+export LDFLAGS
+
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+    --with-mpc="$SAGE_LOCAL" \
+    --with-mpfr="$SAGE_LOCAL" \
+    --with-gmp="$SAGE_LOCAL" \
+    --with-ppl="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error configuring gdb."
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building gdb."
+    exit 1
+fi
+
+
+$MAKE -j1 install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing gdb"
+    exit 1
+fi

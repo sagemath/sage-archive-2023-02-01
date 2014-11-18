@@ -200,11 +200,44 @@ class FiniteFieldHomset(RingHomset_generic):
             sage: L.<z> = GF(7^6)
             sage: [g for g in End(L) if (g^3)(z) == z]
             [Ring endomorphism of Finite Field in z of size 7^6
+              Defn: z |--> z,
+             Ring endomorphism of Finite Field in z of size 7^6
               Defn: z |--> 5*z^4 + 5*z^3 + 4*z^2 + 3*z + 1,
              Ring endomorphism of Finite Field in z of size 7^6
-              Defn: z |--> 3*z^5 + 5*z^4 + 5*z^2 + 2*z + 3,
-             Ring endomorphism of Finite Field in z of size 7^6
-              Defn: z |--> z]
+              Defn: z |--> 3*z^5 + 5*z^4 + 5*z^2 + 2*z + 3]
+
+        Between isomorphic fields with different moduli::
+
+            sage: k1 = GF(1009)
+            sage: k2 = GF(1009, modulus="primitive")
+            sage: Hom(k1, k2).list()
+            [
+            Ring morphism:
+              From: Finite Field of size 1009
+              To:   Finite Field of size 1009
+              Defn: 1 |--> 1
+            ]
+            sage: Hom(k2, k1).list()
+            [
+            Ring morphism:
+              From: Finite Field of size 1009
+              To:   Finite Field of size 1009
+              Defn: 11 |--> 11
+            ]
+
+            sage: k1.<a> = GF(1009^2, modulus="first_lexicographic")
+            sage: k2.<b> = GF(1009^2, modulus="conway")
+            sage: Hom(k1, k2).list()
+            [
+            Ring morphism:
+              From: Finite Field in a of size 1009^2
+              To:   Finite Field in b of size 1009^2
+              Defn: a |--> 290*b + 864,
+            Ring morphism:
+              From: Finite Field in a of size 1009^2
+              To:   Finite Field in b of size 1009^2
+              Defn: a |--> 719*b + 145
+            ]
 
         TESTS:
 

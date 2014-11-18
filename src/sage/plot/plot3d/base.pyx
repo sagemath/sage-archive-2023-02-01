@@ -64,7 +64,22 @@ pi = RDF.pi()
 cdef class Graphics3d(SageObject):
     """
     This is the baseclass for all 3d graphics objects.
+
+    .. automethod:: _graphics_
+    .. automethod:: __add__
     """
+    def __cinit__(self):
+        """
+        The Cython constructor
+        
+        EXAMPLES::
+
+            sage: gfx = sage.plot.plot3d.base.Graphics3d()
+            sage: gfx._extra_kwds
+            {}
+        """
+        self._extra_kwds = dict()
+    
     def _repr_(self):
         """
         Return a string representation.
@@ -81,29 +96,59 @@ cdef class Graphics3d(SageObject):
         """
         return str(self)
 
-    def _graphics_(self):
+    def _graphics_(self, mime_types=None, figsize=None, dpi=None):
         """
-        Show graphics.
+        Magic graphics method.
 
         The presence of this method is used by the displayhook to
         decide that we want to see a graphical output by default.
 
-        OUTPUT:
+        INPUT/OUTPUT:
 
-        Return ``True`` if graphical output was generated (might not
-        be shown in doctest mode), otherwise ``False``.
+        See :meth:`sage.plot.graphics.Graphics._graphics_` for details.
 
         EXAMPLES::
 
             sage: S = sphere((0, 0, 0), 1)
-            sage: S._graphics_()
-            True
+            sage: S._graphics_(mime_types={'image/png'})
+            Graphics file image/png
             sage: S  # also productes graphics
+            Graphics3d Object
             sage: [S, S]
             [Graphics3d Object, Graphics3d Object]
         """
-        self.show()
-        return True
+        from sage.structure.graphics_file import (
+            Mime, graphics_from_save, GraphicsFile)
+        ### First, figure out the best graphics format
+        can_view_jmol = (mime_types is None) or (Mime.JMOL in mime_types)
+        viewer = self._extra_kwds.get('viewer', None)
+        # make sure viewer is one of the supported options
+        if viewer not in [None, 'jmol', 'tachyon']:
+            import warnings
+            warnings.warn('viewer={0} is not supported'.format(viewer))
+            viewer = None
+        # select suitable default
+        if viewer is None:
+            viewer = 'jmol'
+        # fall back to 2d image if necessary
+        if viewer == 'jmol' and not can_view_jmol:
+            viewer = 'tachyon'
+        ### Second, return the corresponding graphics file
+        if viewer == 'jmol':
+            from sage.misc.temporary_file import tmp_filename
+            filename = tmp_filename(
+                ext=os.path.extsep + Mime.extension(Mime.JMOL))
+            self.save(filename)
+            return GraphicsFile(filename, Mime.JMOL)
+        elif viewer == 'tachyon':
+            preference = [Mime.PNG, Mime.JPG]
+            figsize = self._extra_kwds.get('figsize', figsize)
+            dpi = self._extra_kwds.get('dpi', dpi)
+            return graphics_from_save(self.save, preference,
+                                      allowed_mime_types=mime_types, 
+                                      figsize=figsize, dpi=dpi)
+        else:
+            assert False   # unreachable
 
     def __str__(self):
         """
@@ -124,6 +169,7 @@ cdef class Graphics3d(SageObject):
             sage: A = sphere((0,0,0), 1, color='red')
             sage: B = dodecahedron((2, 0, 0), color='yellow')
             sage: A+B
+            Graphics3d Object
 
         For convenience, we take 0 and ``None`` to be the additive identity::
 
@@ -136,6 +182,7 @@ cdef class Graphics3d(SageObject):
         having to provide an empty starting object::
 
             sage: sum(point3d((cos(n), sin(n), n)) for n in [0..10, step=.1])
+            Graphics3d Object
 
         A Graphics 3d object can also be added a 2d graphic object::
 
@@ -162,6 +209,7 @@ cdef class Graphics3d(SageObject):
             sage: S = sphere((0, 0, 0), 1)
             sage: S._set_extra_kwds({'aspect_ratio': [1, 2, 2]})
             sage: S
+            Graphics3d Object
         """
         self._extra_kwds = kwds
 
@@ -307,7 +355,9 @@ cdef class Graphics3d(SageObject):
         EXAMPLES::
 
             sage: icosahedron() + sum(icosahedron(opacity=0.25).translate(2*n, 0, 0) for n in [1..4])
+            Graphics3d Object
             sage: icosahedron() + sum(icosahedron(opacity=0.25).translate([-2*n, n, n^2]) for n in [1..4])
+            Graphics3d Object
 
         TESTS::
 
@@ -338,6 +388,7 @@ cdef class Graphics3d(SageObject):
 
             sage: G = sphere((0, 0, 0), 1)
             sage: G.scale(2)
+            Graphics3d Object
             sage: G.scale(1, 2, 1/2).show(aspect_ratio=1)
             sage: G.scale(2).bounding_box()
             ((-2.0, -2.0, -2.0), (2.0, 2.0, 2.0))
@@ -816,7 +867,7 @@ end_scene""" % (render_params.antialiasing,
         EXAMPLES::
 
             sage: sage.plot.plot3d.base.Graphics3d().texture_set()
-            set([])
+            set()
 
             sage: G = tetrahedron(color='red') + tetrahedron(color='yellow') + tetrahedron(color='red', opacity=0.5)
             sage: [t for t in G.texture_set() if t.color == colors.red] # we should have two red textures
@@ -991,8 +1042,7 @@ end_scene""" % (render_params.antialiasing,
         """
         opts = {}
         opts.update(SHOW_DEFAULTS)
-        if self._extra_kwds is not None:
-            opts.update(self._extra_kwds)
+        opts.update(self._extra_kwds)
         opts.update(kwds)
 
         # Remove all of the keys that are viewing options, since the remaining
@@ -1095,6 +1145,7 @@ end_scene""" % (render_params.antialiasing,
         This sphere will not have a frame around it::
 
             sage: sphere((0,0,0))
+            Graphics3d Object
 
         We change the default back::
 
@@ -1103,6 +1154,7 @@ end_scene""" % (render_params.antialiasing,
         Now this sphere is enclosed in a frame::
 
             sage: sphere((0,0,0))
+            Graphics3d Object
 
         EXAMPLES: We illustrate use of the ``aspect_ratio`` option::
 
@@ -1122,6 +1174,7 @@ end_scene""" % (render_params.antialiasing,
         from :func:`~sage.plot.plot.plot` are dealt with properly::
 
             sage: plot(vector([1,2,3]))
+            Graphics3d Object
 
         We use the 'canvas3d' backend from inside the notebook to get a view of
         the plot rendered inline using HTML canvas::
@@ -1273,6 +1326,8 @@ end_scene""" % (render_params.antialiasing,
 
     def save(self, filename, **kwds):
         """
+        Save to file.
+
         Save the graphic to an image file (of type: PNG, BMP, GIF, PPM, or TIFF)
         rendered using Tachyon, or pickle it (stored as an SOBJ so you can load it
         later) depending on the file extension you give the filename.
@@ -1312,7 +1367,6 @@ end_scene""" % (render_params.antialiasing,
         ext = os.path.splitext(filename)[1].lower()
         if ext == '' or ext == '.sobj':
             SageObject.save(self, filename)
-            return
         elif ext in ['.bmp', '.png', '.gif', '.ppm', '.tiff', '.tif', '.jpg', '.jpeg']:
             opts = self._process_viewing_options(kwds)
             T = self._prepare_for_tachyon(
@@ -1331,6 +1385,17 @@ end_scene""" % (render_params.antialiasing,
             if ext != '.png':
                 import PIL.Image as Image
                 Image.open(out_filename).save(filename)
+        elif filename.endswith('.spt.zip'):
+            # Jmol zip archive
+            opts = self._process_viewing_options(kwds)
+            zoom = opts['zoom']
+            T = self._prepare_for_jmol(
+                opts['frame'],
+                opts['axes'],
+                opts['frame_aspect_ratio'],
+                opts['aspect_ratio'],
+                zoom)
+            T.export_jmol(filename, zoom=zoom*100, **kwds)
         else:
             raise ValueError('filetype not supported by save()')
 
@@ -1357,13 +1422,14 @@ class Graphics3dGroup(Graphics3d):
         EXAMPLES::
 
             sage: sage.plot.plot3d.base.Graphics3dGroup([icosahedron(), dodecahedron(opacity=.5)])
+            Graphics3d Object
             sage: type(icosahedron() + dodecahedron(opacity=.5))
             <class 'sage.plot.plot3d.base.Graphics3dGroup'>
         """
         self.all = list(all)
         self.frame_aspect_ratio(optimal_aspect_ratios([a.frame_aspect_ratio() for a in all]))
         self.aspect_ratio(optimal_aspect_ratios([a.aspect_ratio() for a in all]))
-        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all if a._extra_kwds is not None]))
+        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all]))
 
     def __add__(self, other):
         """
@@ -1373,12 +1439,25 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = sum(tetrahedron(opacity=1-t/11).translate(t, 0, 0) for t in range(10))
             sage: G
+            Graphics3d Object
             sage: len(G.all)
             10
+
+        We check that :trac:`17258` is solved::
+
+            sage: g = point3d([0,-2,-2]); g += point3d([2,-2,-2])
+            sage: len(g.all)
+            2
+            sage: h = g + arrow([0,-2,-2], [2,-2,-2])
+            sage: len(g.all)
+            2
+            sage: g == h
+            False
         """
         if type(self) is Graphics3dGroup and isinstance(other, Graphics3d):
-            self.all.append(other)
-            return self
+            s_all = list(self.all)
+            s_all.append(other)
+            return Graphics3dGroup(s_all)
         else:
             return Graphics3d.__add__(self, other)
 
@@ -1416,8 +1495,11 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = dodecahedron(color='red', opacity=.5) + icosahedron(color='blue')
             sage: G
+            Graphics3d Object
             sage: G.transform(scale=(2,1/2,1))
+            Graphics3d Object
             sage: G.transform(trans=(1,1,3))
+            Graphics3d Object
         """
         T = TransformGroup(self.all, **kwds)
         T._set_extra_kwds(self._extra_kwds)
@@ -1429,8 +1511,10 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = dodecahedron(color='red', opacity=.5) + icosahedron((3, 0, 0), color='blue')
             sage: G
+            Graphics3d Object
             sage: G.set_texture(color='yellow')
             sage: G
+            Graphics3d Object
         """
         for g in self.all:
             g.set_texture(**kwds)
@@ -1551,7 +1635,9 @@ class Graphics3dGroup(Graphics3d):
         EXAMPLES::
 
             sage: G = sum([circle((0, 0), t) for t in [1..10]], sphere()); G
+            Graphics3d Object
             sage: G.flatten()
+            Graphics3d Object
             sage: len(G.all)
             2
             sage: len(G.flatten().all)
@@ -1580,6 +1666,7 @@ class TransformGroup(Graphics3dGroup):
         EXAMPLES::
 
             sage: sage.plot.plot3d.base.TransformGroup([sphere()], trans=(1,2,3)) + point3d((0,0,0))
+            Graphics3d Object
 
         The are usually constructed implicitly::
 
@@ -1784,8 +1871,11 @@ class TransformGroup(Graphics3dGroup):
 
             sage: G = dodecahedron(color='red', opacity=.5) + icosahedron(color='blue')
             sage: G
+            Graphics3d Object
             sage: G.transform(scale=(2,1/2,1))
+            Graphics3d Object
             sage: G.transform(trans=(1,1,3))
+            Graphics3d Object
         """
         return Graphics3d.transform(self, **kwds)
 
@@ -1835,7 +1925,9 @@ cdef class PrimitiveObject(Graphics3d):
         EXAMPLES::
 
             sage: G = dodecahedron(color='red'); G
+            Graphics3d Object
             sage: G.set_texture(color='yellow'); G
+            Graphics3d Object
         """
         if not is_Texture(texture):
             texture = Texture(texture, **kwds)
@@ -1857,7 +1949,7 @@ cdef class PrimitiveObject(Graphics3d):
 
             sage: G = dodecahedron(color='red')
             sage: G.texture_set()
-            set([Texture(texture..., red, ff0000)])
+            {Texture(texture..., red, ff0000)}
         """
         return set([self.texture])
 

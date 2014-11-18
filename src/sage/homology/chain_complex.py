@@ -200,7 +200,7 @@ def ChainComplex(data=None, **kwds):
 
         sage: IZ = ChainComplex({0: identity_matrix(ZZ, 1)})
         sage: IZ.differential()  # the differentials in the chain complex
-        {0: [1], 1: [], -1: []}
+        {-1: [], 0: [1], 1: []}
         sage: IZ.differential(1).parent()
         Full MatrixSpace of 0 by 1 dense matrices over Integer Ring
         sage: mat = ChainComplex({0: matrix(ZZ, 3, 4)}).differential(1)
@@ -880,15 +880,16 @@ class ChainComplex_class(Parent):
 
             sage: D = ChainComplex({0: matrix(ZZ, 2, 2, [1,0,0,2])})
             sage: D.differential()
-            {0: [1 0]
-            [0 2], 1: [], -1: []}
+            {-1: [], 0: [1 0]
+             [0 2], 1: []}
             sage: D.differential(0)
             [1 0]
             [0 2]
             sage: C = ChainComplex({0: identity_matrix(ZZ, 40)})
             sage: C.differential()
-            {0: 40 x 40 dense matrix over Integer Ring, 1: [],
-             -1: 40 x 0 dense matrix over Integer Ring}
+            {-1: 40 x 0 dense matrix over Integer Ring,
+             0: 40 x 40 dense matrix over Integer Ring,
+             1: []}
         """
         if dim is None:
             return copy(self._diff)

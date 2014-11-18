@@ -42,7 +42,6 @@ from sage.groups.matrix_gps.group_element import MatrixGroupElement_gap
 from sage.rings.all import ZZ, QQ
 from sage.interfaces.gap import gap
 from sage.misc.cachefunc import cached_method, ClearCacheOnPickle
-from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.matrix.constructor import matrix, diagonal_matrix
@@ -439,17 +438,8 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             sage: G = WeylGroup(['A',3,1])
             sage: G.domain()
             Root space over the Rational Field of the Root system of type ['A', 3, 1]
-
-        This method used to be called ``lattice``::
-
-            sage: G.lattice()
-            doctest:...: DeprecationWarning: lattice is deprecated. Please use domain instead.
-            See http://trac.sagemath.org/8414 for details.
-            Root space over the Rational Field of the Root system of type ['A', 3, 1]
         """
         return self._domain
-
-    lattice = deprecated_function_alias(8414, domain)
 
     def simple_reflection(self, i):
         """
@@ -525,31 +515,28 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             m = diagonal_matrix([-1 for i in range(self.n)])
         return self.__call__(m)
 
-    def __cmp__(self, other):
-        """
-        TESTS::
-
-            sage: G1 = WeylGroup(CartanType(['A',2]))
-            sage: G2 = WeylGroup(CartanType(['A',2]))
-            sage: G1 == G2
-            True
-        """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        if self.cartan_type() != other.cartan_type():
-            return cmp(self.cartan_type(), other.cartan_type())
-        return 0
-
     def classical(self):
         """
-        If self is a Weyl group from an affine Cartan Type, this give
-        the classical parabolic subgroup of self.
+        If ``self`` is a Weyl group from an affine Cartan Type, this give
+        the classical parabolic subgroup of ``self``.
 
         Caveat: we assume that 0 is a special node of the Dynkin diagram
 
         TODO: extract parabolic subgroup method
+
+        EXAMPLES::
+
+            sage: G = WeylGroup(['A',3,1])
+            sage: G.classical()
+            Parabolic Subgroup of the Weyl Group of type ['A', 3, 1]
+             (as a matrix group acting on the root space)
+            sage: WeylGroup(['A',3]).classical()
+            Traceback (most recent call last):
+            ...
+            ValueError: classical subgroup only defined for affine types
         """
-        assert(self.cartan_type().is_affine())
+        if not self.cartan_type().is_affine():
+            raise ValueError("classical subgroup only defined for affine types")
         return ClassicalWeylSubgroup(self._domain, prefix=self._prefix)
 
     def bruhat_graph(self, x, y):
@@ -692,8 +679,8 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: WeylGroup(['B', 3, 1]).classical()._test_is_finite()
         """
         tester = self._tester(**options)
-        assert(not self.weyl_group(self._prefix).is_finite())
-        assert(self.is_finite())
+        tester.assertTrue(not self.weyl_group(self._prefix).is_finite())
+        tester.assertTrue(self.is_finite())
 
 class WeylGroupElement(MatrixGroupElement_gap):
     """
@@ -842,7 +829,8 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: s[1].action(alpha[0])
             alpha[0] + alpha[1]
         """
-        assert(v in self.domain())
+        if v not in self.domain():
+            raise ValueError("{} is not in the domain".format(v))
         return self.domain().from_vector(self.__matrix*v.to_vector())
 
 

@@ -679,7 +679,7 @@ cdef class CAElement(pAdicTemplateElement):
                 raise PrecisionError("Elements not known to enough precision")
         return ccmp(self.value, right.value, aprec, aprec < self.absprec, aprec < right.absprec, self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         This function is used in comparing `p`-adic elements.
 
@@ -1186,7 +1186,7 @@ cdef class pAdicConvert_CA_ZZ(RingMap):
             sage: f = ZpCA(5).coerce_map_from(ZZ).section(); type(f)
             <type 'sage.rings.padics.padic_capped_absolute_element.pAdicConvert_CA_ZZ'>
             sage: f.category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))

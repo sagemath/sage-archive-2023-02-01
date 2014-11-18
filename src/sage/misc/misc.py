@@ -99,7 +99,7 @@ def sage_makedirs(dir):
 sage_makedirs(DOT_SAGE)
 
 _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
-_desired_mode = 040700     # drwx------
+_desired_mode = 0o40700     # drwx------
 if _mode != _desired_mode:
     print("Setting permissions of DOT_SAGE directory so only you can read and write it.")
     # Change mode of DOT_SAGE.
@@ -1728,8 +1728,8 @@ def powerset(X):
 
     You may also use subsets as an alias for powerset::
 
-        sage: subsets([1,2,3])   # random object location in output
-        <generator object at 0xaeae418c>
+        sage: subsets([1,2,3])
+        <generator object powerset at 0x...>
         sage: list(subsets([1,2,3]))
         [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 

@@ -31,6 +31,7 @@ obtain an `OA(k,n)`.
     :func:`find_thwart_lemma_4_1` | Find a decomposition for Lemma 4.1 from [Thwarts]_.
     :func:`find_three_factor_product` | Find `n_1n_2n_3=n` to obtain an `OA(k,n)` by the three-factor product from [DukesLing14]_
     :func:`find_brouwer_separable_design` | Find `t(q^2+q+1)+x=n` to obtain an `OA(k,n)` by Brouwer's separable design construction.
+    :func:`find_brouwer_van_rees_with_one_truncated_column` | Find `rm+x_1+...+x_c=n` such that the Brouwer-van Rees constructions yields a `OA(k,n)`.
 
 REFERENCES:
 
@@ -56,7 +57,7 @@ def find_recursive_construction(k, n):
     This determines whether an `OA(k,n)` can be built through the following
     constructions:
 
-    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.simple_wilson_construction` (0, 1 or 2 truncated columns)
+    - :func:`~sage.combinat.designs.orthogonal_arrays.wilson_construction`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_3`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_4`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_5`
@@ -66,6 +67,7 @@ def find_recursive_construction(k, n):
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.thwart_lemma_4_1`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.three_factor_product`
     - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_separable_design`
+    - :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.find_brouwer_van_rees_with_one_truncated_column`
 
     INPUT:
 
@@ -82,7 +84,7 @@ def find_recursive_construction(k, n):
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: count = 0
         sage: for n in range(10,150):
-        ....:     k = designs.orthogonal_array(None,n,existence=True)
+        ....:     k = designs.orthogonal_arrays.largest_available_k(n)
         ....:     if find_recursive_construction(k,n):
         ....:         count = count + 1
         ....:         f,args = find_recursive_construction(k,n)
@@ -104,7 +106,8 @@ def find_recursive_construction(k, n):
                    find_thwart_lemma_3_5,
                    find_thwart_lemma_4_1,
                    find_three_factor_product,
-                   find_brouwer_separable_design]:
+                   find_brouwer_separable_design,
+                   find_brouwer_van_rees_with_one_truncated_column]:
         res = find_c(k,n)
         if res:
             return res
@@ -135,7 +138,7 @@ cpdef find_product_decomposition(int k,int n):
         sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_product_decomposition
         sage: f,args = find_product_decomposition(6, 84)
         sage: args
-        (6, 7, 12, ())
+        (None, 6, 7, 12, (), False)
         sage: _ = f(*args)
     """
     cdef int n1,n2
@@ -147,8 +150,8 @@ cpdef find_product_decomposition(int k,int n):
                   # faster to use that rather than calling the divisors function
             continue
         if is_available(k, n1) and is_available(k, n2):
-            from orthogonal_arrays_build_recursive import simple_wilson_construction
-            return simple_wilson_construction, (k,n1,n2,())
+            from orthogonal_arrays import wilson_construction
+            return wilson_construction, (None,k,n1,n2,(),False)
     return False
 
 cpdef find_wilson_decomposition_with_one_truncated_group(int k,int n):
@@ -173,7 +176,7 @@ cpdef find_wilson_decomposition_with_one_truncated_group(int k,int n):
         sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_wilson_decomposition_with_one_truncated_group
         sage: f,args = find_wilson_decomposition_with_one_truncated_group(4,38)
         sage: args
-        (4, 5, 7, (3,))
+        (None, 4, 5, 7, (3,), False)
         sage: _ = f(*args)
 
         sage: find_wilson_decomposition_with_one_truncated_group(4,20)
@@ -197,8 +200,8 @@ cpdef find_wilson_decomposition_with_one_truncated_group(int k,int n):
             is_available(k  ,m+1) and
             is_available(k+1,r  ) and
             is_available(k  ,u  )):
-            from orthogonal_arrays_build_recursive import simple_wilson_construction
-            return simple_wilson_construction, (k,r,m,(u,))
+            from orthogonal_arrays import wilson_construction
+            return wilson_construction, (None,k,r,m,(u,),False)
 
     return False
 
@@ -224,7 +227,7 @@ cpdef find_wilson_decomposition_with_two_truncated_groups(int k,int n):
         sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_wilson_decomposition_with_two_truncated_groups
         sage: f,args = find_wilson_decomposition_with_two_truncated_groups(5,58)
         sage: args
-        (5, 7, 7, (4, 5))
+        (None, 5, 7, 7, (4, 5), False)
         sage: _ = f(*args)
     """
     cdef int r,m_min,m_max,m,r1_min,r1_max,r1,r2,r1_p_r2
@@ -259,8 +262,8 @@ cpdef find_wilson_decomposition_with_two_truncated_groups(int k,int n):
                 r2 = r1_p_r2-r1
                 if is_available(k,r2):
                     assert n == r*m+r1+r2
-                    from orthogonal_arrays_build_recursive import simple_wilson_construction
-                    return simple_wilson_construction, (k,r,m,(r1,r2))
+                    from orthogonal_arrays import wilson_construction
+                    return wilson_construction, (None,k,r,m,(r1,r2),False)
     return False
 
 cpdef find_construction_3_3(int k,int n):
@@ -787,6 +790,156 @@ cpdef find_brouwer_separable_design(int k,int n):
                   is_available( k+e4, t+1 ) and
                   is_available( k+1 ,t+q+1)):
                 return brouwer_separable_design, (k,t,q,x)
+
+    return False
+
+# Associates to n the list of k,x with x>1 such that there exists an
+# OA(k,n+x)-OA(k,x). Useful in find_brouwer_separable_design
+from sage.combinat.designs.database import QDM as _QDM
+cdef dict ioa_indexed_by_n_minus_x = {}
+for x in _QDM.itervalues():
+    for (n,_,_,u),(k,_) in x.items():
+        if u>1:
+            if not n in ioa_indexed_by_n_minus_x:
+                ioa_indexed_by_n_minus_x[n] = []
+            ioa_indexed_by_n_minus_x[n].append((k,u))
+
+def int_as_sum(int value, list S, int k_max):
+    r"""
+    Return a tuple `(s_1, s_2, \ldots, s_k)` of less then `k_max` elements of `S` such
+    that `value = s_1 + s_2 + \ldots + s_k`. If there is no such tuples then the
+    function returns ``None``.
+
+    INPUT:
+
+    - ``value`` (integer)
+
+    - ``S`` -- a list of integers
+
+    - ``k_max`` (integer)
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import int_as_sum
+        sage: D = int_as_sum(21,[5,12],100)
+        sage: for k in range(20,40):
+        ....:     print k, int_as_sum(k,[5,12],100)
+        20 (5, 5, 5, 5)
+        21 None
+        22 (12, 5, 5)
+        23 None
+        24 (12, 12)
+        25 (5, 5, 5, 5, 5)
+        26 None
+        27 (12, 5, 5, 5)
+        28 None
+        29 (12, 12, 5)
+        30 (5, 5, 5, 5, 5, 5)
+        31 None
+        32 (12, 5, 5, 5, 5)
+        33 None
+        34 (12, 12, 5, 5)
+        35 (5, 5, 5, 5, 5, 5, 5)
+        36 (12, 12, 12)
+        37 (12, 5, 5, 5, 5, 5)
+        38 None
+        39 (12, 12, 5, 5, 5)
+    """
+    cdef int i,j,v,vv,max_value
+    cdef dict D,new_D,last_D
+    last_D = D = {value:tuple()}
+    max_value = max(S)
+
+    if k_max * max_value < value:
+        return None
+
+    # The answer for a given k can be easily deduced from the answer
+    # for k-1. That's how we build the list, incrementally starting
+    # from k=0
+    for j in range(k-1,-1,-1):
+        new_D = {}
+        for i in S:
+            for v in last_D:
+                vv = v-i
+                if vv == 0:
+                    return D[v] + (i,)
+                if (vv > 0            and   # The new integer i is too big
+                    vv <= j*max_value and   # The new integer i is too small
+                    vv not in D       and   # We had it in D     already
+                    vv not in new_D):       # We had it in new_D already
+                    new_D[vv] = D[v]+(i,)
+        if not new_D:
+            break
+        D.update(new_D)
+        last_D = new_D
+
+    return None
+
+cpdef find_brouwer_van_rees_with_one_truncated_column(int k,int n):
+    r"""
+    Find `rm+x_1+...+x_c=n` such that the Brouwer-van Rees constructions yields a `OA(k,n)`.
+
+    Let `n=rm+\sum_{1\leq i\leq c}` such that `c\leq r`. The
+    generalization of Wilson's construction found by Brouwer and van
+    Rees (with one truncated column) ensures that an `OA(k,n)` exists
+    if the following designs exist: `OA(k+1,r)`, `OA(k,m)`,
+    `OA(k,\sum_{1\leq i\leq c} u_i)`, `OA(k,m+x_1)-OA(k,x_1)`, ...,
+    `OA(k,m+x_c)-OA(k,x_c)`.
+
+    For more information, see the documentation of
+    :func:`~sage.combinat.designs.orthogonal_arrays.wilson_construction`.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_brouwer_van_rees_with_one_truncated_column
+        sage: find_brouwer_van_rees_with_one_truncated_column(5,53)[1]
+        (None, 5, 7, 7, [[(2, 1), (2, 1)]])
+        sage: find_brouwer_van_rees_with_one_truncated_column(6,96)[1]
+        (None, 6, 7, 13, [[(3, 1), (1, 1), (1, 1)]])
+    """
+    cdef list available_multipliers
+    cdef int kk,uu,r,m,remainder,max_multiplier
+    cdef tuple values
+
+    # We write n=rm+remainder
+    for m in range(2,n//2):
+        if not is_available(k,m):
+            continue
+
+        # List of x such that a OA(k,m+x)-OA(k,x) exists
+        #
+        # This is the list of integers that can be used as multipliers
+        # for the points of the truncated column
+        available_multipliers = []
+        if is_available(k,m+1):
+            available_multipliers.append(1)
+        for kk,uu in ioa_indexed_by_n_minus_x.get(m,[]):
+            if kk>=k:
+                available_multipliers.append(uu)
+
+        # We stop if there is no multiplier, or if 1 is the only
+        # multiplier (those cases are handled by other functions)
+        if (not available_multipliers or
+            (len(available_multipliers) == 1 and available_multipliers[0] == 1)):
+            continue
+
+        max_multiplier = max(available_multipliers)
+        for r in range(2,n//m+1):
+            remainder = n-r*m
+            if (remainder > r*max_multiplier or
+                not is_available(k+1,r) or
+                not is_available(k,remainder)):
+                continue
+
+            values = int_as_sum(remainder, available_multipliers, r)
+            if values is not None:
+                from orthogonal_arrays import wilson_construction
+                return (wilson_construction,
+                        (None,k,r,m,[[(x,1) for x in values]]))
 
     return False
 

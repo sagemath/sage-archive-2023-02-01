@@ -197,7 +197,7 @@ key.
 We consider the smallest poset describing a class hierarchy admitting
 no MRO whatsoever::
 
-    sage: P = Poset({10: [9,8,7], 9:[6,1], 8:[5,2], 7:[4,3], 6: [3,2], 5:[3,1], 4: [2,1] }, facade=True)
+    sage: P = Poset({10: [9,8,7], 9:[6,1], 8:[5,2], 7:[4,3], 6: [3,2], 5:[3,1], 4: [2,1] }, linear_extension=True, facade=True)
 
 And build a `HierarchyElement` from it::
 
@@ -220,7 +220,8 @@ We also get a failure when we relabel `P` according to another linear
 extension. For easy relabelling, we first need to set an appropriate
 default linear extension for `P`::
 
-    sage: P = P.with_linear_extension(reversed(IntegerRange(1,11)))
+    sage: linear_extension = list(reversed(IntegerRange(1,11)))
+    sage: P = P.with_linear_extension(linear_extension)
     sage: list(P)
     [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
@@ -276,11 +277,12 @@ algorithms succeed; along the way, we collect some statistics::
     sage: stats = []
     sage: for l in L:
     ....:     x = HierarchyElement(10, l.to_poset())
-    ....:     try:
+    ....:     try: # Check that x.mro_standard always fails with a ValueError
     ....:         x.mro_standard
-    ....:         assert False
-    ....:     except:
+    ....:     except ValueError:
     ....:         pass
+    ....:     else:
+    ....:         assert False
     ....:     assert x.mro            == list(P)
     ....:     assert x.mro_controlled == list(P)
     ....:     assert x.all_bases_len() == 15
@@ -1057,7 +1059,7 @@ class HierarchyElement(object):
         from sage.combinat.posets.poset_examples import Posets
         from sage.graphs.digraph import DiGraph
         if succ in Posets():
-            assert succ in Sets().Facades()
+            assert succ in Sets().Facade()
             succ = succ.upper_covers
         if isinstance(succ, DiGraph):
             succ = succ.copy()
@@ -1325,9 +1327,9 @@ class HierarchyElement(object):
             sage: from sage.misc.c3_controlled import HierarchyElement
             sage: P = Poset((divisors(30), lambda x,y: y.divides(x)), facade=True)
             sage: HierarchyElement(1, P).all_bases()
-            set([1])
-            sage: HierarchyElement(10, P).all_bases()
-            set([...])
+            {1}
+            sage: HierarchyElement(10, P).all_bases()  # random output
+            {10, 5, 2, 1}
             sage: sorted([x.value for x in HierarchyElement(10, P).all_bases()])
             [1, 2, 5, 10]
         """

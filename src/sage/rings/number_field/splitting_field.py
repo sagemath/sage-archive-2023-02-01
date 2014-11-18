@@ -68,10 +68,10 @@ class SplittingData:
         self.pol = _pol
         self.dm = Integer(_dm)
 
-    def __cmp__(self, other):
+    def key(self):
         """
-        Compare first by degree bound, then by "polynomial"
-        (whatever that means).
+        Return a sorting key. Compare first by degree bound, then by
+        polynomial degree, then by discriminant.
 
         EXAMPLES::
 
@@ -79,15 +79,15 @@ class SplittingData:
             sage: L = []
             sage: L.append(SplittingData(pari("x^2 + 1"), 1))
             sage: L.append(SplittingData(pari("x^3 + 1"), 1))
-            sage: L.append(SplittingData(pari("x^2 + 1"), 2))
+            sage: L.append(SplittingData(pari("x^2 + 7"), 2))
             sage: L.append(SplittingData(pari("x^3 + 1"), 2))
-            sage: sorted(L)
-            [SplittingData(x^2 + 1, 1), SplittingData(x^3 + 1, 1), SplittingData(x^2 + 1, 2), SplittingData(x^3 + 1, 2)]
+            sage: L.append(SplittingData(pari("x^3 + x^2 + x + 1"), 2))
+            sage: L.sort(key=lambda x: x.key()); L
+            [SplittingData(x^2 + 1, 1), SplittingData(x^3 + 1, 1), SplittingData(x^2 + 7, 2), SplittingData(x^3 + x^2 + x + 1, 2), SplittingData(x^3 + 1, 2)]
+            sage: [x.key() for x in L]
+            [(1, 2, 16), (1, 3, 729), (2, 2, 784), (2, 3, 256), (2, 3, 729)]
         """
-        delta = self.dm.__cmp__(other.dm)
-        if delta:
-            return delta
-        return self.pol.__cmp__(other.pol)
+        return (self.dm, self.poldegree(), self.pol.poldisc().norm().abs())
 
     def poldegree(self):
         """
@@ -467,7 +467,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
         degree_divisor = rel_degree_divisor * absolute_degree
 
         # Sort according to degree to handle low degrees first
-        L.sort()
+        L.sort(key=lambda x: x.key())
         verbose("SplittingData to handle: %s"%[s._repr_tuple() for s in L])
         verbose("Bounds for absolute degree: [%s, %s]"%(degree_divisor,degree_multiple))
 

@@ -810,6 +810,22 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
             sage: E._point_homset(Spec(GF(5^10,'a'),GF(5)), E)
             Abelian group of points on Elliptic Curve defined
             by y^2 = x^3 + x + 1 over Finite Field in a of size 5^10
+
+        Point sets of elliptic curves are unique (see :trac:`17008`)::
+
+            sage: E = EllipticCurve([2, 3])
+            sage: E.point_homset() is E.point_homset(QQ)
+            True
+
+            sage: @fork
+            ....: def compute_E():
+            ....:     E = EllipticCurve([2, 3])
+            ....:     p = E(3, 6, 1)
+            ....:     return p
+            ....:
+            sage: p = compute_E()
+            sage: 2*p
+            (-23/144 : 2827/1728 : 1)
         """
         return SchemeHomset_points_abelian_variety_field(*args, **kwds)
 
@@ -2456,6 +2472,10 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
         """
         Draw a graph of this elliptic curve.
 
+        The plot method is only implemented when there is a natural coercion
+        from the base ring of ``self`` to ``RR``. In this case, ``self`` is
+        plotted as if it was defined over ``RR``.
+
         INPUT:
 
         -  ``xmin, xmax`` - (optional) points will be computed at
@@ -2492,16 +2512,21 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
             sage: E = EllipticCurve([0,-1])
             sage: plot(E, rgbcolor=hue(0.7))
+            Graphics object consisting of 1 graphics primitive
             sage: E = EllipticCurve('37a')
             sage: plot(E)
+            Graphics object consisting of 2 graphics primitives
             sage: plot(E, xmin=25,xmax=26)
+            Graphics object consisting of 2 graphics primitives
 
         With #12766 we added the components keyword::
 
             sage: E.real_components()
             2
             sage: E.plot(components='bounded')
+            Graphics object consisting of 1 graphics primitive
             sage: E.plot(components='unbounded')
+            Graphics object consisting of 1 graphics primitive
 
         If there is only one component then specifying
         components='bounded' raises a ValueError::
@@ -2511,6 +2536,14 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
             Traceback (most recent call last):
             ...
             ValueError: no bounded component for this curve
+
+        An elliptic curve defined over the Complex Field can not be plotted::
+
+            sage: E = EllipticCurve(CC, [0,0,1,-1,0])
+            sage: E.plot()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Plotting of curves over Complex Field with 53 bits of precision not implemented yet
         """
         RR = rings.RealField()
         K = self.base_ring()

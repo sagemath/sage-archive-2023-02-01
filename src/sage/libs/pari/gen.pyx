@@ -59,7 +59,6 @@ cimport cython
 
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
-    int     gcmp_sage(GEN x, GEN y)
 
 cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
@@ -1045,24 +1044,16 @@ cdef class gen(sage.structure.element.RingElement):
         return glength(self.g)
 
 
-
     ###########################################
     # comparisons
-    # I had to rewrite PARI's compare, since
-    # otherwise trapping signals and other horrible,
-    # memory-leaking and slow stuff occurs.
     ###########################################
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cdef _richcmp_c_impl(left, Element right, int op):
         """
-        Comparisons
-
-        First uses PARI's cmp routine; if it decides the objects are not
-        comparable, it then compares the underlying strings (since in
-        Python all objects are supposed to be comparable).
+        Compare ``left`` and ``right`` using ``op``.
 
         EXAMPLES::
 
@@ -1085,8 +1076,6 @@ cdef class gen(sage.structure.element.RingElement):
             sage: a is 5
             False
 
-        ::
-
             sage: pari(2.5) > None
             True
             sage: pari(3) == pari(3)
@@ -1095,8 +1084,114 @@ cdef class gen(sage.structure.element.RingElement):
             False
             sage: pari(I) == pari(I)
             True
+
+        This does not define a total order.  An error is raised when
+        applying inequality operators to non-ordered types::
+
+            sage: pari("Mod(1,3)") <= pari("Mod(2,3)")
+            Traceback (most recent call last):
+            ...
+            PariError: forbidden comparison t_INTMOD , t_INTMOD
+            sage: pari("[0]") <= pari("0")
+            Traceback (most recent call last):
+            ...
+            PariError: forbidden comparison t_VEC (1 elts) , t_INT
+
+        TESTS:
+
+        Check that :trac:`16127` has been fixed::
+
+            sage: pari(1/2) < pari(1/3)
+            False
+            sage: pari(1) < pari(1/2)
+            False
+
+            sage: pari('O(x)') == 0
+            True
+            sage: pari('O(2)') == 0
+            True
         """
-        return gcmp_sage(left.g, (<gen>right).g)
+        cdef bint r
+        cdef GEN x = (<gen>left).g
+        cdef GEN y = (<gen>right).g
+        pari_catch_sig_on()
+        if op == 2:    # ==
+            r = (gequal(x, y) != 0)
+        elif op == 3:  # !=
+            r = (gequal(x, y) == 0)
+        else:
+            r = left._rich_to_bool(op, gcmp(x, y))
+        pari_catch_sig_off()
+        return r
+
+    def __cmp__(left, right):
+        return (<Element>left)._cmp(right)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        """
+        Compare ``left`` and ``right``.
+
+        This uses PARI's ``cmp_universal()`` routine, which defines
+        a total ordering on the set of all PARI objects (up to the
+        indistinguishability relation given by ``gidentical()``).
+
+        .. WARNING::
+            
+            This comparison is only mathematically meaningful when
+            comparing 2 integers. In particular, when comparing
+            rationals or reals, this does not correspond to the natural
+            ordering.
+
+        EXAMPLES::
+
+            sage: cmp(pari(5), 5)
+            0
+            sage: cmp(pari(5), 10)
+            -1
+            sage: cmp(pari(2.5), None)
+            1
+            sage: cmp(pari(3), pari(3))
+            0
+            sage: cmp(pari('x^2 + 1'), pari('I-1'))
+            1
+            sage: cmp(pari(I), pari(I))
+            0
+
+        Beware when comparing rationals or reals::
+
+            sage: cmp(pari(2/3), pari(2/5))
+            -1
+            sage: two = RealField(256)(2)._pari_()
+            sage: cmp(two, pari(1.0))
+            1
+            sage: cmp(two, pari(2.0))
+            1
+            sage: cmp(two, pari(3.0))
+            1
+
+        Since :trac:`17026`, different elements with the same string
+        representation can be distinguished by ``cmp()``::
+
+            sage: a = pari(0); a
+            0
+            sage: b = pari("0*ffgen(ffinit(29, 10))"); b
+            0
+            sage: cmp(a, b)
+            -1
+
+            sage: x = pari("x"); x
+            x
+            sage: y = pari("ffgen(ffinit(3, 5))"); y
+            x
+            sage: cmp(x, y)
+            1
+
+        """
+        cdef int r
+        pari_catch_sig_on()
+        r = cmp_universal(left.g, (<gen>right).g)
+        pari_catch_sig_off()
+        return r
 
     def __copy__(gen self):
         pari_catch_sig_on()
@@ -1543,6 +1638,14 @@ cdef class gen(sage.structure.element.RingElement):
 
         - `n` (gen) -- a non-negative integer
 
+        OUTPUT:
+
+        0 if `n<0`, otherwise the Hurwitz-Kronecker class number of
+        `n`.  This is `0` if `n\equiv1,2\mod4`, `-1/12` when `n=0`,
+        and otherwise it is the number of classes of positive definite
+        binary quadratic forms with discriminant `-n`, each weighted
+        by the number of its automorphisms.
+
         .. note::
 
            If `n` is large (more than `5*10^5`), the result is
@@ -1550,10 +1653,11 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
 
-        The Hurwitx class number is 0 is n is congruent to 1 or 2 modulo 4::
-            sage: pari(-10007).qfbhclassno()
+        The Hurwitz class number is 0 if n is congruent to 1 or 2 modulo 4::
+
+            sage: pari(10009).qfbhclassno()
             0
-            sage: pari(-2).qfbhclassno()
+            sage: pari(2).qfbhclassno()
             0
 
         It is -1/12 for n=0::
@@ -1575,6 +1679,127 @@ cdef class gen(sage.structure.element.RingElement):
         """
         pari_catch_sig_on()
         return P.new_gen(hclassno(n.g))
+
+    def qfbclassno(gen d, long flag=0):
+        r"""
+        Computes the class number of the quadratic order of discriminant `d`.
+
+        INPUT:
+
+        - `d` (gen) -- a quadratic discriminant, which is an integer
+          congruent to `0` or `1`\mod4`, not a square.
+
+        - ``flag`` (long int) -- if 0 (default), uses Euler product
+          and the functional equation for `d>0` or Shanks's method for
+          `d<0`; if 1, uses Euler products and the functional equation
+          in both cases.
+
+        OUTPUT:
+
+        The class number of the quadratic order with discriminant `d`.
+
+        .. warning::
+
+           Using Euler products and the functional equation is
+           reliable but has complexity `O(|d|^{1/2})`.  Using Shanks's
+           method for `d<0` is `O(|d|^{1/4})` but this function may give
+           incorrect results when the class group has many cyclic
+           factors, because implementing Shanks's method in full
+           generality slows it down immensely. It is therefore
+           strongly recommended to double-check results using either
+           the version with ``flag`` = 1 or the function
+           ``quadclassunit``. The result is unconditionally correct
+           for `-d < 2e10`.
+
+        EXAMPLES::
+
+           sage: pari(-4).qfbclassno()
+           1
+           sage: pari(-23).qfbclassno()
+           3
+           sage: pari(-104).qfbclassno()
+           6
+
+           sage: pari(109).qfbclassno()
+           1
+           sage: pari(10001).qfbclassno()
+           16
+           sage: pari(10001).qfbclassno(flag=1)
+           16
+
+        TESTS:
+
+        The input must be congruent to `0` or `1\mod4` and not a square::
+
+           sage: pari(3).qfbclassno()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in classno2: disc % 4 > 1
+           sage: pari(4).qfbclassno()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in classno2: issquare(disc) = 1
+        """
+        pari_catch_sig_on()
+        return P.new_gen(qfbclassno0(d.g, flag))
+
+    def quadclassunit(gen d, long precision=0):
+        r"""
+        Returns the class group of a quadratic order of discriminant `d`.
+
+        INPUT:
+
+        - `d` (gen) -- a quadratic discriminant, which is an integer
+          congruent to `0` or `1`\mod4`, not a square.
+
+        OUTPUT:
+
+        (h,cyc,gen,reg) where:
+
+        - h is the class number
+        - cyc is the class group structure (list of invariants)
+        - gen is the class group generators (list of quadratic forms)
+        - reg is the regulator
+
+        ALGORITHM:
+
+        Buchmann-McCurley's sub-exponential algorithm
+
+        EXAMPLES::
+
+           sage: pari(-4).quadclassunit()
+           [1, [], [], 1]
+           sage: pari(-23).quadclassunit()
+           [3, [3], [Qfb(2, 1, 3)], 1]
+           sage: pari(-104).quadclassunit()
+           [6, [6], [Qfb(5, -4, 6)], 1]
+
+           sage: pari(109).quadclassunit()
+           [1, [], [], 5.56453508676047]
+           sage: pari(10001).quadclassunit() # random generators
+           [16, [16], [Qfb(10, 99, -5, 0.E-38)], 5.29834236561059]
+           sage: pari(10001).quadclassunit()[0]
+           16
+           sage: pari(10001).quadclassunit()[1]
+           [16]
+           sage: pari(10001).quadclassunit()[3]
+           5.29834236561059
+
+        TESTS:
+
+        The input must be congruent to `0` or `1\mod4` and not a square::
+
+           sage: pari(3).quadclassunit()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in Buchquad: disc % 4 > 1
+           sage: pari(4).quadclassunit()
+           Traceback (most recent call last):
+           ...
+           PariError: domain error in Buchquad: issquare(disc) = 1
+        """
+        pari_catch_sig_on()
+        return P.new_gen(quadclassunit0(d.g, 0, NULL, prec_bits_to_words(precision)))
 
     def ispseudoprime(gen self, long flag=0):
         """
@@ -2366,18 +2591,36 @@ cdef class gen(sage.structure.element.RingElement):
 
     def Strexpand(gen x):
         """
-        Strexpand(x): Concatenate the entries of the vector x into a single
-        string, performing tilde expansion.
+        Concatenate the entries of the vector `x` into a single string,
+        then perform tilde expansion and environment variable expansion
+        similar to shells.
 
-        .. note::
+        INPUT:
 
-           I have no clue what the point of this function is. - William
+        - ``x`` -- PARI gen. Either a vector or an element which is then
+          treated like `[x]`.
+
+        OUTPUT:
+
+        - PARI string (type ``t_STR``)
+
+        EXAMPLES::
+
+            sage: pari('"~/subdir"').Strexpand()     # random
+            "/home/johndoe/subdir"
+            sage: pari('"$SAGE_LOCAL"').Strexpand()  # random
+            "/usr/local/sage/local"
+
+        TESTS::
+
+            sage: a = pari('"$HOME"')
+            sage: a.Strexpand() != a
+            True
         """
         if typ(x.g) != t_VEC:
-            raise TypeError, "x must be of type t_VEC."
+            x = P.vector(1, [x])
         pari_catch_sig_on()
         return P.new_gen(Strexpand(x.g))
-
 
     def Strtex(gen x):
         r"""
@@ -2386,15 +2629,12 @@ cdef class gen(sage.structure.element.RingElement):
 
         INPUT:
 
-
-        -  ``x`` - gen
-
+        - ``x`` -- PARI gen. Either a vector or an element which is then
+          treated like `[x]`.
 
         OUTPUT:
 
-
-        -  ``gen`` - PARI t_STR (string)
-
+        - PARI string (type ``t_STR``)
 
         EXAMPLES::
 
@@ -5888,12 +6128,10 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e = pari([0,0,0,-82,0]).ellinit()
             sage: e.elleta()
             [3.60546360143265, 3.60546360143265*I]
-            sage: w1,w2 = e.omega()
+            sage: w1, w2 = e.omega()
             sage: eta1, eta2 = e.elleta()
-            sage: w1*eta2-w2*eta1
+            sage: w1*eta2 - w2*eta1
             6.28318530717959*I
-            sage: w1*eta2-w2*eta1 == pari(2*pi*I)
-            True
         """
         pari_catch_sig_on()
         return P.new_gen(elleta(self.g, prec_bits_to_words(precision)))
@@ -8890,22 +9128,18 @@ cdef class gen(sage.structure.element.RingElement):
         return P.new_gen(order(self.g))
 
     def znprimroot(self):
-        """
-        Return a primitive root modulo self, whenever it exists.
-
-        This is a generator of the group `(\ZZ/n\ZZ)^*`, whenever
-        this group is cyclic, i.e. if `n=4` or `n=p^k` or
-        `n=2p^k`, where `p` is an odd prime and `k`
-        is a natural number.
+        r"""
+        Return a primitive root modulo ``self``, whenever it exists.
 
         INPUT:
 
+        - ``self`` -- an integer `n` such that `|n|` is equal to 1, 2,
+          4, a power of an odd prime, or twice a power of an odd prime
 
-        -  ``self`` - positive integer equal to 4, or a power
-           of an odd prime, or twice a power of an odd prime
+        OUTPUT:
 
-
-        OUTPUT: gen
+        A generator (type ``t_INTMOD``) of `(\ZZ/n\ZZ)^*`.  Note that
+        this group is cyclic if and only if `n` is of the above form.
 
         EXAMPLES::
 
@@ -8918,6 +9152,41 @@ cdef class gen(sage.structure.element.RingElement):
         """
         pari_catch_sig_on()
         return P.new_gen(znprimroot(self.g))
+
+    def znstar(self):
+        r"""
+        Return the structure of the group `(\ZZ/n\ZZ)^*`.
+
+        INPUT:
+
+        - ``self`` -- any integer `n` (type ``t_INT``)
+
+        OUTPUT:
+
+        A triple `[\phi(n), [d_1, \ldots, d_k], [x_1, \ldots, x_k]]`,
+        where
+
+        - `\phi(n)` is the order of `(\ZZ/n\ZZ)^*`;
+
+        - `d_1, \ldots, d_k` are the unique integers greater than 1
+          with `d_k \mid d_{k-1} \mid \ldots \mid d_1` such that
+          `(\ZZ/n\ZZ)^*` is isomorphic to `\prod_{i=1}^k \ZZ/d_i\ZZ`;
+
+        - `x_1, \ldots, x_k` are the images of the standard generators
+          under some isomorphism from `\prod_{i=1}^k \ZZ/d_i\ZZ` to
+          `(\ZZ/n\ZZ)^*`.
+
+        EXAMPLES::
+
+            sage: pari(0).znstar()
+            [2, [2], [-1]]
+            sage: pari(96).znstar()
+            [32, [8, 2, 2], [Mod(37, 96), Mod(79, 96), Mod(65, 96)]]
+            sage: pari(-5).znstar()
+            [4, [4], [Mod(2, 5)]]
+        """
+        pari_catch_sig_on()
+        return P.new_gen(znstar(self.g))
 
     def __abs__(self):
         return self.abs()
@@ -9389,7 +9658,9 @@ def init_pari_stack(s=8000000):
 
 
 cdef gen objtogen(s):
-    """Convert any Sage/Python object to a PARI gen"""
+    """
+    Convert any Sage/Python object to a PARI gen.
+    """
     cdef GEN g
     cdef Py_ssize_t length, i
     cdef mpz_t mpz_int
@@ -9440,6 +9711,9 @@ cdef gen objtogen(s):
         for i from 0 <= i < length:
             v[i] = objtogen(s[i])
         return v
+
+    if s is None:
+        raise ValueError("Cannot convert None to pari")
 
     # Simply use the string representation
     return objtogen(str(s))

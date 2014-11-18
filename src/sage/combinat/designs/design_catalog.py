@@ -82,7 +82,7 @@ from sage.combinat.designs.covering_design import best_known_covering_design_www
 
 from sage.combinat.designs.latin_squares import mutually_orthogonal_latin_squares
 
-from sage.combinat.designs.orthogonal_arrays import transversal_design, orthogonal_array, incomplete_orthogonal_array
+from sage.combinat.designs.orthogonal_arrays import transversal_design, incomplete_orthogonal_array
 
 
 from sage.combinat.designs.difference_family import difference_family
@@ -93,9 +93,21 @@ BlockDesign = IncidenceStructure    # just an alias
 from sage.combinat.designs.bibd import balanced_incomplete_block_design, steiner_triple_system
 
 # deprecated in june 2014 (#16446)
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecated_function_alias, deprecated_callable_import
 BalancedIncompleteBlockDesign = deprecated_function_alias(16446,
         balanced_incomplete_block_design)
 
+from orthogonal_arrays import OAMainFunctions as orthogonal_arrays
+
+# When this deprecated function is removed, remove the handling of k=None in the
+# function orthogonal_arrays.orthogonal_array()
+deprecated_callable_import(17034,
+                           'sage.combinat.designs.orthogonal_arrays',
+                           globals(),
+                           locals(),
+                           ["orthogonal_array"],
+                           ("This function will soon be removed. Use the designs.orthogonal_arrays.* functions instead"))
+
 # We don't want this to appear in designs.<tab>
 del deprecated_function_alias
+del deprecated_callable_import

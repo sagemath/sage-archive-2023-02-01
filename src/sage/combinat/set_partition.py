@@ -48,6 +48,7 @@ from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
 from functools import reduce
 
+
 class SetPartition(ClonableArray):
     """
     A partition of a set.
@@ -1399,15 +1400,50 @@ class SetPartitions_setparts(SetPartitions_set):
         return "Set partitions of %s with sizes in %s"%(Set(self._set), self.parts)
 
     def cardinality(self):
-        """
+        r"""
         Return the cardinality of ``self``.
+
+        This algorithm counts for each block of the partition the
+        number of ways to fill it using values from the set.  Then,
+        for each distinct value `v` of block size, we divide the result by
+        the number of ways to arrange the blocks of size `v` in the
+        set partition.
+
+        For example, if we want to count the number of set partitions
+        of size 13 having [3,3,3,2,2] as underlying partition we
+        compute the number of ways to fill each block of the
+        partition, which is `\binom{13}{3} \binom{10}{3} \binom{7}{3}
+        \binom{4}{2}\binom{2}{2}` and as we have three blocks of size
+        `3` and two blocks of size `2`, we divide the result by
+        `3!2!` which gives us `600600`.
 
         EXAMPLES::
 
             sage: SetPartitions(3, [2,1]).cardinality()
             3
+            sage: SetPartitions(13, Partition([3,3,3,2,2])).cardinality()
+            600600
+
+        TESTS::
+
+            sage: all((len(SetPartitions(size, part)) == SetPartitions(size, part).cardinality() for size in range(8) for part in Partitions(size)))
+            True
+            sage: sum((SetPartitions(13, p).cardinality() for p in Partitions(13))) == SetPartitions(13).cardinality()
+            True
         """
-        return Integer(len(self.list()))
+        from sage.misc.misc_c import prod
+
+        remaining_subset_size = Integer(len(self._set))
+        cardinal = Integer(1)
+        for subset_size in self.parts:
+            cardinal *= remaining_subset_size.binomial(subset_size)
+            remaining_subset_size -= subset_size
+
+        repetitions = (Integer(rep).factorial()
+                       for rep in self.parts.to_exp_dict().values()
+                       if rep != 1)
+        cardinal /= prod(repetitions)
+        return Integer(cardinal)
 
     def __iter__(self):
         """
@@ -1727,6 +1763,3 @@ def cyclic_permutations_of_set_partition_iterator(set_part):
         for right in cyclic_permutations_of_set_partition_iterator(set_part[1:]):
             for perm in CyclicPermutations(set_part[0]):
                 yield [perm] + right
-
-
-

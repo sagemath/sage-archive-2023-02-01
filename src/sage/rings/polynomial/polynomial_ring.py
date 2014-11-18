@@ -1479,7 +1479,20 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
         from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing
         return PolynomialQuotientRing(self, f, names)
 
+    def weyl_algebra(self):
+        """
+        Return the Weyl algebra generated from ``self``.
 
+        EXAMPLES::
+
+            sage: R = QQ['x']
+            sage: W = R.weyl_algebra(); W
+            Differential Weyl algebra of polynomials in x over Rational Field
+            sage: W.polynomial_ring() == R
+            True
+        """
+        from sage.algebras.weyl_algebra import DifferentialWeylAlgebra
+        return DifferentialWeylAlgebra(self)
 
 class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False, implementation=None,
@@ -1954,7 +1967,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
             from sage.rings.polynomial.polynomial_zz_pex import Polynomial_ZZ_pEX
 
             p=base_ring.characteristic()
-            self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.polynomial()), p))
+            self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.modulus()), p))
             element_class = Polynomial_ZZ_pEX
 
         PolynomialRing_field.__init__(self, base_ring, sparse=False, name=name,
@@ -2209,6 +2222,46 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         s = PolynomialRing_commutative._repr_(self)
         return s + self._implementation_repr
 
+    def residue_field(self, ideal, names=None):
+        """
+        Return the residue finite field at the given ideal.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(2)[]
+            sage: k.<a> = R.residue_field(t^3+t+1); k
+            Residue field in a of Principal ideal (t^3 + t + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.list()
+            [0, a, a^2, a + 1, a^2 + a, a^2 + a + 1, a^2 + 1, 1]
+            sage: R.residue_field(t)
+            Residue field of Principal ideal (t) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: P = R.irreducible_element(8) * R
+            sage: P
+            Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.<a> = R.residue_field(P); k
+            Residue field in a of Principal ideal (t^8 + t^4 + t^3 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            sage: k.cardinality()
+            256
+
+        Non-maximal ideals are not accepted::
+
+            sage: R.residue_field(t^2 + 1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+            sage: R.residue_field(0)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+            sage: R.residue_field(1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideal is not maximal
+        """
+        ideal = self.ideal(ideal)
+        if not ideal.is_maximal():
+            raise ArithmeticError("ideal is not maximal")
+        return ideal.residue_field(names)
 
 class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
                                  PolynomialRing_dense_mod_n,
@@ -2305,10 +2358,11 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
           - ``'random'``: try random polynomials until an irreducible
             one is found.
 
-          If ``algorithm`` is ``None``, the Conway polynomial is used
-          if it is found in the database.  If no Conway polynomial is
-          found, the algorithm ``minimal_weight`` is used if `p = 2`,
-          and the algorithm ``adleman-lenstra`` if `p > 2`.
+          If ``algorithm`` is ``None``, use `x - 1` in degree 1. In
+          degree > 1, the Conway polynomial is used if it is found in
+          the database.  Otherwise, the algorithm ``minimal_weight``
+          is used if `p = 2`, and the algorithm ``adleman-lenstra`` if
+          `p > 2`.
 
         OUTPUT:
 
@@ -2338,6 +2392,15 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             sage: GF(2)['x'].irreducible_element(33, algorithm="minimal_weight")
             x^33 + x^10 + 1
 
+        In degree 1::
+        
+            sage: GF(97)['x'].irreducible_element(1)
+            x + 96
+            sage: GF(97)['x'].irreducible_element(1, algorithm="conway")
+            x + 92
+            sage: GF(97)['x'].irreducible_element(1, algorithm="adleman-lenstra")
+            x
+
         AUTHORS:
 
         - Peter Bruin (June 2013)
@@ -2356,15 +2419,17 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         n = int(n)
         if n < 1:
             raise ValueError("degree must be at least 1")
+
         if algorithm is None:
-            if exists_conway_polynomial(p, n):
+            if n == 1:
+                return self((-1,1))  # Polynomial x - 1
+            elif exists_conway_polynomial(p, n):
                 algorithm = "conway"
             elif p == 2:
                 algorithm = "minimal_weight"
             else:
                 algorithm = "adleman-lenstra"
-
-        if algorithm == "primitive":
+        elif algorithm == "primitive":
             if exists_conway_polynomial(p, n):
                 algorithm = "conway"
             else:

@@ -1852,8 +1852,10 @@ class QuiverMutationType_Reducible(QuiverMutationType_abstract,UniqueRepresentat
                 self._letter += ' x '
             self._letter += comp._letter
             self._rank += comp._rank
-            self._graph = self._graph.disjoint_union( comp._graph, verbose_relabel=False )
-            self._digraph = self._digraph.disjoint_union( comp._digraph, verbose_relabel=False )
+            self._graph = self._graph.disjoint_union(comp._graph,
+                                                     labels='integers')
+            self._digraph = self._digraph.disjoint_union(comp._digraph,
+                                                         labels='integers')
         self._graph.name('')
         self._digraph.name('')
 

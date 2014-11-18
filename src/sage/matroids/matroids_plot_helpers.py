@@ -55,6 +55,7 @@ EXAMPLES::
     ....: 7: (3,3), 8: (4,0), 9: (-1,1), 10: (-2,-2)}
     sage: M1._cached_info={'plot_positions': pos_dict, 'plot_lineorders': None}
     sage: matroids_plot_helpers.geomrep(M1, sp=True)
+    Graphics object consisting of 22 graphics primitives
 
 """
 # *****************************************************************************

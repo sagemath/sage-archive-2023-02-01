@@ -65,6 +65,18 @@ See spkg-src.
  * no_usr_local.patch: Do not add /usr/local/{lib,include} "just in
    case" to the LDFLAGS/CPPFLAGS. Especially not at the end ...
 
+The following patches fix errors that only occur in a debug build, see
+http://trac.sagemath.org/ticket/16938
+They shouldn't be needed any more in the next Singular version:
+
+ * hans-polyvectorerror.patch: Fix erroneous "mixed poly/vector" error
+   message
+ * hans-slimgb-and-letterplace.patch: Fix incorrect debug assertions
+   in slimgb and letterplace algebras
+ * hans-integerpolys.patch: Fix incorrect assertions in integer
+   polynomials.
+
+
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*
    systems with the exception of Linux. The online README at

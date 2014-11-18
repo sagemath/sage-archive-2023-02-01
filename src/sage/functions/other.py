@@ -938,8 +938,16 @@ class Function_gamma_inc(BuiltinFunction):
             sage: numerical_approx(gamma(9, 10^(-3)) - gamma(9), digits=40)  # abs tol 1e-36
             -1.110111564516556704267183273042450876294e-28
 
+        Check that :trac:`17328` is fixed::
+
+            sage: incomplete_gamma(float(-1), float(-1))
+            (-0.8231640121031085+3.141592653589793j)
+            sage: incomplete_gamma(RR(-1), RR(-1))
+            -0.823164012103109 + 3.14159265358979*I
+            sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2)))
+            1.27309721644711
         """
-        if parent is None:
+        if not hasattr(parent, 'precision'):
             parent = ComplexField()
         else:
             parent = ComplexField(parent.precision())

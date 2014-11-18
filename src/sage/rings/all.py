@@ -137,6 +137,9 @@ Frac = FractionField
 # continued fractions
 from contfrac import continued_fraction, CFF, ContinuedFractionField
 
+# c-finite sequences
+from cfinite_sequence import CFiniteSequence
+
 # Arithmetic
 from arith import algdep, bernoulli, is_prime, is_prime_power, \
     is_pseudoprime, is_pseudoprime_small_power, valuation, \

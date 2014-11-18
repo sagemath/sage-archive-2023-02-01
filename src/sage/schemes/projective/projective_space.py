@@ -53,6 +53,8 @@ two lines.
 AUTHORS:
 
 - Ben Hutz: (June 2012): support for rings
+
+- Ben Hutz (9/2014): added support for cartesian products
 """
 
 #*****************************************************************************
@@ -843,6 +845,32 @@ class ProjectiveSpace_ring(AmbientSpace):
         F = [phi(F[0]).homogenize(y), phi(F[1]).homogenize(y)*y]
         H = Hom(self,self)
         return(H(F))
+
+    def cartesian_product(self, other):
+        r"""
+        Return the cartesian product of the projective spaces ``self`` and
+        ``other``.
+
+        INPUT:
+
+        - ``other`` - A projective space with the same base ring as ``self``
+
+        OUTPUT:
+
+        - A cartesian product of projective spaces
+
+        EXAMPLES::
+
+            sage: P1 = ProjectiveSpace(QQ,1,'x')
+            sage: P2 = ProjectiveSpace(QQ,2,'y')
+            sage: PP = P1.cartesian_product(P2); PP
+            Product of projective spaces P^1 x P^2 over Rational Field
+            sage: PP.gens()
+            (x0, x1, y0, y1, y2)
+        """
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        return ProductProjectiveSpaces([self, other])
+
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):

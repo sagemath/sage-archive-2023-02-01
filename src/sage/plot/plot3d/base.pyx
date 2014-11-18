@@ -1442,10 +1442,22 @@ class Graphics3dGroup(Graphics3d):
             Graphics3d Object
             sage: len(G.all)
             10
+
+        We check that :trac:`17258` is solved::
+
+            sage: g = point3d([0,-2,-2]); g += point3d([2,-2,-2])
+            sage: len(g.all)
+            2
+            sage: h = g + arrow([0,-2,-2], [2,-2,-2])
+            sage: len(g.all)
+            2
+            sage: g == h
+            False
         """
         if type(self) is Graphics3dGroup and isinstance(other, Graphics3d):
-            self.all.append(other)
-            return self
+            s_all = list(self.all)
+            s_all.append(other)
+            return Graphics3dGroup(s_all)
         else:
             return Graphics3d.__add__(self, other)
 

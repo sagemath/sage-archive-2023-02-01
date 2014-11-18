@@ -500,7 +500,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         Note that if ``x`` is not a generator of the parent of self,
         for example if it is a generator of a polynomial algebra which
         maps naturally to this one, then it is converted to an element
-        of this algebra. (This verifies that :trac:`17366` has been fixed.)
+        of this algebra. (This fixes the problem reported in
+        :trac:`17366`.)
 
         ::
 
@@ -529,6 +530,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                     raise TypeError("x must canonically coerce to parent")
             if not x.is_generator():
                 raise TypeError("x must be one of the generators of the parent")
+        else:
+            raise TypeError("x must be one of the generators of the parent")
         return self.element().degree(x.element())
 
     def total_degree(self):

@@ -231,8 +231,9 @@ class MatchingGame(SageObject):
         sage: suitrs[3] = (-3, 'Juliet', 'Rosaline')
         sage: revwrs[-3] = (3, 'Romeo', 'Mercutio')
         sage: g = MatchingGame(suitrs, revwrs)
-        sage: g.solve()
-        {'Mercutio': 'Rosaline', 'Romeo': 'Juliet', 3: -3}
+        sage: D = g.solve()
+        sage: sorted(D.items())
+        [('Mercutio', 'Rosaline'), ('Romeo', 'Juliet'), (3, -3)]
 
     It can be shown that the Gale-Shapley algorithm will return the stable
     matching that is optimal from the point of view of the suitors and is in

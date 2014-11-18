@@ -119,14 +119,12 @@ class MatchingGame(SageObject):
     uses the extended Gale-Shapley algorithm [DI1989]_::
 
         sage: m.solve()
-        {'K': 'C',
-         'J': 'A',
-         'M': 'B',
-         'L': 'D'}
+        {'J': 'A', 'M': 'B', 'L': 'D', 'K': 'C'}
 
-    Matchings have a natural representations as bipartite graph::
+    Matchings have a natural representations as bipartite graphs::
 
         sage: plot(m)
+        Graphics object consisting of 13 graphics primitives
 
     The above plots the bipartite graph associated with the matching.
     This plot can be accessed directly::
@@ -164,16 +162,7 @@ class MatchingGame(SageObject):
         ....:     big_game.suitors()[player].pref = suitr_preferences[player]
         ....:     big_game.reviewers()[player].pref = revr_preferences[-player]
         sage: big_game.solve()
-        {1: -1,
-         2: -8,
-         3: -9,
-         4: -10,
-         5: -7,
-         6: -6,
-         7: -5,
-         8: -4,
-         9: -3,
-        10: -2}
+        {3: -9, 4: -10, 5: -7, 6: -6, 1: -1, 2: -8, 10: -2, 7: -5, 9: -3, 8: -4}
 
     Note that we can also combine the two ways of creating a game. For example
     here is an initial matching game::
@@ -229,7 +218,7 @@ class MatchingGame(SageObject):
     Now the game can be solved::
 
         sage: g.solve()
-        {'Mercutio': 'Rosaline', 3: -3, 'Romeo': 'Juliet'}
+        {'Romeo': 'Juliet', 'Mercutio': 'Rosaline', 3: -3}
 
     Note that the above could be equivalently (and more simply) carried out
     by simply updated the original preference dictionaries::
@@ -242,7 +231,7 @@ class MatchingGame(SageObject):
         sage: revwrs[-3] = (3, 'Romeo', 'Mercutio')
         sage: g = MatchingGame(suitrs, revwrs)
         sage: g.solve()
-        {'Mercutio': 'Rosaline', 3: -3, 'Romeo': 'Juliet'}
+        {'Romeo': 'Juliet', 'Mercutio': 'Rosaline', 3: -3}
 
     It can be shown that the Gale-Shapley algorithm will return the stable
     matching that is optimal from the point of view of the suitors and is in
@@ -258,13 +247,9 @@ class MatchingGame(SageObject):
         ....:               'C': ('a', 'b', 'c')}
         sage: quick_game = MatchingGame([left_dict, right_dict])
         sage: quick_game.solve()
-        {'a': 'A',
-         'c': 'B',
-         'b': 'C'}
+        {'a': 'A', 'b': 'C', 'c': 'B'}
         sage: quick_game.solve(invert=True)
-        {'A': 'c',
-         'C': 'b',
-         'B': 'a'}
+        {'A': 'c', 'B': 'a', 'C': 'b'}
 
     EXAMPLES:
 
@@ -515,8 +500,9 @@ class MatchingGame(SageObject):
             ValueError: game has not been solved yet
 
             sage: g.solve()
-            {0: 3, 1: 4}
+            {1: 4, 0: 3}
             sage: plot(g)
+            Graphics object consisting of 7 graphics primitives
         """
         pl = self.bipartite_graph()
         return pl.plot()
@@ -566,7 +552,7 @@ class MatchingGame(SageObject):
             ...
             ValueError: game has not been solved yet
             sage: g.solve()
-            {0: 3, 1: 4}
+            {1: 4, 0: 3}
             sage: g._is_solved()
         """
         suitor_check = all(s.partner for s in self._suitors)
@@ -852,7 +838,7 @@ class MatchingGame(SageObject):
             ....:                 'D': ('M', 'K', 'J', 'L')}
             sage: m = MatchingGame([suitr_pref, reviewr_pref])
             sage: m.solve()
-            {'K': 'D', 'J': 'A', 'M': 'C', 'L': 'B'}
+            {'J': 'A', 'L': 'B', 'M': 'C', 'K': 'D'}
 
             sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
             ....:               'K': ('A', 'B', 'C', 'D'),
@@ -864,7 +850,7 @@ class MatchingGame(SageObject):
             ....:                 'D': ('M', 'K', 'J', 'L')}
             sage: m = MatchingGame([suitr_pref, reviewr_pref])
             sage: m.solve(invert=True)
-            {'A': 'L', 'C': 'M', 'B': 'J', 'D': 'K'}
+            {'C': 'M', 'D': 'K', 'A': 'L', 'B': 'J'}
 
             sage: suitr_pref = {1: (-1,)}
             sage: reviewr_pref = {-1: (1,)}
@@ -886,7 +872,7 @@ class MatchingGame(SageObject):
             sage: revr = {2: (2,0,1), 3: (0,1,2), 4: (1,0,2)}
             sage: g = MatchingGame(suit, revr)
             sage: g.solve()
-            {0: 3, 1: 4, 2: 2}
+            {1: 4, 2: 2, 0: 3}
         """
         self._is_complete()
 

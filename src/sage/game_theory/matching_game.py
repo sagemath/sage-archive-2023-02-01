@@ -119,7 +119,7 @@ class MatchingGame(SageObject):
     uses the extended Gale-Shapley algorithm [DI1989]_::
 
         sage: D = m.solve()
-        sage: D.items()
+        sage: sorted(D.items())
         [('K', 'C'), ('J', 'A'), ('M', 'B'), ('L', 'D')]
 
     Matchings have a natural representations as bipartite graphs::
@@ -162,8 +162,18 @@ class MatchingGame(SageObject):
         sage: for player in range(n):
         ....:     big_game.suitors()[player].pref = suitr_preferences[player]
         ....:     big_game.reviewers()[player].pref = revr_preferences[-player]
-        sage: big_game.solve()
-        {3: -9, 4: -10, 5: -7, 6: -6, 1: -1, 2: -8, 10: -2, 7: -5, 9: -3, 8: -4}
+        sage: D = big_game.solve()
+        sage: sorted(D.items())
+        [(3, -9),
+         (4, -10),
+         (5, -7),
+         (6, -6),
+         (1, -1),
+         (2, -8),
+         (8, -4),
+         (7, -5),
+         (9, -3),
+         (10, -2)]
 
     Note that we can also combine the two ways of creating a game. For example
     here is an initial matching game::
@@ -218,8 +228,9 @@ class MatchingGame(SageObject):
 
     Now the game can be solved::
 
-        sage: g.solve()
-        {'Romeo': 'Juliet', 'Mercutio': 'Rosaline', 3: -3}
+        sage: D = g.solve()
+        sage: sorted(D.items())
+        [(3, -3), ('Romeo', 'Juliet'), ('Mercutio', 'Rosaline')]
 
     Note that the above could be equivalently (and more simply) carried out
     by simply updated the original preference dictionaries::
@@ -231,8 +242,9 @@ class MatchingGame(SageObject):
         sage: suitrs[3] = (-3, 'Juliet', 'Rosaline')
         sage: revwrs[-3] = (3, 'Romeo', 'Mercutio')
         sage: g = MatchingGame(suitrs, revwrs)
-        sage: g.solve()
-        {'Romeo': 'Juliet', 'Mercutio': 'Rosaline', 3: -3}
+        sage: D = g.solve()
+        sage: sorted(D.items())
+        [(3, -3), ('Romeo', 'Juliet'), ('Mercutio', 'Rosaline')]
 
     It can be shown that the Gale-Shapley algorithm will return the stable
     matching that is optimal from the point of view of the suitors and is in
@@ -248,9 +260,9 @@ class MatchingGame(SageObject):
         ....:               'C': ('a', 'b', 'c')}
         sage: quick_game = MatchingGame([left_dict, right_dict])
         sage: quick_game.solve()
-        {'a': 'A', 'b': 'C', 'c': 'B'}
+        [('a', 'A'), ('b', 'C'), ('c', 'B')]
         sage: quick_game.solve(invert=True)
-        {'A': 'c', 'B': 'a', 'C': 'b'}
+        [('A', 'c'), ('B', 'a'), ('C', 'b')]
 
     EXAMPLES:
 
@@ -1009,3 +1021,158 @@ class Player(object):
             return self._name == other._name
         return self._name == other
 
+    def __lt__(self, other):
+        """
+        Tests less than inequality of two players. Allows for players to be
+        sorted on their names.
+
+        TESTS::
+
+            sage: from sage.game_theory.matching_game import Player
+            sage: p = Player('A')
+            sage: q = Player('B')
+            sage: p < q
+            True
+            sage: q < p
+            False
+
+            sage: p = Player(0)
+            sage: q = Player(1)
+            sage: p < q
+            True
+            sage: q < p
+            False
+        """
+        if isinstance(other, Player):
+            return self._name < other._name
+        return self._name < other
+
+    def __gt__(self, other):
+        """
+        Tests greater than inequality of two players. Allows for players to be
+        sorted on their names.
+
+        TESTS::
+
+            sage: from sage.game_theory.matching_game import Player
+            sage: p = Player('A')
+            sage: q = Player('B')
+            sage: p > q
+            False
+            sage: q > p
+            True
+
+            sage: p = Player(0)
+            sage: q = Player(1)
+            sage: p > q
+            False
+            sage: q > p
+            True
+        """
+        if isinstance(other, Player):
+            return self._name > other._name
+        return self._name > other
+
+    def __ge__(self, other):
+        """
+        Tests greater than or equal inequality of two players. Allows for
+        players to be sorted on their names.
+
+        TESTS::
+
+            sage: from sage.game_theory.matching_game import Player
+            sage: p = Player('A')
+            sage: q = Player('B')
+            sage: p >= q
+            False
+            sage: q >= p
+            True
+
+            sage: p = Player(0)
+            sage: q = Player(1)
+            sage: p >= q
+            False
+            sage: q >= p
+            True
+
+            sage: p = Player(0)
+            sage: q = Player(0)
+            sage: p >= q
+            True
+
+            sage: p = Player('C')
+            sage: q = Player('C')
+            sage: p >= q
+            True
+        """
+        if isinstance(other, Player):
+            return self._name >= other._name
+        return self._name >= other
+
+    def __le__(self, other):
+        """
+        Tests less than or equal inequality of two players. Allows for
+        players to be sorted on their names.
+
+        TESTS::
+
+            sage: from sage.game_theory.matching_game import Player
+            sage: p = Player('A')
+            sage: q = Player('B')
+            sage: p <= q
+            True
+            sage: q <= p
+            False
+
+            sage: p = Player(0)
+            sage: q = Player(1)
+            sage: p <= q
+            True
+            sage: q <= p
+            False
+
+            sage: p = Player(0)
+            sage: q = Player(0)
+            sage: p <= q
+            True
+
+            sage: p = Player('C')
+            sage: q = Player('C')
+            sage: p <= q
+            True
+        """
+        if isinstance(other, Player):
+            return self._name <= other._name
+        return self._name <= other
+
+    def __ne__(self, other):
+        """
+        Tests inequality of two players. Allows for
+        players to be sorted on their names.
+
+        TESTS::
+
+            sage: from sage.game_theory.matching_game import Player
+            sage: p = Player('A')
+            sage: q = Player('B')
+            sage: p != q
+            True
+
+            sage: p = Player(0)
+            sage: q = Player(1)
+            sage: p != q
+            True
+
+            sage: p = Player(0)
+            sage: q = Player(0)
+            sage: p != q
+            False
+
+            sage: p = Player('C')
+            sage: q = Player('C')
+            sage: p != q
+            False
+        """
+        if isinstance(other, Player):
+            return self._name != other._name
+        return self._name != other

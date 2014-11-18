@@ -8492,12 +8492,6 @@ cdef class Expression(CommutativeRingElement):
             not necessarily have the same appearance, but their
             difference can be simplified by radcan to zero.
 
-            All functionally equivalent forms are mapped into a unique
-            form. For a somewhat larger class of expressions, produces
-            a regular form. Two equivalent expressions in this class
-            do not necessarily have the same appearance, but their
-            difference can be transformed by radcan to zero.
-
             For some expressions radcan is quite time consuming. This
             is the cost of exploring certain relationships among the
             components of the expression for simplifications based on

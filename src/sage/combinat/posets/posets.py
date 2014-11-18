@@ -3314,6 +3314,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.cover_relations()
             [[12, 6], [12, 4], [6, 3], [6, 2], [4, 2], [3, 1], [2, 1]]
 
+        Relabeling a (semi)lattice gives a (semi)lattice:
+
+            sage: P=JoinSemilattice({0:[1]})
+            sage: type(P.relabel(lambda n: n+1))
+            <class 'sage.combinat.posets.lattices.FiniteJoinSemilattice_with_category'>
+
         .. NOTE::
 
             As can be seen in the above examples, the default linear
@@ -3342,6 +3348,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: p1 == p3
             True
         """
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
         if isinstance(relabeling, (list, tuple)):
             relabeling = {i:relabeling[i] for i in range(len(self._elements))}
         else:
@@ -3353,9 +3362,26 @@ class FinitePoset(UniqueRepresentation, Parent):
         else:
             elements = tuple(relabeling[self._element_to_vertex(x)]
                              for x in self._elements)
-        return FinitePoset(self._hasse_diagram.relabel(relabeling, inplace=False),
-                           elements=elements,
-                           category=self.category(),
+
+
+        if isinstance(self, FiniteLatticePoset):
+            return FiniteLatticePoset(self._hasse_diagram.relabel(relabeling,
+                                                                  inplace=False),
+                                elements=elements, category=self.category(),
+                                facade=self._is_facade)
+        if isinstance(self, FiniteMeetSemilattice):
+            return FiniteMeetSemilattice(self._hasse_diagram.relabel(relabeling,
+                                                               inplace=False),
+                                   elements=elements, category=self.category(),
+                                   facade=self._is_facade)
+        if isinstance(self, FiniteJoinSemilattice):
+            return FiniteJoinSemilattice(self._hasse_diagram.relabel(relabeling,
+                                                               inplace=False),
+                                   elements=elements, category=self.category(),
+                                   facade=self._is_facade)
+        return FinitePoset(self._hasse_diagram.relabel(relabeling,
+                                                       inplace=False),
+                           elements=elements, category=self.category(),
                            facade=self._is_facade)
 
     def canonical_label(self):

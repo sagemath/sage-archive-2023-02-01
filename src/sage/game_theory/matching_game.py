@@ -118,9 +118,8 @@ class MatchingGame(SageObject):
     To obtain the stable matching in Sage we use the ``solve`` method which
     uses the extended Gale-Shapley algorithm [DI1989]_::
 
-        sage: D = m.solve()
-        sage: sorted(D.items())
-        [('K', 'C'), ('J', 'A'), ('M', 'B'), ('L', 'D')]
+        sage: m.solve()
+        {'J': 'A', 'K': 'C', 'L': 'D', 'M': 'B'}
 
     Matchings have a natural representations as bipartite graphs::
 
@@ -162,18 +161,8 @@ class MatchingGame(SageObject):
         sage: for player in range(n):
         ....:     big_game.suitors()[player].pref = suitr_preferences[player]
         ....:     big_game.reviewers()[player].pref = revr_preferences[-player]
-        sage: D = big_game.solve()
-        sage: sorted(D.items())
-        [(3, -9),
-         (4, -10),
-         (5, -7),
-         (6, -6),
-         (1, -1),
-         (2, -8),
-         (8, -4),
-         (7, -5),
-         (9, -3),
-         (10, -2)]
+        sage: big_game.solve()
+        {1: -1, 2: -8, 3: -9, 4: -10, 5: -7, 6: -6, 7: -5, 8: -4, 9: -3, 10: -2}
 
     Note that we can also combine the two ways of creating a game. For example
     here is an initial matching game::
@@ -228,9 +217,9 @@ class MatchingGame(SageObject):
 
     Now the game can be solved::
 
-        sage: D = g.solve()
-        sage: sorted(D.items())
-        [(3, -3), ('Romeo', 'Juliet'), ('Mercutio', 'Rosaline')]
+        sage: g.solve()
+        {3: -3, 'Mercutio': 'Rosaline', 'Romeo': 'Juliet'}
+
 
     Note that the above could be equivalently (and more simply) carried out
     by simply updated the original preference dictionaries::
@@ -242,9 +231,8 @@ class MatchingGame(SageObject):
         sage: suitrs[3] = (-3, 'Juliet', 'Rosaline')
         sage: revwrs[-3] = (3, 'Romeo', 'Mercutio')
         sage: g = MatchingGame(suitrs, revwrs)
-        sage: D = g.solve()
-        sage: sorted(D.items())
-        [(3, -3), ('Romeo', 'Juliet'), ('Mercutio', 'Rosaline')]
+        sage: g.solve()
+        {'Mercutio': 'Rosaline', 'Romeo': 'Juliet', 3: -3}
 
     It can be shown that the Gale-Shapley algorithm will return the stable
     matching that is optimal from the point of view of the suitors and is in
@@ -260,9 +248,9 @@ class MatchingGame(SageObject):
         ....:               'C': ('a', 'b', 'c')}
         sage: quick_game = MatchingGame([left_dict, right_dict])
         sage: quick_game.solve()
-        [('a', 'A'), ('b', 'C'), ('c', 'B')]
+        {'a': 'A', 'b': 'C', 'c': 'B'}
         sage: quick_game.solve(invert=True)
-        [('A', 'c'), ('B', 'a'), ('C', 'b')]
+        {'A': 'c', 'B': 'a', 'C': 'b'}
 
     EXAMPLES:
 
@@ -513,7 +501,7 @@ class MatchingGame(SageObject):
             ValueError: game has not been solved yet
 
             sage: g.solve()
-            {1: 4, 0: 3}
+            {0: 3, 1: 4}
             sage: plot(g)
             Graphics object consisting of 7 graphics primitives
         """
@@ -565,7 +553,7 @@ class MatchingGame(SageObject):
             ...
             ValueError: game has not been solved yet
             sage: g.solve()
-            {1: 4, 0: 3}
+            {0: 3, 1: 4}
             sage: g._is_solved()
         """
         suitor_check = all(s.partner for s in self._suitors)
@@ -851,7 +839,7 @@ class MatchingGame(SageObject):
             ....:                 'D': ('M', 'K', 'J', 'L')}
             sage: m = MatchingGame([suitr_pref, reviewr_pref])
             sage: m.solve()
-            {'J': 'A', 'L': 'B', 'M': 'C', 'K': 'D'}
+            {'J': 'A', 'K': 'D', 'L': 'B', 'M': 'C'}
 
             sage: suitr_pref = {'J': ('A', 'D', 'C', 'B'),
             ....:               'K': ('A', 'B', 'C', 'D'),
@@ -863,7 +851,7 @@ class MatchingGame(SageObject):
             ....:                 'D': ('M', 'K', 'J', 'L')}
             sage: m = MatchingGame([suitr_pref, reviewr_pref])
             sage: m.solve(invert=True)
-            {'C': 'M', 'D': 'K', 'A': 'L', 'B': 'J'}
+            {'A': 'L', 'B': 'J', 'C': 'M', 'D': 'K'}
 
             sage: suitr_pref = {1: (-1,)}
             sage: reviewr_pref = {-1: (1,)}
@@ -885,7 +873,7 @@ class MatchingGame(SageObject):
             sage: revr = {2: (2,0,1), 3: (0,1,2), 4: (1,0,2)}
             sage: g = MatchingGame(suit, revr)
             sage: g.solve()
-            {1: 4, 2: 2, 0: 3}
+            {0: 3, 1: 4, 2: 2}
         """
         self._is_complete()
 

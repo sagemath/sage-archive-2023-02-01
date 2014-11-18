@@ -132,7 +132,7 @@ class Histogram(GraphicPrimitive):
                 'fill':'(True or False, default True) Whether to fill the bars',
                 'hatch': 'What symbol to fill with - one of "/", "\\", "|", "-", "+", "x", "o", "O", ".", "*"',
                 'linewidth':'Width of the lines defining the bars',
-                'linestyle':'Style of line, one of "solid", "dashed", "dotted", "dashdot"',
+                'linestyle': "One of 'solid' or '-', 'dashed' or '--', 'dotted' or ':', 'dashdot' or '-.'",
                 'zorder':'The layer level to draw the histogram',
                 'bins': 'The number of sections in which to divide the range. Also can be a sequence of points within the range that create the partition.', 
                 'align': 'How the bars align inside of each bin. Acceptable values are "left", "right" or "mid".',
@@ -231,7 +231,7 @@ def histogram(datalist, **options):
       to the bin count
     - ``zorder`` -- (integer) the layer level at which to draw the histogram
 
-    note::
+    .. NOTE::
 
         The ``weights`` option works only with a single list. List of lists
         representing multiple data are not supported.
@@ -266,18 +266,20 @@ def histogram(datalist, **options):
         sage: histogram( [T.get_random_element() for _ in range(100)], alpha=0.3,\
               edgecolor='red', fill=False, linestyle='dashed', hatch='O', linewidth=5)
         Graphics object consisting of 1 graphics primitive
+        sage: histogram( [T.get_random_element() for _ in range(100)],linestyle='-.')
+        Graphics object consisting of 1 graphics primitive
 
     We can do several data sets at once if desired::
 
         sage: histogram([srange(0,1,.1)*10, [nv(0, 1) for _ in xrange(100)]], color=['red','green'], bins=5)
         Graphics object consisting of 1 graphics primitive
 
-    We have the option of stacking the data sets too.
+    We have the option of stacking the data sets too::
 
         sage: histogram([ [1,1,1,1,2,2,2,3,3,3], [4,4,4,4,3,3,3,2,2,2] ], stacked=True, color=['blue', 'red'])
         Graphics object consisting of 1 graphics primitive
 
-    It is possible to use weights with the histogram as well.
+    It is possible to use weights with the histogram as well::
 
         sage: histogram(range(10), bins=3, weights=[1,2,3,4,5,5,4,3,2,1])
         Graphics object consisting of 1 graphics primitive

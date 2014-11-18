@@ -72,15 +72,15 @@ class MatchingGame(SageObject):
     Two potential inputs are accepted (see below to see the effect of each):
 
     - ``reviewer/suitors_preferences`` -- a dictionary containing the
-    preferences of all players:
+      preferences of all players:
 
-     * key - each reviewer/suitors
-     * value - a tuple of suitors/reviewers
+      * key - each reviewer/suitors
+      * value - a tuple of suitors/reviewers
 
     OR:
 
     - ``integer`` -- an integer simply representing the number of reviewers
-    and suitors.
+      and suitors.
 
     To implement the above game in Sage::
 
@@ -284,8 +284,8 @@ class MatchingGame(SageObject):
         sage: g
         A matching game with 3 suitors and 3 reviewers
 
-     We have an empty set of preferences for a default named set of
-     preferences::
+    We have an empty set of preferences for a default named set of
+    preferences::
 
         sage: for s in g.suitors():
         ....:     s, s.pref
@@ -298,15 +298,15 @@ class MatchingGame(SageObject):
         (-2, [])
         (-3, [])
 
-     Before trying to solve such a game the algorithm will check if it is
-     complete or not::
+    Before trying to solve such a game the algorithm will check if it is
+    complete or not::
 
         sage: g.solve()
         Traceback (most recent call last):
         ...
         ValueError: suitor preferences are not complete
 
-    To be able to obtain the stable matching we must input the preferences:
+    To be able to obtain the stable matching we must input the preferences::
 
         sage: for s in g.suitors():
         ....:   s.pref = (-1, -2, -3)
@@ -700,7 +700,7 @@ class MatchingGame(SageObject):
             ValueError: a suitor with name "D" already exists
 
         If we add a suitor without passing a name then the name
-        of the suitor will not use one that is already chosen.
+        of the suitor will not use one that is already chosen::
 
             sage: suit = {0: (-1,  -2),
             ....:         2: (-2, -1)}

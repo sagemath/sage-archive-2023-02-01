@@ -8586,6 +8586,17 @@ cdef class Expression(CommutativeRingElement):
             sage: (e1-e2).canonicalize_radical()
             0
 
+        The issue reported in :trac:`3520` is a case where
+        ``canonicalize_radical()`` causes a numerical integral to be
+        calculated incorrectly::
+
+            sage: f1 = sqrt(25 - x) * sqrt( 1 + 1/(4*(25-x)) )
+            sage: f2 = f1.canonicalize_radical()
+            sage: numerical_integral(f1.real(), 0, 1)[0] # abs tol 1e-10
+            4.974852579915647
+            sage: numerical_integral(f2.real(), 0, 1)[0] # abs tol 1e-10
+            -4.974852579915647
+
         TESTS:
 
         This tests that :trac:`11668` has been fixed (by :trac:`12780`)::

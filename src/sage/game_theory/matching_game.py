@@ -185,16 +185,10 @@ class MatchingGame(SageObject):
 
     Note that when adding a reviewer or a suitor all preferences are wiped::
 
-        sage: for s in g.suitors():
-        ....:     s, s.pref
-        ('Mercutio', [])
-        ('Romeo', [])
-        (3, [])
-        sage: for r in g.reviewers():
-        ....:     r, r.pref
-        ('Rosaline', [])
-        ('Juliet', [])
-        (-3, [])
+        sage: [s.pref for s in g.suitors()]
+        [[], [], []]
+        sage: [r.pref for r in g.reviewers()]
+        [[], [], []]
 
     If we now try to solve the game we will get an error as we have not
     specified the preferences which will need to be updated::

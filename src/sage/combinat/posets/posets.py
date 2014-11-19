@@ -3363,23 +3363,15 @@ class FinitePoset(UniqueRepresentation, Parent):
             elements = tuple(relabeling[self._element_to_vertex(x)]
                              for x in self._elements)
 
-
         if isinstance(self, FiniteLatticePoset):
-            return FiniteLatticePoset(self._hasse_diagram.relabel(relabeling,
-                                                                  inplace=False),
-                                elements=elements, category=self.category(),
-                                facade=self._is_facade)
-        if isinstance(self, FiniteMeetSemilattice):
-            return FiniteMeetSemilattice(self._hasse_diagram.relabel(relabeling,
-                                                               inplace=False),
-                                   elements=elements, category=self.category(),
-                                   facade=self._is_facade)
-        if isinstance(self, FiniteJoinSemilattice):
-            return FiniteJoinSemilattice(self._hasse_diagram.relabel(relabeling,
-                                                               inplace=False),
-                                   elements=elements, category=self.category(),
-                                   facade=self._is_facade)
-        return FinitePoset(self._hasse_diagram.relabel(relabeling,
+            constructor = FiniteLatticePoset
+        elif isinstance(self, FiniteMeetSemilattice):
+            constructor = FiniteMeetSemilattice
+        elif isinstance(self, FiniteJoinSemilattice):
+            constructor = FiniteJoinSemilattice
+        else:
+            constructor = FinitePoset
+        return constructor(self._hasse_diagram.relabel(relabeling,
                                                        inplace=False),
                            elements=elements, category=self.category(),
                            facade=self._is_facade)

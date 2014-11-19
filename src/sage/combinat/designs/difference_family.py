@@ -567,7 +567,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
         if existence:
             return True
 
-        vv, blocks = DF[v,k,l].iteritems().next()
+        vv, blocks = next(DF[v,k,l].iteritems())
 
         # Build the group
         from sage.rings.finite_rings.integer_mod_ring import Zmod

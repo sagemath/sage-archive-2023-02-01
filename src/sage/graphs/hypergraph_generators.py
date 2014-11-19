@@ -150,7 +150,7 @@ class HypergraphGenerators():
         total = number_of_sets + number_of_vertices
         while True:
             try:
-                s = gen.next()
+                s = next(gen)
             except StopIteration:
                 raise StopIteration("Exhausted list of graphs from nauty geng")
 

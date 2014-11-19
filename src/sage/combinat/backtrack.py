@@ -118,7 +118,7 @@ class GenericBacktracker(object):
         while not done:
             #Try to get the next object in this level
             try:
-                obj, state, yld = stack[-1].next()
+                obj, state, yld = next(stack[-1])
             except StopIteration:
                 #If there are no more, go back up the tree
                 #We also need to check if we've exhausted all
@@ -211,7 +211,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
     stack = [iter(roots)]
     while len(stack) > 0:
         try:
-            node = stack[position].next()
+            node = next(stack[position])
         except StopIteration:
             # If there are no more, go back up the tree
             # We also need to check if we've exhausted all
@@ -712,7 +712,7 @@ class SearchForest(Parent):
         while len(stack) > 0:
             position = randint(0,len(stack)-1)
             try:
-                node = stack[position].next()
+                node = next(stack[position])
             except StopIteration:
                 stack.pop(position)
                 continue

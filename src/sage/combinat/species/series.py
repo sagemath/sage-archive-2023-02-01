@@ -388,7 +388,7 @@ class LazyPowerSeriesRing(Algebra):
             sage: [g2.next() for i in range(10)]
             [1, 1, 2, 4, 7, 12, 20, 33, 53, 84]
         """
-        z = g.next()
+        z = next(g)
         yield z.coefficient(0)
         yield z.coefficient(1)
 

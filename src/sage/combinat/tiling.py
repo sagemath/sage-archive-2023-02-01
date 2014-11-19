@@ -1404,10 +1404,10 @@ class TilingSolver(SageObject):
             [82, 119, 150, 171, 38, 161, 8, 63, 140, 107]
         """
         it = self.dlx_solutions()
-        B = it.next()
+        B = next(it)
         while True:
             yield B
-            A, B = B, it.next()
+            A, B = B, next(it)
             common_prefix = []
             for a, b in itertools.izip(A, B):
                 if a == b:
@@ -1462,10 +1462,10 @@ class TilingSolver(SageObject):
             123
         """
         it = self.dlx_solutions()
-        B = it.next()
+        B = next(it)
         while True:
             yield B
-            A, B = B, it.next()
+            A, B = B, next(it)
             common_prefix = 0
             for a, b in itertools.izip(A, B):
                 if a == b:

@@ -185,7 +185,7 @@ class Small_primes_of_degree_one_iter():
         """
         count = 0
         while count < self._max_iterations:
-            n = self._integer_iter.next()
+            n = next(self._integer_iter)
             g = self._prod_of_small_primes.gcd(self._poly(n))
             self._prod_of_small_primes //= g
             self._queue = self._queue + [ (p, n) for p in g.prime_divisors() ]

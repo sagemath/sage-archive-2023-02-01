@@ -597,7 +597,7 @@ class PerfectMatching(ElementWrapper):
         """
         it = self.crossings_iterator()
         try:
-            it.next()
+            next(it)
         except StopIteration:
             return True
         else:
@@ -726,7 +726,7 @@ class PerfectMatching(ElementWrapper):
         """
         it = self.nestings_iterator()
         try:
-            it.next()
+            next(it)
         except StopIteration:
             return True
         else:

@@ -843,11 +843,11 @@ class WordDatatype_iter(WordDatatype):
                 else:
                     key = self.length() + key
             it = iter(self)
-            a = it.next()
+            a = next(it)
             counter = 0
             while counter < key:
                 try:
-                    a = it.next()
+                    a = next(it)
                     counter += 1
                 except StopIteration:
                     raise IndexError("word index out of range")
@@ -1122,7 +1122,7 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
             else:
                 while self._last_index < key:
                     try:
-                        self._list.append(self._gen.next())
+                        self._list.append(next(self._gen))
                         self._last_index += 1
                     except StopIteration:
                         raise IndexError("word index out of range")

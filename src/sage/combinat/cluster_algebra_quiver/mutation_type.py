@@ -657,7 +657,7 @@ def _connected_mutation_type(dg):
                     dg.remove_multiple_edges()
                     dg = DiGraph( dg )
                     _reset_dg( dg, vertices, dict_in_out, [v] )
-                    if dict_in_out[v1][0] == dict_in_out[v1][1] == dict_in_out[v2][0] == dict_in_out[v2][1] == 1 and dg.neighbor_out_iterator(v1).next() == dg.neighbor_in_iterator(v2).next():
+                    if dict_in_out[v1][0] == dict_in_out[v1][1] == dict_in_out[v2][0] == dict_in_out[v2][1] == 1 and next(dg.neighbor_out_iterator(v1)) == next(dg.neighbor_in_iterator(v2)):
                         if label1 == (2,-1) and label2 == (1,-2):
                             return _check_special_BC_cases( dg, n, ['CD'],[1],['A'] )
                         elif label1 == (1,-2) and label2 == (2,-1):

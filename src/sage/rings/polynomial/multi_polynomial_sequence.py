@@ -270,7 +270,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
         gens = arg1
 
         try:
-            e = iter(gens).next()
+            e = next(iter(gens))
         except StopIteration:
             raise ValueError("Cannot determine ring from provided information.")
 
@@ -282,7 +282,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
         raise TypeError("Cannot understand input.")
 
     try:
-        e = iter(gens).next()
+        e = next(iter(gens))
 
         if is_MPolynomial(e) or isinstance(e, QuotientRingElement):
             gens = tuple(gens)

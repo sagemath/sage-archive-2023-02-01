@@ -1465,7 +1465,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         if len(right.dict()) == 1:
             P = self.parent()
             ret = P(0)
-            denC,denM = iter(right).next()
+            denC,denM = next(iter(right))
             for c,m in self:
                 t = c*m
                 if denC.divides(c) and P.monomial_divides(denM, m):

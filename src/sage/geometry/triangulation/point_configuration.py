@@ -269,8 +269,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             return PointConfiguration._have_TOPCOM_cached
 
         try:
-            out = PointConfiguration._TOPCOM_exec('points2placingtriang',
-                                                  '[[0,1],[1,1]]', verbose=False).next()
+            out = next(PointConfiguration._TOPCOM_exec('points2placingtriang',
+                                                  '[[0,1],[1,1]]', verbose=False))
             PointConfiguration._have_TOPCOM_cached = True
             assert out=='{{0,1}}',\
                 'TOPCOM ran but did not produce the correct output!'
@@ -747,7 +747,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         else:
             command += "placingtriang"
 
-        return self._TOPCOM_communicate(command, verbose).next()
+        return next(self._TOPCOM_communicate(command, verbose))
 
 
     def restrict_to_regular_triangulations(self, regular=True):
@@ -1059,7 +1059,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             return self.placing_triangulation()
 
         try:
-            return self.triangulations(verbose).next()
+            return next(self.triangulations(verbose))
         except StopIteration:
             # there is no triangulation
             pass
@@ -1966,7 +1966,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             # identify visible facets
             visible_facets = []
             for facet in facets:
-                origin = iter(facet).next()
+                origin = next(iter(facet))
                 normal = facet_normals[facet]
                 v = point.reduced_affine_vector() - origin.reduced_affine_vector()
                 if v*normal>0:

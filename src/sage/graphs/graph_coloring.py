@@ -530,7 +530,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
 
         # The first vertex is colored with 1. It costs nothing to say
         # it, and it can help.
-        p.add_constraint(color[g.vertex_iterator().next(),0],  max=1, min=1)
+        p.add_constraint(color[next(g.vertex_iterator()),0],  max=1, min=1)
 
         try:
             if value_only:
@@ -1031,7 +1031,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
     [p.add_constraint(p.sum([color[R(e),i] for i in xrange(k)]), max=1, min=1)
          for e in g.edge_iterator(labels=False)]
     # anything is good as an objective value as long as it is satisfiable
-    e = g.edge_iterator(labels=False).next()
+    e = next(g.edge_iterator(labels=False))
     p.set_objective(color[R(e),0])
     try:
         if value_only:

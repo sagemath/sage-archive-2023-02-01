@@ -824,13 +824,13 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
         iters = [None]*n
         ret = [None]*n
         iters[0] = self._top_row_iter(n)
-        ret[0] = iters[0].next()
+        ret[0] = next(iters[0])
         min_pos = 0
         iters[1] = self._row_iter(ret[0])
         pos = 1
         while pos >= min_pos:
             try:
-                ret[pos] = iters[pos].next()
+                ret[pos] = next(iters[pos])
                 pos += 1
                 # If we've reached 0 width, yield and backstep
                 if pos == n:
@@ -1017,7 +1017,7 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
         pos = 1
         while pos >= min_pos:
             try:
-                ret[pos] = iters[pos].next()
+                ret[pos] = next(iters[pos])
                 pos += 1
                 # If we've reached 0 width, yield and backstep
                 if pos == self._n:

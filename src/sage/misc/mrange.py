@@ -132,12 +132,12 @@ def _xmrange_iter( iter_list, typ=list ):
         if n == 0:
             return
     curr_iters = [iter(i) for i in iter_list]
-    curr_elt = [i.next() for i in curr_iters[:-1]] + [None]
+    curr_elt = [next(i) for i in curr_iters[:-1]] + [None]
     place = len(iter_list) - 1
     while True:
         try:
             while True:
-                curr_elt[place] = curr_iters[place].next()
+                curr_elt[place] = next(curr_iters[place])
                 if place < len(iter_list) - 1:
                     place += 1
                     curr_iters[place] = iter(iter_list[place])

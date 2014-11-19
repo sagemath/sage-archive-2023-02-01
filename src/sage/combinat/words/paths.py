@@ -1418,7 +1418,7 @@ class FiniteWordPath_all(SageObject):
             color = dict( (a, hue(A.rank(a)/float(A.cardinality()))) for a in A )
         it = self.projected_point_iterator(v, ring=ring)
         if kind == 'right':
-            start = it.next()
+            start = next(it)
         elif kind != 'left':
             raise ValueError('unknown value for kind (=%s)'%kind)
         tout = [point([c], color=color[a], size=size) for a, c in izip(self, it) if a in letters]

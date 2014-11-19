@@ -814,7 +814,7 @@ class MiniCremonaDatabase(SQLDatabase):
                 + "deg,gens,cp,om,L,reg,sha FROM t_curve,t_class " \
                 + "USING(class) WHERE curve=?",(label,))
         try:
-            c = q.next()
+            c = next(q)
         except StopIteration:
             if N < self.largest_conductor():
                 message = "There is no elliptic curve with label " + label \
@@ -873,7 +873,7 @@ class MiniCremonaDatabase(SQLDatabase):
                 + "USING(class) WHERE eqn=?",
                 (ainvs.replace(' ', ''),))
         try:
-            c = q.next()
+            c = next(q)
         except StopIteration:
             raise RuntimeError("There is no elliptic curve with coefficients "
                                + ainvs + " in the database")

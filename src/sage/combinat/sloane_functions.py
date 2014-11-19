@@ -683,7 +683,7 @@ class A000009(SloaneSequence):
         except AttributeError:
             self._f = self.cf()
             f = self._f
-        self._b += [f.next() for i in range(how_many)]
+        self._b += [next(f) for i in range(how_many)]
 
 
     def _eval(self, n):
@@ -793,7 +793,7 @@ class A000796(SloaneSequence):
         except AttributeError:
             self._f = self.pi()
             f = self._f
-        self._b += [f.next() for i in range(how_many)]
+        self._b += [next(f) for i in range(how_many)]
 
 
     def _eval(self, n):
@@ -4155,7 +4155,7 @@ class A000045(SloaneSequence):
         except AttributeError:
             self._f = self.fib()
             f = self._f
-        self._b += [f.next() for i in range(how_many)]
+        self._b += [next(f) for i in range(how_many)]
 
     def fib(self):
         """
@@ -5077,7 +5077,7 @@ class A006882(SloaneSequence):
         except AttributeError:
             self._f = self.df()
             f = self._f
-        self._b += [f.next() for i in range(how_many)]
+        self._b += [next(f) for i in range(how_many)]
 
     def df(self):
         """
@@ -5367,7 +5367,7 @@ class ExtremesOfPermanentsSequence(SloaneSequence):
         except AttributeError:
             self._f = self.gen(*self._a0a1d)
             f = self._f
-        self._b += [f.next() for i in range(how_many)]
+        self._b += [next(f) for i in range(how_many)]
 
     def gen(self,a0,a1,d):
         """
@@ -6798,7 +6798,7 @@ class RecurrenceSequence(SloaneSequence):
         except AttributeError:
             self._f = recur_gen2b(*self._params)
             f = self._f
-        self._b += [f.next() for i in range(how_many)]
+        self._b += [next(f) for i in range(how_many)]
 
     def _eval(self, n):
         """
@@ -7652,7 +7652,7 @@ class RecurrenceSequence2(SloaneSequence):
         except AttributeError:
             self._f = recur_gen2(*self._params)
             f = self._f
-        self._b += [f.next() for i in range(how_many)]
+        self._b += [next(f) for i in range(how_many)]
 
     def _eval(self, n):
         """
@@ -8702,7 +8702,7 @@ class A000213(SloaneSequence):
         except AttributeError:
             self._f = recur_gen3(1,1,1,1,1,1)
             f = self._f
-        self._b += [f.next() for i in range(how_many)]
+        self._b += [next(f) for i in range(how_many)]
 
     def _eval(self, n):
         """
@@ -8789,7 +8789,7 @@ class A000073(SloaneSequence):
         except AttributeError:
             self._f = recur_gen3(0,0,1,1,1,1)
             f = self._f
-        self._b += [f.next() for i in range(how_many)]
+        self._b += [next(f) for i in range(how_many)]
 
     def _eval(self, n):
         """

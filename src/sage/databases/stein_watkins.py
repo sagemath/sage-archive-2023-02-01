@@ -240,7 +240,7 @@ class SteinWatkinsAllData:
         yield C
 
     def next(self):
-        return self._iter.next()
+        return next(self._iter)
 
     def __getitem__(self, N):
         """
@@ -295,7 +295,7 @@ class SteinWatkinsAllData:
         N = 0
         while True:
             try:
-                E = iter.next()
+                E = next(iter)
             except StopIteration:
                 if C != []:
                     yield C
@@ -352,7 +352,7 @@ def ecdb_num_curves(max_level=200000):
     v = [int(0) for _ in xrange(max_level+1)]
     while True:
         try:
-            C = d.next()
+            C = next(d)
         except StopIteration:
             i += 1
             d = SteinWatkinsAllData(i)

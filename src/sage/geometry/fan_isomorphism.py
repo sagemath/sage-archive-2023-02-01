@@ -240,7 +240,7 @@ def find_isomorphism(fan1, fan2, check=False):
     """
     generator = fan_isomorphism_generator(fan1, fan2)
     try:
-        m = generator.next()
+        m = next(generator)
     except StopIteration:
         raise FanNotIsomorphicError
 

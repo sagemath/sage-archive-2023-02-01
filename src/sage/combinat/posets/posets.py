@@ -4775,7 +4775,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         part = 0
         (pold, vold) = (0, 0)
         while size != n:
-            (p, v) = chron.next()
+            (p, v) = next(chron)
             if v > vold:
                 size += p
                 if part > 0:

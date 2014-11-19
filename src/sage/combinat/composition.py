@@ -476,7 +476,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         factors.append(Compositions()(current_factor))
                         return (tuple(factors), tuple(signs))
@@ -608,7 +608,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         return Compositions()(factors)
                 if current_factor_size + i <= j:
@@ -728,7 +728,7 @@ class Composition(CombinatorialObject, Element):
             while True:
                 if i == 0:
                     try:
-                        i = I_iter.next()
+                        i = next(I_iter)
                     except StopIteration:
                         factors.append(current_part)
                         return Compositions()(factors)

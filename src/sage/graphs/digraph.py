@@ -850,7 +850,7 @@ class DiGraph(GenericGraph):
                 verts = verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
-                        v = (v for v in data[u] if data[u].count(v) > 1).next()
+                        v = next((v for v in data[u] if data[u].count(v) > 1))
                         raise ValueError("Non-multidigraph got several edges (%s,%s)"%(u,v))
                     if multiedges is None: multiedges = True
             if multiedges is None: multiedges = False
@@ -2367,7 +2367,7 @@ class DiGraph(GenericGraph):
         paths = []
         for vi in vertex_iterators.values():
             try:
-                path = vi.next()
+                path = next(vi)
                 paths.append((len(path), path))
             except(StopIteration):
                 pass
@@ -2381,7 +2381,7 @@ class DiGraph(GenericGraph):
             yield shortest_path
             # We update the path iterator to its next available path if it exists
             try:
-                path = vertex_iterators[shortest_path[0]].next()
+                path = next(vertex_iterators[shortest_path[0]])
                 heappush(paths, (len(path), path))
             except(StopIteration):
                 pass
@@ -2696,7 +2696,7 @@ class DiGraph(GenericGraph):
         cycles = []
         for vi in vertex_iterators.values():
             try:
-                cycle = vi.next()
+                cycle = next(vi)
                 cycles.append((len(cycle), cycle))
             except(StopIteration):
                 pass
@@ -2711,7 +2711,7 @@ class DiGraph(GenericGraph):
             # We update the cycle iterator to its next available cycle if it
             # exists
             try:
-                cycle = vertex_iterators[shortest_cycle[0]].next()
+                cycle = next(vertex_iterators[shortest_cycle[0]])
                 heappush(cycles, (len(cycle), cycle))
             except(StopIteration):
                 pass
@@ -3190,7 +3190,7 @@ class DiGraph(GenericGraph):
             vertices = set(self.vertices())
             scc = []
             while vertices:
-                tmp = self.strongly_connected_component_containing_vertex(vertices.__iter__().next())
+                tmp = self.strongly_connected_component_containing_vertex(next(vertices.__iter__()))
                 vertices.difference_update(set(tmp))
                 scc.append(tmp)
             return scc

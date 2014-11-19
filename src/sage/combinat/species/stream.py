@@ -330,7 +330,7 @@ class Stream_class(SageObject):
         else:
             while self._last_index < i:
                 try:
-                    self._list.append(self._gen.next())
+                    self._list.append(next(self._gen))
                     self._last_index += 1
                 except StopIteration:
                     self.end_reached = True

@@ -390,7 +390,7 @@ class PALPreader(SageObject):
             return iterator(item.start, item.stop, item.step)
         else:
             try:
-                return iterator(item, item+1, 1).next()
+                return next(iterator(item, item+1, 1))
             except StopIteration:
                 raise IndexError('Index out of range.')
 

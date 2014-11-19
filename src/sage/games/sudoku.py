@@ -79,7 +79,7 @@ def sudoku(m):
 
     if not(isinstance(m, Matrix)):
         raise ValueError('sudoku function expects puzzle to be a matrix, perhaps use the Sudoku class')
-    solution = Sudoku(m).solve(algorithm='dlx').next()
+    solution = next(Sudoku(m).solve(algorithm='dlx'))
     return (solution.to_matrix() if solution else None)
 
 
@@ -452,7 +452,7 @@ class Sudoku(SageObject):
         gen = (x for x in self.puzzle)
         for row in range(nsquare):
             for col in range(nsquare):
-                entry = gen.next()
+                entry = next(gen)
                 array.append((str(entry) if entry else ' '))
                 array.append(('' if col == nsquare - 1 else '&'))
             array.append(('\\\\\n' if (row+1) % n else '\\\\\\hline\n'))
@@ -867,7 +867,7 @@ class Sudoku(SageObject):
         gen = (entry for entry in self.puzzle)
         for row in range(nsquare):
             for col in range(nsquare):
-                puzz = gen.next()
+                puzz = next(gen)
                 # All (zero-based) entries are possible, or only one is possible
                 entries = ([puzz-1] if puzz else range(nsquare))
                 for entry in entries:

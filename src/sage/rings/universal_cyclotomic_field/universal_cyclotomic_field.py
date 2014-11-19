@@ -1570,7 +1570,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             elif self.is_rational():
                 return self.parent()._from_dict({ (1,0) : self.value._monomial_coefficients[(1,0)]**k }, remove_zeros=False)
             elif len(self.value._monomial_coefficients) == 1:
-                mon,coeff = self.value._monomial_coefficients.iteritems().next()
+                mon,coeff = next(self.value._monomial_coefficients.iteritems())
                 n = self.field_order()
                 return self.parent()._from_dict(push_down_cython(n,dict_linear_combination([ (ZumbroichDecomposition(n, k*mon[1] % n), coeff**k,) ])), remove_zeros=False)
             elif k < 0:

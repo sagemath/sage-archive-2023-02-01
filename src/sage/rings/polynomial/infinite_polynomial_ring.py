@@ -908,7 +908,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         try:
             from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
             if isinstance(self._base, MPolynomialRing_polydict):
-                x = sage_eval(repr(), self._gens_dict.next())
+                x = sage_eval(repr(), next(self._gens_dict))
             else:
                 x = self._base(x)
             # remark: Conversion to self._P (if applicable)

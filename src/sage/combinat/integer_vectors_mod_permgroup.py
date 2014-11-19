@@ -903,7 +903,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         else:
             try:
                 v = iter(self)
-                return v.next()
+                return next(v)
             except StopIteration:
                 from sage.categories.sets_cat import EmptySetError
                 raise EmptySetError

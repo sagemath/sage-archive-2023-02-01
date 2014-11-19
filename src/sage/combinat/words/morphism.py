@@ -709,7 +709,7 @@ class WordMorphism(SageObject):
                     letter = w[0]
             elif hasattr(w, '__iter__'):
                 try:
-                    letter = w.next()
+                    letter = next(w)
                 except StopIteration:
                     return self.codomain()()
             elif w in self._domain.alphabet():
@@ -2436,7 +2436,7 @@ class WordMorphism(SageObject):
         S = 0
         orbit_points = dict([(a,[]) for a in alphabet])
         for _ in xrange(n):
-            a = u.next()
+            a = next(u)
             S += canonical_basis_proj[a]
             orbit_points[a].append(S)
 

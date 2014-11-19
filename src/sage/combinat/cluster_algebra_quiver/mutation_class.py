@@ -175,8 +175,8 @@ def _dg_canonical_form( dg, n, m ):
     for v in iso.keys():
         if v >= n+m:
             del iso[v]
-            v1,v2,label1 = dg._backend.iterator_in_edges([v],True).next()
-            w1,w2,label2 = dg._backend.iterator_out_edges([v],True).next()
+            v1,v2,label1 = next(dg._backend.iterator_in_edges([v],True))
+            w1,w2,label2 = next(dg._backend.iterator_out_edges([v],True))
             dg._backend.del_edge(v1,v2,label1,True)
             dg._backend.del_edge(w1,w2,label2,True)
             dg._backend.del_vertex(v)

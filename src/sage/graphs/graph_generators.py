@@ -843,7 +843,7 @@ class GraphGenerators():
         gen = sp.stdout
         while True:
             try:
-                s = gen.next()
+                s = next(gen)
             except StopIteration:
                 raise StopIteration("Exhausted list of graphs from nauty geng")
             G = graph.Graph(s[:-1], format='graph6')

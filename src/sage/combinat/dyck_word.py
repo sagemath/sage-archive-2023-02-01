@@ -903,7 +903,7 @@ class DyckWord(CombinatorialObject, Element):
         if diagonal:
             res += "  \\draw (0,0) -- %s;\n" % str((self.number_of_open_symbols(), self.number_of_open_symbols()))
         res += "  \\draw[rounded corners=1, color=%s, line width=%s] (0, 0)" % (latex_options['color'], str(latex_options['line width']))
-        ht.next()
+        next(ht)
         for i, j in ht:
             res += " -- (%s, %s)" % (i, j)
         res += ";\n"

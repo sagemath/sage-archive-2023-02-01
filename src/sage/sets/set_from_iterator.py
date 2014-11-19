@@ -229,7 +229,7 @@ class EnumeratedSetFromIterator(Parent):
         i = iter(self)
         for _ in xrange(6):
             try:
-                l.append(i.next())
+                l.append(next(i))
             except StopIteration:
                 break
         if len(l) < 6:
@@ -299,15 +299,15 @@ class EnumeratedSetFromIterator(Parent):
             i2 = iter(other)
             while True:
                 try:
-                    x = i1.next()
+                    x = next(i1)
                 except StopIteration:
                     try:
-                        i2.next()
+                        next(i2)
                         return False
                     except StopIteration:
                         return True
                 try:
-                    y = i2.next()
+                    y = next(i2)
                 except StopIteration:
                     return False
                 if x != y:

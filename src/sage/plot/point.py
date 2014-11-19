@@ -304,10 +304,9 @@ def point(points, **kwds):
     For information regarding additional arguments, see either point2d?
     or point3d?.
 
-    .. NOTE::
+    .. SEEALSO::
 
-        If you want to use an iterator as input, you should rather use
-        either ``point2d`` or ``point3d`` instead.
+        :func:`sage.plot.point.point2d`, :func:`sage.plot.plot3d.shapes2.point3d`
 
     EXAMPLES::
 
@@ -335,16 +334,17 @@ def point(points, **kwds):
         Graphics object consisting of 1 graphics primitive
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)]).show(frame=True) # These are equivalent
 
-    One can not use iterators (:trac:`13890`)::
+    TESTS:
+
+    One can now use iterators (:trac:`13890`)::
 
         sage: point(iter([(1,1,1)]))
-        Traceback (most recent call last):
-        ...
-        TypeError: for iterators, please use instead point2d or point3d
+        Graphics3d Object
+        sage: point(iter([(1,2),(3,5)]))
+        Graphics object consisting of 1 graphics primitive
     """
     if isinstance(points, collections.Iterator):
-        raise TypeError('for iterators, please use instead '
-                        'point2d or point3d')
+        points = list(points)
 
     try:
         return point2d(points, **kwds)

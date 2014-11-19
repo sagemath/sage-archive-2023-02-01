@@ -234,12 +234,13 @@ def reset_load_attach_path():
         sage: reset_load_attach_path(); load_attach_path()
         ['.']
         sage: os.environ['SAGE_LOAD_ATTACH_PATH'] = '/veni/vidi:vici:'
-        sage: reload(sage.misc.attached_files)    # Simulate startup
+        sage: import imp
+        sage: imp.reload(sage.misc.attached_files)    # Simulate startup
         <module 'sage.misc.attached_files' from '...'>
         sage: load_attach_path()
         ['.', '/veni/vidi', 'vici']
         sage: del os.environ['SAGE_LOAD_ATTACH_PATH']
-        sage: reload(sage.misc.preparser)    # Simulate startup
+        sage: imp.reload(sage.misc.preparser)    # Simulate startup
         <module 'sage.misc.preparser' from '...'>
         sage: reset_load_attach_path(); load_attach_path()
         ['.']

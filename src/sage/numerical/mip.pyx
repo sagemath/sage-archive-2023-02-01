@@ -2094,7 +2094,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: round(p.solve(),6)
             6.666667
             sage: x = p.get_values(x)
-            sage: round(x[1],6)
+            sage: round(x[1],6) # abs tol 1e-15
             0.0
             sage: round(x[2],6)
             1.333333

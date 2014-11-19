@@ -3065,7 +3065,21 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_isomorphic(Posets.BooleanLattice(4))
             True
         """
-        return Poset(self.hasse_diagram().cartesian_product(other.hasse_diagram()),cover_relations=True)
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
+        if ( isinstance(self, FiniteLatticePoset) and
+             isinstance(other, FiniteLatticePoset) ):
+            constructor = FiniteLatticePoset
+        elif ( isinstance(self, FiniteMeetSemilattice) and
+               isinstance(other, FiniteMeetSemilattice) ):
+            constructor = FiniteMeetSemilattice
+        elif ( isinstance(self, FiniteJoinSemilattice) and
+               isinstance(other, FiniteJoinSemilattice) ):
+            constructor = FiniteJoinSemilattice
+        else:
+            constructor = FinitePoset
+        return constructor(self.hasse_diagram().cartesian_product(other.hasse_diagram()))
 
     def disjoint_union(self, other, labels='pairs'):
         """

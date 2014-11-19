@@ -237,6 +237,9 @@ class MatchingGame(SageObject):
         sage: D[3]
         -3
 
+        sage: sorted(D.items(), key=lambda x: repr(x[0]))
+        [('Mercutio', 'Rosaline'), ('Romeo', 'Juliet'), (3, -3)]
+
     It can be shown that the Gale-Shapley algorithm will return the stable
     matching that is optimal from the point of view of the suitors and is in
     fact the worst possible matching from the point of view of the reviewers.

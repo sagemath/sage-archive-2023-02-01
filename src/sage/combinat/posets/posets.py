@@ -3047,14 +3047,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def product(self,other):
         """
-        Returns the cartesian product of ``self`` and ``other``.
+        Return the cartesian product of ``self`` and ``other``.
 
         EXAMPLES::
 
             sage: P = Posets.ChainPoset(3)
             sage: Q = Posets.ChainPoset(4)
             sage: PQ = P.product(Q) ; PQ
-            Finite poset containing 12 elements
+            Finite lattice containing 12 elements
             sage: len(PQ.hasse_diagram().edges())
             17
             sage: Q.product(P).is_isomorphic(PQ)

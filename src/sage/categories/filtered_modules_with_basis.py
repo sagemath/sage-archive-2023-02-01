@@ -1,9 +1,9 @@
 r"""
 Filtered Modules With Basis
 
-A *filtered module with basis* over a commutative ring `R`
-means (for the purpose of this code) a filtered `R`-module
-`M` with filtration `(F_i)_{i \in I}` (typically `I = \NN`)
+A *filtered module with basis* over a ring `R` means
+(for the purpose of this code) a filtered `R`-module `M`
+with filtration `(F_i)_{i \in I}` (typically `I = \NN`)
 endowed with a basis `(b_j)_{j \in J}` of `M` and a partition
 `J = \bigsqcup_{i \in I} J_i` of the set `J` (it is allowed
 that some `J_i` are empty) such that for every `n \in I`,
@@ -30,9 +30,9 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
     r"""
     The category of filtered modules with a distinguished basis.
 
-    A *filtered module with basis* over a commutative ring `R`
-    means (for the purpose of this code) a filtered `R`-module
-    `M` with filtration `(F_i)_{i \in I}` (typically `I = \NN`)
+    A *filtered module with basis* over a ring `R` means
+    (for the purpose of this code) a filtered `R`-module `M`
+    with filtration `(F_i)_{i \in I}` (typically `I = \NN`)
     endowed with a basis `(b_j)_{j \in J}` of `M` and a partition
     `J = \bigsqcup_{i \in I} J_i` of the set `J` (it is allowed
     that some `J_i` are empty) such that for every `n \in I`,
@@ -160,6 +160,32 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 False
                 sage: (x+2*z).is_homogeneous()
                 True
+
+            Here is a case where the algebra is graded::
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: (x, y) = (S[2], S[3])
+                sage: (3*x).is_homogeneous()
+                True
+                sage: (x^3 - y^2).is_homogeneous()
+                True
+                sage: ((x + y)^2).is_homogeneous()
+                False
+
+            Let us now test a filtered algebra::
+
+                sage: A = AlgebrasWithBasis(QQ).Filtered().example()
+                sage: x,y,z = A.algebra_generators()
+                sage: (x*y).is_homogeneous()
+                True
+                sage: (y*x).is_homogeneous()
+                False
+                sage: A.one().is_homogeneous()
+                True
+                sage: A.zero().is_homogeneous()
+                True
+                sage: (A.one()+x).is_homogeneous()
+                False
             """
             degree_on_basis = self.parent().degree_on_basis
             degree = None
@@ -171,7 +197,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                         return False
             return True
 
-        def degree(self):
+        def homogeneous_degree(self):
             r"""
             The degree of a nonzero homogeneous element ``self`` in the
             filtered module.
@@ -196,6 +222,40 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 Traceback (most recent call last):
                 ...
                 ValueError: element is not homogeneous
+
+            An example where the algebra is graded::
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: (x, y) = (S[2], S[3])
+                sage: x.homogeneous_degree()
+                2
+                sage: (x^3 + 4*y^2).homogeneous_degree()
+                6
+                sage: ((1 + x)^3).homogeneous_degree()
+                Traceback (most recent call last):
+                ...
+                ValueError: element is not homogeneous
+
+            Let us now test a filtered algebra::
+
+                sage: A = AlgebrasWithBasis(QQ).Filtered().example()
+                sage: x,y,z = A.algebra_generators()
+                sage: (x*y).homogeneous_degree()
+                2
+                sage: (y*x).homogeneous_degree()
+                Traceback (most recent call last):
+                ...
+                ValueError: element is not homogeneous
+                sage: A.one().homogeneous_degree()
+                0
+
+            TESTS::
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S.zero().degree()
+                Traceback (most recent call last):
+                ...
+                ValueError: the zero element does not have a well-defined degree
             """
             if not self.support():
                 raise ValueError("the zero element does not have a well-defined degree")
@@ -203,11 +263,62 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 raise ValueError("element is not homogeneous")
             return self.parent().degree_on_basis(self.leading_support())
 
-#        .. TODO::
-#
-#            maximal_degree. This actually does not depend on the basis
-#            and can probably be copied, up to doctests, from
-#            filtered_algebras_with_basis.py.
+        # default choice for degree; will be overridden as necessary
+        degree = homogeneous_degree
+
+        def maximal_degree(self):
+            """
+            The maximum of the degrees of the homogeneous components
+            of ``self``.
+
+            This is also the smallest `i` such that ``self`` belongs
+            to `F_i`. Hence, it does not depend on the basis of the
+            parent of ``self``.
+
+            .. SEEALSO:: :meth:`homogeneous_degree`
+
+            EXAMPLES:
+
+            First, we test this on a graded algebra::
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: (x, y) = (S[2], S[3])
+                sage: x.maximal_degree()
+                2
+                sage: (x^3 + 4*y^2).maximal_degree()
+                6
+                sage: ((1 + x)^3).maximal_degree()
+                6
+
+            Let us now test a filtered algebra::
+
+                sage: A = AlgebrasWithBasis(QQ).Filtered().example()
+                sage: x,y,z = A.algebra_generators()
+                sage: (x*y).maximal_degree()
+                2
+                sage: (y*x).maximal_degree()
+                2
+                sage: A.one().maximal_degree()
+                0
+                sage: A.zero().maximal_degree()
+                Traceback (most recent call last):
+                ...
+                ValueError: the zero element does not have a well-defined degree
+                sage: (A.one()+x).maximal_degree()
+                1
+
+            TESTS::
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S.zero().degree()
+                Traceback (most recent call last):
+                ...
+                ValueError: the zero element does not have a well-defined degree
+            """
+            if self.is_zero():
+                raise ValueError("the zero element does not have a well-defined degree")
+            degree_on_basis = self.parent().degree_on_basis
+            return max(degree_on_basis(m) for m in self.support())
 
         def homogeneous_component(self, n):
             """

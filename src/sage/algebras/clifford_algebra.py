@@ -542,9 +542,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
         R = Q.base_ring()
         if category is None:
             if graded:
-                category = AlgebrasWithBasis(R).Graded()
+                category = AlgebrasWithBasis(R.category()).Graded()
             else:
-                category = AlgebrasWithBasis(R).Filtered()
+                category = AlgebrasWithBasis(R.category()).Filtered()
         indices = SubsetsSorted(range(Q.dim()))
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
@@ -1473,7 +1473,8 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: TestSuite(E).run()
         """
-        CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, GradedHopfAlgebrasWithBasis(R))
+        cat = GradedHopfAlgebrasWithBasis(R.category())
+        CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, cat)
         # TestSuite will fail if the HopfAlgebra classes will ever have tests for
         # the coproduct being an algebra morphism -- since this is really a
         # Hopf superalgebra, not a Hopf algebra.

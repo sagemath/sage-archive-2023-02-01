@@ -55,163 +55,96 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
             from sage.algebras.associated_graded import AssociatedGradedAlgebra
             return AssociatedGradedAlgebra(self)
 
-    class ElementMethods:
+        # Maps
 
-        def is_homogeneous(self):
+        def to_graded_conversion(self):
             r"""
-            Return whether ``self`` is homogeneous.
+            Return the canonical `R`-module isomorphism
+            `A \to \operatorname{gr} A` induced by the basis of `A`.
 
-            EXAMPLES:
+            This is an isomorphism of `R`-modules, not of algebras. See
+            the class documentation :class:`AssociatedGradedAlgebra`.
 
-            Here is a case where the algebra is graded::
+            .. SEEALSO::
 
-                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                sage: (x, y) = (S[2], S[3])
-                sage: (3*x).is_homogeneous()
-                True
-                sage: (x^3 - y^2).is_homogeneous()
-                True
-                sage: ((x + y)^2).is_homogeneous()
-                False
+                :meth:`from_graded_conversion`
 
-            Let us now test a filtered algebra (but remember that the
-            notion of homogeneity now depends on the choice of a
-            basis)::
+            EXAMPLES::
 
-                sage: A = AlgebrasWithBasis(QQ).Filtered().example()
-                sage: x,y,z = A.algebra_generators()
-                sage: (x*y).is_homogeneous()
+                sage: A = Algebras(QQ).WithBasis().Filtered().example()
+                sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
+                U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+                sage: q = A.to_graded_conversion()(p); q
+                bar(U['x']^2*U['y']^2*U['z']^3) + bar(U['x']) + 2*bar(1)
+                sage: q.parent() is A.graded_algebra()
                 True
-                sage: (y*x).is_homogeneous()
-                False
-                sage: A.one().is_homogeneous()
-                True
-                sage: A.zero().is_homogeneous()
-                True
-                sage: (A.one()+x).is_homogeneous()
-                False
             """
-            degree_on_basis = self.parent().degree_on_basis
-            degree = None
-            for m in self.support():
-                if degree is None:
-                    degree = degree_on_basis(m)
-                else:
-                    if degree != degree_on_basis(m):
-                        return False
-            return True
+            base_one = self.base_ring().one()
+            return self.module_morphism(diagonal=lambda x: base_one,
+                                        codomain=self.graded_algebra())
 
-        def homogeneous_degree(self):
+        def from_graded_conversion(self):
+            r"""
+            Return the inverse of the canonical `R`-module isomorphism
+            `A \to \operatorname{gr} A` induced by the basis of `A`
+            (that is a map `\operatorname{gr} A \to A`).
+
+            This is an isomorphism of `R`-modules, not of algebras. See
+            the class documentation :class:`AssociatedGradedAlgebra`.
+
+            .. SEEALSO::
+
+                :meth:`to_graded_conversion`
+
+            EXAMPLES::
+
+                sage: A = Algebras(QQ).WithBasis().Filtered().example()
+                sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
+                U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+                sage: q = A.to_graded_conversion()(p)
+                sage: A.from_graded_conversion()(q) == p
+                True
+                sage: q.parent() is A.graded_algebra()
+                True
             """
-            The degree of a nonzero homogeneous element ``self`` in the
-            filtered module.
+            base_one = self.base_ring().one()
+            return self.graded_algebra().module_morphism(diagonal=lambda x: base_one,
+                                                         codomain=self)
 
-            .. NOTE::
+        def projection(self, i):
+            r"""
+            Return the `i`-th projection `p_i : F_i \to G_i` (in the
+            notations of the class documentation
+            :class:`AssociatedGradedAlgebra`).
 
-               This raises an error if the element is not homogeneous.
-               To obtain the maximum of the degrees of the homogeneous
-               summands, use :meth:`maximal_degree`.
+            This method actually does not return the map `p_i` itself,
+            but an extension of `p_i` to the whole `R`-module `A`.
+            This extension is the composition of the `R`-module
+            isomorphism `A \to \operatorname{gr} A` with the canonical
+            projection of the graded `R`-module `\operatorname{gr} A`
+            onto its `i`-th graded component `G_i`. The codomain of
+            this map is `\operatorname{gr} A`, although its actual
+            image is `G_i`.
 
-            .. SEEALSO:: :meth:`maximal_degree`
+            EXAMPLES::
 
-            EXAMPLES:
-
-            First, an example where the algebra is graded::
-
-                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                sage: (x, y) = (S[2], S[3])
-                sage: x.homogeneous_degree()
-                2
-                sage: (x^3 + 4*y^2).homogeneous_degree()
-                6
-                sage: ((1 + x)^3).homogeneous_degree()
-                Traceback (most recent call last):
-                ...
-                ValueError: element is not homogeneous
-
-            Let us now test a filtered algebra (but remember that the
-            notion of homogeneity now depends on the choice of a
-            basis)::
-
-                sage: A = AlgebrasWithBasis(QQ).Filtered().example()
-                sage: x,y,z = A.algebra_generators()
-                sage: (x*y).homogeneous_degree()
-                2
-                sage: (y*x).homogeneous_degree()
-                Traceback (most recent call last):
-                ...
-                ValueError: element is not homogeneous
-                sage: A.one().homogeneous_degree()
+                sage: A = Algebras(QQ).WithBasis().Filtered().example()
+                sage: p = A.an_element() + A.algebra_generators()['x'] + 2; p
+                U['x']^2*U['y']^2*U['z']^3 + U['x'] + 2
+                sage: q = A.projection(7)(p); q
+                bar(U['x']^2*U['y']^2*U['z']^3)
+                sage: q.parent() is A.graded_algebra()
+                True
+                sage: A.projection(8)(p)
                 0
-
-            TESTS::
-
-                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                sage: S.zero().degree()
-                Traceback (most recent call last):
-                ...
-                ValueError: the zero element does not have a well-defined degree
             """
-            if self.is_zero():
-                raise ValueError("the zero element does not have a well-defined degree")
-            if not self.is_homogeneous():
-                raise ValueError("element is not homogeneous")
-            return self.parent().degree_on_basis(self.leading_support())
+            base_zero = self.base_ring().zero()
+            base_one = self.base_ring().one()
+            grA = self.graded_algebra()
+            proj = lambda x: (base_one if grA.degree_on_basis(x) == i
+                              else base_zero)
+            return self.module_morphism(diagonal=proj, codomain=grA)
 
-        # default choice for degree; will be overridden as necessary
-        degree = homogeneous_degree
-
-        def maximal_degree(self):
-            """
-            The maximum of the degrees of the homogeneous components
-            of ``self``.
-
-            This is also the smallest `i` such that ``self`` belongs
-            to `F_i`. Hence, it does not depend on the basis of the
-            parent of ``self``.
-
-            .. SEEALSO:: :meth:`homogeneous_degree`
-
-            EXAMPLES:
-
-            First, we test this on a graded algebra::
-
-                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                sage: (x, y) = (S[2], S[3])
-                sage: x.maximal_degree()
-                2
-                sage: (x^3 + 4*y^2).maximal_degree()
-                6
-                sage: ((1 + x)^3).maximal_degree()
-                6
-
-            Let us now test a filtered algebra::
-
-                sage: A = AlgebrasWithBasis(QQ).Filtered().example()
-                sage: x,y,z = A.algebra_generators()
-                sage: (x*y).maximal_degree()
-                2
-                sage: (y*x).maximal_degree()
-                2
-                sage: A.one().maximal_degree()
-                0
-                sage: A.zero().maximal_degree()
-                Traceback (most recent call last):
-                ...
-                ValueError: the zero element does not have a well-defined degree
-                sage: (A.one()+x).maximal_degree()
-                1
-
-            TESTS::
-
-                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                sage: S.zero().degree()
-                Traceback (most recent call last):
-                ...
-                ValueError: the zero element does not have a well-defined degree
-            """
-            if self.is_zero():
-                raise ValueError("the zero element does not have a well-defined degree")
-            degree_on_basis = self.parent().degree_on_basis
-            return max(degree_on_basis(m) for m in self.support())
+    class ElementMethods:
+        pass
 

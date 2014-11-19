@@ -546,6 +546,11 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
         sage: W.<a,b> = DifferentialWeylAlgebra(QQ); W
         Differential Weyl algebra of polynomials in a, b over Rational Field
+
+    .. TODO::
+
+        Implement the :meth:`graded_algebra` as a polynomial ring once
+        they are considered to be graded rings (algebras).
     """
     @staticmethod
     def __classcall__(cls, R, names=None):
@@ -584,7 +589,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
         names = names + tuple('d' + n for n in names)
         if len(names) != self._n * 2:
             raise ValueError("variable names cannot differ by a leading 'd'")
-        cat = AlgebrasWithBasis(R).NoZeroDivisors().Filtered()
+        cat = AlgebrasWithBasis(R.category()).NoZeroDivisors().Filtered()
         Algebra.__init__(self, R, names, category=cat)
 
     def _repr_(self):

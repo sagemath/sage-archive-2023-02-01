@@ -1,7 +1,7 @@
 r"""
 Filtered Modules
 
-A *filtered module* over a commutative ring `R` with a totally ordered
+A *filtered module* over a ring `R` with a totally ordered
 indexing set `I` (typically `I = \NN`) is an `R`-module `M` equipped
 with a family `(F_i)_{i \in I}` of `R`-submodules satisfying
 `F_i \subseteq F_j` for all `i,j \in I` having `i \leq j`, and
@@ -10,7 +10,8 @@ of the given module `M`.
 
 .. TODO::
 
-    Implement a notion for decreasing filtrations: where `F_j \subseteq F_i`.
+    Implement a notion for decreasing filtrations: where `F_j \subseteq F_i`
+    when `i \leq j`.
 
 .. TODO::
 
@@ -139,9 +140,9 @@ class FilteredModulesCategory(RegressiveCovariantConstructionCategory, Category_
 
 class FilteredModules(FilteredModulesCategory):
     r"""
-    The category of filtered modules over a given commutative ring `R`.
+    The category of filtered modules over a given ring `R`.
 
-    A *filtered module* over a commutative ring `R` with a totally ordered
+    A *filtered module* over a ring `R` with a totally ordered
     indexing set `I` (typically `I = \NN`) is an `R`-module `M` equipped
     with a family `(F_i)_{i \in I}` of `R`-submodules satisfying
     `F_i \subseteq F_j` for all `i,j \in I` having `i \leq j`, and

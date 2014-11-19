@@ -1137,8 +1137,7 @@ class DiGraph(GenericGraph):
             sage: DiGraph({0:[1,2,3],4:[5,1]}).to_directed()
             Digraph on 6 vertices
         """
-        from copy import copy
-        return copy(self)
+        return self.copy()
 
     def to_undirected(self, implementation='c_graph', data_structure=None,
                       sparse=None):
@@ -1168,11 +1167,18 @@ class DiGraph(GenericGraph):
             [(0, 1), (0, 2), (1, 0)]
             sage: G.edges(labels=False)
             [(0, 1), (0, 2)]
+
+        TESTS:
+
+        Immutable graphs yield immutable graphs (:trac:`17005`)::
+
+            sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
         """
         if sparse is not None:
-            deprecation(14806,"The 'sparse' keyword has been deprecated, and "
-                        "is now replaced by 'data_structure' which has a different "
-                        "meaning. Please consult the documentation.")
+            if data_structure is not None:
+                raise ValueError("The 'sparse' argument is an alias for "
+                                 "'data_structure'. Please do not define both.")
             data_structure = "sparse" if sparse else "dense"
 
         if data_structure is None:
@@ -1185,16 +1191,25 @@ class DiGraph(GenericGraph):
             else:
                 data_structure = "static_sparse"
         from sage.graphs.all import Graph
-        G = Graph(name=self.name(), pos=self._pos, boundary=self._boundary,
-                  multiedges=self.allows_multiple_edges(), loops=self.allows_loops(),
-                  implementation=implementation, data_structure=data_structure)
-        G.name(self.name())
+        G = Graph(name           = self.name(),
+                  pos            = self._pos,
+                  boundary       = self._boundary,
+                  multiedges     = self.allows_multiple_edges(),
+                  loops          = self.allows_loops(),
+                  implementation = implementation,
+                  data_structure = (data_structure if data_structure!="static_sparse"
+                                    else "sparse")) # we need a mutable copy first
+
         G.add_vertices(self.vertex_iterator())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):
             from copy import copy
             G._embedding = copy(self._embedding)
         G._weighted = self._weighted
+
+        if data_structure == "static_sparse":
+            G=G.copy(data_structure=data_structure)
+
         return G
 
     ### Edge Handlers
@@ -1371,13 +1386,9 @@ class DiGraph(GenericGraph):
             3
         """
         if vertices in self:
-            for d in self.in_degree_iterator(vertices):
-                return d # (weird, but works: only happens once!)
+            return self._backend.in_degree(vertices)
         elif labels:
-            di = {}
-            for v, d in self.in_degree_iterator(vertices, labels=labels):
-                di[v] = d
-            return di
+            return {v:d for v, d in self.in_degree_iterator(vertices, labels=labels)}
         else:
             return list(self.in_degree_iterator(vertices, labels=labels))
 
@@ -1411,24 +1422,12 @@ class DiGraph(GenericGraph):
         """
         if vertices is None:
             vertices = self.vertex_iterator()
-        elif vertices in self:
-            d = 0
-            for e in self.incoming_edge_iterator(vertices):
-                d += 1
-            yield d
-            return
         if labels:
             for v in vertices:
-                d = 0
-                for e in self.incoming_edge_iterator(v):
-                    d += 1
-                yield (v, d)
+                yield (v, self.in_degree(v))
         else:
             for v in vertices:
-                d = 0
-                for e in self.incoming_edge_iterator(v):
-                    d += 1
-                yield d
+                yield self.in_degree(v)
 
     def in_degree_sequence(self):
         r"""
@@ -1467,19 +1466,9 @@ class DiGraph(GenericGraph):
             1
         """
         if vertices in self:
-
-            try:
-                return self._backend.out_degree(vertices)
-
-            except AttributeError:
-                for d in self.out_degree_iterator(vertices):
-                    return d # (weird, but works: only happens once!)
-
+            return self._backend.out_degree(vertices)
         elif labels:
-            di = {}
-            for v, d in self.out_degree_iterator(vertices, labels=labels):
-                di[v] = d
-            return di
+            return {v:d for v, d in self.out_degree_iterator(vertices, labels=labels)}
         else:
             return list(self.out_degree_iterator(vertices, labels=labels))
 
@@ -1513,24 +1502,12 @@ class DiGraph(GenericGraph):
         """
         if vertices is None:
             vertices = self.vertex_iterator()
-        elif vertices in self:
-            d = 0
-            for e in self.outgoing_edge_iterator(vertices):
-                d += 1
-            yield d
-            return
         if labels:
             for v in vertices:
-                d = 0
-                for e in self.outgoing_edge_iterator(v):
-                    d += 1
-                yield (v, d)
+                yield (v, self.out_degree(v))
         else:
             for v in vertices:
-                d = 0
-                for e in self.outgoing_edge_iterator(v):
-                    d += 1
-                yield d
+                yield self.out_degree(v)
 
     def out_degree_sequence(self):
         r"""

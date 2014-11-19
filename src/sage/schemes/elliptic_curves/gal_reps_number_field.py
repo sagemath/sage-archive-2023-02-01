@@ -246,6 +246,11 @@ class GaloisRepresentation(SageObject):
         the image of the mod-`p` representation is contained in a
         Borel.
 
+        .. NOTE::
+
+           For the actual list of primes `p` at which the
+           representation is reducible see :meth:`reducible_primes()`.
+
         INPUT:
 
         - ``A`` - int (a bound on the number of traces of Frobenius to
@@ -277,7 +282,6 @@ class GaloisRepresentation(SageObject):
             sage: E.galois_representation().isogeny_bound() # No 7-isogeny, but...
             [7]
         """
-
         E = _over_numberfield(self.E)
         K = E.base_field()
 
@@ -298,6 +302,46 @@ class GaloisRepresentation(SageObject):
         bad_primes = list(Set(bad_primes))
 
         return _maybe_borels(E, bad_primes, A)
+
+    def reducible_primes(self):
+        r"""
+        Returns a list of primes `p` for which the mod-`p`
+        representation is reducible, or [0] for CM curves.
+
+        OUTPUT:
+
+        - ``list`` - A list of those primes `p` for which the mod-`p`
+          representation is contained in a Borel subgroup, i.e. is
+          reducible.  If E has CM *defined over K*, the list [0] is
+          returned (in this case the representation is reducible for
+          infinitely many primes).
+
+        EXAMPLES::
+
+            sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
+            sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
+            sage: rho = E.galois_representation()
+            sage: rho.isogeny_bound() # See Section 5.10 of [Serre72].
+            [3, 5]
+            sage: rho.reducible_primes()
+            [3, 5]
+
+            sage: K = NumberField(x**2 + 1, 'a')
+            sage: EllipticCurve_from_j(K(1728)).galois_representation().isogeny_bound() # CM over K
+            [0]
+            sage: EllipticCurve_from_j(K(0)).galois_representation().reducible_primes() # CM but NOT over K
+            [2, 3]
+            sage: E = EllipticCurve_from_j(K(2268945/128)) # c.f. [Sutherland12]
+            sage: rho = E.galois_representation()
+            sage: rho.isogeny_bound() # ... but there is no 7-isogeny ...
+            [7]
+            sage: rho.reducible_primes()
+            []
+        """
+        L = self.isogeny_bound()
+        if L == [0]:
+            return L
+        return [l for l in L if len(self.E.isogenies_prime_degree(l))>0]
 
 def _non_surjective(E, patience=100):
     r"""

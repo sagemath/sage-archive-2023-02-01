@@ -38,6 +38,22 @@ class UniqueFactorizationDomains(Category_singleton):
         """
         return [GcdDomains()]
 
+    def additional_structure(self):
+        """
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        The category of unique factorization domains does not define
+        additional structure: a ring morphism between unique factorization
+        domains is a unique factorization domain morphism.
+
+        EXAMPLES::
+
+            sage: UniqueFactorizationDomains().additional_structure()
+        """
+        return None
+
     class ParentMethods:
         def is_unique_factorization_domain(self):
             """

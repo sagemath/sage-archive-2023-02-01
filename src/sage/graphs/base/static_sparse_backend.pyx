@@ -38,9 +38,10 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
                                                    free_short_digraph,
                                                    edge_label)
 from c_graph import CGraphBackend
-from sage.misc.bitset cimport FrozenBitset
+from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
+from libc.stdlib cimport calloc,free
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -62,12 +63,29 @@ cdef class StaticSparseCGraph(CGraph):
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
         """
+        cdef int i, j, tmp
         has_labels = any(not l is None for _,_,l in G.edge_iterator())
         self._directed = G.is_directed()
 
         init_short_digraph(self.g, G, edge_labelled = has_labels)
         if self._directed:
             init_reverse(self.g_rev,self.g)
+
+        # Store the number of loops for undirected graphs
+        elif not G.has_loops():
+            self.number_of_loops = NULL
+        else:
+            self.number_of_loops = <int *> calloc(sizeof(int), self.g.n)
+            if self.number_of_loops == NULL:
+                free_short_digraph(self.g)
+                raise MemoryError
+            for i in range(self.g.n):
+                for tmp in range(out_degree(self.g,i)):
+                    j = self.g.neighbors[i][tmp]
+                    if j == i:
+                        self.number_of_loops[i] += 1
+                    if j > i:
+                        break
 
         # Defining the meaningless set of 'active' vertices. Because of CGraph.
         bitset_init(self.active_vertices,  self.g.n+1)
@@ -84,10 +102,11 @@ cdef class StaticSparseCGraph(CGraph):
         """
         bitset_free(self.active_vertices)
         free_short_digraph(self.g)
+        free(self.number_of_loops)
         if self.g_rev != NULL:
             free_short_digraph(self.g_rev)
 
-    cpdef bint has_vertex(self, int n):
+    cpdef bint has_vertex(self, int n) except -1:
         r"""
         Tests if a vertex belongs to the graph
 
@@ -106,8 +125,11 @@ cdef class StaticSparseCGraph(CGraph):
         """
         return 0 <= n and n < self.g.n
 
-    cdef int add_vertex_unsafe(self, int k):
+    cdef int add_vertex_unsafe(self, int k) except -1:
         raise ValueError("Thou shalt not add a vertex to an immutable graph")
+
+    cdef int del_vertex_unsafe(self, int v) except -1:
+        raise ValueError("Thou shalt not remove a vertex from an immutable graph")
 
     def add_vertex(self, int k):
         r"""
@@ -123,9 +145,9 @@ cdef class StaticSparseCGraph(CGraph):
             ValueError: Thou shalt not add a vertex to an immutable graph
 
         """
-        raise ValueError("Thou shalt not add a vertex to an immutable graph")
+        self.add_vertex_unsafe(k)
 
-    def del_vertex(self, int k):
+    cpdef del_vertex(self, int k):
         r"""
         Removes a vertex from the graph. No way.
 
@@ -139,10 +161,7 @@ cdef class StaticSparseCGraph(CGraph):
             ValueError: Thou shalt not remove a vertex from an immutable graph
 
         """
-        raise ValueError("Thou shalt not remove a vertex from an immutable graph")
-
-    cdef int del_vertex_unsafe(self, int v):
-        raise ValueError("Thou shalt not remove a vertex from an immutable graph")
+        self.del_vertex_unsafe(k)
 
     cpdef list verts(self):
         r"""
@@ -157,14 +176,14 @@ cdef class StaticSparseCGraph(CGraph):
         """
         return range(self.g.n)
 
-    cdef int has_arc_unsafe(self, int u, int v):
+    cdef int has_arc_unsafe(self, int u, int v) except -1:
         return ((0 <= u) and
                 (0 <= v) and
                 (u < self.g.n) and
                 (v < self.g.n) and
                 has_edge(self.g, u, v) != NULL)
 
-    cpdef bint has_arc(self, int u, int v):
+    cpdef bint has_arc(self, int u, int v) except -1:
         r"""
         Tests if uv is an edge of the graph
 
@@ -183,14 +202,14 @@ cdef class StaticSparseCGraph(CGraph):
         """
         return self.has_arc_unsafe(u, v)
 
-    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
+    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         cdef int degree = self.g.neighbors[u+1] - self.g.neighbors[u]
         cdef int i
         for i in range(min(degree,size)):
             neighbors[i] = self.g.neighbors[u][i]
         return -1 if size < degree else degree
 
-    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
+    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         if not self._directed:
             return self.out_neighbors_unsafe(u,neighbors,size)
 
@@ -253,7 +272,7 @@ cdef class StaticSparseCGraph(CGraph):
         cdef int i
         return [<int> self.g_rev.neighbors[u][i] for i in range(out_degree(self.g_rev,u))]
 
-    cpdef int out_degree(self, int u):
+    cpdef int out_degree(self, int u) except -1:
         r"""
         Returns the out-degree of a vertex
 
@@ -277,7 +296,7 @@ cdef class StaticSparseCGraph(CGraph):
 
         return self.g.neighbors[u+1] - self.g.neighbors[u]
 
-    cpdef int in_degree(self, int u):
+    cpdef int in_degree(self, int u) except -1:
         r"""
         Returns the in-degree of a vertex
 
@@ -903,6 +922,13 @@ class StaticSparseBackend(CGraphBackend):
             sage: g = Graph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.degree(0)
             3
+
+        :trac:`17225` about the degree of a vertex with a loop::
+
+            sage: Graph({0:[0]},immutable=True).degree(0)
+            2
+            sage: Graph({0:[0],1:[0,1,1,1]},immutable=True).degree(1)
+            7
         """
         try:
             v = self._vertex_to_int[v]
@@ -923,7 +949,7 @@ class StaticSparseBackend(CGraphBackend):
                                           "that it is well-defined either, "
                                           "especially for multigraphs.")
             else:
-                return cg.out_degree(v)
+                return cg.out_degree(v) + (0 if cg.number_of_loops == NULL else cg.number_of_loops[v])
 
     def in_degree(self, v):
         r"""

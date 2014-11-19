@@ -134,6 +134,40 @@ class GenericGraphBackend(SageObject):
             NotImplementedError
         """
         raise NotImplementedError()
+    def in_degree(self, v):
+        r"""
+        Return the in-degree of `v`
+
+        INPUT:
+
+        - ``v`` -- a vertex label
+
+        TESTS::
+
+            sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
+            sage: G.in_degree(1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError()
+    def out_degree(self, v):
+        r"""
+        Return the out-degree of `v`
+
+        INPUT:
+
+        - ``v`` -- a vertex label
+
+        TESTS::
+
+            sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
+            sage: G.out_degree(1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError()
     def del_edge(self, u, v, l, directed):
         """
         Deletes the edge (u,v) with label l.
@@ -872,6 +906,58 @@ class NetworkXGraphBackend(GenericGraphBackend):
             self._nxg = self._nxg.mutate()
 
         return self._nxg.degree(v)
+
+    def in_degree(self, v):
+        """
+        Returns the in-degree of v.
+
+        INPUT:
+
+        - ``v`` -- a vertex label
+
+        OUTPUT:
+
+            degree of v
+
+        TESTS::
+
+            sage: G = DiGraph(digraphs.Path(5),implementation="networkx")
+            sage: G = G._backend
+            sage: G.in_degree(0)
+            0
+            sage: G.in_degree(4)
+            1
+        """
+        if isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)):
+            self._nxg = self._nxg.mutate()
+
+        return self._nxg.in_degree(v)
+
+    def out_degree(self, v):
+        """
+        Returns the out-degree of v.
+
+        INPUT:
+
+        - ``v`` -- a vertex label
+
+        OUTPUT:
+
+            degree of v
+
+        TESTS::
+
+            sage: G = DiGraph(digraphs.Path(5),implementation="networkx")
+            sage: G = G._backend
+            sage: G.out_degree(0)
+            1
+            sage: G.out_degree(4)
+            0
+        """
+        if isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)):
+            self._nxg = self._nxg.mutate()
+
+        return self._nxg.out_degree(v)
 
     def del_edge(self, u, v, l, directed):
         """

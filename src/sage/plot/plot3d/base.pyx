@@ -68,6 +68,18 @@ cdef class Graphics3d(SageObject):
     .. automethod:: _graphics_
     .. automethod:: __add__
     """
+    def __cinit__(self):
+        """
+        The Cython constructor
+        
+        EXAMPLES::
+
+            sage: gfx = sage.plot.plot3d.base.Graphics3d()
+            sage: gfx._extra_kwds
+            {}
+        """
+        self._extra_kwds = dict()
+    
     def _repr_(self):
         """
         Return a string representation.
@@ -107,17 +119,36 @@ cdef class Graphics3d(SageObject):
         """
         from sage.structure.graphics_file import (
             Mime, graphics_from_save, GraphicsFile)
-        if (mime_types is None) or (Mime.JMOL in mime_types):
-            # default to jmol
+        ### First, figure out the best graphics format
+        can_view_jmol = (mime_types is None) or (Mime.JMOL in mime_types)
+        viewer = self._extra_kwds.get('viewer', None)
+        # make sure viewer is one of the supported options
+        if viewer not in [None, 'jmol', 'tachyon']:
+            import warnings
+            warnings.warn('viewer={0} is not supported'.format(viewer))
+            viewer = None
+        # select suitable default
+        if viewer is None:
+            viewer = 'jmol'
+        # fall back to 2d image if necessary
+        if viewer == 'jmol' and not can_view_jmol:
+            viewer = 'tachyon'
+        ### Second, return the corresponding graphics file
+        if viewer == 'jmol':
             from sage.misc.temporary_file import tmp_filename
             filename = tmp_filename(
                 ext=os.path.extsep + Mime.extension(Mime.JMOL))
             self.save(filename)
             return GraphicsFile(filename, Mime.JMOL)
-        preference = [Mime.PNG, Mime.JPG]
-        return graphics_from_save(self.save, preference,
-                                  allowed_mime_types=mime_types, 
-                                  figsize=figsize, dpi=dpi)
+        elif viewer == 'tachyon':
+            preference = [Mime.PNG, Mime.JPG]
+            figsize = self._extra_kwds.get('figsize', figsize)
+            dpi = self._extra_kwds.get('dpi', dpi)
+            return graphics_from_save(self.save, preference,
+                                      allowed_mime_types=mime_types, 
+                                      figsize=figsize, dpi=dpi)
+        else:
+            assert False   # unreachable
 
     def __str__(self):
         """
@@ -1011,8 +1042,7 @@ end_scene""" % (render_params.antialiasing,
         """
         opts = {}
         opts.update(SHOW_DEFAULTS)
-        if self._extra_kwds is not None:
-            opts.update(self._extra_kwds)
+        opts.update(self._extra_kwds)
         opts.update(kwds)
 
         # Remove all of the keys that are viewing options, since the remaining
@@ -1399,7 +1429,7 @@ class Graphics3dGroup(Graphics3d):
         self.all = list(all)
         self.frame_aspect_ratio(optimal_aspect_ratios([a.frame_aspect_ratio() for a in all]))
         self.aspect_ratio(optimal_aspect_ratios([a.aspect_ratio() for a in all]))
-        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all if a._extra_kwds is not None]))
+        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all]))
 
     def __add__(self, other):
         """
@@ -1412,10 +1442,22 @@ class Graphics3dGroup(Graphics3d):
             Graphics3d Object
             sage: len(G.all)
             10
+
+        We check that :trac:`17258` is solved::
+
+            sage: g = point3d([0,-2,-2]); g += point3d([2,-2,-2])
+            sage: len(g.all)
+            2
+            sage: h = g + arrow([0,-2,-2], [2,-2,-2])
+            sage: len(g.all)
+            2
+            sage: g == h
+            False
         """
         if type(self) is Graphics3dGroup and isinstance(other, Graphics3d):
-            self.all.append(other)
-            return self
+            s_all = list(self.all)
+            s_all.append(other)
+            return Graphics3dGroup(s_all)
         else:
             return Graphics3d.__add__(self, other)
 

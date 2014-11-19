@@ -73,7 +73,7 @@ cdef int *hamming_weights():
         ham_wts[i] = ham_wts[i & 255] + ham_wts[(i>>8) & 255]
     return ham_wts
 
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 def weight_dist(M):
     """
     Computes the weight distribution of the row space of M.

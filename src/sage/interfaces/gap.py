@@ -120,7 +120,7 @@ objects is sometimes not valid input to GAP. Creating classes that
 wrap GAP objects *is* supported, via simply defining the a
 _gap_init_ member function that returns a string that when
 evaluated in GAP constructs the object. See
-``groups/permutation_group.py`` for a nontrivial
+``groups/perm_gps/permgroup.py`` for a nontrivial
 example of this.
 
 Long Input

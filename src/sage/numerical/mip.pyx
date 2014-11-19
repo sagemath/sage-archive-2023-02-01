@@ -2094,7 +2094,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: round(p.solve(),6)
             6.666667
             sage: x = p.get_values(x)
-            sage: round(x[1],6)
+            sage: round(x[1],6) # abs tol 1e-15
             0.0
             sage: round(x[2],6)
             1.333333
@@ -2387,12 +2387,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: b = p.get_backend()
             sage: b.solver_parameter("simplex_or_intopt", "simplex_only")
             sage: b.solver_parameter("verbosity_simplex", "GLP_MSG_ALL")
-            sage: p.solve()  # tol 0.00001
-            GLPK Simplex Optimizer, v4.44
+            sage: p.solve()  # rel tol 1e-5
+            GLPK Simplex Optimizer, v4.55
             2 rows, 2 columns, 4 non-zeros
             *     0: obj =   7.000000000e+00  infeas =  0.000e+00 (0)
             *     2: obj =   9.400000000e+00  infeas =  0.000e+00 (0)
-            OPTIMAL SOLUTION FOUND
+            OPTIMAL LP SOLUTION FOUND
             9.4
         """
         return self._backend
@@ -2430,7 +2430,7 @@ class MIPSolverException(RuntimeError):
             sage: p.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : Solution is undefined'
+            MIPSolverException: 'GLPK : There is no feasible integer solution to this Linear Program'
 
         No integer solution::
 
@@ -2446,7 +2446,7 @@ class MIPSolverException(RuntimeError):
             sage: p.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : Solution is undefined'
+            MIPSolverException: 'GLPK : There is no feasible integer solution to this Linear Program'
         """
         self.value = value
 

@@ -673,7 +673,7 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Posets.ChainPoset(2).product(Posets.ChainPoset(3))
                 sage: P
-                Finite poset containing 6 elements
+                Finite lattice containing 6 elements
                 sage: lex = [(1,0),(0,0),(1,1),(0,1),(1,2),(0,2)]
                 sage: l = P.birational_free_labelling(linear_extension=lex,
                 ....:                                 prefix="u", reduced=True)

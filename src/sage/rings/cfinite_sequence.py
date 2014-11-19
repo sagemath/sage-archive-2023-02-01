@@ -339,6 +339,16 @@ class CFiniteSequence(FractionFieldElement):
     def _sub_(self, other):
         """
         Subtraction of C-finite sequences.
+
+        TESTS::
+
+            sage: R.<x> = QQ[]
+            sage: r = CFiniteSequence(1/(1-2*x))
+            sage: r[0:5]                  # a(n) = 2^n
+            [1, 2, 4, 8, 16]
+            sage: s = CFiniteSequence.from_recurrence([1],[1])
+            sage: (r - s)[0:5]            # a(n) = 2^n + 1
+            [0, 1, 3, 7, 15]
         """
         return CFiniteSequence(self.ogf() - other.numerator() / other.denominator())
 

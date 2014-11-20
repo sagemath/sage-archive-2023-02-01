@@ -440,7 +440,7 @@ class Function_ceil(BuiltinFunction):
                 return lower_ceil
             else:
                 try:
-                    return ceil(SR(x).full_simplify().simplify_radical())
+                    return ceil(SR(x).full_simplify().canonicalize_radical())
                 except ValueError:
                     pass
                 raise ValueError("x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits))
@@ -602,7 +602,7 @@ class Function_floor(BuiltinFunction):
                 return lower_floor
             else:
                 try:
-                    return floor(SR(x).full_simplify().simplify_radical())
+                    return floor(SR(x).full_simplify().canonicalize_radical())
                 except ValueError:
                     pass
                 raise ValueError("x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits))

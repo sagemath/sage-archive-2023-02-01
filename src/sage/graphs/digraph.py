@@ -1977,7 +1977,7 @@ class DiGraph(GenericGraph):
         if not self.has_edge(u,v,label):
             raise ValueError("Input edge must exist in the digraph.")
 
-        tempG = self if inplace else self.copy()
+        tempG = self if inplace else self.copy(immutable=False)
 
         if label is None:
             if not tempG.allows_multiple_edges():
@@ -2111,7 +2111,7 @@ class DiGraph(GenericGraph):
             sage: Dr.edges() == D.reverse().edges()
             True
         """
-        tempG = self if inplace else self.copy()
+        tempG = self if inplace else self.copy(immutable=False)
         for e in edges:
             tempG.reverse_edge(e,inplace=True,multiedges=multiedges)
         if not inplace:
@@ -2547,7 +2547,7 @@ class DiGraph(GenericGraph):
             for id, component in enumerate(sccs):
                 for v in component:
                     d[v] = id
-            h = self.copy()
+            h = self.copy(immutable=False)
             h.delete_edges([(u,v) for (u,v) in h.edge_iterator(labels=False) if d[u] != d[v]])
         else:
             h = self
@@ -2680,7 +2680,7 @@ class DiGraph(GenericGraph):
         for id, component in enumerate(sccs):
             for v in component:
                 d[v] = id
-        h = self.copy()
+        h = self.copy(immutable=False)
         h.delete_edges([ (u,v) for (u,v) in h.edge_iterator(labels=False)
                 if d[u] != d[v] ])
         # We create one cycles iterator per vertex. This is necessary if we

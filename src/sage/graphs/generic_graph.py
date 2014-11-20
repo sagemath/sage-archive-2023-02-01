@@ -5346,7 +5346,7 @@ class GenericGraph(GenericGraph_pyx):
                 return self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
 
             flow_value, flow_graph = self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
-            g = self.copy()
+            g = self.copy(immutable=False)
             for u,v,l in flow_graph.edge_iterator():
                 if (not use_edge_labels or
                     (weight(g.edge_label(u,v)) == weight(l))):
@@ -10992,7 +10992,7 @@ class GenericGraph(GenericGraph_pyx):
             if induced:
                 return self.subgraph(g)
             else:
-                Gcopy=G.copy()
+                Gcopy=G.copy(immutable=False)
                 Gcopy.relabel(g)
                 return self.subgraph(vertices=Gcopy.vertices(), edges=Gcopy.edges())
 
@@ -11345,7 +11345,7 @@ class GenericGraph(GenericGraph_pyx):
                 return all( gg.is_chordal() for gg in self.connected_components_subgraphs() )
 
         hole = None
-        g = self.copy()
+        g = self.copy(immutable=False)
 
         # Algorithms
         #
@@ -11650,7 +11650,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :mod:`Interval Graph Recognition <sage.graphs.pq_trees>`.
-    
+
             - :meth:`PQ <sage.graphs.pq_trees.PQ>`
               -- Implementation of PQ-Trees.
 
@@ -11670,7 +11670,7 @@ class GenericGraph(GenericGraph_pyx):
         cliques = []
 
         # As we will be deleting vertices ...
-        g = self.copy()
+        g = self.copy(immutable=False)
 
         for cc in self.connected_components_subgraphs():
 

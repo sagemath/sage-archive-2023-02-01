@@ -227,7 +227,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
 
     # As we need the vertices of g to be linearly ordered, we copy the graph and
     # relabel it
-    g = g.copy()
+    g = g.copy(immutable=False)
     trev = g.relabel(return_map = True)
     t = dict([(x,y) for y,x in trev.iteritems()])
 

@@ -85,8 +85,8 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
         ....:     print('Found stale file: ' + f)
     """
     PYMOD_EXTS = (os.path.extsep + 'py', os.path.extsep + 'pyc')
-    UNAME = os.uname()[0]
-    if UNAME[:6] == 'CYGWIN':
+    import sys
+    if sys.platform == 'cygwin':
         LIBEXT = 'dll'
     else:
         LIBEXT = 'so'

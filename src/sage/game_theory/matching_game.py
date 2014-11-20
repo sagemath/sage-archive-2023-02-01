@@ -801,7 +801,7 @@ class MatchingGame(SageObject):
             ValueError: a reviewer with name "10" already exists
 
         If we add a reviewer without passing a name then the name
-        of the reviewer will not use one that is already chosen.
+        of the reviewer will not use one that is already chosen::
 
             sage: suit = {0: (-1,  -3),
             ....:         1: (-3, -1)}

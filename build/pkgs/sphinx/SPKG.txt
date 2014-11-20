@@ -33,10 +33,7 @@ Home Page: http://sphinx.pocoo.org,
 
 == Special Update/Build Instructions ==
 
- * Make sure to update the Sphinx version number in the file
-   patches/sphinx-build.
-
- * Here is a description of patches on top of Sphinx 1.1.2:
+ * Here is a description of patches on top of upstream Sphinx:
 
    - patches/autodoc.patch: This patches
      src/sphinx/ext/autodoc.py. This adds an option to Sphinx to
@@ -51,6 +48,9 @@ Home Page: http://sphinx.pocoo.org,
      recognize the Sage prompt "sage:" the same way it recognizes the
      ">>>" from Python.
 
+   - patches/inline-latex.patch: see Trac #16396 and
+     https://bitbucket.org/birkenfeld/sphinx/issue/1480/latex-math-output-is-broken-for-inline
+
    - patches/pngmath.patch: This replaces \usepackage[utf8x]{inputenc}
      by \usepackage[utf8]{inputenc} in the LaTeX preamble for building
      images in the HTML documentation.  This change is done because
@@ -59,11 +59,10 @@ Home Page: http://sphinx.pocoo.org,
      needed to typeset the mathematics in the Sage documentation).
 
    - patches/Makefile.patch: This patches the file
-     src/sphinx/texinputs/Makefile to increase the save size stack to
-     50,000 and increase the pool size stack to 4,000,000. These
-     increased stack sizes should be sufficient for LaTeX to handle
-     the huge index of the Sage reference manual when building the PDF
-     version of that manual.
+     src/sphinx/texinputs/Makefile to increase the memory sizes for
+     LaTeX. These increased stack sizes should be sufficient for LaTeX
+     to handle the huge index of the Sage reference manual when
+     building the PDF version of that manual.
 
    - patches/nested.patch (submitted upstream: pull request #250, issue #777):
      This changes the sphinx's customized Verbatim environment to use

@@ -35,6 +35,8 @@ test.spyx
 -q
 --R
 --root
+-rst2txt
+-rst2sws
 --scons
 --sh
 --singular
@@ -632,6 +634,41 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret > 0
         True
 
+    Test ``sage -rst2txt`` on a ReST file::
+
+        sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: F = open(input, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: (out, err, ret) = test_executable(["sage", "-rst2txt", input])
+        sage: print out
+        {{{id=0|
+        2^10
+        ///
+        1024
+        }}}
+        <BLANKLINE>
+        {{{id=1|
+        2 + 2
+        ///
+        4
+        }}}
+        sage: err
+        ''
+        sage: ret
+        0
+
+    Test ``sage -rst2sws`` on a ReST file::
+
+        sage: s = "Thetitle\n--------\n\n::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: output = tmp_filename(ext='.sws')
+        sage: F = open(input, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: test_executable(["sage", "-rst2sws", input, output])
+        ('', '', 0)
     """
     pexpect_env = dict(os.environ)
     try:

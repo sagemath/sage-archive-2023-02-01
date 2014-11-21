@@ -1609,6 +1609,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Returns a list of all relations of the poset.
 
+        A relation is a pair of elements `x` and `y` such that `x\leq y`
+        in ``self``.
+
+        Relations are also often called intervals. The number of
+        intervals is the dimension of the incidence algebra.
+
         OUTPUT:
 
         A list of pairs (each pair is a list), where the first element
@@ -1617,11 +1623,16 @@ class FinitePoset(UniqueRepresentation, Parent):
         Pairs are produced in a rough sort of lexicographic order,
         where earlier elements are from lower levels of the poset.
 
+        .. SEEALSO::
+
+            :meth:`relations_number`, :meth:`relations_iterator`
+
         EXAMPLES::
 
             sage: Q = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: Q.relations()
-            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3], [0, 4], [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
+            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3],
+            [0, 4], [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
 
         AUTHOR:
 
@@ -1629,7 +1640,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return list(self.relations_iterator())
 
-    def relations_iterator(self, strict=False, algorithm='graph'):
+    def relations_iterator(self, strict=False):
         r"""
         Returns an iterator for all the relations of the poset.
 
@@ -1655,7 +1666,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`relations_number`, :meth:`maximal_chains`, :meth:`chains`
+            :meth:`relations_number`, :meth:`relations`,
+            :meth:`maximal_chains`, :meth:`chains`
 
         EXAMPLES::
 
@@ -1663,12 +1675,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: type(Q.relations_iterator())
             <type 'generator'>
             sage: [z for z in Q.relations_iterator()]
-            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3], [0, 4],
-            [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
+            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3],
+            [0, 4], [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
 
             sage: P = posets.PentagonPoset()
             sage: list(P.relations_iterator(strict=True))
-            [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], [2, 4], [3, 4]]
+            [[0, 1], [0, 2], [0, 4], [0, 3], [1, 4], [2, 3], [2, 4], [3, 4]]
 
             sage: len(list(P.relations_iterator()))
             13
@@ -1677,25 +1689,17 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - Rob Beezer (2011-05-04)
         """
-        # Relies on vertices the fact that _elements correspond to the rows and
-        # columns of the lequal matrix
+        elements = self._elements
+        hd = self._hasse_diagram
         if strict:
-            for ch in self.chains().elements_of_depth_iterator(2):
-                yield ch
-        else:
-            elements = self._elements
-            if algorithm == 'matrix':
-                leq_mat = self.lequal_matrix()
-                n = leq_mat.nrows()
-                for i in range(n):
-                    for j in range(i, n):
-                        if leq_mat[i, j]:
-                            yield [elements[i], elements[j]]
-            else:
-                hd = self._hasse_diagram
-                for i in hd:
-                    for j in hd.breadth_first_search(i):
+            for i in hd:
+                for j in hd.breadth_first_search(i):
+                    if i != j:
                         yield [elements[i], elements[j]]
+        else:
+            for i in hd:
+                for j in hd.breadth_first_search(i):
+                    yield [elements[i], elements[j]]
 
     def relations_number(self):
         """
@@ -1709,7 +1713,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`relations_iterator`
+            :meth:`relations_iterator`, :meth:`relations`
 
         EXAMPLES::
 
@@ -1721,11 +1725,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.relations_number()
             27
         """
-        hd = self._hasse_diagram
-        return sum(len([u for u in hd.breadth_first_search(i)])
-                   for i in hd)
+        return len(self.relations())
 
-    # two useful alias
+    # three useful aliases
+    intervals = relations
     intervals_number = relations_number
     intervals_iterator = relations_iterator
 

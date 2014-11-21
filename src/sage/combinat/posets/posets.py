@@ -53,8 +53,6 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.height` | Return the height (number of elements in the longest chain) of the poset.
     :meth:`~FinitePoset.incomparability_graph` | Returns the incomparability graph of the poset.
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
-    :meth:`~FinitePoset.interval_iterator` | Returns an iterator for the intervals of the poset.
-    :meth:`~FinitePoset.interval_number` | Returns the number of intervals in the poset.
     :meth:`~FinitePoset.is_bounded` | Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
     :meth:`~FinitePoset.is_chain` | Returns True if the poset is totally ordered, and False otherwise.
     :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
@@ -103,6 +101,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.relabel` | Returns a copy of this poset with its elements relabelled
     :meth:`~FinitePoset.relations_iterator` | Returns an iterator for all the relations of the poset.
     :meth:`~FinitePoset.relations` | Returns a list of all relations of the poset.
+    :meth:`~FinitePoset.relations_number` | Returns the number of relations in the poset.
     :meth:`~FinitePoset.show` | Shows the Graphics object corresponding the Hasse diagram of the poset.
     :meth:`~FinitePoset.subposet` | Returns the poset containing elements with partial order induced by that of self.
     :meth:`~FinitePoset.top` | Returns the top element of the poset, if it exists.
@@ -1630,9 +1629,21 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return list(self.relations_iterator())
 
-    def relations_iterator(self):
+    def relations_iterator(self, strict=False, algorithm='graph'):
         r"""
         Returns an iterator for all the relations of the poset.
+
+        A relation is a pair of elements `x` and `y` such that `x\leq y`
+        in ``self``.
+
+        Relations are also often called intervals. The number of
+        intervals is the dimension of the incidence algebra.
+
+        INPUT:
+
+        - ``strict`` -- boolean (default ``False``) if ``True``, returns
+          an iterator over relations `x < y`, excluding all
+          relations `x \leq x`.
 
         OUTPUT:
 
@@ -1644,7 +1655,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`interval_number`, :meth:`interval_iterator`
+            :meth:`relations_number`, :meth:`maximal_chains`, :meth:`chains`
 
         EXAMPLES::
 
@@ -1652,7 +1663,15 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: type(Q.relations_iterator())
             <type 'generator'>
             sage: [z for z in Q.relations_iterator()]
-            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3], [0, 4], [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
+            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3], [0, 4],
+            [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
+
+            sage: P = posets.PentagonPoset()
+            sage: list(P.relations_iterator(strict=True))
+            [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], [2, 4], [3, 4]]
+
+            sage: len(list(P.relations_iterator()))
+            13
 
         AUTHOR:
 
@@ -1660,13 +1679,55 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         # Relies on vertices the fact that _elements correspond to the rows and
         # columns of the lequal matrix
-        leq_mat = self.lequal_matrix()
-        n = leq_mat.nrows()
-        elements = self._elements
-        for i in range(n):
-            for j in range(i, n):
-                if leq_mat[i,j]:
-                    yield [elements[i], elements[j]]
+        if strict:
+            for ch in self.chains().elements_of_depth_iterator(2):
+                yield ch
+        else:
+            elements = self._elements
+            if algorithm == 'matrix':
+                leq_mat = self.lequal_matrix()
+                n = leq_mat.nrows()
+                for i in range(n):
+                    for j in range(i, n):
+                        if leq_mat[i, j]:
+                            yield [elements[i], elements[j]]
+            else:
+                hd = self._hasse_diagram
+                for i in hd:
+                    for j in hd.breadth_first_search(i):
+                        yield [elements[i], elements[j]]
+
+    def relations_number(self):
+        """
+        Return the number of relations in the poset.
+
+        A relation is a pair of elements `x` and `y` such that `x\leq y`
+        in ``self``.
+
+        Relations are also often called intervals. The number of
+        intervals is the dimension of the incidence algebra.
+
+        .. SEEALSO::
+
+            :meth:`relations_iterator`
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tamari_lattices import TamariLattice
+            sage: TamariLattice(4).relations_number()
+            68
+
+            sage: P = posets.BooleanLattice(3)
+            sage: P.relations_number()
+            27
+        """
+        hd = self._hasse_diagram
+        return sum(len([u for u in hd.breadth_first_search(i)])
+                   for i in hd)
+
+    # two useful alias
+    intervals_number = relations_number
+    intervals_iterator = relations_iterator
 
     def is_incomparable_chain_free(self, m, n = None):
         r"""
@@ -2247,7 +2308,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         label_dict = { (a,b):f(a,b) for a,b in self.cover_relations_iterator() }
         if return_raising_chains:
             raising_chains = {}
-        for a,b in self.interval_iterator(strict=True):
+        for a, b in self.relations_iterator(strict=True):
             P = self.subposet(self.interval(a,b))
             max_chains = sorted( [ [ label_dict[(chain[i],chain[i+1])] for i in range(len(chain)-1) ] for chain in P.maximal_chains() ] )
             if max_chains[0] != sorted(max_chains[0]) or any( max_chains[i] == sorted(max_chains[i]) for i in range(1,len(max_chains)) ):
@@ -3213,57 +3274,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             isinstance(other, FiniteJoinSemilattice)):
             return JoinSemilattice(G)
         return Poset(G)
-
-    def interval_iterator(self, strict=False):
-        """
-        Returns an iterator over all pairs `x < y` in ``self``.
-
-        INPUT:
-
-        - ``strict`` -- boolean (default ``False``) if ``True``, returns
-          an iterator over intervals not reduced to one element.
-
-        EXAMPLES::
-
-            sage: P = posets.PentagonPoset()
-            sage: list(P.interval_iterator(strict=True))
-            [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], [2, 4], [3, 4]]
-
-            sage: len(list(P.interval_iterator()))
-            13
-
-        .. SEEALSO:: :meth:`maximal_chains`, :meth:`chains`, :meth:`relations_iterator`
-        """
-        if strict:
-            return self.chains().elements_of_depth_iterator(2)
-        return self.relations_iterator()
-
-    def interval_number(self):
-        """
-        Return the number of intervals in the poset.
-
-        An interval is a pair of elements `x` and `y` such that `x\leq y`
-        in ``self``.
-
-        The number of intervals is the dimension of the incidence algebra.
-
-        .. SEEALSO::
-
-            :meth:`relations_iterator`
-
-        EXAMPLES::
-
-            sage: from sage.combinat.tamari_lattices import TamariLattice
-            sage: TamariLattice(4).interval_number()
-            68
-
-            sage: P = posets.BooleanLattice(3)
-            sage: P.interval_number()
-            27
-        """
-        hd = self.hasse_diagram()
-        return sum(len([u for u in hd.breadth_first_search(i)])
-                   for i in hd)
 
     def dual(self):
         """

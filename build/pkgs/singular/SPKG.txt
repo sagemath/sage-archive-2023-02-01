@@ -61,4 +61,5 @@ Other notes
  * exeext.patch: Add $(EXEEXT) to some executable names.
  * cygwin64.path: Support for Cywgin64.
  * templates.patch: do not use -fno-implicit-templates, which breaks
-   the build with NTL 6.2.1 for some GCC versions.
+   the build with NTL 6.2.1 for some GCC versions and remove some
+   useless explicit template instantiations.

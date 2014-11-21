@@ -1,0 +1,23 @@
+= gambit =
+
+== Description ==
+
+
+
+== License ==
+
+GNU General Public License, Version 2
+
+== SPKG Maintainers ==
+
+ * James Campbell
+ * Vince Knight
+
+== Upstream Contact ==
+
+ * http://www.gambit-project.org
+
+== Dependencies ==
+
+ * GMP/MPIR (Note: Python is *not* required for ordinary builds.)
+ * GNU patch

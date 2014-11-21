@@ -2,24 +2,28 @@
 
 == Description ==
 
-Gambit is a library of game theory software and tools for the construction and analysis of finite extensive and strategic games.
-
+Gambit is a set of software tools for doing computation on finite,
+noncooperative games. The Gambit Project was founded in the mid-1980s by
+Richard McKelvey at the California Institute of Technology.
 
 == License ==
 
-GNU General Public License, Version 2
+GPL v2+
 
 == SPKG Maintainers ==
 
- * James Campbell
- * Vince Knight
+* James Campbell
+* Vince Knight
 
 == Upstream Contact ==
 
- * http://www.gambit-project.org
+* Website: http://www.gambit-project.org/
+* Mailing List: http://sourceforge.net/p/gambit/mailman/gambit-devel/
 
 == Dependencies ==
 
- * Cython
- * IPython
- * Scipy
+* python
+* cython
+* setuptools
+* IPython
+* scipy

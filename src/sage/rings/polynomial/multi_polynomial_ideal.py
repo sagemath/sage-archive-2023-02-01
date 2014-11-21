@@ -1970,7 +1970,7 @@ class MPolynomialIdeal_singular_repr(
             sage: R.<x,y> = QQ[]
             sage: I = ideal([x^2,x*y^4,y^5])
             sage: I.integral_closure()
-            [x^2, y^5, -x*y^3]
+            [x^2, x*y^4, y^5, x*y^3]
 
         ALGORITHM:
 

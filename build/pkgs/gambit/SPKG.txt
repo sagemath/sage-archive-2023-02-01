@@ -2,6 +2,7 @@
 
 == Description ==
 
+Gambit is a library of game theory software and tools for the construction and analysis of finite extensive and strategic games.
 
 
 == License ==
@@ -19,5 +20,6 @@ GNU General Public License, Version 2
 
 == Dependencies ==
 
- * GMP/MPIR (Note: Python is *not* required for ordinary builds.)
- * GNU patch
+ * Cython
+ * IPython
+ * Scipy

@@ -28,4 +28,3 @@ if [ $? -ne 0 ]; then
     echo "Error installing Python API"
     exit 1
 fi
-

@@ -106,9 +106,9 @@ def RealBallField(unsigned long precision=53):
 
     EXAMPLES::
 
-        sage: from sage.rings.real_arb import RealBallField
-        sage: RBF = RealBallField()
-        sage: RealBallField() is RBF
+        sage: from sage.rings.real_arb import RealBallField # optional - arb
+        sage: RBF = RealBallField() # optional - arb
+        sage: RealBallField() is RBF # optional - arb
         True
     """
     return RealBallField_class(precision)
@@ -126,25 +126,25 @@ cdef class RealBallField_class(Parent):
 
     EXAMPLES::
 
-        sage: from sage.rings.real_arb import RealBallField
-        sage: RBF = RealBallField() # indirect doctest
-        sage: RBF(1)
+        sage: from sage.rings.real_arb import RealBallField # optional - arb
+        sage: RBF = RealBallField() # optional - arb; indirect doctest
+        sage: RBF(1) # optional - arb
         1.00000000000000 +- 0.000000000000000
 
     TESTS::
 
-        sage: RealBallField(0)
+        sage: RealBallField(0) # optional - arb
         Traceback (most recent call last):
         ...
         ValueError: Precision must be at least 2.
-        sage: RealBallField(1)
+        sage: RealBallField(1) # optional - arb
         Traceback (most recent call last):
         ...
         ValueError: Precision must be at least 2.
-        sage: from sage.rings.real_arb import RealBallField_class
-        sage: R1 = RealBallField_class(53)
-        sage: R2 = RealBallField_class(53)
-        sage: R1 is R2
+        sage: from sage.rings.real_arb import RealBallField_class # optional - arb
+        sage: R1 = RealBallField_class(53) # optional - arb
+        sage: R2 = RealBallField_class(53) # optional - arb
+        sage: R1 is R2 # optional - arb
         False
     """
     Element = RealBallElement
@@ -159,9 +159,9 @@ cdef class RealBallField_class(Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import RealBallField
-            sage: RBF = RealBallField()
-            sage: RBF(1)
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RBF = RealBallField() # optional - arb
+            sage: RBF(1) # optional - arb
             1.00000000000000 +- 0.000000000000000
         """
         if precision < 2:
@@ -179,10 +179,10 @@ cdef class RealBallField_class(Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import RealBallField
-            sage: RealBallField()
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField() # optional - arb
             Real ball field with 53 bits precision
-            sage: RealBallField(106)
+            sage: RealBallField(106) # optional - arb
             Real ball field with 106 bits precision
         """
         return "Real ball field with %d bits precision" % self.precision
@@ -195,10 +195,10 @@ cdef class RealBallField_class(Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import RealBallField
-            sage: RealBallField()._coerce_map_from_(RIF)
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField()._coerce_map_from_(RIF) # optional - arb
             True
-            sage: RealBallField()._coerce_map_from_(SR)
+            sage: RealBallField()._coerce_map_from_(SR) # optional - arb
             False
         """
         if isinstance(S, RealIntervalField_class):

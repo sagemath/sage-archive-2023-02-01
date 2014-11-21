@@ -1,3 +1,5 @@
+from sage.libs.arb.arf cimport arf_t
+from sage.libs.arb.mag cimport mag_t
 from sage.libs.mpfr cimport mpfr_t
 
 cdef extern from "arb.h":
@@ -7,6 +9,8 @@ cdef extern from "arb.h":
 
      void arb_init(arb_t x)
      void arb_clear(arb_t x)
+     arf_t arb_midref(arb_t x)
+     mag_t arb_radref(arb_t x)
      long arb_bits(arb_t x)
      void arb_set_interval_mpfr(arb_t x, const mpfr_t a, const mpfr_t b, long prec)
      void arb_get_interval_mpfr(mpfr_t a, mpfr_t b, const arb_t x)

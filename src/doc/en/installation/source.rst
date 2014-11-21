@@ -1273,6 +1273,13 @@ Variables dealing with doctesting:
   and `here (unpickle_all)
   <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.unpickle_all>`_.
 
+- :envvar:`SAGE_TEST_GLOBAL_ITER`, :envvar:`SAGE_TEST_ITER`: these can
+  be used instead of passing the flags ``--global-iterations`` and
+  ``--file-iterations``, respectively, to ``sage -t``. Indeed, these
+  variables are only used if the flags are unset. Run ``sage -t -h``
+  for more information on the effects of these flags (and therefore
+  these variables).
+
 Sage sets some other environment variables. The most accurate way to
 see what Sage does is to first run ``env`` from a shell prompt to see
 what environment variables you have set. Then run ``sage --sh -c

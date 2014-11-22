@@ -32,7 +32,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.compare_elements` | Compares `x` and `y` in the poset.
     :meth:`~FinitePoset.comparability_graph` | Returns the comparability graph of the poset.
     :meth:`~FinitePoset.cover_relations_iterator` | Returns an iterator for the cover relations of the poset.
-    :meth:`~FinitePoset.cover_relations` | Returns the list of pairs [u,v] which are cover relations
+    :meth:`~FinitePoset.cover_relations` | Returns the list of pairs `[u,v]` which are cover relations
     :meth:`~FinitePoset.covers` | Returns True if y covers x and False otherwise.
     :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
     :meth:`~FinitePoset.dilworth_decomposition` | Returns a partition of the points into the minimal number of chains.
@@ -53,6 +53,9 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.height` | Return the height (number of elements in the longest chain) of the poset.
     :meth:`~FinitePoset.incomparability_graph` | Returns the incomparability graph of the poset.
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
+    :meth:`~FinitePoset.intervals` | Returns a list of all intervals of the poset.
+    :meth:`~FinitePoset.intervals_iterator` | Returns an iterator for all the intervals of the poset.
+    :meth:`~FinitePoset.intervals_number` | Returns the number of intervals in the poset.
     :meth:`~FinitePoset.is_bounded` | Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
     :meth:`~FinitePoset.is_chain` | Returns True if the poset is totally ordered, and False otherwise.
     :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
@@ -99,8 +102,8 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.rank_function` | Returns a rank function of the poset, if it exists.
     :meth:`~FinitePoset.rank` | Returns the rank of an element, or the rank of the poset if element is None.
     :meth:`~FinitePoset.relabel` | Returns a copy of this poset with its elements relabelled
-    :meth:`~FinitePoset.relations_iterator` | Returns an iterator for all the relations of the poset.
     :meth:`~FinitePoset.relations` | Returns a list of all relations of the poset.
+    :meth:`~FinitePoset.relations_iterator` | Returns an iterator for all the relations of the poset.
     :meth:`~FinitePoset.relations_number` | Returns the number of relations in the poset.
     :meth:`~FinitePoset.show` | Shows the Graphics object corresponding the Hasse diagram of the poset.
     :meth:`~FinitePoset.subposet` | Returns the poset containing elements with partial order induced by that of self.
@@ -151,8 +154,6 @@ from sage.graphs.digraph_generators import digraphs
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.misc.superseded import deprecation
-
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
     r"""
@@ -1661,9 +1662,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         A generator that produces pairs (each pair is a list), where the
         first element of the pair is less than or equal to the second element.
 
-        Pairs are produced in a rough sort of lexicographic order,
-        where earlier elements are from lower levels of the poset.
-
         .. SEEALSO::
 
             :meth:`relations_number`, :meth:`relations`,
@@ -1725,7 +1723,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.relations_number()
             27
         """
-        return len(self.relations())
+        return sum(1 for x in self.relations_iterator())
 
     # three useful aliases
     intervals = relations

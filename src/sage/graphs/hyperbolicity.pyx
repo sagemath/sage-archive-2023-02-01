@@ -170,7 +170,7 @@ from sage.data_structures.bitset import Bitset
 from libc.stdint cimport uint16_t, uint32_t, uint64_t
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 
 
 # Defining a pair of vertices as a C struct

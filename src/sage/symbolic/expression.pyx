@@ -8007,7 +8007,8 @@ cdef class Expression(CommutativeRingElement):
            :meth:`simplify_full`, :meth:`simplify_trig`,
            :meth:`simplify_rational`, :meth:`simplify_rectform`
            :meth:`simplify_factorial`, :meth:`simplify_log`,
-           :meth:`simplify_real`, :meth:`canonicalize_radical`
+           :meth:`simplify_real`, :meth:`simplify_hypergeometric`,
+           :meth:`canonicalize_radical`
 
         EXAMPLES::
 

@@ -180,22 +180,24 @@ def _unit_gens_primepowercase(p, r):
     EXAMPLES::
 
         sage: from sage.rings.finite_rings.integer_mod_ring import _unit_gens_primepowercase
+        sage: _unit_gens_primepowercase(2, 3)
+        [(7, 2), (5, 2)]
         sage: _unit_gens_primepowercase(17, 1)
         [(3, 16)]
         sage: _unit_gens_primepowercase(3, 3)
         [(2, 18)]
     """
+    pr = p**r
     if p == 2:
         if r == 1:
             return []
         if r == 2:
             return [(integer_mod.Mod(3, 4), integer.Integer(2))]
-        pr = 2**r
         return [(integer_mod.Mod(-1, pr), integer.Integer(2)),
                 (integer_mod.Mod(5, pr), integer.Integer(2**(r - 2)))]
 
     # odd prime
-    return [(integer_mod.Mod(primitive_root(p**r, check=False), p**r),
+    return [(integer_mod.Mod(primitive_root(pr, check=False), pr),
              integer.Integer(p**(r - 1) * (p - 1)))]
 
 

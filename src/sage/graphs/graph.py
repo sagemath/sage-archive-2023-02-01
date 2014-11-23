@@ -1116,7 +1116,6 @@ class Graph(GenericGraph):
         GenericGraph.__init__(self)
         msg = ''
         from sage.structure.element import is_Matrix
-        from sage.misc.misc import uniq
 
         if sparse == False:
             if data_structure != "sparse":
@@ -1333,7 +1332,7 @@ class Graph(GenericGraph):
             if multiedges is None: multiedges = False
             format = 'adjacency_matrix'
         if format == 'adjacency_matrix':
-            entries = uniq(data.list())
+            entries = set(data.list())
             for e in entries:
                 try:
                     e = int(e)
@@ -1377,7 +1376,7 @@ class Graph(GenericGraph):
                     raise ValueError(msg)
                 else:
                     positions.append(tuple(NZ))
-                L = sorted(uniq(c.list()))
+                L = sorted(set(c.list()))
 
                 if data.nrows() != (2 if len(NZ) == 2 else 1):
                     desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
@@ -1391,7 +1390,7 @@ class Graph(GenericGraph):
             if weighted   is None: weighted  = False
             if multiedges is None:
                 total = len(positions)
-                multiedges = (  len(uniq(positions)) < total  )
+                multiedges = (  len(set(positions)) < total  )
             num_verts = data.nrows()
         elif format == 'Graph':
             if loops is None: loops = data.allows_loops()
@@ -1401,7 +1400,7 @@ class Graph(GenericGraph):
             elif not multiedges:
                 e = data.edges(labels=False)
                 e = [sorted(f) for f in e]
-                if len(e) != len(uniq(e)):
+                if len(e) != len(set(e)):
                     raise ValueError("No multiple edges but input graph"+
                     " has multiple edges.")
             if weighted is None: weighted = data.weighted()
@@ -1460,7 +1459,7 @@ class Graph(GenericGraph):
                 if loops is None: loops = False
             if weighted is None: weighted = False
             for u in data:
-                if len(uniq(data[u])) != len(data[u]):
+                if len(set(data[u])) != len(data[u]):
                     if multiedges is False:
                         v = (v for v in data[u] if data[u].count(v) > 1).next()
                         raise ValueError("Non-multigraph got several edges (%s,%s)"%(u,v))

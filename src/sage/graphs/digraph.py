@@ -571,7 +571,6 @@ class DiGraph(GenericGraph):
         msg = ''
         GenericGraph.__init__(self)
         from sage.structure.element import is_Matrix
-        from sage.misc.misc import uniq
 
         if sparse == False:
             if data_structure != "sparse":
@@ -738,7 +737,7 @@ class DiGraph(GenericGraph):
             if multiedges is None: multiedges = False
             format = 'adjacency_matrix'
         if format == 'adjacency_matrix':
-            entries = uniq(data.list())
+            entries = set(data.list())
             for e in entries:
                 try:
                     e = int(e)
@@ -773,7 +772,7 @@ class DiGraph(GenericGraph):
                 if len(NZ) != 2:
                     msg += "There must be two nonzero entries (-1 & 1) per column."
                     raise ValueError(msg)
-                L = sorted(uniq(c.list()))
+                L = sorted(set(c.list()))
                 if L != [-1,0,1]:
                     msg += "Each column represents an edge: -1 goes to 1."
                     raise ValueError(msg)
@@ -785,7 +784,7 @@ class DiGraph(GenericGraph):
             if weighted   is None: weighted  = False
             if multiedges is None:
                 total = len(positions)
-                multiedges = (  len(uniq(positions)) < total  )
+                multiedges = (  len(set(positions)) < total  )
             num_verts = data.nrows()
         elif format == 'DiGraph':
             if loops is None: loops = data.allows_loops()
@@ -794,7 +793,7 @@ class DiGraph(GenericGraph):
             if multiedges is None: multiedges = data.allows_multiple_edges()
             elif not multiedges:
                 e = data.edges(labels=False)
-                if len(e) != len(uniq(e)):
+                if len(e) != len(set(e)):
                     raise ValueError("No multiple edges but input digraph"+
                     " has multiple edges.")
             if weighted is None: weighted = data.weighted()
@@ -848,7 +847,7 @@ class DiGraph(GenericGraph):
                 if loops is None: loops = False
             if weighted is None: weighted = False
             for u in data:
-                if len(uniq(data[u])) != len(data[u]):
+                if len(set(data[u])) != len(data[u]):
                     if multiedges is False:
                         v = (v for v in data[u] if data[u].count(v) > 1).next()
                         raise ValueError("Non-multidigraph got several edges (%s,%s)"%(u,v))

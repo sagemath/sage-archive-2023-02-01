@@ -807,16 +807,16 @@ class Permutation(CombinatorialObject, Element):
         EXAMPLES::
 
             sage: p = Permutation([1, 3, 2])
-            sage: p.next()
+            sage: next(p)
             [2, 1, 3]
             sage: p = Permutation([4,3,2,1])
-            sage: p.next()
+            sage: next(p)
             False
 
         TESTS::
 
             sage: p = Permutation([])
-            sage: p.next()
+            sage: next(p)
             False
         """
         p = self[:]
@@ -5715,7 +5715,7 @@ class StandardPermutations_all(Permutations):
         TESTS::
 
             sage: it = iter(Permutations())
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [1, 2], [2, 1], [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
         n = 0

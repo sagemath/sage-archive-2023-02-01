@@ -1667,7 +1667,7 @@ class DiGraph(GenericGraph):
            sage: g = graphs.RandomGNP(5,.3)
            sage: dg = DiGraph(g)
            sage: feedback = dg.feedback_edge_set()
-           sage: (u,v,l) = g.edge_iterator().next()
+           sage: (u,v,l) = next(g.edge_iterator())
            sage: (u,v) in feedback or (v,u) in feedback
            True
 
@@ -2150,7 +2150,7 @@ class DiGraph(GenericGraph):
 
             sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
             sage: pi = g._all_paths_iterator('a')
-            sage: for _ in range(5): print pi.next()
+            sage: for _ in range(5): print next(pi)
             ['a', 'a']
             ['a', 'b']
             ['a', 'a', 'a']
@@ -2160,7 +2160,7 @@ class DiGraph(GenericGraph):
         ::
 
             sage: pi = g._all_paths_iterator('b')
-            sage: for _ in range(5): print pi.next()
+            sage: for _ in range(5): print next(pi)
             ['b', 'c']
             ['b', 'c', 'd']
             ['b', 'c', 'd', 'c']
@@ -2182,14 +2182,14 @@ class DiGraph(GenericGraph):
         It is possible to specify the allowed ending vertices::
 
             sage: pi = g._all_paths_iterator('a', ending_vertices=['c'])
-            sage: for _ in range(5): print pi.next()
+            sage: for _ in range(5): print next(pi)
             ['a', 'b', 'c']
             ['a', 'a', 'b', 'c']
             ['a', 'a', 'a', 'b', 'c']
             ['a', 'b', 'c', 'd', 'c']
             ['a', 'a', 'a', 'a', 'b', 'c']
             sage: pi = g._all_paths_iterator('a', ending_vertices=['a', 'b'])
-            sage: for _ in range(5): print pi.next()
+            sage: for _ in range(5): print next(pi)
             ['a', 'a']
             ['a', 'b']
             ['a', 'a', 'a']
@@ -2295,7 +2295,7 @@ class DiGraph(GenericGraph):
 
             sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
             sage: pi = g.all_paths_iterator()
-            sage: for _ in range(7): print pi.next()
+            sage: for _ in range(7): print next(pi)
             ['a', 'a']
             ['a', 'b']
             ['b', 'c']
@@ -2307,14 +2307,14 @@ class DiGraph(GenericGraph):
         It is possible to precise the allowed starting and/or ending vertices::
 
             sage: pi = g.all_paths_iterator(starting_vertices=['a'])
-            sage: for _ in range(5): print pi.next()
+            sage: for _ in range(5): print next(pi)
             ['a', 'a']
             ['a', 'b']
             ['a', 'a', 'a']
             ['a', 'a', 'b']
             ['a', 'b', 'c']
             sage: pi = g.all_paths_iterator(starting_vertices=['a'], ending_vertices=['b'])
-            sage: for _ in range(5): print pi.next()
+            sage: for _ in range(5): print next(pi)
             ['a', 'b']
             ['a', 'a', 'b']
             ['a', 'a', 'a', 'b']
@@ -2493,14 +2493,14 @@ class DiGraph(GenericGraph):
 
             sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
             sage: it = g._all_cycles_iterator_vertex('a', simple=False, max_length=None)
-            sage: for i in range(5): print it.next()
+            sage: for i in range(5): print next(it)
             ['a', 'a']
             ['a', 'a', 'a']
             ['a', 'a', 'a', 'a']
             ['a', 'a', 'a', 'a', 'a']
             ['a', 'a', 'a', 'a', 'a', 'a']
             sage: it = g._all_cycles_iterator_vertex('c', simple=False, max_length=None)
-            sage: for i in range(5): print it.next()
+            sage: for i in range(5): print next(it)
             ['c', 'd', 'c']
             ['c', 'd', 'c', 'd', 'c']
             ['c', 'd', 'c', 'd', 'c', 'd', 'c']
@@ -2508,7 +2508,7 @@ class DiGraph(GenericGraph):
             ['c', 'd', 'c', 'd', 'c', 'd', 'c', 'd', 'c', 'd', 'c']
 
             sage: it = g._all_cycles_iterator_vertex('d', simple=False, max_length=None)
-            sage: for i in range(5): print it.next()
+            sage: for i in range(5): print next(it)
             ['d', 'c', 'd']
             ['d', 'c', 'd', 'c', 'd']
             ['d', 'c', 'd', 'c', 'd', 'c', 'd']
@@ -2612,7 +2612,7 @@ class DiGraph(GenericGraph):
 
             sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
             sage: it = g.all_cycles_iterator()
-            sage: for _ in range(7): print it.next()
+            sage: for _ in range(7): print next(it)
             ['a', 'a']
             ['a', 'a', 'a']
             ['c', 'd', 'c']
@@ -2636,7 +2636,7 @@ class DiGraph(GenericGraph):
 
             sage: g = DiGraph({'a' : ['a', 'b'], 'b' : ['c'], 'c' : ['d'], 'd' : ['c']}, loops=True)
             sage: it = g.all_cycles_iterator(starting_vertices=['b', 'c'])
-            sage: for _ in range(3): print it.next()
+            sage: for _ in range(3): print next(it)
             ['c', 'd', 'c']
             ['c', 'd', 'c', 'd', 'c']
             ['c', 'd', 'c', 'd', 'c', 'd', 'c']

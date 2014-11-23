@@ -137,20 +137,20 @@ As matrix and many other sage objects, words have a parent::
 Factors and Rauzy Graphs
 ========================
 
-Enumeration of factors, the successive values returned by it.next()
+Enumeration of factors, the successive values returned by next(it)
 can appear in a different order depending on hardware. Therefore we
 mark the three first results of the test random. The important test
 is that the iteration stops properly on the fourth call::
 
     sage: w = Word([4,5,6])^7
     sage: it = w.factor_iterator(4)
-    sage: it.next() # random
+    sage: next(it) # random
     word: 6456
-    sage: it.next() # random
+    sage: next(it) # random
     word: 5645
-    sage: it.next() # random
+    sage: next(it) # random
     word: 4564
-    sage: it.next()
+    sage: next(it)
     Traceback (most recent call last):
     ...
     StopIteration

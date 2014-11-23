@@ -280,13 +280,13 @@ class Set_object(Set_generic):
 
             sage: X = Set(ZZ)
             sage: I = X.__iter__()
-            sage: I.next()
+            sage: next(I)
             0
-            sage: I.next()
+            sage: next(I)
             1
-            sage: I.next()
+            sage: next(I)
             -1
-            sage: I.next()
+            sage: next(I)
             2
         """
         return self.__object.__iter__()
@@ -705,13 +705,13 @@ class Set_object_enumerated(Set_object):
 
             sage: S = Set(GF(19))
             sage: I = iter(S)
-            sage: I.next()
+            sage: next(I)
             0
-            sage: I.next()
+            sage: next(I)
             1
-            sage: I.next()
+            sage: next(I)
             2
-            sage: I.next()
+            sage: next(I)
             3
         """
         for x in self.set():
@@ -1220,7 +1220,7 @@ class Set_object_intersection(Set_object):
 
             sage: X = Set(ZZ).intersection(Primes())
             sage: I = X.__iter__()
-            sage: I.next()
+            sage: next(I)
             2
         """
         for x in self.__X:
@@ -1377,15 +1377,15 @@ class Set_object_difference(Set_object):
 
             sage: X = Set(ZZ).difference(Primes())
             sage: I = X.__iter__()
-            sage: I.next()
+            sage: next(I)
             0
-            sage: I.next()
+            sage: next(I)
             1
-            sage: I.next()
+            sage: next(I)
             -1
-            sage: I.next()
+            sage: next(I)
             -2
-            sage: I.next()
+            sage: next(I)
             -3
         """
         for x in self.__X:
@@ -1527,15 +1527,15 @@ class Set_object_symmetric_difference(Set_object):
 
             sage: X = Set(ZZ).symmetric_difference(Primes())
             sage: I = X.__iter__()
-            sage: I.next()
+            sage: next(I)
             0
-            sage: I.next()
+            sage: next(I)
             1
-            sage: I.next()
+            sage: next(I)
             -1
-            sage: I.next()
+            sage: next(I)
             -2
-            sage: I.next()
+            sage: next(I)
             -3
         """
         for x in self.__X:

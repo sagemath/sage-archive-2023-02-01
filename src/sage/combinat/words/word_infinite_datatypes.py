@@ -69,7 +69,7 @@ class WordDatatype_callable(WordDatatype):
 
             sage: w = Word(lambda x : x % 2)
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
 
         TESTS::
@@ -78,7 +78,7 @@ class WordDatatype_callable(WordDatatype):
             sage: s = WordDatatype_callable(Words(), lambda n:n%3+10, length=10); s
             <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
             sage: it = iter(s)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [10, 11, 12, 10, 11, 12, 10, 11, 12, 10]
         """
         if self._len is Infinity:
@@ -346,7 +346,7 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
 
             sage: w = Word(lambda x : x % 2)
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
         """
         if self._len is Infinity:
@@ -920,7 +920,7 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
 
             sage: w = Word(iter([0,1,0,0,1,0,1,0,0,1,0,1,0]))
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 0, 1, 0, 1, 0, 0, 1]
         """
         # first iterator through the cached values

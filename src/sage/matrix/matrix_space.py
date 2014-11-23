@@ -732,11 +732,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         ::
 
             sage: i = iter(ZZ)
-            sage: i.next()
+            sage: next(i)
             0
-            sage: i.next()
+            sage: next(i)
             1
-            sage: i.next()
+            sage: next(i)
             -1
 
         Some more examples::
@@ -809,7 +809,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
             sage: MS = MatrixSpace(ZZ, 2, 3)
             sage: i = iter(MS)
-            sage: a = [ i.next() for _ in range(6) ]
+            sage: a = [ next(i) for _ in range(6) ]
             sage: a[0]
             [0 0 0]
             [0 0 0]

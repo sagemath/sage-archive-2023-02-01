@@ -2502,13 +2502,13 @@ class TamariIntervalPosets_all(DisjointUnionEnumeratedSets, TamariIntervalPosets
             +Infinity
 
             sage: it = iter(S)
-            sage: [it.next() for i in xrange(5)]
+            sage: [next(it) for i in xrange(5)]
             [The tamari interval of size 0 induced by relations [],
              The tamari interval of size 1 induced by relations [],
              The tamari interval of size 2 induced by relations [],
              The tamari interval of size 2 induced by relations [(2, 1)],
              The tamari interval of size 2 induced by relations [(1, 2)]]
-            sage: it.next().parent()
+            sage: next(it).parent()
             Interval-posets
             sage: S(0,[])
             The tamari interval of size 0 induced by relations []

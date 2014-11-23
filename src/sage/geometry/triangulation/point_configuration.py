@@ -684,7 +684,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: iter = p._TOPCOM_triangulations(verbose=True)
-            sage: iter.next()     # optional - TOPCOM
+            sage: next(iter)     # optional - TOPCOM
             #### TOPCOM input ####
             # points2triangs
             # [[0,0,1],[0,1,1],[1,0,1],[1,1,1],[-1,-1,1]]
@@ -929,13 +929,13 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: iter = p.triangulations()
-            sage: iter.next()
+            sage: next(iter)
             (<1,3,4>, <2,3,4>)
-            sage: iter.next()
+            sage: next(iter)
             (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>)
-            sage: iter.next()
+            sage: next(iter)
             (<1,2,3>, <1,2,4>)
-            sage: iter.next()
+            sage: next(iter)
             (<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>)
             sage: p.triangulations_list()
             [(<1,3,4>, <2,3,4>),
@@ -953,13 +953,13 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p.set_engine('TOPCOM')                       # optional - TOPCOM
             sage: iter = p.triangulations()                    # optional - TOPCOM
-            sage: iter.next()                                  # optional - TOPCOM
+            sage: next(iter)                                   # optional - TOPCOM
             (<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>)
-            sage: iter.next()                                  # optional - TOPCOM
+            sage: next(iter)                                   # optional - TOPCOM
             (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>)
-            sage: iter.next()                                  # optional - TOPCOM
+            sage: next(iter)                                   # optional - TOPCOM
             (<1,2,3>, <1,2,4>)
-            sage: iter.next()                                  # optional - TOPCOM
+            sage: next(iter)                                   # optional - TOPCOM
             (<1,3,4>, <2,3,4>)
             sage: p.triangulations_list()                      # optional - TOPCOM
             [(<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>),

@@ -98,7 +98,7 @@ def fan_isomorphism_generator(fan1, fan2):
         ...               Cone([m1*vector([-1,-14]), m1*vector([-100, -5])])])
         sage: fan2 = Fan([Cone([m2*vector([23, 14]), m2*vector([   3,100])]),
         ...               Cone([m2*vector([-1,-14]), m2*vector([-100, -5])])])
-        sage: fan_isomorphism_generator(fan1, fan2).next()
+        sage: next(fan_isomorphism_generator(fan1, fan2))
         [18  1 -5]
         [ 4  0 -1]
         [ 5  0 -1]

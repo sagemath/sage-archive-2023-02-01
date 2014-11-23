@@ -1899,7 +1899,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 3
             """
             if bool(self.value._monomial_coefficients):
-                return self.value._monomial_coefficients.iterkeys().next()[0]
+                return next(self.value._monomial_coefficients.iterkeys())[0]
             else:
                 return 1
 

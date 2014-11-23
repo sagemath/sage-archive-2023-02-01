@@ -271,11 +271,11 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
             sage: K = GF(next_prime(2^256))
             sage: all = iter(K)
-            sage: all.next()
+            sage: next(all)
             0
-            sage: all.next()
+            sage: next(all)
             1
-            sage: all.next()
+            sage: next(all)
             2
         """
         yield self(0)

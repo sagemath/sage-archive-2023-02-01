@@ -498,7 +498,7 @@ class GraphQuery(GenericGraphQuery):
             sage: Q = GraphQuery(display_cols=['graph6'],num_vertices=7, diameter=5)
             sage: it = iter(Q)
             sage: while True:
-            ...     try: print it.next().graph6_string()
+            ...     try: print next(it).graph6_string()
             ...     except StopIteration: break
             F?`po
             F?gqg

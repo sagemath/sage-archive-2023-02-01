@@ -3182,7 +3182,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<z> = CyclotomicField(10)
             sage: it = K.primes_of_degree_one_iter()
-            sage: Ps = [ it.next() for i in range(3) ]
+            sage: Ps = [ next(it) for i in range(3) ]
             sage: Ps # random
             [Fractional ideal (z^3 + z + 1), Fractional ideal (3*z^3 - z^2 + z - 1), Fractional ideal (2*z^3 - 3*z^2 + z - 2)]
             sage: [ P.norm() for P in Ps ] # random

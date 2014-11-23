@@ -635,16 +635,16 @@ class MiniCremonaDatabase(SQLDatabase):
         TESTS::
 
             sage: it = CremonaDatabase().__iter__()
-            sage: it.next().label()
+            sage: next(it).label()
             '11a1'
-            sage: it.next().label()
+            sage: next(it).label()
             '11a2'
-            sage: it.next().label()
+            sage: next(it).label()
             '11a3'
-            sage: it.next().label()
+            sage: next(it).label()
             '14a1'
-            sage: skip = [it.next() for _ in range(100)]
-            sage: it.next().label()
+            sage: skip = [next(it) for _ in range(100)]
+            sage: next(it).label()
             '45a3'
         """
         query = "SELECT curve FROM t_curve,t_class USING(class) ORDER BY conductor"
@@ -1151,7 +1151,7 @@ class MiniCremonaDatabase(SQLDatabase):
         #print "Computing largest conductor."
         q = self.__connection__.cursor().execute('SELECT conductor FROM ' \
             + 't_class ORDER BY conductor DESC LIMIT 1')
-        self.__largest_conductor__ = q.next()[0]
+        self.__largest_conductor__ = next(q)[0]
         return self.__largest_conductor__
 
     def smallest_conductor(self):
@@ -1223,18 +1223,18 @@ class MiniCremonaDatabase(SQLDatabase):
                 return self.__number_of_curves__
             q = self.__connection__.cursor().execute('SELECT COUNT(curve) ' \
                 + 'FROM t_curve')
-            self.__number_of_curves__ = q.next()[0]
+            self.__number_of_curves__ = next(q)[0]
             return self.__number_of_curves__
         if i == 0:
             q = self.__connection__.cursor().execute('SELECT COUNT(curve) ' \
                 + 'FROM t_curve,t_class USING(class) WHERE conductor=?', \
                 (int(N),))
-            return q.next()[0]
+            return next(q)[0]
         if not isinstance(i, str):
             i = cremona_letter_code(i)
         q = self.__connection__.cursor().execute('SELECT COUNT(curve) FROM ' \
             + 't_curve WHERE class=?',(str(N)+i,))
-        return q.next()[0]
+        return next(q)[0]
 
     def number_of_isogeny_classes(self, N=0):
         """
@@ -1262,11 +1262,11 @@ class MiniCremonaDatabase(SQLDatabase):
                 return self.__number_of_isogeny_classes__
             q = self.__connection__.cursor().execute('SELECT COUNT(class) ' \
                 + 'FROM t_class')
-            self.__number_of_isogeny_classes__ = q.next()[0]
+            self.__number_of_isogeny_classes__ = next(q)[0]
             return self.__number_of_isogeny_classes__
         q = self.__connection__.cursor().execute('SELECT COUNT(class) FROM ' \
             + 't_class WHERE conductor=?',(int(N),))
-        return q.next()[0]
+        return next(q)[0]
 
     def random(self):
         """
@@ -1281,7 +1281,7 @@ class MiniCremonaDatabase(SQLDatabase):
         q = self.__connection__.cursor().execute('SELECT conductor FROM ' \
             + 't_class WHERE conductor>=? ORDER BY conductor',(int(N),))
         try:
-            N = q.next()[0]
+            N = next(q)[0]
         except StopIteration:
             N = 11
         iso = randint(0, self.number_of_isogeny_classes(N)-1)

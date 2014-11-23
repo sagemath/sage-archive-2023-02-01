@@ -728,7 +728,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
 
             sage: T = GelfandTsetlinPatterns()
             sage: it = T.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[],
              [[1]],
              [[2]],
@@ -741,7 +741,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
              [[3, 1], [1]]]
             sage: T = GelfandTsetlinPatterns(k=1)
             sage: it = T.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[],
              [[0]],
              [[1]],

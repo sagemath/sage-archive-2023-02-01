@@ -1838,7 +1838,7 @@ class Compositions_all(Compositions):
 
             sage: C = Compositions()
             sage: it = C.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [1, 1], [2], [1, 1, 1], [1, 2], [2, 1], [3], [1, 1, 1, 1], [1, 1, 2]]
         """
         n = 0

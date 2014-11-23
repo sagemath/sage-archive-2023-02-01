@@ -1678,7 +1678,7 @@ class WordMorphism(SageObject):
 
             sage: s = WordMorphism({('a', 1):[('a', 1), ('a', 2)], ('a', 2):[('a', 1)]})
             sage: it = s._fixed_point_iterator(('a',1))
-            sage: it.next()
+            sage: next(it)
             ('a', 1)
 
         This shows that ticket :trac:`13668` has been resolved::
@@ -1963,7 +1963,7 @@ class WordMorphism(SageObject):
         I = itertools.ifilterfalse(FiniteWord_class.is_empty, self.images())
 
         try:
-            letter = I.next()[0]
+            letter = next(I)[0]
         except StopIteration:
             return True
 

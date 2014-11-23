@@ -2938,7 +2938,7 @@ class GenericGraph(GenericGraph_pyx):
         if len(odd)>0:
             v=odd.pop()
         else:
-            v=g.edge_iterator(labels=None).next()[0]
+            v = next(g.edge_iterator(labels=None))[0]
             odd.append(v)
         # Stops when there is no edge left
         while True:
@@ -2961,7 +2961,7 @@ class GenericGraph(GenericGraph_pyx):
                     v=odd.pop()
                 # Else jumps to an ever vertex which is not isolated
                 elif g.size()>0:
-                    v=g.edge_iterator().next()[0]
+                    v = next(g.edge_iterator())[0]
                     odd.append(v)
                 # If there is none, we are done !
                 else:
@@ -6949,7 +6949,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: feedback = dcycle.feedback_vertex_set()
             sage: len(feedback)
             3
-            sage: (u,v,l) = cycle.edge_iterator().next()
+            sage: (u,v,l) = next(cycle.edge_iterator())
             sage: u in feedback or v in feedback
             True
 
@@ -10383,7 +10383,7 @@ class GenericGraph(GenericGraph_pyx):
         9-regular.  In fact, we can now find the degree easily as
         follows::
 
-            sage: G.degree_iterator().next()
+            sage: next(G.degree_iterator())
             7
 
         The house graph is not regular::
@@ -12583,7 +12583,7 @@ class GenericGraph(GenericGraph_pyx):
             5
             sage: graphs.HeawoodGraph().girth()
             6
-            sage: graphs.trees(9).next().girth()
+            sage: next(graphs.trees(9)).girth()
             +Infinity
 
 

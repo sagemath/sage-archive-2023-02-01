@@ -932,5 +932,5 @@ def _gen_names(elts):
         try:
             _certify_names([name])
         except ValueError:
-            name = it.next().string_rep()
+            name = next(it).string_rep()
         yield name

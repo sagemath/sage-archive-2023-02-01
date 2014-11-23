@@ -138,13 +138,13 @@ def _all_induced_cycles_iter( dg ):
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import _all_induced_cycles_iter
         sage: Q = ClusterQuiver(['A',[6,0],1]); Q
         Quiver on 6 vertices of type ['D', 6]
-        sage: _all_induced_cycles_iter(Q.digraph()).next()
+        sage: next(_all_induced_cycles_iter(Q.digraph()))
         ([(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 0)], True)
         sage: Q.mutate(0)
-        sage: _all_induced_cycles_iter(Q.digraph()).next()
+        sage: next(_all_induced_cycles_iter(Q.digraph()))
         ([(1, 2), (2, 3), (3, 4), (4, 5), (5, 1)], True)
         sage: Q2 = ClusterQuiver(['A',[2,3],1])
-        sage: _all_induced_cycles_iter(Q2.digraph()).next()
+        sage: next(_all_induced_cycles_iter(Q2.digraph()))
         ([(1, 0), (1, 2), (3, 2), (3, 4), (4, 0)], False)
     """
     dg_new = DiGraph(dg)

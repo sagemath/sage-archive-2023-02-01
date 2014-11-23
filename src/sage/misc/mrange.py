@@ -97,23 +97,23 @@ def _xmrange_iter( iter_list, typ=list ):
     doc-test to prove this::
 
         sage: iter = sage.misc.mrange._xmrange_iter( [[1,2],[1,3]] )
-        sage: l1 = iter.next()
-        sage: l2 = iter.next()
+        sage: l1 = next(iter)
+        sage: l2 = next(iter)
         sage: l1 is l2
         False
 
     However, if you would like to re-use the list object::
 
         sage: iter = sage.misc.mrange._xmrange_iter( [[1,2],[1,3]], lambda x: x )
-        sage: l1 = iter.next()
-        sage: l2 = iter.next()
+        sage: l1 = next(iter)
+        sage: l2 = next(iter)
         sage: l1 is l2  # eeek, this is freaky!
         True
 
     We check that :trac:`14285` has been resolved::
 
         sage: iter = sage.misc.mrange._xmrange_iter([ZZ,[]])
-        sage: iter.next()
+        sage: next(iter)
         Traceback (most recent call last):
         ...
         StopIteration

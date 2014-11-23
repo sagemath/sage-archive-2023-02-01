@@ -1438,7 +1438,7 @@ class CombinatorialClass(Parent):
             sage: C.first = lambda: 0
             sage: C.next  = lambda c: c+1
             sage: it = iter(C) # indirect doctest
-            sage: [it.next() for _ in range(4)]
+            sage: [next(it) for _ in range(4)]
             [0, 1, 2, 3]
         """
         f = self.first()
@@ -1473,7 +1473,7 @@ class CombinatorialClass(Parent):
             ...
             sage: C.previous  = prev
             sage: it = iter(C) # indirect doctest
-            sage: [it.next() for _ in range(4)]
+            sage: [next(it) for _ in range(4)]
             [1, 2, 3, 4]
         """
         l = self.last()
@@ -2169,15 +2169,15 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
 
         EXAMPLES:
             sage: R = InfiniteAbstractCombinatorialClass()
-            sage: iter(R).next()
+            sage: next(iter(R))
             Traceback (most recent call last):
             ...
             NotImplementedError
 
             sage: c = iter(Compositions()) # indirect doctest
-            sage: c.next(), c.next(), c.next(), c.next(), c.next(), c.next()
+            sage: next(c), next(c), next(c), next(c), next(c), next(c)
             ([], [1], [1, 1], [2], [1, 1, 1], [1, 2])
-            sage: c.next(), c.next(), c.next(), c.next(), c.next(), c.next()
+            sage: next(c), next(c), next(c), next(c), next(c), next(c)
             ([2, 1], [3], [1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3])
         """
         try:

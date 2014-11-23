@@ -3392,7 +3392,7 @@ class DyckWords_all(DyckWords):
         EXAMPLES::
 
             sage: it = DyckWords(complete=False).__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [1],
              [1, 0],
@@ -3779,7 +3779,7 @@ class CompleteDyckWords_all(CompleteDyckWords, DyckWords_all):
         EXAMPLES::
 
             sage: it = DyckWords().__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [[],
              [1, 0],
              [1, 0, 1, 0],

@@ -128,13 +128,13 @@ class EnumeratedSetFromIterator(Parent):
         sage: E = EnumeratedSetFromIterator(count, args=(0,), category=InfiniteEnumeratedSets(), cache=True)
         sage: e1 = iter(E)
         sage: e2 = iter(E)
-        sage: e1.next(), e1.next()
+        sage: next(e1), next(e1)
         (0, 1)
-        sage: e2.next(), e2.next(), e2.next()
+        sage: next(e2), next(e2), next(e2)
         (0, 1, 2)
-        sage: e1.next(), e1.next()
+        sage: next(e1), next(e1)
         (2, 3)
-        sage: e2.next()
+        sage: next(e2)
         3
 
     The following warning is due to ``E`` being a facade parent. For more,
@@ -346,10 +346,10 @@ class EnumeratedSetFromIterator(Parent):
 
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
             sage: E = EnumeratedSetFromIterator(graphs, args=(8,))
-            sage: g1 = iter(E).next(); g1
+            sage: g1 = next(iter(E)); g1
             Graph on 8 vertices
             sage: E = EnumeratedSetFromIterator(graphs, args=(8,), cache=True)
-            sage: g2 = iter(E).next(); g2
+            sage: g2 = next(iter(E)); g2
             Graph on 8 vertices
             sage: g1 == g2
             True

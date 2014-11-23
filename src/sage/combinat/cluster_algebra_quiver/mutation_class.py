@@ -210,9 +210,9 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
         sage: from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         sage: dg = ClusterQuiver(['A',[1,2],1]).digraph()
         sage: itt = _mutation_class_iter(dg, 3,0)
-        sage: itt.next()[0].edges()
+        sage: next(itt)[0].edges()
         [(0, 1, (1, -1)), (0, 2, (1, -1)), (1, 2, (1, -1))]
-        sage: itt.next()[0].edges()
+        sage: next(itt)[0].edges()
         [(0, 2, (1, -1)), (1, 0, (2, -2)), (2, 1, (1, -1))]
     """
     timer = time.time()

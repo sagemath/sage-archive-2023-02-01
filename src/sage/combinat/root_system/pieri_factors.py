@@ -159,7 +159,7 @@ class PieriFactors(UniqueRepresentation, Parent):
 
             sage: PF = WeylGroup(['A',3,1]).pieri_factors()
             sage: f = PF.__iter__()
-            sage: [f.next().reduced_word() for i in range(5)]
+            sage: [next(f).reduced_word() for i in range(5)]
             [[], [0], [1], [2], [3]]
         """
         return iter(self.elements())
@@ -761,13 +761,13 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
             sage: W = WeylGroup(['A',4,1])
             sage: PF = W.pieri_factors()
             sage: f = PF.__iter__()
-            sage: f.next()
+            sage: next(f)
             [1 0 0 0 0]
             [0 1 0 0 0]
             [0 0 1 0 0]
             [0 0 0 1 0]
             [0 0 0 0 1]
-            sage: [f.next().reduced_word() for i in range(6)]
+            sage: [next(f).reduced_word() for i in range(6)]
             [[0], [1], [2], [3], [4], [1, 0]]
         """
         from sage.combinat.subset import Subsets

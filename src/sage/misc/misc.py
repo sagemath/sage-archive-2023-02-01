@@ -611,7 +611,7 @@ add = sum
 ##         return z
 ##     if not isinstance(x, list):
 ##         m = x.__iter__()
-##         y = m.next()
+##         y = next(m)
 ##         return reduce(operator.add, m, y)
 ##     else:
 ##         return reduce(operator.add, x[1:], x[0])
@@ -1468,15 +1468,15 @@ def ellipsis_iter(*args, **kwds):
     EXAMPLES::
 
         sage: A = ellipsis_iter(1,2,Ellipsis)
-        sage: [A.next() for _ in range(10)]
+        sage: [next(A) for _ in range(10)]
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        sage: A.next()
+        sage: next(A)
         11
         sage: A = ellipsis_iter(1,3,5,Ellipsis)
-        sage: [A.next() for _ in range(10)]
+        sage: [next(A) for _ in range(10)]
         [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
         sage: A = ellipsis_iter(1,2,Ellipsis,5,10,Ellipsis)
-        sage: [A.next() for _ in range(10)]
+        sage: [next(A) for _ in range(10)]
         [1, 2, 3, 4, 5, 10, 11, 12, 13, 14]
 
     TESTS:

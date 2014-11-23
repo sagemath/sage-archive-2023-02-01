@@ -658,7 +658,7 @@ class Word_class(SageObject):
             sage: from itertools import count
             sage: w = Word(count())
             sage: ir = w._to_integer_iterator()
-            sage: [ir.next() for _ in range(10)]
+            sage: [next(ir) for _ in range(10)]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: w = Word(iter("abbacabba"))
             sage: ir = w._to_integer_iterator()
@@ -928,7 +928,7 @@ class Word_class(SageObject):
 
             sage: w = Word()
             sage: it = w._iterated_right_palindromic_closure_iterator()
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1011,7 +1011,7 @@ class Word_class(SageObject):
 
             sage: w = Word()
             sage: it = w._iterated_right_palindromic_closure_recursive_iterator()
-            sage: it.next()
+            sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1605,11 +1605,11 @@ class Word_class(SageObject):
             sage: TM = words.ThueMorseWord()
             sage: fact = Word([0,1,1,0,1])
             sage: it = TM.factor_occurrences_iterator(fact)
-            sage: it.next()
+            sage: next(it)
             0
-            sage: it.next()
+            sage: next(it)
             12
-            sage: it.next()
+            sage: next(it)
             24
         """
         if fact.is_empty():
@@ -1646,17 +1646,17 @@ class Word_class(SageObject):
             sage: TM = words.ThueMorseWord()
             sage: fact = Word([0,1,1,0,1])
             sage: it = TM.return_words_iterator(fact)
-            sage: it.next()
+            sage: next(it)
             word: 011010011001
-            sage: it.next()
+            sage: next(it)
             word: 011010010110
-            sage: it.next()
+            sage: next(it)
             word: 0110100110010110
-            sage: it.next()
+            sage: next(it)
             word: 01101001
-            sage: it.next()
+            sage: next(it)
             word: 011010011001
-            sage: it.next()
+            sage: next(it)
             word: 011010010110
         """
         it = self.factor_occurrences_iterator(fact)
@@ -1688,17 +1688,17 @@ class Word_class(SageObject):
             sage: TM = words.ThueMorseWord()
             sage: fact = Word([0,1,1,0,1])
             sage: it = TM.complete_return_words_iterator(fact)
-            sage: it.next()
+            sage: next(it)
             word: 01101001100101101
-            sage: it.next()
+            sage: next(it)
             word: 01101001011001101
-            sage: it.next()
+            sage: next(it)
             word: 011010011001011001101
-            sage: it.next()
+            sage: next(it)
             word: 0110100101101
-            sage: it.next()
+            sage: next(it)
             word: 01101001100101101
-            sage: it.next()
+            sage: next(it)
             word: 01101001011001101
 
         REFERENCES:

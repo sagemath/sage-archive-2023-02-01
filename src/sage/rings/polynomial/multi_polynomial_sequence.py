@@ -277,7 +277,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
         if is_MPolynomial(e) or isinstance(e, QuotientRingElement):
             ring = e.parent()
         else:
-            ring = iter(e).next().parent()
+            ring = next(iter(e)).parent()
     else:
         raise TypeError("Cannot understand input.")
 

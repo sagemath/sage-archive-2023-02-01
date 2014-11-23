@@ -561,12 +561,12 @@ class SQLQuery(SageObject):
             sage: param = (5,)
             sage: Q = SQLQuery(G,q,param)
             sage: it = Q.__iter__()
-            sage: it.next()
+            sage: next(it)
             (18, u'D??')
-            sage: it.next()
+            sage: next(it)
             (19, u'D?C')
-            sage: skip = [it.next() for _ in range(15)]
-            sage: it.next()
+            sage: skip = [next(it) for _ in range(15)]
+            sage: next(it)
             (35, u'DBk')
         """
         try:

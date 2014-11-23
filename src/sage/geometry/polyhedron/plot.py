@@ -624,7 +624,7 @@ class Projection(SageObject):
         center = self.parent_polyhedron.center()
         if projection_direction is None:
             if self.parent_polyhedron.is_full_dimensional():
-                projection_direction = self.parent_polyhedron.inequality_generator().next().A()
+                projection_direction = next(self.parent_polyhedron.inequality_generator()).A()
             else:
                 from sage.rings.arith import primes_first_n
                 projection_direction = primes_first_n(self.polyhedron_ambient_dim)

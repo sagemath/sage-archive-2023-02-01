@@ -89,11 +89,11 @@ one by one to save memory.  Note that when we do something like
 ``for part in Partitions(4)`` this iterator is used in the background::
 
     sage: g = iter(Partitions(4))
-    sage: g.next()
+    sage: next(g)
     [4]
-    sage: g.next()
+    sage: next(g)
     [3, 1]
-    sage: g.next()
+    sage: next(g)
     [2, 2]
     sage: for p in Partitions(4): print p
     [4]
@@ -1144,9 +1144,9 @@ class Partition(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: Partition([4]).next()
+            sage: next(Partition([4]))
             [3, 1]
-            sage: Partition([1,1,1,1]).next()
+            sage: next(Partition([1,1,1,1]))
             False
         """
         p = self
@@ -5182,7 +5182,7 @@ class Partitions_all(Partitions):
 
             sage: p = Partitions()
             sage: it = p.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [4], [3, 1], [2, 2]]
         """
         n = 0
@@ -5202,7 +5202,7 @@ class Partitions_all(Partitions):
 
             sage: p = Partitions()
             sage: revit = p.__reversed__()
-            sage: [revit.next() for i in range(10)]
+            sage: [next(revit) for i in range(10)]
             [[], [1], [1, 1], [2], [1, 1, 1], [2, 1], [3], [1, 1, 1, 1], [2, 1, 1], [2, 2]]
         """
         n = 0
@@ -5262,7 +5262,7 @@ class Partitions_all_bounded(Partitions):
 
             sage: p = Partitions(max_part=3)
             sage: it = p.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [3, 1], [2, 2], [2, 1, 1]]
         """
         n = 0
@@ -6113,7 +6113,7 @@ class Partitions_parts_in(Partitions):
 
             sage: P = Partitions(4, parts_in=[2,4])
             sage: it = P._fast_iterator(4, [2,4])
-            sage: it.next()
+            sage: next(it)
             [4]
             sage: type(_)
             <type 'list'>

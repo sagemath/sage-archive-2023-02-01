@@ -1462,13 +1462,13 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = posets.ChainPoset(3)
             sage: P.plot(cover_labels=lambda a, b: a + b)
-            ?
+            Graphics object consisting of 8 graphics primitives
             sage: P = Poset({0: [1,2]})
             sage: P.plot(cover_labels={(0,1): 'here', (0,2): 'there'})
-            ?
+            Graphics object consisting of 8 graphics primitives
             sage: P = Poset({2: [1], 0: [1]})
-            sage: P.plot(cover_labels=[(2,1,'a'), (0,1,'b')])
-            ?
+            sage: P.plot(cover_labels=[(2,1,'da'), (0,1,'niet')])
+            Graphics object consisting of 8 graphics primitives
 
         TESTS:
 
@@ -1556,6 +1556,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: D.show()
             sage: elm_labs = {0:'a', 1:'b', 2:'c', 3:'d', 4:'e'}
             sage: D.show(element_labels=elm_labs)
+
+        One more example with cover labels::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.show(cover_labels=lambda a, b: a - b)
         """
         self.plot(label_elements=label_elements, element_labels=element_labels,
                   vertex_size=vertex_size, vertex_colors=vertex_colors,

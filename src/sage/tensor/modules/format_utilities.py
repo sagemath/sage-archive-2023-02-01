@@ -1,13 +1,12 @@
 r"""
-Formatting utilities. 
+Formatting utilities
 
 This module defines helper functions that are not class methods.
 
-
 AUTHORS:
 
-- Eric Gourgoulhon, Michal Bejger (2014) : initial version
-- Joris Vankerschaver (2010): for the function is_atomic()
+- Eric Gourgoulhon, Michal Bejger (2014): initial version
+- Joris Vankerschaver (2010): for the function :func:`is_atomic()`
 
 """
 
@@ -26,20 +25,21 @@ from sage.structure.sage_object import SageObject
 def is_atomic(expression):
     r"""
     Helper function to check whether some LaTeX expression is atomic.
-    
-    Adapted from function :meth:`DifferentialFormFormatter._is_atomic` written 
-    by Joris Vankerschaver (2010)
-    
+
+    Adapted from function :meth:`DifferentialFormFormatter._is_atomic`
+    written by Joris Vankerschaver (2010)
+
     INPUT:
-    
+
     - ``expression`` -- string representing the expression (e.g. LaTeX string)
-    
+
     OUTPUT:
-    
-    - True if additive operations are enclosed in parentheses, false otherwise.
+
+    - ``True`` if additive operations are enclosed in parentheses and
+      ``False`` otherwise.
 
     EXAMPLES::
-    
+
         sage: from sage.tensor.modules.format_utilities import is_atomic
         sage: is_atomic("2*x")
         True
@@ -50,7 +50,7 @@ def is_atomic(expression):
 
     """
     if not isinstance(expression, basestring):
-        raise TypeError("The argument must be a string.")
+        raise TypeError("The argument must be a string")
     level = 0
     for n, c in enumerate(expression):
         if c == '(':
@@ -65,22 +65,23 @@ def is_atomic(expression):
 
 def is_atomic_wedge_txt(expression):
     r"""
-    Helper function to check whether some text-formatted expression is atomic 
-    in terms of wedge products. 
-    
-    Adapted from function :meth:`DifferentialFormFormatter._is_atomic` written 
+    Helper function to check whether some text-formatted expression is atomic
+    in terms of wedge products.
+
+    Adapted from function :meth:`DifferentialFormFormatter._is_atomic` written
     by Joris Vankerschaver (2010)
-    
+
     INPUT:
-    
+
     - ``expression`` -- string representing the text-formatted expression
-    
+
     OUTPUT:
-    
-    - True if wedge products are enclosed in parentheses, false otherwise.
+
+    - ``True`` if wedge products are enclosed in parentheses and
+      ``False`` otherwise.
 
     EXAMPLES::
-    
+
         sage: from sage.tensor.modules.format_utilities import is_atomic_wedge_txt
         sage: is_atomic_wedge_txt("a")
         True
@@ -110,24 +111,25 @@ def is_atomic_wedge_txt(expression):
 
 def is_atomic_wedge_latex(expression):
     r"""
-    Helper function to check whether LaTeX-formatted expression is atomic in 
+    Helper function to check whether LaTeX-formatted expression is atomic in
     terms of wedge products.
-    
-    Adapted from function :meth:`DifferentialFormFormatter._is_atomic` written 
+
+    Adapted from function :meth:`DifferentialFormFormatter._is_atomic` written
     by Joris Vankerschaver (2010)
-    
+
     INPUT:
-    
+
     - ``expression`` -- string representing the LaTeX expression
-    
+
     OUTPUT:
-    
-    - True if wedge products are enclosed in parentheses, false otherwise.
+
+    - ``True`` if wedge products are enclosed in parentheses and
+      ``False`` otherwise.
 
     EXAMPLES::
-    
+
         sage: from sage.tensor.modules.format_utilities import is_atomic_wedge_latex
-        sage: is_atomic_wedge_latex(r"a")                    
+        sage: is_atomic_wedge_latex(r"a")
         True
         sage: is_atomic_wedge_latex(r"a\wedge b")
         False
@@ -137,9 +139,9 @@ def is_atomic_wedge_latex(expression):
         False
         sage: is_atomic_wedge_latex(r"((a\wedge b)\wedge c)")
         True
-        sage: is_atomic_wedge_latex(r"(a\wedge b\wedge c)")  
+        sage: is_atomic_wedge_latex(r"(a\wedge b\wedge c)")
         True
-        sage: is_atomic_wedge_latex(r"\omega\wedge\theta")      
+        sage: is_atomic_wedge_latex(r"\omega\wedge\theta")
         False
         sage: is_atomic_wedge_latex(r"(\omega\wedge\theta)")
         True
@@ -163,11 +165,11 @@ def is_atomic_wedge_latex(expression):
 
 def format_mul_txt(name1, operator, name2):
     r"""
-    Helper function for text-formatted names of results of multiplication or 
-    tensor product. 
-    
+    Helper function for text-formatted names of results of multiplication or
+    tensor product.
+
     EXAMPLES::
-    
+
         sage: from sage.tensor.modules.format_utilities import format_mul_txt
         sage: format_mul_txt('a', '*', 'b')
         'a*b'
@@ -179,7 +181,7 @@ def format_mul_txt(name1, operator, name2):
         '(a+b)*(c+d)'
         sage: format_mul_txt(None, '*', 'b')
         sage: format_mul_txt('a', '*', None)
-    
+
     """
     if name1 is None or name2 is None:
         return None
@@ -187,16 +189,16 @@ def format_mul_txt(name1, operator, name2):
         name1 = '(' + name1 + ')'
     if not is_atomic(name2) or not is_atomic_wedge_txt(name2):
         name2 = '(' + name2 + ')'
-    return name1 + operator + name2 
+    return name1 + operator + name2
 
 
 def format_mul_latex(name1, operator, name2):
     r"""
-    Helper function for LaTeX names of results of multiplication or tensor 
-    product. 
-    
+    Helper function for LaTeX names of results of multiplication or tensor
+    product.
+
     EXAMPLES::
-    
+
         sage: from sage.tensor.modules.format_utilities import format_mul_latex
         sage: format_mul_latex('a', '*', 'b')
         'a*b'
@@ -216,15 +218,15 @@ def format_mul_latex(name1, operator, name2):
         name1 = r'\left(' + name1 + r'\right)'
     if not is_atomic(name2) or not is_atomic_wedge_latex(name2):
         name2 = r'\left(' + name2 + r'\right)'
-    return name1 + operator + name2 
+    return name1 + operator + name2
 
 
 def format_unop_txt(operator, name):
     r"""
     Helper function for text-formatted names of results of unary operator.
-    
+
     EXAMPLES::
-    
+
         sage: from sage.tensor.modules.format_utilities import format_unop_txt
         sage: format_unop_txt('-', 'a')
         '-a'
@@ -233,7 +235,7 @@ def format_unop_txt(operator, name):
         sage: format_unop_txt('-', '(a+b)')
         '-(a+b)'
         sage: format_unop_txt('-', None)
-    
+
     """
     if name is None:
         return None
@@ -246,9 +248,9 @@ def format_unop_txt(operator, name):
 def format_unop_latex(operator, name):
     r"""
     Helper function for LaTeX names of results of unary operator.
-    
+
     EXAMPLES::
-    
+
         sage: from sage.tensor.modules.format_utilities import format_unop_latex
         sage: format_unop_latex('-', 'a')
         '-a'
@@ -257,7 +259,7 @@ def format_unop_latex(operator, name):
         sage: format_unop_latex('-', '(a+b)')
         '-(a+b)'
         sage: format_unop_latex('-', None)
-        
+
     """
     if name is None:
         return None
@@ -266,56 +268,59 @@ def format_unop_latex(operator, name):
         name = r'\left(' + name + r'\right)'
     return operator + name
 
+
 class FormattedExpansion(SageObject):
-    r""" 
+    r"""
     Helper class for displaying tensor expansions.
-    
+
+    EXAMPLES::
+
+        sage: from sage.tensor.modules.format_utilities import FormattedExpansion
+        sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+        sage: v = M.an_element()
+        sage: f = FormattedExpansion(v, 'v', r'\tilde v')
+        sage: f
+        v
     """
-    def  __init__(self, tensor):
+    def  __init__(self, tensor, txt=None, latex=None):
         r"""
-        EXAMPLE::
-        
+        TESTS::
+
             sage: from sage.tensor.modules.format_utilities import FormattedExpansion
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: v = M.an_element()
-            sage: f = FormattedExpansion(v)
-            sage: f.txt = 'v' ; f.latex = r'\tilde v'
-            sage: f
-            v
-
+            sage: f = FormattedExpansion(v, 'v', r'\tilde v')
         """
         self.tensor = tensor
-        self.txt = None
-        self.latex = None
-    
+        self.txt = txt
+        self.latex = latex
+
     def _repr_(self):
         r"""
-        String representation of the object.
+        Return a string representation of ``self``.
 
-        EXAMPLE::
-        
+        EXAMPLES::
+
             sage: from sage.tensor.modules.format_utilities import FormattedExpansion
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: v = M.an_element()
-            sage: f = FormattedExpansion(v)
-            sage: f.txt = 'v' ; f.latex = r'\tilde v'
+            sage: f = FormattedExpansion(v, 'v', r'\tilde v')
             sage: f._repr_()
             'v'
 
         """
         return self.txt
-        
+
     def _latex_(self):
         r"""
-        LaTeX representation of the object.
-        
+        Return a LaTeX representation of ``self``.
+
         EXAMPLE::
-        
+
             sage: from sage.tensor.modules.format_utilities import FormattedExpansion
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: v = M.an_element()
-            sage: f = FormattedExpansion(v)
-            sage: f.txt = 'v' ; f.latex = r'\tilde v'
+            sage: f = FormattedExpansion(v, 'v', r'\tilde v')
             sage: f._latex_()
             '\\tilde v'
 

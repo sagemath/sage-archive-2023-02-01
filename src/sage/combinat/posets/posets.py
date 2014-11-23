@@ -1531,7 +1531,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                           **kwds)
 
     def show(self, label_elements=True, element_labels=None,
-            vertex_size=300, vertex_colors=None, layout='acyclic',
+             vertex_size=300, vertex_colors=None, layout='acyclic',
              cover_labels=None, **kwds):
         """
         Shows the Graphics object corresponding the Hasse diagram of the
@@ -1545,7 +1545,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         -  ``element_labels`` (default: ``None``) - a dictionary of element
            labels
 
-        - ``cover_labels`` (default: ``None``) - a dict/list/function
+        - ``cover_labels`` (default: ``None``) - a dictionary, list or function
           representing labels of the covers of ``self``
 
         EXAMPLES::

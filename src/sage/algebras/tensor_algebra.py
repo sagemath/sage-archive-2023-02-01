@@ -13,12 +13,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.algebras import Algebras
+from sage.categories.pushout import ConstructionFunctor
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
-from sage.categories.graded_modules_with_basis import GradedModulesWithBasis
-from sage.categories.modules_with_basis import ModulesWithBasis
-from sage.categories.tensor import tensor
-from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
+from sage.categories.morphism import Morphism
+from sage.categories.modules import Modules
+from sage.categories.tensor import tensor
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModule_Tensor
 from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
 from sage.misc.cachefunc import cached_method
@@ -86,7 +88,7 @@ class TensorAlgebra(CombinatorialFreeModule):
         """
         self._base_module = M
         R = M.base_ring()
-        category = GradedHopfAlgebrasWithBasis(R).or_subcategory(category)
+        category = GradedHopfAlgebrasWithBasis(R.category()).or_subcategory(category)
 
         CombinatorialFreeModule.__init__(self, R, IndexedFreeMonoid(M.indices()),
                                          prefix=prefix, category=category, **options)
@@ -241,13 +243,14 @@ class TensorAlgebra(CombinatorialFreeModule):
             sage: x = C.an_element(); x
             2*B['a'] + 2*B['b']
             sage: TA._tensor_constructor_([x, x])
-            4*B['a'] # B['a'] + 4*B['b'] # B['b'] + 4*B['b'] # B['a'] + 4*B['a'] # B['b']
+            4*B['a'] # B['a'] + 4*B['b'] # B['b']
+             + 4*B['b'] # B['a'] + 4*B['a'] # B['b']
         """
         if not elts:
             return self.zero()
 
         I = self._indices
-        cur = {I.gen(k):v for k,v in elts[0]}
+        cur = {I.gen(k): v for k,v in elts[0]}
         for x in elts[1:]:
             next = {}
             for k,v in cur.items():
@@ -322,7 +325,7 @@ class TensorAlgebra(CombinatorialFreeModule):
                                      codomain=self)
 
         # Coercions from tensor products
-        if R in ModulesWithBasis(self.base_ring()).TensorProducts() \
+        if R in Modules(self.base_ring()).WithBasis().TensorProducts() \
                 and isinstance(R, CombinatorialFreeModule_Tensor) \
                 and all(M.has_coerce_map_from(RM) for RM in R._sets):
             modules = R._sets
@@ -333,6 +336,22 @@ class TensorAlgebra(CombinatorialFreeModule):
                                      codomain=self)
 
         return super(TensorAlgebra, self)._coerce_map_from_(R)
+
+    def construction(self):
+        """
+        Return the functorial construction of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CombinatorialFreeModule(ZZ, ['a','b','c'])
+            sage: TA = TensorAlgebra(C)
+            sage: f, M = TA.construction()
+            sage: M == C
+            True
+            sage: f(M) == TA
+            True
+        """
+        return (TensorAlgebraFunctor(self.category().base()), self._base_module)
 
     def degree_on_basis(self, m):
         """
@@ -505,7 +524,8 @@ class TensorAlgebra(CombinatorialFreeModule):
         return S.prod(S.sum_of_monomials([(I.gen(x), ob), (ob, I.gen(x))])
                       for x in m_word)
 
-        # This isn't quite right
+        # TODO: Implement a coproduct using shuffles.
+        # This isn't quite right:
         #from sage.combinat.words.word import Word
         #k = len(m)
         #return S.sum_of_monomials( (I.prod(I.gen(m_word[i]) for i in w[:p]),
@@ -513,6 +533,105 @@ class TensorAlgebra(CombinatorialFreeModule):
         #                          for p in range(k+1)
         #                          for w in Word(range(p)).shuffle(range(p, k)) )
 
+#####################################################################
+## TensorAlgebra functor
+
+class TensorAlgebraFunctor(ConstructionFunctor):
+    r"""
+    The tensor algebra functor.
+
+    Let `R` be a unital ring. Let `V_R` and `A_R` be the categories of
+    `R`-modules and `R`-algebras respectively. The functor
+    `T : V_R \to A_R` sends a `R`-module `M` to the tensor
+    algebra `T(M)`. The functor `T` is left-adjoint to the forgetful
+    functor `F : A_R \to V_R`.
+
+    INPUT:
+
+    - ``base`` -- the base `R`
+    """
+    # We choose a larger (functor) rank than most ConstructionFunctors
+    #   since this should be applied after all of the module functors
+    rank = 20
+
+    def __init__(self, base):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.tensor_algebra import TensorAlgebraFunctor
+            sage: F = TensorAlgebraFunctor(Rings())
+            sage: TestSuite(F).run()
+        """
+        ConstructionFunctor.__init__(self, Modules(base), Algebras(base))
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.tensor_algebra import TensorAlgebraFunctor
+            sage: TensorAlgebraFunctor(Rings())
+            Tensor algebra functor on modules over rings
+            sage: TensorAlgebraFunctor(QQ)
+            Tensor algebra functor on vector spaces over Rational Field
+        """
+        return "Tensor algebra functor on {}".format(self.domain()._repr_object_names())
+
+    def _apply_functor(self, M):
+        """
+        Construct the tensor algebra `T(M)`.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.tensor_algebra import TensorAlgebraFunctor
+            sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: F = TensorAlgebraFunctor(QQ)
+            sage: F._apply_functor(C)
+            Tensor Algebra of Free module generated by {'a', 'b', 'c'} over Rational Field
+        """
+        if M not in self.domain().WithBasis():
+            raise NotImplementedError("currently only for modules with basis")
+        return TensorAlgebra(M)
+
+    def _apply_functor_to_morphism(self, f):
+        """
+        Apply ``self`` to a morphism ``f`` in the domain of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.tensor_algebra import TensorAlgebraFunctor
+            sage: C = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: D = CombinatorialFreeModule(QQ, ['x','y'])
+            sage: on_basis = lambda m: C.term('a', 2) + C.monomial('b') if m == 'x' else sum(C.basis())
+            sage: phi = D.module_morphism(on_basis, codomain=C); phi
+            Generic morphism:
+              From: Free module generated by {'x', 'y'} over Rational Field
+              To:   Free module generated by {'a', 'b', 'c'} over Rational Field
+            sage: map(phi, D.basis())
+            [2*B['a'] + B['b'], B['a'] + B['b'] + B['c']]
+            sage: F = TensorAlgebraFunctor(QQ)
+            sage: Tphi = F._apply_functor_to_morphism(phi); Tphi
+            Generic morphism:
+              From: Tensor Algebra of Free module generated by {'x', 'y'} over Rational Field
+              To:   Tensor Algebra of Free module generated by {'a', 'b', 'c'} over Rational Field
+            sage: G = F(D).algebra_generators()
+            sage: map(Tphi, G)
+            [2*B['a'] + B['b'], B['a'] + B['b'] + B['c']]
+            sage: Tphi(sum(G))
+            3*B['a'] + 2*B['b'] + B['c']
+            sage: Tphi(G['x'] * G['y'])
+            B['b'] # B['b'] + 2*B['a'] # B['b'] + 2*B['a'] # B['a']
+             + B['b'] # B['c'] + B['b'] # B['a'] + 2*B['a'] # B['c']
+        """
+        DB = f.domain()
+        D = self(DB)
+        C = self(f.codomain())
+        phi = lambda m: C._tensor_constructor_([f(DB.monomial(k))
+                                                for k in m.to_word_list()])
+        return D.module_morphism(phi, codomain=C)
 
 #####################################################################
 ## Lift map from the base ring

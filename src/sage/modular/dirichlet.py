@@ -1558,7 +1558,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         R_values = G._zeta_powers
 
         gens = G.unit_gens()
-        last = [ x.multiplicative_order()-1 for x in G.unit_gens() ]
+        last = [o - 1 for o in G.integers_mod().unit_group().gens_orders()]
 
         ngens = len(gens)
         exponents = [0] * ngens
@@ -2349,12 +2349,10 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         ord = self.zeta_order()
         M = self._module
         zero = M(0)
+        orders = self.integers_mod().unit_group().gens_orders()
         for i in range(len(ug)):
             z = zero.__copy__()
-            z[i] = ord//arith.GCD(ord,ug[i].multiplicative_order())
-            #vals = list(one)
-            #vals[i] = zeta**(ord//arith.GCD(ord,ug[i].multiplicative_order()))
-            #vals[i] = ord//arith.GCD(ord,ug[i].multiplicative_order())
+            z[i] = ord//arith.GCD(ord, orders[i])
             self._gens.append(DirichletCharacter(self, z, check=False))
         self._gens = tuple(self._gens)
         return self._gens

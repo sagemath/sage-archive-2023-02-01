@@ -23,6 +23,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.integer_mod import Mod
 from sage.graphs.digraph import DiGraph
+from sage.graphs.graph import Graph
 from copy import deepcopy, copy
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.integer_ring import IntegerRing
@@ -90,13 +91,13 @@ class Link:
 
     One of the representations of the Trefoil knot::
 
-        sage: L = Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
+        sage: L = Link([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
         sage: L
         Knot represented by 3 crossings
 
     One of the representations of the Hopf link::
 
-        sage: L = Link([[1,4,2,3],[4,1,3,2]])
+        sage: L = Link([[1, 4, 2, 3], [4, 1, 3, 2]])
         sage: L
         Link with 2 components represented by 2 crossings
     """
@@ -115,8 +116,15 @@ class Link:
                 raise ValueError("Does not accept empty list as arguement")
 
             if len(data) != 2 or not all(isinstance(i, list) for i in data[0]):
-                if _pd_error_(data):
-                    raise ValueError("Either every number does not repeat twice or the length of each array is not four")
+                for i in data:
+                    if len(i) != 4:
+                        raise ValueError("Not a valid PD code: crossings must be represented by four segments")
+                    else:
+                        flat = flatten(data)
+                        set_flat = set(flat)
+                        for i in set_flat:
+                            if flat.count(i) != 2:
+                                raise ValueError("Not a valid PD code: each segment must appear twice")
                 self._PD_code = data
                 self._oriented_gauss_code = None
                 self._braid = None
@@ -168,28 +176,6 @@ class Link:
         else:
             return 'Link with {} components represented by {} crossings'.format(ncomponents, pd_len)
 
-    def braidword(self):
-        """
-        Return the braidword of link.
-
-        OUTPUT:
-
-        - Braidword representation of the link.
-
-        EXAMPLES::
-
-            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
-            sage: L.braidword()
-            (-1, 2, -1, -2, -2, 1, 1, -2)
-            sage: L = Link([[1,4,2,3],[4,1,3,2]])
-            sage: L.braidword()
-            (-1, -1)
-            sage: L = Link([[[1, -2, 3, -4], [-1, 5, -3, 2, -5, 4]], [-1, 1, 1, -1, -1]])
-            sage: L.braidword()
-            (1, -2, 1, -2, -2)
-        """
-        return self.braid().Tietze()
-
     def braid(self):
         """
         Return the braid representation of the link.
@@ -210,16 +196,155 @@ class Link:
             sage: L.braid()
             (s0*s1^-1)^2*s1^-1
         """
+        from sage.groups.braid import BraidGroup
         if self._braid != None:
             return self._braid
+        # look for possible vogel moves, perform them and call recursively to the modified link
+        for region in self.regions():
+            n = len(region)
+            for i in range(n-1):
+                a = region[i]
+                seifcirca = filter(lambda x: abs(a) in x, self.seifert_circles())
+                for j in range(i+1,n):
+                    b = region[j]
+                    seifcircb = filter(lambda x: abs(b) in x, self.seifert_circles())
+                    if seifcirca != seifcircb and sign(a) == sign(b):
+                        tails, heads = self._directions_of_edges_()
+                        newedge = max(flatten(self.PD_code())) + 1
+                        newPD = deepcopy(self.PD_code())
+                        if sign(a) == 1:
+                            C1 = newPD[newPD.index(heads[a])]
+                            C1[C1.index(a)] = newedge + 1
+                            C2 = newPD[newPD.index(tails[b])]
+                            C2[C2.index(b)] = newedge + 2
+                            newPD.append([newedge + 3, a, b, newedge])
+                            newPD.append([newedge + 2, newedge + 1, newedge + 3, newedge])
+                            self._braid =  Link(newPD).braid()
+                            return self._braid
+                        else:
+                            C1 = newPD[newPD.index(heads[-a])]
+                            C1[C1.index(-a)] = newedge + 1
+                            C2 = newPD[newPD.index(tails[-b])]
+                            C2[C2.index(-b)] = newedge + 2
+                            newPD.append([newedge + 2, newedge, newedge + 3, newedge + 1])
+                            newPD.append([newedge + 3, newedge, -b , -a])
+                            self._braid = Link(newPD).braid()
+                            return self._braid
+        # We are in the case where no Vogel moves are necessary.
+        G = DiGraph()
+        G.add_vertices(map(tuple, self.seifert_circles()))
+        for i in range(len(self.PD_code())):
+            c = self.PD_code()[i]
+            if self.orientation()[i] == 1:
+                a  = filter(lambda x: c[1] in x, self.seifert_circles())[0]
+                b  = filter(lambda x: c[0] in x, self.seifert_circles())[0]
+                G.add_edge(tuple(a), tuple(b))
+            else:
+                a  = filter(lambda x: c[0] in x, self.seifert_circles())[0]
+                b  = filter(lambda x: c[3] in x, self.seifert_circles())[0]
+                G.add_edge(tuple(a), tuple(b))
+        ordered_cycles = G.all_simple_paths(starting_vertices=G.sources(), ending_vertices=G.sinks())[0]
+        B = BraidGroup(len(ordered_cycles))
+        available_crossings = copy(self.PD_code())
+        crossing = filter(lambda x: set(ordered_cycles[0]).intersection(set(x)), self.PD_code())[0]
+        available_crossings.remove(crossing)
+        status = [None for i in ordered_cycles]
+        if self.orientation()[self.PD_code().index(crossing)] == 1:
+            b = B([1])
+            status[0] = crossing[2]
+            status[1] = crossing[3]
+        else:
+            b = B([-1])
+            status[0] = crossing[1]
+            status[1] = crossing[2]
+        counter = 0
+        while available_crossings:
+            possibles = filter(lambda x: status[counter] in x, available_crossings)
+            if len(status) < counter + 2 or status[counter + 1] != None:
+                possibles = filter(lambda x: status[counter + 1] in x, possibles)
+            if possibles:
+                added = possibles[0]
+                if self.orientation()[self.PD_code().index(added)] == 1:
+                    b *= B([counter + 1])
+                    status[counter] = added[2]
+                    status[counter + 1] = added[3]
+                else:
+                    b *= B([-counter - 1])
+                    status[counter] = added[1]
+                    status[counter + 1] = added[2]
+                if counter > 0:
+                    counter -= 1
+                available_crossings.remove(added)
+            else:
+                counter += 1
+        self._braid = b
+        return b
 
-        elif self._oriented_gauss_code != None or self._PD_code != None:
-            braid_detection = self._braidword_detection_()
-            gen = max([abs(i) for i in braid_detection])
-            from sage.groups.braid import BraidGroup
-            B = BraidGroup(gen + 1)
-            self._braid = B(braid_detection)
-            return self._braid
+    def _directions_of_edges_(self):
+        r"""
+        Return a tuple of two dictionaries. The first one assigns
+        each edge of the PD code to the crossing where it starts.
+        The second dictionary assigns it to where it ends.
+
+        EXAMPLES::
+
+            sage: L = Link([[1, 3, 2, 4], [2, 3, 1, 4]])
+            sage: L._directions_of_edges_()
+            ({1: [2, 3, 1, 4], 2: [1, 3, 2, 4], 3: [1, 3, 2, 4], 4: [2, 3, 1, 4]}, {1: [1, 3, 2, 4], 2: [2, 3, 1, 4], 3: [2, 3, 1, 4], 4: [1, 3, 2, 4]})
+
+        ::
+
+            sage: L = Link([[1,5,2,4],[5,3,6,2],[3,1,4,6]])
+            sage: L._directions_of_edges_()
+            ({1: [3, 1, 4, 6],
+            2: [1, 5, 2, 4],
+            3: [5, 3, 6, 2],
+            4: [3, 1, 4, 6],
+            5: [1, 5, 2, 4],
+            6: [5, 3, 6, 2]},
+            {1: [1, 5, 2, 4],
+            2: [5, 3, 6, 2],
+            3: [3, 1, 4, 6],
+            4: [1, 5, 2, 4],
+            5: [5, 3, 6, 2],
+            6: [3, 1, 4, 6]})
+        """
+        tails = {}
+        heads = {}
+        for C in self.PD_code():
+            tails[C[2]] = C
+            a = C[2]
+            D = C
+            while not a in heads:
+                next_crossing = filter(lambda x: a in x and x != D, self.PD_code())
+                if len(next_crossing) == 0:
+                    heads[a] = D
+                    tails[a] = D
+                    if D[0] == a:
+                        a = D[2]
+                    elif D[1] == a:
+                        a = D[3]
+                    else:
+                        a = D[1]
+                else:
+                    heads[a] = next_crossing[0]
+                    tails[a] = D
+                    D = next_crossing[0]
+                    a = D[(D.index(a)+2) % 4]
+        unassigned = set(flatten(self.PD_code())).difference(set(tails.keys()))
+        while unassigned:
+            a = unassigned.pop()
+            D = filter(lambda x: a in x, self.PD_code())[0]
+            while not a in heads:
+                tails[a] = D
+                next_crossing = filter(lambda x: a in x and x != D, self.PD_code())[0]
+                heads[a] = next_crossing
+                D = next_crossing
+                a = D[(D.index(a)+2) % 4]
+                if a in unassigned:
+                    unassigned.remove(a)
+        return tails, heads
+
 
     def oriented_gauss_code(self):
         """
@@ -462,59 +587,53 @@ class Link:
             sage: L.dt_code()
             [6, 8, 10, 2, 4]
         """
-        def _dt_internal_(b):
-            N = len(b)
-            label = [0 for i in range(2 * N)]
-            string = 1
-            next_label = 1
-            type1 = 0
-            crossing = 0
-            while(next_label <= 2 * N):
-                string_found = 0
-                for i in range(crossing, N):
+        b = self.braid().Tietze()
+        N = len(b)
+        label = [0 for i in range(2 * N)]
+        string = 1
+        next_label = 1
+        type1 = 0
+        crossing = 0
+        while(next_label <= 2 * N):
+            string_found = 0
+            for i in range(crossing, N):
+                if(abs(b[i]) == string or abs(b[i]) == string - 1):
+                    string_found = 1
+                    crossing = i
+                    break
+            if(string_found == 0):
+                for i in range(0, crossing):
                     if(abs(b[i]) == string or abs(b[i]) == string - 1):
                         string_found = 1
                         crossing = i
                         break
-                if(string_found == 0):
-                    for i in range(0, crossing):
-                        if(abs(b[i]) == string or abs(b[i]) == string - 1):
-                            string_found = 1
-                            crossing = i
-                            break
-                if(label[2 * crossing + next_label % 2] == 1):
-                    raise Exception("Implemented only for knots")
+            if(label[2 * crossing + next_label % 2] == 1):
+                raise Exception("Implemented only for knots")
+            else:
+                label[2 * crossing + next_label % 2] = next_label
+                next_label = next_label + 1
+            if(type1 == 0):
+                if(b[crossing] < 0):
+                    type1 = 1
                 else:
-                    label[2 * crossing + next_label % 2] = next_label
-                    next_label = next_label + 1
-                if(type1 == 0):
-                    if(b[crossing] < 0):
-                        type1 = 1
-                    else:
-                        type1 = -1
-                else:
-                    type1 = -1 * type1
-                    if((abs(b[crossing]) == string and b[crossing] * type1 > 0) or (abs(b[crossing]) != string and b[crossing] * type1 < 0)):
-                        if(next_label % 2 == 1):
-                            label[2 * crossing] = label[2 * crossing] * -1
-                if(abs(b[crossing]) == string):
-                    string = string + 1
-                else:
-                    string = string - 1
-                crossing = crossing + 1
-            code = [0 for i in range(N)]
-            for i in range(N):
-                for j in range(N):
-                    if label[2 * j + 1] == 2 * i + 1:
-                        code[i] = label[2 * j]
-                        break
-            return code
-
-        if self._braid != None:
-            b = self.braidword()
-        else:
-            b = self._braidword_detection_()
-        return _dt_internal_(b)
+                    type1 = -1
+            else:
+                type1 = -1 * type1
+                if((abs(b[crossing]) == string and b[crossing] * type1 > 0) or (abs(b[crossing]) != string and b[crossing] * type1 < 0)):
+                    if(next_label % 2 == 1):
+                        label[2 * crossing] = label[2 * crossing] * -1
+            if(abs(b[crossing]) == string):
+                string = string + 1
+            else:
+                string = string - 1
+            crossing = crossing + 1
+        code = [0 for i in range(N)]
+        for i in range(N):
+            for j in range(N):
+                if label[2 * j + 1] == 2 * i + 1:
+                    code[i] = label[2 * j]
+                    break
+        return code
 
     def _dowker_notation_(self):
         """
@@ -755,8 +874,12 @@ class Link:
             sage: L.ncomponents()
             1
         """
-        p = self.braid().permutation()
-        return len(p.to_cycles())
+        G = Graph()
+        G.add_vertices(set(flatten(self.PD_code())))
+        for c in self.PD_code():
+            G.add_edge(c[0], c[2])
+            G.add_edge(c[1], c[3])
+        return G.connected_components_number()
 
     def is_knot(self):
         """
@@ -878,8 +1001,7 @@ class Link:
 
         INPUT:
 
-        - ``var`` -- string (default: ``'t'``); the name of the
-          variable in the entries of the matrix
+        - ``var`` -- (default: ``'t'``); the variable in the polynomial.
 
         OUTPUT:
 
@@ -905,7 +1027,7 @@ class Link:
              (self.seifert_matrix().transpose())).determinant()
         return t ** ((-max(f.exponents()) - min(f.exponents())) / 2) * f if f != 0 else f
 
-    def knot_determinant(self):
+    def determinant(self):
         """
         Return the determinant of the knot
 
@@ -917,14 +1039,14 @@ class Link:
 
             sage: B = BraidGroup(4)
             sage: L = Link(B([-1, 2, 1, 2]))
-            sage: L.knot_determinant()
+            sage: L.determinant()
             1
             sage: B = BraidGroup(8)
             sage: L = Link(B([2, 4, 2, 3, 1, 2]))
-            sage: L.knot_determinant()
+            sage: L.determinant()
             3
             sage: L = Link(B([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
-            sage: L.knot_determinant()
+            sage: L.determinant()
             65
         """
         if self.is_knot() == True:
@@ -1007,7 +1129,6 @@ class Link:
             return False
 
 
-    #**************************** PART - 1 ***********************************
     def orientation(self):
         """
         Return the orientation of the crossings from the input. We construct the entering, leaving information at
@@ -1031,36 +1152,12 @@ class Link:
             sage: L.orientation()
             [-1, -1, -1, -1, 1, -1, 1]
         """
-        y = self.PD_code()
-        x = deepcopy(y)
-        under = flatten([[[i[0], 1], [i[2], -1]] for i in x], max_level = 1)
-        over = flatten([[[i[1], None], [i[3], None]] for i in x], max_level = 1)
-        for i in over:
-            for j in under:
-                if i[0] == j[0]:
-                    if j[1] == 1:
-                        i[1] = -1
-                    elif j[1] == -1:
-                        i[1] = 1
-        for i in over:
-            if i[1] == None:
-                over = _rule_1_(over)
-                over = _rule_2_(over)
-        unfilled = []
-        for i in over:
-            if i[1] == None:
-                unfilled.append(i)
-        if len(unfilled) != 0:
-            over[over.index(unfilled[0])][1] = 1
-            for i in over:
-                if i[1] == None:
-                    over = _rule_1_(over)
-                    over = _rule_2_(over)
+        directions = self._directions_of_edges_()[0]
         orientation = []
-        for i in range(0, len(over), 2):
-            if over[i][1] == -1:
+        for C in self.PD_code():
+            if directions[C[1]] == C:
                 orientation.append(-1)
-            elif over[i][1] == 1:
+            else:
                 orientation.append(1)
         return orientation
 
@@ -1087,49 +1184,45 @@ class Link:
 
             sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
             sage: L.seifert_circles()
-            [[6, 2], [8, 4], [7, 5, 3, 1]]
+            [[1, 7, 5, 3], [2, 6], [4, 8]]
             sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L.seifert_circles()
-            [[10, 6, 12, 2], [16, 8, 14, 4], [13, 9, 3, 15, 5, 11, 7, 1]]
+            [[1, 13, 9, 3, 15, 5, 11, 7], [2, 10, 6, 12], [4, 16, 8, 14]]
             sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1,-1,-1,-1,1,-1,1]])
             sage: L.seifert_circles()
-            [[13, 9], [12, 10, 4], [8, 14, 6, 2], [7, 3, 11, 5, 1]]
+            [[1, 7, 3, 11, 5], [2, 8, 14, 6], [4, 12, 10], [9, 13]]
             sage: L = Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
             sage: L.seifert_circles()
-            [[13, 9], [12, 10, 4], [8, 14, 6, 2], [7, 3, 11, 5, 1]]
+            [[1, 7, 3, 11, 5], [2, 8, 14, 6], [4, 12, 10], [9, 13]]
             sage: L = Link([[[-1, 2, -3, 5], [4, -2, 6, -5], [-4, 1, -6, 3]], [-1, 1, 1, 1, -1, -1]])
             sage: L.seifert_circles()
-            [[11, 8, 1], [9, 6, 3], [7, 12, 4, 5, 10, 2]]
+            [[1, 11, 8], [2, 7, 12, 4, 5, 10], [3, 9, 6]]
             sage: B = BraidGroup(2)
             sage: L = Link(B([1, 1, 1]))
             sage: L.seifert_circles()
-            [[3, 5, 1], [4, 6, 2]]
+            [[1, 3, 5], [2, 4, 6]]
         """
-        pd = self.PD_code()
-        orient = self.orientation()
-        seifert_pairs = []
-        for i, j in enumerate(pd):
-            x = [[], []]
-            if orient[i] == -1:
-                x[0].append(j[0])
-                x[0].append(j[1])
-                x[1].append(j[3])
-                x[1].append(j[2])
-            elif orient[i] == 1:
-                x[0].append(j[0])
-                x[0].append(j[3])
-                x[1].append(j[1])
-                x[1].append(j[2])
-            seifert_pairs.append(x)
-        flattened = flatten(seifert_pairs)
-        dic = {}
-        for i in range(0, len(flattened), 2):
-            dic.update({flattened[i]: [flattened[i + 1]]})
-        D = DiGraph(dic)
-        d = D.all_simple_cycles()
-        for i in d:
-            del i[0]
-        return d
+        available_segments = set(flatten(self.PD_code()))
+        result = []
+        tails, heads = self._directions_of_edges_()
+        while available_segments:
+            a = available_segments.pop()
+            if heads[a] == tails[a]:
+                result.append([a])
+            else:
+                C = heads[a]
+                par = []
+                while not a in par:
+                    par.append(a)
+                    if tails[C[(C.index(a) + 1) % 4]] == C:
+                        a = C[(C.index(a) + 1) % 4]
+                    else:
+                        a = C[(C.index(a) - 1) % 4]
+                    if a in available_segments:
+                        available_segments.remove(a)
+                    C = heads[a]
+                result.append(par)
+        return result
 
     def regions(self):
         """
@@ -1217,378 +1310,6 @@ class Link:
             del i[0]
         return d
 
-    def _vogel_move_(self):
-        """
-        Return the Planar Diagram code if there is a vogel's move required, else returns
-        False. Whether a move is required or not is decided by the following
-        criteria:
-
-        A bad region is one that has two components with the same sign, but that belong
-        to different Seifert circles.
-
-        We detect the presence of a bad region and then perform the move. The move is done as follows:
-
-        Perform a Reidemeister move of type 2 by pulling the component with a higher number
-        over the component having the lower number. As this is done we have 2 more crossings added to
-        the initial system. We renumber everything and return the Planar Diagram Code of the modified
-        diagram
-
-        OUTPUT:
-
-        - Planar diagram after the move is performed.
-
-        EXAMPLES::
-
-            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
-            sage: L._vogel_move_()
-            False
-            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
-            sage: L._vogel_move_()
-            False
-            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-            sage: L._vogel_move_()
-            [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [18, 9, 14, 8], [12, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3]]
-            sage: L = Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
-            sage: L._vogel_move_()
-            [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [18, 9, 14, 8], [12, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3]]
-            sage: L = Link([[1,4,2,3],[6,1,3,2],[7,4,8,5],[5,8,6,7]])
-            sage: L._vogel_move_()
-            [[1, 4, 2, 3], [6, 1, 3, 10], [12, 4, 8, 5], [5, 8, 6, 7], [7, 10, 11, 9], [11, 2, 12, 9]]
-            sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
-            sage: L._vogel_move_()
-            [[1, 6, 2, 5], [8, 1, 5, 10], [12, 6, 4, 7], [7, 4, 8, 3], [3, 10, 11, 9], [11, 2, 12, 9]]
-        """
-        pd = self.PD_code()
-        pd_copy = deepcopy(pd)
-        sc = self.seifert_circles()
-        regions = self.regions()
-        regions_copy = deepcopy(regions)
-        orient = self.orientation()
-        # separating the components into positive and negative
-        q = [[[], []] for i in range(len(regions))]
-        for i, j in enumerate(regions):
-            for k in j:
-                if k < 0:
-                    q[i][0].append(k)
-                elif k > 0:
-                    q[i][1].append(k)
-        # making all the components positive
-        r = [[] for i in range(len(q))]
-        for i in range(len(q)):
-            for j in range(len(q[i])):
-                r[i].append(None)
-                for k in range(len(q[i][j])):
-                    if q[i][j][k] < 0:
-                        q[i][j][k] = (-1) * q[i][j][k]
-        # to find the intersection of regions with seifert circles
-        # first clean q that is by removing empty and single length arrays
-        clean_q = []
-        for i in q:
-            for j in i:
-                if len(j) >= 2:
-                    clean_q.append(j)
-        # detecting the bad region
-        bad_region = []
-        for i in clean_q:
-            for j in sc:
-                if set(i).intersection(set(j)) == set(i):
-                    break
-            else:
-                bad_region.append(i)
-        if bad_region == []:
-            return False
-        else:
-            # here there might be many bad regions but we only select one
-            # here it is the first one
-            bad_region = bad_region[0]
-            # finding the max of the pd to develop the new crossings
-            pd_max = max([max(i) for i in pd_copy])
-            # editing the previous crossings
-            # the maximum is corrected
-            max_cross = [[j, orient[i]]
-                         for i, j in enumerate(pd_copy) if max(bad_region) in j]
-            y = [[] for i in range(len(max_cross))]
-            for i, j in enumerate(max_cross):
-                if j[1] == -1:
-                    y[i].append((j[0][0], 1))
-                    y[i].append((j[0][1], -1))
-                    y[i].append((j[0][2], -1))
-                    y[i].append((j[0][3], 1))
-                if j[1] == 1:
-                    y[i].append((j[0][0], 1))
-                    y[i].append((j[0][1], 1))
-                    y[i].append((j[0][2], -1))
-                    y[i].append((j[0][3], -1))
-            for i in y:
-                if (max(bad_region), 1) in i:
-                    pd_copy[pd_copy.index(max_cross[y.index(i)][0])][
-                        (pd_copy[pd_copy.index(max_cross[y.index(i)][0])]).index(max(bad_region))] = pd_max + 4
-            # editing the contents of the pd code with the minimum
-            # the minimum is corrected
-            min_cross = [[j, orient[i]]
-                         for i, j in enumerate(pd_copy) if min(bad_region) in j]
-            y = [[] for i in range(len(min_cross))]
-            for i, j in enumerate(min_cross):
-                if j[1] == -1:
-                    y[i].append((j[0][0], 1))
-                    y[i].append((j[0][1], -1))
-                    y[i].append((j[0][2], -1))
-                    y[i].append((j[0][3], 1))
-                if j[1] == 1:
-                    y[i].append((j[0][0], 1))
-                    y[i].append((j[0][1], 1))
-                    y[i].append((j[0][2], -1))
-                    y[i].append((j[0][3], -1))
-            for i in y:
-                if (min(bad_region), 1) in i:
-                    pd_copy[pd_copy.index(min_cross[y.index(i)][0])][
-                        (pd_copy[pd_copy.index(min_cross[y.index(i)][0])]).index(min(bad_region))] = pd_max + 2
-            # sorting the regions in positive and negative ones.
-            pos_neg = [[[], []] for i in range(len(regions_copy))]
-            for i, j in enumerate(regions_copy):
-                for k in j:
-                    if k > 0:
-                        pos_neg[i][0].append(k)
-                    elif k < 0:
-                        pos_neg[i][1].append(k)
-            pos = [i[0] for i in pos_neg if i[0] != []]
-            neg = [[-j for j in i[1]] for i in pos_neg if i[1] != []]
-            # creating new crossings
-            crossing_1 = [None for i in range(4)]
-            crossing_2 = [None for i in range(4)]
-            if bad_region in pos:
-                crossing_1[0] = max(bad_region)
-                crossing_1[1] = pd_max + 2
-                crossing_1[2] = pd_max + 3
-                crossing_1[3] = pd_max + 1
-                crossing_2[0] = pd_max + 3
-                crossing_2[1] = min(bad_region)
-                crossing_2[2] = pd_max + 4
-                crossing_2[3] = pd_max + 1
-                pd_copy.append(crossing_1)
-                pd_copy.append(crossing_2)
-                return pd_copy
-            elif bad_region in neg:
-                crossing_1[0] = max(bad_region)
-                crossing_1[1] = pd_max + 1
-                crossing_1[2] = pd_max + 3
-                crossing_1[3] = pd_max + 2
-                crossing_2[0] = pd_max + 3
-                crossing_2[1] = pd_max + 1
-                crossing_2[2] = pd_max + 4
-                crossing_2[3] = min(bad_region)
-                pd_copy.append(crossing_1)
-                pd_copy.append(crossing_2)
-                return pd_copy
-
-    def _info_all_moves_(self):
-        """
-        Return the Planar Diagram code, Seifert circles, regions, orientation after all the bad regions
-        have been removed by performing the vogel's move.
-
-        OUTPUT:
-
-        - Planar Diagram code, Seifert circle, Regions, orientation after the bad regions have been
-          removed
-
-        EXAMPLES::
-
-            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
-            sage: L._info_all_moves_()
-            [[[6, 2], [8, 4], [7, 5, 3, 1]],
-            [[-2, -6], [8, 4], [5, 3, -8], [2, -5, -7], [1, 7, -4], [6, -1, -3]],
-            [[6, 1, 7, 2], [2, 5, 3, 6], [8, 4, 1, 3], [4, 8, 5, 7]],
-            [1, 1, -1, -1]]
-            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
-            sage: L._info_all_moves_()
-            [[[10, 6, 12, 2], [16, 8, 14, 4], [13, 9, 3, 15, 5, 11, 7, 1]],
-            [[6, -11], [15, -4], [9, 3, -14], [2, -9, -13], [1, 13, -8], [12, -1, -7], [5, 11, 7, -16], [-3, 10, -5, -15], [-6, -10, -2, -12], [16, 8, 14, 4]],
-            [[1, 13, 2, 12], [9, 3, 10, 2], [14, 4, 15, 3], [4, 16, 5, 15], [10, 5, 11, 6], [6, 11, 7, 12], [16, 8, 1, 7], [13, 8, 14, 9]],
-            [-1, -1, -1, -1, 1, 1, -1, 1]]
-            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-            sage: L._info_all_moves_()
-            [[[17, 15], [21, 19], [7, 3, 18, 9, 13, 16, 11, 5, 1], [8, 14, 20, 10, 4, 12, 22, 6, 2]],
-            [[-19, -21], [4, -11], [2, -7], [6, -1], [17, 15], [-3, 8, -18], [-13, 10, -16], [14, 20, -9], [12, 22, -5], [18, 9, 13, -15], [21, -12, -4, -10, -20], [19, -14, -8, -2, -6, -22], [16, 11, 5, 1, 7, 3, -17]],
-            [[1, 7, 2, 6], [7, 3, 8, 2], [16, 11, 4, 10], [11, 5, 12, 4], [22, 5, 1, 6], [18, 9, 14, 8], [20, 9, 13, 10], [13, 15, 17, 16], [17, 15, 18, 3], [14, 20, 21, 19], [21, 12, 22, 19]],
-            [-1, -1, -1, -1, 1, -1, 1, 1, -1, -1, 1]]
-            sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
-            sage: L._info_all_moves_()
-            [[[11, 9], [6, 4, 8, 1], [12, 7, 3, 10, 5, 2]],
-            [[-9, -11], [7, -4], [5, -1], [3, 10, -8], [2, 12, -6], [9, -3, -7, -12], [11, -2, -5, -10], [6, 4, 8, 1]],
-            [[1, 6, 2, 5], [8, 1, 5, 10], [12, 6, 4, 7], [7, 4, 8, 3], [3, 10, 11, 9], [11, 2, 12, 9]],
-            [-1, -1, 1, 1, -1, 1]]
-        """
-        x = self.PD_code()
-        while True:
-            link = Link(x)
-            PD_code_old = x
-            x = link._vogel_move_()
-            if x == False:
-                x = PD_code_old
-                break
-        L = Link(x)
-        sc = L.seifert_circles()
-        regions = L.regions()
-        orientation = L.orientation()
-        pd_code = x
-        final = [sc, regions, pd_code, orientation]
-        return final
-
-    #**************************** PART - 2 ***********************************
-    def _braidword_detection_(self):
-        """
-        Return the braidword of the input. We match the outgoing components to the
-        incoming components, in doing so we order the crossings and see to which strand
-        they belong, thereby developing the braidword
-
-        OUTPUT:
-
-        - Braidword representation of the link.
-
-        EXAMPLES::
-
-            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1, 1, -1, -1]])
-            sage: L._braidword_detection_()
-            [1, -2, 1, -2]
-            sage: L = Link([[[-1, +2, -3, 4, +5, +1, -2, +6, +7, 3, -4, -7, -6,-5]],[-1, -1, -1, -1, 1, -1, 1]])
-            sage: L._braidword_detection_()
-            [1, -2, -2, 3, 2, -2, -2, -1, -2, -3, 2]
-            sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
-            sage: L._braidword_detection_()
-            [-1, 2, -1, -2, -2, 1, 1, -2]
-            sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
-            sage: L._braidword_detection_()
-            [-1, -2, -2, 1, 2, 2]
-            sage: B = BraidGroup(8)
-            sage: L = Link(B([1,1]))
-            sage: L._braidword_detection_()
-            [1, 1]
-            sage: L = Link(B([1, 2, 1, -2, -1]))
-            sage: L._braidword_detection_()
-            [1, 2, -1, -2, 2]
-        """
-        # all the data from the previous method
-        sc = self._info_all_moves_()[0]
-        regions = self._info_all_moves_()[1]
-        pd_code = self._info_all_moves_()[2]
-        orient = self._info_all_moves_()[3]
-        # making the regions positive
-        regions_pos = deepcopy(regions)
-        for i in range(len(regions_pos)):
-            for j in range(len(regions_pos[i])):
-                if regions_pos[i][j] < 0:
-                    regions_pos[i][j] = (-1) * regions_pos[i][j]
-        # finding which sc are same as regions
-        # r[0] is the first seifert cirlce and r[1] is the last one
-        # which coincides with a region and there are exactly two seifert
-        # circles here.
-        r = []
-        for i in sc:
-            for j in regions_pos:
-                if set(i) == set(j):
-                    r.append(i)
-        # here we find the ordering of the seifert circles
-        pd_copy = deepcopy(pd_code)
-        seifert_order = []
-        seifert_order.append(r[0])
-        a = seifert_order[0]
-        while True:
-            tmp = []
-            if a == r[1]:
-                break
-            for j in pd_copy:
-                if len(list(set(a).intersection(set(j)))) != 0:
-                    tmp.append(j)
-            b = list(set(tmp[0]) - set(a))
-            pd_copy = [x for x in pd_copy if x not in tmp]
-            for k in sc:
-                if len(list(set(b).intersection(set(k)))) != 0:
-                    a = sc[sc.index(k)]
-                    break
-            seifert_order.append(k)
-        # here we calculate the entering and leaving of each of the crossing
-        entering = []
-        leaving = []
-        for i in range(len(pd_code)):
-            t = []
-            q = []
-            if orient[i] == -1:
-                t.append(pd_code[i][0])
-                t.append(pd_code[i][3])
-                q.append(pd_code[i][1])
-                q.append(pd_code[i][2])
-            elif orient[i] == 1:
-                t.append(pd_code[i][0])
-                t.append(pd_code[i][1])
-                q.append(pd_code[i][2])
-                q.append(pd_code[i][3])
-            entering.append(t)
-            leaving.append(q)
-        # here we correct the leaving and entering components so they belong to the
-        # correct seifert circles
-        for val in zip(seifert_order, seifert_order[1:]):
-            for i in entering:
-                if i[1] in val[0] and i[0] in val[1]:
-                    a = i[0]
-                    i[0] = i[1]
-                    i[1] = a
-        for val in zip(seifert_order, seifert_order[1:]):
-            for i in leaving:
-                if i[1] in val[0] and i[0] in val[1]:
-                    a = i[0]
-                    i[0] = i[1]
-                    i[1] = a
-        first_seifert = seifert_order[0]
-        first_crossing = None
-        for i in pd_code:
-            if len(list(set(i).intersection(set(first_seifert)))) == 2:
-                first_crossing = i
-                break
-        tmp = []
-        if orient[pd_code.index(first_crossing)] == -1:
-            tmp.append(first_crossing[1])
-            tmp.append(first_crossing[2])
-        elif orient[pd_code.index(first_crossing)] == 1:
-            tmp.append(first_crossing[2])
-            tmp.append(first_crossing[3])
-        reg = [0 for i in range(len(sc))]
-        if tmp[0] in first_seifert:
-            reg[0] = tmp[0]
-            reg[1] = tmp[1]
-        elif tmp[1] in first_seifert:
-            reg[0] = tmp[1]
-            reg[1] = tmp[0]
-        crossing = []
-        crossing.append(first_crossing)
-        q = 0
-        while q < len(pd_code) - 1:
-            for val in zip(reg, reg[1:]):
-                for i, j in enumerate(entering):
-                    if list(val) == j and pd_code[i] not in crossing:
-                        crossing.append(pd_code[i])
-                        reg[reg.index(val[0])] = leaving[i][0]
-                        reg[reg.index(val[1])] = leaving[i][1]
-                        q = q + 1
-                        break
-                    if val[0] == j[0] and val[1] == 0 and pd_code[i] not in crossing:
-                        crossing.append(pd_code[i])
-                        reg[reg.index(val[0])] = leaving[i][0]
-                        reg[reg.index(val[1])] = leaving[i][1]
-                        q = q + 1
-                        break
-        # record the signs
-        sign = orient
-        # each crossing belongs to two seifert circles, we find the first and
-        # break
-        braid = []
-        for i in crossing:
-            for j in seifert_order:
-                if len(list(set(i).intersection(set(j)))) == 2:
-                    braid.append(
-                        sign[pd_code.index(i)] * (seifert_order.index(j) + 1))
-                    break
-        return braid
-
     def writhe(self):
         """
         Return the writhe of the knot.
@@ -1614,7 +1335,7 @@ class Link:
         neg = (-1) * x[1].count(-1)
         return pos + neg
 
-    def jones_polynomial(self):
+    def jones_polynomial(self, var='q'):
         """
         Return the jones polynomial of the link.
         The following procedure is used to determine the jones polynomial.
@@ -1632,6 +1353,10 @@ class Link:
         Note : here we have used the symbolic ring rather than the Laurent Polynomial Ring.
         The answer has been returned in the symbolic ring. Once the rational powers is
         functional we can use it and revert back to Laurent Polynomial Ring.
+        INPUT:
+
+        The name of the variable
+
         OUTPUT:
 
         - Jones Polynomial of the link.
@@ -1653,38 +1378,156 @@ class Link:
             sage: L.jones_polynomial()
             -q^(3/2) + sqrt(q) - 2/sqrt(q) + 1/q^(3/2) - 2/q^(5/2) + 1/q^(7/2)
         """
-        pd = self.PD_code()
-        poly = _bracket_(pd)
+        t = SR(var)
+        poly = self._bracket_(t)
         writhe = self.writhe()
-        t = SR.symbol('q')
         jones = (poly * (-t) ** (-3 * writhe)).expand()
         return jones.subs({t: t ** (ZZ(-1) / ZZ(4))})
 
-    def linkplot(self):
+    def _bracket_(self, variable='q'):
+        r"""
+        Return the Kaufmann bracket polynomial of the diagram.
+
+        INPUT:
+
+        - var (Default = q): the name of the variable of the result.
+
+        Note that this is not an invariant of the link, but of the diagram.
+        In particular, it is not invariant under Reidemeister I moves.
+        """
+        t = SR(variable)
+        if len(self.PD_code()) == 1:
+            if self.PD_code()[0][0] == self.PD_code()[0][1]:
+                return -t**(-3)
+            else:
+                return -t**3
+        cross = self.PD_code()[0]
+        rest = deepcopy(self.PD_code()[1:])
+        [a, b, c, d] = cross
+        if a == b and c == d and len(rest) > 0:
+            return ((t ** (-1) + t ** (-5)) * Link(rest)._bracket_(t)).expand()
+        elif a == d and c == b and len(rest) > 0:
+            return ((t ** (1) + t ** (5)) * Link(rest)._bracket_(t)).expand()
+        elif a == b:
+            for cross in rest:
+                if d in cross:
+                    cross[cross.index(d)] = c
+            return ((-t ** (-3)) * Link(rest)._bracket_(t)).expand()
+        elif a == d:
+            for cross in rest:
+                if c in cross:
+                    cross[cross.index(c)] = b
+            return ((-t ** 3) * Link(rest)._bracket_(t)).expand()
+        elif c == b:
+            for cross in rest:
+                if d in cross:
+                    cross[cross.index(d)] = a
+            return ((-t ** 3) * Link(rest)._bracket_(t)).expand()
+        elif c == d:
+            for cross in rest:
+                if b in cross:
+                    cross[cross.index(b)] = a
+            return ((-t ** (-3)) * Link(rest)._bracket_(t)).expand()
+        else:
+            rest_2 = deepcopy(rest)
+            for cross in rest:
+                if d in cross:
+                    cross[cross.index(d)] = a
+                if c in cross:
+                    cross[cross.index(c)] = b
+            for cross in rest_2:
+                if d in cross:
+                    cross[cross.index(d)] = c
+                if b in cross:
+                    cross[cross.index(b)] = a
+            return (t * Link(rest)._bracket_(t) + t ** (-1) * Link(rest_2)._bracket_(t)).expand()
+
+    def _isolated_components_(self):
+        r"""
+        Return the PD codes of the isolated components of the link.
+
+        Isolated components are links corresponding to subdiagrams that don't
+        have any common crossing.
+
+        EXAMPLES::
+
+            sage: L = Link([[1, 1, 2, 2], [3, 3, 4, 4]])
+            sage: L._isolated_components_()
+            [[[1, 1, 2, 2]], [[3, 3, 4, 4]]]
+
+        """
+        G = Graph()
+        for c in self.PD_code():
+            G.add_vertex(tuple(c))
+        for i in range(G.num_verts()-1):
+            for j in range(i, G.num_verts()):
+                if len(set(G.vertices()[i]).intersection(G.vertices()[j])) > 0:
+                    G.add_edge(G.vertices()[i], G.vertices()[j])
+        return [[list(i) for i in j] for j in G.connected_components()]
+
+    def plot(self, **kwargs):
+        r"""
+        Plot the knot or link.
+        """
+        comp = self._isolated_components_()
+        if len(comp) > 1:
+            L1 = Link(comp[0])
+            L2 = Link(flatten(comp[1:], max_level=1))
+            P1 = L1.plot(**kwargs)
+            P2 = L2.plot(**kwargs)
+            xtra = P1.get_minmax_data()['xmax'] + P2.get_minmax_data()['xmin'] + 2
+            for P in P2:
+                if hasattr(P, 'path'):
+                    for p in P.path[0]:
+                        p[0] += xtra
+                    for p in P.vertices:
+                        p[0] += xtra
+                else:
+                    for p in P.xdata:
+                        p += xtra
+            return P1 + P2
+        if not 'color' in kwargs:
+            kwargs['color'] = 'blue'
+        if not 'axes' in kwargs:
+            kwargs['axes'] = False
+        if not 'aspect_ratio' in kwargs:
+            kwargs['aspect_ratio'] = 1
+        # The idea is the same followed in linkplot, but using MLP instead of
+        # network flows.
+        # We start by computing a way to bend the edges left or right
+        # such that the resulting regions are in fact closed regions
+        # with straight angles, and using the minimal number of bends.
         regions = sorted(self.regions(), lambda a,b: len(a) < len(b))
         regions = regions[:-1]
         edges = list(set(flatten(self.PD_code())))
         edges.sort()
         MLP = MixedIntegerLinearProgram(maximization = True)
+        # v will be the list of variables in the MLP problem. There will be
+        # two variables for each edge: number of right bendings and number of
+        # left bendings (at the end, since we are minimizing the total, only one
+        # of each will be nonzero
         v = MLP.new_variable(nonnegative=True)
         for i in range(2*len(edges)):
             MLP.set_min(v[i], 0)
+        # one condition for each region
         for i in range(len(regions)):
             cond = 0
             r = regions[i]
             es = 4 - len(r)
             for e in r:
                 if e > 0:
-                    cond = cond + v[2*edges.index(e)] - v[2*edges.index(e) +1]
+                    cond = cond + v[2*edges.index(e)] - v[2*edges.index(e) + 1]
                 else:
                     cond = cond - v[2*edges.index(-e)] + v[2*edges.index(-e) + 1]
             MLP.add_constraint(cond, min=es, max=es)
         MLP.set_objective(-sum(v.values()))
         MLP.solve()
+        # we store the result in a vector s packing right bends as negative left ones
         s = range(len(edges))
         values = MLP.get_values(v)
         for i in range(len(edges)):
             s[i] = int(values[2*i] - values[2*i + 1])
+        # segments represents the different parts of the previos edges after bending
         segments = {e:[(e,i) for i in range(abs(s[edges.index(e)])+1)] for e in edges}
         pieces = {tuple(i):[i] for j in segments.values() for i in j}
         nregions = []
@@ -1694,16 +1537,16 @@ class Link:
                 if e>0:
                     rev =  segments[e][:-1]
                     sig = sign(s[edges.index(e)])
-                    nregion+=[[a,sig] for a in rev]
-                    nregion.append([segments[e][-1],1])
+                    nregion += [[a, sig] for a in rev]
+                    nregion.append([segments[e][-1], 1])
                 else:
                     rev = segments[-e][1:]
                     rev.reverse()
                     sig = sign(s[edges.index(-e)])
-                    nregion+=[[a,-sig] for a in rev]
-                    nregion.append([segments[-e][0],1])
+                    nregion+=[[a, -sig] for a in rev]
+                    nregion.append([segments[-e][0], 1])
             nregions.append(nregion)
-        N = max(segments.keys())+1
+        N = max(segments.keys()) + 1
         segments = [i for j in segments.values() for i in j]
         badregions = filter(lambda a: -1 in [x[1] for x in a], nregions)
         while len(badregions)>0:
@@ -1732,7 +1575,7 @@ class Link:
             N2 = N1 + 1
             segments.append(N1)
             segments.append(N2)
-            if type(badregion[b][0]) == int:
+            if type(badregion[b][0]) in (int, Integer):
                 segmenttoadd = filter(lambda x:badregion[b][0] in pieces[x], pieces.keys())
                 if len(segmenttoadd) > 0:
                     pieces[segmenttoadd[0]].append(N2)
@@ -1780,13 +1623,13 @@ class Link:
         MLP.set_objective(-sum([x[0] for x in variables.values()]))
         solved = MLP.solve()
         lengths = {piece:sum([MLP.get_values(variables[a])[0] for a in pieces[piece]]) for piece in pieces}
-        image = line([])
+        image = line([], **kwargs)
         crossings = {tuple(self.PD_code()[0]):(0,0,0)}
         availables = self.PD_code()[1:]
         used_edges = []
         horizontal_eq = 0
         vertical_eq = 0
-        ims = line([])
+        ims = line([], **kwargs)
         while len(used_edges) < len(edges):
             i = 0
             j = 0
@@ -1855,11 +1698,11 @@ class Link:
             if headshort:
                 im[-1][0][1][0] -= cmp(b[1][0],im[-1][0][0][0])*0.1
                 im[-1][0][1][1] -= cmp(b[1][1],im[-1][0][0][1])*0.1
-            l = line([], axes=False)
+            l = line([], **kwargs)
             c = 0
             p = im[0][0][0]
             if len(im) == 4 and max([x[1] for x in im]) == 1:
-                l = bezier_path([[im[0][0][0], im[0][0][1], im[-1][0][0], im[-1][0][1]]], axes=False, color='blue')
+                l = bezier_path([[im[0][0][0], im[0][0][1], im[-1][0][0], im[-1][0][1]]], **kwargs)
                 p =  im[-1][0][1]
             else:
                 while c < len(im)-1:
@@ -1873,7 +1716,7 @@ class Link:
                             e = (b[0], b[1] - 1)
                         elif b[1] < a[1]:
                             e = (b[0] , b[1] + 1)
-                        l += line((p, e), axes=False)
+                        l += line((p, e), **kwargs)
                         p = e
                     if im[c+1][1] == 1 and c < len(im) - 2:
                         xr = round(im[c+2][0][1][0])
@@ -1881,7 +1724,7 @@ class Link:
                         xp = xr - im[c+2][0][1][0]
                         yp = yr - im[c+2][0][1][1]
                         q = [p[0] + im[c+1][0][1][0] -   im[c+1][0][0][0] -xp , p[1] + im[c+1][0][1][1] - im[c+1][0][0][1] - yp]
-                        l += bezier_path([[p, im[c+1][0][0], im[c+1][0][1], q]], axes=False, color='blue')
+                        l += bezier_path([[p, im[c+1][0][0], im[c+1][0][1], q]], **kwargs)
                         c += 2
                         p = q
                     else:
@@ -1889,105 +1732,14 @@ class Link:
                             q = im[c+1][0][1]
                         else:
                             q = [im[c+1][0][0][0] + sign(im[c+1][0][1][0] -  im[c+1][0][0][0]), im[c+1][0][0][1] + sign(im[c+1][0][1][1] -  im[c+1][0][0][1])]
-                        l += bezier_path([[p, im[c+1][0][0], q]], axes=False, color ='blue')
+                        l += bezier_path([[p, im[c+1][0][0], q]], **kwargs)
                         p = q
                         c += 1
-            l += line([p, im[-1][0][1]], axes=False)
+            l += line([p, im[-1][0][1]], **kwargs)
             image += l
-            ims += sum([line(a[0]) for a in im])
+            ims += sum([line(a[0], **kwargs) for a in im])
         return image
 
-#********************** Auxillary methods used ********************************
-# rule_1 and rule_2 are used in the orientation method looks for entering,
-# leaving pairs and fill the gaps where ever necessary.
-# rule_3 is used in the jones_polynomial and replace the higer numbered
-# components with the lower numbered ones in order to get the number of
-# circles.
 
 
-def _rule_1_(over):
-    for i in range(0, len(over), 2):
-        if over[i][1] == None:
-            if over[i + 1][1] == 1:
-                over[i][1] = -1
-            elif over[i + 1][1] == -1:
-                over[i][1] = 1
-        elif over[i + 1][1] == None:
-            if over[i][1] == 1:
-                over[i + 1][1] = -1
-            elif over[i][1] == -1:
-                over[i + 1][1] = 1
-    return over
 
-
-def _rule_2_(over):
-    for i in over:
-        for j in over:
-            if i[0] == j[0] and j[1] == None:
-                if i[1] == 1:
-                    j[1] = -1
-                    break
-                elif i[1] == -1:
-                    j[1] = 1
-                    break
-    return over
-
-
-def _pd_error_(pd):
-    pd_error = False
-    for i in pd:
-        if len(i) != 4:
-            pd_error = True
-    else:
-        flat = flatten(pd)
-        set_flat = set(flat)
-        for i in set_flat:
-            if flat.count(i) != 2:
-                pd_error = True
-    return pd_error
-
-
-def _bracket_(pd_code):
-    t = SR.symbol('q')
-    if len(pd_code) == 0:
-        return 1
-    cross = pd_code[0]
-    rest = deepcopy(pd_code[1:])
-    [a, b, c, d] = cross
-    if a == b and c == d and len(rest) > 0:
-        bracket_ = ((t ** (-1) + t ** (-5)) * _bracket_(rest)).expand()
-    elif a == d and c == b and len(rest) > 0:
-        bracket_ = ((t ** (1) + t ** (5)) * _bracket_(rest)).expand()
-    elif a == b:
-        _rule_4_(rest, d, c)
-        bracket_ = ((-t ** (-3)) * _bracket_(rest)).expand()
-    elif a == d:
-        _rule_4_(rest, c, b)
-        bracket_ = ((-t ** 3) * _bracket_(rest)).expand()
-    elif c == b:
-        _rule_4_(rest, d, a)
-        bracket_ = ((-t ** 3) * _bracket_(rest)).expand()
-    elif c == d:
-        _rule_4_(rest, b, a)
-        bracket_ = ((-t ** (-3)) * _bracket_(rest)).expand()
-    else:
-        rest_2 = deepcopy(rest)
-        for cross in rest:
-            if d in cross:
-                cross[cross.index(d)] = a
-            if c in cross:
-                cross[cross.index(c)] = b
-        for cross in rest_2:
-            if d in cross:
-                cross[cross.index(d)] = c
-            if b in cross:
-                cross[cross.index(b)] = a
-        bracket_ = (
-            t * _bracket_(rest) + t ** (-1) * _bracket_(rest_2)).expand()
-    return bracket_
-
-
-def _rule_4_(rest, c_1, c_2):
-    for cross in rest:
-        if c_1 in cross:
-            cross[cross.index(c_1)] = c_2

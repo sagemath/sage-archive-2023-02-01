@@ -281,7 +281,7 @@ an equally spaced grid with `\Delta x = \Delta y = .25` for
     sage: import numpy
     sage: j=numpy.complex(0,1)
     sage: def f(x,y):
-    ...       return x**2+y**2
+    ....:     return x**2+y**2
     sage: from numpy import meshgrid
     sage: x=numpy.r_[0.0:1.0:5*j]
     sage: y=numpy.r_[0.0:1.0:5*j]

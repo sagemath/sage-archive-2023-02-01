@@ -1112,12 +1112,20 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: Non-multigraph got several edges (0,1)
+
+        Check the error when the input has a loop but ``loops`` is set to False
+        (:trac:`17385`)::
+
+            sage: Graph([(0,0)], loops=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: No loops but dict has a loop at 0.
         """
         GenericGraph.__init__(self)
         msg = ''
         from sage.structure.element import is_Matrix
 
-        if sparse == False:
+        if sparse is False:
             if data_structure != "sparse":
                 raise ValueError("The 'sparse' argument is an alias for "
                                  "'data_structure'. Please do not define both.")
@@ -1419,19 +1427,19 @@ class Graph(GenericGraph):
         elif format == 'dict_of_dicts':
             if not all(isinstance(data[u], dict) for u in data):
                 raise ValueError("Input dict must be a consistent format.")
-            verts = set(data.keys())
-            if loops is None or loops is False:
-                for u in data:
-                    if u in data[u]:
-                        if loops is None: loops = True
-                        elif loops is False:
-                            raise ValueError("No loops but dict has loops.")
-                        break
-                if loops is None: loops = False
+
+            if ((loops is None or loops is False) and
+                any(u in neighb for u,neighb in data.iteritems())):
+                if loops is False:
+                    u = (u for u,neighb in data.iteritems() if u in neighb).next()
+                    raise ValueError("No loops but dict has loop at {}.".format(u))
+                loops = True
+            if loops is None:
+                loops = False
+
             if weighted is None: weighted = False
             for u in data:
                 for v in data[u]:
-                    if v not in verts: verts.add(v)
                     if hash(u) > hash(v):
                         if v in data and u in data[v]:
                             if data[u][v] != data[v][u]:
@@ -1443,28 +1451,34 @@ class Graph(GenericGraph):
                             raise ValueError("Dict of dicts for multigraph must be in the format {v : {u : list}}")
             if multiedges is None and len(data) > 0:
                 multiedges = True
+
+            verts = set().union(data.keys(), *data.values())
             num_verts = len(verts)
         elif format == 'dict_of_lists':
             if not all(isinstance(data[u], list) for u in data):
                 raise ValueError("Input dict must be a consistent format.")
 
-            verts = set().union(data.keys(),*data.values())
-            if loops is None or loops is False:
-                for u in data:
-                    if u in data[u]:
-                        if loops is None: loops = True
-                        elif loops is False:
-                            raise ValueError("No loops but dict has loops.")
-                        break
-                if loops is None: loops = False
+            if ((loops is None or loops is False) and
+                any(u in neighb for u,neighb in data.iteritems())):
+                    if loops is False:
+                        u = (u for u,neighb in data.iteritems() if u in neighb).next()
+                        raise ValueError("No loops but dict has a loop at {}.".format(u))
+                    loops = True
+            if loops is None:
+                loops = False
+
             if weighted is None: weighted = False
-            for u in data:
-                if len(set(data[u])) != len(data[u]):
+
+            if ((multiedges is None or multiedges is False) and
+                any(len(set(neighb)) != len(neighb) for neighb in data.itervalues())):
                     if multiedges is False:
-                        v = (v for v in data[u] if data[u].count(v) > 1).next()
-                        raise ValueError("Non-multigraph got several edges (%s,%s)"%(u,v))
-                    if multiedges is None: multiedges = True
-            if multiedges is None: multiedges = False
+                        uv = ((u,v) for u,neighb in data.iteritems() for v in neighb if neighb.count(v) > 1).next()
+                        raise ValueError("Non-multigraph got several edges (%s,%s)"%uv)
+                    multiedges = True
+            if multiedges is None:
+                multiedges = False
+
+            verts = set().union(data.keys(),*data.values())
             num_verts = len(verts)
         elif format == 'NX':
             if weighted is None:
@@ -6861,7 +6875,6 @@ class Graph(GenericGraph):
            of the Ihara zeta function, Involve (http://msp.org/involve/2008/1-2/involve-v1-n2-p08-p.pdf)
         """
         from sage.matrix.constructor import matrix
-        from sage.rings.integer_ring import ZZ
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         ring = PolynomialRing(ZZ, 't')

@@ -23,7 +23,8 @@ Moreover, it offers you full development capabilities:
 you can change absolutely any part of Sage or the programs on which it depends,
 and recompile the modified parts.
 
-`Download the Sage source code <http://www.sagemath.org/download-source.html>`_.
+`Download the Sage source code <http://www.sagemath.org/download-source.html>`_
+or `check it out with git <https://github.com/sagemath/sage>`_.
 If you changed your mind, you can also download a
 `binary distribution <http://www.sagemath.org/download.html>`_
 for some operating systems.

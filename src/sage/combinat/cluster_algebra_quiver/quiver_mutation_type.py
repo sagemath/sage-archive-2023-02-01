@@ -2106,9 +2106,9 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     types_path = os.path.join(DOT_SAGE, 'cluster_algebra_quiver')
     types_file = os.path.join(types_path,'mutation_classes_%s.dig6'%n)
     sage_makedirs(types_path)
-    f = open(types_file,'w')
-    cPickle.dump(data, f)
-    f.close()
+    from sage.misc.temporary_file import atomic_write
+    with atomic_write(types_file) as f:
+        cPickle.dump(data, f)
     if verbose:
         keys = sorted(data.keys(),key=str)
         print "\nThe following types are saved to file", types_file,"and will now be used to determine quiver mutation types:"

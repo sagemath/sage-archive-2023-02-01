@@ -122,6 +122,8 @@ includes virtually everything you need.
 
 After extracting the Sage tarball, the subdirectory :file:`upstream`
 contains the source distributions for everything on which Sage depends.
+If cloned from a git repository, the upstream tarballs will be downloaded,
+verified, and cached as part of the Sage installation process.
 We emphasize that all of this software is included with Sage, so you do not
 have to worry about trying to download and install any one of these packages
 (such as Python, for example) yourself.

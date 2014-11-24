@@ -491,9 +491,22 @@ class SymmetricGroup(PermutationGroup_symalt):
             elts.append(PermutationGroupElement(cycles, self, check=False))
         return elts
 
+    def conjugacy_classes_iterator(self):
+        """
+        Iterate over the conjugacy classes of ``self``.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(5)
+            sage: list(G.conjugacy_classes_iterator()) == G.conjugacy_classes()
+            True
+        """
+        for elt in self.conjugacy_classes_representatives():
+            yield ConjugacyClassGAP(self, elt)
+
     def conjugacy_classes(self):
         """
-        Return the conjugacy classes of ``self``.
+        Return a list of the conjugacy classes of ``self``.
 
         EXAMPLES::
 
@@ -514,8 +527,7 @@ class SymmetricGroup(PermutationGroup_symalt):
              Conjugacy class of (1,2,3,4,5)
                  in Symmetric group of order 5! as a permutation group]
         """
-        return [ConjugacyClassGAP(self, elt)
-                for elt in self.conjugacy_classes_representatives()]
+        return list(self.conjugacy_classes_iterator())
 
     def algebra(self, base_ring):
         """

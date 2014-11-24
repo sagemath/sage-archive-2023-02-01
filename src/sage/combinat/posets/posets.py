@@ -3196,7 +3196,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return the ordinal product of posets.
 
-        The ordinal product of two posets `P` and `Q is a partial
+        The ordinal product of two posets `P` and `Q` is a partial
         order on the cartesian product of the underlying sets of `P`
         and `Q`, defined as follows.
 
@@ -3205,11 +3205,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         This construction is not symmetric in `P` and `Q`.
 
+        See Enumerative Combinatorics, p. 284.
+
         INPUT:
 
-        - ``labels`` -- either ``'integers'`` or ``'pairs'``
-
-        See Enumerative Combinatorics, p. 284.
+        - ``labels`` -- either ``'integers'`` (default) or ``'pairs'``
 
         .. SEEALSO::
 

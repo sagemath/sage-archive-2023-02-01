@@ -15,15 +15,15 @@ that can be run easily in Ipython. To run the Ipython packaged with Sage run
 
     $ ./sage -ipython
 
-Here is an example that constructs and finds the equilibrium for the
-Prisoner's Dilemma::
+Here is an example that constructs the Prisoner's Dilemma::
 
-    In [1]: g = gambit.Game.new_table([2,2])
-    In [2]: g.title = "A prisoner's dilemma game"
-    In [3]: g.players[0].label = "Alphonse"
-    In [4]: g.players[1].label = "Gaston"
-    In [5]: g
-    Out[5]:
+    In [1]: import gambit
+    In [2]: g = gambit.Game.new_table([2,2])
+    In [3]: g.title = "A prisoner's dilemma game"
+    In [4]: g.players[0].label = "Alphonse"
+    In [5]: g.players[1].label = "Gaston"
+    In [6]: g
+    Out[6]:
     NFG 1 R "A prisoner's dilemma game" { "Alphonse" "Gaston" }
 
     { { "1" "2" }
@@ -35,34 +35,31 @@ Prisoner's Dilemma::
     }
     0 0 0 0
 
-    In [6]: g.players[0].strategies
-    Out[6]: [<Strategy [0] '1' for player 'Alphonse' in game 'A
+    In [7]: g.players[0].strategies
+    Out[7]: [<Strategy [0] '1' for player 'Alphonse' in game 'A
     prisoner's dilemma game'>,
              <Strategy [1] '2' for player 'Alphonse' in game 'A prisoner's dilemma game'>]
-    In [7]: len(g.players[0].strategies)
-    Out[7]: 2
+    In [8]: len(g.players[0].strategies)
+    Out[8]: 2
 
-    In [8]: g.players[0].strategies[0].label = "Cooperate"
-    In [9]: g.players[0].strategies[1].label = "Defect"
-    In [10]: g.players[0].strategies
-    Out[10]: [<Strategy [0] 'Cooperate' for player 'Alphonse' in game 'A
+    In [9]: g.players[0].strategies[0].label = "Cooperate"
+    In [10]: g.players[0].strategies[1].label = "Defect"
+    In [11]: g.players[0].strategies
+    Out[11]: [<Strategy [0] 'Cooperate' for player 'Alphonse' in game 'A
     prisoner's dilemma game'>,
        <Strategy [1] 'Defect' for player 'Alphonse' in game 'A prisoner's dilemma game'>]
 
-    In [11]: g[0,0][0] = 8
-    In [12]: g[0,0][1] = 8
-    In [13]: g[0,1][0] = 2
-    In [14]: g[0,1][1] = 10
-    In [15]: g[1,0][0] = 10
-    In [16]: g[1,1][1] = 2
-    In [17]: g[1,0][1] = 2
-    In [18]: g[1,1][0] = 5
-    In [19]: g[1,1][1] = 5
-    In [20]: solver = gambit.nash.ExternalEnumPureSolver()
-    In [21]: solver.solve(g)
-    Out[21]: [[1.0, 0.0, 0.0, 1.0, 0.0]]
+    In [12]: g[0,0][0] = 8
+    In [13]: g[0,0][1] = 8
+    In [14]: g[0,1][0] = 2
+    In [15]: g[0,1][1] = 10
+    In [16]: g[1,0][0] = 10
+    In [17]: g[1,1][1] = 2
+    In [18]: g[1,0][1] = 2
+    In [19]: g[1,1][0] = 5
+    In [20]: g[1,1][1] = 5
 
-Here is a list of various other solvers that can be used:
+Here is a list of the various solvers available in gambit:
 
 - ExternalEnumPureSolver
 - ExternalEnumMixedSolver
@@ -75,15 +72,17 @@ Here is a list of various other solvers that can be used:
 - ExternalIteratedPolymatrixSolver
 - ExternalLogitSolver
 
-    In [22]: solver = gambit.nash.ExternalEnumPureSolver()
-    In [23]: solver.solve(g)
-    Out[23]: [<NashProfile for '': [Fraction(0, 1), Fraction(1, 1), Fraction(0, 1), Fraction(1, 1)]>]
+Here is how to use the `ExternalEnumPureSolver`::
 
-Note that the Prisoner's Dilemma example used an algorithm that enumerates
-all pure strategies. This will fail to find all Nash equilibria in certain
+    In [21]: solver = gambit.nash.ExternalEnumPureSolver()
+    In [22]: solver.solve(g)
+    Out[22]: [<NashProfile for '': [Fraction(0, 1), Fraction(1, 1), Fraction(0, 1), Fraction(1, 1)]>]
+
+Note that the above finds the equilibria by investigating all potential pure
+pure strategy pairs. This will fail to find all Nash equilibria in certain
 games.  For example here is an implementation of Matching Pennies::
 
-    In [1]: g = gambit.Game.new_table([2,2])
+    In [1]: import gambit
     In [2]: g = gambit.Game.new_table([2,2])
     In [3]: g[0, 0][0] = 1
     In [4]: g[0, 0][1] = -1

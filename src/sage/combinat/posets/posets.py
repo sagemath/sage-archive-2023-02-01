@@ -3192,24 +3192,25 @@ class FinitePoset(UniqueRepresentation, Parent):
         return Poset(self.hasse_diagram().disjoint_union(other.hasse_diagram(),
                                                          labels=labels))
 
-    def ordinal_product(self, other, labels='integers'):
+    def ordinal_product(self, other, labels='pairs'):
         """
-        Return the ordinal product of posets.
+        Return the ordinal product of ``self`` and ``other``.
 
         The ordinal product of two posets `P` and `Q` is a partial
         order on the cartesian product of the underlying sets of `P`
-        and `Q`, defined as follows.
+        and `Q`, defined as follows (see [EnumComb1]_, p. 284).
 
         In the ordinal product, `(p,q) \leq (p',q')` if either `p \leq
         p'` or `p = p'` and `q \leq q'`.
 
         This construction is not symmetric in `P` and `Q`.
 
-        See Enumerative Combinatorics, p. 284.
-
         INPUT:
 
-        - ``labels`` -- either ``'integers'`` (default) or ``'pairs'``
+        - ``other`` -- a poset
+
+        - ``labels`` -- either ``'integers'`` or ``'pairs'`` (default); how
+          the resulting poset will be labeled
 
         .. SEEALSO::
 
@@ -3223,9 +3224,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite poset containing 4 elements
             sage: sorted(P.cover_relations())
             [[1, 0], [2, 1], [3, 2]]
+
+        TESTS::
+
+            sage: P1.ordinal_product(24)
+            Traceback (most recent call last):
+            ...
+            ValueError: the input is not a finite poset
+            sage: P1.ordinal_product(P2, labels='vodka')
+            Traceback (most recent call last):
+            ...
+            ValueError: labels must be either 'pairs' or 'integers'
         """
         if not hasattr(other, 'hasse_diagram'):
-            raise ValueError('The input is not a finite poset.')
+            raise ValueError('the input is not a finite poset')
 
         dg = DiGraph()
         dg.add_vertices([(s, t) for s in self for t in other])
@@ -3238,7 +3250,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if labels == 'integers':
             dg.relabel()
         elif labels != 'pairs':
-            raise ValueError("Labels must be either 'pairs' or 'integers'.")
+            raise ValueError("labels must be either 'pairs' or 'integers'")
 
         return Poset(dg)
 

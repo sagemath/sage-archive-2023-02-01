@@ -188,7 +188,7 @@ cdef class RealBallField_class(Parent):
         """
         return "Real ball field with %d bits precision" % self.precision
 
-    def _coerce_map_from_(self, S):
+    cpdef _coerce_map_from_(self, S):
         r"""
         Return a coercion map from `S` to ``self``, or ``True``, or ``None.``
 

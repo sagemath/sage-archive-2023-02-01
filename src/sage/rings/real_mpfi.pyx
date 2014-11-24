@@ -230,7 +230,6 @@ include "sage/ext/cdefs.pxi"
 from cpython.mem cimport *
 from cpython.string cimport *
 
-from sage.misc.package import is_package_installed
 cimport sage.rings.ring
 import  sage.rings.ring
 

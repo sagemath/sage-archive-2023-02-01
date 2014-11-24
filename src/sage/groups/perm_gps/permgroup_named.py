@@ -90,7 +90,6 @@ from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method, weak_cached_function
-from sage.groups.conjugacy_classes import ConjugacyClassGAP
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.structure.unique_representation import CachedRepresentation
@@ -437,24 +436,16 @@ class SymmetricGroup(PermutationGroup_symalt):
         a permutation group `G`.
 
         Let `S_n` be the symmetric group on `n` letters. The conjugacy
-        classes are indexed by partitions `\lambda` of `n`. We pick a
-        representative by
-
-        .. MATH::
-
-            (1, 2, \ldots, \lambda_1)
-            (\lambda_1 + 1, \ldots, \lambda_1 + \lambda_2)
-            (\lambda_1 + \lambda_2 + \cdots + \lambda_{\ell-1}, \ldots, n),
-
-        where `\ell` is the length (or number of parts) of `\lambda`. The
-        ordering of the conjugacy classes is reverse lexicographic order of
+        classes are indexed by partitions `\lambda` of `n`. The ordering
+        of the conjugacy classes is reverse lexicographic order of
         the partitions.
 
         EXAMPLES::
 
             sage: G = SymmetricGroup(5)
             sage: G.conjugacy_classes_representatives()
-            [(), (1,2), (1,2)(3,4), (1,2,3), (1,2,3)(4,5), (1,2,3,4), (1,2,3,4,5)]
+            [(), (1,2), (1,2)(3,4), (1,2,3), (1,2,3)(4,5),
+             (1,2,3,4), (1,2,3,4,5)]
 
         ::
 
@@ -472,24 +463,12 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: S = SymmetricGroup(1)
             sage: S.conjugacy_classes_representatives()
             [()]
-
-        AUTHORS:
-
-        - Travis Scrimshaw (2014-11-23)
         """
         from sage.combinat.partition import Partitions_n
-        D = self.domain()
-        elts = []
-        for la in reversed(Partitions_n(len(D))):
-            total = 0
-            cycles = []
-            for p in la:
-                cycles.append(tuple(D[total:total+p]))
-                total += p
-            # TODO: Change this to self.element_class(cycles, check=False)
-            #   once SymmetricGroup is a proper parent.
-            elts.append(PermutationGroupElement(cycles, self, check=False))
-        return elts
+        from sage.groups.perm_gps.symgp_conjugacy_class import default_representative
+        n = len(self.domain())
+        return [ default_representative(la, self)
+                 for la in reversed(Partitions_n(n)) ]
 
     def conjugacy_classes_iterator(self):
         """
@@ -501,8 +480,11 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: list(G.conjugacy_classes_iterator()) == G.conjugacy_classes()
             True
         """
-        for elt in self.conjugacy_classes_representatives():
-            yield ConjugacyClassGAP(self, elt)
+        from sage.combinat.partition import Partitions_n
+        from sage.groups.perm_gps.symgp_conjugacy_class import SymmetricGroupConjugacyClass
+        P = Partitions_n(len(self.domain()))
+        for la in reversed(P):
+            yield SymmetricGroupConjugacyClass(self, la)
 
     def conjugacy_classes(self):
         """
@@ -512,22 +494,46 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: G = SymmetricGroup(5)
             sage: G.conjugacy_classes()
-            [Conjugacy class of () in
+            [Conjugacy class of cycle type [1, 1, 1, 1, 1] in
                  Symmetric group of order 5! as a permutation group,
-             Conjugacy class of (1,2) in
+             Conjugacy class of cycle type [2, 1, 1, 1] in
                  Symmetric group of order 5! as a permutation group,
-             Conjugacy class of (1,2)(3,4) in
+             Conjugacy class of cycle type [2, 2, 1] in
                  Symmetric group of order 5! as a permutation group,
-             Conjugacy class of (1,2,3) in
+             Conjugacy class of cycle type [3, 1, 1] in
                  Symmetric group of order 5! as a permutation group,
-             Conjugacy class of (1,2,3)(4,5) in
+             Conjugacy class of cycle type [3, 2] in
                  Symmetric group of order 5! as a permutation group,
-             Conjugacy class of (1,2,3,4)
-                 in Symmetric group of order 5! as a permutation group,
-             Conjugacy class of (1,2,3,4,5)
-                 in Symmetric group of order 5! as a permutation group]
+             Conjugacy class of cycle type [4, 1] in
+                 Symmetric group of order 5! as a permutation group,
+             Conjugacy class of cycle type [5] in
+                 Symmetric group of order 5! as a permutation group]
         """
         return list(self.conjugacy_classes_iterator())
+
+    def conjugacy_class(self, g):
+        r"""
+        Return the conjugacy class of ``g`` inside the symmetric
+        group ``self``.
+
+        INPUT:
+
+        - ``g`` -- a partition or an element of the symmetric group ``self``
+
+        OUTPUT:
+
+        A conjugacy class of a symmetric group.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(5)
+            sage: g = G((1,2,3,4))
+            sage: G.conjugacy_class(g)
+            Conjugacy class of cycle type [4, 1] in
+             Symmetric group of order 5! as a permutation group
+        """
+        from sage.groups.perm_gps.symgp_conjugacy_class import SymmetricGroupConjugacyClass
+        return SymmetricGroupConjugacyClass(self, g)
 
     def algebra(self, base_ring):
         """

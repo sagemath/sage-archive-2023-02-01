@@ -1385,6 +1385,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef list e = p.exponents()
         cdef int i_min, i, j, k = len(c)
 
+        # totally dense polynomial
+        if k == p.degree() + 1:
+            return p._roots_from_factorization(p.factor(), multiplicities)
+
         K = p.base_ring()
         x = p.variable_name()
         R = PolynomialRing(K,x,sparse=False)

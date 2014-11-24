@@ -16,6 +16,10 @@ For every `i \in I`, the `R`-submodule of `M` spanned by
 (aka the `i`-*th homogeneous component*) of the filtered
 module with basis `M`; the elements of this submodule are
 referred to as *homogeneous elements of degree* `i`.
+
+See the class documentation
+:class:`~sage.categories.filtered_modules_with_basis.FilteredModulesWithBasis`
+for further details.
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -72,7 +76,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
         the contract of a :class:`CombinatorialFreeModule` (most
         likely by inheriting from it). It should also have the
         indexing set `J` encoded as its ``_indices`` attribute,
-        and ``_indices.subset(basis=i)`` should yield the subset
+        and ``_indices.subset(size=i)`` should yield the subset
         `J_i` (as an iterable). If the latter conditions are not
         satisfied, then :meth:`basis` must be overridden.
 
@@ -80,6 +84,11 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
         This deserves to be handled better, and the contracts
         involved might also profit from some explicit writing-up.
+
+        What else should be part of the requirements for
+        inheriting from :class:`FilteredModulesWithBasis`?
+        At least having a ``degree_on_basis`` method? Is that
+        enough?
 
     EXAMPLES::
 
@@ -123,18 +132,57 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             whole module which consists only of the basis vectors
             lying in `F_d \setminus \bigcup_{i<d} F_i`).
 
+            The basis is always returned as a family.
+
             EXAMPLES::
 
                 sage: A = ModulesWithBasis(ZZ).Filtered().example()
                 sage: A.basis(4)
-                Lazy family (Term map from Partitions to An example of a filtered module with basis: the free module on partitions over Integer Ring(i))_{i in Partitions of the integer 4}
+                Lazy family (Term map from Partitions to An example of a
+                 filtered module with basis: the free module on partitions
+                 over Integer Ring(i))_{i in Partitions of the integer 4}
 
             Without arguments, the full basis is returned::
 
                 sage: A.basis()
-                Lazy family (Term map from Partitions to An example of a filtered module with basis: the free module on partitions over Integer Ring(i))_{i in Partitions}
+                Lazy family (Term map from Partitions to An example of a
+                 filtered module with basis: the free module on partitions
+                 over Integer Ring(i))_{i in Partitions}
                 sage: A.basis()
-                Lazy family (Term map from Partitions to An example of a filtered module with basis: the free module on partitions over Integer Ring(i))_{i in Partitions}
+                Lazy family (Term map from Partitions to An example of a
+                 filtered module with basis: the free module on partitions
+                 over Integer Ring(i))_{i in Partitions}
+
+            Checking this method on a filtered algebra::
+
+                sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
+                sage: A.basis(4)
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'IndexedFreeAbelianMonoid_with_category' object has no attribute 'subset'
+
+            .. TODO::
+
+                Oops! This doesn't work. This ``size=d`` thing seems very
+                frail to me. For how many families does it work, and
+                (more importantly) how many does it result in wrong
+                return values? What about leaving it to the instances to
+                define? (The ``basis`` method without extra parameters
+                should stay general, of course.)
+
+            Without arguments, the full basis is returned::
+
+                sage: A.basis()
+                Lazy family (Term map from Free abelian monoid indexed by
+                 {'x', 'y', 'z'} to An example of a filtered algebra with
+                 basis: the universal enveloping algebra of Lie algebra
+                 of RR^3 with cross product over Integer Ring(i))_{i in
+                 Free abelian monoid indexed by {'x', 'y', 'z'}}
+
+            .. TODO::
+
+                Add doctests for some graded modules and algebras (which
+                seem to inherit this method).
             """
             from sage.sets.family import Family
             if d is None:
@@ -146,7 +194,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
         def is_homogeneous(self):
             r"""
-            Return whether ``self`` is homogeneous.
+            Return whether the element ``self`` is homogeneous.
 
             EXAMPLES::
 
@@ -161,7 +209,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 sage: (x+2*z).is_homogeneous()
                 True
 
-            Here is a case where the algebra is graded::
+            Here is an example with a graded algebra::
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                 sage: (x, y) = (S[2], S[3])
@@ -172,7 +220,10 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 sage: ((x + y)^2).is_homogeneous()
                 False
 
-            Let us now test a filtered algebra::
+            Let us now test a filtered algebra (but remember that the
+            notion of homogeneity now depends on the choice of a
+            basis, or at least on a definition of homogeneous
+            components)::
 
                 sage: A = AlgebrasWithBasis(QQ).Filtered().example()
                 sage: x,y,z = A.algebra_generators()
@@ -205,8 +256,9 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             .. NOTE::
 
                 This raises an error if the element is not homogeneous.
-                Another implementation option would be to return the
-                maximum of the degrees of the homogeneous summands.
+                To compute the maximum of the degrees of the homogeneous
+                summands of a (not necessarily homogeneous) element, use
+                :meth:`maximal_degree` instead.
 
             EXAMPLES::
 
@@ -223,7 +275,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 ...
                 ValueError: element is not homogeneous
 
-            An example where the algebra is graded::
+            An example in a graded algebra::
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                 sage: (x, y) = (S[2], S[3])
@@ -236,7 +288,9 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 ...
                 ValueError: element is not homogeneous
 
-            Let us now test a filtered algebra::
+            Let us now test a filtered algebra (but remember that the
+            notion of homogeneity now depends on the choice of a
+            basis)::
 
                 sage: A = AlgebrasWithBasis(QQ).Filtered().example()
                 sage: x,y,z = A.algebra_generators()
@@ -279,7 +333,20 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
             EXAMPLES:
 
-            First, we test this on a graded algebra::
+                sage: A = ModulesWithBasis(ZZ).Filtered().example()
+                sage: x = A(Partition((3,2,1)))
+                sage: y = A(Partition((4,4,1)))
+                sage: z = A(Partition((2,2,2)))
+                sage: x.maximal_degree()
+                6
+                sage: (x + 2*z).maximal_degree()
+                6
+                sage: (y - x).maximal_degree()
+                9
+                sage: (3*z).maximal_degree()
+                6
+
+            Now, we test this on a graded algebra::
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                 sage: (x, y) = (S[2], S[3])
@@ -322,8 +389,8 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
         def homogeneous_component(self, n):
             """
-            Return the homogeneous component of degree ``n`` of this
-            element.
+            Return the homogeneous component of degree ``n`` of the
+            element ``self``.
 
             Let `m` be an element of a filtered `R`-module `M` with
             basis. Then, `m` can be uniquely written in the form
@@ -348,10 +415,42 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 sage: x.homogeneous_component(3)
                 0
 
+                sage: A = ModulesWithBasis(ZZ).Graded().example()
+                sage: x = A.an_element(); x
+                2*P[] + 2*P[1] + 3*P[2]
+                sage: x.homogeneous_component(-1)
+                0
+                sage: x.homogeneous_component(0)
+                2*P[]
+                sage: x.homogeneous_component(1)
+                2*P[1]
+                sage: x.homogeneous_component(2)
+                3*P[2]
+                sage: x.homogeneous_component(3)
+                0
+
+                sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
+                sage: g = A.an_element() - 2 * A.algebra_generators()['x'] * A.algebra_generators()['y']; g
+                U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
+                sage: g.homogeneous_component(-1)
+                0
+                sage: g.homogeneous_component(0)
+                0
+                sage: g.homogeneous_component(2)
+                -2*U['x']*U['y']
+                sage: g.homogeneous_component(5)
+                0
+                sage: g.homogeneous_component(7)
+                U['x']^2*U['y']^2*U['z']^3
+                sage: g.homogeneous_component(8)
+                0
+
             TESTS:
 
             Check that this really returns ``A.zero()`` and not a plain ``0``::
 
+                sage: A = ModulesWithBasis(ZZ).Filtered().example()
+                sage: x = A.an_element()
                 sage: x.homogeneous_component(3).parent() is A
                 True
             """
@@ -382,10 +481,42 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 sage: x.truncate(3)
                 2*P[] + 2*P[1] + 3*P[2]
 
+                sage: A = ModulesWithBasis(ZZ).Graded().example()
+                sage: x = A.an_element(); x
+                2*P[] + 2*P[1] + 3*P[2]
+                sage: x.truncate(0)
+                0
+                sage: x.truncate(1)
+                2*P[]
+                sage: x.truncate(2)
+                2*P[] + 2*P[1]
+                sage: x.truncate(3)
+                2*P[] + 2*P[1] + 3*P[2]
+
+                sage: A = AlgebrasWithBasis(ZZ).Filtered().example()
+                sage: g = A.an_element() - 2 * A.algebra_generators()['x'] * A.algebra_generators()['y']; g
+                U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
+                sage: g.truncate(-1)
+                0
+                sage: g.truncate(0)
+                0
+                sage: g.truncate(2)
+                0
+                sage: g.truncate(3)
+                -2*U['x']*U['y']
+                sage: g.truncate(5)
+                -2*U['x']*U['y']
+                sage: g.truncate(7)
+                -2*U['x']*U['y']
+                sage: g.truncate(8)
+                U['x']^2*U['y']^2*U['z']^3 - 2*U['x']*U['y']
+
             TESTS:
 
             Check that this really return ``A.zero()`` and not a plain ``0``::
 
+                sage: A = ModulesWithBasis(ZZ).Filtered().example()
+                sage: x = A.an_element()
                 sage: x.truncate(0).parent() is A
                 True
             """

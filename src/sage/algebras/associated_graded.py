@@ -257,7 +257,7 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
 
     def degree_on_basis(self, x):
         """
-        Return the degree on the basis element indexed by ``x``.
+        Return the degree of the basis element indexed by ``x``.
 
         EXAMPLES::
 

@@ -352,6 +352,15 @@ class DiGraph(GenericGraph):
             sage: DiGraph(M)
             Digraph on 5 vertices
 
+            sage: M = Matrix([[0,1,-1],[-1,0,-1/2],[1,1/2,0]]); M
+            [   0    1   -1]
+            [  -1    0 -1/2]
+            [   1  1/2    0]
+            sage: G = DiGraph(M,sparse=True); G
+            Digraph on 3 vertices
+            sage: G.weighted()
+            True
+
        - an incidence matrix::
 
             sage: M = Matrix(6, [-1,0,0,0,1, 1,-1,0,0,0, 0,1,-1,0,0, 0,0,1,-1,0, 0,0,0,1,-1, 0,0,0,0,0]); M
@@ -746,16 +755,24 @@ class DiGraph(GenericGraph):
             if multiedges is None: multiedges = False
             format = 'adjacency_matrix'
         if format == 'adjacency_matrix':
-            if data.base_ring() != ZZ:
-                data = data.change_ring(ZZ)
+            # note: the adjacency matrix might be weighted and hence not
+            # necessarily consists of integers
+            if not weighted and data.base_ring() != ZZ:
+                try:
+                    data = data.change_ring(ZZ)
+                except TypeError:
+                    if weighted is False:
+                        raise ValueError("Non-weighted graph's"+
+                        " adjacency matrix must have only nonnegative"+
+                        " integer entries")
+                    weighted = True
 
             if data.is_sparse():
                 entries = set(data[i,j] for i,j in data.nonzero_positions())
             else:
                 entries = set(data.list())
 
-            if ((weighted is None or weighted is False) and
-                 any(e < 0 for e in entries)):
+            if not weighted and any(e < 0 for e in entries):
                 if weighted is False:
                     raise ValueError("Non-weighted digraph's"+
                     " adjacency matrix must have only nonnegative"+
@@ -768,8 +785,7 @@ class DiGraph(GenericGraph):
             if multiedges is None:
                 multiedges = ((not weighted) and any(e != 0 and e != 1 for e in entries))
 
-            if ((loops is None or loops is False) and
-                any(data[i,i] for i in xrange(data.nrows()))):
+            if not loops and any(data[i,i] for i in xrange(data.nrows())):
                 if loops is False:
                     raise ValueError("Non-looped digraph's adjacency"+
                     " matrix must have zeroes on the diagonal.")
@@ -825,8 +841,7 @@ class DiGraph(GenericGraph):
             if not all(isinstance(data[u], dict) for u in data):
                 raise ValueError("Input dict must be a consistent format.")
 
-            if ((loops is None or loops is False) and
-                any(u in neighb for u,neighb in data.iteritems())):
+            if not loops and any(u in neighb for u,neighb in data.iteritems()):
                 if loops is False:
                     u = (u for u,neighb in data.iteritems() if u in neighb).next()
                     raise ValueError("No loops but dict has loop at {}.".format(u))
@@ -836,8 +851,7 @@ class DiGraph(GenericGraph):
 
             if weighted is None: weighted = False
 
-            if ((multiedges is True or multiedges is None) and
-                not all(isinstance(neighb[v], list) for neighb in data.itervalues() for v in neighb)):
+            if not multiedges and not all(isinstance(neighb[v], list) for neighb in data.itervalues() for v in neighb):
                 if multiedges is True:
                     raise ValueError("Dict of dicts for multidigraph must be in the format {v : {u : list}}")
                 multiedges = False
@@ -851,23 +865,21 @@ class DiGraph(GenericGraph):
             if not all(isinstance(data[u], list) for u in data):
                 data = {u: list(v) for u,v in data.iteritems()}
 
-            if ((loops is None or loops is False) and
-                any(u in neighb for u,neighb in data.iteritems())):
-                    if loops is False:
-                        u = (u for u,neighb in data.iteritems() if u in neighb).next()
-                        raise ValueError("No loops but dict has loop at {}.".format(u))
-                    loops = True
+            if not loops and any(u in neighb for u,neighb in data.iteritems()):
+                if loops is False:
+                    u = (u for u,neighb in data.iteritems() if u in neighb).next()
+                    raise ValueError("No loops but dict has loop at {}.".format(u))
+                loops = True
             if loops is None:
                 loops = False
 
             if weighted is None: weighted = False
 
-            if ((multiedges is None or multiedges is False) and
-                any(len(set(neighb)) != len(neighb) for neighb in data.itervalues())):
-                    if multiedges is False:
-                        uv = ((u,v) for u,neighb in data.iteritems() for v in neighb if neighb.count(v) > 1).next()
-                        raise ValueError("Non-multidigraph got several edges (%s,%s)"%(u,v))
-                    multiedges = True
+            if not multiedges and any(len(set(neighb)) != len(neighb) for neighb in data.itervalues()):
+                if multiedges is False:
+                    uv = ((u,v) for u,neighb in data.iteritems() for v in neighb if neighb.count(v) > 1).next()
+                    raise ValueError("Non-multidigraph got several edges (%s,%s)"%(u,v))
+                multiedges = True
             if multiedges is None:
                 multiedges = False
 

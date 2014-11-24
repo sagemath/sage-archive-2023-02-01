@@ -28,7 +28,7 @@ from sage.libs.arb.fmpr cimport fmpr_t, fmpr_init, fmpr_clear, fmpr_get_mpfr
 from sage.libs.arb.mag cimport mag_t, mag_get_fmpr
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
 from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, GMP_RNDN
-from sage.misc.cachefunc import cached_function
+from sage.misc.cachefunc import weak_cached_function
 from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
 
@@ -95,7 +95,7 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision
     mpfr_clear(right)
 
 
-@cached_function
+@weak_cached_function
 def RealBallField(unsigned long precision=53):
     r"""
     Return the :class:`real ball field <RealBallField_class>`

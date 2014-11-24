@@ -1139,7 +1139,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         if Q == self._quadratic_form and names is None:
             Cl = self
         else:
-            Cl = CliffordAlgebra(Q, names)
+            Cl = CliffordAlgebra(Q, names, graded=self._graded)
 
         n = self._quadratic_form.dim()
         f = lambda x: self.prod(self._from_dict( {(j,): m[j,i] for j in range(n)},
@@ -1207,7 +1207,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         else:
             if names is None:
                 names = 'e'
-            Cl = CliffordAlgebra(Q, names)
+            Cl = CliffordAlgebra(Q, names, graded=self._graded)
 
         n = Q.dim()
         f = lambda x: Cl.prod(Cl._from_dict( {(j,): m[j,i] for j in range(n)},

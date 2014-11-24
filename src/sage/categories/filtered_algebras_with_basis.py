@@ -94,9 +94,12 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
             .. TODO::
 
                 Maybe the thing about the conversion from ``self``
-                to ``self.graded_algebra()`` at least could be made to
-                work? (I would still warn the user against ASSUMING
-                that it must work.)
+                to ``self.graded_algebra()`` on the Clifford at least
+                could be made to work? (I would still warn the user
+                against ASSUMING that it must work -- as there is
+                probably no way to guarantee it in all cases, and
+                we shouldn't require users to mess with
+                element constructors.)
 
             EXAMPLES::
 
@@ -241,8 +244,75 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
             EXAMPLES:
 
-            Let us compute `\operatorname{gr} f` for a map `f` between
-            two Clifford algebras::
+            We start with the universal enveloping algebra of the
+            Lie algebra `\RR^3` (with the cross product serving as
+            Lie bracket)::
+
+                sage: A = AlgebrasWithBasis(QQ).Filtered().example(); A
+                An example of a filtered algebra with basis: the
+                 universal enveloping algebra of Lie algebra of RR^3
+                 with cross product over Rational Field
+                sage: M = A.indices(); M
+                Free abelian monoid indexed by {'x', 'y', 'z'}
+                sage: x,y,z = [A.basis()[M.gens()[i]] for i in "xyz"]
+
+            Let us define a stupid filtered map from ``A`` to
+            itself::
+
+                sage: def map_on_basis(m):
+                ....:     d = m.dict()
+                ....:     i = d.get('x', 0); j = d.get('y', 0); k = d.get('z', 0)
+                ....:     g = (y ** (i+j)) * (z ** k)
+                ....:     if i > 0:
+                ....:         g += i * (x ** (i-1)) * (y ** j) * (z ** k)
+                ....:     return g
+                sage: f = A.module_morphism(on_basis=map_on_basis,
+                ....:                       codomain=A)
+                sage: f(x)
+                U['y'] + 1
+                sage: f(x*y*z)
+                U['y']^2*U['z'] + U['y']*U['z']
+                sage: f(x*x*y*z)
+                U['y']^3*U['z'] + 2*U['x']*U['y']*U['z']
+                sage: f(A.one())
+                1
+                sage: f(y*z)
+                U['y']*U['z']
+
+            (There is nothing here that is peculiar to this
+            universal enveloping algebra; we are only using its
+            module structure, and we could just as well be using
+            a polynomial algebra in its stead.)
+
+            We now compute `\operatorname{gr} f` ::
+
+                sage: grA = A.graded_algebra(); grA
+                Graded Algebra of An example of a filtered algebra with
+                 basis: the universal enveloping algebra of Lie algebra
+                 of RR^3 with cross product over Rational Field
+                sage: xx, yy, zz = [A.to_graded_conversion()(i) for i in [x, y, z]]
+                sage: xx+yy*zz
+                bar(U['y']*U['z']) + bar(U['x'])
+                sage: grf = A.induced_graded_map(A, f); grf
+                Generic endomorphism of Graded Algebra of An example
+                 of a filtered algebra with basis: the universal
+                 enveloping algebra of Lie algebra of RR^3 with cross
+                 product over Rational Field
+                sage: grf(xx)
+                bar(U['y'])
+                sage: grf(xx*yy*zz)
+                bar(U['y']^2*U['z'])
+                sage: grf(xx*xx*yy*zz)
+                bar(U['y']^3*U['z'])
+                sage: grf(grA.one())
+                bar(1)
+                sage: grf(yy*zz)
+                bar(U['y']*U['z'])
+                sage: grf(yy*zz-2*yy)
+                bar(U['y']*U['z']) - 2*bar(U['y'])
+
+            For another example, let us compute `\operatorname{gr} f` for a
+            map `f` between two Clifford algebras::
 
                 sage: Q = QuadraticForm(ZZ, 2, [1,2,3])
                 sage: B = CliffordAlgebra(Q, names=['u','v'], graded=False); B

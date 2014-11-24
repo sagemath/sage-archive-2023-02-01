@@ -81,7 +81,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 make sure to only communicate with them via the
                 :meth:`to_graded_conversion`,
                 :meth:`from_graded_conversion` and
-                :meth:`from_graded_conversion` methods (in particular,
+                :meth:`projection` methods (in particular,
                 do not expect there to be a conversion from ``self``
                 to ``self.graded_algebra()``; this currently does not
                 work for Clifford algebras). Similarly, when
@@ -428,7 +428,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
             **Example 4.**
 
             The construct `\operatorname{gr} f` also makes sense when `f`
-            is a filtration-preserving map between graded algebras. 
+            is a filtration-preserving map between graded algebras. ::
 
                 sage: def map_on_basis(lam):  # redefining map_on_basis
                 ....:     return h[lam] + h[len(lam)]

@@ -32,6 +32,9 @@ class GradedAlgebras(GradedModulesCategory):
             """
             Return the associated graded algebra to ``self``.
 
+            Since ``self`` is already graded, this just returns
+            ``self``.
+
             EXAMPLES::
 
                 sage: m = SymmetricFunctions(QQ).m()

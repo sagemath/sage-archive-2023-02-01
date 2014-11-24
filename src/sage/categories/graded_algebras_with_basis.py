@@ -50,10 +50,29 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
                 sage: m.graded_algebra() is m
                 True
 
-            .. TODO::
+            TESTS:
 
-                Add examples showing that the three methods are
-                overridden correctly.
+            Let us check that the three methods
+            :meth:`to_graded_conversion`, :meth:`from_graded_conversion`
+            and :meth:`projection` (which form the interface of the
+            associated graded algebra) work correctly here::
+
+                sage: to_gr = m.to_graded_conversion()
+                sage: from_gr = m.from_graded_conversion()
+                sage: m[2] == to_gr(m[2]) == from_gr(m[2])
+                True
+                sage: u = 3*m[1] - (1/2)*m[3]
+                sage: u == to_gr(u) == from_gr(u)
+                True
+                sage: m.zero() == to_gr(m.zero()) == from_gr(m.zero())
+                True
+                sage: p2 = m.projection(2)
+                sage: p2(m[2] - 4*m[1,1] + 3*m[1] - 2*m[[]])
+                -4*m[1, 1] + m[2]
+                sage: p2(4*m[1])
+                0
+                sage: p2(m.zero()) == m.zero()
+                True
             """
             return self
 

@@ -124,22 +124,23 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
     @classmethod
     def default_super_categories(cls, category, *args):
         r"""
-        Return the default super categories of ``category.Graded()``
+        Return the default super categories of ``category.Graded()``.
 
-        Mathematical meaning: every graded category is a filtered category
-        with the (implicit) filtration of `F_i = \bigoplus_{j \leq i} G_j`.
+        Mathematical meaning: every graded object (module, algebra,
+        etc.) is a filtered object with the (implicit) filtration
+        defined by `F_i = \bigoplus_{j \leq i} G_j`.
 
         INPUT:
 
-        - ``cls`` -- the class ``QuotientsCategory``
-        - ``category`` -- a category `Cat`
+        - ``cls`` -- the class ``GradedModulesCategory``
+        - ``category`` -- a category
 
         OUTPUT: a (join) category
 
         In practice, this returns ``category.Filtered()``, joined
         together with the result of the method
         :meth:`RegressiveCovariantConstructionCategory.default_super_categories() <sage.categories.covariant_functorial_construction.RegressiveCovariantConstructionCategory.default_super_categories>`
-        (that is the join of ``category`` and ``cat.Filtered()`` for
+        (that is the join of ``category.Filtered()`` and ``cat`` for
         each ``cat`` in the super categories of ``category``).
 
         EXAMPLES:
@@ -167,7 +168,7 @@ class GradedModules(GradedModulesCategory):
     The category of graded modules.
 
     We consider every graded module `M = \bigoplus_i M_i` as a
-    filtered module under the (natural) filtration of
+    filtered module under the (natural) filtration given by
 
     .. MATH::
 

@@ -231,11 +231,67 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
             EXAMPLES:
 
+            Let us compute `\operatorname{gr} f` for a map `f` between
+            two Clifford algebras::
+
+                sage: Q = QuadraticForm(ZZ, 2, [1,2,3])
+                sage: B = CliffordAlgebra(Q, names=['u','v'], graded=False); B
+                The filtered Clifford algebra of the Quadratic form in 2
+                 variables over Integer Ring with coefficients: 
+                [ 1 2 ]
+                [ * 3 ]
+                sage: m = Matrix(ZZ, [[1, 2], [1, -1]])
+                sage: f = B.lift_module_morphism(m, names=['x','y'])
+                sage: A = f.domain(); A
+                The filtered Clifford algebra of the Quadratic form in 2
+                 variables over Integer Ring with coefficients: 
+                [ 6 0 ]
+                [ * 3 ]
+                sage: x, y = A.gens()
+                sage: f(x)
+                u + v
+                sage: f(y)
+                2*u - v
+                sage: f(x**2)
+                6
+                sage: f(x*y)
+                -3*u*v + 3
+                sage: grA = A.graded_algebra(); grA
+                The exterior algebra of rank 2 over Integer Ring
+                sage: A.to_graded_conversion()(x)
+                x
+                sage: A.to_graded_conversion()(y)
+                y
+                sage: A.to_graded_conversion()(x*y)
+                x^y
+                sage: u = A.to_graded_conversion()(x*y+1); u
+                x^y + 1
+                sage: A.from_graded_conversion()(u)
+                x*y + 1
+                sage: A.projection(2)(x*y+1)
+                x^y
+                sage: A.projection(1)(x+2*y-2)
+                x + 2*y
+                sage: grf = A.induced_graded_map(B, f); grf
+                Generic morphism:
+                  From: The exterior algebra of rank 2 over Integer Ring
+                  To:   The exterior algebra of rank 2 over Integer Ring
+                sage: grf(A.to_graded_conversion()(x))
+                u + v
+                sage: grf(A.to_graded_conversion()(y))
+                2*u - v
+                sage: grf(A.to_graded_conversion()(x**2))
+                6
+                sage: grf(A.to_graded_conversion()(x*y))
+                -3*u^v
+                sage: grf(grA.one())
+                1
+
             .. TODO::
 
-                doctests. Currently, Clifford algebras seem the most
+                more doctests. Currently, Clifford algebras seem the most
                 appropriate. But need also trivial test with graded
-                algebra.
+                algebra. (Maybe not the Clifford one, though.)
             """
             grA = self.graded_algebra()
             grB = other.graded_algebra()
@@ -244,7 +300,8 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
             from_gr = self.from_graded_conversion()
             def on_basis(m):
                 i = grA.degree_on_basis(m)
-                return grB.projection(i)(f(from_gr(grA.monomial(m))))
+                lifted_img_of_m = f(from_gr(grA.monomial(m)))
+                return other.projection(i)(lifted_img_of_m)
             return grA.module_morphism(on_basis=on_basis,
                                        codomain=grB, category=cat)    
             # If we could assume that the projection of the basis

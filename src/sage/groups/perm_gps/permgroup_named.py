@@ -444,7 +444,7 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             (1, 2, \ldots, \lambda_1)
             (\lambda_1 + 1, \ldots, \lambda_1 + \lambda_2)
-            (\lambda_1 + \lambda_2 + \cdots + \lambda_{\ell}, \ldots, n),
+            (\lambda_1 + \lambda_2 + \cdots + \lambda_{\ell-1}, \ldots, n),
 
         where `\ell` is the length (or number of parts) of `\lambda`. The
         ordering of the conjugacy classes is reverse lexicographic order of

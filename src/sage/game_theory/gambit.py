@@ -4,61 +4,63 @@ Gambit
 This file contains some information and tests for the use of
 `gambit<http://www.gambit-project.org/>`_ as a stand alone package.
 
-To install gambit as an optional package run (from root of sage)::
+To install gambit as an optional package run (from root of Sage)::
 
     $ ./sage -i gambit
 
 The `python API documentation for gambit
 <http://www.gambit-project.org/gambit14/pyapi.html>_` shows various examples
-that can be run easily in an Ipython notebook::
+that can be run easily in an Ipython notebook. To run the Ipython notebook
+packaged with Sage run (from root of Sage)::
 
-    In [1]: g.players[0].strategies
-    Out[1]: [<Strategy [0] '1' for player 'Alphonse' in game 'A
+    $ ./sage -ipython
+
+Here is an example that constructs and finds the equilibrium for the
+Prisoner's Dilemma::
+
+    In [1]: g = gambit.Game.new_table([2,2])
+    In [2]: g.title = "A prisoner's dilemma game"
+    In [3]: g.players[0].label = "Alphonse"
+    In [4]: g.players[1].label = "Gaston"
+    In [5]: g
+    Out[5]:
+    NFG 1 R "A prisoner's dilemma game" { "Alphonse" "Gaston" }
+
+    { { "1" "2" }
+    { "1" "2" }
+    }
+    ""
+
+    {
+    }
+    0 0 0 0
+
+    In [6]: g.players[0].strategies
+    Out[6]: [<Strategy [0] '1' for player 'Alphonse' in game 'A
     prisoner's dilemma game'>,
              <Strategy [1] '2' for player 'Alphonse' in game 'A prisoner's dilemma game'>]
-    In [2]: len(g.players[0].strategies)
-    Out[2]: 2
+    In [7]: len(g.players[0].strategies)
+    Out[7]: 2
 
-    In [3]: g.players[0].strategies[0].label = "Cooperate"
-    In [4]: g.players[0].strategies[1].label = "Defect"
-    In [5]: g.players[0].strategies
-    Out[5]: [<Strategy [0] 'Cooperate' for player 'Alphonse' in game 'A
+    In [8]: g.players[0].strategies[0].label = "Cooperate"
+    In [9]: g.players[0].strategies[1].label = "Defect"
+    In [10]: g.players[0].strategies
+    Out[10]: [<Strategy [0] 'Cooperate' for player 'Alphonse' in game 'A
     prisoner's dilemma game'>,
        <Strategy [1] 'Defect' for player 'Alphonse' in game 'A prisoner's dilemma game'>]
 
-    In [6]: g[0,0][0] = 8
-    In [7]: g[0,0][1] = 8
-    In [8]: g[0,1][0] = 2
-    In [9]: g[0,1][1] = 10
-    In [10]: g[1,0][0] = 10
-    In [11]: g[1,1][1] = 2
-    In [12]: g[1,0][1] = 2
-    In [13]: g[1,1][0] = 5
-    In [14]: g[1,1][1] = 5
-    In [15]: solver = gambit.nash.ExternalEnumPureSolver()
-    In [16]: solver.solve(g)
-    Out[16]: [[1.0, 0.0, 0.0, 1.0, 0.0]]
-
-If one really wants to use gambit directly in Sage then integers must first be
-converted to Python integers (due to the preparser)::
-
-Here is an example showing a construction and solution of the Prisoners
-Dilemma::
-
-    sage: import gambit  # optional - gambit
-    sage: g = gambit.Game.new_table([2,2])  # optional - gambit
-    sage: g[int(0), int(0)][int(0)] = int(8)  # optional - gambit
-    sage: g[int(0), int(0)][int(1)] = int(8)  # optional - gambit
-    sage: g[int(0), int(1)][int(0)] = int(2)  # optional - gambit
-    sage: g[int(0), int(1)][int(1)] = int(10)  # optional - gambit
-    sage: g[int(1), int(0)][int(0)] = int(10)  # optional - gambit
-    sage: g[int(1), int(0)][int(1)] = int(2)  # optional - gambit
-    sage: g[int(1), int(1)][int(0)] = int(5)  # optional - gambit
-    sage: g[int(1), int(1)][int(1)] = int(5)  # optional - gambit
-    sage: solver = gambit.nash.ExternalLCPSolver()  # optional - gambit
-    sage: solver.solve(g)  # optional - gambit
-    [<NashProfile for '': [0.0, 1.0, 0.0, 1.0]>]
-
+    In [11]: g[0,0][0] = 8
+    In [12]: g[0,0][1] = 8
+    In [13]: g[0,1][0] = 2
+    In [14]: g[0,1][1] = 10
+    In [15]: g[1,0][0] = 10
+    In [16]: g[1,1][1] = 2
+    In [17]: g[1,0][1] = 2
+    In [18]: g[1,1][0] = 5
+    In [19]: g[1,1][1] = 5
+    In [20]: solver = gambit.nash.ExternalEnumPureSolver()
+    In [21]: solver.solve(g)
+    Out[21]: [[1.0, 0.0, 0.0, 1.0, 0.0]]
 
 Here is a list of various other solvers that can be used:
 
@@ -73,37 +75,43 @@ Here is a list of various other solvers that can be used:
 - ExternalIteratedPolymatrixSolver
 - ExternalLogitSolver
 
-    sage: solver = gambit.nash.ExternalEnumPureSolver()  # optional - gambit
-    sage: solver.solve(g)  # optional - gambit
-    [<NashProfile for '': [Fraction(0, 1), Fraction(1, 1), Fraction(0, 1), Fraction(1, 1)]>]
+    In [22]: solver = gambit.nash.ExternalEnumPureSolver()
+    In [23]: solver.solve(g)
+    Out[23]: [<NashProfile for '': [Fraction(0, 1), Fraction(1, 1), Fraction(0, 1), Fraction(1, 1)]>]
 
-Note that the above example used an algorithm that enumerates all pure
-strategies. This will fail to find all Nash equilibria in certain games.
-For example here is an implementation of Matching Pennies::
+Note that the Prisoner's Dilemma example used an algorithm that enumerates
+all pure strategies. This will fail to find all Nash equilibria in certain
+games.  For example here is an implementation of Matching Pennies::
 
-
-    sage: g = gambit.Game.new_table([2,2])  # optional - gambit
-    sage: g[int(0), int(0)][int(0)] = int(1)  # optional - gambit
-    sage: g[int(0), int(0)][int(1)] = int(-1)  # optional - gambit
-    sage: g[int(0), int(1)][int(0)] = int(-1)  # optional - gambit
-    sage: g[int(0), int(1)][int(1)] = int(1)  # optional - gambit
-    sage: g[int(1), int(0)][int(0)] = int(-1)  # optional - gambit
-    sage: g[int(1), int(0)][int(1)] = int(1)  # optional - gambit
-    sage: g[int(1), int(1)][int(0)] = int(1)  # optional - gambit
-    sage: g[int(1), int(1)][int(1)] = int(-1)  # optional - gambit
-    sage: solver = gambit.nash.ExternalEnumPureSolver()  # optional - gambit
-    sage: solver.solve(g)  # optional - gambit
-    []
+    In [1]: g = gambit.Game.new_table([2,2])
+    In [2]: g = gambit.Game.new_table([2,2])
+    In [3]: g[0, 0][0] = 1
+    In [4]: g[0, 0][1] = -1
+    In [5]: g[0, 1][0] = -1
+    In [6]: g[0, 1][1] = 1
+    In [7]: g[1, 0][0] = -1
+    In [8]: g[1, 0][1] = 1
+    In [9]: g[1, 1][0] = 1
+    In [10]: g[1, 1][1] = -1
+    In [11]: solver = gambit.nash.ExternalEnumPureSolver()
+    In [12]: solver.solve(g)
+    Out[12]: []
 
 If we solve this with the `LCP` solver we get the expected Nash equilibrium::
 
-    sage: solver = gambit.nash.ExternalLCPSolver()  # optional - gambit
-    sage: solver.solve(g)  # optional - gambit
-    [<NashProfile for '': [0.5, 0.5, 0.5, 0.5]>]
+    In [13]: solver = gambit.nash.ExternalLCPSolver()
+    In [14]: solver.solve(g)
+    Out[14]: [<NashProfile for '': [0.5, 0.5, 0.5, 0.5]>]
 
+Note that the above examples only show how to build and find equilibria for
+two player strategic form games. Gambit supports mulitple player games as well
+as extensive form games: for more details see http://www.gambit-project.org/.
 
-Here is another example showing the Battle of the Sexes game::
+If one really wants to use gambit directly in Sage then integers must first be
+converted to Python integers (due to the preparser). Here is an example
+showing the Battle of the Sexes::
 
+    sage: import gambit  # optional - gambit
     sage: g = gambit.Game.new_table([2,2])  # optional - gambit
     sage: g[int(0), int(0)][int(0)] = int(2)  # optional - gambit
     sage: g[int(0), int(0)][int(1)] = int(1)  # optional - gambit

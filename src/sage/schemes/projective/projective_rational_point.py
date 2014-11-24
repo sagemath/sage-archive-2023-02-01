@@ -129,6 +129,45 @@ def enum_projective_rational_field(X,B):
     return pts
 
 
+def enum_projective_number_field(X,B):
+    """
+    Enumerates projective points on scheme ``X`` defined over a number field. Simply checks all of the
+    points of height up to ``B`` and adds those that are on the scheme to the list.
+
+    INPUT:
+
+    - ``X`` - a scheme defined over a number field
+
+    - ``B`` - a real number
+
+    OUTPUT:
+
+     - a list containing the projective points of ``X`` of height up to ``B``,
+       sorted.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.projective.projective_rational_point import enum_projective_number_field
+        sage: u = QQ['u'].0
+        sage: K = NumberField(u^3 - 5,'v')
+        sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+        sage: X = P.subscheme([x - y])
+        sage: enum_projective_number_field(X(K),5)
+        [(0 : 0 : 1), (-1 : -1 : 1), (1 : 1 : 1), (-1/5*v^2 : -1/5*v^2 : 1), (-v : -v : 1),
+        (1/5*v^2 : 1/5*v^2 : 1), (v : v : 1), (1 : 1 : 0)]
+    """
+    R = X.codomain().ambient_space()
+
+    pts = []
+    for P in R.points_of_bounded_height(B):
+        try:
+            pts.append(X(P))
+        except TypeError:
+            pass
+    pts.sort()
+    return pts
+
+
 def enum_projective_finite_field(X):
     """
     Enumerates projective points on scheme ``X`` defined over a finite field.

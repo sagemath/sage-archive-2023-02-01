@@ -83,6 +83,7 @@ from sage.misc.all import (latex,
 from sage.structure.parent_gens import normalize_names
 from sage.rings.arith import (gcd,
                               binomial)
+from sage.rings.number_field.number_field_base import is_NumberField
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.tuple import Tuples
 from sage.matrix.constructor import matrix
@@ -97,7 +98,6 @@ from sage.schemes.projective.projective_point import (SchemeMorphism_point_proje
 from sage.schemes.projective.projective_morphism import  (SchemeMorphism_polynomial_projective_space,
                                                           SchemeMorphism_polynomial_projective_space_field,
                                                           SchemeMorphism_polynomial_projective_space_finite_field)
-
 
 def is_ProjectiveSpace(x):
     r"""
@@ -889,6 +889,71 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     (x : y : z)
         """
         return SchemeMorphism_polynomial_projective_space_field(*args, **kwds)
+
+    def points_of_bounded_height(self,bound):
+        r"""
+        Returns an iterator of the points in self of height less than the given bound. Requires self
+        to be projective space over a number field.
+
+        INPUT:
+
+        - ``bound`` - a real number
+
+        OUTPUT:
+
+        - an iterator of points in self
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: list(P.points_of_bounded_height(5))
+            [(0 : 1), (1 : 1), (-1 : 1), (1/2 : 1), (-1/2 : 1), (2 : 1), (-2 : 1), (1/3 : 1),
+            (-1/3 : 1), (3 : 1), (-3 : 1), (2/3 : 1), (-2/3 : 1), (3/2 : 1), (-3/2 : 1), (1/4 : 1),
+            (-1/4 : 1), (4 : 1), (-4 : 1), (3/4 : 1), (-3/4 : 1), (4/3 : 1), (-4/3 : 1), (1 : 0)]
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2,'v'), 2)
+            sage: len(list(P.points_of_bounded_height(4)))
+            553
+        """
+
+        numberField = False
+        if (is_RationalField(self.base_ring())):
+            numberField = False
+        elif (is_NumberField(self.base_ring())):
+            numberField = True
+        else:
+            raise NotImplementedError("self must be projective space over a number field.")
+
+        n = self.dimension_relative()
+        R = self.base_ring()
+        zero = R(0)
+        i = n
+        while not i < 0:
+            P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
+            yield self(P)
+            if (numberField == False): # if rational field
+                iters = [ R.range_by_height(bound) for _ in range(i) ]
+            else: # if number field
+                iters = [ R.elements_of_bounded_height(bound) for _ in range(i) ]
+            for x in iters: x.next() # put at zero
+            j = 0
+            while j < i:
+                try:
+                    P[j] = iters[j].next()
+                    yield self(P)
+                    j = 0
+                except StopIteration:
+                    if (numberField == False): # if rational field
+                        iters[j] = R.range_by_height(bound) # reset
+                    else: # if number field
+                        iters[j] = R.elements_of_bounded_height(bound) # reset
+                    iters[j].next() # put at zero
+                    P[j] = zero
+                    j += 1
+            i -= 1
 
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):

@@ -29,11 +29,14 @@ from hecke_triangle_groups import HeckeTriangleGroup
 from abstract_space import FormsSpace_abstract
 
 
-def canonical_parameters(ambient_space, basis):
+def canonical_parameters(ambient_space, basis, check=True):
     r"""
     Return a canonical version of the parameters.
     In particular the list/tuple ``basis`` is replaced by a
     tuple of linearly independent elements in the ambient space.
+
+    If ``check=False`` (default: ``True``) then ``basis``
+    is assumed to already be a basis.
 
     EXAMPLES::
 
@@ -46,10 +49,14 @@ def canonical_parameters(ambient_space, basis):
           1 + 26208*q^3 + 530712*q^4 + O(q^5)))
     """
 
-    coord_matrix = matrix([ambient_space(v).ambient_coordinate_vector() for v in basis])
-    pivots = coord_matrix.transpose().pivots()
-    new_basis = [ambient_space(basis[l]) for l in pivots]
-    basis = tuple(new_basis)
+    if check:
+        coord_matrix = matrix([ambient_space(v).ambient_coordinate_vector() for v in basis])
+        pivots = coord_matrix.transpose().pivots()
+        new_basis = [ambient_space(basis[l]) for l in pivots]
+        basis = tuple(new_basis)
+    else:
+        basis = [ambient_space(v) for v in basis]
+        basis = tuple(basis)
 
     return (ambient_space, basis)
 
@@ -115,7 +122,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, ambient_space, basis=()):
+    def __classcall__(cls, ambient_space, basis=(), check=True):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -129,10 +136,12 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        (ambient_space, basis) = canonical_parameters(ambient_space, basis)
-        return super(SubSpaceForms,cls).__classcall__(cls, ambient_space=ambient_space, basis=basis)
+        (ambient_space, basis) = canonical_parameters(ambient_space, basis, check)
 
-    def __init__(self, ambient_space, basis):
+        # we return check=True to ensure only one cached instance
+        return super(SubSpaceForms,cls).__classcall__(cls, ambient_space=ambient_space, basis=basis, check=True)
+
+    def __init__(self, ambient_space, basis, check):
         r"""
         Return the Submodule of (Hecke) forms in ``ambient_space`` for the given ``basis``.
 
@@ -142,6 +151,10 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         - ``basis``          -- A tuple of (not necessarily linearly independent)
                                 elements of ``ambient_space``.
+
+        - ``check``          -- If ``True`` (default) then a maximal linearly
+                                independent subset of ``basis`` is choosen. Otherwise
+                                it is assumed that ``basis`` is linearly independent.
 
         OUTPUT:
 
@@ -237,7 +250,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Complex Field with 53 bits of precision
         """
 
-        return self.__class__.__base__(self._ambient_space.change_ring(new_base_ring), self._basis)
+        return self.__class__.__base__(self._ambient_space.change_ring(new_base_ring), self._basis, check=False)
 
     def change_ambient_space(self, new_ambient_space):
         r"""
@@ -253,7 +266,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: subspace.change_ambient_space(new_ambient_space)    # long time
             Subspace of dimension 2 of QuasiModularForms(n=6, k=20, ep=1) over Integer Ring
         """
-        return self.__class__.__base__(new_ambient_space, self._basis)
+        return self.__class__.__base__(new_ambient_space, self._basis, check=False)
 
     @cached_method
     def contains_coeff_ring(self):

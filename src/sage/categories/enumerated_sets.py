@@ -95,6 +95,20 @@ class EnumeratedSets(Category_singleton):
         """
         return [Sets()]
 
+    def additional_structure(self):
+        """
+        Return ``None``.
+
+        Indeed, morphisms of enumerated sets are not required to
+        preserve the enumeration.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: EnumeratedSets().additional_structure()
+        """
+        return None
 
     def _call_(self, X):
         """

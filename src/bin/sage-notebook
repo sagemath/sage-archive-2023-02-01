@@ -6,6 +6,7 @@ import sys
 import ast
 import argparse
 import logging
+import textwrap
 logging.basicConfig()
 logger = logging.getLogger()
 
@@ -37,11 +38,17 @@ class NotebookSageNB(object):
             if '=' in x:
                 key, value = x.split('=', 2)
                 logger.debug('keyword argument %s = %s', key, value)
-                value = ast.literal_eval(value)
+                try:
+                    value = ast.literal_eval(value)
+                except StandardError:
+                    logger.debug('cannot evaluate, treat as string')
                 kwds[key] = value
             else:
                 logger.debug('positional argument %s', x)
-                value = ast.literal_eval(x)
+                try:
+                    value = ast.literal_eval(x)
+                except StandardError:
+                    logger.debug('cannot evaluate, treat as string')
                 args.append(value)
         return tuple(args), kwds
 
@@ -55,13 +62,21 @@ class NotebookSageNB(object):
             print(sage_getdoc(notebook))
         else:
             notebook(*self.args, **self.kwds)
-    
+
 
 class NotebookIPython(object):
 
+    PREREQUISITE_ERROR = textwrap.dedent("""
+    The IPython notebook requires ssl, even if you do not use
+    https. Install the openssl development packages in your system and
+    then rebuild Python (sage -f python).
+    """)
+
     def __init__(self, argv):
-        from sage.repl.notebook_ipython import SageNotebookApp, make_notebook_dir
-        make_notebook_dir()
+        from sage.repl.notebook_ipython import have_prerequisites, SageNotebookApp
+        if not have_prerequisites():
+            print(self.PREREQUISITE_ERROR)
+            raise SystemExit(1)
         app = SageNotebookApp.instance()
         app.initialize(argv)
         app.start()
@@ -80,6 +95,24 @@ show this help message and exit. Can be combined with
 "--notebook=[...]" to see notebook-specific options
 """
 
+epilog = \
+"""
+EXAMPLES: 
+
+* Run default notebook on port 1234. Note that the first argument
+  after "-n" will be interpreted as notebook name unless you stop
+  processing with "--":
+
+      sage -n default port=1234
+      sage -n -- port=1234      # equivalent
+      sage -n port=1234         # ERROR: invalid notebook name
+
+* Run IPython notebook in custom directory:
+
+      sage --notebook=ipython --notebook-dir=/home/foo/bar
+"""
+
+
 notebook_launcher = {
     'default': NotebookSageNB,   # change this to change the default
     'sagenb': NotebookSageNB,
@@ -96,7 +129,10 @@ def make_parser():
     Any arguments that are not parsed here are supposed to be handled
     by the notebook implementation.
     """
-    parser = argparse.ArgumentParser(description=description, add_help=False)
+    parser = argparse.ArgumentParser(
+        description=description, epilog=epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        add_help=False)
     parser.add_argument('-h', '--help',
                         dest='option_help', action='store_true',
                         default=False, 
@@ -121,6 +157,8 @@ def make_parser():
 if __name__ == '__main__':
     parser = make_parser()
     args, unknown = parser.parse_known_args(sys.argv[1:])
+    if len(unknown) > 0 and unknown[0] == '--':
+        unknown = unknown[1:]
     if args.log is not None:
         import logging
         level = getattr(logging, args.log.upper())

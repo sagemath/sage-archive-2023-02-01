@@ -876,8 +876,10 @@ class InterfaceElement(RingElement):
         except AttributeError:
             s = self.parent().get(self._name)
         if s.__contains__(self._name):
-            if hasattr(self, '__custom_name'):
-                s =  s.replace(self._name, self.__dict__['__custom_name'])
+            try:
+                s = s.replace(self._name, self.__custom_name)
+            except AttributeError:
+                pass
         return s
 
     def __getattr__(self, attrname):

@@ -32,7 +32,7 @@ from sage.finance.time_series cimport TimeSeries
 include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/python_slice.pxi"
+from cpython.slice cimport PySlice_Check
 from cpython.string cimport *
 
 cdef class IntList:

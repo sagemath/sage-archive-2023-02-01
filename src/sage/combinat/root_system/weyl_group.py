@@ -515,21 +515,6 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             m = diagonal_matrix([-1 for i in range(self.n)])
         return self.__call__(m)
 
-    def __cmp__(self, other):
-        """
-        TESTS::
-
-            sage: G1 = WeylGroup(CartanType(['A',2]))
-            sage: G2 = WeylGroup(CartanType(['A',2]))
-            sage: G1 == G2
-            True
-        """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        if self.cartan_type() != other.cartan_type():
-            return cmp(self.cartan_type(), other.cartan_type())
-        return 0
-
     def classical(self):
         """
         If ``self`` is a Weyl group from an affine Cartan Type, this give

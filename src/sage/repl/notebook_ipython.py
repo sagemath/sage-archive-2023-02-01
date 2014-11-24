@@ -11,30 +11,18 @@ Sage-Enhanced IPython Notebook
 import os
 import copy
 
-from IPython.html.notebookapp import NotebookApp
 from IPython import Config
+try:
+    # Fails if we do not have ssl
+    from IPython.html.notebookapp import NotebookApp
+except ImportError:
+    NotebookApp = object
+    
 
 from sage.env import DOT_SAGE, SAGE_EXTCODE, SAGE_DOC
 from sage.repl.interpreter import (
     SageCrashHandler, DEFAULT_SAGE_CONFIG, SageInteractiveShell,
 )
-
-
-# The directory where all Sage IPython Notebooks files are stored
-NOTEBOOK_DIR = os.path.join(DOT_SAGE, 'notebooks_ipython')
-
-def make_notebook_dir():
-    """
-    Ensure that the IPython notebook directory exists.
-
-    EXAMPLES::
-
-        sage: from sage.repl.notebook_ipython import make_notebook_dir, NOTEBOOK_DIR
-        sage: make_notebook_dir()
-        sage: assert os.path.isdir(NOTEBOOK_DIR)
-    """
-    if not os.path.exists(NOTEBOOK_DIR):
-        os.makedirs(NOTEBOOK_DIR)
 
 
 # The notebook Jinja2 templates and static files
@@ -48,13 +36,32 @@ DEFAULT_SAGE_NOTEBOOK_CONFIG = Config(
     SageNotebookApp = Config(
         # log_level = 'DEBUG',       # if you want more logs
         # open_browser = False,      # if you want to avoid browser restart
-        notebook_dir = NOTEBOOK_DIR,
         webapp_settings = Config(
             template_path = TEMPLATE_PATH,
         ),
         extra_static_paths = [STATIC_PATH, DOCS_PATH],
     ),
 )
+
+
+def have_prerequisites():
+    """
+    Check that we have all prerequisites to run the IPython notebook.
+
+    In particular, the IPython notebook requires OpenSSL whether or
+    not you are using https. See trac:`17318`.
+
+    OUTPUT:
+
+    Boolean.
+
+    EXAMPLES::
+
+        sage: from sage.repl.notebook_ipython import have_prerequisites
+        sage: have_prerequisites() in [True, False]
+        True
+    """
+    return NotebookApp != object   # that is, import worked
 
 
 class SageNotebookApp(NotebookApp):
@@ -68,19 +75,18 @@ class SageNotebookApp(NotebookApp):
         EXAMPLES::
 
             sage: from sage.misc.temporary_file import tmp_dir
-            sage: from sage.repl.notebook_ipython import SageNotebookApp, NOTEBOOK_DIR
+            sage: from sage.repl.notebook_ipython import SageNotebookApp
             sage: d = tmp_dir()
             sage: IPYTHONDIR = os.environ['IPYTHONDIR']
             sage: os.environ['IPYTHONDIR'] = d
-            sage: app = SageNotebookApp()
-            sage: app.load_config_file()    # random output
+            sage: app = SageNotebookApp()   # optional - ssl
+            sage: app.load_config_file()    # optional - ssl, random output
             2014-09-16 23:57:35.6 [SageNotebookApp] Created profile dir: 
             u'/home/vbraun/.sage/temp/desktop.localdomain/1490/dir_ZQupP5/profile_default'
-            sage: app.config.SageNotebookApp.notebook_dir == NOTEBOOK_DIR
-            True
+            sage: app.notebook_dir          # random output, optional - ssl
+            u'/home/vbraun/'
             sage: os.environ['IPYTHONDIR'] = IPYTHONDIR
         """
-        make_notebook_dir()
         super(SageNotebookApp, self).load_config_file(*args, **kwds)
         newconfig = copy.deepcopy(DEFAULT_SAGE_CONFIG)
         newconfig.merge(DEFAULT_SAGE_NOTEBOOK_CONFIG)
@@ -101,13 +107,13 @@ class SageNotebookApp(NotebookApp):
             sage: d = tmp_dir()
             sage: IPYTHONDIR = os.environ['IPYTHONDIR']
             sage: os.environ['IPYTHONDIR'] = d
-            sage: app = SageNotebookApp()
-            sage: app.kernel_argv
+            sage: app = SageNotebookApp()   # optional - ssl
+            sage: app.kernel_argv           # optional - ssl
             []
-            sage: app.init_kernel_argv()    # random output
+            sage: app.init_kernel_argv()    # optional - ssl, random output
             2014-09-16 23:57:35.6 [SageNotebookApp] Created profile dir: 
             u'/home/vbraun/.sage/temp/desktop.localdomain/1490/dir_ZQupP5/profile_default'
-            sage: app.kernel_argv
+            sage: app.kernel_argv           # optional - ssl
             [u"--IPKernelApp.parent_appname='sage-notebook-ipython'",
              '--profile-dir',
              u'/.../profile_default',

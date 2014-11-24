@@ -611,7 +611,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
             16
         """
         cdef Integer z = PY_NEW(Integer)
-        mpz_add(z.value, self._entries[0], self._entries[3])
+        mpz_add(z.value, self.a, self.d)
         return z
 
     def charpoly(self, var='x'):

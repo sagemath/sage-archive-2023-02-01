@@ -77,13 +77,13 @@ solvers.
 Let us ask Sage to solve the following LP:
 
 .. MATH::
-    \text{Max: } & x + y - 3z\\
+    \text{Max: } & x + y + 3z\\
     \text{Such that: } & x + 2y \leq 4\\
     \text{} & 5z - y \leq 8\\
     \text{} & x,y,z \geq 0\\
 
 To achieve it, we need to define a corresponding ``MILP`` object, along with 3
-variables ``x,y`` and ``z``::
+variables ``x``, ``y`` and ``z``::
 
     sage: p = MixedIntegerLinearProgram()
     sage: v = p.new_variable(real=True, nonnegative=True)
@@ -116,7 +116,7 @@ the objective function
     sage: round(p.solve(), 2)
     8.8
 
-We can read the optimal assignation found by the solver for `x, y` and
+We can read the optimal assignation found by the solver for `x`, `y` and
 `z` through the ``get_values`` method
 
 .. link
@@ -134,9 +134,9 @@ We can read the optimal assignation found by the solver for `x, y` and
 Variables
 ^^^^^^^^^
 
-In the previous example, we obtained variables through ``v['x'], v['y']`` and
-``v['z']``. This being said, larger LP/MILP will require us to associate a LP
-variable to many Sage objects, which can be integers, strings, or even the
+In the previous example, we obtained variables through ``v['x']``, ``v['y']``
+and ``v['z']``. This being said, larger LP/MILP will require us to associate a
+LP variable to many Sage objects, which can be integers, strings, or even the
 vertices and edges of a graph. For example:
 
 .. link

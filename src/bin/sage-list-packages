@@ -1,15 +1,54 @@
 #!/usr/bin/env python
-import os, sys, urllib, urllib2, urlparse
+# script to list the Sage packages
+#  called with one argument which meight be either "installed" or "standard" or
+#  "optional" or "experimental".
+
+import os, sys
 
 if not os.environ.has_key("SAGE_ROOT"):
-    raise RuntimeError, "The environment variable SAGE_ROOT must be set."
+    raise RuntimeError("The environment variable SAGE_ROOT must be set.")
 SAGE_SPKG_INST=os.environ.get("SAGE_SPKG_INST",
         os.path.join(os.environ["SAGE_ROOT"],'spkg','installed'))
-
 
 if not os.environ.has_key("SAGE_SERVER"):
     sys.stderr.write("The environment variable SAGE_SERVER must be set.\n")
     sys.exit(1)
+
+def get_remote_package_list(category):
+    r"""
+    Return the list of packages
+
+    INPUT:
+
+    - ``category`` -- can be either "standard", "optional" or "experimental".
+    """
+    import urllib, urllib2, urlparse
+
+    PKG_SERVER = urlparse.urljoin(os.environ['SAGE_SERVER'],'packages')
+    print "Using Sage Server %s"%PKG_SERVER
+
+    url_path = os.path.join('packages', category, 'list')
+    url = urlparse.urljoin(PKG_SERVER, urllib.pathname2url(url_path))
+
+    try:
+        pkg_list_file = urllib2.urlopen(url)
+    except (OSError, IOError) as msg:
+        print msg
+        print "\n\n"
+        print "*"*80
+        print "\n\n"
+        print "Error contacting %s. Try using an alternative server."%url
+        print "For example, from the bash prompt try typing\n"
+        print "   export SAGE_SERVER=http://sage.scipy.org/sage/\n"
+        print "then try again."
+        print "\n\n"
+        print "*"*80
+        print "\n\n"
+        sys.exit(1)
+
+    result = [line.strip() for line in pkg_list_file.readlines()]
+    pkg_list_file.close()
+    return result
 
 try:
     category = sys.argv[1]
@@ -17,33 +56,14 @@ except IndexError:
     sys.stderr.write("Usage: %s <package category>.\n" % sys.argv[0])
     sys.exit(1)
     
-
-PKG_SERVER = urlparse.urljoin(os.environ['SAGE_SERVER'],'packages')
-print "Using Sage Server %s"%PKG_SERVER
-
-url_path = os.path.join('packages', category, 'list')
-url = urlparse.urljoin(PKG_SERVER, urllib.pathname2url(url_path))
-
 try:
     installed = set(os.listdir(SAGE_SPKG_INST))
 except OSError:
     installed = set([])
 
-try:
-    pkg_list_file = urllib2.urlopen(url)
-except (OSError, IOError), msg:
-    print msg
-    print "\n\n"
-    print "*"*80
-    print "\n\n"
-    print "Error contacting %s. Try using an alternative server."%url
-    print "For example, from the bash prompt try typing\n"
-    print "   export SAGE_SERVER=http://sage.scipy.org/sage/\n"
-    print "then try again."
-    print "\n\n"
-    print "*"*80
-    print "\n\n"
-    sys.exit(1)
+if category == 'installed':
+    print '\n'.join(installed)
+    sys.exit(0)
 
 def split_pkgname(name):
     try:
@@ -57,8 +77,7 @@ def split_pkgname(name):
 
 installed_version = dict([ split_pkgname(pkg) for pkg in installed ])
 
-available_version = dict([ split_pkgname(pkg.rstrip())
-                           for pkg in pkg_list_file.readlines() ])
+available_version = dict([ split_pkgname(pkg) for pkg in get_remote_package_list(category)])
 
 print "\n%s packages:\n" % (category[0].upper() + category[1:])
 
@@ -77,4 +96,3 @@ for pkg_name in sorted(available_version.keys()):
 
 print "\nType 'sage -i package_name' to download and install a package."
 
-pkg_list_file.close()

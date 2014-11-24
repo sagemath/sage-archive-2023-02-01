@@ -147,7 +147,8 @@ def permutation_iterator_transposition_list(int n):
     if n <= 1:
         return []
     if n > 12:
-        raise ValueError, "Cowardly refusing to enumerate the permutations on more than 12 letters."
+        raise ValueError("Cowardly refusing to enumerate the permutations "
+                         "on more than 12 letters.")
 
     m = n-1
     N = n
@@ -157,14 +158,16 @@ def permutation_iterator_transposition_list(int n):
 
     c = <int *>sage_malloc(2*n*sizeof(int))
     if c is NULL:
-        raise MemoryError, "Failed to allocate memory in permutation_iterator_transposition_list"
+        raise MemoryError("Failed to allocate memory in "
+                          "permutation_iterator_transposition_list")
     o = c + n
 
     try:
         T = PyList_New(N-1)
     except Exception:
         sage_free(c)
-        raise MemoryError, "Failed to allocate memory in permutation_iterator_transposition_list"
+        raise MemoryError("Failed to allocate memory in "
+                          "permutation_iterator_transposition_list")
 
     reset_swap(n,c,o)
     for m in range(N-1):

@@ -277,16 +277,40 @@ cdef class Element(sage_object.SageObject):
 
     def __getattr__(self, str name):
         """
-        Let cat be the category of the parent of ``self``.  This
-        method emulates ``self`` being an instance of both ``Element``
-        and ``cat.element_class``, in that order, for attribute
-        lookup.
+        Lookup a method or attribute from the category abstract classes.
 
-        NOTE:
+        Let ``P`` be a parent in a category ``C``. Usually the methods
+        of ``C.element_class`` are made directly available to elements
+        of ``P`` via standard class inheritance. This is not the case
+        any more if the elements of ``P`` are instances of an
+        extension type. See :class:`Category`. for details.
 
-        Attributes beginning with two underscores but not ending with
-        an unnderscore are considered private and are thus exempted
-        from the lookup in ``cat.element_class``.
+        The purpose of this method is to emulate this inheritance: for
+        ``e`` and element of ``P``, if an attribute or method
+        ``e.foo`` is not found in the super classes of ``e``, it's
+        looked up manually in ``C.element_class`` and bound to ``e``.
+
+        .. NOTES::
+
+            - Attributes beginning with two underscores but not ending
+              with an unnderscore are considered private and are thus
+              exempted from the lookup in ``cat.element_class``.
+
+            - The attribute or method is actually looked up in
+              ``P._abstract_element_class``. In most cases this is
+              just an alias for ``C.element_class``, but some parents,
+              notably homsets, customizes this to let elements also
+              inherit from other abstract classes. See
+              :meth:`Parent._abstract_element_class` and
+              :meth:`Homset._abstract_element_class` for details.
+
+            - This mechanism may also enter into action when the
+              category of `P` is refined on the fly, leaving
+              previously constructed elements in an outdated element
+              class.
+
+              See :class:`~sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic`
+              for an example.
 
         EXAMPLES:
 
@@ -330,7 +354,6 @@ cdef class Element(sage_object.SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute '__foo'
-
         """
         if (name.startswith('__') and not name.endswith('_')):
             dummy_error_message.cls = type(self)
@@ -341,7 +364,7 @@ cdef class Element(sage_object.SageObject):
             dummy_error_message.cls = type(self)
             dummy_error_message.name = name
             raise dummy_attribute_error
-        return getattr_from_other_class(self, P._category.element_class, name)
+        return getattr_from_other_class(self, P._abstract_element_class, name)
 
     def __dir__(self):
         """
@@ -1450,6 +1473,28 @@ cdef class MonoidElement(Element):
             raise RuntimeError, "__pow__ dummy argument not used"
         return generic_power_c(self,n,None)
 
+    def powers(self, n):
+        r"""
+        Return the list `[x^0, x^1, \ldots, x^{n-1}]`.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(4)
+            sage: g = G([2, 3, 4, 1])
+            sage: g.powers(4)
+            [(), (1,2,3,4), (1,3)(2,4), (1,4,3,2)]
+        """
+        if n < 0:
+            raise ValueError("negative number of powers requested")
+        elif n == 0:
+            return []
+        x = self._parent.one_element()
+        l = [x]
+        for i in xrange(n - 1):
+            x = x * self
+            l.append(x)
+        return l
+
     def __nonzero__(self):
         return True
 
@@ -1805,6 +1850,26 @@ cdef class RingElement(ModuleElement):
         if dummy is not None:
             raise RuntimeError, "__pow__ dummy argument not used"
         return generic_power_c(self,n,None)
+
+    def powers(self, n):
+        r"""
+        Return the list `[x^0, x^1, \ldots, x^{n-1}]`.
+
+        EXAMPLES::
+
+            sage: 5.powers(3)
+            [1, 5, 25]
+        """
+        if n < 0:
+            raise ValueError("negative number of powers requested")
+        elif n == 0:
+            return []
+        x = self._parent.one_element()
+        l = [x]
+        for i in xrange(n - 1):
+            x = x * self
+            l.append(x)
+        return l
 
     ##################################
     # Division

@@ -842,6 +842,60 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         return self.list()
 
+    def _pari_(self):
+        """
+        Convert ``self`` to a PARI vector.
+
+        OUTPUT:
+
+        A PARI ``gen`` of type ``t_VEC``.
+
+        EXAMPLES::
+
+            sage: v = vector(range(4))
+            sage: v._pari_()
+            [0, 1, 2, 3]
+            sage: v._pari_().type()
+            't_VEC'
+
+        A list of vectors::
+
+            sage: L = [vector(i^n for i in range(4)) for n in [1,3,5]]
+            sage: pari(L)
+            [[0, 1, 2, 3], [0, 1, 8, 27], [0, 1, 32, 243]]
+        """
+        from sage.libs.pari.all import pari
+        return pari(self.list())
+
+    def _pari_init_(self):
+        """
+        Give a string which, when evaluated in GP, gives a PARI
+        representation of ``self``.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: v = vector(range(4))
+            sage: v._pari_init_()
+            '[0,1,2,3]'
+
+        Create the multiplication table of `GF(4)` using GP::
+
+            sage: k.<a> = GF(4, impl="pari_ffelt")
+            sage: v = gp(vector(list(k)))
+            sage: v
+            [0, 1, a, a + 1]
+            sage: v.mattranspose() * v
+            [0, 0, 0, 0; 0, 1, a, a + 1; 0, a, a + 1, 1; 0, a + 1, 1, a]
+        """
+        # Elements in vectors are always Sage Elements, so they should
+        # have a _pari_init_() method.
+        L = [x._pari_init_() for x in self.list()]
+        return "[" + ",".join(L) + "]"
+
     def _magma_init_(self, magma):
         r"""
         Convert self to Magma.

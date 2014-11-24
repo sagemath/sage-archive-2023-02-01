@@ -244,6 +244,8 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
 
             EXAMPLES:
 
+            **Example 1.**
+
             We start with the universal enveloping algebra of the
             Lie algebra `\RR^3` (with the cross product serving as
             Lie bracket)::
@@ -311,6 +313,148 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 sage: grf(yy*zz-2*yy)
                 bar(U['y']*U['z']) - 2*bar(U['y'])
 
+            **Example 2.**
+
+            We shall now construct `\operatorname{gr} f` for a
+            different map `f` out of the same ``A``; the new map
+            `f` will lead into a graded algebra already, namely into
+            the algebra of symmetric functions::
+
+                sage: h = SymmetricFunctions(QQ).h()
+                sage: def map_on_basis(m):  # redefining map_on_basis
+                ....:     d = m.dict()
+                ....:     i = d.get('x', 0); j = d.get('y', 0); k = d.get('z', 0)
+                ....:     g = (h[1] ** i) * (h[2] ** (floor(j/2))) * (h[3] ** (floor(k/3)))
+                ....:     g += i * (h[1] ** (i+j+k))
+                ....:     return g
+                sage: f = A.module_morphism(on_basis=map_on_basis,
+                ....:                       codomain=h)  # redefining f
+                sage: f(x)
+                2*h[1]
+                sage: f(y)
+                h[]
+                sage: f(z)
+                h[]
+                sage: f(y**2)
+                h[2]
+                sage: f(x**2)
+                3*h[1, 1]
+                sage: f(x*y*z)
+                h[1] + h[1, 1, 1]
+                sage: f(x*x*y*y*z)
+                2*h[1, 1, 1, 1, 1] + h[2, 1, 1]
+                sage: f(A.one())
+                h[]
+
+            The algebra ``h`` of symmetric functions in the `h`-basis
+            is already graded, so its associated graded algebra is
+            implemented as itself::
+
+                sage: grh = h.graded_algebra(); grh is h
+                True
+                sage: grf = A.induced_graded_map(h, f); grf
+                Generic morphism:
+                  From: Graded Algebra of An example of a filtered
+                   algebra with basis: the universal enveloping
+                   algebra of Lie algebra of RR^3 with cross
+                   product over Rational Field
+                  To:   Symmetric Functions over Rational Field
+                   in the homogeneous basis
+                sage: grf(xx)
+                2*h[1]
+                sage: grf(yy)
+                0
+                sage: grf(zz)
+                0
+                sage: grf(yy**2)
+                h[2]
+                sage: grf(xx**2)
+                3*h[1, 1]
+                sage: grf(xx*yy*zz)
+                h[1, 1, 1]
+                sage: grf(xx*xx*yy*yy*zz)
+                2*h[1, 1, 1, 1, 1]
+                sage: grf(grA.one())
+                h[]
+
+            **Example 3.**
+
+            After having had a graded algebra as the codomain, let us try to
+            have one as the domain instead. Our new ``f`` will go from ``h``
+            to ``A``::
+
+                sage: def map_on_basis(lam):  # redefining map_on_basis
+                ....:     return x ** (sum(lam)) + y ** (len(lam))
+                sage: f = h.module_morphism(on_basis=map_on_basis,
+                ....:                       codomain=A)  # redefining f
+                sage: f(h[1])
+                U['x'] + U['y']
+                sage: f(h[2])
+                U['x']^2 + U['y']
+                sage: f(h[1, 1])
+                U['x']^2 + U['y']^2
+                sage: f(h[2, 2])
+                U['x']^4 + U['y']^2
+                sage: f(h[3, 2, 1])
+                U['x']^6 + U['y']^3
+                sage: f(h.one())
+                2
+                sage: grf = h.induced_graded_map(A, f); grf
+                Generic morphism:
+                  From: Symmetric Functions over Rational Field
+                   in the homogeneous basis
+                  To:   Graded Algebra of An example of a filtered
+                   algebra with basis: the universal enveloping
+                   algebra of Lie algebra of RR^3 with cross
+                   product over Rational Field
+                sage: grf(h[1])
+                bar(U['x']) + bar(U['y'])
+                sage: grf(h[2])
+                bar(U['x']^2)
+                sage: grf(h[1, 1])
+                bar(U['x']^2) + bar(U['y']^2)
+                sage: grf(h[2, 2])
+                bar(U['x']^4)
+                sage: grf(h[3, 2, 1])
+                bar(U['x']^6)
+                sage: grf(h.one())
+                2*bar(1)
+
+            **Example 4.**
+
+            The construct `\operatorname{gr} f` also makes sense when `f`
+            is a filtration-preserving map between graded algebras. 
+
+                sage: def map_on_basis(lam):  # redefining map_on_basis
+                ....:     return h[lam] + h[len(lam)]
+                sage: f = h.module_morphism(on_basis=map_on_basis,
+                ....:                       codomain=h)  # redefining f
+                sage: f(h[1])
+                2*h[1]
+                sage: f(h[2])
+                h[1] + h[2]
+                sage: f(h[1, 1])
+                h[1, 1] + h[2]
+                sage: f(h[2, 1])
+                h[2] + h[2, 1]
+                sage: f(h.one())
+                2*h[]
+                sage: grf = h.induced_graded_map(h, f); grf
+                Generic endomorphism of Symmetric Functions over Rational
+                 Field in the homogeneous basis
+                sage: grf(h[1])
+                2*h[1]
+                sage: grf(h[2])
+                h[2]
+                sage: grf(h[1, 1])
+                h[1, 1] + h[2]
+                sage: grf(h[2, 1])
+                h[2, 1]
+                sage: grf(h.one())
+                2*h[]
+
+            **Example 5.**
+
             For another example, let us compute `\operatorname{gr} f` for a
             map `f` between two Clifford algebras::
 
@@ -366,12 +510,6 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 -3*u^v
                 sage: grf(grA.one())
                 1
-
-            .. TODO::
-
-                more doctests. Currently, Clifford algebras seem the most
-                appropriate. But need also trivial test with graded
-                algebra. (Maybe not the Clifford one, though.)
             """
             grA = self.graded_algebra()
             grB = other.graded_algebra()

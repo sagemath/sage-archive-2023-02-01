@@ -112,13 +112,14 @@ class HeckeModule_generic(sage.modules.module.Module_old):
 
     def __hash__(self):
         r"""
-        Return a hash value for self.
+        The hash is determined by the base ring and the level.
 
         EXAMPLE::
 
-            sage: CuspForms(Gamma0(17),2).__hash__()
-            -1797992588 # 32-bit
-            -3789716081060032652 # 64-bit
+            sage: MS = sage.modular.hecke.module.HeckeModule_generic(QQ,1)
+            sage: hash(MS) == hash((MS.base_ring(), MS.level()))
+            True
+
         """
         return hash((self.base_ring(), self.__level))
 
@@ -584,13 +585,14 @@ class HeckeModule_free_module(HeckeModule_generic):
 
     def __hash__(self):
         r"""
-        Return a hash of self.
+        The hash is determined by the weight, the level and the base ring.
 
         EXAMPLES::
 
-            sage: ModularSymbols(22).__hash__()
-            1471905187 # 32-bit
-            -3789725500948382301 # 64-bit
+            sage: MS = ModularSymbols(22)
+            sage: hash(MS) == hash((MS.weight(), MS.level(), MS.base_ring()))
+            True
+
         """
         return hash((self.__weight, self.level(), self.base_ring()))
 

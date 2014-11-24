@@ -1179,8 +1179,6 @@ def gen_laguerre(n,a,x):
         sage: gen_laguerre(3,0,x)
         -1/6*x^3 + 3/2*x^2 - 3*x + 1
 
-    TESTS::
-
     Check that :trac:`17192` is fixed::
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: gen_laguerre(0,1,x)
@@ -1306,8 +1304,6 @@ def hermite(n,x):
         sage: hermite(3,2*w)
         8*(8*w^2 - 3)*w
 
-    TESTS::
-
     Check that :trac:`17192` is fixed::
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: hermite(0,x)
@@ -1350,8 +1346,6 @@ def jacobi_P(n,a,b,x):
         sage: jacobi_P(2,1,2,1.2)        # random output of low order bits
         5.009999999999998
 
-    TESTS::
-
     Check that :trac:`17192` is fixed::
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: jacobi_P(0,0,0,x)
@@ -1390,8 +1384,6 @@ def laguerre(n,x):
         -1/6*x^3 + 3/2*x^2 - 3*x + 1
         sage: laguerre(2,2)
         -1
-
-    TESTS::
 
     Check that :trac:`17192` is fixed::
         sage: x = PolynomialRing(QQ, 'x').gen()
@@ -1484,8 +1476,6 @@ def ultraspherical(n,a,x):
         sage: t = PolynomialRing(RationalField(),"t").gen()
         sage: gegenbauer(3,2,t)
         32*t^3 - 12*t
-
-    TESTS::
 
     Check that :trac:`17192` is fixed::
         sage: x = PolynomialRing(QQ, 'x').gen()

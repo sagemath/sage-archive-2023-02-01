@@ -35,11 +35,23 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
             """
             Return the associated graded algebra to ``self``.
 
+            This is ``self``, because ``self`` is already graded.
+            See :meth:`~sage.categories.filtered_algebras_with_basis.FilteredAlgebrasWithBasis.graded_algebra`
+            for the general behavior of this method, and see
+            :class:`~sage.algebras.associated_graded.AssociatedGradedAlgebra`
+            for the definition and properties of associated graded
+            algebras.
+
             EXAMPLES::
 
                 sage: m = SymmetricFunctions(QQ).m()
                 sage: m.graded_algebra() is m
                 True
+
+            .. TODO::
+
+                Add examples showing that the three methods are
+                overridden correctly.
             """
             return self
 

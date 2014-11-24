@@ -421,6 +421,17 @@ class CliffordAlgebra(CombinatorialFreeModule):
     canonical isomorphism. The inclusion `i` is commonly used to
     identify `V` with a vector subspace of `Cl(V)`.
 
+    The Clifford algebra `Cl(V, Q)` is a `\ZZ_2`-graded algebra
+    (where `\ZZ_2 = \ZZ / 2 \ZZ`); this grading is determined by
+    placing all elements of `V` in degree `1`. It is also an
+    `\NN`-filtered algebra, with the filtration too being defined
+    by placing all elements of `V` in degree `1`. Due to current
+    limitations of the category framework, Sage can consider
+    either the grading or the filtration but not both at the same
+    time (though one can introduce two equal Clifford algebras,
+    one filtered and the other graded); the ``graded`` parameter
+    determines which of them is to be used.
+
     The Clifford algebra also can be considered as a covariant functor
     from the category of vector spaces equipped with quadratic forms
     to the category of algebras. In fact, if `(V, Q)` and `(W, R)`
@@ -481,11 +492,6 @@ class CliffordAlgebra(CombinatorialFreeModule):
         a*d
         sage: d*c*b*a + a + 4*b*c
         a*b*c*d + 4*b*c + a
-
-    .. WARNING::
-
-        The Clifford algebra is not graded, but instead filtered. This
-        will be changed once :trac:`17096` is finished.
     """
     @staticmethod
     def __classcall_private__(cls, Q, names=None, graded=True):
@@ -740,6 +746,38 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl3 = CliffordAlgebra(Q3, names='xyz')  # different syntax for a change
             sage: Cl3( M((1,-3,2)) )
             x + 2*z
+
+        Conversions work between the filtered and the graded Clifford
+        algebra for the same form:
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,4,3,5,6])
+            sage: Cl = CliffordAlgebra(Q); Cl
+            The graded Clifford algebra of the Quadratic form in 3 variables
+             over Integer Ring with coefficients: 
+            [ 1 2 4 ]
+            [ * 3 5 ]
+            [ * * 6 ]
+            sage: Cl2 = CliffordAlgebra(Q, graded=False); Cl2
+            The filtered Clifford algebra of the Quadratic form in 3 variables
+             over Integer Ring with coefficients: 
+            [ 1 2 4 ]
+            [ * 3 5 ]
+            [ * * 6 ]
+            sage: Cl == Cl2
+            False
+            sage: x,y,z = Cl.gens()
+            sage: a = (x+y)*(x+z) - 2*x + 3; a
+            -e0*e1 + e0*e2 + e1*e2 - 2*e0 + 6
+            sage: Cl2(a)
+            -e0*e1 + e0*e2 + e1*e2 - 2*e0 + 6
+            sage: Cl(Cl2(a)) == a
+            True
+
+            .. TODO::
+
+                These conversions don't work. You might not want a coercion
+                from the graded Cl into the filtered Cl (although I don't
+                see why not), but a conversion should exist!
         """
         # This is the natural lift morphism of the underlying free module
         if x in self.free_module():
@@ -910,6 +948,10 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.<x,y,z> = CliffordAlgebra(Q, graded=False)
             sage: Cl.graded_algebra()
             The exterior algebra of rank 3 over Integer Ring
+
+        .. TODO::
+
+            Doctest that the three methods do what they should.
         """
         if self._graded:
             return self
@@ -1104,6 +1146,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
                                                  remove_zeros=True )
                                 for i in x)
         cat = AlgebrasWithBasis(self.base_ring()).Filtered()
+        # .. TODO::
+        #     And if the Clifford is graded, we don't use .Graded()?
+        #     Also, why self.base_ring() and not self.base_ring().category()?
         return Cl.module_morphism(on_basis=f, codomain=self, category=cat)
 
     def lift_isometry(self, m, names=None):
@@ -1170,6 +1215,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
                               for i in x)
 
         cat = AlgebrasWithBasis(self.base_ring()).Filtered()
+        # .. TODO::
+        #     And if the Clifford is graded, we don't use .Graded()?
+        #     Also, why self.base_ring() and not self.base_ring().category()?
         return self.module_morphism(on_basis=f, codomain=Cl, category=cat)
 
     # This is a general method for finite dimensional algebras with bases
@@ -1619,6 +1667,8 @@ class ExteriorAlgebra(CliffordAlgebra):
                                            remove_zeros=True )
                              for i in x)
         return self.module_morphism(on_basis=f, codomain=E, category=GradedHopfAlgebrasWithBasis(R))
+        # .. TODO::
+        #    not R.category()?
 
     def volume_form(self):
         """

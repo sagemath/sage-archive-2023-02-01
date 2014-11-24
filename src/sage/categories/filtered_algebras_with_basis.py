@@ -79,7 +79,10 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 make sure to only communicate with them via the
                 :meth:`to_graded_conversion`,
                 :meth:`from_graded_conversion` and
-                :meth:`from_graded_conversion` methods. Similarly, when
+                :meth:`from_graded_conversion` methods (in particular,
+                do not expect there to be a conversion from ``self``
+                to ``self.graded_algebra()``; this currently does not
+                work for Clifford algebras). Similarly, when
                 overriding :meth:`graded_algebra`, make sure to
                 accordingly redefine these three methods, unless their
                 definitions below still apply to your case (this will
@@ -87,6 +90,13 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 has the same indexing set as ``self``, and the partition
                 of this indexing set according to degree is the same as
                 for ``self``).
+
+            .. TODO::
+
+                Maybe the thing about the conversion from ``self``
+                to ``self.graded_algebra()`` at least could be made to
+                work? (I would still warn the user against ASSUMING
+                that it must work.)
 
             EXAMPLES::
 

@@ -3313,6 +3313,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite join-semilattice containing 4 elements
             sage: L.ordinal_sum(L)
             Finite lattice containing 4 elements
+
+        .. SEEALSO::
+
+            :meth:`disjoint_union`, :meth:`ordinal_product`
         """
         from sage.categories.lattice_posets import LatticePosets
         from sage.combinat.posets.lattices import LatticePoset, \

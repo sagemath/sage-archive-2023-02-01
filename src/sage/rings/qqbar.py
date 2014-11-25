@@ -485,7 +485,7 @@ Verify that :trac:`10981` is fixed::
 import itertools
 
 import sage.rings.ring
-from sage.misc.fast_methods import SingletonClass
+from sage.misc.fast_methods import Singleton
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_gens import ParentWithGens
 from sage.rings.real_mpfr import RR
@@ -622,7 +622,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
         """
         return AlgebraicPolynomialTracker(poly)
 
-class AlgebraicRealField(SingletonClass, AlgebraicField_common):
+class AlgebraicRealField(Singleton, AlgebraicField_common):
     r"""
     The field of algebraic reals.
 
@@ -635,7 +635,7 @@ class AlgebraicRealField(SingletonClass, AlgebraicField_common):
     def __new__(cls):
         r"""
         This method is there to ensure that pickles created before this class
-        was made a :class:`~sage.misc.fast_methods.SingletonClass` still load.
+        was made a :class:`~sage.misc.fast_methods.Singleton` still load.
 
         TESTS::
 
@@ -1042,7 +1042,7 @@ def is_AlgebraicRealField(F):
 # Create the globally unique AlgebraicRealField object.
 AA = AlgebraicRealField()
 
-class AlgebraicField(SingletonClass, AlgebraicField_common):
+class AlgebraicField(Singleton, AlgebraicField_common):
     """
     The field of all algebraic complex numbers.
     """
@@ -1050,7 +1050,7 @@ class AlgebraicField(SingletonClass, AlgebraicField_common):
     def __new__(cls):
         r"""
         This method is there to ensure that pickles created before this class
-        was made a :class:`~sage.misc.fast_methods.SingletonClass` still load.
+        was made a :class:`~sage.misc.fast_methods.Singleton` still load.
 
         TESTS::
 

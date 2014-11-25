@@ -25,7 +25,7 @@ import sage.libs.pari.all as pari
 import sage.rings.ring as ring
 import ring_element
 
-from sage.misc.fast_methods import SingletonClass
+from sage.misc.fast_methods import Singleton
 
 class Pari(ring_element.RingElement):
     """
@@ -157,7 +157,7 @@ class Pari(ring_element.RingElement):
         return int(self.__x)
 
 
-class PariRing(SingletonClass, ring.Ring):
+class PariRing(Singleton, ring.Ring):
     """
     EXAMPLES:
         sage: R = PariRing(); R

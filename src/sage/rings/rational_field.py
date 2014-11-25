@@ -57,9 +57,9 @@ ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
 import sage.rings.number_field.number_field_base as number_field_base
-from sage.misc.fast_methods import SingletonClass
+from sage.misc.fast_methods import Singleton
 
-class RationalField(SingletonClass, number_field_base.NumberField):
+class RationalField(Singleton, number_field_base.NumberField):
     r"""
     The class ``RationalField`` represents the field `\QQ` of rational numbers.
 

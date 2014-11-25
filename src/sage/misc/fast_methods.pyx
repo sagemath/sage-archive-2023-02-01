@@ -14,7 +14,7 @@ that python classes can inherit.
 AUTHOR:
 
 - Simon King (2013-02): Original version
-- Simon King (2013-10): Add :class:`SingletonClass`
+- Simon King (2013-10): Add :class:`Singleton`
 
 """
 
@@ -262,7 +262,7 @@ cdef class FastHashable_class:
         """
         return self._hash
 
-class SingletonClass(WithEqualityById):
+class Singleton(WithEqualityById):
     """
     A base class for singletons.
 
@@ -271,14 +271,13 @@ class SingletonClass(WithEqualityById):
     it is not possible to have several subclasses of a singleton all
     having distinct unique instances.
 
-    In order to create a singleton, just add :class:`SingletonClass`
+    In order to create a singleton, just add :class:`Singleton`
     to the list of base classes::
 
-        sage: from sage.misc.fast_methods import SingletonClass
-        sage: class C(SingletonClass, Parent):
+        sage: from sage.misc.fast_methods import Singleton
+        sage: class C(Singleton, SageObject):
         ....:     def __init__(self):
         ....:         print "creating singleton"
-        ....:         Parent.__init__(self, base=ZZ, category=Rings())
         sage: c = C()
         creating singleton
         sage: c2 = C()
@@ -289,22 +288,25 @@ class SingletonClass(WithEqualityById):
     singleton itself does.
 
     Pickling, copying, hashing, and comparison are provided for by
-    :class:`SingletonClass` according to the singleton paradigm. Note
+    :class:`Singleton` according to the singleton paradigm. Note
     that pickling fails if the class is replaced by a sub-sub-class
     after creation of the instance::
 
+        sage: class D(C):
+        ....:     pass
         sage: import __main__      # This is only needed ...
         sage: __main__.C = C       # ... in doctests
+        sage: __main__.D = D       # same here, only in doctests
         sage: orig = type(c)
-        sage: c._refine_category_(Fields())
+        sage: c.__class__ = D
         sage: orig == type(c)
         False
         sage: loads(dumps(c))
         Traceback (most recent call last):
         ...
-        AssertionError: (("<class '__main__.C_with_category'> is not a direct
-        subclass of <class 'sage.misc.fast_methods.SingletonClass'>",),
-        <class '__main__.C_with_category'>, ())
+        AssertionError: (("<class '__main__.D'> is not a direct
+        subclass of <class 'sage.misc.fast_methods.Singleton'>",),
+        <class '__main__.D'>, ())
     """
     __metaclass__ = ClasscallMetaclass
 
@@ -317,8 +319,8 @@ class SingletonClass(WithEqualityById):
 
         EXAMPLES::
 
-            sage: from sage.misc.fast_methods import SingletonClass
-            sage: class C(SingletonClass, Parent):
+            sage: from sage.misc.fast_methods import Singleton
+            sage: class C(Singleton, Parent):
             ....:     def __init__(self):
             ....:         print "creating singleton"
             ....:         Parent.__init__(self, base=ZZ, category=Rings())
@@ -329,7 +331,7 @@ class SingletonClass(WithEqualityById):
             sage: loads(dumps(c)) is copy(c) is C()  # indirect doctest
             True
         """
-        assert cls.mro()[1] == SingletonClass, "{} is not a direct subclass of {}".format(cls, SingletonClass)
+        assert cls.mro()[1] == Singleton, "{} is not a direct subclass of {}".format(cls, Singleton)
         res = typecall(cls)
         cf = ConstantFunction(res)
         cls._set_classcall(cf)
@@ -343,8 +345,8 @@ class SingletonClass(WithEqualityById):
 
         EXAMPLES::
 
-            sage: from sage.misc.fast_methods import SingletonClass
-            sage: class C(SingletonClass, Parent):                  
+            sage: from sage.misc.fast_methods import Singleton
+            sage: class C(Singleton, Parent):                  
             ....:     def __init__(self):
             ....:         print "creating singleton"
             ....:         Parent.__init__(self, base=ZZ, category=Rings())
@@ -364,8 +366,8 @@ class SingletonClass(WithEqualityById):
 
         EXAMPLES::
 
-            sage: from sage.misc.fast_methods import SingletonClass
-            sage: class C(SingletonClass, Parent):                  
+            sage: from sage.misc.fast_methods import Singleton
+            sage: class C(Singleton, Parent):                  
             ....:     def __init__(self):
             ....:         print "creating singleton"
             ....:         Parent.__init__(self, base=ZZ, category=Rings())
@@ -381,7 +383,7 @@ class SingletonClass(WithEqualityById):
         which may be a subclass of the original class used to create the
         instance.If the class is replaced by a sub-sub-class after creation
         of the instance, pickling fails. See the doctest
-        in :class:`SingletonClass`.
+        in :class:`Singleton`.
         """ 
         return self.__class__, ()
 

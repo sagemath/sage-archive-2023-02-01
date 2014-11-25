@@ -44,7 +44,7 @@ class Link:
 
     Braid:
 
-    Generators of the braid group are used to generate the link::
+    The closure of a braid is a link::
 
         sage: B = BraidGroup(8)
         sage: L = Link(B([-1, -1, -1, -2,1, -2,3,-2,3]))
@@ -56,16 +56,14 @@ class Link:
 
     Oriented Gauss Code:
 
-    Randomly number the crossings from 1 to n (where n is the number of
+    Label the crossings from 1 to n (where n is the number of
     crossings) and start moving along the link. Trace every component of
     the link, by starting at a particular point on one component of the link and
-    taking note of each of the crossings until one returns to the starting
-    point. Note each component as a list whose elements are the crossing
-    numbers. Compile every component info into a list. We need the orientation
-    of every crossing. This is recorded as a list with +1 and -1, +1 is recorded
-    if the direction from leaving over-cross to the leaving under-cross is
-    anti-clockwise, -1 if the direction from the leaving over-cross to the
-    leaving under-cross is clockwise::
+    writing down each of the crossings that you encounter until returning to the starting
+    point. The crossings are written with sign depending on wheter we cross them
+    as over or undercrossing. Each component is then represented as a list whose
+    elements are the crossing numbers. A second list of +1 and -1's keeps trac of
+    the orientation of each crossing::
 
         sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
         sage: L
@@ -79,15 +77,12 @@ class Link:
 
     Planar Diagram Code:
 
-    Select some point on the link. Start numbering the strands in the
-    components of the link. For a new component add one to the greatest
-    number from the previous component and proceed till all the strands
-    are numbered. At every cross contruct the data as follows :
-    Start with the strand number of the entering under-cross and move in the
-    clockwise direction around the cross and note down the strand numbers.
-    Construct this data at every crossing and that would give the PD-Code.
+    The diagram of the link is formed by segments that are adjacent to the crossings.
+    Label each one of this segments with a positive number, and for each crossing,
+    write down the four incident segments. The order of these segments is clockwise,
+    starting with the incoming undercrossing.
 
-    There is no particular distinction between knots and links for this input
+    There is no particular distinction between knots and links for this input.
 
     One of the representations of the Trefoil knot::
 
@@ -199,6 +194,18 @@ class Link:
         from sage.groups.braid import BraidGroup
         if self._braid != None:
             return self._braid
+        comp = self._isolated_components_()
+        if len(comp) > 1:
+            L1 = Link(comp[0])
+            L2 = Link(flatten(comp[1:], max_level=1))
+            b1 = L1.braid()
+            b2 = L2.braid()
+            n1 = b1.parent().strands()
+            n2 = b2.parent().strands()
+            t1 = list(b1.Tietze())
+            t2 = [sign(x)*(abs(x) + n1) for x in b2.Tietze()]
+            B = BraidGroup(n1 + n2)
+            return B(t1 + t2)
         # look for possible vogel moves, perform them and call recursively to the modified link
         for region in self.regions():
             n = len(region)
@@ -345,7 +352,6 @@ class Link:
                     unassigned.remove(a)
         return tails, heads
 
-
     def oriented_gauss_code(self):
         """
         Return the oriented gauss code of the link. The oriented gauss
@@ -377,14 +383,14 @@ class Link:
 
         EXAMPLES::
 
-            sage: L = Link([[1,11,2,10],[6,2,7,3],[3,12,4,9],[9,5,10,6],[8,1,5,4],[11,8,12,7]])
+            sage: L = Link([[1, 11, 2, 10], [6, 2, 7, 3], [3, 12, 4, 9], [9, 5, 10, 6], [8, 1, 5, 4], [11, 8, 12, 7]])
             sage: L.oriented_gauss_code()
             [[[-1, 2, -3, 5], [4, -2, 6, -5], [-4, 1, -6, 3]], [-1, 1, 1, 1, -1, -1]]
-            sage: L = Link([[1,4,2,3],[6,1,3,2],[7,4,8,5],[5,8,6,7]])
+            sage: L = Link([[1, 4, 2, 3], [6, 1, 3, 2], [7, 4, 8, 5], [5, 8, 6, 7]])
             sage: L.oriented_gauss_code()
             [[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]]
             sage: B = BraidGroup(8)
-            sage: b=B([1,1,1,1,1])
+            sage: b=B([1, 1, 1, 1, 1])
             sage: L = Link(b)
             sage: L.oriented_gauss_code()
             [[[1, -2, 3, -4, 5, -1, 2, -3, 4, -5]], [1, 1, 1, 1, 1]]
@@ -439,23 +445,17 @@ class Link:
         2. b, d are the components of the overcrossing
         3. c is the leaving component of the undercrossing
 
-        Convention :
-        Orientation of the crossing :
-
-        1. Leaving over crossing to leaving under crossing in clockwise direction denoted by -1
-        2. Leaving over crossing to leaving under crossing in anticlockwise direction denoted by 1
-
         OUTPUT:
 
         - Planar Diagram representation of the link.
 
         EXAMPLES::
 
-            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]],[1,1,-1,-1]])
+            sage: L = Link([[[1, -2, 3, -4, 2, -1, 4, -3]], [1, 1, -1, -1]])
             sage: L.PD_code()
             [[6, 1, 7, 2], [2, 5, 3, 6], [8, 4, 1, 3], [4, 8, 5, 7]]
             sage: B = BraidGroup(2)
-            sage: b=B([1,1,1,1,1])
+            sage: b=B([1, 1, 1, 1, 1])
             sage: L = Link(b)
             sage: L.PD_code()
             [[2, 1, 3, 4], [4, 3, 5, 6], [6, 5, 7, 8], [8, 7, 9, 10], [10, 9, 1, 2]]
@@ -531,9 +531,9 @@ class Link:
         Return the gauss_code of the link. Gauss code is generated by the
         following procedure:
 
-        a. We randomly number the crossings
-        b. We select a point on the knot and start moving along the component
-        c. At each crossing we take the number of the crossing, along with
+        a. Number the crossings from 1 to n.
+        b. Select a point on the knot and start moving along the component.
+        c. At each crossing, take the number of the crossing, along with
            sign, which is '-' if it is a undercrossing and '+' if it is a
            overcrossing.
 
@@ -558,9 +558,9 @@ class Link:
 
     def dt_code(self):
         """
-        Return the dt_code of the knot.DT code is generated by the following way.
+        Return the dt_code of the knot. DT code is generated by the following way.
 
-        We start moving along the knot, as we encounter the crossings we
+        Start moving along the knot, as we encounter the crossings we
         start numbering them, so every crossing has two numbers assigned to
         it once we have traced the entire knot. Now we take the even number
         associated with every crossing. The following sign convention is to be
@@ -1131,17 +1131,11 @@ class Link:
 
     def orientation(self):
         """
-        Return the orientation of the crossings from the input. We construct the entering, leaving information at
-        each crossing to get to the orientation.
+        Return the orientation of the crossings of the link diagram.
 
         OUTPUT:
 
         - Orientation  of the crossings.
-
-        Convention :
-
-        Entering component is denoted by 1
-        Leaving component is denoted by -1
 
         EXAMPLES::
 
@@ -1163,22 +1157,14 @@ class Link:
 
     def seifert_circles(self):
         """
-        Return the seifert circles from the input. Seifert circles are obtained
-        by smoothing the crossings in the following way:
+        Return the seifert circles from the link diagram. Seifert circles are the circles
+        obtained by smoothing all crossings respecting the orientation of the segments.
 
-        All the crossings are assigned four numbers which form the components of the
-        crossings.
-
-        At a crossing the under cross entering component would go to the over cross
-        leaving component and the over cross entering component would go to the
-        under cross leaving component.
-
-        We start with a component of the crossing and start smoothing as according to
-        the above rule until we return to the starting component.
+        Each Seifert circle is represented as a list of the segments that form it.
 
         OUTPUT:
 
-        - Seifert circles of the given knot.
+        - Seifert circles of the given link diagram.
 
         EXAMPLES::
 
@@ -1226,16 +1212,12 @@ class Link:
 
     def regions(self):
         """
-        Return the regions from the input.Regions are obtained always turning left at the crossing.
-        The smoothing used for obtaining the Seifert circles case was specific but here whenever a
-        crossing in encountered a left turn is taken until we reach the starting component.
-        The following procedure is followed for the development of regions:
+        Return the regions from the link diagram. Regions are obtained always
+        turning left at each crossing.
 
-        Start at a component of the crossing and keep turning left as the crossings are encountered
-        until the starting component is reached.
-
-        Append a negative sign to the component if it were encountered in the opposite direction to
-        the direction it is actually in.
+        Then the regions are represented as a list wiht the segments that form
+        its boundary, with a sign deppending on the orientation of the segment
+        as part of the boundary.
 
         OUTPUT:
 
@@ -1338,28 +1320,15 @@ class Link:
     def jones_polynomial(self, var='q'):
         """
         Return the jones polynomial of the link.
-        The following procedure is used to determine the jones polynomial.
-        There are two constructions :
 
-        1. Smoothing of crossings in two ways, corresponding coefficients being
-           A^-1 and A. The various permutations of the smoothing of the crossings
-           is constructed by taking the permutation of the crossings.
-
-        2. After this, the number of circles are calculated after smoothing and the
-           polynomial is constructed by summing up in the following way:
-
-           polynomial = sigma[(no. of A^-1)*(no. of A)*d**((no. of circles) - 1)]
-
-        Note : here we have used the symbolic ring rather than the Laurent Polynomial Ring.
-        The answer has been returned in the symbolic ring. Once the rational powers is
-        functional we can use it and revert back to Laurent Polynomial Ring.
         INPUT:
 
-        The name of the variable
+        - ``var`` -- (default: ``'q'``); the variable in the polynomial.
 
         OUTPUT:
 
-        - Jones Polynomial of the link.
+        - Jones Polynomial of the link. It is a polynomial in var, as an element
+        of the symbolic ring.
 
         EXAMPLES::
 
@@ -1390,7 +1359,7 @@ class Link:
 
         INPUT:
 
-        - var (Default = q): the name of the variable of the result.
+        - ``var`` -- (default: ``'q'``); the variable in the polynomial.
 
         Note that this is not an invariant of the link, but of the diagram.
         In particular, it is not invariant under Reidemeister I moves.
@@ -1465,16 +1434,27 @@ class Link:
                     G.add_edge(G.vertices()[i], G.vertices()[j])
         return [[list(i) for i in j] for j in G.connected_components()]
 
-    def plot(self, **kwargs):
+    def plot(self, gap=0.1, **kwargs):
         r"""
         Plot the knot or link.
+
+        INPUT:
+
+        - ``gap`` -- (default: 0.1); the size of the blank gap left for the crossings.
+
+        The usual keywords for plots can be used here too.
+
+        EXAMPLES::
+
+            sage: L=Link([[[-1,2,-3,1,-2,3],[4,-5,6,-4,5,-6]],[1,1,1,1,1,1]])
+
         """
         comp = self._isolated_components_()
         if len(comp) > 1:
             L1 = Link(comp[0])
             L2 = Link(flatten(comp[1:], max_level=1))
-            P1 = L1.plot(**kwargs)
-            P2 = L2.plot(**kwargs)
+            P1 = L1.plot(gap, **kwargs)
+            P2 = L2.plot(gap, **kwargs)
             xtra = P1.get_minmax_data()['xmax'] + P2.get_minmax_data()['xmin'] + 2
             for P in P2:
                 if hasattr(P, 'path'):
@@ -1483,8 +1463,7 @@ class Link:
                     for p in P.vertices:
                         p[0] += xtra
                 else:
-                    for p in P.xdata:
-                        p += xtra
+                    P.xdata = [p + xtra for p in P.xdata]
             return P1 + P2
         if not 'color' in kwargs:
             kwargs['color'] = 'blue'
@@ -1492,7 +1471,7 @@ class Link:
             kwargs['axes'] = False
         if not 'aspect_ratio' in kwargs:
             kwargs['aspect_ratio'] = 1
-        # The idea is the same followed in linkplot, but using MLP instead of
+        # The idea is the same followed in spherogram, but using MLP instead of
         # network flows.
         # We start by computing a way to bend the edges left or right
         # such that the resulting regions are in fact closed regions
@@ -1693,11 +1672,11 @@ class Link:
             a = deepcopy(im[0][0])
             b = deepcopy(im[-1][0])
             if tailshort:
-                im[0][0][0][0] += cmp(a[1][0],im[0][0][0][0])*0.1
-                im[0][0][0][1] += cmp(a[1][1],im[0][0][0][1])*0.1
+                im[0][0][0][0] += cmp(a[1][0],im[0][0][0][0])*gap
+                im[0][0][0][1] += cmp(a[1][1],im[0][0][0][1])*gap
             if headshort:
-                im[-1][0][1][0] -= cmp(b[1][0],im[-1][0][0][0])*0.1
-                im[-1][0][1][1] -= cmp(b[1][1],im[-1][0][0][1])*0.1
+                im[-1][0][1][0] -= cmp(b[1][0],im[-1][0][0][0])*gap
+                im[-1][0][1][1] -= cmp(b[1][1],im[-1][0][0][1])*gap
             l = line([], **kwargs)
             c = 0
             p = im[0][0][0]
@@ -1709,13 +1688,13 @@ class Link:
                     if im[c][1] > 1:
                         (a, b) = im[c][0]
                         if b[0] > a[0]:
-                            e = (b[0] - 1, b[1])
+                            e = [b[0] - 1, b[1]]
                         elif b[0] < a[0]:
-                            e = (b[0] + 1, b[1])
+                            e = [b[0] + 1, b[1]]
                         elif b[1] > a[1]:
-                            e = (b[0], b[1] - 1)
+                            e = [b[0], b[1] - 1]
                         elif b[1] < a[1]:
-                            e = (b[0] , b[1] + 1)
+                            e = [b[0] , b[1] + 1]
                         l += line((p, e), **kwargs)
                         p = e
                     if im[c+1][1] == 1 and c < len(im) - 2:
@@ -1739,7 +1718,3 @@ class Link:
             image += l
             ims += sum([line(a[0], **kwargs) for a in im])
         return image
-
-
-
-

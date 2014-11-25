@@ -32,8 +32,12 @@ Here is an example that constructs the Prisoner's Dilemma::
     ""
 
     {
+    { "" 0, 0 }
+    { "" 0, 0 }
+    { "" 0, 0 }
+    { "" 0, 0 }
     }
-    0 0 0 0
+    1 2 3 4
 
     In [7]: g.players[0].strategies
     Out[7]: [<Strategy [0] '1' for player 'Alphonse' in game 'A
@@ -76,7 +80,7 @@ Here is how to use the `ExternalEnumPureSolver`::
 
     In [21]: solver = gambit.nash.ExternalEnumPureSolver()
     In [22]: solver.solve(g)
-    Out[22]: [<NashProfile for '': [Fraction(0, 1), Fraction(1, 1), Fraction(0, 1), Fraction(1, 1)]>]
+    Out[22]: [<NashProfile for 'A prisoner's dilemma game': [Fraction(0, 1), Fraction(1, 1), Fraction(0, 1), Fraction(1, 1)]>]
 
 Note that the above finds the equilibria by investigating all potential pure
 pure strategy pairs. This will fail to find all Nash equilibria in certain

@@ -3231,7 +3231,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: the input is not a finite poset
-            sage: P1.ordinal_product(P2, labels='vodka')
+            sage: P1.ordinal_product(P2, labels='camembert')
             Traceback (most recent call last):
             ...
             ValueError: labels must be either 'pairs' or 'integers'
@@ -3242,11 +3242,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         dg = DiGraph()
         dg.add_vertices([(s, t) for s in self for t in other])
         dg.add_edges([((s, t), (s2, t2))
-                      for s in self for s2 in self.lower_covers(s)
+                      for s, s2 in self.cover_relations_iterator()
                       for t in other for t2 in other])
         dg.add_edges([((s, t), (s, t2))
                       for s in self
-                      for t in other for t2 in other.lower_covers(t)])
+                      for t, t2 in other.cover_relations_iterator()])
         if labels == 'integers':
             dg.relabel()
         elif labels != 'pairs':
@@ -3325,10 +3325,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('The input is not a finite poset.')
-        G=self.hasse_diagram().disjoint_union(other.hasse_diagram())
-        for u in self.maximal_elements():
-            for v in other.minimal_elements():
-                G.add_edge((0,u), (1,v))
+        G = self.hasse_diagram().disjoint_union(other.hasse_diagram())
+        selfmax = self.maximal_elements()
+        othermin = other.minimal_elements()
+        for u in selfmax:
+            for v in othermin:
+                G.add_edge((0, u), (1, v))
         if labels == 'integers':
             G.relabel()
         elif labels != 'pairs':

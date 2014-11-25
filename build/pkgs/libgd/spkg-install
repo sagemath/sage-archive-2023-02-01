@@ -28,10 +28,10 @@ if [ "$UNAME" = "FreeBSD" ] ; then
 fi
 
 if [ "$SAGE64" = "yes" ]; then
-   CFLAGS=" -m64 -fPIC -g $CFLAGS"
+   CFLAGS=" -m64 -g $CFLAGS"
    LDFLAGS="-m64 $LDFLAGS"
 else
-   CFLAGS="-fPIC -g $CFLAGS"
+   CFLAGS="-g $CFLAGS"
 fi
 
 export CFLAGS LDFLAGS

@@ -275,7 +275,7 @@ class Hypergeometric(BuiltinFunction):
 
     def _evalf_try_(self, a, b, z):
         """
-        Call :meth:`_evalf_` if one the arguments is numerical and none
+        Call :meth:`_evalf_` if one of the arguments is numerical and none
         of the arguments are symbolic.
 
         OUTPUT:

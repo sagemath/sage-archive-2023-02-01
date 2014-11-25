@@ -76,7 +76,7 @@ import copy
 import os
 import re
 import sys
-from sage.misc.preparser import preparse
+from sage.repl.preparse import preparse
 
 from IPython import Config
 

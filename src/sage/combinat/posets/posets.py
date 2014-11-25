@@ -3223,7 +3223,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = P1.ordinal_product(P2); P
             Finite poset containing 4 elements
             sage: sorted(P.cover_relations())
-            [[1, 0], [2, 1], [3, 2]]
+            [[('a', 'c'), ('a', 'd')], [('a', 'd'), ('b', 'c')],
+            [('b', 'c'), ('b', 'd')]]
 
         TESTS::
 

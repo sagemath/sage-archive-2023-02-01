@@ -22,14 +22,11 @@ else
     tar xJf "$UPSTREAM_SOURCE_DIRECTORY/libgd-$VERSION.tar.xz"
 fi
 
-# Rename directory
-mv "libgd-$VERSION" gd-$VERSION
-
 # Autoreconf it so that it correctly build on Cygwin64
-cd gd-$VERSION
+cd libgd-$VERSION
 autoreconf -fiv
 rm -rf autom4te.cache src/config.hin~
 cd $SPKG_ROOT
 
 # Recompress directory
-tar cjf gd-$VERSION.tar.bz2 gd-$VERSION
+tar cjf libgd-$VERSION.tar.bz2 libgd-$VERSION

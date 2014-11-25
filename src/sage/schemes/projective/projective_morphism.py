@@ -280,7 +280,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def __eq__(self, right):
         """
-        Tests the equality of two projective spaces.
+        Tests the equality of two projective morphisms.
 
         INPUT:
 
@@ -292,32 +292,47 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: P1.<x,y> = ProjectiveSpace(RR,1)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1==P2
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 - 2*x*y + z*x, z^2 -y^2 , 5*z*y])
+            sage: g = H([x^2, y^2, z^2])
+            sage: f == g
             False
 
             ::
 
-            sage: R.<x,y> = QQ[]
-            sage: P1 = ProjectiveSpace(R)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1==P2
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P2.<u,v> = ProjectiveSpace(CC, 1)
+            sage: H = End(P)
+            sage: H2 = End(P2)
+            sage: f = H([x^2 - 2*x*y, y^2])
+            sage: g = H2([u^2 - 2*u*v, v^2])
+            sage: f == g
+            False
+
+            ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 2*x*y, y^2])
+            sage: g = H([x^2*y - 2*x*y^2, y^3])
+            sage: f == g
             True
         """
         if not isinstance(right, SchemeMorphism_polynomial):
             return False
-        else:
-            n = len(self._polys)
-            for i in range(0, n):
-                for j in range(i + 1, n):
-                    if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
-                        return False
+        if self.parent() != right.parent():
+            return False
+        n = len(self._polys)
+        for i in range(0, n):
+            for j in range(i + 1, n):
+                if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
+                    return False
         return True
 
     def __ne__(self, right):
         """
-        Tests the inequality of two projective spaces.
+        Tests the inequality of two projective morphisms.
 
         INPUT:
 
@@ -329,27 +344,30 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: P1.<x,y> = ProjectiveSpace(RR,1)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1!=P2
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^3 - 2*x^2*y , 5*x*y^2])
+            sage: g = f.change_ring(GF(7))
+            sage: f != g
             True
 
             ::
 
-            sage: R.<x,y> = QQ[]
-            sage: P1 = ProjectiveSpace(R)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1!=P2
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = Hom(P, P)
+            sage: f = H([x^2 - 2*x*y + z*x, z^2 -y^2 , 5*z*y])
+            sage: f != f
             False
         """
         if not isinstance(right, SchemeMorphism_polynomial):
             return True
-        else:
-            n = len(self._polys)
-            for i in range(0, n):
-                for j in range(i + 1, n):
-                    if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
-                        return True
+        if self.parent() != right.parent():
+            return True
+        n = len(self._polys)
+        for i in range(0, n):
+            for j in range(i + 1, n):
+                if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
+                    return True
         return False
 
     def scale_by(self, t):
@@ -1010,6 +1028,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               x0^2 - x1^2
               Defn: Defined on coordinates by sending (x0, x1) to
                     (x1^2/x0, x1^2/x0)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 2*x*y, y^2])
+            sage: f.dehomogenize(0).homogenize(0) == f
+            True
         """
         #the dehomogenizations are stored for future use.
         try:

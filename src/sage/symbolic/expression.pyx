@@ -8641,80 +8641,75 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_log(self,algorithm=None):
         r"""
-        Simplify symbolic expression, which can contain logs.
+        Simplify a (real) symbolic expression that contains logarithms.
 
-        Recursively scans the expression self, transforming
-        subexpressions of the form `a1 \log(b1) + a2 \log(b2) + c` into
-        `\log( b1^{a1} b2^{a2} ) + c` and simplifies inside logarithm. User
-        can specify, which conditions must satisfy `a1` and `a2` to use
-        this transformation in optional parameter ``algorithm``.
+        The given expression is scanned recursively, transforming
+        subexpressions of the form `a \log(b) + c \log(d)` into
+        `\log(b^{a} d^{c})` before simplifying within the ``log()``.
+
+        The user can specify conditions that `a` and `c` must satisfy
+        before this transformation will be performed using the optional
+        parameter ``algorithm``.
+
+        .. WARNING::
+
+            This is only safe to call if every variable in the given
+            expression is assumed to be real. The simplification it performs
+            is in general not valid over the complex numbers. For example::
+
+                sage: x,y = SR.var('x,y')
+                sage: f = log(x*y) - (log(x) + log(y))
+                sage: f(x=-1, y=i)
+                -2*I*pi
+                sage: f.simplify_log()
+                0
 
         INPUT:
 
         - ``self`` - expression to be simplified
 
         - ``algorithm`` - (default: None) optional, governs the condition
-          on `a1` and `a2` which must be satisfied to contract expression
-          `a1 \log(b1) + a2 \log(b2)`. Values are
+          on `a` and `c` which must be satisfied to contract expression
+          `a \log(b) + c \log(d)`. Values are
 
-          - None (use Maxima default, integers),
+          - ``None`` (use Maxima default, integers),
 
-          - 'one' (1 and -1),
+          - ``'one'`` (1 and -1),
 
-          - 'ratios' (integers and fractions of integers),
+          - ``'ratios'`` (rational numbers),
 
-          - 'constants' (constants),
+          - ``'constants'`` (constants),
 
-          - 'all' (all expressions).
+          - ``'all'`` (all expressions).
 
-          See also examples below.
+        ALGORITHM:
 
-        DETAILS: This uses the Maxima logcontract() command. From the
-        Maxima documentation: "Recursively scans the expression expr,
-        transforming subexpressions of the form a1*log(b1) +
-        a2*log(b2) + c into log(ratsimp(b1^a1 * b2^a2)) + c. The user
-        can control which coefficients are contracted by setting the
-        option logconcoeffp to the name of a predicate function of one
-        argument. E.g. if you like to generate SQRTs, you can do
-        logconcoeffp:'logconfun$ logconfun(m):=featurep(m,integer) or
-        ratnump(m)$ . Then logcontract(1/2*log(x)); will give
-        log(sqrt(x))."
+        This uses the Maxima ``logcontract()`` command.
 
-        ALIAS: :meth:`log_simplify` and :meth:`simplify_log` are the
-        same
+        ALIAS:
+
+        :meth:`log_simplify` and :meth:`simplify_log` are the same.
 
         EXAMPLES::
 
             sage: x,y,t=var('x y t')
 
-        Only two first terms are contracted in the following example ,
-        the logarithm with coefficient 1/2 is not contracted::
+        Only two first terms are contracted in the following example;
+        the logarithm with coefficient `\frac{1}{2}` is not contracted::
 
             sage: f = log(x)+2*log(y)+1/2*log(t)
             sage: f.simplify_log()
             log(x*y^2) + 1/2*log(t)
 
-        To contract all terms in previous example use option ``algorithm``::
+        To contract all terms in the previous example, we use the
+        ``'ratios'`` ``algorithm``::
 
             sage: f.simplify_log(algorithm='ratios')
             log(sqrt(t)*x*y^2)
 
-        This shows that the option ``algorithm`` from the previous call
-        has no influence to future calls (we changed some default
-        Maxima flag, and have to ensure that this flag has been
-        restored)::
-
-            sage: f.simplify_log('one')
-            1/2*log(t) + log(x) + 2*log(y)
-
-            sage: f.simplify_log('ratios')
-            log(sqrt(t)*x*y^2)
-
-            sage: f.simplify_log()
-            log(x*y^2) + 1/2*log(t)
-
         To contract terms with no coefficient (more precisely, with
-        coefficients 1 and -1) use option ``algorithm``::
+        coefficients `1` and `-1`), we use the ``'one'``
+        ``algorithm``::
 
             sage: f = log(x)+2*log(y)-log(t)
             sage: f.simplify_log('one')
@@ -8729,14 +8724,15 @@ cdef class Expression(CommutativeRingElement):
             sage: f.simplify_log('ratios')
             log(x*y/(x + 1)^(1/3))
 
-        `\pi` is irrational number, to contract logarithms in the following example
-        we have to put ``algorithm`` to ``constants`` or ``all``::
+        `\pi` is an irrational number; to contract logarithms in the
+        following example we have to set ``algorithm`` to ``'constants'``
+        or ``'all'``::
 
             sage: f = log(x)+log(y)-pi*log((x+1))
             sage: f.simplify_log('constants')
             log(x*y/(x + 1)^pi)
 
-        x*log(9) is contracted only if ``algorithm`` is ``all``::
+        ``x*log(9)`` is contracted only if ``algorithm`` is ``'all'``::
 
             sage: (x*log(9)).simplify_log()
             x*log(9)
@@ -8744,6 +8740,19 @@ cdef class Expression(CommutativeRingElement):
             log(9^x)
 
         TESTS:
+
+        Ensure that the option ``algorithm`` from one call has no
+        influence upon future calls (a Maxima flag was set, and we have
+        to ensure that its value has been restored)::
+
+            sage: f.simplify_log('one')
+            1/2*log(t) + log(x) + 2*log(y)
+
+            sage: f.simplify_log('ratios')
+            log(sqrt(t)*x*y^2)
+
+            sage: f.simplify_log()
+            log(x*y^2) + 1/2*log(t)
 
         This shows that the issue at :trac:`7334` is fixed. Maxima
         intentionally keeps the expression inside the log factored::

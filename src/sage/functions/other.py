@@ -936,7 +936,7 @@ class Function_gamma_inc(BuiltinFunction):
             sage: incomplete_gamma(RR(-1), RR(-1))
             -0.823164012103109 + 3.14159265358979*I
             sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2)))
-            1.27309721644711
+            (1.2730972164471142+0j)
 
         Check that :trac:`17130` is fixed::
 
@@ -945,13 +945,27 @@ class Function_gamma_inc(BuiltinFunction):
             sage: type(r)
             <type 'float'>
         """
-        if parent is None:
-            parent = s_parent(x)
-        try:
-            prec = parent.precision()
-        except Exception:
+        R = parent or s_parent(x)
+        # C is the complex version of R
+        # prec is the precision of R
+        if R is float:
             prec = 53
-        return parent(ComplexField(prec)(x).gamma_inc(y))
+            C = complex
+        else:
+            try:
+                prec = R.precision()
+            except AttributeError:
+                prec = 53
+            try:
+                C = R.complex_field()
+            except AttributeError:
+                C = R
+        v = ComplexField(prec)(x).gamma_inc(y)
+        if v.is_real():
+            return R(v)
+        else:
+            return C(v)
+
 
 # synonym.
 incomplete_gamma = gamma_inc=Function_gamma_inc()

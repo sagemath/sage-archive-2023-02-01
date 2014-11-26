@@ -42,9 +42,6 @@ from mrange import xmrange, mrange, xmrange_iter, mrange_iter, cartesian_product
 
 from fpickle import pickle_function, unpickle_function
 
-# deprecated
-#from bug import bug
-
 from dist import install_scripts
 
 from package import install_package, is_package_installed, standard_packages, optional_packages, experimental_packages, upgrade

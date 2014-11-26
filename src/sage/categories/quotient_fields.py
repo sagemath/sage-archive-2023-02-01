@@ -65,7 +65,7 @@ class QuotientFields(Category_singleton):
 
             AUTHOR:
 
-            - Simon King (2011-02): See trac ticket #10771
+            - Simon King (2011-02): See :trac:`10771`
 
             EXAMPLES::
 
@@ -90,23 +90,23 @@ class QuotientFields(Category_singleton):
             The following tests that the fraction field returns a correct gcd
             even if the base ring does not provide lcm and gcd::
 
-                sage: R = ZZ.extension(x^2+5,names='q'); R
-                Order in Number Field in q with defining polynomial x^2 + 5
-                sage: R.1
-                q
-                sage: gcd(R.1,R.1)
+                sage: R = ZZ.extension(x^2+1, names='i')
+                sage: i = R.1
+                sage: gcd(5, 3 + 4*i)
+                -i - 2
+                sage: P.<t> = R[]
+                sage: gcd(t, i)
                 Traceback (most recent call last):
                 ...
                 TypeError: unable to find gcd
-                sage: (R.1/1).parent()
-                Number Field in q with defining polynomial x^2 + 5
-                sage: gcd(R.1/1,R.1)
+                sage: q = t/(t+1); q.parent()
+                Fraction Field of Univariate Polynomial Ring in t over Maximal Order in Number Field in i with defining polynomial x^2 + 1
+                sage: gcd(q, q)
                 1
-                sage: gcd(R.1/1,0)
+                sage: q.gcd(0)
                 1
-                sage: gcd(R.zero(),0)
+                sage: (q*0).gcd(0)
                 0
-
             """
             try:
                 other = self.parent()(other)
@@ -146,7 +146,7 @@ class QuotientFields(Category_singleton):
 
             AUTHOR:
 
-            - Simon King (2011-02): See trac ticket #10771
+            - Simon King (2011-02): See :trac:`10771`
 
             EXAMPLES::
 
@@ -169,23 +169,21 @@ class QuotientFields(Category_singleton):
             The following tests that the fraction field returns a correct lcm
             even if the base ring does not provide lcm and gcd::
 
-                sage: R = ZZ.extension(x^2+5,names='q'); R
-                Order in Number Field in q with defining polynomial x^2 + 5
-                sage: R.1
-                q
-                sage: lcm(R.1,R.1)
+                sage: R = ZZ.extension(x^2+1, names='i')
+                sage: i = R.1
+                sage: P.<t> = R[]
+                sage: lcm(t, i)
                 Traceback (most recent call last):
                 ...
-                TypeError: unable to find lcm
-                sage: (R.1/1).parent()
-                Number Field in q with defining polynomial x^2 + 5
-                sage: lcm(R.1/1,R.1)
+                AttributeError: 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense' object has no attribute 'gcd'
+                sage: q = t/(t+1); q.parent()
+                Fraction Field of Univariate Polynomial Ring in t over Maximal Order in Number Field in i with defining polynomial x^2 + 1
+                sage: lcm(q, q)
                 1
-                sage: lcm(R.1/1,0)
+                sage: q.lcm(0)
                 0
-                sage: lcm(R.zero(),0)
+                sage: (q*0).lcm(0)
                 0
-
             """
             try:
                 other = self.parent()(other)

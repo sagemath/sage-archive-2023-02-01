@@ -148,6 +148,93 @@ class RationalFunctionFieldValuation(DiscreteValuation):
     def _repr_(self):
         return "Valuation on rational function field induced by %s"%self._base_valuation
 
+class FunctionFieldPolymodValuation(DiscreteValuation):
+    def __init__(self, domain, base_valuation):
+        from sage.rings.all import infinity
+        if base_valuation.domain() is not domain._ring:
+            raise ValueError
+        if base_valuation(domain.polynomial()) is not infinity:
+            raise ValueError
+
+        self._base_valuation = base_valuation
+        DiscreteValuation.__init__(self, domain)
+
+    def _call_(self, x):
+        return self._base_valuation(x.element())
+
+    def __hash__(self):
+        return hash(self._base_valuation) + hash(self.domain())
+
+    def _cache_key(self):
+        return self._base_valuation, self.domain()
+
+    def __cmp__(self, other):
+        if type(self) != type(other):
+            return cmp(type(self),type(other))
+        return cmp(self._base_valuation,other._base_valuation)
+
+    def shift(self, f, v):
+        if f.parent() is not self.domain():
+            raise ValueError
+
+        if v == 0:
+            return f
+        elif v < 0:
+            return f/self._base_valuation.element_with_valuation(-v)
+        else:
+            return f*self._base_valuation.element_with_valuation(v)
+
+    def value_group(self):
+        return self._base_valuation.value_group()
+
+    def residue_field(self):
+        return self._base_valuation.residue_field()
+
+    def reduce(self, f):
+        return self.residue_field()(self._base_valuation._base_valuation.reduce(f.element()))
+
+    def lift(self, F):
+        if F.parent() is not self.residue_field():
+            raise ValueError
+
+        return self.domain()(self._base_valuation._base_valuation.lift(F.element()))
+
+    def mac_lane_approximants(self, G, precision_cap=None, assume_squarefree=False):
+        # TODO: move this to discrete valuation
+        R = G.parent()
+        if R.base_ring() is not self.domain():
+            raise ValueError("G must be defined over the domain of this valuation")
+        if not assume_squarefree and not G.is_squarefree():
+            raise ValueError("G must be squarefree")
+
+        from sage.rings.all import infinity
+        from gauss_valuation import GaussValuation
+
+        leaves = [ GaussValuation(R, self)]
+        while True:
+            ef = [ v.E()*v.F() for v in leaves]
+            if sum(ef) == G.degree():
+                if precision_cap is None or all([v(v.phi())>precision_cap for v in leaves]):
+                    return leaves
+
+            expandables = []
+            new_leaves = []
+            for v in leaves:
+                if v(G) is infinity:
+                    new_leaves.append(v)
+                else:
+                    expandables.append(v)
+            leaves = new_leaves
+
+            if not expandables:
+                return leaves
+
+            for v in expandables:
+                leaves.extend(v.mac_lane_step(G))
+
+    def _repr_(self):
+        return "Valuation on rational function field induced by %s"%self._base_valuation
+
 from sage.structure.unique_representation import UniqueRepresentation
 class TrivialValuation(UniqueRepresentation, DiscreteValuation):
     def __init__(self, domain):

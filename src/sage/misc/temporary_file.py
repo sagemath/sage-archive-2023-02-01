@@ -147,7 +147,7 @@ def tmp_filename(name="tmp_", ext=""):
     return name
 
 
-def graphics_filename(ext='png'):
+def graphics_filename(ext='.png'):
     """
     When run from the Sage notebook, return the next available canonical
     filename for a plot/graphics file in the current working directory.
@@ -155,7 +155,7 @@ def graphics_filename(ext='png'):
 
     INPUT:
 
-    - ``ext`` -- (default: ``"png"``) A file extension (without the dot)
+    - ``ext`` -- (default: ``".png"``) A file extension (including the dot)
       for the filename.
 
     OUTPUT:
@@ -176,16 +176,28 @@ def graphics_filename(ext='png'):
     We check that it's a file inside ``SAGE_TMP`` and that the extension
     is correct::
 
-        sage: fn = graphics_filename(ext="jpeg")
+        sage: fn = graphics_filename(ext=".jpeg")
         sage: fn.startswith(str(SAGE_TMP))
         True
         sage: fn.endswith('.jpeg')
         True
+
+    Historically, it was also possible to omit the dot. This has been
+    changed in :trac:`16640` but it will still work for now::
+
+        sage: fn = graphics_filename("jpeg")
+        doctest:...: DeprecationWarning: extension must now include the dot
+        See http://trac.sagemath.org/16640 for details.
+        sage: fn.endswith('.jpeg')
+        True
     """
-    ext = '.' + ext
-    # Don't use this unsafe function except in the notebook, #15515
+    if ext[0] not in '.-':
+        from sage.misc.superseded import deprecation
+        deprecation(16640, "extension must now include the dot")
+        ext = '.' + ext
     import sage.plot.plot
     if sage.plot.plot.EMBEDDED_MODE:
+        # Don't use this unsafe function except in the notebook, #15515
         i = 0
         while os.path.exists('sage%d%s'%(i,ext)):
             i += 1

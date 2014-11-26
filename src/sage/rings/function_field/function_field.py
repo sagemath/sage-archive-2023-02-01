@@ -14,6 +14,9 @@ AUTHORS:
 
 - Syed Ahmad Lavasani (2011-12-16): added genus(), is_RationalFunctionField()
 
+- Simon King (2014-10-29): Use the same generator names for a function field
+  extension and the underlying polynomial ring.
+
 EXAMPLES:
 
 We create an extension of a rational function fields, and do some
@@ -406,13 +409,32 @@ class FunctionField_polymod(FunctionField):
         We can set the variable name, which doesn't have to be y::
 
             sage: L.<w> = K.extension(y^5 - x^3 - 3*x + x*y); L
-            Function field in w defined by y^5 + x*y - x^3 - 3*x
+            Function field in w defined by w^5 + x*w - x^3 - 3*x
+
+        TESTS:
+
+        Test that :trac:`17033` is fixed::
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: R.<x> = QQ[]
+            sage: M.<z> = K.extension(x^7-x-t)
+            sage: M(x)
+            z
+            sage: M('z')
+            z
+            sage: M('x')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert string
+
         """
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if polynomial.parent().ngens()>1 or not is_Polynomial(polynomial):
             raise TypeError("polynomial must be univariate a polynomial")
         if names is None:
             names = (polynomial.variable_name(), )
+        elif names != polynomial.variable_name():
+            polynomial = polynomial.change_variable_name(names)
         if polynomial.degree() <= 0:
             raise ValueError("polynomial must have positive degree")
         base_field = polynomial.base_ring()
@@ -475,16 +497,16 @@ class FunctionField_polymod(FunctionField):
             Function field in y defined by x^2*y^5 - 1/x
             sage: A, from_A, to_A = L.monic_integral_model('z')
             sage: A
-            Function field in z defined by y^5 - x^12
+            Function field in z defined by z^5 - x^12
             sage: from_A
             Function Field morphism:
-              From: Function field in z defined by y^5 - x^12
+              From: Function field in z defined by z^5 - x^12
               To:   Function field in y defined by x^2*y^5 - 1/x
               Defn: z |--> x^3*y
             sage: to_A
             Function Field morphism:
               From: Function field in y defined by x^2*y^5 - 1/x
-              To:   Function field in z defined by y^5 - x^12
+              To:   Function field in z defined by z^5 - x^12
               Defn: y |--> 1/x^3*z
             sage: to_A(y)
             1/x^3*z
@@ -782,8 +804,6 @@ class FunctionField_polymod(FunctionField):
             sage: L._element_constructor_(L.polynomial_ring().gen())
             y
         """
-        if x.parent() is self._ring:
-            return FunctionFieldElement_polymod(self, x)
         if isinstance(x, FunctionFieldElement):
             return FunctionFieldElement_polymod(self, self._ring(x.element()))
         return FunctionFieldElement_polymod(self, self._ring(x))
@@ -1161,14 +1181,40 @@ class RationalFunctionField(FunctionField):
             sage: a.parent()
             Rational function field in t over Rational Field
 
+        TESTS:
+
+        Conversion of a string::
+
+            sage: K('t')
+            t
+            sage: K('1/t')
+            1/t
+
+        Conversion of a constant polynomial over the function field::
+
+            sage: K(K.polynomial_ring().one())
+            1
+
+        Some indirect test of conversion::
+
+            sage: S.<x, y> = K[]
+            sage: I = S*[x^2 - y^2, y-t]
+            sage: I.groebner_basis()
+            [x^2 - t^2, y - t]
+
         """
-        if x.parent() is self._field:
-            return FunctionFieldElement_rational(self, x)
         if isinstance(x, FunctionFieldElement):
-            return FunctionFieldElement_rational(self, self._field(x.element()))
-        if x.parent() is self.polynomial_ring():
-            return x[0]
-        return FunctionFieldElement_rational(self, self._field(x))
+            return FunctionFieldElement_rational(self, self._field(x._x))
+        try:
+            x = self._field(x)
+        except TypeError, Err:
+            try:
+                if x.parent() is self.polynomial_ring():
+                    return x[0]
+            except AttributeError:
+                pass
+            raise Err
+        return FunctionFieldElement_rational(self, x)
 
     def _to_bivariate_polynomial(self, f):
         """

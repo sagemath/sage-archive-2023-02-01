@@ -5,7 +5,7 @@ Sets
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -18,7 +18,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import, LazyImport
 from sage.misc.lazy_format import LazyFormat
 from sage.misc.superseded import deprecated_function_alias
-from sage.categories.category import Category, HomCategory
+from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
@@ -734,21 +734,48 @@ class Sets(Category_singleton):
             r"""
             Return the full subcategory of the facade objects of ``self``.
 
-            A *facade set* is a parent ``P`` whose elements actually belong to
-            some other parent::
+            .. _facade-sets:
 
-                sage: P = Sets().example(); P
-                Set of prime numbers (basic implementation)
-                sage: p = Sets().example().an_element(); p
-                47
-                sage: p in P
-                True
+            .. RUBRIC:: What is a facade set?
+
+            Recall that, in Sage, :ref:`sets are modelled by *parents*
+            <category-primer-parents-elements-categories>`, and their
+            elements know which distinguished set they belong to. For
+            example, the ring of integers `\ZZ` is modelled by the
+            parent :obj:`ZZ`, and integers know that they belong to
+            this set::
+
+                sage: ZZ
+                Integer Ring
+                sage: 42.parent()
+                Integer Ring
+
+            Sometimes, it is convenient to represent the elements of a
+            parent ``P`` by elements of some other parent. For
+            example, the elements of the set of prime numbers are
+            represented by plain integers::
+
+                sage: Primes()
+                Set of all prime numbers: 2, 3, 5, 7, ...
+                sage: p = Primes().an_element(); p
+                43
                 sage: p.parent()
                 Integer Ring
+
+            In this case, ``P`` is called a *facade set*.
+
+            This feature is advertised through the category of `P`::
+
+                sage: Primes().category()
+                Category of facade infinite enumerated sets
+                sage: Sets().Facade()
+                Category of facade sets
 
             Typical use cases include modeling a subset of an existing
             parent::
 
+                sage: Set([4,6,9])                    # random
+                {4, 6, 9}
                 sage: Sets().Facade().example()
                 An example of facade set: the monoid of positive integers
 
@@ -757,34 +784,55 @@ class Sets(Category_singleton):
                 sage: Sets().Facade().example("union")
                 An example of a facade set: the integers completed by +-infinity
 
-            or endowing a parent with more (or less!) structure::
+            or endowing an existing parent with more (or less!)
+            structure::
 
                 sage: Posets().example("facade")
                 An example of a facade poset: the positive integers ordered by divisibility
 
-            Let us consider one of the examples above in detail: the partially ordered
-            set `P` of positive integers w.r.t. divisibility order. There are two
-            options for representing its elements:
+            Let us investigate in detail a close variant of this last
+            example: let `P` be set of divisors of `12` partially
+            ordered by divisibility. There are two options for
+            representing its elements:
 
-            1. as plain integers
-            2. as integers, modified to be aware that their parent is `P`
+            1. as plain integers::
 
-            The advantage of 1. is that one needs not to do conversions back and
-            forth between `P` and `\ZZ`. The disadvantage is that this
-            introduces an ambiguity when writing `2 < 3`::
+                sage: P = Poset((divisors(12), attrcall("divides")), facade=True)
+
+            2. as integers, modified to be aware that their parent is `P`::
+
+                sage: Q = Poset((divisors(12), attrcall("divides")), facade=False)
+
+            The advantage of option 1. is that one needs not do
+            conversions back and forth between `P` and `\ZZ`. The
+            disadvantage is that this introduces an ambiguity when
+            writing `2 < 3`: does this compare `2` and `3` w.r.t. the
+            natural order on integers or w.r.t. divisibility?::
 
                 sage: 2 < 3
                 True
 
-            To raise this ambiguity, one needs to explicitly specify the order
-            as in `2 <_P 3`::
+            To raise this ambiguity, one needs to explicitly specify
+            the underlying poset as in `2 <_P 3`::
 
                 sage: P = Posets().example("facade")
                 sage: P.lt(2,3)
                 False
 
+            On the other hand, with option 2. and once constructed,
+            the elements know unambiguously how to compare
+            themselves::
+
+                sage: Q(2) < Q(3)
+                False
+                sage: Q(2) < Q(6)
+                True
+
             Beware that ``P(2)`` is still the integer `2`. Therefore
-            ``P(2) < P(3)`` still compares `2` and `3` as integers!
+            ``P(2) < P(3)`` still compares `2` and `3` as integers!::
+
+                sage: P(2) < P(3)
+                True
 
             In short `P` being a facade parent is one of the programmatic
             counterparts (with e.g. coercions) of the usual mathematical idiom:
@@ -797,7 +845,9 @@ class Sets(Category_singleton):
 
             .. SEEALSO::
 
-               ::
+               The following examples illustrate various ways to
+               implement subsets like the set of prime numbers; look
+               at their code for details::
 
                    sage: Sets().example("facade")
                    Set of prime numbers (facade implementation)
@@ -806,7 +856,7 @@ class Sets(Category_singleton):
                    sage: Sets().example("wrapper")
                    Set of prime numbers (wrapper implementation)
 
-            .. rubric:: Specifications
+            .. RUBRIC:: Specifications
 
             A parent which is a facade must either:
 
@@ -838,7 +888,7 @@ class Sets(Category_singleton):
             """
             return self._with_axiom('Facade')
 
-        Facades = Facade
+        Facades = deprecated_function_alias(17073, Facade)
 
     class ParentMethods:
 #         # currently overriden by the default implementation in sage.structure.Parent
@@ -1475,6 +1525,8 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
 
 
     class ElementMethods:
+        ## Should eventually contain the basic operations which are no math
+        ## latex, hash, ...
         ##def equal(x,y):
         ##def =(x,y):
 
@@ -1500,10 +1552,6 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
             assert all(isinstance(element, Element) for element in elements)
             parents = [parent(element) for element in elements]
             return cartesian_product(parents)._cartesian_product_of_elements(elements) # good name???
-
-
-    class HomCategory(HomCategory):
-        pass
 
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)

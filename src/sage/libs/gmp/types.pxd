@@ -4,10 +4,9 @@ cdef extern from "gmp.h":
     # GMP's configuration of how many bits are stuffed into a limb
     cdef unsigned int GMP_LIMB_BITS
 
-    ### Type Declarations ###
-
     # Underlying typedefs
     ctypedef unsigned long mp_limb_t
+    ctypedef long mp_limb_signed_t
     ctypedef unsigned long mp_bitcnt_t
     ctypedef long mp_size_t
     ctypedef long mp_exp_t
@@ -36,7 +35,7 @@ cdef extern from "gmp.h":
     ctypedef struct __gmp_randstate_struct:
         pass
 
-    # User-level types
+    # User facing types
     ctypedef __mpz_struct mpz_t[1]
     ctypedef __mpq_struct mpq_t[1]
     ctypedef __mpf_struct mpf_t[1]

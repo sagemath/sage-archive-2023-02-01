@@ -90,6 +90,7 @@ from sage.repl.all       import *
 from sage.misc.sh import sh
 
 from sage.libs.all       import *
+from sage.data_structures.all import *
 from sage.doctest.all    import *
 try:
     from sage.dev.all    import *

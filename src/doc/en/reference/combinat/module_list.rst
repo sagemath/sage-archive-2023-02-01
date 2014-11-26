@@ -225,6 +225,7 @@ Alphabetical module list
     sage/combinat/root_system/type_G
     sage/combinat/root_system/type_H
     sage/combinat/root_system/type_I
+    sage/combinat/root_system/type_marked
     sage/combinat/root_system/type_reducible
     sage/combinat/root_system/type_relabel
     sage/combinat/root_system/weight_lattice_realizations

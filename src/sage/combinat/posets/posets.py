@@ -3239,12 +3239,14 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('the input is not a finite poset')
+        othermax = other.maximal_elements()
+        othermin = other.minimal_elements()
 
         dg = DiGraph()
         dg.add_vertices([(s, t) for s in self for t in other])
         dg.add_edges([((s, t), (s2, t2))
                       for s, s2 in self.cover_relations_iterator()
-                      for t in other for t2 in other])
+                      for t in othermax for t2 in othermin])
         dg.add_edges([((s, t), (s, t2))
                       for s in self
                       for t, t2 in other.cover_relations_iterator()])

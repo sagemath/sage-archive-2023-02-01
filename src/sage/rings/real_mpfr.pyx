@@ -3769,7 +3769,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def is_integer(self):
         """
-        Return ``True`` if this number is a integer
+        Return ``True`` if this number is a integer.
 
         EXAMPLES::
         
@@ -3778,7 +3778,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(0.1).is_integer()
             False
         """
-        return self in ZZ
+        return mpfr_integer_p(self.value) != 0
 
     def __nonzero__(self):
         """

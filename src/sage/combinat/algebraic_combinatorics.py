@@ -12,9 +12,9 @@ Thematic tutorials
 
 .. TODO:: get Sphinx to create those cross links properly
 
-- `Algebraic Combinatorics in Sage <../../../../../thematic_tutorials/algebraic_combinatorics.html>`_
-- `Lie Methods and Related Combinatorics in Sage <../../../../../thematic_tutorials/lie.html>`_
-- `Linear Programming (Mixed Integer) <../../../../../thematic_tutorials/linear_programming.html>`_
+- `Algebraic Combinatorics in Sage <../../../../thematic_tutorials/algebraic_combinatorics.html>`_
+- `Lie Methods and Related Combinatorics in Sage <../../../../thematic_tutorials/lie.html>`_
+- `Linear Programming (Mixed Integer) <../../../../thematic_tutorials/linear_programming.html>`_
 
 Enumerated sets of combinatorial objects
 ----------------------------------------

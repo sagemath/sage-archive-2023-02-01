@@ -18,6 +18,8 @@ from sage.rings.number_field.number_field import CyclotomicField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.all import ZZ
 
+# TODO: Much of the colored permutations (and element) class can be
+#   generalized to `G \wr S_n`
 class ColoredPermutation(MultiplicativeGroupElement):
     """
     A colored permutation.
@@ -219,6 +221,7 @@ class ColoredPermutation(MultiplicativeGroupElement):
         D = diagonal_matrix(Cp, [g**i for i in self._colors])
         return self._perm.to_matrix() * D
 
+# TODO: Parts of this should be put in the category of complex reflection groups
 class ColoredPermutations(Parent, UniqueRepresentation):
     r"""
     The group of `m`-colored permutations on `\{1, 2, \ldots, n\}`.
@@ -729,6 +732,28 @@ class SignedPermutations(ColoredPermutations):
     group, the Coxeter group of type `B_n`, and the 2-colored permutation
     group. Thus it can be constructed as the wreath product `S_2 \wr S_n`.
 
+    EXAMPLES::
+
+        sage: S = SignedPermutations(4)
+        sage: s1,s2,s3,s4 = S.group_generators()
+        sage: x = s4*s1*s2*s3*s4; x
+        [-4, 1, 2, -3]
+        sage: x^4 == S.one()
+        True
+
+    This is a finite Coxeter group of type `B_n`::
+
+        sage: S.canonical_representation()
+        Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        [1 3 2 2]
+        [3 1 3 2]
+        [2 3 1 4]
+        [2 2 4 1]
+        sage: S.long_element()
+        [-4, -3, -2, -1]
+        sage: S.long_element().reduced_word()
+        [4, 3, 4, 2, 3, 4, 1, 2, 3, 4]
+
     REFERENCES:
 
     - :wikipedia:`Hyperoctahedral_group`
@@ -881,6 +906,22 @@ class SignedPermutations(ColoredPermutations):
             (1, 2, 3, 4)
         """
         return tuple(range(1, self._n+1))
+
+    def coxeter_matrix(self):
+        """
+        Return the Coxeter matrix of ``self``.
+
+        EXAMPLES::
+
+            sage: S = SignedPermutations(4)
+            sage: S.coxeter_matrix()
+            [1 3 2 2]
+            [3 1 3 2]
+            [2 3 1 4]
+            [2 2 4 1]
+        """
+        from sage.combinat.root_system.cartan_type import CartanType
+        return CartanType(['B', self._n]).coxeter_matrix()
 
     def long_element(self, index_set=None):
         """

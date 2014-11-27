@@ -39,13 +39,14 @@ from random import randint
 import zipfile
 from cStringIO import StringIO
 
-import sage.misc.misc
+from sage.misc.misc import sage_makedirs
+from sage.env import SAGE_LOCAL
 
 from sage.modules.free_module_element import vector
 
 from sage.rings.real_double import RDF
 from sage.misc.functional import sqrt, atan, acos
-from sage.misc.temporary_file import tmp_filename
+from sage.misc.temporary_file import tmp_filename, graphics_filename
 
 from texture import Texture, is_Texture
 from transform cimport Transformation, point_c, face_c
@@ -135,7 +136,6 @@ cdef class Graphics3d(SageObject):
             viewer = 'tachyon'
         ### Second, return the corresponding graphics file
         if viewer == 'jmol':
-            from sage.misc.temporary_file import tmp_filename
             filename = tmp_filename(
                 ext=os.path.extsep + Mime.extension(Mime.JMOL))
             self.save(filename)
@@ -1090,7 +1090,7 @@ end_scene""" % (render_params.antialiasing,
 
         return opts
 
-    def show(self, **kwds):
+    def show(self, *, filename=None, **kwds):
         """
         INPUT:
 
@@ -1106,8 +1106,8 @@ end_scene""" % (render_params.antialiasing,
            * 'canvas3d': Web-based 3D viewer powered by JavaScript and
              <canvas> (notebook only)
 
-        -  ``filename`` -- string (default: a temp file); file
-           to save the image to
+        -  ``filename`` -- string (default: a temp file); filename
+           without extension to save the image file(s) to
 
         -  ``verbosity`` -- display information about rendering
            the figure
@@ -1180,8 +1180,20 @@ end_scene""" % (render_params.antialiasing,
         the plot rendered inline using HTML canvas::
 
             sage: p.show(viewer='canvas3d')
-        """
 
+        From the command line, you probably want to specify an explicit
+        filename::
+
+            sage: basedir = tmp_dir()
+            sage: basename = os.path.join(basedir, "xyz")
+            sage: p.show(filename=basename)
+
+        In this doctest, we see many files because we test various
+        viewers::
+
+            sage: sorted(os.listdir(basedir))
+            ['xyz-size500.spt', 'xyz-size500.spt.zip', 'xyz.mtl', 'xyz.obj', 'xyz.png']
+        """
         opts = self._process_viewing_options(kwds)
 
         viewer = opts['viewer']
@@ -1193,65 +1205,62 @@ end_scene""" % (render_params.antialiasing,
         frame = opts['frame']
         axes = opts['axes']
 
-        import sage.misc.misc
-        try:
-            filename = kwds.pop('filename')
-        except KeyError:
-            filename = tmp_filename()
+        basename = filename  # Filename without extension
+        filename = None  # Filename with extension of the plot result
+
+        def makename(ext):
+            if basename is not None:
+                return basename + ext
+            else:
+                return graphics_filename(ext=ext)
 
         from sage.plot.plot import EMBEDDED_MODE
         from sage.doctest import DOCTEST_MODE
-        ext = None
 
         # Tachyon resolution options
         if DOCTEST_MODE:
-            opts = '-res 10 10'
-            filename = os.path.join(sage.misc.misc.SAGE_TMP, "tmp")
-        elif EMBEDDED_MODE:
-            opts = '-res %s %s'%(figsize[0]*100, figsize[1]*100)
-            filename = sage.misc.temporary_file.graphics_filename()[:-4]
+            tachyon_opts = '-res 10 10'
         else:
-            opts = '-res %s %s'%(figsize[0]*100, figsize[1]*100)
+            tachyon_opts = '-res %s %s'%(figsize[0]*100, figsize[1]*100)
 
         if DOCTEST_MODE or viewer=='tachyon' or (viewer=='java3d' and EMBEDDED_MODE):
             T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-            tachyon_rt(T.tachyon(), filename+".png", verbosity, True, opts)
-            ext = "png"
+            filename = makename(".png")
+            tachyon_rt(T.tachyon(), filename, verbosity, True, tachyon_opts)
             import sage.misc.viewer
             viewer_app = sage.misc.viewer.png_viewer()
 
         if DOCTEST_MODE or viewer=='java3d':
-            f = open(filename+".obj", "w")
-            f.write("mtllib %s.mtl\n" % filename)
-            f.write(self.obj())
-            f.close()
-            f = open(filename+".mtl", "w")
-            f.write(self.mtl_str())
-            f.close()
-            ext = "obj"
-            viewer_app = os.path.join(sage.misc.misc.SAGE_LOCAL, "bin/sage3d")
+            mtl = makename(".mtl")
+            filename = makename(".obj")
+            with open(filename, "w") as f:
+                f.write("mtllib %s\n" % mtl)
+                f.write(self.obj())
+            with open(mtl, "w") as f:
+                f.write(self.mtl_str())
+            viewer_app = os.path.join(SAGE_LOCAL, "bin", "sage3d")
 
         if DOCTEST_MODE or viewer=='jmol':
             # Temporary hack: encode the desired applet size in the end of the filename:
             # (This will be removed once we have dynamic resizing of applets in the browser.)
-            base, ext = os.path.splitext(filename)
             fg = figsize[0]
-            filename = '%s-size%s%s'%(base, fg*100, ext)
+            sizedname = lambda ext: makename("-size{}{}".format(fg*100, ext))
 
             if EMBEDDED_MODE:
-                ext = "jmol"
                 # jmol doesn't seem to correctly parse the ?params part of a URL
-                archive_name = "%s-%s.%s.zip" % (filename, randint(0, 1 << 30), ext)
+                archive_name = sizedname(
+                    "-{}.jmol.zip".format(randint(0, 1 << 30)))
+                filename = sizedname(".jmol")
             else:
-                ext = "spt"
-                archive_name = "%s.%s.zip" % (filename, ext)
-                with open(filename + '.' + ext, 'w') as f:
+                archive_name = sizedname(".spt.zip".format(fg))
+                filename = sizedname(".spt")
+                with open(filename, 'w') as f:
                     f.write('set defaultdirectory "{0}"\n'.format(archive_name))
                     f.write('script SCRIPT\n')
 
             T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, zoom=zoom*100, **kwds)
-            viewer_app = os.path.join(sage.misc.misc.SAGE_LOCAL, "bin", "jmol")
+            viewer_app = os.path.join(SAGE_LOCAL, "bin", "jmol")
 
             # If the server has a Java installation we can make better static images with Jmol
             # Test for Java then make image with Jmol or Tachyon if no JavaVM
@@ -1262,14 +1271,14 @@ end_scene""" % (render_params.antialiasing,
                 # button.
                 import sagenb
                 path = "cells/%s/%s" %(sagenb.notebook.interact.SAGE_CELL_ID, archive_name)
-                with open(filename + '.' + ext, 'w') as f:
+                with open(filename, 'w') as f:
                     f.write('set defaultdirectory "%s"\n' % path)
                     f.write('script SCRIPT\n')
 
                 # Filename for the static image
                 png_path = '.jmol_images'
-                sage.misc.misc.sage_makedirs(png_path)
-                png_name = os.path.join(png_path, filename + ".jmol.png")
+                sage_makedirs(png_path)
+                png_name = os.path.join(png_path, filename + ".png")
 
                 from sage.interfaces.jmoldata import JmolData
                 jdata = JmolData()
@@ -1282,17 +1291,18 @@ end_scene""" % (render_params.antialiasing,
                 else:
                     # Render the image with tachyon
                     T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-                    tachyon_rt(T.tachyon(), png_name, verbosity, True, opts)
+                    tachyon_rt(T.tachyon(), png_name, verbosity, True, tachyon_opts)
 
         if viewer == 'canvas3d':
+            if not EMBEDDED_MODE and not DOCTEST_MODE:
+                raise RuntimeError("canvas3d viewer is only available from the Notebook")
             T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             data = flatten_list(T.json_repr(T.default_render_params()))
-            f = open(filename + '.canvas3d', 'w')
-            f.write('[%s]' % ','.join(data))
-            f.close()
-            ext = 'canvas3d'
+            filename = makename('.canvas3d')
+            with open(filename, 'w') as f:
+                f.write('[%s]' % ','.join(data))
 
-        if ext is None:
+        if filename is None:
             raise ValueError("Unknown 3d plot type: %s" % viewer)
 
         if not DOCTEST_MODE and not EMBEDDED_MODE:
@@ -1300,7 +1310,7 @@ end_scene""" % (render_params.antialiasing,
                 pipes = "2>&1"
             else:
                 pipes = "2>/dev/null 1>/dev/null &"
-            os.system('%s "%s.%s" %s' % (viewer_app, filename, ext, pipes))
+            os.system('%s "%s" %s' % (viewer_app, filename, pipes))
 
     def save_image(self, filename=None, *args, **kwds):
         r"""
@@ -1379,7 +1389,7 @@ end_scene""" % (render_params.antialiasing,
                 out_filename = filename
             else:
                 # Save to a temporary file, and then convert using PIL
-                out_filename = sage.misc.temporary_file.tmp_filename(ext=ext)
+                out_filename = tmp_filename(ext=ext)
             tachyon_rt(T.tachyon(), out_filename, opts['verbosity'], True,
                 '-res %s %s' % (opts['figsize'][0]*100, opts['figsize'][1]*100))
             if ext != '.png':
@@ -2118,7 +2128,7 @@ class RenderParams(SageObject):
             sage: params.foo
             'x'
         """
-        self.output_file = sage.misc.misc.tmp_filename()
+        self.output_file = tmp_filename()
         self.obj_vertex_offset = 1
         self.transform_list = []
         self.transform = None

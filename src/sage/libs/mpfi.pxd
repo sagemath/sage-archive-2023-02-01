@@ -1,13 +1,11 @@
+from sage.libs.gmp.types cimport *
 from sage.libs.mpfr cimport *
-
-include 'sage/ext/cdefs.pxi'
 
 cdef extern from "mpfi.h":
     ctypedef struct __mpfi_struct:
         __mpfr_struct left
         __mpfr_struct right
-    #ctypedef __mpfi_struct mpfi_t[1]
-    ctypedef __mpfi_struct* mpfi_t
+    ctypedef __mpfi_struct mpfi_t[1]
     ctypedef __mpfi_struct* mpfi_ptr
     ctypedef __mpfi_struct* mpfi_srcptr
 

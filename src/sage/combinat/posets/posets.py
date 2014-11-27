@@ -32,7 +32,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.compare_elements` | Compares `x` and `y` in the poset.
     :meth:`~FinitePoset.comparability_graph` | Returns the comparability graph of the poset.
     :meth:`~FinitePoset.cover_relations_iterator` | Returns an iterator for the cover relations of the poset.
-    :meth:`~FinitePoset.cover_relations` | Returns the list of pairs [u,v] which are cover relations
+    :meth:`~FinitePoset.cover_relations` | Returns the list of pairs `[u,v]` which are cover relations
     :meth:`~FinitePoset.covers` | Returns True if y covers x and False otherwise.
     :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
     :meth:`~FinitePoset.dilworth_decomposition` | Returns a partition of the points into the minimal number of chains.
@@ -53,6 +53,9 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.height` | Return the height (number of elements in the longest chain) of the poset.
     :meth:`~FinitePoset.incomparability_graph` | Returns the incomparability graph of the poset.
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
+    :meth:`~FinitePoset.intervals` | Returns a list of all intervals of the poset.
+    :meth:`~FinitePoset.intervals_iterator` | Returns an iterator for all the intervals of the poset.
+    :meth:`~FinitePoset.intervals_number` | Returns the number of intervals in the poset.
     :meth:`~FinitePoset.is_bounded` | Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
     :meth:`~FinitePoset.is_chain` | Returns True if the poset is totally ordered, and False otherwise.
     :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
@@ -99,8 +102,9 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.rank_function` | Returns a rank function of the poset, if it exists.
     :meth:`~FinitePoset.rank` | Returns the rank of an element, or the rank of the poset if element is None.
     :meth:`~FinitePoset.relabel` | Returns a copy of this poset with its elements relabelled
-    :meth:`~FinitePoset.relations_iterator` | Returns an iterator for all the relations of the poset.
     :meth:`~FinitePoset.relations` | Returns a list of all relations of the poset.
+    :meth:`~FinitePoset.relations_iterator` | Returns an iterator for all the relations of the poset.
+    :meth:`~FinitePoset.relations_number` | Returns the number of relations in the poset.
     :meth:`~FinitePoset.show` | Shows the Graphics object corresponding the Hasse diagram of the poset.
     :meth:`~FinitePoset.subposet` | Returns the poset containing elements with partial order induced by that of self.
     :meth:`~FinitePoset.top` | Returns the top element of the poset, if it exists.
@@ -221,7 +225,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
     OUTPUT:
 
-    ``FinitePoset`` -- an instance of the :class:`FinitePoset`` class.
+    ``FinitePoset`` -- an instance of the :class:`FinitePoset` class.
 
     If ``category`` is specified, then the poset is created in this
     category instead of :class:`FinitePosets`.
@@ -569,6 +573,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
     else:
         elements = None
     return FinitePoset(D, elements=elements, category=category, facade=facade, key=key)
+
 
 class FinitePoset(UniqueRepresentation, Parent):
     r"""
@@ -1605,6 +1610,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Returns a list of all relations of the poset.
 
+        A relation is a pair of elements `x` and `y` such that `x\leq y`
+        in ``self``.
+
+        Relations are also often called intervals. The number of
+        intervals is the dimension of the incidence algebra.
+
         OUTPUT:
 
         A list of pairs (each pair is a list), where the first element
@@ -1613,11 +1624,16 @@ class FinitePoset(UniqueRepresentation, Parent):
         Pairs are produced in a rough sort of lexicographic order,
         where earlier elements are from lower levels of the poset.
 
+        .. SEEALSO::
+
+            :meth:`relations_number`, :meth:`relations_iterator`
+
         EXAMPLES::
 
             sage: Q = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: Q.relations()
-            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3], [0, 4], [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
+            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3],
+            [0, 4], [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
 
         AUTHOR:
 
@@ -1625,17 +1641,31 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return list(self.relations_iterator())
 
-    def relations_iterator(self):
+    def relations_iterator(self, strict=False):
         r"""
         Returns an iterator for all the relations of the poset.
+
+        A relation is a pair of elements `x` and `y` such that `x\leq y`
+        in ``self``.
+
+        Relations are also often called intervals. The number of
+        intervals is the dimension of the incidence algebra.
+
+        INPUT:
+
+        - ``strict`` -- boolean (default ``False``) if ``True``, returns
+          an iterator over relations `x < y`, excluding all
+          relations `x \leq x`.
 
         OUTPUT:
 
         A generator that produces pairs (each pair is a list), where the
         first element of the pair is less than or equal to the second element.
 
-        Pairs are produced in a rough sort of lexicographic order,
-        where earlier elements are from lower levels of the poset.
+        .. SEEALSO::
+
+            :meth:`relations_number`, :meth:`relations`,
+            :meth:`maximal_chains`, :meth:`chains`
 
         EXAMPLES::
 
@@ -1643,21 +1673,62 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: type(Q.relations_iterator())
             <type 'generator'>
             sage: [z for z in Q.relations_iterator()]
-            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3], [0, 4], [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
+            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3],
+            [0, 4], [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
+
+            sage: P = posets.PentagonPoset()
+            sage: list(P.relations_iterator(strict=True))
+            [[0, 1], [0, 2], [0, 4], [0, 3], [1, 4], [2, 3], [2, 4], [3, 4]]
+
+            sage: len(list(P.relations_iterator()))
+            13
 
         AUTHOR:
 
         - Rob Beezer (2011-05-04)
         """
-        # Relies on vertices the fact that _elements correspond to the rows and
-        # columns of the lequal matrix
-        leq_mat = self.lequal_matrix()
-        n = leq_mat.nrows()
         elements = self._elements
-        for i in range(n):
-            for j in range(i, n):
-                if leq_mat[i,j]:
+        hd = self._hasse_diagram
+        if strict:
+            for i in hd:
+                for j in hd.breadth_first_search(i):
+                    if i != j:
+                        yield [elements[i], elements[j]]
+        else:
+            for i in hd:
+                for j in hd.breadth_first_search(i):
                     yield [elements[i], elements[j]]
+
+    def relations_number(self):
+        """
+        Return the number of relations in the poset.
+
+        A relation is a pair of elements `x` and `y` such that `x\leq y`
+        in ``self``.
+
+        Relations are also often called intervals. The number of
+        intervals is the dimension of the incidence algebra.
+
+        .. SEEALSO::
+
+            :meth:`relations_iterator`, :meth:`relations`
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tamari_lattices import TamariLattice
+            sage: TamariLattice(4).relations_number()
+            68
+
+            sage: P = posets.BooleanLattice(3)
+            sage: P.relations_number()
+            27
+        """
+        return sum(1 for x in self.relations_iterator())
+
+    # three useful aliases
+    intervals = relations
+    intervals_number = relations_number
+    intervals_iterator = relations_iterator
 
     def is_incomparable_chain_free(self, m, n = None):
         r"""
@@ -2238,7 +2309,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         label_dict = { (a,b):f(a,b) for a,b in self.cover_relations_iterator() }
         if return_raising_chains:
             raising_chains = {}
-        for a,b in self.interval_iterator():
+        for a, b in self.relations_iterator(strict=True):
             P = self.subposet(self.interval(a,b))
             max_chains = sorted( [ [ label_dict[(chain[i],chain[i+1])] for i in range(len(chain)-1) ] for chain in P.maximal_chains() ] )
             if max_chains[0] != sorted(max_chains[0]) or any( max_chains[i] == sorted(max_chains[i]) for i in range(1,len(max_chains)) ):
@@ -2582,7 +2653,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             M = M.dense_matrix()
         return M
 
-
     def lequal_matrix(self, ring = ZZ, sparse = False):
         """
         Computes the matrix whose ``(i,j)`` entry is 1 if
@@ -2659,6 +2729,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Convert a poset `P` to meet-semilattice and use it like
         ``MeetSemilattice(P).join_matrix()``.
         """
+        from sage.misc.superseded import deprecation
         deprecation(17216, "Function moved from posets to lattices.")
         return self._hasse_diagram.meet_matrix()
 
@@ -2689,6 +2760,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Convert a poset `P` to join-semilattice and use it like
         ``JoinSemilattice(P).join_matrix()``.
         """
+        from sage.misc.superseded import deprecation
         deprecation(17216, "Function moved from posets to lattices.")
         return self._hasse_diagram.join_matrix()
 
@@ -3092,24 +3164,24 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P1=Poset( (['a', 'b'], [['a', 'b']]) )
-            sage: P2=Poset( (['c', 'd'], [['c', 'd']]) )
-            sage: P=P1.disjoint_union(P2); P
+            sage: P1 = Poset( (['a', 'b'], [['a', 'b']]) )
+            sage: P2 = Poset( (['c', 'd'], [['c', 'd']]) )
+            sage: P = P1.disjoint_union(P2); P
             Finite poset containing 4 elements
             sage: sorted(P.cover_relations())
             [[(0, 'a'), (0, 'b')], [(1, 'c'), (1, 'd')]]
-            sage: P=P1.disjoint_union(P2, labels='integers');
+            sage: P = P1.disjoint_union(P2, labels='integers');
             sage: P.cover_relations()
             [[2, 3], [0, 1]]
 
-            sage: N5=Posets.PentagonPoset(); N5
+            sage: N5 = Posets.PentagonPoset(); N5
             Finite lattice containing 5 elements
             sage: N5.disjoint_union(N5)  # Union of lattices is not a lattice
             Finite poset containing 10 elements
 
         We show how to get literally direct sum with elements untouched::
 
-            sage: P=P1.disjoint_union(P2).relabel(lambda x: x[1])
+            sage: P = P1.disjoint_union(P2).relabel(lambda x: x[1])
             sage: sorted(P.cover_relations())
             [['a', 'b'], ['c', 'd']]
 
@@ -3148,9 +3220,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P1=Poset( ([1, 2, 3, 4], [[1, 2], [1, 3], [1, 4]]) )
-            sage: P2=Poset( ([1, 2, 3,], [[2,1], [3,1]]) )
-            sage: P3=P1.ordinal_sum(P2); P3
+            sage: P1 = Poset( ([1, 2, 3, 4], [[1, 2], [1, 3], [1, 4]]) )
+            sage: P2 = Poset( ([1, 2, 3,], [[2,1], [3,1]]) )
+            sage: P3 = P1.ordinal_sum(P2); P3
             Finite poset containing 7 elements
             sage: len(P1.maximal_elements())*len(P2.minimal_elements())
             6
@@ -3160,17 +3232,17 @@ class FinitePoset(UniqueRepresentation, Parent):
             11
             sage: P3.list()  # random
             [(0, 1), (0, 2), (0, 4), (0, 3), (1, 2), (1, 3), (1, 1)]
-            sage: P4=P1.ordinal_sum(P2, labels='integers')
+            sage: P4 = P1.ordinal_sum(P2, labels='integers')
             sage: P4.list()  # random
             [0, 1, 2, 3, 5, 6, 4]
 
         Return type depends on input types::
 
-            sage: P=Poset({1:[2]}); P
+            sage: P = Poset({1:[2]}); P
             Finite poset containing 2 elements
-            sage: JL=JoinSemilattice({1:[2]}); JL
+            sage: JL = JoinSemilattice({1:[2]}); JL
             Finite join-semilattice containing 2 elements
-            sage: L=LatticePoset({1:[2]}); L
+            sage: L = LatticePoset({1:[2]}); L
             Finite lattice containing 2 elements
             sage: P.ordinal_sum(L)
             Finite poset containing 4 elements
@@ -3178,7 +3250,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite join-semilattice containing 4 elements
             sage: L.ordinal_sum(L)
             Finite lattice containing 4 elements
-
         """
         from sage.categories.lattice_posets import LatticePosets
         from sage.combinat.posets.lattices import LatticePoset, \
@@ -3206,19 +3277,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             isinstance(other, FiniteJoinSemilattice)):
             return JoinSemilattice(G)
         return Poset(G)
-
-    def interval_iterator(self):
-        """
-        Returns an iterator over all pairs `x<y` in ``self``.
-
-        EXAMPLES::
-
-            sage: list(Posets.PentagonPoset().interval_iterator())
-            [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], [2, 4], [3, 4]]
-
-        .. SEEALSO:: :meth:`maximal_chains`, :meth:`chains`
-        """
-        return self.chains().elements_of_depth_iterator(2)
 
     def dual(self):
         """
@@ -3380,7 +3438,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             [0, 1, 2, 3, 4, 5]
             sage: Q.cover_relations()
             [[0, 1], [0, 2], [1, 4], [2, 3], [2, 4], [3, 5], [4, 5]]
- 
+
         As a facade::
 
             sage: P = Poset((divisors(12), attrcall("divides")), facade=True, linear_extension=True)
@@ -3541,7 +3599,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
         # Type checking is performed by the following line:
-        elements  = [self(e) for e in elements]
+        elements = [self(e) for e in elements]
         relations = []
         for u in elements:
             for v in elements:
@@ -3734,7 +3792,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return all maximal antichains of the poset.
 
         EXAMPLES::
-        
+
             sage: P=Poset({'a':['b', 'c'], 'b':['d','e']})
             sage: P.maximal_antichains()
             [['a'], ['b', 'c'], ['c', 'd', 'e']]

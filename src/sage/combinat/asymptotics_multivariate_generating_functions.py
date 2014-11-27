@@ -3339,6 +3339,24 @@ class FFPDElement(sage.structure.element.RingElement):
         return FFPDSum([left, right]).sum()
 
 
+    def _mul_(left, right):
+        r"""
+
+        EXAMPLES::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: Q = FFDR(R)
+            sage: f = Q(2, [(x, 1), (x*y + 1, 1), (x*y^2 + 1, 1)])
+            sage: g = Q(2*x*y, [(y, 1), (x*y + 1, 1), (x^2*y + 1, 1)])
+            sage: f * g
+            (4, [(x*y + 1, 1), (x*y + 1, 1), (x*y^2 + 1, 1), (x^2*y + 1, 1)])
+        """
+        numer = left.numerator() * right.numerator()
+        df = left.denominator_factored() + right.denominator_factored()
+        return left.parent()(numer, df)
+
+
 class FractionWithFactoredDenominatorRing(
     sage.structure.unique_representation.UniqueRepresentation,
     sage.rings.ring.Ring):

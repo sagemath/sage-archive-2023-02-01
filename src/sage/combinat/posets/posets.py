@@ -947,7 +947,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             try:
                 return self._element_to_vertex_dict[element]
             except KeyError:
-                raise ValueError("element (=%s) not in poset"%element)
+                raise ValueError("element (=%s) not in poset" % element)
 
     def _vertex_to_element(self, vertex):
         """
@@ -1082,7 +1082,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         try:
             return self._list[self._element_to_vertex_dict[element]]
         except KeyError:
-            raise ValueError("%s is not an element of this poset"%type(element))
+            raise ValueError("%s is not an element of this poset"
+                             % type(element))
 
     def __call__(self, element):
         """
@@ -2947,7 +2948,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         def f(antichain):
             return element_constructor(vertex_to_element(x) for x in antichain)
         result = self._hasse_diagram.antichains(element_class = f)
-        result.rename("Set of antichains of %s"%self)
+        result.rename("Set of antichains of %s" % self)
         return result
 
     def antichains_iterator(self):
@@ -3242,8 +3243,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             ValueError: labels must be either 'pairs' or 'integers'
         """
         from sage.combinat.posets.lattices import LatticePoset, \
-             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
-             FiniteMeetSemilattice, FiniteJoinSemilattice
+             FiniteLatticePoset
 
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('the input is not a finite poset')
@@ -3266,12 +3266,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         if (isinstance(self, FiniteLatticePoset) and
             isinstance(other, FiniteLatticePoset)):
             return LatticePoset(dg)
-        if (isinstance(self, FiniteMeetSemilattice) and
-            isinstance(other, FiniteMeetSemilattice)):
-            return MeetSemilattice(dg)
-        if (isinstance(self, FiniteJoinSemilattice) and
-            isinstance(other, FiniteJoinSemilattice)):
-            return JoinSemilattice(dg)
         return Poset(dg)
 
     def ordinal_sum(self, other, labels='pairs'):
@@ -3630,7 +3624,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         s = '%s {\n' % graph_string
         for v in reversed(self.list()):
-            s+= '"%s";'%v
+            s+= '"%s";' % v
         s+= '\n'
         for u, v in self.cover_relations_iterator():
             s+= '"%s"%s"%s";' % (v, edge_string, u)

@@ -955,8 +955,9 @@ cdef class Ring(ParentWithGens):
 
         Make sure :trac:`10481` is fixed::
 
-            sage: x = var('x')
-            sage: R.<a>=ZZ['x'].quo(x^2)
+            sage: var(x)
+            x
+            sage: R.<a>=ZZ[x].quo(x^2)
             sage: R.fraction_field()
             Traceback (most recent call last):
             ...

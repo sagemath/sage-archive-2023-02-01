@@ -1222,7 +1222,7 @@ cdef class Matrix(matrix1.Matrix):
         # resulted in further exceptions/ errors.
         from sage.symbolic.ring import is_SymbolicExpressionRing
 
-        var = 'A0123456789' if is_SymbolicExpressionRing(R) else 'x'
+        var = R('A0123456789') if is_SymbolicExpressionRing(R) else 'x'
         try:
             c = self.charpoly(var, algorithm="df")[0]
         except ValueError:
@@ -10290,7 +10290,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: p, S = A.cyclic_subspace(v, var='T'); p
             T^3 - 9*T^2 + 24*T - 16
             sage: gen = polygen(QQ, 'z')
-            sage: p, S = A.cyclic_subspace(v, var='z'); p
+            sage: p, S = A.cyclic_subspace(v, var=gen); p
             z^3 - 9*z^2 + 24*z - 16
             sage: p.degree() == E.dimension()
             True

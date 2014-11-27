@@ -156,6 +156,7 @@ from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
 
+
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
     r"""
     Construct a finite poset from various forms of input data.
@@ -1184,7 +1185,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P5._repr_()
             'Finite poset containing 7 elements'
         """
-        s =  "Finite poset containing %s elements"%self._hasse_diagram.order()
+        s = "Finite poset containing %s elements" % self._hasse_diagram.order()
         if self._with_linear_extension:
             s += " with distinguished linear extension"
         return s
@@ -1970,13 +1971,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.compare_elements(1,2)
 
         """
-        i, j = map(self._element_to_vertex,(x,y))
+        i, j = map(self._element_to_vertex, (x, y))
         if i == j:
             return 0
         elif self._hasse_diagram.is_less_than(i, j):
             return -1
         elif self._hasse_diagram.is_less_than(j, i):
-            return  1
+            return 1
         else:
             return None
 
@@ -2873,12 +2874,13 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('The input is not a finite poset.')
-        L=self._hasse_diagram.transitive_closure().subgraph_search_iterator(other._hasse_diagram.transitive_closure(), induced=True)
+        L = self._hasse_diagram.transitive_closure().subgraph_search_iterator(other._hasse_diagram.transitive_closure(), induced=True)
         # Since subgraph_search_iterator returns labelled copies, we
         # remove duplicates.
         return [self.subposet([self._list[i] for i in x]) for x in uniq([frozenset(y) for y in L])]
 
     import __builtin__ # Caveat: list is overridden by the method list above!!!
+
     def antichains(self, element_constructor = __builtin__.list):
         """
         Returns the antichains of the poset.
@@ -2941,6 +2943,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. seealso:: :meth:`maximal_antichains`
         """
         vertex_to_element = self._vertex_to_element
+
         def f(antichain):
             return element_constructor(vertex_to_element(x) for x in antichain)
         result = self._hasse_diagram.antichains(element_class = f)
@@ -3109,6 +3112,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. SEEALSO:: :meth:`maximal_chains`, :meth:`antichains`
         """
         vertex_to_element = self._vertex_to_element
+
         def f(chain):
             return element_constructor(vertex_to_element(x) for x in chain)
         if not(exclude is None):
@@ -3237,6 +3241,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             ...
             ValueError: labels must be either 'pairs' or 'integers'
         """
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
+
         if not hasattr(other, 'hasse_diagram'):
             raise ValueError('the input is not a finite poset')
         othermax = other.maximal_elements()
@@ -3255,6 +3263,15 @@ class FinitePoset(UniqueRepresentation, Parent):
         elif labels != 'pairs':
             raise ValueError("labels must be either 'pairs' or 'integers'")
 
+        if (isinstance(self, FiniteLatticePoset) and
+            isinstance(other, FiniteLatticePoset)):
+            return LatticePoset(dg)
+        if (isinstance(self, FiniteMeetSemilattice) and
+            isinstance(other, FiniteMeetSemilattice)):
+            return MeetSemilattice(dg)
+        if (isinstance(self, FiniteJoinSemilattice) and
+            isinstance(other, FiniteJoinSemilattice)):
+            return JoinSemilattice(dg)
         return Poset(dg)
 
     def ordinal_sum(self, other, labels='pairs'):
@@ -3321,7 +3338,6 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             :meth:`disjoint_union`, :meth:`ordinal_product`
         """
-        from sage.categories.lattice_posets import LatticePosets
         from sage.combinat.posets.lattices import LatticePoset, \
              JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
              FiniteMeetSemilattice, FiniteJoinSemilattice
@@ -3957,16 +3973,16 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.homology.simplicial_complex import SimplicialComplex
         L = self.list()
         if on_ints:
-            iso = dict( [ (L[i],i) for i in range(len(L)) ] )
+            iso = dict([(L[i], i) for i in range(len(L))])
 
         facets = []
         for f in self.maximal_chains():
             # TODO: factor out the logic for on_ints / facade / ...
             # We will want to do similar things elsewhere
             if on_ints:
-                facets.append([iso[a]    for a in f])
+                facets.append([iso[a] for a in f])
             elif self._is_facade:
-                facets.append([a         for a in f])
+                facets.append([a for a in f])
             else:
                 facets.append([a.element for a in f])
 
@@ -4923,6 +4939,7 @@ FinitePoset._dual_class = FinitePoset
 
 ##### Posets #####
 
+
 class FinitePosets_n(UniqueRepresentation, Parent):
     r"""
     The finite enumerated set of all posets on `n` vertices, up to an isomorphism.
@@ -5033,6 +5050,7 @@ Posets_all = Posets
 
 ##### Miscellaneous functions #####
 
+
 def is_poset(dig):
     r"""
     Tests whether a directed graph is acyclic and transitively
@@ -5048,6 +5066,7 @@ def is_poset(dig):
         True
     """
     return dig.is_directed_acyclic() and dig.is_transitively_reduced()
+
 
 def _ford_fulkerson_chronicle(G, s, t, a):
     r"""

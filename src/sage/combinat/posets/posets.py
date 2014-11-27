@@ -549,7 +549,8 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
     # Determine cover relations, if necessary.
     if cover_relations is False:
-        D = D.transitive_reduction()
+        from sage.graphs.generic_graph_pyx import transitive_reduction_acyclic
+        D = transitive_reduction_acyclic(D)
 
     # Check that the digraph does not contain loops, multiple edges
     # and is transitively reduced.

@@ -102,7 +102,7 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
 
         EXAMPLES::
 
-            sage: f = QQ[I][x].random_element()
+            sage: f = QQ[I]['x'].random_element()
             sage: type(f)
             <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_absolute_number_field_dense'>
             sage: a = QQ[I][x](x)

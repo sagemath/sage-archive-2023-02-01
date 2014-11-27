@@ -761,7 +761,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.primary_decomposition()
             Traceback (most recent call last):

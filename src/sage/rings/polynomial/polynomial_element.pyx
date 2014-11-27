@@ -2057,7 +2057,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Show the product in the symbolic ring::
 
-            sage: L = SR[x]
+            sage: L = SR['x']
             sage: var('a0,a1,b0,b1')
             (a0, a1, b0, b1)
             sage: L([a0,a1])._mul_generic(L([b0,b1]))
@@ -5032,9 +5032,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         The following examples show that :trac:`11782` has been fixed::
 
-            sage: ZZ.quo(81)[x](3*x^2 + 3*x + 3).discriminant()
+            sage: x = var('x')
+            sage: ZZ.quo(81)['x'](3*x^2 + 3*x + 3).discriminant()
             54
-            sage: ZZ.quo(9)[x](2*x^3 + x^2 + x).discriminant()
+            sage: ZZ.quo(9)['x'](2*x^3 + x^2 + x).discriminant()
             2
 
         This was fixed by :trac:`15422`::
@@ -6600,7 +6601,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Quick tests::
 
-            sage: P.<x> = ZZ[x]
+            sage: P.<x> = ZZ['x']
             sage: (x - 1).is_cyclotomic()
             True
             sage: (x + 1).is_cyclotomic()

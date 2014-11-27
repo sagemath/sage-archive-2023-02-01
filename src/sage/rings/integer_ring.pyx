@@ -457,7 +457,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
             sage: ZZ[sqrt(2), sqrt(3)]
             Relative Order in Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
-            sage: ZZ[x]
+            sage: ZZ['x']
             Univariate Polynomial Ring in x over Integer Ring
             sage: ZZ['x,y']
             Multivariate Polynomial Ring in x, y over Integer Ring

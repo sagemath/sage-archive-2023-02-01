@@ -284,7 +284,7 @@ class MPowerSeries(PowerSeries):
 
     Convert elements from polynomial rings::
 
-        sage: R = PolynomialRing(ZZ,5,T.gens())
+        sage: R = PolynomialRing(ZZ,5,T.variable_names())
         sage: t = R.gens()
         sage: r = -t[2]*t[3] + t[3]^2 + t[4]^2
         sage: T(r)

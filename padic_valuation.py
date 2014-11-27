@@ -610,6 +610,25 @@ class pAdicValuation_base(UniqueRepresentation, DiscreteValuation):
     def change_ring(self, base_ring):
         return pAdicValuation(base_ring)
 
+    def extension(self, L, algorithm="mac_lane"):
+        K = self.domain()
+        if L is K:
+            return self
+        if L.base() is not K:
+            raise ValueError("L must be a simple finite extension of %s"%K)
+
+        if algorithm == "ideal":
+            I = L.ideal(self.prime()).factor()
+            if len(I) > 1:
+                raise ValueError("extension to %s is not unique"%L)
+            return pAdicValuation(L, I[0])
+        if algorithm == "mac_lane":
+            W = self.mac_lane_approximants(L.defining_polynomial())
+            if len(W) > 1:
+                raise ValueError("extension to %s is not unique"%L)
+            prime = L.ideal(W[0].uniformizer()(L.gen()), self.residue_field().characteristic())
+            return pAdicValuation(L, prime)
+
 class pAdicValuation_padic(pAdicValuation_base):
     """
     The `p`-adic valuation of a `p`-adic ring.

@@ -864,3 +864,6 @@ class AugmentedValuation(DevelopingValuation):
 
     def change_ring(self, base_ring):
         return AugmentedValuation(self._base_valuation.change_ring(base_ring), self.phi().change_ring(base_ring), self._mu)
+
+    def uniformizer(self):
+        return self.element_with_valuation(1/self.E())

@@ -834,7 +834,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.associated_primes()
             Traceback (most recent call last):
@@ -849,7 +849,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.minimal_associated_primes()
             Traceback (most recent call last):
@@ -895,7 +895,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(2,x)
             sage: I.is_principal()
             Traceback (most recent call last):
@@ -965,8 +965,8 @@ class Ideal_generic(MonoidElement):
         EXAMPLES::
 
             sage: I = ZZ.ideal(7)
-            sage: J = ZZ[x].ideal(7,x)
-            sage: K = ZZ[x].ideal(7)
+            sage: J = ZZ['x'].ideal(7,x)
+            sage: K = ZZ['x'].ideal(7)
             sage: I.category()
             Category of ring ideals in Integer Ring
             sage: J.category()

@@ -3307,6 +3307,57 @@ class FFPD(object):
         return result
 
 
+class FractionWithFactoredDenominatorRing(
+    sage.structure.unique_representation.UniqueRepresentation,
+    sage.rings.ring.Ring):
+    r"""
+
+    """
+    def __init__(self, base, category=None):
+        r"""
+
+        TESTS::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: P.<X, Y> = ZZ[]
+            sage: FractionWithFactoredDenominatorRing(P)
+            Ring of fractions with factored denominator
+            over Multivariate Polynomial Ring in X, Y over Integer Ring
+        """
+        # test if base is PolynomialRing
+        super(FractionWithFactoredDenominatorRing, self).__init__(
+            base, category=category or sage.categories.rings.Rings())
+
+    def _repr_(self):
+        return ("Ring of fractions with factored denominator "
+                "over %s" % repr(self.base()))
+
+    def base_ring(self):
+        r"""
+
+        TESTS::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: P.<X, Y> = ZZ[]
+            sage: F = FractionWithFactoredDenominatorRing(P); F
+            Ring of fractions with factored denominator
+            over Multivariate Polynomial Ring in X, Y over Integer Ring
+            sage: F.base_ring()
+            Integer Ring
+            sage: F.base()
+            Multivariate Polynomial Ring in X, Y over Integer Ring
+        """
+        return self.base().base_ring()
+
+
+    def _element_constructor_(self,
+                              numerator=None, denominator_factored=None,
+                              quotient=None, reduce_=True):
+      return self.element_class(self,
+                                numerator, denominator_factored,
+                                quotient, reduce_)
+
+
 class FFPDSum(list):
     r"""
     A list representing the sum of :class:`FFPD` objects with distinct

@@ -6009,8 +6009,9 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: l = [(0, 1), (0, 3), (2, 0), (3, 4)]
             sage: G = DiGraph(l)
-            sage: G.longest_path().edges()
-            [(0, 3, None), (2, 0, None), (3, 4, None)]
+            sage: H = {(0, 3, None), (2, 0, None), (3, 4, None)}
+            sage: bool(H=={x for x in G.longest_path().edges()})
+            True
         """
         self._scream_if_not_simple()
 

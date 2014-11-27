@@ -3979,7 +3979,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: w=v.function([x]); w
             x |--> (x, y, x*sin(y))
             sage: w.base_ring()
-            Callable function ring with arguments (x,)
+            Callable function ring with argument x
             sage: w(4)
             (4, y, 4*sin(y))
         """

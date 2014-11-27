@@ -336,7 +336,7 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             q^2 + 9*q^4 + 28*q^6 + 73*q^8 + 126*q^10 + 252*q^12 + 344*q^14 + O(q^15),
             q^11 + O(q^15)]
         """
-        if prec == None:
+        if prec is None:
             prec = self.prec()
         else:
             prec = rings.Integer(prec)

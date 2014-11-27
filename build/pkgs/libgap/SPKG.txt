@@ -42,4 +42,4 @@ namespace collisions in Sage.
 
 === Patches === 
 
- * sparc_segfault.patch: See the GAP spkg.
+None

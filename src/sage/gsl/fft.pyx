@@ -248,6 +248,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
             sage: a = FastFourierTransform(4)
             sage: a._plot_polar(0,2)
+            Graphics object consisting of 2 graphics primitives
 
         """
         cdef int i
@@ -285,6 +286,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
             sage: a = FastFourierTransform(4)
             sage: a._plot_rect(0,3)
+            Graphics object consisting of 3 graphics primitives
 
         """
         cdef int i
@@ -333,6 +335,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: a.forward_transform()
             sage: a.inverse_transform()
             sage: (a.plot()+b.plot())
+            Graphics object consisting of 250 graphics primitives
 
         """
         if xmin is None:
@@ -410,6 +413,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: a.forward_transform()
             sage: a.inverse_transform()
             sage: (a.plot()+b.plot())
+            Graphics object consisting of 250 graphics primitives
             sage: abs(sum([CDF(a[i])-CDF(b[i]) for i in range(125)])) < 2**-16
             True
 
@@ -422,6 +426,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: a.forward_transform()
             sage: a.inverse_transform()
             sage: (a.plot()+b.plot())
+            Graphics object consisting of 256 graphics primitives
 
         """
         cdef gsl_fft_complex_wavetable * wt

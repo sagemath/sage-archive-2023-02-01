@@ -362,7 +362,7 @@ class MiniAES(SageObject):
         if len(key) != self._key_size:
             raise ValueError("secret key must be a 16-bit binary string")
 
-        N = len(B) / self._key_size  # the number of 16-bit blocks
+        N = len(B) // self._key_size  # the number of 16-bit blocks
         MS = MatrixSpace(FiniteField(self._key_size, "x"), 2, 2)
         bin = BinaryStrings()
         S = ""
@@ -1885,7 +1885,7 @@ class MiniAES(SageObject):
             raise ValueError("the number of bits in the binary string B must be positive and a multiple of 4")
         # a string with number of bits that is a multiple of 4
         if Mod(len(b), 4).lift() == 0:
-            M = len(b) / 4  # the number of nibbles
+            M = len(b) // 4  # the number of nibbles
             return [self._bin_to_GF[b[i*4 : (i+1)*4]] for i in xrange(M)]
         else:
             raise ValueError("the number of bits in the binary string B must be positive and a multiple of 4")
@@ -1955,7 +1955,7 @@ class MiniAES(SageObject):
             raise ValueError("the number of bits in the binary string B must be positive and a multiple of 4")
         # a string with number of bits that is a multiple of 4
         if Mod(len(b), 4).lift() == 0:
-            M = len(b) / 4  # the number of nibbles
+            M = len(b) // 4  # the number of nibbles
             return [self._bin_to_int[b[i*4 : (i+1)*4]] for i in xrange(M)]
         else:
             raise ValueError("the number of bits in the binary string B must be positive and a multiple of 4")

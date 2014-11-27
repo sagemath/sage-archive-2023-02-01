@@ -350,6 +350,20 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         return sage.rings.finite_rings.integer_mod.mod, (self.lift(), self.modulus(), self.parent())
 
+    def _im_gens_(self, codomain, im_gens):
+        """
+        Return the image of ``self`` under the map that sends the
+        generators of the parent to ``im_gens``.
+
+        EXAMPLE::
+
+            sage: a = Mod(7, 10)
+            sage: R = ZZ.quotient(5)
+            sage: a._im_gens_(R, (R(1),))
+            2
+        """
+        return codomain._coerce_(self)
+
     def is_nilpotent(self):
         r"""
         Return ``True`` if ``self`` is nilpotent,
@@ -1352,10 +1366,22 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     def rational_reconstruction(self):
         """
+        Use rational reconstruction to try to find a lift of this element to
+        the rational numbers.
+
         EXAMPLES::
 
             sage: R = IntegerModRing(97)
             sage: a = R(2) / R(3)
+            sage: a
+            33
+            sage: a.rational_reconstruction()
+            2/3
+
+        This method is also inherited by prime finite fields elements::
+
+            sage: k = GF(97)
+            sage: a = k(RationalField()('2/3'))
             sage: a
             33
             sage: a.rational_reconstruction()
@@ -1705,9 +1731,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         mpz_set_si(self.value, value)
         if value < 0 or mpz_cmp_si(self.__modulus.sageInteger.value, value) >= 0:
             mpz_mod(self.value, self.value, self.__modulus.sageInteger.value)
-
-    cdef mpz_t* get_value(IntegerMod_gmp self):
-        return &self.value
 
     def __lshift__(IntegerMod_gmp self, k):
         r"""

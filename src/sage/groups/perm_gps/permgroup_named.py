@@ -90,7 +90,6 @@ from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method, weak_cached_function
-from sage.misc.superseded import deprecated_function_alias
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.structure.unique_representation import CachedRepresentation
@@ -202,8 +201,6 @@ class PermutationGroup_symalt(PermutationGroup_unique):
             v = domain
 
         return super(PermutationGroup_symalt, cls).__classcall__(cls, domain=v)
-
-    set = deprecated_function_alias(10335, PermutationGroup_generic.domain)
 
 
 class SymmetricGroup(PermutationGroup_symalt):
@@ -424,6 +421,18 @@ class SymmetricGroup(PermutationGroup_symalt):
         from sage.combinat.q_analogues import q_factorial
         return q_factorial(self.degree(), parameter)
 
+    def algebra(self, base_ring):
+        """
+        Return the symmetric group algebra associated to ``self``.
+
+        EXAMPLES::
+
+            sage: S4 = SymmetricGroup(4)
+            sage: S4.algebra(QQ)
+            Symmetric group algebra of order 4 over Rational Field
+        """
+        from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
+        return SymmetricGroupAlgebra(base_ring, len(self._domain))
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -1617,7 +1626,7 @@ def TransitiveGroups(d=None):
         NotImplementedError: Only the transitive groups of order less than 30 are available in GAP's database
 
     """
-    if d == None:
+    if d is None:
         return TransitiveGroupsAll()
     else:
         d = Integer(d)
@@ -1996,7 +2005,7 @@ def PrimitiveGroups(d=None):
     enumerate groups with specified properties such as transitivity,
     solvability, ..., without creating all groups.
     """
-    if d == None:
+    if d is None:
         return PrimitiveGroupsAll()
     else:
         d = Integer(d)

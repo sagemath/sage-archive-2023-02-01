@@ -27,6 +27,7 @@ from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.posets.posets import Poset
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.sets.set import Set
+from functools import reduce
 
 def matchings(A, B):
     """
@@ -301,8 +302,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                 if s == t:
                     return False
                 for p in s:
-                    f = lambda z: z.intersection(p) != Set([])
-                    if len(filter(f, list(t)) ) != 1:
+                    if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
                         return False
                 return True
 
@@ -1575,8 +1575,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                 if s == t:
                     return False
                 for p in s:
-                    f = lambda z: z.intersection(p) != Set([])
-                    if len(filter(f, list(t)) ) != 1:
+                    if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
                         return False
                 return True
 

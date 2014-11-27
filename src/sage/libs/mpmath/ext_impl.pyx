@@ -466,8 +466,8 @@ cdef MPF_normalize(MPF *x, MPopts opts):
     # Need to be careful about rounding
     if shift > 0 and opts.prec:
         if opts.rounding == ROUND_N:
-            if mpz_tstbit_abs(&x.man, shift-1):
-                if mpz_tstbit_abs(&x.man, shift) or mpz_scan1(x.man, 0) < (shift-1):
+            if mpz_tstbit_abs(x.man, shift-1):
+                if mpz_tstbit_abs(x.man, shift) or mpz_scan1(x.man, 0) < (shift-1):
                     if sign < 0:
                         mpz_fdiv_q_2exp(x.man, x.man, shift)
                     else:
@@ -640,7 +640,7 @@ cdef _add_perturbation(MPF *r, MPF *s, int sign, MPopts opts):
     if opts.rounding == ROUND_N:
         MPF_set(r, s)
     else:
-        shift = opts.prec - mpz_sizeinbase(s, 2) + 8
+        shift = opts.prec - mpz_sizeinbase(s.man, 2) + 8
         if shift < 0:
             shift = 8
         mpz_mul_2exp(r.man, s.man, shift)
@@ -668,8 +668,8 @@ cdef MPF_add(MPF *r, MPF *s, MPF *t, MPopts opts):
         if shift >= 0:
             # |s| >> |t|
             if shift > 2*opts.prec and opts.prec:
-                sbc = mpz_sizeinbase(s,2)
-                tbc = mpz_sizeinbase(t,2)
+                sbc = mpz_sizeinbase(s.man, 2)
+                tbc = mpz_sizeinbase(t.man, 2)
                 if shift + sbc - tbc > opts.prec+8:
                     _add_perturbation(r, s, mpz_sgn(t.man), opts)
                     return
@@ -682,8 +682,8 @@ cdef MPF_add(MPF *r, MPF *s, MPF *t, MPopts opts):
             shift = -shift
             # |s| << |t|
             if shift > 2*opts.prec and opts.prec:
-                sbc = mpz_sizeinbase(s,2)
-                tbc = mpz_sizeinbase(t,2)
+                sbc = mpz_sizeinbase(s.man, 2)
+                tbc = mpz_sizeinbase(t.man, 2)
                 if shift + tbc - sbc > opts.prec+8:
                     _add_perturbation(r, t, mpz_sgn(s.man), opts)
                     return
@@ -722,8 +722,8 @@ cdef MPF_sub(MPF *r, MPF *s, MPF *t, MPopts opts):
         if shift >= 0:
             # |s| >> |t|
             if shift > 2*opts.prec and opts.prec:
-                sbc = mpz_sizeinbase(s,2)
-                tbc = mpz_sizeinbase(t,2)
+                sbc = mpz_sizeinbase(s.man, 2)
+                tbc = mpz_sizeinbase(t.man, 2)
                 if shift + sbc - tbc > opts.prec+8:
                     _add_perturbation(r, s, -mpz_sgn(t.man), opts)
                     return
@@ -736,8 +736,8 @@ cdef MPF_sub(MPF *r, MPF *s, MPF *t, MPopts opts):
             shift = -shift
             # |s| << |t|
             if shift > 2*opts.prec and opts.prec:
-                sbc = mpz_sizeinbase(s,2)
-                tbc = mpz_sizeinbase(t,2)
+                sbc = mpz_sizeinbase(s.man, 2)
+                tbc = mpz_sizeinbase(t.man, 2)
                 if shift + tbc - sbc > opts.prec+8:
                     _add_perturbation(r, t, -mpz_sgn(s.man), opts)
                     MPF_neg(r, r)

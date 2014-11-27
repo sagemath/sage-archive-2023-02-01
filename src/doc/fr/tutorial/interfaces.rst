@@ -11,15 +11,15 @@ sain.
 
 Les méthodes ``console`` et ``interact`` d'une interface avec un
 programme externe font des choses tout-à-fait différentes. Prenons
-l'exemple de GAP :
+l'exemple de GAP :
 
 #. ``gap.console()`` : Cette commande ouvre la console GAP. Cela
-   transfère le contrôle à GAP ; Sage n'est dans ce cas qu'un moyen
+   transfère le contrôle à GAP ; Sage n'est dans ce cas qu'un moyen
    commode de lancer des programmes, un peu comme le shell sous Unix.
 
 #. ``gap.interact()`` : Cette commande permet d'interagir avec une
-   instance de GAP en cours d'exécution, et éventuellement « remplie
-   d'objets Sage ». Il est possible d'importer des objets Sage dans la
+   instance de GAP en cours d'exécution, et éventuellement « remplie
+   d'objets Sage ». Il est possible d'importer des objets Sage dans la
    session GAP (y compris depuis l'interface interactive), etc.
 
 .. index: PARI; GP
@@ -29,7 +29,7 @@ GP/PARI
 
 PARI est un programme C compact, mature, fortement optimisé et
 spécialisé en théorie des nombres. Il possède deux
-interfaces très différentes utilisables depuis Sage :
+interfaces très différentes utilisables depuis Sage :
 
 -  ``gp`` - l'interpréteur "**G** o **P** ARI", et
 
@@ -57,7 +57,7 @@ démarré, la chaîne ``'znprimroot(10007)'`` est évaluée par une certaine
 fonction de la bibliothèque C PARI. Le résultat est stocké sur le tas de
 l'interpréteur Python, et la zone de mémoire utilisée est libérée
 lorsque son contenu n'est plus utilisé. Les objets renvoyés par ces deux
-commandes sont de types différents :
+commandes sont de types différents :
 
 ::
 
@@ -66,7 +66,7 @@ commandes sont de types différents :
     sage: type(pari('znprimroot(10007)'))
     <type 'sage.libs.pari.gen.gen'>
 
-Alors, laquelle des intrefaces utiliser ? Tout dépend de ce que vous
+Alors, laquelle des intrefaces utiliser ? Tout dépend de ce que vous
 cherchez à faire. L'interface GP permet de faire absolument tout ce que
 vous pourriez faire avec la ligne de commande GP/PARI habituelle,
 puisqu'elle fait appel à celle-ci. En particulier, vous pouvez
@@ -84,7 +84,7 @@ n'avez pas évalué convenablement l'espace qui nécessite. C'est une
 caractéristique commode que l'interpréteur GP habituel ne semble pas
 fournir. L'interface PARI, quant à elle, déplace immédiatement les
 objets créés en-dehors de la pile de PARI, de sorte que celle-ci ne
-grossit pas. Cependant, la taille de chaque objet est limitée à 100 Mo,
+grossit pas. Cependant, la taille de chaque objet est limitée à 100 Mo,
 sous peine que la pile ne déborde à la création de l'objet. Par
 ailleurs, cette copie supplémentaire a un léger impact sur les
 performances.)
@@ -133,7 +133,7 @@ calculs avec.
     sage: e.elltors()
     [1, [], []]
     sage: e.ellglobalred()
-    [10351, [1, -1, 0, -1], 1]
+    [10351, [1, -1, 0, -1], 1, [11, 1; 941, 1], [[1, 5, 0, 1], [1, 5, 0, 1]]]
     sage: f = e.ellchangecurve([1,-1,0,-1])
     sage: f[:5]
     [1, -1, 0, 4, 3]
@@ -165,7 +165,7 @@ installer séparément comme décrit plus bas.
     120
 
 On peut faire le même calcul en SAGE sans invoquer explicitement
-l'interface GAP comme suit :
+l'interface GAP comme suit :
 
 ::
 
@@ -195,7 +195,7 @@ autres, de calculer des pgcd de polynômes de plusieurs variables, des
 factorisations, des bases de Gröbner ou encore des bases d'espaces de
 Riemann-Roch de courbes planes. Considérons la factorisation de
 polynômes de plusieurs variables à l'aide de l'interface à Singular
-fournie par Sage (n'entrez pas les ``...``) :
+fournie par Sage (n'entrez pas les ``...``) :
 
 ::
 
@@ -278,7 +278,7 @@ pour :math:`i,j=1,\ldots,4`.
     sage: A.eigenvectors()
     [[[0,4],[3,1]],[[[1,0,0,-4],[0,1,0,-2],[0,0,1,-4/3]],[[1,2,3,4]]]]
 
-Un deuxième exemple :
+Un deuxième exemple :
 
 ::
 
@@ -307,7 +307,7 @@ Voici enfin quelques exemples de tracés de graphiques avec ``openmath``
 depuis Sage. Un grand nombre de ces exemples sont des adaptations de
 ceux du manuel de référence de Maxima.
 
-Tracé en 2D de plusieurs fonctions (n'entrez pas les ``...``) :
+Tracé en 2D de plusieurs fonctions (n'entrez pas les ``...``) :
 
 ::
 
@@ -315,7 +315,7 @@ Tracé en 2D de plusieurs fonctions (n'entrez pas les ``...``) :
     ....: '[plot_format,openmath]')
 
 Un graphique 3D interactif, que vous pouvez déplacer à la souris
-(n'entrez pas les ``...``) :
+(n'entrez pas les ``...``) :
 
 ::
 
@@ -324,7 +324,7 @@ Un graphique 3D interactif, que vous pouvez déplacer à la souris
     sage: maxima.plot3d("atan(-x^2 + y^3/4)", "[x, -4, 4]", "[y, -4, 4]", # not tested
     ....: "[grid, 50, 50]",'[plot_format, openmath]')
 
-Le célèbre ruban de Möbius (n'entrez pas les ``...``) :
+Le célèbre ruban de Möbius (n'entrez pas les ``...``) :
 
 ::
 

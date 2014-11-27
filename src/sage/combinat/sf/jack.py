@@ -478,8 +478,8 @@ def normalize_coefficients(self, c):
         b = gcd([i.numerator() for i in numer.coeffs()])
         l = Integer(a).gcd(Integer(b))
 
-        denom = denom / l
-        numer = numer / l
+        denom = denom // l
+        numer = numer // l
 
         return c.parent()(numer, denom)
     else:

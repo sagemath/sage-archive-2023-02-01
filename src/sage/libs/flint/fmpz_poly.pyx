@@ -8,22 +8,17 @@ AUTHORS:
   of coefficients of arbitrary size.
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include 'sage/ext/stdsage.pxi'
 
 from cpython.sequence cimport *
 
@@ -366,13 +361,13 @@ cdef class Fmpz_poly(SageObject):
         return res
 
     def pseudo_div(self, Fmpz_poly other):
-        cdef unsigned long d
+        cdef ulong d
         cdef Fmpz_poly Q = <Fmpz_poly>PY_NEW(Fmpz_poly)
         fmpz_poly_pseudo_div(Q.poly, &d, self.poly, other.poly)
         return Q, d
 
     def pseudo_div_rem(self, Fmpz_poly other):
-        cdef unsigned long d
+        cdef ulong d
         cdef Fmpz_poly Q = <Fmpz_poly>PY_NEW(Fmpz_poly)
         cdef Fmpz_poly R = <Fmpz_poly>PY_NEW(Fmpz_poly)
         fmpz_poly_pseudo_divrem(Q.poly, R.poly, &d, self.poly, other.poly)

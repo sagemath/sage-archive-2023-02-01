@@ -63,7 +63,7 @@ def mass__by_Siegel_densities(self, odd_algorithm="Pall", even_algorithm="Watson
     """
     ## Setup
     n = self.dim()
-    s = floor((n-1)/2)
+    s = (n-1) // 2
     if n % 2 != 0:
         char_d = squarefree_part(2*self.det())   ## Accounts for the det as a QF
     else:
@@ -173,7 +173,7 @@ def Pall_mass_density_at_odd_prime(self, p):
     ## Step 2: Compute the list of local masses for each Jordan block
     jordan_mass_list = []
     for (s,n,d) in modified_jordan_list:
-        generic_factor = prod([1 - p**(-2*j)  for j in range(1, floor((n-1)/2)+1)])
+        generic_factor = prod([1 - p**(-2*j)  for j in range(1, (n-1)//2+1)])
         #print "generic factor: ", generic_factor
         if (n % 2 == 0):
             m = n/2
@@ -364,7 +364,7 @@ def Kitaoka_mass_at_2(self):
     ## Compute P = product of the P_j
     P = QQ(1)
     for j in range(s_min, s_max + 1):
-        tmp_m = dim2_dict[j].dim() / 2
+        tmp_m = dim2_dict[j].dim() // 2
         P *= prod([QQ(1) - QQ(4**(-k))  for j in range(1, tmp_m + 1)])
 
     ## Compute the product E := prod_j (1 / E_j)
@@ -374,7 +374,7 @@ def Kitaoka_mass_at_2(self):
            ((diag_dict[j].dim() != 2) or (((diag_dict[j][0,0] - diag_dict[j][1,1]) % 4) != 0)):
 
             ## Deal with the complicated case:
-            tmp_m = dim2_dict[j].dim() / 2
+            tmp_m = dim2_dict[j].dim() // 2
             if dim2_dict[j].is_hyperbolic(2):
                 E *= 2 / (1 + 2**(-tmp_m))
             else:

@@ -5,22 +5,19 @@ Rings
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2011 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-import re
-from sage.categories.rngs import Rngs
-from sage.categories.semirings import Semirings
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton
-from category import HomCategory
 from sage.misc.cachefunc import cached_method
-import sage
+from sage.misc.lazy_import import LazyImport
+from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.rngs import Rngs
+from functools import reduce
 
-class Rings(Category_singleton):
+class Rings(CategoryWithAxiom):
     """
     The category of rings
 
@@ -28,31 +25,99 @@ class Rings(Category_singleton):
 
     EXAMPLES::
 
-      sage: Rings()
-      Category of rings
-      sage: Rings().super_categories()
-      [Category of rngs, Category of semirings]
+        sage: Rings()
+        Category of rings
+        sage: sorted(Rings().super_categories(), key=str)
+        [Category of rngs, Category of semirings]
+
+        sage: sorted(Rings().axioms())
+        ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
+         'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+
+        sage: Rings() is (CommutativeAdditiveGroups() & Monoids()).Distributive()
+        True
+        sage: Rings() is Rngs().Unital()
+        True
+        sage: Rings() is Semirings().AdditiveInverse()
+        True
 
     TESTS::
 
         sage: TestSuite(Rings()).run()
 
-    TODO (see: http://trac.sagemath.org/sage_trac/wiki/CategoriesRoadMap)
+    .. TODO::
 
-     - Make Rings() into a subcategory or alias of Algebras(ZZ);
+        (see: http://trac.sagemath.org/sage_trac/wiki/CategoriesRoadMap)
 
-     - A parent P in the category ``Rings()`` should automatically be
-       in the category ``Algebras(P)``.
+        - Make Rings() into a subcategory or alias of Algebras(ZZ);
+
+        - A parent P in the category ``Rings()`` should automatically be
+          in the category ``Algebras(P)``.
     """
 
-    def super_categories(self):
-        """
-        EXAMPLES::
+    _base_category_class_and_axiom = (Rngs, "Unital")
 
-            sage: Rings().super_categories()
-            [Category of rngs, Category of semirings]
-        """
-        return [Rngs(), Semirings()]
+    class SubcategoryMethods:
+
+        def NoZeroDivisors(self):
+            """
+            Return the full subcategory of the objects of ``self`` having
+            no nonzero zero divisors.
+
+            A *zero divisor* in a ring `R` is an element `x \in R` such
+            that there exists a nonzero element `y \in R` such that
+            `x \cdot y = 0` or `y \cdot x = 0`
+            (see :wikipedia:`Zero_divisor`).
+
+            EXAMPLES::
+
+                sage: Rings().NoZeroDivisors()
+                Category of domains
+
+            .. NOTE::
+
+                This could be generalized to
+                :class:`MagmasAndAdditiveMagmas.Distributive.AdditiveUnital`.
+
+            TESTS::
+
+                sage: TestSuite(Rings().NoZeroDivisors()).run()
+                sage: Algebras(QQ).NoZeroDivisors.__module__
+                'sage.categories.rings'
+            """
+            return self._with_axiom('NoZeroDivisors')
+
+        def Division(self):
+            """
+            Return the full subcategory of the division objects of ``self``.
+
+            A ring satisfies the *division axiom* if all non-zero
+            elements have multiplicative inverses.
+
+            .. NOTE::
+
+                This could be generalized to
+                :class:`MagmasAndAdditiveMagmas.Distributive.AdditiveUnital`.
+
+            EXAMPLES::
+
+                sage: Rings().Division()
+                Category of division rings
+                sage: Rings().Commutative().Division()
+                Category of fields
+
+            TESTS::
+
+                sage: TestSuite(Rings().Division()).run()
+                sage: Algebras(QQ).Division.__module__
+                'sage.categories.rings'
+            """
+            return self._with_axiom('Division')
+
+
+    NoZeroDivisors = LazyImport('sage.categories.domains', 'Domains', at_startup=True)
+    Division       = LazyImport('sage.categories.division_rings', 'DivisionRings', at_startup=True)
+    Commutative    = LazyImport('sage.categories.commutative_rings', 'CommutativeRings', at_startup=True)
 
     class ParentMethods:
         def is_ring(self):
@@ -321,7 +386,8 @@ class Rings(Category_singleton):
                 return
 
             # test that #12988 is fixed
-            tester.assertEqual(type(characteristic),sage.rings.integer.Integer)
+            from sage.rings.integer import Integer
+            tester.assertIsInstance(characteristic, Integer)
 
         def ideal(self, *args, **kwds):
             """
@@ -549,14 +615,13 @@ class Rings(Category_singleton):
             EXAMPLE::
 
                 sage: MS = MatrixSpace(QQ,2)
-                sage: MS.full_category_initialisation()
                 sage: I = MS*MS.gens()*MS
 
             ``MS`` is not an instance of :class:`~sage.rings.ring.Ring`.
-            But since its category was fully initalised (which is not
-            by default, by :trac:`11900`), it is an instance of
-            the parent class of the category of rings. The quotient
-            method is inherited from there::
+
+            However it is an instance of the parent class of the
+            category of rings. The quotient method is inherited from
+            there::
 
                 sage: isinstance(MS,sage.rings.ring.Ring)
                 False
@@ -839,11 +904,6 @@ class Rings(Category_singleton):
                 return False
             raise NotImplementedError
 
-    class HomCategory(HomCategory):
-        pass
-
-from sage.structure.parent_gens import _certify_names
-
 def _gen_names(elts):
     r"""
     Used to find a name for a generator when rings are created using the
@@ -859,9 +919,10 @@ def _gen_names(elts):
         sage: list(_gen_names((1..27)))[-1]
         'aa'
     """
-    from sage.symbolic.ring import is_SymbolicVariable
+    import re
+    from sage.structure.parent_gens import _certify_names
     from sage.combinat.words.words import Words
-    it = iter(Words("abcdefghijklmnopqrstuvwxyz"))
+    it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
     it.next() # skip empty word
     for x in elts:
         name = str(x)
@@ -870,6 +931,6 @@ def _gen_names(elts):
             name = "sqrt%s" % m.groups()[0]
         try:
             _certify_names([name])
-        except ValueError as msg:
+        except ValueError:
             name = it.next().string_rep()
         yield name

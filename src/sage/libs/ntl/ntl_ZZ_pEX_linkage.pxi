@@ -327,7 +327,9 @@ cdef inline int celement_pow(ZZ_pEX_c* res, ZZ_pEX_c* x, long e, ZZ_pEX_c *modul
     cdef ZZ_pEX_c y
     if modulus == NULL:
         if ZZ_pEX_IsX(x[0]):
+            sig_on()
             ZZ_pEX_LeftShift(res[0], x[0], e - 1)
+            sig_off()
         else:
             sig_on()
             ZZ_pEX_power(res[0], x[0], e)

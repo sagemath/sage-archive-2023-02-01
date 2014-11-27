@@ -1428,7 +1428,7 @@ class SageInputExpression(object):
         """
         return SIE_getattr(self._sie_builder, self, attr)
 
-    def _graphics_(self):
+    def _graphics_(self, **kwds):
         """
         Disable graphical output.
 
@@ -1440,10 +1440,10 @@ class SageInputExpression(object):
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib.name('x')
-            sage: sie._graphics_()
-            False
+            sage: sie._graphics_() is None
+            True
         """
-        return False
+        return None
 
     def __pow__(self, other):
         r"""
@@ -3212,14 +3212,14 @@ class SageInputFormatter:
 
             sage: sif = SageInputFormatter()
             sage: sif._names, sif._dup_names
-            (set([]), {})
+            (set(), {})
             sage: sif.register_name('x')
             sage: sif.register_name('y')
             sage: sif._names, sif._dup_names
-            (set(['y', 'x']), {})
+            ({'x', 'y'}, {})
             sage: sif.register_name('x')
             sage: sif._names, sif._dup_names
-            (set(['y', 'x']), {'x': 0})
+            ({'x', 'y'}, {'x': 0})
         """
         if name is None: name = 'si'
 

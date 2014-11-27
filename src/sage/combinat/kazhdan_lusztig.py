@@ -1,10 +1,11 @@
 r"""
 Kazhdan-Lusztig Polynomials
+
 AUTHORS:
 
 - Daniel Bump (2008): initial version
 
-- Alan J.X. Guo (2014-03-18): R_tilde() method.
+- Alan J.X. Guo (2014-03-18): ``R_tilde()`` method.
 
 """
 #*****************************************************************************

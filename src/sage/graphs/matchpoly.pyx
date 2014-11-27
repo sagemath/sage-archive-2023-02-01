@@ -1,5 +1,5 @@
 """
-Matching Polynomial Routine
+Matching Polynomial
 
 This module contains the following methods:
 
@@ -38,8 +38,9 @@ from sage.misc.misc import prod
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/libs/flint/fmpz.pxi'
-include 'sage/libs/flint/fmpz_poly.pxi'
+
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_poly cimport *
 
 x = polygen(ZZ, 'x')
 
@@ -196,9 +197,19 @@ def matching_polynomial(G, complement=True, name=None):
         x^12 - 66*x^10 + 1485*x^8 - 13860*x^6 + 51975*x^4 - 62370*x^2 + 10395
         sage: matching_polynomial(graphs.CompleteGraph(13), complement=False)
         x^13 - 78*x^11 + 2145*x^9 - 25740*x^7 + 135135*x^5 - 270270*x^3 + 135135*x
+        
+    TESTS:
+    
+    Non-integer labels should work, (:trac:`15545`):: 
+    
+        sage: G = Graph(10);
+        sage: G.add_vertex((0,1))
+        sage: G.add_vertex('X')
+        sage: G.matching_polynomial()
+        x^12
     """
 
-    cdef int nverts, nedges, i, j, v, cur
+    cdef int nverts, nedges, i, j, cur
     cdef int *edges1, *edges2, *edges_mem, **edges
     cdef fmpz_poly_t pol
 

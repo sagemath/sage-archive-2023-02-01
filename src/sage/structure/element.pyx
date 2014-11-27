@@ -277,16 +277,40 @@ cdef class Element(sage_object.SageObject):
 
     def __getattr__(self, str name):
         """
-        Let cat be the category of the parent of ``self``.  This
-        method emulates ``self`` being an instance of both ``Element``
-        and ``cat.element_class``, in that order, for attribute
-        lookup.
+        Lookup a method or attribute from the category abstract classes.
 
-        NOTE:
+        Let ``P`` be a parent in a category ``C``. Usually the methods
+        of ``C.element_class`` are made directly available to elements
+        of ``P`` via standard class inheritance. This is not the case
+        any more if the elements of ``P`` are instances of an
+        extension type. See :class:`Category`. for details.
 
-        Attributes beginning with two underscores but not ending with
-        an unnderscore are considered private and are thus exempted
-        from the lookup in ``cat.element_class``.
+        The purpose of this method is to emulate this inheritance: for
+        ``e`` and element of ``P``, if an attribute or method
+        ``e.foo`` is not found in the super classes of ``e``, it's
+        looked up manually in ``C.element_class`` and bound to ``e``.
+
+        .. NOTES::
+
+            - Attributes beginning with two underscores but not ending
+              with an unnderscore are considered private and are thus
+              exempted from the lookup in ``cat.element_class``.
+
+            - The attribute or method is actually looked up in
+              ``P._abstract_element_class``. In most cases this is
+              just an alias for ``C.element_class``, but some parents,
+              notably homsets, customizes this to let elements also
+              inherit from other abstract classes. See
+              :meth:`Parent._abstract_element_class` and
+              :meth:`Homset._abstract_element_class` for details.
+
+            - This mechanism may also enter into action when the
+              category of `P` is refined on the fly, leaving
+              previously constructed elements in an outdated element
+              class.
+
+              See :class:`~sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic`
+              for an example.
 
         EXAMPLES:
 
@@ -301,7 +325,7 @@ cdef class Element(sage_object.SageObject):
         category of ``CommutativeRings()``::
 
             sage: 1.is_idempotent
-            <bound method EuclideanDomains.element_class.is_idempotent of 1>
+            <bound method JoinCategory.element_class.is_idempotent of 1>
             sage: 1.is_idempotent.__module__
             'sage.categories.magmas'
 
@@ -330,7 +354,6 @@ cdef class Element(sage_object.SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute '__foo'
-
         """
         if (name.startswith('__') and not name.endswith('_')):
             dummy_error_message.cls = type(self)
@@ -341,7 +364,7 @@ cdef class Element(sage_object.SageObject):
             dummy_error_message.cls = type(self)
             dummy_error_message.name = name
             raise dummy_attribute_error
-        return getattr_from_other_class(self, P._category.element_class, name)
+        return getattr_from_other_class(self, P._abstract_element_class, name)
 
     def __dir__(self):
         """
@@ -380,7 +403,10 @@ cdef class Element(sage_object.SageObject):
             sage: R.<x,y> = QQ[]
             sage: i = ideal(x^2 - y^2 + 1)
             sage: i.__getstate__()
-            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Rational Field, {'_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Rational Field, '_Ideal_generic__gens': (x^2 - y^2 + 1,), '_gb_by_ordering': {}})
+            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Rational Field,
+             {'_Ideal_generic__gens': (x^2 - y^2 + 1,),
+              '_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Rational Field,
+              '_gb_by_ordering': {}})
         """
         return (self._parent, self.__dict__)
 
@@ -1447,6 +1473,28 @@ cdef class MonoidElement(Element):
             raise RuntimeError, "__pow__ dummy argument not used"
         return generic_power_c(self,n,None)
 
+    def powers(self, n):
+        r"""
+        Return the list `[x^0, x^1, \ldots, x^{n-1}]`.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(4)
+            sage: g = G([2, 3, 4, 1])
+            sage: g.powers(4)
+            [(), (1,2,3,4), (1,3)(2,4), (1,4,3,2)]
+        """
+        if n < 0:
+            raise ValueError("negative number of powers requested")
+        elif n == 0:
+            return []
+        x = self._parent.one_element()
+        l = [x]
+        for i in xrange(n - 1):
+            x = x * self
+            l.append(x)
+        return l
+
     def __nonzero__(self):
         return True
 
@@ -1803,6 +1851,26 @@ cdef class RingElement(ModuleElement):
             raise RuntimeError, "__pow__ dummy argument not used"
         return generic_power_c(self,n,None)
 
+    def powers(self, n):
+        r"""
+        Return the list `[x^0, x^1, \ldots, x^{n-1}]`.
+
+        EXAMPLES::
+
+            sage: 5.powers(3)
+            [1, 5, 25]
+        """
+        if n < 0:
+            raise ValueError("negative number of powers requested")
+        elif n == 0:
+            return []
+        x = self._parent.one_element()
+        l = [x]
+        for i in xrange(n - 1):
+            x = x * self
+            l.append(x)
+        return l
+
     ##################################
     # Division
     ##################################
@@ -1915,11 +1983,9 @@ def is_CommutativeRingElement(x):
     return IS_INSTANCE(x, CommutativeRingElement)
 
 cdef class CommutativeRingElement(RingElement):
-    def _im_gens_(self, codomain, im_gens):
-        if len(im_gens) == 1 and self._parent.gen(0) == 1:
-            return codomain(self)
-        raise NotImplementedError
-
+    """
+    Base class for elements of commutative rings.
+    """
     def inverse_mod(self, I):
         r"""
         Return an inverse of self modulo the ideal `I`, if defined,
@@ -2070,7 +2136,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = x^3 + x + 1
             sage: f.mod(x + 1)
-            x^3 + x + 1
+            -1
 
 
         EXAMPLE: Multivariate polynomials
@@ -2526,7 +2592,7 @@ cdef class Vector(ModuleElement):
 def is_Vector(x):
     return IS_INSTANCE(x, Vector)
 
-cdef class Matrix(AlgebraElement):
+cdef class Matrix(ModuleElement):
 
     cdef bint is_sparse_c(self):
         raise NotImplementedError
@@ -2540,36 +2606,6 @@ cdef class Matrix(AlgebraElement):
         else:
             global coercion_model
             return coercion_model.bin_op(left, right, imul)
-
-    cpdef RingElement _mul_(left, RingElement right):
-        """
-        TESTS::
-
-            sage: m = matrix
-            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
-            sage: 3*a
-            [[ 3  6]
-            [ 9 12] [15 18]
-            [21 24]]
-            [[27 30]
-            [33 36] [39 42]
-            [45 48]]
-
-            sage: m = matrix
-            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
-            sage: a*3
-            [[ 3  6]
-            [ 9 12] [15 18]
-            [21 24]]
-            [[27 30]
-            [33 36] [39 42]
-            [45 48]]
-        """
-        if have_same_parent(left, right):
-            return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(left, right, mul)
 
     def __mul__(left, right):
         """
@@ -2732,12 +2768,93 @@ cdef class Matrix(AlgebraElement):
             ...
             TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
 
+        Examples with matrices having matrix coefficients::
+
+            sage: m = matrix
+            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
+            sage: 3*a
+            [[ 3  6]
+            [ 9 12] [15 18]
+            [21 24]]
+            [[27 30]
+            [33 36] [39 42]
+            [45 48]]
+
+            sage: m = matrix
+            sage: a = m([[m([[1,2],[3,4]]),m([[5,6],[7,8]])],[m([[9,10],[11,12]]),m([[13,14],[15,16]])]])
+            sage: a*3
+            [[ 3  6]
+            [ 9 12] [15 18]
+            [21 24]]
+            [[27 30]
+            [33 36] [39 42]
+            [45 48]]
         """
         if have_same_parent(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
         else:
             global coercion_model
             return coercion_model.bin_op(left, right, mul)
+
+    def __div__(left, right):
+        """
+        Division of the matrix ``left`` by the matrix or scalar ``right``.
+
+        EXAMPLES::
+
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: a / 5
+            [ 0 1/5]
+            [2/5 3/5]
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: b = matrix(ZZ, 2, [1,1,0,5])
+            sage: a / b
+            [  0 1/5]
+            [  2 1/5]
+            sage: c = matrix(QQ, 2, [3,2,5,7])
+            sage: c / a
+            [-5/2  3/2]
+            [-1/2  5/2]
+            sage: a / c
+            [-5/11  3/11]
+            [-1/11  5/11]
+            sage: a / 7
+            [  0 1/7]
+            [2/7 3/7]
+
+        Other rings work just as well::
+
+            sage: a = matrix(GF(3),2,2,[0,1,2,0])
+            sage: b = matrix(ZZ,2,2,[4,6,1,2])
+            sage: a / b
+            [1 2]
+            [2 0]
+            sage: c = matrix(GF(3),2,2,[1,2,1,1])
+            sage: a / c
+            [1 2]
+            [1 1]
+            sage: a = matrix(RDF,2,2,[.1,-.4,1.2,-.6])
+            sage: b = matrix(RDF,2,2,[.3,.1,-.5,1.3])
+            sage: a / b # rel tol 1e-10
+            [-0.15909090909090906 -0.29545454545454547]
+            [   2.863636363636364  -0.6818181818181817]
+            sage: R.<t> = ZZ['t']
+            sage: a = matrix(R,2,2,[t^2,t+1,-t,t+2])
+            sage: b = matrix(R,2,2,[t^3-1,t,-t+3,t^2])
+            sage: a / b
+            [      (t^4 + t^2 - 2*t - 3)/(t^5 - 3*t)               (t^4 - t - 1)/(t^5 - 3*t)]
+            [       (-t^3 + t^2 - t - 6)/(t^5 - 3*t) (t^4 + 2*t^3 + t^2 - t - 2)/(t^5 - 3*t)]
+        """
+        cdef Matrix rightinv
+        if have_same_parent(left, right):
+            rightinv = ~<Matrix>right
+            if have_same_parent(left,rightinv):
+                return (<Matrix>left)._matrix_times_matrix_(rightinv)
+            else:
+                return (<Matrix>(left.change_ring(rightinv.parent().base_ring())))._matrix_times_matrix_(rightinv)
+        else:
+            global coercion_model
+            return coercion_model.bin_op(left, right, div)
 
     cdef Vector _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError

@@ -104,7 +104,7 @@ class Mupad(Expect):
     """
     Interface to the MuPAD interpreter.
     """
-    def __init__(self, maxread=1000, script_subdirectory="", server=None, server_tmpdir=None, logfile=None):
+    def __init__(self, maxread=1000, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
         """
         Create an instance of the MuPAD interpreter.
 
@@ -618,7 +618,7 @@ class MupadElement(ExpectElement):
         return mupad.nops(self)
 
 # An instance
-mupad = Mupad(script_subdirectory='user')
+mupad = Mupad()
 
 def reduce_load_mupad():
     """

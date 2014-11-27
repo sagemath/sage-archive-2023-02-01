@@ -67,7 +67,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     Sage knows certain categorical information about this algebra::
 
         sage: Sym.category()
-        Join of Category of graded hopf algebras over Rational Field and Category of monoids with realizations and Category of coalgebras over Rational Field with realizations
+        Join of Category of hopf algebras over Rational Field
+            and Category of graded algebras over Rational Field
+            and Category of monoids with realizations
+            and Category of coalgebras over Rational Field with realizations
 
     Notice that ``Sym`` is an *abstract* algebra.  This reflects the fact that
     there are multiple natural bases.  To work with specific

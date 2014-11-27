@@ -312,7 +312,7 @@ Read in and execute ``example.sage`` file using the ``load`` command.
 
 ::
 
-    sage: load "example.sage"
+    sage: load("example.sage")
     Hello World
     8
 
@@ -324,7 +324,7 @@ You can also ``attach`` a Sage file to a running session:
 
 ::
 
-    sage: attach "example.sage"
+    sage: attach("example.sage")
     Hello World
     8
 
@@ -392,9 +392,6 @@ version of Sage (which is the "source" version, not the "binary").
    for each ``sage-package`` you download (use ``sage -f`` if you are
    reinstalling.) This might be useful if you have a CD of these
    packages but no (or a very slow) internet connection.
-
-#. If you want to build the documentation, ``cd devel/doc`` and type
-   ``./rebuild``. This requires having latex and latex2html installed.
 
 
 .. index:: Python and Sage

@@ -160,7 +160,9 @@ Plotting patches made of unit segments instead of unit faces::
     sage: E = E1Star(WordMorphism({1:[1,2],2:[1]}))
     sage: F = E1Star(WordMorphism({1:[1,1,2],2:[2,1]}))
     sage: E(P,5).plot()
+    Graphics object consisting of 21 graphics primitives
     sage: F(P,3).plot()
+    Graphics object consisting of 34 graphics primitives
 
 Everything works in any dimension (except for the plotting features
 which only work in dimension two or three)::
@@ -495,6 +497,7 @@ class Face(SageObject):
 
             sage: f = Face((0,0), 2)
             sage: f._plot(None, None, 1)
+            Graphics object consisting of 1 graphics primitive
         """
         v = self.vector()
         t = self.type()
@@ -1093,6 +1096,7 @@ class Patch(SageObject):
             sage: from sage.combinat.e_one_star import E1Star, Face, Patch
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
             sage: P.plot()
+            Graphics object consisting of 3 graphics primitives
 
         ::
 
@@ -1101,6 +1105,7 @@ class Patch(SageObject):
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
             sage: P = E(P, 5)
             sage: P.plot()
+            Graphics object consisting of 57 graphics primitives
 
         Plot with a different projection matrix::
 
@@ -1110,6 +1115,7 @@ class Patch(SageObject):
             sage: M = matrix(2, 3, [1,0,-1,0.3,1,-3])
             sage: P = E(P, 3)
             sage: P.plot(projmat=M)
+            Graphics object consisting of 17 graphics primitives
 
         Plot patches made of unit segments::
 
@@ -1117,7 +1123,9 @@ class Patch(SageObject):
             sage: E = E1Star(WordMorphism({1:[1,2],2:[1]}))
             sage: F = E1Star(WordMorphism({1:[1,1,2],2:[2,1]}))
             sage: E(P,5).plot()
+            Graphics object consisting of 21 graphics primitives
             sage: F(P,3).plot()
+            Graphics object consisting of 34 graphics primitives
         """
         if self.dimension() == 2:
             G = Graphics()
@@ -1127,7 +1135,7 @@ class Patch(SageObject):
             return G
 
         if self.dimension() == 3:
-            if projmat == None:
+            if projmat is None:
                 projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])
 
             G = Graphics()
@@ -1287,7 +1295,7 @@ class Patch(SageObject):
         if self.dimension() != 3:
             raise NotImplementedError("Tikz Plotting is implemented only for patches in three dimensions.")
 
-        if projmat == None:
+        if projmat is None:
             projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])*scale
 
         e1 = projmat*vector([1,0,0])
@@ -1418,7 +1426,7 @@ class E1Star(SageObject):
                     raise ValueError("Option 'method' can only be 'prefix' or 'suffix'.")
                 if not letter in X:
                     X[letter] = []
-                v = self.inverse_matrix()*vector(image_word.parikh_vector())
+                v = self.inverse_matrix()*vector(image_word.abelian_vector())
                 X[letter].append((v, k))
         self._base_iter = X
 

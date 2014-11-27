@@ -23,7 +23,14 @@ include 'sage/ext/interrupt.pxi'
 cdef extern from 'pythonrun.h':
     int (*PyOS_InputHook)() nogil except *
 
-import sage.libs.readline as readline
+cdef extern from 'intrcheck.h':
+    int PyOS_InterruptOccurred() nogil
+
+### See https://github.com/cython/cython/pull/313
+# from cpython.exc cimport PyErr_SetInterrupt
+### workaround
+    void PyErr_SetInterrupt() nogil
+
 from sage.misc.attached_files import reload_attached_files_if_modified
 
 
@@ -31,17 +38,13 @@ cdef int c_sage_inputhook() nogil except *:
     """
     This is the C function that is installed as PyOS_InputHook
     """
-    with gil:
-        try:
+    if PyOS_InterruptOccurred():   # clears interrupt
+        PyErr_SetInterrupt()       # re-set
+    else:
+        with gil:
+            sage_inputhook()
             sig_check()
-            return sage_inputhook()
-        except KeyboardInterrupt:
-            # The user pressed Ctrl-C while at the prompt; We match the normal
-            # Python behavior for consistency
-            print '\nKeyboardInterrupt'
-            readline.initialize()
-            readline.forced_update_display()
-        return 0
+    return 0
 
 def install():
     """

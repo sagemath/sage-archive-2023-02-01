@@ -1,5 +1,12 @@
 r"""
 Combinations
+
+AUTHORS:
+
+- Mike Hansen (2007): initial implementation
+
+- Vincent Delecroix (2011): cleaning, bug corrections, doctests
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -139,6 +146,14 @@ def Combinations(mset, k=None):
 
         sage: Combinations([vector([1,1]), vector([2,2]), vector([3,3])], 2).list()
         [[(1, 1), (2, 2)], [(1, 1), (3, 3)], [(2, 2), (3, 3)]]
+
+    TESTS:
+
+    We check that the code works even for non mutable objects::
+
+        sage: l = [vector((0,0)), vector((0,1))]
+        sage: Combinations(l).list()
+        [[], [(0, 0)], [(0, 1)], [(0, 0), (0, 1)]]
     """
 
 
@@ -192,8 +207,7 @@ class Combinations_mset(CombinatorialClass):
         except TypeError:
             return False
 
-        return all(i in self.mset for i in x) and \
-               len(uniq(x)) == len(x)
+        return all(i in self.mset for i in x) and len(uniq(x)) == len(x)
 
 
     def __repr__(self):
@@ -203,7 +217,7 @@ class Combinations_mset(CombinatorialClass):
             sage: repr(Combinations(range(4)))
             'Combinations of [0, 1, 2, 3]'
         """
-        return "Combinations of %s"%self.mset
+        return "Combinations of {}".format(self.mset)
 
     def __iter__(self):
         """
@@ -226,8 +240,8 @@ class Combinations_mset(CombinatorialClass):
             6
         """
         c = 0
-        for k in range(len(self.mset)+1):
-            c +=  Combinations_msetk(self.mset, k).cardinality()
+        for k in range(len(self.mset) + 1):
+            c += Combinations_msetk(self.mset, k).cardinality()
         return c
 
 class Combinations_set(Combinations_mset):
@@ -238,7 +252,7 @@ class Combinations_set(Combinations_mset):
             sage: Combinations([1,2,3]).list() #indirect doctest
             [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
         """
-        for k in range(len(self.mset)+1):
+        for k in range(len(self.mset) + 1):
             for comb in Combinations_setk(self.mset, k):
                 yield comb
 
@@ -320,7 +334,7 @@ class Combinations_msetk(CombinatorialClass):
             sage: repr(Combinations([1,2,2,3],2))
             'Combinations of [1, 2, 2, 3] of length 2'
         """
-        return "Combinations of %s of length %s"%(self.mset, self.k)
+        return "Combinations of {} of length {}".format(self.mset, self.k)
 
     def __iter__(self):
         """
@@ -331,7 +345,7 @@ class Combinations_msetk(CombinatorialClass):
         """
         items = map(self.mset.index, self.mset)
         indices = uniq(sorted(items))
-        counts = [0]*len(indices)
+        counts = [0] * len(indices)
         for i in items:
             counts[indices.index(i)] += 1
         for iv in IntegerVectors(self.k, len(indices), outer=counts):
@@ -349,8 +363,7 @@ class Combinations_msetk(CombinatorialClass):
             12
         """
         items = map(self.mset.index, self.mset)
-        return ZZ(gap.eval("NrCombinations(%s,%s)"%(items,ZZ(self.k))))
-
+        return ZZ(gap.eval("NrCombinations({},{})".format( items,ZZ(self.k))) )
 
 
 class Combinations_setk(Combinations_msetk):
@@ -450,3 +463,28 @@ class Combinations_setk(Combinations_msetk):
         """
         x = map(self.mset.index, x)
         return rank(x, len(self.mset))
+
+
+##########################################################
+# Deprecations
+
+class ChooseNK(Combinations_setk):
+    def __setstate__(self, state):
+        r"""
+        For unpickling old ``ChooseNK`` objects.
+
+        TESTS::
+
+            sage: loads("x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1K\xce\xc8\xcf"
+            ....:   "/N\x8d\xcf\xcb\xe6r\x06\xb3\xfc\xbc\xb9\n\x195\x1b\x0b"
+            ....:   "\x99j\x0b\x995B\x99\xe2\xf3\nY :\x8a2\xf3\xd2\x8b\xf52"
+            ....:   "\xf3JR\xd3S\x8b\xb8r\x13\xb3S\xe3a\x9cB\xd6PF\xd3\xd6\xa0"
+            ....:   "B6\xa0\xfa\xecB\xf6\x0c \xd7\x08\xc8\xe5(M\xd2\x03\x00{"
+            ....:   "\x82$\xd8")
+            Combinations of [0, 1, 2, 3, 4] of length 2
+        """
+        self.__class__ = Combinations_setk
+        Combinations_setk.__init__(self, range(state['_n']), state['_k'])
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override("sage.combinat.choose_nk", "ChooseNK", ChooseNK)

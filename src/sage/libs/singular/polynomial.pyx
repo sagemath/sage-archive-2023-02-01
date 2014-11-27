@@ -26,6 +26,7 @@ from sage.libs.singular.decl cimport p_GetMaxExp, pp_Mult_qq, pPower, p_String, 
 from sage.libs.singular.decl cimport n_Delete, idInit, fast_map, id_Delete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omFree
 from sage.libs.singular.decl cimport p_GetComp, p_SetComp
+from sage.libs.singular.decl cimport pSubst
 
 
 from sage.libs.singular.singular cimport sa2si, si2sa, overflow_check
@@ -290,7 +291,7 @@ cdef int singular_polynomial_div_coeff(poly** ret, poly *p, poly *q, ring *r) ex
     sig_off()
     return 0
 
-cdef int singular_polynomial_pow(poly **ret, poly *p, long exp, ring *r) except -1:
+cdef int singular_polynomial_pow(poly **ret, poly *p, unsigned long exp, ring *r) except -1:
     """
     ``ret[0] = p**exp`` where ``p`` in ``r`` and ``exp`` > 0.
 
@@ -320,7 +321,6 @@ cdef int singular_polynomial_pow(poly **ret, poly *p, long exp, ring *r) except 
     """
     cdef unsigned long v = p_GetMaxExp(p, r)
     v = v * exp
-
     overflow_check(v, r)
 
     if(r != currRing): rChangeCurrRing(r)
@@ -407,7 +407,7 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
         \left(z + 1\right) v w - z w^{2} + z v + \left(-z - 1\right) w + z + 1
     """
     poly = ""
-    cdef long e,j
+    cdef unsigned long e,j
     cdef int n = r.N
     cdef int atomic_repr = base._repr_option('element_is_atomic')
     while p:
@@ -519,11 +519,41 @@ cdef int singular_vector_maximal_component(poly *v, ring *r) except -1:
     returns the maximal module component of the vector ``v``.
     INPUT:
 
-       - ``v`` - a polynomial/vector
-       - ``r`` - a ring
+    - ``v`` - a polynomial/vector
+    - ``r`` - a ring
     """
     cdef int res=0
     while v!=NULL:
         res=max(p_GetComp(v, r), res)
         v = pNext(v)
     return res
+
+cdef int singular_polynomial_subst(poly **p, int var_index, poly *value, ring *r) except -1:
+    """
+    Substitute variable ``var_index`` with ``value`` in ``p``.
+
+    INPUT:
+
+    - ``p`` - a polynomial
+    - ``var_index`` - an integer < ngens (zero based indexing)
+    - ``value`` - a polynomial
+    - ``r`` - a ring
+    """
+
+    if p_IsConstant(value, r):
+        p[0] = pSubst(p[0], var_index+1, value)
+        return 0
+
+    cdef unsigned long exp = p_GetExp(p[0], var_index+1, r) * p_GetMaxExp(value, r)
+
+    overflow_check(exp, r)
+    if(r != currRing):
+        rChangeCurrRing(r)
+
+    cdef int count = singular_polynomial_length_bounded(p[0], 15)
+    if unlikely(count >= 15 or exp > 15): sig_on()
+    p[0] = pSubst(p[0], var_index+1, value)
+    if unlikely(count >= 15 or exp > 15): sig_off()
+    return 0
+
+

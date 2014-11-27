@@ -277,7 +277,7 @@ cdef class LibSingularOptions_abstract:
             sage: sopt['redTail']
             True
         """
-        if value == None:
+        if value is None:
             value = (None,0,0)
         self.global_options[0] = int(value[0])
         global Kstd1_deg

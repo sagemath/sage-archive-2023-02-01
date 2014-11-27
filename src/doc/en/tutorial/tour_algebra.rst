@@ -154,7 +154,7 @@ solve the equation :math:`x'+x-1=0`:
     sage: x = function('x',t)   # define x to be a function of that variable
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
-    (c + e^t)*e^(-t)
+    (_C + e^t)*e^(-t)
 
 This uses Sage's interface to Maxima [Max]_, and so its output may be
 a bit different from other Sage output. In this case, this says
@@ -206,7 +206,7 @@ the notation :math:`x=x_{1}`, :math:`y=x_{2}`):
 
     sage: de1 = maxima("2*diff(x(t),t, 2) + 6*x(t) - 2*y(t)")
     sage: lde1 = de1.laplace("t","s"); lde1
-    2*(-?%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s)-2*'laplace(y(t),t,s)+6*'laplace(x(t),t,s)
+    2*(-%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s)-2*'laplace(y(t),t,s)+6*'laplace(x(t),t,s)
 
 This is hard to read, but it says that
 
@@ -221,7 +221,7 @@ Laplace transform of the second equation:
 
     sage: de2 = maxima("diff(y(t),t, 2) + 2*y(t) - 2*x(t)")
     sage: lde2 = de2.laplace("t","s"); lde2
-    -?%at('diff(y(t),t,1),t=0)+s^2*'laplace(y(t),t,s)+2*'laplace(y(t),t,s)-2*'laplace(x(t),t,s)-y(0)*s
+    -%at('diff(y(t),t,1),t=0)+s^2*'laplace(y(t),t,s)+2*'laplace(y(t),t,s)-2*'laplace(x(t),t,s)-y(0)*s
 
 This says
 

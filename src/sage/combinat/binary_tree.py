@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Binary Trees.
+Binary Trees
 
 This module deals with binary trees as mathematical (in particular immutable)
 objects.
@@ -690,7 +690,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         else:
             return []
 
-    @combinatorial_map(name = "to the Tamari corresponding Dyck path")
+    @combinatorial_map(name="to the Tamari corresponding Dyck path")
     def to_dyck_word_tamari(self):
         r"""
         Return the Dyck word associated with ``self`` in consistency with
@@ -698,10 +698,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         The bijection is defined recursively as follows:
 
-        - a leaf is associated with an empty Dyck word
+        - a leaf is associated with an empty Dyck word;
 
         - a tree with children `l,r` is associated with the Dyck word
-          `T(l) 1 T(r) 0`
+          `T(l) 1 T(r) 0`.
 
         EXAMPLES::
 
@@ -715,6 +715,245 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0]
         """
         return self.to_dyck_word("L1R0")
+
+    def tamari_interval(self, other):
+        r"""
+        Return the Tamari interval between ``self`` and ``other`` as a
+        :class:`~sage.combinat.interval_posets.TamariIntervalPoset`.
+
+        A "Tamari interval" is an interval in the Tamari poset.
+        See :meth:`tamari_lequal` for the definition of the Tamari poset.
+
+        INPUT:
+
+        - ``other`` -- a binary tree greater or equal to ``self``
+          in the Tamari order
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[None, [[], None]], None])
+            sage: ip = bt.tamari_interval(BinaryTree([None, [[None, []], None]])); ip
+            The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
+            sage: ip.lower_binary_tree()
+            [[., [[., .], .]], .]
+            sage: ip.upper_binary_tree()
+            [., [[., [., .]], .]]
+            sage: ip.interval_cardinality()
+            4
+            sage: ip.number_of_tamari_inversions()
+            2
+            sage: list(ip.binary_trees())
+            [[., [[., [., .]], .]],
+             [[., [., [., .]]], .],
+             [., [[[., .], .], .]],
+             [[., [[., .], .]], .]]
+            sage: bt.tamari_interval(BinaryTree([[None,[]],[]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: The two binary trees are not comparable on the Tamari lattice.
+
+        TESTS:
+
+        Setting ``other`` equal to ``bt`` gives an interval consisting of
+        just one element::
+
+            sage: ip = bt.tamari_interval(bt)
+            sage: ip
+            The tamari interval of size 4 induced by relations [(1, 4), (2, 3), (3, 4), (3, 1), (2, 1)]
+            sage: list(ip.binary_trees())
+            [[[., [[., .], .]], .]]
+
+        Empty trees work well::
+
+            sage: bt = BinaryTree()
+            sage: ip = bt.tamari_interval(bt)
+            sage: ip
+            The tamari interval of size 0 induced by relations []
+            sage: list(ip.binary_trees())
+            [.]
+        """
+        from sage.combinat.interval_posets import TamariIntervalPosets
+        return TamariIntervalPosets.from_binary_trees(self, other)
+
+    def tamari_join(self, other):
+        r"""
+        Return the join of the binary trees ``self`` and ``other``
+        (of equal size) in the `n`-th Tamari poset (where `n` is
+        the size of these trees).
+
+        The `n`-th Tamari poset (defined in :meth:`tamari_lequal`)
+        is known to be a lattice, and the map from the `n`-th
+        symmetric group `S_n` to the `n`-th Tamari poset defined
+        by sending every permutation `p \in S_n` to the binary
+        search tree of `p` (more precisely, to
+        ``p.binary_search_tree_shape()``) is a lattice
+        homomorphism. (See Theorem 6.2 in [Read04]_.)
+
+        .. SEEALSO::
+
+            :meth:`tamari_lequal`, :meth:`tamari_meet`.
+
+        AUTHORS:
+
+        Viviane Pons and Darij Grinberg, 18 June 2014.
+
+        EXAMPLES::
+
+            sage: a = BinaryTree([None, [None, []]])
+            sage: b = BinaryTree([None, [[], None]])
+            sage: c = BinaryTree([[None, []], None])
+            sage: d = BinaryTree([[[], None], None])
+            sage: e = BinaryTree([[], []])
+            sage: a.tamari_join(c) == a
+            True
+            sage: b.tamari_join(c) == b
+            True
+            sage: c.tamari_join(e) == a
+            True
+            sage: d.tamari_join(e) == e
+            True
+            sage: e.tamari_join(b) == a
+            True
+            sage: e.tamari_join(a) == a
+            True
+
+        ::
+
+            sage: b1 = BinaryTree([None, [[[], None], None]])
+            sage: b2 = BinaryTree([[[], None], []])
+            sage: b1.tamari_join(b2)
+            [., [[., .], [., .]]]
+            sage: b3 = BinaryTree([[], [[], None]])
+            sage: b1.tamari_join(b3)
+            [., [., [[., .], .]]]
+            sage: b2.tamari_join(b3)
+            [[., .], [., [., .]]]
+
+        The universal property of the meet operation is
+        satisfied::
+
+            sage: def test_uni_join(p, q):
+            ....:     j = p.tamari_join(q)
+            ....:     if not p.tamari_lequal(j):
+            ....:         return False
+            ....:     if not q.tamari_lequal(j):
+            ....:         return False
+            ....:     for r in p.tamari_greater():
+            ....:         if q.tamari_lequal(r) and not j.tamari_lequal(r):
+            ....:             return False
+            ....:     return True
+            sage: all( test_uni_join(p, q) for p in BinaryTrees(3) for q in BinaryTrees(3) )
+            True
+            sage: p = BinaryTrees(6).random_element(); q = BinaryTrees(6).random_element(); test_uni_join(p, q)
+            True
+
+        Border cases::
+
+            sage: b = BinaryTree(None)
+            sage: b.tamari_join(b)
+            .
+            sage: b = BinaryTree([])
+            sage: b.tamari_join(b)
+            [., .]
+
+        REFERENCES:
+
+        .. [Read04] Nathan Reading.
+           *Cambrian Lattices*.
+           :arxiv:`math/0402086v2`.
+        """
+        # We use Reading's result that the projection from the symmetric
+        # group is a lattice homomorphism.
+        a = self.to_132_avoiding_permutation()
+        b = other.to_132_avoiding_permutation()
+        return a.permutohedron_join(b).binary_search_tree_shape(left_to_right=False)
+
+    def tamari_meet(self, other, side="right"):
+        r"""
+        Return the meet of the binary trees ``self`` and ``other``
+        (of equal size) in the `n`-th Tamari poset (where `n` is
+        the size of these trees).
+
+        The `n`-th Tamari poset (defined in :meth:`tamari_lequal`)
+        is known to be a lattice, and the map from the `n`-th
+        symmetric group `S_n` to the `n`-th Tamari poset defined
+        by sending every permutation `p \in S_n` to the binary
+        search tree of `p` (more precisely, to
+        ``p.binary_search_tree_shape()``) is a lattice
+        homomorphism. (See Theorem 6.2 in [Read04]_.)
+
+        .. SEEALSO::
+
+            :meth:`tamari_lequal`, :meth:`tamari_join`.
+
+        AUTHORS:
+
+        Viviane Pons and Darij Grinberg, 18 June 2014.
+
+        EXAMPLES::
+
+            sage: a = BinaryTree([None, [None, []]])
+            sage: b = BinaryTree([None, [[], None]])
+            sage: c = BinaryTree([[None, []], None])
+            sage: d = BinaryTree([[[], None], None])
+            sage: e = BinaryTree([[], []])
+            sage: a.tamari_meet(c) == c
+            True
+            sage: b.tamari_meet(c) == c
+            True
+            sage: c.tamari_meet(e) == d
+            True
+            sage: d.tamari_meet(e) == d
+            True
+            sage: e.tamari_meet(b) == d
+            True
+            sage: e.tamari_meet(a) == e
+            True
+
+        ::
+
+            sage: b1 = BinaryTree([None, [[[], None], None]])
+            sage: b2 = BinaryTree([[[], None], []])
+            sage: b1.tamari_meet(b2)
+            [[[[., .], .], .], .]
+            sage: b3 = BinaryTree([[], [[], None]])
+            sage: b1.tamari_meet(b3)
+            [[[[., .], .], .], .]
+            sage: b2.tamari_meet(b3)
+            [[[[., .], .], .], .]
+
+        The universal property of the meet operation is
+        satisfied::
+
+            sage: def test_uni_meet(p, q):
+            ....:     m = p.tamari_meet(q)
+            ....:     if not m.tamari_lequal(p):
+            ....:         return False
+            ....:     if not m.tamari_lequal(q):
+            ....:         return False
+            ....:     for r in p.tamari_smaller():
+            ....:         if r.tamari_lequal(q) and not r.tamari_lequal(m):
+            ....:             return False
+            ....:     return True
+            sage: all( test_uni_meet(p, q) for p in BinaryTrees(3) for q in BinaryTrees(3) )
+            True
+            sage: p = BinaryTrees(6).random_element(); q = BinaryTrees(6).random_element(); test_uni_meet(p, q)
+            True
+
+        Border cases::
+
+            sage: b = BinaryTree(None)
+            sage: b.tamari_meet(b)
+            .
+            sage: b = BinaryTree([])
+            sage: b.tamari_meet(b)
+            [., .]
+        """
+        # We use Reading's result that the projection from the symmetric
+        # group is a lattice homomorphism.
+        a = self.to_132_avoiding_permutation()
+        b = other.to_132_avoiding_permutation()
+        return a.permutohedron_meet(b).binary_search_tree_shape(left_to_right=False)
 
     @combinatorial_map(name="to Dyck paths: up step, left tree, down step, right tree")
     def to_dyck_word(self, usemap="1L0R"):
@@ -1034,7 +1273,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: bt.to_poset(with_leaves=True)
             Finite poset containing 3 elements
             sage: bt.to_poset(with_leaves=True).cover_relations()
-            [[0, 2], [1, 2]]
+            [[1, 2], [0, 2]]
             sage: bt = BinaryTree([])
             sage: bt.to_poset(with_leaves=True,root_to_leaf=True).cover_relations()
             [[0, 1], [0, 2]]
@@ -1409,12 +1648,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             else:
                 node_action(node)
 
-    def tamari_greater(self):
+    def tamari_lequal(self, t2):
         r"""
-        The list of all trees greater or equal to ``self`` in the Tamari
-        order.
-
-        This is the order filter of the Tamari order generated by ``self``.
+        Return ``True`` if ``self`` is less or equal to another binary
+        tree ``t2`` (of the same size as ``self``) in the Tamari order.
 
         The Tamari order on binary trees of size `n` is the partial order
         on the set of all binary trees of size `n` generated by the
@@ -1423,8 +1660,88 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         then `T < T'`.
         This not only is a well-defined partial order, but actually is
         a lattice structure on the set of binary trees of size `n`, and
-        is a quotient of the weak order on the `n`-th symmetric group.
-        See [CP12]_.
+        is a quotient of the weak order on the `n`-th symmetric group
+        (also known as the right permutohedron order, see
+        :meth:`~sage.combinat.permutation.Permutation.permutohedron_lequal`).
+        See [CP12]_. The set of binary trees of size `n` equipped with
+        the Tamari order is called the `n`-th Tamari poset.
+
+        The Tamari order can equivalently be defined as follows:
+
+        If `T` and `S` are two binary trees of size `n`, then the
+        following four statements are equivalent:
+
+        - We have `T \leq S` in the Tamari order.
+
+        - There exist elements `t` and `s` of the Sylvester classes
+          (:meth:`sylvester_class`) of `T` and `S`, respectively,
+          such that `t \leq s` in the weak order on the symmetric
+          group.
+
+        - The 132-avoiding permutation corresponding to `T` (see
+          :meth:`to_132_avoiding_permutation`) is `\leq` to the
+          132-avoiding permutation corresponding to `S` in the weak
+          order on the symmetric group.
+
+        - The 312-avoiding permutation corresponding to `T` (see
+          :meth:`to_312_avoiding_permutation`) is `\leq` to the
+          312-avoiding permutation corresponding to `S` in the weak
+          order on the symmetric group.
+
+        .. SEEALSO::
+
+            :meth:`tamari_smaller`, :meth:`tamari_greater`,
+            :meth:`tamari_pred`, :meth:`tamari_succ`,
+            :meth:`tamari_interval`
+
+        EXAMPLES:
+
+        This tree::
+
+            |       o    |
+            |      / \   |
+            |     o   o  |
+            |    /       |
+            |   o        |
+            |  / \       |
+            | o   o      |
+
+        is Tamari-`\leq` to the following tree::
+
+            |     _o_     |
+            |    /   \    |
+            |   o     o   |
+            |  / \     \  |
+            | o   o     o |
+
+        Checking this::
+
+            sage: b = BinaryTree([[[[], []], None], []])
+            sage: c = BinaryTree([[[],[]],[None,[]]])
+            sage: b.tamari_lequal(c)
+            True
+
+        TESTS::
+
+            sage: for T in BinaryTrees(4):
+            ....:     for S in T.tamari_smaller():
+            ....:         if S != T and T.tamari_lequal(S):
+            ....:             print "FAILURE"
+            ....:         if not S.tamari_lequal(T):
+            ....:             print "FAILURE"
+        """
+        self_perm = self.to_312_avoiding_permutation()
+        t2_perm = t2.to_312_avoiding_permutation()
+        return self_perm.permutohedron_lequal(t2_perm)
+
+    def tamari_greater(self):
+        r"""
+        The list of all trees greater or equal to ``self`` in the Tamari
+        order.
+
+        This is the order filter of the Tamari order generated by ``self``.
+
+        See :meth:`tamari_lequal` for the definition of the Tamari poset.
 
         .. SEEALSO::
 
@@ -1498,6 +1815,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         This list is computed by performing all left rotates possible on
         its nodes.
 
+        See :meth:`tamari_lequal` for the definition of the Tamari poset.
+
         EXAMPLES:
 
         For this tree::
@@ -1547,15 +1866,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         This is the order ideal of the Tamari order generated by ``self``.
 
-        The Tamari order on binary trees of size `n` is the partial order
-        on the set of all binary trees of size `n` generated by the
-        following requirement:  If a binary tree `T'` is obtained by
-        right rotation (see :meth:`right_rotate`) from a binary tree `T`,
-        then `T < T'`.
-        This not only is a well-defined partial order, but actually is
-        a lattice structure on the set of binary trees of size `n`, and
-        is a quotient of the weak order on the `n`-th symmetric group.
-        See [CP12]_.
+        See :meth:`tamari_lequal` for the definition of the Tamari poset.
 
         .. SEEALSO::
 
@@ -1612,6 +1923,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         This is the list of all trees obtained by a right rotate of
         one of its nodes.
+
+        See :meth:`tamari_lequal` for the definition of the Tamari poset.
 
         EXAMPLES:
 
@@ -2215,12 +2528,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         ``self``.
 
         The sylvester class of a tree `T` is the set of permutations
-        `\sigma` whose binary search tree (a notion defined in [HNT05]_,
-        Definition 7) is `T` after forgetting the labels. This is an
-        equivalence class of the sylvester congruence (the congruence on
-        words which holds two words `uacvbw` and `ucavbw` congruent
-        whenever `a`, `b`, `c` are letters satisfying `a \leq b < c`, and
-        extends by transitivity) on the symmetric group.
+        `\sigma` whose right-to-left binary search tree (a notion defined
+        in [HNT05]_, Definition 7) is `T` after forgetting the labels.
+        This is an equivalence class of the sylvester congruence (the
+        congruence on words which holds two words `uacvbw` and `ucavbw`
+        congruent whenever `a`, `b`, `c` are letters satisfying
+        `a \leq b < c`, and extends by transitivity) on the symmetric
+        group.
 
         For example the following tree's sylvester class consists of the
         permutations `(1,3,2)` and `(3,1,2)`::
@@ -2231,15 +2545,88 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         (only the nodes are drawn here).
 
-        The binary search tree of a word is constructed by an RSK-like
-        insertion algorithm which proceeds as follows: Start with an
-        empty labelled binary tree, and read the word from left to right.
-        Each time a letter is read from the word, insert this letter in
-        the existing tree using binary search tree insertion
+        The right-to-left binary search tree of a word is constructed by
+        an RSK-like insertion algorithm which proceeds as follows: Start
+        with an empty labelled binary tree, and read the word from right
+        to left. Each time a letter is read from the word, insert this
+        letter in the existing tree using binary search tree insertion
         (:meth:`~sage.combinat.binary_tree.LabelledBinaryTree.binary_search_insert`).
-        If a left-to-right reading is to be employed instead, the
-        ``left_to_right`` optional keyword variable should be set to
-        ``True``.
+        This is what the
+        :meth:`~sage.combinat.permutation.Permutation.binary_search_tree`
+        method computes if it is given the keyword
+        ``left_to_right=False``.
+
+        Here are two more descriptions of the sylvester class of a binary
+        search tree:
+
+        - The sylvester class of a binary search tree `T` is the set of
+          all linear extensions of the poset corresponding to `T` (that
+          is, of the poset whose Hasse diagram is `T`, with the root on
+          top), provided that the nodes of `T` are labelled with
+          `1, 2, \ldots, n` in a binary-search-tree way (i.e., every left
+          descendant of a node has a label smaller than that of the node,
+          and every right descendant of a node has a label higher than
+          that of the node).
+
+        - The sylvester class of a binary search tree `T` (with vertex
+          labels `1, 2, \ldots, n`) is the interval `[u, v]` in the right
+          permutohedron order
+          (:meth:`~sage.combinat.permutation.Permutation.permutohedron_lequal`),
+          where `u` is the 312-avoiding permutation corresponding to `T`
+          (:meth:`to_312_avoiding_permutation`), and where `v` is the
+          132-avoiding permutation corresponding to `T`
+          (:meth:`to_132_avoiding_permutation`).
+
+        If the optional keyword variable ``left_to_right`` is set to
+        ``True``, then the *left* sylvester class of ``self`` is
+        returned instead. This is the set of permutations `\sigma` whose
+        left-to-right binary search tree (that is, the result of the
+        :meth:`~sage.combinat.permutation.Permutation.binary_search_tree`
+        with ``left_to_right`` set to ``True``) is ``self``. It is an
+        equivalence class of the left sylvester congruence.
+
+        .. WARNING::
+
+            This method yields the elements of the sylvester class as
+            raw lists, not as permutations!
+
+        EXAMPLES:
+
+        Verifying the claim that the right-to-left binary search trees of
+        the permutations in the sylvester class of a tree `t` all equal
+        `t`::
+
+            sage: def test_bst_of_sc(n, left_to_right):
+            ....:     for t in BinaryTrees(n):
+            ....:         for p in t.sylvester_class(left_to_right=left_to_right):
+            ....:             p_per = Permutation(p)
+            ....:             tree = p_per.binary_search_tree(left_to_right=left_to_right)
+            ....:             if not BinaryTree(tree) == t:
+            ....:                 return False
+            ....:     return True
+            sage: test_bst_of_sc(4, False)
+            True
+            sage: test_bst_of_sc(5, False)   # long time
+            True
+            sage: test_bst_of_sc(6, False)   # long time
+            True
+
+        The same with the left-to-right version of binary search::
+
+            sage: test_bst_of_sc(4, True)
+            True
+            sage: test_bst_of_sc(5, True)   # long time
+            True
+            sage: test_bst_of_sc(6, True)   # long time
+            True
+
+        Checking that the sylvester class is the set of linear extensions
+        of the poset of the tree::
+
+            sage: all( sorted(t.canonical_labelling().sylvester_class())
+            ....:      == sorted(list(v) for v in t.canonical_labelling().to_poset().linear_extensions())
+            ....:      for t in BinaryTrees(4) )
+            True
 
         TESTS::
 
@@ -2291,8 +2678,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             builder = lambda i, p: list(p) + [i]
 
         shift = self[0].node_number() + 1
-        for l, r in product(self[0].sylvester_class(),
-                            self[1].sylvester_class()):
+        for l, r in product(self[0].sylvester_class(left_to_right=left_to_right),
+                            self[1].sylvester_class(left_to_right=left_to_right)):
            for p in shuffle(W(l), W([shift + ri for ri in r])):
                yield builder(shift, p)
 
@@ -2700,7 +3087,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: BinaryTrees(3)   # indirect doctest
             Binary trees of size 3
         """
-        return "Binary trees of size %s"%(self._size)
+        return "Binary trees of size %s" % (self._size)
 
     def __contains__(self, x):
         """
@@ -2738,6 +3125,30 @@ class BinaryTrees_size(BinaryTrees):
         """
         from combinat import catalan_number
         return catalan_number(self._size)
+
+    def random_element(self):
+        r"""
+        Return a random ``BinaryTree`` with uniform probability.
+
+        This method generates a random ``DyckWord`` and then uses a
+        bijection between Dyck words and binary trees.
+
+        EXAMPLES::
+
+            sage: BinaryTrees(5).random_element() # random
+            [., [., [., [., [., .]]]]]
+            sage: BinaryTrees(0).random_element()
+            .
+            sage: BinaryTrees(1).random_element()
+            [., .]
+
+        TESTS::
+
+            sage: all([BinaryTrees(10).random_element() in BinaryTrees(10) for i in range(20)])
+            True
+        """
+        from sage.combinat.dyck_word import CompleteDyckWords_size
+        return CompleteDyckWords_size(self._size).random_element().to_binary_tree()
 
     def __iter__(self):
         """
@@ -2912,6 +3323,23 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         ....:     t1c[1,1,1] = t2
         sage: t1 == t1c
         False
+
+    We check for :trac:`16314`::
+
+        sage: t1 = LBT([ LBT([LBT([], label=2),
+        ....:                 LBT([], label=5)], label=6),
+        ....:            None], label=4); t1
+        4[6[2[., .], 5[., .]], .]
+        sage: class Foo(LabelledBinaryTree):
+        ....:     pass
+        sage: t2 = Foo(t1.parent(), t1); t2
+        4[6[2[., .], 5[., .]], .]
+        sage: t2.label()
+        4
+        sage: t2[0].label()
+        6
+        sage: t2.__class__, t2[0].__class__
+        (<class '__main__.Foo'>, <class '__main__.Foo'>)
     """
     __metaclass__ = ClasscallMetaclass
 

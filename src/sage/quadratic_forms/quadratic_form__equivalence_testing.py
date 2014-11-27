@@ -195,7 +195,7 @@ def is_globally_equivalent_to(self, other, return_matrix=False, check_theta_to_p
             return False
 
     ## Check that the forms have the same theta function up to the desired precision (this can be set so that it determines the cusp form)
-    if check_theta_to_precision != None:
+    if check_theta_to_precision is not None:
         if self.theta_series(check_theta_to_precision, var_str='', safe_flag=False) != other.theta_series(check_theta_to_precision, var_str='', safe_flag=False):
             return False
 

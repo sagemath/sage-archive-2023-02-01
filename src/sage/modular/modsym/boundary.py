@@ -328,7 +328,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
         sign = int(sign)
         if not isinstance(base_ring, rings.Ring) and rings.is_CommutativeRing(base_ring):
             raise TypeError("base_ring must be a commutative ring")
-        if character == None and arithgroup.is_Gamma0(group):
+        if character is None and arithgroup.is_Gamma0(group):
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
         (self.__group, self.__weight, self.__character,
           self.__sign, self.__base_ring) = (group, weight,

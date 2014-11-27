@@ -5,6 +5,8 @@ from ext_rep import (designs_from_XML, designs_from_XML_url)
 from incidence_structures import (IncidenceStructure,
                           IncidenceStructureFromMatrix)
 
+from incidence_structures import IncidenceStructure as Hypergraph
+
 from covering_design import (CoveringDesign,
                              schonheim,
                              trivial_covering_design)
@@ -19,8 +21,7 @@ deprecated_callable_import(14499,
                            ["ProjectiveGeometryDesign",
                             "AffineGeometryDesign",
                             "WittDesign",
-                            "HadamardDesign",
-                            "BlockDesign_generic"],
+                            "HadamardDesign"],
                            ("This method soon will not be available in that "
                             "way anymore. To use it, you can now call it by "
                             "typing designs.%(name)s"))

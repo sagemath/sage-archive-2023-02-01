@@ -22,13 +22,13 @@ include "sage/ext/cdefs.pxi"
 from ginac cimport *
 
 from sage.rings.integer cimport Integer
-from sage.rings.real_mpfr import RealNumber
+from sage.rings.real_mpfr cimport RealNumber
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
 from sage.libs.pari.pari_instance cimport PariInstance
 from sage.misc.latex import latex_variable_name
-from sage.structure.element cimport RingElement, Element
+from sage.structure.element cimport RingElement, Element, Matrix
 from sage.structure.parent_base import ParentWithBase
 from sage.rings.ring cimport CommutativeRing
 from sage.categories.morphism cimport Morphism
@@ -163,8 +163,8 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 
             from sage.rings.all import (ComplexField,
-                                        RLF, CLF, AA, QQbar, InfinityRing,
-                                        is_FiniteField)
+                                        RLF, CLF, AA, QQbar, InfinityRing)
+            from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
             from sage.interfaces.maxima import Maxima
 
@@ -283,7 +283,7 @@ cdef class SymbolicRing(CommutativeRing):
             return new_Expression_from_GEx(self, g_mInfinity)
         elif x is unsigned_infinity:
             return new_Expression_from_GEx(self, g_UnsignedInfinity)
-        elif isinstance(x, RingElement):
+        elif isinstance(x, (RingElement, Matrix)):
             GEx_construct_pyobject(exp, x)
         else:
             raise TypeError
@@ -745,9 +745,11 @@ cdef class SymbolicRing(CommutativeRing):
         elif len(args) == 1 and isinstance(args[0], dict):
             d = args[0]
         else:
-            from sage.misc.superseded import deprecation
-            vars = _the_element.operands()
-            deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
+            import inspect
+            if not hasattr(_the_element,'_fast_callable_') or not inspect.ismethod(_the_element._fast_callable_):
+                # only warn if _the_element is not dynamic
+                from sage.misc.superseded import deprecation
+                deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
             d = {}
 
             vars = _the_element.variables()
@@ -763,14 +765,14 @@ SR = SymbolicRing()
 
 cdef unsigned sage_domain_to_ginac(object domain) except +:
         # convert the domain argument to something easy to parse
-        if domain is RR or domain is 'real':
+        if domain is RR or domain == 'real':
             return domain_real
-        elif domain is 'positive':
+        elif domain == 'positive':
             return domain_positive
-        elif domain is CC or domain is 'complex':
+        elif domain is CC or domain == 'complex':
             return domain_complex
         else:
-            raise ValueError, "domain must be one of 'complex', 'real' or 'positive'"
+            raise ValueError("domain must be one of 'complex', 'real' or 'positive'")
 
 cdef class NumpyToSRMorphism(Morphism):
     def __init__(self, numpy_type, R):

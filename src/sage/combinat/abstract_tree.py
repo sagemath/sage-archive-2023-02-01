@@ -66,6 +66,7 @@ incoherent with the data structure.
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
+from functools import reduce
 
 
 # Unfortunately Cython forbids multiple inheritance. Therefore, we do not
@@ -641,7 +642,7 @@ class AbstractTree(object):
         stack = [self]
         while len(stack) > 0:
             node = stack[-1]
-            if node != None:
+            if node is not None:
                 # A "None" on the stack means that the node right before
                 # it on the stack has already been "exploded" into
                 # subtrees, and should not be exploded again, but instead
@@ -1219,7 +1220,7 @@ class AbstractTree(object):
                     # ==> n & n & ... & n' & n' & ...
                     try:
                         mat[i] += sep + mat2[i]
-                    except:
+                    except Exception:
                         if i >= lmat:
                             if i != 0:
                                 # mat[i] does not exist but
@@ -1302,7 +1303,7 @@ class AbstractTree(object):
                 # build all subtree matrices.
                 node, name = create_node(self)
                 edge = [name]
-                split = int(len(self) / 2)
+                split = len(self) // 2
                 # the left part
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)
@@ -1391,7 +1392,7 @@ class AbstractTree(object):
                 # build all subtree matrices.
                 node, name = create_node(self)
                 edge = [name]
-                split = int(len(self) / 2)
+                split = len(self) // 2
                 # the left part
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)
@@ -1723,11 +1724,35 @@ class AbstractLabelledTree(AbstractTree):
             1[None[42[], 21[]]]
             sage: LabelledOrderedTree(OrderedTree([[],[[],[]],[]]))
             None[None[], None[None[], None[]], None[]]
+
+        We test that inheriting from `LabelledOrderedTree` allows construction from a
+        `LabelledOrderedTree` (:trac:`16314`)::
+
+            sage: LBTS = LabelledOrderedTrees()
+            sage: class Foo(LabelledOrderedTree):
+            ....:     def bar(self):
+            ....:         print "bar called"
+            sage: foo = Foo(LBTS, [], label=1); foo
+            1[]
+            sage: foo1 = LBTS([LBTS([], label=21)], label=42); foo1
+            42[21[]]
+            sage: foo2 = Foo(LBTS, foo1); foo2
+            42[21[]]
+            sage: foo2[0]
+            21[]
+            sage: foo2.__class__
+            <class '__main__.Foo'>
+            sage: foo2[0].__class__
+            <class '__main__.Foo'>
+            sage: foo2.bar()
+            bar called
+            sage: foo2.label()
+            42
         """
         # We must initialize the label before the subtrees to allows rooted
         # trees canonization. Indeed it needs that ``self``._hash_() is working
         # at the end of the call super(..., self).__init__(...)
-        if isinstance(children, self.__class__):
+        if isinstance(children, AbstractLabelledTree):
             if label is None:
                 self._label = children._label
             else:

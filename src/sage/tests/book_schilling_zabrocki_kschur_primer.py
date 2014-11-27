@@ -4,6 +4,11 @@ for the book "k-Schur functions and affine Schubert calculus"
 by Thomas Lam, Luc Lapointe, Jennifer Morse, Anne Schilling, Mark Shimozono,
 and Mike Zabrocki, :arxiv:`1301.3569`.
 The code was written by Anne Schilling and Mike Zabrocki, 2012 and 2013.
+
+IF IT BECOMES NECESSARY TO CHANGE ANY TESTS IN THIS FILE, THERE
+NEEDS TO BE A ONE-YEAR DEPRECATION PERIOD. ALSO, PLEASE IN THIS CASE
+CONTACT Anne Schilling (anne@math.ucdavis.edu) AND Mike Zabrocki
+(zabrocki@mathstat.yorku.ca) REGARDING THE CHANGES!
 """
 
 """

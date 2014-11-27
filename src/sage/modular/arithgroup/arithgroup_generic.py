@@ -485,7 +485,7 @@ class ArithmeticSubgroup(group.Group):
         if self.is_even():
             return count
         else:
-            return count/2
+            return count // 2
 
     def __cmp__(self, other):
         r"""

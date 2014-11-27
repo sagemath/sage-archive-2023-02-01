@@ -257,7 +257,7 @@ class KRTToRCBijectionAbstract:
         """
         rigged_partition = self.ret_rig_con[a]
         for index, value in enumerate(rigged_partition.rigging):
-            if value == None:
+            if value is None:
                 rigged_partition.rigging[index] = rigged_partition.vacancy_numbers[index]
                 if index > 0 and rigged_partition[index - 1] == rigged_partition[index] \
                   and rigged_partition.rigging[index - 1] < rigged_partition.rigging[index]:
@@ -311,6 +311,11 @@ class RCToKRTBijectionAbstract:
         # TODO: Convert from cur_partitions to rigged_con
         self.cur_partitions = deepcopy(list(self.rigged_con)[:])
 
+        # This is a dummy edge to start the process
+        cp = RC_element.__copy__()
+        cp.set_immutable()
+        self._graph = [ [[], (cp, 0)] ]
+
         # Compute the current L matrix
 #        self.L = {}
 #        for dim in self.rigged_con.parent().dims:
@@ -341,22 +346,30 @@ class RCToKRTBijectionAbstract:
         """
         return isinstance(rhs, RCToKRTBijectionAbstract)
 
-    def run(self, verbose=False):
+    def run(self, verbose=False, build_graph=False):
         """
         Run the bijection from rigged configurations to tensor product of KR
         tableaux.
 
         INPUT:
 
-        - ``verbose`` -- (Default: ``False``) Display each step in the
+        - ``verbose`` -- (default: ``False``) display each step in the
           bijection
+        - ``build_graph`` -- (default: ``False``) build the graph of each
+          step of the bijection
 
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
+            sage: x = RC(partition_list=[[1],[1],[1],[1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import RCToKRTBijectionTypeA
-            sage: RCToKRTBijectionTypeA(RC(partition_list=[[1],[1],[1],[1]])).run()
+            sage: RCToKRTBijectionTypeA(x).run()
             [[2], [5]]
+            sage: bij = RCToKRTBijectionTypeA(x)
+            sage: bij.run(build_graph=True)
+            [[2], [5]]
+            sage: bij._graph
+            Digraph on 3 vertices
         """
         from sage.combinat.crystals.letters import CrystalOfLetters
         letters = CrystalOfLetters(self.rigged_con.parent()._cartan_type.classical())
@@ -376,7 +389,7 @@ class RCToKRTBijectionAbstract:
                 if self.cur_dims[0][1] > 1:
                     if verbose:
                         print("====================")
-                        print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                        print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                         print("--------------------")
                         print(ret_crystal_path)
                         print("--------------------\n")
@@ -390,10 +403,14 @@ class RCToKRTBijectionAbstract:
                     for a in range(self.n):
                         self._update_vacancy_numbers(a)
 
+                    if build_graph:
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
+                        self._graph.append([self._graph[-1][1], (y, len(self._graph)), 'ls'])
+
                 while self.cur_dims[0][0] > 0:
                     if verbose:
                         print("====================")
-                        print(repr(self.rigged_con.parent()(*self.cur_partitions)))
+                        print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
                         print("--------------------")
                         print(ret_crystal_path)
                         print("--------------------\n")
@@ -404,7 +421,19 @@ class RCToKRTBijectionAbstract:
                     # Make sure we have a crystal letter
                     ret_crystal_path[-1].append(letters(b)) # Append the rank
 
+                    if build_graph:
+                        y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
+                        self._graph.append([self._graph[-1][1], (y, len(self._graph)), letters(b)])
+
                 self.cur_dims.pop(0) # Pop off the leading column
+
+        if build_graph:
+            self._graph.pop(0) # Remove the dummy at the start
+            from sage.graphs.digraph import DiGraph
+            from sage.graphs.dot2tex_utils import have_dot2tex
+            self._graph = DiGraph(self._graph)
+            if have_dot2tex():
+                self._graph.set_latex_options(format="dot2tex", edge_labels=True)
 
         # Basic check to make sure we end with the empty configuration
         #tot_len = sum([len(rp) for rp in self.cur_partitions])
@@ -430,10 +459,10 @@ class RCToKRTBijectionAbstract:
             5
             sage: bijection.cur_partitions
             [(/)
-            , (/)
-            , (/)
-            , (/)
-            ]
+             , (/)
+             , (/)
+             , (/)
+             ]
         """
 
     def _update_vacancy_numbers(self, a):

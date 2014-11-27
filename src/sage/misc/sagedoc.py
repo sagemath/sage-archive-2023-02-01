@@ -808,14 +808,10 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                                       if re.search(string, line, flags)]
                         for extra in [extra1, extra2, extra3, extra4, extra5]:
                             if extra:
-                                match_list = filter(lambda s:
-                                                        re.search(extra, s[1],
-                                                                  re.MULTILINE | flags),
-                                                    match_list)
+                                match_list = [s for s in match_list 
+                                                if re.search(extra, s[1], re.MULTILINE | flags)]
                         for num, line in match_list:
-                            results += ':'.join([filename[strip:].lstrip("/"),
-                                                 str(num+1),
-                                                 line])
+                            results += ':'.join([filename[strip:].lstrip("/"), str(num+1), line])
 
     if not interact:
         return results

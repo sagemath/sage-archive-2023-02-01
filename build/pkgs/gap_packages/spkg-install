@@ -31,7 +31,7 @@ cd src/
 for p in \
     crime ctbllib design factint grape \
     guava-3.12 Hap1.10 HAPcryst laguna polymaking \
-    sonata toric1.8 polycyclic-2.11 autpgrp Alnuth-3.0.0
+    sonata toric1.8 polycyclic-2.11 autpgrp Alnuth-3.0.0 atlasrep
 do
     echo "Copying package $p"
     $CP -pr $p "$PKG_DIR"

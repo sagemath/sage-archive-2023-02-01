@@ -801,7 +801,7 @@ class Ideal_generic(MonoidElement):
         Note that this method is not implemented for all rings where it
         could be::
 
-            sage: R = ZZ[x]
+            sage: R.<x> = ZZ[]
             sage: I = R.ideal(7)
             sage: I.is_prime()        # when implemented, should be True
             Traceback (most recent call last):

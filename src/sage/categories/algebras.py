@@ -63,12 +63,12 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
         EXAMPLES::
 
-            sage: QQ[x] in Algebras(QQ)
+            sage: QQ['x'] in Algebras(QQ)
             True
 
             sage: QQ^3 in Algebras(QQ)
             False
-            sage: QQ[x] in Algebras(CDF)
+            sage: QQ['x'] in Algebras(CDF)
             False
         """
         if super(Algebras, self).__contains__(x):

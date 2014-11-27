@@ -1680,7 +1680,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f^3
             x^3 - 3*x^2 + 3*x - 1
 
-            sage: R = PolynomialRing(GF(2), x)
+            sage: R = PolynomialRing(GF(2), 'x')
             sage: f = R(x^9 + x^7 + x^6 + x^5 + x^4 + x^2 + x)
             sage: h = R(x^10 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + 1)
             sage: pow(f, 2, h)

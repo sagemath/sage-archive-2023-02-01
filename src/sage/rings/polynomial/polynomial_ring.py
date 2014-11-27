@@ -383,7 +383,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
             sage: x = var('x')
             sage: R = IntegerModRing(4)
-            sage: S = PolynomialRing(R, x)
+            sage: S = R['x']
             sage: S(x)
             x
 

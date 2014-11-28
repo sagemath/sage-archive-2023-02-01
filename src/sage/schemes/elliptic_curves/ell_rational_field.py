@@ -587,7 +587,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         When doing certain computations, PARI caches the results::
 
             sage: E = EllipticCurve('37a1')
-            sage: _ = E.__dict__.pop('_pari_curve')  # clear cached data
+            sage: _ = E.__dict__.pop('_pari_curve', None)  # clear cached data
             sage: Epari = E.pari_curve()
             sage: Epari
             [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, Vecsmall([1]), [Vecsmall([64, 1])], [0, 0, 0, 0, 0, 0, 0, 0]]

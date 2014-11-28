@@ -16,6 +16,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.lie_algebras import LieAlgebras
+from sage.categories.subobjects import SubobjectsCategory
 from sage.rings.all import ZZ
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.sets.family import Family
@@ -202,20 +203,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     else:
                         d[(x, y)] = val
             return Family(d)
-
-        @abstract_method
-        def basis_matrix(self):
-            """
-            Return the basis matrix of ``self``.
-
-            EXAMPLES::
-
-                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
-                sage: L.basis_matrix()
-                [1 0 0]
-                [0 1 0]
-                [0 0 1]
-            """
 
         def centralizer(self, S):
             """
@@ -590,4 +577,41 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             P = self.parent()
             basis = P.basis()
             return matrix([P.bracket(self, b).to_vector() for b in basis])
+
+    class Subobjects(SubobjectsCategory):
+        """
+        A category for subalgebras of a finite dimensional Lie algebra
+        with basis.
+        """
+        class ParentMethods:
+            @abstract_method
+            def ambient(self):
+                """
+                Return the ambient Lie algebra of ``self``.
+
+                EXAMPLES::
+
+                    sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                    sage: L.inject_variables()
+                    Defining a, b, c
+                    sage: S = L.subalgebra([2*a+b, b + c], 'x,y')
+                    sage: S.ambient() == L
+                    True
+                """
+
+            @abstract_method
+            def basis_matrix(self):
+                """
+                Return the basis matrix of ``self``.
+
+                EXAMPLES::
+
+                    sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                    sage: L.inject_variables()
+                    Defining a, b, c
+                    sage: S = L.subalgebra([2*a+b, b + c], 'x,y')
+                    sage: S.basis_matrix()
+                    [   1    0 -1/2]
+                    [   0    1    1]
+                """
 

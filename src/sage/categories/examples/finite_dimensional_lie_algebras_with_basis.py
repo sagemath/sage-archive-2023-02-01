@@ -26,7 +26,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
     Lie algebra with basis.
     """
     @staticmethod
-    def __classcall_private__(cls, R, names, M=None):
+    def __classcall_private__(cls, R, names, M=None, ambient=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -47,9 +47,9 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             raise ValueError("number of generators is not correct")
         else:
             M = M.change_ring(R)
-        return super(AbelianLieAlgebra, cls).__classcall__(cls, R, tuple(names), M)
+        return super(AbelianLieAlgebra, cls).__classcall__(cls, R, tuple(names), M, ambient)
 
-    def __init__(self, R, names, M):
+    def __init__(self, R, names, M, ambient):
         """
         EXAMPLES::
 
@@ -59,6 +59,11 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         self._ordered_indices = names
         self._M = M
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()
+        if ambient is None:
+            ambient = self
+        else:
+            cat = cat.Subobjects()
+        self._ambient = ambient
         Parent.__init__(self, base=R, names=names, category=cat)
 
     def _repr_(self):
@@ -129,6 +134,21 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         """
         return self._M.basis_matrix()
 
+    def ambient(self):
+        """
+        Return the ambient Lie algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+            sage: L.inject_variables()
+            Defining a, b, c
+            sage: S = L.subalgebra([2*a+b, b + c], 'x,y')
+            sage: S.ambient() == L
+            True
+        """
+        return self._ambient
+
     def subalgebra(self, gens, names='x'):
         """
         Return a subalgebra of ``self``.
@@ -150,12 +170,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         if len(names) == 1 and len(gens) != 1:
             names = tuple( names[0] + str(i) for i in range(len(gens)) )
         N = self._M.subspace([g.value for g in gens])
-        S = AbelianLieAlgebra(self.base_ring(), names, N)
-        try:
-            S._ambient = self._ambient
-        except AttributeError:
-            S._ambient = self
-        return S
+        return AbelianLieAlgebra(self.base_ring(), names, N, self._ambient)
 
     def basis(self):
         """

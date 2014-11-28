@@ -252,6 +252,18 @@ class LieAlgebras(Category_over_base_ring):
                 Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
             """
 
+        @abstract_method(optional=True)
+        def free_module(self):
+            """
+            Construct the universal enveloping algebra of ``self``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: L.free_module()
+                Vector space of dimension 3 over Rational Field
+            """
+
         @lazy_attribute
         def lift(self):
             """

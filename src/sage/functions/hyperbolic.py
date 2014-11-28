@@ -543,7 +543,7 @@ class Function_arccoth(HyperbolicFunction):
         Using first the `.n(53)` method is slightly more precise than
         converting directly to a ``float``::
 
-            sage: float(arccoth(2))
+            sage: float(arccoth(2))  # abs tol 1e-16
             0.5493061443340548
             sage: float(arccoth(2).n(53))   # Correct result to 53 bits
             0.5493061443340549

@@ -352,8 +352,8 @@ class MaximaFunction(BuiltinFunction):
             (0.4707504736556572+0j)
             sage: f._evalf_(1/2, 1/2, parent=RDF)
             0.4707504736556572
-            sage: f._evalf_(1, I, parent=CDF)
-            0.8483795707591759 - 0.0742924734216079*I
+            sage: f._evalf_(1, I, parent=CDF)  # abs tol 1e-16
+            0.8483795707591759 - 0.07429247342160791*I
             sage: f._evalf_(1, I, parent=RR)
             Traceback (most recent call last):
             ...

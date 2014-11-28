@@ -48,7 +48,7 @@ Sage example in ./polynomes.tex, line 154::
 
 Sage example in ./polynomes.tex, line 162::
 
-  sage: x = polygen(QQ); y = polygen(QQ['x'], 'y')
+  sage: x = polygen(QQ); y = polygen(QQ[x], 'y')
   sage: p = x^3 + x*y + y + y^2; p
   y^2 + (x + 1)*y + x^3
   sage: q = QQ['x,y'](p); q

@@ -6860,7 +6860,7 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
 
     Here, we use Fibonacci numbers that need deepest recursion in this method.
 
-        sage: K = ZZ[x]
+        sage: K = ZZ['x']
         sage: f = K.random_element(21)
         sage: g = K.random_element(34)
         sage: f*g - f._mul_karatsuba(g,0)

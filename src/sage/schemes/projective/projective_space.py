@@ -77,13 +77,13 @@ from sage.categories.fields import Fields
 _Fields = Fields()
 
 from sage.categories.homset import Hom
+from sage.categories.number_fields import NumberFields
 
 from sage.misc.all import (latex,
                            prod)
 from sage.structure.parent_gens import normalize_names
 from sage.rings.arith import (gcd,
                               binomial)
-from sage.rings.number_field.number_field_base import is_NumberField
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.tuple import Tuples
 from sage.matrix.constructor import matrix
@@ -918,11 +918,10 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: len(list(P.points_of_bounded_height(4)))
             553
         """
-
         numberField = False
         if (is_RationalField(self.base_ring())):
             numberField = False
-        elif (is_NumberField(self.base_ring())):
+        elif (self.base_ring() in NumberFields()):
             numberField = True
         else:
             raise NotImplementedError("self must be projective space over a number field.")

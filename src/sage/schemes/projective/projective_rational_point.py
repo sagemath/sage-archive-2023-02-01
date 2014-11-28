@@ -159,6 +159,7 @@ def enum_projective_number_field(X,B):
     R = X.codomain().ambient_space()
 
     pts = []
+
     for P in R.points_of_bounded_height(B):
         try:
             pts.append(X(P))

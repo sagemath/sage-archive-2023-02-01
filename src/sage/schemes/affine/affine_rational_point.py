@@ -142,6 +142,50 @@ def enum_affine_rational_field(X,B):
     return pts
 
 
+def enum_affine_number_field(X,B):
+    """
+    Enumerates affine points on scheme ``X`` defined over a number field. Simply checks all of the
+    points of height up to ``B`` and adds those that are on the scheme to the list.
+
+    INPUT:
+
+    - ``X`` - a scheme defined over a number field
+
+    - ``B`` - a real number
+
+    OUTPUT:
+
+     - a list containing the affine points of ``X`` of height up to ``B``,
+       sorted.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.affine.affine_rational_point import enum_affine_number_field
+        sage: u = QQ['u'].0
+        sage: K = NumberField(u^3 - 5,'v')
+        sage: A.<x,y,z> = AffineSpace(K, 3)
+        sage: X = A.subscheme([x - y])
+        sage: enum_affine_number_field(X(K),5)
+        [(0, 0, 0), (-1, -1, 0), (1, 1, 0), (-1/5*v^2, -1/5*v^2, 0), (-v, -v, 0), (1/5*v^2, 1/5*v^2, 0), (v, v, 0),
+        (0, 0, -1), (-1, -1, -1), (1, 1, -1), (-1/5*v^2, -1/5*v^2, -1), (-v, -v, -1), (1/5*v^2, 1/5*v^2, -1), (v, v, -1),
+        (0, 0, 1), (-1, -1, 1), (1, 1, 1), (-1/5*v^2, -1/5*v^2, 1), (-v, -v, 1), (1/5*v^2, 1/5*v^2, 1), (v, v, 1),
+        (0, 0, -1/5*v^2), (-1, -1, -1/5*v^2), (1, 1, -1/5*v^2), (-1/5*v^2, -1/5*v^2, -1/5*v^2), (-v, -v, -1/5*v^2),
+        (1/5*v^2, 1/5*v^2, -1/5*v^2), (v, v, -1/5*v^2), (0, 0, -v), (-1, -1, -v), (1, 1, -v), (-1/5*v^2, -1/5*v^2, -v),
+        (-v, -v, -v), (1/5*v^2, 1/5*v^2, -v), (v, v, -v), (0, 0, 1/5*v^2), (-1, -1, 1/5*v^2), (1, 1, 1/5*v^2),
+        (-1/5*v^2, -1/5*v^2, 1/5*v^2), (-v, -v, 1/5*v^2), (1/5*v^2, 1/5*v^2, 1/5*v^2), (v, v, 1/5*v^2), (0, 0, v),
+        (-1, -1, v), (1, 1, v), (-1/5*v^2, -1/5*v^2, v), (-v, -v, v), (1/5*v^2, 1/5*v^2, v), (v, v, v)]
+    """
+    R = X.codomain().ambient_space()
+
+    pts = []
+    for P in R.points_of_bounded_height(B):
+        try:
+            pts.append(X(P))
+        except TypeError:
+            pass
+    pts.sort()
+    return pts
+
 
 def enum_affine_finite_field(X):
     r"""

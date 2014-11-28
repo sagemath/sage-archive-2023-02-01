@@ -40,7 +40,7 @@ from sage.rings.all import ZZ
 from sage.schemes.generic.homset import SchemeHomset_points
 
 from sage.rings.rational_field import is_RationalField
-from sage.rings.number_field.number_field_base import is_NumberField
+from sage.categories.number_fields import NumberFields
 from sage.rings.finite_rings.constructor import is_FiniteField
 
 #*******************************************************************
@@ -107,7 +107,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             if not B > 0:
                 raise TypeError("A positive bound B (= %s) must be specified."%B)
             return enum_projective_rational_field(self,B)
-        elif is_NumberField(R):
+        elif R in NumberFields():
             return enum_projective_number_field(self,B)
         elif is_FiniteField(R):
             return enum_projective_finite_field(self.extended_codomain())

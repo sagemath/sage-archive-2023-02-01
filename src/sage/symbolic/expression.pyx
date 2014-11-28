@@ -858,7 +858,7 @@ cdef class Expression(CommutativeRingElement):
         try:
             n = self.pyobject()
         except TypeError:
-            raise TypeError("unable to convert x (=%s) to an integer" % self)
+            raise TypeError("unable to convert %r to an integer" % self)
         if isinstance(n, sage.rings.integer.Integer):
             return n
         return sage.rings.integer.Integer(n)
@@ -10131,41 +10131,6 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (1/k^5).sum(k, 1, oo)
             zeta(5)
-
-        .. WARNING::
-
-            This function only works with symbolic expressions. To sum any
-            other objects like list elements or function return values,
-            please use python summation, see
-            http://docs.python.org/library/functions.html#sum
-
-            In particular, this does not work::
-
-                sage: n = var('n')
-                sage: list=[1,2,3,4,5]
-                sage: sum(list[n],n,0,3)
-                Traceback (most recent call last):
-                ...
-                TypeError: unable to convert x (=n) to an integer
-
-            Use python ``sum()`` instead::
-
-                sage: sum(list[n] for n in range(4))
-                10
-
-            Also, only a limited number of functions are recognized in symbolic sums::
-
-                sage: sum(valuation(n,2),n,1,5)
-                Traceback (most recent call last):
-                ...
-                AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
-
-            Again, use python ``sum()``::
-
-                sage: sum(valuation(n+1,2) for n in range(5))
-                3
-
-            (now back to the Sage ``sum`` examples)
 
         A well known binomial identity::
 

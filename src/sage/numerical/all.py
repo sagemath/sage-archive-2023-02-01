@@ -6,7 +6,9 @@ from optimize import (find_fit,
                       minimize,
                       minimize_constrained)
 from sage.numerical.mip import MixedIntegerLinearProgram
+from sage.numerical.sdp import SemidefiniteProgram
 from sage.numerical.backends.generic_backend import default_mip_solver
+from sage.numerical.backends.generic_sdp_backend import default_sdp_solver
 
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.numerical.interactive_simplex_method",

@@ -1135,6 +1135,22 @@ ext_modules = [
 
     Extension('*', ['sage/parallel/**/*.pyx']),
 
+    Extension("sage.numerical.sdp",
+              ["sage/numerical/sdp.pyx"],
+              include_dirs=[SAGE_INC],
+              libraries=["stdc++"]),
+
+    Extension("sage.numerical.backends.generic_sdp_backend",
+              ["sage/numerical/backends/generic_sdp_backend.pyx"],
+              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
+              libraries=["stdc++"]),
+
+    Extension("sage.numerical.backends.cvxopt_sdp_backend",
+              ["sage/numerical/backends/cvxopt_sdp_backend.pyx"],
+              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
+              libraries=["stdc++"]),
+
+
     ################################
     ##
     ## sage.plot

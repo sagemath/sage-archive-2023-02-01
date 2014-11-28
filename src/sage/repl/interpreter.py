@@ -38,6 +38,12 @@ this object can be retrieved by running::
 
     sage: shell = get_ipython()   # not tested
 
+Any input is preprocessed and evaluated inside the ``shell.run_cell``
+method. If the command line processing does not do what you want it to
+do, you can step through it in the debugger::
+
+    sage: %debug shell.run_cell('?')        # not tested
+
 The :class:`SageInteractiveShell` provides the following
 customizations:
 

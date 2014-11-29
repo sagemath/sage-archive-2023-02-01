@@ -570,7 +570,7 @@ cdef class Matrix(matrix1.Matrix):
 
         Notice the base ring of the results in the next two examples.  ::
 
-            sage: D = matrix(ZZ[x],2,[1+x^2,2,3,4-x])
+            sage: D = matrix(ZZ['x'],2,[1+x^2,2,3,4-x])
             sage: E = matrix(QQ,2,[1,2,3,4])
             sage: F = D.elementwise_product(E)
             sage: F

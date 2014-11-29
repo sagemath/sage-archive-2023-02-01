@@ -658,9 +658,9 @@ class Function_lambert_w(BuiltinFunction):
             0.5671432904097838
             sage: lambert_w(complex(1))
             (0.5671432904097838+0j)
-            sage: lambert_w(RDF(-1))  # abs tol 1e-16
+            sage: lambert_w(RDF(-1))  # abs tol 2e-16
             -0.31813150520476413 + 1.3372357014306895*I
-            sage: lambert_w(float(-1))  # abs tol 1e-16
+            sage: lambert_w(float(-1))  # abs tol 2e-16
             (-0.31813150520476413+1.3372357014306895j)
         """
         R = parent or s_parent(z)

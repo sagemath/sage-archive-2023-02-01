@@ -191,14 +191,9 @@ class FunctionAiryAiSimple(BuiltinFunction):
             sage: airy_ai_simple(1.0 * I)
             0.331493305432141 - 0.317449858968444*I
         """
-        if not isinstance(x, Expression):
-            if is_inexact(x):
-                return self._evalf_(x)
-            elif x == 0:
-                r = ZZ(2) / 3
-                return 1 / (3 ** (r) * gamma(r))
-        else:
-            return None
+        if x == 0:
+            r = ZZ(2) / 3
+            return 1 / (3 ** (r) * gamma(r))
 
     def _evalf_(self, x, **kwargs):
         """
@@ -292,14 +287,9 @@ class FunctionAiryAiPrime(BuiltinFunction):
             sage: airy_ai_prime(0.0)
             -0.258819403792807
         """
-        if not isinstance(x, Expression):
-            if is_inexact(x):
-                return self._evalf_(x)
-            elif x == 0:
-                r = ZZ(1) / 3
-                return -1 / (3 ** (r) * gamma(r))
-        else:
-            return None
+        if x == 0:
+            r = ZZ(1) / 3
+            return -1 / (3 ** (r) * gamma(r))
 
     def _evalf_(self, x, **kwargs):
         """
@@ -552,16 +542,12 @@ class FunctionAiryBiGeneral(BuiltinFunction):
         """
         if not isinstance(x, Expression) and \
                 not isinstance(alpha, Expression):
-            if is_inexact(x):
-                return self._evalf_(alpha, x)
             if alpha == 0:
                 return airy_bi_simple(x)
             if alpha == 1:
                 return airy_bi_prime(x)
             if alpha == 2:
                 return x*airy_bi_simple(x)
-        else:
-            return None
 
     def _evalf_(self, alpha, x, **kwargs):
         """
@@ -621,14 +607,9 @@ class FunctionAiryBiSimple(BuiltinFunction):
             sage: airy_bi_simple(1.0 * I)
             0.648858208330395 + 0.344958634768048*I
         """
-        if not isinstance(x, Expression):
-            if is_inexact(x):
-                return self._evalf_(x)
-            elif x == 0:
-                one_sixth = ZZ(1) / 6
-                return 1 / (3 ** (one_sixth) * gamma(4 * one_sixth))
-        else:
-            return None
+        if x == 0:
+            one_sixth = ZZ(1) / 6
+            return 1 / (3 ** (one_sixth) * gamma(4 * one_sixth))
 
     def _evalf_(self, x, **kwargs):
         """
@@ -722,14 +703,9 @@ class FunctionAiryBiPrime(BuiltinFunction):
             sage: airy_bi_prime(0.0)
             0.448288357353826
         """
-        if not isinstance(x, Expression):
-            if is_inexact(x):
-                return self._evalf_(x)
-            elif x == 0:
-                one_sixth = ZZ(1) / 6
-                return 3 ** (one_sixth) / gamma(2 * one_sixth)
-        else:
-            return None
+        if x == 0:
+            one_sixth = ZZ(1) / 6
+            return 3 ** (one_sixth) / gamma(2 * one_sixth)
 
     def _evalf_(self, x, **kwargs):
         """

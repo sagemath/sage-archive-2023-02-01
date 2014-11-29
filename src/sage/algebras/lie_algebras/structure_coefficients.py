@@ -51,7 +51,6 @@ from sage.modules.free_module_element import vector
 from sage.modules.free_module import FreeModule, span
 from sage.sets.family import Family, AbstractFamily
 
-# TODO: Much of this could be moved to (FiniteDimensional)LieAlgebrasWithBasis
 class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
     A Lie algebra with a set of specified structure coefficients.
@@ -84,6 +83,9 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L1 is L2
             True
         """
+        if isinstance(names, str):
+            names = tuple(names.split(','))
+
         s_coeff = LieAlgebraWithStructureCoefficients._standardize_s_coeff(s_coeff)
         if len(s_coeff) == 0:
             return AbelianLieAlgebra(R, names, index_set, **kwds)
@@ -106,6 +108,13 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         of tuples. Strips items with coefficients of 0 and duplicate entries.
         This does not check the Jacobi relation (nor antisymmetry if the
         cardinality is infinite).
+
+        EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
+            sage: d = {('y','x'): {'x':-1}}
+            sage: LieAlgebraWithStructureCoefficients._standardize_s_coeff(d)
+            Finite family {('x', 'y'): (('x', 1),)}
         """
         # Try to handle infinite basis (once/if supported)
         #if isinstance(s_coeff, AbstractFamily) and s_coeff.cardinality() == infinity:
@@ -167,7 +176,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L.basis()
             Finite family {'y': y, 'x': x}
         """
-        return Family({i: self.monomial(i) for i in self._indices})
+        return Family(self._indices, self.monomial)
 
     def structure_coefficients(self, include_zeros=False):
         """
@@ -178,13 +187,15 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L = LieAlgebra(QQ, 'x,y,z', {('x','y'):{'x':1}})
             sage: L.structure_coefficients()
             Finite family {('x', 'y'): x}
-            sage: L.structure_coefficients(True)
+            sage: S = L.structure_coefficients(True); S
             Finite family {('x', 'y'): x, ('x', 'z'): 0, ('y', 'z'): 0}
+            sage: S['x','z'].parent() is L
+            True
         """
         if not include_zeros:
             return self._s_coeff
         ret = {}
-        zero = self.base_ring().zero()
+        zero = self.zero()
         S = dict(self._s_coeff)
         for i,x in enumerate(self._indices):
             for y in self._indices[i+1:]:
@@ -241,29 +252,26 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
         EXAMPLES::
 
-            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}, ('y','z'):{'x':1}, ('z','x'):{'y':1}})
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
             sage: L.free_module()
             Sparse vector space of dimension 3 over Rational Field
         """
-        # TODO: Make this return a free module with the same index set as ``self``
         return FreeModule(self.base_ring(), self.dimension(), sparse=sparse)
 
     class Element(LieAlgebraElement):
         """
         An element of a Lie algebra given by structure coefficients.
         """
-
-        #def _bracket_(self, y):
-        #    """
-        #    Return the Lie bracket ``[self, y]``.
-        #    """
-        #    P = self.parent()
-        #    return P.sum(cx * cy * P.bracket_on_basis(mx, my)
-        #                 for mx,cx in self for my,cy in y)
-
         def to_vector(self):
             """
             Return ``self`` as a vector.
+
+            EXAMPLES::
+
+                sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
+                sage: a = x + 3*y - z/2
+                sage: a.to_vector()
+                (1, 3, -1/2)
             """
             V = self.parent().free_module()
             return V([self[k] for k in self.parent()._ordered_indices])

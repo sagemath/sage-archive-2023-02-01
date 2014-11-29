@@ -33,21 +33,21 @@ from sage.structure.element_wrapper import ElementWrapper
 
 # TODO: Have the other classes inherit from this?
 # TODO: Should this be a mixin class (or moved to the category)?
-class LieAlgebraElement_generic(ModuleElement):
-    """
-    Generic methods for all Lie algebra elements.
-    """
-    def __mul__(self, other):
-        """
-        If we are multiplying two non-zero elements, automatically
-        lift up to the universal enveloping algebra.
-
-        EXAMPLES::
-        """
-        if self == 0 or other == 0:
-            return self.parent().zero()
-        # Otherwise we lift to the UEA
-        return self.lift() * other
+#class LieAlgebraElement_generic(ModuleElement):
+#    """
+#    Generic methods for all Lie algebra elements.
+#    """
+#    def __mul__(self, other):
+#        """
+#        If we are multiplying two non-zero elements, automatically
+#        lift up to the universal enveloping algebra.
+#
+#        EXAMPLES::
+#        """
+#        if self == 0 or other == 0:
+#            return self.parent().zero()
+#        # Otherwise we lift to the UEA
+#        return self.lift() * other
 
 # TODO: Factor out parts of CombinatorialFreeModuleElement into a SparseFreeModuleElement?
 # TODO: Do we want a dense version?
@@ -55,36 +55,6 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
     """
     A Lie algebra element.
     """
-    #def _repr_(self):
-    #    """
-    #    Return a string representation of ``self``.
-    #
-    #    EXAMPLES::
-    #    """
-    #    if not self._monomial_coefficients:
-    #        return '0'
-    #    return repr_lincomb(self.list())
-
-    # Default implementation
-    def _latex_monomial(self, m):
-        """
-        Return a `\LaTeX` representation of the monomial ``m``.
-
-        EXAMPLES::
-        """
-        from sage.misc.latex import latex
-        return latex(m)
-
-    #def _latex_(self):
-    #    r"""
-    #    Return a `\LaTeX` representation of ``self``.
-    #
-    #    EXAMPLES::
-    #    """
-    #    if not self._monomial_coefficients:
-    #        return '0'
-    #    return repr_lincomb(self.list(), repr_monomial=self._latex_monomial, is_latex=True)
-
     # Need to bypass the coercion model
     def __mul__(self, y):
         """
@@ -92,26 +62,30 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         lift up to the universal enveloping algebra.
 
         EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
+            sage: y*x
+            x*y - z
         """
         if self == 0 or y == 0:
             return self.parent().zero()
         # Otherwise we lift to the UEA
         return self.lift() * y
 
-    def _im_gens_(self, codomain, im_gens):
-        """
-        Return the image of ``self`` in ``codomain`` under the map that sends
-        the images of the generators of the parent of ``self`` to the
-        tuple of elements of ``im_gens``.
-
-        EXAMPLES::
-        """
-        s = codomain.zero()
-        if not self: # If we are 0
-            return s
-        names = self.parent().variable_names()
-        return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
-                            for t, c in self._monomial_coefficients.iteritems())
+    #def _im_gens_(self, codomain, im_gens):
+    #    """
+    #    Return the image of ``self`` in ``codomain`` under the map that sends
+    #    the images of the generators of the parent of ``self`` to the
+    #    tuple of elements of ``im_gens``.
+    #
+    #    EXAMPLES::
+    #    """
+    #    s = codomain.zero()
+    #    if not self: # If we are 0
+    #        return s
+    #    names = self.parent().variable_names()
+    #    return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
+    #                        for t, c in self._monomial_coefficients.iteritems())
 
     # TODO: Move to the category/lift morphism?
     def lift(self):
@@ -119,6 +93,10 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         Lift ``self`` to the universal enveloping algebra.
 
         EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
+            sage: x.lift().parent() == L.universal_enveloping_algebra()
+            True
         """
         UEA = self.parent().universal_enveloping_algebra()
         gen_dict = UEA.gens_dict()
@@ -126,7 +104,7 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         if not self:
             return s
         for t, c in self._monomial_coefficients.iteritems():
-            s += c * gen_dict[t._name]
+            s += c * gen_dict[t]
         return s
 
     def is_constant(self):
@@ -134,6 +112,13 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         Check if ``self`` is a constant (i.e. zero).
 
         EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
+            sage: a = x + y
+            sage: a.is_constant()
+            False
+            sage: L.zero().is_constant()
+            True
         """
         return not self._monomial_coefficients
 
@@ -142,6 +127,11 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         Return ``self`` as a dictionary mapping monomials to coefficients.
 
         EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
+            sage: a = 3*x - 1/2*z
+            sage: a.dict()
+            {'x': 3, 'z': -1/2}
         """
         return copy(self._monomial_coefficients)
 
@@ -151,6 +141,11 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         monomial and ``c`` is the coefficient.
 
         EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}})
+            sage: a = 3*x - 1/2*z
+            sage: a.list()
+            [('x', 3), ('z', -1/2)]
         """
         return sorted(self._monomial_coefficients.items())
 
@@ -179,7 +174,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(QQ, R)
+            sage: L.<x,y,z> = LieAlgebra(associative=R)
             sage: x + y
             x + y
         """
@@ -192,7 +187,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x')
-            sage: L.<x0,x1,x2> = LieAlgebra(QQ, R)
+            sage: L.<x0,x1,x2> = LieAlgebra(associative=R)
             sage: latex(x0 + x1)
             x_{0} + x_{1}
         """
@@ -206,7 +201,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(QQ, R)
+            sage: L.<x,y,z> = LieAlgebra(associative=R)
             sage: x + y
             x + y
         """
@@ -219,7 +214,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(QQ, R)
+            sage: L.<x,y,z> = LieAlgebra(associative=R)
             sage: x - y
             x - y
         """
@@ -235,7 +230,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
 
             sage: G = SymmetricGroup(3)
             sage: S = GroupAlgebra(G, QQ)
-            sage: L.<x,y> = LieAlgebra(QQ, S)
+            sage: L.<x,y> = LieAlgebra(associative=S)
             sage: x*y - y*x
             (2,3) - (1,3)
         """
@@ -249,6 +244,15 @@ class LieAlgebraElementWrapper(ElementWrapper):
         Return the action of a scalar on ``self``.
 
         EXAMPLES::
+
+            sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
+            sage: L.<x,y,z> = LieAlgebra(associative=R)
+            sage: 3*x
+            3*x
+            sage: x / 2
+            1/2*x
+            sage: y * 1/2
+            1/2*y
         """
         # This was copied and IDK if it still applies:
         # With the current design, the coercion model does not have
@@ -272,7 +276,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(QQ, R)
+            sage: L.<x,y,z> = LieAlgebra(associative=R)
             sage: -x
             -x
         """

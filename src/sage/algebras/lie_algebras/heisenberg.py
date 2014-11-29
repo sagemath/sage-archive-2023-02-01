@@ -336,8 +336,8 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
             Lazy family (generator map(i))_{i in Cartesian product of
                                             Positive integers, ['p', 'q']}
         """
-        S = CartesianProduct(PositiveIntegers(), ['p','q'])
-        return Family(S, self.monomial, name='generator map')
+        return Family(self._indices, lambda x: self.monomial(tuple(x)),
+                      name='generator map')
 
     def basis(self):
         """
@@ -431,7 +431,7 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         names = tuple('p%s'%i for i in range(1,n+1))
         names = names + tuple('q%s'%i for i in range(1,n+1)) + ('z',)
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()
-        LieAlgebraFromAssociative.__init__(self, R, MS, p + q + (MS({(0,n+1):one}),),
+        LieAlgebraFromAssociative.__init__(self, p + q + (MS({(0,n+1):one}),),
                                            names=names, category=cat)
 
     def _repr_(self):

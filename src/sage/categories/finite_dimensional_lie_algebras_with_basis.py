@@ -73,8 +73,10 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             ::
 
-                sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}, ('y','z'):{'x':1}, ('z','x'):{'y':1}}) # todo: not implemented - #16820
-                sage: L._construct_UEA() # todo: not implemented - #16820
+                sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}, ('y','z'):{'x':1}, ('z','x'):{'y':1}})
+                sage: L._construct_UEA()
+                Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field,
+                 nc-relations: {z*x: x*z + y, z*y: y*z - x, y*x: x*y - z}
             """
             # Create the UEA relations
             # We need to get names for the basis elements, not just the generators
@@ -116,8 +118,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             ::
 
-                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}}) # todo: not implemented - #16820
-                sage: L.killing_matrix(x, y) # todo: not implemented - #16820
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.killing_matrix(x, y)
                 [ 0  0]
                 [-1  0]
             """
@@ -281,18 +283,18 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             ::
 
-                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}}) # todo: not implemented - #16820
-                sage: Lp = L.product_space(L) # todo: not implemented - #16820
-                sage: Lp # todo: not implemented - #16820
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: Lp = L.product_space(L) # todo: not implemented - #17416
+                sage: Lp # todo: not implemented - #17416
                 Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
                 (x,)
-                sage: Lp.product_space(L) # todo: not implemented - #16820
+                sage: Lp.product_space(L) # todo: not implemented - #17416
                 Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
                 (x,)
-                sage: L.product_space(Lp) # todo: not implemented - #16820
+                sage: L.product_space(Lp) # todo: not implemented - #17416
                 Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
                 (x,)
-                sage: Lp.product_space(Lp) # todo: not implemented - #16820
+                sage: Lp.product_space(Lp) # todo: not implemented - #17416
                 Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
                 ()
             """
@@ -377,8 +379,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             ::
 
-                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}}) # todo: not implemented - #16820
-                sage: L.derived_series() # todo: not implemented - #16820
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.derived_series() # todo: not implemented - #17416
                 (Lie algebra on 2 generators (x, y) over Rational Field,
                  Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
                 (x,),
@@ -431,8 +433,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             ::
 
-                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}}) # todo: not implemented - #16820
-                sage: L.lower_central_series() # todo: not implemented - #16820
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.lower_central_series() # todo: not implemented - #17416
                 (Lie algebra on 2 generators (x, y) over Rational Field,
                  Subalgebra generated of Lie algebra on 2 generators (x, y) over Rational Field with basis:
                 (x,))
@@ -457,8 +459,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             ::
 
-                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}}) # todo: not implemented - #16820
-                sage: L.is_abelian() # todo: not implemented - #16820
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.is_abelian()
                 False
             """
             return len(self.structure_coefficients()) == 0
@@ -480,8 +482,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             ::
 
-                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}}) # todo: not implemented - #16820
-                sage: L.is_solvable() # todo: not implemented - #16820
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.is_solvable() # todo: not implemented - #17416
                 False
             """
             return not self.derived_series()[-1].dimension()
@@ -529,8 +531,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             ::
 
-                sage: L = LieAlgebra(QQ, 'x,y', {('x','y'): {'x':1}}) # todo: not implemented - #16820
-                sage: L.dimension() # todo: not implemented - #16820
+                sage: L = LieAlgebra(QQ, 'x,y', {('x','y'): {'x':1}})
+                sage: L.dimension()
                 2
             """
             return self.basis().cardinality()
@@ -566,13 +568,13 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             ::
 
-                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}}) # todo: not implemented - #16820
-                sage: x.adjoint_matrix() # todo: not implemented - #16820
-                [1 0]
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: x.adjoint_matrix()
                 [0 0]
-                sage: y.adjoint_matrix() # todo: not implemented - #16820
-                [ 0  0]
+                [1 0]
+                sage: y.adjoint_matrix()
                 [-1  0]
+                [ 0  0]
             """
             P = self.parent()
             basis = P.basis()

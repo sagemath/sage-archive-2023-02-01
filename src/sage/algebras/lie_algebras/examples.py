@@ -38,16 +38,16 @@ def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
 
         sage: L = lie_algebras.three_dimensional(QQ, 4, 1, -1, 2)
         sage: L.structure_coefficients()
-        {[X, Y]: ((Y, 2), (Z, 4)), [X, Z]: ((Y, 1), (Z, 2)), [Y, Z]: ((X, 1),)}
+        Finite family {('X', 'Y'): 2*Y + 4*Z, ('X', 'Z'): Y + 2*Z, ('Y', 'Z'): X}
         sage: L = lie_algebras.three_dimensional(QQ, 1, 0, 0, 0)
         sage: L.structure_coefficients()
-        {[X, Y]: ((Z, 1),)}
+        Finite family {('X', 'Y'): Z}
         sage: L = lie_algebras.three_dimensional(QQ, 0, 0, -1, -1)
         sage: L.structure_coefficients()
-        {[X, Y]: ((Y, -1),), [X, Z]: ((Y, 1), (Z, -1))}
+        Finite family {('X', 'Y'): -Y, ('X', 'Z'): Y - Z}
         sage: L = lie_algebras.three_dimensional(QQ, 0, 1, 0, 0)
         sage: L.structure_coefficients()
-        {[Y, Z]: ((X, 1),)}
+        Finite family {('Y', 'Z'): X}
         sage: lie_algebras.three_dimensional(QQ, 0, 0, 0, 0)
         Abelian Lie algebra on 3 generators (X, Y, Z) over Rational Field
     """
@@ -68,7 +68,7 @@ def cross_product(R, names=['X', 'Y', 'Z']):
 
         sage: L = lie_algebras.cross_product(QQ)
         sage: L.structure_coefficients()
-        {[X, Y]: ((Z, 1),), [X, Z]: ((Y, -1),), [Y, Z]: ((X, 1),)}
+        Finite family {('X', 'Y'): Z, ('X', 'Z'): -Y, ('Y', 'Z'): X}
     """
     L = three_dimensional(R, 1, 1, 1, 0, names)
     L.rename("Lie algebra of RR^3 under cross product over {}".format(R))
@@ -91,15 +91,15 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
         Abelian Lie algebra on 3 generators (X, Y, Z) over Rational Field
         sage: L = lie_algebras.three_dimensional_by_rank(QQ, 1)
         sage: L.structure_coefficients()
-        {[Y, Z]: ((X, 1),)}
+        Finite family {('Y', 'Z'): X}
         sage: L = lie_algebras.three_dimensional_by_rank(QQ, 2, 4)
         sage: L.structure_coefficients()
-        {[X, Y]: ((Y, 1),), [X, Z]: ((Y, 1), (Z, 1))}
+        Finite family {('X', 'Y'): Y, ('X', 'Z'): Y + Z}
         sage: L = lie_algebras.three_dimensional_by_rank(QQ, 2, 0)
         sage: L.structure_coefficients()
-        {[X, Y]: ((Y, 1),)}
+        Finite family {('X', 'Y'): Y}
         sage: lie_algebras.three_dimensional_by_rank(QQ, 3)
-        Special linear Lie algebra of rank 2 over Rational Field
+        sl2 over Rational Field
     """
     if isinstance(names, str):
         names = names.split(',')
@@ -165,7 +165,7 @@ def sl(R, n, representation='bracket'):
         E = MS([[0,1],[0,0]])
         F = MS([[0,0],[1,0]])
         H = MS([[1,0],[-1,0]])
-        L = LieAlgebraFromAssociative(R, MS, [E, F, H], ['E', 'F', 'H'])
+        L = LieAlgebraFromAssociative([E, F, H], ['E', 'F', 'H'])
         L.rename("sl2 as a matrix Lie algebra over {}".format(R))
     elif representation == 'bracket':
         L = three_dimensional_by_rank(R, 3)
@@ -182,7 +182,7 @@ def affine_transformations_line(R, names=['X', 'Y'], representation='bracket'):
 
         sage: L = lie_algebras.affine_transformations_line(QQ)
         sage: L.structure_coefficients()
-        {[X, Y]: ((Y, 1),)}
+        Finite family {('X', 'Y'): Y}
     """
     if isinstance(names, str):
         names = names.split(',')
@@ -193,7 +193,7 @@ def affine_transformations_line(R, names=['X', 'Y'], representation='bracket'):
         one = R.one()
         gens = tuple(MS({(0,i):one}) for i in range(2))
         from sage.algebras.lie_algebras.lie_algebra import LieAlgebraFromAssociative
-        return LieAlgebraFromAssociative(R, MS, gens, names)
+        return LieAlgebraFromAssociative(gens, names)
     X = names[0]
     Y = names[1]
     from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
@@ -271,10 +271,10 @@ def upper_triangluar_matrices(R, n):
     MS = MatrixSpace(R, n, sparse=True)
     one = R.one()
     names = tuple('n{}'.format(i) for i in range(n-1))
-    names = tuple('t{}'.format(i) for i in range(n))
+    names += tuple('t{}'.format(i) for i in range(n))
     gens = [MS({(i,i+1):one}) for i in range(n-1)]
     gens += [MS({(i,i):one}) for i in range(n)]
-    L = LieAlgebraFromAssociative(R, MS, gens, names)
+    L = LieAlgebraFromAssociative(gens, names)
     L.rename("Lie algebra of {}-dimensional upper triangular matrices over {}".format(n, L.base_ring()))
     return L
 
@@ -294,7 +294,7 @@ def strictly_upper_triangular_matrices(R, n):
     one = R.one()
     names = tuple('n{}'.format(i) for i in range(n-1))
     gens = tuple(MS({(i,i+1):one}) for i in range(n-1))
-    L = LieAlgebraFromAssociative(R, MS, gens, names)
+    L = LieAlgebraFromAssociative(gens, names)
     L.rename("Lie algebra of {}-dimensional strictly upper triangular matrices over {}".format(n, L.base_ring()))
     return L
 

@@ -65,7 +65,6 @@ from sage.structure.sage_object cimport SageObject
 import operator
 import sage.rings.arith
 import constructor as finite_field
-import finite_field_ext_pari
 
 import sage.interfaces.gap
 from sage.libs.pari.all import pari
@@ -78,7 +77,6 @@ from sage.structure.parent_gens cimport ParentWithGens
 cdef object is_IntegerMod
 cdef object Integer
 cdef object Rational
-cdef object is_Polynomial
 cdef object ConwayPolynomials
 cdef object conway_polynomial
 cdef object MPolynomial
@@ -92,7 +90,6 @@ cdef void late_import():
     global is_IntegerMod, \
            Integer, \
            Rational, \
-           is_Polynomial, \
            ConwayPolynomials, \
            conway_polynomial, \
            MPolynomial, \
@@ -111,9 +108,6 @@ cdef void late_import():
     import sage.rings.rational
     Rational = sage.rings.rational.Rational
 
-    import sage.rings.polynomial.polynomial_element
-    is_Polynomial = sage.rings.polynomial.polynomial_element.is_Polynomial
-
     import sage.databases.conway
     ConwayPolynomials = sage.databases.conway.ConwayPolynomials
 
@@ -130,7 +124,7 @@ cdef void late_import():
     FreeModuleElement = sage.modules.free_module_element.FreeModuleElement
 
 cdef class Cache_givaro(SageObject):
-    def __init__(self, parent, p, k, modulus=None, repr="poly", cache=False):
+    def __init__(self, parent, unsigned int p, unsigned int k, modulus, repr="poly", cache=False):
         """
         Finite Field.
 
@@ -189,7 +183,7 @@ cdef class Cache_givaro(SageObject):
             sage: k.modulus() # random polynomial
             x^5 + 2*x^4 + 2*x^3 + x^2 + 2
 
-        For binary fields, you may ask for a  minimal weight polynomial::
+        For binary fields, you may ask for a minimal weight polynomial::
 
             sage: k = GF(2**10, 'a', modulus='minimal_weight')
             sage: k.modulus()
@@ -200,8 +194,6 @@ cdef class Cache_givaro(SageObject):
         late_import()
 
         cdef intvec cPoly
-        cdef GF2X_c ntl_m, ntl_tmp
-        cdef GF2_c c
 
         self.parent = <Parent?> parent
 
@@ -214,47 +206,18 @@ cdef class Cache_givaro(SageObject):
         else:
             raise RuntimeError
 
-        if not is_Polynomial(modulus):
-            from sage.misc.superseded import deprecation
-            deprecation(16930, "constructing a FiniteField_givaro without giving a polynomial as modulus is deprecated, use the more general FiniteField constructor instead")
-
-        if isinstance(modulus,str) and p == 2:
-            if modulus == "minimal_weight":
-                GF2X_BuildSparseIrred(ntl_m, k)
-            elif modulus == "first_lexicographic":
-                GF2X_BuildIrred(ntl_m, k)
-            elif modulus == "random":
-                current_randstate().set_seed_ntl(False)
-                GF2X_BuildSparseIrred(ntl_tmp, k)
-                GF2X_BuildRandomIrred(ntl_m, ntl_tmp)
-            else:
-                raise ValueError, "Cannot understand modulus"
-
-            modulus = []
-            for i in range(k+1):
-                c = GF2X_coeff(ntl_m, i)
-                if not GF2_IsZero(c):
-                    modulus.append(1)
-                else:
-                    modulus.append(0)
-
-        if is_Polynomial(modulus):
-            modulus = modulus.list()
-
-        if k == 1 or modulus == "random":
+        if k == 1:
             sig_on()
-            self.objectptr = gfq_factorypk(p,k)
-        elif PY_TYPE_CHECK(modulus, list) or PY_TYPE_CHECK(modulus, tuple):
-            # This crashes if k == 1
-            for i in modulus:
-                cPoly.push_back(int( i % p ))
+            self.objectptr = gfq_factorypk(p, k)
+        else:
+            # Givaro does not support this when k == 1
+            for coeff in modulus:
+                cPoly.push_back(<int>coeff)
             sig_on()
             self.objectptr = gfq_factorypkp(p, k, cPoly)
-        else:
-            raise ValueError, "Cannot understand modulus"
 
-        self._zero_element = make_FiniteField_givaroElement(self,self.objectptr.zero)
-        self._one_element = make_FiniteField_givaroElement(self,self.objectptr.one)
+        self._zero_element = make_FiniteField_givaroElement(self, self.objectptr.zero)
+        self._one_element = make_FiniteField_givaroElement(self, self.objectptr.one)
         sig_off()
 
         parent._zero_element = self._zero_element
@@ -498,7 +461,7 @@ cdef class Cache_givaro(SageObject):
             elif typ(t) == t_POL:
                 res = self._zero_element
 
-                g = self.objectptr.sage_generator()
+                g = self.objectptr.indeterminate()
                 x = self.objectptr.one
 
                 for i from 0 <= i <= degpol(t):
@@ -521,9 +484,14 @@ cdef class Cache_givaro(SageObject):
             sage: K._cache.gen()
             a
         """
-        return make_FiniteField_givaroElement(self, self.objectptr.sage_generator())
+        cdef int g
+        if self.objectptr.exponent() == 1:
+            self.objectptr.initi(g, -self.parent.modulus()[0])
+        else:
+            g = self.objectptr.indeterminate()
+        return make_FiniteField_givaroElement(self, g)
 
-    def log_to_int(self, int n):
+    cpdef int log_to_int(self, int n) except -1:
         r"""
         Given an integer `n` this method returns `i` where `i`
         satisfies `g^n = i` where `g` is the generator of ``self``; the
@@ -545,18 +513,18 @@ cdef class Cache_givaro(SageObject):
             sage: k._cache.log_to_int(20)
             180
         """
-        cdef int ret
+        if n < 0:
+            raise IndexError("Cannot serve negative exponent %d"%n)
+        elif n >= self.order_c():
+            raise IndexError("n=%d must be < self.order()"%n)
 
-        if n<0:
-            raise ArithmeticError, "Cannot serve negative exponent %d"%n
-        elif n>=self.order_c():
-            raise IndexError, "n=%d must be < self.order()"%n
+        cdef int r
         sig_on()
-        ret = int(self.objectptr.convert(ret, n))
+        self.objectptr.convert(r, n)
         sig_off()
-        return ret
+        return r
 
-    def int_to_log(self, int n):
+    cpdef int int_to_log(self, int n) except -1:
         r"""
         Given an integer `n` this method returns `i` where `i` satisfies
         `g^i = n \mod p` where `g` is the generator and `p` is the
@@ -582,9 +550,9 @@ cdef class Cache_givaro(SageObject):
         """
         cdef int r
         sig_on()
-        ret =  int(self.objectptr.initi(r,n))
+        self.objectptr.initi(r,n)
         sig_off()
-        return ret
+        return r
 
     def fetch_int(self, int n):
         r"""
@@ -604,7 +572,7 @@ cdef class Cache_givaro(SageObject):
         """
         cdef GivaroGfq *k = self.objectptr
         cdef int ret = k.zero
-        cdef int a = k.sage_generator()
+        cdef int a = k.indeterminate()
         cdef int at = k.one
         cdef unsigned int ch = k.characteristic()
         cdef int _n, t, i

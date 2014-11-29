@@ -42,7 +42,6 @@ TESTS::
 
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 include "sage/libs/pari/decl.pxi"
@@ -65,6 +64,7 @@ from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport PariInstance
 
 from integer_ring import ZZ
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.structure.element import bin_op
@@ -3649,47 +3649,6 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
         d = -d
     return ldexp(d, shift)
 
-
-def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
-    """
-    Find the rational reconstruction of ``a mod m``, if it exists.
-
-    INPUT:
-
-    -  ``a`` - Integer
-
-    -  ``m`` - Integer
-
-    OUTPUT:
-
-    -  ``x`` - rings.rational.Rational
-
-    EXAMPLES::
-
-        sage: Integers(100)(2/3)
-        34
-        sage: sage.rings.rational.pyrex_rational_reconstruction(34, 100)
-        2/3
-
-    TEST:
-
-    Check that ticket #9345 is fixed::
-
-        sage: sage.rings.rational.pyrex_rational_reconstruction(0,0)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError: The modulus cannot be zero
-        sage: sage.rings.rational.pyrex_rational_reconstruction(ZZ.random_element(-10^6, 10^6), 0)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError: The modulus cannot be zero
-    """
-    if not m.__nonzero__():
-        raise ZeroDivisionError("The modulus cannot be zero")
-    cdef Rational x
-    x = <Rational> PY_NEW(Rational)
-    mpq_rational_reconstruction(x.value, a.value, m.value)
-    return x
 
 def make_rational(s):
     """

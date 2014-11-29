@@ -98,12 +98,17 @@ this example `\mu=[3,2,1]` and `\nu=[2,1]`. Specifying a third entry
 
 .. seealso::
 
-- :func:`lrcoef`
-- :func:`mult`
-- :func:`coprod`
-- :func:`skew`
-- :func:`lrskew`
-- :func:`mult_schubert`
+    - :func:`lrcoef`
+    
+    - :func:`mult`
+    
+    - :func:`coprod`
+    
+    - :func:`skew`
+    
+    - :func:`lrskew`
+    
+    - :func:`mult_schubert`
 
 .. rubric:: Underlying algorithmic in lrcalc
 

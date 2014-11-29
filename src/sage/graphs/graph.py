@@ -77,6 +77,7 @@ graphs.
     :meth:`~Graph.degree_constrained_subgraph` | Returns a degree-constrained subgraph.
     :meth:`~Graph.bridges` | Returns the list of all bridges.
     :meth:`~Graph.spanning_trees` | Returns the list of all spanning trees.
+    :meth:`~Graph.random_spanning_tree` | Returns a random spanning tree.
 
 **Clique-related methods:**
 
@@ -1837,8 +1838,11 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
-            -- counts the number of spanning trees.
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+              -- counts the number of spanning trees.
+
+            - :meth:`~sage.graphs.graph.Graph.random_spanning_tree`
+              -- returns a random spanning tree.
 
         REFERENCES:
 
@@ -1887,11 +1891,11 @@ class Graph(GenericGraph):
 
                 return trees
 
-        if self.is_connected():
+        if self.is_connected() and len(self):
             forest = Graph([])
             forest.add_vertices(self.vertices())
             forest.add_edges(self.bridges())
-            return _recursive_spanning_trees(self,forest)
+            return _recursive_spanning_trees(self, forest)
         else:
             return []
 
@@ -2502,7 +2506,7 @@ class Graph(GenericGraph):
             ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
         """
         if algorithm=='bitset':
-            from sage.misc.bitset import Bitset
+            from sage.data_structures.bitset import Bitset
             N = self.num_verts()
             map = {}
             i = 0
@@ -3161,7 +3165,7 @@ class Graph(GenericGraph):
             sage: P.is_semi_symmetric()
             False
 
-        The Gray graph is the smallest possible semi-symmetric graph::
+        The Gray graph is the smallest possible cubic semi-symmetric graph::
 
             sage: G = graphs.GrayGraph()
             sage: G.is_semi_symmetric()
@@ -4838,6 +4842,18 @@ class Graph(GenericGraph):
 
             sage: graphs.PetersenGraph().to_directed()
             Petersen graph: Digraph on 10 vertices
+
+        TESTS:
+
+        Immutable graphs yield immutable graphs::
+
+            sage: Graph([[1, 2]], immutable=True).to_directed()._backend
+            <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+
+        :trac:`17005`::
+
+            sage: Graph([[1,2]], immutable=True).to_directed()
+            Digraph on 2 vertices
         """
         if sparse is not None:
             if data_structure is not None:
@@ -4855,10 +4871,15 @@ class Graph(GenericGraph):
             else:
                 data_structure = "static_sparse"
         from sage.graphs.all import DiGraph
-        D = DiGraph(name=self.name(), pos=self._pos, boundary=self._boundary,
-                    multiedges=self.allows_multiple_edges(),
-                    implementation=implementation, data_structure=data_structure)
-        D.name(self.name())
+        D = DiGraph(name           = self.name(),
+                    pos            = self._pos,
+                    boundary       = self._boundary,
+                    multiedges     = self.allows_multiple_edges(),
+                    loops          = self.allows_loops(),
+                    implementation = implementation,
+                    data_structure = (data_structure if data_structure!="static_sparse"
+                                      else "sparse")) # we need a mutable copy
+
         D.add_vertices(self.vertex_iterator())
         for u,v,l in self.edge_iterator():
             D.add_edge(u,v,l)
@@ -4867,6 +4888,10 @@ class Graph(GenericGraph):
             from copy import copy
             D._embedding = copy(self._embedding)
         D._weighted = self._weighted
+
+        if data_structure == "static_sparse":
+            D = D.copy(data_structure=data_structure)
+
         return D
 
     def to_undirected(self):
@@ -4879,20 +4904,21 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().to_undirected()
             Petersen graph: Graph on 10 vertices
         """
-        from copy import copy
-        return copy(self)
+        return self.copy()
 
-    def join(self, other, verbose_relabel=True):
+    def join(self, other, verbose_relabel=None, labels="pairs"):
         """
         Returns the join of self and other.
 
         INPUT:
 
-        - ``verbose_relabel`` - (defaults to True) If True, each vertex `v` in
-          the first graph will be named '0,v' and each vertex u in the second
-          graph will be named'1,u' in the final graph. If False, the vertices
-          of the first graph and the second graph will be relabeled with
-          consecutive integers.
+        - ``verbose_relabel`` - deprecated.
+
+        - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
+          element ``v`` in the first graph will be named ``(0,v)`` and
+          each element ``u`` in ``other`` will be named ``(1,u)`` in
+          the result. If set to 'integers', the elements of the result
+          will be relabeled with consecutive integers.
 
         .. SEEALSO::
 
@@ -4908,7 +4934,7 @@ class Graph(GenericGraph):
             Cycle graph join : Graph on 5 vertices
             sage: J.vertices()
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
-            sage: J = G.join(H, verbose_relabel=False); J
+            sage: J = G.join(H, labels='integers'); J
             Cycle graph join : Graph on 5 vertices
             sage: J.vertices()
             [0, 1, 2, 3, 4]
@@ -4925,13 +4951,20 @@ class Graph(GenericGraph):
             Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
             sage: J.vertices()
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
-            sage: J = G.join(H, verbose_relabel=False); J
+            sage: J = G.join(H, labels='integers'); J
             Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
             sage: J.edges()
             [(0, 3, None), (0, 4, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
         """
-        G = self.disjoint_union(other, verbose_relabel)
-        if not verbose_relabel:
+        if verbose_relabel is not None:
+            deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
+            if verbose_relabel == True:
+                labels="pairs"
+            if verbose_relabel == False:
+                labels="integers"
+
+        G = self.disjoint_union(other, labels=labels)
+        if labels=="integers":
             G.add_edges((u,v) for u in range(self.order())
                         for v in range(self.order(), self.order()+other.order()))
         else:
@@ -6349,7 +6382,7 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-        - :meth:`is_prime` -- Tests whether a graph is prime.
+            - :meth:`is_prime` -- Tests whether a graph is prime.
 
         REFERENCE:
 
@@ -6871,6 +6904,9 @@ Graph.matching_polynomial = types.MethodType(sage.graphs.matchpoly.matching_poly
 import sage.graphs.cliquer
 Graph.cliques_maximum = types.MethodType(sage.graphs.cliquer.all_max_clique, None, Graph)
 
+import sage.graphs.spanning_tree
+Graph.random_spanning_tree = types.MethodType(sage.graphs.spanning_tree.random_spanning_tree, None, Graph)
+
 import sage.graphs.graph_decompositions.graph_products
 Graph.is_cartesian_product = types.MethodType(sage.graphs.graph_decompositions.graph_products.is_cartesian_product, None, Graph)
 
@@ -6887,33 +6923,3 @@ Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 from sage.graphs.tutte_polynomial import tutte_polynomial
 Graph.tutte_polynomial = tutte_polynomial
 
-
-def compare_edges(x, y):
-    """
-    This function has been deprecated.
-
-    Compare edge x to edge y, return -1 if x y, 1 if x y, else 0.
-
-    TEST::
-
-        sage: G = graphs.PetersenGraph()
-        sage: E = G.edges()
-        sage: from sage.graphs.graph import compare_edges
-        sage: compare_edges(E[0], E[2])
-        doctest:...: DeprecationWarning: compare_edges(x,y) is deprecated.  Use statement 'cmp(x[1],y[1]) or cmp(x[0],y[0])' instead.
-        See http://trac.sagemath.org/13192 for details.
-        -1
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13192, "compare_edges(x,y) is deprecated.  Use statement 'cmp(x[1],y[1]) or cmp(x[0],y[0])' instead.")
-    if x[1] < y[1]:
-        return -1
-    elif x[1] > y[1]:
-        return 1
-    elif x[1] == y[1]:
-        if x[0] < y[0]:
-            return -1
-        if x[0] > y[0]:
-            return 1
-        else:
-            return 0

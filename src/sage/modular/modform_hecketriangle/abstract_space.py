@@ -24,6 +24,7 @@ from sage.rings.laurent_series_ring import is_LaurentSeriesRing
 from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
+from sage.rings.all import Integer
 
 from sage.misc.cachefunc import cached_method
 
@@ -611,7 +612,7 @@ class FormsSpace_abstract(FormsRing_abstract):
     def homogeneous_part(self, k, ep):
         r"""
         Since ``self`` already is a homogeneous component return ``self``
-        unless the degree differs in which case an Exception is raised.
+        unless the degree differs in which case a ``ValueError`` is raised.
 
         EXAMPLES::
 
@@ -699,23 +700,13 @@ class FormsSpace_abstract(FormsRing_abstract):
 
     # TODO: this only makes sense for modular forms,
     # resp. needs a big adjustment for quasi modular forms
-    def aut_factor(self,gamma,t):
+    def aut_factor(self, gamma, t):
         r"""
         The automorphy factor of ``self``.
 
-        For now it is only defined on the two basic generators of the
-        Hecke group of ``self`` and their inverses.
-
-        However, when determening the map which sends an element ``t``
-        of the upper half plane to the fundamental domain, the
-        function ``self.group().get_FD(t, self.aut_factor)`` can be used.
-        It returns the full automorphy factor of the transformation matrix
-        applied to ``t``.
-
         INPUT:
 
-        - ``gamma``   -- An element of the group of ``self``. For now only
-                         the basic generators (and their inverses) are supported.
+        - ``gamma``   -- An element of the group of ``self``.
 
         - ``t``       -- An element of the upper half plane.
 
@@ -730,15 +721,15 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: MF.aut_factor(S, z)
             3/2*I - 7/16
-            sage: MF.aut_factor(T, z)
+            sage: MF.aut_factor(-T^(-2), z)
             1
+            sage: MF.aut_factor(MF.group().V(6), z)
+            173.2640595631...? + 343.8133289126...?*I
             sage: MF.aut_factor(S, z) == full_factor(S, z)
             True
             sage: MF.aut_factor(T, z) == full_factor(T, z)
             True
-
-            sage: (A, w, fact) = MF.group().get_FD(z, MF.aut_factor)
-            sage: fact == full_factor(A,w)
+            sage: MF.aut_factor(MF.group().V(6), z) == full_factor(MF.group().V(6), z)
             True
 
             sage: MF = ModularForms(n=7, k=14/5, ep=-1)
@@ -748,18 +739,27 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: MF.aut_factor(S, z)
             1.3655215324256...? + 0.056805991182877...?*I
-            sage: MF.aut_factor(T, z)
+            sage: MF.aut_factor(-T^(-2), z)
             1
             sage: MF.aut_factor(S, z) == MF.ep() * (z/i)^MF.weight()
             True
+            sage: MF.aut_factor(MF.group().V(6), z)
+            13.23058830577...? + 15.71786610686...?*I
         """
 
-        if (gamma == self._group.T() or gamma == self._group.T().inverse()):
-            return 1
-        elif (gamma == self._group.S() or gamma == -self._group.S()):
-            return self._ep*(t/AlgebraicField()(i))**self._weight
+        if (gamma.is_translation()):
+            return ZZ(1)
+        elif (gamma.is_reflection()):
+            return self._ep * (t/AlgebraicField()(i))**self._weight
         else:
-            raise NotImplementedError("Factor of autormorphy is implemented only for some group elements.")
+            L = [M for M in gamma.decompose_basic()]
+            L.pop(-1)
+            aut_f = ZZ(1)
+            while (len(L) > 0):
+                M = L.pop(-1)
+                aut_f *= self.aut_factor(M, t)
+                t = M.acton(t)
+        return aut_f
 
     @cached_method
     def F_simple(self, order_1=ZZ(0)):
@@ -2154,7 +2154,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
                 column_len = len(q_basis)
                 if (m >= column_len + min_exp):
-                    raise ValueError("Index out of range: m={} >= {}=dimension + min_exp".format(m, size + min_exp))
+                    raise ValueError("Index out of range: m={} >= {}=dimension + min_exp".format(m, column_len + min_exp))
 
                 return q_basis[m - min_exp]
             else:
@@ -2269,9 +2269,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
-        from sage.rings.all import FractionField, PolynomialRing, PowerSeriesRing, prime_range
+        from sage.rings.all import prime_range
         from sage.misc.all import prod
-        from sage.functions.other import factorial
         from warnings import warn
 
         denom_factor = ZZ(denom_factor)
@@ -2337,7 +2336,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                 return ZZ(1/dvalue)**m
 
             hecke_n = self.hecke_n()
-            bad_factors = [fac for fac in factorial(m).factor() if (fac[0] % hecke_n) not in [1, hecke_n-1] and fac[0] > 2]
+            bad_factors = [fac for fac in Integer(m).factorial().factor() if (fac[0] % hecke_n) not in [1, hecke_n-1] and fac[0] > 2]
             bad_factorial = prod([fac[0]**fac[1] for fac in bad_factors])
 
             return ZZ(2**(6*m) * hecke_n**(2*m) * prod([ p**m for p in prime_range(m+1) if hecke_n % p == 0 and p > 2 ]) * bad_factorial)**(cor_exp + 1)

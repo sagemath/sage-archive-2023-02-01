@@ -1343,7 +1343,7 @@ def picklejar(obj, dir=None):
     Test an unaccessible directory::
 
         sage: import os
-        sage: os.chmod(dir, 0000)
+        sage: os.chmod(dir, 0o000)
         sage: try:
         ...   uid = os.getuid()
         ... except AttributeError:
@@ -1354,7 +1354,7 @@ def picklejar(obj, dir=None):
         Traceback (most recent call last):
         ...
         OSError: ...
-        sage: os.chmod(dir, 0755)
+        sage: os.chmod(dir, 0o755)
     """
     if dir is None:
         dir = os.environ['SAGE_ROOT'] + '/tmp/pickle_jar/'
@@ -1415,8 +1415,8 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     ::
 
         sage: sage.structure.sage_object.unpickle_all()  # (4s on sage.math, 2011)
-        doctest:... DeprecationWarning: This class is replaced by Matrix_modn_dense_float/Matrix_modn_dense_double.
-        See http://trac.sagemath.org/4260 for details.
+        doctest:... DeprecationWarning: ...
+        See http://trac.sagemath.org/... for details.
         Successfully unpickled ... objects.
         Failed to unpickle 0 objects.
 

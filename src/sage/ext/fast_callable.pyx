@@ -1788,7 +1788,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc = fast_callable(etb(x)^expo, domain=RDF)
         sage: fc.op_list()
         [('load_arg', 0), ('py_call', (^4294967296), 1), 'return']
-        sage: fc(base)
+        sage: fc(base)        # rel tol 1e-15
         1.0000009536747712
         sage: RDF(base)^expo
         1.0000009536747712

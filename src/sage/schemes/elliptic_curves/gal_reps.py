@@ -362,9 +362,14 @@ class GaloisRepresentation(SageObject):
             return self.__reducible_primes
         except AttributeError:
             pass
-        isocls = self._E.isogeny_class()
-        X = set(isocls.matrix().list())
-        R = [p for p in X if arith.is_prime(p)]
+
+        E = self._E
+        j = E.j_invariant()
+        from isogeny_small_degree import sporadic_j
+        if j in sporadic_j: # includes all CM j-invariants
+            R = [sporadic_j[j]]
+        else:
+            R = [l for l in [2,3,5,7,13] if len(E.isogenies_prime_degree(l))>0]
         self.__reducible_primes = R
         return R
 

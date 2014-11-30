@@ -1301,7 +1301,7 @@ class FFPDElement(sage.structure.element.RingElement):
                            [SR(qs[j]) for j in xrange(n) if j != J],
                            [SR(xx) for xx in x])
             det = jac.determinant()
-            psign = FFPDElement._permutation_sign(x, X)
+            psign = FractionWithFactoredDenominatorRing._permutation_sign(x, X)
             iteration1.append(self.parent()((-1)**J*det/\
                                    (psign*new_df[J][1]),
                                    new_df))
@@ -1516,7 +1516,7 @@ class FFPDElement(sage.structure.element.RingElement):
             return None
 
         # Coerce keys of p into R.
-        p = FFPDElement.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
 
         if asy_var is None:
             asy_var = var('r')
@@ -1709,7 +1709,8 @@ class FFPDElement(sage.structure.element.RingElement):
                       diff(h, X[i]))[0].rhs().simplify()
             hderivs1.update({diff(h, X[i]): s})
             atP.update({diff(h, X[i]).subs(P): s.subs(P).subs(atP)})
-        hderivs = FFPDElement._diff_all(h, X[0: d - 1], 2*N, sub=hderivs1, rekey=h)
+        hderivs = FractionWithFactoredDenominatorRing._diff_all(
+            h, X[0: d - 1], 2*N, sub=hderivs1, rekey=h)
         for k in hderivs.keys():
             atP.update({k.subs(P):hderivs[k].subs(atP)})
 
@@ -1718,7 +1719,8 @@ class FFPDElement(sage.structure.element.RingElement):
         # and solve for the derivatives of U at P.
         # Need the derivatives of H with short keys to pass on
         # to diff_prod later.
-        Hderivs = FFPDElement._diff_all(H, X, 2*N, ending=[X[d - 1]], sub_final=P)
+        Hderivs = FractionWithFactoredDenominatorRing._diff_all(
+            H, X, 2*N, ending=[X[d - 1]], sub_final=P)
         if verbose:
             print("Computing derivatives of auxiallary functions...")
         # For convenience in checking if all the nontrivial derivatives of U
@@ -1736,8 +1738,9 @@ class FFPDElement(sage.structure.element.RingElement):
                     Uderivs[diff(U, s).subs(P)] = Integer(0)
         elif k > 0 and k < 2*N:
             all_zero = True
-            Uderivs =  FFPDElement._diff_prod(Hderivs, U, Hcheck, X,
-                                     range(1, k + 1), end, Uderivs, atP)
+            Uderivs =  FractionWithFactoredDenominatorRing._diff_prod(
+                Hderivs, U, Hcheck, X,
+                range(1, k + 1), end, Uderivs, atP)
             # Check for a nonzero U derivative.
             if Uderivs.values() != [Integer(0)  for i in xrange(len(Uderivs))]:
                 all_zero = False
@@ -1749,12 +1752,14 @@ class FFPDElement(sage.structure.element.RingElement):
                         Uderivs.update({diff(U, s).subs(P): Integer(0)})
             else:
                 # Have to compute the rest of the derivatives.
-                Uderivs = FFPDElement._diff_prod(Hderivs, U, Hcheck, X,
-                                         range(k + 1, 2*N + 1), end, Uderivs,
-                                         atP)
+                Uderivs = FractionWithFactoredDenominatorRing._diff_prod(
+                    Hderivs, U, Hcheck, X,
+                    range(k + 1, 2*N + 1), end, Uderivs,
+                    atP)
         else:
-            Uderivs = FFPDElement._diff_prod(Hderivs, U, Hcheck, X,
-                                     range(1, 2*N + 1), end, Uderivs, atP)
+            Uderivs = FractionWithFactoredDenominatorRing._diff_prod(
+                Hderivs, U, Hcheck, X,
+                range(1, 2*N + 1), end, Uderivs, atP)
         atP.update(Uderivs)
 
         # In general, this algorithm is not designed to handle the case of a
@@ -1796,27 +1801,32 @@ class FFPDElement(sage.structure.element.RingElement):
             AA = function('AA', t)
             BB = function('BB', t)
             if v.mod(2) == 0:
-                At_derivs = FFPDElement._diff_all(At, T, 2*N - 2,
-                                          sub=hderivs1, sub_final=[Tstar, atP],
-                                          rekey=AA)
-                Phitu_derivs = FFPDElement._diff_all(Phitu, T, 2*N - 2 +v,
-                                             sub=hderivs1,
-                                             sub_final=[Tstar, atP],
-                                             zero_order=v + 1, rekey=BB)
+                At_derivs = FractionWithFactoredDenominatorRing._diff_all(
+                    At, T, 2*N - 2,
+                    sub=hderivs1, sub_final=[Tstar, atP],
+                    rekey=AA)
+                Phitu_derivs = FractionWithFactoredDenominatorRing._diff_all(
+                    Phitu, T, 2*N - 2 +v,
+                    sub=hderivs1,
+                    sub_final=[Tstar, atP],
+                    zero_order=v + 1, rekey=BB)
             else:
-                At_derivs = FFPDElement._diff_all(At, T, N - 1, sub=hderivs1,
-                                          sub_final=[Tstar, atP], rekey=AA)
-                Phitu_derivs = FFPDElement._diff_all(Phitu, T, N - 1 + v,
-                                             sub=hderivs1,
-                                             sub_final=[Tstar, atP],
-                                             zero_order=v + 1 , rekey=BB)
+                At_derivs = FractionWithFactoredDenominatorRing._diff_all(
+                    At, T, N - 1, sub=hderivs1,
+                    sub_final=[Tstar, atP], rekey=AA)
+                Phitu_derivs = FractionWithFactoredDenominatorRing._diff_all(
+                    Phitu, T, N - 1 + v,
+                    sub=hderivs1,
+                    sub_final=[Tstar, atP],
+                    zero_order=v + 1 , rekey=BB)
             AABB_derivs = At_derivs
             AABB_derivs.update(Phitu_derivs)
             AABB_derivs[AA] = At.subs(Tstar).subs(atP)
             AABB_derivs[BB] = Phitu.subs(Tstar).subs(atP)
             if verbose:
                 print("Computing second order differential operator actions...")
-            DD = FFPDElement._diff_op_simple(AA, BB, AABB_derivs, t, v, a, N)
+            DD = FractionWithFactoredDenominatorRing._diff_op_simple(
+                AA, BB, AABB_derivs, t, v, a, N)
 
             # Plug above into asymptotic formula.
             L = []
@@ -1864,19 +1874,22 @@ class FFPDElement(sage.structure.element.RingElement):
             if verbose:
                 print("Computing derivatives of more auxiliary functions...")
             AA = function('AA', *tuple(T))
-            At_derivs = FFPDElement._diff_all(At, T, 2*N - 2, sub=hderivs1,
-                                      sub_final =[Tstar, atP], rekey=AA)
+            At_derivs = FractionWithFactoredDenominatorRing._diff_all(
+                At, T, 2*N - 2, sub=hderivs1,
+                sub_final =[Tstar, atP], rekey=AA)
             BB = function('BB', *tuple(T))
-            Phitu_derivs = FFPDElement._diff_all(Phitu, T, 2*N, sub=hderivs1,
-                                         sub_final =[Tstar, atP], rekey=BB,
-                                         zero_order=3)
+            Phitu_derivs = FractionWithFactoredDenominatorRing._diff_all(
+                Phitu, T, 2*N, sub=hderivs1,
+                sub_final =[Tstar, atP], rekey=BB,
+                zero_order=3)
             AABB_derivs = At_derivs
             AABB_derivs.update(Phitu_derivs)
             AABB_derivs[AA] = At.subs(Tstar).subs(atP)
             AABB_derivs[BB] = Phitu.subs(Tstar).subs(atP)
             if verbose:
                 print("Computing second order differential operator actions...")
-            DD = FFPDElement._diff_op(AA, BB, AABB_derivs, T, a_inv, 1 , N)
+            DD = FractionWithFactoredDenominatorRing._diff_op(
+                AA, BB, AABB_derivs, T, a_inv, 1 , N)
 
             # Plug above into asymptotic formula.
             L =[]
@@ -2002,7 +2015,7 @@ class FFPDElement(sage.structure.element.RingElement):
             return None
 
         # Coerce keys of p into R.
-        p = FFPDElement.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
 
         d = self.dimension()
         I = sqrt(-Integer(1))
@@ -2085,7 +2098,8 @@ class FFPDElement(sage.structure.element.RingElement):
                       diff(h[j], X[i]))[0].rhs().simplify()
             hderivs1.update({diff(h[j], X[i]): s})
             atP.update({diff(h[j], X[i]).subs(P): s.subs(P).subs(atP)})
-        hderivs = FFPDElement._diff_all(h, X[0:d - 1], 2*N, sub=hderivs1, rekey=h)
+        hderivs = FractionWithFactoredDenominatorRing._diff_all(
+            h, X[0:d - 1], 2*N, sub=hderivs1, rekey=h)
         for k in hderivs.keys():
             atP.update({k.subs(P): hderivs[k].subs(atP)})
 
@@ -2099,8 +2113,9 @@ class FFPDElement(sage.structure.element.RingElement):
             print("Computing derivatives of auxiliary functions...")
         m = min(n, N)
         end = [X[d-1] for j in xrange(n)]
-        Hprodderivs = FFPDElement._diff_all(Hprod, X, 2*N - 2 + n, ending=end,
-                                    sub_final=P)
+        Hprodderivs = FractionWithFactoredDenominatorRing._diff_all(
+            Hprod, X, 2*N - 2 + n, ending=end,
+            sub_final=P)
         atP.update({U.subs(P): diff(Hprod, X[d - 1], n).subs(P)/factorial(n)})
         Uderivs ={}
         k = Hprod.polynomial(CC).degree() - n
@@ -2111,8 +2126,9 @@ class FFPDElement(sage.structure.element.RingElement):
                     Uderivs[diff(U, s).subs(P)] = Integer(0)
         elif k > 0 and k < 2*N - 2 + m - 1:
             all_zero = True
-            Uderivs = FFPDElement._diff_prod(Hprodderivs, U, Hcheck, X,
-                                     range(1, k + 1), end, Uderivs, atP)
+            Uderivs = FractionWithFactoredDenominatorRing._diff_prod(
+                Hprodderivs, U, Hcheck, X,
+                range(1, k + 1), end, Uderivs, atP)
             # Check for a nonzero U derivative.
             if Uderivs.values() != [Integer(0)  for i in xrange(len(Uderivs))]:
                 all_zero = False
@@ -2123,12 +2139,14 @@ class FFPDElement(sage.structure.element.RingElement):
                         Uderivs.update({diff(U, s).subs(P): Integer(0)})
             else:
                 # Have to compute the rest of the derivatives.
-                Uderivs = FFPDElement._diff_prod(Hprodderivs, U, Hcheck, X,
-                                         range(k + 1, 2*N - 2 + m), end,
-                                         Uderivs, atP)
+                Uderivs = FractionWithFactoredDenominatorRing._diff_prod(
+                    Hprodderivs, U, Hcheck, X,
+                    range(k + 1, 2*N - 2 + m), end,
+                    Uderivs, atP)
         else:
-            Uderivs = FFPDElement._diff_prod(Hprodderivs, U, Hcheck, X,
-                                     range(1, 2*N - 2 + m), end, Uderivs, atP)
+            Uderivs = FractionWithFactoredDenominatorRing._diff_prod(
+                Hprodderivs, U, Hcheck, X,
+                range(1, 2*N - 2 + m), end, Uderivs, atP)
         atP.update(Uderivs)
         Phit1 = jacobian(Phit, T + S).subs(hderivs1)
         a = jacobian(Phit1, T + S).subs(hderivs1).subs(thetastar).subs(atP)
@@ -2148,12 +2166,14 @@ class FFPDElement(sage.structure.element.RingElement):
         if verbose:
             print("Computing derivatives of more auxiliary functions...")
         AA = [function('A' + str(j), *tuple(T + S)) for j in xrange(n)]
-        At_derivs = FFPDElement._diff_all(At, T + S, 2*N - 2, sub=hderivs1,
-                                  sub_final =[thetastar, atP], rekey=AA)
+        At_derivs = FractionWithFactoredDenominatorRing._diff_all(
+            At, T + S, 2*N - 2, sub=hderivs1,
+            sub_final =[thetastar, atP], rekey=AA)
         BB = function('BB', *tuple(T + S))
-        Phitu_derivs = FFPDElement._diff_all(Phitu, T + S, 2*N, sub=hderivs1,
-                                     sub_final =[thetastar, atP], rekey=BB,
-                                     zero_order=3)
+        Phitu_derivs = FractionWithFactoredDenominatorRing._diff_all(
+            Phitu, T + S, 2*N, sub=hderivs1,
+            sub_final =[thetastar, atP], rekey=BB,
+            zero_order=3)
         AABB_derivs = At_derivs
         AABB_derivs.update(Phitu_derivs)
         for j in xrange(n):
@@ -2162,7 +2182,8 @@ class FFPDElement(sage.structure.element.RingElement):
 
         if verbose:
             print("Computing second-order differential operator actions...")
-        DD = FFPDElement._diff_op(AA, BB, AABB_derivs, T + S, a_inv, n, N)
+        DD = FractionWithFactoredDenominatorRing._diff_op(
+            AA, BB, AABB_derivs, T + S, a_inv, n, N)
         L = {}
         for (j, k) in product(xrange(min(n, N)), xrange(max(0, N - 1 - n), N)):
             if j + k <= N - 1:
@@ -2220,8 +2241,8 @@ class FFPDElement(sage.structure.element.RingElement):
 
         A solution of the matrix equation `y \Gamma = \alpha^{\prime}` for `y`,
         where `\Gamma` is the matrix given by
-        ``[FFPDElement.direction(v) for v in self.log_grads(p)]`` and
-        `\alpha^{\prime}` is ``FFPDElement.direction(alpha)``
+        ``[FractionWithFactoredDenominatorRing.direction(v) for v in self.log_grads(p)]`` and
+        `\alpha^{\prime}` is ``FractionWithFactoredDenominatorRing.direction(alpha)``
 
         EXAMPLES::
 
@@ -2243,13 +2264,14 @@ class FFPDElement(sage.structure.element.RingElement):
             return None
 
         # Coerce keys of p into R.
-        p = FFPDElement.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
 
         d = self.dimension()
         n = len(self.denominator_factored())
-        Gamma = matrix([FFPDElement.direction(v, coordinate)
-                        for v in self.log_grads(p)])
-        beta = FFPDElement.direction(alpha, coordinate)
+        Gamma = matrix(
+            [FractionWithFactoredDenominatorRing.direction(v, coordinate)
+             for v in self.log_grads(p)])
+        beta = FractionWithFactoredDenominatorRing.direction(alpha, coordinate)
         # solve_left() fails when working in SR :-(.
         # So use solve() instead.
         # Gamma.solve_left(vector(beta))
@@ -2294,7 +2316,7 @@ class FFPDElement(sage.structure.element.RingElement):
         if R is None:
             return
         # Coerce keys of p into R.
-        p = FFPDElement.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
 
         X = R.gens()
         d = self.dimension()
@@ -2342,7 +2364,7 @@ class FFPDElement(sage.structure.element.RingElement):
             return None
 
         # Coerce keys of p into R.
-        p = FFPDElement.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
 
         X = R.gens()
         d = self.dimension()
@@ -2389,7 +2411,7 @@ class FFPDElement(sage.structure.element.RingElement):
             return
 
         # Coerce keys of p into R.
-        p = FFPDElement.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
 
         d = self.dimension()
         lg = self.log_grads(p)
@@ -2403,7 +2425,8 @@ class FFPDElement(sage.structure.element.RingElement):
                 if 0 not in [lg[i][j] for i in xrange(n)]:
                     coordinate = j
                     break
-        Gamma = [FFPDElement.direction(v, coordinate) for v in lg]
+        Gamma = [FractionWithFactoredDenominatorRing.direction(v, coordinate)
+                 for v in lg]
         try:
             cone = Cone(Gamma)
         except TypeError:
@@ -2451,7 +2474,7 @@ class FFPDElement(sage.structure.element.RingElement):
             return
 
         # Coerce keys of p into R.
-        p = FFPDElement.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
 
         H = [h for (h, e) in self.denominator_factored()]
         n = len(H)
@@ -2855,11 +2878,14 @@ class FractionWithFactoredDenominatorRing(
         super(FractionWithFactoredDenominatorRing, self).__init__(
             base, category=category or sage.categories.rings.Rings())
 
+
     Element = FFPDElement
+
 
     def _repr_(self):
         return ("Ring of fractions with factored denominator "
                 "over %s" % repr(self.base()))
+
 
     def base_ring(self):
         r"""
@@ -2886,6 +2912,7 @@ class FractionWithFactoredDenominatorRing(
                                 numerator, denominator_factored,
                                 quotient, reduce_)
 
+
     @staticmethod
     def _permutation_sign(s, u):
         r"""
@@ -2907,13 +2934,13 @@ class FractionWithFactoredDenominatorRing(
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
             sage: u = ['a','b','c','d','e']
             sage: s = ['b','d']
-            sage: FFPDElement._permutation_sign(s, u)
+            sage: FFDR._permutation_sign(s, u)
             -1
             sage: s = ['d','b']
-            sage: FFPDElement._permutation_sign(s, u)
+            sage: FFDR._permutation_sign(s, u)
             1
         """
         # Convert lists to lists of numbers in {1,..., len(u)}
@@ -2947,19 +2974,19 @@ class FractionWithFactoredDenominatorRing(
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
             sage: var('x, y, z')
             (x, y, z)
             sage: a = {x:1}
             sage: b = {y:2}
             sage: c = {z:3}
-            sage: FFPDElement.subs_all(x + y + z, a)
+            sage: FFDR.subs_all(x + y + z, a)
             y + z + 1
-            sage: FFPDElement.subs_all(x + y + z, [c, a])
+            sage: FFDR.subs_all(x + y + z, [c, a])
             y + 4
-            sage: FFPDElement.subs_all([x + y + z, y^2], b)
+            sage: FFDR.subs_all([x + y + z, y^2], b)
             [x + z + 2, 4]
-            sage: FFPDElement.subs_all([x + y + z, y^2], [b, c])
+            sage: FFDR.subs_all([x + y + z, y^2], [b, c])
             [x + 5, 4]
 
         ::
@@ -2968,7 +2995,7 @@ class FractionWithFactoredDenominatorRing(
             (x, y)
             sage: a = {'foo': x**2 + y**2, 'bar': x - y}
             sage: b = {x: 1 , y: 2}
-            sage: FFPDElement.subs_all(a, b)
+            sage: FFDR.subs_all(a, b)
             {'foo': 5, 'bar': -1}
         """
         singleton = False
@@ -3052,23 +3079,23 @@ class FractionWithFactoredDenominatorRing(
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
             sage: f = function('f', x)
-            sage: dd = FFPDElement._diff_all(f, [x], 3)
+            sage: dd = FFDR._diff_all(f, [x], 3)
             sage: dd[(x, x, x)]
             D[0, 0, 0](f)(x)
 
             sage: d1 = {diff(f, x): 4*x^3}
-            sage: dd = FFPDElement._diff_all(f,[x], 3, sub=d1)
+            sage: dd = FFDR._diff_all(f,[x], 3, sub=d1)
             sage: dd[(x, x, x)]
             24*x
 
-            sage: dd = FFPDElement._diff_all(f,[x], 3, sub=d1, rekey=f)
+            sage: dd = FFDR._diff_all(f,[x], 3, sub=d1, rekey=f)
             sage: dd[diff(f, x, 3)]
             24*x
 
             sage: a = {x:1}
-            sage: dd = FFPDElement._diff_all(f,[x], 3, sub=d1, rekey=f, sub_final=a)
+            sage: dd = FFDR._diff_all(f,[x], 3, sub=d1, rekey=f, sub_final=a)
             sage: dd[diff(f, x, 3)]
             24
 
@@ -3076,14 +3103,14 @@ class FractionWithFactoredDenominatorRing(
 
             sage: X = var('x, y, z')
             sage: f = function('f',*X)
-            sage: dd = FFPDElement._diff_all(f, X, 2, ending=[y, y, y])
+            sage: dd = FFDR._diff_all(f, X, 2, ending=[y, y, y])
             sage: dd[(z, y, y, y)]
             D[1, 1, 1, 2](f)(x, y, z)
 
         ::
 
             sage: g = function('g',*X)
-            sage: dd = FFPDElement._diff_all([f, g], X, 2)
+            sage: dd = FFDR._diff_all([f, g], X, 2)
             sage: dd[(0, y, z)]
             D[1, 2](f)(x, y, z)
 
@@ -3092,7 +3119,7 @@ class FractionWithFactoredDenominatorRing(
 
             sage: f = exp(x*y*z)
             sage: ff = function('ff',*X)
-            sage: dd = FFPDElement._diff_all(f, X, 2, rekey=ff)
+            sage: dd = FFDR._diff_all(f, X, 2, rekey=ff)
             sage: dd[diff(ff, x, z)]
             x*y^2*z*e^(x*y*z) + y*e^(x*y*z)
         """
@@ -3113,23 +3140,27 @@ class FractionWithFactoredDenominatorRing(
             start = Integer(2)
         if singleton:
             for s in seeds:
-                derivs[tuple(s)] = FFPDElement.subs_all(diff(f[0], s), sub)
+                derivs[tuple(s)] = FractionWithFactoredDenominatorRing.subs_all(
+                    diff(f[0], s), sub)
             for l in xrange(start, n + 1):
                 for t in UnorderedTuples(V, l):
                     s = tuple(t + ending)
-                    derivs[s] = FFPDElement.subs_all(diff(derivs[s[1:]], s[0]), sub)
+                    derivs[s] = FractionWithFactoredDenominatorRing.subs_all(
+                        diff(derivs[s[1:]], s[0]), sub)
         else:
             # Make the dictionary keys of the form (j, sequence of variables),
             # where j in range(r).
             for s in seeds:
-                value = FFPDElement.subs_all([diff(f[j], s) for j in xrange(r)], sub)
+                value = FractionWithFactoredDenominatorRing.subs_all(
+                    [diff(f[j], s) for j in xrange(r)], sub)
                 derivs.update(dict([(tuple([j]+s), value[j])
                                     for j in xrange(r)]))
             for l in xrange(start, n + 1):
                 for t in UnorderedTuples(V, l):
                     s = tuple(t + ending)
-                    value = FFPDElement.subs_all([diff(derivs[(j,) + s[1:]],
-                                          s[0]) for j in xrange(r)], sub)
+                    value = FractionWithFactoredDenominatorRing.subs_all(
+                        [diff(derivs[(j,) + s[1:]],
+                              s[0]) for j in xrange(r)], sub)
                     derivs.update(dict([((j,) + s, value[j])
                                         for j in xrange(r)]))
         if zero_order:
@@ -3146,7 +3177,8 @@ class FractionWithFactoredDenominatorRing(
         if sub_final:
             # Substitute sub_final into the values of derivs.
             for k in derivs.keys():
-                derivs[k] = FFPDElement.subs_all(derivs[k], sub_final)
+                derivs[k] = FractionWithFactoredDenominatorRing.subs_all(
+                    derivs[k], sub_final)
         if rekey:
             # Rekey the derivs dictionary by the value of rekey.
             F = rekey
@@ -3202,13 +3234,13 @@ class FractionWithFactoredDenominatorRing(
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
             sage: T = var('x, y')
             sage: A = function('A',*tuple(T))
             sage: B = function('B',*tuple(T))
             sage: AB_derivs = {}
             sage: M = matrix([[1, 2],[2, 1]])
-            sage: DD = FFPDElement._diff_op(A, B, AB_derivs, T, M, 1, 2)
+            sage: DD = FFDR._diff_op(A, B, AB_derivs, T, M, 1, 2)
             sage: sorted(DD.keys())
             [(0, 0, 0), (0, 1, 0), (0, 1, 1), (0, 1, 2)]
             sage: len(DD[(0, 1, 2)])
@@ -3242,7 +3274,7 @@ class FractionWithFactoredDenominatorRing(
                     P =  cartesian_product_iterator([S for i in range(k+l)])
                     diffo = Integer(0)
                     for t in P:
-                        if product_derivs[(j, k, l) + FFPDElement._diff_seq(V, t)] !=\
+                        if product_derivs[(j, k, l) + FractionWithFactoredDenominatorRing._diff_seq(V, t)] !=\
                           Integer(0):
                             MM = Integer(1)
                             for (a, b) in t:
@@ -3250,7 +3282,7 @@ class FractionWithFactoredDenominatorRing(
                                 if a != b:
                                     MM = Integer(2) *MM
                             diffo = diffo + MM*product_derivs[(j, k, l) +\
-                                           FFPDElement._diff_seq(V, t)]
+                                                                  FractionWithFactoredDenominatorRing._diff_seq(V, t)]
                     DD[(j, k, l)] = (-Integer(1) )**(k+l)*diffo
         return DD
 
@@ -3279,9 +3311,9 @@ class FractionWithFactoredDenominatorRing(
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
             sage: V = list(var('x, t, z'))
-            sage: FFPDElement._diff_seq(V,([0, 1],[0, 2, 1],[0, 0]))
+            sage: FFDR._diff_seq(V,([0, 1],[0, 2, 1],[0, 0]))
             (x, x, x, x, t, t, z)
         """
         t = []
@@ -3326,11 +3358,11 @@ class FractionWithFactoredDenominatorRing(
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
             sage: A = function('A', x)
             sage: B = function('B', x)
             sage: AB_derivs = {}
-            sage: sorted(FFPDElement._diff_op_simple(A, B, AB_derivs, x, 3, 2, 2).items())
+            sage: sorted(FFDR._diff_op_simple(A, B, AB_derivs, x, 3, 2, 2).items())
             [((0, 0), A(x)),
              ((1, 0), 1/2*I*2^(2/3)*D[0](A)(x)),
              ((1, 1), 1/4*2^(2/3)*(B(x)*D[0, 0, 0, 0](A)(x)
@@ -3399,14 +3431,14 @@ class FractionWithFactoredDenominatorRing(
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
             sage: u = function('u', x)
             sage: g = function('g', x)
             sage: fd = {(x,):1,(x, x):1}
             sage: ud = {u(x=2): 1}
             sage: atc = {x: 2, g(x=2): 3, diff(g, x)(x=2): 5}
             sage: atc[diff(g, x, x)(x=2)] = 7
-            sage: dd = FFPDElement._diff_prod(fd, u, g, [x], [1, 2], [], ud, atc)
+            sage: dd = FFDR._diff_prod(fd, u, g, [x], [1, 2], [], ud, atc)
             sage: dd[diff(u, x, 2)(x=2)]
             22/9
         """
@@ -3427,7 +3459,8 @@ class FractionWithFactoredDenominatorRing(
                     for i in xrange(len(lhs))]
             variables = D.values()
             sol = solve(eqns,*variables, solution_dict=True)
-            uderivs.update(FFPDElement.subs_all(D, sol[Integer(0) ]))
+            uderivs.update(FractionWithFactoredDenominatorRing.subs_all(
+                    D, sol[Integer(0) ]))
         return uderivs
 
 
@@ -3444,10 +3477,10 @@ class FractionWithFactoredDenominatorRing(
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
-            sage: FFPDElement.direction([2, 3, 5])
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing as FFDR
+            sage: FFDR.direction([2, 3, 5])
             (2/5, 3/5, 1)
-            sage: FFPDElement.direction([2, 3, 5], 0)
+            sage: FFDR.direction([2, 3, 5], 0)
             (1, 3/2, 5/2)
         """
         if coordinate is None:
@@ -3475,7 +3508,7 @@ class FractionWithFactoredDenominatorRing(
             ....:     print k, k.parent()
             x Symbolic Ring
             y Symbolic Ring
-            sage: q = f.coerce_point(R, p)
+            sage: q = FractionWithFactoredDenominatorRing.coerce_point(R, p)
             sage: q
             {y: 7/8, x: 1}
             sage: for k in sorted(q.keys()):

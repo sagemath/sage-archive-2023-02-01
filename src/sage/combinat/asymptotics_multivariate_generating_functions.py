@@ -1313,43 +1313,6 @@ class FFPDElement(sage.structure.element.RingElement):
         # Simplify and return result.
         return decomp.combine_like_terms().whole_and_parts()
 
-    @staticmethod
-    def _permutation_sign(s, u):
-        r"""
-        This function returns the sign of the permutation on
-        ``1, ..., len(u)`` that is induced by the sublist
-        ``s`` of ``u``.
-        For internal use by :meth:`cohomology_decomposition()`.
-
-        INPUT:
-
-        - ``s`` -- a sublist of ``u``
-        - ``u`` -- a list
-
-        OUTPUT:
-
-        The sign of the permutation obtained by taking indices
-        within ``u`` of the list ``s + sc``, where ``sc`` is ``u``
-        with the elements of ``s`` removed.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
-            sage: u = ['a','b','c','d','e']
-            sage: s = ['b','d']
-            sage: FFPDElement._permutation_sign(s, u)
-            -1
-            sage: s = ['d','b']
-            sage: FFPDElement._permutation_sign(s, u)
-            1
-        """
-        # Convert lists to lists of numbers in {1,..., len(u)}
-        A = [i + 1  for i in xrange(len(u))]
-        B = [u.index(x) + 1 for x in s]
-
-        C = sorted(list(Set(A).difference(Set(B))))
-        P = Permutation(B + C)
-        return P.signature()
 
     def asymptotic_decomposition(self, alpha, asy_var=None):
         r"""
@@ -2231,505 +2194,6 @@ class FFPDElement(sage.structure.element.RingElement):
                               for i in xrange(d)])
         return (exp_scale**asy_var*subexp_part, exp_scale, subexp_part)
 
-    @staticmethod
-    def subs_all(f, sub, simplify=False):
-        r"""
-        Return the items of `f` substituted by the dictionaries
-        of ``sub`` in order of their appearance in ``sub``.
-
-        INPUT:
-
-        - ``f`` -- an individual or list of symbolic expressions
-          or dictionaries
-        - ``sub`` -- an individual or list of dictionaries
-        - ``simplify`` -- (default: ``False``) boolean; set to ``True`` to
-          simplify the result
-
-        OUTPUT:
-
-        The items of ``f`` substituted by the dictionaries of ``sub`` in order
-        of their appearance in ``sub``. The ``subs()`` command is used. If
-        simplify is ``True``, then ``simplify()`` is used after substitution.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
-            sage: var('x, y, z')
-            (x, y, z)
-            sage: a = {x:1}
-            sage: b = {y:2}
-            sage: c = {z:3}
-            sage: FFPDElement.subs_all(x + y + z, a)
-            y + z + 1
-            sage: FFPDElement.subs_all(x + y + z, [c, a])
-            y + 4
-            sage: FFPDElement.subs_all([x + y + z, y^2], b)
-            [x + z + 2, 4]
-            sage: FFPDElement.subs_all([x + y + z, y^2], [b, c])
-            [x + 5, 4]
-
-        ::
-
-            sage: var('x, y')
-            (x, y)
-            sage: a = {'foo': x**2 + y**2, 'bar': x - y}
-            sage: b = {x: 1 , y: 2}
-            sage: FFPDElement.subs_all(a, b)
-            {'foo': 5, 'bar': -1}
-        """
-        singleton = False
-        if not isinstance(f, (list, tuple)):
-            f = [f]
-            singleton = True
-        if not isinstance(sub, (list, tuple)):
-            sub = [sub]
-        g = []
-        for ff in f:
-            for D in sub:
-                if isinstance(ff, dict):
-                    ff = dict( [(k, ff[k].subs(D)) for k in ff.keys()] )
-                else:
-                    ff = ff.subs(D)
-            g.append(ff)
-
-        if singleton and simplify:
-            if isinstance(g[Integer(0) ], dict):
-                return g[Integer(0) ]
-            return g[Integer(0) ].simplify()
-
-        if singleton and not simplify:
-            return g[Integer(0) ]
-
-        if not singleton and simplify:
-            G = []
-            for gg in g:
-                if isinstance(gg, dict):
-                    G.append(gg)
-                else:
-                    G.append(gg.simplify())
-            return G
-
-        return g
-
-    @staticmethod
-    def _diff_all(f, V, n, ending=[], sub=None, sub_final=None,
-                 zero_order=0, rekey=None):
-        r"""
-        Return a dictionary of representative mixed partial
-        derivatives of `f` from order 1 up to order `n` with respect to the
-        variables in `V`.
-        The default is to key the dictionary by all nondecreasing sequences
-        in `V` of length 1 up to length `n`.
-
-        .. NOTE::
-
-            For internal use.
-
-        INPUT:
-
-        - ``f`` -- an individual or list of `\mathcal{C}^{n+1}` functions
-        - ``V`` -- a list of variables occurring in `f`
-        - ``n`` -- a natural number
-        - ``ending`` -- a list of variables in `V`
-        - ``sub`` -- an individual or list of dictionaries
-        - ``sub_final`` -- an individual or list of dictionaries
-        - ``rekey`` -- a callable symbolic function in `V` or list thereof
-        - ``zero_order`` -- a natural number
-
-        OUTPUT:
-
-        The dictionary ``{s_1:deriv_1, ..., sr:deriv_r}``.
-        Here ``s_1, ..., s_r`` is a listing of
-        all nondecreasing sequences of length 1 up to length `n` over the
-        alphabet `V`, where `w > v` in `X` if and only if ``str(w) > str(v)``,
-        and ``deriv_j`` is the derivative of `f` with respect to the derivative
-        sequence ``s_j`` and simplified with respect to the substitutions in
-        ``sub`` and evaluated at ``sub_final``.
-        Moreover, all derivatives with respect to sequences of length less than
-        ``zero_order`` (derivatives of order less than ``zero_order`` )
-        will be made zero.
-
-        If ``rekey`` is nonempty, then ``s_1, ..., s_r`` will be replaced
-        by the symbolic derivatives of the functions in ``rekey``.
-
-        If ``ending`` is nonempty, then every derivative sequence ``s_j``
-        will be suffixed by ``ending``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
-            sage: f = function('f', x)
-            sage: dd = FFPDElement._diff_all(f, [x], 3)
-            sage: dd[(x, x, x)]
-            D[0, 0, 0](f)(x)
-
-            sage: d1 = {diff(f, x): 4*x^3}
-            sage: dd = FFPDElement._diff_all(f,[x], 3, sub=d1)
-            sage: dd[(x, x, x)]
-            24*x
-
-            sage: dd = FFPDElement._diff_all(f,[x], 3, sub=d1, rekey=f)
-            sage: dd[diff(f, x, 3)]
-            24*x
-
-            sage: a = {x:1}
-            sage: dd = FFPDElement._diff_all(f,[x], 3, sub=d1, rekey=f, sub_final=a)
-            sage: dd[diff(f, x, 3)]
-            24
-
-        ::
-
-            sage: X = var('x, y, z')
-            sage: f = function('f',*X)
-            sage: dd = FFPDElement._diff_all(f, X, 2, ending=[y, y, y])
-            sage: dd[(z, y, y, y)]
-            D[1, 1, 1, 2](f)(x, y, z)
-
-        ::
-
-            sage: g = function('g',*X)
-            sage: dd = FFPDElement._diff_all([f, g], X, 2)
-            sage: dd[(0, y, z)]
-            D[1, 2](f)(x, y, z)
-
-            sage: dd[(1, z, z)]
-            D[2, 2](g)(x, y, z)
-
-            sage: f = exp(x*y*z)
-            sage: ff = function('ff',*X)
-            sage: dd = FFPDElement._diff_all(f, X, 2, rekey=ff)
-            sage: dd[diff(ff, x, z)]
-            x*y^2*z*e^(x*y*z) + y*e^(x*y*z)
-        """
-        singleton=False
-        if not isinstance(f, list):
-            f = [f]
-            singleton=True
-
-        # Build the dictionary of derivatives iteratively from a list
-        # of nondecreasing derivative-order sequences.
-        derivs = {}
-        r = len(f)
-        if ending:
-            seeds = [ending]
-            start = Integer(1)
-        else:
-            seeds = [[v] for v in V]
-            start = Integer(2)
-        if singleton:
-            for s in seeds:
-                derivs[tuple(s)] = FFPDElement.subs_all(diff(f[0], s), sub)
-            for l in xrange(start, n + 1):
-                for t in UnorderedTuples(V, l):
-                    s = tuple(t + ending)
-                    derivs[s] = FFPDElement.subs_all(diff(derivs[s[1:]], s[0]), sub)
-        else:
-            # Make the dictionary keys of the form (j, sequence of variables),
-            # where j in range(r).
-            for s in seeds:
-                value = FFPDElement.subs_all([diff(f[j], s) for j in xrange(r)], sub)
-                derivs.update(dict([(tuple([j]+s), value[j])
-                                    for j in xrange(r)]))
-            for l in xrange(start, n + 1):
-                for t in UnorderedTuples(V, l):
-                    s = tuple(t + ending)
-                    value = FFPDElement.subs_all([diff(derivs[(j,) + s[1:]],
-                                          s[0]) for j in xrange(r)], sub)
-                    derivs.update(dict([((j,) + s, value[j])
-                                        for j in xrange(r)]))
-        if zero_order:
-            # Zero out all the derivatives of order < zero_order
-            if singleton:
-                for k in derivs.keys():
-                    if len(k) < zero_order:
-                        derivs[k] = Integer(0)
-            else:
-                # Ignore the first of element of k, which is an index.
-                for k in derivs.keys():
-                    if len(k) - 1  < zero_order:
-                        derivs[k] = Integer(0)
-        if sub_final:
-            # Substitute sub_final into the values of derivs.
-            for k in derivs.keys():
-                derivs[k] = FFPDElement.subs_all(derivs[k], sub_final)
-        if rekey:
-            # Rekey the derivs dictionary by the value of rekey.
-            F = rekey
-            if singleton:
-                # F must be a singleton.
-                derivs = dict( [(diff(F, list(k)), derivs[k])
-                                for k in derivs.keys()] )
-            else:
-                # F must be a list.
-                derivs = dict( [(diff(F[k[0]], list(k)[1:]), derivs[k])
-                                for k in derivs.keys()] )
-        return derivs
-
-    @staticmethod
-    def _diff_op(A, B, AB_derivs, V, M, r, N):
-        r"""
-        Return the derivatives `DD^{(l+k)}(A[j] B^l)` evaluated at a point
-        `p` for various natural numbers `j, k, l` which depend on `r` and `N`.
-        Here `DD` is a specific second-order linear differential operator
-        that depends on `M` , `A` is a list of symbolic functions,
-        `B` is symbolic function, and ``AB_derivs`` contains all the derivatives
-        of `A` and `B` evaluated at `p` that are necessary for the computation.
-
-        .. NOTE::
-
-            For internal use by :meth:`asymptotics_smooth()` and
-            :meth:`asymptotics_multiple()`.
-
-        INPUT:
-
-        - ``A`` -- a single or length ``r`` list of symbolic functions in the
-          variables ``V``
-        - ``B`` -- a symbolic function in the variables ``V``.
-        - ``AB_derivs`` -- a dictionary whose keys are the (symbolic)
-          derivatives of ``A[0], ..., A[r-1]`` up to order ``2*N-2`` and
-          the (symbolic) derivatives of ``B`` up to order ``2*N``;
-          the values of the dictionary are complex numbers that are
-          the keys evaluated at a common point `p`
-        - ``V`` -- the variables of the ``A[j]`` and ``B``
-        - ``M`` -- a symmetric `l \times l` matrix, where `l` is the
-          length of ``V``
-        - ``r, N`` -- natural numbers
-
-        OUTPUT:
-
-        A dictionary whose keys are natural number tuples of the form
-        `(j, k, l)`, where `l \leq 2k`, `j \leq r-1`, and `j+k \leq N-1`,
-        and whose values are `DD^(l+k)(A[j] B^l)` evaluated at a point
-        `p`, where `DD` is the linear second-order differential operator
-        `-\sum_{i=0}^{l-1} \sum_{j=0}^{l-1} M[i][j]
-        \partial^2 /(\partial V[j] \partial V[i])`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
-            sage: T = var('x, y')
-            sage: A = function('A',*tuple(T))
-            sage: B = function('B',*tuple(T))
-            sage: AB_derivs = {}
-            sage: M = matrix([[1, 2],[2, 1]])
-            sage: DD = FFPDElement._diff_op(A, B, AB_derivs, T, M, 1, 2)
-            sage: sorted(DD.keys())
-            [(0, 0, 0), (0, 1, 0), (0, 1, 1), (0, 1, 2)]
-            sage: len(DD[(0, 1, 2)])
-            246
-        """
-        if not isinstance(A, list):
-            A = [A]
-
-        # First, compute the necessary product derivatives of A and B.
-        product_derivs = {}
-        for (j, k) in mrange([r, N]):
-            if j + k < N:
-                for l in xrange(2*k + 1):
-                    for s in UnorderedTuples(V, 2*(k + l)):
-                        product_derivs[tuple([j, k, l] + s)] = \
-                        diff(A[j]*B**l, s).subs(AB_derivs)
-
-        # Second, compute DD^(k+l)(A[j]*B^l)(p) and store values in dictionary.
-        DD = {}
-        rows = M.nrows()
-        for (j, k) in mrange([r, N]):
-            if j + k < N:
-                for l in xrange(2*k + 1):
-                    # Take advantage of the symmetry of M by ignoring
-                    # the upper-diagonal entries of M and multiplying by
-                    # appropriate powers of 2.
-                    if k + l == 0 :
-                        DD[(j, k, l)] = product_derivs[(j, k, l)]
-                        continue
-                    S = [(a, b) for (a, b) in mrange([rows, rows]) if b <= a]
-                    P =  cartesian_product_iterator([S for i in range(k+l)])
-                    diffo = Integer(0)
-                    for t in P:
-                        if product_derivs[(j, k, l) + FFPDElement._diff_seq(V, t)] !=\
-                          Integer(0):
-                            MM = Integer(1)
-                            for (a, b) in t:
-                                MM = MM * M[a][b]
-                                if a != b:
-                                    MM = Integer(2) *MM
-                            diffo = diffo + MM*product_derivs[(j, k, l) +\
-                                           FFPDElement._diff_seq(V, t)]
-                    DD[(j, k, l)] = (-Integer(1) )**(k+l)*diffo
-        return DD
-
-    @staticmethod
-    def _diff_seq(V, s):
-        r"""
-        Given a list ``s`` of tuples of natural numbers, return the
-        list of elements of ``V`` with indices the elements of the elements
-        of ``s``.
-
-        .. NOTE::
-
-            This function is for internal use by :meth:`diff_op()`.
-
-        INPUT:
-
-        - ``V`` -- a list
-        - ``s`` -- a list of tuples of natural numbers in the interval
-          ``range(len(V))``
-
-        OUTPUT:
-
-        The tuple ``tuple([V[tt] for tt in sorted(t)])``, where ``t`` is the
-        list of elements of the elements of ``s``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
-            sage: V = list(var('x, t, z'))
-            sage: FFPDElement._diff_seq(V,([0, 1],[0, 2, 1],[0, 0]))
-            (x, x, x, x, t, t, z)
-        """
-        t = []
-        for ss in s:
-            t.extend(ss)
-        return tuple([V[tt] for tt in sorted(t)])
-
-    @staticmethod
-    def _diff_op_simple(A, B, AB_derivs, x, v, a, N):
-        r"""
-        Return `DD^(e k + v l)(A B^l)` evaluated at a point `p` for
-        various natural numbers `e, k, l` that depend on `v` and `N`.
-        Here `DD` is a specific linear differential operator that depends
-        on `a` and `v` , `A` and `B` are symbolic functions, and `AB_derivs`
-        contains all the derivatives of `A` and `B` evaluated at `p` that are
-        necessary for the computation.
-        For internal use by the function asymptotics_smooth().
-
-        INPUT:
-
-        - ``A, B`` -- Symbolic functions in the variable ``x``
-        - ``AB_derivs`` - a dictionary whose keys are the (symbolic)
-          derivatives of ``A`` up to order ``2*N`` if ``v`` is even or
-          ``N`` if ``v`` is odd and the (symbolic) derivatives of ``B``
-          up to order ``2*N + v`` if ``v`` is even or ``N + v``
-          if ``v`` is odd; the values of the dictionary are complex numbers
-          that are the keys evaluated at a common point `p`
-        - ``x`` -- a symbolic variable
-        - ``a`` -- a complex number
-        - ``v, N`` -- natural numbers
-
-        OUTPUT:
-
-        A dictionary whose keys are natural number pairs of the form `(k, l)`,
-        where `k < N` and `l \leq 2k` and whose values are
-        `DD^(e k + v l)(A B^l)` evaluated at a point `p`.
-        Here `e=2` if `v` is even, `e=1` if `v` is odd, and `DD` is the
-        linear differential operator
-        `(a^{-1/v} d/dt)` if `v` is even and
-        `(|a|^{-1/v} i \text{sgn}(a) d/dt)` if `v` is odd.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
-            sage: A = function('A', x)
-            sage: B = function('B', x)
-            sage: AB_derivs = {}
-            sage: sorted(FFPDElement._diff_op_simple(A, B, AB_derivs, x, 3, 2, 2).items())
-            [((0, 0), A(x)),
-             ((1, 0), 1/2*I*2^(2/3)*D[0](A)(x)),
-             ((1, 1), 1/4*2^(2/3)*(B(x)*D[0, 0, 0, 0](A)(x)
-              + 4*D[0, 0, 0](A)(x)*D[0](B)(x) + 6*D[0, 0](A)(x)*D[0, 0](B)(x)
-              + 4*D[0](A)(x)*D[0, 0, 0](B)(x) + A(x)*D[0, 0, 0, 0](B)(x)))]
-        """
-        I = sqrt(-Integer(1))
-        DD = {}
-        if v.mod(Integer(2)) == Integer(0) :
-            for k in xrange(N):
-                for l in xrange(2*k + 1):
-                    DD[(k, l)] = (a**(-Integer(1)/v))**(2*k + v*l)*\
-                                 diff(A*B**l, x, 2*k + v*l).subs(AB_derivs)
-        else:
-            for k in xrange(N):
-                for l in xrange(k + 1):
-                    DD[(k, l)] = (abs(a)**(-Integer(1)/v)*I*\
-                                 a/abs(a))**(k+v*l)*\
-                                 diff(A*B**l, x, k + v*l).subs(AB_derivs)
-        return DD
-
-    @staticmethod
-    def _diff_prod(f_derivs, u, g, X, interval, end, uderivs, atc):
-        r"""
-        Take various derivatives of the equation `f = ug`,
-        evaluate them at a point `c`, and solve for the derivatives of `u`.
-
-        This function works by differentiating the equation `f = ug`
-        with respect to the variable sequence ``s + end``,
-        for all tuples ``s`` of ``X`` of lengths in ``interval``,
-        evaluating at the point `c` ,
-        and solving for the remaining derivatives of ``u``.
-        This function assumes that ``u`` never appears in the
-        differentiations of `f = ug` after evaluating at `c`.
-
-        .. NOTE::
-
-            For internal use by :meth:`asymptotics_multiple()`.
-
-        INPUT:
-
-        - ``f_derivs`` -- a dictionary whose keys are all tuples of the form
-          ``s + end``, where ``s`` is a sequence of variables from ``X`` whose
-          length lies in ``interval``, and whose values are the derivatives
-          of a function `f` evaluated at `c`
-        - ``u`` -- a callable symbolic function
-        - ``g`` -- an expression or callable symbolic function
-        - ``X`` -- a list of symbolic variables
-        - ``interval`` -- a list of positive integers
-          Call the first and last values `n` and `nn`, respectively
-        - ``end`` -- a possibly empty list of repetitions of the
-          variable ``z``, where ``z`` is the last element of ``X``
-        - ``uderivs`` -- a dictionary whose keys are the symbolic
-          derivatives of order 0 to order `n-1` of ``u`` evaluated at `c`
-          and whose values are the corresponding derivatives evaluated at `c`
-        - ``atc`` -- a dictionary whose keys are the keys of `c` and all
-          the symbolic derivatives of order 0 to order `nn` of ``g``
-          evaluated `c` and whose values are the corresponding
-          derivatives evaluated at `c`
-
-        OUTPUT:
-
-        A dictionary whose keys are the derivatives of ``u`` up to order
-        `nn` and whose values are those derivatives evaluated at `c`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
-            sage: u = function('u', x)
-            sage: g = function('g', x)
-            sage: fd = {(x,):1,(x, x):1}
-            sage: ud = {u(x=2): 1}
-            sage: atc = {x: 2, g(x=2): 3, diff(g, x)(x=2): 5}
-            sage: atc[diff(g, x, x)(x=2)] = 7
-            sage: dd = FFPDElement._diff_prod(fd, u, g, [x], [1, 2], [], ud, atc)
-            sage: dd[diff(u, x, 2)(x=2)]
-            22/9
-        """
-        for l in interval:
-            D = {}
-            rhs = []
-            lhs = []
-            for t in UnorderedTuples(X, l):
-                s = t + end
-                lhs.append(f_derivs[tuple(s)])
-                rhs.append(diff(u*g, s).subs(atc).subs(uderivs))
-                # Since Sage's solve command can't take derivatives as variable
-                # names, make new variables based on t to stand in for
-                # diff(u, t) and store them in D.
-                D[diff(u, t).subs(atc)] = var('zing' +\
-                                              ''.join([str(x) for x in t]))
-            eqns = [lhs[i] == rhs[i].subs(uderivs).subs(D)
-                    for i in xrange(len(lhs))]
-            variables = D.values()
-            sol = solve(eqns,*variables, solution_dict=True)
-            uderivs.update(FFPDElement.subs_all(D, sol[Integer(0) ]))
-        return uderivs
 
     def _crit_cone_combo(self, p, alpha, coordinate=None):
         r"""
@@ -2795,28 +2259,6 @@ class FFPDElement(sage.structure.element.RingElement):
         s = solve(eqns, V, solution_dict=True)[0]  # Assume a unique solution.
         return [s[v] for v in V]
 
-    @staticmethod
-    def direction(v, coordinate=None):
-        r"""
-        Return ``[vv/v[coordinate] for vv in v]`` where
-        ``coordinate`` is the last index of ``v`` if not specified otherwise.
-
-        INPUT:
-
-        - ``v`` -- a vector
-        - ``coordinate`` -- (optional; default: ``None``) an index for ``v``
-
-        EXAMPLES::
-
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
-            sage: FFPDElement.direction([2, 3, 5])
-            (2/5, 3/5, 1)
-            sage: FFPDElement.direction([2, 3, 5], 0)
-            (1, 3/2, 5/2)
-        """
-        if coordinate is None:
-            coordinate = len(v) - 1
-        return tuple([vv/v[coordinate] for vv in v])
 
     def grads(self, p):
         r"""
@@ -3334,42 +2776,6 @@ class FFPDElement(sage.structure.element.RingElement):
             stats.append(tuple(stats_row))
         return stats
 
-    @staticmethod
-    def coerce_point(R, p):
-        r"""
-        Coerce the keys of the dictionary ``p`` into the ring ``R``.
-
-        Assume that it is possible.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
-            sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
-            sage: f = FFPD()
-            sage: p = {SR(x): 1, SR(y): 7/8}
-            sage: p
-            {x: 1, y: 7/8}
-            sage: for k in sorted(p.keys()):
-            ....:     print k, k.parent()
-            x Symbolic Ring
-            y Symbolic Ring
-            sage: q = f.coerce_point(R, p)
-            sage: q
-            {y: 7/8, x: 1}
-            sage: for k in sorted(q.keys()):
-            ....:     print k, k.parent()
-            y Multivariate Polynomial Ring in x, y over Rational Field
-            x Multivariate Polynomial Ring in x, y over Rational Field
-        """
-        result = p
-        if p is not None and p.keys() and p.keys()[0].parent() != R:
-            try:
-                result = dict([(x, p[SR(x)]) for x in R.gens()])
-            except TypeError:
-                pass
-        return result
-
 
     def _add_(left, right):
         r"""
@@ -3479,6 +2885,611 @@ class FractionWithFactoredDenominatorRing(
       return self.element_class(self,
                                 numerator, denominator_factored,
                                 quotient, reduce_)
+
+    @staticmethod
+    def _permutation_sign(s, u):
+        r"""
+        This function returns the sign of the permutation on
+        ``1, ..., len(u)`` that is induced by the sublist
+        ``s`` of ``u``.
+        For internal use by :meth:`cohomology_decomposition()`.
+
+        INPUT:
+
+        - ``s`` -- a sublist of ``u``
+        - ``u`` -- a list
+
+        OUTPUT:
+
+        The sign of the permutation obtained by taking indices
+        within ``u`` of the list ``s + sc``, where ``sc`` is ``u``
+        with the elements of ``s`` removed.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: u = ['a','b','c','d','e']
+            sage: s = ['b','d']
+            sage: FFPDElement._permutation_sign(s, u)
+            -1
+            sage: s = ['d','b']
+            sage: FFPDElement._permutation_sign(s, u)
+            1
+        """
+        # Convert lists to lists of numbers in {1,..., len(u)}
+        A = [i + 1  for i in xrange(len(u))]
+        B = [u.index(x) + 1 for x in s]
+
+        C = sorted(list(Set(A).difference(Set(B))))
+        P = Permutation(B + C)
+        return P.signature()
+
+
+    @staticmethod
+    def subs_all(f, sub, simplify=False):
+        r"""
+        Return the items of `f` substituted by the dictionaries
+        of ``sub`` in order of their appearance in ``sub``.
+
+        INPUT:
+
+        - ``f`` -- an individual or list of symbolic expressions
+          or dictionaries
+        - ``sub`` -- an individual or list of dictionaries
+        - ``simplify`` -- (default: ``False``) boolean; set to ``True`` to
+          simplify the result
+
+        OUTPUT:
+
+        The items of ``f`` substituted by the dictionaries of ``sub`` in order
+        of their appearance in ``sub``. The ``subs()`` command is used. If
+        simplify is ``True``, then ``simplify()`` is used after substitution.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: var('x, y, z')
+            (x, y, z)
+            sage: a = {x:1}
+            sage: b = {y:2}
+            sage: c = {z:3}
+            sage: FFPDElement.subs_all(x + y + z, a)
+            y + z + 1
+            sage: FFPDElement.subs_all(x + y + z, [c, a])
+            y + 4
+            sage: FFPDElement.subs_all([x + y + z, y^2], b)
+            [x + z + 2, 4]
+            sage: FFPDElement.subs_all([x + y + z, y^2], [b, c])
+            [x + 5, 4]
+
+        ::
+
+            sage: var('x, y')
+            (x, y)
+            sage: a = {'foo': x**2 + y**2, 'bar': x - y}
+            sage: b = {x: 1 , y: 2}
+            sage: FFPDElement.subs_all(a, b)
+            {'foo': 5, 'bar': -1}
+        """
+        singleton = False
+        if not isinstance(f, (list, tuple)):
+            f = [f]
+            singleton = True
+        if not isinstance(sub, (list, tuple)):
+            sub = [sub]
+        g = []
+        for ff in f:
+            for D in sub:
+                if isinstance(ff, dict):
+                    ff = dict( [(k, ff[k].subs(D)) for k in ff.keys()] )
+                else:
+                    ff = ff.subs(D)
+            g.append(ff)
+
+        if singleton and simplify:
+            if isinstance(g[Integer(0) ], dict):
+                return g[Integer(0) ]
+            return g[Integer(0) ].simplify()
+
+        if singleton and not simplify:
+            return g[Integer(0) ]
+
+        if not singleton and simplify:
+            G = []
+            for gg in g:
+                if isinstance(gg, dict):
+                    G.append(gg)
+                else:
+                    G.append(gg.simplify())
+            return G
+
+        return g
+
+
+    @staticmethod
+    def _diff_all(f, V, n, ending=[], sub=None, sub_final=None,
+                 zero_order=0, rekey=None):
+        r"""
+        Return a dictionary of representative mixed partial
+        derivatives of `f` from order 1 up to order `n` with respect to the
+        variables in `V`.
+        The default is to key the dictionary by all nondecreasing sequences
+        in `V` of length 1 up to length `n`.
+
+        .. NOTE::
+
+            For internal use.
+
+        INPUT:
+
+        - ``f`` -- an individual or list of `\mathcal{C}^{n+1}` functions
+        - ``V`` -- a list of variables occurring in `f`
+        - ``n`` -- a natural number
+        - ``ending`` -- a list of variables in `V`
+        - ``sub`` -- an individual or list of dictionaries
+        - ``sub_final`` -- an individual or list of dictionaries
+        - ``rekey`` -- a callable symbolic function in `V` or list thereof
+        - ``zero_order`` -- a natural number
+
+        OUTPUT:
+
+        The dictionary ``{s_1:deriv_1, ..., sr:deriv_r}``.
+        Here ``s_1, ..., s_r`` is a listing of
+        all nondecreasing sequences of length 1 up to length `n` over the
+        alphabet `V`, where `w > v` in `X` if and only if ``str(w) > str(v)``,
+        and ``deriv_j`` is the derivative of `f` with respect to the derivative
+        sequence ``s_j`` and simplified with respect to the substitutions in
+        ``sub`` and evaluated at ``sub_final``.
+        Moreover, all derivatives with respect to sequences of length less than
+        ``zero_order`` (derivatives of order less than ``zero_order`` )
+        will be made zero.
+
+        If ``rekey`` is nonempty, then ``s_1, ..., s_r`` will be replaced
+        by the symbolic derivatives of the functions in ``rekey``.
+
+        If ``ending`` is nonempty, then every derivative sequence ``s_j``
+        will be suffixed by ``ending``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: f = function('f', x)
+            sage: dd = FFPDElement._diff_all(f, [x], 3)
+            sage: dd[(x, x, x)]
+            D[0, 0, 0](f)(x)
+
+            sage: d1 = {diff(f, x): 4*x^3}
+            sage: dd = FFPDElement._diff_all(f,[x], 3, sub=d1)
+            sage: dd[(x, x, x)]
+            24*x
+
+            sage: dd = FFPDElement._diff_all(f,[x], 3, sub=d1, rekey=f)
+            sage: dd[diff(f, x, 3)]
+            24*x
+
+            sage: a = {x:1}
+            sage: dd = FFPDElement._diff_all(f,[x], 3, sub=d1, rekey=f, sub_final=a)
+            sage: dd[diff(f, x, 3)]
+            24
+
+        ::
+
+            sage: X = var('x, y, z')
+            sage: f = function('f',*X)
+            sage: dd = FFPDElement._diff_all(f, X, 2, ending=[y, y, y])
+            sage: dd[(z, y, y, y)]
+            D[1, 1, 1, 2](f)(x, y, z)
+
+        ::
+
+            sage: g = function('g',*X)
+            sage: dd = FFPDElement._diff_all([f, g], X, 2)
+            sage: dd[(0, y, z)]
+            D[1, 2](f)(x, y, z)
+
+            sage: dd[(1, z, z)]
+            D[2, 2](g)(x, y, z)
+
+            sage: f = exp(x*y*z)
+            sage: ff = function('ff',*X)
+            sage: dd = FFPDElement._diff_all(f, X, 2, rekey=ff)
+            sage: dd[diff(ff, x, z)]
+            x*y^2*z*e^(x*y*z) + y*e^(x*y*z)
+        """
+        singleton=False
+        if not isinstance(f, list):
+            f = [f]
+            singleton=True
+
+        # Build the dictionary of derivatives iteratively from a list
+        # of nondecreasing derivative-order sequences.
+        derivs = {}
+        r = len(f)
+        if ending:
+            seeds = [ending]
+            start = Integer(1)
+        else:
+            seeds = [[v] for v in V]
+            start = Integer(2)
+        if singleton:
+            for s in seeds:
+                derivs[tuple(s)] = FFPDElement.subs_all(diff(f[0], s), sub)
+            for l in xrange(start, n + 1):
+                for t in UnorderedTuples(V, l):
+                    s = tuple(t + ending)
+                    derivs[s] = FFPDElement.subs_all(diff(derivs[s[1:]], s[0]), sub)
+        else:
+            # Make the dictionary keys of the form (j, sequence of variables),
+            # where j in range(r).
+            for s in seeds:
+                value = FFPDElement.subs_all([diff(f[j], s) for j in xrange(r)], sub)
+                derivs.update(dict([(tuple([j]+s), value[j])
+                                    for j in xrange(r)]))
+            for l in xrange(start, n + 1):
+                for t in UnorderedTuples(V, l):
+                    s = tuple(t + ending)
+                    value = FFPDElement.subs_all([diff(derivs[(j,) + s[1:]],
+                                          s[0]) for j in xrange(r)], sub)
+                    derivs.update(dict([((j,) + s, value[j])
+                                        for j in xrange(r)]))
+        if zero_order:
+            # Zero out all the derivatives of order < zero_order
+            if singleton:
+                for k in derivs.keys():
+                    if len(k) < zero_order:
+                        derivs[k] = Integer(0)
+            else:
+                # Ignore the first of element of k, which is an index.
+                for k in derivs.keys():
+                    if len(k) - 1  < zero_order:
+                        derivs[k] = Integer(0)
+        if sub_final:
+            # Substitute sub_final into the values of derivs.
+            for k in derivs.keys():
+                derivs[k] = FFPDElement.subs_all(derivs[k], sub_final)
+        if rekey:
+            # Rekey the derivs dictionary by the value of rekey.
+            F = rekey
+            if singleton:
+                # F must be a singleton.
+                derivs = dict( [(diff(F, list(k)), derivs[k])
+                                for k in derivs.keys()] )
+            else:
+                # F must be a list.
+                derivs = dict( [(diff(F[k[0]], list(k)[1:]), derivs[k])
+                                for k in derivs.keys()] )
+        return derivs
+
+
+    @staticmethod
+    def _diff_op(A, B, AB_derivs, V, M, r, N):
+        r"""
+        Return the derivatives `DD^{(l+k)}(A[j] B^l)` evaluated at a point
+        `p` for various natural numbers `j, k, l` which depend on `r` and `N`.
+        Here `DD` is a specific second-order linear differential operator
+        that depends on `M` , `A` is a list of symbolic functions,
+        `B` is symbolic function, and ``AB_derivs`` contains all the derivatives
+        of `A` and `B` evaluated at `p` that are necessary for the computation.
+
+        .. NOTE::
+
+            For internal use by :meth:`asymptotics_smooth()` and
+            :meth:`asymptotics_multiple()`.
+
+        INPUT:
+
+        - ``A`` -- a single or length ``r`` list of symbolic functions in the
+          variables ``V``
+        - ``B`` -- a symbolic function in the variables ``V``.
+        - ``AB_derivs`` -- a dictionary whose keys are the (symbolic)
+          derivatives of ``A[0], ..., A[r-1]`` up to order ``2*N-2`` and
+          the (symbolic) derivatives of ``B`` up to order ``2*N``;
+          the values of the dictionary are complex numbers that are
+          the keys evaluated at a common point `p`
+        - ``V`` -- the variables of the ``A[j]`` and ``B``
+        - ``M`` -- a symmetric `l \times l` matrix, where `l` is the
+          length of ``V``
+        - ``r, N`` -- natural numbers
+
+        OUTPUT:
+
+        A dictionary whose keys are natural number tuples of the form
+        `(j, k, l)`, where `l \leq 2k`, `j \leq r-1`, and `j+k \leq N-1`,
+        and whose values are `DD^(l+k)(A[j] B^l)` evaluated at a point
+        `p`, where `DD` is the linear second-order differential operator
+        `-\sum_{i=0}^{l-1} \sum_{j=0}^{l-1} M[i][j]
+        \partial^2 /(\partial V[j] \partial V[i])`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: T = var('x, y')
+            sage: A = function('A',*tuple(T))
+            sage: B = function('B',*tuple(T))
+            sage: AB_derivs = {}
+            sage: M = matrix([[1, 2],[2, 1]])
+            sage: DD = FFPDElement._diff_op(A, B, AB_derivs, T, M, 1, 2)
+            sage: sorted(DD.keys())
+            [(0, 0, 0), (0, 1, 0), (0, 1, 1), (0, 1, 2)]
+            sage: len(DD[(0, 1, 2)])
+            246
+        """
+        if not isinstance(A, list):
+            A = [A]
+
+        # First, compute the necessary product derivatives of A and B.
+        product_derivs = {}
+        for (j, k) in mrange([r, N]):
+            if j + k < N:
+                for l in xrange(2*k + 1):
+                    for s in UnorderedTuples(V, 2*(k + l)):
+                        product_derivs[tuple([j, k, l] + s)] = \
+                        diff(A[j]*B**l, s).subs(AB_derivs)
+
+        # Second, compute DD^(k+l)(A[j]*B^l)(p) and store values in dictionary.
+        DD = {}
+        rows = M.nrows()
+        for (j, k) in mrange([r, N]):
+            if j + k < N:
+                for l in xrange(2*k + 1):
+                    # Take advantage of the symmetry of M by ignoring
+                    # the upper-diagonal entries of M and multiplying by
+                    # appropriate powers of 2.
+                    if k + l == 0 :
+                        DD[(j, k, l)] = product_derivs[(j, k, l)]
+                        continue
+                    S = [(a, b) for (a, b) in mrange([rows, rows]) if b <= a]
+                    P =  cartesian_product_iterator([S for i in range(k+l)])
+                    diffo = Integer(0)
+                    for t in P:
+                        if product_derivs[(j, k, l) + FFPDElement._diff_seq(V, t)] !=\
+                          Integer(0):
+                            MM = Integer(1)
+                            for (a, b) in t:
+                                MM = MM * M[a][b]
+                                if a != b:
+                                    MM = Integer(2) *MM
+                            diffo = diffo + MM*product_derivs[(j, k, l) +\
+                                           FFPDElement._diff_seq(V, t)]
+                    DD[(j, k, l)] = (-Integer(1) )**(k+l)*diffo
+        return DD
+
+
+    @staticmethod
+    def _diff_seq(V, s):
+        r"""
+        Given a list ``s`` of tuples of natural numbers, return the
+        list of elements of ``V`` with indices the elements of the elements
+        of ``s``.
+
+        .. NOTE::
+
+            This function is for internal use by :meth:`diff_op()`.
+
+        INPUT:
+
+        - ``V`` -- a list
+        - ``s`` -- a list of tuples of natural numbers in the interval
+          ``range(len(V))``
+
+        OUTPUT:
+
+        The tuple ``tuple([V[tt] for tt in sorted(t)])``, where ``t`` is the
+        list of elements of the elements of ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: V = list(var('x, t, z'))
+            sage: FFPDElement._diff_seq(V,([0, 1],[0, 2, 1],[0, 0]))
+            (x, x, x, x, t, t, z)
+        """
+        t = []
+        for ss in s:
+            t.extend(ss)
+        return tuple([V[tt] for tt in sorted(t)])
+
+
+    @staticmethod
+    def _diff_op_simple(A, B, AB_derivs, x, v, a, N):
+        r"""
+        Return `DD^(e k + v l)(A B^l)` evaluated at a point `p` for
+        various natural numbers `e, k, l` that depend on `v` and `N`.
+        Here `DD` is a specific linear differential operator that depends
+        on `a` and `v` , `A` and `B` are symbolic functions, and `AB_derivs`
+        contains all the derivatives of `A` and `B` evaluated at `p` that are
+        necessary for the computation.
+        For internal use by the function asymptotics_smooth().
+
+        INPUT:
+
+        - ``A, B`` -- Symbolic functions in the variable ``x``
+        - ``AB_derivs`` - a dictionary whose keys are the (symbolic)
+          derivatives of ``A`` up to order ``2*N`` if ``v`` is even or
+          ``N`` if ``v`` is odd and the (symbolic) derivatives of ``B``
+          up to order ``2*N + v`` if ``v`` is even or ``N + v``
+          if ``v`` is odd; the values of the dictionary are complex numbers
+          that are the keys evaluated at a common point `p`
+        - ``x`` -- a symbolic variable
+        - ``a`` -- a complex number
+        - ``v, N`` -- natural numbers
+
+        OUTPUT:
+
+        A dictionary whose keys are natural number pairs of the form `(k, l)`,
+        where `k < N` and `l \leq 2k` and whose values are
+        `DD^(e k + v l)(A B^l)` evaluated at a point `p`.
+        Here `e=2` if `v` is even, `e=1` if `v` is odd, and `DD` is the
+        linear differential operator
+        `(a^{-1/v} d/dt)` if `v` is even and
+        `(|a|^{-1/v} i \text{sgn}(a) d/dt)` if `v` is odd.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: A = function('A', x)
+            sage: B = function('B', x)
+            sage: AB_derivs = {}
+            sage: sorted(FFPDElement._diff_op_simple(A, B, AB_derivs, x, 3, 2, 2).items())
+            [((0, 0), A(x)),
+             ((1, 0), 1/2*I*2^(2/3)*D[0](A)(x)),
+             ((1, 1), 1/4*2^(2/3)*(B(x)*D[0, 0, 0, 0](A)(x)
+              + 4*D[0, 0, 0](A)(x)*D[0](B)(x) + 6*D[0, 0](A)(x)*D[0, 0](B)(x)
+              + 4*D[0](A)(x)*D[0, 0, 0](B)(x) + A(x)*D[0, 0, 0, 0](B)(x)))]
+        """
+        I = sqrt(-Integer(1))
+        DD = {}
+        if v.mod(Integer(2)) == Integer(0) :
+            for k in xrange(N):
+                for l in xrange(2*k + 1):
+                    DD[(k, l)] = (a**(-Integer(1)/v))**(2*k + v*l)*\
+                                 diff(A*B**l, x, 2*k + v*l).subs(AB_derivs)
+        else:
+            for k in xrange(N):
+                for l in xrange(k + 1):
+                    DD[(k, l)] = (abs(a)**(-Integer(1)/v)*I*\
+                                 a/abs(a))**(k+v*l)*\
+                                 diff(A*B**l, x, k + v*l).subs(AB_derivs)
+        return DD
+
+
+    @staticmethod
+    def _diff_prod(f_derivs, u, g, X, interval, end, uderivs, atc):
+        r"""
+        Take various derivatives of the equation `f = ug`,
+        evaluate them at a point `c`, and solve for the derivatives of `u`.
+
+        This function works by differentiating the equation `f = ug`
+        with respect to the variable sequence ``s + end``,
+        for all tuples ``s`` of ``X`` of lengths in ``interval``,
+        evaluating at the point `c` ,
+        and solving for the remaining derivatives of ``u``.
+        This function assumes that ``u`` never appears in the
+        differentiations of `f = ug` after evaluating at `c`.
+
+        .. NOTE::
+
+            For internal use by :meth:`asymptotics_multiple()`.
+
+        INPUT:
+
+        - ``f_derivs`` -- a dictionary whose keys are all tuples of the form
+          ``s + end``, where ``s`` is a sequence of variables from ``X`` whose
+          length lies in ``interval``, and whose values are the derivatives
+          of a function `f` evaluated at `c`
+        - ``u`` -- a callable symbolic function
+        - ``g`` -- an expression or callable symbolic function
+        - ``X`` -- a list of symbolic variables
+        - ``interval`` -- a list of positive integers
+          Call the first and last values `n` and `nn`, respectively
+        - ``end`` -- a possibly empty list of repetitions of the
+          variable ``z``, where ``z`` is the last element of ``X``
+        - ``uderivs`` -- a dictionary whose keys are the symbolic
+          derivatives of order 0 to order `n-1` of ``u`` evaluated at `c`
+          and whose values are the corresponding derivatives evaluated at `c`
+        - ``atc`` -- a dictionary whose keys are the keys of `c` and all
+          the symbolic derivatives of order 0 to order `nn` of ``g``
+          evaluated `c` and whose values are the corresponding
+          derivatives evaluated at `c`
+
+        OUTPUT:
+
+        A dictionary whose keys are the derivatives of ``u`` up to order
+        `nn` and whose values are those derivatives evaluated at `c`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: u = function('u', x)
+            sage: g = function('g', x)
+            sage: fd = {(x,):1,(x, x):1}
+            sage: ud = {u(x=2): 1}
+            sage: atc = {x: 2, g(x=2): 3, diff(g, x)(x=2): 5}
+            sage: atc[diff(g, x, x)(x=2)] = 7
+            sage: dd = FFPDElement._diff_prod(fd, u, g, [x], [1, 2], [], ud, atc)
+            sage: dd[diff(u, x, 2)(x=2)]
+            22/9
+        """
+        for l in interval:
+            D = {}
+            rhs = []
+            lhs = []
+            for t in UnorderedTuples(X, l):
+                s = t + end
+                lhs.append(f_derivs[tuple(s)])
+                rhs.append(diff(u*g, s).subs(atc).subs(uderivs))
+                # Since Sage's solve command can't take derivatives as variable
+                # names, make new variables based on t to stand in for
+                # diff(u, t) and store them in D.
+                D[diff(u, t).subs(atc)] = var('zing' +\
+                                              ''.join([str(x) for x in t]))
+            eqns = [lhs[i] == rhs[i].subs(uderivs).subs(D)
+                    for i in xrange(len(lhs))]
+            variables = D.values()
+            sol = solve(eqns,*variables, solution_dict=True)
+            uderivs.update(FFPDElement.subs_all(D, sol[Integer(0) ]))
+        return uderivs
+
+
+    @staticmethod
+    def direction(v, coordinate=None):
+        r"""
+        Return ``[vv/v[coordinate] for vv in v]`` where
+        ``coordinate`` is the last index of ``v`` if not specified otherwise.
+
+        INPUT:
+
+        - ``v`` -- a vector
+        - ``coordinate`` -- (optional; default: ``None``) an index for ``v``
+
+        EXAMPLES::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFPDElement
+            sage: FFPDElement.direction([2, 3, 5])
+            (2/5, 3/5, 1)
+            sage: FFPDElement.direction([2, 3, 5], 0)
+            (1, 3/2, 5/2)
+        """
+        if coordinate is None:
+            coordinate = len(v) - 1
+        return tuple([vv/v[coordinate] for vv in v])
+
+
+    @staticmethod
+    def coerce_point(R, p):
+        r"""
+        Coerce the keys of the dictionary ``p`` into the ring ``R``.
+
+        Assume that it is possible.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: f = FFPD()
+            sage: p = {SR(x): 1, SR(y): 7/8}
+            sage: p
+            {x: 1, y: 7/8}
+            sage: for k in sorted(p.keys()):
+            ....:     print k, k.parent()
+            x Symbolic Ring
+            y Symbolic Ring
+            sage: q = f.coerce_point(R, p)
+            sage: q
+            {y: 7/8, x: 1}
+            sage: for k in sorted(q.keys()):
+            ....:     print k, k.parent()
+            y Multivariate Polynomial Ring in x, y over Rational Field
+            x Multivariate Polynomial Ring in x, y over Rational Field
+        """
+        result = p
+        if p is not None and p.keys() and p.keys()[0].parent() != R:
+            try:
+                result = dict([(x, p[SR(x)]) for x in R.gens()])
+            except TypeError:
+                pass
+        return result
 
 
 class FFPDSum(list):

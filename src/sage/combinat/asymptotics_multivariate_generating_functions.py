@@ -3373,6 +3373,17 @@ class FFPDElement(sage.structure.element.RingElement):
 
     def _add_(left, right):
         r"""
+        Returns the sum of ``left`` with ``right``.
+
+        INPUT:
+
+        - ``left`` -- the left summand (i.e. self)
+
+        - ``right`` -- the right summand
+
+        OUTPUT:
+
+        The sum as a new element.
 
         EXAMPLES::
 
@@ -3390,6 +3401,17 @@ class FFPDElement(sage.structure.element.RingElement):
 
     def _mul_(left, right):
         r"""
+        Returns the product of ``left`` with ``right``.
+
+        INPUT:
+
+        - ``left`` -- the left factor (i.e. self)
+
+        - ``right`` -- the right factor
+
+        OUTPUT:
+
+        The product as a new element.
 
         EXAMPLES::
 

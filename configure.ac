@@ -32,6 +32,8 @@ AM_INIT_AUTOMAKE([1.9.6 foreign])
 # Allow "configure --disable-maintainer-mode" to disable timestamp checking
 AM_MAINTAINER_MODE([enable])
 
+AX_CHECK_ROOT([AC_MSG_ERROR([You cannot build Sage as root, switch to a unpriviledged user])], [])
+
 #---------------------------------------------------------
 # We need to run this configure script with bash
 if test -z "$BASH_VERSION$CONFIG_SHELL"

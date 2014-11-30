@@ -622,12 +622,13 @@ class pAdicValuation_base(UniqueRepresentation, DiscreteValuation):
             if len(I) > 1:
                 raise ValueError("extension to %s is not unique"%L)
             return pAdicValuation(L, I[0])
-        if algorithm == "mac_lane":
+        elif algorithm == "mac_lane":
             W = self.mac_lane_approximants(L.defining_polynomial())
             if len(W) > 1:
                 raise ValueError("extension to %s is not unique"%L)
             prime = L.ideal(W[0].uniformizer()(L.gen()), self.residue_field().characteristic())
             return pAdicValuation(L, prime)
+        else: raise ValueError
 
 class pAdicValuation_padic(pAdicValuation_base):
     """

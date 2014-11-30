@@ -148,6 +148,23 @@ class RationalFunctionFieldValuation(DiscreteValuation):
     def _repr_(self):
         return "Valuation on rational function field induced by %s"%self._base_valuation
 
+    def extension(self, L, algorithm="mac_lane"):
+        K = self.domain()
+        if L is K:
+            return self
+        if L.base() is not K:
+            raise ValueError("L must be a simple finite extension of %s"%K)
+
+        if algorithm == "mac_lane":
+            W = self.mac_lane_approximants(L.polynomial(),precision_cap=infinity)
+            if len(W) > 1:
+                raise ValueError("extension to %s is not unique"%L)
+            return FunctionFieldPolymodValuation(L, W[0])
+        else: raise ValueError()
+
+    def uniformizer(self):
+        return self.domain()(self._base_valuation.uniformizer())
+
 class FunctionFieldPolymodValuation(DiscreteValuation):
     def __init__(self, domain, base_valuation):
         from sage.rings.all import infinity

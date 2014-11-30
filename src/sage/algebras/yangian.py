@@ -27,6 +27,7 @@ from sage.sets.positive_integers import PositiveIntegers
 from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.free_module import CombinatorialFreeModule
+from sage.algebras.associated_graded import AssociatedGradedAlgebra
 
 class Yangian(CombinatorialFreeModule):
     r"""
@@ -88,13 +89,14 @@ class Yangian(CombinatorialFreeModule):
         """
         self._n = n
         self._filtration = filtration
-        category = HopfAlgebrasWithBasis(base_ring)#.Filtered() # TODO - once implemented
+        category = HopfAlgebrasWithBasis(base_ring).Filtered()
         self._index_set = tuple(range(1,n+1))
         # The keys for the basis are tuples of these indices
         indices = CartesianProduct(PositiveIntegers(), self._index_set, self._index_set)
         # We note that the generators are non-commutative, but we always sort
         #   them, so they are, in effect, indexed by the free abelian monoid
-        basis_keys = IndexedFreeAbelianMonoid(indices, bracket=False, prefix=variable_name)
+        basis_keys = IndexedFreeAbelianMonoid(indices, bracket=False,
+                                              prefix=variable_name)
         CombinatorialFreeModule.__init__(self, base_ring, basis_keys,
                                          prefix=variable_name, category=category)
 
@@ -713,132 +715,6 @@ class YangianLevel(Yangian):
 
 #####################################################################
 ## Graded algebras
-
-# TODO: Refactor this out once filtered algebras are implemented
-class AssociatedGradedAlgebra(CombinatorialFreeModule):
-    """
-    The associated graded algebra `\mathrm{gr} A` corresponding to
-    a filtered algebra `A`.
-
-    INPUT:
-
-    - ``A`` -- a filtered algebra
-    """
-    def __init__(self, A, category=None):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: grY = Yangian(QQ, 4, filtration='natural').graded_algebra()
-            sage: TestSuite(grY).run()
-        """
-        self._A = A
-        if category is None:
-            category = A.category().Graded()
-        from copy import copy
-        opts = copy(A.print_options())
-        opts['prefix'] = opts['prefix'] + 'bar'
-        CombinatorialFreeModule.__init__(self, A.base_ring(), A.indices(),
-                                         category=category, **opts)
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: Yangian(QQ, 4).graded_algebra()
-            Graded Algebra of Yangian of gl(4) in the Hopf filtration over Rational Field
-        """
-        return "Graded Algebra of {}".format(self._A)
-
-    def _latex_(self):
-        r"""
-        Return a latex representation of ``self``.
-
-        EXAMPLES::
-
-            sage: latex(Yangian(QQ, 4).graded_algebra())
-            \mathrm{gr}\; Y(\mathfrak{gl}_{4}, \Bold{Q})
-        """
-        from sage.misc.latex import latex
-        return "\\mathrm{gr}\; " + latex(self._A)
-
-    def _element_constructor_(self, x):
-        """
-        Construct an element of ``self`` from ``x``.
-
-        EXAMPLES::
-
-            sage: Y = Yangian(QQ, 4)
-            sage: grY = Y.graded_algebra()
-            sage: grY(Y.an_element())
-            tbar(1)[1,1]^2*tbar(1)[1,2]^2*tbar(1)[1,3]^3
-            sage: grY(Y.an_element() + Y.gen(2,1,1) + 2)
-            tbar(2)[1,1] + 2 + tbar(1)[1,1]^2*tbar(1)[1,2]^2*tbar(1)[1,3]^3
-        """
-        if isinstance(x, CombinatorialFreeModule.Element):
-            if x.parent() is self._A:
-                return self._from_dict(dict(x))
-        return super(AssociatedGradedAlgebra, self)._element_constructor_(x)
-
-    def gen(self, *args, **kwds):
-        """
-        Return a generator of ``self``.
-
-        EXAMPLES::
-
-            sage: grY = Yangian(QQ, 4).graded_algebra()
-            sage: grY.gen(2,1,3)
-            tbar(2)[1,3]
-        """
-        return self(self._A.gen(*args, **kwds))
-
-    @cached_method
-    def algebra_generators(self):
-        """
-        Return the algebra generators of ``self``.
-
-        EXAMPLES::
-
-            sage: grY = Yangian(QQ, 4).graded_algebra()
-            sage: grY.algebra_generators()
-            Lazy family (generator(i))_{i in Cartesian product of
-             Positive integers, (1, 2, 3, 4), (1, 2, 3, 4)}
-        """
-        G = self._A.algebra_generators()
-        return Family(G.keys(), lambda x: self(G[x]), name="generator")
-
-    @cached_method
-    def one_basis(self):
-        """
-        Return the basis index of the element `1`.
-
-        EXAMPLES::
-
-            sage: grY = Yangian(QQ, 4).graded_algebra()
-            sage: grY.one_basis()
-            1
-        """
-        return self._A.one_basis()
-
-    def product_on_basis(self, x, y):
-        """
-        Return the product on basis elements given by the
-        indices ``x`` and ``y``.
-
-        EXAMPLES::
-
-            sage: grY = Yangian(QQ, 4).graded_algebra()
-            sage: grY.gen(12, 2, 1) * grY.gen(2, 1, 1) # indirect doctest
-            tbar(13)[2,1] + tbar(2)[1,1]*tbar(12)[2,1]
-        """
-        ret = self._A.product_on_basis(x, y)
-        deg = self._A.degree_on_basis(x) + self._A.degree_on_basis(y)
-        return self.sum_of_terms([(i,c) for i,c in ret
-                                     if self._A.degree_on_basis(i) == deg],
-                                 distinct=True)
 
 class GradedYangianBase(AssociatedGradedAlgebra):
     """

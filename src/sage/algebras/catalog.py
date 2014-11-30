@@ -36,6 +36,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Shuffle <sage.algebras.shuffle_algebra.ShuffleAlgebra>`
 - :class:`algebras.Steenrod
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`
+- :class:`algebras.Yangian <sage.algebras.yangian.Yangian>`
 """
 
 from sage.algebras.free_algebra import FreeAlgebra as Free
@@ -59,5 +60,6 @@ lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'Graded
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')
 lazy_import('sage.combinat.posets.mobius_algebra', 'MobiusAlgebra', 'Mobius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
+lazy_import('sage.algebras.yangian', 'Yangian')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion
 

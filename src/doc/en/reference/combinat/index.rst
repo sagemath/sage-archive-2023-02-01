@@ -4,8 +4,8 @@ Combinatorics
 .. automodule:: sage.combinat
 
 
-Alphabetical Module List
-------------------------
+Comprehensive Module List
+-------------------------
 
 .. toctree::
    :maxdepth: 1

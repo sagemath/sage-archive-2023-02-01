@@ -98,13 +98,17 @@ Hyperbolicity
     - The notion of ''far-apart pairs'' has been introduced in [Soto11]_ to
       further reduce the number of 4-tuples to consider. We say that the pair
       `(a,b)` is far-apart if for every `w` in `V\setminus\{a,b\}` we have
-      `dist(w,a)+dist(a,b) > dist(w,b)` and `dist(w,b)+dist(a,b) > dist(w,a)`,
-      and determining the set of far-apart pairs can be done in time `O(nm)`
-      using BFS. Now, it is proved in [Soto11]_ that there exists two far-apart
-      pairs `(a,b)` and `(c,d)` satisfying `\delta(G) = hyp(a, b, c, d)/2`. For
-      instance, the `n\times m`-grid has only two far-apart pairs, and so
-      computing its hyperbolicity is immediate.
 
+      .. MATH::
+
+          dist(w,a)+dist(a,b) > dist(w,b) \text{ and }dist(w,b)+dist(a,b) > dist(w,a)
+
+      Determining the set of far-apart pairs can be done in time `O(nm)` using
+      BFS. Now, it is proved in [Soto11]_ that there exists two far-apart pairs
+      `(a,b)` and `(c,d)` satisfying `\delta(G) = hyp(a, b, c, d)/2`. For
+      instance, the `n\times m`-grid has only two far-apart pairs, and so
+      computing its hyperbolicity is immediate once the far-apart pairs are
+      found.
 
 TODO:
 
@@ -276,8 +280,9 @@ cdef tuple __hyperbolicity_basic_algorithm__(int N,
     Returns **twice** the hyperbolicity of a graph, and a certificate.
 
     This method implements the basic algorithm for computing the hyperbolicity
-    of a graph, that is iterating over all 4-tuples, with a cutting rule
-    proposed in [Soto11]_. See the module's documentation for more details.
+    of a graph which tests all `\binom n 4` 4-tuples of vertices. It can
+    optionally use a cutting rule proposed in [Soto11]_. See the module's
+    documentation for more details.
 
     INPUTS:
 
@@ -291,7 +296,7 @@ cdef tuple __hyperbolicity_basic_algorithm__(int N,
     - ``verbose`` -- (default: ``False``) is boolean. Set to True to display
       some information during execution.
 
-    OUTPUTS:
+    OUTPUT:
 
     This function returns a tuple ( h, certificate ), where:
 
@@ -300,6 +305,7 @@ cdef tuple __hyperbolicity_basic_algorithm__(int N,
 
     - ``certificate`` -- 4-tuple of vertices maximizing the value `h`. If no
       such 4-tuple is found, the empty list [] is returned.
+
     """
     cdef int a, b, c, d, hh, h_LB
     cdef list certificate
@@ -400,43 +406,38 @@ cdef inline distances_and_far_apart_pairs(gg,
     cdef int i
 
     if distances == NULL or far_apart_pairs == NULL:
-        raise ValueError("This method can only be used to compute both "+
-                         "distances and far-apart pairs.")
+        raise ValueError("distances or far_apart_pairs is a NULL pointer")
     elif n > <unsigned short> -1:
         # Computing the distances/far_apart_pairs can only be done if we have
         # less than MAX_UNSIGNED_SHORT vertices.
-        raise ValueError("The graph backend contains more than "+
-                         str(<unsigned short> -1)+" nodes and we cannot "+
-                         "compute the matrix of distances/far-apart pairs on "+
-                         "something like that !")
+        raise ValueError("The graph backend contains more than {} nodes and "
+                         "we cannot compute the matrix of distances/far-apart "
+                         "pairs on something like that !".format(<unsigned short> -1))
 
     # The vertices which have already been visited
     cdef bitset_t seen
     bitset_init(seen, n)
 
-    # The list of waiting vertices, the beginning and the end of the list
+    # The list of waiting vertices
     cdef uint32_t * waiting_list = <uint32_t *> sage_malloc(n * sizeof(uint32_t))
-    if waiting_list == NULL:
-        sage_free(seen)
-        raise MemoryError("Unable to allocate array 'waiting_list' with size %d." %(n))
-    cdef uint32_t waiting_beginning = 0
-    cdef uint32_t waiting_end = 0
+    cdef unsigned short ** c_far_apart = <unsigned short **> sage_malloc(n * sizeof(unsigned short*))
+    if waiting_list == NULL or c_far_apart == NULL:
+        bitset_free(seen)
+        sage_free(waiting_list)
+        sage_free(c_far_apart)
+        raise MemoryError
+
+    # the beginning and the end of the list stored in waiting_list
+    cdef uint32_t waiting_beginning, waiting_end
 
     cdef uint32_t source
     cdef uint32_t v, u
 
-    cdef unsigned short ** c_far_apart = <unsigned short **> sage_malloc(n * sizeof(unsigned short*))
-    if c_far_apart == NULL:
-        bitset_free(seen)
-        sage_free(waiting_list)
-        raise MemoryError("Unable to allocate array 'c_far_apart' with size %d." %(n))
-
-    # All pairs are initially far-apart
+    # All pairs are initiall far-apart
     memset(far_apart_pairs, 1, n * n * sizeof(unsigned short))
     for i from 0 <= i < n:
         c_far_apart[i] = far_apart_pairs + i * n
         c_far_apart[i][i] = 0
-
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors. This data structure is well documented in the
@@ -446,7 +447,7 @@ cdef inline distances_and_far_apart_pairs(gg,
     cdef uint32_t ** p_vertices = sd.neighbors
     cdef uint32_t * p_tmp
     cdef uint32_t * end
-    
+
     cdef unsigned short * c_distances = distances
 
     # We run n different BFS taking each vertex as a source
@@ -571,58 +572,55 @@ cdef tuple __hyperbolicity__(int N,
     cdef uint32_t x, y, l1, l2, S1, S2, S3
     cdef list certificate = []
     cdef unsigned short *p_far_apart
+    cdef int nb_p = 0
 
-    # ==> Allocates and fills nb_pairs_of_length
-    #
+    if far_apart_pairs == NULL:
+        nb_p = (N*(N-1))/2
+    else:
+        for i from 0 <= i < N:
+            p_far_apart = far_apart_pairs[i]
+            for j from i < j < N:
+                if far_apart_pairs[i][j]:
+                    nb_p += 1
+
     # nb_pairs_of_length[d] is the number of pairs of vertices at distance d
     cdef uint32_t * nb_pairs_of_length = <uint32_t *>sage_calloc(D+1,sizeof(uint32_t))
-    if nb_pairs_of_length == NULL:
-        sage_free(nb_pairs_of_length)
-        raise MemoryError("Unable to allocate array 'nb_pairs_of_length'.")
 
-    # ==> Count the number of (far-apart) pairs of vertices at distance d
+    # pairs_of_length[d] is the list of pairs of vertices at distance d
+    cdef pair ** pairs_of_length = <pair **>sage_malloc(sizeof(pair *)*(D+1))
+
+    if pairs_of_length != NULL:
+        pairs_of_length[0] = <pair *>sage_malloc(sizeof(pair)*nb_p)
+
+    # temporary variable used to fill pairs_of_length
+    cdef uint32_t * cpt_pairs = <uint32_t *>sage_calloc(D+1,sizeof(uint32_t))
+
+    if (nb_pairs_of_length == NULL or
+        pairs_of_length    == NULL or
+        pairs_of_length[0] == NULL or
+        cpt_pairs          == NULL):
+        if pairs_of_length != NULL:
+            sage_free(pairs_of_length[0])
+        sage_free(nb_pairs_of_length)
+        sage_free(pairs_of_length)
+        sage_free(cpt_pairs)
+        raise MemoryError
+
+    # ==> Fills nb_pairs_of_length
     if far_apart_pairs == NULL:
         for i from 0 <= i < N:
-            for j from i+1 <= j < N:
+            for j from i < j < N:
                 nb_pairs_of_length[ distances[i][j] ] += 1
     else:
         for i from 0 <= i < N:
             p_far_apart = far_apart_pairs[i]
-            for j from i+1 <= j < N:
+            for j from i < j < N:
                 if p_far_apart[j]:
                     nb_pairs_of_length[ distances[i][j] ] += 1
 
-    # ==> Allocates pairs_of_length
-    #
-    # pairs_of_length[d] is the list of pairs of vertices at distance d
-    cdef pair ** pairs_of_length = <pair **>sage_malloc(sizeof(pair *)*(D+1))
-    if pairs_of_length == NULL:
-        sage_free(nb_pairs_of_length)
-        raise MemoryError("Unable to allocate array 'pairs_of_length'.")
-
-    # ==> Allocates cpt_pairs
-    #
-    # (temporary variable used to fill pairs_of_length)
-    cdef uint32_t * cpt_pairs = <uint32_t *>sage_calloc(D+1,sizeof(uint32_t))
-    if cpt_pairs == NULL:
-        sage_free(nb_pairs_of_length)
-        sage_free(pairs_of_length)
-        raise MemoryError("Unable to allocate array 'cpt_pairs'.")
-
-    # ==> Allocates pairs_of_length[d] for all d
-    cdef uint32_t nb_p = 0
+    # ==> Defines pairs_of_length[d] for all d
     for i from 1 <= i <= D:
-        nb_p += nb_pairs_of_length[i]
-        pairs_of_length[i] = <pair *>sage_malloc(sizeof(pair)*nb_pairs_of_length[i])
-
-        if nb_pairs_of_length[i] > 0 and pairs_of_length[i] == NULL:
-            while i>1:
-                i -= 1
-                sage_free(pairs_of_length[i])
-            sage_free(nb_pairs_of_length)
-            sage_free(pairs_of_length)
-            sage_free(cpt_pairs)
-            raise MemoryError("Unable to allocate array 'pairs_of_length[i]'.")
+        pairs_of_length[i] = pairs_of_length[i-1] + nb_pairs_of_length[i-1]
 
     # ==> Fills pairs_of_length[d] for all d
     if far_apart_pairs == NULL:
@@ -658,10 +656,10 @@ cdef tuple __hyperbolicity__(int N,
     approximation_factor = min(approximation_factor, D)
     additive_gap = min(additive_gap, D)
 
-    # We create the list of triples (sum,length1,length2) sorted in
-    # co-lexicographic order: decreasing by sum, decreasing by length2,
-    # decreasing length1. This is to ensure a valid ordering for S1, to avoid
-    # some tests, and to ease computation of bounds.
+    # We create the list of triples (sum,length1,length2) sorted in decreasing
+    # lexicographic order: decreasing by sum, decreasing by length2, decreasing
+    # length1. This is to ensure a valid ordering for S1, to avoid some tests,
+    # and to ease computation of bounds.
     cdef list triples = []
     for l2 from D >= l2 > 0:
         if nb_pairs_of_length[l2]>0:
@@ -678,6 +676,11 @@ cdef tuple __hyperbolicity__(int N,
     h = h_LB
     h_UB = D
     cdef int STOP = 0
+
+    # S1 = l1+l2
+    # l1 = dist(a,b)
+    # l2 = dist(c,d)
+    # l1 >= l2
     for S1, l1, l2 in triples:
 
         if h_UB > l2:
@@ -693,10 +696,9 @@ cdef tuple __hyperbolicity__(int N,
 
         # If we cannot improve further, we stop
         #
-        # See the module's documentation for an proof that this cut is
+        # See the module's documentation for a proof that this cut is
         # valid. Remember that the triples are sorted in a specific order.
-        if l2 <= h:
-            h_UB = h
+        if h_UB <= h:
             STOP = 1
             break
 
@@ -718,9 +720,9 @@ cdef tuple __hyperbolicity__(int N,
 
                 # We compute the hyperbolicity of the 4-tuple. We have S1 = l1 +
                 # l2, and the order in which pairs are visited allow us to claim
-                # that S1 = max( S1, S2, S3 ). If at some point S1 is not the
-                # maximum value, the order ensures that the maximum value has
-                # previously been checked.
+                # that S1 = max( S1, S2, S3 ). Indeed, if S1 is not the maximum
+                # value, the order ensures that the maximum value has previously
+                # been checked.
                 S2 = dist_a[c] + dist_b[d]
                 S3 = dist_a[d] + dist_b[c]
                 if S2 > S3:
@@ -730,8 +732,11 @@ cdef tuple __hyperbolicity__(int N,
 
                 if h < hh or not certificate:
                     # We update current bound on the hyperbolicity and the
-                    # search space, unless hh==0 and two vertices are equal.
-                    if h>0 or not (a==c or a==d or b==c or b==d):
+                    # search space.
+                    #
+                    # Note that if hh==0, we first make sure that a,b,c,d are
+                    # all distinct and are a valid certificate.
+                    if hh>0 or not (a==c or a==d or b==c or b==d):
                         h = hh
                         certificate = [a, b, c, d]
 
@@ -757,8 +762,7 @@ cdef tuple __hyperbolicity__(int N,
 
     # We now free the memory
     sage_free(nb_pairs_of_length)
-    for 1 <= i <= D:
-        sage_free(pairs_of_length[i])
+    sage_free(pairs_of_length[0])
     sage_free(pairs_of_length)
 
     # Last, we return the computed value and the certificate
@@ -767,7 +771,6 @@ cdef tuple __hyperbolicity__(int N,
     else:
         # When using far-apart pairs, the loops may end
         return (h, certificate, h_UB if STOP==2 else h)
-
 
 def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=None, verbose = False):
     r"""
@@ -892,7 +895,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         ...       d2,_,_ = hyperbolicity(G,algorithm='cuts')
         ...       d3,_,_ = hyperbolicity(G,algorithm='cuts+')
         ...       l3,_,u3 = hyperbolicity(G,approximation_factor=2)
-        ...       if d1!=d4 or d1!=d2 or d1!=d3 or l3>d1 or u3<d1:
+        ...       if (not d1==d2==d3==d4) or l3>d1 or u3<d1:
         ...          print "That's not good!"
 
     TESTS:
@@ -947,9 +950,10 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
     if approximation_factor is None:
         approximation_factor = 1.0
-    elif algorithm=='cuts' and (not approximation_factor in RR or approximation_factor < 1.0):
-        raise ValueError("The approximation factor must be >= 1.0.")
-    elif algorithm!='cuts':
+    elif algorithm=='cuts':
+        if not approximation_factor in RR or approximation_factor < 1.0:
+            raise ValueError("The approximation factor must be >= 1.0.")
+    else:
         print "The approximation_factor is ignored when using the '%s' algorithm." %(algorithm)
     if additive_gap is None:
         additive_gap = 0.0
@@ -1098,7 +1102,10 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
 
             elif algorithm in ['basic', 'basic+']:
                 sig_on()
-                hh, certif = __hyperbolicity_basic_algorithm__(N, distances, algorithm=='basic+', verbose)
+                hh, certif = __hyperbolicity_basic_algorithm__(N,
+                                                               distances,
+                                                               use_bounds=(algorithm=='basic+'),
+                                                               verbose=verbose)
                 sig_off()
                 hh_UB = hh
 

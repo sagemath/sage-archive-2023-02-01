@@ -44,7 +44,7 @@ EXAMPLES::
 A univariate smooth point example::
 
     sage: R.<x> = PolynomialRing(QQ)
-    sage: FFPD = FFDR(R)
+    sage: FFPD = FractionWithFactoredDenominatorRing(R)
     sage: H = (x - 1/2)^3
     sage: Hfac = H.factor()
     sage: G = -1/(x + 3)/Hfac.unit()
@@ -74,7 +74,7 @@ A univariate smooth point example::
 Another smooth point example (Example 5.4 of [RaWi2008a]_)::
 
     sage: R.<x,y> = PolynomialRing(QQ)
-    sage: FFPD = FFDR(R)
+    sage: FFPD = FractionWithFactoredDenominatorRing(R)
     sage: q = 1/2
     sage: qq = q.denominator()
     sage: H = 1 - q*x + q*x*y - x^2*y
@@ -111,7 +111,7 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
 A multiple point example (Example 6.5 of [RaWi2012]_)::
 
     sage: R.<x,y> = PolynomialRing(QQ)
-    sage: FFPD = FFDR(R)
+    sage: FFPD = FractionWithFactoredDenominatorRing(R)
     sage: H = (1 - 2*x - y)**2 * (1 - x - 2*y)**2
     sage: Hfac = H.factor()
     sage: G = 1/Hfac.unit()
@@ -223,9 +223,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
     EXAMPLES::
 
-        sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+        sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
         sage: R.<x,y> = PolynomialRing(QQ)
-        sage: FFPD = FFDR(R)
+        sage: FFPD = FractionWithFactoredDenominatorRing(R)
         sage: df = [x, 1], [y, 1], [x*y+1, 1]
         sage: f = FFPD(x, df)
         sage: f
@@ -241,7 +241,7 @@ class FFPDElement(sage.structure.element.RingElement):
     ::
 
         sage: R.<x> = PolynomialRing(QQ)
-        sage: FFPD = FFDR(R)
+        sage: FFPD = FractionWithFactoredDenominatorRing(R)
         sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
         sage: FFPD(quotient=f)
         (5*x^7 - 5*x^6 + 5/3*x^5 - 5/3*x^4 + 2*x^3 - 2/3*x^2 + 1/3*x - 1/3,
@@ -250,7 +250,7 @@ class FFPDElement(sage.structure.element.RingElement):
     ::
 
         sage: R.<x,y> = PolynomialRing(QQ)
-        sage: FFPD = FFDR(R)
+        sage: FFPD = FractionWithFactoredDenominatorRing(R)
         sage: f = 2*y/(5*(x^3 - 1)*(y + 1))
         sage: FFPD(quotient=f)
         (2/5*y, [(y + 1, 1), (x - 1, 1), (x^2 + x + 1, 1)])
@@ -282,7 +282,7 @@ class FFPDElement(sage.structure.element.RingElement):
     a multivariate polynomial ring over an inexact field::
 
         sage: R.<x,y> = PolynomialRing(CC)
-        sage: FFPD = FFDR(R)
+        sage: FFPD = FractionWithFactoredDenominatorRing(R)
         sage: f = (x + 1)/(x*y*(x*y + 1)^2)
         sage: FFPD(quotient=f)
         Traceback (most recent call last):
@@ -303,9 +303,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df)
             sage: TestSuite(f).run()
@@ -370,9 +370,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -388,9 +388,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -414,9 +414,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -433,9 +433,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -457,9 +457,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -478,9 +478,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -496,9 +496,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - x - y - x*y)**2*(1-x)
             sage: Hfac = H.factor()
             sage: G = exp(y)/Hfac.unit()
@@ -517,9 +517,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: f
             (x + y, [(y, 1), (x, 1)])
@@ -533,9 +533,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df)
             sage: ff = FFPD(x, df, reduce_=False)
@@ -548,7 +548,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: G = exp(x + y)
             sage: H = (1 - 2*x - y) * (1 - x - 2*y)
             sage: a = FFPD(quotient=G/H)
@@ -562,9 +562,9 @@ class FFPDElement(sage.structure.element.RingElement):
         r"""
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df)
             sage: ff = FFPD(x, df, reduce_=False)
@@ -588,9 +588,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df); f
             (1, [(y, 1), (x*y + 1, 1)])
@@ -641,12 +641,12 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
 
         One variable::
 
             sage: R.<x> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
             sage: f
             (15*x^7 - 15*x^6 + 5*x^5 - 5*x^4 + 6*x^3 - 2*x^2 + x - 1)/(3*x^4 -
@@ -661,7 +661,7 @@ class FFPDElement(sage.structure.element.RingElement):
         One variable with numerator in symbolic ring::
 
             sage: R.<x> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + exp(x)/(3*x^2 + 1)
             sage: f
             e^x/(3*x^2 + 1) + ((5*(x - 1)*x^3 + 2)*x - 1)/((x - 1)*x)
@@ -672,7 +672,7 @@ class FFPDElement(sage.structure.element.RingElement):
         One variable over a finite field::
 
             sage: R.<x> = PolynomialRing(GF(2))
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
             sage: f
             (x^6 + x^4 + 1)/(x^3 + x)
@@ -685,7 +685,7 @@ class FFPDElement(sage.structure.element.RingElement):
         One variable over an inexact field::
 
             sage: R.<x> = PolynomialRing(CC)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
             sage: f
             (15.0000000000000*x^7 - 15.0000000000000*x^6 + 5.00000000000000*x^5
@@ -741,9 +741,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: G = sin(x)
             sage: H = x^2 * (x*y + 1)
             sage: f = FFPD(G, H.factor())
@@ -806,7 +806,7 @@ class FFPDElement(sage.structure.element.RingElement):
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/(x*(x*y + 1))
             sage: decomp = FFPD(quotient=f).nullstellensatz_decomposition()
             sage: decomp
@@ -819,7 +819,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: G = sin(y)
             sage: H = x*(x*y + 1)
             sage: f = FFPD(G, H.factor())
@@ -866,9 +866,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/(x^2 * (x*y + 1) * y^3)
             sage: ff = FFPD(quotient=f)
             sage: J = ff.algebraic_dependence_certificate(); J
@@ -883,7 +883,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: G = exp(x + y)
             sage: H = x^2 * (x*y + 1) * y^3
             sage: ff = FFPD(G, H.factor())
@@ -979,9 +979,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/(x^2 * (x*y + 1) * y^3)
             sage: ff = FFPD(quotient=f)
             sage: decomp = ff.algebraic_dependence_decomposition()
@@ -1000,7 +1000,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: G = sin(x)
             sage: H = x^2 * (x*y + 1) * y^3
             sage: f = FFPD(G, H.factor())
@@ -1099,9 +1099,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = (x^2 + 1)/((x + 2)*(x - 1)*(x^2 + x + 1))
             sage: decomp = FFPD(quotient=f).leinartas_decomposition()
             sage: decomp
@@ -1112,7 +1112,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/x + 1/y + 1/(x*y + 1)
             sage: decomp = FFPD(quotient=f).leinartas_decomposition()
             sage: decomp
@@ -1134,7 +1134,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = sin(x)/x + 1/y + 1/(x*y + 1)
             sage: G = f.numerator()
             sage: H = R(f.denominator())
@@ -1214,16 +1214,16 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/(x^2 + x + 1)^3
             sage: decomp = FFPD(quotient=f).cohomology_decomposition()
             sage: decomp
             [(0, []), (2/3, [(x^2 + x + 1, 1)])]
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: FFPD(1, [(x, 1), (y, 2)]).cohomology_decomposition()
             [(0, [])]
 
@@ -1371,7 +1371,7 @@ class FFPDElement(sage.structure.element.RingElement):
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
             sage: R.<x> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = (x^2 + 1)/((x - 1)^3*(x + 2))
             sage: F = FFPD(quotient=f)
             sage: alpha = [var('a')]
@@ -1384,7 +1384,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - 2*x -y)*(1 - x -2*y)**2
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
@@ -1483,12 +1483,12 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
 
         A smooth point example::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - x - y - x*y)**2
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
@@ -1520,7 +1520,7 @@ class FFPDElement(sage.structure.element.RingElement):
         A multiple point example::
 
             sage: R.<x,y,z>= PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (4 - 2*x - y - z)**2*(4 - x - 2*y - z)
             sage: Hfac = H.factor()
             sage: G = 16/Hfac.unit()
@@ -1616,9 +1616,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = 2 - 3*x
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
@@ -1634,7 +1634,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = 1-x-y-x*y
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
@@ -1978,9 +1978,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y,z>= PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (4 - 2*x - y - z)*(4 - x -2*y - z)
             sage: Hfac = H.factor()
             sage: G = 16/Hfac.unit()
@@ -2020,7 +2020,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - 2*x - y) * (1 - x - 2*y)
             sage: Hfac = H.factor()
             sage: G = exp(x + y)/Hfac.unit()
@@ -2761,9 +2761,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: p = exp(x)
             sage: df = [(1 - 2*x - y, 1), (1 - x - 2*y, 1)]
             sage: f = FFPD(p, df)
@@ -2830,9 +2830,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: p = exp(x)
             sage: df = [(x**3 + 3*y^2, 5), (x*y, 2), (y, 1)]
             sage: f = FFPD(p, df)
@@ -2877,9 +2877,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: p = exp(x)
             sage: df = [(x**3 + 3*y^2, 5), (x*y, 2), (y, 1)]
             sage: f = FFPD(p, df)
@@ -2930,9 +2930,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y,z>= PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: G = 1
             sage: H = (1 - x*(1 + y))*(1 - z*x**2*(1 + 2*y))
             sage: Hfac = H.factor()
@@ -2990,9 +2990,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y,z>= PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - x*(1 + y))*(1 - z*x**2*(1 + 2*y))
             sage: df = H.factor()
             sage: G = 1/df.unit()
@@ -3068,7 +3068,7 @@ class FFPDElement(sage.structure.element.RingElement):
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
             sage: R.<x,y,z>= PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1 - x*(1 + y))**3*(1 - z*x**2*(1 + 2*y))
             sage: df = H.factor()
             sage: G = 1/df.unit()
@@ -3104,9 +3104,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (1-x-y-x*y)^2
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
@@ -3182,9 +3182,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = 2 - 3*x
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
@@ -3197,7 +3197,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y,z> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = (4 - 2*x - y - z) * (4 - x - 2*y - z)
             sage: Hfac = H.factor()
             sage: G = 16/Hfac.unit()
@@ -3287,9 +3287,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: H = 1 - x - y - x*y
             sage: Hfac = H.factor()
             sage: G = 1/Hfac.unit()
@@ -3343,9 +3343,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD()
             sage: p = {SR(x): 1, SR(y): 7/8}
             sage: p
@@ -3376,9 +3376,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = (x, 1), (y, 1), (x*y + 1, 1)
             sage: f = FFPD(2, df)
             sage: g = FFPD(2*x*y, df)
@@ -3393,9 +3393,9 @@ class FFPDElement(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(2, [(x, 1), (x*y + 1, 1), (x*y^2 + 1, 1)])
             sage: g = FFPD(2*x*y, [(y, 1), (x*y + 1, 1), (x^2*y + 1, 1)])
             sage: f * g
@@ -3459,9 +3459,6 @@ class FractionWithFactoredDenominatorRing(
                                 quotient, reduce_)
 
 
-FFDR = FractionWithFactoredDenominatorRing
-
-
 class FFPDSum(list):
     r"""
     A list representing the sum of :class:`FFPD` objects with distinct
@@ -3477,9 +3474,9 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x**2 + y, [(y, 1), (x, 2)])
             sage: FFPDSum([f, g])
@@ -3493,9 +3490,9 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x*(x + y), [(y, 1), (x, 2)])
             sage: s = FFPDSum([f]); s
@@ -3513,9 +3510,9 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x + y, [(y, 1), (x, 2)])
             sage: s = FFPDSum([f]); s
@@ -3535,9 +3532,9 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: s = FFPDSum([f])
             sage: s.ring()
@@ -3562,9 +3559,9 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = x**2 + 3*y + 1/x + 1/y
             sage: f = FFPD(quotient=f); f
             (x^3*y + 3*x*y^2 + x + y, [(y, 1), (x, 1)])
@@ -3612,9 +3609,9 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(quotient=1/(x * y * (x*y + 1)))
             sage: g = FFPD(quotient=x/(x * y * (x*y + 1)))
             sage: s = FFPDSum([f, g, f])
@@ -3662,9 +3659,9 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FFDR, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FFDR(R)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = (x, 1), (y, 1), (x*y + 1, 1)
             sage: f = FFPD(2, df)
             sage: g = FFPD(2*x*y, df)
@@ -3695,7 +3692,7 @@ class FFPDSum(list):
         df = [] # The denominator factorization for the sum.
         if denom == 1:
             # Done
-            return FFDR(numer.parent())(numer, df, reduce_=False)
+            return FractionWithFactoredDenominatorRing(numer.parent())(numer, df, reduce_=False)
 
         factors = []
         for f in self:
@@ -3715,5 +3712,5 @@ class FFPDSum(list):
                 quo, rem = denom.quo_rem(q)
             if e > 0:
                 df.append((q, e))
-        return FFDR(numer.parent())(numer, df, reduce_=False)
+        return FractionWithFactoredDenominatorRing(numer.parent())(numer, df, reduce_=False)
 

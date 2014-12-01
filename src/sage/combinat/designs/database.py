@@ -1946,6 +1946,36 @@ def OA_25_1262():
 
     return OA_from_PBD(25,1262,PBD,check=False)
 
+def OA_9_1612():
+    r"""
+    Returns an OA(9,1612)
+
+    This is obtained through the generalized Brouwer-van Rees
+    construction. Indeed, `1612 = 89.17 + (99=9.11)` and there exists an
+    `OA(9,100) - OA(9,11)`.
+
+    .. NOTE::
+
+        This function should be removed once
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_van_rees_with_one_truncated_column`
+        can handle all incomplete orthogonal arrays obtained through
+        :func:`~sage.combinat.designs.orthogonal_arrays.incomplete_orthogonal_array`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_1612
+        sage: OA = OA_9_1612()                       # not tested -- ~6s
+        sage: print is_orthogonal_array(OA,9,1612,2) # not tested -- ~6s
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_arrays.is_available(9,1612)
+        True
+    """
+    return wilson_construction(None,9,17,89,[[(11,9)]])
+
 def OA_10_1620():
     r"""
     Returns an OA(10,1620)
@@ -2014,6 +2044,7 @@ OA_constructions = {
     896 : (15 , OA_15_896),
     1078 : (9 , OA_9_1078),
     1262 : (25, OA_25_1262),
+    1612 : (9 , OA_9_1612),
     1620 : (10, OA_10_1620),
 }
 # Add this data to the module's doc

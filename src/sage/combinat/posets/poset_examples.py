@@ -1,7 +1,7 @@
 r"""
-A collection of posets and lattices.
+A catalog of posets and lattices.
 
-All common posets can be accessed through the ``posets.<tab>`` object::
+Some common posets can be accessed through the ``posets.<tab>`` object::
 
     sage: posets.PentagonPoset()
     Finite lattice containing 5 elements
@@ -11,7 +11,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     sage: Posets(5)
     Posets containing 5 vertices
 
-**Index of common posets:**
+**Catalog of common posets:**
 
 .. csv-table::
     :class: contentstable

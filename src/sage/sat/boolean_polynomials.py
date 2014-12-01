@@ -86,6 +86,8 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     This time we pass a few options through to the converter and the solver::
 
         sage: s = solve_sat(F, s_verbosity=1, c_max_vars_sparse=4, c_cutting_number=8) # optional - cryptominisat
+        c Flit...
+        ...
         sage: F.subs(s[0])                                                             # optional - cryptominisat
         Polynomial Sequence with 36 Polynomials in 0 Variables
 
@@ -116,9 +118,11 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
 
     First the normal use case::
 
-        sage: solve_sat(F,n=infinity)                                     # optional - cryptominisat
-        [{d: 0, b: 0, c: 0, a: 0}, {d: 1, b: 1, c: 0, a: 1},
-         {d: 1, b: 0, c: 1, a: 0}, {d: 0, b: 1, c: 1, a: 1}]
+        sage: sorted(solve_sat(F,n=infinity))                             # optional - cryptominisat
+        [{d: 0, c: 0, b: 0, a: 0},
+         {d: 0, c: 1, b: 1, a: 1},
+         {d: 1, c: 0, b: 1, a: 1},
+         {d: 1, c: 1, b: 0, a: 0}]
 
     Now we are only interested in the solutions of the variables a and b::
 
@@ -261,7 +265,7 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
     We construct a slightly larger equation system and recover some
     equations after 20 restarts::
 
-       sage: set_random_seed(2300)                        # optional - cryptominisat
+       sage: set_random_seed(2303)                        # optional - cryptominisat
        sage: sr = mq.SR(1,4,4,4,gf2=True,polybori=True)   # optional - cryptominisat
        sage: F,s = sr.polynomial_system()                 # optional - cryptominisat
        sage: from sage.sat.boolean_polynomials import learn as learn_sat # optional - cryptominisat

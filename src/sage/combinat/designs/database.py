@@ -1916,6 +1916,36 @@ def OA_25_1262():
 
     return OA_from_PBD(25,1262,PBD,check=False)
 
+def OA_10_1620():
+    r"""
+    Returns an OA(10,1620)
+
+    This is obtained through the generalized Brouwer-van Rees
+    construction. Indeed, `1620 = 144.11+(36=4.9)` and there exists an
+    `OA(10,153) - OA(10,9)`.
+
+    .. NOTE::
+
+        This function should be removed once
+        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_van_rees_with_one_truncated_column`
+        can handle all incomplete orthogonal arrays obtained through
+        :func:`~sage.combinat.designs.orthogonal_arrays.incomplete_orthogonal_array`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_1620
+        sage: OA = OA_10_1620()                       # not tested -- ~7s
+        sage: print is_orthogonal_array(OA,10,1620,2) # not tested -- ~7s
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_arrays.is_available(10,1620)
+        True
+    """
+    return wilson_construction(None,10,11,144,[[(9,4)]])
+
 # Index of the OA constructions
 #
 # Associates to n the pair (k,f) where f() is a function that returns an OA(k,n)
@@ -1952,7 +1982,8 @@ OA_constructions = {
     640 : (11 , OA_11_640),
     796 : (10 , OA_10_796),
     896 : (15 , OA_15_896),
-    1262 : (25 , OA_25_1262),
+    1262 : (25, OA_25_1262),
+    1620 : (10, OA_10_1620),
 }
 # Add this data to the module's doc
 LIST_OF_OA_CONSTRUCTIONS = join((":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)

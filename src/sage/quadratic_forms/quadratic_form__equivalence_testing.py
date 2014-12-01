@@ -541,7 +541,7 @@ def is_rationally_isometric(self,other):
 
     if not ((self.Gram_det()*other.Gram_det()).is_square()):
         Rat_Isom_flag = False
-    
+
     for p in L:
         if self.hasse_invariant(p) != other.hasse_invariant(p):
             Rat_Isom_flag = False
@@ -567,7 +567,7 @@ def is_rationally_isometric(self,other):
             for i in range(other.dim()):
                 if Nentries_emb[i]>=0:
                     Npos+=1
-    
+
             if Npos!=Mpos:
                 Rat_Isom_flag = False
 

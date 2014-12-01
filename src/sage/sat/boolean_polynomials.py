@@ -25,6 +25,8 @@ from sage.rings.infinity import PlusInfinity
 from sage.sat.solvers import SatSolver
 from sage.sat.converters import ANF2CNFConverter
 
+from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+
 def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     """
     Solve system of Boolean polynomials ``F`` by solving the
@@ -276,6 +278,17 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
        passed, then this function behaves essentially like
        :func:`solve` except that this function does not support
        ``n>1``.
+
+    TESTS:
+
+    We test that :trac:`17351` is fixed, by checking that the following doctest does not raise an
+    error::
+
+        sage: P.<a,b,c> = BooleanPolynomialRing()
+        sage: F = [a*c + a + b*c + c + 1,  a*b + a*c + a + c + 1,  a*b + a*c + a + b*c + 1]
+        sage: from sage.sat.boolean_polynomials import learn as learn_sat # optional - cryptominisat
+        sage: learn_sat(F, s_maxrestarts=0, interreduction=True)      # optional - cryptominisat
+        []
     """
     try:
         m = len(F)
@@ -329,7 +342,8 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
                     # variables which have no correspondence to variables in our
                     # polynomial ring (XOR chaining variables for example)
                     pass
-    learnt = Sequence(learnt)
+
+    learnt = PolynomialSequence(P, learnt)
 
     if interreduction:
         learnt = learnt.ideal().interreduced_basis()

@@ -33,9 +33,13 @@ and [RaWi2012]_.
    smooth points*, To appear in 2012 in the Online Journal of Analytic
    Combinatorics. :arxiv:`1009.5715`.
 
+
 AUTHORS:
 
 - Alexander Raichev (2008-10-01): Initial version
+
+- Daniel Krenn (2014-12-01): port to Sage parent/element model and review
+
 
 EXAMPLES::
 
@@ -191,6 +195,10 @@ from sage.combinat.subset import Subsets
 @total_ordering
 class FFPDElement(sage.structure.element.RingElement):
     r"""
+    This element represents a fraction with a factored polynomial
+    denominator. See also its parent
+    :class:`FractionWithFactoredDenominatorRing` for details.
+
     Represents a fraction with factored polynomial denominator (FFPD)
     `p/(q_1^{e_1} \cdots q_n^{e_n})` by storing the parts `p` and
     `[(q_1, e_1), \ldots, (q_n, e_n)]`.
@@ -295,6 +303,8 @@ class FFPDElement(sage.structure.element.RingElement):
     AUTHORS:
 
     - Alexander Raichev (2012-07-26)
+
+    - Daniel Krenn (2014-12-01)
     """
     def __init__(self, parent, numerator=None, denominator_factored=None,
                  quotient=None, reduce_=True):
@@ -403,6 +413,29 @@ class FFPDElement(sage.structure.element.RingElement):
 
 
     def __cmp__(self, other):
+        r"""
+        Compares two elements.
+
+        INPUT:
+
+        - ``other`` -- element to compare with ``self``.
+
+        OUTPUT:
+
+        A comparison value.
+
+        TESTS::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: f = FFPD(x*y, [(x-1, 1), (y-2, 2)])
+            sage: g = FFPD(x, [(x-1, 1), (y-2, 2)])
+            sage: f.__cmp__(f)
+            0
+            sage: f.__cmp__(g)
+            1
+        """
         return cmp(self.numerator() * other.denominator(),
                    other.numerator() * self.denominator())
 
@@ -2824,6 +2857,10 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: g = FFPD(2*x*y, df)
             sage: f + g
             (2, [(y, 1), (x, 1)])
+
+        AUTHORS:
+
+        - Daniel Krenn (2014-12-01)
         """
         return FFPDSum([left, right]).sum()
 
@@ -2851,6 +2888,10 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: g = FFPD(2*x*y, [(y, 1), (x*y + 1, 1), (x^2*y + 1, 1)])
             sage: f * g
             (4, [(x*y + 1, 1), (x*y + 1, 1), (x*y^2 + 1, 1), (x^2*y + 1, 1)])
+
+        AUTHORS:
+
+        - Daniel Krenn (2014-12-01)
         """
         numer = left.numerator() * right.numerator()
         df = left.denominator_factored() + right.denominator_factored()
@@ -2861,10 +2902,33 @@ class FractionWithFactoredDenominatorRing(
     sage.structure.unique_representation.UniqueRepresentation,
     sage.rings.ring.Ring):
     r"""
+    This is the ring of fractions with factored denominator.
 
+    INPUT:
+
+    - ``base`` -- the base ring (a polynomial ring).
+
+    - ``category`` -- (default: ``None``) the category.
+
+    See also :class:`FFPDElement`.
+
+    AUTHORS:
+
+    - Daniel Krenn (2014-12-01)
     """
     def __init__(self, base, category=None):
         r"""
+        See :class:`FractionWithFactoredDenominatorRing` for details.
+
+        INPUT:
+
+        - ``base`` -- the base ring (a polynomial ring).
+
+        - ``category`` -- (default: ``None``) the category.
+
+        OUTPUT:
+
+        Nothing.
 
         TESTS::
 
@@ -2883,14 +2947,42 @@ class FractionWithFactoredDenominatorRing(
 
 
     def _repr_(self):
+        r"""
+        Returns a representation.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: P.<X, Y> = ZZ[]
+            sage: FractionWithFactoredDenominatorRing(P)  # indirect doctest
+            Ring of fractions with factored denominator
+            over Multivariate Polynomial Ring in X, Y over Integer Ring
+        """
         return ("Ring of fractions with factored denominator "
                 "over %s" % repr(self.base()))
 
 
     def base_ring(self):
         r"""
+        Returns the base ring.
 
-        TESTS::
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A ring.
+
+        EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: P.<X, Y> = ZZ[]
@@ -2908,9 +3000,24 @@ class FractionWithFactoredDenominatorRing(
     def _element_constructor_(self,
                               numerator=None, denominator_factored=None,
                               quotient=None, reduce_=True):
-      return self.element_class(self,
-                                numerator, denominator_factored,
-                                quotient, reduce_)
+        r"""
+        Returns an element of this ring.
+
+        See :class:`FFPDElement` for details.
+
+        TESTS::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: df = [x, 1], [y, 1], [x*y+1, 1]
+            sage: f = FFPD(x, df)  # indirect doctest
+            sage: f
+            (1, [(y, 1), (x*y + 1, 1)])
+        """
+        return self.element_class(self,
+                                  numerator, denominator_factored,
+                                  quotient, reduce_)
 
 
     @staticmethod

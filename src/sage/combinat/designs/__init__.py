@@ -1,6 +1,6 @@
 __doc__ = r"""
-Designs and Incidence Structures
-================================
+Combinatorial Designs and Incidence Structures
+==============================================
 
 All designs can be accessed by ``designs.<tab>`` and are listed in the
 design catalog:

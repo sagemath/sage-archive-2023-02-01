@@ -25,6 +25,7 @@ from sage.rings.arith import binomial, Euler_Phi
 from sage.all import prod
 from sage.matrix.all import matrix
 
+
 class QuiverMutationTypeFactory(SageObject):
     def __call__(self, *args):
         """
@@ -206,7 +207,8 @@ class QuiverMutationTypeFactory(SageObject):
         Returns a sample of the available quiver mutations types.
 
         INPUT:
-         - ``finite``, ``affine``, ``elliptic``, ``mutation_finite`` -- (default:None) if True or False, only these samples are returned.
+
+        - ``finite``, ``affine``, ``elliptic``, ``mutation_finite`` -- (default:``None``) if ``True`` or ``False``, only these samples are returned.
 
         EXAMPLES::
 
@@ -282,7 +284,7 @@ Background on generalized Cartan types can be found at
 
 For the compendium on the cluster algebra and quiver package in Sage see
 
-        http://arxiv.org/abs/1102.4844
+        :arxiv:`1102.4844`
 
 A `B`-matrix is a skew-symmetrizable `( n \times n )`-matrix `M`.
 I.e., there exists an invertible diagonal matrix `D` such that `DM` is skew-symmetric.
@@ -331,7 +333,7 @@ REFERENCES:
 
 - A good reference for finite and affine Dynkin diagrams, including Kac's notation, is the Wikipedia article on `Dynkin diagrams <http://en.wikipedia.org/wiki/Dynkin_diagram>`_.
 
-- A good reference for the skew-symmetrizable elliptic diagrams is "Cluster algebras of finite mutation type via unfolding" by A. Felikson, M. Shapiro, and P. Tumarkin, `arXiv:1006.4276v4 <http://arxiv.org/abs/1006.4276>`_.
+- A good reference for the skew-symmetrizable elliptic diagrams is "Cluster algebras of finite mutation type via unfolding" by A. Felikson, M. Shapiro, and P. Tumarkin, :arxiv:`1006.4276v4`.
 
 EXAMPLES:
 
@@ -564,10 +566,12 @@ Reducible types::
     [ ['A', 3], ['B', 4] ]
 """
 
+
 class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
     def __eq__(self,other):
         """
-        Returns True iff self and other represent the same quiver mutation type.
+        Returns ``True`` iff ``self`` and ``other`` represent the same quiver
+        mutation type.
 
         EXAMPLES::
 
@@ -583,7 +587,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def _repr_(self):
         """
-        Returns the string representation of self.
+        Returns the string representation of ``self``.
 
         EXAMPLES::
 
@@ -594,12 +598,12 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def plot(self, circular=False, directed=True):
         """
-        Returns the plot of the underlying graph or digraph of self.
+        Returns the plot of the underlying graph or digraph of ``self``.
 
         INPUT:
 
-        - ``circular`` -- (default:False) if True, the circular plot is chosen, otherwise >>spring<< is used.
-        - ``directed`` -- (default: True) if True, the directed version is shown, otherwise the undirected.
+        - ``circular`` -- (default:``False``) if ``True``, the circular plot is chosen, otherwise >>spring<< is used.
+        - ``directed`` -- (default: ``True``) if ``True``, the directed version is shown, otherwise the undirected.
 
         EXAMPLES::
 
@@ -611,14 +615,15 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def show(self, circular=False, directed=True):
         """
-        Shows the plot of the underlying digraph of self.
+        Shows the plot of the underlying digraph of ``self``.
 
         INPUT:
 
-        - ``circular`` -- (default:False) if True, the circular plot is chosen, otherwise >>spring<< is used.
-        - ``directed`` -- (default: True) if True, the directed version is shown, otherwise the undirected.
+        - ``circular`` -- (default:``False``) if ``True``, the circular plot is chosen, otherwise >>spring<< is used.
+        - ``directed`` -- (default: ``True``) if ``True``, the directed version is shown, otherwise the undirected.
 
         TESTS::
+
             sage: QMT = QuiverMutationType(['A',5])
             sage: QMT.show() # long time
         """
@@ -626,7 +631,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def letter(self):
         """
-        Returns the classification letter of self.
+        Returns the classification letter of ``self``.
 
         EXAMPLES::
 
@@ -654,7 +659,9 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def rank(self):
         """
-        Returns the rank, i.e., the number of vertices in the standard quiver of self.
+        Returns the rank in the standard quiver of ``self``.
+
+        The rank is the number of vertices.
 
         EXAMPLES::
 
@@ -688,9 +695,10 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
     @cached_method
     def b_matrix(self):
         """
-        Returns the B-matrix of the standard quiver of self.  The conventions
-        for B-matrices agree with Fomin-Zelevinsky (up to a reordering of
-        the simple roots).
+        Returns the B-matrix of the standard quiver of ``self``.
+
+        The conventions for B-matrices agree with Fomin-Zelevinsky (up
+        to a reordering of the simple roots).
 
         EXAMPLES::
 
@@ -713,14 +721,15 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
             [ 0  0  0 -1  0 -1]
             [ 0  0  0  0  2  0]
         """
-        return _edge_list_to_matrix( self._digraph.edges(), self._rank, 0 )
+        return _edge_list_to_matrix(self._digraph.edges(), self._rank, 0)
 
     @cached_method
     def standard_quiver(self):
         """
-        Returns the standard quiver of self.
+        Returns the standard quiver of ``self``.
 
         EXAMPLES::
+
             sage: mut_type = QuiverMutationType( ['A',5] ); mut_type
             ['A', 5]
             sage: mut_type.standard_quiver()
@@ -742,14 +751,14 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
             Quiver on 12 vertices of type [ ['A', 3], ['B', 3], ['X', 6] ]
         """
         from quiver import ClusterQuiver
-        Q = ClusterQuiver( self._digraph )
+        Q = ClusterQuiver(self._digraph)
         Q._mutation_type = self
         return Q
 
     @cached_method
     def cartan_matrix(self):
         """
-        Returns the Cartan matrix of self.
+        Returns the Cartan matrix of ``self``.
 
         Note that (up to a reordering of the simple roots) the convention for
         the definition of Cartan matrix, used here and elsewhere in Sage,
@@ -791,7 +800,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def is_irreducible(self):
         """
-        Returns True if self is irreducible.
+        Returns ``True`` if ``self`` is irreducible.
 
         EXAMPLES::
 
@@ -803,8 +812,10 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def is_mutation_finite(self):
         """
-        Returns True if self is of finite mutation type (i.e. its mutation
-        class has only finitely many different B-matrices).
+        Returns ``True`` if ``self`` is of finite mutation type.
+
+        This means that its mutation class has only finitely many
+        different B-matrices.
 
         EXAMPLES::
 
@@ -816,7 +827,10 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def is_simply_laced(self):
         """
-        Returns True if self is simply laced (i.e., the only arrows that appear         in the quiver of self are single unlabelled arrows).
+        Returns ``True`` if ``self`` is simply laced.
+
+        This means that the only arrows that appear in the quiver of
+        ``self`` are single unlabelled arrows.
 
         EXAMPLES::
 
@@ -836,7 +850,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def is_skew_symmetric(self):
         """
-        Returns True if the B-matrix of self is skew-symmetric.
+        Returns ``True`` if the B-matrix of ``self`` is skew-symmetric.
 
         EXAMPLES::
 
@@ -856,8 +870,10 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def is_finite(self):
         """
-        Returns True if self is of finite type (i.e., the cluster algebra
-        associated to self has only a finite number of cluster variables).
+        Returns ``True`` if ``self`` is of finite type.
+
+        This means that the cluster algebra associated to ``self`` has
+        only a finite number of cluster variables.
 
         EXAMPLES::
 
@@ -873,7 +889,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def is_affine(self):
         """
-        Returns True if self is of affine type.
+        Returns ``True`` if ``self`` is of affine type.
 
         EXAMPLES::
 
@@ -892,7 +908,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def is_elliptic(self):
         """
-        Returns True if self is of elliptic type.
+        Returns ``True`` if ``self`` is of elliptic type.
 
         EXAMPLES::
 
@@ -911,7 +927,7 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
 
     def properties(self):
         """
-        Prints a scheme of all properties of self.
+        Prints a scheme of all properties of ``self``.
 
         Most properties have natural definitions for either irreducible or
         reducible types.  ``affine`` and ``elliptic`` are only defined for
@@ -999,7 +1015,9 @@ class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
             print '\t- affine:           ', self.is_affine()
             print '\t- elliptic:         ', self.is_elliptic()
 
-class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresentation,SageObject):
+
+class QuiverMutationType_Irreducible(QuiverMutationType_abstract,
+                                     UniqueRepresentation, SageObject):
     """
     The mutation type for a cluster algebra or a quiver. Should not be called directly, but through QuiverMutationType.
     """
@@ -1546,7 +1564,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
 
     def irreducible_components( self ):
         """
-        Returns a list of all irreducible components of self.
+        Returns a list of all irreducible components of ``self``.
 
         EXAMPLES::
 
@@ -1560,7 +1578,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
     @cached_method
     def class_size(self):
         """
-        If it is known, the size of the mutation class of all quivers which are mutation equivalent to the standard quiver of self (up to isomorphism) is returned.
+        If it is known, the size of the mutation class of all quivers which are mutation equivalent to the standard quiver of ``self`` (up to isomorphism) is returned.
         Otherwise, NotImplemented is returned.
 
         Formula for finite type A is taken from Torkildsen - Counting
@@ -1752,7 +1770,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
 
     def dual(self):
         """
-        Returns the QuiverMutationType which is dual to self.
+        Returns the QuiverMutationType which is dual to ``self``.
 
         EXAMPLES::
 
@@ -1806,7 +1824,9 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
         else:
             return self
 
-class QuiverMutationType_Reducible(QuiverMutationType_abstract,UniqueRepresentation,SageObject):
+
+class QuiverMutationType_Reducible(QuiverMutationType_abstract,
+                                   UniqueRepresentation, SageObject):
     """
     The mutation type for a cluster algebra or a quiver. Should not be called
     directly, but through QuiverMutationType.  Inherits from
@@ -1869,7 +1889,7 @@ class QuiverMutationType_Reducible(QuiverMutationType_abstract,UniqueRepresentat
 
     def irreducible_components( self ):
         """
-        Returns a list of all irreducible components of self.
+        Returns a list of all irreducible components of ``self``.
 
         EXAMPLES::
 
@@ -1893,9 +1913,9 @@ class QuiverMutationType_Reducible(QuiverMutationType_abstract,UniqueRepresentat
     @cached_method
     def class_size(self):
         """
-        If it is known, the size of the mutation class of all quivers which are
-        mutation equivalent to the standard quiver of self (up to isomorphism)
-        is returned.
+        If it is known, the size of the mutation class of all quivers
+        which are mutation equivalent to the standard quiver of
+        ``self`` (up to isomorphism) is returned.
 
         Otherwise, NotImplemented is returned.
 
@@ -1934,7 +1954,7 @@ class QuiverMutationType_Reducible(QuiverMutationType_abstract,UniqueRepresentat
 
     def dual(self):
         """
-        Returns the QuiverMutationType which is dual to self.
+        Returns the QuiverMutationType which is dual to ``self``.
 
         EXAMPLES::
 
@@ -1946,21 +1966,24 @@ class QuiverMutationType_Reducible(QuiverMutationType_abstract,UniqueRepresentat
         comps = self.irreducible_components()
         return QuiverMutationType( [comp.dual() for comp in comps ] )
 
+
 def _construct_classical_mutation_classes(n):
     r"""
-    Returns a dict with keys being tuples representing regular QuiverMutationTypes of the given rank, and with values being
-    lists or sets containing all mutation equivalent quivers as dig6 data.
+    Returns a dict with keys being tuples representing regular
+    QuiverMutationTypes of the given rank, and with values being lists
+    or sets containing all mutation equivalent quivers as dig6 data.
 
     EXAMPLES::
 
-    sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_classical_mutation_classes
-    sage: rank_2_classes = _construct_classical_mutation_classes(2) # long time
-    sage: for mut_class in sorted(rank_2_classes.keys(),key=str): # long time
-    ...     print mut_class, rank_2_classes[mut_class]
-    ('A', (1, 1), 1) [('AO', (((0, 1), (2, -2)),))]
-    ('A', 2) [('AO', ())]
-    ('B', 2) [('AO', (((0, 1), (1, -2)),)), ('AO', (((0, 1), (2, -1)),))]
-    ('BC', 1, 1) [('AO', (((0, 1), (1, -4)),)), ('AO', (((0, 1), (4, -1)),))]
+        sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_classical_mutation_classes
+        sage: rank_2_classes = _construct_classical_mutation_classes(2) # long time
+        sage: for mut_class in sorted(rank_2_classes.keys(),key=str): # long time
+        ....:   print mut_class, rank_2_classes[mut_class]
+        ('A', (1, 1), 1) [('AO', (((0, 1), (2, -2)),))]
+        ('A', 2) [('AO', ())]
+        ('B', 2) [('AO', (((0, 1), (1, -2)),)), ('AO', (((0, 1), (2, -1)),))]
+        ('BC', 1, 1) [('AO', (((0, 1), (1, -4)),)),
+        ('AO', (((0, 1), (4, -1)),))]
     """
     from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
     data = {}
@@ -2000,22 +2023,23 @@ def _construct_classical_mutation_classes(n):
 
     return data
 
+
 def _construct_exceptional_mutation_classes(n):
     r"""
-    Returns a dict with keys being tuples representing exceptional QuiverMutationTypes
-    of the given rank, and with values being lists or sets containing all
-    mutation equivalent quivers as dig6 data.
+    Returns a dict with keys being tuples representing exceptional
+    QuiverMutationTypes of the given rank, and with values being lists
+    or sets containing all mutation equivalent quivers as dig6 data.
 
     EXAMPLES::
 
-    sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_exceptional_mutation_classes
-    sage: rank_3_exceptional = _construct_exceptional_mutation_classes(3) # long time
-    sage: for mut_class in sorted(rank_3_exceptional.keys(), key=str): # long time
-    ...     print mut_class, rank_3_exceptional[mut_class]
-    ('G', 2, -1) [('BH?', (((1, 2), (1, -3)),)), ('BGO', (((2, 1), (3, -1)),)), ('BW?', (((0, 1), (3, -1)),)), ('BP?', (((0, 1), (1, -3)),)),
-     ('BP_', (((0, 1), (1, -3)), ((2, 0), (3, -1)))), ('BP_', (((0, 1), (3, -1)), ((1, 2), (1, -3)), ((2, 0), (2, -2))))]
-    ('G', 2, 1) [('BH?', (((1, 2), (3, -1)),)), ('BGO', (((2, 1), (1, -3)),)), ('BW?', (((0, 1), (1, -3)),)), ('BP?', (((0, 1), (3, -1)),)),
-     ('BKO', (((1, 0), (3, -1)), ((2, 1), (1, -3)))), ('BP_', (((0, 1), (2, -2)), ((1, 2), (1, -3)), ((2, 0), (3, -1))))]
+        sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_exceptional_mutation_classes
+        sage: rank_3_exceptional = _construct_exceptional_mutation_classes(3) # long time
+        sage: for mut_class in sorted(rank_3_exceptional.keys(), key=str): # long time
+        ....:   print mut_class, rank_3_exceptional[mut_class]
+        ('G', 2, -1) [('BH?', (((1, 2), (1, -3)),)), ('BGO', (((2, 1), (3, -1)),)), ('BW?', (((0, 1), (3, -1)),)), ('BP?', (((0, 1), (1, -3)),)),
+         ('BP_', (((0, 1), (1, -3)), ((2, 0), (3, -1)))), ('BP_', (((0, 1), (3, -1)), ((1, 2), (1, -3)), ((2, 0), (2, -2))))]
+        ('G', 2, 1) [('BH?', (((1, 2), (3, -1)),)), ('BGO', (((2, 1), (1, -3)),)), ('BW?', (((0, 1), (1, -3)),)), ('BP?', (((0, 1), (3, -1)),)),
+         ('BKO', (((1, 0), (3, -1)), ((2, 1), (1, -3)))), ('BP_', (((0, 1), (2, -2)), ((1, 2), (1, -3)), ((2, 0), (3, -1))))]
     """
     from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
     data = {}
@@ -2058,6 +2082,7 @@ def _construct_exceptional_mutation_classes(n):
 
     return data
 
+
 def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     """
     Saves all exceptional mutation classes as dig6 data into the file ``exc_classes_n.dig6`` in the folder ``DOT_SAGE``.
@@ -2093,9 +2118,10 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     import os.path
     import cPickle
     data = {}
-    possible_types = ['Classical','ClassicalExceptional','Exceptional']
+    possible_types = ['Classical', 'ClassicalExceptional', 'Exceptional']
     if types not in possible_types:
-        raise ValueError('The third input must be either ClassicalExceptional (default), Classical, or Exceptional.')
+        raise ValueError('The third input must be either ClassicalExceptional'
+                         ' (default), Classical, or Exceptional.')
 
     if types in possible_types[:2]:
         data.update(_construct_classical_mutation_classes(n))
@@ -2114,6 +2140,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
         print "\nThe following types are saved to file", types_file,"and will now be used to determine quiver mutation types:"
         print keys
 
+
 def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
     r"""
     Saves mutation classes of certain quivers of ranks up to and equal to ``n`` or equal to ``n``
@@ -2125,8 +2152,8 @@ def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
 
     - ``n``: the rank (or the upper limit on the rank) of the mutation classes that are being saved.
 
-    - ``up_to`` -- (default:True) if True, saves data for ranks smaller than or equal to ``n``.
-      If False, saves data for rank exactly ``n``.
+    - ``up_to`` -- (default:``True``) if ``True``, saves data for ranks smaller than or equal to ``n``.
+      If ``False``, saves data for rank exactly ``n``.
 
     - ``types`` -- (default:'ClassicalExceptional') if all, saves data for both exceptional mutation-finite quivers and for classical quiver.
       The input 'Exceptional' or 'Classical' is also allowed to save only part of this data.
@@ -2169,7 +2196,8 @@ def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
     # we finally clear the load_data
     load_data.clear_cache()
 
-def _bipartite_graph_to_digraph( g ):
+
+def _bipartite_graph_to_digraph(g):
     """
     Returns a digraph obtained from a bipartite graph g by choosing one
     set of the bipartition to be the set of sinks and the other to be the
@@ -2198,9 +2226,10 @@ def _bipartite_graph_to_digraph( g ):
             dg.add_vertex(vert)
     return dg
 
-def _is_mutation_type( data ):
+
+def _is_mutation_type(data):
     """
-    Returns True if data is a QuiverMutationType.
+    Returns ``True`` if ``data`` is a QuiverMutationType.
 
     EXAMPLES::
 
@@ -2211,12 +2240,12 @@ def _is_mutation_type( data ):
         False
     """
     try:
-        QuiverMutationType( data )
+        QuiverMutationType(data)
         return True
     except Exception:
         return False
 
-def _mutation_type_error( data ):
+def _mutation_type_error(data):
     """
     Outputs an error message because data which is not a valid quiver mutation
     type has been passed to QuiverMutationType.
@@ -2244,7 +2273,8 @@ def _mutation_type_error( data ):
 
     raise ValueError(return_str)
 
-def _edge_list_to_matrix( edges, n, m ):
+
+def _edge_list_to_matrix(edges, n, m):
     """
     Returns the matrix obtained from the edge list of a quiver.
 
@@ -2268,15 +2298,15 @@ def _edge_list_to_matrix( edges, n, m ):
         [ 0  1]
         [-1  0]
     """
-    M = matrix(ZZ,n+m,n,sparse=True)
+    M = matrix(ZZ, n + m, n, sparse=True)
     for edge in edges:
         if edge[2] is None:
-            edge = (edge[0],edge[1],(1,-1))
+            edge = (edge[0], edge[1], (1, -1))
         elif edge[2] in ZZ:
-            edge = (edge[0],edge[1],(edge[2],-edge[2]))
-        v1,v2,(a,b) = edge
+            edge = (edge[0], edge[1], (edge[2], -edge[2]))
+        v1, v2, (a, b) = edge
         if v1 < n:
-            M[v2,v1] = b
+            M[v2, v1] = b
         if v2 < n:
-            M[v1,v2] = a
+            M[v1, v2] = a
     return M

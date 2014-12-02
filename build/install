@@ -106,19 +106,6 @@ else
     # SAGE_INSTALL_GCC is not set, install GCC when needed.
     need_to_install_gcc=no
 
-    if [ -f "$SAGE_LOCAL/bin/gcc" -a "`ls $SAGE_SPKG_INST/gcc-*`" != "" ]; then
-        # GCC is already installed. To disable unneeded rebuilding
-        # of GCC, we touch the installed file for GCC, such that it will
-        # really only be built if one of its dependencies has been upgraded.
-        echo >&2 "GCC was installed before, it will get re-installed if needed."
-        need_to_install_gcc=yes
-        for f in "$SAGE_SPKG_INST"/gcc-*; do
-            if [ -f "$f" ]; then
-                touch "$f"
-            fi
-        done
-    fi
-
     # Check whether $CXX is some version of GCC.  If it's a different
     # compiler, install GCC.
     CXXtype=`testcxx.sh $CXX`

@@ -1093,41 +1093,38 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
         EXAMPLES::
 
-            sage: R.<t>=PolynomialRing(QQ)
-            sage: P.<x,y,z>=ProjectiveSpace(FractionField(R),2)
-            sage: Q=P([t,3/t^2,1])
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: P.<x,y,z> = ProjectiveSpace(FractionField(R), 2)
+            sage: Q = P([t, 3/t^2, 1])
             sage: Q.clear_denominators(); Q
             (t^3 : 3 : t^2)
 
         ::
 
-            sage: R.<x>=PolynomialRing(QQ)
-            sage: K.<w>=NumberField(x^2-3)
-            sage: P.<x,y,z>=ProjectiveSpace(K,2)
-            sage: Q=P([1/w,3,0])
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(x^2 - 3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: Q = P([1/w, 3, 0])
             sage: Q.clear_denominators(); Q
             (w : 9 : 0)
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
-            sage: X=P.subscheme(x^2-y^2);
-            sage: Q=X([1/2,1/2,1]);
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme(x^2 - y^2);
+            sage: Q = X([1/2, 1/2, 1]);
             sage: Q.clear_denominators(); Q
             (1 : 1 : 2)
 
         ::
 
-            sage: PS.<x,y> = ProjectiveSpace(QQ,1)
-            sage: Q=PS([3,2])
-            sage: Q.scale_by(2/3)
-            sage: print Q
+            sage: PS.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: Q = PS.point([1, 2/3], False); Q
             (1 : 2/3)
-            sage: Q.clear_denominators()
-            sage: print Q
+            sage: Q.clear_denominators(); Q
             (3 : 2)
         """
-        self.scale_by(lcm([self[i].denominator() for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
+        self.scale_by(lcm([t.denominator() for t in self]))
 
 class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projective_field):
 

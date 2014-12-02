@@ -7,6 +7,7 @@ import os
 
 from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
+import sage.doctest
 
 
 class Mime(object):
@@ -129,6 +130,23 @@ class GraphicsFile(SageObject):
     def filename(self):
         return self._filename
 
+    def save_as(self, filename):
+        """
+        Make the file available under a new filename.
+        
+        INPUT:
+
+        - ``filename`` -- string. The new filename.
+
+        The newly-created ``filename`` will be a hardlink if
+        possible. If not, an independent copy is created.
+        """
+        try:
+            os.link(self.filename(), filename)
+        except OSError:
+            import shutil
+            shutil.copy2(self.filename(), filename)
+
     def mime(self):
         return self._mime
 
@@ -153,11 +171,10 @@ class GraphicsFile(SageObject):
             sage: g = GraphicsFile('/tmp/test.png', 'image/png')
             sage: g.launch_viewer()
         """
-        import sage.doctest
         if sage.doctest.DOCTEST_MODE:
             return
-        import sage.plot.plot
-        if sage.plot.plot.EMBEDDED_MODE:
+        from sage.plot.plot import EMBEDDED_MODE
+        if EMBEDDED_MODE:
             raise RuntimeError('should never launch viewer in embedded mode')
         if self.mime() == Mime.JMOL:
             return self._launch_jmol()
@@ -177,7 +194,18 @@ class GraphicsFile(SageObject):
         os.system('{0} {1} 2>/dev/null 1>/dev/null &'
                   .format(JMOL, launch_script))
 
-    
+    def sagenb_embedding(self):
+        """
+        Embed in SageNB
+
+        This amounts to just placing the file in the cell
+        directory. The notebook will then try to guess what we want
+        with it.
+        """
+        from sage.misc.temporary_file import graphics_filename
+        ext = "." + Mime.extension(self.mime())
+        self.save_as(graphics_filename(ext=ext))
+
 
 def graphics_from_save(save_function, preferred_mime_types, 
                        allowed_mime_types=None, figsize=None, dpi=None):

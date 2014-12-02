@@ -2177,7 +2177,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
             print(MathJax().eval(objects, mode=mode, combine_all=combine_all))
         else:
             base_dir = os.path.abspath("")
-            png_file = graphics_filename(ext='png')
+            png_file = graphics_filename()
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
                 debug=debug, engine=engine)

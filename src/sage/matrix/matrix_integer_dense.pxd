@@ -1,5 +1,6 @@
 from sage.libs.gmp.types cimport *
-include "sage/libs/flint/fmpz_mat.pxi"
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_mat cimport *
 
 cimport matrix_dense
 from sage.rings.integer cimport Integer

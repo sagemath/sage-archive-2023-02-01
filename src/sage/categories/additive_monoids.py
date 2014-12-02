@@ -11,6 +11,7 @@ Additive monoids
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_singleton
 from sage.categories.additive_semigroups import AdditiveSemigroups
+from sage.categories.homsets import HomsetsCategory
 
 class AdditiveMonoids(CategoryWithAxiom_singleton):
     """
@@ -68,3 +69,25 @@ class AdditiveMonoids(CategoryWithAxiom_singleton):
             """
             return sum(args, self.zero())
 
+    class Homsets(HomsetsCategory):
+
+        def extra_super_categories(self):
+            """
+            Implement the fact that a homset between two monoids is
+            associative.
+
+            EXAMPLES::
+
+                sage: from sage.categories.additive_monoids import AdditiveMonoids
+                sage: AdditiveMonoids().Homsets().extra_super_categories()
+                [Category of additive semigroups]
+                sage: AdditiveMonoids().Homsets().super_categories()
+                [Category of homsets of additive unital additive magmas, Category of additive monoids]
+
+            .. TODO::
+
+                This could be deduced from
+                :meth:`AdditiveSemigroups.Homsets.extra_super_categories`.
+                See comment in :meth:`Objects.SubcategoryMethods.Homsets`.
+            """
+            return [AdditiveSemigroups()]

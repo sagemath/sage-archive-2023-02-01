@@ -433,7 +433,7 @@ def test_relation_maxima(relation):
         return True
 
     #Try to apply some simplifications to see if left - right == 0
-    simp_list = [difference.simplify_log, difference.simplify_rational, difference.simplify_exp,difference.simplify_radical,difference.simplify_trig]
+    simp_list = [difference.simplify_log, difference.simplify_rational,difference.canonicalize_radical,difference.simplify_trig]
     for f in simp_list:
         try:
             if repr( f() ).strip() == "0":

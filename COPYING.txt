@@ -54,7 +54,7 @@ gcc                         GPLv3+
 gd                          Custom (BSD-ish)
 gdmodule                    Custom (BSD-ish)
 genus2reduction             GPLv2+
-gfan                        GPLv2+
+gfan                        GPLv2 or GPLv3
 gf2x                        GPLv2+
 givaro                      CeCILL-B (BSD-ish)
 glpk                        GPLv3+

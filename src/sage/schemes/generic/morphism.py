@@ -157,7 +157,7 @@ class SchemeMorphism(Element):
         sage: A2.structure_morphism().domain()
         Affine Space of dimension 2 over Rational Field
         sage: A2.structure_morphism().category()
-        Category of hom sets in Category of schemes
+        Category of homsets of schemes
     """
 
     def __init__(self, parent, codomain=None):
@@ -428,7 +428,7 @@ class SchemeMorphism(Element):
 
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.structure_morphism().category()
-            Category of hom sets in Category of schemes
+            Category of homsets of schemes
         """
         return self.parent().category()
 
@@ -665,9 +665,7 @@ class SchemeMorphism_structure_map(SchemeMorphism):
     EXAMPLES::
 
         sage: Spec(ZZ).structure_morphism()    # indirect doctest
-        Scheme morphism:
-          From: Spectrum of Integer Ring
-          To:   Spectrum of Integer Ring
+        Scheme endomorphism of Spectrum of Integer Ring
           Defn: Structure map
     """
     def __init__(self, parent, codomain=None):
@@ -784,7 +782,10 @@ class SchemeMorphism_spec(SchemeMorphism):
 
         The image scheme point.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The following fails because inverse images of prime ideals
+        under ring homomorphisms are not yet implemented::
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: phi = R.hom([QQ(7)])
@@ -793,10 +794,7 @@ class SchemeMorphism_spec(SchemeMorphism):
             sage: f(X.an_element())    # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: Point on Spectrum of Rational Field defined by the
-            Principal ideal (0) of Rational Field fails to convert into the
-            map's domain Spectrum of Rational Field, but a `pushforward`
-            method is not properly implemented
+            NotImplementedError
         """
         # By virtue of argument preprocessing in __call__, we can assume that
         # x is a topological scheme point of self

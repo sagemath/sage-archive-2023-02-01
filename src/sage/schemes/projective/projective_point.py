@@ -1115,8 +1115,19 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             sage: Q=X([1/2,1/2,1]);
             sage: Q.clear_denominators(); Q
             (1 : 1 : 2)
+
+        ::
+
+            sage: PS.<x,y> = ProjectiveSpace(QQ,1)
+            sage: Q=PS([3,2])
+            sage: Q.scale_by(2/3)
+            sage: print Q
+            (1 : 2/3)
+            sage: Q.clear_denominators()
+            sage: print Q
+            (3 : 2)
         """
-        self.scale_by(lcm([self[i].denominator() for i in range(self.codomain().ambient_space().dimension_relative())]))
+        self.scale_by(lcm([self[i].denominator() for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
 
 class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projective_field):
 

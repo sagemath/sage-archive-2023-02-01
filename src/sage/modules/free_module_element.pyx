@@ -4460,7 +4460,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w[39893] = sqrt(2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=sqrt(2)) to an integer
+            TypeError: unable to convert sqrt(2) to an integer
         """
         if not self._is_mutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")

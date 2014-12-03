@@ -9,10 +9,6 @@ Mathjax is used by both sagenb and ipython notebooks.
 
 Apache License, version 2.0
 
-== SPKG Maintainers ==
-
-* Thierry Monteil
-
 == Upstream Contact ==
 
 Home page: http://www.mathjax.org/

@@ -650,7 +650,7 @@ class IncidenceStructure(object):
         r"""
         Return the degree of a point ``p`` (or a set of points).
 
-        The degree of a point (or set of point) is the number of blocks that
+        The degree of a point (or set of points) is the number of blocks that
         contain it.
 
         INPUT:
@@ -691,7 +691,7 @@ class IncidenceStructure(object):
                 p = self._point_to_index.get(p,-1)
             else:
                 p = p if (p>=0 and p<len(self._points)) else -1
-            return sum(1 for b in self._blocks if p in b) if p != -1 else 0
+            return sum((p in b) for b in self._blocks) if p != -1 else 0
 
         # degree of a set
         else:
@@ -700,7 +700,7 @@ class IncidenceStructure(object):
             else:
                 p = set(p) if all(x>=0 and x<len(self._points) for x in p) else set([-1])
 
-            return sum(1 for b in self._blocks if p.issubset(b)) if -1 not in p else 0
+            return sum(p.issubset(b) for b in self._blocks) if -1 not in p else 0
 
     def degrees(self, size=None):
         r"""
@@ -721,6 +721,14 @@ class IncidenceStructure(object):
               ``size=1`` it is indexed by tuples of size 1. This is the same
               information, stored slightly differently.
 
+        OUTPUT:
+
+        A dictionary whose values are degrees and keys are either:
+
+        - the points of the incidence structure if ``size=None`` (default)
+
+        - the subsets of size ``size`` of the points stored as tuples
+
         EXAMPLES::
 
             sage: IncidenceStructure([[1,2,3],[1,4]]).degrees(2)
@@ -728,7 +736,8 @@ class IncidenceStructure(object):
 
         In a steiner triple system, all pairs have degree 1::
 
-            sage: all(v==1 for v in designs.steiner_triple_system(13).degrees(2).values())
+            sage: S13 = designs.steiner_triple_system(13)
+            sage: all(v == 1 for v in S13.degrees(2).itervalues())
             True
         """
         if size is None:

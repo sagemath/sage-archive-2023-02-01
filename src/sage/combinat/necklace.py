@@ -146,12 +146,13 @@ class Necklaces_evaluation(CombinatorialClass):
     def cardinality(self):
         r"""
         Returns the number of integer necklaces with the evaluation ``content``.
+
         The formula for the number of necklaces of content `\alpha` a composition of
         `n` is
 
         .. MATH::
 
-            \sum_{d|gcd(\alpha)} \phi(d) \binom{n/d}{\alpha_1/d, \ldots \alpha_\ell/d}
+            \sum_{d|gcd(\alpha)} \phi(d) \binom{n/d}{\alpha_1/d, \ldots, \alpha_\ell/d}
 
         EXAMPLES::
 

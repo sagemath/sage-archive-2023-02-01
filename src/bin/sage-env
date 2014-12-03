@@ -553,7 +553,15 @@ if [ "$LDFLAGS" = "" ]; then
     LDFLAGS=""          && export LDFLAGS
 fi
 
-if [ "$CXXFLAGS" = "" ]; then
+if [ -z "$CFLAGS" ]; then
+    unset CFLAGS
+fi
+
+if [ -z "$CXXFLAGS" ]; then
+    unset CXXFLAGS
+fi
+
+if [ -n "$CFLAGS" -a -z "$CXXFLAGS" ]; then
     export CXXFLAGS="$CFLAGS"
 fi
 

@@ -30,7 +30,7 @@ from sage.combinat.misc import DoublyLinkedList
 
 def Necklaces(content):
     r"""
-    Returns the combinatorial class of necklaces with evaluation ``content``.
+    Return the combinatorial class of necklaces with evaluation ``content``.
 
     A necklace is a list of integers that such that the list is
     the smallest lexicographic representative of all the cyclic shifts
@@ -42,7 +42,7 @@ def Necklaces(content):
 
     INPUT:
 
-    - ``content`` - a list of non-negative integers
+    - ``content`` -- a list of non-negative integers
 
     EXAMPLES::
 
@@ -64,11 +64,16 @@ def Necklaces(content):
     return Necklaces_evaluation(content)
 
 class Necklaces_evaluation(CombinatorialClass):
+    """
+    Necklaces with a fixed evaluation (content).
+
+    INPUT:
+
+    - ``content`` -- a list of non-negative integers
+    """
     def __init__(self, content):
         r"""
-        INPUT:
-
-        - ``content`` -- a list of non-negative integers
+        Initialize ``self``.
 
         TESTS::
 
@@ -145,14 +150,17 @@ class Necklaces_evaluation(CombinatorialClass):
 
     def cardinality(self):
         r"""
-        Returns the number of integer necklaces with the evaluation ``content``.
+        Return the number of integer necklaces with the evaluation ``content``.
 
-        The formula for the number of necklaces of content `\alpha` a composition of
-        `n` is
+        The formula for the number of necklaces of content `\alpha`
+        a composition of `n` is:
 
         .. MATH::
 
-            \sum_{d|gcd(\alpha)} \phi(d) \binom{n/d}{\alpha_1/d, \ldots, \alpha_\ell/d}
+            \sum_{d|gcd(\alpha)} \phi(d)
+            \binom{n/d}{\alpha_1/d, \ldots, \alpha_\ell/d},
+
+        where `\phi(d)` is the Euler `\phi` function.
 
         EXAMPLES::
 
@@ -177,12 +185,13 @@ class Necklaces_evaluation(CombinatorialClass):
         """
         evaluation = self.content
         le = list(evaluation)
-        if len(le) == 0:
+        if not le:
             return 0
 
         n = sum(le)
 
-        return sum([euler_phi(j)*factorial(n/j) / prod([factorial(ni/j) for ni in evaluation]) for j in divisors(gcd(le))])/n
+        return sum(euler_phi(j)*factorial(n/j) / prod(factorial(ni/j)
+                    for ni in evaluation) for j in divisors(gcd(le))) / n
 
     def __iter__(self):
         r"""
@@ -215,11 +224,11 @@ class Necklaces_evaluation(CombinatorialClass):
              [1, 3, 1, 3, 3, 2],
              [1, 3, 2, 1, 3, 3]]
         """
-        if self.content == []:
+        if not self.content:
             return
-        k=0
-        while (self.content[k]==0):
-            k=k+1
+        k = 0
+        while not self.content[k]: # == 0
+            k = k+1
         for z in _sfc(self.content[k:]):
             yield map(lambda x: x+1+k, z)
 
@@ -251,7 +260,7 @@ def _ffc(content, equality=False):
     rng_k = range(k)
     rng_k.reverse()
     dll = DoublyLinkedList(rng_k)
-    if e[0] == 0:
+    if not e[0]: # == 0
         dll.hide(0)
 
     for x in _fast_fixed_content(a, e, 2, 1, k, r, 2, dll, equality=equality):
@@ -286,7 +295,7 @@ def _fast_fixed_content(a, content, t, p, k, r, s, dll, equality=False):
                 if n == p:
                     yield a
             else:
-                if n % p == 0:
+                if not n % p: # == 0
                     yield a
         elif content[k-1] > r[t-p-1]:
             yield a
@@ -299,7 +308,7 @@ def _fast_fixed_content(a, content, t, p, k, r, s, dll, equality=False):
             a[t-1] = j
             content[j] -= 1
 
-            if content[j] == 0:
+            if not content[j]: # == 0
                 dll.hide(j)
 
             if j != k-1:
@@ -312,7 +321,7 @@ def _fast_fixed_content(a, content, t, p, k, r, s, dll, equality=False):
                 for x in _fast_fixed_content(a[:], content, t+1, t+0, k, r, sp, dll, equality=equality):
                     yield x
 
-            if content[j] == 0:
+            if not content[j]: # == 0
                 dll.unhide(j)
 
             content[j] += 1
@@ -346,7 +355,7 @@ def _lfc(content, equality=False):
     rng_k.reverse()
     dll = DoublyLinkedList(rng_k)
 
-    if content[0] == 0:
+    if not content[0]: # == 0
         dll.hide(0)
 
     for z in _list_fixed_content(a, content, 2, 1, k, dll, equality=equality):
@@ -378,7 +387,7 @@ def _list_fixed_content(a, content, t, p, k, dll, equality=False):
             if n == p:
                 yield a
         else:
-            if n % p == 0:
+            if not n % p: # == 0
                 yield a
     else:
         j = dll.head()
@@ -386,7 +395,7 @@ def _list_fixed_content(a, content, t, p, k, dll, equality=False):
             a[t-1] = j
             content[j] -= 1
 
-            if content[j] == 0:
+            if not content[j]: # == 0
                 dll.hide(j)
 
             if j == a[t-p-1]:
@@ -396,7 +405,7 @@ def _list_fixed_content(a, content, t, p, k, dll, equality=False):
                 for z in _list_fixed_content(a[:], content[:], t+1, t+0, k, dll, equality=equality):
                     yield z
 
-            if content[j] == 0:
+            if not content[j]: # == 0
                 dll.unhide(j)
 
             content[j] += 1
@@ -459,7 +468,7 @@ def _simple_fixed_content(a, content, t, p, k, equality=False):
             if n == p:
                 yield a
         else:
-            if n % p == 0:
+            if not n % p: # == 0
                 yield a
     else:
         r = range(a[t-p-1],k)

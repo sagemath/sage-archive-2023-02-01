@@ -5124,7 +5124,7 @@ cdef class Expression(CommutativeRingElement):
 
     coeff = coefficient
 
-    def coefficients(self, x=None):
+    def coefficients(self, x=None, sparse=True):
         r"""
         Return the coefficients of this symbolic expression as a polynomial in x.
 
@@ -5144,18 +5144,33 @@ cdef class Expression(CommutativeRingElement):
             sage: p = x^3 - (x-3)*(x^2+x) + 1
             sage: p.coefficients()
             [[1, 0], [3, 1], [2, 2]]
+            sage: p.coefficients(sparse=False)
+            [1, 3, 2]
+            sage: p = x - x^3 + 5/7*x^5
+            sage: p.coefficients()
+            [[1, 1], [-1, 3], [5/7, 5]]
+            sage: p.coefficients(sparse=False)
+            [0, 1, 0, -1, 0, 5/7]
             sage: p = expand((x-a*sqrt(2))^2 + x + 1); p
             -2*sqrt(2)*a*x + 2*a^2 + x^2 + x + 1
             sage: p.coefficients(a)
             [[x^2 + x + 1, 0], [-2*sqrt(2)*x, 1], [2, 2]]
+            sage: p.coefficients(a, sparse=False)
+            [x^2 + x + 1, -2*sqrt(2)*x, 2]
             sage: p.coefficients(x)
             [[2*a^2 + 1, 0], [-2*sqrt(2)*a + 1, 1], [1, 2]]
+            sage: p.coefficients(x, sparse=False)
+            [2*a^2 + 1, -2*sqrt(2)*a + 1, 1]
 
-        A polynomial with wacky exponents::
+        The behaviour is undefined with noninteger or negative exponents::
 
             sage: p = (17/3*a)*x^(3/2) + x*y + 1/x + x^x
             sage: p.coefficients(x)
             [[1, -1], [x^x, 0], [y, 1], [17/3*a, 3/2]]
+            sage: p.coefficients(x, sparse=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot return dense coefficient list with noninteger exponents.
         """
         f = self._maxima_()
         maxima = f.parent()
@@ -5166,9 +5181,23 @@ cdef class Expression(CommutativeRingElement):
         G = f.coeffs(x)
         from sage.calculus.calculus import symbolic_expression_from_maxima_string
         S = symbolic_expression_from_maxima_string(repr(G))
-        return S[1:]
+        l = S[1:]
+        if sparse is True:
+            return l
+        else:
+            from sage.rings.integer_ring import ZZ
+            if any(not c[1] in ZZ for c in l):
+                raise ValueError("Cannot return dense coefficient list with noninteger exponents.")
+            val = l[0][1]
+            if val < 0:
+                raise ValueError("Cannot return dense coefficient list with negative valuation.")
+            deg = l[-1][1]
+            ret = [ZZ(0)] * int(deg+1)
+            for c in l:
+                ret[c[1]] = c[0]
+            return ret
 
-    coeffs = coefficients
+        coeffs = coefficients
 
     def leading_coefficient(self, s):
         """

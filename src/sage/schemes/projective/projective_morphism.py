@@ -1656,8 +1656,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             11.0020998412042
             sage: f.normalize_coordinates()
             sage: f.height_difference_bound()
-            10.7632079329219
-        """
+            10.3089526606443
+
+        ::
+
+            sage: R.<x>=QQ[]
+            sage: K.<c> = NumberField(x^3 - 2)
+            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: H = End(P)
+            sage: f = H([1/(c+1)*x^2+c*y^2,210*x*y,10000*z^2])
+            sage: f.height_difference_bound()
+            11.0020998412042
+"""
         BR = self.domain().base_ring()
         if not BR in NumberFields() and not BR == ZZ:
             raise NotImplementedError("Must be a number field or the integers")

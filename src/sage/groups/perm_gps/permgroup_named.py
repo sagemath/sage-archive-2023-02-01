@@ -297,7 +297,7 @@ class SymmetricGroup(PermutationGroup_symalt):
     @cached_method
     def index_set(self):
         """
-        Indexing sets the symmetric group ``self``.
+        Return the index set for the descents of the symmetric group ``self``.
 
         EXAMPLES::
 

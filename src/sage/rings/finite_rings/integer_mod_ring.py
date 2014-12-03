@@ -626,7 +626,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         TESTS::
 
             sage: IntegerModRing(1).multiplicative_subgroups()
-            ((0,),)
+            ((),)
             sage: IntegerModRing(2).multiplicative_subgroups()
             ((),)
             sage: IntegerModRing(3).multiplicative_subgroups()
@@ -1438,13 +1438,11 @@ In the latter case, please inform the developers.""".format(self.order()))
 
         TESTS:
 
-        We test the cases where the unit group is trivial (the output
-        of the first example will change to ``Trivial Abelian group``
-        in :trac:`17337`)::
+        We test the cases where the unit group is trivial::
 
             sage: A = Zmod(1)
             sage: A.unit_group()
-            Multiplicative Abelian group isomorphic to C1
+            Trivial Abelian group
             sage: A.unit_group(algorithm='pari')
             Trivial Abelian group
             sage: A = Zmod(2)
@@ -1462,10 +1460,6 @@ In the latter case, please inform the developers.""".format(self.order()))
         from sage.groups.abelian_gps.values import AbelianGroupWithValues
         if algorithm == 'sage':
             n = self.order()
-            # TODO: remove this special case, i.e. use the empty set
-            # to generate (ZZ/ZZ)^* (see Trac ticket 17337)
-            if n == 1:
-                return AbelianGroupWithValues([self.zero_element()], [1])
             gens = []
             orders = []
             for p, r in self.factored_order():

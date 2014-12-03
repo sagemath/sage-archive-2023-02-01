@@ -28,9 +28,21 @@ from sage.rings.integer import Integer
 from sage.misc.misc import prod
 from sage.combinat.misc import DoublyLinkedList
 
-def Necklaces(e):
-    """
-    Returns the combinatorial class of necklaces with evaluation e.
+def Necklaces(content):
+    r"""
+    Returns the combinatorial class of necklaces with evaluation ``content``.
+
+    A necklace is a list of integers that such that the list is
+    the smallest lexicographic representative of all the cyclic shifts
+    of the list.
+
+    .. SEEALSO::
+
+        :class:`LyndonWords`
+
+    INPUT:
+
+    - ``content`` - a list of non-negative integers
 
     EXAMPLES::
 
@@ -44,35 +56,49 @@ def Necklaces(e):
         [1, 2, 1, 3]
         sage: Necklaces([2,1,1]).list()
         [[1, 1, 2, 3], [1, 1, 3, 2], [1, 2, 1, 3]]
+        sage: Necklaces([0,2,1,1]).list()
+        [[2, 2, 3, 4], [2, 2, 4, 3], [2, 3, 2, 4]]
+        sage: Necklaces([2,0,1,1]).list()
+        [[1, 1, 3, 4], [1, 1, 4, 3], [1, 3, 1, 4]]
     """
-    return Necklaces_evaluation(e)
+    return Necklaces_evaluation(content)
 
 class Necklaces_evaluation(CombinatorialClass):
-    def __init__(self, e):
-        """
+    def __init__(self, content):
+        r"""
+        INPUT:
+
+        - ``content`` -- a list of non-negative integers
+
         TESTS::
 
             sage: N = Necklaces([2,2,2])
             sage: N == loads(dumps(N))
             True
         """
-        if isinstance(e, Composition):
-            self.e = e
+        if isinstance(content, Composition):
+            self.content = content
         else:
-            self.e = Composition(e)
-
+            self.content = Composition(content)
 
     def __repr__(self):
-        """
+        r"""
         TESTS::
 
             sage: repr(Necklaces([2,1,1]))
             'Necklaces with evaluation [2, 1, 1]'
         """
-        return "Necklaces with evaluation %s"%self.e
+        return "Necklaces with evaluation %s"%self.content
 
     def __contains__(self, x):
-        """
+        r"""
+        Return ``True`` if ``x`` is the smallest word of all its cyclic shifts
+        and the content vector of ``x`` is equal to ``content``.
+
+        INPUT:
+
+        - ``x`` -- a list of integers
+
         EXAMPLES::
 
             sage: [2,1,2,1] in Necklaces([2,2])
@@ -81,13 +107,16 @@ class Necklaces_evaluation(CombinatorialClass):
             True
             sage: [1,1,2,2] in Necklaces([2,2])
             True
+            sage: [1,2,2,2] in Necklaces([2,2])
+            False
             sage: all([ n in Necklaces([2,1,3,1]) for n in Necklaces([2,1,3,1])])
+            True
+            sage: all([ n in Necklaces([0,1,2,3]) for n in Necklaces([0,1,2,3])])
             True
         """
         xl = list(x)
-        n = sum(self.e)
-        e = [0]*len(self.e)
-        if len(xl) != n:
+        e = [0]*len(self.content)
+        if len(xl) != sum(self.content):
             return False
 
         #Check to make sure xl is a list of integers
@@ -96,18 +125,18 @@ class Necklaces_evaluation(CombinatorialClass):
                 return False
             if i <= 0:
                 return False
-            if i > n:
+            if i > len(self.content):
                 return False
             e[i-1] += 1
 
         #Check to make sure the evaluation is the same
-        if e != self.e:
+        if e != self.content:
             return False
 
         #Check to make sure that x is lexicographically less
         #than all of its cyclic shifts
         cyclic_shift = xl[:]
-        for i in range(n - 1):
+        for i in range(len(xl) - 1):
             cyclic_shift = cyclic_shift[1:] + cyclic_shift[:1]
             if cyclic_shift < xl:
                 return False
@@ -115,8 +144,14 @@ class Necklaces_evaluation(CombinatorialClass):
         return True
 
     def cardinality(self):
-        """
-        Returns the number of integer necklaces with the evaluation e.
+        r"""
+        Returns the number of integer necklaces with the evaluation ``content``.
+        The formula for the number of necklaces of content `\alpha` a composition of
+        `n` is
+
+        .. MATH::
+
+            \sum_{d|gcd(\alpha)} \phi(d) \binom{n/d}{\alpha_1/d, \ldots \alpha_\ell/d}
 
         EXAMPLES::
 
@@ -126,18 +161,20 @@ class Necklaces_evaluation(CombinatorialClass):
             2
             sage: Necklaces([2,3,2]).cardinality()
             30
+            sage: Necklaces([0,3,2]).cardinality()
+            2
 
         Check to make sure that the count matches up with the number of
-        Lyndon words generated.
+        necklace words generated.
 
         ::
 
-            sage: comps = [[],[2,2],[3,2,7],[4,2]]+Compositions(4).list()
+            sage: comps = [[],[2,2],[3,2,7],[4,2],[0,4,2],[2,0,4]]+Compositions(4).list()
             sage: ns = [ Necklaces(comp) for comp in comps]
             sage: all( [ n.cardinality() == len(n.list()) for n in ns] )
             True
         """
-        evaluation = self.e
+        evaluation = self.content
         le = list(evaluation)
         if len(le) == 0:
             return 0
@@ -146,10 +183,9 @@ class Necklaces_evaluation(CombinatorialClass):
 
         return sum([euler_phi(j)*factorial(n/j) / prod([factorial(ni/j) for ni in evaluation]) for j in divisors(gcd(le))])/n
 
-
     def __iter__(self):
-        """
-        An iterator for the integer necklaces with evaluation e.
+        r"""
+        An iterator for the integer necklaces with evaluation ``content``.
 
         EXAMPLES::
 
@@ -178,10 +214,13 @@ class Necklaces_evaluation(CombinatorialClass):
              [1, 3, 1, 3, 3, 2],
              [1, 3, 2, 1, 3, 3]]
         """
-        if self.e == []:
+        if self.content == []:
             return
-        for z in _sfc(self.e):
-            yield map(lambda x: x+1, z)
+        k=0
+        while (self.content[k]==0):
+            k=k+1
+        for z in _sfc(self.content[k:]):
+            yield map(lambda x: x+1+k, z)
 
 
 
@@ -369,7 +408,14 @@ def _list_fixed_content(a, content, t, p, k, dll, equality=False):
 ################################
 def _sfc(content, equality=False):
     """
-    This function sets things up and calls _simple_fixed_content.
+    This wrapper function calls :meth:`sage.combinat.necklace._simple_fixed_content`.
+    If ``equality`` is ``True`` the function returns Lyndon words with content
+    vector equal to ``content``, otherwise it returns necklaces.
+
+    INPUT:
+
+    - ``content`` -- a list of non-negative integers with no leading 0s
+    - ``equality`` -- boolean (optional, default: ``True``)
 
     EXAMPLES::
 
@@ -431,8 +477,7 @@ def _simple_fixed_content(a, content, t, p, k, equality=False):
 
 def _lyn(w):
     """
-    Returns the length of the longest prefix of w that is a Lyndon
-    word.
+    Returns the length of the longest prefix of ``w`` that is a Lyndon word.
 
     EXAMPLES::
 
@@ -444,7 +489,6 @@ def _lyn(w):
         sage: necklace._lyn([2,1,0,0,2,2,1])
         1
     """
-
     p = 1
     k = max(w)+1
     for i in range(1, len(w)):
@@ -457,7 +501,3 @@ def _lyn(w):
         else:
             p = i+1
     return p
-
-
-
-

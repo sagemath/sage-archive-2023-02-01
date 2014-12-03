@@ -1659,8 +1659,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             10.7632079329219
         """
         BR = self.domain().base_ring()
-        if not BR in NumberFields():
-            raise NotImplementedError("Must be a number field")
+        if not BR in NumberFields() and not BR == ZZ:
+            raise NotImplementedError("Must be a number field or the integers")
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if prec is None:
@@ -1674,16 +1674,15 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         U = self.global_height(prec) + R(binomial(N + d, d)).log()
         #compute lower bound - from explicit polynomials of Nullstellensatz
         CR = self.domain().coordinate_ring()
-        CR = CR.change_ring(BR) #lift only works over fields
+        if BR == ZZ:
+            CR = CR.change_ring(QQ) #lift only works over fields
         I = CR.ideal(self.defining_polynomials())
         MCP = []
         for k in range(N + 1):
             CoeffPolys = (CR.gen(k) ** D).lift(I)
-            print CoeffPolys
             Res = 1
             for j in range(len(CoeffPolys)):
                 if CoeffPolys[j] != 0:
-                    #make this a list comprehension 
                     for i in range(len(CoeffPolys[j].coefficients())):
                         Res = lcm(Res, abs(CoeffPolys[j].coefficients()[i].denominator()))
             h = max([c.global_height() for g in CoeffPolys for c in (Res*g).coefficients()])

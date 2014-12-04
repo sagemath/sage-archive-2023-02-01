@@ -5140,9 +5140,14 @@ cdef class Expression(CommutativeRingElement):
         -  ``x`` -- optional variable.
 
         OUTPUT:
+        
+        Depending on the value of ``sparse``,
 
-        A list of pairs ``(expr, n)``, where ``expr`` is a symbolic
-        expression and ``n`` is a power.
+        - A list of pairs ``(expr, n)``, where ``expr`` is a symbolic
+          expression and ``n`` is a power (``sparse=True``, default)
+        
+        - A list of expressions where the ``n``-th element is the coefficient of
+          ``x^n`` when self is seen as polynomial in ``x`` (``sparse=False``).
 
         EXAMPLES::
 
@@ -5212,6 +5217,38 @@ cdef class Expression(CommutativeRingElement):
             return ret
 
     coeffs = deprecated_function_alias(17438, coefficients)
+    
+    def list(self, x=None):
+        r"""
+        Return the coefficients of this symbolic expression as a polynomial in x.
+
+        INPUT:
+
+        -  ``x`` -- optional variable.
+
+        OUTPUT:
+
+        A list of expressions where the ``n``-th element is the coefficient of
+        ``x^n`` when self is seen as polynomial in ``x``.
+
+        EXAMPLES::
+
+            sage: var('x, y, a')
+            (x, y, a)
+            sage: (x^5).list()
+            [0, 0, 0, 0, 0, 1]
+            sage: p = x^3 - (x-3)*(x^2+x) + 1
+            sage: p.list()
+            [1, 3, 2]
+            sage: p = x - x^3 + 5/7*x^5
+            sage: p.list()
+            [0, 1, 0, -1, 0, 5/7]
+            sage: p = expand((x-a*sqrt(2))^2 + x + 1); p
+            -2*sqrt(2)*a*x + 2*a^2 + x^2 + x + 1
+            sage: p.list(a)
+            [x^2 + x + 1, -2*sqrt(2)*x, 2]
+        """
+        return self.coefficients(x=x, sparse=False)
 
     def leading_coefficient(self, s):
         """

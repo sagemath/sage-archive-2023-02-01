@@ -279,6 +279,9 @@ cdef class Matrix(matrix1.Matrix):
             [  1]
             [124]
             [  1]
+            sage: B = B.column(0)
+            sage: A.solve_right(B)
+            (1, 124, 1)
 
         Solving a system over the p-adics::
 
@@ -326,8 +329,12 @@ cdef class Matrix(matrix1.Matrix):
             if is_IntegerModRing(K):
                 from sage.libs.pari.all import pari
                 A = pari(self.lift())
-                b = pari([c.lift() for c in B]).Col()
-                ret = A.matsolvemod(pari(K.cardinality()), b)
+                b = pari(B).lift()
+                if b.type() == "t_MAT":
+                    b = b[0]
+                elif b.type() == "t_VEC":
+                    b = b.Col()
+                ret = A.matsolvemod(K.cardinality(), b)
                 if ret.type() == 't_INT':
                     raise ValueError("matrix equation has no solutions")
                 ret = ret.Vec().sage()
@@ -563,7 +570,7 @@ cdef class Matrix(matrix1.Matrix):
 
         Notice the base ring of the results in the next two examples.  ::
 
-            sage: D = matrix(ZZ[x],2,[1+x^2,2,3,4-x])
+            sage: D = matrix(ZZ['x'],2,[1+x^2,2,3,4-x])
             sage: E = matrix(QQ,2,[1,2,3,4])
             sage: F = D.elementwise_product(E)
             sage: F

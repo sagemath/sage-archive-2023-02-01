@@ -836,7 +836,8 @@ class DiGraph(GenericGraph):
             # convert to a dict of lists if not already one
             if not all(isinstance(data[u], list) for u in data):
                 data = dict([u, list(data[u])] for u in data)
-            verts = set(data.keys())
+
+            verts = set().union(data.keys(),*data.values())
             if loops is None or loops is False:
                 for u in data:
                     if u in data[u]:
@@ -847,7 +848,6 @@ class DiGraph(GenericGraph):
                 if loops is None: loops = False
             if weighted is None: weighted = False
             for u in data:
-                verts = verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
                         v = (v for v in data[u] if data[u].count(v) > 1).next()
@@ -1170,7 +1170,7 @@ class DiGraph(GenericGraph):
 
         TESTS:
 
-        Immutable graphs yield immutable graphs::
+        Immutable graphs yield immutable graphs (:trac:`17005`)::
 
             sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
             <class 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
@@ -1191,13 +1191,15 @@ class DiGraph(GenericGraph):
             else:
                 data_structure = "static_sparse"
         from sage.graphs.all import Graph
-        G = Graph(name=self.name(),
-                  pos=self._pos,
-                  boundary=self._boundary,
-                  multiedges=self.allows_multiple_edges(),
-                  loops=self.allows_loops(),
-                  implementation=implementation,
-                  data_structure=data_structure if data_structure!="static_sparse" else "sparse")
+        G = Graph(name           = self.name(),
+                  pos            = self._pos,
+                  boundary       = self._boundary,
+                  multiedges     = self.allows_multiple_edges(),
+                  loops          = self.allows_loops(),
+                  implementation = implementation,
+                  data_structure = (data_structure if data_structure!="static_sparse"
+                                    else "sparse")) # we need a mutable copy first
+
         G.add_vertices(self.vertex_iterator())
         G.add_edges(self.edge_iterator())
         if hasattr(self, '_embedding'):

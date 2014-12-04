@@ -18,7 +18,7 @@ interpreter.
 import cPickle, os
 
 from expect import Expect, ExpectElement, FunctionElement
-import sage.misc.preparser
+import sage.repl.preparse
 
 from sage.structure.sage_object import dumps, load
 
@@ -296,7 +296,7 @@ class Sage(Expect):
             sage: sage0.preparse('2+2')
             'Integer(2)+Integer(2)'
         """
-        return sage.misc.preparser.preparse(x)
+        return sage.repl.preparse.preparse(x)
 
     def eval(self, line, strip=True, **kwds):
         """

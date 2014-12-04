@@ -52,21 +52,13 @@ def pari(x):
         sage: pari.set_real_precision(15)
         35
 
-    Conversion from matrices is supported, but not from vectors;
-    use lists or tuples instead::
+    Conversion from matrices and vectors is supported::
 
         sage: a = pari(matrix(2,3,[1,2,3,4,5,6])); a, a.type()
         ([1, 2, 3; 4, 5, 6], 't_MAT')
-
-        sage: v = vector([1.2,3.4,5.6])
+        sage: v = vector([1.2, 3.4, 5.6])
         sage: pari(v)
-        Traceback (most recent call last):
-        ...
-        PariError: syntax error, unexpected ')', expecting )-> or ','
-        sage: b = pari(list(v)); b,b.type()
-        ([1.20000000000000, 3.40000000000000, 5.60000000000000], 't_VEC')
-        sage: b = pari(tuple(v)); b, b.type()
-        ([1.20000000000000, 3.40000000000000, 5.60000000000000], 't_VEC')
+        [1.20000000000000, 3.40000000000000, 5.60000000000000]
 
     Some more exotic examples::
 

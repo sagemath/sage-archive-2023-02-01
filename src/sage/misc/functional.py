@@ -590,7 +590,7 @@ def symbolic_sum(expression, *args, **kwds):
             sage: sum(list[n],n,0,3)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=n) to an integer
+            TypeError: unable to convert n to an integer
             
         Use python ``sum()`` instead::
         
@@ -779,7 +779,7 @@ def integral(x, *args, **kwds):
         sage: f = exp(-x) * sinh(sqrt(x))
         sage: t = integrate(f, x, 0, Infinity); t            # long time
         1/4*sqrt(pi)*(erf(1) - 1)*e^(1/4) - 1/4*(sqrt(pi)*(erf(1) - 1) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) + 1/4*sqrt(pi)*e^(1/4) - 1/2*e^(1/4) + 1/2*e^(-3/4)
-        sage: t.simplify_exp()  # long time
+        sage: t.canonicalize_radical()  # long time
         1/2*sqrt(pi)*e^(1/4)
         sage: sage.calculus.calculus.maxima('domain: complex')
         complex

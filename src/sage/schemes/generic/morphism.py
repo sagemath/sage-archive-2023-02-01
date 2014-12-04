@@ -782,7 +782,10 @@ class SchemeMorphism_spec(SchemeMorphism):
 
         The image scheme point.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The following fails because inverse images of prime ideals
+        under ring homomorphisms are not yet implemented::
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: phi = R.hom([QQ(7)])
@@ -791,10 +794,7 @@ class SchemeMorphism_spec(SchemeMorphism):
             sage: f(X.an_element())    # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: Point on Spectrum of Rational Field defined by the
-            Principal ideal (0) of Rational Field fails to convert into the
-            map's domain Spectrum of Rational Field, but a `pushforward`
-            method is not properly implemented
+            NotImplementedError
         """
         # By virtue of argument preprocessing in __call__, we can assume that
         # x is a topological scheme point of self

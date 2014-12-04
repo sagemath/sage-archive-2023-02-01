@@ -7,7 +7,7 @@ whereas standard strong `k`-tableaux correspond to saturated chains in the stron
 For semistandard tableaux, the notion of weak and strong horizontal strip is necessary.
 More information can be found in [LLMS2006]_ .
 
-    .. SEEALSO:: :meth:`sage.combinat.k_tableau.StrongTableau`, :meth:`sage.combinat.k_tableau.WeakTableau`
+.. SEEALSO:: :meth:`sage.combinat.k_tableau.StrongTableau`, :meth:`sage.combinat.k_tableau.WeakTableau`
 
 REFERENCES:
 
@@ -1866,8 +1866,8 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             return t
         W = WeylGroup(['A', k, 1], prefix='s')
         w = cls.straighten_input(t, k)
-        weight =  tuple(w[i].length() for i in range(len(w)-1,-1,-1))
-        inner_shape = Core(inner_shape, k+1)
+        weight = tuple(w[i].length() for i in range(len(w) - 1, -1, -1))
+        inner_shape = Core(inner_shape, k + 1)
         outer_shape = (W.prod(w)*W(inner_shape.to_grassmannian())).affine_grassmannian_to_core()
         return WeakTableaux_factorized_permutation(k, [outer_shape, inner_shape], weight)(w)
 
@@ -1987,9 +1987,10 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             ...
             ValueError: The weight of the parent does not agree with the weight of the tableau!
         """
-        weight =  tuple(self[i].length() for i in range(len(self)-1,-1,-1))
+        weight = tuple(self[i].length() for i in range(len(self) - 1, -1, -1))
         if not self.parent()._weight == weight:
-            raise ValueError("The weight of the parent does not agree with the weight of the tableau!")
+            raise ValueError("The weight of the parent does not agree "
+                             "with the weight of the tableau!")
         W = self[0].parent()
         outer = (W.prod(self)*W((self._inner_shape).to_grassmannian())).affine_grassmannian_to_core()
         if self.parent()._outer_shape != outer:
@@ -2142,7 +2143,7 @@ class WeakTableaux_factorized_permutation(WeakTableaux_abstract):
             sage: T = WeakTableaux_factorized_permutation(3, [2,1], [1,1,1])
             sage: TestSuite(T).run()
             sage: T = WeakTableaux_factorized_permutation(4, [[6,2,1], [2]], [2,1,1,1])
-            sage: TestSuite(T).run()
+            sage: TestSuite(T).run() # long time
         """
         if shape == [] or shape[0] in ZZ:
             shape = (Core(shape, k+1), Core([],k+1))
@@ -2168,7 +2169,7 @@ class WeakTableaux_factorized_permutation(WeakTableaux_abstract):
             sage: T = WeakTableaux_factorized_permutation(3, [4,1], [2,2])
             sage: TestSuite(T).run()
             sage: T = WeakTableaux_factorized_permutation(4, [[6,2,1], [2]], [2,1,1,1])
-            sage: TestSuite(T).run()
+            sage: TestSuite(T).run() # long time
         """
         self.k = k
         self._skew = shape[1]!=[]
@@ -2273,7 +2274,7 @@ class StrongTableau(ClonableList):
         """
         INPUT:
 
-        - ``parent`` - an instance of ``StrongTableaux``
+        - ``parent`` -- an instance of ``StrongTableaux``
         - ``T`` -- standard marked strong (possibly skew) `k`-tableau or a semistandard
           marked strong (possibly skew) `k`-tableau with inner cells represented by
           ``None``
@@ -2389,7 +2390,7 @@ class StrongTableau(ClonableList):
             if weight is not None and tuple(weight)!=count_marks:
                 raise ValueError("Weight = %s and tableau = %s do not agree"%(weight, T))
             tijseq = StrongTableaux.marked_CST_to_transposition_sequence(T, k)
-            if len(tijseq)<sum(list(count_marks)):
+            if tijseq is None or len(tijseq)<sum(list(count_marks)):
                 raise ValueError("Unable to parse strong marked tableau : %s"%T)
             T = StrongTableaux.transpositions_to_standard_strong( tijseq, k, [[None]*r for r in inner_shape] ) # build from scratch
             T = T.set_weight( count_marks )
@@ -3894,7 +3895,7 @@ class StrongTableau(ClonableList):
         """
         Return a list of transpositions corresponding to ``self``.
 
-        Given a strong column strict tableau ``self`` returns the the list of transpositions
+        Given a strong column strict tableau ``self`` returns the list of transpositions
         which when applied to the left of an empty tableau gives the corresponding strong
         standard tableau.
 
@@ -3921,7 +3922,7 @@ class StrongTableau(ClonableList):
             sage: StrongTableau([],4).to_transposition_sequence()
             []
         """
-        return StrongTableaux.marked_CST_to_transposition_sequence( self.to_list(), self.k )
+        return StrongTableaux.marked_CST_to_transposition_sequence( self.to_standard_list(), self.k )
 
 class StrongTableaux(UniqueRepresentation, Parent):
 
@@ -4472,14 +4473,14 @@ class StrongTableaux(UniqueRepresentation, Parent):
         """
         Return a list of transpositions corresponding to ``T``.
 
-        Given a strong column strict tableau ``T`` returns the the list of transpositions
+        Given a strong column strict tableau ``T`` returns the list of transpositions
         which when applied to the left of an empty tableau gives the corresponding strong
         standard tableau.
 
         INPUT:
 
-        - ``T`` - a non-empty column strict tableau as a list of lists
-        - ``k`` - a positive integer
+        - ``T`` -- a non-empty column strict tableau as a list of lists
+        - ``k`` -- a positive integer
 
         OUTPUT:
 
@@ -4487,12 +4488,19 @@ class StrongTableaux(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: StrongTableaux.marked_CST_to_transposition_sequence([[-1, -1, -1], [1]], 2)
+            sage: CST_to_trans = StrongTableaux.marked_CST_to_transposition_sequence
+            sage: CST_to_trans([[-1, -1, -1], [1]], 2)
             [[2, 3], [1, 2], [0, 1]]
-            sage: StrongTableaux.marked_CST_to_transposition_sequence([], 2)
+            sage: CST_to_trans([], 2)
             []
-            sage: StrongTableaux.marked_CST_to_transposition_sequence([[-2, -2, -2], [2]], 2)
+            sage: CST_to_trans([[-2, -2, -2], [2]], 2)
             [[2, 3], [1, 2], [0, 1]]
+            sage: CST_to_trans([[-1, -2, -2, -2, -2], [-2, 2], [2]], 3)
+            [[4, 5], [3, 4], [2, 3], [1, 2], [-1, 0], [0, 1]]
+            sage: CST_to_trans([[-1, -2, -5, 5, -5, 5, -5], [-3, -4, 5, 5], [5]],3)
+            [[5, 7], [3, 5], [2, 3], [0, 1], [-1, 0], [1, 2], [0, 1]]
+            sage: CST_to_trans([[-1, -2, -3, 4, -7], [-4, -6], [-5, 6]],3)
+            [[4, 5], [-1, 1], [-2, -1], [-1, 0], [2, 3], [1, 2], [0, 1]]
 
         TESTS::
 
@@ -4502,29 +4510,43 @@ class StrongTableaux(UniqueRepresentation, Parent):
             []
         """
         LL = list(T)
-        marks = [v for row in T for v in row if v is not None and v<0]+[0]
+        if not LL or all(v is None for v in sum(LL,[])):
+            return []
+        marks = [v for row in T for v in row if v is not None and v<0] + [0]
         m = -min(marks) # the largest marked cell
         transeq = [] # start with the empty list and append on the right
         sh = Core(map(len,T), k+1)
-        for v in range(m,0,-1):
-            for j in range(len(LL[0]),-len(LL)-1,-1):
-                if -v in [LL[i][i+j] for i in range(len(LL)) if len(LL[i])>j+i and i+j>=0]:
-                    for l in range(k):
-                        msh = sh.affine_symmetric_group_action([j-l,j+1],transposition=True)
-                        # my worry here is that the affine symmetric group action might apply an invalid
-                        # transposition but get something of the right length anyway.  How do I test if it is applying
-                        # a valid or invalid transposition?
-                        if msh.length()==sh.length()-1:
-                            # if applying t_{j-l,j+1} reduces the size of the shape by 1
-                            valcells = [LL[c[0]][c[1]] for c in SkewPartition([sh.to_partition(),msh.to_partition()]).cells()]
-                            if all(x is not None for x in valcells) and all(abs(x)==v for x in valcells) and [x for x in valcells if x==-v] == [-v]:
-                                # if all values are \pm v and exactly one of them is -v
-                                transeq.append([j-l, j+1])
-                                LL = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]
-                                sh = msh
-                                if LL==[]:
-                                    return transeq
-        return transeq
+        j = max([ c-r for r,row in enumerate(LL) for c,val in enumerate(row)
+                  if val == -m ])
+        P = sh.to_partition()
+        for l in range(k):
+            msh = sh.affine_symmetric_group_action([j-l,j+1], transposition=True)
+            mP = msh.to_partition()
+            # my worry here is that the affine symmetric group action might apply an invalid
+            # transposition but get something of the right length anyway.  How do I test if it is applying
+            # a valid or invalid transposition?
+            if msh.length() == sh.length() - 1:
+                # if applying t_{j-l,j+1} reduces the size of the shape by 1
+                valcells = [] # values in all the cells except content j
+                regcells = [] # values in the cells with content j
+                valid = True
+                for (x,y) in SkewPartition([P, mP]).cells():
+                    if y-x != j:
+                        if LL[x][y] != m:
+                            valid = False
+                            break
+                        valcells.append(LL[x][y])
+                    else:
+                        regcells.append(LL[x][y])
+                if valid and regcells == [-m]:
+                    # if all labels that are not content j are v and the label
+                    # with content j = -m
+                    mcells = mP.cells()
+                    MM = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in mcells]
+                          for a in range(len(mP))]
+                    transeq = self.marked_CST_to_transposition_sequence(MM, k)
+                    if not transeq is None:
+                        return [[j-l, j+1]] + transeq
 
     @classmethod
     def transpositions_to_standard_strong( self, transeq, k, emptyTableau=[] ):

@@ -76,7 +76,6 @@ from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
 
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
-ecl_eval("(setf *compile-verbose* NIL)")
 ecl_eval("(setf *load-verbose* NIL)")
 ecl_eval("(require 'maxima)")
 ecl_eval("(in-package :maxima)")
@@ -730,7 +729,7 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(sqrt(x + sqrt(x)), x).simplify_radical()
+            sage: integrate(sqrt(x + sqrt(x)), x).canonicalize_radical()
             1/12*((8*x - 3)*x^(1/4) + 2*x^(3/4))*sqrt(sqrt(x) + 1) + 1/8*log(sqrt(sqrt(x) + 1) + x^(1/4)) - 1/8*log(sqrt(sqrt(x) + 1) - x^(1/4))
 
         And :trac:`11594`::
@@ -758,7 +757,7 @@ class MaximaLib(MaximaAbstract):
             all
             sage: g = integrate(f, x); g
             2/3*sqrt(x^3 + 1) - 1/3*log(sqrt(x^3 + 1) + 1) + 1/3*log(sqrt(x^3 + 1) - 1)
-            sage: (f - g.diff(x)).simplify_radical()
+            sage: (f - g.diff(x)).canonicalize_radical()
             0
             sage: maxima('radexpand: true')
             true
@@ -795,7 +794,7 @@ class MaximaLib(MaximaAbstract):
         Check that :trac:`16224` is fixed::
 
             sage: k = var('k')
-            sage: sum(x^(2*k)/factorial(2*k), k, 0, oo).simplify_radical()
+            sage: sum(x^(2*k)/factorial(2*k), k, 0, oo).canonicalize_radical()
             cosh(x)
 
         ::

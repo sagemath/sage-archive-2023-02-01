@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Binary Trees.
+Binary Trees
 
 This module deals with binary trees as mathematical (in particular immutable)
 objects.
@@ -774,6 +774,186 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         from sage.combinat.interval_posets import TamariIntervalPosets
         return TamariIntervalPosets.from_binary_trees(self, other)
+
+    def tamari_join(self, other):
+        r"""
+        Return the join of the binary trees ``self`` and ``other``
+        (of equal size) in the `n`-th Tamari poset (where `n` is
+        the size of these trees).
+
+        The `n`-th Tamari poset (defined in :meth:`tamari_lequal`)
+        is known to be a lattice, and the map from the `n`-th
+        symmetric group `S_n` to the `n`-th Tamari poset defined
+        by sending every permutation `p \in S_n` to the binary
+        search tree of `p` (more precisely, to
+        ``p.binary_search_tree_shape()``) is a lattice
+        homomorphism. (See Theorem 6.2 in [Read04]_.)
+
+        .. SEEALSO::
+
+            :meth:`tamari_lequal`, :meth:`tamari_meet`.
+
+        AUTHORS:
+
+        Viviane Pons and Darij Grinberg, 18 June 2014.
+
+        EXAMPLES::
+
+            sage: a = BinaryTree([None, [None, []]])
+            sage: b = BinaryTree([None, [[], None]])
+            sage: c = BinaryTree([[None, []], None])
+            sage: d = BinaryTree([[[], None], None])
+            sage: e = BinaryTree([[], []])
+            sage: a.tamari_join(c) == a
+            True
+            sage: b.tamari_join(c) == b
+            True
+            sage: c.tamari_join(e) == a
+            True
+            sage: d.tamari_join(e) == e
+            True
+            sage: e.tamari_join(b) == a
+            True
+            sage: e.tamari_join(a) == a
+            True
+
+        ::
+
+            sage: b1 = BinaryTree([None, [[[], None], None]])
+            sage: b2 = BinaryTree([[[], None], []])
+            sage: b1.tamari_join(b2)
+            [., [[., .], [., .]]]
+            sage: b3 = BinaryTree([[], [[], None]])
+            sage: b1.tamari_join(b3)
+            [., [., [[., .], .]]]
+            sage: b2.tamari_join(b3)
+            [[., .], [., [., .]]]
+
+        The universal property of the meet operation is
+        satisfied::
+
+            sage: def test_uni_join(p, q):
+            ....:     j = p.tamari_join(q)
+            ....:     if not p.tamari_lequal(j):
+            ....:         return False
+            ....:     if not q.tamari_lequal(j):
+            ....:         return False
+            ....:     for r in p.tamari_greater():
+            ....:         if q.tamari_lequal(r) and not j.tamari_lequal(r):
+            ....:             return False
+            ....:     return True
+            sage: all( test_uni_join(p, q) for p in BinaryTrees(3) for q in BinaryTrees(3) )
+            True
+            sage: p = BinaryTrees(6).random_element(); q = BinaryTrees(6).random_element(); test_uni_join(p, q)
+            True
+
+        Border cases::
+
+            sage: b = BinaryTree(None)
+            sage: b.tamari_join(b)
+            .
+            sage: b = BinaryTree([])
+            sage: b.tamari_join(b)
+            [., .]
+
+        REFERENCES:
+
+        .. [Read04] Nathan Reading.
+           *Cambrian Lattices*.
+           :arxiv:`math/0402086v2`.
+        """
+        # We use Reading's result that the projection from the symmetric
+        # group is a lattice homomorphism.
+        a = self.to_132_avoiding_permutation()
+        b = other.to_132_avoiding_permutation()
+        return a.permutohedron_join(b).binary_search_tree_shape(left_to_right=False)
+
+    def tamari_meet(self, other, side="right"):
+        r"""
+        Return the meet of the binary trees ``self`` and ``other``
+        (of equal size) in the `n`-th Tamari poset (where `n` is
+        the size of these trees).
+
+        The `n`-th Tamari poset (defined in :meth:`tamari_lequal`)
+        is known to be a lattice, and the map from the `n`-th
+        symmetric group `S_n` to the `n`-th Tamari poset defined
+        by sending every permutation `p \in S_n` to the binary
+        search tree of `p` (more precisely, to
+        ``p.binary_search_tree_shape()``) is a lattice
+        homomorphism. (See Theorem 6.2 in [Read04]_.)
+
+        .. SEEALSO::
+
+            :meth:`tamari_lequal`, :meth:`tamari_join`.
+
+        AUTHORS:
+
+        Viviane Pons and Darij Grinberg, 18 June 2014.
+
+        EXAMPLES::
+
+            sage: a = BinaryTree([None, [None, []]])
+            sage: b = BinaryTree([None, [[], None]])
+            sage: c = BinaryTree([[None, []], None])
+            sage: d = BinaryTree([[[], None], None])
+            sage: e = BinaryTree([[], []])
+            sage: a.tamari_meet(c) == c
+            True
+            sage: b.tamari_meet(c) == c
+            True
+            sage: c.tamari_meet(e) == d
+            True
+            sage: d.tamari_meet(e) == d
+            True
+            sage: e.tamari_meet(b) == d
+            True
+            sage: e.tamari_meet(a) == e
+            True
+
+        ::
+
+            sage: b1 = BinaryTree([None, [[[], None], None]])
+            sage: b2 = BinaryTree([[[], None], []])
+            sage: b1.tamari_meet(b2)
+            [[[[., .], .], .], .]
+            sage: b3 = BinaryTree([[], [[], None]])
+            sage: b1.tamari_meet(b3)
+            [[[[., .], .], .], .]
+            sage: b2.tamari_meet(b3)
+            [[[[., .], .], .], .]
+
+        The universal property of the meet operation is
+        satisfied::
+
+            sage: def test_uni_meet(p, q):
+            ....:     m = p.tamari_meet(q)
+            ....:     if not m.tamari_lequal(p):
+            ....:         return False
+            ....:     if not m.tamari_lequal(q):
+            ....:         return False
+            ....:     for r in p.tamari_smaller():
+            ....:         if r.tamari_lequal(q) and not r.tamari_lequal(m):
+            ....:             return False
+            ....:     return True
+            sage: all( test_uni_meet(p, q) for p in BinaryTrees(3) for q in BinaryTrees(3) )
+            True
+            sage: p = BinaryTrees(6).random_element(); q = BinaryTrees(6).random_element(); test_uni_meet(p, q)
+            True
+
+        Border cases::
+
+            sage: b = BinaryTree(None)
+            sage: b.tamari_meet(b)
+            .
+            sage: b = BinaryTree([])
+            sage: b.tamari_meet(b)
+            [., .]
+        """
+        # We use Reading's result that the projection from the symmetric
+        # group is a lattice homomorphism.
+        a = self.to_132_avoiding_permutation()
+        b = other.to_132_avoiding_permutation()
+        return a.permutohedron_meet(b).binary_search_tree_shape(left_to_right=False)
 
     @combinatorial_map(name="to Dyck paths: up step, left tree, down step, right tree")
     def to_dyck_word(self, usemap="1L0R"):
@@ -2907,7 +3087,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: BinaryTrees(3)   # indirect doctest
             Binary trees of size 3
         """
-        return "Binary trees of size %s"%(self._size)
+        return "Binary trees of size %s" % (self._size)
 
     def __contains__(self, x):
         """
@@ -2956,7 +3136,7 @@ class BinaryTrees_size(BinaryTrees):
         EXAMPLES::
 
             sage: BinaryTrees(5).random_element() # random
-            [., [., [., [., [., .]]]]] 
+            [., [., [., [., [., .]]]]]
             sage: BinaryTrees(0).random_element()
             .
             sage: BinaryTrees(1).random_element()

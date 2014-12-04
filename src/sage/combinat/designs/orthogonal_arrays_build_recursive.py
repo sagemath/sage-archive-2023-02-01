@@ -26,7 +26,6 @@ called.
     :func:`thwart_lemma_4_1` | Returns an `OA(k,nm+4(n-2))`.
     :func:`three_factor_product` | Returns an `OA(k+1,n_1n_2n_3)`.
     :func:`brouwer_separable_design` | Returns a `OA(k,t(q^2+q+1)+x)` using Brouwer's result on separable designs.
-    :func:`brouwer_van_rees_with_one_truncated_column` | Return an `OA(k,rm+\sum_{1\leq i\leq c} u_i)` using the Brouwer-van Rees construction with one truncated column.
 
 Functions
 ---------
@@ -1761,43 +1760,4 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
 
     if check:
         assert is_orthogonal_array(OA,k,N,2,1)
-    return OA
-
-def brouwer_van_rees_with_one_truncated_column(k,r,m,u):
-    r"""
-    Return an `OA(k,rm+\sum_{1\leq i\leq c} u_i)` using the
-    Brouwer-van Rees construction with one truncated column.
-
-    Let `n=rm+\sum_{1\leq i\leq c}` such that `c\leq r`. The
-    generalization of Wilson's construction found by Brouwer and van
-    Rees (with one truncated column) ensures that an `OA(k,n)` exists
-    if the following designs exist: `OA(k+1,r)`, `OA(k,m)`,
-    `OA(k,\sum_{1\leq i\leq c} u_i)`, `OA(k,m+x_1)-OA(k,x_1)`, ...,
-    `OA(k,m+x_c)-OA(k,x_c)`.
-
-    For more information, see the documentation of
-    :func:`~sage.combinat.designs.orthogonal_arrays.wilson_construction`.
-
-    INPUT:
-
-    - ``k,r,m`` (integers)
-
-    - ``u`` (list of integers of length `\leq r`).
-
-    .. SEEALSO::
-
-        :func:`~sage.combinat.designs.orthogonal_arrays_find_recursive.find_brouwer_van_rees_with_one_truncated_column`
-
-    EXAMPLE::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import brouwer_van_rees_with_one_truncated_column
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
-        sage: OA = brouwer_van_rees_with_one_truncated_column(5, 7, 7, (2, 2))
-        sage: is_orthogonal_array(OA,5,53)
-        True
-    """
-    OA = orthogonal_array(k+1,r)
-    c = len(u)
-    OA = [[x if (i<k or x<c) else None for i,x in enumerate(R)] for R in OA]
-    OA = wilson_construction(OA,k,r,m,[[(x,1) for x in u]],check=False)
     return OA

@@ -65,7 +65,6 @@ from sage.structure.sage_object cimport SageObject
 import operator
 import sage.rings.arith
 import constructor as finite_field
-import finite_field_ext_pari
 
 import sage.interfaces.gap
 from sage.libs.pari.all import pari

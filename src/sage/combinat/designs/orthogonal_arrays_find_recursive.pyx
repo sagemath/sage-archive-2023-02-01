@@ -879,21 +879,27 @@ cpdef find_brouwer_van_rees_with_one_truncated_column(int k,int n):
     r"""
     Find `rm+x_1+...+x_c=n` such that the Brouwer-van Rees constructions yields a `OA(k,n)`.
 
+    Let `n=rm+\sum_{1\leq i\leq c}` such that `c\leq r`. The
+    generalization of Wilson's construction found by Brouwer and van
+    Rees (with one truncated column) ensures that an `OA(k,n)` exists
+    if the following designs exist: `OA(k+1,r)`, `OA(k,m)`,
+    `OA(k,\sum_{1\leq i\leq c} u_i)`, `OA(k,m+x_1)-OA(k,x_1)`, ...,
+    `OA(k,m+x_c)-OA(k,x_c)`.
+
+    For more information, see the documentation of
+    :func:`~sage.combinat.designs.orthogonal_arrays.wilson_construction`.
+
     INPUT:
 
     - ``k,n`` (integers)
-
-    The assumptions made on the parameters `r,m,x_1,...,x_c` are
-    explained in the documentation of
-    :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.brouwer_van_rees_with_one_truncated_column`.
 
     EXAMPLE::
 
         sage: from sage.combinat.designs.orthogonal_arrays_find_recursive import find_brouwer_van_rees_with_one_truncated_column
         sage: find_brouwer_van_rees_with_one_truncated_column(5,53)[1]
-        (5, 7, 7, (2, 2))
+        (None, 5, 7, 7, [[(2, 1), (2, 1)]])
         sage: find_brouwer_van_rees_with_one_truncated_column(6,96)[1]
-        (6, 7, 13, (3, 1, 1))
+        (None, 6, 7, 13, [[(3, 1), (1, 1), (1, 1)]])
     """
     cdef list available_multipliers
     cdef int kk,uu,r,m,remainder,max_multiplier
@@ -931,9 +937,9 @@ cpdef find_brouwer_van_rees_with_one_truncated_column(int k,int n):
 
             values = int_as_sum(remainder, available_multipliers, r)
             if values is not None:
-                from orthogonal_arrays_build_recursive import brouwer_van_rees_with_one_truncated_column
-                return (brouwer_van_rees_with_one_truncated_column,
-                        (k,r,m,values))
+                from orthogonal_arrays import wilson_construction
+                return (wilson_construction,
+                        (None,k,r,m,[[(x,1) for x in values]]))
 
     return False
 

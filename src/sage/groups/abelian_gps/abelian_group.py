@@ -363,11 +363,11 @@ def _normalize(n, gens_orders=None, names="f"):
         sage: _normalize('1', '[2]', names='a')
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=[) to an integer
+        TypeError: unable to convert '[' to an integer
         sage: _normalize(3, 'str', names='a')
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=s) to an integer
+        TypeError: unable to convert 's' to an integer
    """
     if gens_orders is None:
         if isinstance(n, (list, tuple)):

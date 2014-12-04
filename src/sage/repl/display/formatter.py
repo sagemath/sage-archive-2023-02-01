@@ -312,7 +312,8 @@ class SageNBTextFormatter(SagePlainTextFormatter):
             ....:     def _graphics_(self, **kwds):
             ....:         print('showing graphics') 
             ....:         from sage.structure.graphics_file import GraphicsFile
-            ....:         return GraphicsFile('/nonexistent.png', 'image/png')
+            ....:         from sage.misc.temporary_file import graphics_filename
+            ....:         return GraphicsFile(graphics_filename('.png'), 'image/png')
             ....:     def _repr_(self):
             ....:         return 'Textual representation'
             sage: from sage.repl.display.formatter import SageNBTextFormatter

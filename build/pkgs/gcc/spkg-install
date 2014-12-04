@@ -81,6 +81,11 @@ if { uname -sr | grep 'Darwin 14\.' ;} &>/dev/null; then
     fi
 fi
 
+# On OSX: isl/cloog libraries are almost certainly from Homebrew and won't work
+if [ "$UNAME" = "Darwin" ]; then
+    GCC_CONFIGURE="--without-isl --without-cloog $GCC_CONFIGURE"
+fi
+
 # Let GCC build on Raspberry Pi using hard floats.
 if [ `uname -m` = "armv6l" ]; then
     GCC_CONFIGURE="--with-arch=armv6 --with-fpu=vfp --with-float=hard $GCC_CONFIGURE"

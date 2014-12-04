@@ -152,7 +152,7 @@ These may change over time::
     <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
     sage: type(NumberField([x^2-2,x^2-3],'a')['x'].0)
     <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_relative_number_field_dense'>
-    sage: type(NumberField([x^2-2,x^2-3],'a')[x])
+    sage: type(NumberField([x^2-2,x^2-3],'a')['x'])
     <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
 """
 
@@ -383,7 +383,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
             sage: x = var('x')
             sage: R = IntegerModRing(4)
-            sage: S = PolynomialRing(R, x)
+            sage: S = R['x']
             sage: S(x)
             x
 

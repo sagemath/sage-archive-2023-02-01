@@ -56,7 +56,8 @@ Here's what spkg-src does:
 
  * Removes the foreign language versions of the info files.
 
-The following patches are applied:
+All patch files in the patches/ directory are applied.  Descriptions
+of these patches are either in the patch files themselves or below.
 
  * 0001-taylor2-Avoid-blowing-the-stack-when-diff-expand-isn.patch:
    Fix for Maxima bug #2520 (abs_integrate fails on abs(sin(x)) and

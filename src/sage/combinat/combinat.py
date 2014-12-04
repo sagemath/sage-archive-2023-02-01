@@ -1637,7 +1637,7 @@ class CombinatorialClass(Parent):
             r += 1
         raise ValueError
 
-    rank =  __rank_from_iterator
+    rank = __rank_from_iterator
 
     def __first_from_iterator(self):
         """
@@ -2549,9 +2549,10 @@ def bell_polynomial(n, k):
             power_factorial_product *= factorial(part)**count
 
         coefficient = factorial(n) / (factorial_product * power_factorial_product)
-        result += coefficient *  prod([vars[i-1] for i in p])
+        result += coefficient * prod([vars[i - 1] for i in p])
 
     return result
+
 
 def fibonacci_sequence(start, stop=None, algorithm=None):
     r"""

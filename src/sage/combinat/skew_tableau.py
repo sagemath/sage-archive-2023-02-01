@@ -1062,7 +1062,7 @@ class SkewTableau(CombinatorialObject, Element):
         if not self.is_ribbon():
             raise ValueError("self must be a ribbon")
         from sage.combinat.ribbon_shaped_tableau import RibbonShapedTableau
-        r =  [ [i for i in row if i is not None] for row in self]
+        r = [[i for i in row if i is not None] for row in self]
         return RibbonShapedTableau(r)
 
     def filling(self):
@@ -1075,7 +1075,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: t.filling()
             [[1], [2, 3]]
         """
-        return [ [i for i in row if i is not None] for row in self ]
+        return [[i for i in row if i is not None] for row in self]
 
     def cells_by_content(self, c):
         """

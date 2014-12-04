@@ -5156,37 +5156,17 @@ cdef class Expression(CommutativeRingElement):
             sage: p = (17/3*a)*x^(3/2) + x*y + 1/x + x^x
             sage: p.coefficients(x)
             [[1, -1], [x^x, 0], [y, 1], [17/3*a, 3/2]]
-            
-        Series coefficients are now handled correctly (:trac:`17399`)::
-        
-            sage: s=(1/(1-x)).series(x,6)
-            sage: s.coeffs()
-            [[1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5]]
-            sage: x,y = var("x,y")
-            sage: s=(1/(1-y-x)).series(x,6)
-            sage: s.coeffs(y)
-            []
-            sage: s.coeffs()
-            [[-1/(y - 1), 0],
-             [(y - 1)^(-2), 1],
-             [-1/(y - 1)^3, 2],
-             [(y - 1)^(-4), 3],
-             [-1/(y - 1)^5, 4],
-             [(y - 1)^(-6), 5]]
         """
+        f = self._maxima_()
+        maxima = f.parent()
+        maxima._eval_line('load(coeflist)')
         if x is None:
             x = self.default_variable()
-        #    x = self.parent().var(str(x))
-        if is_a_series(self._gobj):
-            return [[self.coeff(x, d), d] for d in xrange(self.degree(x))]
-        else:
-            f = self._maxima_()
-            maxima = f.parent()
-            maxima._eval_line('load(coeflist)')
-            G = f.coeffs(x)
-            from sage.calculus.calculus import symbolic_expression_from_maxima_string
-            S = symbolic_expression_from_maxima_string(repr(G))
-            return S[1:]
+        x = self.parent().var(repr(x))
+        G = f.coeffs(x)
+        from sage.calculus.calculus import symbolic_expression_from_maxima_string
+        S = symbolic_expression_from_maxima_string(repr(G))
+        return S[1:]
 
     coeffs = coefficients
 

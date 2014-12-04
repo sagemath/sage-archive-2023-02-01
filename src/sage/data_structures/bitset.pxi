@@ -66,12 +66,6 @@ cdef inline mp_limb_t limb_lower_bits_up(mp_bitcnt_t n):
     """
     return (<mp_limb_t>(-1)) >> ((<unsigned int>(-n)) % GMP_LIMB_BITS)
 
-cdef inline void bitset_fix(bitset_t bits):
-    """
-    Clear upper bits in upper limb which should be zero.
-    """
-    bits.bits[bits.limbs - 1] &= limb_lower_bits_up(bits.size)
-
 #############################################################################
 # Bitset Initalization
 #############################################################################
@@ -145,6 +139,12 @@ cdef inline void bitset_copy(bitset_t dst, bitset_t src):
     We assume ``dst.limbs == src.limbs``.
     """
     mpn_copyi(dst.bits, src.bits, src.limbs)
+
+cdef inline void bitset_fix(bitset_t bits):
+    """
+    Clear upper bits in upper limb which should be zero.
+    """
+    bits.bits[bits.limbs - 1] &= limb_lower_bits_up(bits.size)
 
 #############################################################################
 # Bitset Comparison

@@ -2906,7 +2906,7 @@ def companion_matrix(poly, format='right'):
         ...
         TypeError: input must be a polynomial (not a symbolic expression, see docstring), or other iterable, not y^3 - 2*y + 1
 
-        sage: coeff_list = [q(y=0)] + [q.coeff(y^k) for k in range(1, q.degree(y)+1)]
+        sage: coeff_list = [q(y=0)] + [q.coefficient(y^k) for k in range(1, q.degree(y)+1)]
         sage: coeff_list
         [1, -2, 0, 1]
         sage: companion_matrix(coeff_list)

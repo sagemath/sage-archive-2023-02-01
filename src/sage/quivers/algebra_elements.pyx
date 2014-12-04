@@ -84,15 +84,15 @@ cdef class PathAlgebraElement(RingElement):
     than the letterplace implementation::
 
         sage: timeit('pF^5+3*pF^3')    # not tested
-        1 loops, best of 3: 344 ms per loop
+        1 loops, best of 3: 333 ms per loop
         sage: timeit('pP^5+3*pP^3')    # not tested
-        100 loops, best of 3: 3.63 ms per loop
+        100 loops, best of 3: 3.5 ms per loop
         sage: timeit('pF2^7')          # not tested
-        10000 loops, best of 3: 505 ms per loop
+        10000 loops, best of 3: 509 ms per loop
         sage: timeit('pL2^7')          # not tested
-        125 loops, best of 3: 2.04 ms per loop
+        125 loops, best of 3: 2.05 ms per loop
         sage: timeit('pP2^7')          # not tested
-        10000 loops, best of 3: 22.7 ms per loop
+        10000 loops, best of 3: 21.8 ms per loop
 
     """
     def __cinit__(self, *args, **kwds):

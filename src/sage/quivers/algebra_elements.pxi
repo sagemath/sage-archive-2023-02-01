@@ -42,6 +42,17 @@ cdef inline path_mon_t *mon_create(biseq_t Mon, unsigned int Pos, int Mid) excep
     out.ref = 1
     return out
 
+cdef inline bint mon_realloc(path_mon_t *out, biseq_t Mon, unsigned int Pos, int Mid) except -1:
+    bitset_realloc(out.path.data, Mon.data.size)
+    bitset_copy(out.path.data, Mon.data)
+    out.path.length = Mon.length
+    out.path.itembitsize = Mon.itembitsize
+    out.path.mask_item = Mon.mask_item
+    out.pos = Pos
+    out.mid = Mid
+    out.ref = 1
+    return True
+
 # Create a monomial without copying the given bounded integer sequence
 cdef inline path_mon_t *mon_create_keep(biseq_t Mon, unsigned int Pos, int Mid) except NULL:
     cdef path_mon_t *out = <path_mon_t*>sage_malloc(sizeof(path_mon_t))
@@ -52,6 +63,14 @@ cdef inline path_mon_t *mon_create_keep(biseq_t Mon, unsigned int Pos, int Mid) 
     out.mid = Mid
     out.ref = 1
     return out
+
+cdef inline bint mon_realloc_keep(path_mon_t *out, biseq_t Mon, unsigned int Pos, int Mid) except -1:
+    biseq_dealloc(out.path)
+    out.path[0] = Mon[0]
+    out.pos = Pos
+    out.mid = Mid
+    out.ref = 1
+    return True
 
 # Copying a monomial just means to create another reference
 cdef inline path_mon_t *mon_copy(path_mon_t *M):
@@ -178,56 +197,123 @@ cdef inline int deglex(path_mon_t *M1, path_mon_t *M2):
 ########################################
 ##
 ## Allocation and Deallocation of terms
+###########################
+# We use a kill list.
+cdef path_poly_t *kill_list = <path_poly_t*>sage_malloc(sizeof(path_poly_t))
+kill_list.nterms = 0
+kill_list.lead = NULL
+
+# Deallocate the term, and return the pointer .nxt, without using kill list
+cdef inline path_term_t *term_free_force(path_term_t *T):
+    mon_free(T.mon)
+    cdef path_term_t *out = T.nxt
+    sage_free(T)
+    return out
+
+cdef class _KillListProtector:
+    def __dealloc__(self):
+        cdef path_term_t *T = kill_list.lead
+        while T != NULL:
+            T = term_free_force(T)
+        sage_free(kill_list)
+
+cdef size_t poolsize = 1000   # The kill list contains at most that many terms.
+_kill_list_protector = _KillListProtector()
+
+# Put the term on the free list, and return the pointer .nxt
+cdef inline path_term_t *term_free(path_term_t *T):
+    if T.coef!=NULL:
+        Py_DECREF(<object>(T.coef))
+    cdef path_term_t *out = T.nxt
+    if kill_list.nterms < poolsize:
+        preinc(kill_list.nterms)
+        T.nxt, kill_list.lead = kill_list.lead, T
+        return out
+    mon_free(T.mon)
+    sage_free(T)
+    return out
 
 # Create a term by copying the given bounded integer sequence
 cdef inline path_term_t *term_create(object coef, biseq_t Mon, unsigned int Pos, int Mid) except NULL:
-    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path term")
+    cdef path_term_t *out
+    if kill_list.nterms > 0:
+        predec(kill_list.nterms)
+        out = kill_list.lead
+        kill_list.lead = out.nxt
+        if out.mon.ref > 1:
+            # This monomial is in use by other terms. It must be preserved!
+            predec(out.mon.ref)
+            out.mon = mon_create(Mon, Pos, Mid)
+        else:
+            mon_realloc(out.mon, Mon, Pos, Mid)
+    else:
+        out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+        if out==NULL:
+            raise MemoryError("Out of memory while allocating a path term")
+        out.mon = mon_create(Mon, Pos, Mid)
     Py_INCREF(coef)
     out.coef = <PyObject*>coef
-    out.mon = mon_create(Mon, Pos, Mid)
     out.nxt = NULL
     return out
 
 # Create a term without copying the given bounded integer sequence
 cdef inline path_term_t *term_create_keep(object coef, biseq_t Mon, unsigned int Pos, int Mid) except NULL:
-    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path term")
+    cdef path_term_t *out
+    if kill_list.nterms > 0:
+        predec(kill_list.nterms)
+        out = kill_list.lead
+        kill_list.lead = out.nxt
+        if out.mon.ref > 1:
+            # This monomial is in use by other terms. It must be preserved!
+            predec(out.mon.ref)
+            out.mon = mon_create_keep(Mon, Pos, Mid)
+        else:
+            mon_realloc_keep(out.mon, Mon, Pos, Mid)
+    else:
+        out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+        if out==NULL:
+            raise MemoryError("Out of memory while allocating a path term")
+        out.mon = mon_create_keep(Mon, Pos, Mid)
     Py_INCREF(coef)
     out.coef = <PyObject*>coef
-    out.mon = mon_create_keep(Mon, Pos, Mid)
     #out.nxt = NULL  # to be taken care of externally
     return out
 
 # Create a term from a path_mon_t, which is not copied
 cdef inline path_term_t *term_create_keep_mon(object coef, path_mon_t *Mon) except NULL:
-    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path term")
+    cdef path_term_t *out
+    if kill_list.nterms > 0:
+        predec(kill_list.nterms)
+        out = kill_list.lead
+        kill_list.lead = out.nxt
+        mon_free(out.mon)
+    else:
+        out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+        if out==NULL:
+            raise MemoryError("Out of memory while allocating a path term")
     Py_INCREF(coef)
     out.coef = <PyObject*>coef
     out.mon = Mon
     #out.nxt = NULL  # to be taken care of externally
     return out
 
-# Deallocate the term and return the pointer .nxt
-cdef inline path_term_t *term_free(path_term_t *T):
-    if T.coef!=NULL:
-        Py_DECREF(<object>(T.coef))
-    mon_free(T.mon)
-    cdef path_term_t *out = T.nxt
-    sage_free(T)
-    return out
+######################################################################
+######################################################################
 
 cdef inline path_term_t *term_copy(path_term_t *T) except NULL:
-    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path term")
+    cdef path_term_t *out
+    if kill_list.nterms > 0:
+        predec(kill_list.nterms)
+        out = kill_list.lead
+        kill_list.lead = out.nxt
+        mon_free(out.mon)
+    else:
+        out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+        if out==NULL:
+            raise MemoryError("Out of memory while allocating a path term")
+    out.mon = mon_copy(T.mon)
     Py_INCREF(<object>T.coef)
     out.coef = T.coef
-    out.mon = mon_copy(T.mon)
     # out.nxt is supposed to be taken care of externally
     return out
 
@@ -315,9 +401,16 @@ cdef path_mon_t *path_mul_mon_mul_path(biseq_t p, path_mon_t *T, biseq_t q) exce
 ## Addition and scaling of terms
 
 cdef inline path_term_t *term_neg(path_term_t *T) except NULL:
-    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path term")
+    cdef path_term_t *out
+    if kill_list.nterms > 0:
+        predec(kill_list.nterms)
+        out = kill_list.lead
+        kill_list.lead = out.nxt
+        mon_free(out.mon)
+    else:
+        out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+        if out==NULL:
+            raise MemoryError("Out of memory while allocating a path term")
     cdef object coef = -<object>T.coef
     out.coef = <PyObject*>coef
     Py_INCREF(coef)
@@ -337,9 +430,16 @@ cdef inline path_term_t *term_neg_recursive(path_term_t *T) except NULL:
     return first
 
 cdef inline path_term_t *term_scale(path_term_t *T, object coef) except NULL:
-    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path term")
+    cdef path_term_t *out
+    if kill_list.nterms > 0:
+        predec(kill_list.nterms)
+        out = kill_list.lead
+        kill_list.lead = out.nxt
+        mon_free(out.mon)
+    else:
+        out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+        if out==NULL:
+            raise MemoryError("Out of memory while allocating a path term")
     cdef object new_coef = coef*<object>T.coef
     if new_coef:
         out.coef = <PyObject*>new_coef
@@ -357,7 +457,7 @@ cdef inline path_term_t *term_scale_recursive(path_term_t *T, object coef) excep
     while T!=NULL:
         out.nxt = term_scale(T, coef)
         if out.nxt.coef == NULL:
-            print "zwischendurch frei"
+            #print "zwischendurch frei"
             sage_free(out.nxt)
             out.nxt = NULL
         else:
@@ -369,9 +469,16 @@ cdef inline path_term_t *term_scale_recursive(path_term_t *T, object coef) excep
 ## Multiplication of terms
 
 cdef path_term_t *term_mul_coef(path_term_t *T, object coef) except NULL:
-    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path term")
+    cdef path_term_t *out
+    if kill_list.nterms > 0:
+        predec(kill_list.nterms)
+        out = kill_list.lead
+        kill_list.lead = out.nxt
+        mon_free(out.mon)
+    else:
+        out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+        if out==NULL:
+            raise MemoryError("Out of memory while allocating a path term")
     cdef object new_coef = (<object>T.coef)*coef
     if new_coef:
         out.coef = <PyObject*>(new_coef)
@@ -402,16 +509,41 @@ cdef path_term_t *term_mul_term(path_term_t *T1, path_term_t *T2) except NULL:
             raise ValueError("We cannot multiply two module elements")
         new_mid = -1
         new_pos = T1.mon.pos
-    cdef path_term_t *out = <path_term_t*>sage_malloc(sizeof(path_term_t))
-    if out==NULL:
-        raise MemoryError("Out of memory while allocating a path term")
     cdef object new_coef = (<object>T1.coef)*(<object>T2.coef)
-    if new_coef:
-        out.coef = <PyObject*>(new_coef)
-        Py_INCREF(new_coef)
-        biseq_init_concat(out.mon.path, T1.mon.path, T2.mon.path)
+
+    cdef path_term_t *out
+    if kill_list.nterms > 0:
+        predec(kill_list.nterms)
+        out = kill_list.lead
+        kill_list.lead = out.nxt
+        if new_coef:
+            out.coef = <PyObject*>(new_coef)
+            Py_INCREF(new_coef)
+            if out.mon.ref>1:
+                predec(out.mon.ref)
+                out.mon = <path_mon_t*>sage_malloc(sizeof(path_mon_t))
+                if out.mon == NULL:
+                    raise MemoryError("Out of memory while allocating a path monomial")
+                out.mon.ref = 1
+                biseq_init_concat(out.mon.path, T1.mon.path, T2.mon.path)
+            else:
+                biseq_realloc_concat(out.mon.path, T1.mon.path, T2.mon.path)
+        else:
+            out.coef = NULL
     else:
-        out.coef = NULL
+        out = <path_term_t*>sage_malloc(sizeof(path_term_t))
+        if out==NULL:
+            raise MemoryError("Out of memory while allocating a path term")
+        if new_coef:
+            out.coef = <PyObject*>(new_coef)
+            Py_INCREF(new_coef)
+            out.mon = <path_mon_t*>sage_malloc(sizeof(path_mon_t))
+            if out.mon == NULL:
+                raise MemoryError("Out of memory while allocating a path monomial")
+            out.mon.ref = 1
+            biseq_init_concat(out.mon.path, T1.mon.path, T2.mon.path)
+        else:
+            out.coef = NULL
     out.mon.pos = new_pos
     out.mon.mid = new_mid
     out.nxt = NULL

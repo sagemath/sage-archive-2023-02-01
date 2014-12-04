@@ -209,7 +209,7 @@ cdef class Module(sage.structure.parent.Parent):
 
         EXAMPLES::
 
-            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,QQ).change_ring(GF(7))
+            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], QQ).change_ring(GF(7))
             Traceback (most recent call last):
             ...
             NotImplementedError: the method change_ring() has not yet been implemented

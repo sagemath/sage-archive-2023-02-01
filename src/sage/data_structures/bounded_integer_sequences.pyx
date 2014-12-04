@@ -102,7 +102,6 @@ cdef extern from "Python.h":
     cdef PyInt_FromSize_t(size_t ival)
 
 cimport cython
-from cython.operator import dereference as deref, preincrement as preinc, predecrement as predec, postincrement as postinc
 
 ###################
 #  Boilerplate
@@ -232,18 +231,12 @@ cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
       tested.
 
     """
-    if S1.length<S2.length+start:
-        return -1
-    if S2.length==0:
+    if S2.length == 0:
         return start
-    cdef mp_bitcnt_t offset = 0
     cdef mp_size_t index
-    for index from start <= index < S1.length-S2.length:
-        if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, S2.data.size, offset):
+    for index from start <= index <= S1.length-S2.length:
+        if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, S2.data.size, index*S1.itembitsize):
             return index
-        offset += S1.itembitsize
-    if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, S2.data.size, offset):
-        return index
     return -1
 
 cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
@@ -253,7 +246,7 @@ cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
 
     """
     cdef mp_size_t index
-    for index from 0 <= index < S.length:
+    for index from start <= index < S.length:
         if biseq_getitem(S, index) == item:
             return index
     return -1
@@ -326,30 +319,28 @@ cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop
     and write the result to ``R``, which must not be initialised.
 
     """
-    cdef mp_size_t length, total_shift, n
-    if step>0:
-        if stop>start:
+    cdef mp_size_t length = 0
+    if step > 0:
+        if stop > start:
             length = ((stop-start-1)//step)+1
-        else:
-            biseq_init(R, 0, S.itembitsize)
-            return True
     else:
-        if stop>=start:
-            biseq_init(R, 0, S.itembitsize)
-            return True
-        else:
+        if stop < start:
             length = ((stop-start+1)//step)+1
     biseq_init(R, length, S.itembitsize)
-    total_shift = start*S.itembitsize
-    if step==1:
+
+    if not length:
+        return 0
+
+    if step == 1:
         # Slicing essentially boils down to a shift operation.
-        bitset_rshift(R.data, S.data, total_shift)
-        return True
+        bitset_rshift(R.data, S.data, start*S.itembitsize)
+        return 0
+
     # In the general case, we move item by item.
     cdef mp_size_t src_index = start
-    cdef mp_size_t tgt_index = 0
-    for n from length>=n>0:
-        biseq_inititem(R, postinc(tgt_index), biseq_getitem(S, src_index))
+    cdef mp_size_t tgt_index
+    for tgt_index in range(length):
+        biseq_inititem(R, tgt_index, biseq_getitem(S, src_index))
         src_index += step
 
 cdef mp_size_t biseq_max_overlap(biseq_t S1, biseq_t S2) except 0:

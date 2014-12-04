@@ -1,31 +1,27 @@
 r"""
 Sequences of bounded integers
 
-AUTHORS:
-
-- Simon King, Jeroen Demeyer (2014-10): initial version
-
 This module provides :class:`BoundedIntegerSequence`, which implements
 sequences of bounded integers and is for many (but not all) operations faster
 than representing the same sequence as a Python :class:`tuple`.
 
 The underlying data structure is similar to :class:`~sage.misc.bitset.Bitset`,
 which means that certain operations are implemented by using fast shift
-operations from GMP.  The following boilerplate functions can be cimported in
-Cython modules:
+operations from MPIR.  The following boilerplate functions can be
+cimported in Cython modules:
 
 - ``cdef bint biseq_init(biseq_t R, mp_size_t l, mp_size_t itemsize) except -1``
 
-  Allocate memory (filled with zero) for a bounded integer sequence
-  of length l with items fitting in itemsize bits.
+  Allocate memory for a bounded integer sequence of length ``l`` with
+  items fitting in ``itemsize`` bits.
 
 - ``cdef inline void biseq_dealloc(biseq_t S)``
 
-   Free the data stored in ``S``.
+  Deallocate the memory used by ``S``.
 
 - ``cdef bint biseq_init_copy(biseq_t R, biseq_t S)``
 
-  Copy S to the unallocated bitset R.
+  Initialize ``R`` as a copy of ``S``.
 
 - ``cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1``
 
@@ -43,27 +39,27 @@ Cython modules:
 
 - ``cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2``
 
-  Returns the position *in ``S1``* of ``S2`` as a subsequence of
+  Return the position in ``S1`` of ``S2`` as a subsequence of
   ``S1[start:]``, or ``-1`` if ``S2`` is not a subsequence. Does not check
   whether the sequences have the same bound!
 
 - ``cdef mp_size_t biseq_max_overlap(biseq_t S1, biseq_t S2) except 0``
 
-  Returns the minimal *positive* integer ``i`` such that ``S2`` starts with
+  Return the minimal *positive* integer ``i`` such that ``S2`` starts with
   ``S1[i:]``.  This function will *not* test whether ``S2`` starts with ``S1``!
 
 - ``cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2``
 
-  Returns the position *in S* of the item in ``S[start:]``, or ``-1`` if
+  Return the position in ``S`` of the item in ``S[start:]``, or ``-1`` if
   ``S[start:]`` does not contain the item.
 
 - ``cdef size_t biseq_getitem(biseq_t S, mp_size_t index)``
 
-  Returns ``S[index]``, without checking margins.
+  Return ``S[index]``, without checking margins.
 
 - ``cdef size_t biseq_getitem_py(biseq_t S, mp_size_t index)``
 
-  Returns ``S[index]`` as Python ``int`` or ``long``, without checking margins.
+  Return ``S[index]`` as Python ``int`` or ``long``, without checking margins.
 
 - ``cdef biseq_inititem(biseq_t S, mp_size_t index, size_t item)``
 
@@ -72,11 +68,15 @@ Cython modules:
 
 - ``cdef inline void biseq_clearitem(biseq_t S, mp_size_t index)``
 
-    Set ``S[index] = 0``, without checking margins.
+  Set ``S[index] = 0``, without checking margins.
 
 - ``cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, mp_size_t step) except -1``
 
-  Initialises ``R`` with ``S[start:stop:step]``.
+  Initialise ``R`` with ``S[start:stop:step]``.
+
+AUTHORS:
+
+- Simon King, Jeroen Demeyer (2014-10): initial version (:trac:`15820`)
 
 """
 #*****************************************************************************
@@ -116,8 +116,8 @@ from cython.operator import dereference as deref, preincrement as preinc, predec
 @cython.overflowcheck
 cdef bint biseq_init(biseq_t R, mp_size_t l, mp_bitcnt_t itemsize) except -1:
     """
-    Allocate memory for a bounded integer sequence of length l with items
-    fitting in itemsize bits.
+    Allocate memory for a bounded integer sequence of length ``l`` with
+    items fitting in ``itemsize`` bits.
     """
     cdef mp_bitcnt_t totalbitsize
     if l:
@@ -131,13 +131,13 @@ cdef bint biseq_init(biseq_t R, mp_size_t l, mp_bitcnt_t itemsize) except -1:
 
 cdef inline void biseq_dealloc(biseq_t S):
     """
-    Deallocate the memory used by S.
+    Deallocate the memory used by ``S``.
     """
     bitset_free(S.data)
 
 cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1:
     """
-    Initialize R as a copy of S.
+    Initialize ``R`` as a copy of ``S``.
     """
     biseq_init(R, S.length, S.itembitsize)
     bitset_copy(R.data, S.data)
@@ -193,7 +193,8 @@ cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1:
 
 cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
     """
-    Tests if bounded integer sequence S1 starts with bounded integer sequence S2
+    Tests if bounded integer sequence ``S1`` starts with bounded integer
+    sequence ``S2``.
 
     ASSUMPTION:
 
@@ -211,7 +212,8 @@ cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
 
 cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
     """
-    Tests if the bounded integer sequence ``S1[start:]`` contains a sub-sequence ``S2``
+    Tests if the bounded integer sequence ``S1[start:]`` contains a
+    sub-sequence ``S2``.
 
     INPUT:
 
@@ -246,8 +248,8 @@ cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
 
 cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
     """
-    Returns the position in S of an item in S[start:], or -1 if S[start:] does
-    not contain the item.
+    Returns the position in ``S`` of an item in ``S[start:]``, or -1 if
+    ``S[start:]`` does not contain the item.
 
     """
     cdef mp_size_t index
@@ -259,7 +261,7 @@ cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
 
 cdef inline size_t biseq_getitem(biseq_t S, mp_size_t index):
     """
-    Get item S[index], without checking margins.
+    Get item ``S[index]``, without checking margins.
 
     """
     cdef mp_bitcnt_t limb_index, bit_index
@@ -276,7 +278,8 @@ cdef inline size_t biseq_getitem(biseq_t S, mp_size_t index):
 
 cdef biseq_getitem_py(biseq_t S, mp_size_t index):
     """
-    Get item S[index] as a Python ``int`` or ``long``, without checking margins.
+    Get item ``S[index]`` as a Python ``int`` or ``long``, without
+    checking margins.
 
     """
     cdef size_t out = biseq_getitem(S, index)
@@ -319,8 +322,8 @@ cdef inline void biseq_clearitem(biseq_t S, mp_size_t index):
 
 cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop, mp_size_t step) except -1:
     """
-    Create the slice S[start:stop:step] as bounded integer sequence and write
-    the result to ``R``, which must not be initialised.
+    Create the slice ``S[start:stop:step]`` as bounded integer sequence
+    and write the result to ``R``, which must not be initialised.
 
     """
     cdef mp_size_t length, total_shift, n

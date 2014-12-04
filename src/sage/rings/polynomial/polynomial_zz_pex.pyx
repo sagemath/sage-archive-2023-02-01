@@ -90,7 +90,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: R([3,'12e34'])
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=12e34) to an integer
+            TypeError: unable to convert '12e34' to an integer
             sage: R([3,x])
             Traceback (most recent call last):
             ...

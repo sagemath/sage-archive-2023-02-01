@@ -59,6 +59,7 @@ you can run these commands with typeset mode on and get
 Since it has only two variables, we can solve it graphically::
 
     sage: P.plot()
+    Graphics object consisting of 19 graphics primitives
 
 
 The simplex method can be applied only to :class:`problems in standard form
@@ -1100,6 +1101,7 @@ class LPProblem(SageObject):
         We check that zero objective can be dealt with::
 
             sage: LPProblem(A, b, (0, 0), ["C", "B"], variable_type=">=").plot()
+            Graphics object consisting of 8 graphics primitives
         """
         FP = self.plot_feasible_set(*args, **kwds)
         c = self.c().n().change_ring(QQ)

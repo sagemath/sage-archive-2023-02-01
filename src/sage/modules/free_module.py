@@ -3244,11 +3244,11 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Basis matrix:
             [0 1 0]
             sage: v = V((1, pi, e)); v
-            (1.0, 3.14159265359, 2.71828182846)
+            (1.0, 3.141592653589793, 2.718281828459045)
             sage: W.span([v], base_ring=GF(7))
             Traceback (most recent call last):
             ...
-            ValueError: Argument gens (= [(1.0, 3.14159265359, 2.71828182846)]) is not compatible with base_ring (= Finite Field of size 7).
+            ValueError: Argument gens (= [(1.0, 3.141592653589793, 2.718281828459045)]) is not compatible with base_ring (= Finite Field of size 7).
             sage: W = V.submodule([v])
             sage: W.span([V.gen(2)], base_ring=GF(7))
             Vector space of degree 3 and dimension 1 over Finite Field of size 7
@@ -4010,19 +4010,16 @@ class FreeModule_ambient(FreeModule_generic):
 
     def __hash__(self):
         """
-        The hash of self.
+        The hash is obtained from the rank and the base ring.
+
+        .. TODO::
+
+            Make pickling so that the hash is available early enough.
 
         EXAMPLES::
 
             sage: V = QQ^7
-            sage: V.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U = QQ^7
-            sage: U.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U is V
+            sage: hash(V) == hash((V.rank(), V.base_ring()))
             True
         """
         try:
@@ -5077,19 +5074,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def __hash__(self):
         """
-        The hash of self.
+        The hash is given by the basis.
 
         EXAMPLES::
 
-            sage: V = QQ^7
-            sage: V.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U = QQ^7
-            sage: U.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U is V
+            sage: M = ZZ^3
+            sage: W = M.span_of_basis([[1,2,3],[4,5,6]])
+            sage: hash(W) == hash(W.basis())
             True
         """
         return hash(self.__basis)

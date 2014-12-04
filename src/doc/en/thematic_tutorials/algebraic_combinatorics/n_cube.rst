@@ -40,6 +40,7 @@ they differ in one slot, that is, the distance function is 1::
 We can plot the `3` and `4`-cube::
 
    sage: cube(3).plot()
+   Graphics object consisting of 21 graphics primitives
 
 .. image:: ../media/cube3.png
    :scale: 75
@@ -48,6 +49,7 @@ We can plot the `3` and `4`-cube::
 ::
 
    sage: cube(4).plot()
+   Graphics object consisting of 49 graphics primitives
 
 .. image:: ../media/cube4.png
    :scale: 75
@@ -94,6 +96,7 @@ Note that the graph is in fact disconnected. Do you understand why?
 ::
 
     sage: cube_2(4).plot()
+    Graphics object consisting of 65 graphics primitives
 
 .. image:: ../media/cube-dist.png
    :scale: 75

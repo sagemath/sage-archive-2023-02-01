@@ -169,7 +169,7 @@ errprint(x)=if(type(x)=="t_COMPLEX",x=abs(x));
 
 {
 gammaseries(z0,terms,
-    Avec,Bvec,Qvec,n,z,err,res,c0,c1,c2,c3,sinser,reflect,digits,srprec,negint)=
+    Avec,Bvec,Qvec,n,z,err,res,c0,c1,c2,c3,sinser,reflect,digits_,srprec,negint)=
   srprec=default(seriesprecision);
   if (z0==real(round(z0)),z0=real(round(z0)));    \\ you don't want to know
   negint=type(z0)=="t_INT" && z0<=0;              \\ z0 is a pole
@@ -181,17 +181,17 @@ gammaseries(z0,terms,
   if (z0==1, res=gamma(1+x),
   if (z0==2, res=gamma(1+x)*(1+x),
   \\ otherwise use Luke's rational approximations for psi(x)
-  digits=default(realprecision);   \\ save working precision
-  default(realprecision,digits+3);  \\   and work with 3 digits more
+  digits_=default(realprecision);   \\ save working precision
+  default(realprecision,digits_+3);  \\   and work with 3 digits more
   reflect=real(z0)<0.5;               \\ left of 1/2 use reflection formula
   if (reflect,z0=1-z0);
-  z=subst(Ser(precision(1.*z0,digits+3)+X),X,x);
+  z=subst(Ser(precision(1.*z0,digits_+3)+X),X,x);
     \\ work with z0+x as a variable gives power series in X as an answer
   Avec=[1,(z+6)/2,(z^2+82*z+96)/6,(z^3+387*z^2+2906*z+1920)/12];
   Bvec=[1,4,8*z+28,14*z^2+204*z+310];
   Qvec=[0,0,0,Avec[4]/Bvec[4]];
   n=4;
-  until(err<0.1^(digits+1.5),         \\ Luke's recursions for psi(x)
+  until(err<0.1^(digits_+1.5),         \\ Luke's recursions for psi(x)
     c1=(2*n-1)*(3*(n-1)*z+7*n^2-9*n-6);
     c2=-(2*n-3)*(z-n-1)*(3*(n-1)*z-7*n^2+19*n-4);
     c3=(2*n-1)*(n-3)*(z-n)*(z-n-1)*(z+n-4);
@@ -208,7 +208,7 @@ gammaseries(z0,terms,
     if (negint,sinser[1]=0);          \\ taking slight care at integers<0
     res=subst(Pi/res/Ser(sinser),x,-x);
   );
-  default(realprecision,digits);
+  default(realprecision,digits_);
   )))));
   default(seriesprecision,srprec);
   res;
@@ -231,10 +231,10 @@ fullgamma(ss) = if(ss!=lastFGs,lastFGs=ss;\
 
 {
 fullgammaseries(ss,extraterms,
-    digits,GSD)=
-  digits=default(realprecision);
+    digits_,GSD)=
+  digits_=default(realprecision);
   if (lastFGSs!=ss || lastFGSterms!=extraterms,
-    GSD=sum(j=1,numpoles,(abs((ss+poles[j])/2-round(real((ss+poles[j])/2)))<10^(2-digits)) * PoleOrders[j] )+extraterms;
+    GSD=sum(j=1,numpoles,(abs((ss+poles[j])/2-round(real((ss+poles[j])/2)))<10^(2-digits_)) * PoleOrders[j] )+extraterms;
     lastFGSs=ss;
     lastFGSterms=extraterms;
     lastFGSval=subst(prod(j=1,length(gammaV),gammaseries((ss+gammaV[j])/2,GSD)),x,S/2);
@@ -297,7 +297,8 @@ SeriesToContFrac(vec,
   while (1,
     res=concat(res,[vec[1]]);
     ind=0;
-    until(ind==length(vec) || abs(vec[ind+1])>10^-asympdigits,ind++;vec[ind]=0);
+    \\ Sage fix: asympdigits -> asympdigits+1
+    until(ind==length(vec) || abs(vec[ind+1])>10^-(asympdigits+1),ind++;vec[ind]=0);
     if(ind>=length(vec),break);
     res=concat(res,[ind]);
     vec=Vec(x^ind/Ser(vec));

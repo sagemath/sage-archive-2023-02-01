@@ -989,7 +989,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
 
     # We do provide merging with polynomial rings. However, it seems that it is better
     # to have a greater rank, since we want to apply InfinitePolynomialFunctor *after*
-    # [Multi]PolynomialFunktor, which have rank 9. But there is the MatrixFunctor, which
+    # [Multi]PolynomialFunctor, which have rank 9. But there is the MatrixFunctor, which
     # has rank 10. So, do fine tuning...
     rank = 9.5
 
@@ -2066,7 +2066,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: F2
             Completion[+Infinity]
             sage: F2.extras
-            {'type': 'MPFR', 'sci_not': False, 'rnd': 'RNDN'}
+            {'rnd': 'RNDN', 'sci_not': False, 'type': 'MPFR'}
 
         """
         Functor.__init__(self, Rings(), Rings())

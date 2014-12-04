@@ -83,8 +83,8 @@ def trace(code, preparse=True):
     except NameError:
         raise NotImplementedError("the trace command can only be run from the Sage command-line")
 
-    import preparser
-    code = preparser.preparse(code)
+    from sage.repl.preparse import preparse
+    code = preparse(code)
     return pdb.run(code, ipython.user_ns)
 
     # this could also be useful; it drops

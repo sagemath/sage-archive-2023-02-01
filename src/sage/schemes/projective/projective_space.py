@@ -53,6 +53,8 @@ two lines.
 AUTHORS:
 
 - Ben Hutz: (June 2012): support for rings
+
+- Ben Hutz (9/2014): added support for cartesian products
 """
 
 #*****************************************************************************
@@ -723,7 +725,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
         return AlgebraicScheme_subscheme_projective(self, X)
 
-    def affine_patch(self, i):
+    def affine_patch(self, i, AA = None):
         r"""
         Return the `i^{th}` affine patch of this projective space.
         This is an ambient affine space `\mathbb{A}^n_R,` where
@@ -733,6 +735,9 @@ class ProjectiveSpace_ring(AmbientSpace):
         INPUT:
 
         - ``i`` -- integer between 0 and dimension of self, inclusive.
+
+        - ``AA`` -- (default: None) ambient affine space, this is constructed
+                if it is not given.
 
         OUTPUT:
 
@@ -756,19 +761,33 @@ class ProjectiveSpace_ring(AmbientSpace):
               To:   Projective Space of dimension 5 over Rational Field
               Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4) to
                     (1 : x0 : x1 : x2 : x3 : x4)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.affine_patch(0).projective_embedding(0).codomain() == P
+            True
         """
         i = int(i)   # implicit type checking
         n = self.dimension_relative()
         if i < 0 or i > n:
             raise ValueError("Argument i (= %s) must be between 0 and %s."%(i, n))
         try:
-            return self.__affine_patches[i]
+            A = self.__affine_patches[i]
+            #assume that if you've passed in a new affine space you want to override
+            #the existing patch
+            if AA is None or A == AA:
+                return(A)
         except AttributeError:
             self.__affine_patches = {}
         except KeyError:
             pass
-        from sage.schemes.affine.affine_space import AffineSpace
-        AA = AffineSpace(n, self.base_ring(), names='x')
+        #if no ith patch exists, we may still be here with AA==None
+        if AA == None:
+            from sage.schemes.affine.affine_space import AffineSpace
+            AA = AffineSpace(n, self.base_ring(), names = 'x')
+        elif AA.dimension_relative() != n:
+                raise ValueError("Affine Space must be of the dimension %s"%(n))
         AA._default_embedding_index = i
         phi = AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA
@@ -826,6 +845,32 @@ class ProjectiveSpace_ring(AmbientSpace):
         F = [phi(F[0]).homogenize(y), phi(F[1]).homogenize(y)*y]
         H = Hom(self,self)
         return(H(F))
+
+    def cartesian_product(self, other):
+        r"""
+        Return the cartesian product of the projective spaces ``self`` and
+        ``other``.
+
+        INPUT:
+
+        - ``other`` - A projective space with the same base ring as ``self``
+
+        OUTPUT:
+
+        - A cartesian product of projective spaces
+
+        EXAMPLES::
+
+            sage: P1 = ProjectiveSpace(QQ,1,'x')
+            sage: P2 = ProjectiveSpace(QQ,2,'y')
+            sage: PP = P1.cartesian_product(P2); PP
+            Product of projective spaces P^1 x P^2 over Rational Field
+            sage: PP.gens()
+            (x0, x1, y0, y1, y2)
+        """
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        return ProductProjectiveSpaces([self, other])
+
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -1004,8 +1049,14 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
 
             sage: P1=ProjectiveSpace(GF(7),1,'x')
             sage: P1.rational_points_dictionary()
-            {(1 : 0): 7, (0 : 1): 0, (1 : 1): 1, (2 : 1): 2, (3 : 1): 3, (4 : 1): 4,
-            (5 : 1): 5, (6 : 1): 6}
+            {(0 : 1): 0,
+             (1 : 0): 7,
+             (1 : 1): 1,
+             (2 : 1): 2,
+             (3 : 1): 3,
+             (4 : 1): 4,
+             (5 : 1): 5,
+             (6 : 1): 6}
         """
         n = self.dimension_relative()
         R = self.base_ring()

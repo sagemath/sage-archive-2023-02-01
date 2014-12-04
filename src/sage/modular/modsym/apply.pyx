@@ -8,18 +8,9 @@
 #
 ##########################################################################
 
+include 'sage/ext/stdsage.pxi'
 
 from sage.rings.integer cimport Integer
-
-## from sage.rings.all import QQ
-## R = QQ['X']
-## def apply_to_monomial_0(int i, int j, int a, int b, int c, int d):
-##     f = R([b,a])
-##     g = R([d,c])
-##     if i < 0 or j-i < 0:
-##         raise ValueError, "i (=%s) and j-i (=%s) must both be nonnegative."%(i,j-i)
-##     h = (f**i)*(g**(j-i))
-##     return [int(z) for z in h.padded_list(j+1)]
 
 cdef class Apply:
     def __cinit__(self):

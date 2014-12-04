@@ -747,9 +747,13 @@ We see that two of these crystals are isomorphic, with character
     sage: [T1,T2,T3,T4] = \
       [crystals.TensorProduct(C,C,C,generators=[v]) for v in T.highest_weight_vectors()]
     sage: T1.plot()
+    Graphics object consisting of 35 graphics primitives
     sage: T2.plot()
+    Graphics object consisting of 25 graphics primitives
     sage: T3.plot()
+    Graphics object consisting of 25 graphics primitives
     sage: T4.plot()
+    Graphics object consisting of 2 graphics primitives
 
 Elements of ``crystals.TensorProduct(A,B,C, ...)`` are represented by
 sequences ``[a,b,c, ...]`` with ``a`` in ``A``, ``b`` in ``B``, etc.

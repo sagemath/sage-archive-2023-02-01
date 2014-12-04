@@ -654,8 +654,7 @@ class mwrank_EllipticCurve(SageObject):
             [[0, -1, 1]]
         """
         self.saturate()
-        from sage.misc.all import preparse
-        from sage.rings.all import Integer
+        from sage.all import *
         return eval(preparse(self.__two_descent_data().getbasis().replace(":",",")))
 
     def certain(self):
@@ -1407,8 +1406,5 @@ class mwrank_MordellWeil(SageObject):
             [[1, -1, 1], [-2, 3, 1], [-14, 25, 8]]
 
         """
-        from sage.misc.all import preparse
-        from sage.rings.all import Integer
+        from sage.all import *
         return eval(preparse(self.__mw.getbasis().replace(":",",")))
-
-

@@ -32,7 +32,7 @@ class CoxeterGroups(Category_singleton):
 
     `I` is the *index set* of `W` and `|I|` is the *rank* of `W`.
 
-    See http://en.wikipedia.org/wiki/Coxeter_group for details.
+    See :Wikipedia:`Coxeter_group` for details.
 
     EXAMPLES::
 
@@ -66,6 +66,19 @@ class CoxeterGroups(Category_singleton):
     .. TODO:: add a demo of usual computations on Coxeter groups.
 
     .. SEEALSO:: :class:`WeylGroups`, :mod:`sage.combinat.root_system`
+
+    .. WARNING::
+
+        It is assumed that morphisms in this category preserve the
+        distinguished choice of simple reflections. In particular,
+        subobjects in this category are parabolic subgroups. In this
+        sense, this category might be better named ``Coxeter
+        Systems``. In the long run we might want to have two distinct
+        categories, one for Coxeter groups (with morphisms being just
+        group morphisms) and one for Coxeter systems::
+
+            sage: CoxeterGroups().is_full_subcategory(Groups())
+            False
 
     TESTS::
 

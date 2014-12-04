@@ -13,7 +13,7 @@ It defines the following functions:
     :widths: 30, 70
     :delim: |
 
-    :func:`is_difference_family` | Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
+    :func:`is_difference_family` | Check if the input is a (``k``, ``l``)-difference family.
     :func:`singer_difference_set` | Return a difference set associated to hyperplanes in a projective space.
     :func:`difference_family` | Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
 
@@ -65,13 +65,56 @@ def group_law(G):
     else:
         raise ValueError("%s does not seem to be a group"%G)
 
-def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
+def block_stabilizer(G, B):
     r"""
-    Check wether ``D`` forms a difference family in ``G``.
+    Compute the left stabilizer of the block ``B`` under the action of ``G``.
+
+    This function return the list of all `x\in G` such that `x\cdot B=B` (as a
+    set).
 
     INPUT:
 
-    - ``G`` - Abelian group of cardinality ``v``
+    - ``G`` -- a group (additive or multiplicative).
+
+    - ``B`` -- a subset of ``G``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import block_stabilizer
+
+        sage: Z8 = Zmod(8)
+        sage: block_stabilizer(Z8, [Z8(0),Z8(2),Z8(4),Z8(6)])
+        [0, 2, 4, 6]
+        sage: block_stabilizer(Z8, [Z8(0),Z8(2)])
+        [0]
+
+        sage: C = cartesian_product([Zmod(4),Zmod(3)])
+        sage: block_stabilizer(C, [C((0,0)),C((2,0)),C((0,1)),C((2,1))])
+        [(0, 0), (2, 0)]
+
+        sage: b = map(Zmod(45),[1, 3, 7, 10, 22, 25, 30, 35, 37, 38, 44])
+        sage: block_stabilizer(Zmod(45),b)
+        [0]
+    """
+    if not B:
+        return list(G)
+    identity, op, inv = group_law(G)
+    b0 = inv(B[0])
+    S = []
+    for b in B:
+        # fun: if we replace +(-b) with -b it completely fails!!
+        bb0 = op(b,b0) # bb0 = b-B[0]
+        if all(op(bb0,c) in B for c in B):
+            S.append(bb0)
+    return S
+
+def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
+    r"""
+    Check wether ``D`` forms a difference family in the group ``G``.
+
+    INPUT:
+
+    - ``G`` - group of cardinality ``v``
 
     - ``D`` - a set of ``k``-subsets of ``G``
 
@@ -94,7 +137,16 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         sage: G = Zmod(41)
         sage: D = [[0,1,4,11,29],[0,2,8,17,21]]
         sage: is_difference_family(G, D, verbose=True)
-        the element 28 in G is obtained more than 1 times
+        Too few:
+          5 is obtained 0 times in blocks []
+          14 is obtained 0 times in blocks []
+          27 is obtained 0 times in blocks []
+          36 is obtained 0 times in blocks []
+        Too much:
+          4 is obtained 2 times in blocks [0, 1]
+          13 is obtained 2 times in blocks [0, 1]
+          28 is obtained 2 times in blocks [0, 1]
+          37 is obtained 2 times in blocks [0, 1]
         False
         sage: D = [[0,1,4,11,29],[0,2,8,17,22]]
         sage: is_difference_family(G, D)
@@ -114,75 +166,138 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         sage: is_difference_family(G, D)
         True
 
+    The following example has a third block with a non-trivial stabilizer::
+
+        sage: G = Zmod(15)
+        sage: D = [[0,1,4],[0,2,9],[0,5,10]]
+        sage: is_difference_family(G,D,verbose=True)
+        It is a (15,3,1)-difference family
+        True
+
     The function also supports multiplicative groups (non necessarily Abelian)::
 
         sage: G = DihedralGroup(8)
         sage: x,y = G.gens()
-        sage: D1 = [[1,x,x^4], [1,x^2, y*x], [1,x^5,y], [1,x^6,y*x^2], [1,x^7,y*x^5]]
+        sage: i = G.one()
+        sage: D1 = [[i,x,x^4], [i,x^2, y*x], [i,x^5,y], [i,x^6,y*x^2], [i,x^7,y*x^5]]
         sage: is_difference_family(G, D1, 16, 3, 2)
         True
+        sage: from sage.combinat.designs.bibd import BIBD_from_difference_family
+        sage: bibd = BIBD_from_difference_family(G,D1,lambd=2)
     """
+    import operator
+
+    identity, mul, inv = group_law(G)
+
+    Glist = list(G)
+
+    D = [map(G,d) for d in D]
+
+    # Check v (and define it if needed)
     if v is None:
-        v = G.cardinality()
+        v = len(Glist)
     else:
-        v = int(v)
-        if G.cardinality() != v:
+        if len(Glist) != v:
             if verbose:
-                print "G must have cardinality v (=%d)"%v
+                print "G must have cardinality v (=%d)"%int(v)
             return False
 
+    # Check k (and define it if needed)
     if k is None:
         k = len(D[0])
     else:
         k = int(k)
 
-    b = len(D)
+    for d in D:
+        if len(d) != k:
+            if verbose:
+                print "the block {} does not have length {}".format(d,k)
+            return False
 
-    if any(len(d) != k for d in D):
-        if verbose:
-            print "each element of D must have cardinality k (=%d)"%k
-        return False
-
+    # Check l (and define it if needed)
+    #
+    # - nb_diff: the number of pairs (with multiplicity) covered by the BIBD
+    #            generated by the DF.
+    #
+    # - stab: the stabilizer of each set.
+    nb_diff = 0
+    stab = []
+    for d in D:
+        s = block_stabilizer(G,d)
+        stab.append(s)
+        nb_diff += k*(k-1) / len(s)
     if l is None:
-        if (b*k*(k-1)) % (v-1) != 0:
+        if nb_diff % (v-1) != 0:
             if verbose:
-                print "bk(k-1) is not 0 mod (v-1)"
+                print "the number of differences (={}) must be a multiple of v-1={}".format(nbdiff,v-1)
             return False
-        l = b*k*(k-1) // (v-1)
+        l = nb_diff // (v-1)
     else:
-        l = int(l)
-        if b*k*(k-1) != l*(v-1):
+        if nb_diff != l*(v-1):
             if verbose:
-                print "the relation bk(k-1) == l(v-1) is not satisfied with b=%d, k=%d, l=%d, v=%d"%(b,k,l,v)
+                print "the number of differences (={}) is not equal to l*(v-1) = {}".format(nb_diff, l*(v-1))
             return False
 
-    identity, op, inv = group_law(G)
-
-    # now we check that every non-identity element of G occurs exactly l-time
-    # as a difference
-    counter = {g: 0 for g in G}
+    # Check that every x \in G-{0},occurs exactly l times as a difference
+    counter = {g: 0 for g in Glist}
+    where   = {g: set() for g in Glist}
     del counter[identity]
 
-    for d in D:
-        dd = map(G,d)
-        for i in xrange(k):
-            for j in xrange(k):
-                if i == j:
+    for i,d in enumerate(D):
+        tmp_counter = {}
+        for b in d:
+            for c in d:
+                if b == c:
                     continue
-                g = op(dd[i], inv(dd[j]))
-                if g == identity:
-                    if verbose:
-                        print "two identical elements in the same block"
-                    return False
-                counter[g] += 1
-                if counter[g] > l:
-                    if verbose:
-                        print "the element %s in G is obtained more than %s times"%(g,l)
-                    return False
+                gg = mul(b,inv(c)) # = b-c or bc^{-1}
+                if gg not in tmp_counter:
+                    tmp_counter[gg] = 0
+                where[gg].add(i)
+                tmp_counter[gg] += 1
+
+        if sum(tmp_counter.itervalues()) != k*(k-1):
+            if verbose:
+                print "repeated element in the {}-th block {}".format(i,dd)
+            return False
+
+        # Normalized number of occurrences added to counter
+        stabi = len(stab[i])
+        for gg in tmp_counter:
+            counter[gg] += tmp_counter[gg]//stabi
+
+    # Check the counter and report any error
+    too_few  = []
+    too_much = []
+    for g in Glist:
+        if g == identity:
+            continue
+        if counter[g] < l:
+            if verbose:
+                too_few.append(g)
+            else:
+                return False
+        if counter[g] > l:
+            if verbose:
+                too_much.append(g)
+            else:
+                return False
+
+    if too_few:
+        print "Too few:"
+        for g in too_few:
+            print "  {} is obtained {} times in blocks {}".format(
+                        g,counter[g],sorted(where[g]))
+    if too_much:
+        print "Too much:"
+        for g  in too_much:
+            print "  {} is obtained {} times in blocks {}".format(
+                        g,counter[g],sorted(where[g]))
+    if too_few or too_much:
+        return False
+
     if verbose:
         print "It is a ({},{},{})-difference family".format(v,k,l)
     return True
-
 
 def singer_difference_set(q,d):
     r"""
@@ -269,7 +384,7 @@ def singer_difference_set(q,d):
 
 def difference_family(v, k, l=1, existence=False, check=True):
     r"""
-    Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
+    Return a (``k``, ``l``)-difference family on an Abelian group of cardinality ``v``.
 
     Let `G` be a finite Abelian group. For a given subset `D` of `G`, we define
     `\Delta D` to be the multi-set of differences `\Delta D = \{x - y; x \in D,
@@ -323,9 +438,9 @@ def difference_family(v, k, l=1, existence=False, check=True):
         sage: for q in islice(prime_power_mod(1,30), 60):
         ....:     l6[designs.difference_family(q,6,existence=True)].append(q)
         sage: l6[True]
-        [31, 151, 181, 211, ...,  3061, 3121, 3181]
+        [31, 121, 151, 181, 211, ...,  3061, 3121, 3181]
         sage: l6[Unknown]
-        [61, 121]
+        [61]
         sage: l6[False]
         []
 
@@ -350,34 +465,56 @@ def difference_family(v, k, l=1, existence=False, check=True):
         ....:                 _ = designs.difference_family(v,k,l)
         ....:     if constructions:
         ....:         print "%2d: %s"%(v, ', '.join('(%d,%d)'%(k,l) for k,l in constructions))
-         4: (3,2)
-         5: (4,3)
-         7: (3,2), (6,5)
-         8: (7,6)
-         9: (4,3), (8,7)
-        11: (5,2), (5,4)
-        13: (3,2), (4,3), (6,5)
-        15: (7,3)
-        16: (3,2), (5,4)
-        17: (4,3), (8,7)
-        19: (3,2), (6,5), (9,4), (9,8)
-        25: (3,2), (4,3), (6,5), (8,7)
-        29: (4,3), (7,6)
-        31: (3,2), (5,4), (6,5)
-        37: (3,2), (4,3), (6,5), (9,2), (9,8)
-        41: (4,3), (5,4), (8,7)
-        43: (3,2), (6,5), (7,6)
-        49: (3,2), (4,3), (6,5), (8,7)
-        53: (4,3)
-        61: (3,2), (4,3), (5,4), (6,5)
-        64: (3,2), (7,6), (9,8)
-        67: (3,2), (6,5)
-        71: (5,4), (7,6)
-        73: (3,2), (4,3), (6,5), (8,7), (9,8)
-        79: (3,2), (6,5)
-        81: (4,3), (5,4), (8,7)
-        89: (4,3), (8,7)
-        97: (3,2), (4,3), (6,5), (8,7)
+         2: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         3: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         4: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         5: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         7: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         8: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+         9: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        11: (3,2), (4,3), (4,6), (5,2), (5,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        13: (3,2), (4,3), (5,4), (5,5), (6,5), (7,6), (8,7), (9,8)
+        15: (4,6), (5,6), (7,3)
+        16: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        17: (3,2), (4,3), (5,4), (5,5), (6,5), (7,6), (8,7), (9,8)
+        19: (3,2), (4,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,4), (9,5), (9,6), (9,7), (9,8)
+        21: (4,3), (6,3), (6,5)
+        22: (4,2), (6,5), (7,4), (8,8)
+        23: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        25: (3,2), (4,3), (5,4), (6,5), (7,6), (7,7), (8,7), (9,8)
+        27: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        28: (3,2), (6,5)
+        29: (3,2), (4,3), (5,4), (6,5), (7,3), (7,6), (8,4), (8,6), (8,7), (9,8)
+        31: (3,2), (4,2), (4,3), (5,2), (5,4), (6,5), (7,6), (8,7), (9,8)
+        32: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        33: (5,5), (6,5)
+        34: (4,2)
+        35: (5,2), (8,4)
+        37: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,2), (9,3), (9,8)
+        39: (6,5)
+        40: (3,2)
+        41: (3,2), (4,3), (5,4), (6,3), (6,5), (7,6), (8,7), (9,8)
+        43: (3,2), (4,2), (4,3), (5,4), (6,5), (7,2), (7,3), (7,6), (8,4), (8,7), (9,8)
+        46: (4,2), (6,2)
+        47: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        49: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,3), (9,8)
+        51: (5,2), (6,3)
+        53: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        55: (9,4)
+        57: (7,3)
+        59: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        61: (3,2), (4,3), (5,4), (6,2), (6,3), (6,5), (7,6), (8,7), (9,8)
+        64: (3,2), (4,3), (5,4), (6,5), (7,2), (7,6), (8,7), (9,8)
+        67: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        71: (3,2), (4,3), (5,2), (5,4), (6,5), (7,3), (7,6), (8,4), (8,7), (9,8)
+        73: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        75: (5,2)
+        79: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        81: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        83: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        85: (7,2), (7,3), (8,2)
+        89: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        97: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,3), (9,8)
 
     TESTS:
 
@@ -404,37 +541,57 @@ def difference_family(v, k, l=1, existence=False, check=True):
         ....:           assert designs.difference_family(v,k,l,existence=True) is True
         ....:           _ = designs.difference_family(v,k,l)
 
-    .. TODO::
+    Check twin primes difference sets::
 
-        There is a slightly more general version of difference families where
-        the stabilizers of the blocks are taken into account. A block is *short*
-        if the stabilizer is not trivial. The more general version is called a
-        *partial difference family*. It is still possible to construct BIBD from
-        this more general version (see the chapter 16 in the Handbook
-        [DesignHandbook]_).
+        sage: for p in [3,5,7,9,11]:
+        ....:     v = p*(p+2); k = (v-1)/2;  lmbda = (k-1)/2
+        ....:     G,D = designs.difference_family(v,k,lmbda)
+
+    Check the database:
+
+        sage: from sage.combinat.designs.database import DF
+        sage: for v,k,l in DF:
+        ....:     df = designs.difference_family(v,k,l,check=True)
+
+    .. TODO::
 
         Implement recursive constructions from Buratti "Recursive for difference
         matrices and relative difference families" (1998) and Jungnickel
         "Composition theorems for difference families and regular planes" (1978)
     """
-    if (l*(v-1)) % (k*(k-1)) != 0:
-        if existence:
-            return False
-        raise EmptySetError("A (v,%d,%d)-difference family may exist only if %d*(v-1) = mod %d"%(k,l,l,k*(k-1)))
-
     from block_design import are_hyperplanes_in_projective_geometry_parameters
-    from database import DF_constructions
-    if (v,k,l) in DF_constructions:
+
+    from database import DF
+
+    if (v,k,l) in DF:
         if existence:
             return True
-        return DF_constructions[(v,k,l)]()
+
+        vv, blocks = DF[v,k,l].iteritems().next()
+
+        # Build the group
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        if len(vv) == 1:
+            G = Zmod(vv[0])
+        else:
+            from sage.categories.cartesian_product import cartesian_product
+            G = cartesian_product([Zmod(i) for i in vv])
+
+        df = [[G(i) for i in b] for b in blocks]
+
+        if check:
+            assert is_difference_family(G, df, v=v, k=k, l=l), "Sage built an invalid ({},{},{})-DF!".format(v,k,l)
+
+        return G,df
 
     e = k*(k-1)
     t = l*(v-1) // e  # number of blocks
 
     D = None
 
-    if arith.is_prime_power(v):
+    factorization = arith.factor(v)
+
+    if len(factorization) == 1:  # i.e. is v a prime power
         from sage.rings.finite_rings.constructor import GF
         G = K = GF(v,'z')
         x = K.multiplicative_generator()
@@ -512,6 +669,49 @@ def difference_family(v, k, l=1, existence=False, check=True):
                         B = [one,r,r**2,c,c*r,c*r**2]
                         D = [[x**(i*5) * b for b in B] for i in xrange(t)]
                         break
+
+    # Twin prime powers construction (see :wikipedia:`Difference_set`)
+    #
+    # i.e. v = p(p+2) where p and p+2 are prime powers
+    #      k = (v-1)/2
+    #      lambda = (k-1)/2
+    elif (len(factorization) == 2 and
+          abs(pow(*factorization[0])-pow(*factorization[1])) == 2 and
+          k == (v-1)//2 and
+          (l is None or 2*l == (v-1)//2-1)):
+
+        # A difference set can be built from the set of elements
+        # (x,y) in GF(p) x GF(p+2) such that:
+        #
+        # - either y=0
+        # - x and y with x and y     squares
+        # - x and y with x and y non-squares
+        if existence:
+            return True
+
+        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.categories.cartesian_product import cartesian_product
+        from itertools import product
+        p,q = pow(*factorization[0]), pow(*factorization[1])
+        if p>q:
+            p,q=q,p
+        Fp = FiniteField(p,'x')
+        Fq = FiniteField(q,'x')
+        Fpset = set(Fp)
+        Fqset = set(Fq)
+        Fp_squares = set(x**2 for x in Fpset)
+        Fq_squares = set(x**2 for x in Fqset)
+
+        # Pairs of squares, pairs of non-squares
+        d = []
+        d.extend(product(Fp_squares.difference([0]),Fq_squares.difference([0])))
+        d.extend(product(Fpset.difference(Fp_squares),Fqset.difference(Fq_squares)))
+
+        # All (x,0)
+        d.extend((x,0) for x in Fpset)
+
+        G = cartesian_product([Fp,Fq])
+        D = [d]
 
     if D is None and are_hyperplanes_in_projective_geometry_parameters(v,k,l):
         _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)

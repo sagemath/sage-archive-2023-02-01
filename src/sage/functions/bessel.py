@@ -111,11 +111,13 @@ EXAMPLES:
         sage: f(x) = Bessel(0)(x); f
         x |--> bessel_J(0, x)
         sage: plot(f, (x, 1, 10))
+        Graphics object consisting of 1 graphics primitive
 
     Visualize the Bessel Y function on the complex plane
     (set plot_points to a higher value to get more detail)::
 
         sage: complex_plot(bessel_Y(0, x), (-5, 5), (-5, 5), plot_points=20)
+        Graphics object consisting of 1 graphics primitive
 
     Evaluate a combination of Bessel functions::
 
@@ -187,7 +189,7 @@ from sage.rings.all import RR, Integer
 from sage.structure.coerce import parent
 from sage.structure.element import get_coercion_model
 from sage.symbolic.constants import pi
-from sage.symbolic.function import BuiltinFunction, is_inexact
+from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
 
 # remove after deprecation period
@@ -273,7 +275,9 @@ class Function_Bessel_J(BuiltinFunction):
     Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_J(1,x), (x,0,5), color='blue')
+        Graphics object consisting of 1 graphics primitive
         sage: complex_plot(bessel_J(1, x), (-5, 5), (-5, 5), plot_points=20)
+        Graphics object consisting of 1 graphics primitive
 
     ALGORITHM:
 
@@ -298,25 +302,6 @@ class Function_Bessel_J(BuiltinFunction):
                                  conversions=dict(mathematica='BesselJ',
                                                   maxima='bessel_j',
                                                   sympy='besselj'))
-
-    def _eval_(self, n, x):
-        """
-        EXAMPLES::
-
-            sage: a, b = var('a, b')
-            sage: bessel_J(a, b)
-            bessel_J(a, b)
-            sage: bessel_J(1.0, 1.0)
-            0.440050585744933
-        """
-        if (not isinstance(n, Expression) and
-                not isinstance(x, Expression) and
-                (is_inexact(n) or is_inexact(x))):
-            coercion_model = get_coercion_model()
-            n, x = coercion_model.canonical_coercion(n, x)
-            return self._evalf_(n, x, parent(n))
-
-        return None
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """
@@ -401,6 +386,8 @@ class Function_Bessel_Y(BuiltinFunction):
         1.03440456978312 - 0.135747669767038*I
         sage: bessel_Y(0, 0).n()
         -infinity
+        sage: bessel_Y(0, 1).n(128)
+        0.088256964215676957982926766023515162828
 
     Examples of symbolic manipulation::
 
@@ -425,17 +412,32 @@ class Function_Bessel_Y(BuiltinFunction):
     Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_Y(1,x), (x,0,5), color='blue')
+        Graphics object consisting of 1 graphics primitive
         sage: complex_plot(bessel_Y(1, x), (-5, 5), (-5, 5), plot_points=20)
+        Graphics object consisting of 1 graphics primitive
 
     ALGORITHM:
 
         Numerical evaluation is handled by the mpmath library. Symbolics are
         handled by a combination of Maxima and Sage (Ginac/Pynac).
 
+    TESTS:
+
     Check whether the return value is real whenever the argument is real (:trac:`10251`)::
 
         sage: bessel_Y(5, 1.5) in RR
         True
+
+    Coercion works correctly (see :trac:`17130`)::
+
+        sage: r = bessel_Y(RealField(200)(1), 1.0); r
+        -0.781212821300289
+        sage: parent(r)
+        Real Field with 53 bits of precision
+        sage: r = bessel_Y(RealField(200)(1), 1); r
+        -0.78121282130028871654715000004796482054990639071644460784383
+        sage: parent(r)
+        Real Field with 200 bits of precision
     """
     def __init__(self):
         """
@@ -450,24 +452,6 @@ class Function_Bessel_Y(BuiltinFunction):
                                  conversions=dict(mathematica='BesselY',
                                                   maxima='bessel_y',
                                                   sympy='bessely'))
-
-    def _eval_(self, n, x):
-        """
-        EXAMPLES::
-
-            sage: a,b = var('a, b')
-            sage: bessel_Y(a, b)
-            bessel_Y(a, b)
-            sage: bessel_Y(0, 1).n(128)
-            0.088256964215676957982926766023515162828
-        """
-        if (not isinstance(n, Expression) and not isinstance(x, Expression) and
-                (is_inexact(n) or is_inexact(x))):
-            coercion_model = get_coercion_model()
-            n, x = coercion_model.canonical_coercion(n, x)
-            return self._evalf_(n, x, parent(n))
-
-        return None  # leaves the expression unevaluated
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """
@@ -579,7 +563,9 @@ class Function_Bessel_I(BuiltinFunction):
     Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_I(1,x), (x,0,5), color='blue')
+        Graphics object consisting of 1 graphics primitive
         sage: complex_plot(bessel_I(1, x), (-5, 5), (-5, 5), plot_points=20)
+        Graphics object consisting of 1 graphics primitive
 
     ALGORITHM:
 
@@ -624,19 +610,11 @@ class Function_Bessel_I(BuiltinFunction):
             sage: bessel_I(-1/2, pi)
             sqrt(2)*cosh(pi)/pi
         """
-        if (not isinstance(n, Expression) and not isinstance(x, Expression) and
-                (is_inexact(n) or is_inexact(x))):
-            coercion_model = get_coercion_model()
-            n, x = coercion_model.canonical_coercion(n, x)
-            return self._evalf_(n, x, parent(n))
-
         # special identities
         if n == Integer(1) / Integer(2):
             return sqrt(2 / (pi * x)) * sinh(x)
         elif n == -Integer(1) / Integer(2):
             return sqrt(2 / (pi * x)) * cosh(x)
-
-        return None  # leaves the expression unevaluated
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """
@@ -714,7 +692,7 @@ class Function_Bessel_K(BuiltinFunction):
 
         sage: f = bessel_K(2, x)
         sage: f.diff(x)
-        1/2*bessel_K(3, x) + 1/2*bessel_K(1, x)
+        -1/2*bessel_K(3, x) - 1/2*bessel_K(1, x)
 
         sage: bessel_K(1/2, x)
         bessel_K(1/2, x)
@@ -744,7 +722,9 @@ class Function_Bessel_K(BuiltinFunction):
     Visualization (set plot_points to a higher value to get more detail)::
 
         sage: plot(bessel_K(1,x), (x,0,5), color='blue')
+        Graphics object consisting of 1 graphics primitive
         sage: complex_plot(bessel_K(1, x), (-5, 5), (-5, 5), plot_points=20)
+        Graphics object consisting of 1 graphics primitive
 
     ALGORITHM:
 
@@ -800,17 +780,9 @@ class Function_Bessel_K(BuiltinFunction):
             sage: bessel_K(-1, 1).n(128)
             0.60190723019723457473754000153561733926
         """
-        if (not isinstance(n, Expression) and not isinstance(x, Expression) and
-                (is_inexact(n) or is_inexact(x))):
-            coercion_model = get_coercion_model()
-            n, x = coercion_model.canonical_coercion(n, x)
-            return self._evalf_(n, x, parent(n))
-
         # special identity
         if n == Integer(1) / Integer(2) and x > 0:
             return sqrt(pi / 2) * exp(-x) * x ** (-Integer(1) / Integer(2))
-
-        return None  # leaves the expression unevaluated
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         """
@@ -832,7 +804,7 @@ class Function_Bessel_K(BuiltinFunction):
 
             sage: f(x) = bessel_K(10, x)
             sage: derivative(f, x)
-            x |--> 1/2*bessel_K(11, x) + 1/2*bessel_K(9, x)
+            x |--> -1/2*bessel_K(11, x) - 1/2*bessel_K(9, x)
             sage: nu = var('nu')
             sage: bessel_K(nu, x).diff(nu)
             Traceback (most recent call last):
@@ -840,7 +812,7 @@ class Function_Bessel_K(BuiltinFunction):
             NotImplementedError: derivative with respect to order
         """
         if diff_param == 1:
-            return (bessel_K(n - 1, x) + bessel_K(n + 1, x)) / Integer(2)
+            return -(bessel_K(n - 1, x) + bessel_K(n + 1, x)) / Integer(2)
         else:
             raise NotImplementedError('derivative with respect to order')
 
@@ -963,14 +935,17 @@ def Bessel(*args, **kwds):
         1
 
         sage: plot(f, (x,0,5))
+        Graphics object consisting of 1 graphics primitive
 
     Plotting::
 
         sage: f(x) = Bessel(0)(x); f
         x |--> bessel_J(0, x)
         sage: plot(f, (x, 1, 10))
+        Graphics object consisting of 1 graphics primitive
 
         sage: plot([ Bessel(i, 'J') for i in range(5) ], 2, 10)
+        Graphics object consisting of 5 graphics primitives
 
         sage: G = Graphics()
         sage: G += sum([ plot(Bessel(i), 0, 4*pi, rgbcolor=hue(sin(pi*i/10))) for i in range(5) ])

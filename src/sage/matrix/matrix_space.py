@@ -143,7 +143,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
     _no_generic_basering_coercion = True
 
     @staticmethod
-    def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False):
+    def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation='flint'):
         """
         Create with the command
 
@@ -154,13 +154,14 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         INPUT:
 
-        -  ``base_ring`` - a ring
-        -  ``nrows`` - int, the number of rows
-        -  ``ncols`` - (default nrows) int, the number of
-           columns
-        -  ``sparse`` - (default false) whether or not matrices
-           are given a sparse representation
-
+        - ``base_ring`` -- a ring
+        - ``nrows`` -- int, the number of rows
+        - ``ncols`` -- (default nrows) int, the number of
+          columns
+        - ``sparse`` -- (default false) whether or not matrices
+          are given a sparse representation
+        - ``implementation`` -- (default 'flint') choose an
+          implementation (only applicable over `\Z`)
 
         OUTPUT:
 
@@ -205,23 +206,31 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         ::
 
-            sage: M = MatrixSpace(ZZ, 10)
+            sage: M = MatrixSpace(ZZ, 10, implementation="flint")
             sage: M
             Full MatrixSpace of 10 by 10 dense matrices over Integer Ring
             sage: loads(M.dumps()) is M
             True
 
+        TESTS::
+
+            sage: MatrixSpace(ZZ, 10, implementation="foobar")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown matrix implementation 'foobar'
         """
         if base_ring not in _Rings:
             raise TypeError("base_ring (=%s) must be a ring"%base_ring)
         if ncols is None: ncols = nrows
         nrows = int(nrows); ncols = int(ncols); sparse=bool(sparse)
-        return super(MatrixSpace, cls).__classcall__(cls, base_ring, nrows, ncols, sparse)
+        return super(MatrixSpace, cls).__classcall__(
+                cls, base_ring, nrows, ncols, sparse, implementation)
 
     def __init__(self,  base_ring,
                         nrows,
                         ncols=None,
-                        sparse=False):
+                        sparse=False,
+                        implementation='flint'):
         """
         TEST:
 
@@ -258,6 +267,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: B = MatrixSpace(RDF,1000,1000).random_element()
             sage: C = A * B
         """
+        self._implementation = implementation
+
         if ncols is None: ncols = nrows
         from sage.categories.all import Modules, Algebras
         parent_gens.ParentWithGens.__init__(self, base_ring) # category = Modules(base_ring)
@@ -293,6 +304,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             category = Algebras(base_ring.category())
         else:
             category = Modules(base_ring.category())
+
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
 
@@ -371,7 +383,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         else:
             return True
 
-    def __call__(self, entries=None, coerce=True, copy=True):
+    def __call__(self, entries=None, coerce=True, copy=True, sparse = False):
         """
         EXAMPLES::
 
@@ -930,6 +942,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         R = self.base_ring()
         if self.is_dense():
             if sage.rings.integer_ring.is_IntegerRing(R):
+                if self._implementation != 'flint':
+                    raise ValueError("unknown matrix implementation %r" % self._implementation)
                 return matrix_integer_dense.Matrix_integer_dense
             elif sage.rings.rational_field.is_RationalField(R):
                 return matrix_rational_dense.Matrix_rational_dense

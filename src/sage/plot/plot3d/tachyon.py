@@ -38,9 +38,11 @@ AUTHOR:
 
 - Tom Boothby: 3d function plotting n'stuff
 
-- Leif Hille: key idea for bugfix for texfunc issue (trac #799)
+- Leif Hille: key idea for bugfix for texfunc issue (:trac:`799`)
 
 - Marshall Hampton: improved doctests, rings, axis-aligned boxes.
+
+- Paul Graham: Respect global verbosity settings (:trac:`16228`)
 
 .. TODO:
 
@@ -54,6 +56,8 @@ from sage.interfaces.tachyon import tachyon_rt
 from sage.structure.sage_object import SageObject
 
 from sage.misc.misc import SAGE_TMP
+from sage.misc.misc import get_verbose
+from sage.misc.viewer import png_viewer
 from sage.misc.temporary_file import tmp_filename, graphics_filename
 
 #from sage.ext import fast_tachyon_routines
@@ -285,7 +289,7 @@ class Tachyon(SageObject):
         """
         self.save(filename, *args, **kwds)
 
-    def save(self, filename='sage.png', verbose=0, block=True, extra_opts=''):
+    def save(self, filename='sage.png', verbose=None, block=True, extra_opts=''):
         r"""
         INPUT:
 
@@ -303,7 +307,9 @@ class Tachyon(SageObject):
 
         -  ``png`` - 24-bit PNG (compressed, lossless)
 
-        -  ``verbose`` - integer; (default: 0)
+        -  ``verbose`` - integer (default: None); if no verbosity setting 
+           is supplied, the verbosity level set by 
+           sage.misc.misc.set_verbose is used.
 
         -  ``0`` - silent
 
@@ -328,19 +334,71 @@ class Tachyon(SageObject):
             sage: os.system('rm ' + tempname)
             0
         """
+        if verbose is None:
+            verbose = get_verbose()
+
         tachyon_rt(self.str(), filename, verbose, block, extra_opts)
 
-    def show(self, verbose=0, extra_opts=''):
+    def show(self, verbose=None, extra_opts=''):
         r"""
         Create a PNG file of the scene.
 
-        EXAMPLES::
-
-            sage: q = Tachyon()
-            sage: q.light((-1,-1,10), 1,(1,1,1))
-            sage: q.texture('s')
-            sage: q.sphere((0,0,0),1,'s')
-            sage: q.show(verbose=False)
+        EXAMPLES:
+        
+        This example demonstrates how the global Sage verbosity setting 
+        is used if none is supplied. Firstly, using a global verbosity 
+        setting of 0 means no extra technical information is displayed, 
+        and we are simply shown the plot.
+        
+        ::
+            
+            sage: h = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
+            sage: h.light((4.4,-4.4,4.4), 0.2, (1,1,1))
+            sage: def f(x,y): return float(sin(x*y))
+            sage: h.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
+            sage: h.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, num_colors=60)  # increase min_depth for better picture
+            sage: set_verbose(0)
+            sage: h.show() 
+            
+        This second example, using a "medium" global verbosity
+        setting of 1, displays some extra technical information then
+        displays our graph.
+        
+        ::
+            
+            sage: s = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
+            sage: s.light((4.4,-4.4,4.4), 0.2, (1,1,1))
+            sage: def f(x,y): return float(sin(x*y))
+            sage: s.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
+            sage: s.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, num_colors=60)  # increase min_depth for better picture
+            sage: set_verbose(1)
+            sage: s.show()
+            tachyon ...
+            Scene contains 2713 objects.
+            ...
+            
+        The last example shows how you can override the global Sage
+        verbosity setting, my supplying a setting level as an argument.
+        In this case we chose the highest verbosity setting level, 2,
+        so much more extra technical information is shown, along with
+        the plot.
+        
+        ::
+            
+            sage: set_verbose(0)
+            sage: d = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
+            sage: d.light((4.4,-4.4,4.4), 0.2, (1,1,1))
+            sage: def f(x,y): return float(sin(x*y))
+            sage: d.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
+            sage: d.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, num_colors=60)  # increase min_depth for better picture
+            sage: get_verbose()
+            0
+            sage: d.show(verbose=2)
+            tachyon ...
+            Scene contains 2713 objects.
+            ...
+            Scene contains 1 non-gridded objects
+            ...
         """
         filename = graphics_filename()
         self.save(filename, verbose=verbose, extra_opts=extra_opts)
@@ -348,7 +406,7 @@ class Tachyon(SageObject):
         from sage.doctest import DOCTEST_MODE
         from sage.plot.plot import EMBEDDED_MODE
         if not DOCTEST_MODE and not EMBEDDED_MODE:
-            os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.png_viewer(), filename))
+            os.system('%s %s 2>/dev/null 1>/dev/null &'%(png_viewer(), filename))
 
     def _res(self):
         r"""

@@ -498,16 +498,18 @@ ensemblistes usuelles.
 ::
 
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
-    sage: X
-    set(['a', 1, 19])
+    sage: X   # random sort order
+    {1, 19, 'a'}
+    sage: X == set(['a', 1, 1, 19])
+    True
     sage: Y
-    set([1, 2/3])
+    {2/3, 1}
     sage: 'a' in X
     True
     sage: 'a' in Y
     False
     sage: X.intersection(Y)
-    set([1])
+    {1}
 
 Sage a son propre type ensemble, qui est (dans certains cas) implémenté
 au-dessus du type Python, mais offre quelques fonctionnalités
@@ -517,8 +519,10 @@ supplémentaires utiles à Sage. Pour créer un ensemble Sage, on utilise
 ::
 
     sage: X = Set([1,19,'a']);   Y = Set([1,1,1, 2/3])
-    sage: X
+    sage: X   # random sort order
     {'a', 1, 19}
+    sage: X == Set(['a', 1, 1, 19])
+    True
     sage: Y
     {1, 2/3}
     sage: X.intersection(Y)
@@ -620,8 +624,8 @@ L'opérateur ``==`` est le test d'égalité.
 ::
 
     sage: for i in range(15):
-    ...       if gcd(i,15) == 1:
-    ...           print(i)
+    ....:     if gcd(i,15) == 1:
+    ....:         print(i)
     1
     2
     4
@@ -637,11 +641,11 @@ instructions ``if``, ``for`` et ``while`` :
 ::
 
     sage: def legendre(a,p):
-    ...       is_sqr_modp=-1
-    ...       for i in range(p):
-    ...           if a % p == i^2 % p:
-    ...               is_sqr_modp=1
-    ...       return is_sqr_modp
+    ....:     is_sqr_modp=-1
+    ....:     for i in range(p):
+    ....:         if a % p == i^2 % p:
+    ....:             is_sqr_modp=1
+    ....:     return is_sqr_modp
 
     sage: legendre(2,7)
     1

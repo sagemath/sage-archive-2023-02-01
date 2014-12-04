@@ -598,8 +598,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         Coercion from symbolic variables::
 
-            sage: x,y,z = var('x,y,z')
-            sage: R = QQ[x,y,z]
+            sage: R = QQ['x,y,z']
+            sage: var('x')
+            x
             sage: R(x)
             x
 
@@ -2889,7 +2890,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: R.<x,y,z> = QQ[]
             sage: f=2*x*y^3*z^2 + 1/7*x^2 + 2/3
             sage: f.dict()
-            {(1, 3, 2): 2, (0, 0, 0): 2/3, (2, 0, 0): 1/7}
+            {(0, 0, 0): 2/3, (1, 3, 2): 2, (2, 0, 0): 1/7}
         """
         cdef poly *p
         cdef ring *r = self._parent_ring
@@ -2911,7 +2912,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             p = pNext(p)
         return pd
 
-    cdef long _hash_c(self):
+    cdef long _hash_c(self) except -1:
         """
         See ``self.__hash__``
         """

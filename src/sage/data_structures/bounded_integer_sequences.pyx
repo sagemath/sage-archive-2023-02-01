@@ -384,17 +384,17 @@ cdef mp_size_t biseq_reverse_contains(biseq_t S1, biseq_t S2, mp_size_t start) e
 # A cdef class that wraps the above, and
 # behaves like a tuple
 
-from sage.rings.integer import Integer
+from sage.rings.integer cimport smallInteger
 cdef class BoundedIntegerSequence:
     """
     A sequence of non-negative uniformely bounded integers.
 
     INPUT:
 
-    - ``bound``, non-negative integer. When zero, a :class:`ValueError`
+    - ``bound`` -- non-negative integer. When zero, a :class:`ValueError`
       will be raised. Otherwise, the given bound is replaced by the
       power of two that is at least the given bound.
-    - ``data``, a list of integers.
+    - ``data`` -- a list of integers.
 
     EXAMPLES:
 
@@ -426,9 +426,7 @@ cdef class BoundedIntegerSequence:
         sage: list(L) == L
         True
 
-    Getting items and slicing works in the same way as for lists. Note,
-    however, that slicing is an operation that is relatively slow for bounded
-    integer sequences.  ::
+    Getting items and slicing works in the same way as for lists::
 
         sage: n = randint(0,4999)
         sage: S[n] == L[n]
@@ -470,8 +468,8 @@ cdef class BoundedIntegerSequence:
         sage: copy(L) is L
         False
 
-    Concatenation works in the same way for list, tuples and bounded integer
-    sequences::
+    Concatenation works in the same way for lists, tuples and bounded
+    integer sequences::
 
         sage: M = [randint(0,31) for i in range(5000)]
         sage: T = BoundedIntegerSequence(32, M)
@@ -569,7 +567,7 @@ cdef class BoundedIntegerSequence:
 
         """
         # In __init__, we'll raise an error if the bound is 0.
-        self.data.length = 0
+        self.data.data.bits = NULL
 
     def __dealloc__(self):
         """
@@ -588,12 +586,11 @@ cdef class BoundedIntegerSequence:
         """
         INPUT:
 
-        - ``bound`` -- non-negative. When zero, a :class:`ValueError`
-          will be raised. Otherwise, the given bound is replaced by the
-          next power of two that is greater than the given
-          bound.
-        - ``data`` -- a list of integers. The given integers will be
-          truncated to be less than the bound.
+        - ``bound`` -- positive integer. The given bound is replaced by
+          the next power of two that is greater than the given bound.
+
+        - ``data`` -- a list of non-negative integers, all less than
+          ``bound``.
 
         EXAMPLES::
 
@@ -622,10 +619,9 @@ cdef class BoundedIntegerSequence:
             ...
             OverflowError: long int too large to convert
 
-        We are testing the corner case of the maximal possible bound
-        on a 32-bit system::
+        We are testing the corner case of the maximal possible bound::
 
-            sage: S = BoundedIntegerSequence(2^32, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
+            sage: S = BoundedIntegerSequence(2*(sys.maxsize+1), [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
             sage: S
             <8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10>
 
@@ -635,10 +631,10 @@ cdef class BoundedIntegerSequence:
             Traceback (most recent call last):
             ...
             OverflowError: long int too large to convert
-            sage: BoundedIntegerSequence(100, [200])
+            sage: BoundedIntegerSequence(100, [100])
             Traceback (most recent call last):
             ...
-            OverflowError: list item 200 larger than 99
+            OverflowError: list item 100 larger than 99
 
         Bounds that are too large::
 
@@ -669,7 +665,6 @@ cdef class BoundedIntegerSequence:
     def __reduce__(self):
         """
         Pickling of :class:`BoundedIntegerSequence`
-
 
         EXAMPLES::
 
@@ -745,28 +740,11 @@ cdef class BoundedIntegerSequence:
             <0, 0, 0, 0>
 
         """
-        return '<'+self.str()+'>'
-
-    cdef str str(self):
-        """
-        A cdef helper function, returns the string representation without the brackets.
-
-        Used in :meth:`__repr__`.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.bounded_integer_sequences import BoundedIntegerSequence
-            sage: BoundedIntegerSequence(21, [4,1,6,2,7,20,9])   # indirect doctest
-            <4, 1, 6, 2, 7, 20, 9>
-
-        """
-        if self.data.length==0:
-            return ''
-        return ('{!s:}'+(self.data.length-1)*', {!s:}').format(*self.list())
+        return "<" + ", ".join(str(x) for x in self) + ">"
 
     def bound(self):
         """
-        The bound of this bounded integer sequence
+        Return the bound of this bounded integer sequence.
 
         All items of this sequence are non-negative integers less than the
         returned bound. The bound is a power of two.
@@ -782,7 +760,7 @@ cdef class BoundedIntegerSequence:
             64
 
         """
-        return Integer(1)<<self.data.itembitsize
+        return smallInteger(1) << self.data.itembitsize
 
     def __iter__(self):
         """
@@ -794,7 +772,10 @@ cdef class BoundedIntegerSequence:
             sage: list(S) == L   # indirect doctest
             True
 
-        TESTS:
+        TESTS::
+
+            sage: list(BoundedIntegerSequence(1, []))
+            []
 
         The discussion at :trac:`15820` explains why this is a good test::
 
@@ -808,10 +789,8 @@ cdef class BoundedIntegerSequence:
             [0, 0, 0, 0]
 
         """
-        if self.data.length==0:
-            return
         cdef mp_size_t index
-        for index from 0 <= index < self.data.length:
+        for index in range(self.data.length):
             yield biseq_getitem_py(self.data, index)
 
     def __getitem__(self, index):
@@ -831,11 +810,30 @@ cdef class BoundedIntegerSequence:
 
         TESTS::
 
-            sage: S = BoundedIntegerSequence(8, [4,1,6,2,7,2,5,5,2])
+            sage: S = BoundedIntegerSequence(10^8, range(9))
+            sage: S[-1]
+            8
+            sage: S[8]
+            8
+            sage: S[9]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: S[-10]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: S[2^63]
+            Traceback (most recent call last):
+            ...
+            OverflowError: long int too large to convert to int
+
+        ::
+
             sage: S[-1::-2]
-            <2, 5, 7, 6, 4>
+            <8, 6, 4, 2, 0>
             sage: S[1::2]
-            <1, 2, 2, 5>
+            <1, 3, 5, 7>
 
         ::
 
@@ -905,7 +903,7 @@ cdef class BoundedIntegerSequence:
         if ind < 0:
             ind += self.data.length
         if ind < 0 or ind >= self.data.length:
-            raise IndexError("ind out of range")
+            raise IndexError("index out of range")
         return biseq_getitem_py(self.data, ind)
 
     def __contains__(self, other):
@@ -933,7 +931,7 @@ cdef class BoundedIntegerSequence:
             sage: S.index(6+S.bound())
             Traceback (most recent call last):
             ...
-            ValueError: BoundedIntegerSequence.index(x): x(=38) not in sequence
+            ValueError: 38 is not in sequence
 
         TESTS:
 
@@ -967,13 +965,21 @@ cdef class BoundedIntegerSequence:
             sage: B.index(B[8:])
             8
 
+        ::
+
+            sage: -1 in B
+            False
+
         """
         if not isinstance(other, BoundedIntegerSequence):
-            return biseq_index(self.data, other, 0)>=0
+            try:
+                return biseq_index(self.data, other, 0) >= 0
+            except OverflowError:
+                return False
         cdef BoundedIntegerSequence right = other
         if self.data.itembitsize!=right.data.itembitsize:
             return False
-        return biseq_contains(self.data, right.data, 0)>=0
+        return biseq_contains(self.data, right.data, 0) >= 0
 
     cpdef list list(self):
         """
@@ -1050,58 +1056,69 @@ cdef class BoundedIntegerSequence:
             sage: S.index(5)
             Traceback (most recent call last):
             ...
-            ValueError: BoundedIntegerSequence.index(x): x(=5) not in sequence
-            sage: S.index(-3)
-            Traceback (most recent call last):
-            ...
-            ValueError: BoundedIntegerSequence.index(x): x(=-3) not in sequence
+            ValueError: 5 is not in sequence
             sage: S.index(BoundedIntegerSequence(21, [6, 2, 6]))
             2
             sage: S.index(BoundedIntegerSequence(21, [6, 2, 7]))
             Traceback (most recent call last):
             ...
-            ValueError: Not a sub-sequence
+            ValueError: not a sub-sequence
 
         The bound of (sub-)sequences matters::
 
             sage: S.index(BoundedIntegerSequence(51, [6, 2, 6]))
             Traceback (most recent call last):
             ...
-            ValueError: Not a sub-sequence
+            ValueError: not a sub-sequence
             sage: S.index(0)
             7
             sage: S.index(S.bound())
             Traceback (most recent call last):
             ...
-            ValueError: BoundedIntegerSequence.index(x): x(=32) not in sequence
+            ValueError: 32 is not in sequence
 
         TESTS::
 
-            sage: S = BoundedIntegerSequence(8, [2, 2, 2, 1, 2, 4, 3, 3, 3, 2, 2, 0])
+            sage: S = BoundedIntegerSequence(10^9, [2, 2, 2, 1, 2, 4, 3, 3, 3, 2, 2, 0])
             sage: S[11]
             0
             sage: S.index(0)
             11
 
+        ::
+
+            sage: S.index(-3)
+            Traceback (most recent call last):
+            ...
+            ValueError: -3 is not in sequence
+            sage: S.index(2^100)
+            Traceback (most recent call last):
+            ...
+            ValueError: 1267650600228229401496703205376 is not in sequence
+            sage: S.index("hello")
+            Traceback (most recent call last):
+            ...
+            TypeError: an integer is required
+
         """
         cdef mp_size_t out
         if not isinstance(other, BoundedIntegerSequence):
-            if other<0 or (<mp_limb_t>other)&self.data.mask_item!=other:
-                raise ValueError("BoundedIntegerSequence.index(x): x(={}) not in sequence".format(other))
             try:
-                out = biseq_index(self.data, <mp_limb_t>other, 0)
-            except TypeError:
-                raise ValueError("BoundedIntegerSequence.index(x): x(={}) not in sequence".format(other))
-            if out>=0:
+                out = biseq_index(self.data, other, 0)
+            except OverflowError:
+                out = -1
+            if out >= 0:
                 return out
-            raise ValueError("BoundedIntegerSequence.index(x): x(={}) not in sequence".format(other))
+            raise ValueError("{!r} is not in sequence".format(other))
+
         cdef BoundedIntegerSequence right = other
-        if self.data.itembitsize!=right.data.itembitsize:
-            raise ValueError("Not a sub-sequence")
-        out = biseq_contains(self.data, right.data, 0)
-        if out>=0:
+        if self.data.itembitsize != right.data.itembitsize:
+            out = -1
+        else:
+            out = biseq_contains(self.data, right.data, 0)
+        if out >= 0:
             return out
-        raise ValueError("Not a sub-sequence")
+        raise ValueError("not a sub-sequence")
 
     def __add__(self, other):
         """
@@ -1130,7 +1147,7 @@ cdef class BoundedIntegerSequence:
             sage: T+list(S)
             Traceback (most recent call last):
             ...
-            TypeError:  Cannot convert list to sage.data_structures.bounded_integer_sequences.BoundedIntegerSequence
+            TypeError: Cannot convert list to sage.data_structures.bounded_integer_sequences.BoundedIntegerSequence
             sage: T+None
             Traceback (most recent call last):
             ...
@@ -1235,7 +1252,7 @@ cdef class BoundedIntegerSequence:
 
         """
         cdef BoundedIntegerSequence right
-        cdef BoundedIntegerSequence Self
+        cdef BoundedIntegerSequence left
         if other is None:
             return 1
         if self is None:
@@ -1245,16 +1262,16 @@ cdef class BoundedIntegerSequence:
         except TypeError:
             return -1
         try:
-            Self = self
+            left = self
         except TypeError:
             return 1
-        cdef int c = cmp(Self.data.itembitsize, right.data.itembitsize)
+        cdef int c = cmp(left.data.itembitsize, right.data.itembitsize)
         if c:
             return c
-        c = cmp(Self.data.length, right.data.length)
+        c = cmp(left.data.length, right.data.length)
         if c:
             return c
-        return bitset_cmp(Self.data.data, right.data.data)
+        return bitset_cmp(left.data.data, right.data.data)
 
     def __hash__(self):
         """
@@ -1306,18 +1323,14 @@ cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize
 
     And another one::
 
-        sage: S = BoundedIntegerSequence(2^32-1, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
+        sage: S = BoundedIntegerSequence(2*sys.maxsize, [8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10])
         sage: loads(dumps(S))
         <8, 8, 26, 18, 18, 8, 22, 4, 17, 22, 22, 7, 12, 4, 1, 7, 21, 7, 10, 10>
 
     """
     cdef BoundedIntegerSequence out = BoundedIntegerSequence.__new__(BoundedIntegerSequence)
-    out.data.itembitsize = itembitsize
-    out.data.mask_item = limb_lower_bits_up(itembitsize)
-    out.data.length = length
-    
     # bitset_unpickle assumes that out.data.data is initialised.
-    bitset_init(out.data.data, GMP_LIMB_BITS)
+    biseq_init(out.data, length, itembitsize)
     bitset_unpickle(out.data.data, bitset_data)
     return out
 

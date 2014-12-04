@@ -43,10 +43,11 @@ cimported in Cython modules:
   ``S1[start:]``, or ``-1`` if ``S2`` is not a subsequence. Does not check
   whether the sequences have the same bound!
 
-- ``cdef mp_size_t biseq_max_overlap(biseq_t S1, biseq_t S2) except 0``
+- ``cdef mp_size_t biseq_reverse_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:``
 
-  Return the minimal *positive* integer ``i`` such that ``S2`` starts with
-  ``S1[i:]``.  This function will *not* test whether ``S2`` starts with ``S1``!
+  Return ``i`` such that the bounded integer sequence ``S1`` starts with
+  the sequence ``S2[i:]``, where ``start <= i < S2.length``, or return
+  ``-1`` if no such ``i`` exists.
 
 - ``cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2``
 
@@ -209,36 +210,6 @@ cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
     return mpn_equal_bits(S1.data.bits, S2.data.bits, S2.data.size)
 
 
-cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
-    """
-    Tests if the bounded integer sequence ``S1[start:]`` contains a
-    sub-sequence ``S2``.
-
-    INPUT:
-
-    - ``S1``, ``S2`` -- two bounded integer sequences
-    - ``start`` -- integer, start index
-
-    OUTPUT:
-
-    Index ``i>=start`` such that ``S1[i:]`` starts with ``S2``, or ``-1`` if
-    ``S1[start:]`` does not contain ``S2``.
-
-    ASSUMPTION:
-
-    - The two sequences must have equivalent bounds, i.e., the items on the
-      sequences must fit into the same number of bits. This condition is not
-      tested.
-
-    """
-    if S2.length == 0:
-        return start
-    cdef mp_size_t index
-    for index from start <= index <= S1.length-S2.length:
-        if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, S2.data.size, index*S1.itembitsize):
-            return index
-    return -1
-
 cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
     """
     Returns the position in ``S`` of an item in ``S[start:]``, or -1 if
@@ -343,43 +314,71 @@ cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop
         biseq_inititem(R, tgt_index, biseq_getitem(S, src_index))
         src_index += step
 
-cdef mp_size_t biseq_max_overlap(biseq_t S1, biseq_t S2) except 0:
-    """
-    Returns the smallest **positive** integer ``i`` such that ``S2`` starts with ``S1[i:]``.
 
-    Returns ``-1`` if there is no overlap. Note that ``i==0`` (``S2`` starts with ``S1``)
-    will not be considered!
+cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
+    """
+    Tests if the bounded integer sequence ``S1[start:]`` contains a
+    sub-sequence ``S2``.
 
     INPUT:
 
     - ``S1``, ``S2`` -- two bounded integer sequences
+    - ``start`` -- integer, start index
+
+    OUTPUT:
+
+    Index ``i >= start`` such that ``S1[i:]`` starts with ``S2``, or ``-1`` if
+    ``S1[start:]`` does not contain ``S2``.
 
     ASSUMPTION:
 
-    The two sequences must have equivalent bounds, i.e., the items on the
-    sequences must fit into the same number of bits. This condition is not
-    tested.
+    - The two sequences must have equivalent bounds, i.e., the items on the
+      sequences must fit into the same number of bits. This condition is not
+      tested.
 
     """
-    if S1.length == 0:
-        raise ValueError("First argument must be of positive length")
-    cdef mp_size_t index, start_index
-    if S2.length>=S1.length:
-        start_index = 1
-    else:
-        start_index = S1.length-S2.length
-    if start_index == S1.length:
-        return -1
-    cdef mp_bitcnt_t offset = S1.itembitsize*start_index
-    cdef mp_bitcnt_t overlap = (S1.length-start_index)*S1.itembitsize
-    for index from start_index<=index<S1.length-1:
-        if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, overlap, offset):
+    if S2.length == 0:
+        return start
+    cdef mp_size_t index
+    for index from start <= index <= S1.length-S2.length:
+        if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits,
+                S2.length*S2.itembitsize, index*S2.itembitsize):
             return index
-        overlap -= S1.itembitsize
-        offset  += S1.itembitsize
-    if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits, overlap, offset):
-        return index
     return -1
+
+cdef mp_size_t biseq_reverse_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
+    """
+    Return ``i`` such that the bounded integer sequence ``S1`` starts with
+    the sequence ``S2[i:]``, where ``start <= i < S2.length``.
+
+    INPUT:
+
+    - ``S1``, ``S2`` -- two bounded integer sequences
+    - ``start`` -- integer, start index
+
+    OUTPUT:
+
+    Index ``i >= start`` such that ``S1`` starts with ``S2[i:], or ``-1``
+    if no such ``i < S2.length`` exists.
+
+    ASSUMPTION:
+
+    - The two sequences must have equivalent bounds, i.e., the items on the
+      sequences must fit into the same number of bits. This condition is not
+      tested.
+
+    """
+    # Increase start if S1 is too short to contain S2[start:]
+    if S1.length < S2.length - start:
+        start = S2.length - S1.length
+    cdef mp_size_t index
+    for index from start <= index < S2.length:
+        if mpn_equal_bits_shifted(S1.data.bits, S2.data.bits,
+                (S2.length - index)*S2.itembitsize, index*S2.itembitsize):
+            return index
+    return -1
+
+
 
 ###########################################
 # A cdef class that wraps the above, and
@@ -1180,9 +1179,7 @@ cdef class BoundedIntegerSequence:
             <0, 0>
 
         """
-        if other.startswith(self):
-            return self
-        cdef mp_size_t i = biseq_max_overlap(self.data, other.data)
+        cdef mp_size_t i = biseq_reverse_contains(other.data, self.data, 0)
         if i==-1:
             return None
         return self[i:]
@@ -1371,5 +1368,4 @@ def _biseq_stresstest():
             T = L[randint(0,99)]
             biseq_startswith(S.data,T.data)
             biseq_contains(S.data, T.data, 0)
-            if S.data.length>0:
-                biseq_max_overlap(S.data, T.data)
+            biseq_reverse_contains(S.data, T.data, 0)

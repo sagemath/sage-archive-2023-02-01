@@ -124,15 +124,15 @@ cdef inline int negdegrevlex(path_mon_t *M1, path_mon_t *M2):
     cdef int c = cmp(M2.path.length, M1.path.length)
     if c!=0:
         return c
-    c = cmp(M1.mid, M2.mid)
-    if c!=0:
-        return c
     # mpn_cmp does comparison of long integers. If the two long integers have
     # the same number of digits (this is the case her), it is the same as
     # lexicographic comparison of the numbers. The highest digit corresponds
     # to the right-most item in the path. Hence, it becomes
     # reverse-lexicographic order.
     c = mpn_cmp(M1.path.data.bits, M2.path.data.bits, M1.path.data.limbs)
+    if c!=0:
+        return c
+    c = cmp(M1.mid, M2.mid)
     if c!=0:
         return c
     return cmp(M2.pos, M1.pos)
@@ -1064,8 +1064,14 @@ cdef bint poly_iadd_lrmul(path_poly_t *P1, object coef, biseq_t L, path_poly_t *
         T2 = T2.nxt
     return True
 
-cdef bint poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t R, path_order_t cmp_terms, int mid, int pos, int cutoff) except -1:
-    # Replace P1 by P1+coef*P2*R.
+cdef path_term_t *poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t R, path_order_t cmp_terms, int mid, int pos, int cutoff, path_term_t *P1start) except NULL:
+    # Replace P1 by P1+coef*P2*R. Return a pointer to the first term of P1
+    # that may be involved in a change when calling the function again with
+    # P1, P2 and a "smaller" cofactor R. The return value should then be
+    # provided as argument "P1start" of the next function call.
+    #
+    # We return P1start if P2.lead is NULL, otherwise if P1.lead becomes NULL during
+    # addition, then we return P2.lead.
     #
     # "mid" encodes the new mid, which is needed when reducing a module
     # element by an algebra relation. If 0<mid, we are apparently
@@ -1077,13 +1083,18 @@ cdef bint poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t 
     # Only create terms of degree strictly less than cutoff.
     #print ("start addmul poly")
     if not coef or P2.lead==NULL:
-        return True
+        return P1start
     cdef path_mon_t *new_mon
     cdef object new_coef
     cdef path_term_t *prev = NULL
-    cdef path_term_t *T1 = P1.lead
+    cdef path_term_t *T1
+    if P1start == NULL:
+        T1 = P1.lead
+    else:
+        T1 = P1start
     cdef path_term_t *T2 = P2.lead
     cdef int c
+    cdef path_term_t *out = P1start
     while T2!=NULL:
         new_coef = coef*<object>(T2.coef)
         if not new_coef:
@@ -1132,6 +1143,8 @@ cdef bint poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t 
             else:
                 prev.nxt = term_create_keep_mon(new_coef, new_mon)
                 prev = prev.nxt
+            if T2 == P2.lead:
+                out = prev
             prev.nxt = NULL
             preinc(P1.nterms)
         elif c==-1:
@@ -1142,6 +1155,8 @@ cdef bint poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t 
             else:
                 prev.nxt = term_create_keep_mon(new_coef, new_mon)
                 prev = prev.nxt
+            if T2 == P2.lead:
+                out = prev
             prev.nxt = T1
             preinc(P1.nterms)
         else:
@@ -1152,6 +1167,8 @@ cdef bint poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t 
                 Py_INCREF(new_coef)
                 Py_DECREF(<object>(T1.coef))
                 T1.coef = <PyObject*>new_coef
+                if T2 == P2.lead:
+                    out = T1
                 prev = T1
                 T1 = T1.nxt
             else:
@@ -1161,9 +1178,13 @@ cdef bint poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t 
                     P1.lead = T1
                 else:
                     prev.nxt = T1
+                if T2 == P2.lead:
+                    out = prev
         T2 = T2.nxt
-    #return poly_is_sane(P1)
-    return True
+    #poly_is_sane(P1)
+    if out == NULL:
+        return P2.lead
+    return out
 
 ########################################
 ##

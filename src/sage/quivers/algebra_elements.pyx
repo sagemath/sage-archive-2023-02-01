@@ -80,19 +80,19 @@ cdef class PathAlgebraElement(RingElement):
         True
 
     When the Cython implementation of path algebra elements was introduced, it
-    was faster than the default implementation of free algebras, but slower
-    than the letterplace implementation::
+    was faster than both the default implementation and the letterplace
+    implementation of free algebras::
 
         sage: timeit('pF^5+3*pF^3')    # not tested
-        1 loops, best of 3: 333 ms per loop
+        1 loops, best of 3: 338 ms per loop
         sage: timeit('pP^5+3*pP^3')    # not tested
-        100 loops, best of 3: 3.5 ms per loop
+        100 loops, best of 3: 2.55 ms per loop
         sage: timeit('pF2^7')          # not tested
-        10000 loops, best of 3: 509 ms per loop
+        10000 loops, best of 3: 513 ms per loop
         sage: timeit('pL2^7')          # not tested
-        125 loops, best of 3: 2.05 ms per loop
+        125 loops, best of 3: 1.99 ms per loop
         sage: timeit('pP2^7')          # not tested
-        10000 loops, best of 3: 21.8 ms per loop
+        10000 loops, best of 3: 1.54 ms per loop
 
     """
     def __cinit__(self, *args, **kwds):
@@ -1359,6 +1359,7 @@ cdef class PathAlgebraElement(RingElement):
         cdef path_homog_poly_t *out_orig = NULL
         cdef path_homog_poly_t *out = NULL
         cdef path_homog_poly_t *nxt
+        cdef path_term_t *P1start
         cdef int c
         while H1 != NULL:
             H2 = right.data
@@ -1383,18 +1384,24 @@ cdef class PathAlgebraElement(RingElement):
                     # into out_orig; or out!=NULL, and we need to put the
                     # product into out.nxt
                     if out == NULL:
+                        P1start = out_orig.poly.lead
                         while T2 != NULL:
                             #assert poly_is_sane(out_orig.poly)
                             #print "out==0, T2!=0", H1.start, H1.end, H2.start,H2.end,
-                            poly_iadd_lmul(out_orig.poly, <object>T2.coef, H1.poly, T2.mon.path,
-                                           self.cmp_terms, 0, 0, -1)
+                            P1start = poly_iadd_lmul(out_orig.poly, <object>T2.coef, H1.poly,
+                                                     T2.mon.path, self.cmp_terms, 0, 0, -1, P1start)
+                            if P1start == H1.poly.lead:
+                                P1start = out_orig.poly.lead
                             T2 = T2.nxt
                     else:
+                        P1start = out.nxt.poly.lead
                         while T2 != NULL:
                             #assert poly_is_sane(out.nxt.poly)
                             #print "out!=0, T2!=0", H1.start, H1.end, H2.start, H2.end, 
-                            poly_iadd_lmul(out.nxt.poly, <object>T2.coef, H1.poly, T2.mon.path,
-                                           self.cmp_terms, 0, 0, -1)
+                            P1start = poly_iadd_lmul(out.nxt.poly, <object>T2.coef, H1.poly,
+                                                     T2.mon.path, self.cmp_terms, 0, 0, -1, P1start)
+                            if P1start == H1.poly.lead:
+                                P1start = out.nxt.poly.lead
                             T2 = T2.nxt                                
                 H2 = H2.nxt
             H1 = H1.nxt

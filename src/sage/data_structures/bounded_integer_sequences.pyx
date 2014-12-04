@@ -43,11 +43,11 @@ cimported in Cython modules:
   ``S1[start:]``, or ``-1`` if ``S2`` is not a subsequence. Does not check
   whether the sequences have the same bound!
 
-- ``cdef mp_size_t biseq_reverse_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:``
+- ``cdef mp_size_t biseq_starswith_tail(biseq_t S1, biseq_t S2, mp_size_t start) except -2:``
 
-  Return ``i`` such that the bounded integer sequence ``S1`` starts with
-  the sequence ``S2[i:]``, where ``start <= i < S2.length``, or return
-  ``-1`` if no such ``i`` exists.
+  Return the smallest number ``i`` such that the bounded integer sequence
+  ``S1`` starts with the sequence ``S2[i:]``, where ``start <= i <
+  S1.length``, or return ``-1`` if no such ``i`` exists.
 
 - ``cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2``
 
@@ -327,8 +327,8 @@ cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
 
     OUTPUT:
 
-    Index ``i >= start`` such that ``S1[i:]`` starts with ``S2``, or ``-1`` if
-    ``S1[start:]`` does not contain ``S2``.
+    The smallest index ``i >= start`` such that ``S1[i:]`` starts with
+    ``S2``, or ``-1`` if ``S1[start:]`` does not contain ``S2``.
 
     ASSUMPTION:
 
@@ -346,10 +346,11 @@ cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
             return index
     return -1
 
-cdef mp_size_t biseq_reverse_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
+cdef mp_size_t biseq_startswith_tail(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
     """
-    Return ``i`` such that the bounded integer sequence ``S1`` starts with
-    the sequence ``S2[i:]``, where ``start <= i < S2.length``.
+    Return the smallest index ``i`` such that the bounded integer sequence
+    ``S1`` starts with the sequence ``S2[i:]``, where ``start <= i <
+    S2.length``.
 
     INPUT:
 
@@ -358,8 +359,8 @@ cdef mp_size_t biseq_reverse_contains(biseq_t S1, biseq_t S2, mp_size_t start) e
 
     OUTPUT:
 
-    Index ``i >= start`` such that ``S1`` starts with ``S2[i:], or ``-1``
-    if no such ``i < S2.length`` exists.
+    The smallest index ``i >= start`` such that ``S1`` starts with ``S2[i:],
+    or ``-1`` if no such ``i < S2.length`` exists.
 
     ASSUMPTION:
 
@@ -377,7 +378,6 @@ cdef mp_size_t biseq_reverse_contains(biseq_t S1, biseq_t S2, mp_size_t start) e
                 (S2.length - index)*S2.itembitsize, index*S2.itembitsize):
             return index
     return -1
-
 
 
 ###########################################
@@ -1194,9 +1194,13 @@ cdef class BoundedIntegerSequence:
             None
             sage: (X+S).maximal_overlap(BoundedIntegerSequence(21, [0,0]))
             <0, 0>
+            sage: B1 = BoundedIntegerSequence(4,[1,2,3,2,3,2,3])
+            sage: B2 = BoundedIntegerSequence(4,[2,3,2,3,2,3,1])
+            sage: B1.maximal_overlap(B2)
+            <2, 3, 2, 3, 2, 3>
 
         """
-        cdef mp_size_t i = biseq_reverse_contains(other.data, self.data, 0)
+        cdef mp_size_t i = biseq_startswith_tail(other.data, self.data, 0)
         if i==-1:
             return None
         return self[i:]
@@ -1381,4 +1385,4 @@ def _biseq_stresstest():
             T = L[randint(0,99)]
             biseq_startswith(S.data,T.data)
             biseq_contains(S.data, T.data, 0)
-            biseq_reverse_contains(S.data, T.data, 0)
+            biseq_startswith_tail(S.data, T.data, 0)

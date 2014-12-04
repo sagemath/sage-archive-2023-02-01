@@ -158,15 +158,15 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
     - ``bound`` -- a number which is the maximal value of an item
     """
     cdef mp_size_t index = 0
-    cdef mp_limb_t item_limb
+    cdef size_t item_c
 
     biseq_init(R, len(data), BIT_COUNT(bound|<size_t>1))
 
     for item in data:
-        item_limb = item
-        if item_limb > bound:
-            raise ValueError("list item {} larger than {}".format(item, bound) )
-        biseq_inititem(R, index, item_limb)
+        item_c = item
+        if item_c > bound:
+            raise OverflowError("list item {!r} larger than {}".format(item, bound) )
+        biseq_inititem(R, index, item_c)
         index += 1
 
 #
@@ -426,7 +426,7 @@ cdef class BoundedIntegerSequence:
         sage: BoundedIntegerSequence(16, [2, 7, 20])
         Traceback (most recent call last):
         ...
-        ValueError: list item 20 larger than 15
+        OverflowError: list item 20 larger than 15
 
     Bounded integer sequences are iterable, and we see that we can recover the
     originally given list::
@@ -538,13 +538,13 @@ cdef class BoundedIntegerSequence:
         sage: BoundedIntegerSequence(16, [2, 7, -20])
         Traceback (most recent call last):
         ...
-        OverflowError: can't convert negative value to mp_limb_t
+        OverflowError: can't convert negative value to size_t
         sage: BoundedIntegerSequence(1, [0, 0, 0])
         <0, 0, 0>
         sage: BoundedIntegerSequence(1, [0, 1, 0])
         Traceback (most recent call last):
         ...
-        ValueError: list item 1 larger than 0
+        OverflowError: list item 1 larger than 0
         sage: BoundedIntegerSequence(0, [0, 1, 0])
         Traceback (most recent call last):
         ...
@@ -648,7 +648,7 @@ cdef class BoundedIntegerSequence:
             sage: BoundedIntegerSequence(100, [200])
             Traceback (most recent call last):
             ...
-            ValueError: list item 200 larger than 99
+            OverflowError: list item 200 larger than 99
 
         Bounds that are too large::
 

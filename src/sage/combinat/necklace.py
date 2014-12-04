@@ -21,8 +21,10 @@ The algorithm used in this file comes from
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.composition import Composition
-from combinat import CombinatorialClass
+from sage.combinat.combinat import CombinatorialClass
 from sage.rings.arith import euler_phi,factorial, divisors, gcd
 from sage.rings.integer import Integer
 from sage.misc.misc import prod
@@ -82,9 +84,38 @@ class Necklaces_evaluation(CombinatorialClass):
             True
         """
         if isinstance(content, Composition):
-            self.content = content
+            self._content = content
         else:
-            self.content = Composition(content)
+            self._content = Composition(content)
+
+    @lazy_attribute
+    def e(self):
+        """
+        Deprecated in :trac:`17436`. Use :meth:`content` instead.
+
+        TESTS::
+
+            sage: N = Necklaces([2,2,2])
+            sage: N.e
+            doctest:...: DeprecationWarning: e attribute is deprecated. Use the content method instead
+            See http://trac.sagemath.org/17436 for details.
+            [2, 2, 2]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(17436, 'e attribute is deprecated. Use the content method instead')
+        return self._content
+
+    def content(self):
+        """
+        Return the content (or evaluation) of the necklaces.
+
+        TESTS::
+
+            sage: N = Necklaces([2,2,2])
+            sage: N.content()
+            [2, 2, 2]
+        """
+        return self._content
 
     def __repr__(self):
         r"""
@@ -93,7 +124,7 @@ class Necklaces_evaluation(CombinatorialClass):
             sage: repr(Necklaces([2,1,1]))
             'Necklaces with evaluation [2, 1, 1]'
         """
-        return "Necklaces with evaluation %s"%self.content
+        return "Necklaces with evaluation %s"%self._content
 
     def __contains__(self, x):
         r"""
@@ -120,8 +151,8 @@ class Necklaces_evaluation(CombinatorialClass):
             True
         """
         xl = list(x)
-        e = [0]*len(self.content)
-        if len(xl) != sum(self.content):
+        e = [0]*len(self._content)
+        if len(xl) != sum(self._content):
             return False
 
         #Check to make sure xl is a list of integers
@@ -130,12 +161,12 @@ class Necklaces_evaluation(CombinatorialClass):
                 return False
             if i <= 0:
                 return False
-            if i > len(self.content):
+            if i > len(self._content):
                 return False
             e[i-1] += 1
 
         #Check to make sure the evaluation is the same
-        if e != self.content:
+        if e != self._content:
             return False
 
         #Check to make sure that x is lexicographically less
@@ -183,7 +214,7 @@ class Necklaces_evaluation(CombinatorialClass):
             sage: all( [ n.cardinality() == len(n.list()) for n in ns] )
             True
         """
-        evaluation = self.content
+        evaluation = self._content
         le = list(evaluation)
         if not le:
             return 0
@@ -224,12 +255,12 @@ class Necklaces_evaluation(CombinatorialClass):
              [1, 3, 1, 3, 3, 2],
              [1, 3, 2, 1, 3, 3]]
         """
-        if not self.content:
+        if not self._content:
             return
         k = 0
-        while not self.content[k]: # == 0
+        while not self._content[k]: # == 0
             k = k+1
-        for z in _sfc(self.content[k:]):
+        for z in _sfc(self._content[k:]):
             yield map(lambda x: x+1+k, z)
 
 
@@ -426,6 +457,11 @@ def _sfc(content, equality=False):
 
     - ``content`` -- a list of non-negative integers with no leading 0s
     - ``equality`` -- boolean (optional, default: ``True``)
+
+    .. WARNING::
+
+        You will get incorrect results if there are leading 0's in ``content``.
+        See :trac:`12997` and :trac:`17436`.
 
     EXAMPLES::
 

@@ -442,7 +442,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         cdef rational.Rational x = PY_NEW(rational.Rational)
         if mpz_sgn(right.value) == 0:
-            raise ZeroDivisionError, 'Rational division by zero'
+            raise ZeroDivisionError('Rational division by zero')
         mpz_set(mpq_numref(x.value), left.value)
         mpz_set(mpq_denref(x.value), right.value)
         mpq_canonicalize(x.value)

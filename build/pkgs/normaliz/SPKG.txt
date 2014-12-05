@@ -1,0 +1,48 @@
+= normaliz =
+
+== Description ==
+
+Normaliz is a tool for computations in affine monoids, vector configurations, lattice polytopes,  and rational cones.
+
+For more details see http://www.mathematik.uni-osnabrueck.de/normaliz/
+
+== License ==
+
+ * GPL v3
+
+== SPKG Maintainers ==
+
+ * Andrey Novoseltsev
+
+== Upstream Contact ==
+
+ * Winfried Bruns <wbruns@uos.de>
+ * Bogdan Ichim <bogdan_ichim@yahoo.com>
+ * Christof Söger <csoeger@uos.de>
+
+== Dependencies ==
+
+== Special Update/Build Instructions ==
+
+ * The upstream "basic package" is placed in src/
+
+=== Patches ===
+
+ * 00-remove-static-option.patch ensures MacOS compatibility.
+ 
+ * 01-adjust-size-of-input-matrix-fix.patch fixes regression in 2.8 Singular interface (provided by Christof Söger from upstream).
+
+== Changelog ==
+
+=== normaliz-2.8.p1 (Dima Pasechnik, December 1 2014) ===
+
+ * added binary option to a patch call, as it now needs is
+
+=== normaliz-2.8.p0 (Dima Pasechnik, December 2 2012) ===
+ 
+ * Bumped up the version due to a nontrivial patch to singular.lib
+
+=== normaliz-2.8 (Andrey Novoseltsev, December 2 2012) ===
+
+ * Initial release. See Sage Trac #13234.
+

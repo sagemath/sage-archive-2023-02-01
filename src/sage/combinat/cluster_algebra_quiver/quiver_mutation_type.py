@@ -326,14 +326,16 @@ mutation types.
   the rank.
 
 - Affine type -- there is more than one convention for naming affine
-types.  * Kac's notation: ``letter`` is a Dynkin type, ``rank`` is the
-rank of the associated finite Dynkin diagram, and ``twist`` is the
-twist, which could be 1, 2, or 3.  In the special case of affine type
-A, there is more than one quiver mutation type associated to the
-Cartan type.  In this case only, ``rank`` is a pair of integers (i,j),
-giving the number of edges pointing clockwise and the number of edges
-pointing counter-clockwise.  The total number of vertices is given by
-i+j in this case.
+  types.
+
+    * Kac's notation: ``letter`` is a Dynkin type, ``rank`` is the
+      rank of the associated finite Dynkin diagram, and ``twist`` is the
+      twist, which could be 1, 2, or 3.  In the special case of affine
+      type A, there is more than one quiver mutation type associated to
+      the Cartan type.  In this case only, ``rank`` is a pair of integers
+      (i,j), giving the number of edges pointing clockwise and the number
+      of edges pointing counter-clockwise.  The total number of vertices
+      is given by i+j in this case.
 
     * Naive notation: ``letter`` is one of 'BB', 'BC', 'BD', 'CC',
       'CD'.  The name specifies the two ends of the diagram, which are
@@ -393,7 +395,7 @@ i+j in this case.
 REFERENCES:
 
 - A good reference for finite and affine Dynkin diagrams, including
-  Kac's notation, is the Wikipedia article :wikipedia:`Dynkin_diagram`.
+  Kac's notation, is the :wikipedia:`Dynkin_diagram`.
 
 - A good reference for the skew-symmetrizable elliptic diagrams is
   "Cluster algebras of finite mutation type via unfolding" by

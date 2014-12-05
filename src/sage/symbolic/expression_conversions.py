@@ -507,6 +507,47 @@ class InterfaceInit(Converter):
             D[0](f)(x*y)
             sage: m.derivative(t, t.operator())
             "at(diff('f(_SAGE_VAR_t0), _SAGE_VAR_t0, 1), [_SAGE_VAR_t0 = (_SAGE_VAR_x)*(_SAGE_VAR_y)])"
+
+        TESTS:
+
+        Most of these confirm that :trac:`7401` was fixed::
+
+            sage: t=var('t'); f=function('f', t)
+            sage: a = 2**e^t*f.subs(t=e^t)*diff(f,t).subs(t=e^t) + 2*t
+            sage: solve ( a == 0, diff(f,t).subs(t=e^t))
+            [D[0](f)(e^t) == -2^(-e^t + 1)*t/f(e^t)]
+
+        ::
+
+            sage: a = function('f', x).diff(x).subs(x=exp(x)); b=maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=%e^_SAGE_VAR_x])
+            sage: b.sage()
+            D[0](f)(e^x)
+
+        ::
+
+            sage: a = function('f', x).diff(x).subs(x=4); b=maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4])
+            sage: b.sage()
+            D[0](f)(4)
+
+        It also works with more than one variable::
+
+            sage: x,y,=var('x y')
+            sage: a = function('f', x, y).diff(x).subs(x=4).subs(y=8)
+            sage: b=maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=8])
+            sage: b.sage()
+            D[0](f)(4, 8)
+
+        ::
+
+            sage: x,y,=var('x y')
+            sage: a = function('f', x, y).diff(x).subs(x=4)
+            sage: b=maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=_SAGE_VAR_y])
+            sage: b.sage()
+            D[0](f)(4, y)
         """
         #This code should probably be moved into the interface
         #object in a nice way.

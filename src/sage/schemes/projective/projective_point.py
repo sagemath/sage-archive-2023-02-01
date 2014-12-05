@@ -165,7 +165,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def __eq__(self,right):
         """
-        Tests the proejctive equality of two points.
+        Tests the projective equality of two points.
 
         INPUT:
 
@@ -267,7 +267,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def __ne__(self,right):
         """
-        Tests the proejctive equality of two points.
+        Tests the projective equality of two points.
 
         INPUT:
 

@@ -35,10 +35,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.integral_domains import IntegralDomains
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
 from sage.rings.infinity       import infinity
 from sage.rings.arith          import gcd, lcm, is_prime
+from sage.rings.fraction_field     import FractionField
 from sage.rings.integer_ring   import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.padics.all     import Qp
@@ -339,6 +341,48 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 if self._coords[i]*right._coords[j] != self._coords[j]*right._coords[i]:
                     return True
         return False
+
+    def __hash__(self):
+        """
+        Computes the hash value of ``self``.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
+            sage: hash(P([1,1]))
+            7316841028997809016             # 64-bit
+            sage: hash(P.point([2,2], False))
+            7316841028997809016             # 64-bit
+
+        ::
+
+            sage: R.<x>=PolynomialRing(QQ)
+            sage: K.<w>=NumberField(x^2+3)
+            sage: O=K.maximal_order()
+            sage: P.<x,y>=ProjectiveSpace(O,1)
+            sage: hash(P([1+w,2]))
+            4801154424156762579            # 64-bit
+            sage: hash(P([2,1-w]))
+            4801154424156762579            # 64-bit
+
+        ::
+
+            sage: P.<x,y>=ProjectiveSpace(Zmod(10), 1)
+            sage: hash(P([2,5]))
+            4677413289753502123            # 64-bit
+        """
+        R = self.codomain().base_ring()
+        #if there is a fraction field normalize the point so that
+        #equal points have equal hash values
+        if R in IntegralDomains():
+            P = self.change_ring(FractionField(R))
+            P.normalize_coordinates()
+            return hash(str(P))
+        #if there is no good way to normalize return
+        #a constant value
+        return hash(self.codomain())
 
     def scale_by(self,t):
         """
@@ -1055,6 +1099,24 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             X.extended_codomain()._check_satisfies_equations(v)
 
         self._coords = v
+
+    def __hash__(self):
+        """
+        Computes the hash value of ``self``.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ, 1)
+            sage: hash(P([1/2,1]))
+            3714374126286711103             # 64-bit
+            sage: hash(P.point([1,2], False))
+            3714374126286711103             # 64-bit
+        """
+        P = copy(self)
+        P.normalize_coordinates()
+        return hash(str(P))
 
     def normalize_coordinates(self):
         r"""

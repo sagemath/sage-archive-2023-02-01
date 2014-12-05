@@ -12,6 +12,7 @@ For more details see http://www.mathematik.uni-osnabrueck.de/normaliz/
 
 == SPKG Maintainers ==
 
+ * Dima Pasechnik
  * Andrey Novoseltsev
 
 == Upstream Contact ==
@@ -24,17 +25,29 @@ For more details see http://www.mathematik.uni-osnabrueck.de/normaliz/
 
 == Special Update/Build Instructions ==
 
- * The upstream "basic package" is placed in src/
+* Normaliz is now distributed as .zip archive. 
+  Download it from http://www.home.uni-osnabrueck.de/wbruns/normaliz/Normaliz2.12.1/
+  unzip  
+  tar cjf normaliz-<version>.tar.bz2
+  put the latter in $SAGEROOT/upstream/, etc.
 
 === Patches ===
 
- * 00-remove-static-option.patch ensures MacOS compatibility.
- 
- * 01-adjust-size-of-input-matrix-fix.patch fixes regression in 2.8 Singular interface (provided by Christof Söger from upstream).
+ *  no_static_stuff.patch - patching included into Makefile stuff that sets '-static' in CXXFLAGS 
+ *  cstddef_include.patch - include <cstddef> before mpir/gmp, to work around the MPIR bug 
 
 == Changelog ==
 
+=== normaliz-2.12.1 (Dima Pasechnik, December 5 2014) ===
+
+ * switched to spkg new style
+ * removed old obsolete patches
+ * added patch to get rid of '-static'
+ * added patch to include <cstddef> before mpir/gmp, to work around the MPIR bug
+   triggered by the update of gcc to 4.9.2
+
 === normaliz-2.8.p1 (Dima Pasechnik, December 1 2014) ===
+   (not be be released, see link on #17426)
 
  * added binary option to a patch call, as it now needs is
 

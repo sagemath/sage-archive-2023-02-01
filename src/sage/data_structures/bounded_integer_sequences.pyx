@@ -140,7 +140,9 @@ cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1:
     Initialize ``R`` as a copy of ``S``.
     """
     biseq_init(R, S.length, S.itembitsize)
+    sig_on()
     bitset_copy(R.data, S.data)
+    sig_off()
 
 #
 # Conversion
@@ -163,6 +165,7 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
     biseq_init(R, len(data), BIT_COUNT(bound|<size_t>1))
 
     for item in data:
+        sig_check()
         item_c = item
         if item_c > bound:
             raise OverflowError("list item {!r} larger than {}".format(item, bound) )
@@ -187,8 +190,10 @@ cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1:
     The result is written into ``R``, which must not be initialised
     """
     biseq_init(R, S1.length + S2.length, S1.itembitsize)
+    sig_on()
     bitset_lshift(R.data, S2.data, S1.length * S1.itembitsize)
     bitset_or(R.data, R.data, S1.data)
+    sig_off()
 
 
 cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
@@ -207,7 +212,10 @@ cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
         return False
     if S2.length == 0:
         return True
-    return mpn_equal_bits(S1.data.bits, S2.data.bits, S2.data.size)
+    sig_on()
+    ret = mpn_equal_bits(S1.data.bits, S2.data.bits, S2.data.size)
+    sig_off()
+    return ret
 
 
 cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
@@ -217,9 +225,12 @@ cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
 
     """
     cdef mp_size_t index
+    sig_on()
     for index from start <= index < S.length:
         if biseq_getitem(S, index) == item:
+            sig_off()
             return index
+    sig_off()
     return -1
 
 
@@ -304,15 +315,19 @@ cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop
 
     if step == 1:
         # Slicing essentially boils down to a shift operation.
+        sig_on()
         bitset_rshift(R.data, S.data, start*S.itembitsize)
+        sig_off()
         return 0
 
     # In the general case, we move item by item.
     cdef mp_size_t src_index = start
     cdef mp_size_t tgt_index
+    sig_on()
     for tgt_index in range(length):
         biseq_inititem(R, tgt_index, biseq_getitem(S, src_index))
         src_index += step
+    sig_off()
 
 
 cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
@@ -340,10 +355,13 @@ cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
     if S2.length == 0:
         return start
     cdef mp_size_t index
+    sig_on()
     for index from start <= index <= S1.length-S2.length:
         if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits,
                 S2.length*S2.itembitsize, index*S2.itembitsize):
+            sig_off()
             return index
+    sig_off()
     return -1
 
 cdef mp_size_t biseq_startswith_tail(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
@@ -373,10 +391,13 @@ cdef mp_size_t biseq_startswith_tail(biseq_t S1, biseq_t S2, mp_size_t start) ex
     if S1.length < S2.length - start:
         start = S2.length - S1.length
     cdef mp_size_t index
+    sig_on()
     for index from start <= index < S2.length:
         if mpn_equal_bits_shifted(S1.data.bits, S2.data.bits,
                 (S2.length - index)*S2.itembitsize, index*S2.itembitsize):
+            sig_off()
             return index
+    sig_off()
     return -1
 
 
@@ -1335,7 +1356,9 @@ cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize
     cdef BoundedIntegerSequence out = BoundedIntegerSequence.__new__(BoundedIntegerSequence)
     # bitset_unpickle assumes that out.data.data is initialised.
     biseq_init(out.data, length, itembitsize)
+    sig_on()
     bitset_unpickle(out.data.data, bitset_data)
+    sig_off()
     return out
 
 def _biseq_stresstest():
@@ -1343,17 +1366,23 @@ def _biseq_stresstest():
     This function creates many bounded integer sequences and manipulates them
     in various ways, in order to try to detect random memory corruptions.
 
+    This runs forever and must be interrupted (this means that
+    interrupting is also checked).
+
     TESTS::
 
         sage: from sage.data_structures.bounded_integer_sequences import _biseq_stresstest
-        sage: _biseq_stresstest()
-
+        sage: alarm(1); _biseq_stresstest()  # long time
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
     """
-    cdef int i
+    cdef int branch
+    cdef Py_ssize_t x, y, z
     from sage.misc.prandom import randint
-    cdef list L = [BoundedIntegerSequence(6, [randint(0,5) for x in range(randint(4,10))]) for y in range(100)]
+    cdef list L = [BoundedIntegerSequence(6, [randint(0,5) for z in range(randint(4,10))]) for y in range(100)]
     cdef BoundedIntegerSequence S, T
-    for i from 0<=i<10000:
+    while True:
         branch = randint(0,4)
         if branch == 0:
             L[randint(0,99)] = L[randint(0,99)]+L[randint(0,99)]
@@ -1364,7 +1393,7 @@ def _biseq_stresstest():
                 z = randint(y,len(L[x])-1)
                 L[randint(0,99)] = L[x][y:z]
             else:
-                L[x] = BoundedIntegerSequence(6, [randint(0,5) for x in range(randint(4,10))])
+                L[x] = BoundedIntegerSequence(6, [randint(0,5) for z in range(randint(4,10))])
         elif branch == 2:
             t = list(L[randint(0,99)])
             t = repr(L[randint(0,99)])
@@ -1379,7 +1408,7 @@ def _biseq_stresstest():
                 except ValueError:
                     raise ValueError("{} should be in {} (bound {}) at position {}".format(t,L[x],L[x].bound(),y))
             else:
-                L[x] = BoundedIntegerSequence(6, [randint(0,5) for x in range(randint(4,10))])
+                L[x] = BoundedIntegerSequence(6, [randint(0,5) for z in range(randint(4,10))])
         elif branch == 4:
             S = L[randint(0,99)]
             T = L[randint(0,99)]

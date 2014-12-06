@@ -54,20 +54,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.interfaces.all
-from sage.misc.sage_eval import sage_eval
-from sage.symbolic.function import BuiltinFunction, is_inexact
-from sage.calculus.calculus import maxima
+from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
-from sage.structure.parent import Parent
 from sage.structure.coerce import parent
 from sage.libs.mpmath import utils as mpmath_utils
 mpmath_utils_call = mpmath_utils.call # eliminate some overhead in _evalf_
 
-from sage.rings.rational_field import RationalField
 from sage.rings.real_mpfr import RealField
-from sage.rings.complex_field import ComplexField
-from sage.rings.all import ZZ, QQ, RR, RDF
+from sage.rings.all import ZZ
 from sage.functions.log import exp, log
 from sage.functions.trig import sin, cos
 from sage.functions.hyperbolic import sinh, cosh
@@ -185,12 +179,6 @@ class Function_exp_integral_e(BuiltinFunction):
             0.219383934395520
 
         """
-        if not isinstance(n, Expression) and not isinstance(z, Expression) and \
-               (is_inexact(n) or is_inexact(z)):
-            coercion_model = sage.structure.element.get_coercion_model()
-            n, z = coercion_model.canonical_coercion(n, z)
-            return self._evalf_(n, z, parent(n))
-
         z_zero = False
         # special case: z == 0 and n > 1
         if isinstance(z, Expression):
@@ -269,7 +257,12 @@ class Function_exp_integral_e1(BuiltinFunction):
 
     see [AS]_ 5.1.4.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: exp_integral_e1(x)
+        exp_integral_e1(x)
+        sage: exp_integral_e1(1.0)
+        0.219383934395520
 
     Numerical evaluation is handled using mpmath::
 
@@ -318,21 +311,6 @@ class Function_exp_integral_e1(BuiltinFunction):
                                  latex_name=r'exp_integral_e1',
                                  conversions=dict(maxima='expintegral_e1',
                                                   sympy='E1'))
-
-    def _eval_(self, z):
-        """
-        EXAMPLES::
-
-            sage: exp_integral_e1(x)
-            exp_integral_e1(x)
-            sage: exp_integral_e1(1.0)
-            0.219383934395520
-
-        """
-        if not isinstance(z, Expression) and is_inexact(z):
-            return self._evalf_(z, parent(z))
-
-        return None # leaves the expression unevaluated
 
     def _evalf_(self, z, parent=None, algorithm=None):
         """
@@ -452,15 +430,12 @@ class Function_log_integral(BuiltinFunction):
             0
 
         """
+        # Special case z = 0
         if isinstance(z, Expression):
-            if z.is_trivial_zero():         # special case: z = 0
+            if z.is_trivial_zero():
                 return z
-        else:
-            if is_inexact(z):
-                return self._evalf_(z, parent(z))
-            elif not z:
-                return z
-        return None # leaves the expression unevaluated
+        elif not z:
+            return z
 
     def _evalf_(self, z, parent=None, algorithm=None):
         """
@@ -640,9 +615,7 @@ class Function_log_integral_offset(BuiltinFunction):
             0
 
         """
-        if not isinstance(z,Expression) and is_inexact(z):
-            return self._evalf_(z,parent(z))
-        if z==2:
+        if z == 2:
             import sage.symbolic.ring
             return sage.symbolic.ring.SR(0)
         return li(z)-li(2)
@@ -814,18 +787,11 @@ class Function_sin_integral(BuiltinFunction):
             0
 
         """
-        if not isinstance(z, Expression) and is_inexact(z):
-            return self._evalf_(z, parent(z))
-
-        # special case: z = 0
         if isinstance(z, Expression):
             if z.is_trivial_zero():
                 return z
-        else:
-            if not z:
-                return z
-
-        return None # leaves the expression unevaluated
+        elif not z:
+            return z
 
     def _evalf_(self, z, parent=None, algorithm=None):
         """
@@ -892,7 +858,17 @@ class Function_cos_integral(BuiltinFunction):
     where `\gamma` is the Euler gamma constant (``euler_gamma`` in Sage),
     see [AS]_ 5.2.1.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: z = var('z')
+        sage: cos_integral(z)
+        cos_integral(z)
+        sage: cos_integral(3.0)
+        0.119629786008000
+        sage: cos_integral(0)
+        cos_integral(0)
+        sage: N(cos_integral(0))
+        -infinity
 
     Numerical evaluation for real and complex arguments is handled using mpmath::
 
@@ -969,26 +945,6 @@ class Function_cos_integral(BuiltinFunction):
                                  latex_name=r'\operatorname{Ci}',
                                  conversions=dict(maxima='expintegral_ci',
                                                   sympy='Ci'))
-
-    def _eval_(self, z):
-        """
-        EXAMPLES::
-
-            sage: z = var('z')
-            sage: cos_integral(z)
-            cos_integral(z)
-            sage: cos_integral(3.0)
-            0.119629786008000
-            sage: cos_integral(0)
-            cos_integral(0)
-            sage: N(cos_integral(0))
-            -infinity
-
-        """
-        if not isinstance(z, Expression) and is_inexact(z):
-            return self._evalf_(z, parent(z))
-
-        return None # leaves the expression unevaluated
 
     def _evalf_(self, z, parent=None, algorithm=None):
         """
@@ -1135,18 +1091,12 @@ class Function_sinh_integral(BuiltinFunction):
             0
 
         """
-        if not isinstance(z, Expression) and is_inexact(z):
-            return self._evalf_(z, parent(z))
-
         # special case: z = 0
         if isinstance(z, Expression):
             if z.is_trivial_zero():
                 return z
-        else:
-            if not z:
-                return z
-
-        return None # leaves the expression unevaluated
+        elif not z:
+            return z
 
     def _evalf_(self, z, parent=None, algorithm=None):
         """
@@ -1192,7 +1142,13 @@ class Function_cosh_integral(BuiltinFunction):
 
     see [AS]_ 5.2.4.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: z = var('z')
+        sage: cosh_integral(z)
+        cosh_integral(z)
+        sage: cosh_integral(3.0)
+        4.96039209476561
 
     Numerical evaluation for real and complex arguments is handled using mpmath::
 
@@ -1269,22 +1225,6 @@ class Function_cosh_integral(BuiltinFunction):
                                  conversions=dict(maxima='expintegral_chi',
                                                   sympy='Chi'))
 
-    def _eval_(self, z):
-        """
-        EXAMPLES::
-
-            sage: z = var('z')
-            sage: cosh_integral(z)
-            cosh_integral(z)
-            sage: cosh_integral(3.0)
-            4.96039209476561
-
-        """
-        if not isinstance(z, Expression) and is_inexact(z):
-            return self._evalf_(z, parent(z))
-
-        return None
-
     def _evalf_(self, z, parent=None, algorithm=None):
         """
         EXAMPLES::
@@ -1350,6 +1290,10 @@ class Function_exp_integral(BuiltinFunction):
         Ei(I + 3)
         sage: Ei(1.3)
         2.72139888023202
+        sage: Ei(10r)
+        Ei(10)
+        sage: Ei(1.3r)
+        2.7213988802320235
 
     The branch cut for this function is along the negative real axis::
 
@@ -1392,25 +1336,6 @@ class Function_exp_integral(BuiltinFunction):
         BuiltinFunction.__init__(self, "Ei",
                                  conversions=dict(maxima='expintegral_ei',
                                                   sympy='Ei'))
-
-    def _eval_(self, x ):
-        """
-        EXAMPLES::
-
-            sage: Ei(10)
-            Ei(10)
-            sage: Ei(I)
-            Ei(I)
-            sage: Ei(1.3)
-            2.72139888023202
-            sage: Ei(10r)
-            Ei(10)
-            sage: Ei(1.3r)
-            2.7213988802320235
-        """
-        if not isinstance(x, Expression) and is_inexact(x):
-            return self._evalf_(x, parent(x))
-        return None
 
     def _evalf_(self, x, parent=None, algorithm=None):
         """
@@ -1540,13 +1465,12 @@ def exponential_integral_1(x, n=0):
         else:
             raise NotImplementedError("Use the symbolic exponential integral " +
                                       "function: exp_integral_e1.")
-    elif not is_inexact(x): # x is exact and not an expression
-        if not x: # test if exact x == 0 quickly
-            from sage.rings.infinity import Infinity
-            return Infinity
 
-    # else x is not an exact 0
-    from sage.libs.pari.all import pari
+    # x == 0  =>  return Infinity
+    if not x:
+        from sage.rings.infinity import Infinity
+        return Infinity
+
     # Figure out output precision
     try:
         prec = parent(x).precision()

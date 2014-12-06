@@ -901,19 +901,19 @@ def load(*filename, compress=True, verbose=True):
         hello world
         [None, None, 2/3]
     """
-    import sage.misc.preparser
+    import sage.repl.load
     if len(filename) != 1:
         v = [load(file, compress=True, verbose=True) for file in filename]
         ret = False
         for file in filename:
-            if not sage.misc.preparser.is_loadable_filename(file):
+            if not sage.repl.load.is_loadable_filename(file):
                 ret = True
         return v if ret else None
     else:
         filename = filename[0]
 
-    if sage.misc.preparser.is_loadable_filename(filename):
-        sage.misc.preparser.load(filename, globals())
+    if sage.repl.load.is_loadable_filename(filename):
+        sage.repl.load.load(filename, globals())
         return
 
     ## Check if filename starts with "http://" or "https://"

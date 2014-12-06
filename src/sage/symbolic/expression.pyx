@@ -858,7 +858,7 @@ cdef class Expression(CommutativeRingElement):
         try:
             n = self.pyobject()
         except TypeError:
-            raise TypeError("unable to convert x (=%s) to an integer" % self)
+            raise TypeError("unable to convert %r to an integer" % self)
         if isinstance(n, sage.rings.integer.Integer):
             return n
         return sage.rings.integer.Integer(n)
@@ -5579,13 +5579,13 @@ cdef class Expression(CommutativeRingElement):
 
         ::
 
-            sage: R = QQ[x,y,z]
+            sage: R = QQ['x,y,z']
             sage: R(x^2 + y)
             x^2 + y
-            sage: R = QQ[w]
+            sage: R = QQ['w']
             sage: R(w^3 + w + 1)
             w^3 + w + 1
-            sage: R = GF(7)[z]
+            sage: R = GF(7)['z']
             sage: R(z^3 + 10*z)
             z^3 + 3*z
 
@@ -5596,7 +5596,7 @@ cdef class Expression(CommutativeRingElement):
 
         ::
 
-            sage: R = SR[x]
+            sage: R = SR['x']
             sage: a = R(sqrt(2) + x^3 + y)
             sage: a
             x^3 + y + sqrt(2)
@@ -5609,13 +5609,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = e*x^3 + pi*y^3 + sqrt(2) + I; f
             pi*y^3 + x^3*e + sqrt(2) + I
-            sage: R = CDF[x,y]
+            sage: R = CDF['x,y']
             sage: R(f)
-             2.71828182846*x^3 + 3.14159265359*y^3 + 1.41421356237 + 1.0*I
+            2.71828182846*x^3 + 3.14159265359*y^3 + 1.41421356237 + 1.0*I
 
         We coerce to a higher-precision polynomial ring::
 
-            sage: R = ComplexField(100)[x,y]
+            sage: R = ComplexField(100)['x,y']
             sage: R(f)
             2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950488016887242 + 1.0000000000000000000000000000*I
 
@@ -10131,41 +10131,6 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (1/k^5).sum(k, 1, oo)
             zeta(5)
-
-        .. WARNING::
-
-            This function only works with symbolic expressions. To sum any
-            other objects like list elements or function return values,
-            please use python summation, see
-            http://docs.python.org/library/functions.html#sum
-
-            In particular, this does not work::
-
-                sage: n = var('n')
-                sage: list=[1,2,3,4,5]
-                sage: sum(list[n],n,0,3)
-                Traceback (most recent call last):
-                ...
-                TypeError: unable to convert x (=n) to an integer
-
-            Use python ``sum()`` instead::
-
-                sage: sum(list[n] for n in range(4))
-                10
-
-            Also, only a limited number of functions are recognized in symbolic sums::
-
-                sage: sum(valuation(n,2),n,1,5)
-                Traceback (most recent call last):
-                ...
-                AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
-
-            Again, use python ``sum()``::
-
-                sage: sum(valuation(n+1,2) for n in range(5))
-                3
-
-            (now back to the Sage ``sum`` examples)
 
         A well known binomial identity::
 

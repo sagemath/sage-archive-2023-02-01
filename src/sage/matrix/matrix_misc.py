@@ -20,6 +20,7 @@ Miscellaneous matrix functions
 
 from sage.categories.fields import Fields
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.integer_ring import ZZ
 _Fields = Fields()
 
 def row_iterator(A):
@@ -201,42 +202,33 @@ def weak_popov_form(M,ascend=True):
     # return reduced matrix and operations matrix
     return (matrix(r)/den, matrix(N), d)
 
-def _prm_mul(p1, p2, free_vars_indices, K):
+def prm_mul(p1, p2, free_vars_indices):
     """
-    Return the product of `p1` and `p2`, putting free variables to 1.
+    Return the product of ``p1`` and ``p2``, putting free variables in
+    ``free_vars_indices`` to `1`.
 
-    In the following example,
-    ``p1 = 1 + t*e_0 + t*e_1``
-    ``p2 = 1 + t*e_0 + t*e_2; 'e_0` free variable;
-    using the fact that `e_i` are nilpotent and setting
-    `e_0 = 1` after performing the product one gets
-    ``p1 * p2 = (1 + 2*t) + (t + t^2)*e_1 + (t + t^2)*e_2 + t^2*e_1*e_2``
-
-    The polynomials are represented in dictionary form; to a
-    variable ``eta_i`` it is associated the key ``1 << i``;
-    so in the following example 'e_1' corresponds to the key '2'
-    and 'e_1*e_2' to the key '6'.
+    This function is mainly use as a subroutine of
+    :func:`permanental_minor_vector`.
 
     EXAMPLES::
 
-        sage: from sage.matrix.matrix_misc import _prm_mul
-        sage: K = PolynomialRing(ZZ, 't')
-        sage: t = K.gen()
+        sage: from sage.matrix.matrix_misc import prm_mul
+        sage: t = polygen(ZZ, 't')
         sage: p1 = {0: 1, 1: t, 4: t}
         sage: p2 = {0: 1, 1: t, 2: t}
-        sage: _prm_mul(p1, p2, [0], K)
+        sage: prm_mul(p1, p2, [0])
         {0: 2*t + 1, 2: t^2 + t, 4: t^2 + t, 6: t^2}
     """
     p = {}
     mask_free = 0
-    one = int(1)
+    one = 1
     for i in free_vars_indices:
         mask_free += one << i
     if not p2:
         return p
     get = p.get
     for exp1, v1 in p1.iteritems():
-        for exp2, v2 in p2.items():
+        for exp2, v2 in p2.iteritems():
             if exp1 & exp2:
                 continue
             exp = exp1 | exp2
@@ -244,30 +236,12 @@ def _prm_mul(p1, p2, free_vars_indices, K):
             if exp & mask_free:
                 for i in free_vars_indices:
                     if exp & (one << i):
-                        exp = exp.__xor__(one << i)
-            p[exp] = get(exp, K.zero()) + v
+                        exp ^= one << i
+            if exp not in p:
+                p[exp] = v
+            else:
+                p[exp] += v
     return p
-
-
-def _is_free_var(i, k, m):
-    """
-    Return ``True`` if the variable `k` does not occur from row `i` on.
-
-    INPUT:
-
-    - i -- current row
-    - k -- index of the variable
-    - m -- matrix as a list of lists
-
-    EXAMPLES::
-
-        sage: from sage.matrix.matrix_misc import _is_free_var
-        sage: m = [[1,2,3], [2,0,4], [2,0,4]]
-        sage: _is_free_var(1,1,m)
-        True
-    """
-    return all(m[j][k] == 0 for j in range(i, len(m)))
-
 
 def permanental_minor_vector(m, permanent_only=False):
     r"""
@@ -280,17 +254,23 @@ def permanental_minor_vector(m, permanent_only=False):
 
         \sum_0^{min(nrows, ncols)} p_i(m) x^i
 
-    where `p_i(m)` is ``m.permanental_minor(i)``.
+    where `p_i(m)` is the `i`-th permanental minor of `m` (that can also be
+    obtained through the method
+    :meth:`~sage.matrix.matrix2.Matrix.permanental_minor` via
+    ``m.permanental_minor(i)``).
 
     INPUT:
 
-     - `m` -- matrix
+     - ``m`` -- matrix
 
-     - `permanent_only` -- boolean, if ``True``, only the permanent is computed
+     - ``permanent_only`` -- optional boolean. If ``True``, only the permanent
+       is computed (might be faster).
 
     OUTPUT:
 
-    polynomial in array form; the last element of the array is the permanent.
+    The list of coefficients of the polynomial, i.e. the coefficient of `x^i` is
+    at the `i`-th position in the list. In particular, the last element of the
+    list is the permanent.
 
     EXAMPLES::
 
@@ -307,20 +287,44 @@ def permanental_minor_vector(m, permanent_only=False):
         sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
         sage: permanental_minor_vector(A)
         [1, 28, 114, 84, 0]
+        sage: [A.permanental_minor(i) for i in range(5)]
+        [1, 28, 114, 84, 0]
 
     An example over `\QQ`::
 
         sage: M = MatrixSpace(QQ,2,2)
         sage: A = M([1/5,2/7,3/2,4/5])
-        sage: permanental_minor_vector(A, 1)
+        sage: permanental_minor_vector(A, True)
         103/175
 
     An example with polynomial coefficients::
 
         sage: R.<a> = PolynomialRing(ZZ)
         sage: A = MatrixSpace(R,2)([[a,1], [a,a+1]])
-        sage: permanental_minor_vector(A, 1)
+        sage: permanental_minor_vector(A, True)
         a^2 + 2*a
+
+    ALGORITHM:
+
+        The algorithm uses polynomials over the algebra
+        `K[\eta_1, \eta_2,\ldots, \eta_k]` where the `\eta_i` are commuting,
+        nilpotent of order `2` (i.e. `\eta_i^2 = 0`). Let us consider an example of
+        computation. Let `p_1 = 1 + t \eta_0 + t \eta_1` and
+        `p_2 = 1 + t \eta_0 + t \eta_2`. Then
+
+        .. MATH::
+
+            p_1 p_2 = 1 + 2t \eta_0 +
+                    t (\eta_1 + \eta_2) +
+                    t^2 (\eta_0 \eta_1 + \eta_0 \eta_2 + \eta_1 \eta_2)
+
+        The product is implemented as a subroutine in :func:`prm_mul`. The
+        polynomials are represented in dictionary form: to a variable `\eta_i`
+        it is associated the key `2^i` (or in Python ``1 << i``).  So in the
+        above example `\eta_1` corresponds to the key `2` while the product
+        `\eta_1 \eta_2` to the key `6`.
+
+        MORE DOC NEEDED!!!
 
     REFERENCES:
 
@@ -328,18 +332,18 @@ def permanental_minor_vector(m, permanent_only=False):
        using Grassmann algebra", :arxiv:`1406.5337`
     """
     K = PolynomialRing(m.base_ring(), 't')
-    m = list(m)
-    nrows = len(m)
-    ncols = len(m[0])
+    nrows = m.nrows()
+    ncols = m.ncols()
+    m = m.rows()
     p = {int(0): K.one()}
     t = K.gen()
     done_vars = set()
-    one = int(1)
+    one = 1
     for i in range(nrows):
         if permanent_only:
             p1 = {}
         else:
-            p1 = {int(0): K.one()}
+            p1 = {0: K.one()}
         a = m[i]
         for j in range(len(a)):
             if a[j]:
@@ -348,11 +352,10 @@ def permanental_minor_vector(m, permanent_only=False):
         for j in range(ncols):
             if j in done_vars:
                 continue
-            r = _is_free_var(i + 1, j, m)
-            if r:
+            if all(m[k][j] == 0 for k in range(i+1, len(m))):
                 free_vars_indices.append(j)
                 done_vars.add(j)
-        p = _prm_mul(p, p1, free_vars_indices, K)
+        p = prm_mul(p, p1, free_vars_indices)
     if not p:
         return K.zero()
     assert len(p) == 1

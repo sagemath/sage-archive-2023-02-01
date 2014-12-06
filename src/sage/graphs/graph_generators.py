@@ -1902,7 +1902,6 @@ class GraphGenerators():
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
     RandomHolmeKim           = staticmethod(sage.graphs.generators.random.RandomHolmeKim)
-    RandomInterval           = staticmethod(sage.graphs.generators.random.RandomInterval) # deprecated
     RandomIntervalGraph      = staticmethod(sage.graphs.generators.random.RandomIntervalGraph)
     RandomLobster            = staticmethod(sage.graphs.generators.random.RandomLobster)
     RandomNewmanWattsStrogatz = staticmethod(sage.graphs.generators.random.RandomNewmanWattsStrogatz)

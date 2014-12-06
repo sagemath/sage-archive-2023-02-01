@@ -12003,7 +12003,7 @@ class GenericGraph(GenericGraph_pyx):
         import networkx
         return networkx.average_clustering(self.networkx_graph(copy=False))
 
-    def clustering_coeff(self, nodes=None, weight=False, return_vertex_weights=True):
+    def clustering_coeff(self, nodes=None, weight=False):
         r"""
         Returns the clustering coefficient for each vertex in ``nodes`` as
         a dictionary keyed by vertex.
@@ -12031,10 +12031,6 @@ class GenericGraph(GenericGraph_pyx):
           a string it used the indicated edge property as weight.
           ``weight = True`` is equivalent to ``weight = 'weight'``
 
-        - ``return_vertex_weights`` is a boolean ensuring backwards
-          compatibility with deprecated features of NetworkX 1.2. It
-          should be set to ``False`` for all production code.
-
         EXAMPLES::
 
             sage: (graphs.FruchtGraph()).clustering_coeff().values()
@@ -12049,8 +12045,7 @@ class GenericGraph(GenericGraph_pyx):
              7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
              10: 0.3333333333333333, 11: 0.0}
 
-            sage: (graphs.FruchtGraph()).clustering_coeff(weight=True,
-            ...     return_vertex_weights=False)
+            sage: (graphs.FruchtGraph()).clustering_coeff(weight=True)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
             3: 0.3333333333333333, 4: 0.3333333333333333,
             5: 0.3333333333333333, 6: 0.3333333333333333,
@@ -12060,68 +12055,12 @@ class GenericGraph(GenericGraph_pyx):
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
             sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2],
-            ...     weight=True, return_vertex_weights=False)
+            ...     weight=True)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
-        TESTS:
-
-        Doctests that demonstrate the deprecation of the two-dictionary
-        return value due to the NetworkX API change after 1.2. The
-        return_vertex_weights keyword is provided with a default value
-        of True for backwards compatibility with older versions of Sage.
-        When the deprecation period has expired and the keyword is
-        removed, these doctests should be removed as well. ::
-
-            sage: (graphs.FruchtGraph()).clustering_coeff(weight=True,
-            ...     return_vertex_weights=True)
-            doctest:...: DeprecationWarning: The option 'return_vertex_weights'
-            has been deprecated. Only offered for backwards compatibility with
-            NetworkX 1.2.
-            See http://trac.sagemath.org/12806 for details.
-            ({0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
-              3: 0.3333333333333333, 4: 0.3333333333333333,
-              5: 0.3333333333333333, 6: 0.3333333333333333,
-              7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
-              10: 0.3333333333333333, 11: 0.0}, {0: 0.08333333333333333,
-              1: 0.08333333333333333, 2: 0.08333333333333333,
-              3: 0.08333333333333333, 4: 0.08333333333333333,
-              5: 0.08333333333333333, 6: 0.08333333333333333,
-              7: 0.08333333333333333, 8: 0.08333333333333333,
-              9: 0.08333333333333333, 10: 0.08333333333333333,
-              11: 0.08333333333333333})
-
-            sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0, 1, 2],
-            ...     weight=True, return_vertex_weights=True)
-            ({0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0},
-             {0: 0.3333333333333333, 1: 0.3333333333333333,
-             2: 0.3333333333333333})
         """
         import networkx
-        if weight and return_vertex_weights:
-            # Running in compatibility mode with deprecated NetworkX 1.2 features
-            # All this code should be removed when the deprecation warning expires
-            from sage.misc.superseded import deprecation
-            deprecation(12806, "The option 'return_vertex_weights' has been " +\
-                        "deprecated. Only offered for backwards" +\
-                        " compatibility with NetworkX 1.2.")
-            G = self.networkx_graph(copy=False)
-            if G.is_directed():
-                raise NetworkXError("Clustering algorithms are not defined for directed graphs.")
-            clusterc={}
-            weights={}
-            for v,d,t in networkx.cluster._triangles_and_degree_iter(G,nodes):
-                weights[v]=float(d*(d-1))
-                if t==0:
-                    clusterc[v]=0.0
-                else:
-                    clusterc[v]=t/float(d*(d-1))
-            scale=1./sum(weights.itervalues())
-            for v,w in weights.iteritems():
-                weights[v]=w*scale
-            return clusterc,weights
-
-        else:
-            return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
+        return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
 
     def cluster_transitivity(self):
         r"""

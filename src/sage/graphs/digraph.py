@@ -836,7 +836,8 @@ class DiGraph(GenericGraph):
             # convert to a dict of lists if not already one
             if not all(isinstance(data[u], list) for u in data):
                 data = dict([u, list(data[u])] for u in data)
-            verts = set(data.keys())
+
+            verts = set().union(data.keys(),*data.values())
             if loops is None or loops is False:
                 for u in data:
                     if u in data[u]:
@@ -847,7 +848,6 @@ class DiGraph(GenericGraph):
                 if loops is None: loops = False
             if weighted is None: weighted = False
             for u in data:
-                verts = verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
                         v = (v for v in data[u] if data[u].count(v) > 1).next()

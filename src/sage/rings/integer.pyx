@@ -147,6 +147,8 @@ from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
 from libc.stdint cimport uint64_t
+cimport sage.structure.element
+from sage.structure.element cimport Element
 include "sage/ext/python_debug.pxi"
 include "../structure/coerce.pxi"   # for parent_c
 include "sage/libs/pari/decl.pxi"
@@ -475,25 +477,28 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     integers. It derives from the ``Element`` class, so
     integers can be used as ring elements anywhere in Sage.
 
-    Integer() interprets numbers and strings that begin with 0 as octal
-    numbers, and numbers and strings that begin with 0x as hexadecimal
-    numbers.
+    Integer() interprets strings that begin with ``0o`` as octal numbers,
+    strings that begin with ``0x`` as hexadecimal numbers and strings
+    that begin with ``0b`` as binary numbers.
 
-        The class ``Integer`` is implemented in Cython, as a
-        wrapper of the GMP ``mpz_t`` integer type.
+    The class ``Integer`` is implemented in Cython, as a wrapper of the
+    GMP ``mpz_t`` integer type.
 
     EXAMPLES::
 
-        sage: Integer(010)
-        8
-        sage: Integer(0x10)
-        16
-        sage: Integer(10)
-        10
+        sage: Integer(123)
+        123
+        sage: Integer("123")
+        123
+
+    Sage Integers support :pep:`3127` literals::
+
         sage: Integer('0x12')
         18
-        sage: Integer('012')
-        10
+        sage: Integer('-0o12')
+        -10
+        sage: Integer('+0b101010')
+        42
 
     Conversion from PARI::
 
@@ -535,7 +540,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ('sage')
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=sage) to an integer
+            TypeError: unable to convert 'sage' to an integer
             sage: Integer('zz',36).str(36)
             'zz'
             sage: ZZ('0x3b').str(16)
@@ -661,7 +666,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int paritype
         cdef Py_ssize_t j
         cdef object otmp
-        cdef unsigned int ibase
 
         cdef Element lift
 
@@ -708,15 +712,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     except AttributeError:
                         pass
 
-                elif PyString_Check(x) or PY_TYPE_CHECK(x,unicode):
-                    if base < 0 or base > 36:
-                        raise ValueError, "`base` (=%s) must be between 2 and 36."%base
-                    ibase = base
-                    xs = x
-                    if xs[0] == c'+':
-                        xs += 1
-                    if mpz_set_str(self.value, xs, ibase) != 0:
-                        raise TypeError, "unable to convert x (=%s) to an integer"%x
+                elif isinstance(x, basestring):
+                    mpz_set_str_python(self.value, x, base)
                     return
 
                 elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
@@ -6034,6 +6031,151 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return the_integer_ring(self._pari_().binomial(m))
         else:
             raise ValueError("algorithm must be one of: 'pari', 'mpir'")
+
+
+cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
+    """
+    Wrapper around ``mpz_set_str()`` which supports :pep:`3127`
+    literals.
+
+    If the string is invalid, a ``TypeError`` will be raised.
+
+    INPUT:
+
+    - ``z`` -- A pre-allocated ``mpz_t`` where the result will be
+      stored.
+
+    - ``s`` -- A string to be converted to an ``mpz_t``.
+
+    - ``base`` -- Either 0 or a base between 2 and 36: a base to use
+      for the string conversion. 0 means auto-detect using prefixes.
+
+    EXAMPLES::
+
+        sage: Integer('12345')
+        12345
+        sage: Integer('   -      1  2   3  4   5  ')
+        -12345
+        sage: Integer(u'  -  0x  1  2   3  4   5  ')
+        -74565
+        sage: Integer('-0012345', 16)
+        -74565
+        sage: Integer('+0x12345')
+        74565
+        sage: Integer('0X12345', 16)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0X12345' to an integer
+        sage: Integer('0x12345', 1000)
+        Traceback (most recent call last):
+        ...
+        ValueError: base (=1000) must be 0 or between 2 and 36
+        sage: Integer('0x00DeadBeef')
+        3735928559
+        sage: Integer('0x0x12345')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0x0x12345' to an integer
+        sage: Integer('-0B100')
+        -4
+        sage: Integer('-0B100', 16)
+        -45312
+        sage: Integer('0B12345')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0B12345' to an integer
+
+    Test zeros::
+
+        sage: Integer('')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '' to an integer
+        sage: Integer("0")
+        0
+        sage: Integer("  0O  0  ")  # second character is the letter O
+        0
+        sage: Integer("-00")
+        0
+        sage: Integer("+00000", 4)
+        0
+
+    For octals, the old leading-zero style is deprecated (unless an
+    explicit base is given)::
+
+        sage: Integer('0o12')
+        10
+        sage: Integer('012', 8)
+        10
+        sage: Integer('012')
+        doctest:...: DeprecationWarning: use 0o as octal prefix instead of 0
+        See http://trac.sagemath.org/17413 for details.
+        10
+
+    We disallow signs in unexpected places::
+
+        sage: Integer('+ -0')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '+ -0' to an integer
+        sage: Integer('0o-0')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0o-0' to an integer
+    """
+    cdef int sign = 1
+    cdef int warnoctal = 0
+    cdef char* x = s
+
+    if base != 0 and (base < 2 or base > 36):
+        raise ValueError("base (=%s) must be 0 or between 2 and 36"%base)
+
+    while x[0] == c' ': x += 1  # Strip spaces
+
+    # Check for signs
+    if x[0] == c'-':
+        sign = -1
+        x += 1
+    elif x[0] == c'+':
+        x += 1
+
+    while x[0] == c' ': x += 1  # Strip spaces
+
+    # If no base was given, check for PEP 3127 prefixes
+    if base == 0:
+        if x[0] != c'0':
+            base = 10
+        else:
+            # String starts with "0"
+            if x[1] == c'b' or x[1] == c'B':
+                x += 2
+                base = 2
+            elif x[1] == c'o' or x[1] == c'O':
+                x += 2
+                base = 8
+            elif x[1] == c'x' or x[1] == c'X':
+                x += 2
+                base = 16
+            else:
+                # Give deprecation warning about octals, unless the
+                # number is zero (to allow for "0").
+                base = 8
+                warnoctal = 1
+
+    while x[0] == c' ': x += 1  # Strip spaces
+
+    # Disallow a sign here
+    if x[0] == '-' or x[0] == '+':
+        x = ""  # Force an error below
+
+    assert base >= 2
+    if mpz_set_str(z, x, base) != 0:
+        raise TypeError("unable to convert %r to an integer" % s)
+    if sign < 0:
+        mpz_neg(z, z)
+    if warnoctal and mpz_sgn(z) != 0:
+        from sage.misc.superseded import deprecation
+        deprecation(17413, "use 0o as octal prefix instead of 0")
 
 
 cpdef LCM_list(v):

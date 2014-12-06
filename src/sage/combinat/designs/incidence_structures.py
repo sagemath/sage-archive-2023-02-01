@@ -14,7 +14,8 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.num_blocks` | Return the number of blocks.
     :meth:`~IncidenceStructure.blocks` | Return the list of blocks.
     :meth:`~IncidenceStructure.block_sizes` | Return the set of block sizes.
-    :meth:`~IncidenceStructure.degree` | Return the degree of a point ``p``
+    :meth:`~IncidenceStructure.degree` | Return the degree of a point `p`
+    :meth:`~IncidenceStructure.degrees` | Return the degree of all sets of given size, or the degree of all points.
     :meth:`~IncidenceStructure.is_connected` | Test whether the design is connected.
     :meth:`~IncidenceStructure.is_simple` | Test whether this design is simple (i.e. no repeated block).
     :meth:`~IncidenceStructure.incidence_matrix` | Return the incidence matrix `A` of the design
@@ -645,33 +646,116 @@ class IncidenceStructure(object):
         """
         return map(len, self._blocks)
 
-    def degree(self, p=None):
+    def degree(self, p=None, subset=False):
         r"""
-        Return the degree of a point ``p``
+        Return the degree of a point ``p`` (or a set of points).
 
-        The degree of a point `p` is the number of blocks that contain it.
+        The degree of a point (or set of points) is the number of blocks that
+        contain it.
 
         INPUT:
 
-        - ``p`` -- a point. If set to ``None`` (default), a dictionary
-          associating the points with their degrees is returned.
+        - ``p`` -- a point (or a set of points) of the incidence structure.
+
+        - ``subset`` (boolean) -- whether to interpret the argument as a set of
+          point (``subset=True``) or as a point (``subset=False``, default).
 
         EXAMPLES::
 
             sage: designs.steiner_triple_system(9).degree(3)
             4
+            sage: designs.steiner_triple_system(9).degree({1,2},subset=True)
+            1
+
+        TESTS::
+
             sage: designs.steiner_triple_system(9).degree()
+            doctest:...: DeprecationWarning: Please use degrees() instead of degree(None)
+            See http://trac.sagemath.org/17108 for details.
             {0: 4, 1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4}
+            sage: designs.steiner_triple_system(9).degree(subset=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: subset must be False when p is None
         """
         if p is None:
+            if subset is True:
+                raise ValueError("subset must be False when p is None")
+            from sage.misc.superseded import deprecation
+            deprecation(17108, "Please use degrees() instead of degree(None)")
+            return self.degrees()
+
+        # degree of a point
+        if not subset:
+            if self._point_to_index:
+                p = self._point_to_index.get(p,-1)
+            else:
+                p = p if (p>=0 and p<len(self._points)) else -1
+            return sum((p in b) for b in self._blocks) if p != -1 else 0
+
+        # degree of a set
+        else:
+            if self._point_to_index:
+                p = set(self._point_to_index.get(x,-1) for x in p)
+            else:
+                p = set(p) if all(x>=0 and x<len(self._points) for x in p) else set([-1])
+
+            return sum(p.issubset(b) for b in self._blocks) if -1 not in p else 0
+
+    def degrees(self, size=None):
+        r"""
+        Return the degree of all sets of given size, or the degree of all points.
+
+        The degree of a point (or set of point) is the number of blocks that
+        contain it.
+
+        INPUT:
+
+        - ``size`` (integer) -- return the degree of all subsets of points of
+          cardinality ``size``. When ``size=None``, the function outputs the
+          degree of all points.
+
+          .. NOTE::
+
+              When ``size=None`` the output is indexed by the points. When
+              ``size=1`` it is indexed by tuples of size 1. This is the same
+              information, stored slightly differently.
+
+        OUTPUT:
+
+        A dictionary whose values are degrees and keys are either:
+
+        - the points of the incidence structure if ``size=None`` (default)
+
+        - the subsets of size ``size`` of the points stored as tuples
+
+        EXAMPLES::
+
+            sage: IncidenceStructure([[1,2,3],[1,4]]).degrees(2)
+            {(1, 2): 1, (1, 3): 1, (1, 4): 1, (2, 3): 1, (2, 4): 0, (3, 4): 0}
+
+        In a steiner triple system, all pairs have degree 1::
+
+            sage: S13 = designs.steiner_triple_system(13)
+            sage: all(v == 1 for v in S13.degrees(2).itervalues())
+            True
+        """
+        if size is None:
             d = [0]*self.num_points()
             for b in self._blocks:
                 for x in b:
                     d[x] += 1
             return {p: d[i] for i, p in enumerate(self._points)}
         else:
-            p = self._point_to_index[p] if self._point_to_index else p
-            return sum(1 for b in self._blocks if p in b)
+            from itertools import combinations
+            d = {t:0 for t in combinations(range(self.num_points()),size)}
+            for b in self._blocks:
+                for s in combinations(b,size):
+                    d[s]+=1
+            if self._point_to_index:
+                return {tuple([self._points[x] for x in s]):v for s,v in d.iteritems()}
+            else:
+                return d
 
     def is_connected(self):
         r"""
@@ -1322,7 +1406,7 @@ class IncidenceStructure(object):
             False
         """
         if self._classes is None:
-            degrees = set(self.degree().itervalues())
+            degrees = set(self.degrees().itervalues())
             if len(degrees) != 1:
                 self._classes = False
             else:

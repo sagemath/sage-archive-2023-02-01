@@ -411,7 +411,7 @@ Applying an operation is generally done by *calling a method*::
     sage: pQ.factor()
     (6) * (x + 1)^2
 
-    sage: pZ = ZZ[x] ( p )
+    sage: pZ = ZZ['x'] ( p )
     sage: type(pZ)
     <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
     sage: pZ.factor()

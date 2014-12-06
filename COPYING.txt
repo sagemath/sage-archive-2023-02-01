@@ -75,7 +75,6 @@ m4ri                        GPLv2+
 m4rie                       GPLv2+
 matplotlib                  Matplotlib License (BSD compatible, see below)
 maxima                      See below
-mercurial                   GPLv2+
 mpc                         LGPLv3+
 mpfi                        COPYING is GPLv2, source files state LGPLv2.1+
 mpfr                        LGPLv3+

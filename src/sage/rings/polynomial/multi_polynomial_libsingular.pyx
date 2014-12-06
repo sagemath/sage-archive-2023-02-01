@@ -598,8 +598,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         Coercion from symbolic variables::
 
-            sage: x,y,z = var('x,y,z')
-            sage: R = QQ[x,y,z]
+            sage: R = QQ['x,y,z']
+            sage: var('x')
+            x
             sage: R(x)
             x
 

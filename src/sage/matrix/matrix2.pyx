@@ -1466,7 +1466,10 @@ cdef class Matrix(matrix1.Matrix):
 
     def __abs__(self):
         """
-        Not defined (since :trac:`17443`)
+        Deprecated.
+
+        This function used to return the determinant. It is deprecated since
+        :trac:`17443`.
 
         EXAMPLES::
 
@@ -1474,16 +1477,21 @@ cdef class Matrix(matrix1.Matrix):
             [1 2]
             [3 4]
             sage: abs(a)
-            Traceback (most recent call last):
-            ...
-            TypeError: absolute value is not defined on matrices. If you want
-            the L^1-norm use m.norm(1) and if you want the matrix obtained by
-            applying the absolute value to the coefficents use m.apply_map(abs).
+            doctest:...: DeprecationWarning: abs(matrix) is deprecated. Use matrix.det()to
+            get the determinant.
+            See http://trac.sagemath.org/17443 for details.
+            -2
         """
-        raise TypeError("absolute value is not defined on matrices. If you want "
-                        "the L^1-norm use m.norm(1) and if you want the matrix "
-                        "obtained by applying the absolute value to the "
-                        "coefficents use m.apply_map(abs).")
+        #TODO: after expiration of the one year deprecation, we should return a
+        # TypeError with the following kind of message:
+        #   absolute value is not defined on matrices. If you want the
+        #   L^1-norm use m.norm(1) and if you want the matrix obtained by
+        #   applying the absolute value to the coefficents use
+        #   m.apply_map(abs).
+        from sage.misc.superseded import deprecation
+        deprecation(17443, "abs(matrix) is deprecated. Use matrix.det()"
+                           "to get the determinant.")
+        return self.det()
 
     def apply_morphism(self, phi):
         """

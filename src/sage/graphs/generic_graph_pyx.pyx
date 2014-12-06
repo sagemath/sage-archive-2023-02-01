@@ -1297,8 +1297,8 @@ def transitive_reduction_acyclic(G):
         True
     """
     cdef int  n = G.order()
-    cdef dict v_to_int = {vv:i for i,vv in enumerate(G.vertices())}
-    cdef int  u,v,i
+    cdef dict v_to_int = {vv: i for i, vv in enumerate(G.vertices())}
+    cdef int  u, v, i
 
     cdef list linear_extension = G.topological_sort()
     linear_extension.reverse()
@@ -1309,13 +1309,13 @@ def transitive_reduction_acyclic(G):
     #
     # A point is reachable from u if it is one of its neighbours, or if it is
     # reachable from one of its neighbours.
-    binary_matrix_init(closure,n,n)
-    binary_matrix_fill(closure,0)
+    binary_matrix_init(closure, n, n)
+    binary_matrix_fill(closure, 0)
     for uu in linear_extension:
         u = v_to_int[uu]
         for vv in G.neighbors_out(uu):
             v = v_to_int[vv]
-            binary_matrix_set1(closure,u,v)
+            binary_matrix_set1(closure, u, v)
             for i in range(closure.width):
                 closure.rows[u][i] |= closure.rows[v][i]
 
@@ -1333,8 +1333,8 @@ def transitive_reduction_acyclic(G):
                 closure.rows[u][i] &= ~closure.rows[v][i]
         for vv in G.neighbors_out(uu):
             v = v_to_int[vv]
-            if binary_matrix_get(closure,u,v):
-                useful_edges.append((uu,vv))
+            if binary_matrix_get(closure, u, v):
+                useful_edges.append((uu, vv))
 
     from sage.graphs.digraph import DiGraph
     reduced = DiGraph()

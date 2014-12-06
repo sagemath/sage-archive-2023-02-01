@@ -14577,7 +14577,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         G = self.copy(immutable=False)
         G.name('Transitive closure of ' + self.name())
-        G.add_edges((v,e) for v in G for e in G.breadth_first_search(v))
+        G.add_edges((v, e) for v in G for e in G.breadth_first_search(v))
         return G
 
     def transitive_reduction(self):
@@ -14596,17 +14596,17 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: g=graphs.PathGraph(4)
-            sage: g.transitive_reduction()==g
+            sage: g = graphs.PathGraph(4)
+            sage: g.transitive_reduction() == g
             True
-            sage: g=graphs.CompleteGraph(5)
+            sage: g = graphs.CompleteGraph(5)
             sage: edges = g.transitive_reduction().edges(); len(edges)
             4
-            sage: g=DiGraph({0:[1,2], 1:[2,3,4,5], 2:[4,5]})
+            sage: g = DiGraph({0:[1,2], 1:[2,3,4,5], 2:[4,5]})
             sage: g.transitive_reduction().size()
             5
         """
-        if self.is_directed_acyclic():
+        if self.is_directed() and self.is_directed_acyclic():
             from sage.graphs.generic_graph_pyx import transitive_reduction_acyclic
             return transitive_reduction_acyclic(self)
 
@@ -14616,7 +14616,7 @@ class GenericGraph(GenericGraph_pyx):
             # Try deleting the edge, see if we still have a path
             # between the vertices.
             G.delete_edge(e)
-            if G.distance(e[0],e[1]) > n:
+            if G.distance(e[0], e[1]) > n:
                 # oops, we shouldn't have deleted it
                 G.add_edge(e)
         return G

@@ -487,6 +487,13 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         Traceback (most recent call last):
         ...
         ValueError: element_labels should be a dict or a list if different from None. (Did you intend data to be equal to a pair ?)
+
+    Another kind of bad input, digraphs with oriented cycles::
+
+        sage: Poset(DiGraph([[1,2],[2,3],[3,4],[4,1]]))
+        Traceback (most recent call last):
+        ...
+        TypeError: Digraph is not acyclic; there is no topological sort.
     """
     # Avoiding some errors from the user when data should be a pair
     if (element_labels is not None and

@@ -1771,11 +1771,16 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: for x in graphs(3):    print x.to_partition()
+            doctest:...: DeprecationWarning: Please use G.connected_components_sizes() instead
+            See http://trac.sagemath.org/17449 for details.
             [1, 1, 1]
             [2, 1]
             [3]
             [3]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(17449, "Please use G.connected_components_sizes() instead")
+
         from sage.combinat.partition import Partition
         return Partition(sorted([len(y) for y in self.connected_components()], reverse=True))
 

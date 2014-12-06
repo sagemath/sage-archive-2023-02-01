@@ -33,6 +33,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.comparability_graph` | Returns the comparability graph of the poset.
     :meth:`~FinitePoset.cover_relations_iterator` | Returns an iterator for the cover relations of the poset.
     :meth:`~FinitePoset.cover_relations` | Returns the list of pairs `[u,v]` which are cover relations
+    :meth:`~FinitePoset.cover_relations_graph` | Return the graph of cover relations
     :meth:`~FinitePoset.covers` | Returns True if y covers x and False otherwise.
     :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
     :meth:`~FinitePoset.dilworth_decomposition` | Returns a partition of the points into the minimal number of chains.
@@ -155,6 +156,8 @@ from sage.graphs.digraph_generators import digraphs
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.misc.superseded import deprecated_function_alias
+
 
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
@@ -1574,33 +1577,6 @@ class FinitePoset(UniqueRepresentation, Parent):
                   vertex_size=vertex_size, vertex_colors=vertex_colors,
                   layout=layout, cover_labels=cover_labels).show(**kwds)
 
-    @combinatorial_map(name="to graph")
-    def to_graph(self):
-        """
-        Return the graph of ``self`` corresponding to forgetting the
-        poset structure.
-
-        EXAMPLES::
-
-            sage: P = Poset({0:[1,2],1:[3],2:[3],3:[]})
-            sage: G = P.to_graph(); G
-            Graph on 4 vertices
-            sage: S = Poset()
-            sage: H = S.to_graph(); H
-            Graph on 0 vertices
-
-        Check that it is hashable and coincides with the Hasse diagram as a
-        graph::
-
-            sage: hash(G) == hash(G)
-            True
-            sage: G == Graph(P.hasse_diagram())
-            True
-
-        """
-        from sage.graphs.graph import Graph
-        return Graph(self.hasse_diagram(), immutable=True)
-
     def level_sets(self):
         """
         Return a list ``l`` such that ``l[i]`` is the set of minimal
@@ -1636,6 +1612,33 @@ class FinitePoset(UniqueRepresentation, Parent):
             [[1, 2], [0, 2], [2, 3], [3, 4]]
         """
         return [c for c in self.cover_relations_iterator()]
+
+    @combinatorial_map(name="cover_relations_graph")
+    def cover_relations_graph(self):
+        """
+        Return the graph of cover relations.
+
+        EXAMPLES::
+
+            sage: P = Poset({0:[1,2],1:[3],2:[3],3:[]})
+            sage: G = P.cover_relations_graph(); G
+            Graph on 4 vertices
+            sage: S = Poset()
+            sage: H = S.cover_relations_graph(); H
+            Graph on 0 vertices
+
+        Check that it is hashable and coincides with the Hasse diagram as a
+        graph::
+
+            sage: hash(G) == hash(G)
+            True
+            sage: G == Graph(P.hasse_diagram())
+            True
+        """
+        from sage.graphs.graph import Graph
+        return Graph(self.hasse_diagram(), immutable=True)
+
+    to_graph = deprecated_function_alias(17449, cover_relations_graph)
 
     def cover_relations_iterator(self):
         """

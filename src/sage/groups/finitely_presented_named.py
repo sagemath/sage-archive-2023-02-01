@@ -164,7 +164,7 @@ def FinitelyGeneratedAbelianPresentation(int_list):
         sage: groups.presentation.FGAbelian([2,'a',4])
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=a) to an integer
+        TypeError: unable to convert 'a' to an integer
 
     TESTS::
 

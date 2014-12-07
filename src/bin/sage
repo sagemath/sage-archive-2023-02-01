@@ -66,6 +66,7 @@ usage_advanced() {
     echo "  -gthread, -qthread, -q4thread, -wthread, -pylab"
     echo "                      -- pass the option through to ipython"
     echo "  -v, -version        -- print the Sage version"
+    echo "  -git-branch         -- print the current git branch"
 
     echo
     ####  1.......................26..................................................78
@@ -283,7 +284,6 @@ if [ $# -gt 0 ]; then
   fi
 fi
 
-
 # Prepare for running Sage, either interactively or non-interactively.
 sage_setup() {
     # Check that we're not in a source tarball which hasn't been built yet (#13561).
@@ -475,6 +475,11 @@ fi
 if [ "$1" = '-git' -o "$1" = '--git' ]; then
     shift
     exec git "$@"
+fi
+
+if [ "$1" = '-git-branch' -o "$1" = '--git-branch' ]; then
+    shift
+    exec git --git-dir="$SAGE_ROOT"/.git rev-parse --abbrev-ref HEAD
 fi
 
 if [ "$1" = '-sh' -o "$1" = '--sh' ]; then

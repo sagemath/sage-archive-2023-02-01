@@ -1084,7 +1084,7 @@ def polynomial(ex, base_ring=None, ring=None):
          sage: polynomial(x*y, ring=SR['x'])
          y*x
 
-         sage: polynomial(y - sqrt(x), ring=SR[y])
+         sage: polynomial(y - sqrt(x), ring=SR['y'])
          y - sqrt(x)
          sage: _.list()
          [-sqrt(x), 1]

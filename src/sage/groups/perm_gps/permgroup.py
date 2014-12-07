@@ -1850,10 +1850,10 @@ class PermutationGroup_generic(group.Group):
 
         EXAMPLES::
 
-            sage: G = SymmetricGroup(4)
-            sage: g = G((1,2,3,4))
+            sage: G = DihedralGroup(3)
+            sage: g = G.gen(0)
             sage: G.conjugacy_class(g)
-            Conjugacy class of (1,2,3,4) in Symmetric group of order 4! as a permutation group
+            Conjugacy class of (1,2,3) in Dihedral group of order 6 as a permutation group
         """
         return ConjugacyClassGAP(self, g)
 
@@ -1866,8 +1866,8 @@ class PermutationGroup_generic(group.Group):
             sage: G = DihedralGroup(3)
             sage: G.conjugacy_classes()
             [Conjugacy class of () in Dihedral group of order 6 as a permutation group,
-            Conjugacy class of (2,3) in Dihedral group of order 6 as a permutation group,
-            Conjugacy class of (1,2,3) in Dihedral group of order 6 as a permutation group]
+             Conjugacy class of (2,3) in Dihedral group of order 6 as a permutation group,
+             Conjugacy class of (1,2,3) in Dihedral group of order 6 as a permutation group]
         """
         cl = self._gap_().ConjugacyClasses()
         n = Integer(cl.Length())

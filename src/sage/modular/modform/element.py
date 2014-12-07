@@ -1604,7 +1604,7 @@ class EisensteinSeries(ModularFormElement):
         EXAMPLES::
 
             sage: EisensteinForms(11,2).eisenstein_series()[0]._EisensteinSeries__defining_parameters()
-            (-1/24, Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1, Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1, Rational Field, 2, 11, 1, 1)
+            (-1/24, Dirichlet character modulo 1 of conductor 1, Dirichlet character modulo 1 of conductor 1, Rational Field, 2, 11, 1, 1)
         """
         try:
             return self.__defining_params

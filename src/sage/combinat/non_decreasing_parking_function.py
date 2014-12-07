@@ -103,7 +103,7 @@ def NonDecreasingParkingFunctions(n=None):
         sage: NonDecreasingParkingFunctions("foo")
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=foo) to an integer
+        TypeError: unable to convert 'foo' to an integer
     """
     if n is None:
         return NonDecreasingParkingFunctions_all()

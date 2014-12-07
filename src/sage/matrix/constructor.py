@@ -2922,7 +2922,7 @@ def companion_matrix(poly, format='right'):
         sage: t = polygen(QQ, 't')
         sage: p = t^12 - 7*t^4 + 28*t^2 - 456
         sage: C = companion_matrix(p, format='top')
-        sage: q = C.minpoly(var=t); q
+        sage: q = C.minpoly(var='t'); q
         t^12 - 7*t^4 + 28*t^2 - 456
         sage: p == q
         True
@@ -2930,12 +2930,12 @@ def companion_matrix(poly, format='right'):
         sage: p = t^3 + 3*t - 8
         sage: q = t^5 + t - 17
         sage: A = block_diagonal_matrix( companion_matrix(p),
-        ...                              companion_matrix(p^2),
-        ...                              companion_matrix(q),
-        ...                              companion_matrix(q) )
-        sage: A.charpoly(var=t).factor()
+        ....:                            companion_matrix(p^2),
+        ....:                            companion_matrix(q),
+        ....:                            companion_matrix(q) )
+        sage: A.charpoly(var='t').factor()
         (t^3 + 3*t - 8)^3 * (t^5 + t - 17)^2
-        sage: A.minpoly(var=t).factor()
+        sage: A.minpoly(var='t').factor()
         (t^3 + 3*t - 8)^2 * (t^5 + t - 17)
 
     TESTS::

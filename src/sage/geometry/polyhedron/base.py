@@ -748,6 +748,14 @@ class Polyhedron_base(Element):
              1 -1 0
              1 0 -1
             end
+            
+            sage: triangle = Polyhedron(vertices = [[1,0],[0,1],[1,1]],base_ring=AA)
+            sage: triangle.base_ring()
+            Algebraic Real Field
+            sage: triangle.cdd_Hrepresentation()
+            Traceback (most recent call last):
+            ...
+            TypeError: The base ring must be ZZ, QQ, or RDF
         """
         from cdd_file_format import cdd_Hrepresentation
         try:

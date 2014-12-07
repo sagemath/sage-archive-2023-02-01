@@ -1939,8 +1939,17 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        Either ``QQ`` (exact arithmetic using gmp, default) or ``RDF``
-        (double precision floating-point arithmetic)
+        The ring over which the polyhedron is defined. Must be a
+        sub-ring of the reals to define a polyhedron, in particular
+        comparison must be defined. Popular choices are
+
+        * ``ZZ`` (the ring of integers, lattice polytope), 
+
+        * ``QQ`` (exact arithmetic using gmp),
+
+        * ``RDF`` (double precision floating-point arithmetic), or
+
+        * ``AA`` (real algebraic field).
 
         EXAMPLES::
 

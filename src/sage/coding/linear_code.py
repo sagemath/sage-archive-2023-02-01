@@ -696,15 +696,19 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
 
 class LinearCode(module.Module):
     r"""
-    A class for linear codes over a finite field or finite ring. Each instance
-    is a linear code determined by a generator matrix `G` (i.e., a
-    `k \times n` matrix of (full) rank `k`, `k \leq n` over a finite field `F`.
+    Linear codes over a finite field or finite ring.
+
+    A *linear code* is a subspace of a vector space over a finite field. It can
+    be defined by one of its basis or equivalently a generator matrix (a `k
+    \times n` matrix of full rank `k`).
+
+    See :wikipedia:`Linear_code` for more information.
 
     INPUT:
 
-    - ``G`` -- a generator matrix over `F` (``G`` can be defined over a
-      finite ring but the matrices over that ring must have certain
-      attributes, such as ``rank``)
+    - ``gen_mat`` -- a generator matrix over a finite field (``G`` can be
+      defined over a finite ring but the matrices over that ring must have
+      certain attributes, such as ``rank``)
 
     - ``d`` -- (optional, default: ``None``) the minimum distance of the code
 
@@ -713,9 +717,6 @@ class LinearCode(module.Module):
         The veracity of the minimum distance ``d``, if provided, is not
         checked.
 
-    OUTPUT:
-
-    The linear code of length `n` over `F` having `G` as a generator matrix.
 
     EXAMPLES::
 
@@ -783,15 +784,51 @@ class LinearCode(module.Module):
 
             sage: C = codes.HammingCode(3, GF(2))
             sage: TestSuite(C).run()
+
+        Check that it works even with input matrix with non full rank (see
+        :trac:`17452`)::
+
+            sage: K.<a> = GF(4)
+            sage: G = matrix([[a, a + 1, 1, a + 1, 1, 0, 0],
+            ....:             [0, a, a + 1, 1, a + 1, 1, 0],
+            ....:             [0, 0, a, a + 1, 1, a + 1, 1],
+            ....:             [a + 1, 0, 1, 0, a + 1, 1, a + 1],
+            ....:             [a, a + 1, a + 1, 0, 0, a + 1, 1],
+            ....:             [a + 1, a, a, 1, 0, 0, a + 1],
+            ....:             [a, a + 1, 1, a + 1, 1, 0, 0]])
+            sage: C = LinearCode(G)
+            sage: C.basis()
+            [(1, 0, 0, a + 1, 0, 1, 0),
+             (0, 1, 0, 0, a + 1, 0, 1),
+             (0, 0, 1, a, a + 1, a, a + 1)]
+            sage: C.minimum_distance()
+            3
+
+        Forbid the zero vector space (see :trac:`17452` and :trac:`6486`)::
+
+            sage: G = matrix(GF(2), [[0,0,0]])
+            sage: C = LinearCode(G)
+            Traceback (most recent call last):
+            ...
+            ValueError: this linear code contains no non-zero vector
         """
-        base_ring = gen_mat[0,0].parent()
+        base_ring = gen_mat.base_ring()
+        # if the matrix does not have full rank we replace it
+        if gen_mat.rank() != gen_mat.nrows():
+            from sage.matrix.constructor import matrix
+            basis = gen_mat.row_space().basis()
+            gen_mat = matrix(base_ring, basis)
+
+            if gen_mat.nrows() == 0:
+                raise ValueError("this linear code contains no non-zero vector")
+
         cat = Modules(base_ring).FiniteDimensional().WithBasis().Finite()
         facade_for = gen_mat.row(0).parent()
         self.Element = type(gen_mat.row(0)) # for when we make this a non-facade parent
         Parent.__init__(self, base=base_ring, facade=facade_for, category=cat)
         self.__gens = gen_mat.rows()
         self.__gen_mat = gen_mat
-        self.__length = len(gen_mat.row(0))
+        self.__length = gen_mat.ncols()
         self.__dim = gen_mat.rank()
         self.__distance = d
 
@@ -2189,20 +2226,7 @@ class LinearCode(module.Module):
             Traceback (most recent call last):
             ...
             ValueError: The algorithm argument must be one of None, 'gap' or 'guava'; got 'something'
-
-        This shows that ticket :trac:`#6486` has been resolved::
-
-            sage: G = matrix(GF(2),[[0,0,0]])
-            sage: C = LinearCode(G)
-            sage: C.minimum_distance()
-            Traceback (most recent call last):
-            ...
-            ValueError: this linear code contains no non-zero vector
         """
-        # Special code to handle the case where there is no non-zero vector.
-        if self.dimension() == 0:
-            raise ValueError("this linear code contains no non-zero vector")
-
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
         # This is done only if algorithm is None.

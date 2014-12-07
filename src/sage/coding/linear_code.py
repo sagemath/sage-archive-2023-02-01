@@ -379,6 +379,7 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
     - David Joyner (11-2005)
     """
     current_randstate().set_seed_gap()
+
     if algorithm=="guava":
         gap.LoadPackage('"guava"')
         from sage.interfaces.gap import gfq_gap_to_sage
@@ -389,25 +390,28 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
         c = [gfq_gap_to_sage(cg[j],F) for j in range(1,n+1)]
         V = VectorSpace(F,n)
         return V(c)
-    qstr = str(F.order())
-    zerovec = [0 for i in range(n)]
-    zerovecstr = "Z("+qstr+")*"+str(zerovec)
-    all = []
+
+    q = F.order()
+    ans = None
+    dist_min = n
     gap.eval('Gmat:='+Gmat)
+    gap.eval('K:=GF({})'.format(q))
+    gap.eval('v:=Z({})*{}'.format(q,[0]*n))
     for i in range(1,k+1):
-        gap.eval("P:=AClosestVectorCombinationsMatFFEVecFFECoords(Gmat, GF("+qstr+"),"+zerovecstr+","+str(i)+",0); d:=WeightVecFFE(P[1])")
-        v = gap("[P[1]]")
-        m = gap("[P[2]]")
+        gap.eval("P:=AClosestVectorCombinationsMatFFEVecFFECoords(Gmat,K,v,{},1)".format(i))
+        gap.eval("d:=WeightVecFFE(P[1])")
+        v = gap("P[1]")
+        # P[2] is m = gap("[P[2]]")
         dist = gap("d")
-        #print v,m,dist
-        #print [gap.eval("v["+str(i+1)+"]") for i in range(n)]
-        all.append([v._matrix_(F), m._matrix_(F), int(dist)])
-    ans = all[0]
-    for x in all:
-        if x[2]<ans[2] and x[2]>0:
-            ans = x
-    #print ans[0], ans[0].parent()
-    return vector(F,[x for x in ans[0].rows()[0]]) # ugly 1xn matrix->vector coercion!
+        if dist and dist < dist_min:
+            dist_min = dist
+            ans = list(v)
+
+    if ans is None:
+        raise RuntimeError("there is a bug here!")
+
+    # return the result as a vector (and not a 1xn matrix)
+    return vector(F, ans)
 
 def best_known_linear_code(n, k, F):
     r"""

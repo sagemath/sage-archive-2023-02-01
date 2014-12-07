@@ -272,6 +272,19 @@ cdef class LazyImport(object):
                         break
         return self._object
 
+    def _is_deprecated(self):
+        """
+        Check whether a lazy import is deprecated.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_import import LazyImport
+            sage: H = LazyImport('sage.categories.homsets', 'Homsets', deprecation=10668)
+            sage: H._is_deprecated()
+            True
+        """
+        return self._deprecation is not None
+
     def _sage_doc_(self):
         """
         Return the docstring of the wrapped object for introspection.

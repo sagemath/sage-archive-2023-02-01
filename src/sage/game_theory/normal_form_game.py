@@ -2,12 +2,12 @@
 Normal Form games with N players.
 
 This module implements a class for normal form games (strategic form games)
-[NN2007]_. At present 2 algorithms are implemented to compute equilibria
-of these games (``'lrs'`` - interfaced with the 'lrs' library and support enumeration
-built in Sage). The architecture for the class is based on the gambit
-architecture to ensure an easy transition between gambit and Sage.
-At present the algorithms for the computation of equilibria only solve 2 player
-games.
+[NN2007]_. At present 3 algorithms are implemented to compute equilibria
+of these games (``'lrs'`` - interfaced with the 'lrs' library, ``'LCP'`` interfaced
+with the 'gambit' library and support enumeration built in Sage). The architecture
+for the class is based on the gambit architecture to ensure an easy transition
+between gambit and Sage.  At present the algorithms for the computation of equilibria
+only solve 2 player games.
 
 A very simple and well known example of normal form game is referred
 to as the 'Battle of the Sexes' in which two players Amy and Bob
@@ -201,11 +201,19 @@ time spent in prison)::
     sage: prisoners_dilemma.obtain_nash(algorithm='enumeration', maximization=False)
     [[(0, 1), (0, 1)]]
 
-When obtaining Nash equilibrium there are 2 algorithms currently available:
+When obtaining Nash equilibrium there are 3 algorithms currently available:
 
 * ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
   algorithm uses the optional 'lrs' package. To install it type ``sage -i
   lrs`` at the command line. For more information see [A2000]_.
+
+* ``LCP``: Linear complementarity program algorithm for 2 player games.
+  This algorithm uses the open source game theory package:
+  `Gambit <http://gambit.sourceforge.net/>`_ [MMAT2014]_. At present this is
+  the only gambit algorithm available in sage but further development will
+  hope to implement more algorithms
+  (in particular for games with more than 2 players). To install it
+  type ``sage -i gambit`` at the command line.
 
 * ``'enumeration'``: Support enumeration for 2 player games. This
   algorithm is hard coded in Sage and checks through all potential
@@ -215,10 +223,12 @@ When obtaining Nash equilibrium there are 2 algorithms currently available:
   algorithm described in [NN2007]_ and a pruning component described
   in [SLB2008]_.
 
-Below we show how the two algorithms are called::
+Below we show how the three algorithms are called::
 
     sage: matching_pennies.obtain_nash(algorithm='lrs')  # optional - lrs
     [[(1/2, 1/2), (1/2, 1/2)]]
+    sage: matching_pennies.obtain_nash(algorithm='LCP')  # optional - gambit
+    [[(0.5, 0.5), (0.5, 0.5)]]
     sage: matching_pennies.obtain_nash(algorithm='enumeration')
     [[(1/2, 1/2), (1/2, 1/2)]]
 
@@ -227,6 +237,7 @@ selected according to the following order (if the corresponding package is
 installed):
 
     1. ``'lrs'`` (requires 'lrs')
+    1. ``'LCP'`` (requires 'gambit')
     2. ``'enumeration'``
 
 Here is a game being constructed using gambit syntax (note that a
@@ -348,6 +359,52 @@ more than 2 players::
     ...
     NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
 
+There are however a variety of such algorithms available in gambit,
+further compatibility between Sage and gambit is actively being developed:
+https://github.com/tturocy/gambit/tree/sage_integration.
+
+Note that the Gambit implementation of `LCP` can only handle integer
+payoffs. If a non integer payoff is used an error will be raised::
+
+    sage: A = matrix([[2, 1], [1, 2.5]])
+    sage: B = matrix([[-1, 3], [2, 1]])
+    sage: g = NormalFormGame([A, B])
+    sage: g.obtain_nash(algorithm='LCP')  # optional - gambit
+    Traceback (most recent call last):
+    ...
+    ValueError: The Gambit implementation of LCP only allows for integer valued payoffs. Please scale your payoff matrices.
+
+Other algorithms can handle these payoffs::
+
+    sage: g.obtain_nash(algorithm='enumeration')
+    [[(1/5, 4/5), (3/5, 2/5)]]
+    sage: g.obtain_nash(algorithm='lrs')
+    [[(1/5, 4/5), (3/5, 2/5)]]
+
+It can be shown that linear scaling of the payoff matrices conserves the
+equilibrium values::
+
+    sage: A = 2 * A
+    sage: g = NormalFormGame([A, B])
+    sage: g.obtain_nash(algorithm='LCP')  # optional - gambit
+    [[(0.2, 0.8), (0.6, 0.4)]]
+
+It is also possible to generate a Normal Form Game from a gambit Game::
+
+    sage: from gambit import Game
+    sage: gambitgame= Game.new_table([2, 2])
+    sage: gambitgame[int(0), int(0)][int(0)] = int(8)
+    sage: gambitgame[int(0), int(0)][int(1)] = int(8)
+    sage: gambitgame[int(0), int(1)][int(0)] = int(2)
+    sage: gambitgame[int(0), int(1)][int(1)] = int(10)
+    sage: gambitgame[int(1), int(0)][int(0)] = int(10)
+    sage: gambitgame[int(1), int(0)][int(1)] = int(2)
+    sage: gambitgame[int(1), int(1)][int(0)] = int(5)
+    sage: gambitgame[int(1), int(1)][int(1)] = int(5)
+    sage: g = NormalFormGame(gambitgame)
+    sage: g
+    {(0, 1): [2.0, 10.0], (1, 0): [10.0, 2.0], (0, 0): [8.0, 8.0], (1, 1): [5.0, 5.0]}
+
 Here is a slightly longer game that would take too long to solve with
 ``'enumeration'``. Consider the following:
 
@@ -378,6 +435,8 @@ In the following we create the game (with a max value of 10) and solve it::
     sage: g = NormalFormGame([A, B])
     sage: g.obtain_nash(algorithm='lrs') # optional - lrs
     [[(1, 0, 0, 0, 0, 0, 0, 0, 0), (1, 0, 0, 0, 0, 0, 0, 0, 0)]]
+    sage: g.obtain_nash(algorithm='LCP') # optional - gambit
+    [[(1, 0, 0, 0, 0, 0, 0, 0, 0), (1, 0, 0, 0, 0, 0, 0, 0, 0)]]
 
 The output is a pair of vectors (as before) showing the Nash equilibrium.
 In particular it here shows that out of the 10 possible strategies both
@@ -395,6 +454,8 @@ is evidenced by the two algorithms returning different solutions::
     sage: degenerate_game = NormalFormGame([A,B])
     sage: degenerate_game.obtain_nash(algorithm='lrs') # optional - lrs
     [[(0, 1/3, 2/3), (1/3, 2/3)], [(1, 0, 0), (2/3, 1/3)], [(1, 0, 0), (1, 0)]]
+    sage: degenerate_game.obtain_nash(algorithm='LCP') # optional - gambit
+    NOTE SURE WHAT OUTPUT WILL BE BUT THIS SHOULD FAIL
     sage: degenerate_game.obtain_nash(algorithm='enumeration')
     [[(0, 1/3, 2/3), (1/3, 2/3)], [(1, 0, 0), (1, 0)]]
 
@@ -934,6 +995,9 @@ class NormalFormGame(SageObject, MutableMapping):
           * ``'lrs'`` - This algorithm is only suited for 2 player games.
             See the lrs web site (http://cgm.cs.mcgill.ca/~avis/C/lrs.html).
 
+          * ``"LCP"`` - This algorithm is only suited for 2 player games.
+            See the gambit web site (http://gambit.sourceforge.net/).
+
           * ``'enumeration'`` - This is a very inefficient
             algorithm (in essence a brute force approach).
 
@@ -1060,7 +1124,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         Note that outputs for all algorithms are as lists of lists of
         tuples and the equilibria have been sorted so that all algorithms give
-        a comparable output::
+        a comparable output (although ``'LCP'`` returns floats)::
 
             sage: enumeration_eqs = g.obtain_nash(algorithm='enumeration')
             sage: [[type(s) for s in eq] for eq in enumeration_eqs]
@@ -1068,11 +1132,20 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: lrs_eqs = g.obtain_nash(algorithm='lrs')  # optional - lrs
             sage: [[type(s) for s in eq] for eq in lrs_eqs]  # optional - lrs
             [[<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>]]
+            sage: LCP_eqs = g.obtain_nash(algorithm='LCP')  # optional - gambit
+            sage: [[type(s) for s in eq] for eq in LCP_eqs]  # optional - gambit
+            [[<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>]]
             sage: enumeration_eqs == sorted(enumeration_eqs)
             True
             sage: lrs_eqs == sorted(lrs_eqs)  # optional - lrs
             True
+            sage: LCP_eqs == sorted(LCP_eqs)  # optional - LCP
+            True
             sage: lrs_eqs == enumeration_eqs  # optional - lrs
+            True
+            sage: lrs_eqs == LCP_eqs  # optional - lrs, gambit
+            False
+            sage: [(float(k) for k in eq) for eq in lrs_eqs] == LCP_eqs  # optional - lrs, gambit
             True
 
         """

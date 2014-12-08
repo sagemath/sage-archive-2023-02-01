@@ -272,28 +272,30 @@ cdef class LazyImport(object):
                         break
         return self._object
 
-    def _is_deprecated(self, trac_ticket=False):
+    def _get_deprecation_ticket(self):
         """
-        Check whether a lazy import is deprecated.
+        Return the ticket number of the deprecation, or 0 if this lazy
+        import is not deprecated.
 
         EXAMPLES::
 
             sage: from sage.misc.lazy_import import LazyImport
+            sage: H = LazyImport('sage.categories.homsets', 'Homsets')
+            sage: H._get_deprecation_ticket()
+            0
             sage: H = LazyImport('sage.categories.homsets', 'Homsets', deprecation=10668)
-            sage: H._is_deprecated()
-            True
-            sage: H._is_deprecated(trac_ticket=True)
+            sage: H._get_deprecation_ticket()
+            10668
+            sage: H = LazyImport('sage.categories.homsets', 'Homsets', deprecation=(10668, "this is deprecated"))
+            sage: H._get_deprecation_ticket()
             10668
         """
-        if trac_ticket:
-            if self._deprecation is None:
-                return 0
-            try:
-                return self._deprecation[0]
-            except TypeError:
-                return self._deprecation
-        else:
-            return self._deprecation is not None
+        if self._deprecation is None:
+            return 0
+        try:
+            return self._deprecation[0]
+        except TypeError:
+            return self._deprecation
 
     def _sage_doc_(self):
         """

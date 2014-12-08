@@ -486,7 +486,7 @@ def import_statements(*objects, **kwds):
         sage: import_statements('deprecated_RR')
         Traceback (most recent call last):
         ...
-        LookupError: object named 'deprecated_RR' is deprecated (see trac #17458)
+        LookupError: object named 'deprecated_RR' is deprecated (see trac ticket 17458)
         sage: lazy_import('sage.all', 'RR', namespace=sage.__dict__, deprecation=17458)
         sage: import_statements('RR')
         from sage.rings.real_mpfr import RR
@@ -541,14 +541,14 @@ def import_statements(*objects, **kwds):
 
             # remove lazy imported objects from list obj
             i = 0
-            found_deprecated = False
+            deprecation = None
             while i < len(obj):
                 if isinstance(obj[i], LazyImport):
                     tmp = obj.pop(i)
                     # Ignore deprecated lazy imports
-                    if tmp._is_deprecated():
-                        found_deprecated = True
-                        ticket = tmp._is_deprecated(trac_ticket=True)
+                    tmp_deprecation = tmp._get_deprecation_ticket()
+                    if tmp_deprecation:
+                        deprecation = tmp_deprecation
                     else:
                         tmp = tmp._get_object()
                         if all(u is not tmp for u in obj):
@@ -569,8 +569,8 @@ def import_statements(*objects, **kwds):
             try:
                 obj = obj[0]
             except IndexError:
-                if found_deprecated:
-                    raise LookupError("object named %r is deprecated (see trac #%s)"%(name,ticket))
+                if deprecation:
+                    raise LookupError("object named %r is deprecated (see trac ticket %s)"%(name, deprecation))
                 else:
                     raise LookupError("no object named %r"%name)
 

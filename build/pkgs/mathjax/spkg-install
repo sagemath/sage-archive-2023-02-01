@@ -53,10 +53,6 @@
 
 # Move mathjax to its final destination.
     TARGET="${SAGE_SHARE}/mathjax"
-
-    if [ -d "${TARGET}" ] ; then
-       rm -rf "${TARGET}"
-    fi
-
+    rm -rf "${TARGET}"
     cp -r 'src' "${TARGET}"
 

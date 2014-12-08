@@ -9203,11 +9203,6 @@ class FiniteStateMachine(SageObject):
             The expectation of `B_j` is given in [FHP2014]_, Theorem 2.
             Here, we verify this result by using transducers::
 
-                sage: non_decreasing = Transducer(
-                ....:       [(0, 0, 0, 0), (0, 1, 1, 1),
-                ....:        (1, 1, 0, 1), (1, 1, 1, 1)],
-                ....:       initial_states=[0],
-                ....:       final_states=[0, 1])
                 sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
                 sage: def test(h, r, j):
                 ....:     R = PolynomialRing(
@@ -9218,7 +9213,7 @@ class FiniteStateMachine(SageObject):
                 ....:         return polynomial in (sum(p) - 1) * R
                 ....:     alphabet = range(r)
                 ....:     counters = [
-                ....:         non_decreasing(
+                ....:         transducers.Wait([0, 1])(
                 ....:             transducers.CountSubblockOccurrences(
                 ....:                 [i]*h,
                 ....:                 alphabet))

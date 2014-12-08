@@ -9076,14 +9076,17 @@ class FiniteStateMachine(SageObject):
                 sage: sum((k-2)^2 * 2^(-k), k, 1, infinity)
                 2
 
-            We now compute the same expected value by using a Markov
-            chain::
+            We now compute the same expectation and variance by using a
+            Markov chain::
 
-                sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
-                sage: T = Transducer([(0, 0, 1/2, 0), (0, 0, 1/2, 1)],
-                ....:                on_duplicate_transition=duplicate_transition_add_input,
-                ....:                initial_states=[0],
-                ....:                final_states=[0])
+                sage: from sage.combinat.finite_state_machine import (
+                ....:     duplicate_transition_add_input)
+                sage: T = Transducer(
+                ....:     [(0, 0, 1/2, 0), (0, 0, 1/2, 1)],
+                ....:     on_duplicate_transition=\
+                ....:         duplicate_transition_add_input,
+                ....:     initial_states=[0],
+                ....:     final_states=[0])
                 sage: T.moments_waiting_time()
                 {'expectation': 2, 'variance': 2}
                 sage: T.moments_waiting_time(expectation_only=True)
@@ -9101,17 +9104,19 @@ class FiniteStateMachine(SageObject):
             ::
 
                 sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 1)],
-                ....:                on_duplicate_transition=duplicate_transition_add_input,
+                ....:                on_duplicate_transition=\
+                ....:                    duplicate_transition_add_input,
                 ....:                initial_states=[0],
                 ....:                final_states=[0])
                 sage: T.moments_waiting_time()
                 {'expectation': 1, 'variance': 0}
 
         #.  If ``True`` is never written, the moments are
-        ``+Infinity``::
+            ``+Infinity``::
 
                 sage: T = Transducer([(0, 0, 1, 0)],
-                ....:                on_duplicate_transition=duplicate_transition_add_input,
+                ....:                on_duplicate_transition=\
+                ....:                    duplicate_transition_add_input,
                 ....:                initial_states=[0],
                 ....:                final_states=[0])
                 sage: T.moments_waiting_time()
@@ -9149,7 +9154,7 @@ class FiniteStateMachine(SageObject):
                 ....:             names=['p_%d' % j for j in range(r)])
                 ....:     p = R.gens()
                 ....:     def is_zero(polynomial):
-                ....:         return polynomial in (sum(p)-1)*R
+                ....:         return polynomial in (sum(p) - 1) * R
                 ....:     theory_expectation = 1/(sum(1/sum(p[j]^(-i)
                 ....:                     for i in range(1, h+1))
                 ....:                     for j in range(r)))
@@ -9203,7 +9208,8 @@ class FiniteStateMachine(SageObject):
         There must be a unique initial state::
 
             sage: T = Transducer([(0, 1, 1, 1), (1, 0, 1, 0)],
-            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            ....:                on_duplicate_transition=\
+            ....:                    duplicate_transition_add_input)
             sage: T.moments_waiting_time()
             Traceback (most recent call last):
             ...
@@ -9231,7 +9237,8 @@ class FiniteStateMachine(SageObject):
             sage: R.<p, q> = PolynomialRing(QQ)
             sage: T = Transducer([(0, 0, p, 0), (0, 0, q, 0)],
             ....:                initial_states=[0],
-            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            ....:                on_duplicate_transition=\
+            ....:                    duplicate_transition_add_input)
             sage: T.moments_waiting_time(lambda e: e in (p + q - 1)*R)
             {'expectation': +Infinity, 'variance': +Infinity}
 

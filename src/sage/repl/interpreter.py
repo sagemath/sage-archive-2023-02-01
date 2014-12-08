@@ -38,6 +38,12 @@ this object can be retrieved by running::
 
     sage: shell = get_ipython()   # not tested
 
+Any input is preprocessed and evaluated inside the ``shell.run_cell``
+method. If the command line processing does not do what you want it to
+do, you can step through it in the debugger::
+
+    sage: %debug shell.run_cell('?')        # not tested
+
 The :class:`SageInteractiveShell` provides the following
 customizations:
 
@@ -76,7 +82,7 @@ import copy
 import os
 import re
 import sys
-from sage.misc.preparser import preparse
+from sage.repl.preparse import preparse
 
 from IPython import Config
 
@@ -140,9 +146,30 @@ def preparser(on=True):
     _do_preparse = on is True
 
 ##############################
-# (Terminal)InteractiveShell #
+# Sage[Terminal]InteractiveShell #
 ##############################
-class SageNativeExecute(object):
+class SageShellOverride(object):
+    """
+    Mixin to override methods in IPython's [Terminal]InteractiveShell
+    classes.
+    """
+
+    def show_usage(self):
+        """
+        Print the basic Sage usage.
+
+        This method ends up being called when you enter ``?`` and
+        nothing else on the command line.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('?')
+            Welcome to Sage ...
+        """
+        from sage.misc.sagedoc import help
+        help()
 
     def system_raw(self, cmd):
         """
@@ -179,16 +206,16 @@ class SageNativeExecute(object):
             if os.uname()[0]=='Darwin':
                 libraries += 'DYLD_LIBRARY_PATH="$SAGE_ORIG_DYLD_LIBRARY_PATH";export DYLD_LIBRARY_PATH;'
             cmd = libraries+cmd
-        return super(SageNativeExecute, self).system_raw(cmd)
+        return super(SageShellOverride, self).system_raw(cmd)
 
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
-class SageInteractiveShell(SageNativeExecute, InteractiveShell):
+class SageInteractiveShell(SageShellOverride, InteractiveShell):
     pass
 
-class SageTerminalInteractiveShell(SageNativeExecute, TerminalInteractiveShell):
+class SageTerminalInteractiveShell(SageShellOverride, TerminalInteractiveShell):
     pass
 
 
@@ -552,9 +579,12 @@ class SageTerminalApp(TerminalIPythonApp):
             <sage.repl.interpreter.SageTerminalInteractiveShell object at 0x...>
         """
         # Shell initialization
-        self.shell = SageTerminalInteractiveShell.instance(config=self.config,
-                        display_banner=False, profile_dir=self.profile_dir,
-                        ipython_dir=self.ipython_dir)
+        self.shell = SageTerminalInteractiveShell.instance(
+            parent=self,
+            config=self.config,
+            display_banner=False,
+            profile_dir=self.profile_dir,
+            ipython_dir=self.ipython_dir)
         self.shell.configurables.append(self)
         self.shell.has_sage_extensions = SAGE_EXTENSION in self.extensions
 

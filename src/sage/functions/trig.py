@@ -763,6 +763,8 @@ class Function_arcsec(BuiltinFunction):
 
             sage: arcsec(2)
             arcsec(2)
+            sage: arcsec(2.0)
+            1.04719755119660
             sage: RDF(arcsec(2))  # abs tol 1e-15
             1.0471975511965976
             sage: arcsec(1 + I)
@@ -789,6 +791,8 @@ class Function_arcsec(BuiltinFunction):
 
             sage: arcsec(2).n(100)
             1.0471975511965977461542144611
+            sage: arcsec(1/2).n(100)
+            NaN
 
         TESTS:
 

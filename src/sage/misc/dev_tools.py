@@ -76,7 +76,7 @@ def runsnake(command):
     """
     import cProfile, os
     from sage.misc.misc import tmp_filename, get_main_globals
-    from sage.misc.preparser import preparse
+    from sage.repl.preparse import preparse
     tmpfile = tmp_filename()
     cProfile.runctx(preparse(command.lstrip().rstrip()), get_main_globals(), locals(), filename=tmpfile)
     os.system("/usr/bin/python -E `which runsnake` %s &"%tmpfile)

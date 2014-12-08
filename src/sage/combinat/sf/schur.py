@@ -160,7 +160,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             EXAMPLES::
 
-                sage: s = SymmetricFunctions(QQ[x]).s()
+                sage: s = SymmetricFunctions(QQ['x']).s()
                 sage: len(s([2,1])^8) # long time (~ 4 s)
                 1485
                 sage: len(s([2,1])^9) # long time (~10 s)
@@ -180,10 +180,10 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             With polynomial coefficients, this is actually much *slower*
             (although this should be profiled further; there seems to
             be an unreasonable number of polynomial multiplication involved,
-            besides the fact that 1 * QQ[x].one() currently involves a
+            besides the fact that 1 * QQ['x'].one() currently involves a
             polynomial multiplication)
 
-            #    sage: sage: s = SymmetricFunctions(QQ[x]).s()
+            #    sage: sage: s = SymmetricFunctions(QQ['x']).s()
             #    sage: y = s([2,1])
             #    sage: %timeit y**7
             #    10 loops, best of 3: 18.9 s per loop

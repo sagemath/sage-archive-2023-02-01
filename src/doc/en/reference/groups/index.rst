@@ -29,6 +29,7 @@ Groups
    sage/groups/perm_gps/permgroup_element
    sage/groups/perm_gps/permgroup_morphism
    sage/groups/perm_gps/cubegroup
+   sage/groups/perm_gps/symgp_conjugacy_class
    sage/groups/matrix_gps/catalog
    sage/groups/matrix_gps/matrix_group
    sage/groups/matrix_gps/group_element

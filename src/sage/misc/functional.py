@@ -15,18 +15,12 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 
 import sage.misc.latex
 import sage.interfaces.expect
@@ -138,25 +132,6 @@ def category(x):
         import sage.categories.all
         return sage.categories.all.Objects()
 
-def ceil(x):
-    """
-    Returns the ceiling (least integer) function of x.
-
-    EXAMPLES::
-
-        sage: ceil(3.5)
-        4
-        sage: ceil(7/2)
-        4
-        sage: ceil(-3.5)
-        -3
-        sage: ceil(RIF(1.3,2.3))
-        3.?
-    """
-    try:
-        return x.ceil()
-    except AttributeError:
-        return sage.rings.all.ceil(x)
 
 def characteristic_polynomial(x, var='x'):
     """
@@ -215,61 +190,6 @@ def coerce(P, x):
         return P._coerce_(x)
     except AttributeError:
         return P(x)
-
-
-def acos(x):
-    """
-    Returns the arc cosine of x.
-
-    EXAMPLES::
-
-        sage: acos(.5)
-        1.04719755119660
-        sage: acos(sin(pi/3))
-        arccos(1/2*sqrt(3))
-        sage: acos(sin(pi/3)).simplify_full()
-        1/6*pi
-    """
-    try: return x.acos()
-    except AttributeError: return RDF(x).acos()
-
-def asin(x):
-    """
-    Returns the arc sine of x.
-
-    EXAMPLES::
-
-        sage: asin(.5)
-        0.523598775598299
-        sage: asin(sin(pi/3))
-        arcsin(1/2*sqrt(3))
-        sage: asin(sin(pi/3)).simplify_full()
-        1/3*pi
-    """
-    try: return x.asin()
-    except AttributeError: return RDF(x).asin()
-
-def atan(x):
-    """
-    Returns the arc tangent of x.
-
-    EXAMPLES::
-
-        sage: z = atan(3);z
-        arctan(3)
-        sage: n(z)
-        1.24904577239825
-        sage: atan(tan(pi/4))
-        1/4*pi
-    """
-    try: return x.atan()
-    except AttributeError: return RDF(x).atan()
-
-## def cuspidal_submodule(x):
-##     return x.cuspidal_submodule()
-
-## def cuspidal_subspace(x):
-##     return x.cuspidal_subspace()
 
 def cyclotomic_polynomial(n, var='x'):
     """
@@ -376,13 +296,6 @@ def discriminant(x):
 
 disc = discriminant
 
-# This is dangerous since it gets the scoping all wrong ??
-#import __builtin__
-#def eval(x):
-#    try:
-#        return x._eval_()
-#    except AttributeError:
-#        return __builtin__.eval(x)
 
 def eta(x):
     r"""
@@ -403,52 +316,6 @@ def eta(x):
     try: return x.eta()
     except AttributeError: return CDF(x).eta()
 
-def exp(x):
-    """
-    Returns the value of the exponentiation function at x.
-
-    EXAMPLES::
-
-        sage: exp(3)
-        e^3
-        sage: exp(0)
-        1
-        sage: exp(2.5)
-        12.1824939607035
-        sage: exp(pi*i)
-        -1
-    """
-    try: return x.exp()
-    except AttributeError: return RDF(x).exp()
-
-def factor(x, *args, **kwds):
-    """
-    Returns the (prime) factorization of x.
-
-    EXAMPLES::
-
-        sage: factor(factorial(10))
-        2^8 * 3^4 * 5^2 * 7
-        sage: n = next_prime(10^6); n
-        1000003
-        sage: factor(n)
-        1000003
-
-        Note that this depends on the type of x::
-
-        sage: factor(55)
-        5 * 11
-        sage: factor(x^2+2*x+1)
-        (x + 1)^2
-        sage: factor(55*x^2+110*x+55)
-        55*(x + 1)^2
-
-    """
-    try: return x.factor(*args, **kwds)
-    except AttributeError: return sage.rings.all.factor(x, *args, **kwds)
-
-factorization = factor
-factorisation = factor
 
 def fcp(x, var='x'):
     """
@@ -462,13 +329,8 @@ def fcp(x, var='x'):
         x * (x^2 - 15*x - 18)
     """
     try: return x.fcp(var)
-    except AttributeError: return factor(charpoly(x, var))
+    except AttributeError: return charpoly(x, var).factor()
 
-## def floor(x):
-##     try:
-##         return x.floor()
-##     except AttributeError:
-##         return sage.rings.all.floor(x)
 
 def gen(x):
     """
@@ -517,7 +379,6 @@ def hecke_operator(x,n):
     """
     return x.hecke_operator(n)
 
-ideal = sage.rings.ideal.Ideal
 
 def image(x):
     """
@@ -910,24 +771,6 @@ def is_field(x):
     """
     return x.is_field()
 
-def is_noetherian(x):
-    """
-    Returns whether or not x is a Noetherian
-    object (has ascending chain condition).
-
-    EXAMPLES::
-
-        sage: from sage.misc.functional import is_noetherian
-        sage: is_noetherian(ZZ)
-        True
-        sage: is_noetherian(QQ)
-        True
-        sage: A = SteenrodAlgebra(3)
-        sage: is_noetherian(A)
-        False
-    """
-
-    return x.is_noetherian()
 
 def is_odd(x):
     """
@@ -947,18 +790,6 @@ def is_odd(x):
     """
     return not is_even(x)
 
-## def j_invariant(x):
-##     """
-##     Return the j_invariant of x.
-
-##     EXAMPLES:
-##         sage: E = EllipticCurve([0, -1, 1, -10, -20])
-##         sage: E
-##         Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
-##         sage: j_invariant(E)
-##         -122023936/161051
-##     """
-##     return x.j_invariant()
 
 def kernel(x):
     """
@@ -1119,11 +950,6 @@ def multiplicative_order(x):
     """
     return x.multiplicative_order()
 
-## def new_submodule(x):
-##     return x.new_submodule()
-
-## def new_subspace(x):
-##     return x.new_subspace()
 
 def ngens(x):
     """
@@ -1500,12 +1326,18 @@ def one(R):
 
     EXAMPLES::
 
+        sage: one(RR)
+        doctest:...: DeprecationWarning: one(R) is deprecated, use R.one() or R(1) instead
+        See http://trac.sagemath.org/17158 for details.
+        1.00000000000000
         sage: R.<x> = PolynomialRing(QQ)
         sage: one(R)*x == x
         True
         sage: one(R) in R
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(17158, 'one(R) is deprecated, use R.one() or R(1) instead')
     return R(1)
 
 def order(x):
@@ -1699,32 +1531,7 @@ def _do_show(x):
         return sage.misc.latex.latex(x)
     from latex import view
     view(x, mode='display')
-    #raise AttributeError, "object %s does not support show."%(x, )
 
-def sqrt(x):
-    """
-    Returns a square root of x.
-
-    This function (``numerical_sqrt``) is deprecated.  Use ``sqrt(x,
-    prec=n)`` instead.
-
-    EXAMPLES::
-
-        sage: numerical_sqrt(10.1)
-        doctest:...: DeprecationWarning: numerical_sqrt is deprecated, use sqrt(x, prec=n) instead
-        See http://trac.sagemath.org/5404 for details.
-        3.17804971641414
-        sage: numerical_sqrt(9)
-        3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(5404, "numerical_sqrt is deprecated, use sqrt(x, prec=n) instead")
-    try: return x.sqrt()
-    except (AttributeError, ValueError):
-        try:
-            return RDF(x).sqrt()
-        except TypeError:
-            return CDF(x).sqrt()
 
 def isqrt(x):
     """
@@ -1782,6 +1589,8 @@ def squarefree_part(x):
         return x.squarefree_part()
     except AttributeError:
         pass
+    from sage.rings.arith import factor
+    from sage.structure.all import parent
     F = factor(x)
     n = parent(x)(1)
     for p, e in F:
@@ -1789,20 +1598,6 @@ def squarefree_part(x):
             n *= p
     return n * F.unit()
 
-## def square_root(x):
-##     """
-##     Return a square root of x with the same parent as x, if possible,
-##     otherwise raise a ValueError.
-##     EXAMPLES:
-##         sage: square_root(9)
-##         3
-##         sage: square_root(100)
-##         10
-##     """
-##     try:
-##         return x.square_root()
-##     except AttributeError:
-##         raise NotImplementedError
 
 def transpose(x):
     """
@@ -1819,15 +1614,6 @@ def transpose(x):
     """
     return x.transpose()
 
-## def vector(x, R):
-##     r"""
-##     Return the \sage vector over $R$ obtained from x, if possible.
-##     """
-##     try:
-##         return x._vector_(R)
-##     except AttributeError:
-##         import sage.modules.free_module_element
-##         return sage.modules.free_module_element.Vector(x, R)
 
 def zero(R):
     """
@@ -1835,33 +1621,16 @@ def zero(R):
 
     EXAMPLES::
 
+        sage: zero(RR)
+        doctest:...: DeprecationWarning: zero(R) is deprecated, use R.zero() or R(0) instead
+        See http://trac.sagemath.org/17158 for details.
+        0.000000000000000
         sage: R.<x> = PolynomialRing(QQ)
         sage: zero(R) in R
         True
         sage: zero(R)*x == zero(R)
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(17158, 'zero(R) is deprecated, use R.zero() or R(0) instead')
     return R(0)
-
-
-
-#################################################################
-# Generic parent
-#################################################################
-def parent(x):
-    """
-    Returns x.parent() if defined, or type(x) if not.
-
-    EXAMPLE::
-
-        sage: Z = parent(int(5))
-        sage: Z(17)
-        17
-        sage: Z
-        <type 'int'>
-    """
-    try:
-        return x.parent()
-    except AttributeError:
-        return type(x)
-

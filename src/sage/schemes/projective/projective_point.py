@@ -123,6 +123,13 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: X = P.subscheme([x^2-y*z])
             sage: X([2,2,2])
             (2 : 2 : 2)
+
+        ::
+
+            sage: R.<t>=PolynomialRing(ZZ)
+            sage: P = ProjectiveSpace(1, R.quo(t^2+1))
+            sage: P([2*t, 1])
+            (2*tbar : 1)
         """
         SchemeMorphism.__init__(self, X)
         if check:
@@ -376,9 +383,9 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q.scale_by(1/2);Q
             (1 : 1 : 1)
         """
-        R = self.codomain().base_ring()
-        if t == 0:
+        if t == 0:  #what if R(t) == 0 ?
             raise ValueError("Cannot scale by 0")
+        R = self.codomain().base_ring()
         if isinstance(R, QuotientRing_generic):
             for i in range(self.codomain().ambient_space().dimension_relative()+1):
                 self._coords[i]=R(self._coords[i].lift()*t)
@@ -440,6 +447,17 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q = P(2*c,4*c)
             sage: Q.normalize_coordinates();Q
             (1 : 2)
+
+        ::
+
+
+            sage: R.<t> = PolynomialRing(QQ,1)
+            sage: S = R.quotient_ring(R.ideal(t^3))
+            sage: P.<x,y> = ProjectiveSpace(S,1)
+            sage: Q = P(t,t^2)
+            sage: Q.normalize_coordinates()
+            sage: Q
+            (1 : tbar)
         """
         R = self.codomain().base_ring()
         if isinstance(R,(QuotientRing_generic)):
@@ -1008,6 +1026,13 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             sage: X = P.subscheme([x^2-y*z])
             sage: X([2,2,2])
             (1 : 1 : 1)
+
+        ::
+
+            sage: P = ProjectiveSpace(1, GF(7))
+            sage: Q=P([2, 1])
+            sage: Q[0].parent()
+            Finite Field of size 7
         """
         SchemeMorphism.__init__(self, X)
         if check:

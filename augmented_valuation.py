@@ -607,7 +607,7 @@ class AugmentedValuation(DevelopingValuation):
         # in the last step of reduce, the f_iQ^i are reduced, and evaluated at
         # the generator of the residue field
         # here, we undo this:
-        coeffs = [ R0(c if self.residue_field().is_prime_field() else list(c._vector_())) for c in F.coeffs() ]
+        coeffs = [ R0(c if self.phi().degree()==1 else list(c._vector_())) for c in F.coeffs() ]
         coeffs = [ self._base_valuation.lift(c) for c in coeffs ]
         # now the coefficients correspond to the expansion with (f_iQ^i)(Q^{-1} phi)^i
 

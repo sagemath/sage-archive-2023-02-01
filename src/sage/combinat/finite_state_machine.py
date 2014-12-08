@@ -9117,15 +9117,23 @@ class FiniteStateMachine(SageObject):
                 sage: T.moments_waiting_time()
                 {'expectation': +Infinity, 'variance': +Infinity}
 
-        #.  Let `h` and `k` be positive integers. We consider random
-            strings of letters `1`, `\ldots`, `k` where the letter `j`
+        #.  Let `h` and `r` be positive integers. We consider random
+            strings of letters `1`, `\ldots`, `r` where the letter `j`
             occurs with probability `p_j`. Let `B` be the random
             variable giving the first position of a block of `h`
             consecutive identical letters. Then
 
             .. MATH::
 
-                \mathbb{E}(B)=\frac1{\sum_{j=1}^k \frac1{p_j^{-1}+\cdots+p_j^{-h}}},
+                \begin{aligned}
+                \mathbb{E}(B)&=\frac1{\displaystyle\sum_{i=1}^r
+                \frac1{p_i^{-1}+\cdots+p_i^{-h}}},\\
+                \mathbb{V}(B)&=\frac{\displaystyle\sum_{i=1}^r\biggl(
+                \frac{p_i +p_i^h}{1-p_i^h}
+                - 2h\frac{ p_i^h(1-p_i)}{(1-p_i^h)^2}\biggr)}
+                {\displaystyle\biggl(\sum_{i=1}^r
+                \frac1{p_i^{-1}+\cdots+p_i^{-h}}\biggr)^2}
+                \end{aligned}
 
             cf. [S1986]_, p. 62, or [FHP2014]_, Theorem 1. We now
             verify this with a transducer approach. We need to set
@@ -9135,33 +9143,39 @@ class FiniteStateMachine(SageObject):
             ::
 
                 sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
-                sage: def test(h, k):
-                ....:     R = PolynomialRing(QQ,
-                ....:                        names=['p_%d' % j for j in range(k)])
+                sage: def test(h, r):
+                ....:     R = PolynomialRing(
+                ....:             QQ,
+                ....:             names=['p_%d' % j for j in range(r)])
                 ....:     p = R.gens()
                 ....:     def is_zero(polynomial):
                 ....:         return polynomial in (sum(p)-1)*R
                 ....:     theory_expectation = 1/(sum(1/sum(p[j]^(-i)
                 ....:                     for i in range(1, h+1))
-                ....:                     for j in range(k)))
-                ....:     theory_variance = sum((p[i] + p[i]^h)/
-                ....:                           (1 - p[i]^h)
-                ....:                           - 2*h*p[i]^h * (1 - p[i])/
-                ....:                                  (1 - p[i]^h)^2
-                ....:                           for i in range(k)
-                ....:                           ) * theory_expectation^2
-                ....:     alphabet = range(k)
-                ....:     counters = [transducers.CountSubblockOccurrences([j]*h, alphabet)
-                ....:                 for j in alphabet]
-                ....:     all_counter = counters[0].cartesian_product(counters[1:])
+                ....:                     for j in range(r)))
+                ....:     theory_variance = sum(
+                ....:         (p[i] + p[i]^h)/(1 - p[i]^h)
+                ....:         - 2*h*p[i]^h * (1 - p[i])/(1 - p[i]^h)^2
+                ....:         for i in range(r)
+                ....:         ) * theory_expectation^2
+                ....:     alphabet = range(r)
+                ....:     counters = [
+                ....:         transducers.CountSubblockOccurrences([j]*h,
+                ....:                     alphabet)
+                ....:         for j in alphabet]
+                ....:     all_counter = counters[0].cartesian_product(
+                ....:         counters[1:])
                 ....:     adder = transducers.add(input_alphabet=[0, 1],
-                ....:         number_of_operands=k)
-                ....:     probabilities = Transducer([(0, 0, p[j], j) for j in alphabet],
-                ....:                                initial_states=[0],
-                ....:                                final_states=[0],
-                ....:                                on_duplicate_transition=duplicate_transition_add_input)
+                ....:         number_of_operands=r)
+                ....:     probabilities = Transducer(
+                ....:        [(0, 0, p[j], j) for j in alphabet],
+                ....:        initial_states=[0],
+                ....:        final_states=[0],
+                ....:        on_duplicate_transition=\
+                ....:            duplicate_transition_add_input)
                 ....:     chain = adder(all_counter(probabilities))
-                ....:     result = chain.moments_waiting_time(is_zero=is_zero)
+                ....:     result = chain.moments_waiting_time(
+                ....:        is_zero=is_zero)
                 ....:     return is_zero((result['expectation'] -
                 ....:                theory_expectation).numerator()) \
                 ....:            and \

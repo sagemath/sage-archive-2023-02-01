@@ -9194,6 +9194,82 @@ class FiniteStateMachine(SageObject):
                 True
                 sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
 
+        #.  Consider the alphabet `\{0, \ldots, r-1\}`, some `1\le j\le
+            r` and some `h\ge 1`.  For some probabilities `p_0`,
+            `\ldots`, `p_{r-1}`, we consider infinite words where the
+            letters occur independently with the given probabilities.
+            The random variable `B_j` is the first position `n` such
+            that there exist `j` of the `r` letters having an `h`-run.
+            The expectation of `B_j` is given in [FHP2014]_, Theorem 2.
+            Here, we verify this result by using transducers::
+
+                sage: non_decreasing = Transducer(
+                ....:       [(0, 0, 0, 0), (0, 1, 1, 1),
+                ....:        (1, 1, 0, 1), (1, 1, 1, 1)],
+                ....:       initial_states=[0],
+                ....:       final_states=[0, 1])
+                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
+                sage: def test(h, r, j):
+                ....:     R = PolynomialRing(
+                ....:             QQ,
+                ....:             names=['p_%d' % i for i in range(r)])
+                ....:     p = R.gens()
+                ....:     def is_zero(polynomial):
+                ....:         return polynomial in (sum(p) - 1) * R
+                ....:     alphabet = range(r)
+                ....:     counters = [
+                ....:         non_decreasing(
+                ....:             transducers.CountSubblockOccurrences(
+                ....:                 [i]*h,
+                ....:                 alphabet))
+                ....:         for i in alphabet]
+                ....:     all_counter = counters[0].cartesian_product(
+                ....:         counters[1:])
+                ....:     adder = transducers.add(input_alphabet=[0, 1],
+                ....:         number_of_operands=r)
+                ....:     threshold = transducers.map(
+                ....:         f=lambda x: x >= j,
+                ....:         input_alphabet=srange(r+1))
+                ....:     probabilities = Transducer(
+                ....:         [(0, 0, p[i], i) for i in alphabet],
+                ....:         initial_states=[0],
+                ....:         final_states=[0],
+                ....:         on_duplicate_transition=\
+                ....:             duplicate_transition_add_input)
+                ....:     chain = threshold(adder(all_counter(
+                ....:         probabilities)))
+                ....:     result = chain.moments_waiting_time(
+                ....:         is_zero=is_zero,
+                ....:         expectation_only=True)
+                ....:
+                ....:     R_v = PolynomialRing(
+                ....:             QQ,
+                ....:             names=['p_%d' % i for i in range(r)])
+                ....:     v = R_v.gens()
+                ....:     S = 1/(1 - sum(v[i]/(1+v[i])
+                ....:                    for i in range(r)))
+                ....:     alpha = [(p[i] - p[i]^h)/(1 - p[i])
+                ....:              for i in range(r)]
+                ....:     gamma = [p[i]/(1 - p[i]) for i in range(r)]
+                ....:     alphabet_set = set(alphabet)
+                ....:     expectation = 0
+                ....:     for q in range(j):
+                ....:         for M in Subsets(alphabet_set, q):
+                ....:             summand = S
+                ....:             for i in M:
+                ....:                 summand = summand.subs(
+                ....:                     {v[i]: gamma[i]}) -\
+                ....:                     summand.subs({v[i]: alpha[i]})
+                ....:             for i in alphabet_set - set(M):
+                ....:                 summand = summand.subs(
+                ....:                     {v[i]: alpha[i]})
+                ....:             expectation += summand
+                ....:     return is_zero((result - expectation).\
+                ....:             numerator())
+                sage: test(2, 3, 2)
+                True
+                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
+
         TESTS:
 
         Only Markov chains are acceptable::

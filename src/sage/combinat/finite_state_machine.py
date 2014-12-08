@@ -9270,6 +9270,20 @@ class FiniteStateMachine(SageObject):
                 True
                 sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
 
+        REFERENCES:
+
+        .. [FGT1992] Philippe Flajolet, Danièle Gardy, Loÿs Thimonier,
+           *Birthday paradox, coupon collectors, caching algorithms and
+           self-organizing search*, Discrete Appl. Math. 39 (1992),
+           207--229, :doi:`10.1016/0166-218X(92)90177-C`.
+
+        .. [FHP2014] Uta Freiberg, Clemens Heuberger, Helmut Prodinger,
+           *Application of Smirnov Words to Waiting Time Distributions
+           of Runs*, in preparation.
+
+        .. [S1986] Gábor J. Székely, *Paradoxes in Probability Theory
+           and Mathematical Statistics*, D. Reidel Publishing Company.
+
         TESTS:
 
         Only Markov chains are acceptable::
@@ -9317,20 +9331,6 @@ class FiniteStateMachine(SageObject):
             ....:                    duplicate_transition_add_input)
             sage: T.moments_waiting_time(lambda e: e in (p + q - 1)*R)
             {'expectation': +Infinity, 'variance': +Infinity}
-
-        REFERENCES:
-
-        .. [FGT1992] Philippe Flajolet, Danièle Gardy, Loÿs Thimonier,
-           *Birthday paradox, coupon collectors, caching algorithms and
-           self-organizing search*, Discrete Appl. Math. 39 (1992),
-           207--229, :doi:`10.1016/0166-218X(92)90177-C`.
-
-        .. [FHP2014] Uta Freiberg, Clemens Heuberger, Helmut Prodinger,
-           *Application of Smirnov Words to Waiting Time Distributions
-           of Runs*, in preparation.
-
-        .. [S1986] Gábor J. Székely, *Paradoxes in Probability Theory
-           and Mathematical Statistics*, D. Reidel Publishing Company.
         """
         from sage.modules.free_module_element import vector
         from sage.matrix.constructor import identity_matrix

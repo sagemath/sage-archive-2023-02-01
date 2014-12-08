@@ -27,6 +27,10 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
    
    sage/tensor/modules/free_module_alt_form
 
+   sage/tensor/modules/free_module_homset
+
+   sage/tensor/modules/free_module_morphism
+
    sage/tensor/modules/comp
 
    sage/tensor/modules/tensor_with_indices

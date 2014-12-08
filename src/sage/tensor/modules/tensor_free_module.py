@@ -54,7 +54,9 @@ AUTHORS:
 #******************************************************************************
 
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
-from sage.tensor.modules.free_module_tensor import FreeModuleTensor, FiniteRankFreeModuleElement
+from sage.tensor.modules.free_module_tensor import (FreeModuleTensor,
+                                                    FiniteRankFreeModuleElement)
+from sage.tensor.modules.free_module_morphism import FiniteRankFreeModuleMorphism
 
 class TensorFreeModule(FiniteRankFreeModule):
     r"""
@@ -185,6 +187,64 @@ class TensorFreeModule(FiniteRankFreeModule):
         sage: T is M.tensor_module(1,2)
         True
 
+    There is a canonical identification between tensors of type (1,1) and
+    endomorphisms of module `M`. Accordingly, coercion maps have been
+    implemented between `T^{(1,1)}(M)` and `\mathrm{End}(M)` (the module of
+    all endomorphisms of `M`, see
+    :class:`~sage.tensor.modules.free_module_homset.FreeModuleHomset`)::
+
+        sage: T11 = M.tensor_module(1,1) ; T11
+        Free module of type-(1,1) tensors on the Rank-3 free module M over the 
+         Integer Ring
+        sage: End(M)
+        Set of Morphisms from Rank-3 free module M over the Integer Ring to
+         Rank-3 free module M over the Integer Ring in Category of modules
+         over Integer Ring
+        sage: T11.has_coerce_map_from(End(M))
+        True
+        sage: End(M).has_coerce_map_from(T11)
+        True
+
+    The coercion map `\mathrm{End}(M)\rightarrow T^{(1,1)}(M)` in action::
+
+        sage: phi = End(M).an_element() ; phi
+        Generic endomorphism of Rank-3 free module M over the Integer Ring
+        sage: phi.matrix(e)
+        [1 1 1]
+        [1 1 1]
+        [1 1 1]
+        sage: tphi = T11(phi) ; tphi # image of phi by the coercion map
+        Type-(1,1) tensor on the Rank-3 free module M over the Integer Ring
+        sage: tphi[:]
+        [1 1 1]
+        [1 1 1]
+        [1 1 1]
+        sage: t = M.tensor((1,1))
+        sage: t[0,0], t[1,1], t[2,2] = -1,-2,-3
+        sage: t[:]
+        [-1  0  0]
+        [ 0 -2  0]
+        [ 0  0 -3]
+        sage: s = t + phi ; s  # phi is coerced to a type-(1,1) tensor prior to the addition
+        Endomorphism tensor on the Rank-3 free module M over the Integer Ring
+        sage: s[:]
+        [ 0  1  1]
+        [ 1 -1  1]
+        [ 1  1 -2]
+
+    The reverse coercion map in action::
+
+        sage: phi1 = End(M)(tphi) ; phi1
+        Generic endomorphism of Rank-3 free module M over the Integer Ring
+        sage: phi1 == phi
+        True
+        sage: s = phi + t ; s  # t is coerced to an endomorphism prior to the addition
+        Generic endomorphism of Rank-3 free module M over the Integer Ring
+        sage: s.matrix(e)
+        [ 0  1  1]
+        [ 1 -1  1]
+        [ 1  1 -2]
+
     """
 
     Element = FreeModuleTensor
@@ -254,11 +314,26 @@ class TensorFreeModule(FiniteRankFreeModule):
         """
         if comp == 0:
             return self._zero_element
-        resu = self.element_class(self._fmodule, self._tensor_type, name=name,
-                                  latex_name=latex_name, sym=sym,
-                                  antisym=antisym)
-        if comp:
-            resu.set_comp(basis)[:] = comp
+        if isinstance(comp, FiniteRankFreeModuleMorphism):
+            # coercion of an endomorphism to a type-(1,1) tensor: 
+            endo = comp  # for readability
+            if self._tensor_type == (1,1) and endo.is_endomorphism() and \
+                                                self._fmodule is endo.domain():
+                resu = self.element_class(self._fmodule, (1,1),
+                                          name=endo._name,
+                                          latex_name=endo._latex_name)
+                for basis, mat in endo._matrices.iteritems():
+                    resu.add_comp(basis[0])[:] = mat
+            else:
+                raise TypeError("cannot coerce the " + str(endo) +
+                                " to an element of " + str(self))
+        else:
+            # Standard construction:
+            resu = self.element_class(self._fmodule, self._tensor_type,
+                                      name=name, latex_name=latex_name,
+                                      sym=sym, antisym=antisym)
+            if comp:
+                resu.set_comp(basis)[:] = comp
         return resu
 
     def _an_element_(self):
@@ -286,6 +361,46 @@ class TensorFreeModule(FiniteRankFreeModule):
             ind = [sindex for i in range(resu._tensor_rank)]
             resu.set_comp()[ind] = self._fmodule._ring.an_element()
         return resu
+
+    def _coerce_map_from_(self, other):
+        r"""
+        Determine whether coercion to ``self`` exists from other parent.
+
+        EXAMPLES:
+
+        Sets of module endomorphisms coerces to type-(1,1) tensor modules::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: M.tensor_module(1,1)._coerce_map_from_(End(M))
+            True
+
+        but not to tensor modules of other types::
+
+            sage: M.tensor_module(0,1)._coerce_map_from_(End(M))
+            False
+
+        and not to type-(1,1) tensor modules defined on another free module::
+
+            sage: N = FiniteRankFreeModule(ZZ, 3, name='N')
+            sage: f = N.basis('f')
+            sage: M.tensor_module(1,1)._coerce_map_from_(End(N))
+            False
+
+        There is no coercion if the module morphisms are not endomorphisms::
+
+            sage: M.tensor_module(1,1)._coerce_map_from_(Hom(M,N))
+            False
+
+        """
+        from free_module_homset import FreeModuleHomset
+        if isinstance(other, FreeModuleHomset):
+            # Coercion of an endomorphism to a type-(1,1) tensor:
+            if self._tensor_type == (1,1):
+                if other.is_endomorphism_set() and \
+                                          self._fmodule is other.domain():
+                    return True
+        return False
 
     #### End of methods required for any Parent
 
@@ -333,3 +448,21 @@ class TensorFreeModule(FiniteRankFreeModule):
         """
         return self._fmodule
 
+    def tensor_type(self):
+        r"""
+        Return the tensor type of ``self``.
+
+        OUTPUT:
+
+        - pair `(k,l)` such that ``self`` is the module tensor product
+          `T^{(k,l)}(M)`
+
+        EXAMPLE::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3)
+            sage: T = M.tensor_module(1,2)
+            sage: T.tensor_type()
+            (1, 2)
+
+        """
+        return self._tensor_type

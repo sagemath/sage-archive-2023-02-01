@@ -102,7 +102,7 @@ class TensorWithIndices(SageObject):
     Another example of an operation indicated by indices is a contraction::
 
         sage: s = t['^ki_kj'] ; s  # contraction on the repeated index k
-        Endomorphism on the Rank-3 free module M over the Rational Field
+        Endomorphism tensor on the Rank-3 free module M over the Rational Field
         sage: s == t.trace(0,2)
         True
 
@@ -115,7 +115,7 @@ class TensorWithIndices(SageObject):
     the ``*`` operator::
 
         sage: s = a['^ik'] * b['_kj'] ; s
-        Endomorphism on the Rank-3 free module M over the Rational Field
+        Endomorphism tensor on the Rank-3 free module M over the Rational Field
         sage: s == a.contract(1, b, 0)
         True
         sage: s = t['^.k_..'] * b['_.k'] ; s

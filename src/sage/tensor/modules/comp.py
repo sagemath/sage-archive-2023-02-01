@@ -1,5 +1,5 @@
 r"""
-Components as indexed sets of ring elements.
+Components as indexed sets of ring elements
 
 The class :class:`Components` is a technical class to take in charge the
 storage and manipulation of **indexed elements of a commutative ring** that represent the
@@ -105,6 +105,15 @@ square brackets::
     [-1, 3, 2]
     sage: v[0]
     -1
+
+Sets of components with 2 indices can be converted into a matrix::
+
+    sage: matrix(c)
+    [ 0  0  0]
+    [ 0  0 -3]
+    [ 0  0  0]
+    sage: matrix(c).parent()
+    Full MatrixSpace of 3 by 3 dense matrices over Rational Field
 
 By default, the indices range from `0` to `n-1`, where `n` is the length
 of the frame. This can be changed via the argument ``start_index`` in
@@ -262,7 +271,7 @@ class Components(SageObject):
     - ``start_index`` -- (default: 0) first value of a single index;
       accordingly a component index i must obey
       ``start_index <= i <= start_index + dim - 1``, where ``dim = len(frame)``.
-    - ``output_formatter`` -- (default: None) function or unbound
+    - ``output_formatter`` -- (default: ``None``) function or unbound
       method called to format the output of the component access
       operator ``[...]`` (method __getitem__); ``output_formatter`` must take
       1 or 2 arguments: the 1st argument must be an element of ``ring`` and
@@ -2220,6 +2229,33 @@ class Components(SageObject):
             result[[ind]] = sum / sym_group.order()
         return result
 
+    def _matrix_(self):
+        r"""
+        Convert a set of ring components with 2 indices into a matrix.
+
+        EXAMPLE::
+
+            sage: from sage.tensor.modules.comp import Components
+            sage: V = VectorSpace(QQ, 3)
+            sage: c = Components(QQ, V.basis(), 2, start_index=1)
+            sage: c[:] = [[-1,2,3], [4,-5,6], [7,8,-9]]
+            sage: c._matrix_()
+            [-1  2  3]
+            [ 4 -5  6]
+            [ 7  8 -9]
+
+            sage: matrix(c) == c._matrix_()
+            True
+
+        """
+        from sage.matrix.constructor import matrix
+        if self._nid != 2:
+            raise ValueError("the set of components must have 2 indices")
+        si = self._sindex
+        nsi = self._dim + si
+        tab = [[self[[i,j]] for j in range(si, nsi)] for i in range(si, nsi)]
+        return matrix(tab)
+
 
 #******************************************************************************
 
@@ -2250,7 +2286,7 @@ class CompWithSym(Components):
     - ``start_index`` -- (default: 0) first value of a single index;
       accordingly a component index i must obey
       ``start_index <= i <= start_index + dim - 1``, where ``dim = len(frame)``.
-    - ``output_formatter`` -- (default: None) function or unbound
+    - ``output_formatter`` -- (default: ``None``) function or unbound
       method called to format the output of the component access
       operator ``[...]`` (method __getitem__); ``output_formatter`` must take
       1 or 2 arguments: the 1st argument must be an instance of ``ring`` and
@@ -3900,7 +3936,7 @@ class CompFullySym(CompWithSym):
     - ``start_index`` -- (default: 0) first value of a single index;
       accordingly a component index i must obey
       ``start_index <= i <= start_index + dim - 1``, where ``dim = len(frame)``.
-    - ``output_formatter`` -- (default: None) function or unbound
+    - ``output_formatter`` -- (default: ``None``) function or unbound
       method called to format the output of the component access
       operator ``[...]`` (method __getitem__); ``output_formatter`` must take
       1 or 2 arguments: the 1st argument must be an instance of ``ring`` and
@@ -4281,7 +4317,7 @@ class CompFullyAntiSym(CompWithSym):
     - ``start_index`` -- (default: 0) first value of a single index;
       accordingly a component index i must obey
       ``start_index <= i <= start_index + dim - 1``, where ``dim = len(frame)``.
-    - ``output_formatter`` -- (default: None) function or unbound
+    - ``output_formatter`` -- (default: ``None``) function or unbound
       method called to format the output of the component access
       operator ``[...]`` (method __getitem__); ``output_formatter`` must take
       1 or 2 arguments: the 1st argument must be an instance of ``ring`` and
@@ -4518,7 +4554,7 @@ class KroneckerDelta(CompFullySym):
     - ``start_index`` -- (default: 0) first value of a single index;
       accordingly a component index i must obey
       ``start_index <= i <= start_index + dim - 1``, where ``dim = len(frame)``.
-    - ``output_formatter`` -- (default: None) function or unbound
+    - ``output_formatter`` -- (default: ``None``) function or unbound
       method called to format the output of the component access
       operator ``[...]`` (method ``__getitem__``); ``output_formatter`` must
       take 1 or 2 arguments: the first argument must be an instance of

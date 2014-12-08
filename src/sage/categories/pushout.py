@@ -3171,24 +3171,24 @@ def pushout(R, S):
 
         sage: from sage.categories.pushout import ConstructionFunctor
         sage: class EvenPolynomialRing(type(QQ['x'])):
-        ...     def __init__(self, base, var):
-        ...         super(EvenPolynomialRing, self).__init__(base, var)
-        ...         self.register_embedding(base[var])
-        ...     def __repr__(self):
-        ...         return "Even Power " + super(EvenPolynomialRing, self).__repr__()
-        ...     def construction(self):
-        ...         return EvenPolynomialFunctor(), self.base()[self.variable_name()]
-        ...     def _coerce_map_from_(self, R):
-        ...         return self.base().has_coerce_map_from(R)
-        ...
+        ....:     def __init__(self, base, var):
+        ....:         super(EvenPolynomialRing, self).__init__(base, var)
+        ....:         self.register_embedding(base[var])
+        ....:     def __repr__(self):
+        ....:         return "Even Power " + super(EvenPolynomialRing, self).__repr__()
+        ....:     def construction(self):
+        ....:         return EvenPolynomialFunctor(), self.base()[self.variable_name()]
+        ....:     def _coerce_map_from_(self, R):
+        ....:         return self.base().has_coerce_map_from(R)
+        ....:
         sage: class EvenPolynomialFunctor(ConstructionFunctor):
-        ...     rank = 10
-        ...     coercion_reversed = True
-        ...     def __init__(self):
-        ...         ConstructionFunctor.__init__(self, Rings(), Rings())
-        ...     def __call__(self, R):
-        ...         return EvenPolynomialRing(R.base(), R.variable_name())
-        ...
+        ....:     rank = 10
+        ....:     coercion_reversed = True
+        ....:     def __init__(self):
+        ....:         ConstructionFunctor.__init__(self, Rings(), Rings())
+        ....:     def __call__(self, R):
+        ....:         return EvenPolynomialRing(R.base(), R.variable_name())
+        ....:
         sage: pushout(EvenPolynomialRing(QQ, 'x'), ZZ)
         Even Power Univariate Polynomial Ring in x over Rational Field
         sage: pushout(EvenPolynomialRing(QQ, 'x'), QQ)

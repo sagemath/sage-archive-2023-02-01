@@ -450,7 +450,6 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-
             sage: R.<t> = PolynomialRing(QQ,1)
             sage: S = R.quotient_ring(R.ideal(t^3))
             sage: P.<x,y> = ProjectiveSpace(S,1)

@@ -44,6 +44,11 @@ class Schemes(Category):
     TESTS::
 
         sage: TestSuite(Schemes()).run()
+
+    Check that Hom sets of schemes are in the correct category::
+
+        sage: Schemes().Homsets().super_categories()
+        [Category of homsets]
     """
 
     @staticmethod
@@ -144,16 +149,6 @@ class Schemes(Category):
         else:
             raise TypeError("No way to create an object or morphism in %s from %s"%(self, x))
 
-
-    class Homsets(HomsetsCategory):
-        """
-        TESTS::
-
-            sage: Schemes().Homsets().super_categories()
-            [Category of homsets]
-
-        .. TODO:: shall there be any additional category structure on Homsets of hecke modules?
-        """
 
 #############################################################
 # Schemes over a given base scheme.

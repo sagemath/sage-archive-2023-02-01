@@ -430,7 +430,8 @@ cdef inline int celement_inv(nmod_poly_t res, nmod_poly_t a, unsigned long n) ex
 
 cdef inline int celement_pow(nmod_poly_t res, nmod_poly_t x, long e, nmod_poly_t modulus, unsigned long n) except -2:
     """
-    EXAMPLE:
+    EXAMPLE::
+
         sage: P.<x> = GF(32003)[]
         sage: f = 24998*x^2 + 29761*x + 2252
 
@@ -461,7 +462,7 @@ cdef inline int celement_pow(nmod_poly_t res, nmod_poly_t x, long e, nmod_poly_t
         sage: f^-5
         24620/(x^10 + 20309*x^9 + 29185*x^8 + 11948*x^7 + 1965*x^6 + 7713*x^5 + 5810*x^4 + 20457*x^3 + 30732*x^2 + 9706*x + 4485)
 
-     Testing the modulus:
+     Testing the modulus::
 
         sage: g = 20778*x^2 + 15346*x + 12697
 
@@ -479,6 +480,15 @@ cdef inline int celement_pow(nmod_poly_t res, nmod_poly_t x, long e, nmod_poly_t
         7231*x + 17274
         sage: f^5 % g
         7231*x + 17274
+
+    Make sure that exponentiation can be interrupted, see :trac:`17470`::
+
+        sage: n = 1 << 30
+        sage: alarm(1)
+        sage: x^n
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
     """
     cdef nmod_poly_t pow2
     cdef nmod_poly_t q
@@ -487,7 +497,7 @@ cdef inline int celement_pow(nmod_poly_t res, nmod_poly_t x, long e, nmod_poly_t
     nmod_poly_init(q, n)
     nmod_poly_init(tmp, n)
 
-    if nmod_poly_degree(x) == 1 and nmod_poly_get_coeff_ui(x,0) == 0 and nmod_poly_get_coeff_ui(x,1) == 1 and modulus != NULL and e < 2*nmod_poly_degree(modulus):
+    if nmod_poly_degree(x) == 1 and nmod_poly_get_coeff_ui(x,0) == 0 and nmod_poly_get_coeff_ui(x,1) == 1 and (modulus == NULL or e < 2*nmod_poly_degree(modulus)):
         nmod_poly_zero(res)
         nmod_poly_set_coeff_ui(res,e,1)
     elif e == 0:

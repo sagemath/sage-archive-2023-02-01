@@ -447,8 +447,8 @@ cdef class CCallableConvertMap_class(Map):
             Conversion via c call 'any name' map:
               From: Integer Ring
               To:   Integer Ring
-            sage: test_CCallableConvertMap(ZZ, None)  # random address
-            Conversion via c call at 0xc339000 map:
+            sage: test_CCallableConvertMap(ZZ, None)
+            Conversion via c call at 0x... map:
               From: Integer Ring
               To:   Integer Ring
         """

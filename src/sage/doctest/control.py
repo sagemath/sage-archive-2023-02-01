@@ -66,7 +66,7 @@ class DocTestDefaults(SageObject):
 
             sage: from sage.doctest.control import DocTestDefaults
             sage: D = DocTestDefaults(); D.optional
-            set(['sage'])
+            {'sage'}
         """
         self.nthreads = 1
         self.serial = False
@@ -258,6 +258,73 @@ class DocTestController(SageObject):
             self.logfile = None
         self.stats = {}
         self.load_stats(options.stats_path)
+        self._init_warn_long()
+
+    def _init_warn_long(self):
+        """
+        Pick a suitable default for the ``--warn-long`` option if not specified.
+
+        It is desirable to have all tests (even ``# long`` ones)
+        finish in less than about 5 seconds. Longer tests typically
+        don't add coverage, they just make testing slow.
+
+        The default used here is 60 seconds on a modern computer. It
+        should eventually be lowered to 5 seconds, but its best to
+        boil the frog slowly.
+
+        The stored timings are used to adjust this limit according to
+        the machine running the tests.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: DC = DocTestController(DocTestDefaults(), [])
+            sage: DC.options.warn_long = 5.0
+            sage: DC._init_warn_long()
+            sage: DC.options.warn_long    # existing command-line options are not changed
+            5.00000000000000
+        """
+        if self.options.warn_long is not None:     # Specified on the command line
+            return
+        try:
+            self.options.warn_long = 60.0 * self.second_on_modern_computer()
+        except RuntimeError as err:
+            if not sage.doctest.DOCTEST_MODE:
+                print(err)   # No usable timing information
+
+    def second_on_modern_computer(self):
+        """
+        Return the wall time equivalent of a second on a modern computer.
+
+        OUTPUT:
+
+        Float. The wall time on your computer that would be equivalent
+        to one second on a modern computer. Unless you have kick-ass
+        hardware this should always be >= 1.0. Raises a
+        ``RuntimeError`` if there are no stored timings to use as
+        benchmark.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: DC = DocTestController(DocTestDefaults(), [])
+            sage: DC.second_on_modern_computer()   # not tested
+        """
+        if len(self.stats) == 0:
+            raise RuntimeError('no stored timings available')
+        success = []
+        failed = []
+        for mod in self.stats.values():
+            if mod.get('failed', False):
+                failed.append(mod['walltime'])
+            else:
+                success.append(mod['walltime'])
+        if len(success) < 2500:
+            raise RuntimeError('too few successful tests, not using stored timings')
+        if len(failed) > 20:
+            raise RuntimeError('too many failed tests, not using stored timings')
+        expected = 12800.0       # Core i7 Quad-Core 2014
+        return sum(success) / expected
 
     def _repr_(self):
         """

@@ -17,18 +17,12 @@ TESTS::
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Martin Albrecht <malb@informatik.uni-bremen.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#*****************************************************************************`
 
 from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField_generic
 from sage.categories.finite_fields import FiniteFields
@@ -55,7 +49,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         sage: FiniteField(next_prime(1000))
         Finite Field of size 1009
     """
-    def __init__(self, p, check=True):
+    def __init__(self, p, check=True, modulus=None):
         """
         Return a new finite field of order `p` where `p` is prime.
 
@@ -78,7 +72,12 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         self._kwargs = {}
         # FiniteField_generic does nothing more than IntegerModRing_generic, and
         # it saves a non trivial overhead
-        integer_mod_ring.IntegerModRing_generic.__init__(self, p, category = _FiniteFields)
+        integer_mod_ring.IntegerModRing_generic.__init__(self, p, category=_FiniteFields)
+
+        # If modulus is None, it will be created on demand as x-1
+        # by the modulus() method.
+        if modulus is not None:
+            self._modulus = modulus
 
     def __reduce__(self):
         """
@@ -92,55 +91,6 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             True
         """
         return self._factory_data[0].reduce_data(self)
-
-    def __cmp__(self, other):
-        r"""
-        Compare ``self`` with ``other``.
-
-        Two finite prime fields are considered equal if and only if
-        their characteristics are equal.
-
-        EXAMPLES::
-
-            sage: K = FiniteField(3)
-            sage: copy(K) == K
-            True
-        """
-        if not isinstance(other, FiniteField_prime_modn):
-            return cmp(type(self), type(other))
-        return cmp(self.__char, other.__char)
-
-    def __richcmp__(left, right, op):
-        r"""
-        Compare ``self`` with ``right``.
-
-        EXAMPLES::
-
-            sage: k = GF(2)
-            sage: j = GF(3)
-            sage: k == j
-            False
-
-            sage: GF(2) == copy(GF(2))
-            True
-        """
-        return left._richcmp_helper(right, op)
-
-    def _is_valid_homomorphism_(self, codomain, im_gens):
-        """
-        This is called implicitly by the ``hom`` constructor.
-
-        EXAMPLES::
-
-            sage: k = GF(73^2,'a')
-            sage: f = k.modulus()
-            sage: r = f.change_ring(k).roots()
-            sage: k.hom([r[0][0]]) # indirect doctest
-            Ring endomorphism of Finite Field in a of size 73^2
-              Defn: a |--> 72*a + 3
-        """
-        return (codomain.characteristic().divides(self.characteristic()) and
-                len(im_gens) == 1 and im_gens[0] == codomain.one_element())
 
     def _coerce_map_from_(self, S):
         """
@@ -161,7 +111,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             sage: RF13 = K.residue_field(pp)
             sage: RF13.hom([GF(13)(1)])
             Ring morphism:
-             From: Residue field of Fractional ideal (w - 18)
+             From: Residue field of Fractional ideal (w + 18)
              To:   Finite Field of size 13
              Defn: 1 |--> 1
         """
@@ -170,7 +120,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         elif S is ZZ:
             return integer_mod.Integer_to_IntegerMod(self)
         elif isinstance(S, IntegerModRing_generic):
-            from sage.rings.residue_field import ResidueField_generic
+            from residue_field import ResidueField_generic
             if S.characteristic() == self.characteristic() and \
                (not isinstance(S, ResidueField_generic) or S.degree() == 1):
                 try:
@@ -203,25 +153,6 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             7
         """
         return self.__char
-
-    def modulus(self):
-        """
-        Return the defining polynomial of ``self``.
-
-        This always returns `x - 1`.
-
-        EXAMPLES::
-
-            sage: k = GF(199)
-            sage: k.modulus()
-            x + 198
-        """
-        try:
-            return self.__modulus
-        except AttributeError:
-            x = self['x'].gen()
-            self.__modulus = x - 1
-        return self.__modulus
 
     def is_prime_field(self):
         """
@@ -278,28 +209,53 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
     def gen(self, n=0):
         """
-        Return a generator of ``self`` over its prime field.
+        Return a generator of ``self`` over its prime field, which is a
+        root of ``self.modulus()``.
 
-        This always returns 1.
+        Unless a custom modulus was given when constructing this prime
+        field, this returns `1`.
 
-        .. NOTE::
+        INPUT:
 
-            If you want a primitive element for this finite field
-            instead, use :meth:`multiplicative_generator()`.
+        - ``n`` -- must be 0
+
+        OUTPUT:
+
+        An element `a` of ``self`` such that ``self.modulus()(a) == 0``.
+
+        .. WARNING::
+
+            This generator is not guaranteed to be a generator for the
+            multiplicative group.  To obtain the latter, use
+            :meth:`~sage.rings.finite_rings.finite_field_base.FiniteFields.multiplicative_generator()`
+            or use the ``modulus="primitive"`` option when constructing
+            the field.
 
         EXAMPLES::
 
             sage: k = GF(13)
             sage: k.gen()
             1
+            sage: k = GF(1009, modulus="primitive")
+            sage: k.gen()  # this gives a primitive element
+            11
             sage: k.gen(1)
             Traceback (most recent call last):
             ...
             IndexError: only one generator
         """
-        if n != 0:
+        if n:
             raise IndexError("only one generator")
-        return self.one_element()
+        try:
+            return self.__gen
+        except AttributeError:
+            pass
+
+        try:
+            self.__gen = -(self._modulus[0])
+        except AttributeError:
+            self.__gen = self.one_element()
+        return self.__gen
 
     def __iter__(self):
         """

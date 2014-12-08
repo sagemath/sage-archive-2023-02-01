@@ -179,7 +179,7 @@ cdef class PolyDict:
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.dict()
-            {(1, 2): 3, (2, 3): 2, (2, 1): 4}
+            {(1, 2): 3, (2, 1): 4, (2, 3): 2}
         """
         return self.__repn.copy()
 
@@ -1533,7 +1533,7 @@ cdef class ETuple:
             sage: e = ETuple([1,0,2])
             sage: f = ETuple([0,0,1])
             sage: e.common_nonzero_positions(f)
-            set([0, 2])
+            {0, 2}
             sage: e.common_nonzero_positions(f,sort=True)
             [0, 2]
         """

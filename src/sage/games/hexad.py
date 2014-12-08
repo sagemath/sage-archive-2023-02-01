@@ -121,9 +121,9 @@ def picture_set(A,L):
         sage: from sage.games.hexad import *
         sage: M = Minimog(type="shuffle")
         sage: picture_set(M.picture00, M.cross[2])
-        set([8, 9, 10, 5, 7])
+        {5, 7, 8, 9, 10}
         sage: picture_set(M.picture02, M.square[7])
-        set([8, 2, 3, 5])
+        {2, 3, 5, 8}
 
     """
     return set([A[x] for x in L])

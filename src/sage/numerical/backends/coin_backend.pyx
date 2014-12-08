@@ -53,6 +53,7 @@ cdef class CoinBackend(GenericBackend):
         Destructor function
         """
         del self.si
+        del self.model
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         r"""
@@ -328,7 +329,8 @@ cdef class CoinBackend(GenericBackend):
         Constants in the objective function are respected::
 
             sage: p = MixedIntegerLinearProgram(solver='Coin')  # optional - Coin
-            sage: x,y = p[0], p[1]                              # optional - Coin
+            sage: v = p.new_variable(nonnegative=True)          # optional - Coin
+            sage: x,y = v[0], v[1]                              # optional - Coin
             sage: p.add_constraint(2*x + 3*y, max = 6)          # optional - Coin
             sage: p.add_constraint(3*x + 2*y, max = 6)          # optional - Coin
             sage: p.set_objective(x + y + 7)                    # optional - Coin
@@ -372,7 +374,8 @@ cdef class CoinBackend(GenericBackend):
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver='Coin') # optional - Coin
-            sage: x,y = p[0], p[1]                             # optional - Coin
+            sage: v = p.new_variable(nonnegative=True)         # optional - Coin
+            sage: x,y = v[0], v[1]                             # optional - Coin
             sage: p.add_constraint(2*x + 3*y, max = 6)         # optional - Coin
             sage: p.add_constraint(3*x + 2*y, max = 6)         # optional - Coin
             sage: p.set_objective(x + y + 7)                   # optional - Coin
@@ -412,7 +415,8 @@ cdef class CoinBackend(GenericBackend):
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver='Coin') # optional - Coin
-            sage: x,y = p[0], p[1]                             # optional - Coin
+            sage: v = p.new_variable(nonnegative=True)         # optional - Coin
+            sage: x,y = v[0], v[1]                             # optional - Coin
             sage: p.add_constraint(2*x + 3*y, max = 6)         # optional - Coin
             sage: p.add_constraint(3*x + 2*y, max = 6)         # optional - Coin
             sage: p.set_objective(x + y + 7)                   # optional - Coin
@@ -743,8 +747,16 @@ cdef class CoinBackend(GenericBackend):
         cdef OsiSolverInterface * si = self.si
 
         cdef CbcModel * model
+        cdef int old_logLevel = self.model.logLevel()
+
         model = new CbcModel(si[0])
-        model.setLogLevel(self.model.logLevel())
+        del self.model
+        self.model = model
+        
+        #we immediately commit to the new model so that the user has access
+        #to it even when something goes wrong.
+
+        model.setLogLevel(old_logLevel)
 
         # multithreading
         import multiprocessing
@@ -767,8 +779,7 @@ cdef class CoinBackend(GenericBackend):
         elif not model.solver().isProvenOptimal():
             raise MIPSolverException("CBC : Unknown error")
 
-        del self.model
-        self.model = model
+        return 0
 
     cpdef get_objective_value(self):
         r"""
@@ -822,7 +833,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.get_variable_value(1)                         # optional - Coin
             1.5
             sage: p = MixedIntegerLinearProgram("Coin")  # optional - Coin
-            sage: x = p.new_variable(dim=1)       # optional - Coin
+            sage: x = p.new_variable(nonnegative=True)   # optional - Coin
             sage: p.set_min(x[0], 0.0)            # optional - Coin
             sage: p.get_values(x)                 # optional - Coin
             {0: 0.0}
@@ -997,7 +1008,8 @@ cdef class CoinBackend(GenericBackend):
         :trac:`14581`::
 
             sage: P = MixedIntegerLinearProgram(solver="Coin") # optional - Coin
-            sage: x = P["x"]                                   # optional - Coin
+            sage: v = P.new_variable(nonnegative=True)         # optional - Coin
+            sage: x = v["x"]                                   # optional - Coin
             sage: P.set_max(x, 0)                              # optional - Coin
             sage: P.get_max(x)                                 # optional - Coin
             0.0
@@ -1040,7 +1052,8 @@ cdef class CoinBackend(GenericBackend):
         :trac:`14581`::
 
             sage: P = MixedIntegerLinearProgram(solver="Coin") # optional - Coin
-            sage: x = P["x"]                                   # optional - Coin
+            sage: v = P.new_variable(nonnegative=True)         # optional - Coin
+            sage: x = v["x"]                                   # optional - Coin
             sage: P.set_min(x, 5)                              # optional - Coin
             sage: P.set_min(x, 0)                              # optional - Coin
             sage: P.get_min(x)                                 # optional - Coin
@@ -1175,7 +1188,7 @@ cdef class CoinBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = MixedIntegerLinearProgram(solver = "Coin")        # optional - Coin
-            sage: b = p.new_variable()                         # optional - Coin
+            sage: b = p.new_variable(nonnegative=True)                  # optional - Coin
             sage: p.add_constraint(b[1] + b[2] <= 6)           # optional - Coin
             sage: p.set_objective(b[1] + b[2])                 # optional - Coin
             sage: copy(p).solve()                              # optional - Coin

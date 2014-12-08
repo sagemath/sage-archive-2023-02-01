@@ -34,3 +34,13 @@ latex_documents = [
   ('index', name+'.tex', u'A Tour Of Sage',
    u'The Sage Development Team', 'manual'),
 ]
+
+# Our Sphinx expects the older behavior of babel-italian where double
+# quotes are active
+latex_elements['preamble'] += r"""
+% old babel-italian does not have setactivedoublequote,
+% avoid "undefined control sequence" error
+\providecommand{\setactivedoublequote}{}
+% switch new babel-italian to the old behavior
+\setactivedoublequote
+"""

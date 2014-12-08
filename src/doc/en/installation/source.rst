@@ -9,12 +9,13 @@ Install from Source Code
 
 More familiarity with computers may be required to build Sage from
 the `source code <http://en.wikipedia.org/wiki/Source_code>`_.
-If you do have all the pre-requisite tools, the process should be completely
+If you do have all the :ref:`pre-requisite tools <section-prereqs>`,
+the process should be completely
 painless, basically consisting in extracting the source tarball and typing
-``make``.
-It can take your computer a while to build Sage from the source code,
+``make``.  It can take your computer a while to build Sage from the source code,
 although the procedure is fully automated and should need no human
 intervention.
+
 Building Sage from the source code has the major advantage that your install
 will be optimised for your particular computer and should therefore offer
 better performance and compatibility than a binary install.
@@ -48,25 +49,36 @@ you can find details about
 `ports <http://en.wikipedia.org/wiki/Computer_port_%28software%29>`_
 to other operating systems or processors which may be taking place.
 
+.. _section-prereqs:
+
 Prerequisites
 -------------
 
 General requirements
 ~~~~~~~~~~~~~~~~~~~~
 
-Your computer comes with at least 5 GB of free disk space running one of the
+This section details the technical prerequisites needed on all platforms. See
+also the `System-specific requirements`_ below.
+
+Disk space and memory
+^^^^^^^^^^^^^^^^^^^^^
+
+Your computer comes with at least 6 GB of free disk space running one of the
 supported versions of an operating system listed at
 http://wiki.sagemath.org/SupportedPlatforms.
 It is recommended to have at least 2 GB of RAM, but you might get away
 with less (be sure to have some swap space in this case).
 
+Command-line tools
+^^^^^^^^^^^^^^^^^^
+
 In addition to standard `POSIX <http://en.wikipedia.org/wiki/POSIX>`_ utilities
-and a `bash <http://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_-compatible shell,
+and the `bash <http://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_ shell,
 the following standard command-line development tools must be installed on your
 computer:
 
-- A **C compiler**: Since Sage builds its own GCC if needed,
-  a wide variety of C compilers is supported.
+- A **C/C++ compiler**: Since Sage builds its own GCC if needed,
+  a wide variety of C/C++ compilers is supported.
   Many GCC versions work,
   from as old as version 3.4.3 to the most recent release.
   Clang also works.
@@ -78,29 +90,37 @@ computer:
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
 
-Sage also needs a C++ compiler and a Fortran compiler.
+Fortran and compiler suites
+###########################
+
+Sage also needs a Fortran compiler.
 The only configuration currently supported is matching versions of the
 C, C++ and Fortran compilers from the
 `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_.
 Therefore, if you plan on using your own GCC compilers, then make sure that
 their versions match.
+
 Alternatively, Sage includes a GCC package, so that C, C++ and Fortran
 compilers will be built when the build system detects that it is needed,
 e.g., non-GCC compilers, or
 versions of the GCC compilers known to miscompile some components of Sage,
-or simply a missing C++ or Fortran compiler.
-Whatsoever, you always need at least a C compiler to build the GCC package and
-its prerequisites before the compilers it provides can be used.
+or simply a missing Fortran compiler.
+In any case, you always need at least a C/C++ compiler to build the GCC
+package and its prerequisites before the compilers it provides can be used.
+
 Note that you can always override this behavior through the environment
 variable :envvar:`SAGE_INSTALL_GCC`, see :ref:`section_compilers` and
 :ref:`section_envvar`.
+
+Other notes
+^^^^^^^^^^^
 
 Although some of Sage is written in `Python <http://www.python.org/>`_, you do
 not need Python pre-installed on your computer, since the Sage installation
 includes virtually everything you need.
 
-After extracting the Sage tarball, the subdirectory :file:`spkg` contains the
-source distributions for everything on which Sage depends.
+After extracting the Sage tarball, the subdirectory :file:`upstream`
+contains the source distributions for everything on which Sage depends.
 We emphasize that all of this software is included with Sage, so you do not
 have to worry about trying to download and install any one of these packages
 (such as Python, for example) yourself.
@@ -112,11 +132,14 @@ and inform you of any that are missing, or have unsuitable versions.
 System-specific requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+On Mac OS X, there are various developer tools needed which may require
+some registration on Apple's developer site; see :ref:`section_macprereqs`.
+
 On recent Debian or Ubuntu systems, the **dpkg-dev** package is needed for
 `multiarch <http://wiki.debian.org/Multiarch>`_ support.
 
 On Cygwin, the **lapack** and **liblapack-devel** packages are required to
-provide ATLAS support as the ATLAS spkg is not built by default.
+provide ATLAS support as the Sage package for ATLAS is not built by default.
 
 Installing prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,6 +156,9 @@ or::
 on the command line. If it gives an error (or returns nothing), then
 either ``perl`` is not installed, or it is installed but not in your
 `PATH <http://en.wikipedia.org/wiki/PATH_%28variable%29>`_.
+
+Linux prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 On Linux systems (e.g., Ubuntu, Redhat, etc), ``ar`` and ``ranlib`` are in the
 `binutils <http://www.gnu.org/software/binutils/>`_ package.
@@ -155,26 +181,47 @@ On other Linux systems, you might use
 `yum <http://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,
 or other package managers.
 
+.. _section_macprereqs:
+
+Mac OS X prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 On OS X systems, you need a recent version of
-`Command Line Tools <http://developer.apple.com/opensource/>`_.
+`Command Line Tools <http://developer.apple.com/downloads/index.action?=command%20line%20tools>`_.
 It provides all the above requirements.
-You can download it for free at
-http://developer.apple.com/downloads/index.action?=command%20line%20tools
-provided you registered for a free Apple Developer account at
-http://developer.apple.com/register/.
-Alternatively, if you have already installed
-`Xcode <http://developer.apple.com/xcode/>`_
+
+If you have already installed `Xcode <http://developer.apple.com/xcode/>`_
 (which at the time of writing is freely available in the Mac App Store,
 or through http://developer.apple.com/downloads/ provided you registered for an
 Apple Developer account), you can install the command line tools from
-there: with OS X Mavericks, run the command ``xcode-select --install``
-from a Terminal window and click "Install" in the pop-up dialog
-box. Using OS X Mountain Lion or earlier, run Xcode, open its "Downloads"
-preference pane and install the command line
-tools from there.
-On pre-Lion OS X systems, the command line tools are not available as a
-separate download and you have to install the full-blown Xcode supporting your
-system version.
+there as well.
+
+- With OS X Mavericks or Yosemite, run the command
+  ``xcode-select --install`` from a Terminal window and click "Install"
+  in the pop-up dialog box.
+
+- Using OS X Mountain Lion or earlier, run Xcode, open its "Downloads"
+  preference pane and install the command line tools from there.
+
+- On pre-Lion OS X systems, the command line tools are not available as a
+  separate download and you have to install the full-blown Xcode supporting your
+  system version.
+
+If you have not installed `Xcode <http://developer.apple.com/xcode/>`_
+you can get these tools as a relatively small download, but it does require
+a registration.
+
+- First, you will need to register as an Apple Developer at
+  http://developer.apple.com/register/.
+
+- Having done so, you should be able to download it for free at
+  http://developer.apple.com/downloads/index.action?=command%20line%20tools
+
+- Alternately, https://developer.apple.com/opensource/ should have a link
+  to Command Line Tools.
+
+Other platforms
+^^^^^^^^^^^^^^^
 
 On Solaris, you would use ``pkgadd`` and on OpenSolaris ``ipf`` to install
 the necessary software.
@@ -220,14 +267,14 @@ Using alternative compilers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sage developers tend to use fairly recent versions of GCC.
-Nonetheless, the Sage build process should succeed with any reasonable C compiler.
+Nonetheless, the Sage build process should succeed with any reasonable C/C++ compiler.
 This is because Sage will build GCC first (if needed) and then use that newly
 built GCC to compile Sage.
 
 If you don't want this and want to try building Sage with a different set of
 compilers,
 you need to set the environment variable :envvar:`SAGE_INSTALL_GCC` to ``no``.
-Make sure you have C, C++ and Fortran compilers installed!
+Make sure you have C, C++, and Fortran compilers installed!
 
 Building all of Sage with Clang is currently not supported, see :trac:`12426`.
 
@@ -290,7 +337,7 @@ you need to follow specific installation steps described in
 
 Although all necessary components are provided through Sage optional packages,
 i.e. you can install a local version of `OpenSSL <http://www.openssl.org>`_
-by using Sage's **openssl** spkg and running ``sage -i openssl`` as suggested
+by using Sage's **openssl** package and running ``sage -i openssl`` as suggested
 in :ref:`section_notebook_ssl` (this requires an Internet connection),
 you might prefer to install OpenSSL and the OpenSSL development headers
 globally on your system.
@@ -331,12 +378,11 @@ On Linux systems, these are usually provided by the **tk** and **tk-dev**
 
 or similar commands.
 
-If you installed Sage first, all is not lost.
-You just need to rebuild Sage's Python, , and ideally any part of Sage relying
-on it::
+If you installed Sage first, all is not lost. You just need to rebuild
+Sage's Python and any part of Sage relying on it::
 
     sage -f python  # rebuild Python
-    SAGE_UPGRADING=yes make # rebuild components of Sage depending on Python
+    make            # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
 
@@ -639,7 +685,7 @@ And if you've already built Sage::
 
     ./sage -i openssl
     ./sage -f python
-    SAGE_UPGRADING=yes make ssl
+    make ssl
 
 The third line will rebuild all parts of Sage that depend on Python;
 this can take a while.
@@ -728,8 +774,9 @@ how it is built:
   ``make testalllong``, or ``make ptestalllong``.
 
 - ``make distclean`` restores the Sage directory to its state before doing any
-  building: it is equivalent to deleting the entire Sage's home directory and
-  unpacking the source tarfile again.
+  building: it is almost equivalent to deleting Sage's entire home directory and
+  unpacking the source tarfile again, the only difference being that the
+  :file:`.git` directory is preserved, so git branches are not deleted.
 
 .. _section_envvar:
 
@@ -826,7 +873,7 @@ Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`SAGE_INSTALL_GCC` - by default, Sage will automatically detect
   whether to install the `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_
-  package or not (depending on whether C, C++ and Fortran compilers are present
+  package or not (depending on whether C, C++, and Fortran compilers are present
   and the versions of those compilers).
   Setting ``SAGE_INSTALL_GCC=yes`` will force Sage to install GCC.
   Setting ``SAGE_INSTALL_GCC=no`` will prevent Sage from installing GCC.
@@ -859,6 +906,11 @@ Here are some of the more commonly used variables affecting the build process:
     with a different memory manager).
     These will be notably slower but, for example, make it much easier to
     pinpoint memory allocation problems.
+
+- :envvar:`SAGE_PROFILE` - controls profiling support. If this is set
+  to ``yes``, profiling support is enabled where possible. Note that
+  Python-level profiling is always avaliable; This option enables
+  profiling in Cython modules.
 
 - :envvar:`SAGE_SPKG_LIST_FILES` - if set to ``yes``, then enable verbose
   extraction of tar files, i.e. Sage's spkg files.
@@ -950,6 +1002,30 @@ Here are some of the more commonly used variables affecting the build process:
       export SAGE_FAT_BINARY="yes"
       make
       ./sage --bdist x.y.z-fat
+
+The following :envvar:`SAGE_APP_*` -variables are specific to building a binary distribution on OSX:
+
+- :envvar:`SAGE_APP_BUNDLE` - OSX-specific; defaults to ``no``. Set to ``yes`` if you
+  want to build a Sage OSX application rather than a terminal version of Sage.
+
+- :envvar:`SAGE_APP_TARGET_ARCH` - OSX-specific; defaults to ``uname -m``. Meaningful
+  values, on Intel, are ``i386`` and ``x86_64``.
+  To prepare a 64-bit binary distribution on an older 64-bit OSX machine that boots
+  into a 32-bit system, one would do::
+
+      export SAGE_APP_TARGET_ARCH=x86_64
+      make
+      ./sage --bdist
+
+- :envvar:`SAGE_APP_DMG` - OSX-specific; defaults to ``yes``, can be set to ``no``
+  to create a tar file instead instead of a ``dmg`` image.
+
+- :envvar:`SAGE_APP_GZ` - OSX-specific; defaults to ``yes``, used for debugging of
+  ``sage -bdist`` to save time on the compression step. E.g.::
+
+      export SAGE_APP_GZ=no
+      export SAGE_APP_DMG=no
+      ./sage --bdist
 
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
@@ -1294,4 +1370,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in May 2014 (Sage 6.2).**
+**This page was last updated in October 2014 (Sage 6.4).**

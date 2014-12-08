@@ -86,7 +86,7 @@ The *standard types* are :class:`bool`, :class:`int`, :class:`list`,
   must be hashable::
 
       sage: set([2,2,1,4,5])
-      set([1, 2, 4, 5])
+      {1, 2, 4, 5}
 
       sage: set([ [1], [2] ])
       Traceback (most recent call last):
@@ -102,7 +102,7 @@ The *standard types* are :class:`bool`, :class:`int`, :class:`list`,
   For example::
 
       sage: age = {'toto' : 8, 'mom' : 27}; age
-      {'toto': 8, 'mom': 27}
+      {'mom': 27, 'toto': 8}
 
 * Quotes (simple ``' '`` or double ``" "``) enclose *character
   strings*. One can concatenate them using ``+``.
@@ -703,9 +703,9 @@ There are several ways to define dictionaries. One method is to use
 braces, ``{}``, with comma-separated entries given in the form
 *key:value*::
 
-    sage: d = {3:17, "key":[4,1,5,2,3], (3,1,2):"goo", 3/2 : 17}
+    sage: d = {3:17, 0.5:[4,1,5,2,3], 0:"goo", 3/2 : 17}
     sage: d
-    {3/2: 17, 3: 17, (3, 1, 2): 'goo', 'key': [4, 1, 5, 2, 3]}
+    {0: 'goo', 0.500000000000000: [4, 1, 5, 2, 3], 3/2: 17, 3: 17}
 
 A second method is to use the constructor :class:`dict` which admits a
 list (or actually any iterable) of 2-tuples *(key, value)*::
@@ -732,7 +732,7 @@ Dictionaries behave as lists and tuples for several important operations.
 
     sage: d[10]='a'
     sage: d
-    {3/2: 17, 10: 'a', 3: 17, (3, 1, 2): 'goo', 'key': [4, 1, 5, 2, 3]}
+    {0: 'goo', 0.500000000000000: [4, 1, 5, 2, 3], 3/2: 17, 3: 17, 10: 'a'}
 
 A dictionary can have the same value multiple times, but each key must only
 appear once and must be immutable::
@@ -763,33 +763,49 @@ updates the dictionary from another dictionary::
 
 ::
 
-    sage: d.update( {10 : 'newvalue', 20: 'newervalue', 3: 14, 'a':[1,2,3]} )
+    sage: d.update({10 : 'newvalue', 20: 'newervalue', 3: 14, 0.5:[1,2,3]})
     sage: d
-    {'a': [1, 2, 3], 10: 'newvalue', 3: 14, 20: 'newervalue'}
+    {0.500000000000000: [1, 2, 3], 3: 14, 10: 'newvalue', 20: 'newervalue'}
 
-We can iterate through the *keys*, or *values*, or both, of a dictionary::
 
-    sage: d = {10 : 'newvalue', 20: 'newervalue', 3: 14, 'a':[1,2,3]}
+We can iterate through the *keys*, or *values*, or both, of a
+dictionary. Note that, internally, there is no sorting of keys
+done. In general, the order of keys/values will depend on memory
+locations can and will differ between different computers and / or
+repeated runs on the same computer. However, Sage sort the dictionary
+entries by key when printing the dictionary specifically to make the
+docstrings more reproducible. However, the Python methods ``keys()``
+and ``values()`` do not sort for you. If you want your output to be
+reproducable, then you have to sort it first just like in the examples
+below::
 
-::
-
-    sage: [key for key in d]
-    ['a', 10, 3, 20]
-
-::
-
-    sage: [key for key in d.iterkeys()]
-    ['a', 10, 3, 20]
-
-::
-
-    sage: [value for value in d.itervalues()]
-    [[1, 2, 3], 'newvalue', 14, 'newervalue']
+    sage: d = {10 : 'newvalue', 20: 'newervalue', 3: 14, 0.5:(1,2,3)}
 
 ::
 
-    sage: [(key, value) for key, value in d.iteritems()]
-    [('a', [1, 2, 3]), (10, 'newvalue'), (3, 14), (20, 'newervalue')]
+    sage: sorted([key for key in d])
+    [0.500000000000000, 3, 10, 20]
+
+::
+
+    sage: d.keys()   # random order
+    [0.500000000000000, 10, 3, 20]
+    sage: sorted(d.keys())
+    [0.500000000000000, 3, 10, 20]
+
+::
+
+    sage: d.values()   # random order
+    [(1, 2, 3), 'newvalue', 14, 'newervalue']
+    sage: set(d.values()) == set([14, (1, 2, 3), 'newvalue', 'newervalue'])
+    True
+
+::
+
+    sage: d.items()    # random order
+    [(0.500000000000000, (1, 2, 3)), (10, 'newvalue'), (3, 14), (20, 'newervalue')]
+    sage: sorted([(key, value) for key, value in d.items()])
+    [(0.500000000000000, (1, 2, 3)), (3, 14), (10, 'newvalue'), (20, 'newervalue')]
 
 **Exercise:** Consider the following directed graph.
 

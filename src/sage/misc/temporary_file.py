@@ -147,7 +147,7 @@ def tmp_filename(name="tmp_", ext=""):
     return name
 
 
-def graphics_filename(ext='png'):
+def graphics_filename(ext='.png'):
     """
     When run from the Sage notebook, return the next available canonical
     filename for a plot/graphics file in the current working directory.
@@ -155,7 +155,7 @@ def graphics_filename(ext='png'):
 
     INPUT:
 
-    - ``ext`` -- (default: ``"png"``) A file extension (without the dot)
+    - ``ext`` -- (default: ``".png"``) A file extension (including the dot)
       for the filename.
 
     OUTPUT:
@@ -176,16 +176,28 @@ def graphics_filename(ext='png'):
     We check that it's a file inside ``SAGE_TMP`` and that the extension
     is correct::
 
-        sage: fn = graphics_filename(ext="jpeg")
+        sage: fn = graphics_filename(ext=".jpeg")
         sage: fn.startswith(str(SAGE_TMP))
         True
         sage: fn.endswith('.jpeg')
         True
+
+    Historically, it was also possible to omit the dot. This has been
+    changed in :trac:`16640` but it will still work for now::
+
+        sage: fn = graphics_filename("jpeg")
+        doctest:...: DeprecationWarning: extension must now include the dot
+        See http://trac.sagemath.org/16640 for details.
+        sage: fn.endswith('.jpeg')
+        True
     """
-    ext = '.' + ext
-    # Don't use this unsafe function except in the notebook, #15515
+    if ext[0] not in '.-':
+        from sage.misc.superseded import deprecation
+        deprecation(16640, "extension must now include the dot")
+        ext = '.' + ext
     import sage.plot.plot
     if sage.plot.plot.EMBEDDED_MODE:
+        # Don't use this unsafe function except in the notebook, #15515
         i = 0
         while os.path.exists('sage%d%s'%(i,ext)):
             i += 1
@@ -304,10 +316,10 @@ class atomic_write:
             sage: from sage.misc.temporary_file import atomic_write
             sage: link_to_target = os.path.join(tmp_dir(), "templink")
             sage: os.symlink("/foobar", link_to_target)
-            sage: wvt = atomic_write(link_to_target)
-            sage: print wvt.target
+            sage: aw = atomic_write(link_to_target)
+            sage: print aw.target
             /foobar
-            sage: print wvt.tmpdir
+            sage: print aw.tmpdir
             /
         """
         self.target = os.path.realpath(target_filename)
@@ -327,9 +339,9 @@ class atomic_write:
         TESTS::
 
             sage: from sage.misc.temporary_file import atomic_write
-            sage: wvt = atomic_write(tmp_filename())
-            sage: with wvt as f:
-            ....:     os.path.dirname(wvt.target) == os.path.dirname(f.name)
+            sage: aw = atomic_write(tmp_filename())
+            sage: with aw as f:
+            ....:     os.path.dirname(aw.target) == os.path.dirname(f.name)
             True
         """
         self.tempfile = tempfile.NamedTemporaryFile(dir=self.tmpdir, delete=False)

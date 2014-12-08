@@ -998,7 +998,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: B.gens_dict()
-            {'a': a, 'c': c, 'b': b, 'd': d}
+            {'a': a, 'b': b, 'c': c, 'd': d}
         """
         if self._gens_dict is not None:
             return self._gens_dict
@@ -5114,7 +5114,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                 sage: R.<x,y,z> = BooleanPolynomialRing()
                 sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
                 sage: I.variety()
-                [{y: 1, z: 0, x: 0}, {y: 1, z: 1, x: 1}]
+                [{z: 0, y: 1, x: 0}, {z: 1, y: 1, x: 1}]
 
         TESTS:
 
@@ -5132,7 +5132,8 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                         x1*x2 + x1*x6 + x2*x4 + x2*x5 + x2*x6 + x3*x6 + x4*x6 + x5*x6 + x5]
                  sage: I = R.ideal( polys )
                  sage: I.variety()
-                 [{x6: 0, x5: 0, x4: 0, x2: 0, x3: 0, x1: 0}, {x6: 1, x5: 0, x4: 0, x2: 1, x3: 1, x1: 1}]
+                 [{x6: 0, x5: 0, x4: 0, x3: 0, x2: 0, x1: 0},
+                  {x6: 1, x5: 0, x4: 0, x3: 1, x2: 1, x1: 1}]
 
                  sage: R = PolynomialRing(GF(2), 6, ['x%d'%(i+1) for i in range(6)], order='lex')
                  sage: I = R.ideal( polys )
@@ -6483,36 +6484,36 @@ cdef class ReductionStrategy:
             {{x}, {y,z}}
         """
 
-        if name is 'opt_ll':
+        if name == 'opt_ll':
             return self._strat.optLL
-        elif name is 'opt_red_tail':
+        elif name == 'opt_red_tail':
             return self._strat.optRedTail
-        elif name is 'opt_brutal_reductions':
+        elif name == 'opt_brutal_reductions':
             return self._strat.optBrutalReductions
-        elif name is 'opt_red_tail_deg_growth':
+        elif name == 'opt_red_tail_deg_growth':
             return self._strat.optRedTailDegGrowth
 
-        elif name is 'leading_terms':
+        elif name == 'leading_terms':
             return new_BS_from_PBSet(self._strat.leadingTerms, self._parent)
-        elif name is 'minimal_leading_terms':
+        elif name == 'minimal_leading_terms':
             return new_BS_from_PBSet(self._strat.minimalLeadingTerms, self._parent)
 
-        elif name is 'monomials':
+        elif name == 'monomials':
             return new_BS_from_PBSet(self._strat.monomials, self._parent)
 
-        raise AttributeError, name
+        raise AttributeError(name)
 
     def __setattr__(self, name, val):
         if name == 'opt_red_tail':
             self._strat.optRedTail = val
-        elif name is 'opt_ll':
+        elif name == 'opt_ll':
             self._strat.optLL = val
-        elif name is 'opt_brutal_reductions':
+        elif name == 'opt_brutal_reductions':
             self._strat.optBrutalReductions = val
-        elif name is 'opt_red_tail_deg_growth':
+        elif name == 'opt_red_tail_deg_growth':
             self._strat.optRedTailDegGrowth = val
         else:
-            raise AttributeError, name
+            raise AttributeError(name)
 
     def __len__(self):
         """
@@ -7056,63 +7057,62 @@ cdef class GroebnerStrategy:
 
     def __getattr__(self, name):
         cdef char *_tmp
-        if name is 'enabled_log':
+        if name == 'enabled_log':
             return self._strat.enabledLog
-        elif name is 'opt_lazy':
+        elif name == 'opt_lazy':
             return self._strat.optLazy
-        elif name is 'opt_exchange':
+        elif name == 'opt_exchange':
             return self._strat.optExchange
-        elif name is 'opt_allow_recursion':
+        elif name == 'opt_allow_recursion':
             return self._strat.optAllowRecursion
-        elif name is 'opt_linear_algebra_in_last_block':
+        elif name == 'opt_linear_algebra_in_last_block':
             return self._strat.optLinearAlgebraInLastBlock
-        elif name is 'opt_modified_linear_algebra':
+        elif name == 'opt_modified_linear_algebra':
             return self._strat.optModifiedLinearAlgebra
-        elif name is 'opt_draw_matrices':
+        elif name == 'opt_draw_matrices':
             return self._strat.optDrawMatrices
-        elif name is '"opt_red_by_reduced':
+        elif name == '"opt_red_by_reduced':
             return self._strat.reduceByTailReduced
-        elif name is 'chain_criterions':
+        elif name == 'chain_criterions':
             return self._strat.chainCriterions
-        elif name is 'variable_chain_criterions':
+        elif name == 'variable_chain_criterions':
             return self._strat.variableChainCriterions
-        elif name is 'easy_product_criterions':
+        elif name == 'easy_product_criterions':
             return self._strat.easyProductCriterions
-        elif name is 'extended_product_criterions':
+        elif name == 'extended_product_criterions':
             return self._strat.extendedProductCriterions
-        elif name is 'matrix_prefix':
+        elif name == 'matrix_prefix':
             return self._strat.matrixPrefix.c_str()
 
-        raise AttributeError, name
+        raise AttributeError(name)
 
     def __setattr__(self, name, val):
         cdef char *_tmp
-        if name is 'enabled_log':
+        if name == 'enabled_log':
             self._strat.enabledLog = val
-        elif name is 'opt_lazy':
+        elif name == 'opt_lazy':
             self._strat.optLazy = val
-        elif name is 'opt_exchange':
+        elif name == 'opt_exchange':
             self._strat.optExchange = val
-        elif name is 'opt_allow_recursion':
+        elif name == 'opt_allow_recursion':
             self._strat.optAllowRecursion = val
-        elif name is 'opt_linear_algebra_in_last_block':
+        elif name == 'opt_linear_algebra_in_last_block':
             self._strat.optLinearAlgebraInLastBlock = val
-        elif name is 'opt_modified_linear_algebra':
+        elif name == 'opt_modified_linear_algebra':
             self._strat.optModifiedLinearAlgebra = val
-        elif name is 'opt_red_by_reduced':
+        elif name == 'opt_red_by_reduced':
             self._strat.reduceByTailReduced = val
-        elif name is 'opt_draw_matrices':
+        elif name == 'opt_draw_matrices':
             self._strat.optDrawMatrices = val
-        elif name is 'matrix_prefix':
+        elif name == 'matrix_prefix':
             _tmp = val
             self._strat.matrixPrefix = new_stdstring(_tmp)
 
-        elif name is 'redByReduced': # working around a bug in PolyBoRi 0.6
+        elif name == 'redByReduced': # working around a bug in PolyBoRi 0.6
             self._strat.reduceByTailReduced = val
 
-
         else:
-            raise AttributeError, name
+            raise AttributeError(name)
 
 class BooleanMulAction(Action):
     def _call_(self, left, right):

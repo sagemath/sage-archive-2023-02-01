@@ -56,6 +56,7 @@ equation of a line in three dimensions is with ``parametric_plot3d``.
     sage: plane = plot3d((1/5)*(-12+x-2*y), (x, 4, 10), (y, -13,-7), opacity=0.5)
     sage: intersect=point3d([7,-10,3],color='black',size=30)
     sage: line+plane+intersect
+    Graphics3d Object
 
 Vector\-Valued Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -118,6 +119,7 @@ We can also plot vector fields, even in three dimensions.
 
     sage: x,y,z=var('x y z')
     sage: plot_vector_field3d((x*cos(z),-y*cos(z),sin(z)), (x,0,pi), (y,0,pi), (z,0,pi),colors=['red','green','blue'])
+    Graphics3d Object
 
 If we know a little vector calculus, we can also do line integrals.
 Here, based on an example by Ben Woodruff of BYU-Idaho, we
@@ -202,6 +204,7 @@ tutorials.  Here is a reminder of what can be done.
     sage: # 'Spectral', 'summer', 'blues'
     sage: g(x,y)=e^-x*sin(y)
     sage: contour_plot(g, (x, -2, 2), (y, -4*pi, 4*pi), cmap = 'Blues', contours=10, colorbar=True)
+    Graphics object consisting of 1 graphics primitive
 
 Partial Differentiation
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -268,6 +271,7 @@ this.
 ::
 
     sage: plot3d(f,(x,-5,5),(y,-5,5))+point((4,-2,f(4,-2)),color='red',size=20)
+    Graphics3d Object
 
 Multiple Integrals and More
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -292,5 +296,6 @@ Naturally, there is lots more that one can do.
     sage: domain = parametric_plot3d([3*u, 4*(3*u)*v,0], (u, 0, 1), (v, 0,1), color = 'green', opacity = 0.75)
     sage: image = parametric_plot3d([3*u, 4*(3*u)*v, f(3*u, 12*u*v)], (u, 0, 1), (v, 0,1), color = 'green', opacity = 1.00)
     sage: surface+domain+image
+    Graphics3d Object
 
 Quiz: why did we need to declare variables this time?

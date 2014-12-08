@@ -202,6 +202,8 @@ Wrap-up: generic algorithms in Sage are organized in a hierarchy of
 bookshelves modelled upon the usual hierarchy of categories provided
 by abstract algebra.
 
+.. _category-primer-parents-elements-categories:
+
 Elements, Parents, Categories
 -----------------------------
 
@@ -341,10 +343,12 @@ categories and their super categories::
     Integer Ring
 
     sage: ZZ.category()
-    Category of euclidean domains
+    Join of Category of euclidean domains
+        and Category of infinite enumerated sets
 
     sage: ZZ.categories()
-    [Category of euclidean domains, Category of principal ideal domains,
+    [Join of Category of euclidean domains and Category of infinite enumerated sets,
+     Category of euclidean domains, Category of principal ideal domains,
      Category of unique factorization domains, Category of gcd domains,
      Category of integral domains, Category of domains,
      Category of commutative rings, Category of rings, ...
@@ -352,7 +356,8 @@ categories and their super categories::
      Category of monoids, Category of semigroups,
      Category of commutative magmas, Category of unital magmas, Category of magmas,
      Category of commutative additive groups, ..., Category of additive magmas,
-     Category of sets,
+     Category of infinite enumerated sets, Category of enumerated sets,
+     Category of infinite sets, Category of sets,
      Category of sets with partial maps,
      Category of objects]
 
@@ -731,7 +736,7 @@ or the axioms satisfied by the operations of a category::
     sage: Groups().super_categories()
     [Category of monoids, Category of inverse unital magmas]
     sage: Groups().axioms()
-    frozenset(['Inverse', 'Associative', 'Unital'])
+    frozenset({'Associative', 'Inverse', 'Unital'})
 
 or constructing the intersection of two categories, or the smallest
 category containing them::
@@ -749,8 +754,8 @@ operations. In particular a list of mandatory and optional methods to
 be implemented can be found by introspection with::
 
     sage: Groups().required_methods()
-    {'parent': {'required': ['__contains__'], 'optional': []},
-     'element': {'required': [], 'optional': ['_mul_']}}
+    {'element': {'optional': ['_mul_'], 'required': []},
+     'parent': {'optional': [], 'required': ['__contains__']}}
 
 Documentation about those methods can be obtained with::
 
@@ -953,8 +958,8 @@ A (not yet complete) list of mandatory and optional methods to be
 implemented can be found by introspection with::
 
     sage: FiniteSemigroups().required_methods()
-    {'parent': {'required': ['__contains__'], 'optional': []},
-     'element': {'required': [], 'optional': ['_mul_']}}
+    {'element': {'optional': ['_mul_'], 'required': []},
+     'parent': {'optional': [], 'required': ['__contains__']}}
 
 ``product`` does not appear in the list because a default implementation
 is provided in term of the method ``_mul_`` on elements. Of course, at
@@ -1031,6 +1036,8 @@ Along the way, we illustrate that a large hierarchy of categories is
 desirable to model complicated mathematics, and that scaling to
 support such a large hierarchy is the driving motivation for the
 design of the category infrastructure.
+
+.. _category-primer-functorial-constructions:
 
 Functorial constructions
 ------------------------
@@ -1154,7 +1161,7 @@ We have seen that Sage is aware of the axioms satisfied by, for
 example, groups::
 
     sage: Groups().axioms()
-    frozenset(['Inverse', 'Associative', 'Unital'])
+    frozenset({'Associative', 'Inverse', 'Unital'})
 
 In fact, the category of groups can be *defined* by stating that a
 group is a magma, that is a set endowed with an internal binary

@@ -1,5 +1,6 @@
 include 'decl.pxi'
 
+from sage.libs.flint.types cimport fmpz_mat_t
 cimport sage.structure.parent_base
 cimport cython
 
@@ -9,6 +10,7 @@ cpdef long prec_bits_to_words(unsigned long prec_in_bits)
 
 @cython.final
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
+    cdef long _real_precision
     cdef gen PARI_ZERO, PARI_ONE, PARI_TWO
     cdef inline gen new_gen(self, GEN x)
     cdef inline gen new_gen_noclear(self, GEN x)
@@ -26,8 +28,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen new_ref(self, GEN g, gen parent)
     cdef gen _empty_vector(self, long n)
     cdef long get_var(self, v)
-    cdef GEN _new_GEN_from_mpz_t_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc)
-    cdef GEN _new_GEN_from_mpz_t_matrix_rotate90(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc)
-    cdef gen integer_matrix(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf)
+    cdef GEN _new_GEN_from_fmpz_mat_t(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc)
+    cdef GEN _new_GEN_from_fmpz_mat_t_rotate90(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc)
+    cdef gen integer_matrix(self, fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf)
     cdef GEN _new_GEN_from_mpq_t_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc)
     cdef gen rational_matrix(self, mpq_t** B, Py_ssize_t nr, Py_ssize_t nc)

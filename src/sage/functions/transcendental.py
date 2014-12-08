@@ -367,6 +367,7 @@ class DickmanRho(BuiltinFunction):
         sage: dickman_rho(10.00000000000000000000000000000000000000)
         2.77017183772595898875812120063434232634e-11
         sage: plot(log(dickman_rho(x)), (x, 0, 15))
+        Graphics object consisting of 1 graphics primitive
 
     AUTHORS:
 

@@ -347,12 +347,12 @@ def fast_callable(x, domain=None, vars=None,
         12.909297426825681
         sage: f_rdf = fast_callable(expr, vars=[x], domain=RDF)
         sage: f_rdf(2)
-        12.9092974268
+        12.909297426825681
         sage: f_cdf = fast_callable(expr, vars=[x], domain=CDF)
         sage: f_cdf(2)
-        12.9092974268
+        12.909297426825681
         sage: f_cdf(2+I)
-        10.4031192506 + 11.510943741*I
+        10.40311925062204 + 11.510943740958707*I
         sage: f = fast_callable(expr, vars=('z','x','y'))
         sage: f(1, 2, 3)
         sin(2) + 12
@@ -361,9 +361,9 @@ def fast_callable(x, domain=None, vars=None,
         -x^6 - 12*x^5 + 1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
-        [('load_arg', 0), ('load_const', -1.0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.0105263157895), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', ('load_arg', 0), 'mul', ('load_arg', 0), 'mul', ('load_const', -4.0), 'add', 'return']
+        [('load_arg', 0), ('load_const', -1.0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.010526315789473684), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', ('load_arg', 0), 'mul', ('load_arg', 0), 'mul', ('load_const', -4.0), 'add', 'return']
         sage: fp(3.14159)
-        -4594.16182364
+        -4594.161823640176
         sage: K.<x,y,z> = QQ[]
         sage: p = K.random_element(degree=3, terms=5); p
         -x*y^2 - x*z^2 - 6*x^2 - y^2 - 3*x*z
@@ -371,7 +371,7 @@ def fast_callable(x, domain=None, vars=None,
         sage: fp.op_list()
         [('load_const', 0.0), ('load_const', -3.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 1), 'mul', 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'mul', 'add', ('load_const', -6.0), ('load_arg', 0), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 2), 'mul', 'mul', 'add', 'return']
         sage: fp(e, pi, sqrt(2))
-        -98.0015640336
+        -98.00156403362932
         sage: symbolic_result = p(e, pi, sqrt(2)); symbolic_result
         -pi^2*e - pi^2 - 3*sqrt(2)*e - 6*e^2 - 2*e
         sage: n(symbolic_result)
@@ -1678,14 +1678,14 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         8.2831853071795864769252867665590057684
         sage: fc = fast_callable(expr, domain=RDF)
         sage: fc(0)
-        3.14159265359
+        3.141592653589793
         sage: fc(1)
-        8.28318530718
+        8.283185307179586
         sage: fc.op_list()
         [('load_arg', 0), ('load_const', pi), 'add', ('load_arg', 0), ('load_const', 1), 'add', 'mul', 'return']
         sage: fc = fast_callable(etb.call(sin, x) + etb.call(sqrt, x), domain=RDF)
         sage: fc(1)
-        1.84147098481
+        1.8414709848078965
         sage: fc.op_list()
         [('load_arg', 0), 'sin', ('load_arg', 0), 'sqrt', 'add', 'return']
         sage: fc = fast_callable(etb.call(sin, x) + etb.call(sqrt, x))
@@ -1695,7 +1695,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         [('load_arg', 0), ('py_call', sin, 1), ('load_arg', 0), ('py_call', <function sqrt at ...>, 1), 'add', 'return']
         sage: fc = fast_callable(etb.call(my_sin, x), domain=RDF)
         sage: fc(3)
-        0.14112000806
+        0.1411200080598672
         sage: fc = fast_callable(etb.call(my_sin, x), domain=RealField(100))
         sage: fc(3)
         0.14112000805986722210074480281
@@ -1703,7 +1703,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         [('load_arg', 0), ('py_call', <function my_sin at 0x...>, 1), 'return']
         sage: fc = fast_callable(etb.call(my_sqrt, x), domain=RDF)
         sage: fc(3)
-        1.73205080757
+        1.7320508075688772
         sage: parent(fc(3))
         Real Double Field
         sage: fc(-3)
@@ -1769,7 +1769,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc.op_list()
         [('load_arg', 0), ('ipow', 100), 'return']
         sage: fc(1.1)
-        13780.6123398
+        13780.61233982...
         sage: fc = fast_callable(etb(x)^100, domain=RR)
         sage: fc.op_list()
         [('load_arg', 0), ('ipow', 100), 'return']
@@ -1779,7 +1779,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc.op_list()
         [('load_arg', 0), ('ipow', -100), 'return']
         sage: fc(1.1)
-        7.25657159015e-05
+        7.25657159014...e-05
         sage: fc = fast_callable(etb(x)^(-100), domain=RR)
         sage: fc(1.1)
         0.0000725657159014814
@@ -1788,10 +1788,10 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc = fast_callable(etb(x)^expo, domain=RDF)
         sage: fc.op_list()
         [('load_arg', 0), ('py_call', (^4294967296), 1), 'return']
-        sage: fc(base)
-        1.00000095367
+        sage: fc(base)        # rel tol 1e-15
+        1.0000009536747712
         sage: RDF(base)^expo
-        1.00000095367
+        1.0000009536747712
         sage: fc = fast_callable(etb(x)^expo, domain=RR)
         sage: fc.op_list()
         [('load_arg', 0), ('py_call', (^4294967296), 1), 'return']
@@ -1918,7 +1918,12 @@ cdef class InstructionStream:
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: instr_stream.get_current()
-            {'domain': None, 'code': [], 'py_constants': [], 'args': 1, 'stack': 0, 'constants': []}
+            {'args': 1,
+             'code': [],
+             'constants': [],
+             'domain': None,
+             'py_constants': [],
+             'stack': 0}
             sage: md = instr_stream.get_metadata()
             sage: type(md)
             <type 'sage.ext.fast_callable.InterpreterMetadata'>
@@ -2133,7 +2138,12 @@ cdef class InstructionStream:
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: instr_stream.get_current()
-            {'domain': None, 'code': [], 'py_constants': [], 'args': 1, 'stack': 0, 'constants': []}
+            {'args': 1,
+             'code': [],
+             'constants': [],
+             'domain': None,
+             'py_constants': [],
+             'stack': 0}
             sage: instr_stream.instr('load_arg', 0)
             sage: instr_stream.instr('py_call', math.sin, 1)
             sage: instr_stream.instr('abs')
@@ -2141,7 +2151,12 @@ cdef class InstructionStream:
             sage: instr_stream.current_op_list()
             [('load_arg', 0), ('py_call', <built-in function sin>, 1), 'abs', 'return']
             sage: instr_stream.get_current()
-            {'domain': None, 'code': [0, 0, 3, 0, 1, 12, 2], 'py_constants': [<built-in function sin>], 'args': 1, 'stack': 1, 'constants': []}
+            {'args': 1,
+             'code': [0, 0, 3, 0, 1, 12, 2],
+             'constants': [],
+             'domain': None,
+             'py_constants': [<built-in function sin>],
+             'stack': 1}
         """
         d = {'args': self._n_args,
              'constants': self._constants,
@@ -2317,7 +2332,12 @@ cdef class Wrapper:
             sage: instr_stream.instr('return')
             sage: v = Wrapper_py(instr_stream.get_current())
             sage: v.get_orig_args()
-            {'domain': None, 'code': [0, 0, 1, 0, 4, 0, 0, 1, 1, 4, 6, 2], 'py_constants': [], 'args': 1, 'stack': 3, 'constants': [pi, 1]}
+            {'args': 1,
+             'code': [0, 0, 1, 0, 4, 0, 0, 1, 1, 4, 6, 2],
+             'constants': [pi, 1],
+             'domain': None,
+             'py_constants': [],
+             'stack': 3}
             sage: v.op_list()
             [('load_arg', 0), ('load_const', pi), 'add', ('load_arg', 0), ('load_const', 1), 'add', 'mul', 'return']
         """
@@ -2339,7 +2359,12 @@ cdef class Wrapper:
         EXAMPLES::
 
             sage: fast_callable(sin(x)/x, vars=[x], domain=RDF).get_orig_args()
-            {'domain': Real Double Field, 'code': [0, 0, 16, 0, 0, 8, 2], 'py_constants': [], 'args': 1, 'stack': 2, 'constants': []}
+            {'args': 1,
+             'code': [0, 0, 16, 0, 0, 8, 2],
+             'constants': [],
+             'domain': Real Double Field,
+             'py_constants': [],
+             'stack': 2}
         """
         return self._orig_args
 

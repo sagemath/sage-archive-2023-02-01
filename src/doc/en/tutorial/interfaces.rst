@@ -132,7 +132,7 @@ things about it.
     sage: e.elltors()
     [1, [], []]
     sage: e.ellglobalred()
-    [10351, [1, -1, 0, -1], 1]
+    [10351, [1, -1, 0, -1], 1, [11, 1; 941, 1], [[1, 5, 0, 1], [1, 5, 0, 1]]]
     sage: f = e.ellchangecurve([1,-1,0,-1])
     sage: f[:5]
     [1, -1, 0, 4, 3]

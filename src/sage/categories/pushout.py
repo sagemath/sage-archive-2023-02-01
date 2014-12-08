@@ -2053,7 +2053,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: F2
             Completion[+Infinity]
             sage: F2.extras
-            {'type': 'MPFR', 'sci_not': False, 'rnd': 'RNDN'}
+            {'rnd': 'RNDN', 'sci_not': False, 'type': 'MPFR'}
 
         """
         Functor.__init__(self, Rings(), Rings())

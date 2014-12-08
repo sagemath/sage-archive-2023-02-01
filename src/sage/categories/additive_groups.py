@@ -41,7 +41,7 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
          Category of objects]
 
         sage: AdditiveGroups().axioms()
-        frozenset(['AdditiveAssociative', 'AdditiveUnital', 'AdditiveInverse'])
+        frozenset({'AdditiveAssociative', 'AdditiveInverse', 'AdditiveUnital'})
         sage: AdditiveGroups() is AdditiveMonoids().AdditiveInverse()
         True
 

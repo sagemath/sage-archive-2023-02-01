@@ -29,7 +29,7 @@ Combinatorics, Discrete Mathematics
 * :doc:`Graph Theory <graphs/index>`
 * :doc:`Matroid Theory <matroids/index>`
 * :doc:`Discrete Dynamics <dynamics/index>`
-* :doc:`Quviers <quivers/index>`
+* :doc:`Quivers <quivers/index>`
 
 Structures, Coercion, Categories
 --------------------------------
@@ -81,6 +81,7 @@ Number Theory, Algebraic Geometry
 * :doc:`General Hecke Algebras and Hecke Modules <hecke/index>`
 * :doc:`Modular Symbols <modsym/index>`
 * :doc:`Modular Forms <modfrm/index>`
+* :doc:`Modular Forms for Hecke Triangle Groups <modfrm_hecketriangle/index>`
 * :doc:`Modular Abelian Varieties <modabvar/index>`
 * :doc:`Miscellaneous Modular-Form-Related Modules <modmisc/index>`
 

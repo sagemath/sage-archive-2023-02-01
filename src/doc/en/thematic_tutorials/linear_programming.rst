@@ -77,13 +77,13 @@ solvers.
 Let us ask Sage to solve the following LP:
 
 .. MATH::
-    \text{Max: } & x + y - 3z\\
+    \text{Max: } & x + y + 3z\\
     \text{Such that: } & x + 2y \leq 4\\
     \text{} & 5z - y \leq 8\\
     \text{} & x,y,z \geq 0\\
 
 To achieve it, we need to define a corresponding ``MILP`` object, along with 3
-variables ``x,y`` and ``z``::
+variables ``x``, ``y`` and ``z``::
 
     sage: p = MixedIntegerLinearProgram()
     sage: v = p.new_variable(real=True, nonnegative=True)
@@ -116,7 +116,7 @@ the objective function
     sage: round(p.solve(), 2)
     8.8
 
-We can read the optimal assignation found by the solver for `x, y` and
+We can read the optimal assignation found by the solver for `x`, `y` and
 `z` through the ``get_values`` method
 
 .. link
@@ -134,9 +134,9 @@ We can read the optimal assignation found by the solver for `x, y` and
 Variables
 ^^^^^^^^^
 
-In the previous example, we obtained variables through ``v['x'], v['y']`` and
-``v['z']``. This being said, larger LP/MILP will require us to associate a LP
-variable to many Sage objects, which can be integers, strings, or even the
+In the previous example, we obtained variables through ``v['x']``, ``v['y']``
+and ``v['z']``. This being said, larger LP/MILP will require us to associate a
+LP variable to many Sage objects, which can be integers, strings, or even the
 vertices and edges of a graph. For example:
 
 .. link
@@ -431,7 +431,7 @@ graph, in which all the edges have a capacity of 1::
 
 ::
 
-    sage: p.solve()
+    sage: p.solve()  # rel tol 2e-12
     2.0
 
 .. image:: media/lp_flot2.png
@@ -457,14 +457,14 @@ following libraries are currently supported:
   Proprietary, but free for researchers and students.
 
 * `CVXOPT <http://cvxopt.org/>`_: an LP solver from Python Software for
-  Convex Optimization, uses an interior-point method.
+  Convex Optimization, uses an interior-point method, always installed in Sage.
 
   Licensed under the GPL.
 
 * `GLPK <http://www.gnu.org/software/glpk/>`_: A solver from `GNU
   <http://www.gnu.org/>`_
 
-  Licensed under the GPLv3. This solver is installed by default with Sage.
+  Licensed under the GPLv3. This solver is always installed, as the default one, in Sage.
 
 * `GUROBI <http://www.gurobi.com/>`_
 
@@ -472,8 +472,9 @@ following libraries are currently supported:
 
 * `PPL <http://bugseng.com/products/ppl>`_: A solver from bugSeng.
 
-  Licensed under the GPLv3. This solver provides exact (arbitrary precision) computation.
+  This solver provides exact (arbitrary precision) computation, always installed in Sage.
 
+  Licensed under the GPLv3.
 
 Using CPLEX or GUROBI through Sage
 ----------------------------------
@@ -524,9 +525,9 @@ create symbolic links to these files in the appropriate directories:
 
 * For GUROBI
 
-    * ``libgurobi45.so`` -- in ``SAGE_ROOT/local/lib/``, type::
+    * ``libgurobi56.so`` -- in ``SAGE_ROOT/local/lib/``, type::
 
-        ln -s /path/to/lib/libgurobi45.so libgurobi.so
+        ln -s /path/to/lib/libgurobi56.so libgurobi.so
 
     * ``gurobi_c.h`` -- in ``SAGE_ROOT/local/include/``, type::
 

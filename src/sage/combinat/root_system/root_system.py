@@ -241,6 +241,7 @@ class RootSystem(UniqueRepresentation, SageObject):
 
         sage: L = RootSystem(['A',2]).ambient_space()
         sage: L.plot()
+        Graphics object consisting of 13 graphics primitives
 
     For more on plotting, see :ref:`sage.combinat.root_system.plot`.
 
@@ -527,7 +528,7 @@ class RootSystem(UniqueRepresentation, SageObject):
             sage: Phi = RootSystem(['B',2]).root_poset(); Phi
             Finite poset containing 4 elements
             sage: Phi.cover_relations()
-            [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
+            [[alpha[2], alpha[1] + alpha[2]], [alpha[1], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
         """
         return self.root_lattice().root_poset(restricted=restricted,facade=facade)
 

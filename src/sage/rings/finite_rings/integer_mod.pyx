@@ -1366,10 +1366,22 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     def rational_reconstruction(self):
         """
+        Use rational reconstruction to try to find a lift of this element to
+        the rational numbers.
+
         EXAMPLES::
 
             sage: R = IntegerModRing(97)
             sage: a = R(2) / R(3)
+            sage: a
+            33
+            sage: a.rational_reconstruction()
+            2/3
+
+        This method is also inherited by prime finite fields elements::
+
+            sage: k = GF(97)
+            sage: a = k(RationalField()('2/3'))
             sage: a
             33
             sage: a.rational_reconstruction()
@@ -1719,9 +1731,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         mpz_set_si(self.value, value)
         if value < 0 or mpz_cmp_si(self.__modulus.sageInteger.value, value) >= 0:
             mpz_mod(self.value, self.value, self.__modulus.sageInteger.value)
-
-    cdef mpz_t* get_value(IntegerMod_gmp self):
-        return &self.value
 
     def __lshift__(IntegerMod_gmp self, k):
         r"""

@@ -283,7 +283,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
 
         sage: s = "'''\nThis is a test file.\n'''\ndef my_add(a,b):\n    '''\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        '''\n    return a + b\n"
         sage: script = os.path.join(tmp_dir(), 'my_script.sage')
-        sage: script_py = script[:-5] + '.py'
+        sage: script_py = script + '.py'
         sage: F = open(script, 'w')
         sage: F.write(s)
         sage: F.close()
@@ -293,7 +293,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: os.path.isfile(script_py)
         True
 
-    Now test my_script.sage and the preparsed version my_script.py::
+    Now test my_script.sage and the preparsed version my_script.sage.py::
 
         sage: (out, err, ret) = test_executable(["sage", "-t", script])
         sage: ret
@@ -326,7 +326,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: F = open(script, 'w')
         sage: F.write(s)
         sage: F.close()
-        sage: (out, err, ret) = test_executable(["sage", "-t", "--debug", "-p", "2", script], "help")
+        sage: (out, err, ret) = test_executable([
+        ....:     "sage", "-t", "--debug", "-p", "2", "--warn-long", "0", script], "help")
         sage: print out
         Debugging requires single-threaded operation, setting number of threads to 1.
         Running doctests with ID...
@@ -396,36 +397,39 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: F.write(test)
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", "--fixdoctests", test_file])
-        sage: print err
-        <BLANKLINE>
-        sage: output=out.replace('sage:', 'SAGE:')  # so we don't doctest the output
-        sage: print output[output.find('     SAGE: 1+1'):output.find('reset()')+7]
-             SAGE: 1+1              # incorrect output
-        -    3
-        +    2
-             SAGE: m=matrix(ZZ,3)   # output when none is expected
-        +    SAGE: (2/3)*m          # no output when it is expected
-             [0 0 0]
-             [0 0 0]
-        -    [1 0 0]
-        -    SAGE: (2/3)*m          # no output when it is expected
-        +    [0 0 0]
-             SAGE: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected
-        -    [4, 4, 3, 3, 2, 1, 1]
-             SAGE: mu.pp()          # uneven indentation
-        -    ****
-        -    ****
-        +       ****   ***   *
-        +       ****   ***   *
-        +              **
-        +              *
-             SAGE: PartitionTuples.global_options(convention="French")
-             SAGE: mu.pp()         # fix doctest with uneven indentation
-        +    *
-        +    **
-        +    ****   ***   *
-        +    ****   ***   *
-             SAGE: PartitionTuples.global_options.reset()
+        sage: with open(test_file, 'r') as f:
+        ....:     fixed_test = f.read()
+        sage: import difflib
+        sage: list(difflib.unified_diff(test.splitlines(), fixed_test.splitlines()))[2:-1]
+        ['@@ -4,18 +4,23 @@\n',
+         ' EXAMPLES::',
+         ' ',
+         '     sage: 1+1              # incorrect output',
+         '-    3',
+         '+    2',
+         '     sage: m=matrix(ZZ,3)   # output when none is expected',
+         '+    sage: (2/3)*m          # no output when it is expected',
+         '     [0 0 0]',
+         '     [0 0 0]',
+         '-    [1 0 0]',
+         '-    sage: (2/3)*m          # no output when it is expected',
+         '+    [0 0 0]',
+         '     sage: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected',
+         '-    [4, 4, 3, 3, 2, 1, 1]',
+         '     sage: mu.pp()          # uneven indentation',
+         '-    ****',
+         '-    ****',
+         '+       ****   ***   *',
+         '+       ****   ***   *',
+         '+              **',
+         '+              *',
+         '     sage: PartitionTuples.global_options(convention="French")',
+         '     sage: mu.pp()         # fix doctest with uneven indentation',
+         '+    *',
+         '+    **',
+         '+    ****   ***   *',
+         '+    ****   ***   *',
+         '     sage: PartitionTuples.global_options.reset()']
 
     Test external programs being called by Sage::
 
@@ -463,7 +467,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         Cython language.  Cython is based on Pyrex by Greg Ewing.
         ...
 
-        sage: (out, err, ret) = test_executable(["sage", "--dev", "help"])
+        sage: def has_tty():
+        ....:     try:
+        ....:         os.open(os.ctermid(), os.O_RDONLY)
+        ....:         return True
+        ....:     except OSError:
+        ....:         return False 
+        sage: (out, err, ret) = test_executable(["sage", "--dev", "help"]) if has_tty() else ('usage: sage-dev', '', 0)
         sage: ret, err
         (0, '')
         sage: print out    # random output

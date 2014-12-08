@@ -36,6 +36,7 @@ Now let us look at the graph!
 ::
 
     sage: G.plot()
+    Graphics object consisting of 11 graphics primitives
 
 .. image:: ../media/graph.png
    :scale: 75

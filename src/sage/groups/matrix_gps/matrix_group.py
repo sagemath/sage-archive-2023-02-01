@@ -167,46 +167,6 @@ class MatrixGroup_base(Group):
         from sage.groups.matrix_gps.finitely_generated import MatrixGroup
         return MatrixGroup(self.gens())
 
-    def field_of_definition(self, **kwds):
-        """
-        Return a field that contains all the matrices in this matrix
-        group.
-
-        EXAMPLES::
-
-            sage: G = SU(3,GF(5))
-            sage: G.base_ring()
-            Finite Field in a of size 5^2
-            sage: G.field_of_definition()
-            doctest:...: DeprecationWarning: Use base_ring() instead.
-            See http://trac.sagemath.org/14014 for details.
-            Finite Field in a of size 5^2
-            sage: G = GO(4,GF(7),1)
-            sage: G.field_of_definition()
-            Finite Field of size 7
-            sage: G.base_ring()
-            Finite Field of size 7
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14014, 'Use base_ring() instead.')
-        return self.base_ring()
-
-    def base_field(self):
-        """
-        Deprecated alias of :meth:`base_ring`
-
-        EXAMPLES::
-
-            sage: G = SU(3,GF(5))
-            sage: G.base_field()
-            doctest:...: DeprecationWarning: Use base_ring() instead.
-            See http://trac.sagemath.org/14014 for details.
-            Finite Field in a of size 5^2
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14014, 'Use base_ring() instead.')
-        return self.base_ring()
-
     def _repr_(self):
         """
         Return a string representation.

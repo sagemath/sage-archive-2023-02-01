@@ -21,6 +21,7 @@ from sage.libs.flint.nmod_poly cimport *
 from sage.libs.flint.ulong_extras cimport *
 
 include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
 
 cdef inline celement *celement_new(unsigned long n):
     cdef celement *g = <celement *>sage_malloc(sizeof(nmod_poly_t))
@@ -486,7 +487,7 @@ cdef inline int celement_pow(nmod_poly_t res, nmod_poly_t x, long e, nmod_poly_t
     nmod_poly_init(q, n)
     nmod_poly_init(tmp, n)
 
-    if nmod_poly_degree(x) == 1 and nmod_poly_get_coeff_ui(x,0) == 0 and nmod_poly_get_coeff_ui(x,1) == 1:
+    if nmod_poly_degree(x) == 1 and nmod_poly_get_coeff_ui(x,0) == 0 and nmod_poly_get_coeff_ui(x,1) == 1 and modulus != NULL and e < 2*nmod_poly_degree(modulus):
         nmod_poly_zero(res)
         nmod_poly_set_coeff_ui(res,e,1)
     elif e == 0:
@@ -508,6 +509,7 @@ cdef inline int celement_pow(nmod_poly_t res, nmod_poly_t x, long e, nmod_poly_t
             nmod_poly_zero(res)
             nmod_poly_set_coeff_ui(res, 0, 1)
         e = e >> 1
+        sig_on()
         while(e != 0):
             nmod_poly_pow(pow2, pow2, 2)
             if e % 2:
@@ -515,6 +517,7 @@ cdef inline int celement_pow(nmod_poly_t res, nmod_poly_t x, long e, nmod_poly_t
             e = e >> 1
             if modulus != NULL:
                 nmod_poly_divrem(q, res, res, modulus)
+        sig_off()
         nmod_poly_clear(pow2)
 
     if modulus != NULL:

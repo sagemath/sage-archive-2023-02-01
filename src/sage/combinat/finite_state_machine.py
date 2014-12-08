@@ -9066,12 +9066,12 @@ class FiniteStateMachine(SageObject):
             `1/2`. In fact, the waiting time equals `k` if and only if
             the string starts with `0^{k-1}1`. This event occurs with
             probability `2^{-k}`. Therefore, the expected waiting time
-            and the variance are `\sum_{k\ge 0} k2^{-k}=2` and
-            `\sum_{k\ge 0} (k-2)^2 2^{-k}=2`::
+            and the variance are `\sum_{k\ge 1} k2^{-k}=2` and
+            `\sum_{k\ge 1} (k-2)^2 2^{-k}=2`::
 
                 sage: var('k')
                 k
-                sage: sum(k * 2^(-k), k, 0, infinity)
+                sage: sum(k * 2^(-k), k, 1, infinity)
                 2
                 sage: sum((k-2)^2 * 2^(-k), k, 1, infinity)
                 2
@@ -9194,9 +9194,18 @@ class FiniteStateMachine(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Unique initial state is required.
+
+        Using `0` as initial state in this example, a `1` is written in
+        the first step with probability `1`, so the waiting time is
+        always `1`::
+
             sage: T.state(0).is_initial = True
             sage: T.moments_waiting_time()
-            {'expectation': 1, 'variance': }
+            {'expectation': 1, 'variance': 0}
+
+        Using both `0` and `1` as initial states again yields an error
+        message::
+
             sage: T.state(1).is_initial = True
             sage: T.moments_waiting_time()
             Traceback (most recent call last):

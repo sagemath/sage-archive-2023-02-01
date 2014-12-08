@@ -269,6 +269,17 @@ class AugmentedValuation(DevelopingValuation):
             s -= self._mu
         return ret * self._base_valuation.element_with_valuation(s)
 
+    def _latex_(self):
+        vals = [self]
+        v = self
+        while isinstance(v, AugmentedValuation):
+            v = v._base_valuation
+            vals.append(v)
+        vals.reverse()
+        from sage.misc.latex import latex
+        vals = [ "v_%s(%s) = %s"%(i,latex(v._phi), latex(v._mu)) if isinstance(v, AugmentedValuation) else latex(v) for i,v in enumerate(vals) ]
+        return "[ %s ]"%", ".join(vals)
+
     def _repr_(self):
         """
         Return a printable representation of this valuation.

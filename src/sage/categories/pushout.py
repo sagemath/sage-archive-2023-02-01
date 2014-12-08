@@ -91,12 +91,13 @@ class ConstructionFunctor(Functor):
     """
     def __mul__(self, other):
         """
-        Compose construction functors to a composit construction functor, unless one of them is the identity.
+        Compose ``self`` and ``other`` to a composite construction
+        functor, unless one of them is the identity.
 
         NOTE:
 
-        The product is in functorial notation, i.e., when applying the product to an object
-        then the second factor is applied first.
+        The product is in functorial notation, i.e., when applying the
+        product to an object, the second factor is applied first.
 
         TESTS::
 
@@ -286,11 +287,7 @@ class ConstructionFunctor(Functor):
         """
         return [self]
 
-    # The pushout function below assumes that if F is a construction
-    # applied to an object X, then F(X) admits a coercion map from X.
-    # In derived classes, the following attribute should be set to
-    # True if F(X) has a coercion map _to_ X instead.  This is
-    # currently used for the subspace construction.
+    # See the pushout() function below for explanation.
     coercion_reversed = False
 
 
@@ -3072,48 +3069,53 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
 
 def pushout(R, S):
     r"""
-    Given a pair of Objects R and S, try and construct a
-    reasonable object Y and return maps such that
-    canonically $R \leftarrow Y \rightarrow S$.
+    Given a pair of objects `R` and `S`, try to construct a
+    reasonable object `Y` and return maps such that
+    canonically `R \leftarrow Y \rightarrow S`.
 
     ALGORITHM:
 
-    This incorporates the idea of functors discussed Sage Days 4.
-    Every object R can be viewed as an initial object and
-    a series of functors (e.g. polynomial, quotient, extension,
-    completion, vector/matrix, etc.). Call the series of
-    increasingly-simple rings (with the associated functors)
-    the "tower" of R. The construction method is used to
-    create the tower.
+    This incorporates the idea of functors discussed at Sage Days 4.
+    Every object `R` can be viewed as an initial object and a series
+    of functors (e.g. polynomial, quotient, extension, completion,
+    vector/matrix, etc.). Call the series of increasingly simple
+    objects (with the associated functors) the "tower" of `R`. The
+    construction method is used to create the tower.
 
-    Given two objects R and S, try and find a common initial
-    object Z. If the towers of R and S meet, let Z be their
-    join. Otherwise, see if the top of one coerces naturally into
-    the other.
+    Given two objects `R` and `S`, try to find a common initial object
+    `Z`. If the towers of `R` and `S` meet, let `Z` be their join.
+    Otherwise, see if the top of one coerces naturally into the other.
 
-    Now we have an initial object and two ordered lists of
-    functors to apply. We wish to merge these in an unambiguous order,
-    popping elements off the top of one or the other tower as we
-    apply them to Z.
+    Now we have an initial object and two ordered lists of functors to
+    apply. We wish to merge these in an unambiguous order, popping
+    elements off the top of one or the other tower as we apply them to
+    `Z`.
 
-    - If the functors are distinct types, there is an absolute ordering
-      given by the rank attribute. Use this.
+    - If the functors are of distinct types, there is an absolute
+      ordering given by the rank attribute. Use this.
 
     - Otherwise:
 
       - If the tops are equal, we (try to) merge them.
 
-      - If exactly one occurs lower in the other tower
-        we may unambiguously apply the other (hoping for a later merge).
+      - If exactly one occurs lower in the other tower, we may
+        unambiguously apply the other (hoping for a later merge).
 
       - If the tops commute, we can apply either first.
 
       - Otherwise fail due to ambiguity.
 
+    The algorithm assumes by default that when a construction `F` is
+    applied to an object `X`, the object `F(X)` admits a coercion map
+    from `X`.  However, the algorithm can also handle the case where
+    `F(X)` has a coercion map *to* `X` instead.  In this case, the
+    attribute ``coercion_reversed`` of the class implementing `F`
+    should be set to ``True``.
+
     EXAMPLES:
 
-    Here our "towers" are $R = Complete_7(Frac(\ZZ))$ and $Frac(Poly_x(\ZZ))$,
-    which give us $Frac(Poly_x(Complete_7(Frac(\ZZ))))$::
+    Here our "towers" are `R = Complete_7(Frac(\ZZ))` and `Frac(Poly_x(\ZZ))`,
+    which give us `Frac(Poly_x(Complete_7(Frac(\ZZ))))`::
 
         sage: from sage.categories.pushout import pushout
         sage: pushout(Qp(7), Frac(ZZ['x']))
@@ -3155,6 +3157,14 @@ def pushout(R, S):
     A construction with ``coercion_reversed = True`` (currently only
     the :class:`SubspaceFunctor` construction) is only applied if it
     leads to a valid coercion::
+
+        sage: A = ZZ^2
+        sage: V = span([[1, 2]], QQ)
+        sage: P = sage.categories.pushout.pushout(A, V)
+        sage: P
+        Vector space of dimension 2 over Rational Field
+        sage: P.has_coerce_map_from(A)
+        True
 
         sage: V = (QQ^3).span([[1, 2, 3/4]])
         sage: A = ZZ^3
@@ -3355,18 +3365,18 @@ def pushout(R, S):
 
 def pushout_lattice(R, S):
     r"""
-    Given a pair of Objects $R$ and $S$, try and construct a
-    reasonable object $Y$ and return maps such that
-    canonically $R \leftarrow Y \rightarrow S$.
+    Given a pair of objects `R` and `S`, try to construct a
+    reasonable object `Y` and return maps such that
+    canonically `R \leftarrow Y \rightarrow S`.
 
     ALGORITHM:
 
-    This is based on the model that arose from much discussion at Sage Days 4.
-    Going up the tower of constructions of $R$ and $S$ (e.g. the reals
-    come from the rationals come from the integers) try and find a
-    common parent, and then try and fill in a lattice with these
-    two towers as sides with the top as the common ancestor and
-    the bottom will be the desired ring.
+    This is based on the model that arose from much discussion at
+    Sage Days 4.  Going up the tower of constructions of `R` and `S`
+    (e.g. the reals come from the rationals come from the integers),
+    try to find a common parent, and then try to fill in a lattice
+    with these two towers as sides with the top as the common ancestor
+    and the bottom will be the desired ring.
 
     See the code for a specific worked-out example.
 

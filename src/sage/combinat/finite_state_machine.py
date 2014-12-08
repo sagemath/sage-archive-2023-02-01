@@ -9326,7 +9326,8 @@ class FiniteStateMachine(SageObject):
            207--229, :doi:`10.1016/0166-218X(92)90177-C`.
 
         .. [FHP2014] Uta Freiberg, Clemens Heuberger, Helmut Prodinger,
-           *In preparation*, in preparation.
+           *Application of Smirnov Words to Waiting Time Distributions
+           of Runs*, in preparation.
 
         .. [S1986] Gábor J. Székely, *Paradoxes in Probability Theory
            and Mathematical Statistics*, D. Reidel Publishing Company.

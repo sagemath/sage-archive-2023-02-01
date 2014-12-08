@@ -35,7 +35,7 @@ from sage.structure.graphics_file import GraphicsFile
 from sage.misc.decorators import suboptions
 from colors import rgbcolor
 
-ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.png', '.ps', '.sobj', '.svg']
+ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
 
 def show_default(default=None):
@@ -81,6 +81,7 @@ def is_Graphics(x):
         True
     """
     return isinstance(x, Graphics)
+
 
 class Graphics(SageObject):
     """
@@ -2948,6 +2949,8 @@ class Graphics(SageObject):
 
             * ``.pdf``,
 
+            * ``.pgf``,
+           
             * ``.png``,
 
             * ``.ps``,
@@ -3046,14 +3049,45 @@ class Graphics(SageObject):
             rc_backup = (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
                          rcParams['text.usetex']) # save the rcParams
             figure = self.matplotlib(**options)
-            # You can output in PNG, PS, EPS, PDF, or SVG format, depending
+            # You can output in PNG, PS, EPS, PDF, PGF, or SVG format, depending
             # on the file extension.
+            # PGF is handled by a different backend
+            if ext == '.pgf':
+                from sage.misc.sage_ostools import have_program
+                latex_implementations = [i for i in ["xelatex", "pdflatex",
+                                                     "lualatex"]
+                                         if have_program(i)]
+                if not latex_implementations:
+                    raise ValueError("Matplotlib requires either xelatex, "
+                                     "lualatex, or pdflatex.")
+                if latex_implementations[0] == "pdflatex":
+                    # use pdflatex and set font encoding as per
+                    # matplotlib documentation:
+                    # http://matplotlib.org/users/pgf.html#pgf-tutorial
+                    pgf_options= {
+                            "pgf.texsystem": "pdflatex",
+                            "pgf.preamble": [
+                                         r"\usepackage[utf8x]{inputenc}",
+                                         r"\usepackage[T1]{fontenc}",
+                                         #r"\usepackage{cmbright}",
+                                         ]
+                    }
+                else:
+                    pgf_options = {
+                            "pgf.texsystem": latex_implementations[0],
+                    }
+                from matplotlib import rcParams
+                rcParams.update(pgf_options)
+                from matplotlib.backends.backend_pgf import FigureCanvasPgf
+                figure.set_canvas(FigureCanvasPgf(figure))
+
             # matplotlib looks at the file extension to see what the renderer should be.
             # The default is FigureCanvasAgg for PNG's because this is by far the most
             # common type of files rendered, like in the notebook, for example.
             # if the file extension is not '.png', then matplotlib will handle it.
-            from matplotlib.backends.backend_agg import FigureCanvasAgg
-            figure.set_canvas(FigureCanvasAgg(figure))
+            else:
+                from matplotlib.backends.backend_agg import FigureCanvasAgg
+                figure.set_canvas(FigureCanvasAgg(figure))
             # this messes up the aspect ratio!
             #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
 
@@ -3071,6 +3105,30 @@ class Graphics(SageObject):
             # Restore the rcParams to the original, possibly user-set values
             (rcParams['ps.useafm'], rcParams['pdf.use14corefonts'],
                                            rcParams['text.usetex']) = rc_backup
+
+    def _latex_(self, **kwds):
+        """
+        Return a string plotting ``self`` with PGF.
+
+        INPUT:
+
+        All keyword arguments will be passed to the plotter.
+
+        OUTPUT:
+
+        A string of PGF commands to plot ``self``
+
+        EXAMPLES::
+
+            sage: L = line([(0,0), (1,1)], axes=False)
+            sage: L._latex_()     # not tested
+            '%% Creator: Matplotlib, PGF backend...
+        """
+        tmpfilename = tmp_filename(ext='.pgf')
+        self.save(filename=tmpfilename, **kwds)
+        with open(tmpfilename, "r") as tmpfile:
+                latex_list = tmpfile.readlines()
+        return ''.join(latex_list)
 
     def description(self):
         r"""
@@ -3447,7 +3505,7 @@ class GraphicsArray(SageObject):
         :meth:`save` method of self, passing along all arguments and
         keywords.
 
-        .. Note::
+        .. NOTE::
 
             Not all image types are necessarily implemented for all
             graphics types.  See :meth:`save` for more details.
@@ -3460,6 +3518,30 @@ class GraphicsArray(SageObject):
         """
         self.save(filename, *args, **kwds)
 
+    def _latex_(self, dpi=DEFAULT_DPI, figsize=None, axes=None, **args):
+        """
+        Return a string plotting ``self`` with PGF.
+
+        INPUT:
+
+        All keyword arguments will be passed to the plotter.
+
+        OUTPUT:
+
+        A string of PGF commands to plot ``self``
+
+        EXAMPLES::
+
+            sage: A = graphics_array([[plot(sin), plot(cos)],
+            ....:   [plot(tan), plot(sec)]])
+            sage: A._latex_()     # not tested
+            '%% Creator: Matplotlib, PGF backend...
+        """
+        tmpfilename = tmp_filename(ext='.pgf')
+        self.save(filename=tmpfilename, **args)
+        with open(tmpfilename, "r") as tmpfile:
+                latex_list = tmpfile.readlines()
+        return ''.join(latex_list)
 
     def show(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
              axes=None, **kwds):

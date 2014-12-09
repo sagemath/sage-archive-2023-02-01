@@ -872,7 +872,7 @@ class EllipticEC(MaximaFunction):
             1.53075763689776
         """
         MaximaFunction.__init__(self, "elliptic_ec", nargs=1,
-                                conversion=dict(sympy='ellipe'))
+                                conversions=dict(sympy='ellipe'))
 
     def _derivative_(self, *args, **kwds):
         """
@@ -946,7 +946,7 @@ class EllipticF(MaximaFunction):
             0.200132506747543
         """
         MaximaFunction.__init__(self, "elliptic_f",
-                                conversion=dict(sympy='ellipf'))
+                                conversions=dict(sympy='ellipf'))
 
 elliptic_f = EllipticF()
 
@@ -976,7 +976,7 @@ class EllipticKC(MaximaFunction):
             1.85407467730137
         """
         MaximaFunction.__init__(self, "elliptic_kc", nargs=1,
-                                conversion=dict(sympy='ellipk'))
+                                conversions=dict(sympy='ellipk'))
 
 elliptic_kc = EllipticKC()
 
@@ -1031,7 +1031,7 @@ class EllipticPi(MaximaFunction):
             0.200665068220979
         """
         MaximaFunction.__init__(self, "elliptic_pi", nargs=3,
-                                conversion=dict(sympy='ellippi'))
+                                conversions=dict(sympy='ellippi'))
 
 elliptic_pi = EllipticPi()
 

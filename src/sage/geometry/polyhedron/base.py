@@ -3278,6 +3278,38 @@ class Polyhedron_base(Element):
 
     graph = vertex_graph
 
+    @cached_method
+    def vertex_digraph(self, f):
+        """
+        Return the directed graph of the polyhedron according to a linear form.
+
+        The underlying undirected graph is the graph of vertices and edges.
+
+        INPUT:
+
+        - `f` -- a linear form (as a tuple, list or vector)
+
+        An edge is oriented from `v` to `w` if `f(v-w) > 0`.
+
+        EXAMPLES::
+
+            sage: penta = Polyhedron([[0,0],[1,0],[0,1],[1,2],[3,2]])
+            sage: penta.vertex_digraph(vector([1,1]))
+            Digraph on 5 vertices
+
+        .. SEEALSO::
+
+            :meth:`vertex_graph`
+        """
+        from sage.graphs.digraph import DiGraph
+        dg = DiGraph()
+        for j in range(self.n_vertices()):
+            vj = self.Vrepresentation(j)
+            for vi in vj.neighbors():
+                if (vi.vector() - vj.vector()).dot_product(f) > 0:
+                    dg.add_edge(vi, vj)
+        return dg
+
     def polar(self):
         """
         Return the polar (dual) polytope.

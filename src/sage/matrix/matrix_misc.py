@@ -306,10 +306,25 @@ def permanental_minor_vector(m, permanent_only=False):
 
     ALGORITHM:
 
-        The algorithm uses polynomials over the algebra
-        `K[\eta_1, \eta_2,\ldots, \eta_k]` where the `\eta_i` are commuting,
-        nilpotent of order `2` (i.e. `\eta_i^2 = 0`). Let us consider an example of
-        computation. Let `p_1 = 1 + t \eta_0 + t \eta_1` and
+        The permanent of a n x n matrix `A` is the coefficient of the
+        x_1...x_n monomial in
+
+        .. MATH::
+
+            \prod_{i=1}^n \sum_{j=1}^n A_{ij} x_j
+
+        Evaluating this product one can neglect `x_i^2`, that is `x_i`
+        can be considered to be nilpotent of order `2`.
+
+        To formalize this procedure, consider polynomials over the algebra
+        `K[t, \eta_1, \eta_2,\ldots, \eta_k]` where the `\eta_i` are
+        commuting, nilpotent of order `2` (i.e. `\eta_i^2 = 0`),
+        and `t` is commuting.
+        Introduce an "integration" operation <p> consisting in the sum
+        of the coefficients of the non-vanishing monomials of the polynomial p.
+
+        Let us consider an example of computation.
+        Let `p_1 = 1 + t \eta_0 + t \eta_1` and
         `p_2 = 1 + t \eta_0 + t \eta_2`. Then
 
         .. MATH::
@@ -318,13 +333,53 @@ def permanental_minor_vector(m, permanent_only=False):
                     t (\eta_1 + \eta_2) +
                     t^2 (\eta_0 \eta_1 + \eta_0 \eta_2 + \eta_1 \eta_2)
 
+            <p_1 p_2> = 1 + 4t + 3t^2
+
+        A useful property is the following: let `p_1(\eta_0,..,\eta_k)`
+        be a polynomial in distributed form, and let `p_2(\eta_j,..,\eta_k)`
+        be a product of polynomials, with `j \ge 1`; one has
+
+        .. MATH::
+            <p_1(\eta_0,..,\eta_k) p_2> = <p_1(1,..,\eta_j,..,\eta_k) p_2>
+
+        where `\eta_0,..,\eta_{j-1}` are replaced by `1` in `p_1`.
+
+        In this formalism
+
+        .. MATH::
+
+            perm(A) = < \prod_{i=1}^n \sum_{j=1}^n A_{ij} \eta_j >
+
+        The sum of permanental k-minors of `A` is
+
+        .. MATH::
+
+            permMinor (A, k) = \sum_{r,s} perm(A_{r,s})
+
+        where ``A_{r,s}`` is the matrix obtained eliminating the rows `r`
+        and the columns `s`.
+
+        The generating function of the sums of the permanental minors
+        of a m x n matrix is
+
+        .. MATH::
+
+            g(t) = < \prod_{i=1}^m (1 + t \sum_{j=1}^n A_{ij} \eta_j) >
+
+        In fact the `t^k` coefficient of `g(t)` corresponds to choosing
+        `k` rows of `A`;  `\eta_i` is associated to the i-th column;
+        nilpotency avoids having twice the same column in a product of A's.
+
         The product is implemented as a subroutine in :func:`prm_mul`. The
         polynomials are represented in dictionary form: to a variable `\eta_i`
         it is associated the key `2^i` (or in Python ``1 << i``).  So in the
         above example `\eta_1` corresponds to the key `2` while the product
         `\eta_1 \eta_2` to the key `6`.
 
-        MORE DOC NEEDED!!!
+        The complexity of this algorithm is `O(2^n m^2 n)`.
+        If `A` is a banded matrix with width `w`, that is `A_{ij}=0` for
+        `|i - j| > w`, and `w < n/2`, then the complexity of the
+        algorithm is `O(4^w (w+1) n^2)`.
 
     REFERENCES:
 
@@ -335,7 +390,7 @@ def permanental_minor_vector(m, permanent_only=False):
     nrows = m.nrows()
     ncols = m.ncols()
     m = m.rows()
-    p = {int(0): K.one()}
+    p = {0: K.one()}
     t = K.gen()
     done_vars = set()
     one = 1

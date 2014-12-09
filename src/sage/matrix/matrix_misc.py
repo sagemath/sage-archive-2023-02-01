@@ -202,13 +202,20 @@ def weak_popov_form(M,ascend=True):
     # return reduced matrix and operations matrix
     return (matrix(r)/den, matrix(N), d)
 
-def prm_mul(p1, p2, free_vars_indices):
+def prm_mul(p1, p2, mask_free):
     """
     Return the product of ``p1`` and ``p2``, putting free variables in
-    ``free_vars_indices`` to `1`.
+    ``mask_free`` to `1`.
 
     This function is mainly use as a subroutine of
-    :func:`permanental_minor_vector`.
+    :func:`permanental_minor_polynomial`.
+
+    INPUT:
+
+    - ``p1,p2`` -- polynomials as dictionaries
+
+    - ``mask_free`` -- an integer mask that give the list of free variables
+      (the `i`-th variable is free if the `i`-th bit of ``mask_free`` is `1`)
 
     EXAMPLES::
 
@@ -216,27 +223,22 @@ def prm_mul(p1, p2, free_vars_indices):
         sage: t = polygen(ZZ, 't')
         sage: p1 = {0: 1, 1: t, 4: t}
         sage: p2 = {0: 1, 1: t, 2: t}
-        sage: prm_mul(p1, p2, [0])
+        sage: prm_mul(p1, p2, 1)
         {0: 2*t + 1, 2: t^2 + t, 4: t^2 + t, 6: t^2}
     """
     p = {}
-    mask_free = 0
-    one = 1
-    for i in free_vars_indices:
-        mask_free += one << i
     if not p2:
         return p
     get = p.get
     for exp1, v1 in p1.iteritems():
+        if v1.is_zero():
+            continue
         for exp2, v2 in p2.iteritems():
             if exp1 & exp2:
                 continue
-            exp = exp1 | exp2
             v = v1 * v2
-            if exp & mask_free:
-                for i in free_vars_indices:
-                    if exp & (one << i):
-                        exp ^= one << i
+            exp = exp1 | exp2
+            exp = exp ^ (exp & mask_free)
             if exp not in p:
                 p[exp] = v
             else:
@@ -429,8 +431,7 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t'):
     A = A.rows()
     p = {0: K.one()}
     t = K.gen()
-    done_vars = set()
-    one = 1
+    vars_to_do = range(ncols)
     for i in range(nrows):
         # build the polynomial p1 = 1 + t sum A_{ij} eta_j
         if permanent_only:
@@ -440,15 +441,21 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t'):
         a = A[i]   # the i-th row of A
         for j in range(len(a)):
             if a[j]:
-                p1[one<<j] = a[j] * t
-        free_vars_indices = []
-        for j in range(ncols):
-            if j in done_vars:
-                continue
-            if all(m[k][j] == 0 for k in range(i+1, len(m))):
-                free_vars_indices.append(j)
-                done_vars.add(j)
-        p = prm_mul(p, p1, free_vars_indices)
+                p1[1<<j] = a[j] * t
+
+        # make the product with the preceding polynomials, taking care of
+        # variables that can be integrated
+        mask_free = 0
+        j = 0
+        while j < len(vars_to_do):
+            jj = vars_to_do[j]
+            if all(A[k][jj] == 0 for k in range(i+1, nrows)):
+                mask_free += 1 << jj
+                vars_to_do.remove(jj)
+            else:
+                j += 1
+        p = prm_mul(p, p1, mask_free)
+
     if not p:
         return K.zero()
 

@@ -531,10 +531,12 @@ class InterfaceInit(Converter):
             sage: b.sage()
             D[0](f)(4)
 
-        It also works with more than one variable::
+        It also works with more than one variable.  Note the preferred
+        syntax ``function('f')(x,y)`` to create a general symbolic function
+        of more than one variable::
 
             sage: x,y,=var('x y')
-            sage: a = function('f', x, y).diff(x).subs(x=4).subs(y=8)
+            sage: a = function('f')(x, y).diff(x).subs(x=4).subs(y=8)
             sage: b=maxima(a); b
             %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=8])
             sage: b.sage()
@@ -542,8 +544,16 @@ class InterfaceInit(Converter):
 
         ::
 
+            sage: a = function('f')(x,y).diff(x)
+            sage: a
+            D[0](f)(x, y)
+            sage: maxima(a)
+            'diff('f(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)
+
+        ::
+
             sage: x,y,=var('x y')
-            sage: a = function('f', x, y).diff(x).subs(x=4)
+            sage: a = function('f')(x, y).diff(x).subs(x=4)
             sage: b=maxima(a); b
             %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=_SAGE_VAR_y])
             sage: b.sage()

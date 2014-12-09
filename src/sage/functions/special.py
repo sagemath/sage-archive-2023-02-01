@@ -870,6 +870,11 @@ class EllipticEC(MaximaFunction):
 
             sage: elliptic_ec(0.1)
             1.53075763689776
+
+        TESTS::
+
+            sage: elliptic_ec(x)._sympy_()
+            ?
         """
         MaximaFunction.__init__(self, "elliptic_ec", nargs=1,
                                 conversions=dict(sympy='ellipe'))
@@ -944,6 +949,11 @@ class EllipticF(MaximaFunction):
 
             sage: elliptic_f (0.2, 0.1)
             0.200132506747543
+
+        TESTS::
+
+            sage: elliptic_f(x, 2)._sympy_()
+            ?
         """
         MaximaFunction.__init__(self, "elliptic_f",
                                 conversions=dict(sympy='ellipf'))
@@ -974,6 +984,11 @@ class EllipticKC(MaximaFunction):
             1.85407467730137
             sage: elliptic_f(RR(pi/2), 0.5)
             1.85407467730137
+
+        TESTS::
+
+            sage: elliptic_kc(x)._sympy_()
+            ?
         """
         MaximaFunction.__init__(self, "elliptic_kc", nargs=1,
                                 conversions=dict(sympy='ellipk'))
@@ -1029,6 +1044,11 @@ class EllipticPi(MaximaFunction):
 
             sage: elliptic_pi(0.1, 0.2, 0.3)
             0.200665068220979
+
+        TESTS::
+
+            sage: elliptic_pi(x, pi/4, 1)._sympy_()
+            ?
         """
         MaximaFunction.__init__(self, "elliptic_pi", nargs=3,
                                 conversions=dict(sympy='ellippi'))

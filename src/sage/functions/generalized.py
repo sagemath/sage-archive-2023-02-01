@@ -179,9 +179,14 @@ class FunctionHeaviside(BuiltinFunction):
         sage: heaviside(x)
         heaviside(x)
 
+    TESTS::
+
+        sage: heaviside(x)._sympy_()
+        Heaviside(x)
+
     REFERENCES:
 
-    -  http://en.wikipedia.org/wiki/Heaviside_function
+    -  :wiki:`Heaviside_function`
 
     """
     def __init__(self):

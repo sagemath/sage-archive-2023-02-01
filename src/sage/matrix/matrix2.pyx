@@ -49,7 +49,7 @@ import sage.modules.free_module
 import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
-from sage.matrix.matrix_misc import permanental_minor_vector
+from sage.matrix.matrix_misc import permanental_minor_polynomial
 
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
@@ -680,10 +680,15 @@ cdef class Matrix(matrix1.Matrix):
             self, right = canonical_coercion(self, right)
         return self._elementwise_product(right)
 
-    def permanent(self):
+    def permanent(self, algorithm="Ryser"):
         r"""
         Calculate and return the permanent of the `m \times n`
-        matrix ``self`` using Ryser's algorithm.
+        matrix ``self``.
+
+        By default it uses Ryser's algorithm, but setting ``algorithm`` to
+        "ButeraPernici" you can use the algorithm of Butera and Pernici (which
+        is well suited for band matrices, i.e. matrices whose entries are
+        concentrated near the diagonal).
 
         Let `A = (a_{i,j})` be an `m \times n` matrix over
         any commutative ring, with `m \le n`. The permanent of
@@ -708,16 +713,25 @@ cdef class Matrix(matrix1.Matrix):
 
         - ``A`` -- matrix of size `m \times n` with `m \leq n`
 
+        - ``algorithm`` -- either "Ryser" (default) or "ButeraPernici". The
+          Butera-Pernici algorithm takes advantage of presence of zeros and is
+          very well suited for sparse matrices.
+
         OUTPUT:
 
         permanent of the matrix `A`
 
         ALGORITHM:
 
-        Modification of theorem 7.1.1. from Brualdi and Ryser:
-        Combinatorial Matrix Theory. Instead of deleting columns from
-        `A`, we choose columns from `A` and calculate the
-        product of the row sums of the selected submatrix.
+        The Ryser algorithm is implemented in the method
+        :meth:`_permanent_ryser`. It is a modification of theorem 7.1.1. from
+        Brualdi and Ryser: Combinatorial Matrix Theory. Instead of deleting
+        columns from `A`, we choose columns from `A` and calculate the product
+        of the row sums of the selected submatrix.
+
+        The Butera-Pernici algorithm is implemented in the function
+        :func:`~sage.matrix.matrix_misc.permanental_minor_polynomial`. It takes
+        advantage of cancellations that may occur in the computations.
 
         EXAMPLES::
 
@@ -740,6 +754,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.permanent()
             36.0000000000000
 
+
         See Sloane's sequence OEIS A079908(3) = 36, "The Dancing School
         Problems"
 
@@ -756,6 +771,16 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = M([1,1,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,0,1,0])
             sage: A.permanent()
             32
+
+
+        A huge determinant that can not be reasonably computed with the Ryser
+        algorithm (a `100 \times 100` band matrix with width `5`)::
+
+            sage: n, w = 100, 5
+            sage: m = matrix([[(i+j)%5 + 1 if abs(i-j) <= 5 else 0
+            ....:              for i in range(100)] for j in range(100)])
+            sage: m.permanent(algorithm="ButeraPernici")
+            40201088396031257747704937070726537334335585753726771681430778348900577273826792657139261321475297717474885781433
 
         See Minc: Permanents, Example 2.1, p. 5.
 
@@ -786,6 +811,27 @@ cdef class Matrix(matrix1.Matrix):
 
         - Jaap Spies (2006-02-21): added definition of permanent
         """
+        if algorithm == "Ryser":
+            return self._permanent_ryser()
+
+        elif algorithm == "ButeraPernici":
+            return permanental_minor_polynomial(self, True)
+
+        else:
+            raise ValueError("algorithm must be one of \"Ryser\" or \"ButeraPernici\".")
+
+    def _permanent_ryser(self):
+        r"""
+        Return the permanent computed using Ryser algorithm.
+
+        See :meth:`permanent` for the documentation.
+
+        EXAMPLES::
+
+            sage: m = matrix([[1,1],[1,1]])
+            sage: m._permanent_ryser()
+            2
+        """
         cdef Py_ssize_t m, n, r
         cdef int sn
 
@@ -809,8 +855,7 @@ cdef class Matrix(matrix1.Matrix):
             perm = perm + sn * _binomial(n-r, m-r) * s
         return perm
 
-
-    def permanental_minor(self, Py_ssize_t k):
+    def permanental_minor(self, Py_ssize_t k, algorithm="Ryser"):
         r"""
         Return the permanental `k`-minor of an `m \times n` matrix.
 
@@ -831,11 +876,10 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
 
-        - ``self`` -- matrix of size `m \times n` with `m \leq n`
+        - ``k`` -- the size of the minor
 
-        OUTPUT:
-
-        The permanental `k`-minor of the matrix ``self``.
+        - ``algorithm`` -- either "Reiser" (default) or "ButeraPernici". The
+          Butera-Pernici algorithm is well suited for band matrices.
 
         EXAMPLES::
 
@@ -883,6 +927,32 @@ cdef class Matrix(matrix1.Matrix):
 
         - Jaap Spies (2006-02-19)
         """
+        if algorithm == "Ryser":
+            return self._permanental_minor_ryser(k)
+
+        elif algorithm == "ButeraPernici":
+            p = permanental_minor_polynomial(self)
+            return p[k]
+
+        else:
+            raise ValueError("algorithm must be one of \"Ryser\" or \"ButeraPernici\".")
+
+    def _permanental_minor_ryser(self, Py_ssize_t k):
+        r"""
+        Compute the `k`-th permanental minor using Ryser algorithm.
+
+        See :meth:`permanental_minor` for the documentation.
+
+        EXAMPLES::
+
+            sage: m = matrix([[1,2,1],[3,4,3],[5,6,5]])
+            sage: m._permanental_minor_ryser(1)
+            30
+            sage: m._permanental_minor_ryser(2)
+            174
+            sage: m._permanental_minor_ryser(3)
+            136
+        """
         m = self._nrows
         n = self._ncols
         if not m <= n:
@@ -900,7 +970,7 @@ cdef class Matrix(matrix1.Matrix):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
 
-    def rook_vector(self, check = False):
+    def rook_vector(self, algorithm="Ryser", check=False):
         r"""
         Return the rook vector of the matrix ``self``.
 
@@ -923,6 +993,10 @@ cdef class Matrix(matrix1.Matrix):
 
         - ``check`` -- Boolean (default: ``False``) determining whether
           to check that ``self`` is a (0,1)-matrix.
+
+        - ``algorithm`` - either "Ryser" or "ButeraPernici" (default). The
+          Butera-Pernici algorithm is very well suited for band matrices but
+          Ryser one might be faster on simple and small instances.
 
         OUTPUT:
 
@@ -948,6 +1022,7 @@ cdef class Matrix(matrix1.Matrix):
         - Jaap Spies (2006-02-24)
         - Mario Pernici (2014-07-01)
         """
+        #TODO: do we need to forbid m <= n??
         m = self._nrows
         n = self._ncols
         if not m <= n:
@@ -962,7 +1037,15 @@ cdef class Matrix(matrix1.Matrix):
                     if not (x == 0 or x == 1):
                         raise ValueError("must have zero or one, but we have (=%s)" % x)
 
-        return permanental_minor_vector(self)
+        if algorithm == "Ryser":
+            return [self.permanental_minor(k,algorithm="Ryser") for k in range(m+1)]
+
+        elif algorithm == "ButeraPernici":
+            p = permanental_minor_polynomial(self)
+            return [p[k] for k in range(m+1)]
+
+        else:
+            raise ValueError("algorithm must be one of \"Ryser\" or \"ButeraPernici\".")
 
     def minors(self, k):
         r"""

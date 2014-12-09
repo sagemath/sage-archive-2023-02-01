@@ -851,11 +851,13 @@ def have_same_parent(self, other):
 def load(*filename, compress=True, verbose=True):
     r"""
     Load Sage object from the file with name filename, which will have
-    an .sobj extension added if it doesn't have one.  Or, if the input
-    is a filename ending in .py, .pyx, or .sage, load that file into
-    the current running session.  Loaded files are not loaded into
-    their own namespace, i.e., this is much more like Python's
-    ``execfile`` than Python's ``import``.
+    an ``.sobj`` extension added if it doesn't have one.  Or, if the input
+    is a filename ending in ``.py``, ``.pyx``, or ``.sage``, load that
+    file into the current running session. If the filename ends in
+    ``.f`` or ``.f90``, it is compiled as Fortran code and loaded.
+    
+    Loaded files are not loaded into their own namespace, i.e., this is
+    much more like Python's ``execfile`` than Python's ``import``.
 
     .. NOTE::
 
@@ -902,7 +904,7 @@ def load(*filename, compress=True, verbose=True):
         hello world
         [None, None, 2/3]
 
-    We can load Fortran files:
+    We can load Fortran files::
 
         sage: code = '      subroutine hello\n         print *, "Hello World!"\n      end subroutine hello\n'
         sage: t = tmp_filename(ext=".F")

@@ -871,7 +871,8 @@ class EllipticEC(MaximaFunction):
             sage: elliptic_ec(0.1)
             1.53075763689776
         """
-        MaximaFunction.__init__(self, "elliptic_ec", nargs=1)
+        MaximaFunction.__init__(self, "elliptic_ec", nargs=1,
+                                conversion=dict(sympy='ellipe'))
 
     def _derivative_(self, *args, **kwds):
         """
@@ -944,7 +945,8 @@ class EllipticF(MaximaFunction):
             sage: elliptic_f (0.2, 0.1)
             0.200132506747543
         """
-        MaximaFunction.__init__(self, "elliptic_f")
+        MaximaFunction.__init__(self, "elliptic_f",
+                                conversion=dict(sympy='ellipf'))
 
 elliptic_f = EllipticF()
 
@@ -973,7 +975,8 @@ class EllipticKC(MaximaFunction):
             sage: elliptic_f(RR(pi/2), 0.5)
             1.85407467730137
         """
-        MaximaFunction.__init__(self, "elliptic_kc", nargs=1)
+        MaximaFunction.__init__(self, "elliptic_kc", nargs=1,
+                                conversion=dict(sympy='ellipk'))
 
 elliptic_kc = EllipticKC()
 
@@ -1027,7 +1030,8 @@ class EllipticPi(MaximaFunction):
             sage: elliptic_pi(0.1, 0.2, 0.3)
             0.200665068220979
         """
-        MaximaFunction.__init__(self, "elliptic_pi", nargs=3)
+        MaximaFunction.__init__(self, "elliptic_pi", nargs=3,
+                                conversion=dict(sympy='ellippi'))
 
 elliptic_pi = EllipticPi()
 

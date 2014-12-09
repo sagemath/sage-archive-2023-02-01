@@ -1,3 +1,7 @@
+r"""
+Asymptotic Ring
+"""
+
 import re
 
 from sage.structure.parent import Parent
@@ -206,10 +210,10 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
     hold exactly one asymptotic term. The elements can be compared to each other, multiplied and divided, but possess
     no explicit coefficient.
 
-    Basically, a univariate asymptotic growth element represents a polynomial term ``var^{exponent}``. More complex
-    constructions including logarithmic or exponential terms can be constructed via a cartesian product. Asymptotic
-    growth elements can be multiplied, divided, inverted, and compared to each other. However, they possess no explicit
-    coefficient.
+    Basically, a univariate asymptotic growth element represents a polynomial term
+    `\operatorname{variable}^{\operatorname{exponent}}`. More complex constructions including logarithmic or exponential
+    terms can be constructed via a cartesian product. Asymptotic growth elements can be multiplied, divided, inverted,
+    and compared to each other. However, they possess no explicit coefficient.
 
     The elements can be specified by either an expression ``x`` being a string, an element from the symbolic or a
     polynomial ring or the integer ``1``. On the other hand, elements can also be specified by their exponent.
@@ -604,11 +608,10 @@ class AsymptoticGrowthGroupParentUnivariate(AsymptoticGrowthGroupParent):
         return self(x=None, exponent=1)
 
     def create_exp_parent(self, base=e):
-        # TODO: Not entirely sure that this is the best approach. Has to be discussed.
         r"""
         Returns a univariate asymptotic growth group which can be used to contain elements of the form
-        ``base^(variable^exponent)``. By calling this method on the univariate asymptotic growth group constructed
-        in this manor, iterated exponentiation can also be modeled.
+        `\operatorname{base}^{\operatorname{variable}^{\operatorname{exponent}}}`. By calling this method on the
+        univariate asymptotic growth group constructed in this manor, iterated exponentiation can also be modeled.
 
         .. TODO::
 
@@ -632,14 +635,14 @@ class AsymptoticGrowthGroupParentUnivariate(AsymptoticGrowthGroupParent):
             sage: P(x=None, exponent=2)  # TODO: not implemented
             exp(x^2)
         """
+        # TODO: Not entirely sure that this is the best approach. Has to be discussed.
         raise NotImplementedError("NYI")
 
     def create_log_parent(self):
-        # TODO: see create_exp_parent above.
         r"""
         Returns a univariate asymptotic growth group which can be used to contain elements of the form
-        ``log^{exponent}(variable)``. By calling this method on the univariate asymptotic growth group constructed
-        in this manor, iterated logarithms can also be modeled.
+        `\log^{\operatorname{exponent}}(\operatorname{variable})`. By calling this method on the univariate asymptotic
+        growth group constructed in this manor, iterated logarithms can also be modeled.
 
         .. TODO::
 
@@ -661,10 +664,10 @@ class AsymptoticGrowthGroupParentUnivariate(AsymptoticGrowthGroupParent):
             sage: P(x=None, exponent=2)  # TODO: not implemented
             log^2(x)
         """
+        # TODO: see create_exp_parent above.
         raise NotImplementedError("NYI")
 
     def cartesian_product(self, other):
-        # TODO: This has to be thoroughly discussed!
         r"""
         Returns the cartesian product of ``self`` and ``other`` (possibly also a list of univariate asymptotic growth
         groups).
@@ -685,8 +688,10 @@ class AsymptoticGrowthGroupParentUnivariate(AsymptoticGrowthGroupParent):
 
         EXAMPLES::
 
-            sage: ???  # TODO: not implemented
+            sage:  # TODO: not implemented
         """
+        # TODO: This has to be thoroughly discussed!
         raise NotImplementedError("NYI")
+        return None
 
 

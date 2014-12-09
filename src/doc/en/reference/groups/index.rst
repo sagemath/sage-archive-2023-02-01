@@ -55,6 +55,7 @@ Groups
    sage/groups/conjugacy_classes
    sage/groups/perm_gps/partn_ref
    sage/groups/perm_gps/partn_ref2
+   sage/groups/asymptotic_growth_group
 
 
 Internals

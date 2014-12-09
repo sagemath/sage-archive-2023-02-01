@@ -165,6 +165,8 @@ from decorators import specialize, sage_wraps, infix_operator
 
 from unknown import Unknown
 
+lazy_import('sage.misc.inline_fortran', 'fortran')
+
 ##########################################################################
 def benchmark(n=-1):
     """

@@ -1421,7 +1421,9 @@ class Projection(SageObject):
                 edge/.style={color=black, thick},
             sage: open('polytope-tikz2.tex', 'w').write(Image)    # not tested
 
-        Scientific notation is not used in the output (Trac #16519)::
+
+        Scientific notation is not used in the output (:trac:`16519`)::
+
             sage: P=Polyhedron([[2*10^-10,0],[0,1],[1,0]],base_ring=QQ)
             sage: tikzstr=P.projection().tikz()
             sage: 'e-10' in tikzstr

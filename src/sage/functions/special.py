@@ -874,10 +874,10 @@ class EllipticEC(MaximaFunction):
         TESTS::
 
             sage: elliptic_ec(x)._sympy_()
-            ?
+            elliptic_e(x)
         """
         MaximaFunction.__init__(self, "elliptic_ec", nargs=1,
-                                conversions=dict(sympy='ellipe'))
+                                conversions=dict(sympy='elliptic_e'))
 
     def _derivative_(self, *args, **kwds):
         """
@@ -953,10 +953,10 @@ class EllipticF(MaximaFunction):
         TESTS::
 
             sage: elliptic_f(x, 2)._sympy_()
-            ?
+            elliptic_f(x, 2)
         """
         MaximaFunction.__init__(self, "elliptic_f",
-                                conversions=dict(sympy='ellipf'))
+                                conversions=dict(sympy='elliptic_f'))
 
 elliptic_f = EllipticF()
 
@@ -988,10 +988,10 @@ class EllipticKC(MaximaFunction):
         TESTS::
 
             sage: elliptic_kc(x)._sympy_()
-            ?
+            elliptic_k(x)
         """
         MaximaFunction.__init__(self, "elliptic_kc", nargs=1,
-                                conversions=dict(sympy='ellipk'))
+                                conversions=dict(sympy='elliptic_k'))
 
 elliptic_kc = EllipticKC()
 
@@ -1048,10 +1048,10 @@ class EllipticPi(MaximaFunction):
         TESTS::
 
             sage: elliptic_pi(x, pi/4, 1)._sympy_()
-            ?
+            elliptic_pi(x, pi/4, 1)
         """
         MaximaFunction.__init__(self, "elliptic_pi", nargs=3,
-                                conversions=dict(sympy='ellippi'))
+                                conversions=dict(sympy='elliptic_pi'))
 
 elliptic_pi = EllipticPi()
 

@@ -3257,7 +3257,6 @@ class Polyhedron_base(Element):
         """
         return vector(ZZ, [len(x) for x in self.face_lattice().level_sets()])
 
-    @cached_method
     def vertex_graph(self):
         """
         Return a graph in which the vertices correspond to vertices
@@ -3278,7 +3277,6 @@ class Polyhedron_base(Element):
 
     graph = vertex_graph
 
-    @cached_method
     def vertex_digraph(self, f):
         """
         Return the directed graph of the polyhedron according to a linear form.
@@ -4185,7 +4183,6 @@ class Polyhedron_base(Element):
             sage: P.combinatorial_automorphism_group()
             Permutation Group with generators [(3,4)]
         """
-        from sage.groups.perm_gps.permgroup import PermutationGroup
         G = Graph()
         for edge in self.vertex_graph().edges():
             i = edge[0]
@@ -4384,8 +4381,6 @@ class Polyhedron_base(Element):
             sage: p.restricted_automorphism_group()
             Permutation Group with generators [(2,3)]
         """
-        from sage.groups.perm_gps.permgroup import PermutationGroup
-
         if self.base_ring() is ZZ or self.base_ring() is QQ:
             def rational_approximation(c):
                 return c

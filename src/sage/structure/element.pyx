@@ -75,11 +75,11 @@ followed by both arithmetic implementers and callers.
 
 A quick summary for the impatient:
 
-- To implement addition for any Element class, override def _add_().
-- If you want to add x and y, whose parents you know are IDENTICAL,
-  you may call _add_(x, y). This will be the fastest way to guarantee
+- To implement addition for any Element class, override ``def _add_()``.
+- If you want to add ``x`` and ``y``, whose parents you know are IDENTICAL,
+  you may call ``_add_(x, y)``. This will be the fastest way to guarantee
   that the correct implementation gets called. Of course you can still
-  always use "x + y".
+  always use ``x + y``.
 
 Now in more detail. The aims of this system are to provide (1) an efficient
 calling protocol from both Python and Cython, (2) uniform coercion semantics
@@ -96,12 +96,12 @@ and classes are similar. There are four relevant functions.
    condition. It has a fast pathway to deal with the most common case
    where the arguments have the same parent. Otherwise, it uses the coercion
    module to work out how to make them have the same parent. After any
-   necessary coercions have been performed, it calls _add_ to dispatch to
+   necessary coercions have been performed, it calls ``_add_`` to dispatch to
    the correct underlying addition implementation.
 
    Note that although this function is declared as def, it doesn't have the
    usual overheads associated with python functions (either for the caller
-   or for __add__ itself). This is because python has optimised calling
+   or for ``__add__`` itself). This is because python has optimised calling
    protocols for such special functions.
 
 -  **def RingElement._add_**
@@ -112,7 +112,7 @@ and classes are similar. There are four relevant functions.
    .. warning::
 
       if you override this in a *Cython* class, it won't get called.
-      You should override _add_ instead. It is especially important to
+      You should override ``_add_`` instead. It is especially important to
       keep this in mind whenever you move a class down from Python to
       Cython.
 
@@ -124,7 +124,7 @@ and classes are similar. There are four relevant functions.
    parents are the same object, you are encouraged to call this function
    directly, instead of using "x + y".
 
-   The default implementation of this function is to call _add_,
+   The default implementation of this function is to call ``_add_``,
    so if no-one has defined a python implementation, the correct Pyrex
    implementation will get called.
 
@@ -139,7 +139,7 @@ and classes are similar. There are four relevant functions.
 
    The default implementation of this function is to raise a
    NotImplementedError, which will happen if no-one has supplied
-   implementations of either _add_.
+   implementations of either ``_add_``.
 
 
 For speed, there are also **inplace** version of the arithmetic commands.
@@ -245,8 +245,8 @@ cdef class Element(sage_object.SageObject):
     Generic element of a structure. All other types of elements
     (RingElement, ModuleElement, etc) derive from this type.
 
-    Subtypes must either call __init__() to set _parent, or may
-    set _parent themselves if that would be more efficient.
+    Subtypes must either call ``__init__()`` to set ``_parent``, or may
+    set ``_parent`` themselves if that would be more efficient.
     """
 
     def __init__(self, parent):
@@ -343,7 +343,7 @@ cdef class Element(sage_object.SageObject):
             AttributeError: 'LeftZeroSemigroup_with_category.element_class' object has no attribute 'blah_blah'
 
         We test that "private" attributes are not requested from the element class
-        of the category (trac ticket #10467)::
+        of the category (:trac:`10467`)::
 
             sage: C = EuclideanDomains()
             sage: P.<x> = QQ[]
@@ -604,7 +604,7 @@ cdef class Element(sage_object.SageObject):
     def subs(self, in_dict=None, **kwds):
         """
         Substitutes given generators with given values while not touching
-        other generators. This is a generic wrapper around __call__.
+        other generators. This is a generic wrapper around ``__call__``.
         The syntax is meant to be compatible with the corresponding method
         for symbolic expressions.
 
@@ -814,7 +814,7 @@ cdef class Element(sage_object.SageObject):
         boolean, as in the conditional of an if or while statement.
 
         TESTS:
-        Verify that #5185 is fixed.
+        Verify that :trac:`5185` is fixed.
 
         ::
 
@@ -833,13 +833,13 @@ cdef class Element(sage_object.SageObject):
 
     def is_zero(self):
         """
-        Return True if self equals self.parent()(0). The default
-        implementation is to fall back to 'not self.__nonzero__'.
+        Return True if self equals ``self.parent()(0)``. The default
+        implementation is to fall back to ``not self.__nonzero__``.
 
         .. warning::
 
            Do not re-implement this method in your subclass but
-           implement __nonzero__ instead.
+           implement ``__nonzero__`` instead.
         """
         return not self
 
@@ -1020,7 +1020,7 @@ cdef class ElementWithCachedMethod(Element):
 
     The :class:`~sage.misc.cachefunc.cached_method` decorator provides
     a convenient way to automatically cache the result of a computation.
-    Since trac ticket #11115, the cached method decorator applied to a
+    Since :trac:`11115`, the cached method decorator applied to a
     method without optional arguments is faster than a hand-written cache
     in Python, and a cached method without any arguments (except ``self``)
     is actually faster than a Python method that does nothing more but
@@ -1826,7 +1826,7 @@ cdef class RingElement(ModuleElement):
             sage: 2r^(1/2)
             sqrt(2)
 
-        Exponent overflow should throw an OverflowError (trac #2956)::
+        Exponent overflow should throw an OverflowError (:trac:`2956`)::
 
             sage: K.<x,y> = AA[]
             sage: x^(2^64 + 12345)
@@ -1834,7 +1834,7 @@ cdef class RingElement(ModuleElement):
             ...
             OverflowError: Exponent overflow (2147483648).
 
-        Another example from trac #2956; this should overflow on x32
+        Another example from :trac:`2956`; this should overflow on x32
         and succeed on x64::
 
             sage: K.<x,y> = ZZ[]
@@ -1954,8 +1954,8 @@ cdef class RingElement(ModuleElement):
 
     def abs(self):
         """
-        Return the absolute value of self.  (This just calls the __abs__
-        method, so it is equivalent to the abs() built-in function.)
+        Return the absolute value of self.  (This just calls the ``__abs__``
+        method, so it is equivalent to the ``abs()`` built-in function.)
 
         EXAMPLES::
 
@@ -2012,7 +2012,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: (x^2+2).divides(x)
             False
 
-        Ticket \#5347 has been fixed::
+        :trac:`5347` has been fixed::
 
             sage: K = GF(7)
             sage: K(3).divides(1)
@@ -2038,11 +2038,10 @@ cdef class CommutativeRingElement(RingElement):
             ...
             ZeroDivisionError: reduction modulo right not defined.
 
-        If x has different parent than `self`, they are first coerced to a
+        If ``x`` has different parent than ``self``, they are first coerced to a
         common parent if possible. If this coercion fails, it returns a
-        TypeError. This fixes \#5759
+        TypeError. This fixes :trac:`5759`. ::
 
-        ::
             sage: Zmod(2)(0).divides(Zmod(2)(0))
             True
             sage: Zmod(2)(0).divides(Zmod(2)(1))
@@ -2129,7 +2128,7 @@ cdef class CommutativeRingElement(RingElement):
 
         When little is implemented about a given ring, then mod may
         return simply return `f`.  For example, reduction is not
-        implemented for `\ZZ[x]` yet. (TODO!)
+        implemented for `\ZZ[x]` yet. (TODO!)::
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = x^3 + x + 1
@@ -2230,13 +2229,13 @@ cdef class CommutativeRingElement(RingElement):
 
         OUTPUT:
 
-        - if all=False it returns a square root. (throws an error if extend=False and self is not a square)
+        - if ``all=False`` it returns a square root. (throws an error if ``extend=False`` and ``self`` is not a square)
 
-        - if all=True it returns a list of all the square roots (could be empty if extend=False and self is not a square)
+        - if ``all=True`` it returns a list of all the square roots (could be empty if ``extend=False`` and ``self`` is not a square)
 
         ALGORITHM:
 
-        It uses is_square(root=true) for the hard part of the work, the rest is just wrapper code.
+        It uses ``is_square(root=true)`` for the hard part of the work, the rest is just wrapper code.
 
         EXAMPLES::
 
@@ -2923,7 +2922,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
     def __divmod__(self, other):
         """
-        Return the quotient and remainder of self divided by other.
+        Return the quotient and remainder of ``self`` divided by ``other``.
 
         EXAMPLES::
 
@@ -3010,13 +3009,13 @@ cdef class FieldElement(CommutativeRingElement):
 
     def quo_rem(self, right):
         r"""
-        Return the quotient and remainder obtained by dividing `self` by
-        `other`. Since this element lives in a field, the remainder is always
-        zero and the quotient is `self/right`.
+        Return the quotient and remainder obtained by dividing ``self`` by
+        ``right``. Since this element lives in a field, the remainder is always
+        zero and the quotient is ``self/right``.
 
         TESTS:
 
-        Test if #8671 is fixed::
+        Test if :trac:`8671` is fixed::
 
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = R.quo(y^2 + 1)
@@ -3098,15 +3097,15 @@ include "coerce.pxi"
 
 cpdef canonical_coercion(x, y):
     """
-    canonical_coercion(x,y) is what is called before doing an
-    arithmetic operation between x and y.  It returns a pair (z,w)
-    such that z is got from x and w from y via canonical coercion and
-    the parents of z and w are identical.
+    ``canonical_coercion(x,y)`` is what is called before doing an
+    arithmetic operation between ``x`` and ``y``.  It returns a pair ``(z,w)``
+    such that ``z`` is got from ``x`` and ``w`` from ``y`` via canonical coercion and
+    the parents of ``z`` and ``w`` are identical.
 
     EXAMPLES::
 
-        sage: A = Matrix([[0,1],[1,0]])
-        sage: canonical_coercion(A,1)
+        sage: A = Matrix([[0, 1], [1, 0]])
+        sage: canonical_coercion(A, 1)
         (
         [0 1]  [1 0]
         [1 0], [0 1]
@@ -3393,11 +3392,11 @@ def generic_power(a, n, one=None):
     """
     Computes `a^n`, where `n` is an integer, and `a` is an object which
     supports multiplication.  Optionally an additional argument,
-    which is used in the case that n == 0:
+    which is used in the case that ``n == 0``:
 
     - ``one`` - the "unit" element, returned directly (can be anything)
 
-    If this is not supplied, int(1) is returned.
+    If this is not supplied, ``int(1)`` is returned.
 
     EXAMPLES::
 

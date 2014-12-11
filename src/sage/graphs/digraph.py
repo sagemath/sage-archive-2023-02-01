@@ -584,7 +584,7 @@ class DiGraph(GenericGraph):
             sage: DiGraph([(0,0)], loops=False)
             Traceback (most recent call last):
             ...
-            ValueError: No loops but dict has loop at 0.
+            ValueError: The digraph was built with loops=False but input data has a loop at 0.
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -818,7 +818,7 @@ class DiGraph(GenericGraph):
         elif format == 'DiGraph':
             if loops is None: loops = data.allows_loops()
             elif not loops and data.has_loops():
-                raise ValueError("No loops but input digraph has loops.")
+                raise ValueError("The digraph was built with loops=False but input data has a loop")
             if multiedges is None: multiedges = data.allows_multiple_edges()
             elif not multiedges:
                 e = data.edges(labels=False)
@@ -844,7 +844,7 @@ class DiGraph(GenericGraph):
             if not loops and any(u in neighb for u,neighb in data.iteritems()):
                 if loops is False:
                     u = (u for u,neighb in data.iteritems() if u in neighb).next()
-                    raise ValueError("No loops but dict has loop at {}.".format(u))
+                    raise ValueError("The digraph was built with loops=False but input data has a loop at {}.".format(u))
                 loops = True
             if loops is None:
                 loops = False
@@ -868,7 +868,7 @@ class DiGraph(GenericGraph):
             if not loops and any(u in neighb for u,neighb in data.iteritems()):
                 if loops is False:
                     u = (u for u,neighb in data.iteritems() if u in neighb).next()
-                    raise ValueError("No loops but dict has loop at {}.".format(u))
+                    raise ValueError("The digraph was built with loops=False but input data has a loop at {}.".format(u))
                 loops = True
             if loops is None:
                 loops = False

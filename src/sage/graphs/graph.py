@@ -1119,7 +1119,7 @@ class Graph(GenericGraph):
             sage: Graph([(0,0)], loops=False)
             Traceback (most recent call last):
             ...
-            ValueError: No loops but dict has a loop at 0.
+            ValueError: The graph was built with loops=False but input data has a loop at 0.
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1414,7 +1414,7 @@ class Graph(GenericGraph):
         elif format == 'Graph':
             if loops is None: loops = data.allows_loops()
             elif not loops and data.has_loops():
-                raise ValueError("No loops but input graph has loops.")
+                raise ValueError("The graph was built with loops=False but input data has a loop")
             if multiedges is None: multiedges = data.allows_multiple_edges()
             elif not multiedges:
                 e = data.edges(labels=False)
@@ -1442,7 +1442,7 @@ class Graph(GenericGraph):
             if not loops and any(u in neighb for u,neighb in data.iteritems()):
                 if loops is False:
                     u = (u for u,neighb in data.iteritems() if u in neighb).next()
-                    raise ValueError("No loops but dict has loop at {}.".format(u))
+                    raise ValueError("The graph was built with loops=False but input data has a loop at {}.".format(u))
                 loops = True
             if loops is None:
                 loops = False
@@ -1471,7 +1471,8 @@ class Graph(GenericGraph):
             if not loops and any(u in neighb for u,neighb in data.iteritems()):
                 if loops is False:
                     u = (u for u,neighb in data.iteritems() if u in neighb).next()
-                    raise ValueError("No loops but dict has a loop at {}.".format(u))
+                    raise ValueError("The graph was built with loops=False but input data has a loop at {}.".format(u))
+
                 loops = True
             if loops is None:
                 loops = False

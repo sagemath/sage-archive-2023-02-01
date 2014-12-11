@@ -1034,6 +1034,8 @@ class Hankel1(BuiltinFunction):
 
     EXAMPLES::
 
+        sage: hankel1(3, x)
+        hankel1(3, x)
         sage: hankel1(3, 4.)
         0.430171473875622 - 0.182022115953485*I
         sage: latex(hankel1(3, x))
@@ -1055,20 +1057,6 @@ class Hankel1(BuiltinFunction):
                                                   mathematica='HankelH1',
                                                   maxima='hankel1',
                                                   sympy='hankel1'))
-
-    def _eval_(self, nu, z):
-        r"""
-        TESTS::
-
-            sage: hankel1(3, x)
-            hankel1(3, x)
-            sage: hankel1(3, 3.)
-            0.309062722255252 - 0.538541616105032*I
-        """
-        nu, z = get_coercion_model().canonical_coercion(nu, z)
-        if is_inexact(nu) and not isinstance(nu, Expression):
-            return self._evalf_(nu, z, parent(nu))
-        return
 
     def _evalf_(self, nu, z, parent, algorithm=None):
         r"""
@@ -1128,6 +1116,8 @@ class Hankel2(BuiltinFunction):
 
     EXAMPLES::
 
+        sage: hankel2(3, x)
+        hankel2(3, x)
         sage: hankel2(3, 4.)
         0.430171473875622 + 0.182022115953485*I
         sage: latex(hankel2(3, x))
@@ -1149,20 +1139,6 @@ class Hankel2(BuiltinFunction):
                                                   mathematica='HankelH2',
                                                   maxima='hankel2',
                                                   sympy='hankel2'))
-
-    def _eval_(self, nu, z):
-        r"""
-        TESTS::
-
-            sage: hankel2(3, x)
-            hankel2(3, x)
-            sage: hankel2(3, 3.)
-            0.309062722255252 + 0.538541616105032*I
-        """
-        nu, z = get_coercion_model().canonical_coercion(nu, z)
-        if is_inexact(nu) and not isinstance(nu, Expression):
-            return self._evalf_(nu, z, parent(nu))
-        return
 
     def _evalf_(self, nu, z, parent, algorithm=None):
         r"""
@@ -1222,6 +1198,10 @@ class SphericalBesselJ(BuiltinFunction):
 
     EXAMPLES::
 
+        sage: spherical_bessel_J(3, x)
+        spherical_bessel_J(3, x)
+        sage: spherical_bessel_J(3 + 0.2 * I, 3)
+        0.150770999183897 - 0.0260662466510632*I
         sage: spherical_bessel_J(3., x).series(x == 2, 10).subs(x=3).n()
         0.152051648665037
         sage: spherical_bessel_J(3., 3)
@@ -1243,20 +1223,6 @@ class SphericalBesselJ(BuiltinFunction):
                                                   'SphericalBesselJ',
                                                   maxima='spherical_bessel_j',
                                                   sympy='jn'))
-
-    def _eval_(self, n, z):
-        r"""
-        TESTS::
-
-            sage: spherical_bessel_J(3, x)
-            spherical_bessel_J(3, x)
-            sage: spherical_bessel_J(3 + 0.2 * I, 3)
-            0.150770999183897 - 0.0260662466510632*I
-        """
-        n, z = get_coercion_model().canonical_coercion(n, z)
-        if is_inexact(n) and not isinstance(n, Expression):
-            return self._evalf_(n, z, parent(n))
-        return
 
     def _evalf_(self, n, z, parent, algorithm=None):
         r"""
@@ -1317,6 +1283,10 @@ class SphericalBesselY(BuiltinFunction):
 
     EXAMPLES::
 
+        sage: spherical_bessel_Y(3, x)
+        spherical_bessel_Y(3, x)
+        sage: spherical_bessel_Y(3 + 0.2 * I, 3)
+        -0.505215297588210 - 0.0508835883281404*I
         sage: spherical_bessel_Y(-3, x).simplify()
         ((3/x^2 - 1)*sin(x) - 3*cos(x)/x)/x
         sage: spherical_bessel_Y(3 + 2 * I, 5 - 0.2 * I)
@@ -1338,20 +1308,6 @@ class SphericalBesselY(BuiltinFunction):
                                                   'SphericalBesselY',
                                                   maxima='spherical_bessel_y',
                                                   sympy='yn'))
-
-    def _eval_(self, n, z):
-        r"""
-        TESTS::
-
-            sage: spherical_bessel_Y(3, x)
-            spherical_bessel_Y(3, x)
-            sage: spherical_bessel_Y(3 + 0.2 * I, 3)
-            -0.505215297588210 - 0.0508835883281404*I
-        """
-        n, z = get_coercion_model().canonical_coercion(n, z)
-        if is_inexact(n) and not isinstance(n, Expression):
-            return self._evalf_(n, z, parent(n))
-        return
 
     def _evalf_(self, n, z, parent, algorithm=None):
         r"""
@@ -1414,6 +1370,10 @@ class SphericalHankel1(BuiltinFunction):
 
     EXAMPLES::
 
+        sage: spherical_hankel1(3, x)
+        spherical_hankel1(3, x)
+        sage: spherical_hankel1(3 + 0.2 * I, 3)
+        0.201654587512037 - 0.531281544239273*I
         sage: spherical_hankel1(1, x).simplify()
         -(x + I)*e^(I*x)/x^2
         sage: spherical_hankel1(3 + 2 * I, 5 - 0.2 * I)
@@ -1434,20 +1394,6 @@ class SphericalHankel1(BuiltinFunction):
                                  conversions=dict(mathematica=
                                                   'SphericalHankelH1',
                                                   maxima='spherical_hankel1'))
-
-    def _eval_(self, n, z):
-        r"""
-        TESTS::
-
-            sage: spherical_hankel1(3, x)
-            spherical_hankel1(3, x)
-            sage: spherical_hankel1(3 + 0.2 * I, 3)
-            0.201654587512037 - 0.531281544239273*I
-        """
-        n, z = get_coercion_model().canonical_coercion(n, z)
-        if is_inexact(n) and not isinstance(n, Expression):
-            return self._evalf_(n, z, parent(n))
-        return
 
     def _evalf_(self, n, z, parent, algorithm=None):
         r"""
@@ -1510,6 +1456,10 @@ class SphericalHankel2(BuiltinFunction):
 
     EXAMPLES::
 
+        sage: spherical_hankel2(3, x)
+        spherical_hankel2(3, x)
+        sage: spherical_hankel2(3 + 0.2 * I, 3)
+        0.0998874108557565 + 0.479149050937147*I
         sage: spherical_hankel2(1, x).simplify()
         -(x - I)*e^(-I*x)/x^2
         sage: spherical_hankel2(3 + 2*I, 5 - 0.2*I)
@@ -1530,20 +1480,6 @@ class SphericalHankel2(BuiltinFunction):
                                  conversions=dict(mathematica=
                                                   'SphericalHankelH2',
                                                   maxima='spherical_hankel2'))
-
-    def _eval_(self, n, z):
-        r"""
-        TESTS::
-
-            sage: spherical_hankel2(3, x)
-            spherical_hankel2(3, x)
-            sage: spherical_hankel2(3 + 0.2 * I, 3)
-            0.0998874108557565 + 0.479149050937147*I
-        """
-        n, z = get_coercion_model().canonical_coercion(n, z)
-        if is_inexact(n) and not isinstance(n, Expression):
-            return self._evalf_(n, z, parent(n))
-        return
 
     def _evalf_(self, n, z, parent, algorithm=None):
         r"""

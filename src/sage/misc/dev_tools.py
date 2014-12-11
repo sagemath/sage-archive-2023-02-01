@@ -156,10 +156,9 @@ def load_submodules(module=None, exclude_pattern=None):
     EXAMPLES::
 
         sage: sage.misc.dev_tools.load_submodules(sage.combinat)
-        load sage.combinat.cluster_algebra_quiver.cluster_seed... suceeded
-        load sage.combinat.cluster_algebra_quiver.mutation_class... suceeded
+        load sage.combinat.algebraic_combinatorics... succeeded
         ...
-        load sage.combinat.words.suffix_trees... suceeded
+        load sage.combinat.words.suffix_trees... succeeded
 
     Calling a second time has no effect (since the function does not import
     modules already imported)::
@@ -169,15 +168,15 @@ def load_submodules(module=None, exclude_pattern=None):
     The second argument allows to exclude a pattern::
 
         sage: sage.misc.dev_tools.load_submodules(sage.geometry, "database$|lattice")
-        load sage.geometry.fan_isomorphism... suceeded
-        load sage.geometry.hyperplane_arrangement.affine_subspace... suceeded
+        load sage.geometry.fan_isomorphism... succeeded
+        load sage.geometry.hyperplane_arrangement.affine_subspace... succeeded
         ...
-        load sage.geometry.riemannian_manifolds.surface3d_generators... suceeded
+        load sage.geometry.riemannian_manifolds.surface3d_generators... succeeded
 
         sage: sage.misc.dev_tools.load_submodules(sage.geometry)
-        load sage.geometry.polyhedron.lattice_euclidean_group_element... suceeded
-        load sage.geometry.polyhedron.palp_database... suceeded
-        load sage.geometry.polyhedron.ppl_lattice_polygon... suceeded
+        load sage.geometry.polyhedron.lattice_euclidean_group_element... succeeded
+        load sage.geometry.polyhedron.palp_database... succeeded
+        load sage.geometry.polyhedron.ppl_lattice_polygon... succeeded
     """
     import sys
     import pkgutil
@@ -207,7 +206,7 @@ def load_submodules(module=None, exclude_pattern=None):
             sys.stdout.flush()
             loader = importer.find_module(module_name)
             loader.load_module(module_name)
-            sys.stdout.write(" suceeded\n")
+            sys.stdout.write(" succeeded\n")
         except (ValueError,AttributeError,TypeError,ImportError):
             # we might get error because of cython code that has been
             # compiled but with source removed
@@ -456,8 +455,8 @@ def import_statements(*objects, **options):
         ValueError: no object matched by 'EnumeratedSetFromIterator' was found.
         sage: from sage.misc.dev_tools import load_submodules
         sage: load_submodules(sage.sets)
-        load sage.sets.cartesian_product... suceeded
-        load sage.sets.set_from_iterator... suceeded
+        load sage.sets.cartesian_product... succeeded
+        load sage.sets.set_from_iterator... succeeded
         sage: import_statements('EnumeratedSetFromIterator')
         from sage.sets.set_from_iterator import EnumeratedSetFromIterator
 

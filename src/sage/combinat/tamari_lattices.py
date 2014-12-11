@@ -1,5 +1,5 @@
 r"""
-The family of generalized Tamari lattices
+Generalized Tamari lattices
 
 These lattices depend on three parameters `a`, `b` and `m`, where `a` and `b` are
 coprime positive integers and `m` is a nonnegative integer.
@@ -7,13 +7,13 @@ coprime positive integers and `m` is a nonnegative integer.
 The elements are :func:`Dyck paths<sage.combinat.dyck_word.DyckWord>` in the `(a \times b)`-rectangle. The order relation
 depends on `m`.
 
-To use the provided functionality, you should import Tamari lattices by typing
+To use the provided functionality, you should import Tamari lattices by typing::
 
-``from sage.combinat.tamari_lattices import TamariLattice``
+    sage: from sage.combinat.tamari_lattices import TamariLattice
 
-or
+or::
 
-``from sage.combinat.tamari_lattices import GeneralizedTamariLattice``.
+    sage: from sage.combinat.tamari_lattices import GeneralizedTamariLattice
 
 EXAMPLES::
 

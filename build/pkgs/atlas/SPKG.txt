@@ -41,13 +41,7 @@ Solaris, but should also work on OSX and Cygwin.
    RHEL 5 and SLES 10 systems, work around -m64 issue on Itanium2,
    and correctly detect number and speed of CPUs on a bunch of systems.
  * patches/arm_hard_floats.patch: make sure soft floats are not enforced on ARM.
- * patches/long_filenames.patch: fix for long filenames (>128 chars).
- * patches/shell.patch: replace two instances of "test -e" by "test -f",
-   as the former is not portable (in particular for the Solaris shell).
  * patches/Makefile.patch: fix clean target.
- * patches/threads.patch: Avoid thread-related symbols
-   ATL_(Set|Reset|Free|Dec)AtomicCount symbols in single-threaded
-   library.
  * patches/do_not_force_mutex.patch: always use assembly over mutex
    since the mutex version fails to build a shared library. See #15045
    for details.

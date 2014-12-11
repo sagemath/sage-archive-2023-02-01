@@ -110,3 +110,4 @@ deprecated_callable_import(17034,
 
 # We don't want this to appear in designs.<tab>
 del deprecated_function_alias
+del deprecated_callable_import

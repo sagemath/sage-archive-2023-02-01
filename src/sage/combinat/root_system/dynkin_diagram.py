@@ -47,12 +47,14 @@ def DynkinDiagram(*args, **kwds):
     - a Cartan matrix
     - a Cartan matrix and an indexing set
 
-    Also one can input an index_set by
+    One can also input an indexing set by passing a tuple using the optional
+    argument ``index_set``.
 
-    The edge multiplicities are encoded as edge labels. This uses the
-    convention in Hong and Kang, Kac, Fulton Harris, and crystals. This is the
-    **opposite** convention in Bourbaki and Wikipedia's Dynkin diagram
-    (:wikipedia:`Dynkin_diagram`). That is for `i \neq j`::
+    The edge multiplicities are encoded as edge labels. For the corresponding
+    Cartan matrices, this uses the convention in Hong and Kang, Kac,
+    Fulton and Harris, and crystals. This is the **opposite** convention
+    in Bourbaki and Wikipedia's Dynkin diagram (:wikipedia:`Dynkin_diagram`).
+    That is for `i \neq j`::
 
        i <--k-- j <==> a_ij = -k
                   <==> -scalar(coroot[i], root[j]) = k
@@ -300,18 +302,22 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             \draw (0 cm,0) -- (4 cm,0);
             \draw (0 cm,0) -- (2.0 cm, 1.2 cm);
             \draw (2.0 cm, 1.2 cm) -- (4 cm, 0);
-            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
-            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
-            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (0 cm, 0 cm) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0 cm) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0 cm) circle (.25cm) node[below=4pt]{$3$};
             \draw[fill=white] (2.0 cm, 1.2 cm) circle (.25cm) node[anchor=south east]{$0$};
             \end{tikzpicture}
         """
         if self.cartan_type() is None:
-            return "Dynkin diagram of rank %s"%self.rank()
-        ret = "\\begin{tikzpicture}[scale=%s]\n"%scale
-        ret += "\\draw (-1,0) node[anchor=east] {$%s$};\n"%self.cartan_type()._latex_()
+            return "Dynkin diagram of rank {}".format(self.rank())
+
+        from sage.graphs.graph_latex import setup_latex_preamble
+        setup_latex_preamble()
+
+        ret = "\\begin{{tikzpicture}}[scale={}]\n".format(scale)
+        ret += "\\draw (-1,0) node[anchor=east] {{${}$}};\n".format(self.cartan_type()._latex_())
         ret += self.cartan_type()._latex_dynkin_diagram()
-        ret += "\n\\end{tikzpicture}"
+        ret += "\\end{tikzpicture}"
         return ret
 
     def _matrix_(self):
@@ -492,6 +498,34 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             result.add_edge(target, source, label)
         result._cartan_type = self._cartan_type.dual() if not self._cartan_type is None else None
         return result
+
+    def relabel(self, relabelling, inplace=False, **kwds):
+        """
+        Return the relabelling Dynkin diagram of ``self``.
+
+        EXAMPLES::
+
+            sage: D = DynkinDiagram(['C',3])
+            sage: D.relabel({1:0, 2:4, 3:1})
+            O---O=<=O
+            0   4   1
+            C3 relabelled by {1: 0, 2: 4, 3: 1}
+            sage: D
+            O---O=<=O
+            1   2   3
+            C3
+        """
+        if inplace:
+            DiGraph.relabel(self, relabelling, inplace, **kwds)
+            G = self
+        else:
+            # We must make a copy of ourselves first because of DiGraph's
+            #   relabel default behavior is to do so in place, and if not
+            #   then it recurses on itself with no argument for inplace
+            G = self.copy().relabel(relabelling, inplace=True, **kwds)
+        if self._cartan_type is not None:
+            G._cartan_type = self._cartan_type.relabel(relabelling)
+        return G
 
     def is_finite(self):
         """

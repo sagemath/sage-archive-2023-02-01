@@ -54,7 +54,7 @@ gcc                         GPLv3+
 gd                          Custom (BSD-ish)
 gdmodule                    Custom (BSD-ish)
 genus2reduction             GPLv2+
-gfan                        GPLv2+
+gfan                        GPLv2 or GPLv3
 gf2x                        GPLv2+
 givaro                      CeCILL-B (BSD-ish)
 glpk                        GPLv3+
@@ -75,7 +75,6 @@ m4ri                        GPLv2+
 m4rie                       GPLv2+
 matplotlib                  Matplotlib License (BSD compatible, see below)
 maxima                      See below
-mercurial                   GPLv2+
 mpc                         LGPLv3+
 mpfi                        COPYING is GPLv2, source files state LGPLv2.1+
 mpfr                        LGPLv3+

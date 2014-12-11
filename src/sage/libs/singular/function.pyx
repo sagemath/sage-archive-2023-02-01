@@ -104,7 +104,6 @@ from sage.misc.misc import get_verbose
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
-
 cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
     """
     Convert a vector or list of multivariate polynomials to a
@@ -1154,10 +1153,11 @@ cdef class SingularFunction(SageObject):
             foobar (singular function)
         """
         self._name = name
-
         global currRingHdl
         if currRingHdl == NULL:
-            currRingHdl = enterid("my_awesome_sage_ring", 0, RING_CMD, &IDROOT, 1)
+            currRingHdl = ggetid("my_awesome_sage_ring")
+            if currRingHdl == NULL:
+                currRingHdl = enterid("my_awesome_sage_ring", 0, RING_CMD, &IDROOT, 1)
             currRingHdl.data.uring.ref += 1
 
     cdef BaseCallHandler get_call_handler(self):

@@ -101,9 +101,9 @@ Edges can be labeled.
 
     sage: L=graphs.CycleGraph(5)
     sage: for edge in L.edges():
-    ...       u = edge[0]
-    ...       v = edge[1]
-    ...       L.set_edge_label(u, v, u*v)
+    ....:     u = edge[0]
+    ....:     v = edge[1]
+    ....:     L.set_edge_label(u, v, u*v)
     sage: plot(L, edge_labels=True)
     Graphics object consisting of 16 graphics primitives
 
@@ -169,7 +169,7 @@ permutations.
 ::
 
     sage: for pair in Combinations(pets, 2):
-    ...       print "The " + pair[0] + " chases the " + pair[1] + "."
+    ....:     print "The " + pair[0] + " chases the " + pair[1] + "."
     The dog chases the cat.
     The dog chases the snake.
     The dog chases the spider.
@@ -180,7 +180,7 @@ permutations.
 ::
 
     sage: for pair in Permutations(pets, 2):
-    ...       print pair
+    ....:     print pair
     ['dog', 'cat']
     ['dog', 'snake']
     ['dog', 'spider']

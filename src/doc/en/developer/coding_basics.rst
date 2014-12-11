@@ -451,7 +451,7 @@ indentation
             sage: C = A.point('x',7)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=r) to an integer
+            TypeError: unable to convert 'r' to an integer
 
         .. NOTE::
 

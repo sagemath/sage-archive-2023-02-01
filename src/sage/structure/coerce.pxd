@@ -6,6 +6,8 @@ from sage.categories.action cimport Action
 
 from coerce_dict cimport TripleDict
 
+cpdef py_scalar_parent(py_type)
+
 cdef class CoercionModel_cache_maps(CoercionModel):
     # This MUST be a mapping to tuples, where each
     # tuple contains at least two elements that are either

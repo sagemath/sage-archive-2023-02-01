@@ -39,7 +39,7 @@ AUTHOR:
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/random.pxi"
-include "sage/ext/python_slice.pxi"
+from cpython.slice cimport PySlice_Check
 from cpython.string cimport *
 
 cdef extern from "math.h":

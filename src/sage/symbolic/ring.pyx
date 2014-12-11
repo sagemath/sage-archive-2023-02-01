@@ -925,7 +925,7 @@ def is_SymbolicVariable(x):
 
     TESTS::
 
-        sage: ZZ[x]
+        sage: ZZ['x']
         Univariate Polynomial Ring in x over Integer Ring
     """
     return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)

@@ -15,7 +15,6 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.misc import subsets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.algebras import Algebras
@@ -27,6 +26,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Compositions
 from sage.combinat.integer_matrices import IntegerMatrices
+from sage.combinat.subset import SubsetsSorted
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 
@@ -188,7 +188,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             sage: DA = DescentAlgebra(QQ, 4)
             sage: D = DA.D()
             sage: list(D.basis())
-            [D{}, D{1}, D{2}, D{1, 2}, D{3}, D{1, 3}, D{2, 3}, D{1, 2, 3}]
+            [D{}, D{1}, D{2}, D{3}, D{1, 2}, D{1, 3}, D{2, 3}, D{1, 2, 3}]
 
             sage: DA = DescentAlgebra(QQ, 0)
             sage: D = DA.D()
@@ -205,9 +205,8 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             """
             self._prefix = prefix
             self._basis_name = "standard"
-            p_set = subsets(range(1, alg._n))
             CombinatorialFreeModule.__init__(self, alg.base_ring(),
-                                             map(tuple, p_set),
+                                             SubsetsSorted(range(1, alg._n)),
                                              category=DescentAlgebraBases(alg),
                                              bracket="", prefix=prefix)
 
@@ -294,8 +293,8 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 [B[4],
                  B[1, 3] - B[4],
                  B[2, 2] - B[4],
-                 B[1, 1, 2] - B[1, 3] - B[2, 2] + B[4],
                  B[3, 1] - B[4],
+                 B[1, 1, 2] - B[1, 3] - B[2, 2] + B[4],
                  B[1, 2, 1] - B[1, 3] - B[3, 1] + B[4],
                  B[2, 1, 1] - B[2, 2] - B[3, 1] + B[4],
                  B[1, 1, 1, 1] - B[1, 1, 2] - B[1, 2, 1] + B[1, 3]
@@ -309,7 +308,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             n = self.realization_of()._n
             C = Compositions(n)
             return B.sum_of_terms([(C.from_subset(T, n), (-1)**(len(S)-len(T)))
-                                   for T in subsets(S)])
+                                   for T in SubsetsSorted(S)])
 
         def to_symmetric_group_algebra_on_basis(self, S):
             """
@@ -899,7 +898,7 @@ class DescentAlgebraBases(Category_realization_of_parent):
             C = Compositions(self.realization_of()._n)
             if p in C:
                 return self.monomial(C(p)) # Make sure it's a composition
-            if p == []:
+            if not p:
                 return self.one()
 
             if not isinstance(p, tuple):

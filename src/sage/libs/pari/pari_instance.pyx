@@ -166,6 +166,8 @@ cimport libc.stdlib
 cimport cython
 
 from sage.structure.parent cimport Parent
+from sage.libs.flint.fmpz cimport fmpz_get_mpz
+from sage.libs.flint.fmpz_mat cimport *
 
 from sage.libs.pari.gen cimport gen, objtogen
 from sage.libs.pari.handle_error cimport pari_error_string, \

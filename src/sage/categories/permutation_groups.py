@@ -18,7 +18,12 @@ class PermutationGroups(Category):
     The category of permutation groups.
 
     A *permutation group* is a group whose elements are concretely
-    represented by permutations of some set.
+    represented by permutations of some set. In other words, the group
+    comes endowed with a distinguished action on some set.
+
+    This distinguished action should be preserved by permutation group
+    morphisms. For details, see
+    :Wikipedia:`Permutation_group#Permutation_isomorphic_groups`.
 
     .. TODO:: shall we accept only permutations with finite support or not?
 
@@ -28,6 +33,13 @@ class PermutationGroups(Category):
         Category of permutation groups
         sage: PermutationGroups().super_categories()
         [Category of groups]
+
+    The category of permutation groups defines additional structure
+    that should be preserved by morphisms, namely the distinguished
+    action::
+
+        sage: PermutationGroups().additional_structure()
+        Category of permutation groups
 
     TESTS::
 

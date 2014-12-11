@@ -17,6 +17,7 @@ Modular Forms for Hecke Triangle Groups
    sage/modular/modform_hecketriangle/functors
 
    sage/modular/modform_hecketriangle/hecke_triangle_groups
+   sage/modular/modform_hecketriangle/hecke_triangle_group_element
    sage/modular/modform_hecketriangle/analytic_type
 
    sage/modular/modform_hecketriangle/graded_ring

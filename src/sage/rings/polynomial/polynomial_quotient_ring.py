@@ -252,7 +252,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage: isinstance(Q.an_element(),Q.element_class)
         True
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
-        ['cartesian_product', 'is_idempotent', 'is_one', 'is_unit', 'lift']
+        ['cartesian_product', 'is_idempotent', 'is_one', 'is_unit', 'lift', 'powers']
         sage: first_class = Q.__class__
 
     We try to find out whether `Q` is a field. Indeed it is, and thus its category,
@@ -265,11 +265,13 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage: first_class == Q.__class__
         False
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
-        ['cartesian_product', 'euclidean_degree', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift', 'quo_rem', 'xgcd']
+        ['cartesian_product', 'euclidean_degree', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift', 'powers', 'quo_rem', 'xgcd']
 
-    As one can see, the elements are now inheriting additional methods: lcm and gcd. Even though
-    ``Q.an_element()`` belongs to the old and not to the new element class, it still inherits
-    the new methods from the category of fields::
+    As one can see, the elements are now inheriting additional
+    methods: lcm and gcd. Even though ``Q.an_element()`` belongs to
+    the old and not to the new element class, it still inherits the
+    new methods from the category of fields, thanks to
+    :meth:`Element.__getattr__`::
 
         sage: isinstance(Q.an_element(),Q.element_class)
         False
@@ -287,7 +289,6 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage: TestSuite(Q(x)).run()
         sage: isinstance(Q(x), Q.element_class)
         True
-
     """
     Element = PolynomialQuotientRingElement
 

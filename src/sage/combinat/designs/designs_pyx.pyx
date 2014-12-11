@@ -6,7 +6,7 @@ This module implements the design methods that need to be somewhat efficient.
 Functions
 ---------
 """
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 include "sage/ext/stdsage.pxi"
 
 from libc.string cimport memset

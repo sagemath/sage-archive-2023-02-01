@@ -644,8 +644,28 @@ cdef class SubgraphSearch:
 
         cdef int i, j, k
 
-        self.tmp_array = <int *>sage_malloc(self.ng * sizeof(int))
-        if self.tmp_array == NULL:
+        # A vertex is said to be busy if it is already part of the partial copy
+        # of H in G.
+        self.busy       = <int *>  sage_malloc(self.ng * sizeof(int))
+        self.tmp_array  = <int *>  sage_malloc(self.ng * sizeof(int))
+        self.stack      = <int *>  sage_malloc(self.nh * sizeof(int))
+        self.vertices   = <int *>  sage_malloc(self.nh * sizeof(int))
+        self.line_h_out = <int **> sage_malloc(self.nh * sizeof(int *))
+        self.line_h_in  = <int **> sage_malloc(self.nh * sizeof(int *)) if self.directed else NULL
+
+        if self.line_h_out is not NULL:
+            self.line_h_out[0] = <int *> sage_malloc(self.nh*self.nh*sizeof(int))
+        if self.line_h_in is not NULL:
+            self.line_h_in[0]  = <int *> sage_malloc(self.nh*self.nh*sizeof(int))
+
+        if (self.tmp_array     == NULL or
+            self.busy          == NULL or
+            self.stack         == NULL or
+            self.vertices      == NULL or
+            self.line_h_out    == NULL or
+            self.line_h_out[0] == NULL or
+            (self.directed and self.line_h_in == NULL) or
+            (self.directed and self.line_h_in[0] == NULL)):
             raise MemoryError()
 
         # Should we look for induced subgraphs ?
@@ -659,51 +679,31 @@ cdef class SubgraphSearch:
         self.h = DenseGraph(self.nh)
 
         # copying the adjacency relations in both G and H
-        i = 0
-        for row in G.adjacency_matrix():
-            j = 0
-            for k in row:
+        for i,row in enumerate(G.adjacency_matrix()):
+            for j,k in enumerate(row):
                 if k:
                     self.g.add_arc(i, j)
-                j += 1
-            i += 1
-        i = 0
-        for row in H.adjacency_matrix():
-            j = 0
-            for k in row:
+
+        for i,row in enumerate(H.adjacency_matrix()):
+            for j,k in enumerate(row):
                 if k:
                     self.h.add_arc(i, j)
-                j += 1
-            i += 1
-
-        # A vertex is said to be busy if it is already part of the partial copy
-        # of H in G.
-        self.busy = <int *>sage_malloc(self.ng * sizeof(int))
-        self.stack = <int *>sage_malloc(self.nh * sizeof(int))
 
         # vertices is equal to range(nh), as an int *variable
-        self.vertices = <int *>sage_malloc(self.nh * sizeof(int))
         for 0 <= i < self.nh:
             self.vertices[i] = i
 
         # line_h_out[i] represents the adjacency sequence of vertex i
         # in h relative to vertices 0, 1, ..., i-1
-        self.line_h_out = <int **>sage_malloc(self.nh * sizeof(int *))
-        for 0 <= i < self.nh:
-            self.line_h_out[i] = <int *> sage_malloc(self.nh * sizeof(int *))
-            if self.line_h_out[i] is NULL:
-                raise MemoryError()
+        for i in range(self.nh):
+            self.line_h_out[i] = self.line_h_out[0]+i*self.nh
             self.h.adjacency_sequence_out(i, self.vertices, i, self.line_h_out[i])
 
         # Similarly in the opposite direction (only useful if the
         # graphs are directed)
         if self.directed:
-            self.line_h_in = <int **>sage_malloc(self.nh * sizeof(int *))
-            for 0 <= i < self.nh:
-                self.line_h_in[i] = <int *> sage_malloc(self.nh * sizeof(int *))
-                if self.line_h_in[i] is NULL:
-                    raise MemoryError()
-
+            for i in range(self.nh):
+                self.line_h_in[i] = self.line_h_in[0]+i*self.nh
                 self.h.adjacency_sequence_in(i, self.vertices, i, self.line_h_in[i])
 
     def __next__(self):
@@ -793,22 +793,17 @@ cdef class SubgraphSearch:
         r"""
         Freeing the allocated memory.
         """
+        if self.line_h_in  is not NULL:
+            sage_free(self.line_h_in[0])
+        if self.line_h_out is not NULL:
+            sage_free(self.line_h_out[0])
 
         # Free the memory
         sage_free(self.busy)
         sage_free(self.stack)
         sage_free(self.vertices)
-        for 0 <= i < self.nh:
-            sage_free(self.line_h_out[i])
         sage_free(self.line_h_out)
-
-        if self.directed:
-            for 0 <= i < self.nh:
-                sage_free(self.line_h_in[i])
-            sage_free(self.line_h_in)
-
-        if self.tmp_array != NULL:
-            sage_free(self.tmp_array)
+        sage_free(self.line_h_in)
 
 cdef inline bint vectors_equal(int n, int *a, int *b):
     r"""

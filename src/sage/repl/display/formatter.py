@@ -264,9 +264,10 @@ class SageDoctestTextFormatter(SagePlainTextFormatter):
         EXAMPLES::
 
             sage: class FooGraphics(SageObject):
-            ....:     def _graphics_(self):
+            ....:     def _graphics_(self, **kwds):
             ....:         print('showing graphics') 
-            ....:         return True
+            ....:         from sage.structure.graphics_file import GraphicsFile
+            ....:         return GraphicsFile('/nonexistent.png', 'image/png')
             ....:     def _repr_(self):
             ....:         return 'Textual representation'
             sage: from sage.repl.display.formatter import SageDoctestTextFormatter
@@ -279,6 +280,60 @@ class SageDoctestTextFormatter(SagePlainTextFormatter):
         if isinstance(obj, SageObject) and hasattr(obj, '_graphics_'):
             obj._graphics_()      # ignore whether there actually is graphics
         return super(SageDoctestTextFormatter, self).__call__(obj)
+
+
+class SageNBTextFormatter(SagePlainTextFormatter):
+
+    @warn_format_error
+    def __call__(self, obj):
+        """
+        Display ``obj``.
+
+        .. warning::
+
+            This is mostly a workaround for the old Notebook. Do not
+            use it as a model for your own code.
+
+        This is the default formatter for the old Sage Notebook
+        (SageNB).
+
+        INPUT:
+
+        - ``obj`` -- anything.
+
+        OUTPUT:
+
+        String. The plain text representation. Graphics output is a
+        side effect.
+
+        EXAMPLES::
+
+            sage: class FooGraphics(SageObject):
+            ....:     def _graphics_(self, **kwds):
+            ....:         print('showing graphics') 
+            ....:         from sage.structure.graphics_file import GraphicsFile
+            ....:         from sage.misc.temporary_file import graphics_filename
+            ....:         return GraphicsFile(graphics_filename('.png'), 'image/png')
+            ....:     def _repr_(self):
+            ....:         return 'Textual representation'
+            sage: from sage.repl.display.formatter import SageNBTextFormatter
+            sage: fmt = SageNBTextFormatter()
+            sage: fmt(FooGraphics())
+            showing graphics
+            ''
+        """
+        from sage.plot.plot3d.base import Graphics3d
+        if isinstance(obj, Graphics3d):
+            # TODO: Clean up Graphics3d and remove all the hardcoded SageNB stuff
+            obj.show()
+            return ''
+        from sage.structure.sage_object import SageObject
+        if isinstance(obj, SageObject) and hasattr(obj, '_graphics_'):
+            gfx = obj._graphics_()
+            if gfx:
+                gfx.sagenb_embedding()
+                return ''
+        return super(SageNBTextFormatter, self).__call__(obj)
 
 
 class SageConsoleTextFormatter(SagePlainTextFormatter):
@@ -303,14 +358,16 @@ class SageConsoleTextFormatter(SagePlainTextFormatter):
 
         OUTPUT:
 
-        String. The plain text representation.
+        String. The plain text representation. Third-party viewers for
+        media files can be launched as a side effect.
 
         EXAMPLES::
 
             sage: class FooGraphics(SageObject):
-            ....:     def _graphics_(self):
+            ....:     def _graphics_(self, **kwds):
             ....:         print('showing graphics') 
-            ....:         return True
+            ....:         from sage.structure.graphics_file import GraphicsFile
+            ....:         return GraphicsFile('/nonexistent.png', 'image/png')
             ....:     def _repr_(self):
             ....:         return 'Textual representation'
             sage: from sage.repl.display.formatter import SageConsoleTextFormatter
@@ -321,7 +378,8 @@ class SageConsoleTextFormatter(SagePlainTextFormatter):
         """
         from sage.structure.sage_object import SageObject
         if isinstance(obj, SageObject) and hasattr(obj, '_graphics_'):
-            success = obj._graphics_()
-            if success: 
+            gfx = obj._graphics_()
+            if gfx: 
+                gfx.launch_viewer()
                 return ''
         return super(SageConsoleTextFormatter, self).__call__(obj)

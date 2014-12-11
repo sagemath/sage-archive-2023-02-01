@@ -262,7 +262,7 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
         sage: designs.DesarguesianProjectivePlaneDesign(6)
         Traceback (most recent call last):
         ...
-        ValueError: the order of a finite field must be a prime power.
+        ValueError: the order of a finite field must be a prime power
     """
     K = FiniteField(n, 'x')
     n2 = n**2

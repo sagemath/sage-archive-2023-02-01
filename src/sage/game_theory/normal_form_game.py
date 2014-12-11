@@ -378,7 +378,7 @@ Other algorithms can handle these payoffs::
 
     sage: g.obtain_nash(algorithm='enumeration')
     [[(1/5, 4/5), (3/5, 2/5)]]
-    sage: g.obtain_nash(algorithm='lrs')
+    sage: g.obtain_nash(algorithm='lrs') # optional - lrs
     [[(1/5, 4/5), (3/5, 2/5)]]
 
 It can be shown that linear scaling of the payoff matrices conserves the
@@ -391,18 +391,18 @@ equilibrium values::
 
 It is also possible to generate a Normal Form Game from a gambit Game::
 
-    sage: from gambit import Game
-    sage: gambitgame= Game.new_table([2, 2])
-    sage: gambitgame[int(0), int(0)][int(0)] = int(8)
-    sage: gambitgame[int(0), int(0)][int(1)] = int(8)
-    sage: gambitgame[int(0), int(1)][int(0)] = int(2)
-    sage: gambitgame[int(0), int(1)][int(1)] = int(10)
-    sage: gambitgame[int(1), int(0)][int(0)] = int(10)
-    sage: gambitgame[int(1), int(0)][int(1)] = int(2)
-    sage: gambitgame[int(1), int(1)][int(0)] = int(5)
-    sage: gambitgame[int(1), int(1)][int(1)] = int(5)
-    sage: g = NormalFormGame(gambitgame)
-    sage: g
+    sage: from gambit import Game  # optional - gambit
+    sage: gambitgame= Game.new_table([2, 2])  # optional - gambit
+    sage: gambitgame[int(0), int(0)][int(0)] = int(8)  # optional - gambit
+    sage: gambitgame[int(0), int(0)][int(1)] = int(8)  # optional - gambit
+    sage: gambitgame[int(0), int(1)][int(0)] = int(2)  # optional - gambit
+    sage: gambitgame[int(0), int(1)][int(1)] = int(10)  # optional - gambit
+    sage: gambitgame[int(1), int(0)][int(0)] = int(10)  # optional - gambit
+    sage: gambitgame[int(1), int(0)][int(1)] = int(2)  # optional - gambit
+    sage: gambitgame[int(1), int(1)][int(0)] = int(5)  # optional - gambit
+    sage: gambitgame[int(1), int(1)][int(1)] = int(5)  # optional - gambit
+    sage: g = NormalFormGame(gambitgame)  # optional - gambit
+    sage: g  # optional - gambit
     {(0, 1): [2.0, 10.0], (1, 0): [10.0, 2.0], (0, 0): [8.0, 8.0], (1, 1): [5.0, 5.0]}
 
 Here is a slightly longer game that would take too long to solve with

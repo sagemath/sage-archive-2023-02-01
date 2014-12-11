@@ -424,7 +424,9 @@ use an editor to read the code itself.
 "Special functions" in Sage
 ===========================
 
-Sage has many special functions, and most of them can be
+Sage has many special functions (see the reference
+manual at http://sagemath.org/doc/reference/functions/),
+and most of them can be
 manipulated symbolically. Where this is not implemented,
 it is possible that other symbolic packages have the
 functionality.

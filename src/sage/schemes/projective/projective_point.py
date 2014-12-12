@@ -165,7 +165,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def __eq__(self,right):
         """
-        Tests the proejctive equality of two points.
+        Tests the projective equality of two points.
 
         INPUT:
 
@@ -243,24 +243,31 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P==Q
             True
 
+        Check that :trac:`17429` is fixed::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: r = (x^2-x-3).polynomial(x).roots(ComplexIntervalField(),multiplicities = False)
+            sage: P.<x,y> = ProjectiveSpace(ComplexIntervalField(), 1)
+            sage: P1 = P(r[0], 1)
+            sage: H = End(P)
+            sage: f = H([x^2-3*y^2, y^2])
+            sage: Q1 = f(P1)
+            sage: Q1 == P1
+            False
         """
         if not isinstance(right, SchemeMorphism_point):
             try:
                 right = self.codomain()(right)
             except TypeError:
                 return False
-        if self.codomain()!=right.codomain():
+        if self.codomain() != right.codomain():
             return False
-        n=len(self._coords)
-        for i in range(0,n):
-            for j in range(i+1,n):
-                if self._coords[i]*right._coords[j] != self._coords[j]*right._coords[i]:
-                    return False
-        return True
+        n = len(self._coords)
+        return all([self[i]*right[j] == self[j]*right[i] for i in range(0,n) for j in range(i+1, n)])
 
     def __ne__(self,right):
         """
-        Tests the proejctive equality of two points.
+        Tests the projective equality of two points.
 
         INPUT:
 

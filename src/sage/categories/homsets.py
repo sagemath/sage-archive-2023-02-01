@@ -23,79 +23,9 @@ class HomsetsCategory(FunctorialConstructionCategory):
     _functor_category = "Homsets"
 
     @classmethod
-    @cached_function
-    def category_of(cls, category, *args):
-        """
-        Return the homsets category of ``category``.
-
-        This classmethod centralizes the construction of all homset
-        categories.
-
-        The ``cls`` and ``args`` arguments below are essentially
-        unused. Their purpose is solely to let the code deviate as
-        little as possible from the generic implementation of this
-        method: :meth:`FunctorialConstructionCategory.category_of`.
-        The reason for this deviation is that, unlike in the other
-        functorial constructions which are covariant, we recurse only
-        on *full* supercategories; then, we need a special treatment
-        for the base case were a category neither defines the
-        ``Homsets`` construction, nor inherits it from its full
-        supercategories.
-
-        INPUT:
-
-         - ``cls`` -- :class:`HomsetsCategory` or a subclass thereof
-         - ``category`` -- a category `Cat`
-         - ``*args`` -- (unused)
-
-        EXAMPLES:
-
-        If ``category`` implements a ``Homsets`` class, then this
-        class is used to build the homset category::
-
-            sage: from sage.categories.homsets import HomsetsCategory
-            sage: H = HomsetsCategory.category_of(Modules(ZZ)); H
-            Category of homsets of modules over Integer Ring
-            sage: type(H)
-            <class 'sage.categories.modules.Modules.Homsets_with_category'>
-
-        Otherwise, if ``category`` has one or more full super
-        categories, then the join of their respective homsets category
-        is returned. In this example, the join consists of a single
-        category::
-
-            sage: C = Modules(ZZ).WithBasis().FiniteDimensional()
-            sage: C.full_super_categories()
-            [Category of modules with basis over Integer Ring,
-             Category of finite dimensional modules over Integer Ring]
-            sage: H = HomsetsCategory.category_of(C); H
-            Category of homsets of modules with basis over Integer Ring
-            sage: type(H)
-            <class 'sage.categories.modules_with_basis.ModulesWithBasis.Homsets_with_category'>
-
-        As a last resort, a :class:`HomsetsOf` of the categories
-        forming the structure of ``self`` is constructed::
-
-            sage: H = HomsetsCategory.category_of(Magmas()); H
-            Category of homsets of magmas
-            sage: type(H)
-            <class 'sage.categories.homsets.HomsetsOf_with_category'>
-
-            sage: HomsetsCategory.category_of(Rings())
-            Category of homsets of unital magmas and additive unital additive magmas
-        """
-        functor_category = getattr(category.__class__, cls._functor_category)
-        if isinstance(functor_category, type) and issubclass(functor_category, Category):
-            return functor_category(category, *args)
-        elif category.full_super_categories():
-            return cls.default_super_categories(category, *args)
-        else:
-            return HomsetsOf(Category.join(category.structure()))
-
-    @classmethod
     def default_super_categories(cls, category):
         """
-        Return the default super categories of ``category.Homsets()``
+        Return the default super categories of ``category.Homsets()``.
 
         INPUT:
 
@@ -104,45 +34,76 @@ class HomsetsCategory(FunctorialConstructionCategory):
 
         OUTPUT: a category
 
-        .. TODO:: adapt everything below
+        As for the other functorial constructions, if ``category``
+        implements a nested ``Homsets`` class, this method is used in
+        combination with ``category.Homsets().extra_super_categories()``
+        to compute the super categories of ``category.Homsets()``.
 
-        The default implementation is to return the join of the
-        categories of `F(A,B,...)` for `A,B,...` in turn in each of
-        the super categories of ``category``.
+        EXAMPLES:
 
-        This is implemented as a class method, in order to be able to
-        reconstruct the functorial category associated to each of the
-        super categories of ``category``.
+        If ``category`` has one or more full super categories, then
+        the join of their respective homsets category is returned. In
+        this example, this join consists of a single category::
 
-        EXAMPLES::
-
-            sage: AdditiveMagmas().Homsets().super_categories()
-            [Category of additive magmas]
-            sage: AdditiveMagmas().AdditiveUnital().Homsets().super_categories()
-            [Category of additive unital additive magmas]
-
-        For now nothing specific is implemented for homsets of
-        additive groups compared to homsets of monoids::
-
+            sage: from sage.categories.homsets import HomsetsCategory
             sage: from sage.categories.additive_groups import AdditiveGroups
-            sage: AdditiveGroups().Homsets()
+
+            sage: C = AdditiveGroups()
+            sage: C.full_super_categories()
+            [Category of additive inverse additive unital additive magmas,
+             Category of additive monoids]
+            sage: H = HomsetsCategory.default_super_categories(C); H
+            Category of homsets of additive monoids
+            sage: type(H)
+            <class 'sage.categories.additive_monoids.AdditiveMonoids.Homsets_with_category'>
+
+        and, given that nothing specific is currently implemented for
+        homsets of additive groups, ``H`` is directly the category
+        thereof::
+
+            sage: C.Homsets()
             Category of homsets of additive monoids
 
-        Similarly for rings; so a ring homset is a homset of unital
+        Similarly for rings: a ring homset is just a homset of unital
         magmas and additive magmas::
 
             sage: Rings().Homsets()
             Category of homsets of unital magmas and additive unital additive magmas
-        """
-        return Category.join([getattr(cat, cls._functor_category)()
-                              for cat in category.full_super_categories()])
 
+        Otherwise, if ``category`` implements a nested class
+        ``Homsets``, this method returns the category of all homsets::
 
-    def extra_super_categories(self):
-        """
-        Return the extra super categories of ``self``.
+            sage: AdditiveMagmas.Homsets
+            <class 'sage.categories.additive_magmas.AdditiveMagmas.Homsets'>
+            sage: HomsetsCategory.default_super_categories(AdditiveMagmas())
+            Category of homsets
 
-        EXAMPLES::
+        which gives one of the super categories of
+        ``category.Homsets()``::
+
+            sage: AdditiveMagmas().Homsets().super_categories()
+            [Category of additive magmas, Category of homsets]
+            sage: AdditiveMagmas().AdditiveUnital().Homsets().super_categories()
+            [Category of additive unital additive magmas, Category of homsets]
+
+        the other coming from ``category.Homsets().extra_super_categories()``::
+
+            sage: AdditiveMagmas().Homsets().extra_super_categories()
+            [Category of additive magmas]
+
+        Finally, as a last resort, this method returns a stub category
+        modelling the homsets of this category::
+
+            sage: hasattr(Posets, "Homsets")
+            False
+            sage: H = HomsetsCategory.default_super_categories(Posets()); H
+            Category of homsets of posets
+            sage: type(H)
+            <class 'sage.categories.homsets.HomsetsOf_with_category'>
+            sage: Posets().Homsets()
+            Category of homsets of posets
+
+        TESTS::
 
             sage: Objects().Homsets().super_categories()
             [Category of homsets]
@@ -151,8 +112,15 @@ class HomsetsCategory(FunctorialConstructionCategory):
             sage: (Magmas() & Posets()).Homsets().super_categories()
             [Category of homsets]
         """
-        return [Homsets()]
-
+        if category.full_super_categories():
+            return Category.join([getattr(cat, cls._functor_category)()
+                                  for cat in category.full_super_categories()])
+        else:
+            functor_category = getattr(category.__class__, cls._functor_category)
+            if isinstance(functor_category, type) and issubclass(functor_category, Category):
+                return Homsets()
+            else:
+                return HomsetsOf(Category.join(category.structure()))
 
     def _test_homsets_category(self, **options):
         r"""
@@ -169,6 +137,7 @@ class HomsetsCategory(FunctorialConstructionCategory):
         #from sage.categories.sets_cat import Sets
         tester = self._tester(**options)
         tester.assert_(self.is_subcategory(Category.join(self.base_category().structure()).Homsets()))
+        tester.assert_(self.is_subcategory(Homsets()))
 
     @cached_method
     def base(self):
@@ -233,6 +202,24 @@ class HomsetsOf(HomsetsCategory):
             object_names = ' and '.join(cat._repr_object_names() for cat in base_category.super_categories())
         return "homsets of %s"%(object_names)
 
+    def super_categories(self):
+        r"""
+        Return the super categories of ``self``.
+
+        A stub homset category admits a single super category, namely
+        the category of all homsets.
+
+        EXAMPLES:
+
+            sage: C = (Magmas() & Posets()).Homsets(); C
+            Category of homsets of magmas and posets
+            sage: type(C)
+            <class 'sage.categories.homsets.HomsetsOf_with_category'>
+            sage: C.super_categories()
+            [Category of homsets]
+        """
+        return [Homsets()]
+
 class Homsets(Category_singleton):
     """
     The category of all homsets.
@@ -252,10 +239,17 @@ class Homsets(Category_singleton):
     or equivalently that we only implement locally small categories.
     See :wikipedia:`Category_(mathematics)`.
 
-    .. TODO::
+    :trac:`17364`: every homset category shall be a subcategory of the
+    category of all homsets:
 
-        We would want a more general mechanism. See also
-        :meth:`Monoids.Homsets.extra_super_categories`.
+        sage: Schemes().Homsets().is_subcategory(Homsets())
+        True
+        sage: AdditiveMagmas().Homsets().is_subcategory(Homsets())
+        True
+        sage: AdditiveMagmas().AdditiveUnital().Homsets().is_subcategory(Homsets())
+        True
+
+    This is tested in :meth:`HomsetsCategory._test_homsets_category`.
     """
     def super_categories(self):
         """

@@ -3927,7 +3927,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         In this example we find the correct answer despite the fact that
         multiple roots overlap with the current value. As a consequence,
-        both will have to be compared to ``self`` independently.
+        the precision of the evaluation will have to be increased.
 
             sage: a = AA(sqrt(2) + 10^25)
             sage: p = a.minpoly()
@@ -3947,21 +3947,20 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             interval_field = self._value.parent()
         else:
             interval_field = ComplexIntervalField(self._value.prec())
-        num_roots = 0
-        candidates = []
-        for soln in SR(poly).solve(var, explicit_solutions=True):
-            assert soln.lhs() == var
-            root = soln.rhs()
-            num_roots += 1
-            if interval_field(root).overlaps(interval_field(self._value)):
-                candidates.append(root)
-        if num_roots == poly.degree() and len(candidates) == 1:
-            # We saw all roots, and only one of them overlaps
-            return candidates[0]
-        for root in candidates:
-            if self == self.parent()(root):
-                return root
-        return self
+        roots = SR(poly).solve(var, explicit_solutions=True)
+        if len(roots) != poly.degree():
+            return self
+        assert all(root.lhs() == var for root in roots)
+        roots = [root.rhs() for root in roots]
+        while True:
+            candidates = []
+            for root in roots:
+                if interval_field(root).overlaps(interval_field(self._value)):
+                    candidates.append(root)
+            if len(candidates) == 1:
+                return candidates[0]
+            roots = candidates
+            interval_field = interval_field.to_prec(interval_field.prec()*2)
 
 class AlgebraicNumber(AlgebraicNumber_base):
     r"""

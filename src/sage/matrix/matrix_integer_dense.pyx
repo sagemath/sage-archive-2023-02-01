@@ -2817,7 +2817,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Traceback (most recent call last):
             ...
             TypeError: delta must be <= 1
-            sage: L = X.LLL(delta=1)
+            sage: L = X.LLL(delta=1)    # not tested, will eat lots of ram
             Traceback (most recent call last):
             ...
             RuntimeError: infinite loop in LLL

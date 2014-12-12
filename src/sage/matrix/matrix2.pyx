@@ -970,7 +970,7 @@ cdef class Matrix(matrix1.Matrix):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
 
-    def rook_vector(self, algorithm="Ryser", check=False):
+    def rook_vector(self, algorithm="ButeraPernici", check=False):
         r"""
         Return the rook vector of the matrix ``self``.
 
@@ -994,8 +994,7 @@ cdef class Matrix(matrix1.Matrix):
         - ``check`` -- Boolean (default: ``False``) determining whether
           to check that ``self`` is a (0,1)-matrix.
 
-        - ``algorithm`` - either "Ryser" or "ButeraPernici" (default). The
-          Butera-Pernici algorithm is very well suited for band matrices but
+        - ``algorithm`` - either "Ryser" or "ButeraPernici" (default)
           Ryser one might be faster on simple and small instances.
 
         OUTPUT:

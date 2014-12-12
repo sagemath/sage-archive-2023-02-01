@@ -1171,6 +1171,17 @@ class NormalFormGame(SageObject, MutableMapping):
 
             return self._solve_lrs(maximization)
 
+        if algorithm == "LCP":
+            if not is_package_installed('gambit'):
+                    raise NotImplementedError("gambit is not installed")
+            for strategy_profile in self.utilities:
+                payoffs = self.utilities[strategy_profile]
+                if payoffs != [int(payoffs[0]), int(payoffs[1])]:
+                    raise ValueError("""The Gambit implementation of LCP only
+                                     allows for integer valued payoffs.
+                                     Please scale your payoff matrices.""")
+            return self._solve_LCP(maximization)
+
         if algorithm == "enumeration":
             return self._solve_enumeration(maximization)
 
@@ -1235,6 +1246,33 @@ class NormalFormGame(SageObject, MutableMapping):
         lrs_output = [row for row in process.stdout]
         nasheq = Parser(lrs_output).format_lrs()
         return sorted(nasheq)
+
+    def _solve_LCP(self, maximization):
+        r"""
+        Solves a NormalFormGame using Gambit's LCP algorithm.
+        EXAMPLES:
+        Simple example. ::
+            sage: a = matrix([[1, 0], [1, 4]])
+            sage: b = matrix([[2, 3], [2, 4]])
+            sage: c = NormalFormGame([a, b])
+            sage: c._solve_LCP(maximization=True) # optional - gambit
+            [[(0.0, 1.0), (0.0, 1.0)]]
+        """
+        from gambit.nash import ExternalLCPSolver
+        from gambit import Game
+        strategy_sizes = [p.num_strategies for p in self.players]
+        g = Game.new_table(strategy_sizes)
+        scalar = 1
+        if maximization is False:
+            scalar *= -1
+        for strategy_profile in self.utilities:
+            g[strategy_profile][0] = int(scalar *
+                                            self.utilities[strategy_profile][0])
+            g[strategy_profile][1] = int(scalar *
+                                            self.utilities[strategy_profile][1])
+        output = ExternalLCPSolver().solve(g)
+        nasheq = Parser(output).format_LCP(g)
+        return nasheq
 
     def _solve_enumeration(self, maximization=True):
         r"""

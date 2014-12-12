@@ -348,7 +348,8 @@ def find_object_modules(obj):
 
     return module_to_obj
 
-def import_statements(*objects, **options):
+
+def import_statements(*objects, **kwds):
     r"""
     Print import statements for the given objects.
 
@@ -452,7 +453,7 @@ def import_statements(*objects, **options):
         sage: import_statements('EnumeratedSetFromIterator')
         Traceback (most recent call last):
         ...
-        ValueError: no object matched by 'EnumeratedSetFromIterator' was found.
+        LookupError: no object named 'EnumeratedSetFromIterator'
         sage: from sage.misc.dev_tools import load_submodules
         sage: load_submodules(sage.sets)
         load sage.sets.cartesian_product... succeeded
@@ -465,7 +466,7 @@ def import_statements(*objects, **options):
         sage: import_statements('my_tailor_is_rich')
         Traceback (most recent call last):
         ...
-        ValueError: no object matched by 'my_tailor_is_rich' was found.
+        LookupError: no object named 'my_tailor_is_rich'
         sage: import_statements(5)
         Traceback (most recent call last):
         ...
@@ -477,6 +478,17 @@ def import_statements(*objects, **options):
         from sage.rings.semirings.non_negative_integer_semiring import NN
         sage: import_statements('NN')
         from sage.rings.semirings.non_negative_integer_semiring import NN
+
+    Deprecated lazy imports are ignored (see :trac:`17458`)::
+
+        sage: lazy_import('sage.all', 'RR', 'deprecated_RR', namespace=sage.__dict__, deprecation=17458)
+        sage: import_statements('deprecated_RR')
+        Traceback (most recent call last):
+        ...
+        LookupError: object named 'deprecated_RR' is deprecated (see trac ticket 17458)
+        sage: lazy_import('sage.all', 'RR', namespace=sage.__dict__, deprecation=17458)
+        sage: import_statements('RR')
+        from sage.rings.real_mpfr import RR
 
     The following were fixed with :trac:`15351`::
 
@@ -509,12 +521,12 @@ def import_statements(*objects, **options):
                   # where "nameX" is an object in "module" that has to be
                   # imported with the alias "aliasX"
 
-    lazy = options.pop("lazy", False)
-    verbose = options.pop("verbose", True)
-    answer_as_str = options.pop("answer_as_str",False)
+    lazy = kwds.pop("lazy", False)
+    verbose = kwds.pop("verbose", True)
+    answer_as_str = kwds.pop("answer_as_str", False)
 
-    if options:
-        raise ValueError("Unexpected '%s' argument"%options.keys()[0])
+    if kwds:
+        raise TypeError("Unexpected '%s' argument"%kwds.keys()[0])
 
     for obj in objects:
         name = None    # the name of the object
@@ -525,17 +537,21 @@ def import_statements(*objects, **options):
             obj = find_objects_from_name(name, 'sage')
             if len(obj) == 0:
                 obj = find_objects_from_name(name)
-                if len(obj) == 0:
-                    raise ValueError("no object matched by '%s' was found."%name)
 
             # remove lazy imported objects from list obj
             i = 0
+            deprecation = None
             while i < len(obj):
                 if isinstance(obj[i], LazyImport):
-                    tmp = obj[i]._get_object()
-                    del obj[i]
-                    if all(u is not tmp for u in obj):
-                        obj.append(tmp)
+                    tmp = obj.pop(i)
+                    # Ignore deprecated lazy imports
+                    tmp_deprecation = tmp._get_deprecation_ticket()
+                    if tmp_deprecation:
+                        deprecation = tmp_deprecation
+                    else:
+                        tmp = tmp._get_object()
+                        if all(u is not tmp for u in obj):
+                            obj.append(tmp)
                 else:
                     i += 1
 
@@ -549,8 +565,13 @@ def import_statements(*objects, **options):
 
             # choose a random object among the potentially enormous list of
             # objects we get from "name"
-            obj = obj[0]
-
+            try:
+                obj = obj[0]
+            except IndexError:
+                if deprecation:
+                    raise LookupError("object named %r is deprecated (see trac ticket %s)"%(name, deprecation))
+                else:
+                    raise LookupError("no object named %r"%name)
 
         # 1'. if obj is a LazyImport we recover the real object
         if isinstance(obj, LazyImport):

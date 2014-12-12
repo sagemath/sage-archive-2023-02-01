@@ -931,7 +931,7 @@ cdef class Matrix(matrix1.Matrix):
             return self._permanental_minor_ryser(k)
 
         elif algorithm == "ButeraPernici":
-            p = permanental_minor_polynomial(self)
+            p = permanental_minor_polynomial(self, prec=k+1)
             return p[k]
 
         else:

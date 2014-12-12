@@ -202,7 +202,7 @@ def weak_popov_form(M,ascend=True):
     # return reduced matrix and operations matrix
     return (matrix(r)/den, matrix(N), d)
 
-def prm_mul(p1, p2, mask_free):
+def prm_mul(p1, p2, mask_free, prec):
     """
     Return the product of ``p1`` and ``p2``, putting free variables in
     ``mask_free`` to `1`.
@@ -212,10 +212,12 @@ def prm_mul(p1, p2, mask_free):
 
     INPUT:
 
-    - ``p1,p2`` -- polynomials as dictionaries
+    - `p1,p2` -- polynomials as dictionaries
 
-    - ``mask_free`` -- an integer mask that give the list of free variables
+    - `mask_free` -- an integer mask that give the list of free variables
       (the `i`-th variable is free if the `i`-th bit of ``mask_free`` is `1`)
+
+    - `prec` -- if `prec` is not None, truncate the product at precision `prec`
 
     EXAMPLES::
 
@@ -223,13 +225,12 @@ def prm_mul(p1, p2, mask_free):
         sage: t = polygen(ZZ, 't')
         sage: p1 = {0: 1, 1: t, 4: t}
         sage: p2 = {0: 1, 1: t, 2: t}
-        sage: prm_mul(p1, p2, 1)
+        sage: prm_mul(p1, p2, 1, None)
         {0: 2*t + 1, 2: t^2 + t, 4: t^2 + t, 6: t^2}
     """
     p = {}
     if not p2:
         return p
-    get = p.get
     for exp1, v1 in p1.iteritems():
         if v1.is_zero():
             continue
@@ -237,6 +238,8 @@ def prm_mul(p1, p2, mask_free):
             if exp1 & exp2:
                 continue
             v = v1 * v2
+            if prec is not None:
+                v._unsafe_mutate(prec, 0)
             exp = exp1 | exp2
             exp = exp ^ (exp & mask_free)
             if exp not in p:
@@ -245,9 +248,20 @@ def prm_mul(p1, p2, mask_free):
                 p[exp] += v
     return p
 
-def permanental_minor_polynomial(A, permanent_only=False, var='t'):
+def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
     r"""
     Return the polynomial of the sums of permanental minors of ``A``.
+
+    INPUT:
+
+    - `A` -- a matrix
+
+    - `permanent_only` -- if True, return only the permanent of `A`
+
+    - `var` -- name of the polynomial variable
+
+    - `prec` -- if prec is not None, truncate the polynomial at precision `prec`
+
 
     The polynomial of the sums of permanental minors is
 
@@ -283,6 +297,8 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t'):
         3*t^2 + 5*t + 1
         sage: permanental_minor_polynomial(m, permanent_only=True)
         3
+        sage: permanental_minor_polynomial(m, prec=2)
+        5*t + 1
 
     ::
 
@@ -315,8 +331,8 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t'):
 
     ALGORITHM:
 
-        The permanent `perm(A)` of a `n \times n` matrix `A` is the coefficient of the
-        `x_1 x_2 \ldots x_n` monomial in
+        The permanent `perm(A)` of a `n \times n` matrix `A` is the coefficient
+        of the `x_1 x_2 \ldots x_n` monomial in
 
         .. MATH::
 
@@ -377,8 +393,8 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t'):
 
         where `\eta_1,..,\eta_{j-1}` are replaced by `1` in `p_1`. Informally,
         we can "integrate" these variables *before* performing the product. More
-        generally, if a monomial `\eta_i` is missing in one of the term of a
-        product, then it can be integrated in the other term.
+        generally, if a monomial `\eta_i` is missing in one of the terms of a
+        product of two terms, then it can be integrated in the other term.
 
         Now let us consider an `m \times n` matrix with `m \leq n`. The *sum of
         permanental `k`-minors of `A`* is
@@ -415,9 +431,9 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t'):
         the key `2^i` (or in Python ``1 << i``). The keys associated to products
         are obtained by considering the development in base `2`: to the monomial
         `\eta_{i_1} \ldots \eta_{i_k}` is associated the key
-        `2^{i_1} + \ldots + 2^{i_k}`. So the product `\eta_1 \eta_2` corresponds to the
-        key `6 = (110)_2` while `\eta_0 \eta_3` has key `5 = (101)_2`. In
-        particular all operations on monomials are implemented via bitwise
+        `2^{i_1} + \ldots + 2^{i_k}`. So the product `\eta_1 \eta_2` corresponds
+        to the key `6 = (110)_2` while `\eta_0 \eta_3` has key `9 = (1001)_2`.
+        In particular all operations on monomials are implemented via bitwise
         operations on the keys.
 
     REFERENCES:
@@ -425,6 +441,11 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t'):
     .. [ButPer] P. Butera and M. Pernici "Sums of permanental minors
        using Grassmann algebra", :arxiv:`1406.5337`
     """
+    if permanent_only:
+        prec = None
+    if prec is not None and prec == 0:
+        raise ValueError('the argument `prec` must be a positive integer')
+
     K = PolynomialRing(A.base_ring(), var)
     nrows = A.nrows()
     ncols = A.ncols()
@@ -454,7 +475,7 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t'):
                 vars_to_do.remove(jj)
             else:
                 j += 1
-        p = prm_mul(p, p1, mask_free)
+        p = prm_mul(p, p1, mask_free, prec)
 
     if not p:
         return K.zero()

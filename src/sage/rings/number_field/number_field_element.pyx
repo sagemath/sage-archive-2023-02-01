@@ -2180,12 +2180,13 @@ cdef class NumberFieldElement(FieldElement):
             e^(10/19*I*pi) + 2
 
         For degree greater than 5, sometimes Galois theory prevents a
-        closed-form solution.  In this case, a numerical approximation
-        is used::
+        closed-form solution.  In this case, an algebraic number is
+        embedded into the symbolic ring, which will usually get
+        printed as a numerical approximation::
 
             sage: K.<a> = NumberField(x^5-x+1, embedding=-1)
             sage: SR(a)
-            -1.167304015296367
+            -1.167303978261419?
 
         ::
 
@@ -2223,23 +2224,18 @@ cdef class NumberFieldElement(FieldElement):
                 else:
                     self.__symbolic = self.polynomial()(gen_image)
             else:
-                # try to solve the minpoly and choose the closest root
-                poly = self.minpoly()
-                roots = []
-                var = SR(poly.variable_name())
-                for soln in SR(poly).solve(var, to_poly_solve=True):
-                    if soln.lhs() == var:
-                        roots.append(soln.rhs())
-                if len(roots) != poly.degree():
-                    raise TypeError, "Unable to solve by radicals."
-                from number_field_morphisms import matching_root
-                from sage.rings.complex_field import ComplexField
-                gen_image = matching_root(roots, self, ambient_field=ComplexField(53), margin=2)
-                if gen_image is not None:
-                    self.__symbolic = gen_image
+                from sage.rings.qqbar import AA, QQbar
+                from sage.rings.real_lazy import LazyField
+                if self.parent().is_totally_real():
+                    af = AA
                 else:
-                    # should be rare, e.g. if there is insufficient precision
-                    raise TypeError, "Unable to determine which root in SR is this element."
+                    af = QQbar
+                gen = embedding.gen_image()
+                if isinstance(gen.parent(), LazyField):
+                    gen = gen.eval(af)
+                else:
+                    gen = af(gen)
+                return SR(gen.radical_expression())
 
         return self.__symbolic
 

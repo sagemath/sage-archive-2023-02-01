@@ -1300,7 +1300,12 @@ def transitive_reduction_acyclic(G):
     cdef dict v_to_int = {vv: i for i, vv in enumerate(G.vertices())}
     cdef int  u, v, i
 
-    cdef list linear_extension = G.topological_sort()
+    cdef list linear_extension
+
+    is_acyclic, linear_extension = G.is_directed_acyclic(certificate=True)
+    if not is_acyclic:
+        raise ValueError("The graph is not directed acyclic")
+
     linear_extension.reverse()
 
     cdef binary_matrix_t closure

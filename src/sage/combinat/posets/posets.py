@@ -493,7 +493,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         sage: Poset(DiGraph([[1,2],[2,3],[3,4],[4,1]]))
         Traceback (most recent call last):
         ...
-        TypeError: Digraph is not acyclic; there is no topological sort.
+        ValueError: The graph is not directed acyclic
     """
     # Avoiding some errors from the user when data should be a pair
     if (element_labels is not None and

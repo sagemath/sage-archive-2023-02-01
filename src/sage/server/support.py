@@ -6,6 +6,17 @@ AUTHORS:
 - William Stein (much of this code is from IPython).
 
 - Nick Alexander
+
+TESTS:
+
+Test deprecation::
+
+    sage: from sage.server.support import syseval
+    sage: syseval(gap, "2+3")  # long time
+    doctest:...: DeprecationWarning: 
+    Importing syseval from here is deprecated. If you need to use it, please import it directly from sagenb.misc.support
+    See http://trac.sagemath.org/2891 for details.
+    '5'
 """
 
 EMBEDDED_MODE = False
@@ -15,8 +26,7 @@ lazy_import('sagenb.misc.support',
         ('sage_globals', 'globals_at_init',
         'global_names_at_init', 'init', 'setup_systems', 'help',
         'get_rightmost_identifier', 'completions', 'docstring',
-        'source_code', 'save_session', 'load_session', 'variables',
-        'syseval'),
+        'source_code', 'syseval'),
     deprecation=2891)
 
 

@@ -625,8 +625,8 @@ cdef class SymbolicRing(CommutativeRing):
             ValueError: The name "x,y" is not a valid Python identifier.
 
         Check that :trac:`17206` is fixed::
-            var1 = var('var1', latex_name=r'\sigma^2_1')
-            latex(var1)
+
+            sage: var1 = var('var1', latex_name=r'\sigma^2_1'); latex(var1)
             {\sigma^2_1}
         """
         if is_Expression(name):

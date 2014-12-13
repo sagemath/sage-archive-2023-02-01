@@ -7951,7 +7951,7 @@ class GenericGraph(GenericGraph_pyx):
             4
         """
         
-        self._scream_if_not_simple()
+        self._scream_if_not_simple(allow_multiple_edges=True, allow_loops=not total)
 
         from sage.numerical.mip import MixedIntegerLinearProgram
         g=self

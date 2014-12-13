@@ -3918,8 +3918,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         - Bruno Grenet (2014-06-25)
         """
         # This is Algorithm 3.1.2 in Cohen [GTM 138]
-        if other.degree() < 0:
-            raise ValueError("Pseudo-division by zero is not possible")
+        if other.is_zero():
+            raise ZeroDivisionError("Pseudo-division by zero is not possible")
 
         # if other is a constant, then R = 0 and Q = self * other^(deg(self))
         if other in self.parent().base_ring():

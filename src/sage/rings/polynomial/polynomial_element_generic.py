@@ -644,71 +644,6 @@ class Polynomial_generic_sparse(Polynomial):
                     output[index + n] = coeff
             return self.parent()(output, check=False)
 
-    def gcd(self,other,algorithm=None):
-        """
-        Return the gcd of ``self`` and ``other``
-
-        INPUT:
-
-        - ``other`` -- a polynomial defined over the same ring as ``self``
-
-        Three algorithms are available:
-
-        - "dense": The polynomials are converted to the dense representation,
-            their gcd are computed and is converted back to the sparse
-            representation.
-        - "fraction_field": The polynomials are coerced to the ring of
-            polynomials over the fraction field of their base ring. It won't
-            work with non integral domain as base rings. The gcd method is
-            called with the "dense" algorithm, in case there is no specific
-            sparse gcd method for the fraction field.
-        - "pseudo-division": Uses the gcd method of the class Polynomial.
-
-        Default is "dense" for polynomials over ZZ and "pseudo-division" in the
-        other cases.
-
-        EXAMPLES::
-
-        sage: R.<x> = PolynomialRing(ZZ,sparse=True)
-        sage: p = x^6 + 7*x^5 + 8*x^4 + 6*x^3 + 2*x^2 + x + 2
-        sage: q = 2*x^4 - x^3 - 2*x^2 - 4*x - 1
-        sage: gcd(p,q)
-        x^2 + x + 1
-        sage: gcd(p, q, algorithm = "dense")
-        x^2 + x + 1
-        sage: gcd(p, q, algorithm = "fraction_field")
-        x^2 + x + 1
-        sage: gcd(p, q, algorithm = "pseudo-division")
-        x^2 + x + 1
-
-        AUTHORS:
-
-        - Bruno Grenet (2014-06-25)
-        """
-
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.arith import lcm
-
-        if algorithm is None:
-            if self.base_ring() == ZZ:
-                algorithm = "dense"
-            else:
-                algorithm = "pseudo-division"
-        if algorithm=="dense":
-            S = self.parent()
-            D = PolynomialRing(S.base_ring(),'x',sparse=False)
-            g = D(self).gcd(D(other))
-            return S(g)
-        if algorithm=="fraction_field":
-            R = self.parent().base_ring()
-            F = R.fraction_field()
-            S = PolynomialRing(F,'x',sparse=True)
-            g = S(self).gcd(S(other),algorithm="dense")
-            d = lcm([gg.denominator() for gg in g.coefficients()])
-            return self.parent()(d*g)
-        if algorithm=="pseudo-division":
-            return Polynomial.gcd(self,other)
-
     @coerce_binop
     def quo_rem(self, other):
         """
@@ -790,6 +725,73 @@ class Polynomial_generic_sparse(Polynomial):
             # thus we avoid doing a useless computation
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
         return (quo,rem)
+
+    def gcd(self,other,algorithm=None):
+        """
+        Return the gcd of ``self`` and ``other``
+
+        INPUT:
+
+        - ``other`` -- a polynomial defined over the same ring as ``self``
+
+        Three algorithms are available:
+
+        - "dense": The polynomials are converted to the dense representation,
+            their gcd are computed and is converted back to the sparse
+            representation.
+        - "fraction_field": The polynomials are coerced to the ring of
+            polynomials over the fraction field of their base ring. It won't
+            work with non integral domain as base rings. The gcd method is
+            called with the "dense" algorithm, in case there is no specific
+            sparse gcd method for the fraction field.
+        - "pseudo-division": Uses the gcd method of the class Polynomial.
+
+        Default is "dense" for polynomials over ZZ and "pseudo-division" in the
+        other cases.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ,sparse=True)
+            sage: p = x^6 + 7*x^5 + 8*x^4 + 6*x^3 + 2*x^2 + x + 2
+            sage: q = 2*x^4 - x^3 - 2*x^2 - 4*x - 1
+            sage: gcd(p,q)
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "dense")
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "fraction_field")
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "pseudo-division")
+            x^2 + x + 1
+
+        AUTHORS:
+
+        - Bruno Grenet (2014-06-25)
+        """
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.arith import lcm
+
+        if algorithm is None:
+            if self.base_ring() == ZZ:
+                algorithm = "dense"
+            else:
+                algorithm = "pseudo-division"
+        if algorithm=="dense":
+            S = self.parent()
+            D = PolynomialRing(S.base_ring(),'x',sparse=False)
+            g = D(self).gcd(D(other))
+            return S(g)
+        if algorithm=="fraction_field":
+            R = self.parent().base_ring()
+            F = R.fraction_field()
+            S = PolynomialRing(F,'x',sparse=True)
+            g = S(self).gcd(S(other),algorithm="dense")
+            d = lcm([gg.denominator() for gg in g.coefficients()])
+            return self.parent()(d*g)
+        if algorithm=="pseudo-division":
+            return Polynomial.gcd(self,other)
+        else:
+            raise ValueError("Unknown algorithm '%s'" % algorithm)
 
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):

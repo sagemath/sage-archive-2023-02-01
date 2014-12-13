@@ -4362,7 +4362,7 @@ cdef class Matroid(SageObject):
         cdef int m
         for m in range(len(G)+1):
             for S in combinations(G, m):
-                if self.is_subset_k_closed(S, k) and not self.is_closed(S):
+                if self.is_subset_k_closed(S, k) and not self._is_closed(frozenset(S)):
                     return False
         return True
 

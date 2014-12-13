@@ -99,6 +99,9 @@ class GaussValuation(UniqueRepresentation, DevelopingValuation):
     def __hash__(self):
         return hash(self.domain())
 
+    def _cache_key(self):
+        return (self.domain(),)
+
     def value_group(self):
         """
         Return the value group of this valuation.

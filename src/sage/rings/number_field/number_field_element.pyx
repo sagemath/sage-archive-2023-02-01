@@ -2197,6 +2197,15 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<a> = NumberField(x^6-x^3-1, embedding=1)
             sage: SR(a)
             (1/2*sqrt(5) + 1/2)^(1/3)
+
+        In this field, general elements cannot be written in terms of
+        radicals, but particular elements might be::
+
+            sage: K.<a> = NumberField(x^10 + 6*x^6 + 9*x^2 + 1, embedding=CC(0.332*I))
+            sage: SR(a)
+            0.3319890295845093?*I
+            sage: SR(a^5+3*a)
+            I
         """
         K = self._parent.fraction_field()
 

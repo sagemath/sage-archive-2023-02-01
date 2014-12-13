@@ -4358,7 +4358,6 @@ cdef class Matroid(SageObject):
             sage: M.is_k_closed(4)
             True
         """
-        import itertools
         G = self.groundset()
         cdef int m
         for m in range(len(G)+1):

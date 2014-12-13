@@ -47,6 +47,7 @@ import number_field
 
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.rational cimport Rational
+from sage.rings.infinity import infinity
 from sage.categories.fields import Fields
 
 from sage.modules.free_module_element import vector
@@ -1720,7 +1721,10 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: 2^I
             2^I
-            sage: K.<sqrt2> = QuadraticField(2) # :trac:`14895`
+
+        Test :trac:`14895`::
+
+            sage: K.<sqrt2> = QuadraticField(2)
             sage: 2^sqrt2
             2^sqrt(2)
             sage: K.<a> = NumberField(x^2+1)
@@ -2209,10 +2213,9 @@ cdef class NumberFieldElement(FieldElement):
             gen_image = exp(k*two_pi_i/K._n())
             return self.polynomial()(gen_image)
         else:
-            from sage.rings.qqbar import QQbar
-            gen = embedding.gen_image()
-            element = self.polynomial()(gen.eval(QQbar))
-            return SR(element.radical_expression())
+            # Convert the embedding to an embedding into AA or QQbar
+            embedding = number_field.refine_embedding(embedding, infinity)
+            return SR(embedding(self).radical_expression())
 
     def galois_conjugates(self, K):
         r"""
@@ -2947,7 +2950,6 @@ cdef class NumberFieldElement(FieldElement):
             [2, 2]
         """
         from number_field_ideal import is_NumberFieldIdeal
-        from sage.rings.infinity import infinity
         if not is_NumberFieldIdeal(P):
             if is_NumberFieldElement(P):
                 P = self.number_field().fractional_ideal(P)

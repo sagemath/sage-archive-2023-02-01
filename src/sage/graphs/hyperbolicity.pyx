@@ -774,6 +774,7 @@ cdef tuple __hyperbolicity__(int N,
         # When using far-apart pairs, the loops may end
         return (h, certificate, h_UB)
 
+
 def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=None, verbose = False):
     r"""
     Return the hyperbolicity of the graph or an approximation of this value.
@@ -996,8 +997,10 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
     cdef int hyp = 0
     cdef int hyp_UB = N
 
+    #
     # The hyperbolicity of a graph is the maximum over its 2-connected
     # components.
+    #
     B,_ = G.blocks_and_cut_vertices()
     if len(B)>1:
 
@@ -1083,10 +1086,10 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
     elif algorithm == 'dom':
         # Computes a dominating set DOM of G, and computes the hyperbolicity
         # considering only vertices in DOM
-        DOM = _greedy_dominating_set(G, verbose=verbose)
+        DOM = set(_greedy_dominating_set(G, verbose=verbose))
         # We need at least 4 vertices
         while len(DOM)<4:
-            DOM.append(G.random_vertex())
+            DOM.add(G.random_vertex())
         # We set null distances to vertices outside DOM. This way these
         # vertices will not be considered anymore.
         for i from 0 <= i < N:

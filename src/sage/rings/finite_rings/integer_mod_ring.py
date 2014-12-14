@@ -662,6 +662,20 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         return self.order().is_prime()
 
     @cached_method
+    def is_unique_factorization_domain(self, proof = True):
+        """
+        Return ``True`` if and only if the order of ``self`` is prime.
+
+        EXAMPLES::
+
+            sage: Integers(389).is_unique_factorization_domain()
+            True
+            sage: Integers(389^2).is_unique_factorization_domain()
+            False
+        """
+        return self.order().is_prime()
+
+    @cached_method
     def is_field(self, proof=None):
         r"""
         Return True precisely if the order is prime.

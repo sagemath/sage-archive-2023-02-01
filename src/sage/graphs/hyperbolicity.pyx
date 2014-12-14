@@ -51,14 +51,14 @@ Hyperbolicity
     implemented in the current module.
 
     - It is shown in [Soto11]_ that `hyp(a, b, c, d)` is upper bounded by the
-      smallest distance between the vertices in `\{a,b,c,d\}` divided by 2.
+      smallest distance between the vertices in `\{a,b,c,d\}` multiplied by 2.
 
       .. MATH::
 
           hyp(a, b, c, d) \leq \min_{u,v\in\{a,b,c,d\}}\frac{dist(u,v)}{2}
 
       This result is used to reduce the number of tested 4-tuples in the naive
-      implementation.
+      implementation (called 'basic+').
 
     - Another upper bound on `hyp(a, b, c, d)` has been proved in [CCL12]_. It
       is used to design an algorithm with worse case time complexity in `O(n^4)`
@@ -83,10 +83,11 @@ Hyperbolicity
           \leq& S_1 - dist(a, b)\\
           =& dist(c, d)\\
 
-      We obtain similarly that `hyp(a, b, c, d) \leq dist(a, b)`.  Consequently,
-      in the implementation, we ensure that `S_1` is larger than `S_2` and `S_3`
-      using an ordering of the pairs by decreasing lengths. Furthermore, we use
-      the best value `h` found so far to cut exploration.
+      We obtain similarly that `hyp(a, b, c, d) \leq dist(a, b)`. Consequently,
+      in the implementation of the 'cuts' algorithm, we ensure that `S_1` is
+      larger than `S_2` and `S_3` using an ordering of the pairs by decreasing
+      lengths. Then, we use the best value `h` found so far to stop exploration
+      as soon as `dist(a, b) \leq h`.
 
       The worst case time complexity of this algorithm is `O(n^4)`, but it
       performs very well in practice since it cuts the search space.  This
@@ -108,7 +109,8 @@ Hyperbolicity
       `(a,b)` and `(c,d)` satisfying `\delta(G) = hyp(a, b, c, d)/2`. For
       instance, the `n\times m`-grid has only two far-apart pairs, and so
       computing its hyperbolicity is immediate once the far-apart pairs are
-      found.
+      found. The 'cuts+' algorithm improves the 'cuts' algorithm since it uses
+      far-apart pairs.
 
 TODO:
 
@@ -433,7 +435,7 @@ cdef inline distances_and_far_apart_pairs(gg,
     cdef uint32_t source
     cdef uint32_t v, u
 
-    # All pairs are initiall far-apart
+    # All pairs are initially far-apart
     memset(far_apart_pairs, 1, n * n * sizeof(unsigned short))
     for i from 0 <= i < n:
         c_far_apart[i] = far_apart_pairs + i * n

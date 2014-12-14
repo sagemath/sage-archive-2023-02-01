@@ -12000,7 +12000,7 @@ class GenericGraph(GenericGraph_pyx):
         import networkx
         return networkx.average_clustering(self.networkx_graph(copy=False))
 
-    def clustering_coeff(self, nodes=None, weight=False):
+    def clustering_coeff(self, nodes=None, weight=False, return_vertex_weights=None):
         r"""
         Returns the clustering coefficient for each vertex in ``nodes`` as
         a dictionary keyed by vertex.
@@ -12054,7 +12054,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2],
             ...     weight=True)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
+
+        TESTS::
+
+            sage: graphs.FruchtGraph().clustering_coeff(nodes=[0,1,2],
+            ...     weight=True, return_vertex_weights=False)
+            doctest:...: DeprecationWarning: The option 'return_vertex_weights'
+            has been deprecated and is ignored.
+            See http://trac.sagemath.org/17134 for details.
+            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
         """
+        if return_vertex_weights is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(17134, "The option 'return_vertex_weights' has been " +
+                        "deprecated and is ignored.")
         import networkx
         return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
 

@@ -21,7 +21,12 @@ sys.path.append(get_doc_abspath('common'))
 extensions = ['inventory_builder', 'multidocs',
               'sage_autodoc',  'sphinx.ext.graphviz',
               'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo',
-              'sphinx.ext.extlinks']
+              'sphinx.ext.extlinks', 'matplotlib.sphinxext.plot_directive']
+
+from matplotlib.sphinxext import plot_directive
+from sage.plot.misc import plot_pre_code
+plot_html_show_formats = False
+
 # We do *not* fully initialize intersphinx since we call it by hand
 # in find_sage_dangling_links.
 #, 'sphinx.ext.intersphinx']

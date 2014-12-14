@@ -571,8 +571,8 @@ cdef tuple __hyperbolicity__(int N,
       ``h == h_UB``, the returned solution is optimal.
     """
     cdef int hh # can get negative value
-    cdef uint16_t a, b, c, d, h, h_UB
-    cdef uint32_t x, y, l1, l2, S1, S2, S3
+    cdef int a, b, c, d, h, h_UB
+    cdef int x, y, l1, l2, S1, S2, S3
     cdef list certificate = []
     cdef unsigned short *p_far_apart
     cdef int nb_p = 0
@@ -771,8 +771,9 @@ cdef tuple __hyperbolicity__(int N,
     if len(certificate) == 0:
         return ( -1, [], h_UB )
     else:
-        # When using far-apart pairs, the loops may end
-        return (h, certificate, h_UB)
+        # When using far-apart pairs, the loops may end before improving the
+        # upper-bound
+        return (h, certificate, h_UB if GOTO_RETURN else h)
 
 
 def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=None, verbose = False):

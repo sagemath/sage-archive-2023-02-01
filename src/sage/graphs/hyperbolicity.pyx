@@ -400,8 +400,12 @@ cdef inline distances_and_far_apart_pairs(gg,
 
     See the module's documentation for the definition of far-apart pairs.
 
-    This method assumes that the arays distances and far_apart_pairs have been
-    allocated with size `n^2`.
+    This method assumes that:
+
+        - The input graph gg is connected. If not, the result will be incorrect.
+
+        - The arrays distances and far_apart_pairs have already been allocated
+          with size `n^2`.
     """
 
     cdef int n = gg.order()
@@ -494,11 +498,6 @@ cdef inline distances_and_far_apart_pairs(gg,
                 p_tmp += 1
 
             waiting_beginning += 1
-
-        # If not all the vertices have been met
-        for v from 0 <= v < n:
-            if not bitset_in(seen, v):
-                c_distances[v] = -1
 
         c_distances += n
 

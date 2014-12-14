@@ -343,7 +343,6 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc import uniq
 from sage.matrix.constructor import matrix, vector
 from sage.modules.free_module import VectorSpace
-from sage.matroids.constructor import Matroid
 
 from sage.geometry.hyperplane_arrangement.hyperplane import AmbientVectorSpace, Hyperplane
 
@@ -700,7 +699,6 @@ class HyperplaneArrangementElement(Element):
         """
         K = self.base_ring()
         from sage.geometry.hyperplane_arrangement.affine_subspace import AffineSubspace
-        from sage.modules.all import VectorSpace
         whole_space = AffineSubspace(0, VectorSpace(K, self.dimension()))
         L = [[whole_space]]
         active = True
@@ -1963,6 +1961,7 @@ class HyperplaneArrangementElement(Element):
         if not self.is_central():
             raise ValueError("the hyperplane arrangement must be central")
         norms = [p.normal() for p in self]
+        from sage.matroids.constructor import Matroid
         return Matroid(matrix=matrix(norms).transpose())
 
     @cached_method
@@ -1999,7 +1998,6 @@ class HyperplaneArrangementElement(Element):
         V = VectorSpace(self.base_ring(), self.dimension())
         W = VectorSpace(self.base_ring(), self.n_hyperplanes())
         r = self.rank()
-        D = []
         M = self.matroid()
         norms = M.representation().columns()
         circuits = M.circuits()

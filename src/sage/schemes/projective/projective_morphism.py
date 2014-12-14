@@ -49,7 +49,9 @@ from sage.misc.mrange              import xmrange
 from sage.modules.free_module_element import vector
 from sage.rings.all                import Integer, moebius
 from sage.rings.arith              import gcd, lcm, next_prime, binomial, primes
-from sage.rings.complex_field      import ComplexField
+from sage.categories.number_fields import NumberFields
+from sage.rings.complex_field      import ComplexField_class,ComplexField
+from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
@@ -57,7 +59,8 @@ from sage.rings.integer_ring       import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
 from sage.rings.rational_field     import QQ
-from sage.rings.real_mpfr          import RealField
+from sage.rings.real_mpfr          import RealField_class,RealField
+from sage.rings.real_mpfi          import RealIntervalField_class
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
@@ -277,7 +280,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def __eq__(self, right):
         """
-        Tests the equality of two projective spaces.
+        Tests the equality of two projective morphisms.
 
         INPUT:
 
@@ -289,32 +292,47 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: P1.<x,y> = ProjectiveSpace(RR,1)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1==P2
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 - 2*x*y + z*x, z^2 -y^2 , 5*z*y])
+            sage: g = H([x^2, y^2, z^2])
+            sage: f == g
             False
 
             ::
 
-            sage: R.<x,y> = QQ[]
-            sage: P1 = ProjectiveSpace(R)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1==P2
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P2.<u,v> = ProjectiveSpace(CC, 1)
+            sage: H = End(P)
+            sage: H2 = End(P2)
+            sage: f = H([x^2 - 2*x*y, y^2])
+            sage: g = H2([u^2 - 2*u*v, v^2])
+            sage: f == g
+            False
+
+            ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 2*x*y, y^2])
+            sage: g = H([x^2*y - 2*x*y^2, y^3])
+            sage: f == g
             True
         """
         if not isinstance(right, SchemeMorphism_polynomial):
             return False
-        else:
-            n = len(self._polys)
-            for i in range(0, n):
-                for j in range(i + 1, n):
-                    if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
-                        return False
+        if self.parent() != right.parent():
+            return False
+        n = len(self._polys)
+        for i in range(0, n):
+            for j in range(i + 1, n):
+                if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
+                    return False
         return True
 
     def __ne__(self, right):
         """
-        Tests the inequality of two projective spaces.
+        Tests the inequality of two projective morphisms.
 
         INPUT:
 
@@ -326,27 +344,30 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: P1.<x,y> = ProjectiveSpace(RR,1)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1!=P2
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^3 - 2*x^2*y , 5*x*y^2])
+            sage: g = f.change_ring(GF(7))
+            sage: f != g
             True
 
             ::
 
-            sage: R.<x,y> = QQ[]
-            sage: P1 = ProjectiveSpace(R)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1!=P2
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = Hom(P, P)
+            sage: f = H([x^2 - 2*x*y + z*x, z^2 -y^2 , 5*z*y])
+            sage: f != f
             False
         """
         if not isinstance(right, SchemeMorphism_polynomial):
             return True
-        else:
-            n = len(self._polys)
-            for i in range(0, n):
-                for j in range(i + 1, n):
-                    if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
-                        return True
+        if self.parent() != right.parent():
+            return True
+        n = len(self._polys)
+        for i in range(0, n):
+            for j in range(i + 1, n):
+                if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
+                    return True
         return False
 
     def scale_by(self, t):
@@ -969,9 +990,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-y^2,y^2])
             sage: f.dehomogenize((0,1))
-            Scheme morphism:
-              From: Affine Space of dimension 1 over Rational Field
-              To:   Affine Space of dimension 1 over Rational Field
+            Scheme endomorphism of Affine Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x) to
                     ((-x^2 + 1)/x^2)
 
@@ -1009,6 +1028,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               x0^2 - x1^2
               Defn: Defined on coordinates by sending (x0, x1) to
                     (x1^2/x0, x1^2/x0)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 2*x*y, y^2])
+            sage: f.dehomogenize(0).homogenize(0) == f
+            True
         """
         #the dehomogenizations are stored for future use.
         try:
@@ -1699,8 +1726,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def multiplier(self, P, n, check=True):
         r"""
-        Returns the multiplier of ``self`` at the `QQ`-rational point ``P`` of period ``n``.
-        ``self`` must be an endomorphism of projective space
+        Returns the multiplier of ``self`` point ``P`` of period ``n``.
+        ``self`` must be an endomorphism.
 
         INPUT:
 
@@ -1767,15 +1794,15 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Traceback (most recent call last):
             ...
             ValueError: (0 : 1) is not periodic of period 1
-
-        ..  TODO:: would be better to keep the dehomogenizations for reuse
         """
         if not self.is_endomorphism():
-            raise NotImplementedError("Must be an endomorphism of projective space")
+            raise TypeError("Must be an endomorphism")
         if check:
             if self.nth_iterate(P, n) != P:
                 raise ValueError("%s is not periodic of period %s" % (P, n))
-        N = self.domain().dimension_relative()
+            if n < 1:
+                raise ValueError("Period must be a positive integer")
+        N = self.domain().ambient_space().dimension_relative()
         l = identity_matrix(FractionField(self.codomain().base_ring()), N, N)
         Q = P
         Q.normalize_coordinates()
@@ -2503,7 +2530,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         r"""
         Given a rational point `Q` in the domain of ``self``, return all the rational points `P`
         in the domain of ``self`` with `self(P)==Q`. In other words, the set of first pre-images of `Q`.
-        ``self`` must be defined over `\QQ` and be an endomorphism of projective space.
+        ``self`` must be defined over number fields and be an endomorphism.
 
         ALGORITHM:
             Use elimination via groebner bases to find the rational pre-images
@@ -2532,9 +2559,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f.rational_preimages(P(-9,-4,1))
             [(0 : 4 : 1)]
 
-        ::
+        A non-periodic example ::
 
-            A non-periodic example.
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2 + y^2,2*x*y])
@@ -2558,24 +2584,62 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             Traceback (most recent call last):
             ...
             TypeError: Point must be in codomain of self
+
+        A number field example ::
+
+            sage: z = QQ['z'].0
+            sage: K.<a> = NumberField(z^2 - 2);
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2,y^2])
+            sage: f.rational_preimages(P(3,1))
+            [(a : 1), (-a : 1)]
+
+        ::
+
+            sage: z = QQ['z'].0
+            sage: K.<a> = NumberField(z^2 - 2);
+            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: X = P.subscheme([x^2 - z^2])
+            sage: H = Hom(X,X)
+            sage: f= H([x^2 - z^2, a*y^2, z^2 - x^2])
+            sage: f.rational_preimages(X([1,2,-1]))
+            []
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: X = P.subscheme([x^2 - z^2])
+            sage: H = Hom(X,X)
+            sage: f= H([x^2-z^2, y^2, z^2-x^2])
+            sage: f.rational_preimages(X([0,1,0]))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Subschemes as Preimages not implemented
         """
+        
+        BR = self.base_ring()
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
-        if self.domain().base_ring() != QQ:
-            raise NotImplementedError("Must be QQ")
         if (Q in self.codomain()) == False:
             raise TypeError("Point must be in codomain of self")
-        PS = self.domain()
+        if isinstance(BR.base_ring(),(ComplexField_class, RealField_class,RealIntervalField_class, ComplexIntervalField_class)):
+            raise NotImplementedError("Not Implemented over precision fields") 
+        Dom = self.domain()
+        PS = self.domain().ambient_space()
         R = PS.coordinate_ring()
         N = PS.dimension_relative()
         #need a lexicographic ordering for elimination
         R = PolynomialRing(R.base_ring(), N + 1, R.gens(), order='lex')
-        I = []
+        BR = R.base_ring()
+        I = list(self.domain().defining_polynomials())
         preimages = set()
         for i in range(N + 1):
             for j in range(i + 1, N + 1):
                 I.append(Q[i] * self[j] - Q[j] * self[i])
         I = I * R
+        if I.dimension() > 1:
+            raise NotImplementedError("Subschemes as Preimages not implemented")
         I0 = R.ideal(0)
         #Determine the points through elimination
         #This is much faster than using the I.variety() function on each affine chart.
@@ -2604,24 +2668,24 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                             for pol, pow in L:
                                 if pol.degree() == 1 and len(pol.variables()) == 1:
                                     good = 1
-                                    r = pol.variable()
+                                    r = pol.variables()[0]
                                     varindex = R.gens().index(r)
-                                    #add this coordinates information to th
+                                    #add this coordinates information to 
                                     #each dictionary entry
-                                    P.update({R.gen(varindex):-pol.coefficient({r:0}) / pol.coefficient({r:1})})
+                                    P.update({R.gen(varindex):-BR(pol.coefficient({r:0})) / BR(pol.coefficient({r:1}))})
                                     new_points.append(copy(P))
                     if good == 1:
                         points = new_points
-                #the dictionary entries now have values for all coordiantes
+                #the dictionary entries now have values for all coordinates
                 #they are the rational solutions to the equations
                 #make them into projective points
                 for i in range(len(points)):
                     if len(points[i]) == N + 1 and I.subs(points[i]) == I0:
-                        S = PS([points[i][R.gen(j)] for j in range(N + 1)])
+                        S = Dom([points[i][R.gen(j)] for j in range(N + 1)])
                         S.normalize_coordinates()
-                        preimages.add(S)
+                        if not all([g(tuple(S)) == 0 for g in self]):
+                            preimages.add(S)
         return(list(preimages))
-
 
     def all_rational_preimages(self, points):
         r"""
@@ -2629,9 +2693,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         pre-images of those points. In others words, all the rational points which have some
         iterate in the set points. This function repeatedly calls ``rational_preimages``.
         If the degree is at least two, by Northocott, this is always a finite set.
-        ``self`` must be defined over `\QQ` and be an endomorphism of projective space.
-        In the examples, the output is sorted because the calculations are done in parallel
-        and the order of the results is not guaranteed.
+        ``self`` must be defined over number fields and be an endomorphism.
 
         INPUT:
 
@@ -2659,20 +2721,31 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             [(-9 : -4 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 1), (0 : 4 : 1), (1
             : 0 : 1), (1 : 1 : 1), (1 : 2 : 1), (1 : 3 : 1)]
 
-        ::
+        A non-periodic example ::
 
-            A non-periodic example.
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2 + y^2,2*x*y])
             sage: sorted(f.all_rational_preimages([P(17,15)]))
             [(1/3 : 1), (3/5 : 1), (5/3 : 1), (3 : 1)]
 
+        A number field example.::
+
+            sage: z = QQ['z'].0
+            sage: K.<w> = NumberField(z^3 + (z^2)/4 - (41/16)*z + 23/64);
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([16*x^2 - 29*y^2,16*y^2])
+            sage: f.all_rational_preimages([P(16*w^2 - 29,16)])
+            [(-w^2 + 21/16 : 1), (-w^2 - w + 33/16 : 1), (w + 1/2 : 1), (-w^2 - w +
+            25/16 : 1), (w^2 - 29/16 : 1), (w^2 - 21/16 : 1), (w^2 + w - 25/16 : 1),
+            (-w - 1/2 : 1), (w : 1), (-w : 1), (-w^2 + 29/16 : 1), (w^2 + w - 33/16
+            : 1)]
         """
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
-        if self.domain().base_ring() != QQ:
-            raise NotImplementedError("Must be QQ")
+        if self.domain().base_ring() not in NumberFields():
+            raise TypeError("Field won't return finite list of elements")
 
         PS = self.domain()
         RPS = PS.base_ring()

@@ -74,6 +74,12 @@ class Posets(object):
         """
         if n is None:
             return sage.categories.posets.Posets()
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
         return FinitePosets_n(n)
 
     @staticmethod
@@ -86,6 +92,16 @@ class Posets(object):
             sage: Posets.BooleanLattice(5)
             Finite lattice containing 32 elements
         """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
+        if n==0:
+            return LatticePoset( ([0], []) )
+        if n==1:
+            return LatticePoset( ([0,1], [[0,1]]) )
         return LatticePoset([[Integer(x|(1<<y)) for y in range(0,n) if x&(1<<y)==0] for
             x in range(0,2**n)])
 
@@ -120,6 +136,12 @@ class Posets(object):
             sage: C.cover_relations()
             [[0, 1]]
         """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
         return LatticePoset((range(n), [[x,x+1] for x in range(n-1)]))
 
     @staticmethod
@@ -152,12 +174,25 @@ class Posets(object):
             sage: C.cover_relations()
             []
         """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
         return Poset((range(n), []))
 
     @staticmethod
-    def PentagonPoset(facade = False):
+    def PentagonPoset(facade = None):
         """
-        Returns the "pentagon poset".
+        Returns the Pentagon poset.
+
+        INPUT:
+
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`). The
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor).
 
         EXAMPLES::
 
@@ -166,8 +201,13 @@ class Posets(object):
             sage: P.cover_relations()
             [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
 
-        This lattice and the diamond poset on 5 elements are the two
-        smallest lattices which are not distributive::
+        This is smallest lattice that is not modular::
+
+            sage: P.is_modular()
+            False
+
+        This poset and the :meth:`DiamondPoset` are the two smallest
+        lattices which are not distributive::
 
             sage: P.is_distributive()
             False
@@ -179,22 +219,34 @@ class Posets(object):
         return p
 
     @staticmethod
-    def DiamondPoset(n, facade = False):
+    def DiamondPoset(n, facade = None):
         """
-        Returns the lattice of rank two containing ``n`` elements.
+        Return the lattice of rank two containing ``n`` elements.
+
+        INPUT:
+
+        - ``n`` - number of vertices, an integer at least 3.
+
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`). The
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor).
 
         EXAMPLES::
 
             sage: Posets.DiamondPoset(7)
             Finite lattice containing 7 elements
         """
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n <= 2:
+            raise ValueError("n must be an integer at least 3")
         c = [[n-1] for x in range(n)]
         c[0] = [x for x in range(1,n-1)]
         c[n-1] = []
-        if n > 2:
-            return LatticePoset(c, facade = facade)
-        else:
-            return Poset(c, facade = facade)
+        return LatticePoset(c, facade = facade)
 
     @staticmethod
     def IntegerCompositions(n):

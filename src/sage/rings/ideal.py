@@ -761,7 +761,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.primary_decomposition()
             Traceback (most recent call last):
@@ -801,7 +801,7 @@ class Ideal_generic(MonoidElement):
         Note that this method is not implemented for all rings where it
         could be::
 
-            sage: R = ZZ[x]
+            sage: R.<x> = ZZ[]
             sage: I = R.ideal(7)
             sage: I.is_prime()        # when implemented, should be True
             Traceback (most recent call last):
@@ -834,7 +834,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.associated_primes()
             Traceback (most recent call last):
@@ -849,7 +849,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.minimal_associated_primes()
             Traceback (most recent call last):
@@ -895,7 +895,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(2,x)
             sage: I.is_principal()
             Traceback (most recent call last):

@@ -18,7 +18,7 @@ import sage.misc.pager
 
 import sage.misc.sageinspect as sageinspect
 
-from sage.misc.preparser import preparse
+from sage.repl.preparse import preparse
 
 ######################################################################
 # Initialization

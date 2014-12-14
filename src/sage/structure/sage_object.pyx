@@ -901,19 +901,19 @@ def load(*filename, compress=True, verbose=True):
         hello world
         [None, None, 2/3]
     """
-    import sage.misc.preparser
+    import sage.repl.load
     if len(filename) != 1:
         v = [load(file, compress=True, verbose=True) for file in filename]
         ret = False
         for file in filename:
-            if not sage.misc.preparser.is_loadable_filename(file):
+            if not sage.repl.load.is_loadable_filename(file):
                 ret = True
         return v if ret else None
     else:
         filename = filename[0]
 
-    if sage.misc.preparser.is_loadable_filename(filename):
-        sage.misc.preparser.load(filename, globals())
+    if sage.repl.load.is_loadable_filename(filename):
+        sage.repl.load.load(filename, globals())
         return
 
     ## Check if filename starts with "http://" or "https://"
@@ -1343,7 +1343,7 @@ def picklejar(obj, dir=None):
     Test an unaccessible directory::
 
         sage: import os
-        sage: os.chmod(dir, 0000)
+        sage: os.chmod(dir, 0o000)
         sage: try:
         ...   uid = os.getuid()
         ... except AttributeError:
@@ -1354,7 +1354,7 @@ def picklejar(obj, dir=None):
         Traceback (most recent call last):
         ...
         OSError: ...
-        sage: os.chmod(dir, 0755)
+        sage: os.chmod(dir, 0o755)
     """
     if dir is None:
         dir = os.environ['SAGE_ROOT'] + '/tmp/pickle_jar/'
@@ -1415,8 +1415,8 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     ::
 
         sage: sage.structure.sage_object.unpickle_all()  # (4s on sage.math, 2011)
-        doctest:... DeprecationWarning: This class is replaced by Matrix_modn_dense_float/Matrix_modn_dense_double.
-        See http://trac.sagemath.org/4260 for details.
+        doctest:... DeprecationWarning: ...
+        See http://trac.sagemath.org/... for details.
         Successfully unpickled ... objects.
         Failed to unpickle 0 objects.
 

@@ -176,9 +176,9 @@ def rotate_arbitrary(v, double theta):
 
         sage: rotate_arbitrary((1,2,3), -1).det()
         1.0000000000000002
-        sage: rotate_arbitrary((1,1,1), 2*pi/3) * vector(RDF, (1,2,3))  # rel tol 1e-15
+        sage: rotate_arbitrary((1,1,1), 2*pi/3) * vector(RDF, (1,2,3))  # rel tol 2e-15
         (1.9999999999999996, 2.9999999999999996, 0.9999999999999999)
-        sage: rotate_arbitrary((1,2,3), 5) * vector(RDF, (1,2,3))  # rel tol 1e-15
+        sage: rotate_arbitrary((1,2,3), 5) * vector(RDF, (1,2,3))  # rel tol 2e-15
         (1.0000000000000002, 2.0, 3.000000000000001)
         sage: rotate_arbitrary((1,1,1), pi/7)^7  # rel tol 2e-15
         [-0.33333333333333337   0.6666666666666671   0.6666666666666665]

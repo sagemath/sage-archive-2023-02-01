@@ -57,7 +57,7 @@ In contrast, input to the ``%time`` magic command is preparsed::
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
-import sage.misc.preparser as preparser
+from sage.repl.load import load_wrap
 
 from sage.env import SAGE_IMPORTALL, SAGE_STARTUP_FILE
 
@@ -107,7 +107,7 @@ class SageMagics(Magics):
             sage: shell.run_cell('a')
             2
         """
-        return self.shell.ex(preparser.load_wrap(s, attach=False))
+        return self.shell.ex(load_wrap(s, attach=False))
 
     @line_magic
     def attach(self, s):
@@ -147,7 +147,7 @@ class SageMagics(Magics):
             []
             sage: os.remove(tmp)
         """
-        return self.shell.ex(preparser.load_wrap(s, attach=True))
+        return self.shell.ex(load_wrap(s, attach=True))
 
     @line_magic
     def iload(self, args):

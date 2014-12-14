@@ -132,11 +132,9 @@ class FiniteGroups(CategoryWithAxiom):
             if connecting_set is None:
                 connecting_set = self.gens()
             else:
-                try:
-                    for g in connecting_set:
-                        assert g in self
-                except AssertionError:
-                    raise RuntimeError("Each element of the connecting set must be in the group!")
+                for g in connecting_set:
+                    if not g in self:
+                        raise RuntimeError("Each element of the connecting set must be in the group!")
                 connecting_set = [self(g) for g in connecting_set]
             from sage.graphs.all import DiGraph
             arrows = {}

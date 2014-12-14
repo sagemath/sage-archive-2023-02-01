@@ -27,7 +27,7 @@ AUTHORS:
 import re, sys
 import doctest
 import collections
-from sage.misc.preparser import preparse, strip_string_literals
+from sage.repl.preparse import preparse, strip_string_literals
 from functools import reduce
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')

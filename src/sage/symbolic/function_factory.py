@@ -1,5 +1,5 @@
 r"""
-Symbolic functions
+Factory for symbolic functions
 """
 
 ###############################################################################

@@ -326,7 +326,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         mpz_init(tmp_m)
         mpz_invert(tmp_m, mpq_denref(x), self.prime_pow.pow_mpz_t_top())
         mpz_mul(tmp_m, tmp_m, mpq_numref(x))
-        mpz_mod(tmp_m, tmp_m, &self.prime_pow.pow_mpz_t_top()[0])
+        mpz_mod(tmp_m, tmp_m, self.prime_pow.pow_mpz_t_top())
         mpz_to_ZZ(&tmp_z, tmp_m)
         ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp_z))
         mpz_clear(tmp_m)
@@ -371,7 +371,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         self.prime_pow.restore_top_context()
         ZZX_to_ZZ_pX(self.value, poly)
 
-    cpdef bint _is_inexact_zero(self):
+    cpdef bint _is_inexact_zero(self) except -1:
         """
         Tests if ``self`` is an inexact zero.
 

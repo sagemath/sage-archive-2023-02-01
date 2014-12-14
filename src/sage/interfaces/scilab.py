@@ -205,15 +205,16 @@ class Scilab(Expect):
           122.
           505.
     """
-    def __init__(self, maxread=100, script_subdirectory="",
+    def __init__(self, maxread=100, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
         """
         Initializes the Scilab class.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.interfaces.scilab import Scilab
-            sage: sci_obj = Scilab(script_subdirectory='user')  # optional - scilab
-            sage: del sci_obj                                   # optional - scilab
+            sage: sci_obj = Scilab()
+            sage: del sci_obj
         """
         Expect.__init__(self,
                         name = 'scilab',
@@ -459,7 +460,7 @@ class ScilabElement(ExpectElement):
         P.eval('%s(%s,%s) = %s'%(self.name(), i, j, z.name()))
 
 # An instance
-scilab = Scilab(script_subdirectory='user')
+scilab = Scilab()
 
 
 

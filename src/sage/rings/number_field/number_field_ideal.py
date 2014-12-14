@@ -290,15 +290,15 @@ class NumberFieldIdeal(Ideal_generic):
             # this can only occur with cmp(,)
             return cmp(type(self), type(other))
         if self.parent()!=other.parent():
-            # again, this can only occur if cmp(,)
-            # is called
+            # again, this can only occur if cmp(,) is called
             if self==other:
                 return 0
-            c = cmp(self.pari_hnf(), other.pari_hnf())
-            if c: return c
-            return cmp(self.parent(),other.parent())
+            return (cmp(self.pari_hnf(), other.pari_hnf()) or
+                    cmp(self.parent(),other.parent()))
+
         # We can now assume that both have the same parent,
         # even if originally cmp(,) was called.
+
         return cmp(self.pari_hnf(), other.pari_hnf())
 
     def _mul_(self, other):

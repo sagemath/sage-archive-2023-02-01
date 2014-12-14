@@ -40,6 +40,7 @@ common_gap_functions = [
   'BaseOfGroup',
   'Basis',
   'BasisVectors',
+  'Bell', 
   'Binomial',
   'BlockMatrix',
   'Blocks',

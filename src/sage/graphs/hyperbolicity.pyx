@@ -508,7 +508,7 @@ cdef inline distances_and_far_apart_pairs(gg,
 
 
 ######################################################################
-# Compute the hyperbolicity using a path decreasing length ordering
+# Compute the hyperbolicity using a the algorithm of [CCL12]_
 ######################################################################
 
 cdef tuple __hyperbolicity__(int N,
@@ -524,6 +524,8 @@ cdef tuple __hyperbolicity__(int N,
 
     This method implements the exact and the approximate algorithms proposed in
     [CCL12]_. See the module's documentation for more details.
+
+    This method assumes that the graph under consideration is connected.
 
     INPUTS:
 
@@ -676,7 +678,7 @@ cdef tuple __hyperbolicity__(int N,
     cdef unsigned short * dist_b
     h = h_LB
     h_UB = D
-    cdef int STOP = 0
+    cdef int GOTO_RETURN = 0
 
     # S1 = l1+l2
     # l1 = dist(a,b)
@@ -690,17 +692,16 @@ cdef tuple __hyperbolicity__(int N,
             if verbose:
                 print "New upper bound:",ZZ(h_UB)/2
 
-            # Termination if required approximation is found
-            if certificate and ( (h_UB <= h*approximation_factor) or (h_UB-h <= additive_gap) ):
-                STOP = 2
-                break
+        # Termination if required approximation is found
+        if certificate and ( (h_UB <= h*approximation_factor) or (h_UB-h <= additive_gap) ):
+            break
 
         # If we cannot improve further, we stop
         #
         # See the module's documentation for a proof that this cut is
         # valid. Remember that the triples are sorted in a specific order.
         if h_UB <= h:
-            STOP = 1
+            h_UB = h
             break
 
         pairs_of_length_l1 = pairs_of_length[l1]
@@ -746,19 +747,19 @@ cdef tuple __hyperbolicity__(int N,
 
                         # If we cannot improve further, we stop
                         if l2 <= h:
-                            STOP = 1
+                            GOTO_RETURN = 1
                             h_UB = h
                             break
 
                         # Termination if required approximation is found
                         if (h_UB <= h*approximation_factor) or (h_UB-h <= additive_gap):
-                            STOP = 2
+                            GOTO_RETURN = 1
                             break
 
-            if STOP:
+            if GOTO_RETURN:
                 break
 
-        if STOP:
+        if GOTO_RETURN:
             break
 
     # We now free the memory
@@ -771,7 +772,7 @@ cdef tuple __hyperbolicity__(int N,
         return ( -1, [], h_UB )
     else:
         # When using far-apart pairs, the loops may end
-        return (h, certificate, h_UB if STOP==2 else h)
+        return (h, certificate, h_UB)
 
 def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=None, verbose = False):
     r"""

@@ -791,7 +791,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
 
     INPUT:
 
-    - ``G`` -- a Graph
+    - ``G`` -- a connected Graph
 
     - ``algorithm`` -- (default: ``'cuts'``) specifies the algorithm to use
       among:
@@ -987,147 +987,133 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         # Any set of 4 vertices is a valid certificate
         return 0, G.vertices()[:4], 0
 
+
+    cdef int i, j, hh, hh_UB, D
+    cdef list certificate = []
+    cdef list certif
+
+    cdef int N = G.num_verts()
+    cdef int hyp = 0
+    cdef int hyp_UB = N
+
+    # The hyperbolicity of a graph is the maximum over its 2-connected
+    # components.
+    B,_ = G.blocks_and_cut_vertices()
+    if len(B)>1:
+
+        if verbose:
+            # we compute the distribution of size of the blocks
+            L = [len(V) for V in B]
+            print "Graph with %d blocks" %(len(B))
+            print "Blocks size distribution:", {x:L.count(x) for x in L}
+
+        for V in B:
+
+            # The hyperbolicity of a graph with 3 vertices is 0, and a graph
+            # cannot have hyperbolicity larger than N/2. So we consider only
+            # larger 2-connected subgraphs.
+            if len(V) > max( 3, 2*hyp):
+
+                hh, certif, hh_UB = hyperbolicity(_my_subgraph(G, V), algorithm=algorithm,
+                                                  approximation_factor=approximation_factor,
+                                                  additive_gap=additive_gap, verbose=verbose)
+
+                # We test if the new computed value improves upon previous value.
+                if hh > hyp or (hh==hyp and not certificate):
+                    hyp = hh
+                    hyp_UB = hh_UB
+                    certificate = certif
+
+        # Last, we return the computed value and the certificate
+        return  ZZ(hyp)/2, sorted(certificate), ZZ(hyp_UB)/2
+
+
+    #
+    # Now the graph is 2-connected, has at least 4 vertices and is not a clique.
+    #
+
     cdef unsigned short * _distances_
     cdef unsigned short ** distances
     cdef unsigned short * _far_apart_pairs_
     cdef unsigned short ** far_apart_pairs
-    cdef int i, j, N, hyp, hyp_UB, hh, hh_UB, D
-    cdef dict distr = {}
-    cdef list certificate = []
-    cdef list certif
-    cdef dict mymap, myinvmap
 
-    # We search for the largest 2-connected component. Indeed, the hyperbolicity
-    # of a graph is the maximum over its 2-connected components.
-    B,C = G.blocks_and_cut_vertices()
+    # We compute the distances and store the results in a 2D array
+    distances = <unsigned short **>sage_malloc(sizeof(unsigned short *)*N)
+    if distances == NULL:
+        sage_free(_distances_)
+        raise MemoryError("Unable to allocate array 'distances'.")
 
-    if verbose:
-        # we compute the distribution of size of the blocks
-        for V in B:
-            i = len(V)
-            if i in distr:
-                distr[ i ] += 1
-            else:
-                distr[ i ] = 1
-        print "Graph with %d blocks" %(len(B))
-        print "Blocks size distribution:", distr
-
-    hyp = 0
-    for V in B:
-
-        # The hyperbolicity of a graph with 3 vertices is 0, and a graph cannot
-        # have hyperbolicity larger than N/2. So we consider only larger
-        # 2-connected subgraphs.
-        if len(V) > max( 3, 2*hyp) :
-
-            # We build the subgraph and we relabel the vertices to ensure
-            # integer vertex names in the range [0..N-1] since the distance
-            # computation methods use integer labels in the range [0..N-1].
-            H, mymap = _my_subgraph(G, V, relabel=True, return_map=True)
-            N = H.num_verts()
-
-            # We test if the block belongs to a graph class with known
-            # hyperbolicity and a fast test.
-            if H.is_clique():
-                continue
-
-            # We compute the distances and store the results in a 2D array, and
-            # the diameter
-            distances = <unsigned short **>sage_malloc(sizeof(unsigned short *)*N)
-            if distances == NULL:
-                sage_free(_distances_)
-                raise MemoryError("Unable to allocate array 'distances'.")
-
-            if algorithm=='cuts+':
-                _distances_       = <unsigned short *> sage_malloc(N * N * sizeof(unsigned short))
-                _far_apart_pairs_ = <unsigned short *> sage_malloc(N * N * sizeof(unsigned short))
-                far_apart_pairs   = <unsigned short **>sage_malloc(N * sizeof(unsigned short *))
-                if _distances_ == NULL or _far_apart_pairs_ == NULL or far_apart_pairs == NULL:
-                    sage_free(_distances_)
-                    sage_free(distances)
-                    sage_free(_far_apart_pairs_)
-                    sage_free(far_apart_pairs)
-                    raise MemoryError("Unable to allocate array '_distances_' or '_far_apart_pairs_'.")
-
-                distances_and_far_apart_pairs(H, _distances_, _far_apart_pairs_)
-
-                for 0 <= i < N:
-                    far_apart_pairs[i] = _far_apart_pairs_ + i*N
-
-            else:
-                _distances_ = c_distances_all_pairs(H)
-                _far_apart_pairs_ = NULL
-                far_apart_pairs = NULL
-
-            D = 0
-            for 0 <= i < N:
-                distances[i] = _distances_+i*N
-                for 0 <= j < N:
-                    if distances[i][j] > D:
-                        D = distances[i][j]
-
-            # The hyperbolicity of a graph is upper bounded by diameter/2.
-            if D <= 2*hyp:
-                sage_free(_distances_)
-                sage_free(distances)
-                sage_free(_far_apart_pairs_)
-                sage_free(far_apart_pairs)
-                continue
-
-            # We call the cython function for computing the hyperbolicity with
-            # the required parameters.
-            if algorithm in ['cuts', 'cuts+']:
-                sig_on()
-                hh, certif, hh_UB = __hyperbolicity__(N, distances, far_apart_pairs, D, hyp,
-                                                      approximation_factor, 2*additive_gap, verbose)
-                sig_off()
-                hh_UB = min( hh_UB, D)
-
-            elif algorithm == 'dom':
-                # Computes a dominating set DOM of H, and computes the
-                # hyperbolicity considering only vertices in DOM
-                DOM = _greedy_dominating_set(H, verbose=verbose)
-                # We need at least 4 vertices
-                while len(DOM)<4:
-                    DOM.append(H.random_vertex())
-                # We set null distances to vertices outside DOM. This way these
-                # vertices will not be considered anymore.
-                for i from 0 <= i < N:
-                    if not i in DOM:
-                        for j from 0 <= j < N:
-                            distances[i][j] = 0
-                            distances[j][i] = 0
-                sig_on()
-                hh, certif, hh_UB = __hyperbolicity__(N, distances, NULL, D, hyp, 1.0, 0.0, verbose)
-                sig_off()
-                hh_UB = min( hh+8, D)
-
-            elif algorithm in ['basic', 'basic+']:
-                sig_on()
-                hh, certif = __hyperbolicity_basic_algorithm__(N,
-                                                               distances,
-                                                               use_bounds=(algorithm=='basic+'),
-                                                               verbose=verbose)
-                sig_off()
-                hh_UB = hh
-
-            # We test if the new computed value improves upon previous value.
-            if hh > hyp or (hh==hyp and not certificate):
-                hyp = hh
-                hyp_UB = hh_UB
-
-                # We construct the inverse mapping of the relabeling of the
-                # vertices of the subgraph
-                myinvmap = dict([(mymap[x],x) for x in mymap])
-
-                # We then construct the correct certificate
-                certificate = [myinvmap[u] for u in certif]
-
-            # We now release the memory
-            sage_free(distances)
+    if algorithm=='cuts+':
+        _distances_       = <unsigned short *> sage_malloc(N * N * sizeof(unsigned short))
+        _far_apart_pairs_ = <unsigned short *> sage_malloc(N * N * sizeof(unsigned short))
+        far_apart_pairs   = <unsigned short **>sage_malloc(N * sizeof(unsigned short *))
+        if _distances_ == NULL or _far_apart_pairs_ == NULL or far_apart_pairs == NULL:
             sage_free(_distances_)
+            sage_free(distances)
             sage_free(_far_apart_pairs_)
             sage_free(far_apart_pairs)
+            raise MemoryError("Unable to allocate array '_distances_' or '_far_apart_pairs_'.")
+
+        distances_and_far_apart_pairs(G, _distances_, _far_apart_pairs_)
+
+        for 0 <= i < N:
+            far_apart_pairs[i] = _far_apart_pairs_ + i*N
+
+    else:
+        _distances_ = c_distances_all_pairs(G)
+        _far_apart_pairs_ = NULL
+        far_apart_pairs = NULL
+
+    D = 0
+    for 0 <= i < N:
+        distances[i] = _distances_+i*N
+        for i < j < N:
+            if distances[i][j] > D:
+                D = distances[i][j]
+
+
+    # We call the cython function for computing the hyperbolicity with the
+    # required parameters.
+    if algorithm in ['cuts', 'cuts+']:
+        sig_on()
+        hyp, certificate, hyp_UB = __hyperbolicity__(N, distances, far_apart_pairs, D, hyp,
+                                                     approximation_factor, 2*additive_gap, verbose)
+        sig_off()
+
+    elif algorithm == 'dom':
+        # Computes a dominating set DOM of G, and computes the hyperbolicity
+        # considering only vertices in DOM
+        DOM = _greedy_dominating_set(G, verbose=verbose)
+        # We need at least 4 vertices
+        while len(DOM)<4:
+            DOM.append(G.random_vertex())
+        # We set null distances to vertices outside DOM. This way these
+        # vertices will not be considered anymore.
+        for i from 0 <= i < N:
+            if not i in DOM:
+                for j from 0 <= j < N:
+                    distances[i][j] = 0
+                    distances[j][i] = 0
+        sig_on()
+        hyp, certificate, hyp_UB = __hyperbolicity__(N, distances, NULL, D, hyp, 1.0, 0.0, verbose)
+        sig_off()
+        hyp_UB = min( hyp+8, D)
+
+    elif algorithm in ['basic', 'basic+']:
+        sig_on()
+        hyp, certificate = __hyperbolicity_basic_algorithm__(N,
+                                                             distances,
+                                                             use_bounds=(algorithm=='basic+'),
+                                                             verbose=verbose)
+        sig_off()
+        hyp_UB = hyp
+
+
+    # We now release the memory
+    sage_free(distances)
+    sage_free(_distances_)
+    sage_free(_far_apart_pairs_)
+    sage_free(far_apart_pairs)
 
     # Last, we return the computed value and the certificate
     return  ZZ(hyp)/2, sorted(certificate), ZZ(hyp_UB)/2

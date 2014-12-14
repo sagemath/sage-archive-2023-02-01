@@ -524,6 +524,12 @@ class UnsignedInfinityRing_class(_uniq, Ring):
 
             sage: sage.rings.infinity.UnsignedInfinityRing_class() is sage.rings.infinity.UnsignedInfinityRing_class() is UnsignedInfinityRing
             True
+        
+        Sage can understand SymPy's complex infinity (:trac:`17493`)::
+        
+            sage: import sympy
+            sage: SR(sympy.zoo)
+            Infinity
         """
         ParentWithGens.__init__(self, self, names=('oo',), normalize=False)
 

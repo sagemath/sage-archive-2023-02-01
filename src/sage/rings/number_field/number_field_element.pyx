@@ -2206,6 +2206,19 @@ cdef class NumberFieldElement(FieldElement):
             0.3319890295845093?*I
             sage: SR(a^5+3*a)
             I
+
+        Conversely, some elements are too complicated to be written in
+        terms of radicals directly. In those cases, the generator
+        might be converted and its expression be used to convert other
+        elements. This can lead to fairly complicated expressions::
+
+            sage: K.<a> = NumberField(QQ['x']([6, -65, 163, -185, 81, -15, 1]), embedding=4.9)
+            sage: b = a + a^3
+            sage: SR(b.minpoly()).solve(SR('x'), explicit_solutions=True)
+            []
+            sage: SR(b)
+            1/8*((sqrt(4*(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) - 4/3/(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) + 17) + 5)^2 + 4)*(sqrt(4*(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) - 4/3/(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) + 17) + 5)
+
         """
         K = self._parent.fraction_field()
 
@@ -2224,7 +2237,13 @@ cdef class NumberFieldElement(FieldElement):
         else:
             # Convert the embedding to an embedding into AA or QQbar
             embedding = number_field.refine_embedding(embedding, infinity)
-            return SR(embedding(self).radical_expression())
+            a = embedding(self).radical_expression()
+            if a.parent() == SR:
+                return a
+            b = embedding.im_gens()[0].radical_expression()
+            if b.parent() == SR:
+                return self.polynomial()(b)
+            return SR(a)
 
     def galois_conjugates(self, K):
         r"""

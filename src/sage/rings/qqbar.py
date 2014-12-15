@@ -3939,8 +3939,51 @@ class AlgebraicNumber(AlgebraicNumber_base):
             -1
             sage: cmp(QQbar(0), x)
             1
+
+        One problem with this lexicographic search is the fact that if
+        two algebraic numbers have the same real component, that real
+        component has to be compared for exact equality, which can be
+        a costly operation.  For the special case where both numbers
+        have the same minimal polynomial, that cost can be avoided,
+        though (see :trac:`16964`)::
+
+            sage: R.<x> = QQ[]
+            sage: p = (69721504*x^8 + 251777664*x^6 + 329532012*x^4 + 184429548*x^2 + 37344321)
+            sage: r1 = QQbar.polynomial_root(p, CIF(RIF(-0.1,0),RIF(1,1.1)))
+            sage: r2 = QQbar.polynomial_root(p, CIF(RIF(-0.1,0),RIF(-1.1,-1)))
+            sage: r = [r1, r2]; r.sort(); r
+            [-0.0221204634374360? - 1.090991904211621?*I,
+             -0.0221204634374360? + 1.090991904211621?*I]
         """
         if self is other: return 0
+        ri1 = self._value.real()
+        ri2 = other._value.real()
+        if not ri1.overlaps(ri2):
+            return cmp(ri1, ri2)
+        if self.minpoly() == other.minpoly():
+            # Very likely the roots only differ in their imaginary component.
+            ri = ri1.union(ri2)
+            roots = self.minpoly().roots(QQbar, False)
+            roots = [r for r in roots if r._value.real().overlaps(ri)]
+            if len(roots) == 1:
+                # There is only a single (real) root matching both descriptors
+                # so they both must be that root and therefore equal.
+                return 0
+            if (len(roots) == 2 and
+                not roots[0]._value.imag().contains_zero()):
+                # There is a complex conjugate pair of roots matching both
+                # descriptors, so compare by imaginary value
+                ii1 = self._value.imag()
+                while ii1.contains_zero():
+                    self._more_precision()
+                    ii1 = self._value.imag()
+                ii2 = other._value.imag()
+                while ii2.contains_zero():
+                    other._more_precision()
+                    ii2 = other._value.imag()
+                if ii1.overlaps(ii2):
+                    return 0
+                return cmp(ii1, ii2)
         rcmp = cmp(self.real(), other.real())
         if rcmp != 0:
             return rcmp

@@ -7374,7 +7374,8 @@ class NumberField_absolute(NumberField_generic):
             return Sequence([], immutable=True, check=False, universe=self.Hom(K))
 
         f = self.defining_polynomial()
-        r = f.roots(K, False); r.sort()
+        r = f.roots(K, multiplicities=False)
+        r.sort()
         v = [self.hom([e], check=False) for e in r]
         # If there is an embedding that preserves variable names
         # then it is most natural, so we put it first.
@@ -10130,6 +10131,11 @@ def refine_embedding(e, prec=None):
           From: Number Field in a with defining polynomial x^3 + x - 1
           To:   Real Field with 100 bits of precision
           Defn: a |--> 0.68232780382801932736948373971
+        sage: refine_embedding(K.specified_complex_embedding(), Infinity)
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^3 + x - 1
+          To:   Algebraic Real Field
+          Defn: a |--> 0.6823278038280193?
     """
     K = e.domain()
     RC = e.codomain()

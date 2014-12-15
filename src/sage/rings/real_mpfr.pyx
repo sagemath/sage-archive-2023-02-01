@@ -4991,23 +4991,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
         return x
 
-    def lngamma(self):
-        r"""
-        This method is deprecated, please use :meth:`.log_gamma` instead.
-
-        See the :meth:`.log_gamma` method for documentation and examples.
-
-        EXAMPLES::
-
-            sage: RR(6).lngamma()
-            doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
-            See http://trac.sagemath.org/6992 for details.
-            4.78749174278205
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
-        return self.log_gamma()
-
     def log_gamma(self):
         """
         Return the logarithm of gamma of ``self``.

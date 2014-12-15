@@ -1031,26 +1031,6 @@ class EllipticPi(MaximaFunction):
 
 elliptic_pi = EllipticPi()
 
-
-def lngamma(t):
-    r"""
-    This method is deprecated, please use
-    :meth:`~sage.functions.other.log_gamma` instead.
-
-    See the :meth:`~sage.functions.other.log_gamma` function for '
-    documentation and examples.
-
-    EXAMPLES::
-
-        sage: lngamma(RR(6))
-        doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
-        See http://trac.sagemath.org/6992 for details.
-        4.78749174278205
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
-    return log_gamma(t)
-
 def error_fcn(t):
     r"""
     The complementary error function

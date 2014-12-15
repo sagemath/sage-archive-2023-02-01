@@ -7430,23 +7430,6 @@ cdef class Expression(CommutativeRingElement):
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
 
-    def lgamma(self, hold=False):
-        """
-        This method is deprecated, please use the ``.log_gamma()`` function instead.
-
-        Log gamma function evaluated at self.
-
-        EXAMPLES::
-
-            sage: x.lgamma()
-            doctest:...: DeprecationWarning: The lgamma() function is deprecated. Use log_gamma() instead.
-            See http://trac.sagemath.org/6992 for details.
-            log_gamma(x)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6992, "The lgamma() function is deprecated. Use log_gamma() instead.")
-        return self.log_gamma(hold=hold)
-
     def log_gamma(self, hold=False):
         """
         Return the log gamma function evaluated at self.

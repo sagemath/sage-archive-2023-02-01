@@ -957,7 +957,7 @@ please install it and try again."""
 
 
 class APngAssembler(object):
-    """
+    r"""
     Builds an APNG_ (Animated PNG) from a sequence of PNG files.
     This is used by the :meth:`sage.plot.animate.Animation.apng` method.
 
@@ -1007,7 +1007,7 @@ class APngAssembler(object):
 
     def __init__(self, out, num_frames,
                  num_plays=0, delay=200, delay_denominator=100):
-        """
+        r"""
         Initialize for creation of an APNG file.
         """
         self._last_seqno = -1
@@ -1040,54 +1040,15 @@ class APngAssembler(object):
 
             sage: from sage.plot.animate import APngAssembler
             sage: from StringIO import StringIO
-            sage: def h2b(h):
-            ....:     b = []
-            ....:     while h:
-            ....:         if h[0] in ' \n': # ignore whitespace
-            ....:             h = h[1:]
-            ....:         elif h[0] in '0123456789abcdef': # hex byte
-            ....:             b.append(int(h[:2], 16))
-            ....:             h = h[2:]
-            ....:         elif h[0] == '.': # for chunk type
-            ....:             b.extend(ord(h[i]) for i in range(1,5))
-            ....:             h = h[5:]
-            ....:         else: # for PNG magic
-            ....:             b.append(ord(h[0]))
-            ....:             h = h[1:]
-            ....:     return ''.join(map(chr,b))
-            ....:
-            sage: fn = tmp_filename(ext='.png')
             sage: buf = StringIO()
             sage: apng = APngAssembler(buf, 2)
-            sage: with open(fn, 'wb') as f: f.write(h2b('89 PNG 0d0a1a0a'
-            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
-            ....: '00000004.gAMA 000186a0 31e8965f'
-            ....: '00000007.tIME 07de061b0b2624 1f307ad5'
-            ....: '00000008.IDAT 696d673164617461 ce8a4999'
-            ....: '00000000.IEND ae426082'))
+            sage: fn = APngAssembler._testData("input1", True)
             sage: apng.add_frame(fn, delay=0x567, delay_denominator=0x1234)
-            sage: with open(fn, 'wb') as f: f.write(h2b('89 PNG 0d0a1a0a'
-            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
-            ....: '00000004.gAMA 000186a0 31e8965f'
-            ....: '00000004.IDAT 696d6732 0e69ab1d'
-            ....: '00000004.IDAT 64617461 6694cb78'
-            ....: '00000000.IEND ae426082'))
+            sage: fn = APngAssembler._testData("input2", True)
             sage: apng.add_frame(fn)
             sage: len(buf.getvalue())
             217
-            sage: expected = h2b('89 PNG 0d0a1a0a'
-            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
-            ....: '00000004.gAMA 000186a0 31e8965f'
-            ....: '00000008.acTL 0000000200000000 f38d9370'
-            ....: '0000001a.fcTL 000000000000000300000002'
-            ....: '              0000000000000000056712340100 b4f729c9'
-            ....: '00000008.IDAT 696d673164617461 ce8a4999'
-            ....: '0000001a.fcTL 000000010000000300000002'
-            ....: '              000000000000000000c800640100 1b92eb4d'
-            ....: '00000008.fdAT 00000002696d6732 9cfb89a3'
-            ....: '00000008.fdAT 0000000364617461 c966c076'
-            ....: '00000000.IEND ae426082')
-            sage: buf.getvalue() == expected
+            sage: buf.getvalue() == APngAssembler._testData("anim12", False)
             True
             sage: apng.add_frame(fn)
             Traceback (most recent call last):
@@ -1129,58 +1090,21 @@ class APngAssembler(object):
 
             sage: from sage.plot.animate import APngAssembler
             sage: from StringIO import StringIO
-            sage: def h2b(h):
-            ....:     b = []
-            ....:     while h:
-            ....:         if h[0] in ' \n': # ignore whitespace
-            ....:             h = h[1:]
-            ....:         elif h[0] in '0123456789abcdef': # hex byte
-            ....:             b.append(int(h[:2], 16))
-            ....:             h = h[2:]
-            ....:         elif h[0] == '.': # for chunk type
-            ....:             b.extend(ord(h[i]) for i in range(1,5))
-            ....:             h = h[5:]
-            ....:         else: # for PNG magic
-            ....:             b.append(ord(h[0]))
-            ....:             h = h[1:]
-            ....:     return ''.join(map(chr,b))
-            ....:
-            sage: fn = tmp_filename(ext='.png')
             sage: buf = StringIO()
             sage: apng = APngAssembler(buf, 1)
-            sage: with open(fn, 'wb') as f: f.write(h2b('89 PNG 0d0a1a0a'
-            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
-            ....: '00000004.gAMA 000186a0 31e8965f'
-            ....: '00000007.tIME 07de061b0b2624 1f307ad5'
-            ....: '00000008.IDAT 696d673164617461 ce8a4999'
-            ....: '00000000.IEND ae426082'))
+            sage: fn = APngAssembler._testData("input1", True)
             sage: apng.set_default(fn)
-            sage: with open(fn, 'wb') as f: f.write(h2b('89 PNG 0d0a1a0a'
-            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
-            ....: '00000004.gAMA 000186a0 31e8965f'
-            ....: '00000004.IDAT 696d6732 0e69ab1d'
-            ....: '00000004.IDAT 64617461 6694cb78'
-            ....: '00000000.IEND ae426082'))
+            sage: fn = APngAssembler._testData("input2", True)
             sage: apng.add_frame(fn, delay=0x567, delay_denominator=0x1234)
             sage: len(buf.getvalue())
             179
-            sage: expected = h2b('89 PNG 0d0a1a0a'
-            ....: '0000000d.IHDR 00000003000000020800000000 b81f39c6'
-            ....: '00000004.gAMA 000186a0 31e8965f'
-            ....: '00000008.acTL 0000000100000000 b42de9a0'
-            ....: '00000008.IDAT 696d673164617461 ce8a4999'
-            ....: '0000001a.fcTL 000000000000000300000002'
-            ....: '              0000000000000000056712340100 b4f729c9'
-            ....: '00000008.fdAT 00000001696d6732 db5bf373'
-            ....: '00000008.fdAT 0000000264617461 f406e9c6'
-            ....: '00000000.IEND ae426082')
-            sage: buf.getvalue() == expected
+            sage: buf.getvalue() == APngAssembler._testData("still1anim2", False)
             True
             sage: apng.add_frame(fn)
             Traceback (most recent call last):
             ...
             RuntimeError: Already reached the declared number of frames
-            
+
         """
         if self._idx != 0:
             raise RuntimeError("Default image must precede all animation frames")
@@ -1189,7 +1113,36 @@ class APngAssembler(object):
         self._add_png(pngfile)
 
     def _add_png(self, pngfile):
-        """Add data from one PNG still image."""
+        r"""
+        Add data from one PNG still image.
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: APngAssembler._testCase1("_add_png", reads=False)
+            enter _add_png('...png')
+              write _current_chunk = ('\x00\x00\x00\r', 'IHDR', '\x00\x00\x00\x03\x00\x00\x00\x02\x08\x00\x00\x00\x00', '\xb8\x1f9\xc6')
+              call _copy() -> None
+              call _first_IHDR('\x00\x00\x00\x03\x00\x00\x00\x02\x08\x00\x00\x00\x00') -> None
+              write _current_chunk = ('\x00\x00\x00\x04', 'gAMA', '\x00\x01\x86\xa0', '1\xe8\x96_')
+              call _copy() -> None
+              write _current_chunk = ('\x00\x00\x00\x07', 'tIME', '\x07\xde\x06\x1b\x0b&$', '\x1f0z\xd5')
+              write _current_chunk = ('\x00\x00\x00\x08', 'IDAT', 'img1data', '\xce\x8aI\x99')
+              call _first_IDAT('img1data') -> None
+              write _current_chunk = ('\x00\x00\x00\x00', 'IEND', '', '\xaeB`\x82')
+              write _first = False
+            exit _add_png -> None
+            enter _add_png('...png')
+              write _current_chunk = ('\x00\x00\x00\r', 'IHDR', '\x00\x00\x00\x03\x00\x00\x00\x02\x08\x00\x00\x00\x00', '\xb8\x1f9\xc6')
+              write _current_chunk = ('\x00\x00\x00\x04', 'gAMA', '\x00\x01\x86\xa0', '1\xe8\x96_')
+              write _current_chunk = ('\x00\x00\x00\x04', 'IDAT', 'img2', '\x0ei\xab\x1d')
+              call _next_IDAT('img2') -> None
+              write _current_chunk = ('\x00\x00\x00\x04', 'IDAT', 'data', 'f\x94\xcbx')
+              call _next_IDAT('data') -> None
+              write _current_chunk = ('\x00\x00\x00\x00', 'IEND', '', '\xaeB`\x82')
+              write _first = False
+            exit _add_png -> None
+        """
         with open(pngfile, 'rb') as png:
             if png.read(8) != self.magic:
                 raise ValueError("{} is not a PNG file".format(pngfile))
@@ -1220,24 +1173,79 @@ class APngAssembler(object):
         self._first = False
 
     def _seqno(self):
-        """Generate next sequence number."""
+        r"""
+        Generate next sequence number.
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: from StringIO import StringIO
+            sage: buf = StringIO()
+            sage: apng = APngAssembler(buf, 1)
+            sage: apng._seqno()
+            '\x00\x00\x00\x00'
+            sage: apng._seqno()
+            '\x00\x00\x00\x01'
+            sage: apng._seqno()
+            '\x00\x00\x00\x02'
+        """
         self._last_seqno += 1
         return struct.pack(">L", self._last_seqno)
 
     def _first_IHDR(self, data):
-        """Remember image size."""
+        r"""
+        Remember image size.
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: APngAssembler._testCase1("_first_IHDR")
+            enter _first_IHDR('\x00\x00\x00\x03\x00\x00\x00\x02\x08\x00\x00\x00\x00')
+              write width = 3
+              write height = 2
+            exit _first_IHDR -> None
+        """
         w, h, d, ctype, comp, filt, ilace = struct.unpack(">2L5B", data)
         self.width = w
         self.height = h
 
     def _first_IDAT(self, data):
-        """Write acTL and fcTL, then copy as IDAT."""
+        r"""
+        Write acTL and fcTL, then copy as IDAT.
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: APngAssembler._testCase1("_first_IDAT")
+            enter _first_IDAT('img1data')
+              call _actl() -> None
+              call _fctl() -> None
+              call _copy() -> None
+            exit _first_IDAT -> None
+        """
         self._actl()
         self._fctl()
         self._copy()
 
     def _next_IDAT(self, data):
-        """write fcTL, then convert to fdAT."""
+        r"""
+        Write fcTL, then convert to fdAT.
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: APngAssembler._testCase1("_next_IDAT")
+            enter _next_IDAT('img2')
+              call _fctl() -> None
+              call _seqno() -> '\x00\x00\x00\x02'
+              call _chunk('fdAT', '\x00\x00\x00\x02img2') -> None
+            exit _next_IDAT -> None
+            enter _next_IDAT('data')
+              call _fctl() -> None
+              call _seqno() -> '\x00\x00\x00\x03'
+              call _chunk('fdAT', '\x00\x00\x00\x03data') -> None
+            exit _next_IDAT -> None
+        """
         self._fctl()
         maxlen = 0x7ffffffb
         while len(data) > maxlen:
@@ -1246,12 +1254,46 @@ class APngAssembler(object):
         self._chunk(b"fdAT", self._seqno() + data)
 
     def _copy(self):
-        """Copy an existing chunk without modification."""
+        r"""
+        Copy an existing chunk without modification.
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: APngAssembler._testCase1("_copy")
+            enter _copy()
+              read _current_chunk = ('\x00\x00\x00\r', 'IHDR', '\x00\x00\x00\x03\x00\x00\x00\x02\x08\x00\x00\x00\x00', '\xb8\x1f9\xc6')
+              read out = <StringIO.StringIO instance at ...
+              read out = <StringIO.StringIO instance at ...
+              read out = <StringIO.StringIO instance at ...
+              read out = <StringIO.StringIO instance at ...
+            exit _copy -> None
+            enter _copy()
+              read _current_chunk = ('\x00\x00\x00\x04', 'gAMA', '\x00\x01\x86\xa0', '1\xe8\x96_')
+            ...
+              read _current_chunk = ('\x00\x00\x00\x08', 'IDAT', 'img1data', '\xce\x8aI\x99')
+            ...
+            exit _copy -> None
+        """
         for d in self._current_chunk:
             self.out.write(d)
 
     def _actl(self):
-        """Write animation control data (acTL)."""
+        r"""
+        Write animation control data (acTL).
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: APngAssembler._testCase1("_actl")
+            enter _actl()
+              read _actl_written = False
+              read num_frames = 2
+              read num_plays = 0
+              call _chunk('acTL', '\x00\x00\x00\x02\x00\x00\x00\x00') -> None
+              write _actl_written = True
+            exit _actl -> None
+        """
         if self._actl_written:
             return
         data = struct.pack(">2L", self.num_frames, self.num_plays)
@@ -1259,7 +1301,37 @@ class APngAssembler(object):
         self._actl_written = True
 
     def _fctl(self):
-        """Write frame control data (fcTL)."""
+        r"""
+        Write frame control data (fcTL).
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: APngAssembler._testCase1("_fctl")
+            enter _fctl()
+              read _fctl_written = False
+              read width = 3
+              read height = 2
+              read delay_numerator = 1383
+              read delay_denominator = 4660
+              call _seqno() -> '\x00\x00\x00\x00'
+              call _chunk('fcTL', '\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x05g\x124\x01\x00') -> None
+              write _fctl_written = True
+            exit _fctl -> None
+            enter _fctl()
+              read _fctl_written = False
+              read width = 3
+              read height = 2
+              read delay_numerator = 200
+              read delay_denominator = 100
+              call _seqno() -> '\x00\x00\x00\x01'
+              call _chunk('fcTL', '\x00\x00\x00\x01\x00\x00\x00\x03\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\xc8\x00d\x01\x00') -> None
+              write _fctl_written = True
+            exit _fctl -> None
+            enter _fctl()
+              read _fctl_written = True
+            exit _fctl -> None
+        """
         if self._fctl_written:
             return
         data = struct.pack(
@@ -1271,8 +1343,163 @@ class APngAssembler(object):
         self._fctl_written = True
 
     def _chunk(self, ctype, cdata):
-        """Write a new (or modified) chunk of data"""
+        r"""
+        Write a new (or modified) chunk of data
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: from StringIO import StringIO
+            sage: buf = StringIO()
+            sage: apng = APngAssembler(buf, 1)
+            sage: buf.getvalue()
+            '\x89PNG\r\n\x1a\n'
+            sage: apng._chunk("abcd", "efgh")
+            sage: buf.getvalue()
+            '\x89PNG\r\n\x1a\n\x00\x00\x00\x04abcdefgh\xae\xef*P'
+        """
         ccrc = struct.pack(">L", zlib.crc32(ctype + cdata) & 0xffffffff)
         clen = struct.pack(">L", len(cdata))
         for d in [clen, ctype, cdata, ccrc]:
             self.out.write(d)
+
+    @classmethod
+    def _hex2bin(cls, h):
+        r"""
+        Convert hex data to binary.
+
+        This is a helper method used for testing.
+        Most data is given as lower-case hex digits,
+        possibly intermixed with whitespace.
+        A dot causes the next four bytes to be copied verbatim
+        even if they look like hex digits. This is used for chunk types.
+        Other characters which are not hex digits are passed verbatim.
+
+        EXAMPLE::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: h2b = APngAssembler._hex2bin
+            sage: h2b("0123") == b"\x01\x23"
+            True
+            sage: h2b(" 01 \n 23 ") == b"\x01\x23"
+            True
+            sage: h2b(".abcdef") == b"abcd\xef"
+            True
+            sage: h2b("PNG") == b"PNG"
+            True
+        """
+        b = []
+        while h:
+            if h[0] in ' \n': # ignore whitespace
+                h = h[1:]
+            elif h[0] in '0123456789abcdef': # hex byte
+                b.append(int(h[:2], 16))
+                h = h[2:]
+            elif h[0] == '.': # for chunk type
+                b.extend(ord(h[i]) for i in range(1,5))
+                h = h[5:]
+            else: # for PNG magic
+                b.append(ord(h[0]))
+                h = h[1:]
+        return ''.join(map(chr,b))
+
+    @classmethod
+    def _testData(cls, name, asFile):
+        r"""
+        Retrieve data for test cases.
+
+        INPUT:
+
+        - ``name``: The name of the file content.
+
+        - ``asFile``: Whether to return a binary string of the named data
+                      or the path of a file containing that data.
+
+        EXAMPLE::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: APngAssembler._testData("input1", False)
+            '\x89PNG\r\n\x1a\n\x00...'
+            sage: APngAssembler._testData("input2", True)
+            '...png'
+        """
+        data = {
+
+            # Input 1: one PNG image, except the data makes no real sense
+            "input1": """89 PNG 0d0a1a0a
+            0000000d.IHDR 00000003000000020800000000 b81f39c6
+            00000004.gAMA 000186a0 31e8965f
+            00000007.tIME 07de061b0b2624 1f307ad5
+            00000008.IDAT 696d673164617461 ce8a4999
+            00000000.IEND ae426082""",
+
+            # Input 2: slightly different, data in two chunks
+            "input2": """89 PNG 0d0a1a0a
+            0000000d.IHDR 00000003000000020800000000 b81f39c6
+            00000004.gAMA 000186a0 31e8965f
+            00000004.IDAT 696d6732 0e69ab1d
+            00000004.IDAT 64617461 6694cb78
+            00000000.IEND ae426082""",
+
+            # Expected output 1: both images as frames of an animation
+            "anim12": """89 PNG 0d0a1a0a
+            0000000d.IHDR 00000003000000020800000000 b81f39c6
+            00000004.gAMA 000186a0 31e8965f
+            00000008.acTL 0000000200000000 f38d9370
+            0000001a.fcTL 000000000000000300000002
+                          0000000000000000056712340100 b4f729c9
+            00000008.IDAT 696d673164617461 ce8a4999
+            0000001a.fcTL 000000010000000300000002
+                          000000000000000000c800640100 1b92eb4d
+            00000008.fdAT 00000002696d6732 9cfb89a3
+            00000008.fdAT 0000000364617461 c966c076
+            00000000.IEND ae426082""",
+
+            # Expected output 2: first image as fallback, second as animation
+            "still1anim2": """89 PNG 0d0a1a0a
+            0000000d.IHDR 00000003000000020800000000 b81f39c6
+            00000004.gAMA 000186a0 31e8965f
+            00000008.acTL 0000000100000000 b42de9a0
+            00000008.IDAT 696d673164617461 ce8a4999
+            0000001a.fcTL 000000000000000300000002
+                          0000000000000000056712340100 b4f729c9
+            00000008.fdAT 00000001696d6732 db5bf373
+            00000008.fdAT 0000000264617461 f406e9c6
+            00000000.IEND ae426082""",
+
+        }
+        d = cls._hex2bin(data[name])
+        if asFile:
+            from sage.misc.temporary_file import tmp_filename
+            fn = tmp_filename(ext=".png")
+            with open(fn, 'wb') as f:
+                f.write(d)
+            return fn
+        return d
+
+    @classmethod
+    def _testCase1(cls, methodToTrace=None, **kwds):
+        r"""
+        Run common test case.
+
+        This test case is one animation of two frames.
+        The named method (if not None) will be traced during execution.
+        This will demonstrate the role of each method in the doctests.
+
+        TESTS::
+
+            sage: from sage.plot.animate import APngAssembler
+            sage: APngAssembler._testCase1()
+        """
+        from sage.doctest.fixtures import trace_method
+        from StringIO import StringIO
+        buf = StringIO()
+        apng = cls(buf, 2)
+        if methodToTrace is not None:
+            trace_method(apng, methodToTrace, **kwds)
+        apng.add_frame(cls._testData("input1", True),
+                       delay=0x567, delay_denominator=0x1234)
+        apng.add_frame(cls._testData("input2", True))
+        out = buf.getvalue()
+        assert len(out) == 217
+        assert out == cls._testData("anim12", False)

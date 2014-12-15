@@ -778,7 +778,17 @@ class Polynomial_generic_sparse(Polynomial):
                 algorithm = "pseudo-division"
         if algorithm=="dense":
             S = self.parent()
-            D = PolynomialRing(S.base_ring(),'x',sparse=False)
+            # FLINT is faster but a bug makes the conversion extremely slow,
+            # so NTL is used in those cases where the conversion is too slow. Cf
+            # <https://groups.google.com/d/msg/sage-devel/6qhW90dgd1k/Hoq3N7fWe4QJ>
+            sd = self.degree()
+            od = other.degree()
+            if max(sd,od)<100 or \
+               min(len(self.__coeffs)/sd, len(other.__coeffs)/od)>.06:
+                implementation="FLINT"
+            else:
+                implementation="NTL"
+            D = PolynomialRing(S.base_ring(),'x',implementation=implementation)
             g = D(self).gcd(D(other))
             return S(g)
         if algorithm=="fraction_field":

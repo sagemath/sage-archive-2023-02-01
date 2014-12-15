@@ -42,17 +42,14 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2011 Benjamin Jones <benjaminfjones@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from __future__ import division
 
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
@@ -175,9 +172,15 @@ class Function_exp_integral_e(BuiltinFunction):
             exp_integral_e(1.00000000000000, x)
             sage: exp_integral_e(x, 1.0)
             exp_integral_e(x, 1.00000000000000)
-            sage: exp_integral_e(1.0, 1.0)
-            0.219383934395520
+            sage: exp_integral_e(3, 0)
+            1/2
 
+        TESTS:
+
+        Check that Python ints work (:trac:`14766`)::
+
+            sage: exp_integral_e(int(3), 0)
+            0.5
         """
         z_zero = False
         # special case: z == 0 and n > 1
@@ -212,6 +215,8 @@ class Function_exp_integral_e(BuiltinFunction):
         """
         EXAMPLES::
 
+            sage: exp_integral_e(1.0, 1.0)
+            0.219383934395520
             sage: N(exp_integral_e(1, 1+I))
             0.000281624451981418 - 0.179324535039359*I
             sage: exp_integral_e(1, RealField(100)(1))

@@ -2945,7 +2945,7 @@ class DiGraph(GenericGraph):
             sage: D.topological_sort()
             Traceback (most recent call last):
             ...
-            TypeError: Digraph is not acyclic-- there is no topological
+            TypeError: Digraph is not acyclic; there is no topological
             sort.
 
         .. note::
@@ -2979,7 +2979,7 @@ class DiGraph(GenericGraph):
             if b:
                 return ordering
             else:
-                raise TypeError('Digraph is not acyclic-- there is no topological sort.')
+                raise TypeError('Digraph is not acyclic; there is no topological sort.')
 
         elif implementation == "NetworkX" or implementation == "recursive":
             import networkx
@@ -2988,7 +2988,7 @@ class DiGraph(GenericGraph):
             else:
                 S = networkx.topological_sort_recursive(self.networkx_graph(copy=False))
             if S is None:
-                raise TypeError('Digraph is not acyclic-- there is no topological sort.')
+                raise TypeError('Digraph is not acyclic; there is no topological sort.')
             else:
                 return S
 
@@ -3038,7 +3038,7 @@ class DiGraph(GenericGraph):
         try:
             return LinearExtensions(self).list()
         except TypeError:
-            raise TypeError('Digraph is not acyclic-- there is no topological sort (or there was an error in sage/graphs/linearextensions.py).')
+            raise TypeError('Digraph is not acyclic; there is no topological sort (or there was an error in sage/graphs/linearextensions.py).')
 
     ### Visualization
 

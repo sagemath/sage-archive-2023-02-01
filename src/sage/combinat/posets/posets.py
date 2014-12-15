@@ -487,6 +487,13 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         Traceback (most recent call last):
         ...
         ValueError: element_labels should be a dict or a list if different from None. (Did you intend data to be equal to a pair ?)
+
+    Another kind of bad input, digraphs with oriented cycles::
+
+        sage: Poset(DiGraph([[1,2],[2,3],[3,4],[4,1]]))
+        Traceback (most recent call last):
+        ...
+        ValueError: The graph is not directed acyclic
     """
     # Avoiding some errors from the user when data should be a pair
     if (element_labels is not None and
@@ -549,7 +556,8 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
     # Determine cover relations, if necessary.
     if cover_relations is False:
-        D = D.transitive_reduction()
+        from sage.graphs.generic_graph_pyx import transitive_reduction_acyclic
+        D = transitive_reduction_acyclic(D)
 
     # Check that the digraph does not contain loops, multiple edges
     # and is transitively reduced.

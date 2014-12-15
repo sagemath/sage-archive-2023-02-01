@@ -8,6 +8,23 @@ FAQ: Using Sage
 How do I get started?
 """""""""""""""""""""
 
+You can try out Sage without downloading anything using
+SageMathCloud™. Go to http://cloud.sagemath.org and set up a free
+account. If you log in, you will access to the latest version of Sage
+and to many other software.
+
+There is also a "once-off" version of Sage called the Sage cell server,
+available for doing one computation at a time at http://sagecell.sagemath.org/
+
+A final possibility is to go to a public Sage notebook server and
+set up a free account.   If you log in, you will be working on a free Sage
+notebook server that will work identically to the one you get with
+Sage.  The server http://sagenb.org is one such, though it runs an older
+version of Sage and is scheduled to be retired in the future in favor of
+the SageMathCloud.
+
+To download a pre-built binary Sage distribution, visit the page
+
 You can try out Sage without downloading anything. Go to
 http://www.sagenb.org and set up a free account. If you log in, you
 will be working on a free Sage notebook server that will work
@@ -17,16 +34,17 @@ http://www.sagemath.org/download.html and click on the link for the
 binary for your operating system. The source code of Sage is also
 available for you to download and use. Go to
 http://www.sagemath.org/download-source.html to download the tar
-archive for any release of Sage. Previous releases of Sage are
-available at http://www.sagemath.org/src-old.
+archive for any release of Sage.
 
-The Sage notebook runs within a web browser. You can run Sage in a
-browser that is not the system default. To do so, issue the following
-command ::
 
-    env SAGE_BROWSER=opera /usr/bin/sage -notebook
+The Sage notebook runs within a web browser. To start the notebook,
+issue the following command in a terminal, if ``sage`` is in your ``PATH`` ::
 
-either from the command prompt or as a menu command for Sage.
+    sage -notebook
+
+You can also run it from the command line of sage::
+
+    sage: notebook()
 
 
 What are Sage's prerequisites?
@@ -366,22 +384,6 @@ of the data storage area of the worksheet. To save the object
 and to reload it, you would just do ::
 
     my_stuff = load(DATA + "my_stuff")
-
-
-I get an error from jsMath or the math symbols don't look right when displaying in the notebook.
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-If you see the error ::
-
-    It looks like jsMath failed to set up properly (error code -7). I will try to keep going, but it could get ugly.
-
-you have not installed the TeX fonts which help jsMath render
-beautiful typeset mathematics. To get the nice TeX display with
-jsMath, please download a set of fonts from here from
-http://www.math.union.edu/~dpvc/jsMath/download/jsMath-fonts.html.
-If you are on Linux/Unix, ignore the instructions on the page and just
-unzip the fonts into your ``~/.fonts`` directory. You can also install
-the ``jsmath-fonts`` package.
 
 
 Does Sage contain a function similar to Mathematica's ToCharacterCode[]?

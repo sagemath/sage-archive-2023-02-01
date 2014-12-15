@@ -207,79 +207,17 @@ lines of new Python and Cython code. See
 for source code analysis of the latest stable Sage release.
 
 
-Who uses Sage?
-""""""""""""""
-
-The following is an incomplete list of institutions and projects that
-use Sage. If any institution or project is missing, please let us know
-by reporting to the
-`sage-devel <http://groups.google.com/group/sage-devel>`_
-mailing list.
-
-#. `California Institute of Technology <http://www.caltech.edu>`_,
-   Pasadena, California, USA
-#. `California Polytechnic State University <http://www.calpoly.edu>`_,
-   San Luis Obispo, CA, USA
-#. `Chang Gung University <http://www.cgu.edu.tw>`_,
-   Taiwan
-#. `Chapman University <http://www.chapman.edu>`_,
-   Orange, CA, USA
-#. `Clemson University <http://www.clemson.edu>`_,
-   Clemson, South Carolina, USA
-#. `Drake University <http://www.drake.edu>`_,
-   Des Moines, IA, USA
-#. `FEMhub <http://www.femhub.org>`_,
-   an open source distribution of scientific computing code enhanced
-   with a unified Python interface. The FEMhub Notebook is based on
-   the Sage Notebook.
-#. `Gordon College <http://www.gordon.edu>`_,
-   Wenham, MA, USA
-#. `Korea Advanced Institute of Science and Technology <http://www.kaist.edu>`_,
-   Daejeon, Korea
-#. `Mendel University in Brno <http://www.mendelu.cz>`_,
-   Czech Republic
-#. `Reykjavik University <http://www.ru.is>`_,
-   Iceland
-#. `Universidad Autónoma de Madrid <http://www.uam.es>`_,
-   Spain
-#. `Universidad de la República <http://www.universidad.edu.uy>`_,
-   Montevideo, Uruguay
-#. `Universitat Politècnica de Catalunya <http://www.upc.edu>`_,
-   Barcelona, Catalonia, Spain
-#. `Université Claude Bernard Lyon 1 <http://www.univ-lyon1.fr>`_,
-   France
-#. `Université de Provence <http://www.univ-mrs.fr>`_,
-   Marseille, France
-#. `Universiteit Leiden <http://www.leidenuniv.nl>`_,
-   The Netherlands
-#. `University of Canterbury <http://www.canterbury.ac.nz>`_,
-   Christchurch, New Zealand
-#. `University of Minnesota Duluth <http://www.d.umn.edu>`_,
-   Duluth, MN, USA
-#. `University of Nevada, Reno <http://www.unr.edu>`_,
-   Reno, NV, USA
-#. `University of Puget Sound <http://www.pugetsound.edu>`_,
-   Tacoma, WA, USA
-#. `University of Washington <http://www.washington.edu>`_,
-   Seattle, Washington, USA
-#. `University of Wisconsin, Oshkosh <http://www.uwosh.edu>`_,
-   Oshkosh, WI, USA
-#. `US Naval Academy <http://www.usna.edu>`_,
-   Annapolis, Maryland, USA
-
-
 How do I get help?
 """"""""""""""""""
 
-Sage has two very active email lists:
+For support about usage of Sage, there are two options:
+* The question-and-answer website `ask.sagemath.org <http://ask.sagemath.org/questions/>`_
+* The email list `sage-support <http://groups.google.com/group/sage-support>`_
 
-* ``sage-devel``: http://groups.google.com/group/sage-devel
-* ``sage-support``: http://groups.google.com/group/sage-support
+For support about development of Sage, there is an email list
+`sage-devel <http://groups.google.com/group/sage-devel>`_
 
-There is also a very active IRC channels: ``#sage-devel`` on
-freenode. Many developers also actively blog and also post other
-Sage-related tutorials and talks. See
-http://www.sagemath.org/help.html for a listing of these resources.
+See http://www.sagemath.org/help.html for a listing of other resources.
 
 
 Wouldn't it be way better if Sage did not ship as a gigantic bundle?

@@ -7373,9 +7373,9 @@ class NumberField_absolute(NumberField_generic):
         if K.characteristic() != 0:
             return Sequence([], immutable=True, check=False, universe=self.Hom(K))
 
-        f = K['x'](self.defining_polynomial())
-        r = f.roots(); r.sort()
-        v = [self.hom([e[0]], check=False) for e in r]
+        f = self.defining_polynomial()
+        r = f.roots(K, False); r.sort()
+        v = [self.hom([e], check=False) for e in r]
         # If there is an embedding that preserves variable names
         # then it is most natural, so we put it first.
         put_natural_embedding_first(v)

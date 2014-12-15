@@ -995,6 +995,7 @@ cdef class Matrix(matrix1.Matrix):
           to check that ``self`` is a (0,1)-matrix.
 
         - ``algorithm`` - either "Ryser" or "ButeraPernici" (default)
+          or "Godsil";
           Ryser one might be faster on simple and small instances.
 
         OUTPUT:
@@ -1021,14 +1022,10 @@ cdef class Matrix(matrix1.Matrix):
         - Jaap Spies (2006-02-24)
         - Mario Pernici (2014-07-01)
         """
-        #TODO: do we need to forbid m <= n??
         m = self._nrows
         n = self._ncols
-        if not m <= n:
-            raise ValueError("must have m <= n, but m (=%s) and n (=%s)"
-                             % (m, n))
 
-        if check:
+        if check or algorithm == "Godsil":
             # verify that self[i, j] in {0, 1}
             for i in range(m):
                 for j in range(n):
@@ -1037,14 +1034,25 @@ cdef class Matrix(matrix1.Matrix):
                         raise ValueError("must have zero or one, but we have (=%s)" % x)
 
         if algorithm == "Ryser":
+            #TODO: do we need to forbid m <= n??
+            if not m <= n:
+                raise ValueError("must have m <= n, but m (=%s) and n (=%s)"
+                                 % (m, n))
             return [self.permanental_minor(k,algorithm="Ryser") for k in range(m+1)]
 
         elif algorithm == "ButeraPernici":
             p = permanental_minor_polynomial(self)
             return [p[k] for k in range(m+1)]
 
+        elif algorithm == "Godsil":
+            from sage.graphs.bipartite_graph import BipartiteGraph
+            g = BipartiteGraph(self)
+            p = g.matching_polynomial()
+            n = p.degree()
+            return [p[i]*(-1)**((n - i)/2) for i in range(n,-1,-2)]
+
         else:
-            raise ValueError("algorithm must be one of \"Ryser\" or \"ButeraPernici\".")
+            raise ValueError('algorithm must be one of "Ryser", "ButeraPernici" or "Godsil".')
 
     def minors(self, k):
         r"""

@@ -694,6 +694,7 @@ cdef tuple __hyperbolicity__(int N,
 
         # Termination if required approximation is found
         if certificate and ( (h_UB <= h*approximation_factor) or (h_UB-h <= additive_gap) ):
+            GOTO_RETURN = 1
             break
 
         # If we cannot improve further, we stop
@@ -1080,8 +1081,8 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
     # required parameters.
     if algorithm in ['cuts', 'cuts+']:
         sig_on()
-        hyp, certificate, hyp_UB = __hyperbolicity__(N, distances, far_apart_pairs, D, hyp,
-                                                     approximation_factor, 2*additive_gap, verbose)
+        hyp, certif, hyp_UB = __hyperbolicity__(N, distances, far_apart_pairs, D, hyp,
+                                                approximation_factor, 2*additive_gap, verbose)
         sig_off()
 
     elif algorithm == 'dom':
@@ -1091,24 +1092,26 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
         # We need at least 4 vertices
         while len(DOM)<4:
             DOM.add(G.random_vertex())
+        # We map the dominating set to [0..N-1]
+        map = dict( (v,i) for i,v in enumerate(G.vertices()) )
+        DOM_int = set( map[v] for v in DOM )
         # We set null distances to vertices outside DOM. This way these
         # vertices will not be considered anymore.
         for i from 0 <= i < N:
-            if not i in DOM:
+            if not i in DOM_int:
                 for j from 0 <= j < N:
                     distances[i][j] = 0
                     distances[j][i] = 0
         sig_on()
-        hyp, certificate, hyp_UB = __hyperbolicity__(N, distances, NULL, D, hyp, 1.0, 0.0, verbose)
+        hyp, certif, hyp_UB = __hyperbolicity__(N, distances, NULL, D, hyp, 1.0, 0.0, verbose)
         sig_off()
         hyp_UB = min( hyp+8, D)
 
     elif algorithm in ['basic', 'basic+']:
         sig_on()
-        hyp, certificate = __hyperbolicity_basic_algorithm__(N,
-                                                             distances,
-                                                             use_bounds=(algorithm=='basic+'),
-                                                             verbose=verbose)
+        hyp, certif = __hyperbolicity_basic_algorithm__(N, distances,
+                                                        use_bounds=(algorithm=='basic+'),
+                                                        verbose=verbose)
         sig_off()
         hyp_UB = hyp
 
@@ -1118,6 +1121,10 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
     sage_free(_distances_)
     sage_free(_far_apart_pairs_)
     sage_free(far_apart_pairs)
+
+    # Map the certificate 'certif' with the corresponding vertices in the graph
+    V = G.vertices()
+    certificate = [V[i] for i in certif]
 
     # Last, we return the computed value and the certificate
     return  ZZ(hyp)/2, sorted(certificate), ZZ(hyp_UB)/2

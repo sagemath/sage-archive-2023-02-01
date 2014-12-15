@@ -552,17 +552,6 @@ tracking the issue at
 so stay tuned.
 
 
-I am using Mac OS X. Where do I put the jsMath "font" directory to eliminate the red box?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-See http://www.math.union.edu/~dpvc/jsMath/download/jsMath-fonts.html
-where it says::
-
-    For Mac OS X users: download and unpack the archive, then drag
-    the fonts to your Library/Fonts folder (or to the FontBook, or
-    just double-click them and press the "install" button).
-
-
 The show command for plotting 3-D objects does not work.
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -737,3 +726,18 @@ It is because of how functions are defined in Sage with the
 make this mistake inside of an ``if`` statement, you will get a
 ``SyntaxError`` before anything else goes wrong. So in this case,
 there is no problem.
+
+
+How do I use a different browser with the Sage notebook?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+You will need to do this from the command line.  Just run a command like this.
+
+* Linux (assuming you have Sage in ``/usr/bin``)::
+
+    env SAGE_BROWSER=opera /usr/bin/sage -notebook
+
+* Mac (assuming you are in the directory of your downloaded Sage)::
+
+    SAGE_BROWSER='open -a Firefox' ./sage -notebook
+    SAGE_BROWSER='open -a Google\ Chrome' ./sage -notebook

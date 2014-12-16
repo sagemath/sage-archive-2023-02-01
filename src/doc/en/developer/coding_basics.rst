@@ -230,7 +230,7 @@ information. You can use the existing functions of Sage as templates.
    the function. This is not optional.
 
    The INPUT block describes all arguments that the function accepts,
-   and the OUTPUT section describes what it returns.
+   and the OUTPUT section describes its expected output.
 
    1. The type names should be descriptive, but do not have to represent
       the exact Sage/Python types. For example, use "integer" for
@@ -311,7 +311,7 @@ information. You can use the existing functions of Sage as templates.
        .. NOTE::
 
            You should note that this sentence is indented at least 4
-           spaces.
+           spaces. Never use tabulations.
 
 - A **WARNING** block for critical information about your code (optional).
 
@@ -342,7 +342,8 @@ information. You can use the existing functions of Sage as templates.
 
 - A **REFERENCES** block to list related books or papers (optional)
 
-  It should cite the books/research papers relevant to the code, e.g. the source of the algorithm that it implement. ::
+  It should cite the books/research papers relevant to the code, e.g. the source
+  of the algorithm that it implements. ::
 
       This docstring is referencing [SC]_. Just remember that references
       are global, so we can also reference to [Nat2000]_ in the ALGORITHM
@@ -352,23 +353,19 @@ information. You can use the existing functions of Sage as templates.
       REFERENCES:
 
       .. [SC] Conventions for coding in sage.
-      http://www.sagemath.org/doc/developer/conventions.html.
+        http://www.sagemath.org/doc/developer/conventions.html.
 
-  1. The Sphinx/ReST markup for citations:
-     http://sphinx.pocoo.org/rest.html#citations.
-
-  2. Sage-pecific markup for links to sage trac tickets and Wikipedia:
-     :ref:`chapter-sage_manuals_links`
+  See the `Sphinx/ReST markup for citations <http://sphinx.pocoo.org/rest.html#citations>`_. For links toward trac tickets or wikipedia, see :ref:`chapter-sage_manuals_links`.
 
 - A **TESTS** block (optional)
 
-  Formatted just like EXAMPLES, it contains the tests that are not relevant to users
+  Formatted just like EXAMPLES, containing tests that are not relevant to users.
 
 Template
---------
+^^^^^^^^
 
 Use the following template when documenting functions. Note the
-indentation
+indentation:
 
 .. skip    # do not doctest
 
@@ -453,6 +450,9 @@ You are strongly encouraged to:
   adaptability of Sage. Without such examples, small changes to one part
   of Sage that break something else might not go seen until much later
   when someone uses the system, which is unacceptable.
+
+Private functions
+^^^^^^^^^^^^^^^^^
 
 Functions whose names start with an underscore are considered
 private. They do not appear in the reference manual, and their docstring

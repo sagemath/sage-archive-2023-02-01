@@ -3287,8 +3287,8 @@ class Polyhedron_base(Element):
 
         - `f` -- a linear form (as a tuple, list or vector)
 
-	- ``increasing`` -- boolean (default ``False``) wether to orient 
-	  edges in the increasing direction instead.
+	- ``increasing`` -- boolean (default ``False``) whether to orient 
+          edges in the increasing direction instead.
 
         By default, an edge is oriented from `v` to `w` if `f(v-w) > 0`.
 
@@ -3304,8 +3304,8 @@ class Polyhedron_base(Element):
         """
         from sage.graphs.digraph import DiGraph
         dg = DiGraph()
-	if increasing:
-	    f = -vector(f)
+        if increasing:
+            f = -vector(f)
         for j in range(self.n_vertices()):
             vj = self.Vrepresentation(j)
             for vi in vj.neighbors():

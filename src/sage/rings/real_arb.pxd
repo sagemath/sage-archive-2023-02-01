@@ -10,8 +10,8 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision
 cdef class RealBallField_class(Parent):
     cdef unsigned long precision
 
-cdef class RealBallElement(Element):
+cdef class RealBall(Element):
     cdef arb_t value
-    cdef RealBallElement _new(self)
     cpdef RealIntervalFieldElement RealIntervalFieldElement(self)
-    cpdef RealBallElement psi(self)
+    cdef RealBall _new(self)
+    cpdef RealBall psi(self)

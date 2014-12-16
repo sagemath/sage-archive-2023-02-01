@@ -148,7 +148,7 @@ cdef class RealBallField_class(Parent):
         sage: R1 is R2 # optional - arb
         False
     """
-    Element = RealBallElement
+    Element = RealBall
 
     def __init__(self, unsigned long precision=53):
         r"""
@@ -208,7 +208,7 @@ cdef class RealBallField_class(Parent):
 
     def _element_constructor_(self, *args, **kwds):
         r"""
-        Construct a :class:`RealBallElement`.
+        Construct a :class:`RealBall`.
 
         EXAMPLES::
 
@@ -224,7 +224,7 @@ cdef class RealBallField_class(Parent):
 
 
 
-cdef class RealBallElement(Element):
+cdef class RealBall(Element):
     """
     Hold one ``arb_t`` of the `Arb library
     <http://fredrikj.net/arb/>`_
@@ -314,7 +314,7 @@ cdef class RealBallElement(Element):
             ...
             TypeError: value must be None or a RealIntervalFieldElement.
         """
-        super(RealBallElement, self).__init__(parent)
+        super(RealBall, self).__init__(parent)
 
         if value is None:
             return
@@ -331,12 +331,12 @@ cdef class RealBallElement(Element):
                     (<RealIntervalFieldElement> value).value,
                     (<RealBallField_class> self._parent).precision)
 
-    cdef RealBallElement _new(self):
+    cdef RealBall _new(self):
         """
         Return a new real ball element with parent ``self``.
         """
-        cdef RealBallElement x
-        x = PY_NEW(RealBallElement)
+        cdef RealBall x
+        x = PY_NEW(RealBall)
         x._parent = self._parent
         return x
 
@@ -413,7 +413,7 @@ cdef class RealBallElement(Element):
 
         return result
 
-    cpdef RealBallElement psi(self):
+    cpdef RealBall psi(self):
         """
         Compute the digamma function with argument self.
 
@@ -423,7 +423,7 @@ cdef class RealBallElement(Element):
 
         OUTPUT:
 
-        An :class:`RealBallElement`.
+        An :class:`RealBall`.
 
         EXAMPLES::
 
@@ -433,7 +433,7 @@ cdef class RealBallElement(Element):
             -0.577215664901533?
         """
 
-        cdef RealBallElement result
+        cdef RealBall result
 
         result = self._new()
 

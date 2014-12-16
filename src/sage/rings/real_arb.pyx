@@ -286,15 +286,15 @@ cdef class RealBall(Element):
         """
         arb_clear(self.value)
 
-    def __init__(self, RealBallField_class parent, value=None):
+    def __init__(self, RealBallField_class parent, x=None):
         """
-        Initialize the :class:`RealBall` using ``value``.
+        Initialize the :class:`RealBall` using ``x``.
 
         INPUT:
 
         - ``parent`` -- a :class:`RealBallField`.
 
-        - ``value`` -- (default: ``None``) ``None`` or a
+        - ``x`` -- (default: ``None``) ``None`` or a
           :class:`RealIntervalFieldElement`.
 
 
@@ -312,23 +312,23 @@ cdef class RealBall(Element):
             sage: RealBallField()(x)                          # optional - arb
             Traceback (most recent call last):
             ...
-            TypeError: value must be None or a RealIntervalFieldElement.
+            TypeError: x must be None or a RealIntervalFieldElement.
         """
         super(RealBall, self).__init__(parent)
 
-        if value is None:
+        if x is None:
             return
 
-        if not isinstance(value, RealIntervalFieldElement):
+        if not isinstance(x, RealIntervalFieldElement):
             try:
-                value = RealIntervalField(
-                    (<RealBallField_class> self._parent).precision)(value)
+                x = RealIntervalField(
+                    (<RealBallField_class> self._parent).precision)(x)
             except TypeError:
-                raise TypeError("value must be None or a "
+                raise TypeError("x must be None or a "
                             "RealIntervalFieldElement.")
 
         mpfi_to_arb(self.value,
-                    (<RealIntervalFieldElement> value).value,
+                    (<RealIntervalFieldElement> x).value,
                     (<RealBallField_class> self._parent).precision)
 
     cdef RealBall _new(self):

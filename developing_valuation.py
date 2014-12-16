@@ -766,7 +766,8 @@ class DevelopingValuation(DiscreteValuation):
             elif m is infinity or m > max([self.constant_valuation()(c) for c in f.list()[:f.degree()+1]]):
                 f= self.domain()(f.list()[:f.degree()+1])
             else:
-                raise ValueError("f must not have leading zero coefficients")
+                print "WARNING: DROPPING LEADING ZEROS!"
+                #raise ValueError("f must not have leading zero coefficients")
 
         return f
 

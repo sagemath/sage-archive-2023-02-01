@@ -242,7 +242,7 @@ cdef class RealBall(Element):
         sage: from sage.rings.real_arb import RealBallField # optional - arb
         sage: a = RealBallField()(RIF(1))                     # optional - arb; indirect doctest
         sage: b = a.psi()                         # optional - arb
-        sage: b.RealIntervalFieldElement()        # optional - arb
+        sage: b._interval()        # optional - arb
         -0.577215664901533?
     """
 
@@ -384,7 +384,7 @@ cdef class RealBall(Element):
 
         return "%s +- %s" % (midpoint, radius)
 
-    cpdef RealIntervalFieldElement RealIntervalFieldElement(self):
+    cpdef RealIntervalFieldElement _interval(self):
         """
         Return :class:`RealIntervalFieldElement` of the same value.
 
@@ -400,7 +400,7 @@ cdef class RealBall(Element):
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
             sage: a = RealBallField()(RIF(2))                     # optional - arb
-            sage: a.RealIntervalFieldElement()        # optional - arb
+            sage: a._interval()        # optional - arb
             2
         """
 
@@ -429,7 +429,7 @@ cdef class RealBall(Element):
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
             sage: a = RealBallField()(RIF(1))                     # optional - arb
-            sage: a.psi().RealIntervalFieldElement()  # optional - arb
+            sage: a.psi()._interval()  # optional - arb
             -0.577215664901533?
         """
 

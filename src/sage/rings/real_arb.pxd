@@ -12,6 +12,6 @@ cdef class RealBallField_class(Parent):
 
 cdef class RealBall(Element):
     cdef arb_t value
-    cpdef RealIntervalFieldElement RealIntervalFieldElement(self)
     cdef RealBall _new(self)
+    cpdef RealIntervalFieldElement _interval(self)
     cpdef RealBall psi(self)

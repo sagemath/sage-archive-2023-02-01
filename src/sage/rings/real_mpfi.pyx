@@ -4718,7 +4718,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         except ImportError:
             raise TypeError("The optional arb package is not installed. "
                             "Consider installing it via 'sage -i arb'")
-        return RealBallField(self.precision())(self).psi().RealIntervalFieldElement()
+        return RealBallField(self.precision())(self).psi()._interval()
 
 # MPFI does not have: agm, erf, gamma, zeta
 #     def agm(self, other):

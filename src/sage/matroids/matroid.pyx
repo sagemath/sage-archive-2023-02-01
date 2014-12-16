@@ -2727,7 +2727,7 @@ cdef class Matroid(SageObject):
         from sage.combinat.posets.lattices import LatticePoset
         F = [X for i in range(self.rank() + 1)
              for X in self.flats(i)]
-        return LatticePoset((F, lambda x, y: x <= y))
+        return LatticePoset((F, lambda x, y: x < y))
 
     cpdef hyperplanes(self):
         """

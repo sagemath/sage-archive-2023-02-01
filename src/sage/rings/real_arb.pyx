@@ -288,7 +288,7 @@ cdef class RealBall(Element):
 
     def __init__(self, RealBallField_class parent, value=None):
         """
-        Initialize Arb using value.
+        Initialize the :class:`RealBall` using ``value``.
 
         INPUT:
 

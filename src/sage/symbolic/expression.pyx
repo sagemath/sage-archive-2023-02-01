@@ -8745,6 +8745,7 @@ cdef class Expression(CommutativeRingElement):
         influence upon future calls (a Maxima flag was set, and we have
         to ensure that its value has been restored)::
 
+            sage: f = log(x)+2*log(y)+1/2*log(t)
             sage: f.simplify_log('one')
             1/2*log(t) + log(x) + 2*log(y)
 

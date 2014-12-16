@@ -3290,7 +3290,10 @@ class Polyhedron_base(Element):
         - ``increasing`` -- boolean (default ``False``) whether to orient 
           edges in the increasing direction instead.
 
-        By default, an edge is oriented from `v` to `w` if `f(v-w) > 0`.
+        By default, an edge is oriented from `v` to `w` if
+        `f(v-w) \geq 0`.
+
+        If `f(v)=f(w)`, then two opposite edges are created.
 
         EXAMPLES::
 
@@ -3309,7 +3312,7 @@ class Polyhedron_base(Element):
         for j in range(self.n_vertices()):
             vj = self.Vrepresentation(j)
             for vi in vj.neighbors():
-                if (vi.vector() - vj.vector()).dot_product(f) > 0:
+                if (vi.vector() - vj.vector()).dot_product(f) >= 0:
                     dg.add_edge(vi, vj)
         return dg
 

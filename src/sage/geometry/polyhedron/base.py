@@ -3287,7 +3287,7 @@ class Polyhedron_base(Element):
 
         - `f` -- a linear form (as a tuple, list or vector)
 
-	- ``increasing`` -- boolean (default ``False``) whether to orient 
+        - ``increasing`` -- boolean (default ``False``) whether to orient 
           edges in the increasing direction instead.
 
         By default, an edge is oriented from `v` to `w` if `f(v-w) > 0`.

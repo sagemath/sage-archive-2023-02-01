@@ -90,7 +90,7 @@ and classes are similar. There are four relevant functions.
 
 - **def RingElement.__add__**
 
-   This function is called by Python or Pyrex when the binary "+" operator
+   This function is called by Python or Cython when the binary "+" operator
    is encountered. It ASSUMES that at least one of its arguments is a
    RingElement; only a really twisted programmer would violate this
    condition. It has a fast pathway to deal with the most common case
@@ -104,17 +104,18 @@ and classes are similar. There are four relevant functions.
    or for ``__add__`` itself). This is because python has optimised calling
    protocols for such special functions.
 
--  **def RingElement._add_**
+-  **cpdef RingElement._add_**
 
    This is the function you should override to implement addition in a
-   python subclass of RingElement.
+   subclass of RingElement.
 
    .. warning::
 
-      if you override this in a *Cython* class, it won't get called.
-      You should override ``_add_`` instead. It is especially important to
-      keep this in mind whenever you move a class down from Python to
-      Cython.
+      In a *Cython* class, this has to be overridden as a ``cpdef``;
+      otherwise, it won't get called. It is especially important to keep
+      this in mind whenever you move a class down from Python to Cython.
+
+      In *Python*, this has to be overridden as a ``def``.
 
    The two arguments to this function are guaranteed to have the
    SAME PARENT. Its return value MUST have the SAME PARENT as its
@@ -123,24 +124,6 @@ and classes are similar. There are four relevant functions.
    If you want to add two objects from python, and you know that their
    parents are the same object, you are encouraged to call this function
    directly, instead of using "x + y".
-
-   The default implementation of this function is to call ``_add_``,
-   so if no-one has defined a python implementation, the correct Pyrex
-   implementation will get called.
-
--  **cpdef RingElement._add_**
-
-   This is the function you should override to implement addition in a
-   Pyrex subclass of RingElement.
-
-   The two arguments to this function are guaranteed to have the
-   SAME PARENT. Its return value MUST have the SAME PARENT as its
-   arguments.
-
-   The default implementation of this function is to raise a
-   NotImplementedError, which will happen if no-one has supplied
-   implementations of either ``_add_``.
-
 
 For speed, there are also **inplace** version of the arithmetic commands.
 DD NOT call them directly, they may mutate the object and will be called

@@ -1374,7 +1374,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         G = []
         for f in self._polys:
-            if isinstance(f,FractionFieldElement) == True:
+            if isinstance(f,FractionFieldElement):
                 G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
             else:
                 G.append(f.change_ring(R))

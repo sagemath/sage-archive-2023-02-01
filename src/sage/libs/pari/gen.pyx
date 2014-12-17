@@ -7042,7 +7042,9 @@ cdef class gen(sage.structure.element.RingElement):
     def galoisisnormal(self, subgrp):
         cdef gen t0 = objtogen(subgrp)
         pari_catch_sig_on()
-        return galoisisnormal(self.g, t0.g)
+        v = galoisisnormal(self.g, t0.g)
+        P.clear_stack()
+        return v
 
     def galoispermtopol(self, perm):
         cdef gen t0 = objtogen(perm)

@@ -7027,6 +7027,28 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(galoisfixedfield(self.g, t0.g, flag, P.get_var(v)))
 
+    def galoissubfields(self, long flag=0, v=-1):
+        pari_catch_sig_on()
+        return P.new_gen(galoissubfields(self.g, flag, P.get_var(v)))
+
+    def galoissubgroups(self):
+        pari_catch_sig_on()
+        return P.new_gen(galoissubgroups(self.g))
+
+    def galoisisabelian(self, long flag=0):
+        pari_catch_sig_on()
+        return P.new_gen(galoisisabelian(self.g, flag))
+
+    def galoisisnormal(self, subgrp):
+        cdef gen t0 = objtogen(subgrp)
+        pari_catch_sig_on()
+        return galoisisnormal(self.g, t0.g)
+
+    def galoispermtopol(self, perm):
+        cdef gen t0 = objtogen(perm)
+        pari_catch_sig_on()
+        return P.new_gen(galoispermtopol(self.g, t0.g))
+
     def idealred(self, I, vdir=0):
         cdef gen t0 = objtogen(I)
         cdef gen t1 = objtogen(vdir)

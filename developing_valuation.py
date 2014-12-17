@@ -495,8 +495,7 @@ class DevelopingValuation(DiscreteValuation):
                 raise NotImplementedError("is_minimal() only implemented for equivalence-irreducible polynomials")
             from gauss_valuation import GaussValuation
             if isinstance(self,GaussValuation):
-                # TODO: what is correct in this case?
-                return f.is_monic()
+                return f.is_monic() and self.reduce(f).is_irreducible()
             return list(self.valuations(f))[-1] == self(f) and list(self.coefficients(f))[-1].is_constant() and list(self.valuations(f))[0] == self(f) and self.tau().divides(len(list(self.coefficients(f)))-1)
 
         raise NotImplementedError("is_minimal() only implemented for commensurable inductive values")
@@ -1017,15 +1016,15 @@ class DevelopingValuation(DiscreteValuation):
                 phi = phi.coeffs()
                 for i,c in enumerate(r.coeffs()):
                     if not c.is_zero():
-                        v = c.valuation()
+                        v = w(c)
                         # for a correct result we need to add O(pi^v) in degree i
                         # we try to find the coefficient of phi where such an error can be introduced without losing much absolute precision on phi
                         best = i
                         for j in range(i):
-                            if q[j].valuation() < q[best].valuation():
+                            if w(q[j]) < w(q[best]):
                                 best = j
                         # now add the right O() to phi in degree i-best
-                        phi[i-best] = phi[i-best].add_bigoh(c.valuation()-q[best].valuation())
+                        phi[i-best] = phi[i-best].add_bigoh(w(c)-w(q[best]))
 
                 phi = G.parent()(phi)
                 w = self._base_valuation.extension(phi, infinity)

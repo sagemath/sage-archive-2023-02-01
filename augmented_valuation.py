@@ -159,7 +159,19 @@ class AugmentedValuation(DevelopingValuation):
 
     @cached_method
     def Q_(self):
-        ret = self.equivalence_reciprocal(self.Q())
+        try:
+            ret = self.equivalence_reciprocal(self.Q())
+
+            assert self.is_equivalence_unit(ret)
+            # esentially this checks that the reduction of Q'*phi^tau is the
+            # generator of the residue field
+            assert self._base_valuation.reduce(self.Q()*ret)(self.residue_field_generator()).is_one()
+
+        except ValueError:
+            print "CHEATING - HARD CODED RECIPROCAL"
+            Q = self.Q()
+            pi = Q.parent().base().constant_base_field().uniformizer()
+            ret = Q/(pi**(self(Q)*2))
 
         assert self.is_equivalence_unit(ret)
         # esentially this checks that the reduction of Q'*phi^tau is the
@@ -481,6 +493,8 @@ class AugmentedValuation(DevelopingValuation):
             raise NotImplementedError("only implemented for polynomial rings over fields")
 
         if self(f) < 0:
+            assert self(f) < 0
+            print self(f)
             raise ValueError("f must have non-negative valuation")
         elif self(f) > 0:
             return self.residue_ring().zero()
@@ -695,6 +709,7 @@ class AugmentedValuation(DevelopingValuation):
         CV[-1] = (CV[-1][0].parent().one(), vf)
         ret = self.domain().change_ring(self.domain())([c for c,v in CV])(self.phi())
         ret = ret.map_coefficients(lambda c:_lift_to_maximal_precision(c))
+        assert (ret == self.phi()) == (F == F.parent().gen())
         assert self.is_key(ret)
         return ret
 

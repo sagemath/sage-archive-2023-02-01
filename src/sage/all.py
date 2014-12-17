@@ -97,6 +97,7 @@ try:
 except ImportError:
     pass   # dev scripts are disabled
 
+from sage.structure.all  import *
 from sage.rings.all      import *
 from sage.matrix.all     import *
 
@@ -111,7 +112,6 @@ from sage.schemes.all    import *
 from sage.graphs.all     import *
 from sage.groups.all     import *
 from sage.databases.all  import *
-from sage.structure.all  import *
 from sage.categories.all import *
 from sage.sets.all       import *
 from sage.probability.all import *

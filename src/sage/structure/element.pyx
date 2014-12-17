@@ -86,7 +86,7 @@ calling protocol from both Python and Cython, (2) uniform coercion semantics
 across Sage, (3) ease of use, (4) readability of code.
 
 We will take addition of RingElements as an example; all other operators
-and classes are similar. There are four relevant functions.
+and classes are similar. There are three relevant functions.
 
 - **def RingElement.__add__**
 

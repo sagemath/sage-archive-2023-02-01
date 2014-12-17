@@ -311,7 +311,7 @@ information. You can use the existing functions of Sage as templates.
        .. NOTE::
 
            You should note that this sentence is indented at least 4
-           spaces. Never use tabulations.
+           spaces. Never use the tab character.
 
 - A **WARNING** block for critical information about your code (optional).
 
@@ -353,7 +353,7 @@ information. You can use the existing functions of Sage as templates.
       REFERENCES:
 
       .. [SC] Conventions for coding in sage.
-        http://www.sagemath.org/doc/developer/conventions.html.
+         http://www.sagemath.org/doc/developer/conventions.html.
 
   See the `Sphinx/ReST markup for citations <http://sphinx.pocoo.org/rest.html#citations>`_. For links toward trac tickets or wikipedia, see :ref:`chapter-sage_manuals_links`.
 

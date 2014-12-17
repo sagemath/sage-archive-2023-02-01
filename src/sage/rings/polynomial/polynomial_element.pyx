@@ -100,6 +100,8 @@ from sage.misc.cachefunc import cached_function
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
 
+from sage.misc.superseded import deprecation
+
 cpdef is_Polynomial(f):
     """
     Return True if f is of type univariate polynomial.
@@ -1094,7 +1096,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             0.4*x^4 - 0.2*x^3 - 0.4*x^2 + 0.2*x + 0.8
             sage: poly = f * (x^2 + 1) % (x^5 + x + 1)
             sage: # Remove noisy zero terms:
-            sage: parent(poly)([ 0.0 if abs(c)<=epsilon else c for c in poly.coeffs() ])
+            sage: parent(poly)([ 0.0 if abs(c)<=epsilon else c for c in poly.coefficients(sparse=False) ])
             1.0
             sage: f = inverse_mod(x^3 - x + 1, x - 2); f
             0.14285714285714285
@@ -1104,7 +1106,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -0.0319636125...*x^3 - 0.0383269759...*x^2 - 0.0463050900...*x + 0.346479687...
             sage: poly = f*g % m
             sage: # Remove noisy zero terms:
-            sage: parent(poly)([ 0.0 if abs(c)<=epsilon else c for c in poly.coeffs() ])  # abs tol 1e-14
+            sage: parent(poly)([ 0.0 if abs(c)<=epsilon else c for c in poly.coefficients(sparse=False) ])  # abs tol 1e-14
             1.0000000000000004
 
         ALGORITHM: Solve the system as + mt = 1, returning s as the inverse
@@ -4184,7 +4186,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<w> = PolynomialRing(GF(9,'a'), sparse=True)
             sage: a = w._new_constant_poly(0, R); a
             0
-            sage: a.coeffs()
+            sage: a.coefficients()
             []
         """
         if a:
@@ -4371,9 +4373,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             return a*self
 
-    def coefficients(self):
+    def coefficients(self, sparse=True):
         """
         Return the coefficients of the monomials appearing in self.
+        If ``sparse=True`` (the default), it returns only the non-zero coefficients.
+        Otherwise, it returns the same value as ``self.list()``.
+        (In this case, it may be slightly faster to invoke ``self.list()`` directly.)
 
         EXAMPLES::
 
@@ -4381,9 +4386,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^4+2*x^2+1
             sage: f.coefficients()
             [1, 2, 1]
+            sage: f.coefficients(sparse=False)
+            [1, 0, 2, 0, 1]
         """
         zero = self.parent().base_ring().zero_element()
-        return [c for c in self.list() if c != zero]
+        if (sparse):
+          return [c for c in self.list() if c != zero]
+        else:
+          return self.list()
 
     def exponents(self):
         """
@@ -4499,6 +4509,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def coeffs(self):
         r"""
+        Using ``coeffs()`` is now deprecated (:trac:`17518`).
         Returns ``self.list()``.
 
         (It is potentially slightly faster to use
@@ -4509,8 +4520,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = QQ['x'].0
             sage: f = 10*x^3 + 5*x + 2/17
             sage: f.coeffs()
+            doctest:...: DeprecationWarning: The use of coeffs() is now deprecated in favor of coefficients(sparse=False).
+            See http://trac.sagemath.org/17518 for details.
             [2/17, 5, 0, 10]
         """
+        deprecation(17518, 'The use of coeffs() is now deprecated in favor of coefficients(sparse=False).')
         return self.list()
 
     def newton_raphson(self, n, x0):
@@ -6230,13 +6244,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self   # safe because immutable.
         if n > 0:
             output = [self.base_ring().zero_element()] * n
-            output.extend(self.coeffs())
+            output.extend(self.coefficients(sparse=False))
             return self._parent(output, check=False)
         if n < 0:
             if n > self.degree():
                 return self._parent([])
             else:
-                return self._parent(self.coeffs()[-int(n):], check=False)
+                return self._parent(self.coefficients(sparse=False)[-int(n):], check=False)
 
     def __lshift__(self, k):
         return self.shift(k)
@@ -6483,7 +6497,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if p <= 0 :
             raise ValueError("The degree of the norm must be positive")
 
-        coeffs = self.coeffs()
+        coeffs = self.coefficients(sparse=False)
         if p == infinity.infinity:
             return RR(max([abs(i) for i in coeffs]))
 
@@ -6516,7 +6530,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             33
         """
         cdef long w = 0
-        for a in self.coeffs():
+        for a in self.coefficients(sparse=False):
             if a:
                 w += 1
         return w
@@ -6659,7 +6673,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if (self == gen - 1):  # the first cyc. pol. is treated apart
             return True
 
-        coefs = self.coeffs()
+        coefs = self.coefficients(sparse=False)
         if coefs[0] != 1:
             return False
 

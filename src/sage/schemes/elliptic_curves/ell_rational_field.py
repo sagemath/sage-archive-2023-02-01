@@ -5404,7 +5404,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         from sage.libs.ratpoints import ratpoints
         xmin=Integer(xmin)
         xmax=Integer(xmax)
-        coeffs = self.division_polynomial(2).coeffs()
+        coeffs = self.division_polynomial(2).coefficients(sparse=False)
         H = max(xmin.abs(), xmax.abs())
         return set([x for x,y,z in ratpoints(coeffs, H, max_x_denom=1, intervals=[[xmin,xmax]]) if z])
 

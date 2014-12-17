@@ -186,7 +186,7 @@ class FunctionHeaviside(BuiltinFunction):
 
     REFERENCES:
 
-    -  :wiki:`Heaviside_function`
+    -  :wikipedia:`Heaviside_function`
 
     """
     def __init__(self):

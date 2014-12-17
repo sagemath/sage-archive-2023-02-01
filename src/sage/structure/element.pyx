@@ -126,7 +126,7 @@ and classes are similar. There are three relevant functions.
    directly, instead of using "x + y".
 
 For speed, there are also **inplace** version of the arithmetic commands.
-DD NOT call them directly, they may mutate the object and will be called
+DO NOT call them directly, they may mutate the object and will be called
 when and only when it has been determined that the old object will no longer
 be accessible from the calling function after this operation.
 

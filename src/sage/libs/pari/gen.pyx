@@ -23,7 +23,9 @@ AUTHORS:
 - Peter Bruin (2013-11-17): move PariInstance to a separate file
   (#15185)
 
- - Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+- Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
+
+- Martin von Gagern (2014-12-17): Added some Galois functions (#17519)
 
 """
 

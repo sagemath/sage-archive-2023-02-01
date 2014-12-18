@@ -68,6 +68,8 @@ use its method continued_fraction (if it exists) or call
 
     sage: continued_fraction(pi)
     [3; 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, ...]
+    sage: sage: continued_fraction_list(pi, nterms=5)
+    [3, 7, 15, 1, 292]
 
     sage: K.<cbrt5> = NumberField(x^3 - 5, embedding=1.709)
     sage: continued_fraction(cbrt5)

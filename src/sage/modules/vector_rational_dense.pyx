@@ -48,6 +48,7 @@ TESTS::
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
+from sage.ext.memory cimport check_allocarray
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
@@ -84,11 +85,25 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         return y
 
     cdef _init(self, Py_ssize_t degree, parent):
+        """
+        TESTS:
+
+        Check implicitly that :trac:`10257` works::
+
+            sage: from sage.modules.vector_rational_dense import Vector_rational_dense
+            sage: Vector_rational_dense(QQ^(sys.maxsize))
+            Traceback (most recent call last):
+            ...
+            MemoryError: cannot allocate ... bytes
+            sage: try:
+            ....:     Vector_rational_dense(QQ^(2^56))
+            ....: except (MemoryError, OverflowError):
+            ....:     print "allocation failed"
+            allocation failed
+        """
         self._degree = degree
         self._parent = parent
-        self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t) * degree)
-        if self._entries == NULL:
-            raise MemoryError
+        self._entries = <mpq_t *>check_allocarray(degree, sizeof(mpq_t))
 
     def __cinit__(self, parent=None, x=None, coerce=True,copy=True):
         self._entries = NULL

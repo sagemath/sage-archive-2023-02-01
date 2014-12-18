@@ -85,8 +85,11 @@ Now in more detail. The aims of this system are to provide (1) an efficient
 calling protocol from both Python and Cython, (2) uniform coercion semantics
 across Sage, (3) ease of use, (4) readability of code.
 
-We will take addition of RingElements as an example; all other operators
-and classes are similar. There are three relevant functions.
+We will take addition of RingElements as an example; all other
+operators and classes are similar. There are three relevant functions,
+with subtly differing names (``add`` vs.  ``iadd``, single vs. double
+underscores), one of which has both a Python and a Cython version
+(note the ``def`` vs. ``cpdef``).
 
 - **def RingElement.__add__**
 
@@ -104,7 +107,7 @@ and classes are similar. There are three relevant functions.
    or for ``__add__`` itself). This is because python has optimised calling
    protocols for such special functions.
 
--  **cpdef RingElement._add_**
+-  **cpdef RingElement._add_** vs. **def RingElement._add_**
 
    This is the function you should override to implement addition in a
    subclass of RingElement.

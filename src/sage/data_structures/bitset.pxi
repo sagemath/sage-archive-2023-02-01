@@ -629,8 +629,9 @@ cdef void bitset_rshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
         # Number of limbs to shift is r.limbs
         if nbits:
             mpn_rshift(r.bits, a.bits + nlimbs, r.limbs, nbits)
-            # Add the additional bits from top limb of a
-            r.bits[r.limbs-1] |= a.bits[r.limbs+nlimbs] << (GMP_LIMB_BITS - nbits)
+            if shifted_limbs > r.limbs:
+                # Add the additional bits from top limb of a
+                r.bits[r.limbs-1] |= a.bits[r.limbs+nlimbs] << (GMP_LIMB_BITS - nbits)
         else:
             mpn_copyi(r.bits, a.bits + nlimbs, r.limbs)
 

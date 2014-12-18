@@ -98,19 +98,22 @@ def pari(x):
         ...
         ValueError: Cannot convert None to pari
     """
+    from sage.misc.superseded import deprecation
+    deprecation(17451, 'gen_py.pari is deprecated, use sage.libs.pari.all.pari instead')
     from sage.libs.pari.all import pari
     return pari(x)
 
+
 def python(z, locals=None):
     """
-    Return the closest Python/Sage equivalent of the given pari object.
+    Return the closest Python/Sage equivalent of the given PARI object.
 
     INPUT:
 
-        - `z` -- pari object
+    - `z` -- PARI ``gen``
 
-        - `locals` -- optional dictionary used in fallback cases that
-          involve sage_eval
+    - `locals` -- optional dictionary used in fallback cases that
+      involve sage_eval
 
     The component parts of a t_COMPLEX may be t_INT, t_REAL, t_INTMOD,
     t_FRAC, t_PADIC.  The components need not have the same type

@@ -79,9 +79,13 @@ cdef class PathAlgebraElement(RingElement):
         sage: pP2^7 == sage_eval(repr(pL2^7), P.gens_dict())
         True
 
-    When the Cython implementation of path algebra elements was introduced, it
-    was faster than both the default implementation and the letterplace
-    implementation of free algebras::
+    When the Cython implementation of path algebra elements was
+    introduced, it was faster than both the default implementation and
+    the letterplace implementation of free algebras. The following
+    timings where obtained with a 32-bit operating system; using 64-bit
+    on the same machine, the letterplace implementation has not become
+    faster, but the timing for path algebra elements has improved by
+    about 20%::
 
         sage: timeit('pF^5+3*pF^3')    # not tested
         1 loops, best of 3: 338 ms per loop
@@ -93,6 +97,13 @@ cdef class PathAlgebraElement(RingElement):
         125 loops, best of 3: 1.99 ms per loop
         sage: timeit('pP2^7')          # not tested
         10000 loops, best of 3: 1.54 ms per loop
+
+    So, if one is merely interested in basic arithmetic operations for
+    free associative algebras, it could make sense to model the free
+    associative algebra as a path algebra. However, standard basis
+    computations are not available for path algebras, yet. Hence, to
+    implement computations in graded quotients of free algebras, the
+    letterplace implementation currently is the only option.
 
     """
     def __cinit__(self, *args, **kwds):

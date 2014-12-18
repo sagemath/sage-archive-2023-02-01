@@ -443,8 +443,10 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
     """
     if permanent_only:
         prec = None
-    if prec is not None and prec == 0:
-        raise ValueError('the argument `prec` must be a positive integer')
+    else:
+        prec = int(prec)
+        if prec == 0:
+            raise ValueError('the argument `prec` must be a positive integer')
 
     K = PolynomialRing(A.base_ring(), var)
     nrows = A.nrows()

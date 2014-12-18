@@ -494,8 +494,8 @@ cdef inline int celement_pow(nmod_poly_t res, nmod_poly_t x, long e, nmod_poly_t
 
     Make sure that exponentiation can be interrupted, see :trac:`17470`::
 
-        sage: n = 1 << 20
-        sage: alarm(.1); x^n
+        sage: n = 2^23
+        sage: alarm(0.2); x^n; cancel_alarm()
         Traceback (most recent call last):
         ...
         AlarmInterrupt

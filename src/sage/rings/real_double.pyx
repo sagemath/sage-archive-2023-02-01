@@ -2211,7 +2211,7 @@ cdef class RealDoubleElement(FieldElement):
         return self._new_c(gsl_sf_sin(self._value))
 
     def dilog(self):
-        """
+        r"""
         Return the dilogarithm of ``self``, defined by the
         series `\sum_n x^n/n^2` for `|x| \le 1`. When the absolute
         value of self is greater than 1, the returned value is the

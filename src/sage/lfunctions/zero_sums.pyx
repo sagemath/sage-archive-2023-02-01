@@ -1324,14 +1324,16 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve("37a")
+            sage: E = EllipticCurve("37a"); print(E.rank())
+            1
             sage: Z = LFunctionZeroSum(E)
-            sage: print(E.rank(),Z._zerosum_sincsquared_parallel(Delta=1))
-            (1, 1.0103840698356263)
-            sage: E = EllipticCurve("121a")
+            sage: print(Z._zerosum_sincsquared_parallel(Delta=1)) # tol 1.0e-10
+            1.0103840698356263
+            sage: E = EllipticCurve("121a"); print(E.rank())
+            0
             sage: Z = LFunctionZeroSum(E);
-            sage: print(E.rank(),Z._zerosum_sincsquared_parallel(Delta=1.5,ncpus=8))
-            (0, 0.01047120600865063)
+            sage: print(Z._zerosum_sincsquared_parallel(Delta=1.5,ncpus=2)) # tol 1.0e-10
+            0.01047120600865063
 
         """
         # If Delta>6.619, then we will most likely get overflow: some ap values

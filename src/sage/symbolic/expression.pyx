@@ -3241,18 +3241,19 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(x)^None
             Traceback (most recent call last):
             ...
-            TypeError: Cannot convert NoneType to sage.symbolic.expression.Expression
+            TypeError: no canonical coercion from <type 'NoneType'> to Symbolic Ring
         """
         cdef Expression base, nexp
 
         try:
             # self is an Expression and exp might not be
             base = <Expression?>self
-            nexp = base.coerce_in(exp)
         except TypeError:
             # exp is an Expression and self might not be
             nexp = <Expression?>exp
             base = nexp.coerce_in(self)
+        else:
+            nexp = base.coerce_in(exp)
         cdef GEx x
         if is_a_relational(base._gobj):
             x = relational(g_pow(base._gobj.lhs(), nexp._gobj),

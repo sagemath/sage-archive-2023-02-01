@@ -128,15 +128,15 @@ underscores), one of which has both a Python and a Cython version
    parents are the same object, you are encouraged to call this function
    directly, instead of using "x + y".
 
-For speed, there are also **inplace** version of the arithmetic commands.
+For speed, there are also **inplace** versions of the arithmetic commands.
 DO NOT call them directly, they may mutate the object and will be called
 when and only when it has been determined that the old object will no longer
 be accessible from the calling function after this operation.
 
 -  **def RingElement._iadd_**
 
-   This is the function you should override to inplace implement addition
-   in a Python subclass of RingElement.
+   This is the function you should override to implement inplace
+   addition in a Python subclass of RingElement.
 
    The two arguments to this function are guaranteed to have the
    SAME PARENT. Its return value MUST have the SAME PARENT as its

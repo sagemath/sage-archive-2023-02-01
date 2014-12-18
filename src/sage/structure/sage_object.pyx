@@ -849,13 +849,15 @@ def have_same_parent(self, other):
 ##################################################################
 
 def load(*filename, compress=True, verbose=True):
-    """
+    r"""
     Load Sage object from the file with name filename, which will have
-    an .sobj extension added if it doesn't have one.  Or, if the input
-    is a filename ending in .py, .pyx, or .sage, load that file into
-    the current running session.  Loaded files are not loaded into
-    their own namespace, i.e., this is much more like Python's
-    ``execfile`` than Python's ``import``.
+    an ``.sobj`` extension added if it doesn't have one.  Or, if the input
+    is a filename ending in ``.py``, ``.pyx``, or ``.sage``, load that
+    file into the current running session. If the filename ends in
+    ``.f`` or ``.f90``, it is compiled as Fortran code and loaded.
+    
+    Loaded files are not loaded into their own namespace, i.e., this is
+    much more like Python's ``execfile`` than Python's ``import``.
 
     .. NOTE::
 
@@ -889,17 +891,27 @@ def load(*filename, compress=True, verbose=True):
 
     We test loading a file or multiple files or even mixing loading files and objects::
 
-        sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
+        sage: t = tmp_filename(ext='.py')
+        sage: open(t,'w').write("print 'hello world'")
         sage: load(t)
         hello world
         sage: load(t,t)
         hello world
         hello world
-        sage: t2=tmp_filename(); save(2/3,t2)
+        sage: t2 = tmp_filename(); save(2/3,t2)
         sage: load(t,t,t2)
         hello world
         hello world
         [None, None, 2/3]
+
+    We can load Fortran files::
+
+        sage: code = '      subroutine hello\n         print *, "Hello World!"\n      end subroutine hello\n'
+        sage: t = tmp_filename(ext=".F")
+        sage: open(t, 'w').write(code)
+        sage: load(t)
+        sage: hello
+        <fortran object>
     """
     import sage.repl.load
     if len(filename) != 1:
@@ -923,7 +935,9 @@ def load(*filename, compress=True, verbose=True):
         filename = get_remote_file(filename, verbose=verbose)
         tmpfile_flag = True
     elif lower.endswith('.f') or lower.endswith('.f90'):
-        globals()['fortran'](filename)
+        from sage.misc.inline_fortran import fortran
+        with open(filename) as f:
+            fortran(f.read(), globals())
         return
     else:
         tmpfile_flag = False

@@ -308,10 +308,32 @@ class Function_Bessel_J(BuiltinFunction):
         EXAMPLES::
 
             sage: bessel_J(0.0, 1.0)
-            0.765197686557966
+            0.765197686557967
             sage: bessel_J(0, 1).n(digits=20)
             0.76519768655796655145
+            sage: bessel_J(0.5, 1.5)
+            0.649838074753747
+
+        Check for correct rounding (:trac:`17122`)::
+
+            sage: R = RealField(113)
+            sage: a = R("8.935761195587725798762818805462843676e-01")
+            sage: aa = RealField(200)(a)
+            sage: for n in [-10..10]:
+            ....:     b = bessel_J(R(n), a)
+            ....:     bb = R(bessel_J(n, aa))
+            ....:     if b != bb:
+            ....:         print n, b-bb
         """
+        if parent is not None:
+            x = parent(x)
+
+        try:
+            return x.jn(Integer(n))
+        except Exception:
+            pass
+
+        n, x = get_coercion_model().canonical_coercion(n, x)
         import mpmath
         return mpmath_utils.call(mpmath.besselj, n, x, parent=parent)
 
@@ -457,11 +479,33 @@ class Function_Bessel_Y(BuiltinFunction):
         """
         EXAMPLES::
 
+            sage: bessel_Y(0.5, 1.5)
+            -0.0460831658930974
             sage: bessel_Y(1.0+2*I, 3.0+4*I)
             0.699410324467538 + 0.228917940896421*I
             sage: bessel_Y(0, 1).n(256)
             0.08825696421567695798292676602351516282781752309067554671104384761199978932351
+
+        Check for correct rounding (:trac:`17122`)::
+
+            sage: R = RealField(113)
+            sage: a = R("8.935761195587725798762818805462843676e-01")
+            sage: aa = RealField(200)(a)
+            sage: for n in [-10..10]:
+            ....:     b = bessel_Y(R(n), a)
+            ....:     bb = R(bessel_Y(n, aa))
+            ....:     if b != bb:
+            ....:         print n, b-bb
         """
+        if parent is not None:
+            x = parent(x)
+
+        try:
+            return x.yn(Integer(n))
+        except Exception:
+            pass
+
+        n, x = get_coercion_model().canonical_coercion(n, x)
         import mpmath
         return mpmath_utils.call(mpmath.bessely, n, x, parent=parent)
 

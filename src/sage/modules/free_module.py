@@ -3080,12 +3080,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             [ 1  0 -1]
             [ 0  1  2]
         """
-        try:
-            return self.__echelonized_basis_matrix
-        except AttributeError:
-            pass
-        self.__echelonized_basis_matrix = self.basis_matrix().echelon_form()
-        return self.__echelonized_basis_matrix
+        return self.basis_matrix().echelon_form()
 
     def intersection(self, other):
         """
@@ -5128,8 +5123,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def _echelonized_basis(self, ambient, basis):
         """
-        Given the ambient space and a basis, constructs and caches the
-        __echelonized_basis_matrix and returns its rows.
+        Given the ambient space and a basis, construct and cache the
+        echelonized basis matrix and returns its rows.
 
         N.B. This function is for internal use only!
 
@@ -6200,8 +6195,8 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
 
     def _echelonized_basis(self, ambient, basis):
         """
-        Given the ambient space and a basis, constructs and caches the
-        __echelonized_basis_matrix and returns its rows.
+        Given the ambient space and a basis, construct and cache the
+        echelonized basis matrix and returns its rows.
 
         N.B. This function is for internal use only!
 

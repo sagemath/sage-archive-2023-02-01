@@ -1229,7 +1229,7 @@ cdef class NumberFieldElement(FieldElement):
 
         from sage.rings.number_field.number_field import is_AbsoluteNumberField
         if is_AbsoluteNumberField(L):
-            Lrel = L.relativize(K.hom(L), ('a', 'b'))
+            Lrel = L.relativize(K.hom(L), (L.variable_name()*2, K.variable_name()*2) )
             b, x = self.is_norm(Lrel, element=True, proof=proof)
             h = Lrel.structure()[0]
             return b, h(x)
@@ -3395,8 +3395,7 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError, "codomain of phi must be parent of self"
 
         # Construct a relative extension over L (= QQ(beta))
-        M = K.relativize(beta, ('a','b'))
-                     # variable name a is OK, since this is temporary
+        M = K.relativize(beta, (K.variable_name()*2, L.variable_name()*2) )
 
         # Carry self over to M.
         from_M, to_M = M.structure()
@@ -3602,7 +3601,7 @@ cdef class NumberFieldElement(FieldElement):
         if len(embs) == 0:
             raise ValueError("K = %s does not embed into %s" % (K,L))
         f = embs[0]
-        LK = L.relativize(f, names='b')
+        LK = L.relativize(f, L.variable_name()*2)
         # Unfortunately the base field of LK is not K but an
         # isomorphic field, and we must make sure to use the correct
         # isomorphism!

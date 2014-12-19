@@ -246,6 +246,15 @@ class NumberField_relative(NumberField_generic):
             Traceback (most recent call last):
             ...
             ValueError: defining polynomial (x^2 + 2) must be irreducible
+
+        Error checks::
+
+            sage: x = polygen(ZZ)
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: K.extension(x^2 + 2, 'a')
+            Traceback (most recent call last):
+            ...
+            ValueError: base field and extension cannot have the same name 'a'
         """
         if embedding is not None:
             raise NotImplementedError("Embeddings not implemented for relative number fields")
@@ -258,7 +267,7 @@ class NumberField_relative(NumberField_generic):
             except (AttributeError, TypeError) as msg:
                 raise TypeError("polynomial (=%s) must be a polynomial."%repr(polynomial))
         if name == base.variable_name():
-            raise ValueError("Base field and extension cannot have the same name")
+            raise ValueError("base field and extension cannot have the same name %r" % name)
         if polynomial.parent().base_ring() != base:
             polynomial = polynomial.change_ring(base)
             #raise ValueError, "The polynomial must be defined over the base field"

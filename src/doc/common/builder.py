@@ -1302,7 +1302,7 @@ def get_formats():
     tut_b = DocBuilder('en/tutorial')
     formats = tut_b._output_formats()
     formats.remove('html')
-    return ['html', 'pdf'] + formats
+    return ['html', 'html-no-pix', 'pdf'] + formats
 
 def help_formats(s=u""):
     """
@@ -1612,6 +1612,14 @@ if __name__ == '__main__':
 
     # Set up Intersphinx cache
     C = IntersphinxCache()
+
+    # Use 'html-no-pix' to skip inclusion of graphics auto-generated
+    # using the '.. plot' markup and the sphinx_plot function.
+    if type == 'html-no-pix':
+        type = 'html'
+        os.environ['SPHINX_INCLUDE_PLOTS'] = 'False'
+    else:
+        os.environ['SPHINX_INCLUDE_PLOTS'] = 'True'
 
     # Get the builder and build.
     try:

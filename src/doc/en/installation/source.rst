@@ -760,6 +760,18 @@ how it is built:
   requires that Sage be built first, so it will automatically run ``make
   build``.
 
+- ``make doc-html-no-pix`` builds Sage's documentation in html format
+  but skips the inclusion of graphics auto-generated using the
+  ``.. plot`` markup and the ``sphinx_plot`` function. This is
+  primarily intended for use when producing certain binary
+  distributions of Sage, to lower the size of the distribution. As of
+  this writing (December 2014, Sage 6.5), there are only a few such
+  plots, adding about 4M to the :file:`src/doc/output/` directory. In
+  the future, this may grow, of course. Note: after using this, if you
+  want to build the documentation and include the pictures, you should
+  run ``make doc-clean``, because the presence, or lack, of pictures
+  is cached in the documentation output.
+
 - ``make build-serial`` builds the components of Sage serially, rather
   than in parallel (parallel building is the default).
   Running ``make build-serial`` is equivalent to setting the environment
@@ -776,6 +788,9 @@ how it is built:
   If you want to run tests depending on optional packages and additional
   software, you can use ``make testall``, ``make ptestall``,
   ``make testalllong``, or ``make ptestalllong``.
+
+- ``make doc-clean`` removes several directories which are produced
+  when building the documentation.
 
 - ``make distclean`` restores the Sage directory to its state before doing any
   building: it is almost equivalent to deleting Sage's entire home directory and
@@ -1420,4 +1435,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in November 2014 (Sage 6.5).**
+**This page was last updated in December 2014 (Sage 6.5).**

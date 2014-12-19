@@ -44,7 +44,7 @@ development!
   <section-writing-code-for-sage>` for code and documentation.
 
   For everything related to manuals, tutorials, and languages, :ref:`click here
-  <chapter-sage_manuals>`
+  <chapter-sage_manuals>`.
 
 - **Git (revision control):** To share changes with the Sage community, you will
   need to learn about revision control; we use the software Git for this

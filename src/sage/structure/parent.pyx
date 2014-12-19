@@ -526,7 +526,7 @@ cdef class Parent(category_object.CategoryObject):
 
         This may change ``self``'s class!
 
-        EXAMPLES::
+        EXAMPLES:
 
         Let us create a parent in the category of rings::
 

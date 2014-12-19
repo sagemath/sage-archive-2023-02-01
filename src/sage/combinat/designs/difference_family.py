@@ -184,6 +184,16 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         True
         sage: from sage.combinat.designs.bibd import BIBD_from_difference_family
         sage: bibd = BIBD_from_difference_family(G,D1,lambd=2)
+
+    TESTS::
+
+        sage: K = GF(3^2,'z')
+        sage: z = K.gen()
+        sage: D = [[1,z+1,2]]
+        sage: _ = is_difference_family(K, D, verbose=True)
+        the number of differences (=6) must be a multiple of v-1=8
+        sage: _
+        False
     """
     import operator
 
@@ -229,7 +239,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
     if l is None:
         if nb_diff % (v-1) != 0:
             if verbose:
-                print "the number of differences (={}) must be a multiple of v-1={}".format(nbdiff,v-1)
+                print "the number of differences (={}) must be a multiple of v-1={}".format(nb_diff,v-1)
             return False
         l = nb_diff // (v-1)
     else:
@@ -465,56 +475,48 @@ def difference_family(v, k, l=1, existence=False, check=True):
         ....:                 _ = designs.difference_family(v,k,l)
         ....:     if constructions:
         ....:         print "%2d: %s"%(v, ', '.join('(%d,%d)'%(k,l) for k,l in constructions))
-         2: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-         3: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-         4: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-         5: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-         7: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-         8: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-         9: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-        11: (3,2), (4,3), (4,6), (5,2), (5,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-        13: (3,2), (4,3), (5,4), (5,5), (6,5), (7,6), (8,7), (9,8)
+         4: (3,2)
+         5: (4,3)
+         7: (3,2), (6,5)
+         8: (7,6)
+         9: (4,3), (8,7)
+        11: (4,6), (5,2), (5,4)
+        13: (3,2), (4,3), (5,5), (6,5)
         15: (4,6), (5,6), (7,3)
-        16: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-        17: (3,2), (4,3), (5,4), (5,5), (6,5), (7,6), (8,7), (9,8)
-        19: (3,2), (4,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,4), (9,5), (9,6), (9,7), (9,8)
+        16: (3,2), (5,4)
+        17: (4,3), (5,5), (8,7)
+        19: (3,2), (4,2), (6,5), (9,4), (9,8)
         21: (4,3), (6,3), (6,5)
         22: (4,2), (6,5), (7,4), (8,8)
-        23: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-        25: (3,2), (4,3), (5,4), (6,5), (7,6), (7,7), (8,7), (9,8)
-        27: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        25: (3,2), (4,3), (6,5), (7,7), (8,7)
         28: (3,2), (6,5)
-        29: (3,2), (4,3), (5,4), (6,5), (7,3), (7,6), (8,4), (8,6), (8,7), (9,8)
-        31: (3,2), (4,2), (4,3), (5,2), (5,4), (6,5), (7,6), (8,7), (9,8)
-        32: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        29: (4,3), (7,3), (7,6), (8,4), (8,6)
+        31: (3,2), (4,2), (5,2), (5,4), (6,5)
         33: (5,5), (6,5)
         34: (4,2)
-        35: (5,2), (8,4)
-        37: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,2), (9,3), (9,8)
+        35: (5,2)
+        37: (3,2), (4,3), (6,5), (9,2), (9,8)
         39: (6,5)
         40: (3,2)
-        41: (3,2), (4,3), (5,4), (6,3), (6,5), (7,6), (8,7), (9,8)
-        43: (3,2), (4,2), (4,3), (5,4), (6,5), (7,2), (7,3), (7,6), (8,4), (8,7), (9,8)
+        41: (4,3), (5,4), (6,3), (8,7)
+        43: (3,2), (4,2), (6,5), (7,2), (7,3), (7,6), (8,4)
         46: (4,2), (6,2)
-        47: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-        49: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,3), (9,8)
+        49: (3,2), (4,3), (6,5), (8,7), (9,3)
         51: (5,2), (6,3)
-        53: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        53: (4,3)
         55: (9,4)
         57: (7,3)
-        59: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-        61: (3,2), (4,3), (5,4), (6,2), (6,3), (6,5), (7,6), (8,7), (9,8)
-        64: (3,2), (4,3), (5,4), (6,5), (7,2), (7,6), (8,7), (9,8)
-        67: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-        71: (3,2), (4,3), (5,2), (5,4), (6,5), (7,3), (7,6), (8,4), (8,7), (9,8)
-        73: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        61: (3,2), (4,3), (5,4), (6,2), (6,3), (6,5)
+        64: (3,2), (7,2), (7,6), (9,8)
+        67: (3,2), (6,5)
+        71: (5,2), (5,4), (7,3), (7,6), (8,4)
+        73: (3,2), (4,3), (6,5), (8,7), (9,8)
         75: (5,2)
-        79: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-        81: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-        83: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
+        79: (3,2), (6,5)
+        81: (4,3), (5,4), (8,7)
         85: (7,2), (7,3), (8,2)
-        89: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,8)
-        97: (3,2), (4,3), (5,4), (6,5), (7,6), (8,7), (9,3), (9,8)
+        89: (4,3), (8,7)
+        97: (3,2), (4,3), (6,5), (8,7), (9,3)
 
     TESTS:
 
@@ -553,6 +555,19 @@ def difference_family(v, k, l=1, existence=False, check=True):
         sage: for v,k,l in DF:
         ....:     df = designs.difference_family(v,k,l,check=True)
 
+    Check the constructions (:trac:`17528`):
+
+        sage: for v in range(2,30):
+        ....:     for k in range(2,15):
+        ....:         for l in range(2,15):
+        ....:             if designs.difference_family(v,k,l,existence=True):
+        ....:                 df = designs.difference_family(v,k,l,check=True)
+
+        sage: designs.difference_family(9,3)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: No construction available for (9,3,1)-difference family
+
     .. TODO::
 
         Implement recursive constructions from Buratti "Recursive for difference
@@ -579,10 +594,20 @@ def difference_family(v, k, l=1, existence=False, check=True):
 
         df = [[G(i) for i in b] for b in blocks]
 
-        if check:
-            assert is_difference_family(G, df, v=v, k=k, l=l), "Sage built an invalid ({},{},{})-DF!".format(v,k,l)
+        if check and not is_difference_family(G, df, v=v, k=k, l=l):
+            raise RuntimeError("There is an invalid ({},{},{})-difference "
+                    "family in the database... Please contact "
+                    "sage-devel@googlegroups.com".format(v,k,l))
 
         return G,df
+
+
+    # all the constructions below only provide difference family with no block
+    # stabilizer
+    if (l*(v-1)) % (k*(k-1)):
+        if existence:
+            return Unknown
+        raise NotImplementedError("No construction available for ({},{},{})-difference family".format(v,k,l))
 
     e = k*(k-1)
     t = l*(v-1) // e  # number of blocks
@@ -599,9 +624,9 @@ def difference_family(v, k, l=1, existence=False, check=True):
         if l == (k-1):
             if existence:
                 return True
-            return K, K.cyclotomic_cosets(x**((v-1)//k))[1:]
+            D = K.cyclotomic_cosets(x**((v-1)//k))[1:]
 
-        if t == 1:
+        elif t == 1:
             # some of the difference set constructions VI.18.48 from the
             # Handbook of combinatorial designs
             # q = 3 mod 4
@@ -725,7 +750,10 @@ def difference_family(v, k, l=1, existence=False, check=True):
             return Unknown
         raise NotImplementedError("No constructions for these parameters")
 
-    if check and not is_difference_family(G,D,verbose=False):
-        raise RuntimeError
+    if check and not is_difference_family(G,D,v=v,k=k,l=l,verbose=False):
+        raise RuntimeError("There is a problem. Sage built the following "
+                "difference family on G='{}':\n D = {}\nwhich seems to not be "
+                "a difference family... Please contact "
+                "sage-devel@googlegroups.com".format(G,D))
 
     return G, D

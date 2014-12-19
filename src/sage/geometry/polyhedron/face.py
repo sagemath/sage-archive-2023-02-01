@@ -18,7 +18,7 @@ or :meth:`~sage.geometry.poylhedron.base.face_lattice` to get the
 whole face lattice as a poset::
 
     sage: P.face_lattice()
-    Finite poset containing 28 elements
+    Finite poset containing 28 elements with distinguished linear extension
 
 The faces are printed in shorthand notation where each integer is the
 index of a vertex/ray/line in the same order as the containing

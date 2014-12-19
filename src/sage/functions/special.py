@@ -206,10 +206,8 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.plot.plot import plot
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
-from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
 from sage.rings.all import ZZ, RR, RDF, CDF
 from sage.functions.other import real, imag, log_gamma
@@ -219,6 +217,7 @@ from sage.symbolic.expression import Expression
 from sage.calculus.calculus import maxima
 from sage.structure.coerce import parent
 from sage.structure.element import get_coercion_model
+from sage.structure.parent import Parent
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.functions.all import sqrt, sin, cot, exp
 from sage.symbolic.all import I
@@ -336,28 +335,50 @@ class MaximaFunction(BuiltinFunction):
 
             sage: from sage.functions.special import MaximaFunction
             sage: f = MaximaFunction("jacobi_sn")
-            sage: f(1/2,1/2)
+            sage: f(1/2, 1/2)
             jacobi_sn(1/2, 1/2)
-            sage: f(1/2,1/2).n()
+            sage: f(1/2, 1/2).n()
             0.470750473655657
+            sage: f(1/2, 1/2).n(20)
+            0.47075
+            sage: f(1, I).n()
+            0.848379519751901 - 0.0742924572771414*I
 
         TESTS::
 
-            sage: f(1/2,1/2).n(150)
+            sage: f(1/2, 1/2).n(150)
             Traceback (most recent call last):
             ...
-            NotImplementedError: jacobi_sn not implemented for precision > 53
+            NotImplementedError: Maxima function jacobi_sn not implemented for Real Field with 150 bits of precision
+            sage: f._evalf_(1/2, 1/2, parent=int)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Maxima function jacobi_sn not implemented for <type 'int'>
+            sage: f._evalf_(1/2, 1/2, parent=complex)
+            (0.4707504736556572+0j)
+            sage: f._evalf_(1/2, 1/2, parent=RDF)
+            0.4707504736556572
+            sage: f._evalf_(1, I, parent=CDF)  # abs tol 1e-16
+            0.8483795707591759 - 0.07429247342160791*I
+            sage: f._evalf_(1, I, parent=RR)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert x (='0.848379570759176-0.0742924734216079*I') to real number.
         """
         parent = kwds['parent']
-        if hasattr(parent, 'prec') and parent.prec() > 53:
-            raise NotImplementedError("%s not implemented for precision > 53"%self.name())
+        # The result from maxima is a machine double, which corresponds
+        # to RDF (or CDF). Therefore, before converting, we check that
+        # we can actually coerce RDF into our parent.
+        if parent is not float and parent is not complex:
+            if not isinstance(parent, Parent) or not parent.has_coerce_map_from(RDF):
+                raise NotImplementedError("Maxima function %s not implemented for %r"%(self.name(), parent))
         _init()
         return parent(maxima("%s, numer"%self._maxima_init_evaled_(*args)))
 
     def _eval_(self, *args):
         """
-        Returns a string which represents this function evaluated at
-        *args* in Maxima.
+        Try to evaluate this function at ``*args``, return ``None`` if
+        Maxima did not compute a numerical evaluation.
 
         EXAMPLES::
 
@@ -373,13 +394,23 @@ class MaximaFunction(BuiltinFunction):
 
             sage: elliptic_e(arccoth(1), x^2*e)
             elliptic_e(arccoth(1), x^2*e)
+
+        Since Maxima works only with double precision, numerical
+        results are in ``RDF``, no matter what the input precision is::
+
+            sage: R = RealField(300)
+            sage: r = elliptic_eu(R(1/2), R(1/8)); r
+            0.4950737320232015
+            sage: parent(r)
+            Real Double Field
         """
         _init()
         try:
             s = maxima(self._maxima_init_evaled_(*args))
         except TypeError:
             return None
-        if self.name() in repr(s):
+
+        if self.name() in s.__repr__():  # Avoid infinite recursion
             return None
         else:
             return s.sage()
@@ -671,17 +702,11 @@ class SphericalHarmonic(BuiltinFunction):
             sage: spherical_harmonic(3 + I, 2., 1, 2)
             -0.351154337307488 - 0.415562233975369*I
         """
-        from sage.structure.coerce import parent
-        cc = get_coercion_model().canonical_coercion
-        coerced = cc(phi, cc(theta, cc(n, m)[0])[0])[0]
-        if is_inexact(coerced) and not isinstance(coerced, Expression):
-            return self._evalf_(n, m, theta, phi, parent=parent(coerced))
-        elif n in ZZ and m in ZZ and n > -1:
+        if n in ZZ and m in ZZ and n > -1:
             if abs(m) > n:
                 return ZZ(0)
             return meval("spherical_harmonic({},{},{},{})".format(
                 ZZ(n), ZZ(m), maxima(theta), maxima(phi)))
-        return
 
     def _evalf_(self, n, m, theta, phi, parent, **kwds):
         r"""
@@ -921,6 +946,8 @@ class EllipticEC(BuiltinFunction):
 
             sage: loads(dumps(elliptic_ec))
             elliptic_ec
+            sage: elliptic_ec(x)._sympy_()
+            elliptic_e(x)
         """
         BuiltinFunction.__init__(self, 'elliptic_ec', nargs=1, latex_name='E',
                                  conversions=dict(mathematica='EllipticE',
@@ -1112,6 +1139,8 @@ class EllipticF(BuiltinFunction):
 
             sage: loads(dumps(elliptic_f))
             elliptic_f
+            sage: elliptic_f(x, 2)._sympy_()
+            elliptic_f(x, 2)
         """
         BuiltinFunction.__init__(self, 'elliptic_f', nargs=2,
                                  conversions=dict(mathematica='EllipticF',
@@ -1206,6 +1235,8 @@ class EllipticKC(BuiltinFunction):
     
             sage: loads(dumps(elliptic_kc))
             elliptic_kc
+            sage: elliptic_kc(x)._sympy_()
+            elliptic_k(x)
         """
         BuiltinFunction.__init__(self, 'elliptic_kc', nargs=1, latex_name='K',
                                  conversions=dict(mathematica='EllipticK',
@@ -1302,6 +1333,8 @@ class EllipticPi(BuiltinFunction):
     
             sage: loads(dumps(elliptic_pi))
             elliptic_pi
+            sage: elliptic_pi(x, pi/4, 1)._sympy_()
+            elliptic_pi(x, pi/4, 1)
         """
         BuiltinFunction.__init__(self, 'elliptic_pi', nargs=3,
                                  conversions=dict(mathematica='EllipticPi',
@@ -1385,25 +1418,6 @@ class EllipticPi(BuiltinFunction):
 elliptic_pi = EllipticPi()
 
 
-def lngamma(t):
-    r"""
-    This method is deprecated, please use
-    :meth:`~sage.functions.other.log_gamma` instead.
-
-    See the :meth:`~sage.functions.other.log_gamma` function for '
-    documentation and examples.
-
-    EXAMPLES::
-
-        sage: lngamma(RR(6))
-        doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
-        See http://trac.sagemath.org/6992 for details.
-        4.78749174278205
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
-    return log_gamma(t)
-
 def error_fcn(t):
     r"""
     The complementary error function
@@ -1428,7 +1442,6 @@ def error_fcn(t):
     try:
         return t.erfc()
     except AttributeError:
-        from sage.rings.real_mpfr import RR
         try:
             return RR(t).erfc()
         except Exception:

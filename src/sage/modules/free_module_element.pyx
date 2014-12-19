@@ -842,6 +842,60 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         return self.list()
 
+    def _pari_(self):
+        """
+        Convert ``self`` to a PARI vector.
+
+        OUTPUT:
+
+        A PARI ``gen`` of type ``t_VEC``.
+
+        EXAMPLES::
+
+            sage: v = vector(range(4))
+            sage: v._pari_()
+            [0, 1, 2, 3]
+            sage: v._pari_().type()
+            't_VEC'
+
+        A list of vectors::
+
+            sage: L = [vector(i^n for i in range(4)) for n in [1,3,5]]
+            sage: pari(L)
+            [[0, 1, 2, 3], [0, 1, 8, 27], [0, 1, 32, 243]]
+        """
+        from sage.libs.pari.all import pari
+        return pari(self.list())
+
+    def _pari_init_(self):
+        """
+        Give a string which, when evaluated in GP, gives a PARI
+        representation of ``self``.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: v = vector(range(4))
+            sage: v._pari_init_()
+            '[0,1,2,3]'
+
+        Create the multiplication table of `GF(4)` using GP::
+
+            sage: k.<a> = GF(4, impl="pari_ffelt")
+            sage: v = gp(vector(list(k)))
+            sage: v
+            [0, 1, a, a + 1]
+            sage: v.mattranspose() * v
+            [0, 0, 0, 0; 0, 1, a, a + 1; 0, a, a + 1, 1; 0, a + 1, 1, a]
+        """
+        # Elements in vectors are always Sage Elements, so they should
+        # have a _pari_init_() method.
+        L = [x._pari_init_() for x in self.list()]
+        return "[" + ",".join(L) + "]"
+
     def _magma_init_(self, magma):
         r"""
         Convert self to Magma.
@@ -1115,44 +1169,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (0.5000, 0.0000, 0.0000, 0.3333, 0.0000, 0.0000, 0.0000, 0.2500)
         """
         return vector([e.n(prec, digits, algorithm) for e in self])
-
-    def transpose(self):
-        r"""
-        Return self as a column matrix.
-
-        .. note::
-
-            The ``transpose()`` method has been deprecated as of Sage 4.6.2,
-            in favor of the :meth:`column` method which is functionally identical.
-
-        EXAMPLES::
-
-            sage: v = vector(ZZ, [2, 12, 22])
-            sage: transpose(vector(v))
-            doctest:...: DeprecationWarning: The transpose() method for vectors has been deprecated, use column() instead
-            (or check to see if you have a vector when you really want a matrix)
-            See http://trac.sagemath.org/10541 for details.
-            [ 2]
-            [12]
-            [22]
-
-        ::
-
-            sage: transpose(vector(GF(7), v))
-            [2]
-            [5]
-            [1]
-
-        ::
-
-            sage: transpose(vector(v, ZZ['x', 'y']))
-            [ 2]
-            [12]
-            [22]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(10541, 'The transpose() method for vectors has been deprecated, use column() instead\n(or check to see if you have a vector when you really want a matrix)')
-        return self._matrix_().transpose()
 
     def row(self):
         r"""
@@ -2420,47 +2436,47 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         ::
 
-            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ[x],[1,2,3,4])))
+            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ['x'],[1,2,3,4])))
             Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
             sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(QQ,[1,2,3,4])))
             Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
 
         ::
 
-            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
+            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ['x']['y'],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
             sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ,[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
 
         ::
 
-            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
+            sage: parent(vector(QQ['x'],[1,2,3,4]).pairwise_product(vector(ZZ['x']['y'],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ[x],[1,2,3,4])))
-            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-
-        ::
-
-            sage: parent(vector(QQ[y],[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
-            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ['x'],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
 
         ::
 
-            sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(ZZ[y],[1,2,3,4])))
+            sage: parent(vector(QQ['y'],[1,2,3,4]).pairwise_product(vector(ZZ['x']['y'],[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ['y'],[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+        ::
+
+            sage: parent(vector(ZZ['x'],[1,2,3,4]).pairwise_product(vector(ZZ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
-            sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            sage: parent(vector(ZZ['x'],[1,2,3,4]).pairwise_product(vector(QQ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
-            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(ZZ[y],[1,2,3,4])))
+            sage: parent(vector(QQ['x'],[1,2,3,4]).pairwise_product(vector(ZZ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
-            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            sage: parent(vector(QQ['x'],[1,2,3,4]).pairwise_product(vector(QQ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
@@ -2540,25 +2556,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             if self[i] != 0:
                 return (~self[i]) * self
         return self
-
-    def normalize(self):
-        """
-        This function is deprecated. For division by the p-norm use
-        'normalized', and for division by the first nonzero entry use
-        'monic' (previously the purpose of this function).
-
-        EXAMPLES::
-
-            sage: v = vector(QQ, [0, 4/3, 5, 1, 2])
-            sage: v.normalize()
-            doctest:...: DeprecationWarning: 'normalize' is deprecated...
-            (0, 1, 15/4, 3/4, 3/2)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(13393, "'normalize' is deprecated. For division by the \
-p-norm use 'normalized', and for division by the first nonzero entry use \
-'monic'.")
-        return self.monic()
 
     def normalized(self, p=sage.rings.integer.Integer(2)):
         """
@@ -3925,7 +3922,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: w=v.function([x]); w
             x |--> (x, y, x*sin(y))
             sage: w.base_ring()
-            Callable function ring with arguments (x,)
+            Callable function ring with argument x
             sage: w(4)
             (4, y, 4*sin(y))
         """
@@ -4406,7 +4403,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w[39893] = sqrt(2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=sqrt(2)) to an integer
+            TypeError: unable to convert sqrt(2) to an integer
         """
         if not self._is_mutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")

@@ -2152,7 +2152,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             sage: A.characteristic_polynomial()
             x^10 + 12*x^9 + 6*x^8 + 8*x^7 + 13*x^6
             sage: P.<x> = GF(17)[]
-            sage: A._charpoly_hessenberg(x)
+            sage: A._charpoly_hessenberg('x')
             x^10 + 12*x^9 + 6*x^8 + 8*x^7 + 13*x^6
         """
         if self._nrows != self._ncols:
@@ -2901,18 +2901,12 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         cdef Matrix_integer_dense L
         cdef object P =  matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=False)
         L = Matrix_integer_dense(P,ZZ(0),False,False)
-        cdef mpz_t* L_row
-        cdef mpz_t tmp
         cdef celement* A_row
-        mpz_init(tmp)
-        for i from 0 <= i < self._nrows:
+        for i in range(self._nrows):
             A_row = self._matrix[i]
-            for j from 0 <= j < self._ncols:
-                mpz_set_si(tmp,<int>(A_row[j]))
-                L.set_unsafe_mpz(i,j,tmp)
-        L._initialized = 1
+            for j in range(self._ncols):
+                L.set_unsafe_double(i, j, A_row[j])
         L.subdivide(self.subdivisions())
-        mpz_clear(tmp)
         return L
 
 

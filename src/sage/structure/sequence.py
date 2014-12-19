@@ -529,7 +529,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: a[2] = 'hello'
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=hello) to an integer
+            TypeError: unable to convert 'hello' to an integer
             sage: a[2] = '5'
             sage: a
             [1, 2, 5, 4, 5]

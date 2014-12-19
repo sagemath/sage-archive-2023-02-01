@@ -528,7 +528,7 @@ preceded by the order of each element. ::
     sage: n = 20
     sage: CN = CyclicPermutationGroup(n)
     sage: for g in CN:
-    ...       print g.order(), "  ", g
+    ....:     print g.order(), "  ", g
     ...
     1    ()
     20    (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)
@@ -721,7 +721,7 @@ rotation about each axis.  These three rotations will construct the
 entire symmetry group.  Use ::
 
     sage: cube = PermutationGroup(["(3,2,6,7)(4,1,5,8)",
-    ...   "(1,2,6,5)(4,3,7,8)", "(1,2,3,4)(5,6,7,8)"])
+    ....:     "(1,2,6,5)(4,3,7,8)", "(1,2,3,4)(5,6,7,8)"])
     sage: cube.list()
     [(), (2,4,5)(3,8,6), (2,5,4)(3,6,8), (1,2)(3,5)(4,6)(7,8), (1,2,3,4)(5,6,7,8), (1,2,6,5)(3,7,8,4), (1,3,6)(4,7,5), (1,3)(2,4)(5,7)(6,8), (1,3,8)(2,7,5), (1,4,3,2)(5,8,7,6), (1,4,8,5)(2,3,7,6), (1,4)(2,8)(3,5)(6,7), (1,5,6,2)(3,4,8,7), (1,5,8,4)(2,6,7,3), (1,5)(2,8)(3,7)(4,6), (1,6,3)(4,5,7), (1,6)(2,5)(3,8)(4,7), (1,6,8)(2,7,4), (1,7)(2,3)(4,6)(5,8), (1,7)(2,6)(3,5)(4,8), (1,7)(2,8)(3,4)(5,6), (1,8,6)(2,4,7), (1,8,3)(2,5,7), (1,8)(2,7)(3,6)(4,5)]
 
@@ -734,7 +734,7 @@ diagonals is created by exactly one symmetry of the 8 vertices of the
 cube.  So this subgroup of `S_8` is "the same as" `S_4`.  In Sage::
 
     sage: cube = PermutationGroup(["(3,2,6,7)(4,1,5,8)",
-    ...   "(1,2,6,5)(4,3,7,8)", "(1,2,3,4)(5,6,7,8)"])
+    ....:     "(1,2,6,5)(4,3,7,8)", "(1,2,3,4)(5,6,7,8)"])
     sage: cube.is_isomorphic(SymmetricGroup(4))
     True
 
@@ -873,7 +873,7 @@ conjugacy classes of the full symmetric group on 5 symbols::
     sage: reps = G.conjugacy_classes_representatives()
     sage: class_sizes = []
     sage: for g in reps:
-    ...       class_sizes.append(group_order / G.centralizer(g).order())
+    ....:     class_sizes.append(group_order / G.centralizer(g).order())
     ...
     sage: class_sizes
     [1, 10, 15, 20, 20, 30, 24]

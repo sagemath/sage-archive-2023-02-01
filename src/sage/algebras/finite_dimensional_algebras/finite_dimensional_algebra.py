@@ -170,8 +170,7 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: A._Hom_(B, A.category())
             Set of Homomorphisms from Finite-dimensional algebra of degree 1 over Rational Field to Finite-dimensional algebra of degree 2 over Rational Field
         """
-        if isinstance(B, FiniteDimensionalAlgebra):
-            category = FiniteDimensionalAlgebrasWithBasis(self.base_ring()).or_subcategory(category)
+        if category.is_subcategory(FiniteDimensionalAlgebrasWithBasis(self.base_ring())):
             from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra_morphism import FiniteDimensionalAlgebraHomset
             return FiniteDimensionalAlgebraHomset(self, B, category=category)
         return super(FiniteDimensionalAlgebra, self)._Hom_(B, category)

@@ -24,7 +24,7 @@ extensions = ['inventory_builder', 'multidocs',
               'sphinx.ext.extlinks', 'matplotlib.sphinxext.plot_directive']
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
-# documentation. It defines a 'draw' functions that displays a Sage object
+# documentation. It defines a 'sphinx_plot' function that displays a Sage object
 # through mathplotlib, so that it will be displayed in the HTML doc
 plot_pre_code = """
 def sphinx_plot(plot):

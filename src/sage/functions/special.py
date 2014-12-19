@@ -206,6 +206,7 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.integer import Integer
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.latex import latex
@@ -390,18 +391,13 @@ class MaximaFunction(BuiltinFunction):
             sage: f._eval_(1,1)
             tanh(1)
 
-        Here arccoth doesn't have 1 in its domain, so we just hold the expression:
-
-            sage: elliptic_e(arccoth(1), x^2*e)
-            elliptic_e(arccoth(1), x^2*e)
-
         Since Maxima works only with double precision, numerical
         results are in ``RDF``, no matter what the input precision is::
 
             sage: R = RealField(300)
-            sage: r = elliptic_eu(R(1/2), R(1/8)); r
+            sage: r = jacobi_sn(R(1/2), R(1/8)); r # not tested
             0.4950737320232015
-            sage: parent(r)
+            sage: parent(r)  # not tested
             Real Double Field
         """
         _init()
@@ -870,19 +866,18 @@ class EllipticE(BuiltinFunction):
             z
             sage: elliptic_e(z, 1)
             elliptic_e(z, 1)
+
+        Here arccoth doesn't have 1 in its domain, so we just hold the expression:
+
+            sage: elliptic_e(arccoth(1), x^2*e)
+            elliptic_e(arccoth(1), x^2*e)
         """
-        coercion_model = get_coercion_model()
-        co = coercion_model.canonical_coercion(z, m)[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            return self._evalf_(z, m, parent(co))
-        elif z == 0:
+        if z == 0:
             return Integer(0)
         elif z == pi / 2:
             return elliptic_ec(m)
         elif m == 0:
             return z
-        else:
-            return None
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
         """
@@ -965,15 +960,11 @@ class EllipticEC(BuiltinFunction):
             sage: elliptic_ec(x)
             elliptic_ec(x)
         """
-        if is_inexact(x) and not isinstance(x, Expression):
-            return self._evalf_(x, parent(x))
-        elif x == 0:
+        if x == 0:
             return pi / Integer(2)
         elif x == 1:
             return Integer(1)
-        else:
-            return None
- 
+
     def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
@@ -1034,12 +1025,7 @@ class EllipticEU(BuiltinFunction):
             sage: elliptic_eu(1,1)
             elliptic_eu(1, 1)
         """
-        coercion_model = get_coercion_model()
-        co = coercion_model.canonical_coercion(u, m)[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            return self._evalf_(u, m, parent(co))
-        else:
-            return None
+        pass
 
     def _evalf_(self, u, m, parent=None, algorithm=None):
         """
@@ -1160,11 +1146,7 @@ class EllipticF(BuiltinFunction):
             sage: elliptic_f(pi/2,x)
             elliptic_kc(x)
         """
-        coercion_model = get_coercion_model()
-        co = coercion_model.canonical_coercion(z, m)[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            return self._evalf_(z, m, parent(co))
-        elif m == 0:
+        if m == 0:
             return z
         elif z == 0:
             return Integer(0)
@@ -1252,9 +1234,7 @@ class EllipticKC(BuiltinFunction):
             sage: elliptic_kc(1/2)
             elliptic_kc(1/2)
         """
-        if is_inexact(z) and not isinstance(z, Expression):
-            return self._evalf_(z, parent(z))
-        elif z == 0:
+        if z == 0:
             return pi / 2
         else:
             return None
@@ -1350,14 +1330,8 @@ class EllipticPi(BuiltinFunction):
             sage: elliptic_pi(0,x,pi)
             elliptic_f(x, pi)
         """
-        cm = get_coercion_model()
-        co = cm.canonical_coercion(n, cm.canonical_coercion(z, m)[0])[0]
-        if is_inexact(co) and not isinstance(co, Expression):
-            return self._evalf_(n, z, m, parent(co))
-        elif n == 0:
+        if n == 0:
             return elliptic_f(z, m)
-        else:
-            return None
 
     def _evalf_(self, n, z, m, parent=None, algorithm=None):
         """

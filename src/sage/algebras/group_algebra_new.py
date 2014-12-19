@@ -112,7 +112,7 @@ from sage.rings.all import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.categories.pushout import ConstructionFunctor
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.categories.all import Rings, HopfAlgebrasWithBasis, Hom
+from sage.categories.all import Rings, GroupAlgebras, Hom
 from sage.categories.morphism import SetMorphism
 
 
@@ -133,7 +133,7 @@ class GroupAlgebraFunctor (ConstructionFunctor) :
         sage: loads(dumps(F)) == F
         True
         sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-        Category of hopf algebras with basis over Ring of integers modulo 12
+        Category of group algebras over Ring of integers modulo 12
     """
     def __init__(self, group) :
         r"""
@@ -143,7 +143,7 @@ class GroupAlgebraFunctor (ConstructionFunctor) :
 
             sage: from sage.algebras.group_algebra_new import GroupAlgebraFunctor
             sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-            Category of hopf algebras with basis over Ring of integers modulo 12
+            Category of group algebras over Ring of integers modulo 12
         """
         self.__group = group
 
@@ -206,7 +206,7 @@ class GroupAlgebraFunctor (ConstructionFunctor) :
         codomain = self(f.codomain())
         return SetMorphism(Hom(self(f.domain()), codomain, Rings()), lambda x: sum(codomain(g) * f(c) for (g, c) in dict(x).iteritems()))
 
-class GroupAlgebra(CombinatorialFreeModule, Algebra):
+class GroupAlgebra(CombinatorialFreeModule):
     r"""
     Create the given group algebra.
 
@@ -231,9 +231,50 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
         TypeError: "1" is not a group
 
         sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-        Category of hopf algebras with basis over Ring of integers modulo 12
+        Category of group algebras over Ring of integers modulo 12
         sage: GroupAlgebra(KleinFourGroup()) is GroupAlgebra(KleinFourGroup())
         True
+
+    The one of the group indexes the one of this algebra::
+
+        sage: A = GroupAlgebra(DihedralGroup(6), QQ)
+        sage: A.one_basis()
+        ()
+        sage: A.one()
+        ()
+
+    The product of two basis elements is induced by the product of the
+    corresponding elements of the group::
+
+        sage: A = GroupAlgebra(DihedralGroup(3), QQ)
+        sage: (a, b) = A._group.gens()
+        sage: a*b
+        (1,2)
+        sage: A.product_on_basis(a, b)
+        (1,2)
+
+    The basis elements are group-like for the coproduct:
+    `\Delta(g) = g \otimes g`::
+
+        sage: A = GroupAlgebra(DihedralGroup(3), QQ)
+        sage: (a, b) = A._group.gens()
+        sage: A.coproduct_on_basis(a)
+        (1,2,3) # (1,2,3)
+
+    The counit on the basis elements is 1::
+
+        sage: A = GroupAlgebra(DihedralGroup(6), QQ)
+        sage: (a, b) = A._group.gens()
+        sage: A.counit_on_basis(a)
+        1
+
+    The antipode on basis elements is given by `\chi(g) = g^{-1}`::
+
+        sage: A = GroupAlgebra(DihedralGroup(3), QQ)
+        sage: (a, b) = A._group.gens(); a
+        (1,2,3)
+        sage: A.antipode_on_basis(a)
+        (1,3,2)
 
     TESTS::
 
@@ -266,55 +307,16 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
         CombinatorialFreeModule.__init__(self, base_ring, group,
                                          prefix='',
                                          bracket=False,
-                                         category=HopfAlgebrasWithBasis(base_ring))
+                                         category=GroupAlgebras(base_ring))
 
         if not base_ring.has_coerce_map_from(group) :
             ## some matrix groups assume that coercion is only valid to
             ## other matrix groups. This is a workaround
             ## call _element_constructor_ to coerce group elements
             #try :
-            self._populate_coercion_lists_(coerce_list=[base_ring, group])
-            #except TypeError :
-            #    self._populate_coercion_lists_( coerce_list = [base_ring] )
-        else :
-            self._populate_coercion_lists_(coerce_list=[base_ring])
+            self._populate_coercion_lists_(coerce_list=[group])
 
     # Methods taken from sage.categories.examples.hopf_algebras_with_basis:
-
-    @cached_method
-    def one_basis(self):
-        """
-        Returns the one of the group, which indexes the one of this
-        algebra, as per :meth:`AlgebrasWithBasis.ParentMethods.one_basis`.
-
-        EXAMPLES::
-
-            sage: A = GroupAlgebra(DihedralGroup(6), QQ)
-            sage: A.one_basis()
-            ()
-            sage: A.one()
-            ()
-        """
-        return self._group.one()
-
-    def product_on_basis(self, g1, g2):
-        r"""
-        Product, on basis elements, as per
-        :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis`.
-
-        The product of two basis elements is induced by the product of
-        the corresponding elements of the group.
-
-        EXAMPLES::
-
-            sage: A = GroupAlgebra(DihedralGroup(3), QQ)
-            sage: (a, b) = A._group.gens()
-            sage: a*b
-            (1,2)
-            sage: A.product_on_basis(a, b)
-            (1,2)
-        """
-        return self.basis()[g1 * g2]
 
     @cached_method
     def algebra_generators(self):
@@ -335,53 +337,6 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
         return Family(self._group.gens(), self.monomial)
 
     gens = algebra_generators
-
-    def coproduct_on_basis(self, g):
-        r"""
-        Coproduct, on basis elements, as per :meth:`HopfAlgebrasWithBasis.ParentMethods.coproduct_on_basis`.
-
-        The basis elements are group-like: `\Delta(g) = g \otimes g`.
-
-        EXAMPLES::
-
-            sage: A = GroupAlgebra(DihedralGroup(3), QQ)
-            sage: (a, b) = A._group.gens()
-            sage: A.coproduct_on_basis(a)
-            (1,2,3) # (1,2,3)
-        """
-        from sage.categories.all import tensor
-        g = self.monomial(g)
-        return tensor([g, g])
-
-    def counit_on_basis(self, g):
-        r"""
-        Counit, on basis elements, as per :meth:`HopfAlgebrasWithBasis.ParentMethods.counit_on_basis`.
-
-        The counit on the basis elements is 1.
-
-        EXAMPLES::
-
-            sage: A = GroupAlgebra(DihedralGroup(6), QQ)
-            sage: (a, b) = A._group.gens()
-            sage: A.counit_on_basis(a)
-            1
-        """
-        return self.base_ring().one()
-
-    def antipode_on_basis(self, g):
-        r"""
-        Antipode, on basis elements, as per :meth:`HopfAlgebrasWithBasis.ParentMethods.antipode_on_basis`.
-
-        It is given, on basis elements, by `\chi(g) = g^{-1}`
-
-        EXAMPLES::
-
-            sage: A = GroupAlgebra(DihedralGroup(3), QQ)
-            sage: (a, b) = A._group.gens()
-            sage: A.antipode_on_basis(a)
-            (1,3,2)
-        """
-        return self.monomial(~g)
 
     # other methods:
 

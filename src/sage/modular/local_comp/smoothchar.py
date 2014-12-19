@@ -1286,7 +1286,7 @@ class SmoothCharacterGroupUnramifiedQuadratic(SmoothCharacterGroupGeneric):
         """
         chi = chi.base_extend(self.base_ring())
         if chi.level() > level:
-            raise ValueError, "Level of extended character cannot be smaller than level of character of Qp"
+            raise ValueError("Level of extended character cannot be smaller than level of character of Qp")
 
         # check it makes sense
         e = (self.prime() + 1) * (self.prime()**(level - 1))
@@ -1572,7 +1572,7 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
             True
         """
         x = self.number_field().coerce(x)
-        if x == 0: raise ValueError, "cannot evaluate at zero"
+        if x == 0: raise ValueError("cannot evaluate at zero")
         n1 = x.valuation(self.ideal(1))
         x1 = x / self.number_field().gen()**n1
         if level == 0:

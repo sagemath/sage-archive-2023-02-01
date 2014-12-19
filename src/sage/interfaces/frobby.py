@@ -61,8 +61,8 @@ class Frobby:
 
         if verbose:
             print "Frobby action: ", action
-            print "Frobby options: ", `options`
-            print "Frobby command: ", `command`
+            print "Frobby options: ", repr(options)
+            print "Frobby command: ", repr(command)
             print "Frobby input:\n", input
 
         process = Popen(command, stdin = PIPE, stdout = PIPE, stderr = PIPE)

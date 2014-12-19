@@ -8,9 +8,7 @@ Unique factorization domains
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
-from sage.misc.cachefunc import cached_method
 from sage.categories.gcd_domains import GcdDomains
 
 class UniqueFactorizationDomains(Category_singleton):
@@ -40,8 +38,24 @@ class UniqueFactorizationDomains(Category_singleton):
         """
         return [GcdDomains()]
 
+    def additional_structure(self):
+        """
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        The category of unique factorization domains does not define
+        additional structure: a ring morphism between unique factorization
+        domains is a unique factorization domain morphism.
+
+        EXAMPLES::
+
+            sage: UniqueFactorizationDomains().additional_structure()
+        """
+        return None
+
     class ParentMethods:
-        def is_unique_factorization_domain(self):
+        def is_unique_factorization_domain(self, proof=True):
             """
             Return True, since this in an object of the category of unique factorization domains.
 

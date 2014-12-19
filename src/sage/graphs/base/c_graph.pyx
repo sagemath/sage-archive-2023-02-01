@@ -37,7 +37,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 #                         http://www.gnu.org/licenses/
 #**************************************************************************
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 
 from graph_backends import GenericGraphBackend
 from sage.rings.integer cimport Integer
@@ -51,7 +51,7 @@ cdef class CGraph:
     # Vertex Functions
     ###################################
 
-    cpdef bint has_vertex(self, int n):
+    cpdef bint has_vertex(self, int n) except -1:
         """
         Determine whether the vertex ``n`` is in ``self``.
 
@@ -171,7 +171,7 @@ cdef class CGraph:
         if not self.has_vertex(n):
             raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(n))
 
-    cdef int add_vertex_unsafe(self, int k):
+    cdef int add_vertex_unsafe(self, int k) except -1:
         """
         Adds the vertex ``k`` to the graph.
 
@@ -309,11 +309,11 @@ cdef class CGraph:
             ...
             RuntimeError: Requested vertex is past twice the allocated range: use realloc.
         """
-        if k >= (2 * self.active_vertices.size):
+        if k >= (2 * <int>self.active_vertices.size):
             raise RuntimeError(
                 "Requested vertex is past twice the allocated range: "
                 "use realloc.")
-        if (k >= self.active_vertices.size or
+        if (k >= <int>self.active_vertices.size or
             (k == -1 and self.active_vertices.size == self.num_verts)):
             self.realloc(2 * self.active_vertices.size)
         return self.add_vertex_unsafe(k)
@@ -383,7 +383,7 @@ cdef class CGraph:
 
         return new_names if new_names != [] else None
 
-    cdef int del_vertex_unsafe(self, int v):
+    cdef int del_vertex_unsafe(self, int v) except -1:
         """
         Deletes the vertex ``v``, along with all edges incident to it.
 
@@ -726,19 +726,19 @@ cdef class CGraph:
     # Edge Functions
     ###################################
 
-    cdef int add_arc_unsafe(self, int u, int v) except? -1:
+    cdef int add_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
-    cdef int has_arc_unsafe(self, int u, int v) except? -1:
+    cdef int has_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
-    cdef int del_arc_unsafe(self, int u, int v) except? -1:
+    cdef int del_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
-    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
+    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         raise NotImplementedError()
 
-    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
+    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         raise NotImplementedError()
 
     cpdef add_arc(self, int u, int v):
@@ -805,15 +805,11 @@ cdef class CGraph:
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.has_arc(0, 1)
-            Not Implemented!
-            False
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
-        # The following is due to a hard to reproduce bug in Cython where except,
-        # cpdef, and classes don't play well together:
-        print "Not Implemented!"
-        # raise NotImplementedError() ... results in:
-        # Exception exceptions.NotImplementedError: NotImplementedError() in 'sage.graphs.base.c_graph.CGraph.has_arc' ignored
-        # False
+        raise NotImplementedError
 
     cpdef del_all_arcs(self, int u, int v):
         """
@@ -1165,7 +1161,7 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         return vertex_ints[u]
     try:
         u_int = u
-    except StandardError:
+    except Exception:
         return -1
     if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels or u_int != u:
         return -1
@@ -1277,8 +1273,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: B.has_vertex(7)
             False
         """
-        cdef v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if v_int == -1:
             return False
         if not bitset_in((<CGraph>self._cg).active_vertices, v_int):
@@ -1416,10 +1414,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: h.degree()
             [1, 1]
         """
-        cdef v_int = get_vertex(v,
-                                self.vertex_ints,
-                                self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if directed:
             return self._cg._in_degree(v_int) + self._cg._out_degree(v_int)
         d = 0
@@ -1430,7 +1428,6 @@ class CGraphBackend(GenericGraphBackend):
                 d += 1
         return self._cg._out_degree(v_int) + d
 
-
     def out_degree(self, v):
         r"""
         Returns the out-degree of v
@@ -1439,10 +1436,6 @@ class CGraphBackend(GenericGraphBackend):
 
         - ``v`` -- a vertex of the graph.
 
-        - ``directed`` -- boolean; whether to take into account the
-          orientation of this graph in counting the degree of ``v``.
-
-
         EXAMPLE::
 
 
@@ -1450,10 +1443,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: D.out_degree(1)
             2
         """
-        cdef v_int = get_vertex(v,
-                                self.vertex_ints,
-                                self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if self._directed:
             return self._cg._out_degree(v_int)
         d = 0
@@ -1465,6 +1458,30 @@ class CGraphBackend(GenericGraphBackend):
 
         return self._cg._out_degree(v_int) + d
 
+    def in_degree(self, v):
+        r"""
+        Returns the in-degree of v
+
+        INPUT:
+
+        - ``v`` -- a vertex of the graph.
+
+        EXAMPLE::
+
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
+            sage: D.out_degree(1)
+            2
+        """
+        if not self._directed:
+            return self.out_degree(v)
+
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
+
+        return self._cg_rev._out_degree(v_int)
 
     def add_vertex(self, object name):
         """
@@ -1738,18 +1755,13 @@ class CGraphBackend(GenericGraphBackend):
                                     self._cg)
         # Sparse
         if self._cg_rev is not None:
-            return iter([vertex_label(u_int,
-                                      self.vertex_ints,
-                                      self.vertex_labels,
-                                      self._cg)
-                         for u_int in self._cg_rev.out_neighbors(v_int)])
+            for u_int in self._cg_rev.out_neighbors(v_int):
+                yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+
         # Dense
         else:
-            return iter([vertex_label(u_int,
-                                      self.vertex_ints,
-                                      self.vertex_labels,
-                                      self._cg)
-                         for u_int in self._cg.in_neighbors(v_int)])
+            for u_int in self._cg.in_neighbors(v_int):
+                yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
 
     def iterator_out_nbrs(self, v):
         """
@@ -1782,11 +1794,9 @@ class CGraphBackend(GenericGraphBackend):
                                     self.vertex_ints,
                                     self.vertex_labels,
                                     self._cg)
-        return iter([vertex_label(u_int,
-                                  self.vertex_ints,
-                                  self.vertex_labels,
-                                  self._cg)
-                     for u_int in self._cg.out_neighbors(v_int)])
+
+        for u_int in self._cg.out_neighbors(v_int):
+            yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
 
     def iterator_verts(self, verts=None):
         """
@@ -1836,7 +1846,7 @@ class CGraphBackend(GenericGraphBackend):
         try:
             v = hash(verts)
             is_hashable = True
-        except StandardError:
+        except Exception:
             pass
         if is_hashable and self.has_vertex(verts):
             return iter([verts])
@@ -1879,33 +1889,6 @@ class CGraphBackend(GenericGraphBackend):
             self._loops = True
         else:
             self._loops = False
-
-    def name(self, new=None):
-        """
-        Returns the name of this graph.
-
-        INPUT:
-
-        - ``new`` -- (default: ``None``); boolean (to set) or ``None``
-          (to get).
-
-        OUTPUT:
-
-        - If ``new=None``, return the name of this graph. Otherwise, set the
-          name of this graph to the value of ``new``.
-
-        EXAMPLE::
-
-            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
-            sage: G._backend.name()
-            'Petersen graph'
-            sage: G._backend.name("Peter Pan's graph")
-            sage: G._backend.name()
-            "Peter Pan's graph"
-        """
-        if new is None:
-            return self._name
-        self._name = new
 
     def num_edges(self, directed):
         """
@@ -2421,7 +2404,7 @@ class CGraphBackend(GenericGraphBackend):
 
             sage: g = 2*graphs.RandomGNP(20,.3)
             sage: paths = g._backend.shortest_path_all_vertices(0)
-            sage: all([ (not paths.has_key(v) and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
+            sage: all([ (v not in paths and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
             True
         """
         cdef list current_layer
@@ -2974,6 +2957,7 @@ cdef class Search_iterator:
     cdef bitset_t seen
     cdef bint test_out
     cdef bint test_in
+    cdef in_neighbors
 
     def __init__(self, graph, v, direction=0, reverse=False,
                  ignore_direction=False):
@@ -3028,6 +3012,12 @@ cdef class Search_iterator:
             Traceback (most recent call last):
             ...
             LookupError: Vertex ('') is not a vertex of the graph.
+
+        Immutable graphs (see :trac:`16019`)::
+
+            sage: DiGraph([[1,2]], immutable=True).connected_components()
+            [[1, 2]]
+
         """
         self.graph = graph
         self.direction = direction
@@ -3045,11 +3035,17 @@ cdef class Search_iterator:
 
         self.stack = [v_id]
 
-        if not self.graph.directed:
+        if not self.graph._directed:
             ignore_direction = False
 
         self.test_out = (not reverse) or ignore_direction
         self.test_in = reverse or ignore_direction
+
+        if self.test_in: # How do we list in_neighbors ?
+            if self.graph._cg_rev is None:
+                self.in_neighbors = self.graph._cg.in_neighbors
+            else:
+                self.in_neighbors = self.graph._cg_rev.out_neighbors
 
     def __iter__(self):
         r"""
@@ -3091,7 +3087,7 @@ cdef class Search_iterator:
                 if self.test_out:
                     self.stack.extend(self.graph._cg.out_neighbors(v_int))
                 if self.test_in:
-                    self.stack.extend(self.graph._cg_rev.out_neighbors(v_int))
+                    self.stack.extend(self.in_neighbors(v_int))
 
                 break
         else:

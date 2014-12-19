@@ -124,7 +124,7 @@ cdef class ntl_ZZ_pContext_factory:
         v -- an ntl_ZZ
         """
         cdef ntl_ZZ_pContext_class context
-        if self.context_dict.has_key(v):
+        if v in self.context_dict:
             context = <ntl_ZZ_pContext_class> self.context_dict[v]()
             if context is not None:
                 return context

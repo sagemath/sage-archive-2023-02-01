@@ -79,8 +79,7 @@ class LinearExtensions(CombinatorialClass):
         ################
         #Precomputation#
         ################
-        from copy import copy
-        dag_copy = copy(dag)
+        dag_copy = dag.copy(immutable=False)
         le = []
         a  = []
         b  = []
@@ -267,7 +266,7 @@ class LinearExtensions(CombinatorialClass):
                 return True
             return False
         else:
-            raise ValueError, "Bad letter!"
+            raise ValueError("Bad letter!")
 
     def generate_linear_extensions(self, i):
         """

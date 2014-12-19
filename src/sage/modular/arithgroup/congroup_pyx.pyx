@@ -305,7 +305,7 @@ def generators_helper(coset_reps, level, Mat2Z):
 #    print [type(lift_to_sl2z(c, d, level)) for c,d in crs]
     try:
         reps = [Matrix_integer_2x2(Mat2Z,lift_to_sl2z(c, d, level),False,True) for c,d in crs]
-    except StandardError:
+    except Exception:
         raise ArithmeticError, "Error lifting to SL2Z: level=%s crs=%s" % (level, crs)
     ans = []
     for i from 0 <= i < len(crs):

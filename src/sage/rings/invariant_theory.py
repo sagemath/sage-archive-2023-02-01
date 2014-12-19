@@ -988,7 +988,7 @@ class QuadraticForm(AlgebraicForm):
         if is_odd(self._n):
             return A.det() / 2
         else:
-            return (-1)**(self._n/2) * A.det()
+            return (-1)**(self._n//2) * A.det()
 
 
     @cached_method

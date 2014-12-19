@@ -54,6 +54,7 @@ viewer::
 
     sage: from sage.games.quantumino import show_pentaminos
     sage: show_pentaminos()
+    Graphics3d Object
 
 To solve the puzzle where the pentamino numbered 12 is put aside::
 
@@ -63,6 +64,7 @@ To solve the puzzle where the pentamino numbered 12 is put aside::
     Quantumino state where the following pentamino is put aside :
     Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (2, 1, 1)], Color: blue
     sage: s.show3d()                                      # long time (<1s)
+    Graphics3d Object
 
 To remove the frame::
 
@@ -75,27 +77,28 @@ To solve the puzzle where the pentamino numbered 7 is put aside::
     Quantumino state where the following pentamino is put aside :
     Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (0, 2, 1), (1, 0, 0)], Color: orange
     sage: s.show3d()                                      # long time (<1s)
+    Graphics3d Object
 
 The solution is iterable. This may be used to explicitly list the positions of each
 pentamino::
 
     sage: for p in s: p                                   # long time (<1s)
-    Polyomino: [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 2, 0), (1, 1, 0)], Color: deeppink
-    Polyomino: [(0, 1, 1), (1, 0, 1), (1, 1, 1), (1, 2, 0), (1, 2, 1)], Color: deeppink
-    Polyomino: [(0, 2, 1), (0, 3, 1), (0, 4, 0), (0, 4, 1), (1, 4, 0)], Color: green
-    Polyomino: [(0, 3, 0), (1, 3, 0), (2, 2, 1), (2, 3, 0), (2, 3, 1)], Color: green
-    Polyomino: [(1, 3, 1), (1, 4, 1), (2, 4, 0), (2, 4, 1), (2, 5, 1)], Color: red
-    Polyomino: [(1, 0, 0), (2, 0, 0), (2, 0, 1), (2, 1, 1), (3, 0, 1)], Color: red
-    Polyomino: [(2, 1, 0), (2, 2, 0), (3, 2, 0), (3, 2, 1), (3, 3, 1)], Color: blue
-    Polyomino: [(3, 0, 0), (3, 1, 0), (4, 0, 0), (4, 0, 1), (4, 1, 0)], Color: yellow
-    Polyomino: [(3, 1, 1), (4, 1, 1), (4, 2, 0), (4, 2, 1), (4, 3, 0)], Color: purple
-    Polyomino: [(3, 3, 0), (3, 4, 0), (3, 4, 1), (4, 3, 1), (4, 4, 1)], Color: yellow
-    Polyomino: [(3, 5, 1), (4, 4, 0), (4, 5, 0), (4, 5, 1), (4, 6, 0)], Color: midnightblue
-    Polyomino: [(2, 6, 1), (2, 7, 1), (3, 7, 0), (3, 7, 1), (4, 7, 0)], Color: purple
-    Polyomino: [(3, 5, 0), (3, 6, 0), (3, 6, 1), (4, 6, 1), (4, 7, 1)], Color: blue
-    Polyomino: [(0, 5, 0), (0, 5, 1), (0, 6, 0), (1, 5, 0), (2, 5, 0)], Color: darkblue
-    Polyomino: [(0, 7, 0), (0, 7, 1), (1, 7, 0), (2, 6, 0), (2, 7, 0)], Color: orange
-    Polyomino: [(0, 6, 1), (1, 5, 1), (1, 6, 0), (1, 6, 1), (1, 7, 1)], Color: gray
+    Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 2, 0)], Color: deeppink
+    Polyomino: [(0, 0, 1), (0, 1, 0), (0, 1, 1), (0, 2, 1), (1, 2, 1)], Color: deeppink
+    Polyomino: [(0, 2, 0), (0, 3, 0), (0, 4, 0), (1, 4, 0), (1, 4, 1)], Color: green
+    Polyomino: [(0, 3, 1), (1, 3, 1), (2, 2, 0), (2, 2, 1), (2, 3, 1)], Color: green
+    Polyomino: [(1, 3, 0), (2, 3, 0), (2, 4, 0), (2, 4, 1), (3, 4, 0)], Color: red
+    Polyomino: [(1, 0, 1), (2, 0, 1), (2, 1, 0), (2, 1, 1), (3, 1, 1)], Color: red
+    Polyomino: [(2, 0, 0), (3, 0, 0), (3, 0, 1), (3, 1, 0), (4, 0, 0)], Color: gray
+    Polyomino: [(3, 2, 0), (4, 0, 1), (4, 1, 0), (4, 1, 1), (4, 2, 0)], Color: purple
+    Polyomino: [(3, 2, 1), (3, 3, 0), (3, 3, 1), (4, 2, 1), (4, 3, 1)], Color: yellow
+    Polyomino: [(3, 4, 1), (3, 5, 1), (4, 3, 0), (4, 4, 0), (4, 4, 1)], Color: blue
+    Polyomino: [(0, 4, 1), (0, 5, 0), (0, 5, 1), (0, 6, 1), (1, 5, 0)], Color: midnightblue
+    Polyomino: [(0, 6, 0), (0, 7, 0), (0, 7, 1), (1, 7, 0), (2, 7, 0)], Color: darkblue
+    Polyomino: [(1, 7, 1), (2, 6, 0), (2, 6, 1), (2, 7, 1), (3, 6, 0)], Color: blue
+    Polyomino: [(1, 5, 1), (1, 6, 0), (1, 6, 1), (2, 5, 0), (2, 5, 1)], Color: yellow
+    Polyomino: [(3, 6, 1), (3, 7, 0), (3, 7, 1), (4, 5, 1), (4, 6, 1)], Color: purple
+    Polyomino: [(3, 5, 0), (4, 5, 0), (4, 6, 0), (4, 7, 0), (4, 7, 1)], Color: orange
 
 To get all the solutions, use the iterator returned by the ``solve``
 method. Note that finding the first solution is the most time consuming
@@ -404,7 +407,7 @@ class QuantuminoSolver(SageObject):
             Aside pentamino number: 9
         """
         if not  0 <= aside < 17:
-            raise ValueError, "aside (=%s) must be between 0 and 16" % aside
+            raise ValueError("aside (=%s) must be between 0 and 16" % aside)
         self._aside = aside
         self._box = box
 
@@ -479,26 +482,27 @@ class QuantuminoSolver(SageObject):
             Quantumino state where the following pentamino is put aside :
             Polyomino: [(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0), (1, 1, 0)], Color: yellow
             sage: s.show3d()                                     # long time (< 1s)
+            Graphics3d Object
 
         The explicit solution::
 
             sage: for p in s: p                                  # long time (fast)
-            Polyomino: [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 2, 0), (1, 1, 0)], Color: deeppink
-            Polyomino: [(0, 1, 1), (1, 0, 1), (1, 1, 1), (1, 2, 0), (1, 2, 1)], Color: deeppink
-            Polyomino: [(0, 2, 1), (0, 3, 1), (0, 4, 0), (0, 4, 1), (1, 4, 0)], Color: green
-            Polyomino: [(0, 3, 0), (1, 3, 0), (2, 2, 1), (2, 3, 0), (2, 3, 1)], Color: green
-            Polyomino: [(1, 3, 1), (1, 4, 1), (2, 4, 0), (2, 4, 1), (2, 5, 1)], Color: red
-            Polyomino: [(1, 0, 0), (2, 0, 0), (2, 0, 1), (2, 1, 1), (3, 0, 1)], Color: red
-            Polyomino: [(3, 0, 0), (4, 0, 0), (4, 0, 1), (4, 1, 0), (4, 2, 0)], Color: darkblue
-            Polyomino: [(2, 1, 0), (2, 2, 0), (3, 1, 0), (3, 1, 1), (4, 1, 1)], Color: purple
-            Polyomino: [(3, 2, 0), (3, 3, 0), (3, 3, 1), (3, 4, 0), (4, 3, 0)], Color: gray
-            Polyomino: [(3, 2, 1), (4, 2, 1), (4, 3, 1), (4, 4, 0), (4, 4, 1)], Color: orange
-            Polyomino: [(3, 4, 1), (3, 5, 1), (4, 5, 0), (4, 5, 1), (4, 6, 0)], Color: blue
-            Polyomino: [(3, 6, 0), (3, 7, 0), (4, 6, 1), (4, 7, 0), (4, 7, 1)], Color: yellow
-            Polyomino: [(1, 5, 0), (2, 5, 0), (2, 6, 0), (2, 6, 1), (3, 5, 0)], Color: midnightblue
-            Polyomino: [(1, 7, 0), (2, 7, 0), (2, 7, 1), (3, 6, 1), (3, 7, 1)], Color: purple
-            Polyomino: [(0, 5, 1), (0, 6, 1), (0, 7, 0), (0, 7, 1), (1, 5, 1)], Color: orange
-            Polyomino: [(0, 5, 0), (0, 6, 0), (1, 6, 0), (1, 6, 1), (1, 7, 1)], Color: blue
+            Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 2, 0)], Color: deeppink
+            Polyomino: [(0, 0, 1), (0, 1, 0), (0, 1, 1), (0, 2, 1), (1, 2, 1)], Color: deeppink
+            Polyomino: [(0, 2, 0), (0, 3, 0), (0, 4, 0), (1, 4, 0), (1, 4, 1)], Color: green
+            Polyomino: [(0, 3, 1), (1, 3, 1), (2, 2, 0), (2, 2, 1), (2, 3, 1)], Color: green
+            Polyomino: [(1, 3, 0), (2, 3, 0), (2, 4, 0), (2, 4, 1), (3, 4, 0)], Color: red
+            Polyomino: [(1, 0, 1), (2, 0, 0), (2, 0, 1), (2, 1, 0), (3, 0, 1)], Color: midnightblue
+            Polyomino: [(0, 4, 1), (0, 5, 0), (0, 5, 1), (0, 6, 0), (1, 5, 0)], Color: red
+            Polyomino: [(2, 1, 1), (3, 0, 0), (3, 1, 0), (3, 1, 1), (4, 0, 0)], Color: blue
+            Polyomino: [(3, 2, 0), (4, 0, 1), (4, 1, 0), (4, 1, 1), (4, 2, 0)], Color: purple
+            Polyomino: [(3, 2, 1), (3, 3, 0), (4, 2, 1), (4, 3, 0), (4, 3, 1)], Color: yellow
+            Polyomino: [(3, 3, 1), (3, 4, 1), (4, 4, 0), (4, 4, 1), (4, 5, 0)], Color: blue
+            Polyomino: [(0, 6, 1), (0, 7, 0), (0, 7, 1), (1, 5, 1), (1, 6, 1)], Color: purple
+            Polyomino: [(1, 6, 0), (1, 7, 0), (1, 7, 1), (2, 7, 0), (3, 7, 0)], Color: darkblue
+            Polyomino: [(2, 5, 0), (2, 6, 0), (3, 6, 0), (4, 6, 0), (4, 6, 1)], Color: orange
+            Polyomino: [(2, 5, 1), (3, 5, 0), (3, 5, 1), (3, 6, 1), (4, 5, 1)], Color: gray
+            Polyomino: [(2, 6, 1), (2, 7, 1), (3, 7, 1), (4, 7, 0), (4, 7, 1)], Color: orange
 
         Enumerate the solutions::
 
@@ -569,5 +573,4 @@ class QuantuminoSolver(SageObject):
             ??? hundreds of millions ???
         """
         return self.tiling_solver().number_of_solutions()
-
 

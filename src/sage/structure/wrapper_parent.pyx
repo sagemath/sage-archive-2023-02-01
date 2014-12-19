@@ -27,7 +27,7 @@ Option 1: WrapperParent_model1
     b) Update this list to reflect any lessons you've learned.
 
 Option 2: Write your own custom.
-  When you want speed but can't use option 1.  See sage/rings/residue_field.pyx for examples (ResidueFiniteField_prime_modn, ResidueFiniteField_givaro and ResidueFiniteField_pari_ext)
+  When you want speed but can't use option 1.  See sage/rings/finite_rings/residue_field.pyx for examples (ResidueFiniteField_prime_modn, ResidueFiniteField_givaro and ResidueFiniteField_pari_ffelt)
 
 AUTHORS:
   -- David Roe (2007-10-3)
@@ -170,7 +170,7 @@ cdef class WrapperElement(AlgebraElement):
 
     cdef _richcmp_c_impl(left, Element right, int op):
         return (<Element>left.val)._richcmp_c(right, op)
-    cdef int _cmp_c_impl(left, Element right):
+    cdef int _cmp_c_impl(left, Element right) except -2:
         return (<Element>left.val)._cmp_c(right)
     cdef base_extend_c_impl(self, Parent R):
         return (<Element>self.val).base_extend_c(R)

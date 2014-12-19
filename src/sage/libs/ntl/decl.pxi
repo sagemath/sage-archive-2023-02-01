@@ -22,7 +22,7 @@ from sage.libs.ntl.ntl_ZZ_pEX_decl cimport *, ZZ_pEX_c
 
 cdef extern from "ntl_wrap.h":
     #### mat_ZZ_c
-    ctypedef struct mat_ZZ_c "struct mat_ZZ":
+    cdef cppclass mat_ZZ_c "mat_ZZ":
         pass
 
     # Some boiler-plate
@@ -260,7 +260,7 @@ cdef extern from "ntl_wrap.h":
     object vec_GF2E_to_PyString "_to_PyString<vec_GF2E>"(vec_GF2E_c *x)
 
     #### mat_GF2E_c
-    ctypedef struct mat_GF2E_c "struct mat_GF2E":
+    cdef cppclass mat_GF2E_c "mat_GF2E":
         void (*SetDims)(long nrows, long ncols)
         long (*NumRows)()
         long (*NumCols)()
@@ -311,7 +311,7 @@ cdef extern from "ntl_wrap.h":
 
 
     #### mat_GF2_c
-    ctypedef struct mat_GF2_c "struct mat_GF2":
+    cdef cppclass mat_GF2_c "mat_GF2":
         void (*SetDims)(long nrows, long ncols)
         long (*NumRows)()
         long (*NumCols)()

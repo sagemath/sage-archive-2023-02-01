@@ -355,7 +355,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         try:
             n = int(n)
-        except TypeError, msg:
+        except TypeError as msg:
             raise TypeError, "Number of variables must be an integer"
 
         if n < 1:
@@ -780,7 +780,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     self._pbring.nVariables():
                 try:
                     var_mapping = get_var_mapping(self, other.parent())
-                except NameError, msg:
+                except NameError as msg:
                     raise TypeError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
                 p = self._one_element
                 for i in other.iterindex():
@@ -799,7 +799,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                         return new_BP_from_PBPoly(self, _tmp)
                     try:
                         var_mapping = get_var_mapping(self, other.parent())
-                    except NameError, msg:
+                    except NameError as msg:
                         raise TypeError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
                     p = self._zero_element
                     for monom in other:
@@ -814,7 +814,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 (other.parent().ngens() <= self._pbring.nVariables()):
                     try:
                         var_mapping = get_var_mapping(self, other.parent())
-                    except NameError, msg:
+                    except NameError as msg:
                         raise TypeError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
                     p = self._zero_element
                     exponents = other.exponents()
@@ -902,7 +902,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             ((<BooleanMonomial>other)._pbmonom.deg() <= self._pbring.nVariables()):
             try:
                 var_mapping = get_var_mapping(self, other)
-            except NameError, msg:
+            except NameError as msg:
                 raise TypeError, "cannot convert monomial %s to %s: %s"%(other,self,msg)
             p = self._one_element
             for i in other.iterindex():
@@ -913,7 +913,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             self._pbring.nVariables()):
             try:
                 var_mapping = get_var_mapping(self, other)
-            except NameError, msg:
+            except NameError as msg:
                 raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
             p = self._zero_element
             for monom in other:
@@ -927,7 +927,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 self.base_ring().has_coerce_map_from(other.base_ring()):
             try:
                 var_mapping = get_var_mapping(self, other)
-            except NameError, msg:
+            except NameError as msg:
                 raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
             p = self._zero_element
             exponents = other.exponents()
@@ -962,10 +962,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         try:
             i = int(other)
-        except StandardError:
+        except Exception:
             try:    # last chance: try Sage's conversions over GF(2), Trac #13284
                 return self._coerce_c_impl(self.cover_ring()(other))
-            except StandardError:
+            except Exception:
                 raise TypeError, "cannot convert %s to BooleanPolynomial"%(type(other))
 
         i = i % 2
@@ -998,7 +998,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: B.gens_dict()
-            {'a': a, 'c': c, 'b': b, 'd': d}
+            {'a': a, 'b': b, 'c': c, 'd': d}
         """
         if self._gens_dict is not None:
             return self._gens_dict
@@ -2029,7 +2029,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
             (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                 try:
                     var_mapping = get_var_mapping(self, other.parent())
-                except NameError, msg:
+                except NameError as msg:
                     raise ValueError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
                 m = self._one_element
                 for i in other.iterindex():
@@ -2131,7 +2131,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
                     (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                         try:
                             var_mapping = get_var_mapping(self, other)
-                        except NameError, msg:
+                        except NameError as msg:
                             raise ValueError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
                         t = (<BooleanPolynomial>other)._pbpoly.lead()
 
@@ -2147,7 +2147,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
             (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                 try:
                     var_mapping = get_var_mapping(self, other)
-                except NameError, msg:
+                except NameError as msg:
                     raise ValueError, "cannot convert monomial %s to %s: %s"%(other,self,msg)
                 m = self._one_element
                 for i in other:
@@ -2306,7 +2306,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         res = 1
         for i in self.iterindex():
-            if d.has_key(i):
+            if i in d:
                 res *= d[i]
             else:
                 res *= (<object>self._parent).gen(i)
@@ -2358,7 +2358,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: {m:1} #indirect doctest
             {x*y: 1}
         """
-        return self._pbmonom.stableHash()
+        return <Py_ssize_t>(self._pbmonom.stableHash())
 
     def stable_hash(self):
         """
@@ -2377,7 +2377,7 @@ cdef class BooleanMonomial(MonoidElement):
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbmonom.stableHash()
+        return <Py_ssize_t>(self._pbmonom.stableHash())
 
     def ring(self):
         """
@@ -3304,7 +3304,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: (x*y + x + y + 1).degree(x)
             1
         """
-        if x != None:
+        if x is not None:
             if self._pbpoly.set().multiplesOf((<BooleanPolynomial>x)._pbpoly.firstTerm()).isZero():
                 return 0
             else:
@@ -3811,7 +3811,7 @@ cdef class BooleanPolynomial(MPolynomial):
             raise ValueError, "polynomial must involve at most one variable"
 
         #construct ring if none
-        if R == None:
+        if R is None:
             if self.is_constant():
                 R = GF(2)['x']
             else:
@@ -3954,7 +3954,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: {x:1} # indirect doctest
             {x: 1}
         """
-        return self._pbpoly.stableHash()
+        return <Py_ssize_t>(self._pbpoly.stableHash())
 
     def __len__(self):
         r"""
@@ -4664,7 +4664,7 @@ cdef class BooleanPolynomial(MPolynomial):
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbpoly.stableHash()
+        return <Py_ssize_t>(self._pbpoly.stableHash())
 
     def ring(self):
         """
@@ -4826,7 +4826,7 @@ cdef class MonomialConstruct:
                 if PY_TYPE_CHECK(x, BooleanPolynomial):
                    return result.lm()
                 return result
-            except StandardError:
+            except Exception:
                 raise TypeError, "Cannot convert to Boolean Monomial %s"%(str(type(x)))
 
 cdef class VariableConstruct:
@@ -5114,7 +5114,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                 sage: R.<x,y,z> = BooleanPolynomialRing()
                 sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
                 sage: I.variety()
-                [{y: 1, z: 0, x: 0}, {y: 1, z: 1, x: 1}]
+                [{z: 0, y: 1, x: 0}, {z: 1, y: 1, x: 1}]
 
         TESTS:
 
@@ -5132,7 +5132,8 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                         x1*x2 + x1*x6 + x2*x4 + x2*x5 + x2*x6 + x3*x6 + x4*x6 + x5*x6 + x5]
                  sage: I = R.ideal( polys )
                  sage: I.variety()
-                 [{x6: 0, x5: 0, x4: 0, x2: 0, x3: 0, x1: 0}, {x6: 1, x5: 0, x4: 0, x2: 1, x3: 1, x1: 1}]
+                 [{x6: 0, x5: 0, x4: 0, x3: 0, x2: 0, x1: 0},
+                  {x6: 1, x5: 0, x4: 0, x3: 1, x2: 1, x1: 1}]
 
                  sage: R = PolynomialRing(GF(2), 6, ['x%d'%(i+1) for i in range(6)], order='lex')
                  sage: I = R.ideal( polys )
@@ -5677,7 +5678,7 @@ cdef class BooleSet:
             sage: {s:1}
             {{{x1,x2}, {x2,x3}}: 1}
         """
-        return self._pbset.stableHash()
+        return <Py_ssize_t>(self._pbset.stableHash())
 
     def __mod__(self, BooleSet vs):
         """
@@ -5748,7 +5749,7 @@ cdef class BooleSet:
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbset.stableHash()
+        return <Py_ssize_t>(self._pbset.stableHash())
 
     def divide(self, BooleanMonomial rhs):
         """
@@ -6483,36 +6484,36 @@ cdef class ReductionStrategy:
             {{x}, {y,z}}
         """
 
-        if name is 'opt_ll':
+        if name == 'opt_ll':
             return self._strat.optLL
-        elif name is 'opt_red_tail':
+        elif name == 'opt_red_tail':
             return self._strat.optRedTail
-        elif name is 'opt_brutal_reductions':
+        elif name == 'opt_brutal_reductions':
             return self._strat.optBrutalReductions
-        elif name is 'opt_red_tail_deg_growth':
+        elif name == 'opt_red_tail_deg_growth':
             return self._strat.optRedTailDegGrowth
 
-        elif name is 'leading_terms':
+        elif name == 'leading_terms':
             return new_BS_from_PBSet(self._strat.leadingTerms, self._parent)
-        elif name is 'minimal_leading_terms':
+        elif name == 'minimal_leading_terms':
             return new_BS_from_PBSet(self._strat.minimalLeadingTerms, self._parent)
 
-        elif name is 'monomials':
+        elif name == 'monomials':
             return new_BS_from_PBSet(self._strat.monomials, self._parent)
 
-        raise AttributeError, name
+        raise AttributeError(name)
 
     def __setattr__(self, name, val):
         if name == 'opt_red_tail':
             self._strat.optRedTail = val
-        elif name is 'opt_ll':
+        elif name == 'opt_ll':
             self._strat.optLL = val
-        elif name is 'opt_brutal_reductions':
+        elif name == 'opt_brutal_reductions':
             self._strat.optBrutalReductions = val
-        elif name is 'opt_red_tail_deg_growth':
+        elif name == 'opt_red_tail_deg_growth':
             self._strat.optRedTailDegGrowth = val
         else:
-            raise AttributeError, name
+            raise AttributeError(name)
 
     def __len__(self):
         """
@@ -7056,63 +7057,62 @@ cdef class GroebnerStrategy:
 
     def __getattr__(self, name):
         cdef char *_tmp
-        if name is 'enabled_log':
+        if name == 'enabled_log':
             return self._strat.enabledLog
-        elif name is 'opt_lazy':
+        elif name == 'opt_lazy':
             return self._strat.optLazy
-        elif name is 'opt_exchange':
+        elif name == 'opt_exchange':
             return self._strat.optExchange
-        elif name is 'opt_allow_recursion':
+        elif name == 'opt_allow_recursion':
             return self._strat.optAllowRecursion
-        elif name is 'opt_linear_algebra_in_last_block':
+        elif name == 'opt_linear_algebra_in_last_block':
             return self._strat.optLinearAlgebraInLastBlock
-        elif name is 'opt_modified_linear_algebra':
+        elif name == 'opt_modified_linear_algebra':
             return self._strat.optModifiedLinearAlgebra
-        elif name is 'opt_draw_matrices':
+        elif name == 'opt_draw_matrices':
             return self._strat.optDrawMatrices
-        elif name is '"opt_red_by_reduced':
+        elif name == '"opt_red_by_reduced':
             return self._strat.reduceByTailReduced
-        elif name is 'chain_criterions':
+        elif name == 'chain_criterions':
             return self._strat.chainCriterions
-        elif name is 'variable_chain_criterions':
+        elif name == 'variable_chain_criterions':
             return self._strat.variableChainCriterions
-        elif name is 'easy_product_criterions':
+        elif name == 'easy_product_criterions':
             return self._strat.easyProductCriterions
-        elif name is 'extended_product_criterions':
+        elif name == 'extended_product_criterions':
             return self._strat.extendedProductCriterions
-        elif name is 'matrix_prefix':
+        elif name == 'matrix_prefix':
             return self._strat.matrixPrefix.c_str()
 
-        raise AttributeError, name
+        raise AttributeError(name)
 
     def __setattr__(self, name, val):
         cdef char *_tmp
-        if name is 'enabled_log':
+        if name == 'enabled_log':
             self._strat.enabledLog = val
-        elif name is 'opt_lazy':
+        elif name == 'opt_lazy':
             self._strat.optLazy = val
-        elif name is 'opt_exchange':
+        elif name == 'opt_exchange':
             self._strat.optExchange = val
-        elif name is 'opt_allow_recursion':
+        elif name == 'opt_allow_recursion':
             self._strat.optAllowRecursion = val
-        elif name is 'opt_linear_algebra_in_last_block':
+        elif name == 'opt_linear_algebra_in_last_block':
             self._strat.optLinearAlgebraInLastBlock = val
-        elif name is 'opt_modified_linear_algebra':
+        elif name == 'opt_modified_linear_algebra':
             self._strat.optModifiedLinearAlgebra = val
-        elif name is 'opt_red_by_reduced':
+        elif name == 'opt_red_by_reduced':
             self._strat.reduceByTailReduced = val
-        elif name is 'opt_draw_matrices':
+        elif name == 'opt_draw_matrices':
             self._strat.optDrawMatrices = val
-        elif name is 'matrix_prefix':
+        elif name == 'matrix_prefix':
             _tmp = val
             self._strat.matrixPrefix = new_stdstring(_tmp)
 
-        elif name is 'redByReduced': # working around a bug in PolyBoRi 0.6
+        elif name == 'redByReduced': # working around a bug in PolyBoRi 0.6
             self._strat.reduceByTailReduced = val
 
-
         else:
-            raise AttributeError, name
+            raise AttributeError(name)
 
 class BooleanMulAction(Action):
     def _call_(self, left, right):
@@ -8171,7 +8171,7 @@ cdef class MonomialFactory:
                 if PY_TYPE_CHECK(arg, BooleanPolynomial):
                    return result.lm()
                 return result
-            except StandardError:
+            except Exception:
                 raise TypeError, \
                     "Cannot %s convert to Boolean Monomial"%(str(type(arg)))
 

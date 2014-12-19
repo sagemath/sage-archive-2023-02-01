@@ -3,6 +3,7 @@ include 'sage/ext/cdefs.pxi'
 
 cdef extern from *:
     int __builtin_popcountl(unsigned long)
+    void *memset(void *, int, size_t)
 
 # Constants from bitset.pxd
 cdef extern from *:

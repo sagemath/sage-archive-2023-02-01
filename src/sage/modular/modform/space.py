@@ -127,14 +127,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             print "Modular forms -- under development -- do not trust yet."
             WARN=False
         if not arithgroup.is_CongruenceSubgroup(group):
-            raise TypeError, "group (=%s) must be a congruence subgroup"%group
+            raise TypeError("group (=%s) must be a congruence subgroup"%group)
         weight = int(weight)
         #if not isinstance(weight, int):
         #    raise TypeError, "weight must be an int"
         if not ((character is None) or isinstance(character, dirichlet.DirichletCharacter)):
-            raise TypeError, "character must be a Dirichlet character"
+            raise TypeError("character must be a Dirichlet character")
         if not isinstance(base_ring, rings.Ring):
-            raise TypeError, "base_ring must be a ring"
+            raise TypeError("base_ring must be a ring")
         self.__sturm_bound = None
         self.__weight, self.__group, self.__character = weight, group, character
         hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
@@ -239,12 +239,12 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,QQ).change_ring(GF(7))
+            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], QQ).change_ring(GF(7))
             Traceback (most recent call last):
             ...
             NotImplementedError: This function has not yet been implemented.
         """
-        raise NotImplementedError, "This function has not yet been implemented."
+        raise NotImplementedError("This function has not yet been implemented.")
 
     def weight(self):
         """
@@ -327,7 +327,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         ::
 
             sage: ModularForms(Gamma1(1),12).character()
-            Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1
+            Dirichlet character modulo 1 of conductor 1
         """
         return self.__character
 
@@ -398,7 +398,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         else:
             prec = rings.Integer(prec)
         if prec < 0:
-            raise ValueError, "prec (=%s) must be at least 0"%prec
+            raise ValueError("prec (=%s) must be at least 0"%prec)
         return prec
 
     def base_extend(self, base_ring):
@@ -431,7 +431,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             ValueError: No coercion defined
         """
         if not base_ring.has_coerce_map_from(self.base_ring()):
-            raise ValueError, "No coercion defined"
+            raise ValueError("No coercion defined")
         else:
             return self.change_ring(base_ring)
 
@@ -763,12 +763,12 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         EXAMPLES::
 
-            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,QQ)._compute_q_expansion_basis(5)
+            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], QQ)._compute_q_expansion_basis(5)
             Traceback (most recent call last):
             ...
             NotImplementedError: this must be implemented in the derived class
         """
-        raise NotImplementedError, "this must be implemented in the derived class"
+        raise NotImplementedError("this must be implemented in the derived class")
 
     def q_echelon_basis(self, prec=None):
         r"""
@@ -843,7 +843,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             ]
         """
         if not self.base_ring() == rings.QQ:
-            raise TypeError, "the base ring must be Q"
+            raise TypeError("the base ring must be Q")
         prec = self.__normalize_prec(prec)
         R = rings.PowerSeriesRing(rings.ZZ, name=defaults.DEFAULT_VARIABLE)
         if prec == 0:
@@ -949,9 +949,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         from sage.modular.modform.submodule import ModularFormsSubmodule
         if self.ambient_module() != right.ambient_module():
-            raise ArithmeticError, ("Sum of %s and %s not defined because " + \
+            raise ArithmeticError(("Sum of %s and %s not defined because " + \
                                     "they do not lie in a common ambient space.")%\
-                                   (self, right)
+                                   (self, right))
         if self.is_ambient(): return self
         if right.is_ambient(): return right
         V = self.free_module() + right.free_module()
@@ -1056,7 +1056,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 ## where Gamma' is contained in Gamma.
                 return self(x.q_expansion(self._q_expansion_module().degree()))
 
-        raise TypeError, "no known coercion to modular form"
+        raise TypeError("no known coercion to modular form")
 
     def __call__(self, x, check=True):
         """
@@ -1153,28 +1153,28 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                     return self(x.q_expansion(W.degree()))
             except NotImplementedError:
                 pass
-            raise TypeError, "unable to coerce x (= %s) into %s"%(x, self)
+            raise TypeError("unable to coerce x (= %s) into %s"%(x, self))
 
         elif is_PowerSeries(x):
             if x.prec() == PlusInfinity():
                 if x == 0:
                     return element.ModularFormElement(self, self.free_module().zero_element())
                 else:
-                    raise TypeError, "unable to create modular form from exact non-zero polynomial"
+                    raise TypeError("unable to create modular form from exact non-zero polynomial")
             W = self._q_expansion_module()
             if W.degree() <= x.prec():
                 try:
                     x_potential = W.coordinates(x.padded_list(W.degree()))
                 except ArithmeticError:
-                    raise ValueError, "q-expansion does not correspond to a form in self"
+                    raise ValueError("q-expansion does not correspond to a form in self")
                 x_potential = self.free_module().linear_combination_of_basis(x_potential)
                 x_potential = element.ModularFormElement(self, x_potential)
                 for i in range(int(W.degree()), x.prec()):
                     if x_potential[i] != x[i]:
-                        raise ValueError, "q-expansion does not correspond to a form in self"
+                        raise ValueError("q-expansion does not correspond to a form in self")
                 return x_potential
             else:
-                raise TypeError, "q-expansion needed to at least precision %s"%W.degree()
+                raise TypeError("q-expansion needed to at least precision %s"%W.degree())
         return element.ModularFormElement(self, self.free_module()(x,check))
 
     def __cmp__(self, x):
@@ -1425,7 +1425,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         try:
             return self.basis()[int(n)]
         except IndexError:
-            raise ValueError, "Generator %s not defined"%n
+            raise ValueError("Generator %s not defined"%n)
 
     def gens(self):
         """
@@ -1561,7 +1561,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         try:
             if self.__is_cuspidal == True:
                 return self
-            if self.__cuspidal_submodule != None:
+            if self.__cuspidal_submodule is not None:
                 return self.__cuspidal_submodule
         except AttributeError:
             pass
@@ -1649,12 +1649,12 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
          EXAMPLES::
 
-             sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.new_submodule()
+             sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.new_submodule()
              Traceback (most recent call last):
              ...
              NotImplementedError: computation of new submodule not yet implemented
          """
-        raise NotImplementedError, "computation of new submodule not yet implemented"
+        raise NotImplementedError("computation of new submodule not yet implemented")
 
     def new_subspace(self, p=None):
         """
@@ -1662,7 +1662,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.new_subspace()
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.new_subspace()
             Traceback (most recent call last):
             ...
             NotImplementedError: computation of new submodule not yet implemented
@@ -1679,12 +1679,12 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.eisenstein_series()
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.eisenstein_series()
             Traceback (most recent call last):
             ...
             NotImplementedError: computation of Eisenstein series in this space not yet implemented
         """
-        raise NotImplementedError, "computation of Eisenstein series in this space not yet implemented"
+        raise NotImplementedError("computation of Eisenstein series in this space not yet implemented")
 
     def decomposition(self):
         """
@@ -1728,7 +1728,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         factors = M.cuspidal_subspace().new_subspace().decomposition()
         large_dims = [ X.dimension() for X in factors if X.dimension() != 1 ]
         if len(large_dims) > 0 and names is None:
-            raise ValueError, "Please specify a name to be used when generating names for generators of Hecke eigenvalue fields corresponding to the newforms."
+            raise ValueError("Please specify a name to be used when generating names for generators of Hecke eigenvalue fields corresponding to the newforms.")
         elif names is None:
             # In this case, we don't need a variable name, so insert
             # something to get passed along below
@@ -1759,7 +1759,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         except AttributeError:
             pass
         try:
-            if self.__eisenstein_submodule != None:
+            if self.__eisenstein_submodule is not None:
                 return self.__eisenstein_submodule
         except AttributeError:
             pass
@@ -1881,12 +1881,12 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.modular_symbols()
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.modular_symbols()
             Traceback (most recent call last):
             ...
             NotImplementedError: computation of associated modular symbols space not yet implemented
         """
-        raise NotImplementedError, "computation of associated modular symbols space not yet implemented"
+        raise NotImplementedError("computation of associated modular symbols space not yet implemented")
 
     def find_in_space(self, f, forms=None, prec=None, indep=True):
         """
@@ -1939,7 +1939,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             n = B.degree()
         else:
             if not isinstance(forms, (list, tuple)):
-                raise TypeError, "forms must be a list or tuple"
+                raise TypeError("forms must be a list or tuple")
             if prec is None:
                 n = forms[0].parent().prec()
             else:
@@ -1951,7 +1951,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             else:
                 B = V.span(w)
         if is_PowerSeries(f) and f.prec() < n:
-            raise ValueError, "you need at least %s terms of precision"%n
+            raise ValueError("you need at least %s terms of precision"%n)
         x = V(f.padded_list(n))
         return B.coordinates(x)
 

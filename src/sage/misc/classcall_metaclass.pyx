@@ -320,7 +320,7 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
             ...       __metaclass__ = ClasscallMetaclass
             ...       @staticmethod
             ...       def __classcall__(cls):
-            ...           raise ValueError, "Calling classcall"
+            ...           raise ValueError("Calling classcall")
             sage: Exc()
             Traceback (most recent call last):
             ...

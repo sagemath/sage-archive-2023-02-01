@@ -23,7 +23,7 @@ PyObject * ZZ_get_pylong(ZZ &z)
     mpz_t temp;
     PyObject *val;
     mpz_init(temp);
-    ZZ_to_mpz( &temp, &z );
+    ZZ_to_mpz( temp, &z );
     val = mpz_get_pylong( temp );
     mpz_clear( temp );
     return val;
@@ -35,7 +35,7 @@ int ZZ_set_pylong(ZZ &z, PyObject * ll)
     mpz_t temp;
     mpz_init(temp);
     mpz_set_pylong( temp, ll );
-    mpz_to_ZZ( &z, &temp );
+    mpz_to_ZZ( &z, temp );
     mpz_clear( temp );
     return 0;
 }

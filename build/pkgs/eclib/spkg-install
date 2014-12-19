@@ -53,9 +53,9 @@ cd src/
 echo
 echo "Now configuring eclib..."
 ./configure --prefix="$SAGE_LOCAL" \
-            --with-gmp="$SAGE_LOCAL" \
             --with-ntl="$SAGE_LOCAL" \
             --with-pari="$SAGE_LOCAL" \
+            --with-flint="$SAGE_LOCAL" \
             --disable-allprogs
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring eclib."

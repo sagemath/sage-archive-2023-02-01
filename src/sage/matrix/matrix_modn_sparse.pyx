@@ -95,7 +95,6 @@ from sage.rings.arith import is_prime
 from sage.structure.element import is_Vector
 
 cimport sage.structure.element
-from matrix_modn_dense cimport Matrix_modn_dense
 
 include 'sage/modules/binary_search.pxi'
 include 'sage/modules/vector_integer_sparse_h.pxi'
@@ -276,7 +275,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sage: MS = MatrixSpace(GF(13), 50, 50, sparse=True)
             sage: m = MS.random_element(density=0.002)
             sage: m._dict()
-            {(5, 25): 4, (4, 44): 7, (43, 43): 6, (26, 9): 9, (44, 38): 1}
+            {(4, 44): 7, (5, 25): 4, (26, 9): 9, (43, 43): 6, (44, 38): 1}
 
         TESTS::
 
@@ -643,12 +642,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                 setPixel( (x,y), colorExact((r-delta,g-delta,b-delta)) )
 
         if filename is None:
-            from sage.misc.temporary_file import graphics_filename, tmp_dir
-            from sage.doctest import DOCTEST_MODE
+            from sage.misc.temporary_file import graphics_filename
             filename = graphics_filename()
-            if DOCTEST_MODE:
-                import os
-                filename = os.path.join(tmp_dir(), filename)
 
         im.writePng(filename)
 

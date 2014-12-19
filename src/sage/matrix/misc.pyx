@@ -16,6 +16,7 @@ include 'sage/ext/stdsage.pxi'
 
 from sage.ext.mod_int cimport *
 from sage.libs.mpfr cimport *
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
 include 'sage/modules/binary_search.pxi'
 include 'sage/modules/vector_integer_sparse_h.pxi'
@@ -77,7 +78,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
     R = Matrix_rational_dense.__new__(Matrix_rational_dense,
                                       A.parent().change_ring(QQ), 0,0,0)
 
-    cdef mpz_t a, bnd, other_bnd, one, denom
+    cdef mpz_t a, bnd, other_bnd, one, denom, tmp
     cdef Integer _bnd
     cdef Py_ssize_t i, j
     cdef int do_it
@@ -87,6 +88,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
     try:
         mpz_init_set_si(denom, 1)
         mpz_init(a)
+        mpz_init(tmp)
         mpz_init_set_si(one, 1)
         mpz_init(other_bnd)
 
@@ -96,7 +98,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
 
         for i from 0 <= i < A._nrows:
             for j from 0 <= j < A._ncols:
-                mpz_set(a, A._matrix[i][j])
+                A.get_unsafe_mpz(i,j,a)
                 if mpz_cmp(denom, one) != 0:
                     mpz_mul(a, a, denom)
                 mpz_fdiv_r(a, a, N.value)
@@ -115,11 +117,13 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
                         mpz_set_si(mpq_denref(R._matrix[i][j]), 1)
                 else:
                     # Otherwise have to do it the hard way
-                    mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
+                    A.get_unsafe_mpz(i,j,tmp)
+                    mpq_rational_reconstruction(R._matrix[i][j], tmp, N.value)
                     mpz_lcm(denom, denom, mpq_denref(R._matrix[i][j]))
 
         mpz_clear(denom)
         mpz_clear(a)
+        mpz_clear(tmp)
         mpz_clear(one)
         mpz_clear(other_bnd)
         mpz_clear(bnd)
@@ -370,7 +374,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         for i in range(len(X)):
             if cmp_pivots(best_pivots, list(X[i].pivots())) <= 0:
                 p = X[i].base_ring().order()
-                if not lifts.has_key(p):
+                if p not in lifts:
                     t0 = verbose("Lifting a good matrix", level=2, caller_name = "multimod echelon")
                     lift = X[i].lift()
                     lifts[p] = (lift, p)
@@ -396,7 +400,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             E = L.rational_reconstruction(prod)
             L = 0  # free memory
             verbose('rational reconstruction completed', t, level=2, caller_name="multimod echelon")
-        except ValueError, msg:
+        except ValueError as msg:
             verbose(msg, level=2)
             verbose("Not enough primes to do CRT lift; redoing with several more primes.", level=2, caller_name="multimod echelon")
             M = prod * p*p*p

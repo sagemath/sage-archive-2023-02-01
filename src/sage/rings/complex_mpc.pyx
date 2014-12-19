@@ -54,26 +54,26 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 include "sage/ext/stdsage.pxi"
 include 'sage/ext/interrupt.pxi'
 
+import sage
 import re
-import sage.misc.misc
-import complex_number
-import complex_double
-import field
-import integer_ring
-import integer
-cimport integer
 import real_mpfr
 import weakref
-import ring
 
 from sage.structure.parent import Parent
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.element cimport RingElement, Element, ModuleElement
 from sage.categories.map cimport Map
+
+from integer cimport Integer
+from complex_number cimport ComplexNumber
+from complex_field import ComplexField_class
+
+from sage.misc.randstate cimport randstate, current_randstate
+from real_mpfr cimport RealField_class, RealNumber
+from real_mpfr import mpfr_prec_min, mpfr_prec_max
 
 NumberFieldElement_quadratic = None
 AlgebraicNumber_base = None
@@ -108,16 +108,6 @@ def late_import():
         QQbar = sage.rings.qqbar.QQbar
         from real_lazy import CLF, RLF
         from complex_double import CDF
-
-from integer import Integer
-from integer cimport Integer
-from complex_number import ComplexNumber
-from complex_number cimport ComplexNumber
-from complex_field import ComplexField_class
-
-from sage.misc.randstate cimport randstate, current_randstate
-from real_mpfr cimport RealField_class, RealNumber
-from real_mpfr import mpfr_prec_min, mpfr_prec_max
 
 _mpfr_rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
 
@@ -259,7 +249,7 @@ def MPComplexField(prec=53, rnd="RNDNN", names=None):
     """
     global cache
     mykey = (prec, rnd)
-    if cache.has_key(mykey):
+    if mykey in cache:
         X = cache[mykey]
         C = X()
         if not C is None:
@@ -576,7 +566,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         else:
             return (max-min)*z + min*self(1,1)
 
-    cpdef bint is_exact(self): # except -2: # I don't know what this is for - TCS
+    cpdef bint is_exact(self) except -2:
         """
         Returns whether or not this field is exact, which is always ``False``.
 
@@ -607,7 +597,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             sage: MPComplexField(42).characteristic()
             0
         """
-        return integer.Integer(0)
+        return Integer(0)
 
     def name(self):
         """
@@ -1269,7 +1259,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: C200(1+i).is_real()
             False
         """
-        return (mpfr_zero_p(self.value.im) <> 0)
+        return (mpfr_zero_p(self.value.im) != 0)
 
     def is_imaginary(self):
         """
@@ -1283,7 +1273,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: C200(1+i).is_imaginary()
             False
         """
-        return (mpfr_zero_p(self.value.re) <> 0)
+        return (mpfr_zero_p(self.value.re) != 0)
 
     def algebraic_dependency(self, n, **kwds):
         """
@@ -1571,7 +1561,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         else:
             try:
                 p = (<MPComplexField_class>x._parent)(right)
-            except StandardError:
+            except Exception:
                 raise ValueError
             mpc_pow(z.value, x.value, p.value, (<MPComplexField_class>x._parent).__rnd)
 
@@ -2238,7 +2228,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: C, i = MPComplexField(30).objgen()
-            sage: (1+i).gamma_inc(2 + 3*i)
+            sage: (1+i).gamma_inc(2 + 3*i)  # abs tol 2e-10
             0.0020969149 - 0.059981914*I
             sage: (1+i).gamma_inc(5)
             -0.0013781309 + 0.0065198200*I
@@ -2246,7 +2236,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             0.70709210 - 0.42035364*I
 
         """
-        return self._parent(self._pari_().incgam(t))
+        return self._parent(self._pari_().incgam(t, precision=self.prec()))
 
     def zeta(self):
         """
@@ -2422,7 +2412,7 @@ cdef class MPCtoMPC(Map):
               To:   Complex Field with 10 bits of precision
         """
         cdef MPComplexNumber y
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         y._set(z)
         return y
 
@@ -2439,7 +2429,7 @@ cdef class MPCtoMPC(Map):
               From: Complex Field with 10 bits of precision
               To:   Complex Field with 100 bits of precision
         """
-        return MPCtoMPC(self._codomain, self._domain)
+        return MPCtoMPC(self.codomain(), self.domain())
 
 cdef class INTEGERtoMPC(Map):
     cpdef Element _call_(self, x):
@@ -2460,7 +2450,7 @@ cdef class INTEGERtoMPC(Map):
         cdef MPComplexNumber y
         cdef mpc_rnd_t rnd
         rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         mpc_set_z(y.value, (<Integer>x).value, rnd)
         return y
 
@@ -2483,7 +2473,7 @@ cdef class MPFRtoMPC(Map):
         cdef MPComplexNumber y
 #        cdef mpc_rnd_t rnd
 #        rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
 #        mpc_set_fr(y.value, (<RealNumber>x).value, rnd)
         y._set(x)
         return y
@@ -2507,7 +2497,7 @@ cdef class CCtoMPC(Map):
         cdef MPComplexNumber y
         cdef mpc_rnd_t rnd
         rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         mpc_set_fr_fr(y.value, (<ComplexNumber>z).__re, (<ComplexNumber>z).__im, rnd)
         return y
 

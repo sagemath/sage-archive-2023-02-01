@@ -92,7 +92,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             True
         """
         if not sage.categories.homset.is_Homset(parent):
-            raise TypeError, "parent must be a Hom space"
+            raise TypeError("parent must be a Hom space")
         sage.categories.morphism.Morphism.__init__(self, parent)
 
     def __cmp__(self, other):
@@ -145,7 +145,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             if not hasattr(x, 'parent') or x.parent() != self.domain():
                 x = self.domain()(x)
         except TypeError:
-            raise TypeError, "%s must be coercible into %s"%(x,self.domain())
+            raise TypeError("%s must be coercible into %s"%(x,self.domain()))
         if self.domain().is_ambient():
             x = x.element()
         else:
@@ -187,11 +187,11 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         try:
             B = ~(self.matrix())
         except ZeroDivisionError:
-            raise ZeroDivisionError, "matrix morphism not invertible"
+            raise ZeroDivisionError("matrix morphism not invertible")
         try:
             return self.parent().reversed()(B)
         except TypeError:
-            raise ZeroDivisionError, "matrix morphism not invertible"
+            raise ZeroDivisionError("matrix morphism not invertible")
 
     def inverse(self):
         r"""
@@ -425,7 +425,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             R = self.base_ring()
             return self.parent()(self.matrix() * R(right))
         if self.domain() != right.codomain():
-            raise TypeError, "Incompatible composition of morphisms: domain of left morphism must be codomain of right."
+            raise TypeError("Incompatible composition of morphisms: domain of left morphism must be codomain of right.")
         M = right.matrix() * self.matrix()
         return right.domain().Hom(self.codomain())(M)
 
@@ -541,8 +541,8 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             T^2 - 3*T + 2
         """
         if not self.is_endomorphism():
-            raise ArithmeticError, "charpoly only defined for endomorphisms " +\
-                    "(i.e., domain = range)"
+            raise ArithmeticError("charpoly only defined for endomorphisms " +\
+                    "(i.e., domain = range)")
         return self.matrix().charpoly(var)
 
     charpoly = characteristic_polynomial
@@ -570,7 +570,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             ]
         """
         if not self.is_endomorphism():
-            raise ArithmeticError, "Matrix morphism must be an endomorphism."
+            raise ArithmeticError("Matrix morphism must be an endomorphism.")
         D = self.domain()
         E = self.matrix().decomposition(*args,**kwds)
         if D.is_ambient():
@@ -606,7 +606,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             2
         """
         if not self.is_endomorphism():
-            raise ArithmeticError, "Matrix morphism must be an endomorphism."
+            raise ArithmeticError("Matrix morphism must be an endomorphism.")
         return self.matrix().determinant()
 
     def fcp(self, var='x'):
@@ -714,7 +714,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             ...
             NotImplementedError: this method must be overridden in the extension class
         """
-        raise NotImplementedError, "this method must be overridden in the extension class"
+        raise NotImplementedError("this method must be overridden in the extension class")
 
     def rank(self):
         r"""
@@ -1144,7 +1144,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             True
         """
         if not self.is_endomorphism():
-            raise ArithmeticError, "matrix morphism must be an endomorphism"
+            raise ArithmeticError("matrix morphism must be an endomorphism")
         D = self.domain()
         C = self.codomain()
         if D is not C and (D.basis() != C.basis()):
@@ -1164,16 +1164,16 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
 class MatrixMorphism(MatrixMorphism_abstract):
     """
     A morphism defined by a matrix.
+
+    INPUT:
+
+    -  ``parent`` - a homspace
+
+    -  ``A`` - matrix or a :class:`MatrixMorphism_abstract` instance
     """
     def __init__(self, parent, A):
         """
-        INPUT:
-
-
-        -  ``parent`` - a homspace
-
-        -  ``A`` - matrix
-
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -1185,11 +1185,15 @@ class MatrixMorphism(MatrixMorphism_abstract):
             sage: loads(A.dumps()) == A
             True
         """
+        if parent is None:
+            raise ValueError("no parent given when creating this matrix morphism")
+        if isinstance(A, MatrixMorphism_abstract):
+            A = A.matrix()
         R = A.base_ring()
         if A.nrows() != parent.domain().rank():
-            raise ArithmeticError, "number of rows of matrix (=%s) must equal rank of domain (=%s)"%(A.nrows(), parent.domain().rank())
+            raise ArithmeticError("number of rows of matrix (={}) must equal rank of domain (={})".format(A.nrows(), parent.domain().rank()))
         if A.ncols() != parent.codomain().rank():
-                raise ArithmeticError, "number of columns of matrix (=%s) must equal rank of codomain (=%s)"%(A.ncols(), parent.codomain().rank())
+                raise ArithmeticError("number of columns of matrix (={}) must equal rank of codomain (={})".format(A.ncols(), parent.codomain().rank()))
         self._matrix = A
         MatrixMorphism_abstract.__init__(self, parent)
 

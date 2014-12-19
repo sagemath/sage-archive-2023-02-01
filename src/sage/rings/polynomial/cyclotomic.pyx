@@ -63,7 +63,7 @@ def cyclotomic_coeffs(nn, sparse=None):
         sage: cyclotomic_coeffs(30)
         [1, 1, 0, -1, -1, -1, 0, 1, 1]
         sage: cyclotomic_coeffs(10^5)
-        {0: 1, 10000: -1, 40000: 1, 30000: -1, 20000: 1}
+        {0: 1, 10000: -1, 20000: 1, 30000: -1, 40000: 1}
         sage: R = QQ['x']
         sage: R(cyclotomic_coeffs(30))
         x^8 + x^7 - x^5 - x^4 - x^3 + x + 1
@@ -127,7 +127,7 @@ def cyclotomic_coeffs(nn, sparse=None):
     #    For n=10163195, the height of Phi_n(x) is 1376877780831,  40.32 bits.
     #    For n<10163195, the height of Phi_n(x) is <= 74989473, 26.16 bits.
     cdef long fits_long_limit = 169828113 if sizeof(long) >= 8 else 10163195
-    if nn >= fits_long_limit and bateman_bound(nn) > sys.maxint:
+    if nn >= fits_long_limit and bateman_bound(nn) > sys.maxsize:
         # Do this to avoid overflow.
         print "Warning: using PARI (slow!)"
         from sage.interfaces.gp import pari
@@ -144,7 +144,7 @@ def cyclotomic_coeffs(nn, sparse=None):
             d = prod(s)
             max_deg += n / d
 
-    if (<object>max_deg)*sizeof(long) > sys.maxint:
+    if (<object>max_deg)*sizeof(long) > sys.maxsize:
         raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
     cdef long* coeffs = <long*>sage_malloc(sizeof(long) * (max_deg+1))
     if coeffs == NULL:
@@ -247,13 +247,16 @@ def cyclotomic_value(n, x):
 
     TESTS::
 
-        sage: K.<i> = NumberField(polygen(QQ)^2 + 1)
         sage: R.<x> = QQ[]
-        sage: for y in [-1, 0, 1, 2, 1/2, mod(3, 8), GF(9,'a').gen(), Zp(3)(54), i, x^2+2]:
-        ...       for n in range(1, 61):
-        ...           val1 = cyclotomic_value(n, y)
-        ...           val2 = cyclotomic_polynomial(n)(y)
-        ...           assert val1 == val2 and val1.parent() is val2.parent()
+        sage: K.<i> = NumberField(x^2 + 1)
+        sage: for y in [-1, 0, 1, 2, 1/2, Mod(3, 8), Mod(3,11), GF(9,'a').gen(), Zp(3)(54), i, x^2+2]:
+        ....:     for n in [1..60]:
+        ....:         val1 = cyclotomic_value(n, y)
+        ....:         val2 = cyclotomic_polynomial(n)(y)
+        ....:         if val1 != val2:
+        ....:             print "Wrong value for cyclotomic_value(%s, %s) in %s"%(n,y,parent(y))
+        ....:         if val1.parent() is not val2.parent():
+        ....:             print "Wrong parent for cyclotomic_value(%s, %s) in %s"%(n,y,parent(y))
 
         sage: cyclotomic_value(20, I)
         5
@@ -275,15 +278,25 @@ def cyclotomic_value(n, x):
         1
     """
     n = int(n)
-    if n == 1:
-        return x - 1
-    if n <= 0:
-        raise ValueError, "n must be positive"
+    if n < 3:
+        if n == 1:
+            return x - 1
+        if n == 2:
+            return x + 1
+        raise ValueError("n must be positive")
+
     try:
-        return x.parent()(pari.polcyclo_eval(n, x._pari_()))
-    except StandardError:
+        return x.parent()(pari.polcyclo_eval(n, x))
+    except Exception:
         pass
-    # The following is modeled on the implementation in Pari
+
+    # The following is modeled on the implementation in PARI and is
+    # used for cases for which PARI doesn't work. These are in
+    # particular:
+    # - n does not fit in a C long;
+    # - x is some Sage type which cannot be converted to PARI;
+    # - PARI's algorithm encounters a zero-divisor which is not zero.
+
     factors = factor(n)
     cdef Py_ssize_t i, j, ti, L, root_of_unity = -1
     primes = [p for p, e in factors]

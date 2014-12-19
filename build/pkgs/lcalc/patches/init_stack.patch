@@ -1,0 +1,31 @@
+diff -ru src/include/Lcommandline.h b/include/Lcommandline.h
+--- src/include/Lcommandline.h	2012-08-08 23:21:55.000000000 +0200
++++ b/include/Lcommandline.h	2014-01-06 14:04:55.981027532 +0100
+@@ -40,12 +40,7 @@
+ #include "Lcommandline_globals.h"      //command line global variables
+ #ifdef INCLUDE_PARI
+ #include "pari.h"          //for pari's elliptic curve functions
+-#undef init                //pari has a '#define init pari_init' which
+-                           //causes trouble with the stream.h init.
+-                           //pari also causes trouble with things like abs.
+-                           //we place the pari include first since otherwise it
+-                           //messes up.
+-
++#include "paripriv.h"      //for pari_init_stack()
+ #endif //ifdef INCLUDE_PARI
+ 
+ 
+diff -ru src/src/Lcommandline.cc b/src/Lcommandline.cc
+--- src/src/Lcommandline.cc	2012-08-08 23:21:56.000000000 +0200
++++ b/src/Lcommandline.cc	2014-01-06 14:02:19.463388366 +0100
+@@ -473,7 +473,9 @@
+ 
+ #ifdef INCLUDE_PARI
+         if(do_elliptic_curve){
+-             allocatemoremem((int) N_terms*16+1000000); //XXXXXXXXX this should depend on whether we're double or long double or mpfr double
++             // Reallocate PARI stack
++             pari_init_stack((size_t)N_terms*16 + 1000000, top-bot); //XXXXXXXXX this should depend on whether we're double or long double or mpfr double
++
+              if (my_verbose>0) cout << "Will precompute " << N_terms << " elliptic L-function dirichlet coefficients..." << endl;
+              initialize_new_L(a1,a2,a3,a4,a6,N_terms); 
+         }

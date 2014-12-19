@@ -104,7 +104,6 @@ from sage.misc.misc import get_verbose
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
-
 cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
     """
     Convert a vector or list of multivariate polynomials to a
@@ -1035,7 +1034,15 @@ cdef class LibraryCallHandler(BaseCallHandler):
 
     cdef leftv* handle_call(self, Converter argument_list, ring *_ring=NULL):
         if _ring != currRing: rChangeCurrRing(_ring)
-        return iiMake_proc(self.proc_idhdl, NULL, argument_list.args)
+        cdef bint error = iiMake_proc(self.proc_idhdl, NULL, argument_list.args)
+        cdef leftv * res
+        if not error:
+            res = <leftv*> omAllocBin(sleftv_bin)
+            res.Init()
+            res.Copy(&iiRETURNEXPR)
+            iiRETURNEXPR.Init();
+            return res
+        raise RuntimeError("Error raised calling singular function")
 
     cdef bint free_res(self):
         """
@@ -1146,10 +1153,11 @@ cdef class SingularFunction(SageObject):
             foobar (singular function)
         """
         self._name = name
-
         global currRingHdl
         if currRingHdl == NULL:
-            currRingHdl = enterid("my_awesome_sage_ring", 0, RING_CMD, &IDROOT, 1)
+            currRingHdl = ggetid("my_awesome_sage_ring")
+            if currRingHdl == NULL:
+                currRingHdl = enterid("my_awesome_sage_ring", 0, RING_CMD, &IDROOT, 1)
             currRingHdl.data.uring.ref += 1
 
     cdef BaseCallHandler get_call_handler(self):

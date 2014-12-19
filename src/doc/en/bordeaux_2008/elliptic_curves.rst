@@ -19,9 +19,11 @@ To use the database, just create a curve by giving
     sage: EllipticCurve('5077a1')
     Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
     sage: C = CremonaDatabase()
-    sage: C[37]
-    {'allcurves': {'a1': [[0, 0, 1, -1, 0], 1, 1],
-           'b1': [[0, 1, 1, -23, -50], 0, 3], ...
+    sage: C[37]['allcurves']
+    {'a1': [[0, 0, 1, -1, 0], 1, 1],
+    'b1': [[0, 1, 1, -23, -50], 0, 3],
+    'b2': [[0, 1, 1, -1873, -31833], 0, 1],
+    'b3': [[0, 1, 1, -3, 1], 0, 3]}
     sage: C.isogeny_class('37b')
     [Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50
     over Rational Field, ...]
@@ -369,7 +371,6 @@ where :math:`E` is still the rank :math:`2` curve 389a.
 ::
 
     sage: L.zeros(10)
-      ***   Warning: new stack size = ...
     [0.000000000, 0.000000000, 2.87609907, 4.41689608, 5.79340263,
      6.98596665, 7.47490750, 8.63320525, 9.63307880, 10.3514333]
 

@@ -525,7 +525,7 @@ cdef class tr_data:
             # The value of k is the largest index of the coefficients of a which is
             # currently unknown; e.g., if k == -1, then we can iterate
             # over polynomials, and if k == n-1, then we have finished iterating.
-            if a[len(a)-1] <> 1:
+            if a[len(a)-1] != 1:
                 raise ValueError, "a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1]
 
             k = n-len(a)
@@ -774,7 +774,7 @@ cdef class tr_data:
                             f = ZZx([self.gnk[(k+1)*n+i] for i in range(n-(k+1)+1)])
                             # Could just take self.gnk(k+2)*n+i, but this may not be initialized...
                             df = ZZx([i*self.gnk[(k+1)*n+i] for i in range(1,n-(k+1)+1)])
-                            if gcd(f,df) <> 1:
+                            if gcd(f,df) != 1:
                                 if verbose:
                                     print "  gnk has multiple factor!"
                                 maxoutflag = 1

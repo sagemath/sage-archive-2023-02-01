@@ -1,5 +1,5 @@
 r"""
-Set of homomorphisms between two proejctive schemes
+Set of homomorphisms between two projective schemes
 
 For schemes `X` and `Y`, this module implements the set of morphisms
 `Hom(X,Y)`. This is done by :class:`SchemeHomset_generic`.
@@ -86,12 +86,12 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         R = self.value_ring()
         if is_RationalField(R):
             if not B > 0:
-                raise TypeError, "A positive bound B (= %s) must be specified."%B
+                raise TypeError("A positive bound B (= %s) must be specified."%B)
             return enum_projective_rational_field(self,B)
         elif is_FiniteField(R):
             return enum_projective_finite_field(self.extended_codomain())
         else:
-            raise TypeError, "Unable to enumerate points over %s."%R
+            raise TypeError("Unable to enumerate points over %s."%R)
 
 class SchemeHomset_points_projective_ring(SchemeHomset_points):
     """
@@ -154,11 +154,11 @@ class SchemeHomset_points_projective_ring(SchemeHomset_points):
         R = self.value_ring()
         if R == ZZ:
             if not B > 0:
-                raise TypeError, "A positive bound B (= %s) must be specified."%B
+                raise TypeError("A positive bound B (= %s) must be specified."%B)
             from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
             return enum_projective_rational_field(self,B)
         else:
-            raise TypeError, "Unable to enumerate points over %s."%R
+            raise TypeError("Unable to enumerate points over %s."%R)
 
 
 #*******************************************************************
@@ -280,4 +280,3 @@ from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.homset',
                            'SchemeHomsetModule_abelian_variety_coordinates_field',
                            SchemeHomset_points_abelian_variety_field)
-

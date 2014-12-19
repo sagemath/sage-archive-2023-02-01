@@ -24,10 +24,10 @@ EXAMPLES::
 #       Copyright (C) 2008-2010 Sebastien Labbe <slabqc@gmail.com>,
 #                     2008-2010 Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
@@ -149,7 +149,7 @@ class Word_class(SageObject):
             ...
             NotImplementedError: you need to define an iterator in __iter__
         """
-        raise NotImplementedError, "you need to define an iterator in __iter__"
+        raise NotImplementedError("you need to define an iterator in __iter__")
 
     def length(self):
         r"""
@@ -249,7 +249,7 @@ class Word_class(SageObject):
         if L is None or L is Infinity:
             msg = "Python len method can not return a non integer value (=%s): "%L
             msg += "use length method instead."
-            raise TypeError, msg
+            raise TypeError(msg)
         return int(L)
 
     def __cmp__(self, other):
@@ -1064,6 +1064,11 @@ class Word_class(SageObject):
 
         EXAMPLES::
 
+            sage: Word('123').iterated_right_palindromic_closure()
+            word: 1213121
+
+        ::
+
             sage: w = Word('abc')
             sage: w.iterated_right_palindromic_closure()
             word: abacaba
@@ -1117,6 +1122,11 @@ class Word_class(SageObject):
             sage: w.iterated_right_palindromic_closure()
             word:
 
+        The length-`1` word::
+
+            sage: Word('1').iterated_right_palindromic_closure()
+            word: 1
+
         If the word is finite, so is the result::
 
             sage: w = Word([0,1]*7)
@@ -1144,7 +1154,7 @@ class Word_class(SageObject):
         elif algorithm == 'recursive':
             it = self._iterated_right_palindromic_closure_recursive_iterator(f=f)
         else:
-            raise ValueError, "algorithm (=%s) must be either 'definition' or 'recursive'"
+            raise ValueError("algorithm (=%s) must be either 'definition' or 'recursive'")
         return self._parent(it, length=length)
 
     def prefixes_iterator(self, max_length=None):
@@ -1242,23 +1252,6 @@ class Word_class(SageObject):
             if p.is_palindrome():
                 yield p
 
-    def alphabet(self):
-        r"""
-        EXAMPLES::
-
-            sage: w = Word('abaccefa')
-            sage: w. alphabet()
-            doctest:1: DeprecationWarning: alphabet() is deprecated, use parent().alphabet() instead
-            See http://trac.sagemath.org/8429 for details.
-            Set of Python objects of type 'object'
-            sage: y = Words('456')('64654564')
-            sage: y.alphabet()
-            {'4', '5', '6'}
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "alphabet() is deprecated, use parent().alphabet() instead")
-        return self.parent().alphabet()
-
     def _partial_sums_iterator(self, start, mod=None):
         r"""
         Iterator over the partial sums of the prefixes of self.
@@ -1298,7 +1291,7 @@ class Word_class(SageObject):
             sum = Zn(start)
 
         else:
-            raise TypeError, 'mod(=%s) must be None or an integer'%mod
+            raise TypeError('mod(=%s) must be None or an integer'%mod)
 
         yield sum
         for letter in self:
@@ -1432,7 +1425,7 @@ class Word_class(SageObject):
                 yield Zn(j.next() - i.next())
 
         else:
-            raise TypeError, 'mod(=%s) must be None or an integer'%mod
+            raise TypeError('mod(=%s) must be None or an integer'%mod)
 
     def finite_differences(self, mod=None):
         r"""
@@ -1578,7 +1571,7 @@ class Word_class(SageObject):
         elif mod in ZZ and mod >= 2:
             alphabet = range(mod)
         else:
-            raise ValueError, "base (=%s) and mod (=%s) must be integers greater or equal to 2"%(base, mod)
+            raise ValueError("base (=%s) and mod (=%s) must be integers greater or equal to 2"%(base, mod))
 
         # The iterator
         f = partial(words._ThueMorseWord_nth_digit, alphabet=alphabet, base=base)
@@ -1620,9 +1613,9 @@ class Word_class(SageObject):
             24
         """
         if fact.is_empty():
-            raise NotImplementedError, "The factor must be non empty"
+            raise NotImplementedError("The factor must be non empty")
         if not fact.is_finite():
-            raise ValueError, "The factor must be finite"
+            raise ValueError("The factor must be finite")
         p = fact._pos_in(self, 0)
         while p is not None:
             yield p

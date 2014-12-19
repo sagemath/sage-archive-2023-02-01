@@ -293,11 +293,11 @@ cdef class Parent(category_object.CategoryObject):
 
         - ``facade`` -- a parent, or tuple thereof, or ``True``
 
-        If ``facade`` is specified, then ``Sets().Facades()`` is added
+        If ``facade`` is specified, then ``Sets().Facade()`` is added
         to the categories of the parent. Furthermore, if ``facade`` is
         not ``True``, the internal attribute ``_facade_for`` is set
         accordingly for use by
-        :meth:`Sets.Facades.ParentMethods.facade_for`.
+        :meth:`Sets.Facade.ParentMethods.facade_for`.
 
         Internal invariants:
 
@@ -310,6 +310,17 @@ cdef class Parent(category_object.CategoryObject):
 
             Eventually, category should be
             :class:`~sage.categories.sets_cat.Sets` by default.
+
+
+        TESTS:
+
+        We check that the facade option is compatible with specifying
+        categories as a tuple::
+
+            sage: class MyClass(Parent): pass
+            sage: P = MyClass(facade = ZZ, category = (Monoids(), CommutativeAdditiveMonoids()))
+            sage: P.category()
+            Join of Category of monoids and Category of commutative additive monoids and Category of facade sets
 
         .. automethod:: __call__
         .. automethod:: _populate_coercion_lists_
@@ -326,6 +337,8 @@ cdef class Parent(category_object.CategoryObject):
         # (element_constructor would always be set by inheritance)
         # Then, all the element_constructor logic should be moved to init_coerce.
         CategoryObject.__init__(self, base = base)
+        if isinstance(category, (tuple, list)):
+            category = Category.join(category)
         if facade is not None and facade is not False:
             if isinstance(facade, Parent):
                 facade = (facade,)
@@ -333,12 +346,12 @@ cdef class Parent(category_object.CategoryObject):
                 assert isinstance(facade, tuple)
                 self._facade_for = facade
             if category is None:
-                category = Sets().Facades()
+                category = Sets().Facade()
             else:
                 if isinstance(category, (tuple,list)):
-                    category = Category.join(tuple(category) + (Sets().Facades(),))
+                    category = Category.join(tuple(category) + (Sets().Facade(),))
                 else:
-                    category = Category.join((category,Sets().Facades()))
+                    category = Category.join((category,Sets().Facade()))
         # Setting the categories is currently done in a separate
         # method to let some subclasses (like ParentsWithBase)
         # call it without calling the full constructor
@@ -497,6 +510,7 @@ cdef class Parent(category_object.CategoryObject):
         # needs to be erased now.
         try:
             self.__dict__.__delitem__('element_class')
+            self.__dict__.__delitem__('_abstract_element_class')
         except (AttributeError, KeyError):
             pass
         if debug.refine_category_hash_check and hash_old != hash(self):
@@ -565,6 +579,30 @@ cdef class Parent(category_object.CategoryObject):
             while issubclass(self.__class__, Sets_parent_class):
                 self.__class__ = self.__class__.__base__
 
+    @lazy_attribute
+    def _abstract_element_class(self):
+        """
+        An abstract class for the elements of this parent.
+
+        By default, this is the element class provided by the category
+        of the parent.
+
+        .. SEEALSO::
+
+            - :meth:`sage.categories.homset.Homset._abstract_element_class`
+            - :meth:`element_class`
+            - :meth:`Element.__getattr__`
+
+        EXAMPLES::
+
+            sage: S = Semigroups().example()
+            sage: S.category()
+            Category of semigroups
+            sage: S._abstract_element_class
+            <class 'sage.categories.semigroups.Semigroups.element_class'>
+        """
+        return self.category().element_class
+
     # This probably should go into Sets().Parent
     @lazy_attribute
     def element_class(self):
@@ -596,7 +634,7 @@ cdef class Parent(category_object.CategoryObject):
         if inherit is None:
             inherit = not is_extension_type(cls)
         if inherit:
-            return dynamic_class(name, (cls, self.category().element_class))
+            return dynamic_class(name, (cls, self._abstract_element_class))
         else:
             return cls
 
@@ -740,6 +778,7 @@ cdef class Parent(category_object.CategoryObject):
             self._initial_action_list = []
             self._initial_convert_list = []
             self._coerce_from_list = []
+            self._registered_domains = []
             self._coerce_from_hash = MonoDict(23)
             self._action_list = []
             self._action_hash = TripleDict(23)
@@ -765,7 +804,7 @@ cdef class Parent(category_object.CategoryObject):
         its categories, that is from ``EuclideanDomains().parent_class``::
 
             sage: ZZ._test_associativity
-            <bound method EuclideanDomains.parent_class._test_associativity of Integer Ring>
+            <bound method JoinCategory.parent_class._test_associativity of Integer Ring>
             sage: ZZ._test_associativity(verbose = True)
             sage: TestSuite(ZZ).run(verbose = True)
             running ._test_additive_associativity() . . . pass
@@ -786,13 +825,20 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_elements_eq_symmetric() . . . pass
             running ._test_elements_eq_transitive() . . . pass
             running ._test_elements_neq() . . . pass
+            running ._test_enumerated_set_contains() . . . pass
+            running ._test_enumerated_set_iter_cardinality() . . . pass
+            running ._test_enumerated_set_iter_list() . . .Enumerated set too big; skipping test; increase tester._max_runs
+             pass
             running ._test_eq() . . . pass
+            running ._test_euclidean_degree() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
             running ._test_prod() . . . pass
+            running ._test_quo_rem() . . . pass
             running ._test_some_elements() . . . pass
             running ._test_zero() . . . pass
+            running ._test_zero_divisors() . . . pass
 
             sage: Sets().example().sadfasdf
             Traceback (most recent call last):
@@ -848,13 +894,19 @@ cdef class Parent(category_object.CategoryObject):
             _test_elements_eq_symmetric
             _test_elements_eq_transitive
             _test_elements_neq
+            _test_enumerated_set_contains
+            _test_enumerated_set_iter_cardinality
+            _test_enumerated_set_iter_list
             _test_eq
+            _test_euclidean_degree
             _test_not_implemented_methods
             _test_one
             _test_pickling
             _test_prod
+            _test_quo_rem
             _test_some_elements
             _test_zero
+            _test_zero_divisors
             sage: F = GF(9,'a')
             sage: dir(F)
             [..., '__class__', ..., '_test_pickling', ..., 'extension', ...]
@@ -955,7 +1007,7 @@ cdef class Parent(category_object.CategoryObject):
           column, or the meaning is lost.
 
         - ``'element_ascii_art'``: same but for the output of the
-          elements. Used in :mod:`sage.misc.displayhook`.
+          elements. Used in :mod:`sage.repl.display.formatter`.
 
         - ``'element_is_atomic'``: the elements print atomically, that
           is, parenthesis are not required when *printing* out any of
@@ -1062,7 +1114,7 @@ cdef class Parent(category_object.CategoryObject):
         try:
             mor = <map.Map> self._convert_from_hash.get(R)
         except KeyError:
-            mor = <map.Map> self.convert_map_from(R)
+            mor = <map.Map> self._internal_convert_map_from(R)
 
         if mor is not None:
             if no_extra_args:
@@ -1089,7 +1141,7 @@ cdef class Parent(category_object.CategoryObject):
         it is a ring, from the point of view of categories::
 
             sage: MS.category()
-            Category of algebras over Rational Field
+            Category of algebras over quotient fields
             sage: MS in Rings()
             True
 
@@ -1268,17 +1320,19 @@ cdef class Parent(category_object.CategoryObject):
             sage: V.coerce(0)
             (0, 0, 0, 0, 0, 0, 0)
         """
-        mor = self.coerce_map_from(parent_c(x))
+        mor = self._internal_coerce_map_from(parent_c(x))
         if mor is None:
             if is_Integer(x) and not x:
                 try:
                     return self(0)
-                except StandardError:
+                except Exception:
                     _record_exception()
             raise TypeError("no canonical coercion from %s to %s" % (parent_c(x), self))
         else:
             return (<map.Map>mor)._call_(x)
 
+    # TODO: move this method in EnumeratedSets (.Finite?) as soon as
+    # all Sage enumerated sets are in this category
     def _list_from_iterator_cached(self):
         r"""
         Return a list of the elements of ``self``.
@@ -1316,14 +1370,14 @@ cdef class Parent(category_object.CategoryObject):
             sage: ZZ.list()
             Traceback (most recent call last):
             ...
-            ValueError: since it is infinite, cannot list Integer Ring
+            NotImplementedError: since it is infinite, cannot list Integer Ring
 
         This is the motivation for :trac:`10470` ::
 
             sage: (QQ^2).list()
             Traceback (most recent call last):
             ...
-            ValueError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
+            NotImplementedError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
 
         TESTS:
 
@@ -1382,11 +1436,20 @@ cdef class Parent(category_object.CategoryObject):
             pass
         # if known to be infinite, give up
         # if unsure, proceed (which will hang for an infinite set)
+        #
+        # TODO: The test below should really be:
+        #   if self in Sets().Infinite():
+        # However many infinite parents are not yet declared as such,
+        # which triggers some doctests failure; see e.g. matrix_space.py.
+        # For now we keep the current test as a workaround (see #16239).
+        infinite = False # We do it this way so we can raise a NotImplementedError
         try:
-            if not self.is_finite():
-                raise ValueError('since it is infinite, cannot list %s' % self )
+            if self in Sets().Infinite() or not self.is_finite():
+                infinite = True
         except (AttributeError, NotImplementedError):
             pass
+        if infinite:
+            raise NotImplementedError( 'since it is infinite, cannot list {}'.format(self) )
         the_list = list(self.__iter__())
         try:
             self._list = the_list
@@ -1470,12 +1533,6 @@ cdef class Parent(category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: MatrixSpace(GF(3), 2, 2)[9]
-            [0 2]
-            [0 0]
-            sage: MatrixSpace(GF(3), 2, 2)[0]
-            [0 0]
-            [0 0]
             sage: VectorSpace(GF(7), 3)[:10]
             [(0, 0, 0),
              (1, 0, 0),
@@ -1506,8 +1563,17 @@ cdef class Parent(category_object.CategoryObject):
             'coucou'
         """
         try:
-            return super(Parent, self).__getitem__(n)
+            meth = super(Parent, self).__getitem__
         except AttributeError:
+            pass
+        # needed when self is a Cython object (super() does not call getattr())
+        try:
+            meth = getattr_from_other_class(self, self._category.parent_class, '__getitem__')
+        except AttributeError:
+            pass
+        try:
+            return meth(n)
+        except NameError:
             return self.list()[n]
 
 
@@ -1815,10 +1881,12 @@ cdef class Parent(category_object.CategoryObject):
             mor = self._generic_convert_map(mor)
         else:
             raise TypeError("coercions must be parents or maps (got %s)" % type(mor))
+        D = mor.domain()
 
-        assert not (self._coercions_used and mor.domain() in self._coerce_from_hash), "coercion from %s to %s already registered or discovered"%(mor.domain(), self)
+        assert not (self._coercions_used and D in self._coerce_from_hash), "coercion from {} to {} already registered or discovered".format(D, self)
         self._coerce_from_list.append(mor)
-        self._coerce_from_hash.set(mor.domain(),mor)
+        self._registered_domains.append(D)
+        self._coerce_from_hash.set(D,mor)
 
     cpdef register_action(self, action):
         r"""
@@ -1944,16 +2012,12 @@ cdef class Parent(category_object.CategoryObject):
             [1 0 0]
             [0 1 0]
 
-        By default, one can't mix matrices and permutations::
+        In general one can't mix matrices and permutations::
 
             sage: G(p)
             Traceback (most recent call last):
             ...
             TypeError: entries must be coercible to a list or integer
-            sage: G(1) * p
-            Traceback (most recent call last):
-            ...
-            TypeError: ...
             sage: phi = S3.hom(lambda p: G(p.matrix()), codomain = G)
             sage: phi(p)
             [0 0 1]
@@ -1961,11 +2025,15 @@ cdef class Parent(category_object.CategoryObject):
             [0 1 0]
             sage: S3._unset_coercions_used()
             sage: S3.register_embedding(phi)
-            sage: S3.coerce_embedding()
+
+        By :trac:`14711`, coerce maps should be copied when using outside of
+        the coercion system::
+
+            sage: phi = copy(S3.coerce_embedding()); phi
             Generic morphism:
               From: Alternating group of order 3!/2 as a permutation group
               To:   Special Linear Group of degree 3 over Rational Field
-            sage: S3.coerce_embedding()(p)
+            sage: phi(p)
             [0 0 1]
             [1 0 0]
             [0 1 0]
@@ -1974,7 +2042,13 @@ cdef class Parent(category_object.CategoryObject):
         parents (see :trac:`14014`)::
 
             sage: G(p)                               # todo: not implemented
-            sage: G(1) * p                           # todo: not implemented
+
+        Though one can have a permutation act on the rows of a matrix::
+
+            sage: G(1) * p
+            [0 0 1]
+            [1 0 0]
+            [0 1 0]
 
         Some more advanced examples::
 
@@ -2017,16 +2091,17 @@ cdef class Parent(category_object.CategoryObject):
             self._embedding = embedding._generic_convert_map(self)
         elif embedding is not None:
             raise TypeError("embedding must be a parent or map")
+        self._embedding._make_weak_references()
 
     def coerce_embedding(self):
         """
-        Returns the embedding of self into some other parent, if such a parent
-        exists.
+        Return the embedding of ``self`` into some other parent, if such a
+        parent exists.
 
-        This does not mean that there are no coercion maps from self into other
-        fields, this is simply a specific morphism specified out of self and
-        usually denotes a special relationship (e.g. sub-objects, choice of
-        completion, etc.)
+        This does not mean that there are no coercion maps from ``self`` into
+        other fields, this is simply a specific morphism specified out of
+        ``self`` and usually denotes a special relationship (e.g. sub-objects,
+        choice of completion, etc.)
 
         EXAMPLES::
 
@@ -2043,14 +2118,14 @@ cdef class Parent(category_object.CategoryObject):
               To:   Complex Lazy Field
               Defn: a -> 0.2327856159383841? + 0.7925519925154479?*I
         """
-        return self._embedding
+        return copy(self._embedding) # It might be overkill to make a copy here
 
     cpdef _generic_convert_map(self, S):
         r"""
         Returns the default conversion map based on the data provided to
         :meth:`_populate_coercion_lists_`.
 
-        This called when :meth:`_coerce_map_from_` returns ``True``.
+        This is called when :meth:`_coerce_map_from_` returns ``True``.
 
         If a ``convert_method_name`` is provided, it creates a
         ``NamedConvertMap``, otherwise it creates a
@@ -2097,9 +2172,12 @@ cdef class Parent(category_object.CategoryObject):
 
         - ``S`` - the starting parent
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: CDF._coerce_map_via([ZZ, RR, CC], int)
+        By :trac:`14711`, coerce maps should be copied for usage outside
+        of the coercion system::
+
+            sage: copy(CDF._coerce_map_via([ZZ, RR, CC], int))
             Composite map:
               From: Set of Python objects of type 'int'
               To:   Complex Double Field
@@ -2111,7 +2189,7 @@ cdef class Parent(category_object.CategoryObject):
                       From: Integer Ring
                       To:   Complex Double Field
 
-            sage: CDF._coerce_map_via([ZZ, RR, CC], QQ)
+            sage: copy(CDF._coerce_map_via([ZZ, RR, CC], QQ))
             Composite map:
               From: Rational Field
               To:   Complex Double Field
@@ -2123,7 +2201,7 @@ cdef class Parent(category_object.CategoryObject):
                       From: Real Field with 53 bits of precision
                       To:   Complex Double Field
 
-            sage: CDF._coerce_map_via([ZZ, RR, CC], CC)
+            sage: copy(CDF._coerce_map_via([ZZ, RR, CC], CC))
             Generic map:
               From: Complex Field with 53 bits of precision
               To:   Complex Double Field
@@ -2133,10 +2211,10 @@ cdef class Parent(category_object.CategoryObject):
             if R is None:
                 continue
             if R is S:
-                return self.coerce_map_from(R)
-            connecting = R.coerce_map_from(S)
+                return self._internal_coerce_map_from(R)
+            connecting = R._internal_coerce_map_from(S)
             if connecting is not None:
-                return self.coerce_map_from(R) * connecting
+                return self._internal_coerce_map_from(R) * connecting
 
     cpdef bint has_coerce_map_from(self, S) except -2:
         """
@@ -2160,7 +2238,7 @@ cdef class Parent(category_object.CategoryObject):
             if debug.unique_parent_warnings:
                 print "Warning: non-unique parents %s"%(type(S))
             return True
-        return self.coerce_map_from(S) is not None
+        return self._internal_coerce_map_from(S) is not None
 
     cpdef _coerce_map_from_(self, S):
         """
@@ -2176,19 +2254,10 @@ cdef class Parent(category_object.CategoryObject):
 
     cpdef coerce_map_from(self, S):
         """
-        This returns a Map object to coerce from S to self if one exists,
-        or None if no such coercion exists.
+        Return a :class:`Map` object to coerce from ``S`` to ``self`` if one
+        exists, or ``None`` if no such coercion exists.
 
-        EXAMPLES::
-
-            sage: ZZ.coerce_map_from(int)
-            Native morphism:
-              From: Set of Python objects of type 'int'
-              To:   Integer Ring
-            sage: QQ.coerce_map_from(ZZ)
-            Natural morphism:
-              From: Integer Ring
-              To:   Rational Field
+        EXAMPLES:
 
         By :trac:`12313`, a special kind of weak key dictionary is used to
         store coercion and conversion maps, namely
@@ -2217,20 +2286,55 @@ cdef class Parent(category_object.CategoryObject):
             sage: m = Sym.monomial()
             sage: Ht = Sym.macdonald().Ht()
             sage: phi = m.coerce_map_from(P)
-            sage: Ht.coerce_map_from(P)
+        """
+        return copy(self._internal_coerce_map_from(S))
+
+    cpdef _internal_coerce_map_from(self, S):
+        """
+        Return the :class:`Map` object to coerce from ``S`` to ``self`` that
+        is used internally by the coercion system if one exists, or ``None``
+        if no such coercion exists.
+
+        EXAMPLES:
+
+        By :trac:`14711`, coerce maps should be copied when using them
+        outside of the coercion system, because they may become defunct
+        by garbage collection::
+
+            sage: ZZ._internal_coerce_map_from(int)
+            (map internal to coercion system -- copy before use)
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Integer Ring
+            sage: copy(ZZ._internal_coerce_map_from(int))
+            Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Integer Ring
+            sage: copy(QQ._internal_coerce_map_from(ZZ))
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+
+            sage: R = QQ['q,t'].fraction_field()
+            sage: Sym = sage.combinat.sf.sf.SymmetricFunctions(R)
+            sage: P = Sym.macdonald().P()
+            sage: Ht = Sym.macdonald().Ht()
+            sage: Ht._internal_coerce_map_from(P)
+            (map internal to coercion system -- copy before use)
             Composite map:
               From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
               To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
-              Defn:   Composite map:
+            sage: copy(Ht._internal_coerce_map_from(P))
+            Composite map:
+              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
+              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
+              Defn:   Generic morphism:
                       From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
+                      To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
+                    then
+                      Generic morphism:
+                      From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
                       To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
-                      Defn:   Generic morphism:
-                              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
-                              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
-                            then
-                              Generic morphism:
-                              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald J basis
-                              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
                     then
                       Generic morphism:
                       From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
@@ -2239,9 +2343,8 @@ cdef class Parent(category_object.CategoryObject):
         The following was fixed in :trac:`4740`::
 
             sage: F = GF(13)
-            sage: F.coerce_map_from(F) is F.coerce_map_from(F)
+            sage: F._internal_coerce_map_from(F) is F._internal_coerce_map_from(F)
             True
-
         """
         if not good_as_coerce_domain(S):
             return None
@@ -2249,7 +2352,7 @@ cdef class Parent(category_object.CategoryObject):
         cdef map.Map mor
 
         if isinstance(S, Set_PythonType_class):
-            return self.coerce_map_from(S._type)
+            return self._internal_coerce_map_from(S._type)
         if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce(False)
 
@@ -2270,6 +2373,7 @@ cdef class Parent(category_object.CategoryObject):
                 print "Warning: non-unique parents %s"%(type(S))
             mor = self._generic_convert_map(S)
             self._coerce_from_hash.set(S, mor)
+            mor._make_weak_references()
             return mor
 
         try:
@@ -2284,10 +2388,10 @@ cdef class Parent(category_object.CategoryObject):
             #        pass
             #        # print "embed problem: the following morphisms connect unconnected portions of the coercion graph\n%s\n%s"%(self._embedding, mor)
             #        # mor = None
-            if mor is not None:
-                # NOTE: this line is what makes the coercion detection stateful
-                # self._coerce_from_list.append(mor)
-                pass
+            # if mor is not None:
+            #     # NOTE: this line is what makes the coercion detection stateful
+            #     # self._coerce_from_list.append(mor)
+            #     pass
             # It may be that the only coercion from S to self is
             # via another parent X. But if the pair (S,X) is temporarily
             # disregarded (using _register_pair, to avoid infinite recursion)
@@ -2295,13 +2399,14 @@ cdef class Parent(category_object.CategoryObject):
             # from S to self. See #12969
             if (mor is not None) or _may_cache_none(self, S, "coerce"):
                 self._coerce_from_hash.set(S,mor)
+                if mor is not None:
+                    mor._make_weak_references()
             return mor
-        except CoercionException, ex:
+        except CoercionException as ex:
             _record_exception()
             return None
         finally:
             _unregister_pair(self, S, "coerce")
-
 
     cdef discover_coerce_map_from(self, S):
         """
@@ -2363,7 +2468,7 @@ cdef class Parent(category_object.CategoryObject):
         if PY_TYPE_CHECK(S, Parent) and (<Parent>S)._embedding is not None:
             if (<Parent>S)._embedding.codomain() is self:
                 return (<Parent>S)._embedding
-            connecting = self.coerce_map_from((<Parent>S)._embedding.codomain())
+            connecting = self._internal_coerce_map_from((<Parent>S)._embedding.codomain())
             if connecting is not None:
                 return (<Parent>S)._embedding.post_compose(connecting)
 
@@ -2402,13 +2507,14 @@ cdef class Parent(category_object.CategoryObject):
         cdef int num_paths = 1 # this is the number of paths we find before settling on the best (the one with lowest coerce_cost).
                                # setting this to 1 will make it return the first path found.
         cdef int mor_found = 0
-        cdef Parent R
+        cdef Parent R, D
         # Recurse.  Note that if S is the domain of one of the maps in self._coerce_from_list,
         # we will have stuck the map into _coerce_map_hash and thus returned it already.
         for mor in self._coerce_from_list:
-            if mor._domain is self:
+            D = mor.domain()
+            if D is self:
                 continue
-            if mor._domain is S:
+            if D is S:
                 if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:
                     best_mor = mor
                 mor_found += 1
@@ -2416,8 +2522,8 @@ cdef class Parent(category_object.CategoryObject):
                     return best_mor
             else:
                 connecting = None
-                if EltPair(mor._domain, S, "coerce") not in _coerce_test_dict:
-                    connecting = mor._domain.coerce_map_from(S)
+                if EltPair(D, S, "coerce") not in _coerce_test_dict:
+                    connecting = D._internal_coerce_map_from(S)
                 if connecting is not None:
                     mor = mor * connecting
                     if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:
@@ -2428,21 +2534,53 @@ cdef class Parent(category_object.CategoryObject):
 
         return best_mor
 
-
     cpdef convert_map_from(self, S):
         """
-        This function returns a Map from S to self, which may or may not
-        succeed on all inputs. If a coercion map from S to self exists,
-        then the it will be returned. If a coercion from self to S exists,
+        This function returns a :class:`Map` from `S` to `self`,
+        which may or may not succeed on all inputs.
+        If a coercion map from S to self exists,
+        then the it will be returned. If a coercion from `self` to `S` exists,
         then it will attempt to return a section of that map.
 
         Under the new coercion model, this is the fastest way to convert
-        elements of S to elements of self (short of manually constructing
-        the elements) and is used by __call__.
+        elements of `S` to elements of `self` (short of manually constructing
+        the elements) and is used by :meth:`__call__`.
 
         EXAMPLES::
 
             sage: m = ZZ.convert_map_from(QQ)
+            sage: m
+            Generic map:
+              From: Rational Field
+              To:   Integer Ring
+            sage: m(-35/7)
+            -5
+            sage: parent(m(-35/7))
+            Integer Ring
+        """
+        return copy(self._internal_convert_map_from(S))
+
+
+    cpdef _internal_convert_map_from(self, S):
+        """
+        This function returns a :class:`Map` from `S` to `self`,
+        which may or may not succeed on all inputs.
+        If a coercion map from S to self exists,
+        then the it will be returned. If a coercion from `self` to `S` exists,
+        then it will attempt to return a section of that map.
+
+        Under the new coercion model, this is the fastest way to convert
+        elements of `S` to elements of `self` (short of manually constructing
+        the elements) and is used by :func:`__call__`.
+
+        EXAMPLES::
+
+            sage: m = ZZ._internal_convert_map_from(QQ)
+            sage: m
+            (map internal to coercion system -- copy before use)
+            Generic map:
+              From: Rational Field
+              To:   Integer Ring
             sage: m(-35/7)
             -5
             sage: parent(m(-35/7))
@@ -2456,18 +2594,27 @@ cdef class Parent(category_object.CategoryObject):
             return self._convert_from_hash.get(S)
         except KeyError:
             mor = self.discover_convert_map_from(S)
-            self._convert_from_list.append(mor)
+            # Before trac #14711, the morphism has been 
+            # put both into _convert_from_list and into
+            # _convert_from_hash. But there is no reason
+            # to have a double book-keeping, specifically
+            # if one of them is by strong references!
             self._convert_from_hash.set(S, mor)
+            # Moreover, again by #14711, the morphism should
+            # only keep weak references to domain and codomain,
+            # to allow them being garbage collected.
+            if mor is not None:
+                mor._make_weak_references()
             return mor
 
     cdef discover_convert_map_from(self, S):
 
-        cdef map.Map mor = self.coerce_map_from(S)
+        cdef map.Map mor = self._internal_coerce_map_from(S)
         if mor is not None:
             return mor
 
         if PY_TYPE_CHECK(S, Parent):
-            mor = S.coerce_map_from(self)
+            mor = S._internal_coerce_map_from(self)
             if mor is not None:
                 mor = mor.section()
                 if mor is not None:
@@ -2587,7 +2734,7 @@ cdef class Parent(category_object.CategoryObject):
             if R is S:
                 return action
             else:
-                connecting = R.coerce_map_from(S) # S -> R
+                connecting = R._internal_coerce_map_from(S) # S -> R
                 if connecting is not None:
                     if self_on_left:
                         return PrecomposedAction(action, None, connecting)
@@ -2724,19 +2871,19 @@ cdef class Parent(category_object.CategoryObject):
             return super(Parent, self)._an_element_()
         except EmptySetError:
             raise
-        except StandardError:
+        except Exception:
             _record_exception()
             pass
 
         try:
             return self.gen(0)
-        except StandardError:
+        except Exception:
             _record_exception()
             pass
 
         try:
             return self.gen()
-        except StandardError:
+        except Exception:
             _record_exception()
             pass
 
@@ -3017,7 +3164,7 @@ cdef class Set_PythonType_class(Set_generic):
             return two
         elif self._type is int:
             import sys
-            return two*sys.maxint + 2
+            return two * sys.maxsize + 2
         elif self._type is float:
             return 2 * two**52 * (two**11 - 1) + 3 # all NaN's are the same from Python's point of view
         else:
@@ -3051,10 +3198,21 @@ cdef class EltPair:
 
             sage: from sage.structure.parent import EltPair
             sage: a = EltPair(ZZ, QQ, "coerce")
-            sage: hash(a) == hash((ZZ, QQ, "coerce"))
+            sage: b = EltPair(ZZ, QQ, "coerce")
+            sage: hash(a) == hash(b)
             True
+
+        TESTS:
+
+        Verify that :trac:`16341` has been resolved::
+
+            sage: K.<a> = Qq(9)
+            sage: E=EllipticCurve_from_j(0).base_extend(K)
+            sage: E.get_action(ZZ)
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+
         """
-        return hash((self.x, self.y, self.tag))
+        return hash((id(self.x), id(self.y), id(self.tag)))
 
     def short_repr(self):
         return self.tag, hex(<long><void*>self.x), hex(<long><void*>self.y)

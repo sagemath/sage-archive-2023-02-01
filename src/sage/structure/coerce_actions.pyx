@@ -203,7 +203,7 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
         # Elements defining _lmul_ and _rmul_
         try:
             return (RightModuleAction if X_on_left else LeftModuleAction)(Y, X, y, x)
-        except CoercionException, msg:
+        except CoercionException as msg:
             _record_exception()
     try:
         # Elements defining _act_on_
@@ -296,7 +296,7 @@ cdef class ModuleAction(Action):
         # _rmul_ is given an element of the base ring
         if G is not base:
             # first we try the easy case of coercing G to the base ring of S
-            self.connecting = base.coerce_map_from(G)
+            self.connecting = base._internal_coerce_map_from(G)
             if self.connecting is None:
                 # otherwise, we try and find a base extension
                 from sage.categories.pushout import pushout
@@ -306,7 +306,7 @@ cdef class ModuleAction(Action):
                 if self.extended_base.base() != pushout(G, base):
                     raise CoercionException, "Actor must be coercible into base."
                 else:
-                    self.connecting = self.extended_base.base().coerce_map_from(G)
+                    self.connecting = self.extended_base.base()._internal_coerce_map_from(G)
                     if self.connecting is None:
                         # this may happen if G is, say, int rather than a parent
                         # TODO: let python types be valid actions

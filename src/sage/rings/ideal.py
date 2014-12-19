@@ -168,9 +168,9 @@ def Ideal(*args, **kwds):
         True
     """
     if len(args) == 0:
-        raise ValueError, "need at least one argument"
+        raise ValueError("need at least one argument")
     if len(args) == 1 and args[0] == []:
-        raise ValueError, "unable to determine which ring to embed the ideal in"
+        raise ValueError("unable to determine which ring to embed the ideal in")
 
     first = args[0]
 
@@ -190,7 +190,7 @@ def Ideal(*args, **kwds):
         gens = args[1:]
 
     if not commutative_ring.is_CommutativeRing(R):
-        raise TypeError, "R must be a commutative ring"
+        raise TypeError("R must be a commutative ring")
 
     return R.ideal(*gens, **kwds)
 
@@ -508,7 +508,7 @@ class Ideal_generic(MonoidElement):
         """
         from sage.categories.morphism import is_Morphism
         if not is_Morphism(phi):
-            raise TypeError, "phi must be a morphism"
+            raise TypeError("phi must be a morphism")
         # delegate: morphisms know how to apply themselves to ideals
         return phi(self)
 
@@ -761,7 +761,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.primary_decomposition()
             Traceback (most recent call last):
@@ -801,7 +801,7 @@ class Ideal_generic(MonoidElement):
         Note that this method is not implemented for all rings where it
         could be::
 
-            sage: R = ZZ[x]
+            sage: R.<x> = ZZ[]
             sage: I = R.ideal(7)
             sage: I.is_prime()        # when implemented, should be True
             Traceback (most recent call last):
@@ -821,7 +821,7 @@ class Ideal_generic(MonoidElement):
             ass = self.associated_primes()
         except (NotImplementedError, ValueError):
             raise NotImplementedError
-        if len(ass) <> 1:
+        if len(ass) != 1:
             return False
         if self == ass[0]:
             return True
@@ -834,7 +834,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.associated_primes()
             Traceback (most recent call last):
@@ -849,7 +849,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(7)
             sage: I.minimal_associated_primes()
             Traceback (most recent call last):
@@ -895,7 +895,7 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R = ZZ[x]
+            sage: R = ZZ['x']
             sage: I = R.ideal(2,x)
             sage: I.is_principal()
             Traceback (most recent call last):
@@ -1518,11 +1518,11 @@ class Ideal_pid(Ideal_principal):
             TypeError: residue fields only supported for polynomial rings over finite fields.
         """
         if not self.is_prime():
-            raise ValueError, "The ideal (%s) is not prime"%self
+            raise ValueError("The ideal (%s) is not prime"%self)
         from sage.rings.integer_ring import ZZ
         if self.ring() is ZZ:
             return ZZ.residue_field(self, check = False)
-        raise NotImplementedError, "residue_field() is only implemented for ZZ and rings of integers of number fields."
+        raise NotImplementedError("residue_field() is only implemented for ZZ and rings of integers of number fields.")
 
 class Ideal_fractional(Ideal_generic):
     """
@@ -1594,7 +1594,7 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
 
     if n:
         if n > R.ngens():
-            raise ArithmeticError, "n must be <= R.ngens()"
+            raise ArithmeticError("n must be <= R.ngens()")
     else:
         n = R.ngens()
 
@@ -1642,7 +1642,7 @@ def Katsura(R, n=None, homog=False, singular=singular_default):
     from rational_field import RationalField
     if n:
         if n > R.ngens():
-            raise ArithmeticError, "n must be <= R.ngens()."
+            raise ArithmeticError("n must be <= R.ngens().")
     else:
         n = R.ngens()
     singular.lib("poly")
@@ -1689,6 +1689,6 @@ def FieldIdeal(R):
     q = R.base_ring().order()
 
     if q is sage.rings.infinity.infinity:
-        raise TypeError, "Cannot construct field ideal for R.base_ring().order()==infinity"
+        raise TypeError("Cannot construct field ideal for R.base_ring().order()==infinity")
 
     return R.ideal([x**q - x for x in R.gens() ])

@@ -21,11 +21,12 @@ import sage.rings.arith
 
 import sage.misc.misc
 
-include 'sage/ext/cdefs.pxi'
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
-from sage.libs.flint.flint cimport *
-include "sage/libs/flint/fmpz_poly.pxi"
+
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
+from sage.libs.flint.fmpz_poly cimport *
 
 cdef extern from "<math.h>":
     float roundf(float x)
@@ -259,7 +260,7 @@ cdef class Heilbronn:
                 b = u*self.list.v[4*i+1] + v*self.list.v[4*i+3]
                 export.c_p1_normalize_int(N, a, b, &c, &d, &s, 0)
                 X = (c,d)
-                if M.has_key(X):
+                if X in M:
                     M[X] = M[X] + 1
                 else:
                     M[X] = 1
@@ -269,7 +270,7 @@ cdef class Heilbronn:
                 b = (u * self.list.v[4*i+1])%N + (v * self.list.v[4*i+3])%N
                 export.c_p1_normalize_int(N, a, b, &c, &d, &s, 0)
                 X = (c,d)
-                if M.has_key(X):
+                if X in M:
                     M[X] = M[X] + 1
                 else:
                     M[X] = 1
@@ -279,7 +280,7 @@ cdef class Heilbronn:
                 b = llong_prod_mod(u,self.list.v[4*i+1],N) + llong_prod_mod(v,self.list.v[4*i+3], N)
                 export.c_p1_normalize_llong(N, a, b, &c, &d, &s, 0)
                 X = (c,d)
-                if M.has_key(X):
+                if X in M:
                     M[X] = M[X] + 1
                 else:
                     M[X] = 1
@@ -458,7 +459,8 @@ cdef class HeilbronnMerel(Heilbronn):
             [5, 3, 0, 1],
             [5, 4, 0, 1]]
         """
-        cdef int a, q, d, b, c, bc, n
+        cdef int a, q, d, b, c, n
+        cdef llong bc
         cdef list *L
         list_init(&self.list)
         L = &self.list
@@ -476,7 +478,7 @@ cdef class HeilbronnMerel(Heilbronn):
                 for c in range(1, d):
                     list_append4(L, a,0,c,d)
             for d in range(q+1, n+1):
-                bc = a*d-n
+                bc = (<llong>a) * (<llong>d) - (<llong>n)
                 ## Divisor c of bc must satisfy Floor(bc/c) lt a and c lt d.
                 ## c ge (bc div a + 1)  <=>  Floor(bc/c) lt a  (for integers)
                 ## c le d - 1           <=>  c lt d

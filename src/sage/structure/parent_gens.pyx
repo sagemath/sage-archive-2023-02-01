@@ -289,7 +289,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
        object, in order.
        """
        cdef int i, n
-       if self._gens != None:
+       if self._gens is not None:
            return self._gens
        else:
            v = []
@@ -366,7 +366,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         return d
 
     def __setstate__(self, d):
-        if d.has_key('_element_constructor'):
+        if '_element_constructor' in d:
             return parent.Parent.__setstate__(self, d)
         try:
             self.__dict__.update(d)
@@ -475,7 +475,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
 cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
     def generator_orders(self):
         check_old_coerce(self)
-        if self._generator_orders != None:
+        if self._generator_orders is not None:
             return self._generator_orders
         else:
             g = []
@@ -495,7 +495,7 @@ cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
 cdef class ParentWithAdditiveAbelianGens(ParentWithGens):
     def generator_orders(self):
         check_old_coerce(self)
-        if self._generator_orders != None:
+        if self._generator_orders is not None:
             return self._generator_orders
         else:
             g = []

@@ -67,10 +67,9 @@ class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
 
     def __call__(self, A, name=''):
         r"""
-        Create an element of this space from `A`
+        Create an element of the homspace ``self`` from `A`.
 
-
-        INPUT
+        INPUT:
 
         - ``A`` -- one of the following:
 

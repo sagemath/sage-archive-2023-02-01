@@ -34,7 +34,6 @@ from cpython.list cimport *
 
 import os
 from functools import reduce
-from math import atan2
 from random import randint
 import zipfile
 from cStringIO import StringIO
@@ -45,9 +44,7 @@ from sage.env import SAGE_LOCAL
 from sage.modules.free_module_element import vector
 
 from sage.rings.real_double import RDF
-from sage.misc.functional import sqrt, atan, acos
 from sage.misc.temporary_file import tmp_filename, graphics_filename
-
 from texture import Texture, is_Texture
 from transform cimport Transformation, point_c, face_c
 include "point_c.pxi"

@@ -88,6 +88,7 @@ pari                        GPLv2+
 patch                       GPLv2+
 pexpect                     Python License
 pillow                      Apache License 2.0
+pip                         MIT License
 pkgconf                     ISC License (equivalent to Simplified BSD)
 pkgconfig                   MIT License
 polybori                    GPLv2+

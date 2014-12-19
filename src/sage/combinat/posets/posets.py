@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Posets
+Finite posets
 
 This module implements finite partially ordered sets. It defines:
 
@@ -106,7 +106,7 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.relations` | Returns a list of all relations of the poset.
     :meth:`~FinitePoset.relations_iterator` | Returns an iterator for all the relations of the poset.
     :meth:`~FinitePoset.relations_number` | Returns the number of relations in the poset.
-    :meth:`~FinitePoset.show` | Shows the Graphics object corresponding the Hasse diagram of the poset.
+    :meth:`~FinitePoset.show` | Displays the Hasse diagram of the poset.
     :meth:`~FinitePoset.subposet` | Returns the poset containing elements with partial order induced by that of self.
     :meth:`~FinitePoset.top` | Returns the top element of the poset, if it exists.
     :meth:`~FinitePoset.unwrap` | Unwraps an element of this poset
@@ -487,6 +487,13 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         Traceback (most recent call last):
         ...
         ValueError: element_labels should be a dict or a list if different from None. (Did you intend data to be equal to a pair ?)
+
+    Another kind of bad input, digraphs with oriented cycles::
+
+        sage: Poset(DiGraph([[1,2],[2,3],[3,4],[4,1]]))
+        Traceback (most recent call last):
+        ...
+        ValueError: The graph is not directed acyclic
     """
     # Avoiding some errors from the user when data should be a pair
     if (element_labels is not None and
@@ -549,7 +556,8 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
     # Determine cover relations, if necessary.
     if cover_relations is False:
-        D = D.transitive_reduction()
+        from sage.graphs.generic_graph_pyx import transitive_reduction_acyclic
+        D = transitive_reduction_acyclic(D)
 
     # Check that the digraph does not contain loops, multiple edges
     # and is transitively reduced.
@@ -1415,15 +1423,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         return list(self._list)
 
     def plot(self, label_elements=True, element_labels=None,
-             vertex_size=300, vertex_colors=None,
              layout='acyclic', cover_labels=None,
              **kwds):
         """
-        Returns a Graphic object for the Hasse diagram of the poset.
-
-        The poset is increasing from bottom to top.
-
-        By default, the vertices are labelled.
+        Return a Graphic object for the Hasse diagram of the poset.
 
         If the poset is ranked, the plot uses the rank function for
         the heights of the vertices.
@@ -1436,8 +1439,19 @@ class FinitePoset(UniqueRepresentation, Parent):
         - ``element_labels`` (default: ``None``) - a dictionary of
           element labels
 
-        - ``cover_labels`` (default: ``None``) - a dictionary, list or function
-          representing labels of the covers of ``self``
+        - ``cover_labels`` - a dictionary, list or function representing labels
+          of the covers of ``self``. When set to ``None`` (default) no label is
+          displayed on the edges of the Hasse Diagram.
+
+        - ``layout`` -- the type of layout used to display the Diagram. Set to
+          ``'acyclic'`` by default (see :meth:`GenericGraph.plot
+          <sage.graphs.generic_graph.GenericGraph.plot>` for more information).
+
+        .. NOTE::
+
+            All options of :meth:`GenericGraph.plot
+            <sage.graphs.generic_graph.GenericGraph.plot>` are also available
+            through this function.
 
         EXAMPLES::
 
@@ -1451,12 +1465,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: elm_labs = {1:'a', 2:'b', 3:'c', 4:'d', 5:'e'}
             sage: D.plot(element_labels=elm_labs)
             Graphics object consisting of 11 graphics primitives
-
-        Plot of the empy poset::
-
-            sage: P = Poset({})
-            sage: P.plot()
-            Graphics object consisting of 0 graphics primitives
 
         Plot of a ranked poset::
 
@@ -1494,6 +1502,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             ['a', 'b', 'c', 'd', 'e']
             sage: get_plot_labels(P2.plot(element_labels=element_labels))
             ['a', 'b', 'c', 'd', 'e']
+
+        Plot of the empy poset::
+
+            sage: P = Poset({})
+            sage: P.plot()
+            Graphics object consisting of 0 graphics primitives
+
         """
         from collections import defaultdict
         graph = self.hasse_diagram()
@@ -1532,29 +1547,36 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         return graph.plot(vertex_labels=label_elements,
                           edge_labels=cover_labels,
-                          vertex_size=vertex_size,
-                          vertex_colors=vertex_colors,
                           layout=layout,
                           heights=heights,
                           **kwds)
 
     def show(self, label_elements=True, element_labels=None,
-             vertex_size=300, vertex_colors=None, layout='acyclic',
              cover_labels=None, **kwds):
         """
-        Shows the Graphics object corresponding the Hasse diagram of the
-        poset. Optionally, it is labelled.
+        Displays the Hasse diagram of the poset.
 
         INPUT:
 
-        -  ``label_elements`` (default: ``True``) - whether to display element
-           labels
+        - ``label_elements`` (default: ``True``) - whether to display
+          element labels
 
-        -  ``element_labels`` (default: ``None``) - a dictionary of element
-           labels
+        - ``element_labels`` (default: ``None``) - a dictionary of
+          element labels
 
-        - ``cover_labels`` (default: ``None``) - a dictionary, list or function
-          representing labels of the covers of ``self``
+        - ``cover_labels`` - a dictionary, list or function representing labels
+          of the covers of ``self``. When set to ``None`` (default) no label is
+          displayed on the edges of the Hasse Diagram.
+
+        .. NOTE::
+
+            This method also accepts:
+
+             - All options of :meth:`GenericGraph.plot
+               <sage.graphs.generic_graph.GenericGraph.plot>`
+
+             - All options of :meth:`Graphics.show
+               <sage.plot.graphics.Graphics.show>`
 
         EXAMPLES::
 
@@ -1569,10 +1591,19 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = posets.PentagonPoset()
             sage: P.show(cover_labels=lambda a, b: a - b)
+
         """
-        self.plot(label_elements=label_elements, element_labels=element_labels,
-                  vertex_size=vertex_size, vertex_colors=vertex_colors,
-                  layout=layout, cover_labels=cover_labels).show(**kwds)
+        # We split the arguments into those meant for plot() and those meant for show()
+        #
+        # The plot_kwds dictionary only contains the options that graphplot
+        # understands. These options are removed from kwds at the same time.
+        from sage.graphs.graph_plot import graphplot_options
+        plot_kwds = {k:kwds.pop(k) for k in graphplot_options if k in kwds}
+
+        self.plot(label_elements=label_elements,
+                  element_labels=element_labels,
+                  cover_labels=cover_labels,
+                  **plot_kwds).show(**kwds)
 
     @combinatorial_map(name="to graph")
     def to_graph(self):

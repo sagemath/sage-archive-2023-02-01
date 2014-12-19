@@ -1163,47 +1163,6 @@ class SemistandardMultiSkewTableaux(MultiSkewTableaux):
                 restmp.append( S.from_shape_and_word(parts[i], w) )
             yield self.element_class(self, restmp)
 
-def from_expr(l):
-    """
-    Deprecated in :trac:`14101`. Use instead :meth:`RibbonTableaux.from_expr()`.
-
-    EXAMPLES::
-
-        sage: sage.combinat.ribbon_tableau.from_expr([[1,1],[[5],[3,4],[1,2]]])
-        doctest:...: DeprecationWarning: from_expr is deprecated. Use RibbonTableaux().from_expr instead
-        See http://trac.sagemath.org/14101 for details.
-        [[None, 1, 2], [None, 3, 4], [5]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'from_expr is deprecated. Use RibbonTableaux().from_expr instead')
-    return RibbonTableaux().from_expr(l)
-
-def RibbonTableaux_shapeweightlength(shape, weight, length):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.ribbon_tableau.RibbonTableaux_shapeweightlength([[2,1],[]], [1,1,1], 1)
-        doctest:...: DeprecationWarning: this class is deprecated. Use RibbonTableaux instead
-        See http://trac.sagemath.org/14101 for details.
-        Ribbon tableaux of shape [2, 1] / [] and weight [1, 1, 1] with 1-ribbons
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'this class is deprecated. Use RibbonTableaux instead')
-    return RibbonTableaux(shape, weight, length)
-
-def SemistandardMultiSkewTtableaux_shapeweight(shape, weight):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.ribbon_tableau.SemistandardMultiSkewTtableaux_shapeweight([ [[2,1],[]], [[2,2],[1]] ], [2,2,2])
-        doctest:...: DeprecationWarning: this class is deprecated. Use SemistandardMultiSkewTableaux instead
-        See http://trac.sagemath.org/14101 for details.
-        Semistandard multi skew tableaux of shape [[2, 1] / [], [2, 2] / [1]] and weight [2, 2, 2]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'this class is deprecated. Use SemistandardMultiSkewTableaux instead')
-    return SemistandardMultiSkewTableaux(shape, weight)
-
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.ribbon_tableau', 'RibbonTableau_class', RibbonTableau)
 register_unpickle_override('sage.combinat.ribbon_tableau', 'RibbonTableaux_shapeweightlength', RibbonTableaux)

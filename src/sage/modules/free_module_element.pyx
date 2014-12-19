@@ -1170,44 +1170,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         return vector([e.n(prec, digits, algorithm) for e in self])
 
-    def transpose(self):
-        r"""
-        Return self as a column matrix.
-
-        .. note::
-
-            The ``transpose()`` method has been deprecated as of Sage 4.6.2,
-            in favor of the :meth:`column` method which is functionally identical.
-
-        EXAMPLES::
-
-            sage: v = vector(ZZ, [2, 12, 22])
-            sage: transpose(vector(v))
-            doctest:...: DeprecationWarning: The transpose() method for vectors has been deprecated, use column() instead
-            (or check to see if you have a vector when you really want a matrix)
-            See http://trac.sagemath.org/10541 for details.
-            [ 2]
-            [12]
-            [22]
-
-        ::
-
-            sage: transpose(vector(GF(7), v))
-            [2]
-            [5]
-            [1]
-
-        ::
-
-            sage: transpose(vector(v, ZZ['x', 'y']))
-            [ 2]
-            [12]
-            [22]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(10541, 'The transpose() method for vectors has been deprecated, use column() instead\n(or check to see if you have a vector when you really want a matrix)')
-        return self._matrix_().transpose()
-
     def row(self):
         r"""
         Return a matrix with a single row and the same entries as the vector ``self``.
@@ -2594,25 +2556,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             if self[i] != 0:
                 return (~self[i]) * self
         return self
-
-    def normalize(self):
-        """
-        This function is deprecated. For division by the p-norm use
-        'normalized', and for division by the first nonzero entry use
-        'monic' (previously the purpose of this function).
-
-        EXAMPLES::
-
-            sage: v = vector(QQ, [0, 4/3, 5, 1, 2])
-            sage: v.normalize()
-            doctest:...: DeprecationWarning: 'normalize' is deprecated...
-            (0, 1, 15/4, 3/4, 3/2)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(13393, "'normalize' is deprecated. For division by the \
-p-norm use 'normalized', and for division by the first nonzero entry use \
-'monic'.")
-        return self.monic()
 
     def normalized(self, p=sage.rings.integer.Integer(2)):
         """

@@ -2208,9 +2208,11 @@ cdef class NumberFieldElement(FieldElement):
             I
 
         Conversely, some elements are too complicated to be written in
-        terms of radicals directly. In those cases, the generator
-        might be converted and its expression be used to convert other
-        elements. This can lead to fairly complicated expressions::
+        terms of radicals directly. At least until :trac:`17516` gets
+        addressed. In those cases, the generator might be converted
+        and its expression be used to convert other elements. This
+        avoids regressions but can lead to fairly complicated
+        expressions::
 
             sage: K.<a> = NumberField(QQ['x']([6, -65, 163, -185, 81, -15, 1]), embedding=4.9)
             sage: b = a + a^3
@@ -2240,6 +2242,8 @@ cdef class NumberFieldElement(FieldElement):
             a = embedding(self).radical_expression()
             if a.parent() == SR:
                 return a
+            # Once #17516 gets fixed, the next three lines can be dropped
+            # and the remaining lines be simplified to undo df03633.
             b = embedding.im_gens()[0].radical_expression()
             if b.parent() == SR:
                 return self.polynomial()(b)

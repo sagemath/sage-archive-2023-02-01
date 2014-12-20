@@ -113,7 +113,7 @@ else
 
     # Check whether $CXX is some version of GCC.  If it's a different
     # compiler, install GCC.
-    CXXtype=`testcxx.sh $CXX`
+    CXXtype=`source sage-env; testcxx.sh $CXX`
     if [ "$CXXtype" != GCC ]; then
         echo >&2 "Installing GCC because your '$CXX' isn't GCC (GNU C++)."
         need_to_install_gcc=yes

@@ -303,8 +303,6 @@ Methods
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
-from sage.combinat.subset import Subsets
-from sage.misc.misc import subsets
 
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.calculus.all import var
@@ -1487,6 +1485,8 @@ cdef class Matroid(SageObject):
             sage: sorted(M.k_closure({0,1}, 4))
             [0, 1, 4]
         """
+        if not self.groundset().issuperset(X):
+            raise ValueError("input X is not a subset of the groundset.")
         cdef int cur
         cdef frozenset S, cl
         cur = 0
@@ -1494,8 +1494,8 @@ cdef class Matroid(SageObject):
         while cur != len(S):
             cur = len(S)
             cl = frozenset([])
-            for T in Subsets(S, min(k,cur)):
-                cl = cl.union(self.closure(T))
+            for T in combinations(S, min(k,cur)):
+                cl = cl.union(self._closure(set(T)))
             S = cl
         return S
 
@@ -4324,7 +4324,7 @@ cdef class Matroid(SageObject):
         r = self.full_rank()
         part_sizes = xrange(2, (size / 2) + 1)  # all possible partition sizes
         for part in part_sizes:
-            subs = Subsets(groundset, part)
+            subs = combinations(groundset, part)
             for X in subs:
                 Y = groundset.difference(X)
                 if (self.rank(X) + self.rank(Y) - r == 1):

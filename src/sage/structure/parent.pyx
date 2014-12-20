@@ -97,7 +97,6 @@ This came up in some subtle bug once::
 cimport element
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
-from cpython cimport PyType_Check
 from sage.structure.debug_options import debug
 from sage.structure.sage_object import SageObject
 from sage.structure.misc import (dir_with_other_class, getattr_from_other_class,
@@ -152,19 +151,6 @@ cdef extern from "descrobject.h":
         PyMethodDef *d_method
     void* PyCFunction_GET_FUNCTION(object)
     bint PyCFunction_Check(object)
-
-cdef extern from *:
-    Py_ssize_t PyDict_Size(object)
-    Py_ssize_t PyTuple_GET_SIZE(object)
-
-    ctypedef class __builtin__.dict [object PyDictObject]:
-        cdef Py_ssize_t ma_fill
-        cdef Py_ssize_t ma_used
-
-    void* PyDict_GetItem(object, object)
-
-cdef inline Py_ssize_t PyDict_GET_SIZE(o):
-    return (<dict>o).ma_used
 
 ###############################################################################
 #       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
@@ -1103,7 +1089,7 @@ cdef class Parent(category_object.CategoryObject):
                 raise NotImplementedError
         cdef Py_ssize_t i
         cdef R = parent_c(x)
-        cdef bint no_extra_args = PyTuple_GET_SIZE(args) == 0 and PyDict_GET_SIZE(kwds) == 0
+        cdef bint no_extra_args = len(args) == 0 and len(kwds) == 0
         if R is self and no_extra_args:
             return x
 
@@ -3058,7 +3044,7 @@ cdef class Set_PythonType_class(Set_generic):
         sage: sage.structure.parent.Set_PythonType(2)
         Traceback (most recent call last):
         ...
-        TypeError: must be intialized with a type, not Integer
+        TypeError: must be intialized with a type, not 2
     """
 
     cdef _type
@@ -3071,8 +3057,8 @@ cdef class Set_PythonType_class(Set_generic):
             sage: S.category()
             Category of sets
         """
-        if not PyType_Check(theType):
-            raise TypeError("must be intialized with a type, not %s"%type(theType).__name__)
+        if not isinstance(theType, type):
+            raise TypeError("must be intialized with a type, not %r" % theType)
         Set_generic.__init__(self, element_constructor=theType, category=Sets())
         self._type = theType
 

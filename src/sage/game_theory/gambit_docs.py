@@ -1,8 +1,8 @@
 """
-Gambit
+Using Gambit as a standalone package
 
 This file contains some information and tests for the use of
-`gambit<http://www.gambit-project.org/>`_ as a stand alone package.
+`Gambit <http://www.gambit-project.org/>`_ as a stand alone package.
 
 To install gambit as an optional package run (from root of Sage)::
 
@@ -110,7 +110,8 @@ Note that the above examples only show how to build and find equilibria for
 two player strategic form games. Gambit supports mulitple player games as well
 as extensive form games: for more details see http://www.gambit-project.org/.
 
-If one really wants to use gambit directly in Sage then integers must first be
+If one really wants to use gambit directly in Sage (without using the
+`NormalFormGame` class as a wrapper) then integers must first be
 converted to Python integers (due to the preparser). Here is an example
 showing the Battle of the Sexes::
 

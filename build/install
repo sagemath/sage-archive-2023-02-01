@@ -89,6 +89,11 @@ if [ -z "$FC" ]; then
     fi
 fi
 
+if [ -f "$SAGE_LOCAL/bin/gcc" ]; then
+    # Ignore SAGE_INSTALL_GCC if GCC is already installed
+    SAGE_INSTALL_GCC=""
+fi
+
 if [ -n "$SAGE_INSTALL_GCC" ]; then
     # Check the value of the environment variable SAGE_INSTALL_GCC
     case "$SAGE_INSTALL_GCC" in

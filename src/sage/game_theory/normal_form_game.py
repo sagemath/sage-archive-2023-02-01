@@ -518,21 +518,19 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from collections import MutableMapping
 from itertools import product
 from parser import Parser
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.latex import latex
-from sage.misc.lazy_import import lazy_import
 from sage.misc.misc import powerset
 from sage.rings.all import QQ
 from sage.structure.sage_object import SageObject
-lazy_import('sage.matrix.constructor', 'matrix')
-lazy_import('sage.matrix.constructor', 'vector')
-lazy_import('sage.misc.package', 'is_package_installed')
-lazy_import('sage.misc.temporary_file', 'tmp_filename')
-lazy_import('sage.rings.arith', 'lcm')
-lazy_import('sage.rings.rational', 'Rational')
+from sage.matrix.constructor import matrix
+from sage.matrix.constructor import vector
+from sage.misc.package import is_package_installed
+from sage.misc.temporary_file import tmp_filename
 
 try:
     from gambit import Game

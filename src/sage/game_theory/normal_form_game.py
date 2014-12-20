@@ -534,7 +534,7 @@ from sage.misc.temporary_file import tmp_filename
 
 try:
     from gambit import Game
-except:
+except ImportError:
     Game = None
 
 class NormalFormGame(SageObject, MutableMapping):
@@ -1600,12 +1600,12 @@ class NormalFormGame(SageObject, MutableMapping):
         try:
             a = linearsystem1.solve_right(linearsystemrhs1)
             b = linearsystem2.solve_right(linearsystemrhs2)
+        except ValueError:
+            return None
 
-            if self._is_NE(a, b, p1_support, p2_support, M1, M2):
-                return [a, b]
-            return None
-        except:
-            return None
+        if self._is_NE(a, b, p1_support, p2_support, M1, M2):
+            return [a, b]
+        return None
 
     def _is_NE(self, a, b, p1_support, p2_support, M1, M2):
         r"""

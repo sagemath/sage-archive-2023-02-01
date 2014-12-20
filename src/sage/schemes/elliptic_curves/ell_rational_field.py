@@ -64,6 +64,10 @@ from   modular_parametrization import ModularParameterization
 import padic_lseries
 import padics
 
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.schemes.elliptic_curves.period_lattice',
+            'modular_symbol_numerical')
+
 from sage.modular.modsym.modsym import ModularSymbols
 
 import sage.modular.modform.constructor
@@ -1210,6 +1214,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             M = ell_modular_symbols.ModularSymbolSage(self, sign, normalize=normalize)
         self.__modular_symbol[typ] = M
         return M
+
+    modular_symbol_numerical = modular_symbol_numerical
 
     padic_lseries = padics.padic_lseries
 

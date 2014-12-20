@@ -1966,6 +1966,7 @@ def period_matrices(E, tau):
         break
     return p, M
 
+
 def modsym(E, tau, prec=53, terms=100):
     """
     Compute the modular symbol {oo, tau} analytically
@@ -1982,7 +1983,8 @@ def modsym(E, tau, prec=53, terms=100):
         0.386769938388 - 4.26405203974e-17*I
     """
     p, M =  period_matrices(E, tau)
-    return sum(period(E, m, prec, terms) for m in M)/(1+p-E.ap(p))
+    return sum(period(E, m, prec, terms) for m in M) / (1 + p - E.ap(p))
+
 
 def period(E, M, prec=53, abs_prec=10):
     """
@@ -2005,7 +2007,7 @@ def period(E, M, prec=53, abs_prec=10):
         M = -M
     assert M.det() == 1
     a, b, c, d = M.list()
-    c = ZZ(c/N)
+    c = ZZ(c / N)
     if prec <= 53:
         K = CDF
     else:
@@ -2060,13 +2062,13 @@ def modular_symbol_numerical(self, sign, prec=53, abs_prec=10):
     if sign == 1:
         def f(a):
             s = modsym(self, a, prec, abs_prec)
-            return s.real()/lam[0].real()
+            return s.real() / lam[0].real()
 
         return f
     else:
         P = lam[1].imag()
         def f(a):
             s = modsym(self, a, prec, abs_prec)
-            return s.imag()/P
+            return s.imag() / P
 
         return f

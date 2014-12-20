@@ -590,7 +590,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ...
             NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website (http://gambit.sourceforge.net/) that has a variety of available algorithms
 
-        Can initialise a game from a gambit game object:
+        Can initialise a game from a gambit game object::
 
             sage: from gambit import Game  # optional - gambit
             sage: gambitgame= Game.new_table([2, 2])  # optional - gambit
@@ -789,28 +789,26 @@ class NormalFormGame(SageObject, MutableMapping):
 
         LaTeX method shows the two payoff matrices for a two player game::
 
-        sage: A = matrix([[-1, -2], [-12, 2]])
-        sage: B = matrix([[1, 0], [1, -1]])
-        sage: g = NormalFormGame([A, B])
-        sage: latex(g)
-        \left(\left(\begin{array}{rr}
-        -1 & -2 \\
-        -12 & 2
-        \end{array}\right), \left(\begin{array}{rr}
-        1 & 0 \\
-        1 & -1
-        \end{array}\right)\right)
+            sage: A = matrix([[-1, -2], [-12, 2]])
+            sage: B = matrix([[1, 0], [1, -1]])
+            sage: g = NormalFormGame([A, B])
+            sage: latex(g)
+            \left(\left(\begin{array}{rr}
+            -1 & -2 \\
+            -12 & 2
+            \end{array}\right), \left(\begin{array}{rr}
+            1 & 0 \\
+            1 & -1
+            \end{array}\right)\right)
 
         LaTeX method shows nothing interesting for games with more players::
 
-        sage: g = NormalFormGame()
-        sage: g.add_player(2)  # Adding first player with 2 strategies
-        sage: g.add_player(2)  # Adding second player with 2 strategies
-        sage: g.add_player(2)  # Creating a game with three players
-        sage: latex(g)
-        \text{\texttt{Normal{ }Form{ }Game{ }...[False,{ }False,{ }False]{\char`\}}}}
-
-
+            sage: g = NormalFormGame()
+            sage: g.add_player(2)  # Adding first player with 2 strategies
+            sage: g.add_player(2)  # Adding second player with 2 strategies
+            sage: g.add_player(2)  # Creating a game with three players
+            sage: latex(g)
+            \text{\texttt{Normal{ }Form{ }Game{ }...[False,{ }False,{ }False]{\char`\}}}}
         """
         if len(self.players) == 2:
             M1, M2 = self.payoff_matrices()
@@ -872,7 +870,7 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         Returns 2 matrices representing the payoffs for each player.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: p1 = matrix([[1, 2], [3, 4]])
             sage: p2 = matrix([[3, 3], [1, 4]])
@@ -954,11 +952,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
         INPUT:
 
-            - replacement - Boolean value of whether previously created
+        - ``replacement`` -- Boolean value of whether previously created
                             profiles should be replaced or not.
 
         TESTS::
-
 
             sage: from sage.game_theory.normal_form_game import _Player
             sage: g = NormalFormGame()
@@ -1260,32 +1257,31 @@ class NormalFormGame(SageObject, MutableMapping):
 
         2 random matrices::
 
-        sage: p1 = matrix([[-1, 4, 0, 2, 0],
-        ....:              [-17, 246, -5, 1, -2],
-        ....:              [0, 1, 1, -4, -4],
-        ....:              [1, -3, 9, 6, -1],
-        ....:              [2, 53, 0, -5, 0]])
-        sage: p2 = matrix([[0, 1, 1, 3, 1],
-        ....:              [3, 9, 44, -1, -1],
-        ....:              [1, -4, -1, -3, 1],
-        ....:              [1, 0, 0, 0, 0,],
-        ....:              [1, -3, 1, 21, -2]])
-        sage: biggame = NormalFormGame([p1, p2])
-        sage: biggame._solve_lrs() # optional - lrs
-        [[(0, 0, 0, 20/21, 1/21), (11/12, 0, 0, 1/12, 0)]]
-
+            sage: p1 = matrix([[-1, 4, 0, 2, 0],
+            ....:              [-17, 246, -5, 1, -2],
+            ....:              [0, 1, 1, -4, -4],
+            ....:              [1, -3, 9, 6, -1],
+            ....:              [2, 53, 0, -5, 0]])
+            sage: p2 = matrix([[0, 1, 1, 3, 1],
+            ....:              [3, 9, 44, -1, -1],
+            ....:              [1, -4, -1, -3, 1],
+            ....:              [1, 0, 0, 0, 0,],
+            ....:              [1, -3, 1, 21, -2]])
+            sage: biggame = NormalFormGame([p1, p2])
+            sage: biggame._solve_lrs() # optional - lrs
+            [[(0, 0, 0, 20/21, 1/21), (11/12, 0, 0, 1/12, 0)]]
 
         Another test::
 
-        sage: p1 = matrix([[-7, -5, 5],
-        ....:              [5, 5, 3],
-        ....:              [1, -6, 1]])
-        sage: p2 = matrix([[-9, 7, 9],
-        ....:              [6, -2, -3],
-        ....:              [-4, 6, -10]])
-        sage: biggame = NormalFormGame([p1, p2])
-        sage: biggame._solve_lrs() # optional - lrs
-        [[(0, 1, 0), (1, 0, 0)], [(1/3, 2/3, 0), (0, 1/6, 5/6)], [(1/3, 2/3, 0), (1/7, 0, 6/7)], [(1, 0, 0), (0, 0, 1)]]
+            sage: p1 = matrix([[-7, -5, 5],
+            ....:              [5, 5, 3],
+            ....:              [1, -6, 1]])
+            sage: p2 = matrix([[-9, 7, 9],
+            ....:              [6, -2, -3],
+            ....:              [-4, 6, -10]])
+            sage: biggame = NormalFormGame([p1, p2])
+            sage: biggame._solve_lrs() # optional - lrs
+            [[(0, 1, 0), (1, 0, 0)], [(1/3, 2/3, 0), (0, 1/6, 5/6)], [(1/3, 2/3, 0), (1/7, 0, 6/7)], [(1, 0, 0), (0, 0, 1)]]
         """
         from subprocess import PIPE, Popen
         m1, m2 = self.payoff_matrices()
@@ -1311,8 +1307,9 @@ class NormalFormGame(SageObject, MutableMapping):
     def _solve_LCP(self, maximization):
         r"""
         Solves a NormalFormGame using Gambit's LCP algorithm.
-        EXAMPLES:
-        Simple example. ::
+
+        EXAMPLES::
+
             sage: a = matrix([[1, 0], [1, 4]])
             sage: b = matrix([[2, 3], [2, 4]])
             sage: c = NormalFormGame([a, b])
@@ -1442,7 +1439,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: N = NormalFormGame([matrix(2,[7,-8,-4,-8,7,0]),matrix(2,[-9,-1,-8,3,2,3])])
             sage: N._solve_enumeration()
             [[(0, 1), (0, 0, 1)]]
-            """
+        """
 
         M1, M2 = self.payoff_matrices()
         if maximization is False:
@@ -1756,23 +1753,23 @@ class NormalFormGame(SageObject, MutableMapping):
 class _Player():
     def __init__(self, num_strategies):
         r"""
-        TESTS:
+        TESTS::
 
-        sage: from sage.game_theory.normal_form_game import _Player
-        sage: p = _Player(5)
-        sage: p.num_strategies
-        5
+            sage: from sage.game_theory.normal_form_game import _Player
+            sage: p = _Player(5)
+            sage: p.num_strategies
+            5
         """
         self.num_strategies = num_strategies
 
     def add_strategy(self):
         r"""
-        TESTS:
+        TESTS::
 
-        sage: from sage.game_theory.normal_form_game import _Player
-        sage: p = _Player(5)
-        sage: p.add_strategy()
-        sage: p.num_strategies
-        6
+            sage: from sage.game_theory.normal_form_game import _Player
+            sage: p = _Player(5)
+            sage: p.add_strategy()
+            sage: p.num_strategies
+            6
         """
         self.num_strategies += 1

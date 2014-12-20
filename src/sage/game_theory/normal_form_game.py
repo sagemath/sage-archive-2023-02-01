@@ -533,10 +533,11 @@ lazy_import('sage.misc.package', 'is_package_installed')
 lazy_import('sage.misc.temporary_file', 'tmp_filename')
 lazy_import('sage.rings.arith', 'lcm')
 lazy_import('sage.rings.rational', 'Rational')
+
 try:
     from gambit import Game
 except:
-    pass
+    Game = None
 
 class NormalFormGame(SageObject, MutableMapping):
     r"""
@@ -644,12 +645,9 @@ class NormalFormGame(SageObject, MutableMapping):
         self.players = []
         self.utilities = {}
         matrices = []
-        if type(generator) is not list and generator != None:
-            if is_package_installed('gambit'):
-                if type(generator) is not Game:
-                    raise TypeError("Generator function must be a list, gambit game or nothing")
-            else:
-                raise TypeError("Generator function must be a list or nothing")
+        if generator is not None:
+            if type(generator) is not list and type(generator) is not Game:
+                raise TypeError("Generator function must be a list, gambit game or nothing")
 
         if type(generator) is list:
             if len(generator) == 1:
@@ -658,10 +656,9 @@ class NormalFormGame(SageObject, MutableMapping):
             if matrices[0].dimensions() != matrices[1].dimensions():
                 raise ValueError("matrices must be the same size")
             self._two_matrix_game(matrices)
-        elif is_package_installed('gambit'):
-            if type(generator) is Game:
-                game = generator
-                self._gambit_game(game)
+        elif type(generator) is Game:
+            game = generator
+            self._gambit_game(game)
 
     def __delitem__(self, key):
         r"""
@@ -1151,9 +1148,9 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g=NormalFormGame([A, B])
             sage: g.obtain_nash(algorithm='enumeration')
             [[(0, 0, 3/4, 1/4), (1/28, 27/28, 0)]]
-            sage: g.obtain_nash(algorithm='lrs')
+            sage: g.obtain_nash(algorithm='lrs')  # optional - lrs
             [[(0, 0, 3/4, 1/4), (1/28, 27/28, 0)]]
-            sage: g.obtain_nash(algorithm='LCP')
+            sage: g.obtain_nash(algorithm='LCP')  # optional - gambit
             [[(0.0, 0.0, 0.75, 0.25), (0.0357142857, 0.9642857143, 0.0)]]
 
         2 random matrices::
@@ -1238,8 +1235,8 @@ class NormalFormGame(SageObject, MutableMapping):
             return self._solve_lrs(maximization)
 
         if algorithm == "LCP":
-            if not is_package_installed('gambit'):
-                    raise NotImplementedError("gambit is not installed")
+            if Game is None:
+                raise NotImplementedError("gambit is not installed")
             for strategy_profile in self.utilities:
                 payoffs = self.utilities[strategy_profile]
                 if payoffs != [int(payoffs[0]), int(payoffs[1])]:

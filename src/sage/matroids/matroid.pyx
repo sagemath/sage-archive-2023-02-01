@@ -2845,7 +2845,7 @@ cdef class Matroid(SageObject):
         """
         ret = []
         BC = self.broken_circuits(ordering)
-        for r in range(self.rank()+1):
+        for r in range(self.rank() + 1):
             for I in self.independent_r_sets(r):
                 add = True
                 for b in BC:

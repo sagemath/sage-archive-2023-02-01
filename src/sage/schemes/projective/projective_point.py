@@ -166,7 +166,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def __eq__(self,right):
         """
-        Tests the proejctive equality of two points.
+        Tests the projective equality of two points.
 
         INPUT:
 
@@ -244,31 +244,31 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P==Q
             True
 
-        Check that :trac:`17433` is fixed    ::
+        Check that :trac:`17429` is fixed::
 
-            sage: P.<x,y> = ProjectiveSpace(Zmod(10), 1)
-            sage: p1 = P(1/3, 1)
-            sage: p2 = P.point([1, 3], False)
-            sage: p1 == p2
-            True
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: r = (x^2-x-3).polynomial(x).roots(ComplexIntervalField(),multiplicities = False)
+            sage: P.<x,y> = ProjectiveSpace(ComplexIntervalField(), 1)
+            sage: P1 = P(r[0], 1)
+            sage: H = End(P)
+            sage: f = H([x^2-3*y^2, y^2])
+            sage: Q1 = f(P1)
+            sage: Q1 == P1
+            False
         """
         if not isinstance(right, SchemeMorphism_point):
             try:
                 right = self.codomain()(right)
             except TypeError:
                 return False
-        if self.codomain()!=right.codomain():
+        if self.codomain() != right.codomain():
             return False
-        n=len(self._coords)
-        for i in range(0,n):
-            for j in range(i+1,n):
-                if self._coords[i]*right._coords[j] != self._coords[j]*right._coords[i]:
-                    return False
-        return True
+        n = len(self._coords)
+        return all([self[i]*right[j] == self[j]*right[i] for i in range(0,n) for j in range(i+1, n)])
 
     def __ne__(self,right):
         """
-        Tests the proejctive equality of two points.
+        Tests the projective equality of two points.
 
         INPUT:
 
@@ -430,6 +430,16 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q.normalize_coordinates()
             sage: Q
             (1 : 2)
+
+        ::
+
+            sage: R.<t> = PolynomialRing(QQ,1)
+            sage: S = R.quotient_ring(R.ideal(t^3))
+            sage: P.<x,y> = ProjectiveSpace(S,1)
+            sage: Q = P(t,t^2)
+            sage: Q.normalize_coordinates()
+            sage: Q
+            (1 : t)
 
         Since the base ring is a polynomial ring over a field, only the
         gcd `c` is removed. ::
@@ -1109,30 +1119,38 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
         EXAMPLES::
 
-            sage: R.<t>=PolynomialRing(QQ)
-            sage: P.<x,y,z>=ProjectiveSpace(FractionField(R),2)
-            sage: Q=P([t,3/t^2,1])
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: P.<x,y,z> = ProjectiveSpace(FractionField(R), 2)
+            sage: Q = P([t, 3/t^2, 1])
             sage: Q.clear_denominators(); Q
             (t^3 : 3 : t^2)
 
         ::
 
-            sage: R.<x>=PolynomialRing(QQ)
-            sage: K.<w>=NumberField(x^2-3)
-            sage: P.<x,y,z>=ProjectiveSpace(K,2)
-            sage: Q=P([1/w,3,0])
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(x^2 - 3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: Q = P([1/w, 3, 0])
             sage: Q.clear_denominators(); Q
             (w : 9 : 0)
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
-            sage: X=P.subscheme(x^2-y^2);
-            sage: Q=X([1/2,1/2,1]);
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme(x^2 - y^2);
+            sage: Q = X([1/2, 1/2, 1]);
             sage: Q.clear_denominators(); Q
             (1 : 1 : 2)
+
+        ::
+
+            sage: PS.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: Q = PS.point([1, 2/3], False); Q
+            (1 : 2/3)
+            sage: Q.clear_denominators(); Q
+            (3 : 2)
         """
-        self.scale_by(lcm([self[i].denominator() for i in range(self.codomain().ambient_space().dimension_relative())]))
+        self.scale_by(lcm([t.denominator() for t in self]))
 
 class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projective_field):
 

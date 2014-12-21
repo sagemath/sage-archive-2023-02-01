@@ -7373,9 +7373,10 @@ class NumberField_absolute(NumberField_generic):
         if K.characteristic() != 0:
             return Sequence([], immutable=True, check=False, universe=self.Hom(K))
 
-        f = K['x'](self.defining_polynomial())
-        r = f.roots(); r.sort()
-        v = [self.hom([e[0]], check=False) for e in r]
+        f = self.defining_polynomial()
+        r = f.roots(K, multiplicities=False)
+        r.sort()
+        v = [self.hom([e], check=False) for e in r]
         # If there is an embedding that preserves variable names
         # then it is most natural, so we put it first.
         put_natural_embedding_first(v)
@@ -10117,6 +10118,24 @@ def refine_embedding(e, prec=None):
           From: Cyclotomic Field of order 7 and degree 6
           To:   Algebraic Field
           Defn: zeta7 |--> 0.6234898018587335? + 0.7818314824680299?*I
+
+    When the old embedding is into the real lazy field,
+    then only real embeddings should be considered.
+    See :trac:`17495`::
+
+        sage: R.<x> = QQ[]
+        sage: K.<a> = NumberField(x^3 + x - 1, embedding=0.68)
+        sage: from sage.rings.number_field.number_field import refine_embedding
+        sage: refine_embedding(K.specified_complex_embedding(), 100)
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^3 + x - 1
+          To:   Real Field with 100 bits of precision
+          Defn: a |--> 0.68232780382801932736948373971
+        sage: refine_embedding(K.specified_complex_embedding(), Infinity)
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^3 + x - 1
+          To:   Algebraic Real Field
+          Defn: a |--> 0.6823278038280193?
     """
     K = e.domain()
     RC = e.codomain()
@@ -10135,7 +10154,7 @@ def refine_embedding(e, prec=None):
         return e
 
     # We first compute all the embeddings at the new precision:
-    if sage.rings.real_mpfr.is_RealField(RC) or RC is RDF:
+    if sage.rings.real_mpfr.is_RealField(RC) or RC in (RDF, RLF):
         if prec == Infinity:
             elist = K.embeddings(sage.rings.qqbar.AA)
         else:

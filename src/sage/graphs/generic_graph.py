@@ -2091,8 +2091,6 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``new`` -- deprecated
-
         - ``labels`` -- whether returned edges have labels ((u,v,l)) or not ((u,v)).
 
         EXAMPLES::
@@ -2381,7 +2379,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.multiple_edges(to_undirected=True)
             [(1, 2, 'h'), (2, 1, 'g')]
         """
-        from sage.misc.superseded import deprecation
         multi_edges = []
         if self._directed and not to_undirected:
             for v in self:
@@ -3396,7 +3393,7 @@ class GenericGraph(GenericGraph_pyx):
 
         For undirected graphs with multiple edges::
 
-            sage: G = Graph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')])
+            sage: G = Graph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')], multiedges=True)
             sage: G.cycle_basis()
             [[0, 2], [2, 1, 0]]
             sage: G.cycle_basis(output='edge')
@@ -3421,7 +3418,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Not yet implemented for directed graphs with multiple edges::
 
-            sage: G = DiGraph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')])
+            sage: G = DiGraph([(0,2,'a'),(0,2,'b'),(0,1,'c'),(1,2,'d')], multiedges=True)
             sage: G.cycle_basis()
             Traceback (most recent call last):
             ...
@@ -4691,8 +4688,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.is_cut_edge((0,1))
             True
 
-            sage: G = Graph([[0,1],[0,2],[1,1]])
-            sage: G.allow_loops(True)
+            sage: G = Graph([[0,1],[0,2],[1,1]], loops = True)
             sage: G.is_cut_edge((1,1))
             False
 
@@ -7879,7 +7875,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return paths
 
-    def dominating_set(self, independent=False, value_only=False, solver=None, verbose=0):
+    def dominating_set(self, independent=False, total=False, value_only=False, solver=None, verbose=0):
         r"""
         Returns a minimum dominating set of the graph
         represented by the list of its vertices. For more information, see the
@@ -7903,6 +7899,9 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``independent`` -- boolean (default: ``False``). If
           ``independent=True``, computes a minimum independent dominating set.
+
+        - ``total`` -- boolean (default: ``False``). If
+          ``total=True``, computes a total dominating set.
 
         - ``value_only`` -- boolean (default: ``False``)
 
@@ -7942,7 +7941,15 @@ class GenericGraph(GenericGraph_pyx):
            sage: len(g.dominating_set(independent=True))
            6
 
+        The total dominating set of the Petersen graph has cardinality 4::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.dominating_set(total=True,value_only=True)
+            4
         """
+        
+        self._scream_if_not_simple(allow_multiple_edges=True, allow_loops=not total)
+
         from sage.numerical.mip import MixedIntegerLinearProgram
         g=self
         p=MixedIntegerLinearProgram(maximization=False, solver=solver)
@@ -7951,7 +7958,7 @@ class GenericGraph(GenericGraph_pyx):
         # For any vertex v, one of its neighbors or v itself is in
         # the minimum dominating set
         for v in g.vertices():
-            p.add_constraint(b[v]+p.sum([b[u] for u in g.neighbors(v)]),min=1)
+            p.add_constraint(int(not total)*b[v]+p.sum([b[u] for u in g.neighbors(v)]),min=1)
 
 
         if independent:
@@ -11537,7 +11544,7 @@ class GenericGraph(GenericGraph_pyx):
             (True, (1, []))
             sage: Graph(0).is_circulant(certificate = True)
             (True, (0, []))
-            sage: Graph([(0,0)]).is_circulant(certificate = True)
+            sage: Graph({0:[0]}).is_circulant(certificate = True)
             (True, (1, [0]))
         """
         self._scream_if_not_simple(allow_loops=True)
@@ -12003,7 +12010,7 @@ class GenericGraph(GenericGraph_pyx):
         import networkx
         return networkx.average_clustering(self.networkx_graph(copy=False))
 
-    def clustering_coeff(self, nodes=None, weight=False, return_vertex_weights=True):
+    def clustering_coeff(self, nodes=None, weight=False, return_vertex_weights=None):
         r"""
         Returns the clustering coefficient for each vertex in ``nodes`` as
         a dictionary keyed by vertex.
@@ -12031,10 +12038,6 @@ class GenericGraph(GenericGraph_pyx):
           a string it used the indicated edge property as weight.
           ``weight = True`` is equivalent to ``weight = 'weight'``
 
-        - ``return_vertex_weights`` is a boolean ensuring backwards
-          compatibility with deprecated features of NetworkX 1.2. It
-          should be set to ``False`` for all production code.
-
         EXAMPLES::
 
             sage: (graphs.FruchtGraph()).clustering_coeff().values()
@@ -12049,8 +12052,7 @@ class GenericGraph(GenericGraph_pyx):
              7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
              10: 0.3333333333333333, 11: 0.0}
 
-            sage: (graphs.FruchtGraph()).clustering_coeff(weight=True,
-            ...     return_vertex_weights=False)
+            sage: (graphs.FruchtGraph()).clustering_coeff(weight=True)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
             3: 0.3333333333333333, 4: 0.3333333333333333,
             5: 0.3333333333333333, 6: 0.3333333333333333,
@@ -12060,68 +12062,24 @@ class GenericGraph(GenericGraph_pyx):
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
             sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2],
-            ...     weight=True, return_vertex_weights=False)
+            ...     weight=True)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
-        TESTS:
+        TESTS::
 
-        Doctests that demonstrate the deprecation of the two-dictionary
-        return value due to the NetworkX API change after 1.2. The
-        return_vertex_weights keyword is provided with a default value
-        of True for backwards compatibility with older versions of Sage.
-        When the deprecation period has expired and the keyword is
-        removed, these doctests should be removed as well. ::
-
-            sage: (graphs.FruchtGraph()).clustering_coeff(weight=True,
-            ...     return_vertex_weights=True)
+            sage: graphs.FruchtGraph().clustering_coeff(nodes=[0,1,2],
+            ...     weight=True, return_vertex_weights=False)
             doctest:...: DeprecationWarning: The option 'return_vertex_weights'
-            has been deprecated. Only offered for backwards compatibility with
-            NetworkX 1.2.
-            See http://trac.sagemath.org/12806 for details.
-            ({0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
-              3: 0.3333333333333333, 4: 0.3333333333333333,
-              5: 0.3333333333333333, 6: 0.3333333333333333,
-              7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
-              10: 0.3333333333333333, 11: 0.0}, {0: 0.08333333333333333,
-              1: 0.08333333333333333, 2: 0.08333333333333333,
-              3: 0.08333333333333333, 4: 0.08333333333333333,
-              5: 0.08333333333333333, 6: 0.08333333333333333,
-              7: 0.08333333333333333, 8: 0.08333333333333333,
-              9: 0.08333333333333333, 10: 0.08333333333333333,
-              11: 0.08333333333333333})
-
-            sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0, 1, 2],
-            ...     weight=True, return_vertex_weights=True)
-            ({0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0},
-             {0: 0.3333333333333333, 1: 0.3333333333333333,
-             2: 0.3333333333333333})
+            has been deprecated and is ignored.
+            See http://trac.sagemath.org/17134 for details.
+            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
         """
-        import networkx
-        if weight and return_vertex_weights:
-            # Running in compatibility mode with deprecated NetworkX 1.2 features
-            # All this code should be removed when the deprecation warning expires
+        if return_vertex_weights is not None:
             from sage.misc.superseded import deprecation
-            deprecation(12806, "The option 'return_vertex_weights' has been " +\
-                        "deprecated. Only offered for backwards" +\
-                        " compatibility with NetworkX 1.2.")
-            G = self.networkx_graph(copy=False)
-            if G.is_directed():
-                raise NetworkXError("Clustering algorithms are not defined for directed graphs.")
-            clusterc={}
-            weights={}
-            for v,d,t in networkx.cluster._triangles_and_degree_iter(G,nodes):
-                weights[v]=float(d*(d-1))
-                if t==0:
-                    clusterc[v]=0.0
-                else:
-                    clusterc[v]=t/float(d*(d-1))
-            scale=1./sum(weights.itervalues())
-            for v,w in weights.iteritems():
-                weights[v]=w*scale
-            return clusterc,weights
-
-        else:
-            return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
+            deprecation(17134, "The option 'return_vertex_weights' has been " +
+                        "deprecated and is ignored.")
+        import networkx
+        return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
 
     def cluster_transitivity(self):
         r"""
@@ -14575,15 +14533,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: digraphs.Path(5).copy(immutable=True).transitive_closure()
             Transitive closure of Path: Digraph on 5 vertices
         """
-        from copy import copy
         G = self.copy(immutable=False)
         G.name('Transitive closure of ' + self.name())
-        for v in G:
-            # todo optimization opportunity: we are adding edges that
-            # are already in the graph and we are adding edges
-            # one at a time.
-            for e in G.breadth_first_search(v):
-                G.add_edge((v,e))
+        G.add_edges((v, e) for v in G for e in G.breadth_first_search(v))
         return G
 
     def transitive_reduction(self):
@@ -14602,24 +14554,27 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: g=graphs.PathGraph(4)
-            sage: g.transitive_reduction()==g
+            sage: g = graphs.PathGraph(4)
+            sage: g.transitive_reduction() == g
             True
-            sage: g=graphs.CompleteGraph(5)
+            sage: g = graphs.CompleteGraph(5)
             sage: edges = g.transitive_reduction().edges(); len(edges)
             4
-            sage: g=DiGraph({0:[1,2], 1:[2,3,4,5], 2:[4,5]})
+            sage: g = DiGraph({0:[1,2], 1:[2,3,4,5], 2:[4,5]})
             sage: g.transitive_reduction().size()
             5
         """
-        from copy import copy
-        from sage.rings.infinity import Infinity
-        G = copy(self)
+        if self.is_directed() and self.is_directed_acyclic():
+            from sage.graphs.generic_graph_pyx import transitive_reduction_acyclic
+            return transitive_reduction_acyclic(self)
+
+        G = self.copy(immutable=False)
+        n = G.order()
         for e in self.edge_iterator():
             # Try deleting the edge, see if we still have a path
             # between the vertices.
             G.delete_edge(e)
-            if G.distance(e[0],e[1])==Infinity:
+            if G.distance(e[0], e[1]) > n:
                 # oops, we shouldn't have deleted it
                 G.add_edge(e)
         return G
@@ -15745,7 +15700,6 @@ class GenericGraph(GenericGraph_pyx):
             return
 
         from graph_plot import graphplot_options
-
         # This dictionary only contains the options that graphplot
         # understands. These options are removed from kwds at the same
         # time.
@@ -17887,8 +17841,8 @@ class GenericGraph(GenericGraph_pyx):
         Ensure that isomorphic looped graphs with non-range vertex labels report
         correctly (:trac:`10814`, fixed by :trac:`8395`)::
 
-            sage: G1 = Graph([(0,1), (1,1)])
-            sage: G2 = Graph([(0,2), (2,2)])
+            sage: G1 = Graph({1:[0,1]})
+            sage: G2 = Graph({2:[0,2]})
             sage: G1.is_isomorphic(G2)
             True
             sage: G = Graph(multiedges = True, loops = True)
@@ -17920,8 +17874,9 @@ class GenericGraph(GenericGraph_pyx):
 
         Ensure that :trac:`13114` is fixed ::
 
-            sage: g = Graph([(0, 0, 0), (0, 2, 0), (1, 1, 0), (1, 2, 0), (1, 2, 1), (2, 2, 0)])
-            sage: gg = Graph([(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 2, 0), (2, 2, 0), (2, 2, 1)])
+
+            sage: g = Graph([(0, 0, 0), (0, 2, 0), (1, 1, 0), (1, 2, 0), (1, 2, 1), (2, 2, 0)], multiedges=True, loops=True)
+            sage: gg = Graph([(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 2, 0), (2, 2, 0), (2, 2, 1)], multiedges=True, loops=True)
             sage: g.is_isomorphic(gg)
             False
 
@@ -18302,12 +18257,12 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
 
     Ensure that #14108 is fixed::
 
-        sage: G=DiGraph([[0,0],[0,0],[0,0],[1,1],[1,1],[1,1]])
-        sage: H=DiGraph([[0,0],[0,0],[0,0],[0,0],[1,1],[1,1]])
+        sage: G=DiGraph({0:[0,0,0],1:[1,1,1]})
+        sage: H=DiGraph({0:[0,0,0,0],1:[1,1]})
         sage: G.is_isomorphic(H)
         False
-        sage: H=DiGraph([[0,0],[0,0],[0,0],[0,0],[0,0],[1,1],[1,1]])
-        sage: HH=DiGraph([[0,0],[0,0],[0,0],[0,0],[1,1],[1,1],[1,1]])
+        sage: H=DiGraph({0:[0,0,0,0],1:[1,1]})
+        sage: HH=DiGraph({0:[0,0,0],1:[1,1,1]})
         sage: H.is_isomorphic(HH)
         False
         sage: H.is_isomorphic(HH, edge_labels=True)

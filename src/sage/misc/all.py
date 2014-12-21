@@ -79,7 +79,6 @@ from persist import save, load, dumps, loads, db, db_save
 from func_persist import func_persist
 
 from functional import (additive_order,
-                        sqrt as numerical_sqrt,
                         base_ring,
                         base_field,
                         basis,
@@ -96,13 +95,10 @@ from functional import (additive_order,
                         discriminant,
                         disc,
                         eta,
-                        exp,
-                        factor,
                         fcp,
                         gen,
                         gens,
                         hecke_operator,
-                        ideal,
                         image,
                         integral, integrate,
                         integral_closure,
@@ -116,6 +112,7 @@ from functional import (additive_order,
                         kernel,
                         krull_dimension,
                         lift,
+                        log as log_b,
                         minimal_polynomial,
                         minpoly,
                         multiplicative_order,
@@ -138,9 +135,7 @@ from functional import (additive_order,
                         squarefree_part,
                         symbolic_sum as sum,
                         transpose,
-                        zero,
-                        log as log_b,
-                        parent)
+                        zero)
 
 
 from latex import LatexExpr, latex, view, pretty_print, pretty_print_default
@@ -164,6 +159,8 @@ from explain_pickle import explain_pickle, unpickle_newobj, unpickle_global, unp
 from decorators import specialize, sage_wraps, infix_operator
 
 from unknown import Unknown
+
+lazy_import('sage.misc.inline_fortran', 'fortran')
 
 ##########################################################################
 def benchmark(n=-1):

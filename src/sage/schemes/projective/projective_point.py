@@ -232,6 +232,14 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P==Q
             False
 
+        Check that :trac:`17433` is fixed    ::
+
+            sage: P.<x,y> = ProjectiveSpace(Zmod(10), 1)
+            sage: p1 = P(1/3, 1)
+            sage: p2 = P.point([1, 3], False)
+            sage: p1 == p2
+            True
+
         ::
 
             sage: R.<z>=PolynomialRing(QQ)
@@ -430,16 +438,6 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q.normalize_coordinates()
             sage: Q
             (1 : 2)
-
-        ::
-
-            sage: R.<t> = PolynomialRing(QQ,1)
-            sage: S = R.quotient_ring(R.ideal(t^3))
-            sage: P.<x,y> = ProjectiveSpace(S,1)
-            sage: Q = P(t,t^2)
-            sage: Q.normalize_coordinates()
-            sage: Q
-            (1 : t)
 
         Since the base ring is a polynomial ring over a field, only the
         gcd `c` is removed. ::

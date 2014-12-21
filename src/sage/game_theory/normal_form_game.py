@@ -1049,7 +1049,8 @@ class NormalFormGame(SageObject, MutableMapping):
 
           * ``"LCP"`` - This algorithm is only suited for 2 player games.
             See the gambit web site (http://gambit.sourceforge.net/). Note
-            that the output differs to the other algorithms: floats are returned.
+            that the output differs from the other algorithms: floats are
+            returned.
 
           * ``'enumeration'`` - This is a very inefficient
             algorithm (in essence a brute force approach).

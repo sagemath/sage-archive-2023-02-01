@@ -7816,7 +7816,7 @@ class NumberField_absolute(NumberField_generic):
         # f is the minimal polynomial of a over L
         f = L['x'](coeffs_in_L + [1])
         # sanity check...
-        mp_in_self = self['x'](map(L_into_self, f.coeffs()))
+        mp_in_self = self['x'](map(L_into_self, f.coefficients(sparse=False)))
         assert mp_in_self(a) == 0
 
         if structure is None:

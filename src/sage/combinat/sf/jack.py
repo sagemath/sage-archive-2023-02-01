@@ -467,15 +467,15 @@ def normalize_coefficients(self, c):
         numer = c.numerator()
 
         #Clear the denominators
-        a = lcm([i.denominator() for i in denom.coeffs()])
-        b = lcm([i.denominator() for i in numer.coeffs()])
+        a = lcm([i.denominator() for i in denom.coefficients(sparse=False)])
+        b = lcm([i.denominator() for i in numer.coefficients(sparse=False)])
         l = Integer(a).lcm(Integer(b))
         denom *= l
         numer *= l
 
         #Divide through by the gcd of the numerators
-        a = gcd([i.numerator() for i in denom.coeffs()])
-        b = gcd([i.numerator() for i in numer.coeffs()])
+        a = gcd([i.numerator() for i in denom.coefficients(sparse=False)])
+        b = gcd([i.numerator() for i in numer.coefficients(sparse=False)])
         l = Integer(a).gcd(Integer(b))
 
         denom = denom // l

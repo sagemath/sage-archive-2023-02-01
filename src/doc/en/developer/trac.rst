@@ -328,7 +328,33 @@ overview:
 
 * **Stopgaps:** See :ref:`section-trac-stopgaps`.
 
+.. _section-trac-ticket-status:
 
+The status of a ticket
+======================
+
+The status of a ticket appears right next to its number, at the top-left corner
+of its page. It indicates who has to work on it.
+
+- **new** -- the ticket has only been created, no code is available yet.
+
+  If you want to work on it yourself, ask first on the ticket whether anybody
+  else is working on it already.
+
+- **needs_review** -- the code is ready to be peer-reviewed. If the code is not
+  yours, then you can review it. See :ref:`chapter-review`.
+
+- **needs_work** -- the author has something to change in the code. The reason
+  should appear in the comments.
+
+- **needs_info** -- somebody has to answer a question before anything else can
+  happen. It should be clear from the comments.
+
+- **positive_review** -- the ticket has been reviewed, and the release manager
+  will close it.
+
+The status of a ticket can be changed using a form at the bottom of the ticket's
+page. Leave a comment explaining your reasons whenever you change it.
 
 .. _section-trac-stopgaps:
 
@@ -390,105 +416,6 @@ issues:
   priority. It is very likely that different people will see
   priorities of bugs very differently from us, so please let us know
   if you see a problem with specific tickets.
-
-
-.. _section-review-patches:
-
-Reviewing Patches
-=================
-
-All code that goes into Sage is peer-reviewed, to ensure that the
-conventions discussed in this manual are followed, to make sure that
-there are sufficient examples and doctests in the documentation, and
-to try to make sure that the code does, mathematically, what it is
-supposed to.
-
-If someone (other than you) has posted a git branch for a ticket on
-the trac server, you can review it! Look at the branch diff (by
-clicking on the ) to see if it makes sense.  Download it (see
-:ref:`section-git_trac-review`) and build Sage with the new
-code. Now ask yourself questions such as the following:
-
-- Does the new source code make sense?
-
-- When you run it in Sage, does it fix the problem reported on the
-  ticket?
-
-- Does it introduce any new problems?
-
-- Is it documented sufficiently, including both explanation and
-  doctests? All code in Sage must have doctests, so if the ticket
-  author changes code which did not have a doctest before, the new
-  version must include one. In particular, all new code must be 100%
-  doctested. Use the command ``sage -coverage <files>`` to see the
-  coverage percentage of ``<files>``.
-
-- In particular, is there a doctest illustrating that the bug has been
-  fixed? If a function used to give the wrong answer and this ticket
-  fixes that, then it should include a doctest illustrating its new
-  success.  The surrounding docstring shoud contain the ticket number,
-  for example ``See :trac:`12345```.
-
-- If the ticket claims to speed up some computation, does the ticket
-  contain code examples to illustrate the claim? The ticket should
-  explain the speed efficiency before applying the patch. It should
-  also explain the speed efficiency gained after applying the patch.
-
-- Does the reference manual build without errors? You can test the
-  reference manual using the command ``sage -docbuild reference html``
-  to build the HTML version. The PDF version of the reference manual
-  must also build without errors. Use the command ``sage -docbuild
-  reference pdf`` to test it out. The latter command requires that you
-  have LaTeX installed on your system.
-
-- Do all doctests pass without errors? It is difficult to predict
-  which components of Sage will be affected by a given patch and you
-  should run tests on the whole library---including those flagged as
-  ``#long``---before giving a positive review. You can test the Sage
-  library with ``make ptestlong``. See :ref:`chapter-doctesting` for
-  more information.
-
-- Do the code and documentation follow conventions documented in the
-  following sections?
-
-  - :ref:`chapter-code-basics`
-  - :ref:`chapter-python`
-  - :ref:`chapter-cython`
-
-If the answers to these and other such reasonable questions are yes,
-then you might want to give the patch a positive review. On the main
-ticket page, write a comment in the box explaining your review. If you
-don't feel experienced enough for this, make a comment explaining what
-you checked, and end by asking if someone more experienced will take a
-look.  If you think there are issues with the patch, explain them in
-the comment box and change the status to "needs work". Browse the
-tickets on the trac server to see how things are done.
-
-If you change the patch yourself, you must make a commit in your own
-name and mark the commit as a reviewer's patch. This must be reviewed
-itself, for example by the author of the original patch.
-
-For more advice on reviewing, please see [WSblog].
-
-.. note::
-
-    "The perfect is the enemy of the good"
-
-    The point of the review is to ensure that the Sage code guidelines
-    are followed and that the the implementation is mathematically
-    correct. Please refrain from aditional feature requests or
-    open-ended discussion about alternative implementations. If you
-    want the patch written differently, your suggestion should be a
-    clear and actionable request.
-
-.. SEEALSO::
-
-    :ref:`Review Walkthrough <section-git_trac-review>`
-
-REFERENCES:
-
-.. [WSblog] William Stein, How to Referee Sage Trac Tickets, http://sagemath.blogspot.com/2010/10/how-to-referee-sage-trac-tickets.html (Caveat: mercurial was replaced with git)
-
 
 Closing Tickets
 ===============

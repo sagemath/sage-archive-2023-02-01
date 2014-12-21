@@ -2436,10 +2436,8 @@ cdef class Expression(CommutativeRingElement):
         """
         Quickly coerce z to be an Expression.
         """
-        cdef Expression w
         try:
-            w = z
-            return w
+            return <Expression?>z
         except TypeError:
             return self._parent._coerce_(z)
 
@@ -3136,7 +3134,7 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-        - ``exp`` -- something that coerces to a symbolic expressions.
+        - ``exp`` -- something that coerces to a symbolic expression.
         - ``ignored`` -- the second argument that should accept a modulus
           is actually ignored.
 
@@ -3221,9 +3219,9 @@ cdef class Expression(CommutativeRingElement):
             sage: (2*I)^(1/2)
             sqrt(2*I)
 
-        Test if we can take powers of elements of Q(i) :trac:`8659`::
+        Test if we can take powers of elements of `\QQ(i)` (:trac:`8659`)::
 
-            sage: t = I.pyobject().parent()(8)
+            sage: t = QuadraticField(-1, 'I')(8)
             sage: t^(1/2)
             2*sqrt(2)
             sage: (t^2)^(1/4)
@@ -3233,17 +3231,29 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(2L)^(-1)
             0.5
+
+        Symbolic powers with ``None`` shouldn't crash (:trac:`17523`)::
+
+            sage: None^pi
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from <type 'NoneType'> to Symbolic Ring
+            sage: sin(x)^None
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from <type 'NoneType'> to Symbolic Ring
         """
         cdef Expression base, nexp
 
         try:
             # self is an Expression and exp might not be
-            base = self
-            nexp = base.coerce_in(exp)
+            base = <Expression?>self
         except TypeError:
             # exp is an Expression and self might not be
-            nexp = exp
+            nexp = <Expression?>exp
             base = nexp.coerce_in(self)
+        else:
+            nexp = base.coerce_in(exp)
         cdef GEx x
         if is_a_relational(base._gobj):
             x = relational(g_pow(base._gobj.lhs(), nexp._gobj),
@@ -10656,38 +10666,6 @@ cdef class Expression(CommutativeRingElement):
         if not is_a_relational(self._gobj):
             raise TypeError("this expression must be a relation")
         return self / x
-
-
-    # Functions to add later, maybe.  These were in Ginac mainly
-    # implemented using a lot from cln, and I had to mostly delete
-    # their implementations.   They are pretty specialized for
-    # physics apps, maybe.
-    # This doesn't work / isn't implemented yet / just segfaults.
-    #def Li(self, x):
-    #    """
-    #    """
-    #    cdef Expression nexp = self.coerce_in(x)
-    #    return new_Expression_from_GEx(self._parent, g_Li(self._gobj, nexp._gobj))
-    #def Li2(self):
-    #    return new_Expression_from_GEx(self._parent, g_Li2(self._gobj))
-    #def G(self, Expression y):
-    #    return new_Expression_from_GEx(self._parent, g_G(self._gobj, y._gobj))
-    #def G2(self, Expression s, Expression y):
-    #    return new_Expression_from_GEx(self._parent, g_G2(self._gobj, s._gobj, y._gobj))
-    #def SR(self, Expression p, Expression x):
-    #return new_Expression_from_GEx(self._parent, g_SR(self._gobj, p._gobj, x._gobj))
-    #def H(self, Expression x):
-    #return new_Expression_from_GEx(self._parent, g_H(self._gobj, x._gobj))
-    #def zeta2(self, Expression s):
-    #    return new_Expression_from_GEx(self._parent, g_zeta2(self._gobj, s._gobj))
-    #def zetaderiv(self, Expression x):
-    #    return new_Expression_from_GEx(self._parent, g_zetaderiv(self._gobj, x._gobj))
-    #def beta(self, Expression y):
-    #    return new_Expression_from_GEx(self._parent, g_beta(self._gobj, y._gobj))
-    #def psi(self):
-    #    return new_Expression_from_GEx(self._parent, g_psi(self._gobj))
-    #def psi2(self, Expression x):
-    #    return new_Expression_from_GEx(self._parent, g_psi2(self._gobj, x._gobj))
 
 
 cdef dict dynamic_class_cache = {}

@@ -53,7 +53,7 @@ from __future__ import division
 
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
-from sage.structure.coerce import parent
+from sage.structure.all import parent
 from sage.libs.mpmath import utils as mpmath_utils
 mpmath_utils_call = mpmath_utils.call # eliminate some overhead in _evalf_
 

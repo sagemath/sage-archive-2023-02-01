@@ -164,13 +164,13 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         self._coords = v
 
-    def __eq__(self,right):
+    def __eq__(self, right):
         """
         Tests the projective equality of two points.
 
         INPUT:
 
-        - ``right`` - a point on projective space
+        - ``right`` -- a point on projective space
 
         OUTPUT:
 
@@ -232,7 +232,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P==Q
             False
 
-        Check that :trac:`17433` is fixed    ::
+        Check that :trac:`17433` is fixed::
 
             sage: P.<x,y> = ProjectiveSpace(Zmod(10), 1)
             sage: p1 = P(1/3, 1)
@@ -272,7 +272,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         if self.codomain() != right.codomain():
             return False
         n = len(self._coords)
-        return all([self[i]*right[j] == self[j]*right[i] for i in range(0,n) for j in range(i+1, n)])
+        return all([self[i]*right[j] == self[j]*right[i]
+                   for i in range(0,n) for j in range(i+1, n)])
 
     def __ne__(self,right):
         """

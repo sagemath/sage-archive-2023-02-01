@@ -429,15 +429,20 @@ cdef class SageObject:
         tester.assert_(category.is_subcategory(Objects()))
         tester.assert_(self in category)
 
-##     def category(self):
-##         try:
-##             return self.__category
-##         except AttributeError:
-##             from sage.categories.all import Objects
-##             return Objects()
+    def parent(self):
+        """
+        Return the type of ``self`` to support the coercion framework.
 
-##     def _set_category(self, C):
-##         self.__category = C
+        EXAMPLES::
+
+            sage: t = log(sqrt(2) - 1) + log(sqrt(2) + 1); t
+            log(sqrt(2) + 1) + log(sqrt(2) - 1)
+            sage: u = t.maxima_methods()
+            sage: u.parent()
+            <class 'sage.symbolic.maxima_wrapper.MaximaWrapper'>
+        """
+        return type(self)
+
 
     #############################################################################
     # Test framework

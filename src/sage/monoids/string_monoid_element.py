@@ -24,8 +24,6 @@ compression of FreeMonoid elements (a feature), and could be packed into words.
 # import operator
 from sage.rings.integer import Integer
 from sage.rings.all import RealField
-# from sage.structure.element import MonoidElement
-from sage.probability.random_variable import DiscreteProbabilitySpace
 from free_monoid_element import FreeMonoidElement
 import string_monoid
 
@@ -511,4 +509,5 @@ class StringMonoidElement(FreeMonoidElement):
                 X[c] = eps
         # Return a dictionary of probability distribution. This should
         # allow for easier parsing of the dictionary.
+        from sage.probability.random_variable import DiscreteProbabilitySpace
         return DiscreteProbabilitySpace(Alph, X, RR)

@@ -512,9 +512,9 @@ class DiGraph(GenericGraph):
 
         Detection of multiple edges::
 
-            sage: DiGraph([(1, 2, 0), (1,2,1)])
+            sage: DiGraph({1:{2:[0,1]}})
             Multi-digraph on 2 vertices
-            sage: DiGraph([(1, 2, 0)])
+            sage: DiGraph({1:{2:0}})
             Digraph on 2 vertices
 
         An empty list or dictionary defines a simple graph (trac #10441 and #12910)::
@@ -665,6 +665,11 @@ class DiGraph(GenericGraph):
                         if (multiedges is None and
                             (v in data[u])):
                             multiedges = True
+                            deprecation(15706, "You created a graph with multiple "+
+                                        "edges from a list. Please set 'multiedges' "+
+                                        "to 'True' when you do so, as in the "+
+                                        "future the default behaviour will "+
+                                        "be to ignore those edges")
                             for uu, dd in data.iteritems():
                                 for vv, ddd in dd.iteritems():
                                     dd[vv] = [ddd]
@@ -698,6 +703,11 @@ class DiGraph(GenericGraph):
                 else:
                     raise ValueError("Edges input must all follow the same format.")
 
+            if loops is None and any(x in dx for x,dx in data.iteritems()):
+                deprecation(15706, "You created a graph with loops from a list. "+
+                            "Please set 'loops' to 'True' when you do so, as in "+
+                            "the future the default behaviour will be to ignore "+
+                            "those edges")
         if format is None:
             import networkx
             data = networkx.MultiDiGraph(data)
@@ -816,7 +826,8 @@ class DiGraph(GenericGraph):
             if loops is None or loops is False:
                 for u in data:
                     if u in data[u]:
-                        if loops is None: loops = True
+                        if loops is None:
+                            loops = True
                         elif loops is False:
                             raise ValueError("No loops but dict has loops.")
                         break
@@ -826,7 +837,8 @@ class DiGraph(GenericGraph):
                 for v in data[u]:
                     if v not in verts: verts.add(v)
                     if multiedges is not False and not isinstance(data[u][v], list):
-                        if multiedges is None: multiedges = False
+                        if multiedges is None:
+                            multiedges = False
                         if multiedges:
                             raise ValueError("Dict of dicts for multidigraph must be in the format {v : {u : list}}")
             if multiedges is None and len(data) > 0:
@@ -2933,7 +2945,7 @@ class DiGraph(GenericGraph):
             sage: D.topological_sort()
             Traceback (most recent call last):
             ...
-            TypeError: Digraph is not acyclic-- there is no topological
+            TypeError: Digraph is not acyclic; there is no topological
             sort.
 
         .. note::
@@ -2967,7 +2979,7 @@ class DiGraph(GenericGraph):
             if b:
                 return ordering
             else:
-                raise TypeError('Digraph is not acyclic-- there is no topological sort.')
+                raise TypeError('Digraph is not acyclic; there is no topological sort.')
 
         elif implementation == "NetworkX" or implementation == "recursive":
             import networkx
@@ -2976,7 +2988,7 @@ class DiGraph(GenericGraph):
             else:
                 S = networkx.topological_sort_recursive(self.networkx_graph(copy=False))
             if S is None:
-                raise TypeError('Digraph is not acyclic-- there is no topological sort.')
+                raise TypeError('Digraph is not acyclic; there is no topological sort.')
             else:
                 return S
 
@@ -3026,7 +3038,7 @@ class DiGraph(GenericGraph):
         try:
             return LinearExtensions(self).list()
         except TypeError:
-            raise TypeError('Digraph is not acyclic-- there is no topological sort (or there was an error in sage/graphs/linearextensions.py).')
+            raise TypeError('Digraph is not acyclic; there is no topological sort (or there was an error in sage/graphs/linearextensions.py).')
 
     ### Visualization
 

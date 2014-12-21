@@ -218,24 +218,27 @@ Docstring Markup With ReST and Sphinx
 -------------------------------------
 
 **Every** function must have a docstring that includes the following
-information. Source files in the Sage library contain numerous
-examples on how to format your documentation, so you could use them as
-a guide.
+information. You can use the existing functions of Sage as templates.
 
--  A one-sentence description of the function, followed by a blank line
-   and ending in a period. It prescribes the function or method's
-   effect as a command ("Do this", "Return that"), not as a
-   description; e.g. don't write "Returns the pathname ...".
+-  A **one-sentence description** of the function.
 
--  An INPUT and an OUTPUT block for input and output arguments (see
-   below for format). The type names should be descriptive, but do not
-   have to represent the exact Sage/Python types. For example, use
-   "integer" for anything that behaves like an integer; you do not have
-   to put a precise type name such as ``int``. The INPUT block
-   describes the expected input to your function or method, while the
-   OUTPUT block describes the expected output of the
-   function/method. If appropriate, you need to describe any default
-   values for the input arguments. For example::
+   It must be followed by a blank line and end in a period.  It
+   describes the function or method's effect as a command ("Do this",
+   "Return that"), not as a description like "Returns the pathname ...".
+
+-  An **INPUT** and an **OUTPUT** block describing the input/output of
+   the function. This is not optional.
+
+   The INPUT block describes all arguments that the function accepts,
+   and the OUTPUT section describes its expected output.
+
+   1. The type names should be descriptive, but do not have to represent
+      the exact Sage/Python types. For example, use "integer" for
+      anything that behaves like an integer, rather than ``int``.
+
+   2. Mention the default values of the input arguments when applicable.
+
+   Example::
 
        INPUT:
 
@@ -251,35 +254,36 @@ a guide.
        4. the largest prime primitive root modulo p
        5. total number of prime primitive roots modulo p
 
-   Some people prefer to format their OUTPUT section as a block by
-   using a dash. That is acceptable as well::
+   You can start the OUTPUT block with a dash if you prefer::
 
        OUTPUT:
 
        - The plaintext resulting from decrypting the ciphertext ``C``
          using the Blum-Goldwasser decryption algorithm.
 
--  An EXAMPLES block for examples. This is not optional. These
-   examples are used both for documentation and for automatic testing
-   before each release so should have good coverage of the functionality
-   in question. New functions without these doctests will not be accepted
-   for inclusion with Sage.
+-  An **EXAMPLES** block for examples. This is not optional.
 
--  A SEEALSO block (optional) with links to related things in Sage. A SEEALSO
-   block should start with ``.. SEEALSO::``. It can also be the lower-case form
-   ``.. seealso::``. However, you are encouraged to use the upper-case form
-   ``.. SEEALSO::``. See :ref:`chapter-sage_manuals_links` for details on how
-   to setup link in Sage.  Here's an example of a SEEALSO block::
+   These examples are used both for:
+
+   1. Documentation
+   2. Automatic testing before each release.
+
+   They should have good coverage of the functionality in question.
+
+-  A **SEEALSO** block (optional) with links to related parts of Sage. ::
 
        .. SEEALSO::
 
-           :ref:`chapter-sage_manuals_links`
+          :ref:`chapter-sage_manuals_links`
 
--  An ALGORITHM block (optional) which indicates what algorithm
-   and/or what software is used. For example
-   ``ALGORITHM: Uses Pari``. Here's a longer example that describes an
-   algorithm used. Note that it also cites the reference where this
-   algorithm can be found::
+   See :ref:`chapter-sage_manuals_links` for details on how to setup
+   link in Sage.
+
+-  An **ALGORITHM** block (optional).
+
+   It indicates what algorithm and/or what software is used, e.g.
+   ``ALGORITHM: Uses Pari``. Here's a longer example with a
+   bibliographical reference::
 
        ALGORITHM:
 
@@ -302,56 +306,17 @@ a guide.
        .. [Nat2000] M.B. Nathanson. Elementary Methods in Number Theory.
           Springer, 2000.
 
-   You can also number the steps in your algorithm using the hash-dot
-   symbol. This way, the actual numbering of the steps are
-   automatically taken care of when you build the documentation::
-
-        ALGORITHM:
-
-        The Blum-Goldwasser decryption algorithm is described in Algorithm
-        8.56, page 309 of [MenezesEtAl1996]_. The algorithm works as follows:
-
-        #. Let `C` be the ciphertext `C = (c_1, c_2, \dots, c_t, x_{t+1})`.
-           Then `t` is the number of ciphertext sub-blocks and `h` is the
-           length of each binary string sub-block `c_i`.
-        #. Let `(p, q, a, b)` be the private key whose corresponding
-           public key is `n = pq`. Note that `\gcd(p, q) = ap + bq = 1`.
-        #. Compute `d_1 = ((p + 1) / 4)^{t+1} \bmod{(p - 1)}`.
-        #. Compute `d_2 = ((q + 1) / 4)^{t+1} \bmod{(q - 1)}`.
-        #. Let `u = x_{t+1}^{d_1} \bmod p`.
-        #. Let `v = x_{t+1}^{d_2} \bmod q`.
-        #. Compute `x_0 = vap + ubq \bmod n`.
-        #. For `i` from 1 to `t`, do:
-
-           #. Compute `x_i = x_{t-1}^2 \bmod n`.
-           #. Let `p_i` be the `h` least significant bits of `x_i`.
-           #. Compute `m_i = p_i \oplus c_i`.
-
-        #. The plaintext is `m = m_1 m_2 \cdots m_t`.
-
--  A NOTE block for special notes (optional). Include information
-   such as purpose etc. A NOTE block should start with
-   ``.. NOTE::``. You can also use the lower-case version
-   ``.. note::``, but do not mix lower-case with upper-case. However,
-   you are encouraged to use the upper-case version ``.. NOTE::``. If
-   you want to put anything within the NOTES block, you should
-   indent it at least 4 spaces (no tabs). Here's an example of a NOTE
-   block::
+-  A **NOTE** block for tips/tricks (optional). ::
 
        .. NOTE::
 
            You should note that this sentence is indented at least 4
-           spaces. Avoid tab characters as much as possible when
-           writing code or editing the Sage documentation. You should
-           follow Python conventions by using spaces only.
+           spaces. Never use the tab character.
 
-- A WARNING block for critical information about your code. For
-  example, the WARNING block might include information about when or
-  under which conditions your code might break, or information that
-  the user should be particularly aware of. A WARNING block should start
-  with ``.. WARNING::``. It can also be the lower-case form
-  ``.. warning::``. However, you are encouraged to use the upper-case
-  form ``.. WARNING::``. Here's an example of a WARNING block::
+- A **WARNING** block for critical information about your code (optional).
+
+  For example known situations for which the code breaks, or anything
+  that the user should be aware of. ::
 
       .. WARNING::
 
@@ -362,30 +327,23 @@ a guide.
           build, it is very likely that you would be requested to
           change your patch.
 
-- A TODO block for room for improvements. The TODO block might
-  contains disabled doctests to demonstrate the desired feature.  A TODO block
-  should start with ``.. TODO::``. It can also be the lower-case form
-  ``.. todo::``. However, you are encouraged to use the upper-case form
-  ``.. TODO::``. Here's an example of a TODO block::
+- A **TODO** block for future improvements (optional).
+
+  It can contain disabled doctests to demonstrate the desired
+  feature. Here's an example of a TODO block::
 
       .. TODO::
 
-          Improve further function ``have_fresh_beers`` using algorithm
-          ``buy_a_better_fridge``::
+          Add to ``have_fresh_beers`` an interface with the faster
+          algorithm "Buy a Better Fridge" (BaBF)::
 
-              sage: have_fresh_beers('Bière de l\'Yvette') # todo: not implemented
+              sage: have_fresh_beers('Bière de l\'Yvette', algorithm="BaBF") # not implemented
               Enjoy !
 
-- A REFERENCES block to list books or papers (optional). This block serves
-  a similar purpose to a list of references in a research paper, or a
-  bibliography in a monograph. If your method, function or class uses an
-  algorithm that can be found in a standard reference, you should list
-  that reference under this block. The Sphinx/ReST markup for
-  citations is described at
-  http://sphinx.pocoo.org/rest.html#citations. See below for an example.
-  Sage also add specific markup for links to sage trac tickets and
-  Wikipedia. See :ref:`chapter-sage_manuals_links`. Here's an example of a
-  REFERENCES block::
+- A **REFERENCES** block to list related books or papers (optional)
+
+  It should cite the books/research papers relevant to the code, e.g. the source
+  of the algorithm that it implements. ::
 
       This docstring is referencing [SC]_. Just remember that references
       are global, so we can also reference to [Nat2000]_ in the ALGORITHM
@@ -397,12 +355,17 @@ a guide.
       .. [SC] Conventions for coding in sage.
          http://www.sagemath.org/doc/developer/conventions.html.
 
-- A TESTS block (optional), formatted just like EXAMPLES, for additional
-  tests which should be part of the regression suite but are not
-  illustrative enough to merit placement in EXAMPLES.
+  See the `Sphinx/ReST markup for citations <http://sphinx.pocoo.org/rest.html#citations>`_. For links toward trac tickets or wikipedia, see :ref:`chapter-sage_manuals_links`.
+
+- A **TESTS** block (optional)
+
+  Formatted just like EXAMPLES, containing tests that are not relevant to users.
+
+Template
+^^^^^^^^
 
 Use the following template when documenting functions. Note the
-indentation
+indentation:
 
 .. skip    # do not doctest
 
@@ -469,31 +432,36 @@ indentation
 
 You are strongly encouraged to:
 
-- Use nice LaTeX formatting everywhere, see
-  :ref:`section-latex-typeset`.
+- Use LaTeX typesetting (see :ref:`section-latex-typeset`).
 
-- Liberally describe what the examples do. Note that there must be a
-  blank line after the example code and before the explanatory text
-  for the next example (indentation is not enough).
+- Liberally describe what the examples do.
 
-- Illustrate any exceptions raised by the function with examples, as
-  given above. (It is an error to ...; In particular, use ...)
+  .. NOTE::
 
-- Include many examples. These are automatically tested on a regular
-  basis, and are crucial for the quality and adaptability of
-  Sage. Without such examples, small changes to one part of Sage that
-  break something else might not go seen until much later when someone
-  uses the system, which is unacceptable. Note that new functions
-  without doctests will not be accepted for inclusion in Sage.
+     There must be a blank line after the example code and before the
+     explanatory text for the next example (indentation is not enough).
+
+- Illustrate the exceptions raised by the function with examples (as
+  given above: "It is an error to [..]", ...)
+
+- Include many examples.
+
+  They are helpful for the users, and are crucial for the quality and
+  adaptability of Sage. Without such examples, small changes to one part
+  of Sage that break something else might not go seen until much later
+  when someone uses the system, which is unacceptable.
+
+Private functions
+^^^^^^^^^^^^^^^^^
 
 Functions whose names start with an underscore are considered
-private. Hence they do not appear in the reference manual, and their
-docstring should not contain any information that is crucial for Sage
-users. Having said that, you can explicitly enable their docstrings to
-be shown as part of the documentation of another method. For example::
+private. They do not appear in the reference manual, and their docstring
+should not contain any information that is crucial for Sage users. You
+can make their docstrings be part of the documentation of another
+method. For example::
 
     class Foo(SageObject):
-    
+
         def f(self):
             """
             <usual docstring>
@@ -501,18 +469,17 @@ be shown as part of the documentation of another method. For example::
             .. automethod:: _f
             """
             return self._f()
-                 
+
         def _f(self):
              """
              This would be hidden without the ``.. automethod::``
              """
 
-An EXAMPLES or TESTS block is still required for these private functions.
+Private functions should contain an EXAMPLES (or TESTS) block.
 
-A special case is the constructor ``__init__``, which clearly starts
-with an underscore. However, due to its special status the
-``__init__`` docstring is used as the class docstring if there is not
-one already. That is, you can do the following::
+A special case is the constructor ``__init__``: due to its special
+status the ``__init__`` docstring is used as the class docstring if
+there is not one already. That is, you can do the following::
 
     sage: class Foo(SageObject):
     ....:     # no class docstring
@@ -531,7 +498,6 @@ one already. That is, you can do the following::
 
 LaTeX Typesetting
 -----------------
-
 
 In ReST documentation, you use backticks \` to mark LaTeX code to be
 typeset.  In Sage docstrings, you may also use dollar signs instead.

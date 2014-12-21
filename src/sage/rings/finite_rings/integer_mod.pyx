@@ -4312,7 +4312,26 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
         return IntegerMod_to_Integer(self._codomain)
 
 cdef class IntegerMod_to_Integer(Map):
+    """
+    Map to lift elements to :class:`~sage.rings.integer.Integer`.
+
+    EXAMPLES::
+
+        sage: ZZ.convert_map_from(GF(2))
+        Lifting map:
+          From: Finite Field of size 2
+          To:   Integer Ring
+    """
     def __init__(self, R):
+        """
+        TESTS:
+
+        Lifting maps are morphisms in the category of sets (see
+        :trac:`15618`)::
+
+            sage: ZZ.convert_map_from(GF(2)).parent()
+            Set of Morphisms from Finite Field of size 2 to Integer Ring in Category of sets
+        """
         import sage.categories.homset
         from sage.categories.all import Sets
         Morphism.__init__(self, sage.categories.homset.Hom(R, integer_ring.ZZ, Sets()))

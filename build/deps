@@ -79,6 +79,7 @@ all-sage: \
      $(INST)/$(PARI) \
      $(INST)/$(PEXPECT) \
      $(INST)/$(PILLOW) \
+     $(INST)/$(PIP) \
      $(INST)/$(PKGCONF) \
      $(INST)/$(PKGCONFIG) \
      $(INST)/$(POLYBORI) \
@@ -242,6 +243,9 @@ $(INST)/$(PARI_GALDATA):
 
 $(INST)/$(PARI_SEADATA_SMALL):
 	+$(PIPE) "$(SAGE_SPKG) $(PARI_SEADATA_SMALL) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI_SEADATA_SMALL).log"
+
+$(INST)/$(PIP): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(PIP) 2>&1" "tee -a $(SAGE_LOGS)/$(PIP).log"
 
 $(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(IPYTHON) \
          $(INST)/$(SCONS) $(INST)/$(BOOST_CROPPED) \

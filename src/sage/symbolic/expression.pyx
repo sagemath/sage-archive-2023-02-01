@@ -7430,23 +7430,6 @@ cdef class Expression(CommutativeRingElement):
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
 
-    def lgamma(self, hold=False):
-        """
-        This method is deprecated, please use the ``.log_gamma()`` function instead.
-
-        Log gamma function evaluated at self.
-
-        EXAMPLES::
-
-            sage: x.lgamma()
-            doctest:...: DeprecationWarning: The lgamma() function is deprecated. Use log_gamma() instead.
-            See http://trac.sagemath.org/6992 for details.
-            log_gamma(x)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6992, "The lgamma() function is deprecated. Use log_gamma() instead.")
-        return self.log_gamma(hold=hold)
-
     def log_gamma(self, hold=False):
         """
         Return the log gamma function evaluated at self.
@@ -8005,8 +7988,10 @@ cdef class Expression(CommutativeRingElement):
         .. seealso::
 
            :meth:`simplify_full`, :meth:`simplify_trig`,
-           :meth:`simplify_rational`, :meth:`simplify_factorial`,
-           :meth:`simplify_log`, :meth:`canonicalize_radical`
+           :meth:`simplify_rational`, :meth:`simplify_rectform`
+           :meth:`simplify_factorial`, :meth:`simplify_log`,
+           :meth:`simplify_real`, :meth:`simplify_hypergeometric`,
+           :meth:`canonicalize_radical`
 
         EXAMPLES::
 
@@ -8081,6 +8066,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f = (1/2)*log(2*t) + (1/2)*log(1/t)
             sage: f.simplify_full()
             1/2*log(2*t) - 1/2*log(t)
+            sage: forget()
 
         """
         x = self
@@ -8232,6 +8218,107 @@ cdef class Expression(CommutativeRingElement):
             return simplified_expr
         else:
             return self
+
+
+
+    def simplify_real(self):
+        r"""
+        Simplify the given expression over the real numbers. This allows
+        the simplification of `\sqrt{x^{2}}` into `\left|x\right|`.
+
+        INPUT:
+
+        - ``self`` -- the expression to convert.
+
+        OUTPUT:
+
+        A new expression, equivalent to the original one under the
+        assumption that the variables involved are real.
+
+        EXAMPLES::
+
+            sage: f = sqrt(x^2)
+            sage: f.simplify_real()
+            abs(x)
+
+        TESTS:
+
+        We set the Maxima ``domain`` variable to 'real' before we call
+        out to Maxima. When we return, however, we should set the
+        ``domain`` back to what it was, rather than assuming that it
+        was 'complex'::
+
+            sage: from sage.calculus.calculus import maxima
+            sage: maxima('domain: real;')
+            real
+            sage: x.simplify_real()
+            x
+            sage: maxima('domain;')
+            real
+            sage: maxima('domain: complex;')
+            complex
+
+        We forget the assumptions that our variables are real after
+        simplification; make sure we don't forget an assumption that
+        existed before we were called::
+
+            sage: assume(x, 'real')
+            sage: x.simplify_real()
+            x
+            sage: assumptions()
+            [x is real]
+            sage: forget()
+
+        We also want to be sure that we don't forget assumptions on
+        other variables::
+
+            sage: x,y,z = SR.var('x,y,z')
+            sage: assume(y, 'integer')
+            sage: assume(z, 'antisymmetric')
+            sage: x.simplify_real()
+            x
+            sage: assumptions()
+            [y is integer, z is antisymmetric]
+            sage: forget()
+
+        No new assumptions should exist after the call::
+
+            sage: assumptions()
+            []
+            sage: x.simplify_real()
+            x
+            sage: assumptions()
+            []
+
+        """
+        from sage.symbolic.assumptions import assume, assumptions, forget
+        from sage.calculus.calculus import maxima
+        original_domain = maxima.eval('domain')
+        original_assumptions = assumptions()
+
+        maxima.eval('domain: real$')
+
+        # We might as well go all the way and tell Maxima to assume
+        # that all variables are real. Since we're setting the
+        # simplification domain (and it's indiscriminate), you'd
+        # better not call this unless your variables really are real
+        # anyway.
+        for v in self.variables():
+            assume(v, 'real');
+
+        result = self.simplify();
+
+        # Set the domain back to what it was before we were called.
+        maxima.eval('domain: %s$' % original_domain)
+
+        # Forget all assumptions, and restore the ones that existed
+        # when we were called. This is much simpler than the bookkeeping
+        # necessary otherwise.
+        forget()
+        for assumption in original_assumptions:
+            assume(assumption);
+
+        return result
 
 
     def simplify_trig(self,expand=True):

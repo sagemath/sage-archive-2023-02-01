@@ -35,6 +35,7 @@ Structures, Coercion, Categories
 --------------------------------
 
 * :doc:`Basic Structures <structure/index>`
+* :doc:`Data Structures <data_structures/index>`
 * :doc:`Coercion <coercion/index>`
 * :doc:`Category Theory and Categories <categories/index>`
 

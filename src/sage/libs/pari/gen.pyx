@@ -181,8 +181,7 @@ cdef class gen(sage.structure.element.RingElement):
             True
         """
         s = str(self)
-        import sage.libs.pari.gen_py
-        return sage.libs.pari.gen_py.pari, (s,)
+        return (objtogen, (s,))
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         pari_catch_sig_on()
@@ -9657,7 +9656,7 @@ def init_pari_stack(s=8000000):
     P.allocatemem(s, silent=True)
 
 
-cdef gen objtogen(s):
+cpdef gen objtogen(s):
     """
     Convert any Sage/Python object to a PARI gen.
     """

@@ -74,11 +74,13 @@ You are now ready to change the ticket's status (see
 :ref:`section-trac-ticket-status`):
 
 - **positive review**: if the answers to the questions above and other
-  reasonable questions are *"yes"*, you can give the patch a positive review.
+  reasonable questions are *"yes"*, you can set the ticket to
+  ``positive_review``. Add your full name to the "reviewer" field (see
+  :ref:`section-trac-fields`).
 
-- **needs_review**: if something is not as it should, write a list of all points
+- **needs_work**: if something is not as it should, write a list of all points
   that need to be addressed in a comment and change the ticket's status to
-  ``needs_review``.
+  ``needs_work``.
 
 - **needs_info**: if something is not clear to you and prevents you from going
   further with the review, ask your question and set the ticket's status to
@@ -102,7 +104,7 @@ For more advice on reviewing, see [WSblog]_.
 
     The point of the review is to ensure that the Sage code guidelines
     are followed and that the the implementation is mathematically
-    correct. Please refrain from aditional feature requests or
+    correct. Please refrain from additional feature requests or
     open-ended discussion about alternative implementations. If you
     want the patch written differently, your suggestion should be a
     clear and actionable request.

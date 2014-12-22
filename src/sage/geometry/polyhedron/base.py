@@ -3285,13 +3285,20 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - `f` -- a linear form (as a tuple, list or vector)
+        - ``f`` -- a linear form. The linear form can be provided as:
 
-        - ``increasing`` -- boolean (default ``False``) whether to orient 
-          edges in the increasing direction instead.
+            - a vector space morphism with one-dimensional codomain, (see
+              :meth:`sage.modules.vector_space_morphism.linear_transformation`
+              and
+              :class:`sage.modules.vector_space_morphism.VectorSpaceMorphism`)
+            - a vector ; in this case the linear form is obtained by duality
+              using the dot product: ``f(v) = v.dot_product(f)``.
+
+        - ``increasing`` -- boolean (default ``False``) whether to orient
+          edges in the increasing direction.
 
         By default, an edge is oriented from `v` to `w` if
-        `f(v-w) \geq 0`.
+        `f(w) - f(v) \leq 0`.
 
         If `f(v)=f(w)`, then two opposite edges are created.
 
@@ -3301,18 +3308,39 @@ class Polyhedron_base(Element):
             sage: penta.vertex_digraph(vector([1,1]))
             Digraph on 5 vertices
 
+            sage: A = matrix(ZZ, [[1], [-1]])
+            sage: f = linear_transformation(A)
+            sage: G = penta.vertex_digraph(f) ; G
+            Digraph on 5 vertices
+            sage: G.is_directed_acyclic()
+            False
+
         .. SEEALSO::
 
             :meth:`vertex_graph`
         """
+        from sage.modules.vector_space_morphism import VectorSpaceMorphism
+        if isinstance(f, VectorSpaceMorphism):
+            if f.codomain().dimension() == 1:
+                orientation_check = lambda v : f(v) >= 0
+            else:
+                raise TypeError('The linear map f must have one-dimensional codomain')
+        else:
+            try:
+                if f.is_vector():
+                    orientation_check = lambda v : v.dot_product(f) >= 0
+                else:
+                    raise TypeError('f must be a linear map or a vector')
+            except AttributeError:
+                raise TypeError('f must be a linear map or a vector')
+        if not increasing:
+            f = -f
         from sage.graphs.digraph import DiGraph
         dg = DiGraph()
-        if increasing:
-            f = -vector(f)
         for j in range(self.n_vertices()):
             vj = self.Vrepresentation(j)
             for vi in vj.neighbors():
-                if (vi.vector() - vj.vector()).dot_product(f) >= 0:
+                if orientation_check(vj.vector() - vi.vector()):
                     dg.add_edge(vi, vj)
         return dg
 

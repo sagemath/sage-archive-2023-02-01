@@ -429,6 +429,16 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([x^2 - 2*x*y + z*x, z^2 -y^2 , 5*z*y])
             sage: f.homogenize(2).dehomogenize(2) == f
             True
+
+        ::
+
+            sage: K.<c> = FunctionField(QQ)
+            sage: A.<x> = AffineSpace(K,1)
+            sage: f = Hom(A,A)([x^2 + c])
+            sage: f.homogenize(1)
+            Scheme endomorphism of Projective Space of dimension 1 over Rational function field in c over Rational Field
+              Defn: Defined on coordinates by sending (x0 : x1) to
+                    (x0^2 + c*x1^2 : x1^2)
         """
         #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n,(tuple,list)):
@@ -459,7 +469,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         F = [S(R(self[i].numerator()*l[i]).subs(D)) for i in range(M)]
 
         #homogenize
-        F.insert(ind[1], S(prod(L).subs(D))) #coerce in case l is a constant
+        F.insert(ind[1], S(R(prod(L)).subs(D))) #coerce in case l is a constant
         try:
             #remove possible gcd of the polynomials
             g = gcd(F)
@@ -535,6 +545,17 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([x^2+CC.0])
             sage: f.dynatomic_polynomial(2)
             x^2 + x + 1.00000000000000 + 1.00000000000000*I
+
+        ::
+
+            sage: K.<c> = FunctionField(QQ)
+            sage: A.<x> = AffineSpace(K,1)
+            sage: f = Hom(A,A)([x^2 + c])
+            sage: f.dynatomic_polynomial(4)
+            x^12 + 6*c*x^10 + x^9 + (15*c^2 + 3*c)*x^8 + 4*c*x^7 + (20*c^3 + 12*c^2 + 1)*x^6
+            + (6*c^2 + 2*c)*x^5 + (15*c^4 + 18*c^3 + 3*c^2 + 4*c)*x^4 + (4*c^3 + 4*c^2 + 1)*x^3
+            + (6*c^5 + 12*c^4 + 6*c^3 + 5*c^2 + c)*x^2 + (c^4 + 2*c^3 + c^2 + 2*c)*x
+            + c^6 + 3*c^5 + 3*c^4 + 3*c^3 + 2*c^2 + 1
         """
         if self.domain() != self.codomain():
             raise TypeError("Must have same domain and codomain to iterate")

@@ -664,7 +664,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
             sage: R = Zmod(5)
             sage: R in IntegralDomains()
-            False
+            True
         """
         return self.is_field(proof)
 

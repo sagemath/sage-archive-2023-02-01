@@ -20,7 +20,7 @@ It defines the following functions:
     :func:`radical_difference_set` | Return a radical difference set
     :func:`radical_difference_family` | Return a radical difference family
     :func:`twin_prime_powers_difference_set` | Return a twin prime powers difference family.
-
+    :func:`wilson_1972_difference_family` | Return a radical difference family on a finite field following a construction of Wilson.
 
 REFERENCES:
 
@@ -573,6 +573,13 @@ def wilson_1972_difference_family(K, k, existence=False, check=True):
     - ``k`` -- an integer such that `k(k-1)` divides `v-1` where `v` is the
       cardinality of the finite field `K`
 
+    - ``existence`` -- if ``True`` then return either ``True`` if the
+      construction is possible or ``False`` if it can not.
+
+    - ``check`` -- boolean (default: ``True``) whether to check that the output
+      is valid. This should not be needed, but it guarantee that the output is
+      correct. It might be faster to set it to ``False``.
+
     EXAMPLES::
 
         sage: from sage.combinat.designs.difference_family import wilson_1972_difference_family
@@ -666,24 +673,16 @@ def wilson_1972_difference_family(K, k, existence=False, check=True):
 
     # now, we check whether the elements of A belong to distinct cosets modulo
     # H^m where H = K \ {0}
-    nb_seen = 0
-    xj = one
-    while nb_seen < len(A):
-        already_in = False
-        xxi = one
-        for i in range((v-1)//m):
-            if xxi * xj in A:
-                if already_in:
-                    if existence:
-                        return False
-                    raise EmptySetError("In the Wilson construction with v={} "
-                    "and k={}, the roots of unity fail to belong to distinct "
-                    "cosets modulo H^m")
-                else:
-                    already_in = True
-                    nb_seen += 1
-            xxi *= xx
-        xj *= x
+    AA = set(y/x for x in A for y in A if x != y)
+    xxi = one
+    for i in range((v-1)/m):
+        if xxi in AA:
+                if existence:
+                    return False
+                raise EmptySetError("In the Wilson construction with v={} "
+                "and k={}, the roots of unity fail to belong to distinct "
+                "cosets modulo H^m")
+        xxi *= xx
     
     if existence:
         return True

@@ -58,9 +58,9 @@ Here is the list of things should be checked check while reading the code:
   illustrating that the bug has been fixed? This new doctest should contain the
   ticket number, for example ``See :trac:`12345```.
 
-- **Speedup**: if the ticket claims to speed up some computation, does the
-  ticket contain code examples to illustrate the claim? The ticket should
-  explain how the speedup is achieved.
+- **Speedup**: can the ticket make any existing code slower? if the ticket
+  claims to speed up some computation, does the ticket contain code examples to
+  illustrate the claim? The ticket should explain how the speedup is achieved.
 
 - **Manuals**: Does the reference manual build without errors (check both html
   and pdf)? See :ref:`chapter-sage_manuals` to learn how to build the manuals.

@@ -54,9 +54,9 @@ following:
 * contact email,
 * and reason for needing a trac account.
 
-Your trac account also grants you access to the sage wiki. Make sure
-you understand the review process, and the procedures for opening and
-closing tickets before making changes. The remainder of this chapter
+Your trac account also grants you access to the sage wiki. Make sure you
+understand the review process (see :ref:`chapter-review), and the procedures for
+opening and closing tickets before making changes. The remainder of this chapter
 contains various guidelines on using the trac server.
 
 Generating and Uploading your SSH Keys
@@ -336,16 +336,17 @@ The status of a ticket
 The status of a ticket appears right next to its number, at the top-left corner
 of its page. It indicates who has to work on it.
 
-- **new** -- the ticket has only been created, no code is available yet.
+- **new** -- the ticket has only been created (or the author forgot to change
+  the status to something else).
 
-  If you want to work on it yourself, ask first on the ticket whether anybody
-  else is working on it already.
+  If you want to work on it yourself it is better to leave a comment to say
+  so. It could avoid having two persons doing the same job.
 
 - **needs_review** -- the code is ready to be peer-reviewed. If the code is not
   yours, then you can review it. See :ref:`chapter-review`.
 
-- **needs_work** -- the author has something to change in the code. The reason
-  should appear in the comments.
+- **needs_work** -- something needs to be changed in the code. The reason should
+  appear in the comments.
 
 - **needs_info** -- somebody has to answer a question before anything else can
   happen. It should be clear from the comments.

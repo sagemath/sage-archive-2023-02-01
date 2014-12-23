@@ -43,13 +43,13 @@ REFERENCES:
 - [BP] Dominique Bernardi and Bernadette Perrin-Riou,
   Variante `p`-adique de la conjecture de Birch et
   Swinnerton-Dyer (le cas supersingulier), C. R. Acad. Sci. Paris,
-  Ser I. Math, 317 (1993), no 3, 227-232.
+  Sér I. Math., 317 (1993), no. 3, 227-232.
 
-- [Po] Robert Pollack, On the `p`-adic L-function of a modular form
-  at supersingular prime, Duke Math. J. 118 (2003), no 3, 523-558.
+- [Po] Robert Pollack, On the `p`-adic `L`-function of a modular form
+  at a supersingular prime, Duke Math. J. 118 (2003), no. 3, 523-558.
 
-- [SW]  William Stein and Christian Wuthrich, Algorithms
-  for the Arithmetic of Elliptic Curves using Iwasawa Theory
+- [SW] William Stein and Christian Wuthrich, Algorithms
+  for the Arithmetic of Elliptic Curves using Iwasawa Theory,
   Mathematics of Computation 82 (2013), 1757-1792.
 
 AUTHORS:

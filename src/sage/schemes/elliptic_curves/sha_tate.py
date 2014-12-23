@@ -451,7 +451,7 @@ class Sha(SageObject):
         .. [BP] Dominique Bernardi and Bernadette Perrin-Riou,
            Variante `p`-adique de la conjecture de Birch et
            Swinnerton-Dyer (le cas supersingulier),
-           C. R. Acad. Sci. Paris, Ser I. Math, 317 (1993), no 3,
+           C. R. Acad. Sci. Paris, Sér I. Math., 317 (1993), no. 3,
            227-232.
 
         INPUT:
@@ -702,32 +702,44 @@ class Sha(SageObject):
 
     def p_primary_bound(self, p):
         r"""
-        Returns a provable upper bound for the order of the `p`-primary part
-        `Sha(E)(p)` of the Tate-Shafarevich group. In particular, if this
-        algorithm does not fail, then it proves that the `p`-primary part of `Sha` is finite. This works also for curves of rank > 1.
+        Returns a provable upper bound for the order of the
+        `p`-primary part `Sha(E)(p)` of the Tate-Shafarevich group.
 
-        INPUT: ``p`` -- a prime > 2
+        INPUT:
 
-        OUTPUT:  integer -- power of `p` that bounds the order of `Sha(E)(p)`
-        from above
+        - ``p`` -- a prime > 2
+
+        OUTPUT:
+
+        - ``e`` -- a non-negative integer such that `p^e` is an upper
+          bound for the order of `Sha(E)(p)`
+
+        In particular, if this algorithm does not fail, then it proves
+        that the `p`-primary part of `Sha` is finite. This works also
+        for curves of rank > 1.
 
         Note also that this bound is sharp if one assumes the main conjecture
         of Iwasawa theory of elliptic curves (and this is known in certain cases).
 
-        Currently the algorithm is only implemented when certain conditions
-        are verified.
+        Currently the algorithm is only implemented when the following
+        conditions are verified:
 
-        - The `p`-adic Galois representation must be surjective or must have
-          its image contained in a Borel subgroup.
+        - The `p`-adic Galois representation must be surjective or
+          must have its image contained in a Borel subgroup.
+
         - The reduction at `p` is not allowed to be additive.
-        - If the reduction at `p` is non-split multiplicative, then the rank
-          has to be 0.
-        - If `p=3` then the reduction at 3 must be good ordinary or split
-          multiplicative and the rank must be 0.
 
-        The algorithm is described in [SW]_. The results for the reducible
-        case can be found in [Wu]_. The main ingredient is Kato's result on
-        the main conjecture in Iwasawa theory.
+        - If the reduction at `p` is non-split multiplicative, then
+          the rank must be 0.
+
+        - If `p = 3`, then the reduction at 3 must be good ordinary or
+          split multiplicative, and the rank must be 0.
+
+        ALGORITHM:
+
+        The algorithm is described in [SW]_. The results for the
+        reducible case can be found in [Wu]_. The main ingredient is
+        Kato's result on the main conjecture in Iwasawa theory.
 
         EXAMPLES::
 
@@ -772,7 +784,7 @@ class Sha(SageObject):
             1 + O(5^22)
 
             sage: E = EllipticCurve("5040bi1")
-            sage: E.sha().p_primary_bound(5) # long time
+            sage: E.sha().p_primary_bound(5)    # long time
             0
 
         REFERENCES:
@@ -781,9 +793,9 @@ class Sha(SageObject):
            for the Arithmetic of Elliptic Curves using Iwasawa Theory
            Mathematics of Computation 82 (2013), 1757-1792.
 
-        .. [Wu] Christian Wuthrich, On the integrality of modular symbols and
-           Kato's Euler system for elliptic curves. Doc. Math. 19 (2014),
-           381–402.
+        .. [Wu] Christian Wuthrich, On the integrality of modular
+           symbols and Kato's Euler system for elliptic curves.
+           Doc. Math. 19 (2014), 381-402.
 
         """
         p = Integer(p)
@@ -1032,7 +1044,8 @@ class Sha(SageObject):
             sage: E.sha().bound_kato()
             [2]
 
-        For the following curve one really has that 25 divides the order of `Sha` (by Grigorov-Stein paper [GS]_)::
+        For the following curve one really has that 25 divides the
+        order of `Sha` (by [GJPST]_)::
 
             sage: E = EllipticCurve([1, -1, 0, -332311, -73733731])   # 1058D1
             sage: E.sha().bound_kato()                 # long time (about 1 second)
@@ -1062,10 +1075,10 @@ class Sha(SageObject):
         .. [Gri] G. Grigorov, Kato's Euler System and the Main Conjecture,
            Harvard Ph.D. Thesis (2005).
 
-        .. [GS] G. Grigorov, A. Jorza, S. Patrikis, C. Tarnita, and W. Stein,
-           Computational verification of the Birch and Swinnerton-Dyer
-           conjecture for individual elliptic curves, Math. Comp. 78 (2009),
-           2397-2425.
+        .. [GJPST] G. Grigorov, A. Jorza, S. Patrikis, W. A. Stein,
+           and C. Tarniţǎ, Computational verification of the Birch and
+           Swinnerton-Dyer conjecture for individual elliptic curves,
+           Math. Comp. 78 (2009), 2397-2425.
 
         """
         E = self.Emin

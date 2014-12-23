@@ -1075,14 +1075,15 @@ class FFPDElement(sage.structure.element.RingElement):
         denoms = [(new_vars[j], e[0][j] + 1) for j in xrange(m)]
         # Write r in terms of new_vars,
         # cancel factors in the denominator, and combine like terms.
-        iteration1_temp = FFPDSum([self.parent()(a, denoms) for a in numers]).\
+        FFPD = FractionWithFactoredDenominatorRing(J.ring())
+        iteration1_temp = FFPDSum([FFPD(a, denoms) for a in numers]).\
                           combine_like_terms()
         # Substitute in df.
         qpowsub = dict([(new_vars[j], df[j][0]**df[j][1])
                         for j in xrange(m)])
         iteration1 = FFPDSum()
         for r in iteration1_temp:
-            num1 = p*g.parent()(r.numerator()).subs(qpowsub)
+            num1 = p*J.ring()(r.numerator()).subs(qpowsub)
             denoms1 = []
             for q, e in r.denominator_factored():
                 j = new_vars.index(q)
@@ -1197,6 +1198,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: R.<x,y,z>= PolynomialRing(GF(2, 'a'))
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/(x * y * z * (x*y + z))
             sage: decomp = FFPD(quotient=f).leinartas_decomposition()
             sage: decomp
@@ -2997,9 +2999,7 @@ class FractionWithFactoredDenominatorRing(
         return self.base().base_ring()
 
 
-    def _element_constructor_(self,
-                              numerator=None, denominator_factored=None,
-                              quotient=None, reduce_=True):
+    def _element_constructor_(self, *args, **kwargs):
         r"""
         Returns an element of this ring.
 
@@ -3015,9 +3015,108 @@ class FractionWithFactoredDenominatorRing(
             sage: f
             (1, [(y, 1), (x*y + 1, 1)])
         """
-        return self.element_class(self,
-                                  numerator, denominator_factored,
-                                  quotient, reduce_)
+        R = self.base()
+        Q = R.fraction_field()
+
+        # process deprecated keyword arguments
+        hasn = kwargs.has_key('numerator')
+        hasdf = kwargs.has_key('denominator_factored')
+        if hasn:
+            from sage.misc.superseded import deprecation
+            deprecation(99999, "Keyword argument 'numerator' "
+                               "is deprecated. "
+                               "Ignoring non-keyword argumets (if any). "
+                               "Specify numerator and factored denominator "
+                               "as first and second argument, i.e., use "
+                               "something like FFPD(n, df).")
+        if hasdf:
+            from sage.misc.superseded import deprecation
+            deprecation(99999, "Keyword argument 'denominator_factored' "
+                               "is deprecated. "
+                               "Ignoring non-keyword argumets (if any). "
+                               "Specify numerator and factored denominator "
+                               "as first and second argument, i.e., use "
+                               "something like FFPD(n, df).")
+        if hasn or hasdf:
+            args = [kwargs.pop('numerator') if hasn else R(0),
+                    kwargs.pop('denominator_factored') if hasdf else []]
+
+        hasq = kwargs.has_key('quotient')
+        if hasq:
+            from sage.misc.superseded import deprecation
+            deprecation(99999, "Keyword argument 'quotient' "
+                               "is deprecated. "
+                               "Ignoring non-keyword argumets (if any). "
+                               "Specify numerator and factored denominator "
+                               "as first and second argument, i.e., use "
+                               "something like FFPD(q).")
+            args = [kwargs.pop('quotient')]
+
+        if (hasn or hasdf) and hasq:
+            raise ValueError('Parameters ambiguous.')
+
+        # process keyword arguments
+        reduce_ = kwargs.pop('reduce_', True)
+
+        if kwargs:
+            raise ValueError('Unknown keyword arguments '
+                             '%s given' % (kwargs.keys(),))
+
+        # process arguments
+        if len(args) > 2:
+            raise ValueError('Too many arguments given.')
+
+        elif len(args) == 2:
+            numerator, denominator_factored = args
+            if numerator is None:
+                numerator = R(0)
+            if denominator_factored is None:
+                denominator_factored = []
+
+            from sage.rings.semirings.non_negative_integer_semiring import NN
+            try:
+                denominator_factored = list(
+                    (R(d[0]), NN(d[1])) for d in denominator_factored)
+            except TypeError:
+                raise TypeError('Factored denominator is not well-formed '
+                                'or of wrong type.')
+
+            #for d in denominator_factored:
+            #    if d[0] not in R:
+            #        print "DEBUG:   factor %s of denominator\n      is of type %s\n     (instead of %s)" % (d[0], d[0].parent(), R)  # TODO
+
+            #    try:
+            #        numerator = R(numerator)
+            #    except TypeError:
+            #        quotient = numerator
+            #        numerator = None
+            ##if numerator and numerator not in R:
+            ##    print "DEBUG: numerator %s\n      is of type %s\n     (instead of %s)" % (numerator, numerator.parent(), R)  # TODO
+
+            return self.element_class(self,
+                                      numerator=numerator,
+                                      denominator_factored=denominator_factored,
+                                      reduce_=reduce_)
+
+        elif len(args) == 1:
+            quotient = args[0]
+
+            #    try:
+            #        quotient = Q(quotient)
+            #    except TypeError:
+            #        raise TypeError('Numerator or quotient has wrong type.')
+
+            if quotient not in Q:
+                print "DEBUG:  quotient %s\n      is of type %s\n     (instead of %s)" % (quotient, quotient.parent(), Q)
+
+            return self.element_class(self, quotient=quotient,
+                                      reduce_=reduce_)
+
+        else:
+            raise ValueError('No argument given. '
+                             'We are in serious troubles...')
+
+
 
 
     @staticmethod

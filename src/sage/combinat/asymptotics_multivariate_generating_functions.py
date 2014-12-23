@@ -192,6 +192,7 @@ from sage.symbolic.constants import pi
 from sage.symbolic.relation import solve
 from sage.combinat.subset import Subsets
 
+
 @total_ordering
 class FFPDElement(sage.structure.element.RingElement):
     r"""
@@ -3117,6 +3118,28 @@ class FractionWithFactoredDenominatorRing(
                              'We are in serious troubles...')
 
 
+    def _an_element_(self):
+        r"""
+        Returns an element.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element.
+
+        TESTS::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD.an_element()  # indirect doctest
+            (42, [(x, 3)])
+        """
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        return self(NN.an_element(), [(self.base().an_element(), NN(3))])
 
 
     @staticmethod

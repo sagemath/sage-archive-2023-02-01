@@ -252,7 +252,7 @@ class FFPDElement(sage.structure.element.RingElement):
         sage: R.<x> = PolynomialRing(QQ)
         sage: FFPD = FractionWithFactoredDenominatorRing(R)
         sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
-        sage: FFPD(quotient=f)
+        sage: FFPD(f)
         (5*x^7 - 5*x^6 + 5/3*x^5 - 5/3*x^4 + 2*x^3 - 2/3*x^2 + 1/3*x - 1/3,
         [(x - 1, 1), (x, 1), (x^2 + 1/3, 1)])
 
@@ -261,7 +261,7 @@ class FFPDElement(sage.structure.element.RingElement):
         sage: R.<x,y> = PolynomialRing(QQ)
         sage: FFPD = FractionWithFactoredDenominatorRing(R)
         sage: f = 2*y/(5*(x^3 - 1)*(y + 1))
-        sage: FFPD(quotient=f)
+        sage: FFPD(f)
         (2/5*y, [(y + 1, 1), (x - 1, 1), (x^2 + x + 1, 1)])
 
         sage: p = 1/x^2
@@ -277,7 +277,7 @@ class FFPDElement(sage.structure.element.RingElement):
 
         sage: G = exp(x + y)
         sage: H = (1 - 2*x - y) * (1 - x - 2*y)
-        sage: a = FFPD(quotient=G/H)
+        sage: a = FFPD(G/H)
         sage: a
         (e^(x + y)/(2*x^2 + 5*x*y + 2*y^2 - 3*x - 3*y + 1), [])
         sage: a._ring
@@ -293,13 +293,13 @@ class FFPDElement(sage.structure.element.RingElement):
         sage: R.<x,y> = PolynomialRing(CC)
         sage: FFPD = FractionWithFactoredDenominatorRing(R)
         sage: f = (x + 1)/(x*y*(x*y + 1)^2)
-        sage: FFPD(quotient=f)
+        sage: FFPD(f)
         Traceback (most recent call last):
         ...
         TypeError: Singular error:
            ? not implemented
-           ? error occurred in or before STDIN line 17:
-           `def sage9=factorize(sage8);`
+           ? error occurred in or before STDIN line ...:
+           `def sage...=factorize(sage...);`
 
     AUTHORS:
 
@@ -476,7 +476,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: F = FFPD(G, Hfac)
             sage: F.ring()
             Multivariate Polynomial Ring in x, y over Rational Field
-            sage: F = FFPD(quotient=G/H)
+            sage: F = FFPD(G/H)
             sage: F
             (e^y/(x^3*y^2 + 2*x^3*y + x^2*y^2 + x^3 - 2*x^2*y - x*y^2 - 3*x^2 -
             2*x*y - y^2 + 3*x + 2*y - 1), [])
@@ -585,7 +585,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: G = exp(x + y)
             sage: H = (1 - 2*x - y) * (1 - x - 2*y)
-            sage: a = FFPD(quotient=G/H)
+            sage: a = FFPD(G/H)
             sage: b = FFPD(G, H.factor())
             sage: bool(a == b)
             True
@@ -685,7 +685,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: f
             (15*x^7 - 15*x^6 + 5*x^5 - 5*x^4 + 6*x^3 - 2*x^2 + x - 1)/(3*x^4 -
             3*x^3 + x^2 - x)
-            sage: decomp = FFPD(quotient=f).univariate_decomposition()
+            sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
             [(5*x^3, []), (1, [(x - 1, 1)]), (1, [(x, 1)]),
             (1/3, [(x^2 + 1/3, 1)])]
@@ -699,7 +699,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: f = 5*x^3 + 1/x + 1/(x-1) + exp(x)/(3*x^2 + 1)
             sage: f
             e^x/(3*x^2 + 1) + ((5*(x - 1)*x^3 + 2)*x - 1)/((x - 1)*x)
-            sage: decomp = FFPD(quotient=f).univariate_decomposition()
+            sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
             [(e^x/(3*x^2 + 1) + ((5*(x - 1)*x^3 + 2)*x - 1)/((x - 1)*x), [])]
 
@@ -710,7 +710,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
             sage: f
             (x^6 + x^4 + 1)/(x^3 + x)
-            sage: decomp = FFPD(quotient=f).univariate_decomposition()
+            sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
             [(x^3, []), (1, [(x, 1)]), (x, [(x + 1, 2)])]
             sage: decomp.sum().quotient() == f
@@ -726,7 +726,7 @@ class FFPDElement(sage.structure.element.RingElement):
              - 5.00000000000000*x^4 + 6.00000000000000*x^3
              - 2.00000000000000*x^2 + x - 1.00000000000000)/(3.00000000000000*x^4
              - 3.00000000000000*x^3 + x^2 - x)
-            sage: decomp = FFPD(quotient=f).univariate_decomposition()
+            sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
             [(5.00000000000000*x^3, []),
              (1.00000000000000, [(x - 1.00000000000000, 1)]),
@@ -791,7 +791,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: f = 1/(x*y)
-            sage: L = FFPD(quotient=f).nullstellensatz_certificate()
+            sage: L = FFPD(f).nullstellensatz_certificate()
             sage: L is None
             True
         """
@@ -842,7 +842,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/(x*(x*y + 1))
-            sage: decomp = FFPD(quotient=f).nullstellensatz_decomposition()
+            sage: decomp = FFPD(f).nullstellensatz_decomposition()
             sage: decomp
             [(0, []), (1, [(x, 1)]), (-y, [(x*y + 1, 1)])]
             sage: decomp.sum().quotient() == f
@@ -904,7 +904,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/(x^2 * (x*y + 1) * y^3)
-            sage: ff = FFPD(quotient=f)
+            sage: ff = FFPD(f)
             sage: J = ff.algebraic_dependence_certificate(); J
             Ideal (1 - 6*T2 + 15*T2^2 - 20*T2^3 + 15*T2^4 - T0^2*T1^3 -
              6*T2^5  + T2^6) of Multivariate Polynomial Ring in
@@ -933,7 +933,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: f = 1/(x^3 * y^2)
-            sage: J = FFPD(quotient=f).algebraic_dependence_certificate()
+            sage: J = FFPD(f).algebraic_dependence_certificate()
             sage: J
             Ideal (0) of Multivariate Polynomial Ring in T0, T1 over
             Rational Field
@@ -941,7 +941,7 @@ class FFPDElement(sage.structure.element.RingElement):
         ::
 
             sage: f = sin(1)/(x^3 * y^2)
-            sage: J = FFPD(quotient=f).algebraic_dependence_certificate()
+            sage: J = FFPD(f).algebraic_dependence_certificate()
             sage: print J
             None
         """
@@ -1017,7 +1017,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/(x^2 * (x*y + 1) * y^3)
-            sage: ff = FFPD(quotient=f)
+            sage: ff = FFPD(f)
             sage: decomp = ff.algebraic_dependence_decomposition()
             sage: decomp
             [(0, []), (-x, [(x*y + 1, 1)]), (x^2*y^2 - x*y + 1,
@@ -1138,7 +1138,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: R.<x> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = (x^2 + 1)/((x + 2)*(x - 1)*(x^2 + x + 1))
-            sage: decomp = FFPD(quotient=f).leinartas_decomposition()
+            sage: decomp = FFPD(f).leinartas_decomposition()
             sage: decomp
             [(0, []), (2/9, [(x - 1, 1)]), (-5/9, [(x + 2, 1)]), (1/3*x, [(x^2 + x + 1, 1)])]
             sage: decomp.sum().quotient() == f
@@ -1149,7 +1149,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/x + 1/y + 1/(x*y + 1)
-            sage: decomp = FFPD(quotient=f).leinartas_decomposition()
+            sage: decomp = FFPD(f).leinartas_decomposition()
             sage: decomp
             [(0, []), (1, [(x*y + 1, 1)]), (x + y, [(y, 1), (x, 1)])]
             sage: decomp.sum().quotient() == f
@@ -1201,7 +1201,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: R.<x,y,z>= PolynomialRing(GF(2, 'a'))
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/(x * y * z * (x*y + z))
-            sage: decomp = FFPD(quotient=f).leinartas_decomposition()
+            sage: decomp = FFPD(f).leinartas_decomposition()
             sage: decomp
             [(0, []), (1, [(z, 2), (x*y + z, 1)]),
             (1, [(z, 2), (y, 1), (x, 1)])]
@@ -1254,7 +1254,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: R.<x> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 1/(x^2 + x + 1)^3
-            sage: decomp = FFPD(quotient=f).cohomology_decomposition()
+            sage: decomp = FFPD(f).cohomology_decomposition()
             sage: decomp
             [(0, []), (2/3, [(x^2 + x + 1, 1)])]
 
@@ -1372,7 +1372,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: R.<x> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = (x^2 + 1)/((x - 1)^3*(x + 2))
-            sage: F = FFPD(quotient=f)
+            sage: F = FFPD(f)
             sage: alpha = [var('a')]
             sage: F.asymptotic_decomposition(alpha)
             [(0, []),
@@ -3858,7 +3858,7 @@ class FFPDSum(list):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = x**2 + 3*y + 1/x + 1/y
-            sage: f = FFPD(quotient=f); f
+            sage: f = FFPD(f); f
             (x^3*y + 3*x*y^2 + x + y, [(y, 1), (x, 1)])
             sage: FFPDSum([f]).whole_and_parts()
             [(x^2 + 3*y, []), (x + y, [(y, 1), (x, 1)])]
@@ -3907,8 +3907,8 @@ class FFPDSum(list):
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
-            sage: f = FFPD(quotient=1/(x * y * (x*y + 1)))
-            sage: g = FFPD(quotient=x/(x * y * (x*y + 1)))
+            sage: f = FFPD(1/(x * y * (x*y + 1)))
+            sage: g = FFPD(x/(x * y * (x*y + 1)))
             sage: s = FFPDSum([f, g, f])
             sage: t = s.combine_like_terms()
             sage: s

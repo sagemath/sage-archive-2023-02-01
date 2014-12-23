@@ -361,7 +361,7 @@ There are however a variety of such algorithms available in gambit,
 further compatibility between Sage and gambit is actively being developed:
 https://github.com/tturocy/gambit/tree/sage_integration.
 
-Note that the Gambit implementation of `LCP` can only handle integer
+Note that the Gambit implementation of ``LCP`` can only handle integer
 payoffs. If a non integer payoff is used an error will be raised::
 
     sage: A = matrix([[2, 1], [1, 2.5]])
@@ -402,6 +402,11 @@ It is also possible to generate a Normal Form Game from a gambit Game::
     sage: g = NormalFormGame(gambitgame)  # optional - gambit
     sage: g  # optional - gambit
     Normal Form Game with the following utilities: {(0, 1): [2.0, 10.0], (1, 0): [10.0, 2.0], (0, 0): [8.0, 8.0], (1, 1): [5.0, 5.0]}
+
+For more information on using Gambit in Sage see: :mod:`Using Gambit in
+Sage<sage.game_theory.gambit_docs>`. This includes how to access Gambit
+directly using the version of IPython shipped with Sage and an explanation
+as to why the ``int`` calls are needed to handle the Sage preparser.
 
 Here is a slightly longer game that would take too long to solve with
 ``'enumeration'``. Consider the following:

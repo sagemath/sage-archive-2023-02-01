@@ -1,3 +1,6 @@
+"""
+Crystal features that are imported by default in the interpreter namespace
+"""
 import catalog as crystals
 
 from sage.misc.lazy_import import lazy_import

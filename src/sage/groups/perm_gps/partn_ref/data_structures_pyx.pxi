@@ -23,7 +23,7 @@ REFERENCES:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 cdef extern from "math.h":
     float log(float x)
@@ -783,8 +783,8 @@ cdef StabilizerChain *SC_new(int n, bint init_gens=True):
     SC.gen_is_id.size  = default_num_bits
     SC.gen_used.limbs  = limbs
     SC.gen_is_id.limbs = limbs
-    SC.gen_used.bits   = <unsigned long*>sage_malloc(limbs * sizeof(unsigned long))
-    SC.gen_is_id.bits  = <unsigned long*>sage_malloc(limbs * sizeof(unsigned long))
+    SC.gen_used.bits   = <mp_limb_t*>sage_malloc(limbs * sizeof(mp_limb_t))
+    SC.gen_is_id.bits  = <mp_limb_t*>sage_malloc(limbs * sizeof(mp_limb_t))
 
     # check for allocation failures
     if int_array        is NULL or int_ptrs          is NULL or \
@@ -945,12 +945,12 @@ cdef int SC_realloc_bitsets(StabilizerChain *SC, long size):
         new_size *= 2
     cdef unsigned long limbs_old = SC.gen_used.limbs
     cdef long limbs = (new_size - 1)/(8*sizeof(unsigned long)) + 1
-    cdef unsigned long *tmp = <unsigned long *> sage_realloc(SC.gen_used.bits, limbs * sizeof(unsigned long))
+    cdef mp_limb_t *tmp = <mp_limb_t*> sage_realloc(SC.gen_used.bits, limbs * sizeof(mp_limb_t))
     if tmp is not NULL:
         SC.gen_used.bits = tmp
     else:
         return 1
-    tmp = <unsigned long *> sage_realloc(SC.gen_is_id.bits, limbs * sizeof(unsigned long))
+    tmp = <mp_limb_t*> sage_realloc(SC.gen_is_id.bits, limbs * sizeof(mp_limb_t))
     if tmp is not NULL:
         SC.gen_is_id.bits = tmp
     else:
@@ -959,9 +959,9 @@ cdef int SC_realloc_bitsets(StabilizerChain *SC, long size):
     SC.gen_is_id.limbs = limbs
     SC.gen_used.size = new_size
     SC.gen_is_id.size = new_size
-    SC.gen_used.bits[size_old >> index_shift] &= ((<unsigned long>1 << (size_old & offset_mask)) - 1)
+    SC.gen_used.bits[size_old >> index_shift] &= limb_lower_bits_down(size_old)
     memset(SC.gen_used.bits + (size_old >> index_shift) + 1, 0, (limbs - (size_old >> index_shift) - 1) * sizeof(unsigned long))
-    SC.gen_is_id.bits[size_old >> index_shift] &= ((<unsigned long>1 << (size_old & offset_mask)) - 1)
+    SC.gen_is_id.bits[size_old >> index_shift] &= limb_lower_bits_down(size_old)
     memset(SC.gen_is_id.bits + (size_old >> index_shift) + 1, 0, (limbs - (size_old >> index_shift) - 1) * sizeof(unsigned long))
     return 0
 
@@ -1952,22 +1952,17 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
                         print 'element', permy
                         print 'random element not contained in group, according to GAP'
                         raise AssertionError
-    except AssertionError:
+    except Exception:
+        if giant:
+            print "detected giant!"
+        raise
+    finally:
         bitset_free(giant_support)
         sage_free(perm)
         SC_dealloc(SC)
         SC_dealloc(SCC)
         SC_dealloc(SCCC)
         SC_dealloc(SC_nb)
-        if giant:
-            print "detected giant!"
-        raise AssertionError
-    bitset_free(giant_support)
-    sage_free(perm)
-    SC_dealloc(SC)
-    SC_dealloc(SCC)
-    SC_dealloc(SCCC)
-    SC_dealloc(SC_nb)
 
 # Functions
 

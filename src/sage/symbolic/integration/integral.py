@@ -116,6 +116,8 @@ class IndefiniteIntegral(BuiltinFunction):
             sage: f = function('f')
             sage: print_latex(f(x),x)
             '\\int f\\left(x\\right)\\,{d x}'
+            sage: latex(integrate(tan(x)/x, x))
+            \int \frac{\tan\left(x\right)}{x}\,{d x}
         """
         from sage.misc.latex import latex
         if not is_SymbolicVariable(x):
@@ -236,8 +238,8 @@ class DefiniteIntegral(BuiltinFunction):
             sage: f = function('f')
             sage: print_latex(f(x),x,0,1)
             '\\int_{0}^{1} f\\left(x\\right)\\,{d x}'
-            sage: latex(integrate(1/(1+sqrt(x)),x,0,1))
-            \int_{0}^{1} \frac{1}{\sqrt{x} + 1}\,{d x}
+            sage: latex(integrate(tan(x)/x, x, 0, 1))
+            \int_{0}^{1} \frac{\tan\left(x\right)}{x}\,{d x}
         """
         from sage.misc.latex import latex
         if not is_SymbolicVariable(x):
@@ -468,13 +470,13 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
                  x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                              2                 Pi
         sage: print f.integral(x)
-        x*y^z + 1/8*sqrt(pi)*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x))
+        x*y^z + 1/16*sqrt(pi)*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) - (I - 1)*sqrt(2)*erf(sqrt(-I)*x) + (I + 1)*sqrt(2)*erf((-1)^(1/4)*x))
 
     Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
     over the internet (does NOT require a Mathematica license!)::
 
-        sage: _ = var('x, y, z')   # optional - internet
-        sage: f = sin(x^2) + y^z   # optional - internet
+        sage: _ = var('x, y, z')
+        sage: f = sin(x^2) + y^z
         sage: f.integrate(x, algorithm="mathematica_free")   # optional - internet
         x*y^z + sqrt(1/2)*sqrt(pi)*fresnels(sqrt(2)*x/sqrt(pi))
 
@@ -494,10 +496,10 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     We integrate the above function in Maple now::
 
-        sage: g = maple(f); g                             # optional - maple
-        sin(x^2)+y^z
-        sage: g.integrate(x)                              # optional - maple
-        1/2*2^(1/2)*Pi^(1/2)*FresnelS(2^(1/2)/Pi^(1/2)*x)+y^z*x
+        sage: g = maple(f); g.sort()         # optional - maple
+        y^z+sin(x^2)
+        sage: g.integrate(x).sort()          # optional - maple
+        x*y^z+1/2*2^(1/2)*Pi^(1/2)*FresnelS(2^(1/2)/Pi^(1/2)*x)
 
     We next integrate a function with no closed form integral. Notice
     that the answer comes back as an expression that contains an
@@ -602,12 +604,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         ...
         ValueError: invalid input (x, 1, 2, 3) - please use variable, with or without two endpoints
 
-    Note that this used to be the test, but it is
-    actually divergent (though Maxima as yet does
-    not say so)::
+    Note that this used to be the test, but it is actually divergent
+    (though Maxima currently returns the principal value)::
 
         sage: integrate(t*cos(-theta*t),(t,-oo,oo))
-        integrate(t*cos(t*theta), t, -Infinity, +Infinity)
+        0
 
     Check if :trac:`6189` is fixed::
 
@@ -656,7 +657,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     of the gamma function; however, we get something equivalent::
 
         sage: actual_result = integral(e^(-1/x^2), x, 0, 1)
-        sage: actual_result.simplify_radical()
+        sage: actual_result.canonicalize_radical()
         (sqrt(pi)*(erf(1)*e - e) + 1)*e^(-1)
         sage: ideal_result = 1/2*gamma(-1/2, 1)
         sage: error = actual_result - ideal_result

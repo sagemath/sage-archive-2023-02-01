@@ -360,7 +360,7 @@ documentation that makes up the Sage standard documentation. If you
 have downloaded a binary Sage release, the HTML version of the
 corresponding documentation comes pre-built and can be found under the
 directory
-``SAGE_ROOT/devel/sage-main/doc/output/html/``. During the compilation
+``SAGE_ROOT/src/doc/output/html/``. During the compilation
 of Sage from source, the HTML version of the documentation is also
 built in the process. To build the HTML version of the documentation,
 issue the following command from ``SAGE_ROOT``::

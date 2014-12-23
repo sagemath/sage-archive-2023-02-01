@@ -21,7 +21,7 @@ EXAMPLES:
 
 The sine function::
 
-    sage: sines = [plot(c*sin(x), (-2*pi,2*pi), color=Color(c,0,0), ymin=-1,ymax=1) for c in sxrange(0,1,.2)]
+    sage: sines = [plot(c*sin(x), (-2*pi,2*pi), color=Color(c,0,0), ymin=-1, ymax=1) for c in sxrange(0,1,.2)]
     sage: a = animate(sines)
     sage: a
     Animation with 5 frames
@@ -54,14 +54,17 @@ Animations of 3d objects::
     ....:     return sphere((0,0,0),1,color='red',opacity=.5)+parametric_plot3d([t,x,s],(s,-1,1),(t,-1,1),color='green',opacity=.7)
     sage: sp = animate([sphere_and_plane(x) for x in sxrange(-1,1,.3)])
     sage: sp[0]      # first frame
+    Graphics3d Object
     sage: sp[-1]     # last frame
+    Graphics3d Object
     sage: sp.show()  # optional -- ImageMagick
 
     sage: (x,y,z) = var('x,y,z')
     sage: def frame(t):
     ....:     return implicit_plot3d((x^2 + y^2 + z^2), (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=[1,3,5], region=lambda x,y,z: x<=t or y>=t or z<=t)
     sage: a = animate([frame(t) for t in srange(.01,1.5,.2)])
-    sage: a[0]       # first frame
+    sage: a[0]       # long time
+    Graphics3d Object
     sage: a.show()   # optional -- ImageMagick
 
 If the input objects do not have a ``save_image`` method, then the
@@ -113,6 +116,8 @@ def animate(frames, **kwds):
         sage: t = var('t')
         sage: a = animate((cos(c*pi*t) for c in sxrange(1,2,.2)))
         sage: a.show()  # optional -- ImageMagick
+
+    See also :mod:`sage.plot.animate` for more examples.
     """
     return Animation(frames, **kwds)
 
@@ -176,7 +181,7 @@ class Animation(SageObject):
     We check that :trac:`7981` is fixed::
 
         sage: a = animate([plot(sin(x + float(k)), (0, 2*pi), ymin=-5, ymax=5)
-        ....:            for k in srange(0,2*pi,0.3)])
+        ....:              for k in srange(0,2*pi,0.3)])
         sage: a.show() # optional -- ImageMagick
 
     Do not convert input iterator to a list::
@@ -288,10 +293,12 @@ class Animation(SageObject):
         EXAMPLES::
 
             sage: a = animate([circle((i,0),1) for i in srange(0,2,0.4)],
-            ....:                xmin=0, ymin=-1, xmax=3, ymax=1, figsize=[2,1])
+            ....:             xmin=0, ymin=-1, xmax=3, ymax=1,
+            ....:             figsize=[3,1], ticks=[1,1])
             sage: a.show()        # optional -- ImageMagick
             sage: b = animate([circle((0,i),1,hue=0) for i in srange(0,2,0.4)],
-            ....:                xmin=0, ymin=-1, xmax=1, ymax=3, figsize=[1,2])
+            ....:             xmin=0, ymin=-1, xmax=2, ymax=3,
+            ....:             figsize=[1,2], ticks=[1,1])
             sage: b.show()        # optional -- ImageMagick
             sage: s = a+b         # indirect doctest
             sage: len(a), len(b)
@@ -372,8 +379,7 @@ class Animation(SageObject):
             sage: y = lambda n,t: sin(t)/n
             sage: B = MyAnimation([([x(t), y(i+1,t)],(t,0,1), {'color':Color((1,0,i/4)), 'aspect_ratio':1, 'ymax':1}) for i in range(4)])
 
-            sage: d = B.png()
-            sage: v = os.listdir(d); v.sort(); v
+            sage: d = B.png(); v = os.listdir(d); v.sort(); v  # long time
             ['00000000.png', '00000001.png', '00000002.png', '00000003.png']
             sage: B.show()  # not tested
 
@@ -390,8 +396,8 @@ class Animation(SageObject):
             sage: B.show()  # not tested
 
         """
-        p = plot.plot(frame)
-        p.save_image(filename, **kwds)
+        p = plot.plot(frame, **kwds)
+        p.save_image(filename)
 
     def png(self, dir=None):
         r"""
@@ -411,9 +417,8 @@ class Animation(SageObject):
 
         EXAMPLES::
 
-            sage: a = animate([plot(x^2 + n) for n in range(4)])
-            sage: d = a.png()
-            sage: v = os.listdir(d); v.sort(); v
+            sage: a = animate([plot(x^2 + n) for n in range(4)], ymin=0, ymax=4)
+            sage: d = a.png(); v = os.listdir(d); v.sort(); v  # long time
             ['00000000.png', '00000001.png', '00000002.png', '00000003.png']
         """
         if dir is None:
@@ -446,7 +451,7 @@ class Animation(SageObject):
 
             sage: E = EllipticCurve('37a')
             sage: v = [E.change_ring(GF(p)).plot(pointsize=30) for p in [97, 101, 103, 107]]
-            sage: a = animate(v, xmin=0, ymin=0)
+            sage: a = animate(v, xmin=0, ymin=0, axes=False)
             sage: a
             Animation with 4 frames
             sage: a.show() # optional -- ImageMagick
@@ -455,7 +460,7 @@ class Animation(SageObject):
 
             sage: g = a.graphics_array(); print g
             Graphics Array of size 2 x 3
-            sage: g.show(figsize=[4,1]) # optional
+            sage: g.show(figsize=[6,3]) # optional
 
         Specify different arrangement of array and save with different file name::
 
@@ -518,13 +523,13 @@ class Animation(SageObject):
         EXAMPLES::
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
-            sage: dir = tmp_dir()
+            ....:             xmin=0, xmax=2*pi, ymin=-1, ymax=1, figsize=[2,1])
+            sage: td = tmp_dir()
             sage: a.gif()              # not tested
-            sage: a.gif(savefile=dir + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
-            sage: a.gif(savefile=dir + 'my_animation.gif', show_path=True) # optional -- ImageMagick
+            sage: a.gif(savefile=td + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
+            sage: a.gif(savefile=td + 'my_animation.gif', show_path=True) # optional -- ImageMagick
             Animation saved to .../my_animation.gif.
-            sage: a.gif(savefile=dir + 'my_animation_2.gif', show_path=True, use_ffmpeg=True) # optional -- ffmpeg
+            sage: a.gif(savefile=td + 'my_animation_2.gif', show_path=True, use_ffmpeg=True) # optional -- ffmpeg
             Animation saved to .../my_animation_2.gif.
 
         .. note::
@@ -561,7 +566,7 @@ www.ffmpeg.org, or use 'convert' to produce gifs instead."""
                 raise OSError(msg)
         else:
             if not savefile:
-                savefile = graphics_filename(ext='gif')
+                savefile = graphics_filename(ext='.gif')
             if not savefile.endswith('.gif'):
                 savefile += '.gif'
             savefile = os.path.abspath(savefile)
@@ -632,7 +637,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
-        filename = graphics_filename(ext='gif')
+        filename = graphics_filename(ext='.gif')
         self.gif(savefile=filename, delay=delay, iterations=iterations)
         if not (sage.doctest.DOCTEST_MODE or plot.EMBEDDED_MODE):
             os.system('%s %s 2>/dev/null 1>/dev/null &'%(
@@ -707,12 +712,12 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         EXAMPLES::
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
-            sage: dir = tmp_dir()
-            sage: a.ffmpeg(savefile=dir + 'new.mpg')       # optional -- ffmpeg
-            sage: a.ffmpeg(savefile=dir + 'new.avi')       # optional -- ffmpeg
-            sage: a.ffmpeg(savefile=dir + 'new.gif')       # optional -- ffmpeg
-            sage: a.ffmpeg(savefile=dir + 'new.mpg', show_path=True) # optional -- ffmpeg
+            ....:             xmin=0, xmax=2*pi, ymin=-1, ymax=1, figsize=[2,1])
+            sage: td = tmp_dir()
+            sage: a.ffmpeg(savefile=td + 'new.mpg')       # optional -- ffmpeg
+            sage: a.ffmpeg(savefile=td + 'new.avi')       # optional -- ffmpeg
+            sage: a.ffmpeg(savefile=td + 'new.gif')       # optional -- ffmpeg
+            sage: a.ffmpeg(savefile=td + 'new.mpg', show_path=True) # optional -- ffmpeg
             Animation saved to .../new.mpg.
 
         .. note::
@@ -743,7 +748,7 @@ please install it and try again."""
                 else:
                     if output_format[0] != '.':
                         output_format = '.'+output_format
-                savefile = graphics_filename(ext=output_format[1:])
+                savefile = graphics_filename(ext=output_format)
             else:
                 if output_format is None:
                     suffix = os.path.splitext(savefile)[1]
@@ -830,16 +835,16 @@ please install it and try again."""
         EXAMPLES::
 
             sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
-            ....:                xmin=0, xmax=2*pi, figsize=[2,1])
-            sage: dir = tmp_dir()
+            ....:             xmin=0, xmax=2*pi, ymin=-1, ymax=1, figsize=[2,1])
+            sage: td = tmp_dir()
             sage: a.save()         # not tested
-            sage: a.save(dir + 'wave.gif')   # optional -- ImageMagick
-            sage: a.save(dir + 'wave.gif', show_path=True)   # optional -- ImageMagick
+            sage: a.save(td + 'wave.gif')   # optional -- ImageMagick
+            sage: a.save(td + 'wave.gif', show_path=True)   # optional -- ImageMagick
             Animation saved to file .../wave.gif.
-            sage: a.save(dir + 'wave.avi', show_path=True)   # optional -- ffmpeg
+            sage: a.save(td + 'wave.avi', show_path=True)   # optional -- ffmpeg
             Animation saved to file .../wave.avi.
-            sage: a.save(dir + 'wave0.sobj')
-            sage: a.save(dir + 'wave1.sobj', show_path=True)
+            sage: a.save(td + 'wave0.sobj')
+            sage: a.save(td + 'wave1.sobj', show_path=True)
             Animation saved to file .../wave1.sobj.
         """
         if filename is None:

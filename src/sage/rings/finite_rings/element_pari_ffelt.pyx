@@ -38,9 +38,6 @@ from sage.structure.element cimport Element, ModuleElement, RingElement
 
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
-cdef extern from "sage/libs/pari/misc.h":
-    int gcmp_sage(GEN x, GEN y)
-
 
 cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
     """
@@ -402,7 +399,11 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             sage: a > a^2
             False
         """
-        return gcmp_sage(self.val, (<FiniteFieldElement_pari_ffelt>other).val)
+        cdef int r
+        pari_catch_sig_on()
+        r = cmp_universal(self.val, (<FiniteFieldElement_pari_ffelt>other).val)
+        pari_catch_sig_off()
+        return r
 
     def __richcmp__(FiniteFieldElement_pari_ffelt left, object right, int op):
         """

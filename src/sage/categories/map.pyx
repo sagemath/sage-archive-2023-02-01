@@ -135,6 +135,7 @@ cdef class Map(Element):
         Element.__init__(self, parent)
         D = parent.domain()
         C = parent.codomain()
+        self._category_for = parent.homset_category()
         self._codomain = C
         self.domain    = ConstantFunction(D)
         self.codomain  = ConstantFunction(C)
@@ -235,7 +236,7 @@ cdef class Map(Element):
             C = self._codomain
             if C is None or D is None:
                 raise ValueError("This map is in an invalid state, the domain has been garbage collected")
-            return homset.Hom(D, C)
+            return homset.Hom(D, C, self._category_for)
         return self._parent
 
     def _make_weak_references(self):
@@ -295,6 +296,8 @@ cdef class Map(Element):
         if not isinstance(self.domain, ConstantFunction):
             return
         self.domain = weakref.ref(self.domain())
+        # Save the category before clearing the parent.
+        self._category_for = self._parent.homset_category()
         self._parent = None
 
     def _make_strong_references(self):
@@ -367,7 +370,7 @@ cdef class Map(Element):
         if D is None or C is None:
             raise RuntimeError("The domain of this map became garbage collected")
         self.domain = ConstantFunction(D)
-        self._parent = homset.Hom(D, C)
+        self._parent = homset.Hom(D, C, self._category_for)
 
     cdef _update_slots(self, dict _slots):
         """
@@ -456,7 +459,10 @@ cdef class Map(Element):
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
             sage: f._extra_slots_test({"bla": 1})
-            {'_codomain': Integer Ring, '_domain': Rational Field, 'bla': 1, '_repr_type_str': None}
+            {'_codomain': Integer Ring,
+             '_domain': Rational Field,
+             '_repr_type_str': None,
+             'bla': 1}
         """
         return self._extra_slots(_slots)
 
@@ -611,17 +617,24 @@ cdef class Map(Element):
             sage: phi.category_for()
             Category of rings
             sage: phi.category()
-            Category of hom sets in Category of rings
+            Category of homsets of unital magmas and additive unital additive magmas
             sage: R.<x,y> = QQ[]
             sage: f = R.hom([x+y, x-y], R)
             sage: f.category_for()
             Join of Category of unique factorization domains and Category of commutative algebras over quotient fields
             sage: f.category()
-            Join of Category of hom sets in Category of modules over quotient fields and Category of hom sets in Category of rings
+            Category of endsets of unital magmas and right modules over quotient fields and left modules over quotient fields
 
         FIXME: find a better name for this method
         """
-        return self.parent().homset_category()
+        if self._category_for is None:
+            # This can happen if the map is the result of unpickling.
+            # We have initialised self._parent, but could not set
+            # self._category_for at that moment, because it could
+            # happen that the parent was not fully constructed and
+            # did not know its category yet.
+            self._category_for = self._parent.homset_category()
+        return self._category_for
 
     def __call__(self, x, *args, **kwds):
         """

@@ -1754,7 +1754,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc(3)
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=sin(3)) to an integer
+        TypeError: unable to convert sin(3) to an integer
 
         sage: fc = fast_callable(etb(x)^100)
         sage: fc(pi)
@@ -1788,7 +1788,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: fc = fast_callable(etb(x)^expo, domain=RDF)
         sage: fc.op_list()
         [('load_arg', 0), ('py_call', (^4294967296), 1), 'return']
-        sage: fc(base)
+        sage: fc(base)        # rel tol 1e-15
         1.0000009536747712
         sage: RDF(base)^expo
         1.0000009536747712
@@ -1918,7 +1918,12 @@ cdef class InstructionStream:
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: instr_stream.get_current()
-            {'domain': None, 'code': [], 'py_constants': [], 'args': 1, 'stack': 0, 'constants': []}
+            {'args': 1,
+             'code': [],
+             'constants': [],
+             'domain': None,
+             'py_constants': [],
+             'stack': 0}
             sage: md = instr_stream.get_metadata()
             sage: type(md)
             <type 'sage.ext.fast_callable.InterpreterMetadata'>
@@ -2133,7 +2138,12 @@ cdef class InstructionStream:
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: instr_stream.get_current()
-            {'domain': None, 'code': [], 'py_constants': [], 'args': 1, 'stack': 0, 'constants': []}
+            {'args': 1,
+             'code': [],
+             'constants': [],
+             'domain': None,
+             'py_constants': [],
+             'stack': 0}
             sage: instr_stream.instr('load_arg', 0)
             sage: instr_stream.instr('py_call', math.sin, 1)
             sage: instr_stream.instr('abs')
@@ -2141,7 +2151,12 @@ cdef class InstructionStream:
             sage: instr_stream.current_op_list()
             [('load_arg', 0), ('py_call', <built-in function sin>, 1), 'abs', 'return']
             sage: instr_stream.get_current()
-            {'domain': None, 'code': [0, 0, 3, 0, 1, 12, 2], 'py_constants': [<built-in function sin>], 'args': 1, 'stack': 1, 'constants': []}
+            {'args': 1,
+             'code': [0, 0, 3, 0, 1, 12, 2],
+             'constants': [],
+             'domain': None,
+             'py_constants': [<built-in function sin>],
+             'stack': 1}
         """
         d = {'args': self._n_args,
              'constants': self._constants,
@@ -2317,7 +2332,12 @@ cdef class Wrapper:
             sage: instr_stream.instr('return')
             sage: v = Wrapper_py(instr_stream.get_current())
             sage: v.get_orig_args()
-            {'domain': None, 'code': [0, 0, 1, 0, 4, 0, 0, 1, 1, 4, 6, 2], 'py_constants': [], 'args': 1, 'stack': 3, 'constants': [pi, 1]}
+            {'args': 1,
+             'code': [0, 0, 1, 0, 4, 0, 0, 1, 1, 4, 6, 2],
+             'constants': [pi, 1],
+             'domain': None,
+             'py_constants': [],
+             'stack': 3}
             sage: v.op_list()
             [('load_arg', 0), ('load_const', pi), 'add', ('load_arg', 0), ('load_const', 1), 'add', 'mul', 'return']
         """
@@ -2339,7 +2359,12 @@ cdef class Wrapper:
         EXAMPLES::
 
             sage: fast_callable(sin(x)/x, vars=[x], domain=RDF).get_orig_args()
-            {'domain': Real Double Field, 'code': [0, 0, 16, 0, 0, 8, 2], 'py_constants': [], 'args': 1, 'stack': 2, 'constants': []}
+            {'args': 1,
+             'code': [0, 0, 16, 0, 0, 8, 2],
+             'constants': [],
+             'domain': Real Double Field,
+             'py_constants': [],
+             'stack': 2}
         """
         return self._orig_args
 

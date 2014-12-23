@@ -49,7 +49,7 @@ only differ by a lattice automorphism::
     sage: fibers = [ f.vertices() for f in square.fibration_generator(1) ];  fibers
     [((1, 0), (-1, 0)), ((0, 1), (0, -1)), ((-1, -1), (1, 1)), ((-1, 1), (1, -1))]
     sage: square.pointsets_mod_automorphism(fibers)
-    (frozenset([(0, 1), (0, -1)]), frozenset([(1, 1), (-1, -1)]))
+    (frozenset({(0, -1), (0, 1)}), frozenset({(-1, -1), (1, 1)}))
 
 AUTHORS:
 
@@ -434,11 +434,11 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: quad = LatticePolytope_PPL((-1,-1),(0,1),(1,0),(1,1))
             sage: quad._integral_points_saturating()
-            (((-1, -1), frozenset([0, 1])),
-             ((0, 0), frozenset([])),
-             ((0, 1), frozenset([0, 3])),
-             ((1, 0), frozenset([1, 2])),
-             ((1, 1), frozenset([2, 3])))
+            (((-1, -1), frozenset({0, 1})),
+             ((0, 0), frozenset()),
+             ((0, 1), frozenset({0, 3})),
+             ((1, 0), frozenset({1, 2})),
+             ((1, 1), frozenset({2, 3})))
         """
         if self.is_empty():
             return tuple()
@@ -653,7 +653,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: square = LatticePolytope_PPL((-1,-1),(-1,1),(1,-1),(1,1))
             sage: fibers = [ f.vertices() for f in square.fibration_generator(1) ]
             sage: square.pointsets_mod_automorphism(fibers)
-            (frozenset([(0, 1), (0, -1)]), frozenset([(1, 1), (-1, -1)]))
+            (frozenset({(0, -1), (0, 1)}), frozenset({(-1, -1), (1, 1)}))
 
             sage: cell24 = LatticePolytope_PPL(
             ...   (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
@@ -662,9 +662,13 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ...   (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1))
             sage: fibers = [ f.vertices() for f in cell24.fibration_generator(2) ]
             sage: cell24.pointsets_mod_automorphism(fibers)   # long time
-            (frozenset([(1, 0, -1, 0), (-1, 0, 1, 0), (0, -1, -1, 1), (0, 1, 1, -1)]),
-             frozenset([(-1, 0, 0, 0), (1, 0, 0, 0), (0, 0, 0, 1),
-                        (1, 0, 0, -1), (0, 0, 0, -1), (-1, 0, 0, 1)]))
+            (frozenset({(-1, 0, 1, 0), (0, -1, -1, 1), (0, 1, 1, -1), (1, 0, -1, 0)}),
+             frozenset({(-1, 0, 0, 0),
+                        (-1, 0, 0, 1),
+                        (0, 0, 0, -1),
+                        (0, 0, 0, 1),
+                        (1, 0, 0, -1),
+                        (1, 0, 0, 0)}))
         """
         points = set()
         for ps in pointsets:
@@ -1233,11 +1237,15 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: polygon.embed_in_reflexive_polytope('polytope')
             A 2-dimensional lattice polytope in ZZ^2 with 3 vertices
             sage: polygon.embed_in_reflexive_polytope('points')
-            {(0, 0, 2, 1): (1, 0), (2, 1, 0, 2): (2, 1),
-             (0, 1, 2, 0): (0, 1), (1, 1, 1, 1): (1, 1),
-             (1, 2, 1, 0): (0, 2), (2, 2, 0, 1): (1, 2),
-             (2, 3, 0, 0): (0, 3), (1, 0, 1, 2): (2, 0),
-             (2, 0, 0, 3): (3, 0)}
+            {(0, 0, 2, 1): (1, 0),
+             (0, 1, 2, 0): (0, 1),
+             (1, 0, 1, 2): (2, 0),
+             (1, 1, 1, 1): (1, 1),
+             (1, 2, 1, 0): (0, 2),
+             (2, 0, 0, 3): (3, 0),
+             (2, 1, 0, 2): (2, 1),
+             (2, 2, 0, 1): (1, 2),
+             (2, 3, 0, 0): (0, 3)}
 
             sage: LatticePolytope_PPL((0,0), (4,0), (0,4)).embed_in_reflexive_polytope()
             Traceback (most recent call last):

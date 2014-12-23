@@ -417,10 +417,10 @@ def BIBD_from_TD(v,k,existence=False):
             return True
 
         v = v//k
-        BIBDvk = balanced_incomplete_block_design(v,k).blocks(copy=False)
+        BIBDvk = balanced_incomplete_block_design(v,k)._blocks
         TDkv = transversal_design(k,v,check=False)
 
-        BIBD = TDkv.blocks(copy=False)
+        BIBD = TDkv._blocks
         for i in range(k):
             BIBD.extend([[x+i*v for x in B] for B in BIBDvk])
 
@@ -433,8 +433,8 @@ def BIBD_from_TD(v,k,existence=False):
             return True
 
         v = (v-1)//k
-        BIBDv1k = balanced_incomplete_block_design(v+1,k).blocks(copy=False)
-        TDkv = transversal_design(k,v,check=False).blocks(copy=False)
+        BIBDv1k = balanced_incomplete_block_design(v+1,k)._blocks
+        TDkv = transversal_design(k,v,check=False)._blocks
 
         inf = v*k
         BIBD = TDkv
@@ -451,7 +451,7 @@ def BIBD_from_TD(v,k,existence=False):
 
         v = (v-k)//k
         BIBDvpkk = balanced_incomplete_block_design(v+k,k)
-        TDkv = transversal_design(k,v,check=False).blocks(copy=False)
+        TDkv = transversal_design(k,v,check=False)._blocks
         inf = v*k
         BIBD = TDkv
 
@@ -609,10 +609,10 @@ def v_4_1_BIBD(v, check=True):
     if v == 13:
         # note: this construction can also be obtained from difference_family
         from block_design import projective_plane
-        return projective_plane(3).blocks(copy=False)
+        return projective_plane(3)._blocks
     if v == 16:
         from block_design import AffineGeometryDesign
-        return AffineGeometryDesign(2,1,FiniteField(4,'x')).blocks(copy=False)
+        return AffineGeometryDesign(2,1,FiniteField(4,'x'))._blocks
     if v == 25 or v == 37:
         from difference_family import difference_family
         G,D = difference_family(v,4)
@@ -773,7 +773,7 @@ def PBD_4_5_8_9_12(v, check=True):
     elif v == 13 or v == 28:
         PBD = v_4_1_BIBD(v, check=False)
     elif v == 29:
-        TD47 = transversal_design(4,7).blocks(copy=False)
+        TD47 = transversal_design(4,7)._blocks
         four_more_sets = [[28]+[i*7+j for j in range(7)] for i in range(4)]
         PBD = TD47 + four_more_sets
     elif v == 41:
@@ -1118,13 +1118,19 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
     def __init__(self, points, blocks, K=None, lambd=1, check=True, copy=True,**kwds):
         r"""
         Constructor
+
+        EXAMPLE::
+
+            sage: designs.balanced_incomplete_block_design(13,3) # indirect doctest
+            (13,3,1)-Balanced Incomplete Block Design
+
         """
         try:
-            int(points)
-        except:
+            i = int(points)
+        except TypeError:
             pass
         else:
-            points = range(points)
+            points = range(i)
 
         GroupDivisibleDesign.__init__(self,
                                       points,
@@ -1141,6 +1147,9 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
         Returns a string describing the PBD
 
         EXAMPLES::
+
+            sage: designs.balanced_incomplete_block_design(13,3) # indirect doctest
+            (13,3,1)-Balanced Incomplete Block Design
         """
         return "Pairwise Balanced Design on {} points with sets of sizes in {}".format(self.num_points(),set(self.block_sizes()))
 

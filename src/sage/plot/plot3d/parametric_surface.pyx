@@ -266,12 +266,14 @@ cdef class ParametricSurface(IndexFaceSet):
 
             sage: D = dodecahedron()
             sage: D.dual()
+            Graphics3d Object
 
         But any enclosed surface should work::
 
             sage: from sage.plot.plot3d.shapes import Torus
             sage: T =  Torus(1, .2)
             sage: T.dual()
+            Graphics3d Object
             sage: T.is_enclosed()
             True
 
@@ -644,8 +646,11 @@ class MobiusStrip(ParametricSurface):
 
             sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
             sage: M = MobiusStrip(3,3); M # Same width and radius, roughly
+            Graphics3d Object
             sage: N = MobiusStrip(7,3,2); N # two twists, lots of open area in the middle
+            Graphics3d Object
             sage: O = MobiusStrip(5,1,plot_points=200,color='red'); O # keywords get passed to plot3d
+            Graphics3d Object
 
         """
         ParametricSurface.__init__(self, **kwds)

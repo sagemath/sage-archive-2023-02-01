@@ -6,7 +6,7 @@ This module implements the design methods that need to be somewhat efficient.
 Functions
 ---------
 """
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 include "sage/ext/stdsage.pxi"
 
 from libc.string cimport memset
@@ -34,7 +34,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
     EXAMPLES::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-        sage: OA = designs.orthogonal_array(8,9)
+        sage: OA = designs.orthogonal_arrays.build(8,9)
         sage: is_orthogonal_array(OA,8,9)
         True
         sage: is_orthogonal_array(OA,8,10)

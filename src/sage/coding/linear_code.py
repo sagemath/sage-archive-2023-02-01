@@ -2680,17 +2680,17 @@ class LinearCode(module.Module):
             q = PR(qc)
         if i == 2:
             F = ((T+1)**8+14*T**4*(T+1)**4+T**8)**v
-            coefs = (c0*(1+T)**m*(1+4*T+6*T**2+4*T**3)**m*F).coeffs()
+            coefs = (c0*(1+T)**m*(1+4*T+6*T**2+4*T**3)**m*F).coefficients(sparse=False)
             qc = [coefs[j]/binomial(6*m+8*v,m+j) for j in range(4*m+8*v+1)]
             q = PR(qc)
         if i == 3:
             F = (3*T**2+4*T+1)**v*(1+3*T**2)**v
             # Note that: (3*T**2+4*T+1)(1+3*T**2)=(T+1)**4+8*T**3*(T+1)
-            coefs = (c0*(1+3*T+3*T**2)**m*F).coeffs()
+            coefs = (c0*(1+3*T+3*T**2)**m*F).coefficients(sparse=False)
             qc = [coefs[j]/binomial(4*m+4*v,m+j) for j in range(2*m+4*v+1)]
             q = PR(qc)
         if i == 4:
-            coefs = (c0*(1+2*T)**m*(4*T**2+2*T+1)**v).coeffs()
+            coefs = (c0*(1+2*T)**m*(4*T**2+2*T+1)**v).coefficients(sparse=False)
             qc = [coefs[j]/binomial(3*m+2*v,m+j) for j in range(m+2*v+1)]
             q = PR(qc)
         return q/q(1)

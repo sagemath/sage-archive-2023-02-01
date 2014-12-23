@@ -18,7 +18,6 @@ coercion_model = sage.structure.element.get_coercion_model()
 from sage.structure.coerce import parent as s_parent
 
 from sage.symbolic.constants import pi
-from sage.symbolic.function import is_inexact
 from sage.functions.log import exp
 from sage.functions.trig import arctan2
 from sage.functions.exp_integral import Ei
@@ -187,14 +186,11 @@ class Function_erf(BuiltinFunction):
             sage: erf(SR(0))
             0
         """
-        if not isinstance(x, Expression):
-            if is_inexact(x):
-                return self._evalf_(x, parent=s_parent(x))
-            elif x == Integer(0):
-                return Integer(0)
-        elif x.is_trivial_zero():
+        if isinstance(x, Expression):
+            if x.is_trivial_zero():
+                return x
+        elif not x:
             return x
-        return None
 
     def _evalf_(self, x, parent=None, algorithm=None):
         """
@@ -440,7 +436,7 @@ class Function_ceil(BuiltinFunction):
                 return lower_ceil
             else:
                 try:
-                    return ceil(SR(x).full_simplify().simplify_radical())
+                    return ceil(SR(x).full_simplify().canonicalize_radical())
                 except ValueError:
                     pass
                 raise ValueError("x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits))
@@ -506,7 +502,7 @@ class Function_floor(BuiltinFunction):
             sage: a = floor(5.4 + x); a
             floor(x + 5.40000000000000)
             sage: a.simplify()
-            floor(x + 0.40000000000000036) + 5
+            floor(x + 0.4000000000000004) + 5
             sage: a(x=2)
             7
 
@@ -602,7 +598,7 @@ class Function_floor(BuiltinFunction):
                 return lower_floor
             else:
                 try:
-                    return floor(SR(x).full_simplify().simplify_radical())
+                    return floor(SR(x).full_simplify().canonicalize_radical())
                 except ValueError:
                     pass
                 raise ValueError("x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits))
@@ -697,6 +693,7 @@ class Function_gamma(GinacFunction):
         ::
 
             sage: plot(gamma1(x),(x,1,5))
+            Graphics object consisting of 1 graphics primitive
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -901,11 +898,6 @@ class Function_gamma_inc(BuiltinFunction):
             sage: gamma_inc(0,2)
             -Ei(-2)
         """
-        if not isinstance(x, Expression) and not isinstance(y, Expression) and \
-               (is_inexact(x) or is_inexact(y)):
-            x, y = coercion_model.canonical_coercion(x, y)
-            return self._evalf_(x, y, s_parent(x))
-
         if y == 0:
             return gamma(x)
         if x == 1:
@@ -935,14 +927,45 @@ class Function_gamma_inc(BuiltinFunction):
             sage: gamma(R(9), R(10^-3))  # rel tol 1e-308
             40319.99999999999999999999999999988898884344822911869926361916294165058203634104838326009191542490601781777105678829520585311300510347676330951251563007679436243294653538925717144381702105700908686088851362675381239820118402497959018315224423868693918493033078310647199219674433536605771315869983788442389633
             sage: numerical_approx(gamma(9, 10^(-3)) - gamma(9), digits=40)  # abs tol 1e-36
-            -1.110111564516556704267183273042450876294e-28
+            -1.110111598370794007949063502542063148294e-28
 
+        Check that :trac:`17328` is fixed::
+
+            sage: incomplete_gamma(float(-1), float(-1))
+            (-0.8231640121031085+3.141592653589793j)
+            sage: incomplete_gamma(RR(-1), RR(-1))
+            -0.823164012103109 + 3.14159265358979*I
+            sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2)))
+            (1.2730972164471142+0j)
+
+        Check that :trac:`17130` is fixed::
+
+            sage: r = gamma_inc(float(0), float(1)); r
+            0.21938393439552029
+            sage: type(r)
+            <type 'float'>
         """
-        if parent is None:
-            parent = ComplexField()
+        R = parent or s_parent(x)
+        # C is the complex version of R
+        # prec is the precision of R
+        if R is float:
+            prec = 53
+            C = complex
         else:
-            parent = ComplexField(parent.precision())
-        return parent(x).gamma_inc(y)
+            try:
+                prec = R.precision()
+            except AttributeError:
+                prec = 53
+            try:
+                C = R.complex_field()
+            except AttributeError:
+                C = R
+        v = ComplexField(prec)(x).gamma_inc(y)
+        if v.is_real():
+            return R(v)
+        else:
+            return C(v)
+
 
 # synonym.
 incomplete_gamma = gamma_inc=Function_gamma_inc()
@@ -1363,8 +1386,7 @@ class Function_factorial(GinacFunction):
         """
         if isinstance(x, Rational):
             return gamma(x+1)
-        elif isinstance(x, (Integer, int)) or \
-                (not isinstance(x, Expression) and is_inexact(x)):
+        elif isinstance(x, (Integer, int)) or self._is_numerical(x):
             return py_factorial_py(x)
 
         return None
@@ -1517,7 +1539,7 @@ class Function_binomial(GinacFunction):
         if not isinstance(k, Expression):
             if not isinstance(n, Expression):
                 n, k = coercion_model.canonical_coercion(n, k)
-                return self._evalf_(n, k, s_parent(n))
+                return self._evalf_(n, k)
             if k in ZZ:
                 return self._binomial_sym(n, k)
         if (n - k) in ZZ:
@@ -1866,18 +1888,14 @@ class Function_arg(BuiltinFunction):
             arg(sqrt(2) + I)
 
         """
-        if not isinstance(x,Expression): # x contains no variables
-            if s_parent(x)(0)==x: #compatibility with maxima
-                return s_parent(x)(0)
-            else:
-                if is_inexact(x): # inexact complex numbers, e.g. 2.0+i
-                    return self._evalf_(x, s_parent(x))
-                else:  # exact complex numbers, e.g. 2+i
-                    return arctan2(imag_part(x),real_part(x))
+        if isinstance(x,Expression):
+            if x.is_trivial_zero():
+                return x
         else:
-            # x contains variables, e.g. 2+i+y or 2.0+i+y
-            # or x involves an expression such as sqrt(2)
-            return None
+            if not x:
+                return x
+            else:
+                return arctan2(imag_part(x),real_part(x))
 
     def _evalf_(self, x, parent=None, algorithm=None):
         """

@@ -575,6 +575,7 @@ def gv_bound_asymp(delta,q):
         0.18872187554086...
         sage: f = lambda x: gv_bound_asymp(x,2)
         sage: plot(f,0,1)
+        Graphics object consisting of 1 graphics primitive
     """
     return (1-entropy(delta,q))
 
@@ -589,6 +590,7 @@ def hamming_bound_asymp(delta,q):
         0.456435556800...
         sage: f = lambda x: hamming_bound_asymp(x,2)
         sage: plot(f,0,1)
+        Graphics object consisting of 1 graphics primitive
     """
     return (1-entropy(delta/2,q))
 
@@ -602,6 +604,7 @@ def singleton_bound_asymp(delta,q):
         3/4
         sage: f = lambda x: singleton_bound_asymp(x,2)
         sage: plot(f,0,1)
+        Graphics object consisting of 1 graphics primitive
     """
     return (1-delta)
 

@@ -40,6 +40,7 @@ from field_element import FieldElement
 
 # Ideals
 from ideal import Ideal
+ideal = Ideal
 
 # Quotient
 from quotient_ring import QuotientRing
@@ -69,6 +70,9 @@ from number_field.all import *
 
 # Function field
 from function_field.all import *
+
+# Finite residue fields
+from finite_rings.residue_field import ResidueField
 
 # p-adic field
 from padics.all import *
@@ -167,16 +171,8 @@ from bernoulli_mod_p import bernoulli_mod_p, bernoulli_mod_p_single
 
 from monomials import monomials
 
-#from fast_polynomial.compiled_polynomial import compiled_polynomial
-
 CC = ComplexField()
 CIF = ComplexIntervalField()
-
-# i = I = QuadraticField(-1, 'I').gen()
-I = CC.gen()
-
-from residue_field import ResidueField
-
 
 from misc import composite_field
 

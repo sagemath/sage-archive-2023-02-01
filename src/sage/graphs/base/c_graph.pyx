@@ -37,7 +37,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 #                         http://www.gnu.org/licenses/
 #**************************************************************************
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 
 from graph_backends import GenericGraphBackend
 from sage.rings.integer cimport Integer
@@ -51,7 +51,7 @@ cdef class CGraph:
     # Vertex Functions
     ###################################
 
-    cpdef bint has_vertex(self, int n):
+    cpdef bint has_vertex(self, int n) except -1:
         """
         Determine whether the vertex ``n`` is in ``self``.
 
@@ -171,7 +171,7 @@ cdef class CGraph:
         if not self.has_vertex(n):
             raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(n))
 
-    cdef int add_vertex_unsafe(self, int k):
+    cdef int add_vertex_unsafe(self, int k) except -1:
         """
         Adds the vertex ``k`` to the graph.
 
@@ -309,11 +309,11 @@ cdef class CGraph:
             ...
             RuntimeError: Requested vertex is past twice the allocated range: use realloc.
         """
-        if k >= (2 * self.active_vertices.size):
+        if k >= (2 * <int>self.active_vertices.size):
             raise RuntimeError(
                 "Requested vertex is past twice the allocated range: "
                 "use realloc.")
-        if (k >= self.active_vertices.size or
+        if (k >= <int>self.active_vertices.size or
             (k == -1 and self.active_vertices.size == self.num_verts)):
             self.realloc(2 * self.active_vertices.size)
         return self.add_vertex_unsafe(k)
@@ -383,7 +383,7 @@ cdef class CGraph:
 
         return new_names if new_names != [] else None
 
-    cdef int del_vertex_unsafe(self, int v):
+    cdef int del_vertex_unsafe(self, int v) except -1:
         """
         Deletes the vertex ``v``, along with all edges incident to it.
 
@@ -726,19 +726,19 @@ cdef class CGraph:
     # Edge Functions
     ###################################
 
-    cdef int add_arc_unsafe(self, int u, int v) except? -1:
+    cdef int add_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
-    cdef int has_arc_unsafe(self, int u, int v) except? -1:
+    cdef int has_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
-    cdef int del_arc_unsafe(self, int u, int v) except? -1:
+    cdef int del_arc_unsafe(self, int u, int v) except -1:
         raise NotImplementedError()
 
-    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
+    cdef int out_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         raise NotImplementedError()
 
-    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except? -2:
+    cdef int in_neighbors_unsafe(self, int u, int *neighbors, int size) except -2:
         raise NotImplementedError()
 
     cpdef add_arc(self, int u, int v):
@@ -805,15 +805,11 @@ cdef class CGraph:
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
             sage: G.has_arc(0, 1)
-            Not Implemented!
-            False
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
-        # The following is due to a hard to reproduce bug in Cython where except,
-        # cpdef, and classes don't play well together:
-        print "Not Implemented!"
-        # raise NotImplementedError() ... results in:
-        # Exception exceptions.NotImplementedError: NotImplementedError() in 'sage.graphs.base.c_graph.CGraph.has_arc' ignored
-        # False
+        raise NotImplementedError
 
     cpdef del_all_arcs(self, int u, int v):
         """
@@ -1277,8 +1273,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: B.has_vertex(7)
             False
         """
-        cdef v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if v_int == -1:
             return False
         if not bitset_in((<CGraph>self._cg).active_vertices, v_int):
@@ -1416,10 +1414,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: h.degree()
             [1, 1]
         """
-        cdef v_int = get_vertex(v,
-                                self.vertex_ints,
-                                self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if directed:
             return self._cg._in_degree(v_int) + self._cg._out_degree(v_int)
         d = 0
@@ -1430,7 +1428,6 @@ class CGraphBackend(GenericGraphBackend):
                 d += 1
         return self._cg._out_degree(v_int) + d
 
-
     def out_degree(self, v):
         r"""
         Returns the out-degree of v
@@ -1439,10 +1436,6 @@ class CGraphBackend(GenericGraphBackend):
 
         - ``v`` -- a vertex of the graph.
 
-        - ``directed`` -- boolean; whether to take into account the
-          orientation of this graph in counting the degree of ``v``.
-
-
         EXAMPLE::
 
 
@@ -1450,10 +1443,10 @@ class CGraphBackend(GenericGraphBackend):
             sage: D.out_degree(1)
             2
         """
-        cdef v_int = get_vertex(v,
-                                self.vertex_ints,
-                                self.vertex_labels,
-                                self._cg)
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
         if self._directed:
             return self._cg._out_degree(v_int)
         d = 0
@@ -1465,6 +1458,30 @@ class CGraphBackend(GenericGraphBackend):
 
         return self._cg._out_degree(v_int) + d
 
+    def in_degree(self, v):
+        r"""
+        Returns the in-degree of v
+
+        INPUT:
+
+        - ``v`` -- a vertex of the graph.
+
+        EXAMPLE::
+
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
+            sage: D.out_degree(1)
+            2
+        """
+        if not self._directed:
+            return self.out_degree(v)
+
+        cdef int v_int = get_vertex(v,
+                                    self.vertex_ints,
+                                    self.vertex_labels,
+                                    self._cg)
+
+        return self._cg_rev._out_degree(v_int)
 
     def add_vertex(self, object name):
         """

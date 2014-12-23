@@ -61,7 +61,7 @@ important ones are, probably, ray accessing methods::
     N(-1,  0, 0)
     in 3-d lattice N
     sage: rays.set()
-    frozenset([N(1, 0, 0), N(-1, 0, 0), N(0, 1, 0), N(0, 0, 1), N(0, -1, 0)])
+    frozenset({N(-1, 0, 0), N(0, -1, 0), N(0, 0, 1), N(0, 1, 0), N(1, 0, 0)})
     sage: rays.matrix()
     [ 0  0  1]
     [ 0  1  0]
@@ -945,6 +945,7 @@ class IntegralRayCollection(SageObject,
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.plot()
+            Graphics object consisting of 9 graphics primitives
         """
         tp = ToricPlotter(options, self.lattice().degree(), self.rays())
         return tp.plot_lattice() + tp.plot_rays() + tp.plot_generators()
@@ -1294,7 +1295,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: C = Cone([(1,0)])
             sage: C.face_lattice()
-            Finite poset containing 2 elements
+            Finite poset containing 2 elements with distinguished linear extension
             sage: C._test_pickling()
             sage: C2 = loads(dumps(C)); C2
             1-d cone in 2-d lattice N
@@ -1983,7 +1984,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: L = quadrant.face_lattice()
             sage: L
-            Finite poset containing 4 elements
+            Finite poset containing 4 elements with distinguished linear extension
 
         To see all faces arranged by dimension, you can do this::
 
@@ -2048,14 +2049,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: supercone = Cone([(1,2,3,4), (5,6,7,8),
             ...                     (1,2,4,8), (1,3,9,7)])
             sage: supercone.face_lattice()
-            Finite poset containing 16 elements
+            Finite poset containing 16 elements with distinguished linear extension
             sage: supercone.face_lattice().top()
             4-d cone in 4-d lattice N
             sage: cone = supercone.facets()[0]
             sage: cone
             3-d face of 4-d cone in 4-d lattice N
             sage: cone.face_lattice()
-            Finite poset containing 8 elements
+            Finite poset containing 8 elements with distinguished linear extension
             sage: cone.face_lattice().bottom()
             0-d face of 4-d cone in 4-d lattice N
             sage: cone.face_lattice().top()
@@ -2169,6 +2170,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     faces.append(self)
                     for face in dfaces:
                         L.add_edge(face_to_index[face], next_index)
+                D = {i:f for i,f in enumerate(faces)}
+                L.relabel(D)
                 self._face_lattice = FinitePoset(L, faces, key = id(self))
         return self._face_lattice
 
@@ -2861,13 +2864,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: halfplane = Cone([(1,0), (0,1), (-1,0)])
             sage: halfplane.line_set()
-            doctest:...: DeprecationWarning:
-            line_set(...) is deprecated, please use lines().set() instead!
+            doctest:...: DeprecationWarning: line_set(...) is deprecated, please use lines().set() instead!
             See http://trac.sagemath.org/12544 for details.
-            frozenset([N(1, 0)])
+            frozenset({N(1, 0)})
             sage: fullplane = Cone([(1,0), (0,1), (-1,-1)])
             sage: fullplane.line_set()
-            frozenset([N(0, 1), N(1, 0)])
+            frozenset({N(0, 1), N(1, 0)})
         """
         deprecation(12544, "line_set(...) is deprecated, "
                     "please use lines().set() instead!")
@@ -2947,6 +2949,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.plot()
+            Graphics object consisting of 9 graphics primitives
         """
         # What to do with 3-d cones in 5-d? Use some projection method?
         deg = self.lattice().degree()

@@ -10,9 +10,10 @@ Schemes
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category, HomCategory
+from sage.categories.category import Category
 from sage.categories.category_types import Category_over_base
-from sets_cat import Sets
+from sage.categories.homsets import HomsetsCategory
+from sage.categories.sets_cat import Sets
 
 class Schemes(Category):
     """
@@ -144,23 +145,15 @@ class Schemes(Category):
             raise TypeError("No way to create an object or morphism in %s from %s"%(self, x))
 
 
-    class HomCategory(HomCategory):
-        def extra_super_categories(self):
-            """
-            EXAMPLES::
+    class Homsets(HomsetsCategory):
+        """
+        TESTS::
 
-                sage: Schemes().hom_category().extra_super_categories()
-                []
-                sage: Schemes().hom_category().super_categories()
-                [Category of hom sets in Category of sets]
+            sage: Schemes().Homsets().super_categories()
+            [Category of homsets]
 
-            FIXME: what category structure is there on Homsets of schemes?
-            The result above is wrong, and should be fixed during the next
-            homsets overhaul.
-            """
-            return []
-
-
+        .. TODO:: shall there be any additional category structure on Homsets of hecke modules?
+        """
 
 #############################################################
 # Schemes over a given base scheme.

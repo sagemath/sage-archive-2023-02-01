@@ -700,8 +700,145 @@ cdef class pAdicGenericElement(LocalGenericElement):
     #    """
     #    raise NotImplementedError
 
-    #def gamma(self):
-    #    raise NotImplementedError
+    def dwork_expansion(self, bd=20):
+        r"""
+        Return the value of a function defined by Dwork.
+
+        Used to compute the `p`-adic Gamma function, see :meth:`gamma`.
+
+        INPUT:
+
+        - ``bd`` -- integer. Is a bound for precision, defaults to 20
+
+        OUTPUT:
+
+        A ``p``-- adic integer.
+
+        .. NOTE::
+
+            This is based on GP code written by Fernando Rodriguez
+            Villegas (http://www.ma.utexas.edu/cnt/cnt-frames.html).
+            William Stein sped it up for GP
+            (http://sage.math.washington.edu/home/wstein/www/home/wbhart/pari-2.4.2.alpha/src/basemath/trans2.c).
+            The output is a `p`-adic integer from Dwork's expansion,
+            used to compute the `p`-adic gamma function as in [RV]_
+            section 6.2.
+
+        REFERENCES:
+
+        .. [RV] Rodriguez Villegas, Fernando. Experimental Number Theory.
+           Oxford Graduate Texts in Mathematics 13, 2007.
+
+        EXAMPLES::
+
+            sage: R = Zp(17)
+            sage: x = R(5+3*17+13*17^2+6*17^3+12*17^5+10*17^(14)+5*17^(17)+O(17^(19)))
+            sage: x.dwork_expansion(18)
+            16 + 7*17 + 11*17^2 + 4*17^3 + 8*17^4 + 10*17^5 + 11*17^6 + 6*17^7 
+            + 17^8 + 8*17^10 + 13*17^11 + 9*17^12 + 15*17^13  + 2*17^14 + 6*17^15 
+            + 7*17^16 + 6*17^17 + O(17^18)
+
+            sage: R = Zp(5)
+            sage: x = R(3*5^2+4*5^3+1*5^4+2*5^5+1*5^(10)+O(5^(20)))
+            sage: x.dwork_expansion()
+            4 + 4*5 + 4*5^2 + 4*5^3 + 2*5^4 + 4*5^5 + 5^7 + 3*5^9 + 4*5^10 + 3*5^11 
+            + 5^13 + 4*5^14 + 2*5^15 + 2*5^16 + 2*5^17 + 3*5^18 + O(5^20)
+        """
+        R = self.parent()
+        p = R.prime()
+        s = R.one().add_bigoh(bd)
+        t = s
+        u = [s]
+        for j in range(1, p):
+            u.append(u[j-1] / j)
+        for k in range(1, bd):
+            u[0] = ((u[-1] + u[0]) / k) >> 1
+            for j in range(1, p):
+                u[j] = (u[j-1] + u[j]) / (j + k * p )
+            t *= (self + k - 1)
+            s += t * (u[0] << k)
+        return R(-s)
+
+    def gamma(self, algorithm='pari'):
+        r"""
+        Return the value of the `p`-adic Gamma function.
+
+        INPUT:
+
+        - ``algorithm`` -- string. Can be set to ``'pari'`` to call
+          the pari function, or ``'sage'`` to call the function
+          implemented in sage.  set to ``'pari'`` by default, since
+          pari is about 10 times faster than sage.
+
+        OUTPUT:
+
+        - a `p`-adic integer
+
+        .. NOTE::
+
+            This is based on GP code written by Fernando Rodriguez
+            Villegas (http://www.ma.utexas.edu/cnt/cnt-frames.html).
+            William Stein sped it up for GP
+            (http://sage.math.washington.edu/home/wstein/www/home/wbhart/pari-2.4.2.alpha/src/basemath/trans2.c).
+            The 'sage' version uses dwork_expansion() to compute the
+            `p`-adic gamma function of self as in [RV]_ section 6.2.
+
+        EXAMPLES:
+
+        This example illustrates ``x.gamma()`` for `x` a `p`-adic unit::
+
+            sage: R = Zp(7)
+            sage: x = R(2+3*7^2+4*7^3+O(7^20))
+            sage: x.gamma('pari')
+            1 + 2*7^2 + 4*7^3 + 5*7^4 + 3*7^5 + 7^8 + 7^9 + 4*7^10 + 3*7^12 
+            + 7^13 + 5*7^14 + 3*7^15 + 2*7^16 + 2*7^17 + 5*7^18 + 4*7^19 + O(7^20)
+            sage: x.gamma('sage')
+            1 + 2*7^2 + 4*7^3 + 5*7^4 + 3*7^5 + 7^8 + 7^9 + 4*7^10 + 3*7^12 
+            + 7^13 + 5*7^14 + 3*7^15 + 2*7^16 + 2*7^17 + 5*7^18 + 4*7^19 + O(7^20)
+            sage: x.gamma('pari') == x.gamma('sage')
+            True
+
+        Now ``x.gamma()`` for `x` a `p`-adic integer but not a unit::
+
+            sage: R = Zp(17)
+            sage: x = R(17+17^2+3*17^3+12*17^8+O(17^13))
+            sage: x.gamma('pari')
+            1 + 12*17 + 13*17^2 + 13*17^3 + 10*17^4 + 7*17^5 + 16*17^7 
+            + 13*17^9 + 4*17^10 + 9*17^11 + 17^12 + O(17^13)
+            sage: x.gamma('sage')
+            1 + 12*17 + 13*17^2 + 13*17^3 + 10*17^4 + 7*17^5 + 16*17^7 
+            + 13*17^9 + 4*17^10 + 9*17^11 + 17^12 + O(17^13)
+            sage: x.gamma('pari') == x.gamma('sage')
+            True
+
+        Finally, this function is not defined if `x` is not a `p`-adic integer::
+
+            sage: K = Qp(7)
+            sage: x = K(7^-5 + 2*7^-4 + 5*7^-3 + 2*7^-2 + 3*7^-1 + 3 + 3*7 
+            ....:       + 7^3 + 4*7^4 + 5*7^5 + 6*7^8 + 3*7^9 + 6*7^10 + 5*7^11 + 6*7^12 
+            ....:       + 3*7^13 + 5*7^14 + O(7^15))
+            sage: x.gamma()
+            Traceback (most recent call last):
+            ...
+            ValueError: The p-adic gamma function only works on elements of Zp
+        """
+        if self.valuation() < 0:
+            raise ValueError('The p-adic gamma function only works '
+                             'on elements of Zp')
+        parent = self.parent()
+        if algorithm == 'pari':
+            return parent(self._pari_().gamma())
+        elif algorithm == 'sage':
+            from sage.misc.all import prod
+            p = parent.prime()
+            n = self.precision_absolute()
+            bd = n + 2*n//p
+            if self.is_padic_unit():
+                k = Integer(self.residue())  # leading coefficient of self, non-zero
+                x = (self-k) >> 1
+                return (-1)**(k+1)*x.dwork_expansion(bd)*prod(j + (x << 1) for j in range(1, k))
+            else:
+                return -(self >> 1).dwork_expansion(bd)
 
     @coerce_binop
     def gcd(self, other):

@@ -1,29 +1,26 @@
-###############################################################################
-#   Sage: Open Source Mathematical Software
+r"""
+Classes for symbolic functions
+"""
+
+#*****************************************************************************
 #       Copyright (C) 2008 - 2010 Burcin Erocal <burcin@erocal.org>
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
-r"""
-
-Support for symbolic functions.
-
-"""
-include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
-
-from functools import reduce
 from ginac cimport *
 
+from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
-from sage.structure.parent cimport Parent
-from sage.structure.coerce import parent
+from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.element import get_coercion_model
 
 # we keep a database of symbolic functions initialized in a session
@@ -191,11 +188,17 @@ cdef class Function(SageObject):
         self._serial = g_register_new(opt)
         g_foptions_assign(g_registered_functions().index(self._serial), opt)
 
-    def _eval_default(self, *args):
+    def _evalf_try_(self, *args):
         """
-        Default automatic evaluation function.
+        Call :meth:`_evalf_` if one the arguments is numerical and none
+        of the arguments are symbolic.
 
-        Calls numeric evaluation if the argument is not exact.
+        OUTPUT:
+
+        - ``None`` if we didn't succeed to call :meth:`_evalf_` or if
+          the input wasn't suitable for it.
+
+        - otherwise, a numerical value for the function.
 
         TESTS::
 
@@ -210,7 +213,7 @@ cdef class Function(SageObject):
             ....:     def _evalf_(self, x, y, parent):
             ....:         return x + 1
             ....:     def _eval_(self, x, y):
-            ....:         res = self._eval_default(x, y)
+            ....:         res = self._evalf_try_(x, y)
             ....:         if res:
             ....:             return res
             ....:         elif x == 2:
@@ -234,7 +237,7 @@ cdef class Function(SageObject):
             ....:     def _evalf_(self, x, parent):
             ....:         return 0.5
             ....:     def _eval_(self, x):
-            ....:         res = self._eval_default(x)
+            ....:         res = self._evalf_try_(x)
             ....:         if res:
             ....:             return res
             ....:         else:
@@ -245,24 +248,16 @@ cdef class Function(SageObject):
             sage: test2(pi)
             3
         """
-        if len(args) == 1:
-            x = args[0]
-            try:
-                method = getattr(x, self.name())
-            except AttributeError:
-                pass
-            else:
-                return method()
-            if is_inexact(x) and not parent_c(x) is SR:
-                return self._evalf_(x, parent=parent(x))
-            return
-        else:
-            cc = get_coercion_model().canonical_coercion
-            coerced = reduce(lambda x, y: cc(x, y)[0], args)
-            if is_inexact(coerced) and not parent_c(coerced) is SR:
-                return self._evalf_(*args, parent=parent(coerced))
-            else:
-                return
+        # If any of the inputs is numerical and none is symbolic,
+        # try to call _evalf_() directly
+        try:
+            evalf = self._evalf_  # catch AttributeError early
+            if any(self._is_numerical(x) for x in args):
+                if not any(isinstance(x, Expression) for x in args):
+                    p = get_coercion_model().common_parent(*args)
+                    return evalf(*args, parent=p)
+        except Exception:
+            pass
 
     def __hash__(self):
         """
@@ -513,7 +508,6 @@ cdef class Function(SageObject):
                     (<Expression>args[0])._gobj, (<Expression>args[1])._gobj,
                     (<Expression>args[2])._gobj, hold)
 
-
         if not symbolic_input and is_a_numeric(res):
             return py_object_from_numeric(res)
 
@@ -572,6 +566,35 @@ cdef class Function(SageObject):
             x
         """
         return SR.var('x')
+
+    def _is_numerical(self, x):
+        """
+        Return True if `x` is a numerical object.
+
+        This is used to determine whether to call the :meth:`_evalf_`
+        method instead of the :meth:`_eval_` method.
+
+        This is a non-static method since whether or not an argument is
+        considered numerical may depend on the specific function.
+
+        TESTS::
+
+            sage: sin._is_numerical(5)
+            False
+            sage: sin._is_numerical(5.)
+            True
+            sage: sin._is_numerical(pi)
+            False
+            sage: sin._is_numerical(5r)
+            False
+            sage: sin._is_numerical(5.4r)
+            True
+        """
+        if isinstance(x, (float, complex)):
+            return True
+        if isinstance(x, Element):
+            return hasattr((<Element>x)._parent, 'precision')
+        return False
 
     def _interface_init_(self, I=None):
         """
@@ -741,7 +764,7 @@ cdef class Function(SageObject):
             ....:                 return prec
             sage: noMpmathFn = NoMpmathFn("noMpmathFn")
             sage: with mpmath.workprec(64): noMpmathFn(sqrt(mpmath.mpf('2')))
-            mpf('64.0')
+            64
             sage: mpmath.noMpmathFn = lambda x: 123
             sage: with mpmath.workprec(64): noMpmathFn(sqrt(mpmath.mpf('2')))
             123
@@ -786,6 +809,46 @@ cdef class GinacFunction(BuiltinFunction):
         self._ginac_name = ginac_name
         BuiltinFunction.__init__(self, name, nargs, latex_name, conversions,
                 evalf_params_first=evalf_params_first)
+
+    def __call__(self, *args, **kwds):
+        """
+        Wrapper around ``BuiltinFunction.__call__()`` which converts
+        Python ``int``s which are returned by Ginac to Sage Integers.
+
+        This is needed to fix :trac:`10133`, where Ginac evaluates
+        ``sin(0)`` to the Python int ``0``::
+
+            sage: from sage.symbolic.function import BuiltinFunction
+            sage: out = BuiltinFunction.__call__(sin, 0)
+            sage: out, parent(out)
+            (0, <type 'int'>)
+
+        With this wrapper we have::
+
+            sage: out = sin(0)
+            sage: out, parent(out)
+            (0, Integer Ring)
+
+        However, if all inputs are Python types, we do not convert::
+
+            sage: out = sin(int(0))
+            sage: (out, parent(out))
+            (0, <type 'int'>)
+            sage: out = arctan2(int(0), float(1))
+            sage: (out, parent(out))
+            (0, <type 'int'>)
+            sage: out = arctan2(int(0), RR(1))
+            sage: (out, parent(out))
+            (0, Integer Ring)
+        """
+        res = super(GinacFunction, self).__call__(*args, **kwds)
+
+        # Convert to Integer if the output was of type "int" and any of
+        # the inputs was a Sage Element
+        if isinstance(res, int) and any(isinstance(x, Element) for x in args):
+            return smallInteger(res)
+        else:
+            return res
 
     cdef _is_registered(self):
         # Since this is function is defined in C++, it is already in
@@ -868,6 +931,14 @@ cdef class BuiltinFunction(Function):
             sage: c(pi/2)
             0
         """
+        # If we have an _evalf_ method, change _eval_ to a
+        # wrapper function which first tries to call _evalf_.
+        if hasattr(self, '_evalf_'):
+            if hasattr(self, '_eval_'):
+                self._eval0_ = self._eval_
+                self._eval_ = self._evalf_or_eval_
+            else:
+                self._eval_ = self._evalf_try_
         Function.__init__(self, name, nargs, latex_name, conversions,
                 evalf_params_first, alt_name = alt_name)
 
@@ -896,57 +967,50 @@ cdef class BuiltinFunction(Function):
             sage: bar(A())
             'foo'
         """
-        # if there is only one argument, and the argument has an attribute
+        # If there is only one argument, and the argument has an attribute
         # with the same name as this function, try to call it to get the result
         # The argument dont_call_method_on_arg is used to prevent infinite loops
         # when .exp(), .log(), etc. methods call this symbolic function on
         # themselves
+        res = None
         if len(args) == 1 and not hold and not dont_call_method_on_arg:
             arg = args[0]
+            # If arg is a Python type (e.g. float), convert it to Sage
+            t = py_scalar_parent(type(arg))
+            if t is not None:
+                arg = t(arg)
             method = getattr(arg, self._name, None)
             if callable(method):
-                return method()
+                res = method()
             elif self._alt_name is not None:
                 method = getattr(arg, self._alt_name, None)
                 if method is not None:
-                    return method()
+                    res = method()
 
-        res = super(BuiltinFunction, self).__call__(
+        if res is None:
+            res = self._evalf_try_(*args)
+            if res is None:
+                res = super(BuiltinFunction, self).__call__(
                         *args, coerce=coerce, hold=hold)
 
-        # we want to convert the result to the original parent if the input
-        # is not exact, so we store the parent here
-        org_parent = parent_c(args[0])
+        # If none of the input arguments was a Sage Element but the
+        # output is, then convert the output back to the corresponding
+        # Python type if possible.
+        if any(isinstance(x, Element) for x in args):
+            return res
+        if not isinstance(res, Element):
+            return res
 
-        # convert the result back to the original parent previously stored
-        # otherwise we end up with
-        #     sage: arctan(RR(1))
-        #     1/4*pi
-        # which is surprising, to say the least...
-        if org_parent is not SR and \
-                (org_parent is float or org_parent is complex or \
-                (PY_TYPE_CHECK(org_parent, Parent) and \
-                    not org_parent.is_exact())):
-            try:
-                return org_parent(res)
-            except (TypeError, ValueError):
-                pass
-
-            # conversion to the original parent failed
-            # we try if it works with the corresponding complex domain
-            if org_parent is float or org_parent is complex:
-                try:
-                    from sage.rings.complex_double import CDF
-                    return complex(CDF(res))
-                except (TypeError, ValueError):
-                    pass
-            elif hasattr(org_parent, 'complex_field'):
-                try:
-                    return org_parent.complex_field()(res)
-                except (TypeError, ValueError):
-                    pass
-
-        return res
+        p = res.parent()
+        from sage.rings.all import ZZ, RDF, CDF
+        if ZZ.has_coerce_map_from(p):
+            return int(res)
+        elif RDF.has_coerce_map_from(p):
+            return float(res)
+        elif CDF.has_coerce_map_from(p):
+            return complex(res)
+        else:
+            return res
 
     cdef _is_registered(self):
         """
@@ -988,6 +1052,18 @@ cdef class BuiltinFunction(Function):
                     return True
 
         return False
+
+    def _evalf_or_eval_(self, *args):
+        """
+        First try to call :meth:`_evalf_` and return the result if it
+        was not ``None``. Otherwise, call :meth:`_eval0_`, which is the
+        original version of :meth:`_eval_` saved in :meth:`__init__`.
+        """
+        res = self._evalf_try_(*args)
+        if res is None:
+            return self._eval0_(*args)
+        else:
+            return res
 
     def __reduce__(self):
         """
@@ -1426,6 +1502,8 @@ def is_inexact(x):
 
         sage: from sage.symbolic.function import is_inexact
         sage: is_inexact(5)
+        doctest:...: DeprecationWarning: The is_inexact() function is deprecated, use the _is_numerical() method of the Function class instead
+        See http://trac.sagemath.org/17130 for details.
         False
         sage: is_inexact(5.)
         True
@@ -1436,6 +1514,8 @@ def is_inexact(x):
         sage: is_inexact(5.4r)
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(17130, 'The is_inexact() function is deprecated, use the _is_numerical() method of the Function class instead')
     if isinstance(x, (float, complex)):
         return True
     if isinstance(x, Element):

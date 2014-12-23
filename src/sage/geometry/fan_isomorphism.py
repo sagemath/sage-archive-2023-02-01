@@ -317,8 +317,8 @@ def fan_2d_echelon_forms(fan):
         sage: fan = toric_varieties.P2().fan()
         sage: from sage.geometry.fan_isomorphism import fan_2d_echelon_forms
         sage: fan_2d_echelon_forms(fan)
-        frozenset([[ 1  0 -1]
-                   [ 0  1 -1]])
+        frozenset({[ 1  0 -1]
+                   [ 0  1 -1]})
 
         sage: fan = toric_varieties.dP7().fan()
         sage: list(fan_2d_echelon_forms(fan))

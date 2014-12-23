@@ -445,7 +445,7 @@ the value of their suitcase is 2.
 
 Note that degenerate games can cause problems for most algorithms.
 The following example in fact has an infinite quantity of equilibria which
-is evidenced by the two algorithms returning different solutions::
+is evidenced by the various algorithms returning different solutions::
 
     sage: A = matrix([[3,3],[2,5],[0,6]])
     sage: B = matrix([[3,3],[2,6],[3,1]])

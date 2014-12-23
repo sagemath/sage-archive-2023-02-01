@@ -427,8 +427,8 @@ def df_q_6_1(K, existence=False, check=True):
     one = K.one()
     if v % 30 != 1:
         if existence:
-            return Unknown
-        raise ValueError("k(k-1)=30 should divide (v-1)")
+            return False
+        raise EmptySetError("k(k-1)=30 should divide (v-1)")
     t = (v-1) // 30  # number of blocks
 
     r = x**((v-1)//3)  # primitive cube root of unity
@@ -499,8 +499,8 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
 
     if l*(v-1) != k*(k-1):
         if existence:
-            return Unknown
-        raise ValueError("l*(v-1) is not equal to k*(k-1)")
+            return False
+        raise EmptySetError("l*(v-1) is not equal to k*(k-1)")
 
     # trivial case
     if (v-1) == k:
@@ -560,6 +560,147 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
 
     return D
 
+def wilson_1972_difference_family(K, k, existence=False, check=True):
+    r"""
+    Wilson construction of difference families on finite field.
+    
+    The construction appears in [Wi72]_.
+
+    INPUT:
+
+    - ``K`` -- a finite field
+
+    - ``k`` -- an integer such that `k(k-1)` divides `v-1` where `v` is the
+      cardinality of the finite field `K`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import wilson_1972_difference_family
+
+        sage: wilson_1972_difference_family(GF(13),4)
+        [[0, 1, 3, 9]]
+
+        sage: wilson_1972_difference_family(GF(337), 7, existence=True)
+        True
+
+        sage: from itertools import ifilter, count
+        sage: ppap = lambda k,r: ifilter(is_prime_power, (k*i+r for i in count(1)))
+
+
+        sage: it4 = ppap(4*3,1)
+        sage: for _ in range(7):
+        ....:     v = it4.next()
+        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 4, existence=True)
+        ....:     print "v = {}: {}".format(v, existence)
+        v = 13: True
+        v = 25: True
+        v = 37: False
+        v = 49: True
+        v = 61: False
+        v = 73: True
+        v = 97: True
+
+        sage: it5 = ppap(5*4,1)
+        sage: for _ in range(7):
+        ....:     v = it5.next()
+        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 5, existence=True)
+        ....:     print "v = {:3}: {}".format(v, existence)
+        v =  41: True
+        v =  61: True
+        v =  81: False
+        v = 101: False
+        v = 121: False
+        v = 181: False
+        v = 241: True
+
+        sage: it6 = ppap(6*5,1)
+        sage: for _ in range(7):
+        ....:     v = it6.next()
+        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 6, existence=True)
+        ....:     print "v = {:3}: {}".format(v, existence)
+        v =  31: False
+        v =  61: False
+        v = 121: False
+        v = 151: False
+        v = 181: True
+        v = 211: True
+        v = 241: True
+
+        sage: it7 = ppap(7*6,1)
+        sage: for _ in range(7):
+        ....:     v = it7.next()
+        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 7, existence=True)
+        ....:     print "v = {:3}: {}".format(v, existence)
+        v =  43: False
+        v = 127: False
+        v = 169: False
+        v = 211: False
+        v = 337: True
+        v = 379: False
+        v = 421: True
+    """
+    v = K.cardinality()
+    zero = K.zero()
+    one = K.one()
+    x = K.multiplicative_generator()
+    e = k*(k-1)
+
+    if (v-1) % e != 0:
+        if existence:
+            return False
+        raise EmptySetError("In the wilson construction, k(k-1) must divide (v-1) but k={} and v={}".format(k,v))
+
+    t = (v-1) // (k*(k-1))
+
+    if k%2 == 1:
+        m = (k-1) // 2
+        r = x ** ((v-1) // k)     # k-th root of unity
+        xx = x ** m
+        A = set(r**i - one for i in range(1,m+1))
+    else:
+        m = k // 2
+        r = x ** ((v-1) // (k-1)) # (k-1)-th root of unity
+        xx = x ** m
+        A = set(r**i - one for i in range(1,m))
+        A.add(one)
+
+    # now, we check whether the elements of A belong to distinct cosets modulo
+    # H^m where H = K \ {0}
+    nb_seen = 0
+    xj = one
+    while nb_seen < len(A):
+        already_in = False
+        xxi = one
+        for i in range((v-1)//m):
+            if xxi * xj in A:
+                if already_in:
+                    if existence:
+                        return False
+                    raise EmptySetError("In the Wilson construction with v={} "
+                    "and k={}, the roots of unity fail to belong to distinct "
+                    "cosets modulo H^m")
+                else:
+                    already_in = True
+                    nb_seen += 1
+            xxi *= xx
+        xj *= x
+    
+    if existence:
+        return True
+
+    D = K.cyclotomic_cosets(r, [xx**i for i in xrange(t)])
+    if k%2 == 0:
+        for d in D:
+            d.insert(0, zero)
+
+    if check and not is_difference_family(K,D,v,k,1):
+        raise RuntimeError("Wilson construction of difference family "
+                           "failed with parameters v={} and k={}. "
+                           "Please contact sage-devel@googlegroups.com".format(v,k))
+
+    return D
+
+
 def radical_difference_family(K, k, l=1, existence=False, check=True):
     r"""
     Return a ``(v,k,l)``-radical difference family.
@@ -606,8 +747,6 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
                          k*(k-1), l*(v-1)))
     t = l*(v-1) // e  # number of blocks
 
-    D = None
-
     if t == 1:
         return radical_difference_set(K, k, l, existence=existence, check=check)
 
@@ -623,36 +762,18 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
             return Unknown
         raise NotImplementedError("No radical families implemented for l > 2")
 
-    # Wilson (1972), Theorem 9
-    elif k%2 == 1:
-        m = (k-1) // 2
-        xx = x**m
-        to_coset = {x**i * xx**j: i for i in xrange(m) for j in xrange((v-1)/m)}
-        r = x ** ((v-1) // k)  # primitive k-th root of unity
-        if len(set(to_coset[r**j-one] for j in xrange(1,m+1))) == m:
-            if existence:
-                return True
-            D = K.cyclotomic_cosets(r, [xx**i for i in xrange(t)])
-
-    # Wilson (1972), Theorem 10
-    else:
-        m = k//2
-        xx = x**m
-        to_coset = {x**i * xx**j: i for i in xrange(m) for j in xrange((v-1)/m)}
-        r = x ** ((v-1) // (k-1))  # primitive (k-1)-th root of unity
-        if (all(to_coset[r**j-one] != 0 for j in xrange(1,m)) and
-            len(set(to_coset[r**j-one] for j in xrange(1,m))) == m-1):
-            if existence:
-                return True
-            D = K.cyclotomic_cosets(r, [xx**i for i in xrange(t)])
-            for d in D:
-                d.insert(0, K.zero())
-
-    if D is None:
+    # Wilson (1972), Theorem 9 and 10
+    elif wilson_1972_difference_family(K,k,existence=True):
         if existence:
-            return Unknown
-        else:
-            raise NotImplementedError
+            return True
+        D = wilson_1972_difference_family(K,k,check=False)
+
+    elif existence:
+      return Unknown
+
+    else:
+      raise NotImplementedError("Sage does not know how to build a radical "
+               "difference family with parameters v={} and k={}".format(v,k))
 
     if check and not is_difference_family(K, D, v, k, l):
         raise RuntimeError("radical_difference_family produced a wrong "

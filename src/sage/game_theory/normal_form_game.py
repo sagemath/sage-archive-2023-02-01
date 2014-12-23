@@ -1054,7 +1054,8 @@ class NormalFormGame(SageObject, MutableMapping):
 
           * ``"LCP"`` - This algorithm is only suited for 2 player games.
             See the gambit web site (http://gambit.sourceforge.net/). Note
-            that the output differs to the other algorithms: floats are returned.
+            that the output differs from the other algorithms: floats are
+            returned.
 
           * ``'enumeration'`` - This is a very inefficient
             algorithm (in essence a brute force approach).
@@ -1170,7 +1171,7 @@ class NormalFormGame(SageObject, MutableMapping):
             [[(1, 0, 0, 0, 0), (0, 1, 0, 0, 0)]]
             sage: fivegame.obtain_nash(algorithm='lrs') # optional - lrs
             [[(1, 0, 0, 0, 0), (0, 1, 0, 0, 0)]]
-            sage: fivegame.obtain_nash(algorithm='LCP') # optional - LCP
+            sage: fivegame.obtain_nash(algorithm='LCP') # optional - gambit
             [[(1.0, 0.0, 0.0, 0.0, 0.0), (0.0, 1.0, 0.0, 0.0, 0.0)]]
 
         Here is an example of a 3 by 2 game with 3 Nash equilibrium::

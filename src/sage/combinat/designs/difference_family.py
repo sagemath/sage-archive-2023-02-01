@@ -420,12 +420,14 @@ def df_q_6_1(K, existence=False, check=True):
 
     .. TODO:
 
-        Do improvements to to Zhen and Wu 1999.
+        Do improvements due to Zhen and Wu 1999.
     """
     v = K.cardinality()
     x = K.multiplicative_generator()
     one = K.one()
     if v % 30 != 1:
+        if existence:
+            return Unknown
         raise ValueError("k(k-1)=30 should divide (v-1)")
     t = (v-1) // 30  # number of blocks
 
@@ -496,10 +498,14 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
     x = K.multiplicative_generator()
 
     if l*(v-1) != k*(k-1):
+        if existence:
+            return Unknown
         raise ValueError("l*(v-1) is not equal to k*(k-1)")
 
     # trivial case
     if (v-1) == k:
+        if existence:
+            return True
         return K.cyclotomic_cosets(x, [one])
 
     # q = 3 mod 4
@@ -548,7 +554,7 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
                 "implemented for the parameters (v,k,l) = ({},{},{}".format(v,k,l))
 
     if check and not is_difference_family(K, D, v, k, l):
-        raise RuntimeError("Sage try to built a cyclotomic coset with "
+        raise RuntimeError("Sage tried to build a cyclotomic coset with "
                 "parameters ({},{},{}) but it seems that it failed! Please "
                 "e-mail sage-devel@googlegroups.com".format(v,k,l))
 
@@ -656,7 +662,7 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
 
     return D
 
-def twin_prime_powers_difference_set(p):
+def twin_prime_powers_difference_set(p, check=True):
     r"""
     Return a difference set on `GF(p) \times GF(p+2)`.
 
@@ -668,6 +674,12 @@ def twin_prime_powers_difference_set(p):
     - `(x,y)` with `x` and `y` non-squares
 
     For more information see :wikipedia:`Difference_set`.
+
+    INPUT:
+
+    - ``check`` -- boolean (default: ``True``). If ``True`` then the result of
+      the computation is checked before being returned. This should not be
+      needed but ensures that the output is correct.
 
     EXAMPLES::
 
@@ -697,6 +709,12 @@ def twin_prime_powers_difference_set(p):
     d.extend((x,0) for x in Fpset)
 
     G = cartesian_product([Fp,Fq])
+
+    if check and not is_difference_family(G, [d]):
+        raise RuntimeError("twin_prime_powers_difference_set produced a wrong "
+                           "difference set with p={}. Please contact "
+                           "sage-devel@googlegroups.com".format(p))
+
     return G, [d]
 
 def difference_family(v, k, l=1, existence=False, explain_construction=False, check=True):
@@ -724,9 +742,9 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
       it is assumed to be ``1``.
 
     - ``existence`` -- if ``True``, then return either ``True`` if Sage knows
-      how to build such design, ``Unknown`` if it does not and ``False`` if such
-      design does not exist.
-      
+      how to build such design, ``Unknown`` if it does not and ``False`` if it
+      knows that the design does not exist..
+
     - ``explain_construction`` -- instead of returning a difference family,
       returns a string that explains the construction used.
 
@@ -985,7 +1003,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
             q = pow(*factorization[1])
             if p > q:
                 p,q = q,p
-            G,D = twin_prime_powers_difference_set(p)
+            G,D = twin_prime_powers_difference_set(p,check=False)
 
     if D is None and are_hyperplanes_in_projective_geometry_parameters(v,k,l):
         _, (q,d) = are_hyperplanes_in_projective_geometry_parameters(v,k,l,True)

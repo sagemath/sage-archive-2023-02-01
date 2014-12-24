@@ -964,6 +964,19 @@ class DocTestController(SageObject):
         else:
             self.test_safe_directory()
             self.create_run_id()
+            from sage.env import SAGE_ROOT
+            DOT_GIT= os.path.join(SAGE_ROOT, '.git')
+            if os.path.isdir(DOT_GIT):
+                import subprocess
+                try:
+                    branch = subprocess.check_output(["git",
+                                                      "--git-dir=" + DOT_GIT,
+                                                      "rev-parse",
+                                                      "--abbrev-ref",
+                                                      "HEAD"])
+                    self.log("Git branch: " + branch, end="")
+                except subprocess.CalledProcessError:
+                    pass
             self.add_files()
             self.expand_files_into_sources()
             self.filter_sources()

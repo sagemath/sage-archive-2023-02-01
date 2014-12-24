@@ -15,7 +15,7 @@ Classes and methods
 
 """
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 from sage.misc.cachefunc import cached_method
 from sage.graphs.base.static_dense_graph cimport dense_graph_init
 
@@ -153,7 +153,7 @@ cdef class IndependentSets:
             sage: from sage.graphs.independent_sets import IndependentSets
             sage: from sage.graphs.matchpoly import matching_polynomial
             sage: def check_matching(G):
-            ...       number_of_matchings = sum(map(abs,matching_polynomial(G).coeffs()))
+            ...       number_of_matchings = sum(map(abs,matching_polynomial(G).coefficients(sparse=False)))
             ...       if number_of_matchings != IndependentSets(G.line_graph()).cardinality():
             ...           print "Ooooch !"
             sage: for i in range(30):

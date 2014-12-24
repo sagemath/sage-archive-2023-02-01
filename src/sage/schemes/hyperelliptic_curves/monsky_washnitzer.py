@@ -380,7 +380,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             sage: p.coeffs()
             [[0, 1, 0], [123, 0, 1], [3, 0, 0]]
         """
-        coeffs = [column.coeffs() for column in self._triple]
+        coeffs = [column.coefficients(sparse=False) for column in self._triple]
         degree = max([len(x) for x in coeffs])
         base_ring = self.parent().base_ring()
         for column in coeffs:
@@ -1881,7 +1881,7 @@ class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra)
 
         if is_Polynomial(Q):
             self._Q = Q.change_ring(R)
-            self._coeffs = self._Q.coeffs()
+            self._coeffs = self._Q.coefficients(sparse=False)
             if self._coeffs.pop() != 1:
                 raise NotImplementedError("Polynomial must be monic.")
             if not hasattr(self, '_curve'):

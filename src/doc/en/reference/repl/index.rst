@@ -20,6 +20,33 @@ tutorial.
    sage/repl/readline_extra_commands
    sage/repl/interpreter
    sage/repl/ipython_extension
+   sage/repl/notebook_ipython
+
+
+Preparsing
+----------
+
+Sage commands are "preparsed" to valid Python syntax. This allows
+for example to support the ``R.<x> = QQ[]`` syntax.
+
+.. toctree::
+   :maxdepth: 2
+   
+   sage/repl/preparse
+
+
+Loading and attaching files
+---------------------------
+
+Sage or Python files can be loaded (similar to Python's ``execfile``)
+in a Sage session. Attaching is similar, except that the attached file
+is reloaded whenever it is changed.
+
+.. toctree::
+   :maxdepth: 2
+   
+   sage/repl/load
+   sage/repl/attach
 
 
 Pretty Printing
@@ -38,7 +65,5 @@ this works using a modified displayhook in Python.
    sage/repl/display/util
    sage/repl/display/python_hook
    
-
-
 
 .. include:: ../footer.txt

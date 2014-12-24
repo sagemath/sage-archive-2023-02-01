@@ -84,11 +84,11 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
     REFERENCES:
 
     .. [SchScr] Anne Schilling and Travis Scrimshaw.
-       *Crystal structure and filling map for rigged configurations of
-       non-exceptional affine types*. In preparation.
+       *Crystal structure on rigged configurations and the filling map*.
+       :arxiv:`1409.2920`.
 
     .. [SalScr] Ben Salisbury and Travis Scrimshaw.
-       *A rigged configuration model for* `B(\infty)`. :arxiv:`1404.6539`
+       *A rigged configuration model for* `B(\infty)`. :arxiv:`1404.6539`.
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, wt=None):

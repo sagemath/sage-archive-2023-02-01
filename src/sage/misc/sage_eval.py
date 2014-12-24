@@ -11,7 +11,7 @@ Evaluating a String in Sage
 #*****************************************************************************
 
 from copy import copy
-import preparser
+import sage.repl.preparse as preparser
 
 def sage_eval(source, locals=None, cmds='', preparse=True):
     r"""

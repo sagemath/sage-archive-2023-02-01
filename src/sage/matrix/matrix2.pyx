@@ -279,6 +279,9 @@ cdef class Matrix(matrix1.Matrix):
             [  1]
             [124]
             [  1]
+            sage: B = B.column(0)
+            sage: A.solve_right(B)
+            (1, 124, 1)
 
         Solving a system over the p-adics::
 
@@ -326,8 +329,12 @@ cdef class Matrix(matrix1.Matrix):
             if is_IntegerModRing(K):
                 from sage.libs.pari.all import pari
                 A = pari(self.lift())
-                b = pari([c.lift() for c in B]).Col()
-                ret = A.matsolvemod(pari(K.cardinality()), b)
+                b = pari(B).lift()
+                if b.type() == "t_MAT":
+                    b = b[0]
+                elif b.type() == "t_VEC":
+                    b = b.Col()
+                ret = A.matsolvemod(K.cardinality(), b)
                 if ret.type() == 't_INT':
                     raise ValueError("matrix equation has no solutions")
                 ret = ret.Vec().sage()
@@ -563,7 +570,7 @@ cdef class Matrix(matrix1.Matrix):
 
         Notice the base ring of the results in the next two examples.  ::
 
-            sage: D = matrix(ZZ[x],2,[1+x^2,2,3,4-x])
+            sage: D = matrix(ZZ['x'],2,[1+x^2,2,3,4-x])
             sage: E = matrix(QQ,2,[1,2,3,4])
             sage: F = D.elementwise_product(E)
             sage: F
@@ -1459,7 +1466,10 @@ cdef class Matrix(matrix1.Matrix):
 
     def __abs__(self):
         """
-        Synonym for self.determinant(...).
+        Deprecated.
+
+        This function used to return the determinant. It is deprecated since
+        :trac:`17443`.
 
         EXAMPLES::
 
@@ -1467,9 +1477,179 @@ cdef class Matrix(matrix1.Matrix):
             [1 2]
             [3 4]
             sage: abs(a)
+            doctest:...: DeprecationWarning: abs(matrix) is deprecated. Use matrix.det()to
+            get the determinant.
+            See http://trac.sagemath.org/17443 for details.
             -2
         """
-        return self.determinant()
+        #TODO: after expiration of the one year deprecation, we should return a
+        # TypeError with the following kind of message:
+        #   absolute value is not defined on matrices. If you want the
+        #   L^1-norm use m.norm(1) and if you want the matrix obtained by
+        #   applying the absolute value to the coefficents use
+        #   m.apply_map(abs).
+        from sage.misc.superseded import deprecation
+        deprecation(17443, "abs(matrix) is deprecated. Use matrix.det()"
+                           "to get the determinant.")
+        return self.det()
+
+    def apply_morphism(self, phi):
+        """
+        Apply the morphism phi to the coefficients of this dense matrix.
+
+        The resulting matrix is over the codomain of phi.
+
+        INPUT:
+
+
+        -  ``phi`` - a morphism, so phi is callable and
+           phi.domain() and phi.codomain() are defined. The codomain must be a
+           ring.
+
+        OUTPUT: a matrix over the codomain of phi
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 3, range(9))
+            sage: phi = ZZ.hom(GF(5))
+            sage: m.apply_morphism(phi)
+            [0 1 2]
+            [3 4 0]
+            [1 2 3]
+            sage: parent(m.apply_morphism(phi))
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 5
+
+        We apply a morphism to a matrix over a polynomial ring::
+
+            sage: R.<x,y> = QQ[]
+            sage: m = matrix(2, [x,x^2 + y, 2/3*y^2-x, x]); m
+            [          x     x^2 + y]
+            [2/3*y^2 - x           x]
+            sage: phi = R.hom([y,x])
+            sage: m.apply_morphism(phi)
+            [          y     y^2 + x]
+            [2/3*x^2 - y           y]
+        """
+        M = self.parent().change_ring(phi.codomain())
+        if self.is_sparse():
+            values = {(i,j): phi(z) for (i,j),z in self.dict()}
+        else:
+            values = [phi(z) for z in self.list()]
+        image = M(values)
+        if self._subdivisions is not None:
+            image.subdivide(*self.subdivisions())
+        return image
+
+    def apply_map(self, phi, R=None, sparse=None):
+        """
+        Apply the given map phi (an arbitrary Python function or callable
+        object) to this dense matrix. If R is not given, automatically
+        determine the base ring of the resulting matrix.
+
+        INPUT:
+
+        - ``sparse`` -- True to make the output a sparse matrix; default False
+
+        -  ``phi`` - arbitrary Python function or callable object
+
+        -  ``R`` - (optional) ring
+
+        OUTPUT: a matrix over R
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 3, range(9))
+            sage: k.<a> = GF(9)
+            sage: f = lambda x: k(x)
+            sage: n = m.apply_map(f); n
+            [0 1 2]
+            [0 1 2]
+            [0 1 2]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
+
+        In this example, we explicitly specify the codomain.
+
+        ::
+
+            sage: s = GF(3)
+            sage: f = lambda x: s(x)
+            sage: n = m.apply_map(f, k); n
+            [0 1 2]
+            [0 1 2]
+            [0 1 2]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
+
+        If self is subdivided, the result will be as well::
+
+            sage: m = matrix(2, 2, srange(4))
+            sage: m.subdivide(None, 1); m
+            [0|1]
+            [2|3]
+            sage: m.apply_map(lambda x: x*x)
+            [0|1]
+            [4|9]
+
+        If the matrix is sparse, the result will be as well::
+
+            sage: m = matrix(ZZ,100,100,sparse=True)
+            sage: m[18,32] = -6
+            sage: m[1,83] = 19
+            sage: n = m.apply_map(abs, R=ZZ)
+            sage: n.dict()
+            {(1, 83): 19, (18, 32): 6}
+            sage: n.is_sparse()
+            True
+
+        If the map sends most of the matrix to zero, then it may be useful
+        to get the result as a sparse matrix.
+
+        ::
+
+            sage: m = matrix(ZZ, 3, 3, range(1, 10))
+            sage: n = m.apply_map(lambda x: 1//x, sparse=True); n
+            [1 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+
+        TESTS::
+
+            sage: m = matrix([])
+            sage: m.apply_map(lambda x: x*x) == m
+            True
+
+            sage: m.apply_map(lambda x: x*x, sparse=True).parent()
+            Full MatrixSpace of 0 by 0 sparse matrices over Integer Ring
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            if sparse is None or self.is_sparse() is sparse:
+                return self.__copy__()
+            elif sparse:
+                return self.sparse_matrix()
+            else:
+                return self.dense_matrix()
+
+        if self.is_sparse():
+            values = {(i,j): phi(v) for (i,j),v in self.dict().iteritems()}
+            if R is None:
+                R = sage.structure.sequence.Sequence(values.values()).universe()
+        else:
+            values = [phi(v) for v in self.list()]
+            if R is None:
+                R = sage.structure.sequence.Sequence(values).universe()
+
+        if sparse is None or sparse is self.is_sparse():
+            M = self.parent().change_ring(R)
+        else:
+            M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
+                       self._ncols, sparse=sparse)
+        image = M(values)
+        if self._subdivisions is not None:
+            image.subdivide(*self.subdivisions())
+        return image
 
     def characteristic_polynomial(self, *args, **kwds):
         """
@@ -4938,10 +5118,10 @@ cdef class Matrix(matrix1.Matrix):
             consult numerical or symbolic matrix classes for other options
 
             sage: em = A.change_ring(RDF).eigenmatrix_left()
-            sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(2e-15)
-            [ 13.348469228349...                0.0                 0.0]
-            [                0.0 -1.348469228349...                 0.0]
-            [                0.0                0.0                 0.0]
+            sage: eigenvalues = em[0]; eigenvalues.dense_matrix() # abs tol 1e-13
+            [13.348469228349522                0.0                 0.0]
+            [               0.0 -1.348469228349534                 0.0]
+            [               0.0                0.0                 0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.440242867...  0.567868371...  0.695493875...]
             [ 0.897878732...  0.278434036... -0.341010658...]
@@ -5206,10 +5386,10 @@ cdef class Matrix(matrix1.Matrix):
             consult numerical or symbolic matrix classes for other options
 
             sage: em = B.change_ring(RDF).eigenmatrix_right()
-            sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(1e-15)
-            [ 13.348469228349...                0.0                 0.0]
-            [                0.0 -1.348469228349...                 0.0]
-            [                0.0                0.0                 0.0]
+            sage: eigenvalues = em[0]; eigenvalues.dense_matrix() # abs tol 1e-13
+            [13.348469228349522                0.0                0.0]
+            [               0.0 -1.348469228349534                0.0]
+            [               0.0                0.0                0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.164763817...  0.799699663...  0.408248290...]
             [ 0.505774475...  0.104205787... -0.816496580...]
@@ -5597,10 +5777,10 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = matrix(QQ, 3, 3, range(9))
             sage: em = A.change_ring(RDF).eigenmatrix_left()
-            sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
-            [ 13.348469228349...                0.0                 0.0]
-            [                0.0 -1.348469228349...                 0.0]
-            [                0.0                0.0                 0.0]
+            sage: evalues = em[0]; evalues.dense_matrix() # abs tol 1e-13
+            [13.348469228349522                0.0                 0.0]
+            [               0.0 -1.348469228349534                 0.0]
+            [               0.0                0.0                 0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
             ....:     scale = evectors[i,0].sign()
@@ -5686,10 +5866,10 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: B = matrix(QQ, 3, 3, range(9))
             sage: em = B.change_ring(RDF).eigenmatrix_right()
-            sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
-            [ 13.348469228349...                0.0                 0.0]
-            [                0.0 -1.348469228349...                 0.0]
-            [                0.0                0.0                 0.0]
+            sage: evalues = em[0]; evalues.dense_matrix()  # abs tol 1e-13
+            [13.348469228349522                0.0                0.0]
+            [               0.0 -1.348469228349534                0.0]
+            [               0.0                0.0                0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
             ....:     scale = evectors[0,i].sign()
@@ -12204,8 +12384,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: Id.norm(2)
             1.0
             sage: A = matrix(RR, 2, 2, [13,-4,-4,7])
-            sage: A.norm()
-            15.0
+            sage: A.norm()  # rel tol 2e-16
+            14.999999999999998
 
         Norms of numerical matrices over high-precision reals are computed by this routine.
         Faster routines for double precision entries from `RDF` or `CDF` are provided by

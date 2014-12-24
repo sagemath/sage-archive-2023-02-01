@@ -29,12 +29,13 @@ Combinatorics, Discrete Mathematics
 * :doc:`Graph Theory <graphs/index>`
 * :doc:`Matroid Theory <matroids/index>`
 * :doc:`Discrete Dynamics <dynamics/index>`
-* :doc:`Quviers <quivers/index>`
+* :doc:`Quivers <quivers/index>`
 
 Structures, Coercion, Categories
 --------------------------------
 
 * :doc:`Basic Structures <structure/index>`
+* :doc:`Data Structures <data_structures/index>`
 * :doc:`Coercion <coercion/index>`
 * :doc:`Category Theory and Categories <categories/index>`
 

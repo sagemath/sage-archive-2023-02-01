@@ -85,7 +85,6 @@ Many other functionalities...::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import itertools
-from sage.misc.superseded import deprecated_function_alias
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.sets.set import Set
@@ -1699,8 +1698,6 @@ class WordMorphism(SageObject):
                 next_w = next(w)
                 w = itertools.chain([next_w], w, self.image(next_w))
 
-    letter_iterator = deprecated_function_alias(8595, _fixed_point_iterator)
-
     def fixed_point(self, letter):
         r"""
         Returns the fixed point of ``self`` beginning by the given ``letter``.
@@ -2832,7 +2829,7 @@ class WordMorphism(SageObject):
             I = [self.domain().alphabet().rank(letter)]
 
         last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coeffs()
+        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
         while coefs[last_coef] == 0:
             last_coef += 1
         V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)
@@ -2858,7 +2855,7 @@ class WordMorphism(SageObject):
         if self.is_primitive():
             return self.domain().alphabet().list()
         last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coeffs()
+        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
         while coefs[last_coef] == 0:
             last_coef += 1
         V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)

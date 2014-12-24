@@ -42,7 +42,7 @@ def _get_base_ring(ring, var_name="d"):
 
     If ``ring`` is of the form ``PolynomialRing(R,'d')``:
     Return ``R``.
-    
+
     Otherwise return ``ring``.
 
     The base ring is used in the construction of the correponding
@@ -139,7 +139,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
                                        over some base ring.
 
         OUTPUT:
- 
+
         The construction functor for the corresponding forms sub space.
 
         EXAMPLES::
@@ -207,7 +207,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             return ambient_space
 
     def __str__(self):
-        r"""  
+        r"""
         Return the string representation of ``self``.
 
         EXAMPLES::
@@ -304,7 +304,6 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
                 return True
         else:
             return False
-    
 
 
 class FormsSpaceFunctor(ConstructionFunctor):
@@ -335,16 +334,16 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         INPUT:
 
-        - ``analytic_type``  -- An element of ``AnalyticType()``. 
-    
+        - ``analytic_type``  -- An element of ``AnalyticType()``.
+
         - ``group``          -- The index of a Hecke Triangle group.
-        
+
         - ``k``              -- A rational number, the weight of the space.
-        
+
         - ``ep``             -- `1` or `-1`, the multiplier of the space.
 
         OUTPUT:
- 
+
         The construction functor for the corresponding forms space/ring.
 
         EXAMPLES::
@@ -364,7 +363,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
         r"""
         If ``R`` is a ``BaseFacade(S)`` then return the corresponding
         forms space with base ring ``_get_base_ring(S)``.
-        
+
         If not then we first merge the functor with the ConstantFormsSpaceFunctor.
 
         EXAMPLES::
@@ -390,7 +389,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
             return merged_functor(R)
 
     def __str__(self):
-        r"""  
+        r"""
         Return the string representation of ``self``.
 
         EXAMPLES::
@@ -419,7 +418,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
         is the logical ``and`` of the two corresponding ``red_hom``
         parameters (where a forms space is assumed to have it
         set to ``True``).
-    
+
         Two ``FormsSpaceFunctor`` with different (k,ep) are merged to a
         corresponding ``FormsRingFunctor``. Otherwise the corresponding
         (extended) ``FormsSpaceFunctor`` is returned.
@@ -454,7 +453,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         if (self == other):
             return self
-        
+
         if isinstance(other, FormsSubSpaceFunctor):
             other = other._ambient_space_functor
 
@@ -494,7 +493,8 @@ class FormsSpaceFunctor(ConstructionFunctor):
                 return True
         else:
             return False
-    
+
+
 class FormsRingFunctor(ConstructionFunctor):
     r"""
     Construction functor for forms rings.
@@ -521,10 +521,8 @@ class FormsRingFunctor(ConstructionFunctor):
         See :meth:`__call__` for a description of the functor.
 
         INPUT:
-        
-                                                                                
-                                                                            
-        - ``analytic_type``  -- An element of ``AnalyticType()``. 
+
+        - ``analytic_type``  -- An element of ``AnalyticType()``.
 
         - ``group``          -- The index of a Hecke Triangle group.
 
@@ -532,7 +530,7 @@ class FormsRingFunctor(ConstructionFunctor):
                                 (also see ``FormsRing_abstract``).
 
         OUTPUT:
- 
+
         The construction functor for the corresponding forms ring.
 
         EXAMPLES::
@@ -554,7 +552,7 @@ class FormsRingFunctor(ConstructionFunctor):
         r"""
         If ``R`` is a ``BaseFacade(S)`` then return the corresponding
         forms ring with base ring ``_get_base_ring(S)``.
-        
+
         If not then we first merge the functor with the ConstantFormsSpaceFunctor.
 
         EXAMPLES::
@@ -580,7 +578,7 @@ class FormsRingFunctor(ConstructionFunctor):
             return merged_functor(R)
 
     def __str__(self):
-        r"""  
+        r"""
         Return the string representation of ``self``.
 
         EXAMPLES::
@@ -612,7 +610,7 @@ class FormsRingFunctor(ConstructionFunctor):
         is the logical ``and`` of the two corresponding ``red_hom``
         parameters (where a forms space is assumed to have it
         set to ``True``).
-    
+
         Two ``FormsSpaceFunctor`` with different (k,ep) are merged to a
         corresponding ``FormsRingFunctor``. Otherwise the corresponding
         (extended) ``FormsSpaceFunctor`` is returned.
@@ -731,7 +729,7 @@ class BaseFacade(Parent, UniqueRepresentation):
         self.register_embedding(self.Hom(self._ring,Sets())(lambda x: x))
 
     def __repr__(self):
-        r"""  
+        r"""
         Return the string representation of ``self``.
 
         EXAMPLES::

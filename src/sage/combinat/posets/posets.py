@@ -2469,6 +2469,15 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.dimension() # not tested - around 4s
             4
 
+        TESTS:
+
+        Empty Poset::
+
+            sage: Poset().dimension()
+            0
+            sage: Poset().dimension(certificate=1)
+            []
+
         References:
 
         .. [FT00] Stefan Felsner, William T. Trotter,
@@ -2477,6 +2486,9 @@ class FinitePoset(UniqueRepresentation, Parent):
            2000, Volume 17, Issue 2, pp 167-177,
            http://link.springer.com/article/10.1023%2FA%3A1006429830221
         """
+        if self.cardinality() == 0:
+            return [] if certificate else 0
+
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
         P = Poset(self._hasse_diagram) # work on an int-labelled poset
         hasse_diagram = P.hasse_diagram()

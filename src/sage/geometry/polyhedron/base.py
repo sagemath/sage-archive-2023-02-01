@@ -23,7 +23,6 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil
-from sage.misc.prandom import randint
 
 from sage.graphs.graph import Graph
 
@@ -2935,7 +2934,7 @@ class Polyhedron_base(Element):
 
     graph = vertex_graph
 
-    def vertex_digraph(self, f, increasing=False):
+    def vertex_digraph(self, f, increasing=True):
         """
         Return the directed graph of the polyhedron according to a linear form.
 
@@ -2952,19 +2951,21 @@ class Polyhedron_base(Element):
             - a vector ; in this case the linear form is obtained by duality
               using the dot product: ``f(v) = v.dot_product(f)``.
 
-        - ``increasing`` -- boolean (default ``False``) whether to orient
-          edges in the increasing direction.
+        - ``increasing`` -- boolean (default ``True``) whether to orient
+          edges in the increasing or decreasing direction.
 
         By default, an edge is oriented from `v` to `w` if
-        `f(w) - f(v) \leq 0`.
+        `f(v) \leq f(w)`.
 
         If `f(v)=f(w)`, then two opposite edges are created.
 
         EXAMPLES::
 
             sage: penta = Polyhedron([[0,0],[1,0],[0,1],[1,2],[3,2]])
-            sage: penta.vertex_digraph(vector([1,1]))
+            sage: G = penta.vertex_digraph(vector([1,1])); G
             Digraph on 5 vertices
+            sage: G.sinks()
+            [A vertex at (3, 2)]
 
             sage: A = matrix(ZZ, [[1], [-1]])
             sage: f = linear_transformation(A)
@@ -2980,13 +2981,14 @@ class Polyhedron_base(Element):
         from sage.modules.vector_space_morphism import VectorSpaceMorphism
         if isinstance(f, VectorSpaceMorphism):
             if f.codomain().dimension() == 1:
-                orientation_check = lambda v : f(v) >= 0
+                orientation_check = lambda v: f(v) >= 0
             else:
-                raise TypeError('The linear map f must have one-dimensional codomain')
+                raise TypeError('The linear map f must have '
+                                'one-dimensional codomain')
         else:
             try:
                 if f.is_vector():
-                    orientation_check = lambda v : v.dot_product(f) >= 0
+                    orientation_check = lambda v: v.dot_product(f) >= 0
                 else:
                     raise TypeError('f must be a linear map or a vector')
             except AttributeError:
@@ -3620,7 +3622,7 @@ class Polyhedron_base(Element):
         try:
             vertices = self.vertices_matrix(ZZ).columns()
         except TypeError:
-            if envelope==False:
+            if not envelope:
                 raise ValueError('Some vertices are not integral. '
                     'You probably want to add the argument '
                     '"envelope=True" to compute an enveloping lattice polytope.')

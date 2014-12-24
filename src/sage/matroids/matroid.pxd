@@ -100,7 +100,6 @@ cdef class Matroid(SageObject):
     cpdef f_vector(self)
     cpdef broken_circuits(self, ordering=*)
     cpdef no_broken_circuits_sets(self, ordering=*)
-    cpdef nbc_sets(self, ordering=*)
 
     # isomorphism
     cpdef is_isomorphic(self, other)

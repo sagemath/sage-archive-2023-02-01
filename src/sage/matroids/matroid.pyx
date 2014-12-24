@@ -72,7 +72,6 @@ additional functionality (e.g. linear extensions).
     - :meth:`f_vector() <sage.matroids.matroid.Matroid.f_vector>`
     - :meth:`broken_circuits() <sage.matroids.matroid.Matroid.broken_circuits>`
     - :meth:`no_broken_circuits_sets() <sage.matroids.matroid.Matroid.no_broken_circuits_sets>`
-    - :meth:`nbc_sets() <sage.matroids.matroid.Matroid.nbc_sets>`
 
 - Comparison
     - :meth:`is_isomorphic() <sage.matroids.matroid.Matroid.is_isomorphic>`
@@ -2811,9 +2810,9 @@ cdef class Matroid(SageObject):
                     break
         return frozenset(ret)
 
-    cpdef nbc_sets(self, ordering=None):
+    cpdef no_broken_circuits_sets(self, ordering=None):
         r"""
-        Return the NBC sets of ``self``.
+        Return the no broken circuits (NBC) sets of ``self``.
 
         An NBC set is a subset `A` of the ground set under some total
         ordering `<` such that `A` contains no broken circuit.
@@ -2822,24 +2821,20 @@ cdef class Matroid(SageObject):
 
         - ``ordering`` -- a total ordering of the groundset given as a list
 
-        .. SEEALSO::
-
-            :meth:`no_broken_circuits_sets`
-
         EXAMPLES::
 
             sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
-            sage: SimplicialComplex(M.nbc_sets())
+            sage: SimplicialComplex(M.no_broken_circuits_sets())
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
              and facets {(1, 3, 4), (1, 3, 5), (1, 2, 5), (1, 2, 4)}
-            sage: SimplicialComplex(M.nbc_sets([5,4,3,2,1]))
+            sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
              and facets {(1, 4, 5), (2, 3, 5), (1, 3, 5), (2, 4, 5)}
 
         ::
 
             sage: M = Matroid(circuits=[[1,2,3], [1,4,5], [2,3,4,5]])
-            sage: SimplicialComplex(M.nbc_sets([5,4,3,2,1]))
+            sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
              and facets {(2, 3, 5), (1, 3, 5), (2, 4, 5), (3, 4, 5)}
         """
@@ -2855,24 +2850,6 @@ cdef class Matroid(SageObject):
                 if add:
                     ret.append(I)
         return ret
-
-    cpdef no_broken_circuits_sets(self, ordering=None):
-        r"""
-        Return the sets of ``self`` which do not contain a broken circuit.
-
-        This is an alias of :meth:`nbc_sets`.
-
-        INPUT:
-
-        - ``ordering`` -- a total ordering of the groundset given as a list
-
-        EXAMPLES::
-
-            sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
-            sage: M.nbc_sets() == M.no_broken_circuits_sets()
-            True
-        """
-        return self.nbc_sets(ordering)
 
     # isomorphism and equality
 
@@ -5156,8 +5133,8 @@ cdef class Matroid(SageObject):
         Return the broken circuit complex of ``self``.
 
         The broken circuit complex of a matroid with a total ordering `<`
-        on the ground set is obtained from the :meth:`NBC sets <nbc_sets>`
-        under subset inclusion.
+        on the ground set is obtained from the
+        :meth:`NBC sets <no_broken_circuits_sets>` under subset inclusion.
 
         INPUT:
 
@@ -5178,5 +5155,5 @@ cdef class Matroid(SageObject):
              and facets {(1, 4, 5), (2, 3, 5), (1, 3, 5), (2, 4, 5)}
         """
         from sage.homology.simplicial_complex import SimplicialComplex
-        return SimplicialComplex(self.nbc_sets(ordering))
+        return SimplicialComplex(self.no_broken_circuits_sets(ordering))
 

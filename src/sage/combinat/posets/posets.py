@@ -2401,7 +2401,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def dimension(self, certificate=False):
         r"""
-        Return the dimension of the Poset
+        Return the dimension of the Poset.
 
         The dimension of a Poset defined on a set `X` of points is the smallest
         integer `n` such that there exists `P_1,...,P_n` linear extensions of

@@ -31,15 +31,12 @@ if [ "$SAGE64" = "yes" ]; then
     CFLAGS="-m64 $CFLAGS"
 fi
 
-EXTRA_BLAS=""
 if [ $UNAME = "Darwin" ]; then
-    # copy cblas headers from gsl
-    cp ../patches/gsl_cblas.h cblas.h
-    EXTRA_BLAS="--with-cblas=-lcblas"
+    IML_CONFIGURE="--with-cblas=-lcblas $IML_CONFIGURE"
 fi
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-    --enable-shared --with-default="$SAGE_LOCAL" "$EXTRA_BLAS" 
+    --enable-shared --with-default="$SAGE_LOCAL" "$IML_CONFIGURE" 
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring IML."
     exit 1

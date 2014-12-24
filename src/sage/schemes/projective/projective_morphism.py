@@ -324,11 +324,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if self.parent() != right.parent():
             return False
         n = len(self._polys)
-        for i in range(0, n):
-            for j in range(i + 1, n):
-                if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
-                    return False
-        return True
+        return all([self[i]*right[j] == self[j]*right[i] for i in range(0, n) for j in range(i+1, n)])
 
     def __ne__(self, right):
         """

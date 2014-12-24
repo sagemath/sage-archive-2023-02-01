@@ -151,15 +151,14 @@ class HeckeModules(Category_module):
             return HeckeModuleHomspace(self, Y, category = category)
 
     class Homsets(HomsetsCategory):
-        def extra_super_categories_disabled(self):
-            """
-            EXAMPLES::
+        """
+        .. TODO:: shall there be any additional category structure on Homsets of hecke modules?
 
-                sage: HeckeModules(ZZ).Homsets().extra_super_categories()
-                [Category of homsets]
-            """
-            return [] # FIXME: what category structure is there on Homsets of hecke modules?
+        TESTS::
 
+            sage: HeckeModules(ZZ).Homsets().super_categories()
+            [Category of homsets]
+        """
 
         def base_ring(self):
             """

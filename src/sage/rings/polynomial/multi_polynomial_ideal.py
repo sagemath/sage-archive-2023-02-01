@@ -2361,6 +2361,16 @@ class MPolynomialIdeal_singular_repr(
             True
             sage: x * (y*z + x) in I
             True
+
+        TEST:
+
+        This example checks :trac:`16301`::
+
+            sage: R.<x,y,z> = ZZ[]
+            sage: I = Ideal(R(2), x*y, x*z + x)
+            sage: eD = Ideal(x, z^2-1)
+            sage: I.quotient(eD).gens()
+            [2, x*z + x, x*y]
         """
         R = self.ring()
 

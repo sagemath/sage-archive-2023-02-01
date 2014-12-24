@@ -55,9 +55,9 @@ following:
 * and reason for needing a trac account.
 
 Your trac account also grants you access to the sage wiki. Make sure you
-understand the review process (see :ref:`chapter-review), and the procedures for
-opening and closing tickets before making changes. The remainder of this chapter
-contains various guidelines on using the trac server.
+understand the review process (see :ref:`chapter-review`), and the procedures
+for opening and closing tickets before making changes. The remainder of this
+chapter contains various guidelines on using the trac server.
 
 Generating and Uploading your SSH Keys
 --------------------------------------
@@ -274,9 +274,9 @@ points in mind.
 The Ticket Fields
 =================
 
-When you open a new ticket or change an existing ticket, you will find
-a variety of fields that can be changed. Here is a comprehensive
-overview:
+When you open a new ticket or change an existing ticket, you will find a variety
+of fields that can be changed. Here is a comprehensive overview (for the
+'status' field, see :ref:`section-trac-ticket-status`):
 
 * **Reported by:** The trac account name of whoever created the
   ticket. Cannot be changed.
@@ -418,8 +418,11 @@ issues:
   priorities of bugs very differently from us, so please let us know
   if you see a problem with specific tickets.
 
-Closing Tickets
-===============
+Reviewing and closing Tickets
+=============================
+
+Tickets can be closed when they have positive review or for other reasons. To
+learn how to review, please see :ref:`chapter-review`.
 
 Only the Sage release manager will close tickets. Most likely, this is
 not you nor will your trac account have the necessary permissions. If
@@ -432,7 +435,6 @@ developer agrees, he sets the ticket to *positive review*.
 A related issue is re-opening tickets. You should refrain from
 re-opening a ticket that is already closed. Instead, open a new ticket
 and provide a link in the description to the old ticket.
-
 
 Reasons to Invalidate Tickets
 =============================

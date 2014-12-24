@@ -2415,9 +2415,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``certificate`` (boolean) -- whether to return an integer (the
-          dimension) or a certificate, i.e. a smallest set of linear
-          extensions. Set to ``False`` by default.
+        - ``certificate`` (boolean; default:``False``) -- whether to return an
+          integer (the dimension) or a certificate, i.e. a smallest set of
+          linear extensions.
 
         **Algorithm:**
 

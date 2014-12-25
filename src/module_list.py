@@ -237,6 +237,9 @@ ext_modules = [
     Extension('sage.combinat.crystals.letters',
               sources=['sage/combinat/crystals/letters.pyx']),
 
+    Extension('sage.combinat.designs.subhypergraph_search',
+              sources=['sage/combinat/designs/subhypergraph_search.pyx']),
+
     Extension('sage.combinat.designs.designs_pyx',
               sources=['sage/combinat/designs/designs_pyx.pyx'],
               libraries=['gmp']),

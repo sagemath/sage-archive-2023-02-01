@@ -2901,6 +2901,31 @@ class FFPDElement(sage.structure.element.RingElement):
         return left.parent()(numer, df)
 
 
+def is_FractionWithFactoredDenominatorRing(F):
+    r"""
+    Returns if input is an instance of
+    FractionWithFactoredDenominatorRing.
+
+    INPUT:
+
+    - ``F`` -- the object to test.
+
+    OUTPUT:
+
+    ``True`` or ``False``.
+
+    TESTS::
+
+        sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, is_FractionWithFactoredDenominatorRing
+        sage: R.<x,y> = PolynomialRing(QQ)
+        sage: FFPD = FractionWithFactoredDenominatorRing(R); R
+        Multivariate Polynomial Ring in x, y over Rational Field
+        sage: is_FractionWithFactoredDenominatorRing(FFPD)
+        True
+    """
+    return isinstance(F, FractionWithFactoredDenominatorRing)
+
+
 class FractionWithFactoredDenominatorRing(
     sage.structure.unique_representation.UniqueRepresentation,
     sage.rings.ring.Ring):

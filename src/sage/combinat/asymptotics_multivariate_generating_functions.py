@@ -3082,7 +3082,7 @@ class FractionWithFactoredDenominatorRing(
             raise ValueError('Parameters ambiguous.')
 
         # process keyword arguments
-        reduce_ = kwargs.pop('reduce_', True)
+        reduce_ = kwargs.pop('reduce_', None)
 
         if kwargs:
             raise ValueError('Unknown keyword arguments '
@@ -3096,7 +3096,18 @@ class FractionWithFactoredDenominatorRing(
             raise ValueError('No argument given. '
                              'We are in serious troubles...')
 
-        elif len(args) == 2:
+        # At this point we have one or two input arguments.
+
+        x = args[0]
+        try:
+            P = x.parent()
+        except AttributeError:
+            P = None
+
+        denominator_factored = None  # init
+        reduce_default = True
+
+        if len(args) == 2:
             numerator, denominator_factored = args
             if numerator is None:
                 numerator = R(0)
@@ -3125,28 +3136,68 @@ class FractionWithFactoredDenominatorRing(
             ##if numerator and numerator not in R:
             ##    print "DEBUG: numerator %s\n      is of type %s\n     (instead of %s)" % (numerator, numerator.parent(), R)  # TODO
 
-            return self.element_class(self,
-                                      numerator=numerator,
-                                      denominator_factored=denominator_factored,
-                                      reduce_=reduce_)
+        # From now on we only have one input arguement;
+        # it's called x and has parent P.
 
-        # at this point there is exactly one element in args
-        x = args[0]
+        elif is_FractionWithFactoredDenominatorRing(P):
+            numerator = x._numerator
+            denominator_factored = self._denominator_factored
+            reduce_default = False
 
+        elif P == SR:
+            numerator = x.numerator()
+            denominator = x.denominator()
+            reduce_default = False
 
-        quotient = x
+        elif x in R:
+            numerator = R(x)
+            denominator_factored = []
 
-        #    try:
-        #        quotient = Q(quotient)
-        #    except TypeError:
-        #        raise TypeError('Numerator or quotient has wrong type.')
+        elif x in Q:
+            quotient = Q(x)
+            numerator = quotient.numerator()
+            denominator = quotient.denominator()
+            reduce_default = False
 
-        if quotient not in Q:
-            print "DEBUG:  quotient %s\n      is of type %s\n     (instead of %s)" % (quotient, quotient.parent(), Q)
+        elif hasattr(x, 'numerator') and hasattr(x, 'denominator'):
+            numerator = x.numerator()
+            denominator = x.denominator()
+            reduce_default = False
 
-        return self.element_class(self, quotient=quotient,
+        else:
+            raise TypeError('Element %s is not contained '
+                            'in %s.' % (x, self))
+
+        if reduce_ is None:
+            reduce_ = reduce_default
+
+        if denominator_factored is None:
+            if denominator not in R:
+                raise TypeError('Extracted denominator %s is not '
+                                'in %s.' % (denominator, self))
+            p = numerator
+            q = R(denominator)
+
+            if is_PolynomialRing(R) or is_MPolynomialRing(R):
+                if not R(q).is_unit():
+                    # Factor denominator
+                    try:
+                        df = q.factor()
+                    except NotImplementedError:
+                        # Singular's factor() needs 'proof=False'.
+                        df = q.factor(proof=False)
+                    numerator = p / df.unit()
+                    df = sorted(tuple(t) for t in df)  # sort for consitency
+                    denominator_factored = df
+            else:
+                # At this point, denominator could not be factored.
+                numerator = p / q
+                denominator_factored = []
+
+        return self.element_class(self,
+                                  numerator=numerator,
+                                  denominator_factored=denominator_factored,
                                   reduce_=reduce_)
-
 
 
     def _an_element_(self):

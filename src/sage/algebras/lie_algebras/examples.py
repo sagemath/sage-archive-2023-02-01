@@ -137,7 +137,7 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
         E = names[0]
         F = names[1]
         H = names[2]
-        s_coeff = { (E,F): {H:R.one()}, (H,E): {E:R(2)}, (H,F): {E:R(-2)} }
+        s_coeff = { (E,F): {H:R.one()}, (H,E): {E:R(2)}, (H,F): {F:R(-2)} }
         L = LieAlgebraWithStructureCoefficients(R, s_coeff, tuple(names))
         L.rename("sl2 over {}".format(R))
         return L
@@ -152,8 +152,26 @@ def sl(R, n, representation='bracket'):
 
     EXAMPLES::
 
-        sage: lie_algebras.sl(QQ, 2)
+        sage: sl2 = lie_algebras.sl(QQ, 2); sl2
         sl2 over Rational Field
+        sage: E,F,H = sl2.gens()
+        sage: E.bracket(F) == H
+        True
+        sage: H.bracket(E) == 2*E
+        True
+        sage: H.bracket(F) == -2*F
+        True
+
+    TESTS::
+
+        sage: sl2 = lie_algebras.sl(QQ, 2, representation='matrix')
+        sage: E,F,H = sl2.gens()
+        sage: E.bracket(F) == H
+        True
+        sage: H.bracket(E) == 2*E
+        True
+        sage: H.bracket(F) == -2*F
+        True
     """
     if n != 2:
         raise NotImplementedError("only n=2 is implemented")
@@ -164,11 +182,11 @@ def sl(R, n, representation='bracket'):
         MS = MatrixSpace(R, 2)
         E = MS([[0,1],[0,0]])
         F = MS([[0,0],[1,0]])
-        H = MS([[1,0],[-1,0]])
+        H = MS([[1,0],[0,-1]])
         L = LieAlgebraFromAssociative([E, F, H], ['E', 'F', 'H'])
         L.rename("sl2 as a matrix Lie algebra over {}".format(R))
     elif representation == 'bracket':
-        L = three_dimensional_by_rank(R, 3)
+        L = three_dimensional_by_rank(R, 3, names=['E', 'F', 'H'])
     else:
         raise ValueError("invalid representation")
 

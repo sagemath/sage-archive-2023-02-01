@@ -3067,6 +3067,10 @@ class FractionWithFactoredDenominatorRing(
         if len(args) > 2:
             raise ValueError('Too many arguments given.')
 
+        elif not args:
+            raise ValueError('No argument given. '
+                             'We are in serious troubles...')
+
         elif len(args) == 2:
             numerator, denominator_factored = args
             if numerator is None:
@@ -3078,6 +3082,8 @@ class FractionWithFactoredDenominatorRing(
             try:
                 denominator_factored = list(
                     (R(d[0]), NN(d[1])) for d in denominator_factored)
+                # TODO: line above does a conversion; should this be a
+                #       coercion only?
             except TypeError:
                 raise TypeError('Factored denominator is not well-formed '
                                 'or of wrong type.')
@@ -3099,23 +3105,23 @@ class FractionWithFactoredDenominatorRing(
                                       denominator_factored=denominator_factored,
                                       reduce_=reduce_)
 
-        elif len(args) == 1:
-            quotient = args[0]
+        # at this point there is exactly one element in args
+        x = args[0]
 
-            #    try:
-            #        quotient = Q(quotient)
-            #    except TypeError:
-            #        raise TypeError('Numerator or quotient has wrong type.')
 
-            if quotient not in Q:
-                print "DEBUG:  quotient %s\n      is of type %s\n     (instead of %s)" % (quotient, quotient.parent(), Q)
+        quotient = x
 
-            return self.element_class(self, quotient=quotient,
-                                      reduce_=reduce_)
+        #    try:
+        #        quotient = Q(quotient)
+        #    except TypeError:
+        #        raise TypeError('Numerator or quotient has wrong type.')
 
-        else:
-            raise ValueError('No argument given. '
-                             'We are in serious troubles...')
+        if quotient not in Q:
+            print "DEBUG:  quotient %s\n      is of type %s\n     (instead of %s)" % (quotient, quotient.parent(), Q)
+
+        return self.element_class(self, quotient=quotient,
+                                  reduce_=reduce_)
+
 
 
     def _an_element_(self):

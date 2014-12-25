@@ -280,11 +280,11 @@ class FFPDElement(sage.structure.element.RingElement):
         sage: a = FFPD(G/H)
         sage: a
         (e^(x + y)/(2*x^2 + 5*x*y + 2*y^2 - 3*x - 3*y + 1), [])
-        sage: a._ring
+        sage: a.ring()
         sage: b = FFPD(G, H.factor())
         sage: b
         (e^(x + y), [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
-        sage: b._ring
+        sage: b.ring()
         Multivariate Polynomial Ring in x, y over Rational Field
 
     Singular throws a 'not implemented' error when trying to factor in
@@ -325,8 +325,7 @@ class FFPDElement(sage.structure.element.RingElement):
 
         self._numerator = numerator
         self._denominator_factored = denominator_factored
-        self._ring = parent.base()
-        R = self._ring
+        R = self.ring()
         if R is not None and numerator in R and reduce_:
             # Reduce fraction if possible.
             numer = R(self._numerator)
@@ -452,7 +451,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: print F.ring()
             None
         """
-        return self._ring
+        return self.parent().base()
 
     def dimension(self):
         r"""

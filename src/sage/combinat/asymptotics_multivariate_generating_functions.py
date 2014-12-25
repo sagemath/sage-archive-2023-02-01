@@ -324,13 +324,8 @@ class FFPDElement(sage.structure.element.RingElement):
         super(FFPDElement, self).__init__(parent)
 
         self._numerator = numerator
-        if denominator_factored:
-            self._denominator_factored = sorted([tuple(t) for t in
-                                             denominator_factored])
-            self._ring = denominator_factored[0][0].parent()
-        else:
-            self._denominator_factored = []
-            self._ring = None
+        self._denominator_factored = denominator_factored
+        self._ring = parent.base()
         R = self._ring
         if R is not None and numerator in R and reduce_:
             # Reduce fraction if possible.
@@ -3090,10 +3085,8 @@ class FractionWithFactoredDenominatorRing(
 
             from sage.rings.semirings.non_negative_integer_semiring import NN
             try:
-                denominator_factored = list(
+                denominator_factored = sorted(
                     (R(d[0]), NN(d[1])) for d in denominator_factored)
-                # TODO: line above does a conversion; should this be a
-                #       coercion only?
             except TypeError:
                 raise TypeError('Factored denominator is not well-formed '
                                 'or of wrong type.')

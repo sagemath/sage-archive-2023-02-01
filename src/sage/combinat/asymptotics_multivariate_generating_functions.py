@@ -308,7 +308,7 @@ class FFPDElement(sage.structure.element.RingElement):
     - Daniel Krenn (2014-12-01)
     """
     def __init__(self, parent, numerator=None, denominator_factored=None,
-                 quotient=None, reduce_=True):
+                 reduce_=True):
         r"""
         Create a FFPD instance.
 
@@ -322,32 +322,6 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: TestSuite(f).run()
         """
         super(FFPDElement, self).__init__(parent)
-        # Attributes are
-        # self._numerator
-        # self._denominator_factored
-        # self._ring
-        if quotient is not None:
-            p = quotient.numerator()
-            q = quotient.denominator()
-            R = q.parent()
-            self._numerator = quotient
-            self._denominator_factored = []
-            if is_PolynomialRing(R) or is_MPolynomialRing(R):
-                self._ring = R
-                if not R(q).is_unit():
-                    # Factor q
-                    try:
-                        df = q.factor()
-                    except NotImplementedError:
-                        # Singular's factor() needs 'proof=False'.
-                        df = q.factor(proof=False)
-                    self._numerator = p/df.unit()
-                    df = sorted([tuple(t) for t in df]) # Sort for consitency.
-                    self._denominator_factored = df
-            else:
-                self._ring = None
-            # Done. No reducing needed, as Sage reduced quotient beforehand.
-            return
 
         self._numerator = numerator
         if denominator_factored:

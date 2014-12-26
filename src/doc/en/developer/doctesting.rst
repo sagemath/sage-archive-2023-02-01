@@ -777,6 +777,8 @@ Finally, you can disable any warnings about long tests with
 ``--warn-long 0``.
 
 
+.. _section-optional-doctest-flag:
+
 Run Optional Tests
 ------------------
 

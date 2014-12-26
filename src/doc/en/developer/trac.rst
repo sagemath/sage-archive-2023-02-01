@@ -25,39 +25,33 @@ trac server. Items on the server are called *tickets*, and anyone may
 search or browse the tickets. For a list of recent changes, just visit
 the `Sage trac timeline <http://trac.sagemath.org/timeline>`_.
 
+.. _section-trac-account:
 
-Authentication
-==============
+Obtaining an Account
+====================
+
+You need a trac account if you want to *change* anything on the Sage trac
+server, even if you just want to comment on a ticket. To obtain one, send an
+email to ``sage-trac-account@googlegroups.com`` containing:
+
+* your full name,
+* preferred username,
+* contact email,
+* and reason for needing a trac account
+
+Your trac account also grants you access to the `sage wiki
+<wiki.sagemath.org>`_. Make sure you understand the review process, and the
+procedures for opening and closing tickets before making changes. The remainder
+of this chapter contains various guidelines on using the trac server.
+
+Trac authentication through SSH
+===============================
 
 There are two avenues to prove to the trac server that you are who you
 claim to be. First, to change the ticket web pages you need to log in
 to trac using a username/password. Second, there is public key
 cryptography used by git when copying new source files to the
 repository. This section will show you how to setup both.
-
-
-.. _section-trac-account:
-
-Obtaining an Account
---------------------
-
-You first need to open an account if you want to *change* anything on
-the Sage trac server, even if you just want to comment on a
-ticket. Part of the process is to prove that you are a human to keep
-spam at a minimum. To get an account read the developer manual (this
-document) and then send an email to
-``sage-trac-account@googlegroups.com`` that contains all of the
-following:
-
-* your full name,
-* preferred username,
-* contact email,
-* and reason for needing a trac account.
-
-Your trac account also grants you access to the sage wiki. Make sure
-you understand the review process, and the procedures for opening and
-closing tickets before making changes. The remainder of this chapter
-contains various guidelines on using the trac server.
 
 Generating and Uploading your SSH Keys
 --------------------------------------
@@ -335,21 +329,25 @@ overview:
 Stopgaps
 ========
 
-If a component of Sage produces a mathematical error, you should open
-two tickets: a main ticket with all available details, and also a
-"stopgap" ticket. This second ticket should have a patch which will be
-merged into Sage if no one fixes the main issue; this patch should print a
-warning when anyone uses the relevant code. To produce the warning
-message, use code like the following::
+When Sage returns wrong results, two tickets should be opened:
+
+- A main ticket with all available details.
+- A "stopgap" ticket (e.g. :trac:`12699`)
+
+This second ticket does not fix the problem but adds a warning that will be
+printed whenever anyone uses the relevant code. This, until the problem is
+finally fixed.
+
+To produce the warning message, use code like the following::
 
     from sage.misc.stopgap import stopgap
     stopgap("This code contains bugs and may be mathematically unreliable.",
         TICKET_NUM)
 
-Replace ``TICKET_NUM`` by the ticket number for the main ticket.  See
-:trac:`12699`, for example.  On the main trac ticket, you should also
-enter the ticket number for the stopgap ticket in the "Stopgaps"
-field. Stopgap tickets should be marked as blockers.
+Replace ``TICKET_NUM`` by the ticket number for the main ticket. On the main
+trac ticket, enter the ticket number for the stopgap ticket in the "Stopgaps"
+field (see :ref:`section-trac-fields`). Stopgap tickets should be marked as
+blockers.
 
 .. note::
 

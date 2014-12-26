@@ -186,26 +186,19 @@ one if there is none yet. Just like the create command, you can
 specify the remote branch name explicitly using the ``-b`` switch if
 you want.
 
-
-
 .. _section-git_trac-branch-names:
 
 Note on Branch Names
 --------------------
 
-Trac tickets that are finished or in the process of being worked on
-can have a git branch attached to them. This is the "Branch:" field in
-the ticket description. The branch name is generally of the form
-``u/user/description``, where ``user`` is the name of the user who
-made the branch and ``description`` is some free-form short
-description (and can include further slashes, but not whitespace). Our
-git server implements the following access restrictions for **remote
-branch names**:
+The "Branch:" field of a trac ticket (see :ref:`section-trac-fields`) indicates
+the git branch containing its code. Our git server implements the following
+access restrictions for **remote branch names**:
 
-* Only the developer with the ``user`` trac account can create
-  branches starting with ``u/user/``.
+* You can read/write/create a branch named
+  ``u/your_username/whatever_you_like``. Everybody else can read.
 
-* Everybody can write to branches named ``public/description``.
+* Everybody can read/write/create a branch named ``public/whatever_you_like``.
 
 Depending on your style of collaboration, you can use one or the
 other. The ``git trac`` subcommands defaults to the former.

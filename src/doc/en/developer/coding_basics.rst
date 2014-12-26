@@ -688,7 +688,9 @@ framework. Here is a comprehensive list:
   - This may be prefixed by ``abs[olute]`` or ``rel[ative]`` to specify whether
     to measure **absolute** or **relative** error.
 
-  - **Zero** values are always tested relative error.
+  - If none of ``abs/rel`` is specified, the error is considered to be
+    ``absolute`` when the expected value is **zero**, and is ``relative`` for
+    **nonzero** values.
 
   ::
 

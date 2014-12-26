@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+make
+mv libbliss.a $SAGE_LOCAL/lib
+
+if [ $? -ne 0 ]; then
+    echo "An error occurred whilst building bliss"
+    exit 1
+fi

@@ -1,0 +1,28 @@
+= bliss 0.72 =
+
+== Description ==
+
+bliss is an open source tool for computing automorphism groups and canonical forms of graphs. 
+
+== License ==
+
+GPL 
+
+== SPKG Maintainers ==
+
+Jernej Azarija (jernej.azarija@gmail.com)
+Nathann Cohen  (nathann.cohen@gmail.com)
+
+== Upstream Contact ==
+
+Bliss is currently being maintained by Tommi Junttila and Petteri Kaski.
+www.tcs.tkk.fi/Software/bliss/index.html
+
+== Dependencies ==
+
+None
+
+== Changelog ==
+
+=== bliss-1.0 (Jernej Azarija, Nathann Cohen, 26 December 2014) ==
+ * Initial version

@@ -682,14 +682,13 @@ framework. Here is a comprehensive list:
       0.0511114082399688
 
 - **tol** or **tolerance:** The numerical values returned by the line is only
-  verified to the given tolerance.
+  verified to the given tolerance. It is useful when the output is subject to
+  numerical noise (rounding error/floating point arithmetic).
 
   - This may be prefixed by ``abs[olute]`` or ``rel[ative]`` to specify whether
-    to measure absolute or relative error
+    to measure **absolute** or **relative** error.
 
-  - Defaults to relative error except when the expected value is exactly zero
-
-  - Works with complex numbers
+  - **Zero** values are always tested relative error.
 
   ::
 
@@ -703,22 +702,25 @@ framework. Here is a comprehensive list:
      sage: N(zeta8)  # absolute tolerance 1e-10
      0.7071067812 + 0.7071067812*I
 
-  This can be useful when the exact output is subject to rounding
-  error and/or processor floating point arithmetic variation.
+  **Multiple numerical values:** the representation of complex numbers,
+  matrices, or polynomials involve several numerical values. If a doctest with
+  tolerance contains several numbers, each of them is checked individually::
 
-  A relative tolerance on a root of a polynomial.  Notice that the
-  root should normally print as ``1e+16``, or something similar.
-  However, the tolerance testing causes the doctest framework to use
-  the output in a *computation*, so other valid text representations
-  of the predicted value may be used.  However, they must fit the
-  pattern defined by the regular expression ``float_regex`` in
-  :mod:`sage.doctest.parsing`::
+      sage: print "The sum of 1 and 1 equals 5"  # abs tol 1
+      The sum of 2 and 2 equals 4
+      sage: e^(i*pi/4).n() # rel tol 1e-1
+      0.7 + 0.7*I
+      sage: ((x+1.001)^4).expand() # rel tol 2
+      x^4 + 4*x^3 + 6*x^2 + 4*x + 1
+      sage: M = matrix.identity(3) + random_matrix(RR,3,3)/10^3
+      sage: M^2 # abs tol 1e-2
+      [1 0 0]
+      [0 1 0]
+      [0 0 1]
 
-      sage: y = polygen(RDF, 'y')
-      sage: p = (y - 10^16)*(y-10^(-13))*(y-2); p
-      y^3 - 1.0000000000000002e+16*y^2 + 2.0000000000001e+16*y - 2000.0
-      sage: p.roots(multiplicities=False)[2]     # relative tol 1e-10
-      10000000000000000
+  The values that the doctesting framework involves in the error computations
+  are defined by the regular expression ``float_regex`` in
+  :mod:`sage.doctest.parsing`.
 
 - **not implemented** or **not tested:** The line is never tested.
 

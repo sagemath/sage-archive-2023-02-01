@@ -801,14 +801,14 @@ class Line(PrimitiveObject):
 
     -  ``points`` -- list of points to pass through
 
-    -  ``thickness`` -- diameter of the line
+    -  ``thickness`` -- (optional, default 5) diameter of the line
 
-    -  ``corner_cutoff`` -- threshold for smoothing (see
-       the corners() method) this is the minimum cosine between adjacent
-       segments to smooth
+    - ``corner_cutoff`` -- (optional, default 0.5) threshold for
+       smoothing (see :meth:`corners`). This is the minimum cosine
+       between adjacent segments to smooth.
 
-    -  ``arrow_head`` -- if True make this curve into an
-       arrow
+    - ``arrow_head`` -- (optional, default ``False``) if ``True`` make
+       this curve into an arrow
 
     EXAMPLES::
 
@@ -820,8 +820,16 @@ class Line(PrimitiveObject):
 
         sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0)
         Graphics3d Object
+
+    Make sure that the ``corner_cutoff`` keyword works (:trac:`3859`)::
+
+        sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=1)
+        Graphics3d Object
+        sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=-1)
+        Graphics3d Object
     """
-    def __init__(self, points, thickness=5, corner_cutoff=.5, arrow_head=False, **kwds):
+    def __init__(self, points, thickness=5, corner_cutoff=.5,
+                 arrow_head=False, **kwds):
         """
         Create the graphics primitive :class:`Line` in 3-D.
 
@@ -855,14 +863,14 @@ class Line(PrimitiveObject):
             sage: from sage.plot.plot3d.shapes2 import Line
             sage: L = Line([(i,i^2-1,-2*ln(i)) for i in [10,20,30]])
             sage: L.bounding_box()
-            ((10.0, 99.0, -6.802394763324311), (30.0, 899.0, -4.605170185988092))
+            ((10.0, 99.0, -6.802394763324311),
+            (30.0, 899.0, -4.605170185988092))
         """
         try:
             return self.__bounding_box
         except AttributeError:
             self.__bounding_box = point_list_bounding_box(self.points)
         return self.__bounding_box
-
 
     def tachyon_repr(self, render_params):
         """
@@ -927,7 +935,7 @@ class Line(PrimitiveObject):
             'draw line_1 diameter 1 curve {1.0 0.0 0.0}'
         """
         T = render_params.transform
-        corners = self.corners(max_len=255) # hardcoded limit in jmol
+        corners = self.corners(max_len=255)  # hardcoded limit in jmol
         last_corner = corners[-1]
         corners = set(corners)
         cmds = []
@@ -954,8 +962,14 @@ class Line(PrimitiveObject):
 
         INPUT:
 
-        Maximum cosine of angle between adjacent line segments before
-        adding a corner
+        - ``corner_cutoff`` -- (optional, default ``None``) Maximum
+          cosine of angle between adjacent line segments before adding
+          a corner. If ``None``, then the default value is used.
+
+        - ``max_len`` -- (optional, default ``None``) Maximum number
+          of points allowed in a single path. If this is set, this
+          creates corners at smooth points in order to break the path
+          into smaller pieces.
 
         OUTPUT:
 
@@ -978,7 +992,7 @@ class Line(PrimitiveObject):
         No corners::
 
             sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=-1).corners()
-            (0, 0, 0)
+            [(0, 0, 0)]
 
         An intermediate value::
 
@@ -987,16 +1001,19 @@ class Line(PrimitiveObject):
         """
         if corner_cutoff is None:
             corner_cutoff = self.corner_cutoff
+
         if corner_cutoff >= 1:
-            if max_len:
-                self.points[:-1][::max_len-1]
+            if not(max_len is None):
+                return self.points[:-1][::max_len - 1]
             else:
                 return self.points[:-1]
+
         elif corner_cutoff <= -1:
-            return self.points[0]
+            return [self.points[0]]
+
         else:
-            if not max_len:
-                max_len = len(self.points)+1
+            if max_len is None:
+                max_len = len(self.points) + 1
             count = 2
             # ... -- prev -- cur -- next -- ...
             cur  = self.points[0]
@@ -1009,7 +1026,7 @@ class Line(PrimitiveObject):
             def dot(x0_y0_z0, x1_y1_z1):
                 (x0, y0, z0) = x0_y0_z0
                 (x1, y1, z1) = x1_y1_z1
-                return x0*x1 + y0*y1 + z0*z1
+                return x0 * x1 + y0 * y1 + z0 * z1
 
             for next in self.points[2:]:
                 if next == cur:
@@ -1018,8 +1035,10 @@ class Line(PrimitiveObject):
                     count = 1
                     continue
                 next_dir = [next[i] - cur[i] for i in range(3)]
-                cos_angle = dot(prev_dir, next_dir) / math.sqrt(dot(prev_dir, prev_dir) * dot(next_dir, next_dir))
-                if cos_angle <= corner_cutoff or count > max_len-1:
+                cos_angle = (dot(prev_dir, next_dir) /
+                             math.sqrt(dot(prev_dir, prev_dir) *
+                                       dot(next_dir, next_dir)))
+                if cos_angle <= corner_cutoff or count > max_len - 1:
                     corners.append(cur)
                     count = 1
                 cur, prev_dir = next, next_dir

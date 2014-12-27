@@ -9,6 +9,7 @@ fi
 cd "src" &&
 $MAKE &&
 mv libbliss.a "$SAGE_LOCAL/lib"
+mv graph.hh "$SAGE_LOCAL/include"
 
 if [ $? -ne 0 ]; then
     echo "An error occurred whilst building bliss"

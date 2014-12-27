@@ -6,8 +6,8 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-cd src
-make
+cd "src" &&
+make &&
 mv libbliss.a $SAGE_LOCAL/lib
 
 if [ $? -ne 0 ]; then

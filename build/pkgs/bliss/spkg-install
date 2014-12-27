@@ -7,8 +7,8 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 cd "src" &&
-make &&
-mv libbliss.a $SAGE_LOCAL/lib
+$MAKE &&
+mv libbliss.a "$SAGE_LOCAL/lib"
 
 if [ $? -ne 0 ]; then
     echo "An error occurred whilst building bliss"

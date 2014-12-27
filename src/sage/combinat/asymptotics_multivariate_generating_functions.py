@@ -513,6 +513,7 @@ class FFPDElement(sage.structure.element.RingElement):
         """
         return self.numerator()/self.denominator()
 
+
     def __repr__(self):
         r"""
         Return a string representation of ``self``
@@ -528,7 +529,55 @@ class FFPDElement(sage.structure.element.RingElement):
         """
         return repr((self.numerator(), self.denominator_factored()))
 
+
     def __eq__(self, other):
+        r"""
+        Tests for equality of the given elements (with taking care of
+        different parents by using the coercion model).
+
+        INPUT:
+
+        - ``other`` -- object to compare with ``self``.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: f = FFPD(x, [])
+            sage: f == x
+            True
+            sage: x == f
+            True
+            sage: f == 4
+            False
+            sage: g = FFPD(R(3), [])
+            sage: g == R(3)
+            True
+            sage: g == QQ(3)
+            True
+            sage: g == ZZ(3)
+            True
+            sage: 3 == g
+            True
+        """
+        from sage.structure.sage_object import have_same_parent
+        if have_same_parent(self, other):
+            return self._eq_(other)
+
+        from sage.structure.element import get_coercion_model
+        import operator
+        try:
+            return get_coercion_model().bin_op(self, other, operator.eq)
+        except TypeError:
+            return False
+
+
+    def _eq_(self, other):
         r"""
         Two FFPD instances are equal iff they represent the same
         fraction.
@@ -560,6 +609,7 @@ class FFPDElement(sage.structure.element.RingElement):
         """
         return self.quotient() == other.quotient()
 
+
     def __ne__(self, other):
         r"""
         EXAMPLES::
@@ -577,6 +627,7 @@ class FFPDElement(sage.structure.element.RingElement):
             True
         """
         return not (self == other)
+
 
     def __lt__(self, other):
         r"""
@@ -620,6 +671,7 @@ class FFPDElement(sage.structure.element.RingElement):
         return bool(len(sdf) < len(odf) or\
           (len(sdf) == len(odf) and sd < od) or\
           (len(sdf) == len(odf) and sd == od and sn < on))
+
 
     def univariate_decomposition(self):
         r"""

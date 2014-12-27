@@ -787,14 +787,14 @@ def PBD_4_5_8_9_12(v, check=True):
                 +[[i*9+j for j in range(9)] for i in range(4)]
                 +[[36,37,38,39,40,41,42,43]])
     elif v == 45:
-        TD59 = transversal_design(5,9)
+        TD59 = transversal_design(5,9)._blocks
         PBD = (TD59+[[i*9+j for j in range(9)] for i in range(5)])
     elif v == 48:
-        TD4_12 = transversal_design(4,12)
+        TD4_12 = transversal_design(4,12)._blocks
         PBD = (TD4_12+[[i*12+j for j in range(12)] for i in range(4)])
     elif v == 49:
         # Lemma 7.16 : A (49,{4,13})-PBD
-        TD4_12 = transversal_design(4,12)
+        TD4_12 = transversal_design(4,12)._blocks
 
         # Replacing the block of size 13 with a BIBD
         BIBD_13_4 = v_4_1_BIBD(13)

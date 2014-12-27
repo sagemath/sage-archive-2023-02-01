@@ -125,7 +125,7 @@ For read/write permissions on git branches, see
 :ref:`section-git_trac-branch-names`
 
 In order to avoid name clashes, you can use
-``u/your_username/a_description_of_your_branch`` (the description can contrain
+``u/your_username/a_description_of_your_branch`` (the description can contain
 slashes, but no spaces). Then:
 
 - **Fill** the ``Branch`` field of the trac ticket with that name.

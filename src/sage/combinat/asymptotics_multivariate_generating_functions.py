@@ -3228,21 +3228,31 @@ class FractionWithFactoredDenominatorRing(
 
         OUTPUT:
 
-        ``True`` if there is a coercion, otherwise ``None`` (or
-        ``False``).
+        ``True`` if there is a coercion, otherwise ``False`` or
+        ``None``.
 
         TESTS::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
-            sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
-            sage: FFPD.has_coerce_map_from(R)
+            sage: Q = QQ['x,y']
+            sage: FFPD_QQ = FractionWithFactoredDenominatorRing(Q)
+            sage: FFPD_QQ.has_coerce_map_from(Q)
             True
-            sage: FFPD.has_coerce_map_from(QQ)
+            sage: FFPD_QQ.has_coerce_map_from(QQ)
             True
-            sage: FFPD.has_coerce_map_from(ZZ)
+            sage: FFPD_QQ.has_coerce_map_from(ZZ)
             True
+            sage: Z = ZZ['x,y']
+            sage: FFPD_ZZ = FractionWithFactoredDenominatorRing(Z)
+            sage: FFPD_ZZ.has_coerce_map_from(FFPD_QQ)
+            False
+            sage: FFPD_QQ.has_coerce_map_from(FFPD_ZZ)
+            True
+            sage: FFPD_ZZ.has_coerce_map_from(QQ)
+            False
         """
+        if is_FractionWithFactoredDenominatorRing(P):
+            return self.base().has_coerce_map_from(P.base())
         if self.base().has_coerce_map_from(P):
             return True
 

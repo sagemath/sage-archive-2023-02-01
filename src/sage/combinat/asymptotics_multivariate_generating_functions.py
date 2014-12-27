@@ -3166,6 +3166,35 @@ class FractionWithFactoredDenominatorRing(
                                   reduce_=reduce_)
 
 
+    def _coerce_map_from_(self, P):
+        r"""
+        Checks if there is a coercion from the given parent.
+
+        INPUT:
+
+        - ``P`` -- a parent.
+
+        OUTPUT:
+
+        ``True`` if there is a coercion, otherwise ``None`` (or
+        ``False``).
+
+        TESTS::
+
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: FFPD.has_coerce_map_from(R)
+            True
+            sage: FFPD.has_coerce_map_from(QQ)
+            True
+            sage: FFPD.has_coerce_map_from(ZZ)
+            True
+        """
+        if self.base().has_coerce_map_from(P):
+            return True
+
+
     def _an_element_(self):
         r"""
         Returns an element.

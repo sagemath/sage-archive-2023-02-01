@@ -96,7 +96,7 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
     Computing derivatives of auxiallary functions...
     Computing derivatives of more auxiliary functions...
     Computing second order differential operator actions...
-    sage: asy 
+    sage: asy
     (1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3)), 1,
      1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3)))
     sage: F.relative_error(asy[0], alpha, [1, 2, 4, 8, 16], asy[1])
@@ -175,13 +175,14 @@ from sage.misc.mrange import cartesian_product_iterator, mrange
 from sage.modules.free_module_element import vector
 from sage.rings.arith import binomial, xgcd
 from sage.rings.all import CC
-from sage.rings.fraction_field  import FractionField
+from sage.rings.fraction_field import FractionField
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from sage.sets.set import Set
 from sage.symbolic.constants import pi
 from sage.symbolic.relation import solve
 from sage.combinat.subset import Subsets
+
 
 @total_ordering
 class FFPD(object):
@@ -319,8 +320,8 @@ class FFPD(object):
                     except NotImplementedError:
                         # Singular's factor() needs 'proof=False'.
                         df = q.factor(proof=False)
-                    self._numerator = p/df.unit()
-                    df = sorted([tuple(t) for t in df]) # Sort for consitency.
+                    self._numerator = p / df.unit()
+                    df = sorted([tuple(t) for t in df])  # Sort for consistency.
                     self._denominator_factored = df
             else:
                 self._ring = None
@@ -330,7 +331,7 @@ class FFPD(object):
         self._numerator = numerator
         if denominator_factored:
             self._denominator_factored = sorted([tuple(t) for t in
-                                             denominator_factored])
+                                                 denominator_factored])
             self._ring = denominator_factored[0][0].parent()
         else:
             self._denominator_factored = []
@@ -386,7 +387,7 @@ class FFPD(object):
             x^3*y^2 + 2*x^3*y + x^2*y^2 + x^3 - 2*x^2*y - x*y^2 - 3*x^2 - 2*x*y
             - y^2 + 3*x + 2*y - 1
         """
-        return prod([q**e for q, e in self.denominator_factored()])
+        return prod([q ** e for q, e in self.denominator_factored()])
 
     def denominator_factored(self):
         r"""
@@ -485,7 +486,7 @@ class FFPD(object):
             -e^y/(x^3*y^2 + 2*x^3*y + x^2*y^2 + x^3 - 2*x^2*y - x*y^2 - 3*x^2 -
             2*x*y - y^2 + 3*x + 2*y - 1)
         """
-        return self.numerator()/self.denominator()
+        return self.numerator() / self.denominator()
 
     def __repr__(self):
         r"""
@@ -586,9 +587,9 @@ class FFPD(object):
         sd = self.denominator()
         od = other.denominator()
 
-        return bool(len(sdf) < len(odf) or\
-          (len(sdf) == len(odf) and sd < od) or\
-          (len(sdf) == len(odf) and sd == od and sn < on))
+        return bool(len(sdf) < len(odf) or
+                    (len(sdf) == len(odf) and sd < od) or
+                    (len(sdf) == len(odf) and sd == od and sn < on))
 
     def univariate_decomposition(self):
         r"""
@@ -684,12 +685,13 @@ class FFPD(object):
             whole, p = p.quo_rem(q)
         else:
             whole = p
-            p = R(1)
+            p = R.one()
         df = self.denominator_factored()
         decomp = [FFPD(whole, [])]
         for (a, m) in df:
-            numer = p * prod([b**n for (b, n) in df if b != a]).\
-                    inverse_mod(a**m) % (a**m)
+            numer = p * prod([b ** n
+                              for (b, n) in df
+                              if b != a]).inverse_mod(a ** m) % (a ** m)
             # The inverse exists because the product and a**m
             # are relatively prime.
             decomp.append(FFPD(numer, [(a, m)]))
@@ -732,9 +734,9 @@ class FFPD(object):
             return None
 
         df = self.denominator_factored()
-        J = R.ideal([q**e for q, e in df])
-        if R(1) in J:
-            return R(1).lift(J)
+        J = R.ideal([q ** e for q, e in df])
+        if R.one() in J:
+            return R.one().lift(J)
         return None
 
     def nullstellensatz_decomposition(self):
@@ -805,8 +807,8 @@ class FFPD(object):
         p = self.numerator()
         df = self.denominator_factored()
         m = len(df)
-        iteration1 = FFPDSum([FFPD(p*L[i],[df[j]
-                              for j in xrange(m) if j != i])
+        iteration1 = FFPDSum([FFPD(p * L[i], [df[j]
+                                              for j in xrange(m) if j != i])
                               for i in xrange(m) if L[i] != 0])
 
         # Now decompose each FFPD of iteration1.
@@ -885,7 +887,7 @@ class FFPD(object):
         Xs = list(R.gens())
         d = len(Xs)
 
-        # Expand R by 2*m new variables.
+        # Expand R by 2 * m new variables.
         S = 'S'
         while S in [str(x) for x in Xs]:
             S = S + 'S'
@@ -902,13 +904,13 @@ class FFPD(object):
         Ts = RR.gens()[d + m: d + 2 * m]
 
         # Compute the appropriate elimination ideal.
-        J = RR.ideal([ Ss[j] - RR(df[j][0]) for j in xrange(m)] +\
-                 [ Ss[j]**df[j][1] - Ts[j] for j in xrange(m)])
+        J = RR.ideal([Ss[j] - RR(df[j][0]) for j in xrange(m)] +
+                     [Ss[j] ** df[j][1] - Ts[j] for j in xrange(m)])
         J = J.elimination_ideal(Xs + Ss)
 
         # Coerce J into the polynomial ring in the indeteminates Ts[m:].
         # I choose the negdeglex order because i find it useful in my work.
-        RRR = PolynomialRing(F, [str(t) for t in Ts], order ='negdeglex')
+        RRR = PolynomialRing(F, [str(t) for t in Ts], order='negdeglex')
         return RRR.ideal(J)
 
     def algebraic_dependence_decomposition(self, whole_and_parts=True):
@@ -996,24 +998,24 @@ class FFPD(object):
         # so that g.lt() is indeed the monomial we want below.
         # Use g to rewrite r into a sum of FFPDs,
         # each with < m distinct denominator factors.
-        gg = (g.lt() - g)/(g.lc())
+        gg = (g.lt() - g) / (g.lc())
         numers = map(prod, zip(gg.coefficients(), gg.monomials()))
-        e = list(g.lt().exponents())[0:m]
+        e = list(g.lt().exponents())[0: m]
         denoms = [(new_vars[j], e[0][j] + 1) for j in xrange(m)]
         # Write r in terms of new_vars,
         # cancel factors in the denominator, and combine like terms.
-        iteration1_temp = FFPDSum([FFPD(a, denoms) for a in numers]).\
-                          combine_like_terms()
+        iteration1_temp = FFPDSum([FFPD(a, denoms)
+                                   for a in numers]).combine_like_terms()
         # Substitute in df.
-        qpowsub = dict([(new_vars[j], df[j][0]**df[j][1])
+        qpowsub = dict([(new_vars[j], df[j][0] ** df[j][1])
                         for j in xrange(m)])
         iteration1 = FFPDSum()
         for r in iteration1_temp:
-            num1 = p*g.parent()(r.numerator()).subs(qpowsub)
+            num1 = p * g.parent()(r.numerator()).subs(qpowsub)
             denoms1 = []
             for q, e in r.denominator_factored():
                 j = new_vars.index(q)
-                denoms1.append((df[j][0], df[j][1]*e))
+                denoms1.append((df[j][0], df[j][1] * e))
             iteration1.append(FFPD(num1, denoms1))
         # Now decompose each FFPD of iteration1.
         for r in iteration1:
@@ -1233,7 +1235,7 @@ class FFPD(object):
                 new_df[i][1] -= 1
             else:
                 del(new_df[i])
-            iteration1.append(FFPD(p*L[i], new_df))
+            iteration1.append(FFPD(p * L[i], new_df))
 
         # Contributions from dets.
         # Compute each contribution's cohomologous form using
@@ -1252,13 +1254,13 @@ class FFPD(object):
             # Sort variables according to the term order of R.
             x = sorted(var_sets_n[k])
             # Compute Jacobian in the Symbolic Ring.
-            jac = jacobian([SR(p*L[n + k])] +
+            jac = jacobian([SR(p * L[n + k])] +
                            [SR(qs[j]) for j in xrange(n) if j != J],
                            [SR(xx) for xx in x])
             det = jac.determinant()
             psign = FFPD._permutation_sign(x, X)
-            iteration1.append(FFPD((-1)**J*det/\
-                                   (psign*new_df[J][1]),
+            iteration1.append(FFPD((-1) ** J * det /
+                                   (psign * new_df[J][1]),
                                    new_df))
 
         # Now decompose each FFPD of iteration1.
@@ -1299,7 +1301,7 @@ class FFPD(object):
             1
         """
         # Convert lists to lists of numbers in {1,..., len(u)}
-        A = [i + 1  for i in xrange(len(u))]
+        A = [i + 1 for i in xrange(len(u))]
         B = [u.index(x) + 1 for x in s]
 
         C = sorted(list(Set(A).difference(Set(B))))
@@ -1368,10 +1370,11 @@ class FFPD(object):
         # Cauchy differential form generated by each element of decomp.
         if asy_var is None:
             asy_var = var('r')
-        cauchy_stuff = prod([X[j]**(-alpha[j]*asy_var - 1) for j in xrange(d)])
+        cauchy_stuff = prod([X[j] ** (-alpha[j] * asy_var - 1)
+                             for j in xrange(d)])
         decomp2 = FFPDSum()
         for f in decomp1:
-            ff = FFPD(f.numerator()*cauchy_stuff,
+            ff = FFPD(f.numerator() * cauchy_stuff,
                       f.denominator_factored())
             decomp2.extend(ff.cohomology_decomposition())
         decomp2 = decomp2.combine_like_terms()
@@ -1379,14 +1382,15 @@ class FFPD(object):
         # Divide out cauchy_stuff from integrands.
         decomp3 = FFPDSum()
         for f in decomp2:
-            ff = FFPD((f.numerator()/cauchy_stuff).\
-                      simplify_full().collect(asy_var),
+            ff = FFPD((f.numerator() /
+                       cauchy_stuff).simplify_full().collect(asy_var),
                       f.denominator_factored())
             decomp3.append(ff)
 
         return decomp3
 
-    def asymptotics(self, p, alpha, N, asy_var=None, numerical=0, verbose=False):
+    def asymptotics(self, p, alpha, N, asy_var=None, numerical=0,
+                    verbose=False):
         r"""
         Return the first `N` terms (some of which could be zero)
         of the asymptotic expansion of the Maclaurin ray coefficients
@@ -1519,7 +1523,7 @@ class FFPD(object):
         # (X[i]*diff(h, X[i])).subs(p) != 0.
         # Assuming such an i exists.
         i = d - 1
-        while 0 in [(X[i]*diff(h, X[i])).subs(p) for (h, e) in df]:
+        while 0 in [(X[i] * diff(h, X[i])).subs(p) for (h, e) in df]:
             i -= 1
         coordinate = i
 
@@ -1644,22 +1648,22 @@ class FFPD(object):
         # I'll just past the code from the multiple point case.
         if d == 1:
             det = jacobian(H, X).subs(p).determinant().abs()
-            exp_scale = prod([(p[X[i]]**(-alpha[i])).subs(p)
-                              for i in xrange(d)] )
-            subexp_part = -G.subs(p)/(det*prod(p.values()))
+            exp_scale = prod([(p[X[i]] ** (-alpha[i])).subs(p)
+                              for i in xrange(d)])
+            subexp_part = -G.subs(p) / (det * prod(p.values()))
             if numerical:
                 exp_scale = exp_scale.n(digits=numerical)
                 subexp_part = subexp_part.n(digits=numerical)
-            return (exp_scale**asy_var*subexp_part, exp_scale, subexp_part)
+            return (exp_scale ** asy_var * subexp_part, exp_scale, subexp_part)
 
         # If p is a tuple of rationals, then compute with it directly.
         # Otherwise, compute symbolically and plug in p at the end.
-        if vector(p.values()) in QQ**d:
+        if vector(p.values()) in QQ ** d:
             P = p
         else:
             sP = [var('p' + str(j)) for j in xrange(d)]
-            P = dict( [(X[j], sP[j]) for j in xrange(d)] )
-            p = dict( [(sP[j], p[X[j]]) for j in xrange(d)] )
+            P = dict([(X[j], sP[j]) for j in xrange(d)])
+            p = dict([(sP[j], p[X[j]]) for j in xrange(d)])
 
         # Setup.
         if verbose:
@@ -1669,78 +1673,79 @@ class FFPD(object):
         U = function('U', *tuple(X))
         # All other functions are defined in terms of h, U, and
         # explicit functions.
-        Gcheck = -G/U * (h/X[d - 1])
-        A = Gcheck.subs({X[d - 1]: Integer(1)/h})/h
+        Gcheck = -G / U * (h / X[d - 1])
+        A = Gcheck.subs({X[d - 1]: Integer(1) / h}) / h
         t = 't'
         while t in [str(x) for x in X]:
             t = t + 't'
         T = [var(t + str(i)) for i in xrange(d - 1)]
-        e = dict([(X[i], P[X[i]]*exp(I*T[i])) for i in xrange(d - 1)])
+        e = dict([(X[i], P[X[i]] * exp(I * T[i])) for i in xrange(d - 1)])
         ht = h.subs(e)
         At = A.subs(e)
-        Phit = -log(P[X[d - 1]]*ht) + \
-               I * add([alpha[i]/alpha[d - 1]*T[i] for i in xrange(d - 1)])
-        Tstar = dict([(t, Integer(0)) for t in T])
+        Phit = (-log(P[X[d - 1]] * ht) +
+                I * sum([alpha[i] / alpha[d - 1] * T[i]
+                         for i in xrange(d - 1)]))
+        Tstar = {t: Integer(0) for t in T}
         # Store h and U and all their derivatives evaluated at P.
         atP = P.copy()
-        atP.update({h.subs(P): Integer(1)/P[X[d - 1]]})
+        atP.update({h.subs(P): Integer(1) / P[X[d - 1]]})
 
-        # Compute the derivatives of h up to order 2*N, evaluate at P,
+        # Compute the derivatives of h up to order 2 * N, evaluate at P,
         # and store in atP.
         # Keep a copy of unevaluated h derivatives for use in the case
         # d = 2 and v > 2 below.
         hderivs1 = {}   # First derivatives of h.
         for i in xrange(d - 1):
-            s = solve( diff(H.subs({X[d - 1]: Integer(1)/h}), X[i]),
+            s = solve(diff(H.subs({X[d - 1]: Integer(1) / h}), X[i]),
                       diff(h, X[i]))[0].rhs().simplify()
             hderivs1.update({diff(h, X[i]): s})
             atP.update({diff(h, X[i]).subs(P): s.subs(P).subs(atP)})
-        hderivs = FFPD._diff_all(h, X[0: d - 1], 2*N, sub=hderivs1, rekey=h)
+        hderivs = FFPD._diff_all(h, X[0: d - 1], 2 * N, sub=hderivs1, rekey=h)
         for k in hderivs.keys():
-            atP.update({k.subs(P):hderivs[k].subs(atP)})
+            atP.update({k.subs(P): hderivs[k].subs(atP)})
 
-        # Compute the derivatives of U up to order 2*N and evaluate at P.
+        # Compute the derivatives of U up to order 2 * N and evaluate at P.
         # To do this, differentiate H = U*Hcheck over and over, evaluate at P,
         # and solve for the derivatives of U at P.
         # Need the derivatives of H with short keys to pass on
         # to diff_prod later.
-        Hderivs = FFPD._diff_all(H, X, 2*N, ending=[X[d - 1]], sub_final=P)
+        Hderivs = FFPD._diff_all(H, X, 2 * N, ending=[X[d - 1]], sub_final=P)
         if verbose:
             print("Computing derivatives of auxiallary functions...")
         # For convenience in checking if all the nontrivial derivatives of U
         # at p are zero a few line below, store the value of U(p) in atP
         # instead of in Uderivs.
-        Uderivs ={}
+        Uderivs = {}
         atP.update({U.subs(P): diff(H, X[d - 1]).subs(P)})
         end = [X[d - 1]]
-        Hcheck = X[d - 1] - Integer(1)/h
+        Hcheck = X[d - 1] - Integer(1) / h
         k = H.polynomial(CC).degree() - 1
         if k == 0:
             # Then we can conclude that all higher derivatives of U are zero.
-            for l in xrange(1, 2*N + 1):
+            for l in xrange(1, 2 * N + 1):
                 for s in UnorderedTuples(X, l):
                     Uderivs[diff(U, s).subs(P)] = Integer(0)
-        elif k > 0 and k < 2*N:
+        elif k > 0 and k < 2 * N:
             all_zero = True
-            Uderivs =  FFPD._diff_prod(Hderivs, U, Hcheck, X,
-                                     range(1, k + 1), end, Uderivs, atP)
+            Uderivs = FFPD._diff_prod(Hderivs, U, Hcheck, X,
+                                      range(1, k + 1), end, Uderivs, atP)
             # Check for a nonzero U derivative.
-            if Uderivs.values() != [Integer(0)  for i in xrange(len(Uderivs))]:
+            if any(u for u in Uderivs.values()):
                 all_zero = False
             if all_zero:
                 # Then, using a proposition at the end of [RaWi2012], we can
                 # conclude that all higher derivatives of U are zero.
-                for l in xrange(k + 1, 2*N +1):
+                for l in xrange(k + 1, 2 * N + 1):
                     for s in UnorderedTuples(X, l):
                         Uderivs.update({diff(U, s).subs(P): Integer(0)})
             else:
                 # Have to compute the rest of the derivatives.
                 Uderivs = FFPD._diff_prod(Hderivs, U, Hcheck, X,
-                                         range(k + 1, 2*N + 1), end, Uderivs,
-                                         atP)
+                                          range(k + 1, 2 * N + 1), end, Uderivs,
+                                          atP)
         else:
             Uderivs = FFPD._diff_prod(Hderivs, U, Hcheck, X,
-                                     range(1, 2*N + 1), end, Uderivs, atP)
+                                      range(1, 2 * N + 1), end, Uderivs, atP)
         atP.update(Uderivs)
 
         # In general, this algorithm is not designed to handle the case of a
@@ -1754,7 +1759,7 @@ class FFPD(object):
             splat = Phitderiv.subs(Tstar).subs(atP).subs(p).simplify()
             while splat == 0:
                 v += 1
-                if v > 2*N:
+                if v > 2 * N:
                     # Then need to compute more derivatives of h for atP.
                     hderivs.update({diff(h, X[0], v):
                                     diff(hderivs[diff(h, X[0], v - 1)],
@@ -1766,8 +1771,8 @@ class FFPD(object):
 
         if d == 2 and v > 2:
             t = T[0]  # Simplify variable names.
-            a = splat/factorial(v)
-            Phitu = Phit - a*t**v
+            a = splat / factorial(v)
+            Phitu = Phit - a * t ** v
 
             # Compute all partial derivatives of At and Phitu
             # up to orders 2*(N - 1) and 2*(N - 1) + v, respectively,
@@ -1782,20 +1787,21 @@ class FFPD(object):
             AA = function('AA', t)
             BB = function('BB', t)
             if v.mod(2) == 0:
-                At_derivs = FFPD._diff_all(At, T, 2*N - 2,
-                                          sub=hderivs1, sub_final=[Tstar, atP],
-                                          rekey=AA)
-                Phitu_derivs = FFPD._diff_all(Phitu, T, 2*N - 2 +v,
-                                             sub=hderivs1,
-                                             sub_final=[Tstar, atP],
-                                             zero_order=v + 1, rekey=BB)
+                At_derivs = FFPD._diff_all(At, T, 2 * N - 2,
+                                           sub=hderivs1,
+                                           sub_final=[Tstar, atP],
+                                           rekey=AA)
+                Phitu_derivs = FFPD._diff_all(Phitu, T, 2 * N - 2 + v,
+                                              sub=hderivs1,
+                                              sub_final=[Tstar, atP],
+                                              zero_order=v + 1, rekey=BB)
             else:
                 At_derivs = FFPD._diff_all(At, T, N - 1, sub=hderivs1,
-                                          sub_final=[Tstar, atP], rekey=AA)
+                                           sub_final=[Tstar, atP], rekey=AA)
                 Phitu_derivs = FFPD._diff_all(Phitu, T, N - 1 + v,
-                                             sub=hderivs1,
-                                             sub_final=[Tstar, atP],
-                                             zero_order=v + 1 , rekey=BB)
+                                              sub=hderivs1,
+                                              sub_final=[Tstar, atP],
+                                              zero_order=v + 1, rekey=BB)
             AABB_derivs = At_derivs
             AABB_derivs.update(Phitu_derivs)
             AABB_derivs[AA] = At.subs(Tstar).subs(atP)
@@ -1808,25 +1814,26 @@ class FFPD(object):
             L = []
             if v.mod(2) == 0:
                 for k in xrange(N):
-                    L.append(add([
-                    (-1)**l * gamma((2*k + v*l + 1)/v)/\
-                    (factorial(l) * factorial(2*k + v*l))*\
-                    DD[(k, l)] for l in xrange(0, 2*k + 1) ]))
-                chunk = a**(-1/v)/(pi*v)*add([
-                        alpha[d - 1 ]**(-(2*k + 1)/v)*\
-                        L[k]*asy_var**(-(2*k + 1)/v) for k in xrange(N) ])
+                    L.append(sum([(-1) ** l * gamma((2 * k + v * l + 1) / v) /
+                                  (factorial(l) * factorial(2 * k + v * l)) *
+                                  DD[(k, l)] for l in xrange(0, 2 * k + 1)]))
+                chunk = (a ** (-1 / v) / (pi * v) *
+                         sum([alpha[d - 1] ** (-(2 * k + 1) / v) *
+                              L[k] * asy_var ** (-(2 * k + 1) / v)
+                              for k in xrange(N)]))
             else:
-                zeta = exp(I*pi/(2*v))
+                zeta = exp(I * pi / (2 * v))
                 for k in xrange(N):
-                    L.append(add([
-                    (-1)**l*gamma((k + v*l + 1)/v)/\
-                    (factorial(l)*factorial(k + v*l))*\
-                    (zeta**(k + v*l + 1) +\
-                    (-1)**(k + v*l)*zeta**(-(k + v*l + 1)))*\
-                    DD[(k, l)] for l in xrange(0, k + 1) ]))
-                chunk = abs(a)**(-1/v)/(2*pi*v)*add([
-                        alpha[d - 1]**(-(k + 1)/v)*\
-                        L[k] *asy_var**(-(k + 1)/v) for k in xrange(N) ])
+                    L.append(sum([(-1) ** l * gamma((k + v * l + 1) / v) /
+                                  (factorial(l) * factorial(k + v * l)) *
+                                  (zeta ** (k + v * l + 1) +
+                                   (-1) ** (k + v * l) *
+                                   zeta ** (-(k + v * l + 1))) *
+                                  DD[(k, l)] for l in xrange(0, k + 1)]))
+                chunk = (abs(a) ** (-1 / v) / (2 * pi * v) *
+                         sum([alpha[d - 1] ** (-(k + 1) / v) *
+                              L[k] * asy_var ** (-(k + 1) / v)
+                              for k in xrange(N)]))
 
         # Asymptotics for d >= 2 case.
         # A singular Phit''(Tstar) will cause a crash in this case.
@@ -1834,11 +1841,11 @@ class FFPD(object):
             Phit1 = jacobian(Phit, T).subs(hderivs1)
             a = jacobian(Phit1, T).subs(hderivs1).subs(Tstar).subs(atP)
             a_inv = a.inverse()
-            Phitu = Phit - (Integer(1)/Integer(2))*matrix([T])*\
-                    a*matrix([T]).transpose()
+            Phitu = (Phit - (1 / QQ(2)) * matrix([T]) *
+                     a * matrix([T]).transpose())
             Phitu = Phitu[0][0]
             # Compute all partial derivatives of At and Phitu up to
-            # orders 2*N-2 and 2*N, respectively.
+            # orders 2 * N-2 and 2 * N, respectively.
             # Take advantage of the fact that At and Phitu
             # are sufficiently differentiable functions so that mixed partials
             # are equal.  Thus only need to compute representative partials.
@@ -1850,47 +1857,48 @@ class FFPD(object):
             if verbose:
                 print("Computing derivatives of more auxiliary functions...")
             AA = function('AA', *tuple(T))
-            At_derivs = FFPD._diff_all(At, T, 2*N - 2, sub=hderivs1,
-                                      sub_final =[Tstar, atP], rekey=AA)
+            At_derivs = FFPD._diff_all(At, T, 2 * N - 2, sub=hderivs1,
+                                       sub_final=[Tstar, atP], rekey=AA)
             BB = function('BB', *tuple(T))
-            Phitu_derivs = FFPD._diff_all(Phitu, T, 2*N, sub=hderivs1,
-                                         sub_final =[Tstar, atP], rekey=BB,
-                                         zero_order=3)
+            Phitu_derivs = FFPD._diff_all(Phitu, T, 2 * N, sub=hderivs1,
+                                          sub_final=[Tstar, atP], rekey=BB,
+                                          zero_order=3)
             AABB_derivs = At_derivs
             AABB_derivs.update(Phitu_derivs)
             AABB_derivs[AA] = At.subs(Tstar).subs(atP)
             AABB_derivs[BB] = Phitu.subs(Tstar).subs(atP)
             if verbose:
                 print("Computing second order differential operator actions...")
-            DD = FFPD._diff_op(AA, BB, AABB_derivs, T, a_inv, 1 , N)
+            DD = FFPD._diff_op(AA, BB, AABB_derivs, T, a_inv, 1, N)
 
             # Plug above into asymptotic formula.
-            L =[]
+            L = []
             for k in xrange(N):
-                L.append(add([
-                         DD[(0, k, l)]/((-1)**k*2**(l+k)*\
-                         factorial(l)*factorial(l+k))
-                         for l in xrange(0, 2*k + 1) ]))
-            chunk = add([ (2*pi)**((1 - d)/Integer(2))*\
-                    a.determinant()**(-Integer(1)/Integer(2))*\
-                    alpha[d - 1]**((Integer(1) - d)/Integer(2) - k)*L[k]*\
-                    asy_var**((Integer(1) - d)/Integer(2) - k)
-                    for k in xrange(N) ])
+                L.append(sum([DD[(0, k, l)] / ((-1) ** k * 2 ** (l + k) *
+                                               factorial(l) * factorial(l + k))
+                              for l in xrange(0, 2 * k + 1)]))
+            chunk = sum([(2 * pi) ** ((1 - d) / Integer(2)) *
+                         a.determinant() ** (-Integer(1) / Integer(2)) *
+                         alpha[d - 1] ** ((Integer(1) - d) / Integer(2) - k) *
+                         L[k] *
+                         asy_var ** ((Integer(1) - d) / Integer(2) - k)
+                         for k in xrange(N)])
 
         chunk = chunk.subs(p).simplify()
         coeffs = chunk.coefficients(asy_var)
         coeffs.reverse()
         coeffs = coeffs[:N]
         if numerical:
-            subexp_part = add([co[0].subs(p).n(digits=numerical)*\
-                          asy_var**co[1] for co in coeffs])
-            exp_scale = prod([(P[X[i]]**(-alpha[i])).subs(p)
+            subexp_part = sum([co[0].subs(p).n(digits=numerical) *
+                               asy_var ** co[1] for co in coeffs])
+            exp_scale = prod([(P[X[i]] ** (-alpha[i])).subs(p)
                               for i in xrange(d)]).n(digits=numerical)
         else:
-            subexp_part = add([co[0].subs(p)*asy_var**co[1] for co in coeffs])
-            exp_scale = prod([(P[X[i]]**(-alpha[i])).subs(p)
-                             for i in xrange(d)])
-        return (exp_scale**asy_var*subexp_part, exp_scale, subexp_part)
+            subexp_part = sum([co[0].subs(p) * asy_var ** co[1]
+                               for co in coeffs])
+            exp_scale = prod([(P[X[i]] ** (-alpha[i])).subs(p)
+                              for i in xrange(d)])
+        return (exp_scale ** asy_var * subexp_part, exp_scale, subexp_part)
 
     def asymptotics_multiple(self, p, alpha, N, asy_var, coordinate=None,
                              numerical=0, verbose=False):
@@ -1996,7 +2004,7 @@ class FFPD(object):
         H = [SR(h) for (h, e) in self.denominator_factored()]
         Hprod = prod(H)
         n = len(H)
-        P = dict([(SR(x), p[x]) for x in R.gens()])
+        P = {SR(x): p[x] for x in R.gens()}
         Sstar = self._crit_cone_combo(p, alpha, coordinate)
 
         # Put the given convenient variable at end of variable list.
@@ -2006,25 +2014,24 @@ class FFPD(object):
             a = alpha.pop(coordinate)
             alpha.append(a)
 
-
         # Case n = d.
         if n == d:
             det = jacobian(H, X).subs(P).determinant().abs()
-            exp_scale = prod([(P[X[i]]**(-alpha[i])).subs(P)
-                              for i in xrange(d)] )
-            subexp_part = G.subs(P)/(det*prod(P.values()))
+            exp_scale = prod([(P[X[i]] ** (-alpha[i])).subs(P)
+                              for i in xrange(d)])
+            subexp_part = G.subs(P) / (det * prod(P.values()))
             if numerical:
                 exp_scale = exp_scale.n(digits=numerical)
                 subexp_part = subexp_part.n(digits=numerical)
-            return (exp_scale**asy_var*subexp_part, exp_scale, subexp_part)
+            return (exp_scale ** asy_var * subexp_part, exp_scale, subexp_part)
 
         # Case n < d.
         # If P is a tuple of rationals, then compute with it directly.
         # Otherwise, compute symbolically and plug in P at the end.
-        if vector(P.values()) not in QQ**d:
+        if vector(P.values()) not in QQ ** d:
             sP = [var('p' + str(j)) for j in xrange(d)]
-            P = dict( [(X[j], sP[j]) for j in xrange(d)] )
-            p = dict( [(sP[j], p[X[j]]) for j in xrange(d)] )
+            P = dict([(X[j], sP[j]) for j in xrange(d)])
+            p = dict([(sP[j], p[X[j]]) for j in xrange(d)])
 
         # Setup.
         if verbose:
@@ -2046,34 +2053,35 @@ class FFPD(object):
         U = function('U', *tuple(X))
         # All other functions are defined in terms of h, U, and
         # explicit functions.
-        Hcheck =  prod([X[d - 1] - Integer(1)/h[j] for j in xrange(n)])
-        Gcheck = -G/U * prod([-h[j]/X[d - 1] for j in xrange(n)])
-        A = [(-1)**(n - 1)*X[d - 1]**(-n + j)*\
-             diff(Gcheck.subs({X[d - 1]: Integer(1)/X[d - 1]}), X[d - 1], j)
+        Hcheck = prod([X[d - 1] - Integer(1) / h[j] for j in xrange(n)])
+        Gcheck = -G / U * prod([-h[j] / X[d - 1] for j in xrange(n)])
+        A = [(-1) ** (n - 1) * X[d - 1] ** (-n + j) *
+             diff(Gcheck.subs({X[d - 1]: Integer(1) / X[d - 1]}), X[d - 1], j)
              for j in xrange(n)]
-        e = dict([(X[i], P[X[i]]*exp(I*T[i])) for i in xrange(d - 1)])
+        e = dict([(X[i], P[X[i]] * exp(I * T[i])) for i in xrange(d - 1)])
         ht = [hh.subs(e) for hh in h]
-        hsumt = add([S[j]*ht[j] for j in xrange(n - 1)]) +\
-                (Integer(1) - add(S))*ht[n - 1]
+        hsumt = (sum([S[j] * ht[j] for j in xrange(n - 1)]) +
+                 (Integer(1) - sum(S)) * ht[n - 1])
         At = [AA.subs(e).subs({X[d - 1]: hsumt}) for AA in A]
-        Phit = -log(P[X[d - 1]]*hsumt) +\
-               I*add([alpha[i]/alpha[d - 1]*T[i] for i in xrange(d - 1)])
+        Phit = (-log(P[X[d - 1]] * hsumt) +
+                I * sum([alpha[i] / alpha[d - 1] * T[i]
+                         for i in xrange(d - 1)]))
         # atP Stores h and U and all their derivatives evaluated at C.
         atP = P.copy()
-        atP.update(dict([(hh.subs(P), Integer(1)/P[X[d - 1]]) for hh in h]))
+        atP.update(dict([(hh.subs(P), Integer(1) / P[X[d - 1]]) for hh in h]))
 
-        # Compute the derivatives of h up to order 2*N and evaluate at P.
+        # Compute the derivatives of h up to order 2 * N and evaluate at P.
         hderivs1 = {}   # First derivatives of h.
         for (i, j) in mrange([d - 1, n]):
-            s = solve(diff(H[j].subs({X[d - 1]: Integer(1)/h[j]}), X[i]),
+            s = solve(diff(H[j].subs({X[d - 1]: Integer(1) / h[j]}), X[i]),
                       diff(h[j], X[i]))[0].rhs().simplify()
             hderivs1.update({diff(h[j], X[i]): s})
             atP.update({diff(h[j], X[i]).subs(P): s.subs(P).subs(atP)})
-        hderivs = FFPD._diff_all(h, X[0:d - 1], 2*N, sub=hderivs1, rekey=h)
+        hderivs = FFPD._diff_all(h, X[0:d - 1], 2 * N, sub=hderivs1, rekey=h)
         for k in hderivs.keys():
             atP.update({k.subs(P): hderivs[k].subs(atP)})
 
-        # Compute the derivatives of U up to order 2*N - 2 + min{n, N} - 1 and
+        # Compute the derivatives of U up to order 2 * N - 2 + min{n, N} - 1 and
         # evaluate at P.
         # To do this, differentiate H = U*Hcheck over and over, evaluate at P,
         # and solve for the derivatives of U at P.
@@ -2082,47 +2090,48 @@ class FFPD(object):
         if verbose:
             print("Computing derivatives of auxiliary functions...")
         m = min(n, N)
-        end = [X[d-1] for j in xrange(n)]
-        Hprodderivs = FFPD._diff_all(Hprod, X, 2*N - 2 + n, ending=end,
-                                    sub_final=P)
-        atP.update({U.subs(P): diff(Hprod, X[d - 1], n).subs(P)/factorial(n)})
-        Uderivs ={}
+        end = [X[d - 1] for j in xrange(n)]
+        Hprodderivs = FFPD._diff_all(Hprod, X, 2 * N - 2 + n, ending=end,
+                                     sub_final=P)
+        atP.update({U.subs(P): diff(Hprod, X[d - 1], n).subs(P) / factorial(n)})
+        Uderivs = {}
         k = Hprod.polynomial(CC).degree() - n
         if k == 0:
             # Then we can conclude that all higher derivatives of U are zero.
-            for l in xrange(1, 2*N - 2 + m):
+            for l in xrange(1, 2 * N - 2 + m):
                 for s in UnorderedTuples(X, l):
                     Uderivs[diff(U, s).subs(P)] = Integer(0)
-        elif k > 0 and k < 2*N - 2 + m - 1:
+        elif k > 0 and k < 2 * N - 2 + m - 1:
             all_zero = True
             Uderivs = FFPD._diff_prod(Hprodderivs, U, Hcheck, X,
-                                     range(1, k + 1), end, Uderivs, atP)
+                                      range(1, k + 1), end, Uderivs, atP)
             # Check for a nonzero U derivative.
-            if Uderivs.values() != [Integer(0)  for i in xrange(len(Uderivs))]:
+            if any(u for u in Uderivs.values()):
                 all_zero = False
             if all_zero:
                 # Then all higher derivatives of U are zero.
-                for l in xrange(k + 1, 2*N - 2 + m):
+                for l in xrange(k + 1, 2 * N - 2 + m):
                     for s in UnorderedTuples(X, l):
                         Uderivs.update({diff(U, s).subs(P): Integer(0)})
             else:
                 # Have to compute the rest of the derivatives.
                 Uderivs = FFPD._diff_prod(Hprodderivs, U, Hcheck, X,
-                                         range(k + 1, 2*N - 2 + m), end,
-                                         Uderivs, atP)
+                                          range(k + 1, 2 * N - 2 + m), end,
+                                          Uderivs, atP)
         else:
             Uderivs = FFPD._diff_prod(Hprodderivs, U, Hcheck, X,
-                                     range(1, 2*N - 2 + m), end, Uderivs, atP)
+                                      range(1, 2 * N - 2 + m), end,
+                                      Uderivs, atP)
         atP.update(Uderivs)
         Phit1 = jacobian(Phit, T + S).subs(hderivs1)
         a = jacobian(Phit1, T + S).subs(hderivs1).subs(thetastar).subs(atP)
         a_inv = a.inverse()
-        Phitu = Phit - (Integer(1)/Integer(2))*matrix([T + S])*a*\
-                matrix([T + S]).transpose()
+        Phitu = (Phit - (1 / Integer(2)) * matrix([T + S]) * a *
+                 matrix([T + S]).transpose())
         Phitu = Phitu[0][0]
 
-        # Compute all partial derivatives of At and Phitu up to orders 2*N - 2
-        # and 2*N, respectively.  Take advantage of the fact that At and Phitu
+        # Compute all partial derivatives of At and Phitu up to orders 2 * N - 2
+        # and 2 * N, respectively.  Take advantage of the fact that At and Phitu
         # are sufficiently differentiable functions so that mixed partials
         # are equal.  Thus only need to compute representative partials.
         # Choose nondecreasing sequences as representative differentiation-
@@ -2132,12 +2141,12 @@ class FFPD(object):
         if verbose:
             print("Computing derivatives of more auxiliary functions...")
         AA = [function('A' + str(j), *tuple(T + S)) for j in xrange(n)]
-        At_derivs = FFPD._diff_all(At, T + S, 2*N - 2, sub=hderivs1,
-                                  sub_final =[thetastar, atP], rekey=AA)
+        At_derivs = FFPD._diff_all(At, T + S, 2 * N - 2, sub=hderivs1,
+                                   sub_final=[thetastar, atP], rekey=AA)
         BB = function('BB', *tuple(T + S))
-        Phitu_derivs = FFPD._diff_all(Phitu, T + S, 2*N, sub=hderivs1,
-                                     sub_final =[thetastar, atP], rekey=BB,
-                                     zero_order=3)
+        Phitu_derivs = FFPD._diff_all(Phitu, T + S, 2 * N, sub=hderivs1,
+                                      sub_final=[thetastar, atP], rekey=BB,
+                                      zero_order=3)
         AABB_derivs = At_derivs
         AABB_derivs.update(Phitu_derivs)
         for j in xrange(n):
@@ -2150,33 +2159,38 @@ class FFPD(object):
         L = {}
         for (j, k) in product(xrange(min(n, N)), xrange(max(0, N - 1 - n), N)):
             if j + k <= N - 1:
-                L[(j, k)] = add([DD[(j, k, l)]/((-1)**k*2**(k + l)*\
-                                 factorial(l)*factorial(k + l))
-                                 for l in xrange(2*k + 1)])
-        det = a.determinant()**(-Integer(1)/Integer(2))*\
-              (2*pi)**((n - d)/Integer(2))
-        chunk = det*add([
-                (alpha[d - 1]*asy_var)**((n - d)/Integer(2) - q)*\
-                add([L[(j, k)]*binomial(n - 1, j)*\
-                     stirling_number1(n - j, n + k - q)*(-1)**(q - j - k)
-                     for (j, k) in product(xrange(min(n - 1, q) + 1),
-                                           xrange(max(0, q - n), q + 1))
-                     if j + k <= q])
-                for q in xrange(N)])
+                L[(j, k)] = sum([DD[(j, k, l)] / ((-1) ** k * 2 ** (k + l) *
+                                                  factorial(l) *
+                                                  factorial(k + l))
+                                 for l in xrange(2 * k + 1)])
+                det = (a.determinant() ** (-1 / Integer(2)) *
+                       (2 * pi) ** ((n - d) / Integer(2)))
+        chunk = det * sum([(alpha[d - 1] * asy_var) ** ((n - d) /
+                                                        Integer(2) - q) *
+                           sum([L[(j, k)] * binomial(n - 1, j) *
+                                stirling_number1(n - j, n + k - q) *
+                                (-1) ** (q - j - k)
+                                for (j, k) in product(xrange(min(n - 1, q) + 1),
+                                                      xrange(max(0, q - n),
+                                                             q + 1))
+                                if j + k <= q])
+                           for q in xrange(N)])
         chunk = chunk.subs(P).simplify()
         coeffs = chunk.coefficients(asy_var)
         coeffs.reverse()
         coeffs = coeffs[:N]
         if numerical:
-            subexp_part = add([co[0].subs(p).n(digits=numerical)*asy_var**co[1]
+            subexp_part = sum([co[0].subs(p).n(digits=numerical) *
+                               asy_var ** co[1]
                                for co in coeffs])
-            exp_scale = prod([(P[X[i]]**(-alpha[i])).subs(p)
+            exp_scale = prod([(P[X[i]] ** (-alpha[i])).subs(p)
                               for i in xrange(d)]).n(digits=numerical)
         else:
-            subexp_part = add([co[0].subs(p)*asy_var**co[1] for co in coeffs])
-            exp_scale = prod([(P[X[i]]**(-alpha[i])).subs(p)
+            subexp_part = sum([co[0].subs(p) * asy_var ** co[1]
+                               for co in coeffs])
+            exp_scale = prod([(P[X[i]] ** (-alpha[i])).subs(p)
                               for i in xrange(d)])
-        return (exp_scale**asy_var*subexp_part, exp_scale, subexp_part)
+        return (exp_scale ** asy_var * subexp_part, exp_scale, subexp_part)
 
     @staticmethod
     def subs_all(f, sub, simplify=False):
@@ -2234,18 +2248,18 @@ class FFPD(object):
         for ff in f:
             for D in sub:
                 if isinstance(ff, dict):
-                    ff = dict( [(k, ff[k].subs(D)) for k in ff.keys()] )
+                    ff = dict([(k, ff[k].subs(D)) for k in ff.keys()])
                 else:
                     ff = ff.subs(D)
             g.append(ff)
 
         if singleton and simplify:
-            if isinstance(g[Integer(0) ], dict):
-                return g[Integer(0) ]
-            return g[Integer(0) ].simplify()
+            if isinstance(g[Integer(0)], dict):
+                return g[Integer(0)]
+            return g[Integer(0)].simplify()
 
         if singleton and not simplify:
-            return g[Integer(0) ]
+            return g[Integer(0)]
 
         if not singleton and simplify:
             G = []
@@ -2260,7 +2274,7 @@ class FFPD(object):
 
     @staticmethod
     def _diff_all(f, V, n, ending=[], sub=None, sub_final=None,
-                 zero_order=0, rekey=None):
+                  zero_order=0, rekey=None):
         r"""
         Return a dictionary of representative mixed partial
         derivatives of `f` from order 1 up to order `n` with respect to the
@@ -2348,10 +2362,10 @@ class FFPD(object):
             sage: dd[diff(ff, x, z)]
             x*y^2*z*e^(x*y*z) + y*e^(x*y*z)
         """
-        singleton=False
+        singleton = False
         if not isinstance(f, list):
             f = [f]
-            singleton=True
+            singleton = True
 
         # Build the dictionary of derivatives iteratively from a list
         # of nondecreasing derivative-order sequences.
@@ -2375,7 +2389,7 @@ class FFPD(object):
             # where j in range(r).
             for s in seeds:
                 value = FFPD.subs_all([diff(f[j], s) for j in xrange(r)], sub)
-                derivs.update(dict([(tuple([j]+s), value[j])
+                derivs.update(dict([(tuple([j] + s), value[j])
                                     for j in xrange(r)]))
             for l in xrange(start, n + 1):
                 for t in UnorderedTuples(V, l):
@@ -2393,7 +2407,7 @@ class FFPD(object):
             else:
                 # Ignore the first of element of k, which is an index.
                 for k in derivs.keys():
-                    if len(k) - 1  < zero_order:
+                    if len(k) - 1 < zero_order:
                         derivs[k] = Integer(0)
         if sub_final:
             # Substitute sub_final into the values of derivs.
@@ -2404,12 +2418,12 @@ class FFPD(object):
             F = rekey
             if singleton:
                 # F must be a singleton.
-                derivs = dict( [(diff(F, list(k)), derivs[k])
-                                for k in derivs.keys()] )
+                derivs = dict([(diff(F, list(k)), derivs[k])
+                               for k in derivs.keys()])
             else:
                 # F must be a list.
-                derivs = dict( [(diff(F[k[0]], list(k)[1:]), derivs[k])
-                                for k in derivs.keys()] )
+                derivs = dict([(diff(F[k[0]], list(k)[1:]), derivs[k])
+                               for k in derivs.keys()])
         return derivs
 
     @staticmethod
@@ -2417,6 +2431,7 @@ class FFPD(object):
         r"""
         Return the derivatives `DD^{(l+k)}(A[j] B^l)` evaluated at a point
         `p` for various natural numbers `j, k, l` which depend on `r` and `N`.
+
         Here `DD` is a specific second-order linear differential operator
         that depends on `M` , `A` is a list of symbolic functions,
         `B` is symbolic function, and ``AB_derivs`` contains all the derivatives
@@ -2433,8 +2448,8 @@ class FFPD(object):
           variables ``V``
         - ``B`` -- a symbolic function in the variables ``V``.
         - ``AB_derivs`` -- a dictionary whose keys are the (symbolic)
-          derivatives of ``A[0], ..., A[r-1]`` up to order ``2*N-2`` and
-          the (symbolic) derivatives of ``B`` up to order ``2*N``;
+          derivatives of ``A[0], ..., A[r-1]`` up to order ``2 * N-2`` and
+          the (symbolic) derivatives of ``B`` up to order ``2 * N``;
           the values of the dictionary are complex numbers that are
           the keys evaluated at a common point `p`
         - ``V`` -- the variables of the ``A[j]`` and ``B``
@@ -2472,37 +2487,36 @@ class FFPD(object):
         product_derivs = {}
         for (j, k) in mrange([r, N]):
             if j + k < N:
-                for l in xrange(2*k + 1):
-                    for s in UnorderedTuples(V, 2*(k + l)):
-                        product_derivs[tuple([j, k, l] + s)] = \
-                        diff(A[j]*B**l, s).subs(AB_derivs)
+                for l in xrange(2 * k + 1):
+                    for s in UnorderedTuples(V, 2 * (k + l)):
+                        DF = diff(A[j] * B ** l, s).subs(AB_derivs)
+                        product_derivs[tuple([j, k, l] + s)] = DF
 
         # Second, compute DD^(k+l)(A[j]*B^l)(p) and store values in dictionary.
         DD = {}
         rows = M.nrows()
         for (j, k) in mrange([r, N]):
             if j + k < N:
-                for l in xrange(2*k + 1):
+                for l in xrange(2 * k + 1):
                     # Take advantage of the symmetry of M by ignoring
                     # the upper-diagonal entries of M and multiplying by
                     # appropriate powers of 2.
-                    if k + l == 0 :
+                    if k + l == 0:
                         DD[(j, k, l)] = product_derivs[(j, k, l)]
                         continue
                     S = [(a, b) for (a, b) in mrange([rows, rows]) if b <= a]
-                    P =  cartesian_product_iterator([S for i in range(k+l)])
+                    P = cartesian_product_iterator([S for i in range(k + l)])
                     diffo = Integer(0)
                     for t in P:
-                        if product_derivs[(j, k, l) + FFPD._diff_seq(V, t)] !=\
-                          Integer(0):
+                        if product_derivs[(j, k, l) + FFPD._diff_seq(V, t)]:
                             MM = Integer(1)
                             for (a, b) in t:
-                                MM = MM * M[a][b]
+                                MM *= M[a][b]
                                 if a != b:
-                                    MM = Integer(2) *MM
-                            diffo = diffo + MM*product_derivs[(j, k, l) +\
-                                           FFPD._diff_seq(V, t)]
-                    DD[(j, k, l)] = (-Integer(1) )**(k+l)*diffo
+                                    MM *= Integer(2)
+                            diffo += MM * product_derivs[(j, k, l) +
+                                                         FFPD._diff_seq(V, t)]
+                    DD[(j, k, l)] = (-Integer(1)) ** (k + l) * diffo
         return DD
 
     @staticmethod
@@ -2554,9 +2568,9 @@ class FFPD(object):
 
         - ``A, B`` -- Symbolic functions in the variable ``x``
         - ``AB_derivs`` - a dictionary whose keys are the (symbolic)
-          derivatives of ``A`` up to order ``2*N`` if ``v`` is even or
+          derivatives of ``A`` up to order ``2 * N`` if ``v`` is even or
           ``N`` if ``v`` is odd and the (symbolic) derivatives of ``B``
-          up to order ``2*N + v`` if ``v`` is even or ``N + v``
+          up to order ``2 * N + v`` if ``v`` is even or ``N + v``
           if ``v`` is odd; the values of the dictionary are complex numbers
           that are the keys evaluated at a common point `p`
         - ``x`` -- a symbolic variable
@@ -2588,17 +2602,19 @@ class FFPD(object):
         """
         I = sqrt(-Integer(1))
         DD = {}
-        if v.mod(Integer(2)) == Integer(0) :
+        if v.mod(Integer(2)) == Integer(0):
             for k in xrange(N):
-                for l in xrange(2*k + 1):
-                    DD[(k, l)] = (a**(-Integer(1)/v))**(2*k + v*l)*\
-                                 diff(A*B**l, x, 2*k + v*l).subs(AB_derivs)
+                for l in xrange(2 * k + 1):
+                    DD[(k, l)] = ((a ** (-Integer(1) / v)) ** (2 * k + v * l) *
+                                  diff(A * B ** l, x,
+                                       2 * k + v * l).subs(AB_derivs))
         else:
             for k in xrange(N):
                 for l in xrange(k + 1):
-                    DD[(k, l)] = (abs(a)**(-Integer(1)/v)*I*\
-                                 a/abs(a))**(k+v*l)*\
-                                 diff(A*B**l, x, k + v*l).subs(AB_derivs)
+                    DD[(k, l)] = ((abs(a) ** (-Integer(1) / v) * I *
+                                   a / abs(a)) ** (k + v * l) *
+                                  diff(A * B ** l, x,
+                                       k + v * l).subs(AB_derivs))
         return DD
 
     @staticmethod
@@ -2665,17 +2681,17 @@ class FFPD(object):
             for t in UnorderedTuples(X, l):
                 s = t + end
                 lhs.append(f_derivs[tuple(s)])
-                rhs.append(diff(u*g, s).subs(atc).subs(uderivs))
+                rhs.append(diff(u * g, s).subs(atc).subs(uderivs))
                 # Since Sage's solve command can't take derivatives as variable
                 # names, make new variables based on t to stand in for
                 # diff(u, t) and store them in D.
-                D[diff(u, t).subs(atc)] = var('zing' +\
+                D[diff(u, t).subs(atc)] = var('zing' +
                                               ''.join([str(x) for x in t]))
             eqns = [lhs[i] == rhs[i].subs(uderivs).subs(D)
                     for i in xrange(len(lhs))]
             variables = D.values()
-            sol = solve(eqns,*variables, solution_dict=True)
-            uderivs.update(FFPD.subs_all(D, sol[Integer(0) ]))
+            sol = solve(eqns, *variables, solution_dict=True)
+            uderivs.update(FFPD.subs_all(D, sol[Integer(0)]))
         return uderivs
 
     def _crit_cone_combo(self, p, alpha, coordinate=None):
@@ -2735,8 +2751,8 @@ class FFPD(object):
         # solve_left() fails when working in SR :-(.
         # So use solve() instead.
         # Gamma.solve_left(vector(beta))
-        V = [var('sss'+str(i)) for i in range(n)]
-        M = matrix(V)*Gamma
+        V = [var('sss' + str(i)) for i in range(n)]
+        M = matrix(V) * Gamma
         eqns = [M[0][j] == beta[j] for j in range(d)]
         s = solve(eqns, V, solution_dict=True)[0]  # Assume a unique solution.
         return [s[v] for v in V]
@@ -2762,7 +2778,7 @@ class FFPD(object):
         """
         if coordinate is None:
             coordinate = len(v) - 1
-        return tuple([vv/v[coordinate] for vv in v])
+        return tuple([vv / v[coordinate] for vv in v])
 
     def grads(self, p):
         r"""
@@ -2850,7 +2866,7 @@ class FFPD(object):
         d = self.dimension()
         H = [h for (h, e) in self.denominator_factored()]
         n = len(H)
-        return [tuple([(X[j]*diff(H[i], X[j])).subs(p) for j in xrange(d)])
+        return [tuple([(X[j] * diff(H[i], X[j])).subs(p) for j in xrange(d)])
                 for i in xrange(n)]
 
     def critical_cone(self, p, coordinate=None):
@@ -2991,8 +3007,8 @@ class FFPD(object):
 
         # Tests all passed
         X = R.gens()
-        return ( True, 'convenient in variables {}'.format(
-                 [X[i] for i in convenient_coordinates]) )
+        convenientX = [X[i] for i in convenient_coordinates]
+        return (True, 'convenient in variables {}'.format(convenientX))
 
     def singular_ideal(self):
         r"""
@@ -3092,10 +3108,10 @@ class FFPD(object):
         # Find smooth, critical points for alpha.
         X = S.gens()
         Hred = S(Hred)
-        J = S.ideal([Hred] +\
-            [alpha[d - 1]*X[i]*diff(Hred, X[i]) -\
-             alpha[i]*X[d - 1]*diff(Hred, X[d - 1])
-             for i in xrange(d - 1)])
+        J = S.ideal([Hred] +
+                    [alpha[d - 1] * X[i] * diff(Hred, X[i]) -
+                     alpha[i] * X[d - 1] * diff(Hred, X[d - 1])
+                     for i in xrange(d - 1)])
         return S.ideal(J.groebner_basis())
 
     def maclaurin_coefficients(self, multi_indices, numerical=0):
@@ -3149,7 +3165,7 @@ class FFPD(object):
         """
         R = self.ring()
         if R is None:
-           return
+            return
 
         d = self.dimension()
         coeffs = {}
@@ -3172,7 +3188,7 @@ class FFPD(object):
         # Create biggest multi-index needed.
         alpha = []
         for i in xrange(d):
-           alpha.append(max((nu[i] for nu in multi_indices)))
+            alpha.append(max((nu[i] for nu in multi_indices)))
 
         # Compute Maclaurin expansion of self up to index alpha.
         # Use iterated univariate expansions.
@@ -3180,13 +3196,13 @@ class FFPD(object):
         f = SR(self.quotient())
         X = [SR(x) for x in R.gens()]
         for i in xrange(d):
-           f = f.taylor(X[i], 0, alpha[i])
+            f = f.taylor(X[i], 0, alpha[i])
         F = R(f)
 
         # Collect coefficients.
         X = R.gens()
         for nu in multi_indices:
-            monomial = prod([X[i]**nu[i] for i in xrange(d)])
+            monomial = prod([X[i] ** nu[i] for i in xrange(d)])
             val = F.monomial_coefficient(monomial)
             if numerical:
                 val = val.n(digits=numerical)
@@ -3252,22 +3268,24 @@ class FFPD(object):
         #print "exponent, scaled Maclaurin coefficient, scaled asymptotic values, relative errors..."
 
         # Get Maclaurin coefficients of self.
-        multi_indices = [r*vector(alpha) for r in interval]
+        alpha = vector(alpha)
+        multi_indices = [r * alpha for r in interval]
         mac = self.maclaurin_coefficients(multi_indices, numerical=digits)
         #mac = self.old_maclaurin_coefficients(alpha, max(interval))
         mac_approx = {}
         stats = []
         for r in interval:
-            beta = tuple(r*vector(alpha))
-            mac[beta] = (mac[beta]/exp_scale**r).n(digits=digits)
-            mac_approx[beta] = [(f.subs({av:r})/exp_scale**r).n(digits=digits)
+            exp_s_r = exp_scale ** r
+            beta = tuple(r * alpha)
+            mac[beta] = (mac[beta] / exp_s_r).n(digits=digits)
+            mac_approx[beta] = [(f.subs({av: r}) / exp_s_r).n(digits=digits)
                                 for f in approx]
             stats_row = [beta, mac[beta], mac_approx[beta]]
             if mac[beta] == 0:
-                 stats_row.extend([None for a in mac_approx[beta]])
+                stats_row.extend([None for a in mac_approx[beta]])
             else:
-                 stats_row.append([(mac[beta] - a)/mac[beta]
-                                   for a in mac_approx[beta]])
+                stats_row.append([(mac[beta] - a) / mac[beta]
+                                  for a in mac_approx[beta]])
             stats.append(tuple(stats_row))
         return stats
 
@@ -3484,7 +3502,7 @@ class FFPDSum(list):
         new_FFPDs = []
         temp = FFPDs[0]
         for f in FFPDs[1:]:
-            if  temp.denominator_factored() == f.denominator_factored():
+            if temp.denominator_factored() == f.denominator_factored():
                 # Add f to temp.
                 num = temp.numerator() + f.numerator()
                 temp = FFPD(num, temp.denominator_factored())
@@ -3530,7 +3548,7 @@ class FFPDSum(list):
         # Compute the sum's denominator factorization.
         # Could use the factor() command, but it's probably faster to use
         # the irreducible factors of the denominators of self.
-        df = [] # The denominator factorization for the sum.
+        df = []  # The denominator factorization for the sum.
         if denom == 1:
             # Done
             return FFPD(numer, df, reduce_=False)
@@ -3554,4 +3572,3 @@ class FFPDSum(list):
             if e > 0:
                 df.append((q, e))
         return FFPD(numer, df, reduce_=False)
-

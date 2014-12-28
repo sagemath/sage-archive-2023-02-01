@@ -159,38 +159,12 @@ A multiple point example (Example 6.5 of [RaWi2012]_)::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage
 
+# libraries
 from functools import total_ordering
-
-# Sage libraries
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
-from sage.symbolic.ring import SR
-from sage.geometry.cone import Cone
-from sage.calculus.functional import diff
-from sage.calculus.functions import jacobian
-from sage.calculus.var import function, var
-from sage.combinat.combinat import stirling_number1
-from sage.combinat.permutation import Permutation
-from sage.combinat.tuple import UnorderedTuples
-from sage.functions.log import exp, log
-from sage.functions.other import factorial, gamma, sqrt
-from sage.matrix.constructor import matrix
-from sage.misc.misc import add
+import sage
 from sage.misc.misc_c import prod
-from sage.misc.mrange import cartesian_product_iterator, mrange
-from sage.modules.free_module_element import vector
-from sage.rings.arith import binomial, xgcd
-from sage.rings.all import CC
-from sage.rings.fraction_field import FractionField
 from sage.rings.integer import Integer
-from sage.rings.rational_field import QQ
-from sage.sets.set import Set
-from sage.symbolic.constants import pi
-from sage.symbolic.relation import solve
-from sage.combinat.subset import Subsets
 
 
 @total_ordering
@@ -469,6 +443,8 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: F.dimension()
             2
         """
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
         R = self.ring()
         if is_PolynomialRing(R) or is_MPolynomialRing(R):
             return R.ngens()
@@ -964,6 +940,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: print J
             None
         """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         R = self.ring()
         df = self.denominator_factored()
@@ -1287,6 +1264,11 @@ class FFPDElement(sage.structure.element.RingElement):
             [(0, []), (4/3*x*y + 4/3, [(x^2 + y^2 - 1, 1)]),
             (1/3, [(x*y - 1, 1), (x^2 + y^2 - 1, 1)])]
         """
+        from sage.calculus.functions import jacobian
+        from sage.rings.arith import xgcd
+        from sage.sets.set import Set
+        from sage.symbolic.ring import SR
+
         R = self.ring()
         df = self.denominator_factored()
         n = len(df)
@@ -1411,6 +1393,8 @@ class FFPDElement(sage.structure.element.RingElement):
              (1/3*(2*b*x - a*y)*r/(x*y) + 1/3*(2*x - y)/(x*y),
               [(x + 2*y - 1, 1), (2*x + y - 1, 1)])]
         """
+        from sage.calculus.var import var
+        from sage.symbolic.ring import SR
 
         R = self.ring()
         d = self.dimension()
@@ -1564,6 +1548,9 @@ class FFPDElement(sage.structure.element.RingElement):
              ((12, 12, 8), 2.485286378, [2.712196351], [-0.091301338...]),
              ((24, 24, 16), 3.700576827, [3.760447895], [-0.016178847...])]
         """
+        from sage.calculus.functional import diff
+        from sage.calculus.var import var
+
         R = self.ring()
 
         # Coerce keys of p into R.
@@ -1683,6 +1670,23 @@ class FFPDElement(sage.structure.element.RingElement):
              1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3))
               - 1/96*sqrt(3)*2^(1/3)*gamma(2/3)/(pi*r^(5/3)))
         """
+        from sage.calculus.functional import diff
+        from sage.calculus.functions import jacobian
+        from sage.calculus.var import function
+        from sage.calculus.var import var
+        from sage.combinat.tuple import UnorderedTuples
+        from sage.functions.other import factorial
+        from sage.functions.other import gamma
+        from sage.functions.other import sqrt
+        from sage.functions.log import exp
+        from sage.functions.log import log
+        from sage.matrix.constructor import matrix
+        from sage.modules.free_module_element import vector
+        from sage.symbolic.constants import pi
+        from sage.symbolic.relation import solve
+        from sage.symbolic.ring import SR
+        from sage.rings.all import CC
+        from sage.rings.rational_field import QQ
 
         R = self.ring()
         d = self.dimension()
@@ -2061,6 +2065,24 @@ class FFPDElement(sage.structure.element.RingElement):
             (3*((1/3)^(-a)*(1/3)^(-b))^r*e^(2/3), (1/3)^(-a)*(1/3)^(-b), 3*e^(2/3))
         """
         from itertools import product
+        from sage.calculus.functional import diff
+        from sage.calculus.functions import jacobian
+        from sage.calculus.var import function
+        from sage.calculus.var import var
+        from sage.combinat.combinat import stirling_number1
+        from sage.combinat.tuple import UnorderedTuples
+        from sage.functions.log import exp
+        from sage.functions.log import log
+        from sage.functions.other import factorial
+        from sage.functions.other import sqrt
+        from sage.matrix.constructor import matrix
+        from sage.misc.mrange import xmrange
+        from sage.modules.free_module_element import vector
+        from sage.rings.all import CC
+        from sage.rings.arith import binomial
+        from sage.symbolic.constants import pi
+        from sage.symbolic.relation import solve
+        from sage.symbolic.ring import SR
 
         R = self.ring()
 
@@ -2143,7 +2165,7 @@ class FFPDElement(sage.structure.element.RingElement):
 
         # Compute the derivatives of h up to order 2 * N and evaluate at P.
         hderivs1 = {}   # First derivatives of h.
-        for (i, j) in mrange([d - 1, n]):
+        for (i, j) in xmrange([d - 1, n], tuple):
             s = solve(diff(H[j].subs({X[d - 1]: Integer(1) / h[j]}), X[i]),
                       diff(h[j], X[i]))[0].rhs().simplify()
             hderivs1.update({diff(h[j], X[i]): s})
@@ -2312,6 +2334,10 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: f._crit_cone_combo(p, alpha)
             [1/3*(2*a - b)/b, -2/3*(a - 2*b)/b]
         """
+        from sage.calculus.var import var
+        from sage.matrix.constructor import matrix
+        from sage.symbolic.relation import solve
+
         # Assuming here that each log_grads(f) has nonzero final component.
         # Then 'direction' will not throw a division by zero error.
         R = self.ring()
@@ -2365,6 +2391,8 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: f.grads(p)
             [(0, 1), (a, sqrt(2)), (6, 6*a)]
         """
+        from sage.calculus.functional import diff
+
         R = self.ring()
 
         # Coerce keys of p into R.
@@ -2411,6 +2439,8 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: f.log_grads(p)
             [(0, a), (sqrt(2)*a, sqrt(2)*a), (6*sqrt(2), 6*a^2)]
         """
+        from sage.calculus.functional import diff
+
         R = self.ring()
 
         # Coerce keys of p into R.
@@ -2456,6 +2486,8 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: F.critical_cone(p)
             ([(2, 1, 0), (3, 1, 3/2)], 2-d cone in 3-d lattice N)
         """
+        from sage.geometry.cone import Cone
+
         R = self.ring()
 
         # Coerce keys of p into R.
@@ -2517,6 +2549,9 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: F.is_convenient_multiple_point(p2)
             (False, 'not a singular point')
         """
+        from sage.combinat.subset import Subsets
+        from sage.matrix.constructor import matrix
+
         R = self.ring()
 
         # Coerce keys of p into R.
@@ -2636,6 +2671,11 @@ class FFPDElement(sage.structure.element.RingElement):
              Multivariate Polynomial Ring in x, y over Fraction Field of
              Univariate Polynomial Ring in a over Rational Field
         """
+        from sage.calculus.functional import diff
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.fraction_field import FractionField
+        from sage.sets.set import Set
+        from sage.symbolic.ring import SR
 
         R = self.ring()
         Hred = prod([h for (h, e) in self.denominator_factored()])
@@ -2722,6 +2762,7 @@ class FFPDElement(sage.structure.element.RingElement):
              (6, 6, 4): 0.7005249476,
              (12, 12, 8): 0.5847732654}
         """
+        from sage.symbolic.ring import SR
 
         R = self.ring()
         d = self.dimension()
@@ -2818,6 +2859,8 @@ class FFPDElement(sage.structure.element.RingElement):
             [-0.03108344267, -0.0007627515584]), ((8, 8), 0.1991088276,
             [0.2025860928, 0.1996074055], [-0.01746414394, -0.002504047242])]
         """
+        from sage.modules.free_module_element import vector
+
         if not isinstance(approx, (list, tuple)):
             approx = [approx]
         av = approx[0].variables()[0]
@@ -3053,6 +3096,8 @@ class FractionWithFactoredDenominatorRing(
             sage: f
             (1, [(y, 1), (x*y + 1, 1)])
         """
+        from sage.symbolic.ring import SR
+
         R = self.base()
         Q = R.fraction_field()
 
@@ -3188,6 +3233,8 @@ class FractionWithFactoredDenominatorRing(
             p = numerator
             q = R(denominator)
 
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
             if is_PolynomialRing(R) or is_MPolynomialRing(R):
                 if not R(q).is_unit():
                     # Factor denominator
@@ -3303,6 +3350,9 @@ class FractionWithFactoredDenominatorRing(
             sage: FFDR._permutation_sign(s, u)
             1
         """
+        from sage.combinat.permutation import Permutation
+        from sage.sets.set import Set
+
         # Convert lists to lists of numbers in {1,..., len(u)}
         A = [i + 1 for i in xrange(len(u))]
         B = [u.index(x) + 1 for x in s]
@@ -3483,6 +3533,9 @@ class FractionWithFactoredDenominatorRing(
             sage: dd[diff(ff, x, z)]
             x*y^2*z*e^(x*y*z) + y*e^(x*y*z)
         """
+        from sage.calculus.functional import diff
+        from sage.combinat.tuple import UnorderedTuples
+
         singleton = False
         if not isinstance(f, list):
             f = [f]
@@ -3606,12 +3659,17 @@ class FractionWithFactoredDenominatorRing(
             sage: len(DD[(0, 1, 2)])
             246
         """
+        from itertools import product
+        from sage.calculus.functional import diff
+        from sage.combinat.tuple import UnorderedTuples
+        from sage.misc.mrange import xmrange
+
         if not isinstance(A, list):
             A = [A]
 
         # First, compute the necessary product derivatives of A and B.
         product_derivs = {}
-        for (j, k) in mrange([r, N]):
+        for j, k in xmrange([r, N], tuple):
             if j + k < N:
                 for l in xrange(2 * k + 1):
                     for s in UnorderedTuples(V, 2 * (k + l)):
@@ -3621,7 +3679,7 @@ class FractionWithFactoredDenominatorRing(
         # Second, compute DD^(k+l)(A[j]*B^l)(p) and store values in dictionary.
         DD = {}
         rows = M.nrows()
-        for (j, k) in mrange([r, N]):
+        for j, k in xmrange([r, N], tuple):
             if j + k < N:
                 for l in xrange(2 * k + 1):
                     # Take advantage of the symmetry of M by ignoring
@@ -3630,8 +3688,8 @@ class FractionWithFactoredDenominatorRing(
                     if k + l == 0:
                         DD[(j, k, l)] = product_derivs[(j, k, l)]
                         continue
-                    S = [(a, b) for (a, b) in mrange([rows, rows]) if b <= a]
-                    P = cartesian_product_iterator([S for i in range(k + l)])
+                    S = [(a, b) for a, b in xmrange([rows, rows], tuple) if b <= a]
+                    P = product(S, repeat=k + l)
                     diffo = Integer(0)
                     for t in P:
                         if product_derivs[(j, k, l) + FractionWithFactoredDenominatorRing._diff_seq(V, t)]:
@@ -3728,6 +3786,9 @@ class FractionWithFactoredDenominatorRing(
               + 4*D[0, 0, 0](A)(x)*D[0](B)(x) + 6*D[0, 0](A)(x)*D[0, 0](B)(x)
               + 4*D[0](A)(x)*D[0, 0, 0](B)(x) + A(x)*D[0, 0, 0, 0](B)(x)))]
         """
+        from sage.calculus.functional import diff
+        from sage.functions.other import sqrt
+
         I = sqrt(-Integer(1))
         DD = {}
         if v.mod(Integer(2)) == Integer(0):
@@ -3803,6 +3864,11 @@ class FractionWithFactoredDenominatorRing(
             sage: dd[diff(u, x, 2)(x=2)]
             22/9
         """
+        from sage.calculus.functional import diff
+        from sage.calculus.var import var
+        from sage.combinat.tuple import UnorderedTuples
+        from sage.symbolic.relation import solve
+
         for l in interval:
             D = {}
             rhs = []
@@ -3877,6 +3943,8 @@ class FractionWithFactoredDenominatorRing(
             y Multivariate Polynomial Ring in x, y over Rational Field
             x Multivariate Polynomial Ring in x, y over Rational Field
         """
+        from sage.symbolic.ring import SR
+
         result = p
         if p is not None and p.keys() and p.keys()[0].parent() != R:
             try:

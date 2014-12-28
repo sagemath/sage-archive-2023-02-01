@@ -95,7 +95,7 @@ Another smooth point example (Example 5.4 of [RaWi2008a]_)::
     sage: s = solve([SR(z) for z in I.gens()],
     ....:           [SR(z) for z in R.gens()], solution_dict=true)
     sage: s
-    [{x: 1, y: 1}]
+    [{y: 1, x: 1}]
     sage: p = s[0]
     sage: asy = F.asymptotics(p, alpha, 1, verbose=True)
     Creating auxiliary functions...
@@ -3891,11 +3891,11 @@ class FractionWithFactoredDenominatorRing(
             sage: f = FFPD()
             sage: p = {SR(x): 1, SR(y): 7/8}
             sage: p
-            {x: 1, y: 7/8}
+            {y: 7/8, x: 1}
             sage: for k in sorted(p.keys()):
             ....:     print k, k.parent()
-            x Symbolic Ring
             y Symbolic Ring
+            x Symbolic Ring
             sage: q = FractionWithFactoredDenominatorRing.coerce_point(R, p)
             sage: q
             {y: 7/8, x: 1}

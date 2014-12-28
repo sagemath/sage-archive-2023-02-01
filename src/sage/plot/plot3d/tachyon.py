@@ -41,73 +41,79 @@ For scenes with many reflections it is helpful to increase the raydepth option, 
     sage: t.plane((0,0,-1.9259),(0,0,1),'p')
     sage: t.show() # long time
 
-Different projection options are available.  The following examples all use a sphere and cube::
+Different projection options are available. The following examples all
+use a sphere and cube::
 
-    sage: cedges = [[[1, 1, 1], [-1, 1, 1]], [[1, 1, 1], [1, -1, 1]], [[1, 1, 1], \
-          [1, 1, -1]], [[-1, 1, 1], [-1, -1, 1]], [[-1, 1, 1], [-1, 1, -1]], \
-          [[1, -1, 1], [-1, -1, 1]], [[1, -1, 1], [1, -1, -1]], [[-1, -1, 1], \
-          [-1, -1, -1]], [[1, 1, -1], [-1, 1, -1]], [[1, 1, -1], [1, -1, -1]],\
-           [[-1, 1, -1], [-1, -1, -1]], [[1, -1, -1], [-1, -1, -1]]]
+    sage: cedges = [[[1, 1, 1], [-1, 1, 1]], [[1, 1, 1], [1, -1, 1]],
+    ....: [[1, 1, 1], [1, 1, -1]], [[-1, 1, 1], [-1, -1, 1]], [[-1, 1, 1],
+    ....: [-1, 1, -1]], [[1, -1, 1], [-1, -1, 1]], [[1, -1, 1], [1, -1, -1]],
+    ....: [[-1, -1, 1], [-1, -1, -1]], [[1, 1, -1], [-1, 1, -1]],
+    ....: [[1, 1, -1], [1, -1, -1]], [[-1, 1, -1], [-1, -1, -1]],
+    ....: [[1, -1, -1], [-1, -1, -1]]]
 
-The default projection is 'perspective'::
+The default projection is ``'perspective'``::
 
-    sage: t = Tachyon(xres = 800, yres = 600, camera_center = (-1.5,0.0,0.0), zoom = .2)
-    sage: t.texture('t1',color=(0,0,1))
+    sage: t = Tachyon(xres=800, yres=600, camera_center=(-1.5,0.0,0.0), zoom=.2)
+    sage: t.texture('t1', color=(0,0,1))
     sage: for ed in cedges:
-    ...    t.fcylinder(ed[0],ed[1],.05,'t1')
-    sage: t.light((-4,-4,4),.1,(1,1,1))
+    ....:     t.fcylinder(ed[0], ed[1], .05, 't1')
+    sage: t.light((-4,-4,4), .1, (1,1,1))
     sage: t.show()
 
-Another option is projection='fisheye', which requires frustrum information.  The frustrum data is [bottom angle, top angle, left angle, right angle]::
+Another option is ``projection='fisheye'``, which requires frustrum
+information. The frustrum data is (bottom angle, top angle, left
+angle, right angle)::
 
-    sage: t = Tachyon(xres = 800, yres = 600, camera_center = (-1.5,0.0,0.0), \
-          projection='fisheye', frustum=(-1.2, 1.2, -1.2, 1.2))
-    sage: t.texture('t1',color=(0,0,1))
+    sage: t = Tachyon(xres=800, yres=600, camera_center=(-1.5,0.0,0.0),
+    ....: projection='fisheye', frustum=(-1.2, 1.2, -1.2, 1.2))
+    sage: t.texture('t1', color=(0,0,1))
     sage: for ed in cedges:
-    ...    t.fcylinder(ed[0],ed[1],.05,'t1')
-    sage: t.light((-4,-4,4),.1,(1,1,1))
+    ....:     t.fcylinder(ed[0], ed[1], .05, 't1')
+    sage: t.light((-4,-4,4), .1, (1,1,1))
     sage: t.show()
 
-Finally there is the projection=perspective_dof option.  This may not be implemented correctly; sometimes the setting seems to be ignored::
+Finally there is the ``projection='perspective_dof'`` option. ::
 
-    sage: T = Tachyon(xres=800,antialiasing=4, raydepth=10, projection = 'perspective_dof', focallength = '1.0', aperture = '.0025')
-    sage: T.light((0,5,7),1.0,(1,1,1))
-    sage: T.texture('t1', opacity=1, specular = .3)
-    sage: T.texture('t2', opacity=1, specular = .3, color = (0,0,1))
-    sage: T.texture('t3', opacity = 1, specular = 1, color = (1,.8,1), diffuse=0.2)
-    sage: T.plane((0,0,-1),(0,0,1),'t3')
-    sage: ttlist = ['t1','t2']
+    sage: T = Tachyon(xres=800, antialiasing=4, raydepth=10,
+    ....: projection='perspective_dof', focallength='1.0', aperture='.0025')
+    sage: T.light((0,5,7), 1.0, (1,1,1))
+    sage: T.texture('t1', opacity=1, specular=.3)
+    sage: T.texture('t2', opacity=1, specular=.3, color=(0,0,1))
+    sage: T.texture('t3', opacity=1, specular=1, color=(1,.8,1), diffuse=0.2)
+    sage: T.plane((0,0,-1), (0,0,1), 't3')
+    sage: ttlist = ['t1', 't2']
     sage: tt = 't1'
-    sage: T.cylinder((0,0,.1),(1,1/3,0),.05,'t3')
-    sage: for q in srange(-3,100,.15):
-    ...    if tt == 't1':
-    ...        tt = 't2'
-    ...    else:
-    ...        tt = 't1'
-    ...    T.sphere((q,q/3+.3*sin(3*q),.1+.3*cos(3*q)), .1, tt)
+    sage: T.cylinder((0,0,.1), (1,1/3,0), .05, 't3')
+    sage: for q in srange(-3, 100, .15):
+    ....:     if tt == 't1':
+    ....:         tt = 't2'
+    ....:     else:
+    ....:         tt = 't1'
+    ....:     T.sphere((q, q/3+.3*sin(3*q), .1+.3*cos(3*q)), .1, tt)
     sage: T.show()
 
-Image files in the ppm format can be used to tile planes or cover cylinders or spheres.  In this example an image is created and then used to tile the plane::
+Image files in the ``ppm`` format can be used to tile planes or cover
+cylinders or spheres. In this example an image is created and then
+used to tile the plane::
 
     sage: from sage.misc.misc import tmp_filename
-    sage: T = Tachyon(xres = 800, yres = 600, camera_center = (-2.0,-.1,.3), projection='fisheye', frustum=(-1.0, 1.0, -1.0, 1.0))
+    sage: T = Tachyon(xres=800, yres=600, camera_center=(-2.0,-.1,.3), projection='fisheye', frustum=(-1.0, 1.0, -1.0, 1.0))
     sage: T.texture('t1',color=(0,0,1))
     sage: for ed in cedges:
-    ...    T.fcylinder(ed[0],ed[1],.05,'t1')
+    ....:     T.fcylinder(ed[0], ed[1], .05, 't1')
     sage: T.light((-4,-4,4),.1,(1,1,1))
+    sage: fname_png = tmp_filename(ext='.png')
+    sage: fname_ppm = tmp_filename(ext='.ppm')
+    sage: T.save(fname_png)
+    sage: r2 = os.system('convert '+fname_png+' '+fname_ppm)  # optional
 
-    sage: fname = tmp_filename()
-    sage: T.save(fname+'.png')
-    sage: r2 = os.system('convert '+fname+'.png '+DATA+'t1.ppm') # optional
-    sage: T = Tachyon(xres = 800, yres = 600, camera_center = (-2.0,-.1,.3), projection='fisheye', frustum=(-1.0, 1.0, -1.0, 1.0))  # optional
-    sage: T.texture('t1',color=(1,0,0), specular=.9)  # optional
-    sage: T.texture('p1',color=(1,1,1),opacity = .1, imagefile=DATA+'t1.ppm', texfunc=9)  # optional
-    sage: T.sphere((0,0,0),.5,'t1')  # optional
-    sage: T.plane((0,0,-1),(0,0,1),'p1')  # optional
-    sage: T.light((-4,-4,4),.1,(1,1,1))  # optional
+    sage: T = Tachyon(xres=800, yres=600, camera_center=(-2.0,-.1,.3), projection='fisheye', frustum=(-1.0, 1.0, -1.0, 1.0))  # optional
+    sage: T.texture('t1', color=(1,0,0), specular=.9)  # optional
+    sage: T.texture('p1', color=(1,1,1), opacity=.1, imagefile=fname_ppm, texfunc=9)  # optional
+    sage: T.sphere((0,0,0), .5, 't1')  # optional
+    sage: T.plane((0,0,-1), (0,0,1), 'p1')  # optional
+    sage: T.light((-4,-4,4), .1, (1,1,1))  # optional
     sage: T.show()  # optional
-    sage: os.unlink(fname+'.png')  # optional
-
 
 AUTHOR:
 
@@ -296,36 +302,38 @@ class Tachyon(SageObject):
 
     Use of a fisheye lens perspective. ::
 
-        sage: T = Tachyon(xres = 800, yres = 600, camera_center = (-1.5,-1.5,.3), projection='fisheye', frustum=(-1.0, 1.0, -1.0, 1.0))
-        sage: T.texture('t1',color=(0,0,1))
-        sage: cedges = [[[1, 1, 1], [-1, 1, 1]], [[1, 1, 1], [1, -1, 1]],\
-        [[1, 1, 1], [1, 1, -1]], [[-1, 1, 1], [-1, -1, 1]], [[-1, 1, 1], \
-        [-1, 1, -1]], [[1, -1, 1], [-1, -1, 1]], [[1, -1, 1], [1, -1, -1]],\
-        [[-1, -1, 1], [-1, -1, -1]], [[1, 1, -1], [-1, 1, -1]], [[1, 1, -1], \
-        [1, -1, -1]], [[-1, 1, -1], [-1, -1, -1]], [[1, -1, -1], [-1, -1, -1]]]
+        sage: T = Tachyon(xres=800, yres=600, camera_center=(-1.5,-1.5,.3), projection='fisheye', frustum=(-1.0, 1.0, -1.0, 1.0))
+        sage: T.texture('t1', color=(0,0,1))
+        sage: cedges = [[[1, 1, 1], [-1, 1, 1]], [[1, 1, 1], [1, -1, 1]],
+        ....: [[1, 1, 1], [1, 1, -1]], [[-1, 1, 1], [-1, -1, 1]], [[-1, 1, 1],
+        ....: [-1, 1, -1]], [[1, -1, 1], [-1, -1, 1]], [[1, -1, 1],
+        ....: [1, -1, -1]],
+        ....: [[-1, -1, 1], [-1, -1, -1]], [[1, 1, -1], [-1, 1, -1]],
+        ....: [[1, 1, -1], [1, -1, -1]], [[-1, 1, -1], [-1, -1, -1]],
+        ....: [[1, -1, -1], [-1, -1, -1]]]
         sage: for ed in cedges:
-        ....:     T.fcylinder(ed[0],ed[1],.05,'t1')
-        sage: T.light((-4,-4,4),.1,(1,1,1))
+        ....:     T.fcylinder(ed[0], ed[1], .05, 't1')
+        sage: T.light((-4,-4,4), .1, (1,1,1))
         sage: T.show()
 
     Use of the ``projection='perspective_dof'`` option.  This may not be
     implemented correctly. ::
 
         sage: T = Tachyon(xres=800,antialiasing=4, raydepth=10, projection='perspective_dof', focallength='1.0', aperture='.0025')
-        sage: T.light((0,5,7),1.0,(1,1,1))
-        sage: T.texture('t1', opacity=1, specular = .3)
-        sage: T.texture('t2', opacity=1, specular = .3, color = (0,0,1))
-        sage: T.texture('t3', opacity = 1, specular = 1, color = (1,.8,1), diffuse=0.2)
-        sage: T.plane((0,0,-1),(0,0,1),'t3')
-        sage: ttlist = ['t1','t2']
+        sage: T.light((0,5,7), 1.0, (1,1,1))
+        sage: T.texture('t1', opacity=1, specular=.3)
+        sage: T.texture('t2', opacity=1, specular=.3, color=(0,0,1))
+        sage: T.texture('t3', opacity=1, specular=1, color=(1,.8,1), diffuse=0.2)
+        sage: T.plane((0,0,-1), (0,0,1), 't3')
+        sage: ttlist = ['t1', 't2']
         sage: tt = 't1'
-        sage: T.cylinder((0,0,.1),(1,1/3,0),.05,'t3')
-        sage: for q in srange(-3,100,.15):
+        sage: T.cylinder((0,0,.1), (1,1/3,0), .05, 't3')
+        sage: for q in srange(-3, 100, .15):
         ....:     if tt == 't1':
         ....:         tt = 't2'
         ....:     else:
         ....:         tt = 't1'
-        ....:     T.sphere((q,q/3+.3*sin(3*q),.1+.3*cos(3*q)), .1, tt)
+        ....:     T.sphere((q, q/3+.3*sin(3*q), .1+.3*cos(3*q)), .1, tt)
         sage: T.show()
     """
     def __init__(self,
@@ -339,9 +347,9 @@ class Tachyon(SageObject):
                  look_at=(0, 0, 0),
                  viewdir=None,
                  projection='PERSPECTIVE',
-                 focallength = '',
-                 aperture = '',
-                 frustum = ''):
+                 focallength='',
+                 aperture='',
+                 frustum=''):
         r"""
         Create an instance of the Tachyon class.
 
@@ -384,7 +392,7 @@ class Tachyon(SageObject):
         :meth:`save` method of self, passing along all arguments and
         keywords.
 
-        .. Note::
+        .. NOTE::
 
             Not all image types are necessarily implemented for all
             graphics types.  See :meth:`save` for more details.
@@ -631,7 +639,8 @@ class Tachyon(SageObject):
         """
         self._objects.append(Light(center, radius, color))
 
-    def texfunc(self, type=0, center=(0,0,0), rotate=(0,0,0), scale=(1,1,1)):
+    def texfunc(self, type=0, center=(0,0,0), rotate=(0,0,0), scale=(1,1,1),
+                imagefile=''):
         r"""
         INPUT:
 
@@ -664,11 +673,12 @@ class Tachyon(SageObject):
         type = int(type)
         if type < 0 or type > 9:
             raise ValueError("type must be an integer between 0 and 9")
-        return Texfunc(type,center,rotate,scale).str()
+        return Texfunc(type,center,rotate,scale,imagefile=imagefile).str()
 
     def texture(self, name, ambient=0.2, diffuse=0.8,
                 specular=0.0, opacity=1.0,
-                color=(1.0,0.0, 0.5), texfunc=0, phong=0, phongsize=.5, phongtype="PLASTIC"):
+                color=(1.0,0.0, 0.5), texfunc=0, phong=0, phongsize=.5,
+                phongtype="PLASTIC", imagefile=''):
         r"""
         INPUT:
 
@@ -713,10 +723,11 @@ class Tachyon(SageObject):
             sage: show(t)  # known bug (:trac:`7232`)
         """
         if texfunc and not isinstance(texfunc, Texfunc):
-            texfunc = self.texfunc(int(texfunc))
+            texfunc = self.texfunc(int(texfunc), imagefile=imagefile)
         self._objects.append(Texture(name, ambient, diffuse,
                                      specular, opacity, color, texfunc,
-                                     phong,phongsize,phongtype))
+                                     phong, phongsize, phongtype,
+                                     imagefile=imagefile))
 
     def texture_recolor(self, name, colors):
         r"""
@@ -1042,7 +1053,7 @@ class Light:
              tostr(self._color))
 
 class Texfunc:
-    def __init__(self, ttype=0,center=(0,0,0), rotate=(0,0,0), scale=(1,1,1), imagefile = ''):
+    def __init__(self, ttype=0,center=(0,0,0), rotate=(0,0,0), scale=(1,1,1), imagefile=''):
         r"""
         Creates a texture function.
 
@@ -1094,7 +1105,8 @@ class Texfunc:
 class Texture:
     def __init__(self, name, ambient=0.2, diffuse=0.8,
                  specular=0.0, opacity=1.0,
-                 color=(1.0,0.0, 0.5), texfunc=0, phong=0, phongsize=0, phongtype="PLASTIC", imagefile = ''):
+                 color=(1.0,0.0, 0.5), texfunc=0,
+                 phong=0, phongsize=0, phongtype="PLASTIC", imagefile=''):
         r"""
         Stores texture information.
 

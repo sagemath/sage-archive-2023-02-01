@@ -783,7 +783,7 @@ def RandomToleranceGraph(n):
     return ToleranceGraph(tolrep)
 
 
-def RandomTriangulation(self, n):
+def RandomTriangulation(n, embed=False):
     """
     Returns a random triangulation on n vertices.
 
@@ -799,6 +799,9 @@ def RandomTriangulation(self, n):
 
     - ``n`` -- number of vertices (recommend `n \ge 3`)
 
+    - ``embed`` -- (optional, default ``False``) wether to use the
+      stereographic point projections to draw the graph.
+
     EXAMPLES::
 
         sage: g = graphs.RandomTriangulation(10)
@@ -808,8 +811,11 @@ def RandomTriangulation(self, n):
         True
     """
     from sage.misc.prandom import normalvariate
-    from sage.geometry.polyhedra import Polyhedron
+    from sage.geometry.polyhedron.constructor import Polyhedron
     from sage.rings.real_double import RDF
+
+    from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
+    from sage.modules.free_module_element import vector
 
     # this function creates a random unit vector in R^3
     def rand_unit_vec():
@@ -820,10 +826,16 @@ def RandomTriangulation(self, n):
     # generate n unit vectors at random
     points = [rand_unit_vec() for k in range(n)]
 
+    if embed:
+        proj = ProjectionFuncStereographic([0, 0, 1])
+        ppoints = [proj(vector(x)) for x in points]
+
     # find their convex hull
-    P = Polyhedron(vertices=points, field=RDF)
+    P = Polyhedron(vertices=points, base_ring=RDF)
 
     # extract the 1-skeleton
     g = P.vertex_graph()
     g.rename('Planar triangulation on {} vertices'.format(n))
+    if embed:
+        g.set_pos({i: ppoints[i] for i in range(len(points))})
     return g

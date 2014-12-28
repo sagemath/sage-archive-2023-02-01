@@ -326,7 +326,7 @@ class FFPDElement(sage.structure.element.RingElement):
         self._numerator = numerator
         self._denominator_factored = denominator_factored
         R = self.ring()
-        if R is not None and numerator in R and reduce_:
+        if numerator in R and reduce_:
             # Reduce fraction if possible.
             numer = R(self._numerator)
             df = self._denominator_factored
@@ -817,14 +817,12 @@ class FFPDElement(sage.structure.element.RingElement):
             True
         """
         R = self.ring()
-        if R is None:
-            return None
-
         df = self.denominator_factored()
         J = R.ideal([q ** e for q, e in df])
         if R.one() in J:
             return R.one().lift(J)
         return None
+
 
     def nullstellensatz_decomposition(self):
         r"""
@@ -966,10 +964,8 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: print J
             None
         """
-        R = self.ring()
-        if R is None:
-            return None
 
+        R = self.ring()
         df = self.denominator_factored()
         if not df:
             return R.ideal()    # The zero ideal.
@@ -1294,7 +1290,7 @@ class FFPDElement(sage.structure.element.RingElement):
         R = self.ring()
         df = self.denominator_factored()
         n = len(df)
-        if R is None or sum([e for (q, e) in df]) <= n:
+        if sum([e for (q, e) in df]) <= n:
             # No decomposing possible.
             return FFPDSum([self])
 
@@ -1415,10 +1411,8 @@ class FFPDElement(sage.structure.element.RingElement):
              (1/3*(2*b*x - a*y)*r/(x*y) + 1/3*(2*x - y)/(x*y),
               [(x + 2*y - 1, 1), (2*x + y - 1, 1)])]
         """
-        R = self.ring()
-        if R is None:
-            return None
 
+        R = self.ring()
         d = self.dimension()
         n = len(self.denominator_factored())
         X = [SR(x) for x in R.gens()]
@@ -1571,8 +1565,6 @@ class FFPDElement(sage.structure.element.RingElement):
              ((24, 24, 16), 3.700576827, [3.760447895], [-0.016178847...])]
         """
         R = self.ring()
-        if R is None:
-            return None
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
@@ -1691,10 +1683,8 @@ class FFPDElement(sage.structure.element.RingElement):
              1/12*sqrt(3)*2^(2/3)*gamma(1/3)/(pi*r^(1/3))
               - 1/96*sqrt(3)*2^(1/3)*gamma(2/3)/(pi*r^(5/3)))
         """
-        R = self.ring()
-        if R is None:
-            return None
 
+        R = self.ring()
         d = self.dimension()
         I = sqrt(-Integer(1))
         # Coerce everything into the Symbolic Ring.
@@ -2073,8 +2063,6 @@ class FFPDElement(sage.structure.element.RingElement):
         from itertools import product
 
         R = self.ring()
-        if R is None:
-            return None
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
@@ -2327,8 +2315,6 @@ class FFPDElement(sage.structure.element.RingElement):
         # Assuming here that each log_grads(f) has nonzero final component.
         # Then 'direction' will not throw a division by zero error.
         R = self.ring()
-        if R is None:
-            return None
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
@@ -2380,8 +2366,7 @@ class FFPDElement(sage.structure.element.RingElement):
             [(0, 1), (a, sqrt(2)), (6, 6*a)]
         """
         R = self.ring()
-        if R is None:
-            return
+
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
 
@@ -2427,8 +2412,6 @@ class FFPDElement(sage.structure.element.RingElement):
             [(0, a), (sqrt(2)*a, sqrt(2)*a), (6*sqrt(2), 6*a^2)]
         """
         R = self.ring()
-        if R is None:
-            return None
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
@@ -2474,8 +2457,6 @@ class FFPDElement(sage.structure.element.RingElement):
             ([(2, 1, 0), (3, 1, 3/2)], 2-d cone in 3-d lattice N)
         """
         R = self.ring()
-        if R is None:
-            return
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
@@ -2537,8 +2518,6 @@ class FFPDElement(sage.structure.element.RingElement):
             (False, 'not a singular point')
         """
         R = self.ring()
-        if R is None:
-            return
 
         # Coerce keys of p into R.
         p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
@@ -2610,8 +2589,6 @@ class FFPDElement(sage.structure.element.RingElement):
             of Multivariate Polynomial Ring in x, y, z over Rational Field
         """
         R = self.ring()
-        if R is None:
-            return
 
         Hred = prod([h for (h, e) in self.denominator_factored()])
         J = R.ideal([Hred] + Hred.gradient())
@@ -2659,10 +2636,8 @@ class FFPDElement(sage.structure.element.RingElement):
              Multivariate Polynomial Ring in x, y over Fraction Field of
              Univariate Polynomial Ring in a over Rational Field
         """
-        R = self.ring()
-        if R is None:
-            return
 
+        R = self.ring()
         Hred = prod([h for (h, e) in self.denominator_factored()])
         K = R.base_ring()
         d = self.dimension()
@@ -2747,10 +2722,8 @@ class FFPDElement(sage.structure.element.RingElement):
              (6, 6, 4): 0.7005249476,
              (12, 12, 8): 0.5847732654}
         """
-        R = self.ring()
-        if R is None:
-           return
 
+        R = self.ring()
         d = self.dimension()
         coeffs = {}
 
@@ -3982,8 +3955,6 @@ class FFPDSum(list):
         r"""
         Return the polynomial ring of the denominators of ``self``.
 
-        If ``self`` does not have any denominators, then return ``None``.
-
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
@@ -3995,13 +3966,11 @@ class FFPDSum(list):
             Multivariate Polynomial Ring in x, y over Rational Field
             sage: g = FFPD(x + y, [])
             sage: t = FFPDSum([g])
-            sage: print t.ring()
-            None
+            sage: t.ring()
+            Multivariate Polynomial Ring in x, y over Rational Field
         """
         for r in self:
-            R = r.ring()
-            if R is not None:
-                return R
+            return r.ring()
         return None
 
     def whole_and_parts(self):

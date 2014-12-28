@@ -2724,7 +2724,12 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: F
             (-1/3, [(x - 2/3, 1)])
             sage: F.maclaurin_coefficients([(2*k,) for k in range(6)])
-            {(0,): 1/2, (2,): 9/8, (8,): 6561/512, (4,): 81/32, (10,): 59049/2048, (6,): 729/128}
+            {(0,): 1/2,
+             (2,): 9/8,
+             (4,): 81/32,
+             (6,): 729/128,
+             (8,): 6561/512,
+             (10,): 59049/2048}
 
         ::
 
@@ -2738,8 +2743,9 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: interval = [1, 2, 4]
             sage: S = [r*alpha for r in interval]
             sage: F.maclaurin_coefficients(S, numerical=10)
-            {(6, 6, 4): 0.7005249476, (12, 12, 8): 0.5847732654,
-            (3, 3, 2): 0.7849731445}
+            {(3, 3, 2): 0.7849731445,
+             (6, 6, 4): 0.7005249476,
+             (12, 12, 8): 0.5847732654}
         """
         R = self.ring()
         if R is None:
@@ -3377,7 +3383,7 @@ class FractionWithFactoredDenominatorRing(
             sage: a = {'foo': x**2 + y**2, 'bar': x - y}
             sage: b = {x: 1 , y: 2}
             sage: FFDR.subs_all(a, b)
-            {'foo': 5, 'bar': -1}
+            {'bar': -1, 'foo': 5}
         """
         singleton = False
         if not isinstance(f, (list, tuple)):

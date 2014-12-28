@@ -54,8 +54,7 @@ from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from design_catalog import transversal_design
 from block_design import BlockDesign
-from sage.rings.arith import binomial
-from sage.rings.arith import is_prime_power
+from sage.rings.arith import binomial, is_prime_power
 from incidence_structures import GroupDivisibleDesign
 from designs_pyx import is_pairwise_balanced_design
 
@@ -323,8 +322,8 @@ def steiner_triple_system(n):
     else:
         raise EmptySetError("Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6")
 
-    from sage.sets.set import Set
-    sts = Set(map(lambda x: Set(map(T,x)),sts))
+    # apply T and remove duplicates
+    sts = set(frozenset(T(xx) for xx in x) for x in sts)
 
     return BalancedIncompleteBlockDesign(n, sts, name=name,check=False)
 
@@ -406,8 +405,6 @@ def BIBD_from_TD(v,k,existence=False):
         ...
         NotImplementedError: I do not know how to build a (20,5,1)-BIBD!
     """
-    from orthogonal_arrays import transversal_design
-
     # First construction
     if (v%k == 0 and
         balanced_incomplete_block_design(v//k,k,existence=True) and
@@ -1066,7 +1063,6 @@ def BIBD_5q_5_for_q_prime_power(q):
         sage: for q in [25, 45, 65, 85, 125, 145, 185, 205, 305, 405, 605]: # long time
         ....:     _ = BIBD_5q_5_for_q_prime_power(q/5)                      # long time
     """
-    from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField
 
     if q%4 != 1 or not is_prime_power(q):

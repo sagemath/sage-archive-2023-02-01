@@ -597,6 +597,12 @@ def v_4_1_BIBD(v, check=True):
         sage: _ = designs.difference_family(25,4)
         sage: assert designs.difference_family(37,4,existence=True)
         sage: _ = designs.difference_family(37,4)
+
+    Build the small `(v,4,1)`-BIBD::
+
+        sage: for v in range(400):                                      # long time
+        ....:     if v%12 in [1,4]:                                     # long time
+        ....:         _ = designs.balanced_incomplete_block_design(v,4) # long time
     """
     from sage.rings.finite_rings.constructor import FiniteField
     k = 4

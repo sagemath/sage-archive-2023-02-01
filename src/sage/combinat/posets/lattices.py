@@ -16,6 +16,7 @@ Finite semilattices and lattices
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.combinat.posets.elements import (LatticePosetElement,
@@ -721,6 +722,37 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                    H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in range(n) for b in range(a+1, n))
         return True
+
+    def mobius_algebra(self, R):
+        """
+        Return the Mobius algebra of ``self`` over ``R``.
+
+        EXAMPLES::
+
+            sage: L = posets.BooleanLattice(4)
+            sage: L.mobius_algebra(QQ)
+            Mobius algebra of Finite lattice containing 16 elements over Rational Field
+        """
+        from sage.combinat.posets.mobius_algebra import MobiusAlgebra
+        return MobiusAlgebra(R, self)
+
+    def quantum_mobius_algebra(self, q=None):
+        """
+        Return the quantum Mobius algebra of ``self`` with parameter ``q``.
+
+        INPUT:
+
+        - ``q`` -- (optional) the deformation parameter `q`
+
+        EXAMPLES::
+
+            sage: L = posets.BooleanLattice(4)
+            sage: L.quantum_mobius_algebra()
+            Quantum Mobius algebra of Finite lattice containing 16 elements
+             with q=q over Univariate Laurent Polynomial Ring in q over Integer Ring
+        """
+        from sage.combinat.posets.mobius_algebra import QuantumMobiusAlgebra
+        return QuantumMobiusAlgebra(self, q)
 
 ####################################################################################
 

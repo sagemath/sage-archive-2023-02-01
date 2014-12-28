@@ -13,7 +13,7 @@ asymptotic expansion for `F_{r \alpha}` when the asymptotics are controlled by
 a strictly minimal multiple point of the alegbraic variety `H = 0`.
 
 The algorithms and formulas implemented here come from [RaWi2008a]_
-and [RaWi2012]_.
+and [RaWi2012]_. For a general reference take a look in the book [PeWi2013].
 
 .. [AiYu1983] I.A. Aizenberg and A.P. Yuzhakov.
    *Integral representations and residues in multidimensional complex analysis*.
@@ -33,6 +33,9 @@ and [RaWi2012]_.
    smooth points*, To appear in 2012 in the Online Journal of Analytic
    Combinatorics. :arxiv:`1009.5715`.
 
+.. [PeWi2013] Robin Pemantle and Mark C. Wilson. *Analytic
+   Combinatorics in Several Variables*, Cambridge University Press,
+   2013.
 
 AUTHORS:
 
@@ -154,6 +157,7 @@ A multiple point example (Example 6.5 of [RaWi2012]_)::
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Alexander Raichev <tortoise.said@gmail.com>
+#       Copyright (C) 2014 Daniel Krenn <dev@danielkrenn.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -317,6 +321,7 @@ class FFPDElement(sage.structure.element.RingElement):
             self._numerator = numer
             self._denominator_factored = new_df
 
+
     def numerator(self):
         r"""
         Return the numerator of ``self``.
@@ -334,6 +339,7 @@ class FFPDElement(sage.structure.element.RingElement):
             -e^y
         """
         return self._numerator
+
 
     def denominator(self):
         r"""
@@ -402,6 +408,7 @@ class FFPDElement(sage.structure.element.RingElement):
         """
         return self._denominator_factored
 
+
     def ring(self):
         r"""
         Return the ring of the denominator of ``self``, which is
@@ -427,6 +434,7 @@ class FFPDElement(sage.structure.element.RingElement):
         """
         return self.parent().base()
 
+
     def dimension(self):
         r"""
         Return the number of indeterminates of ``self.ring()``.
@@ -450,6 +458,7 @@ class FFPDElement(sage.structure.element.RingElement):
             return R.ngens()
         return None
 
+
     def list(self):
         r"""
         Convert ``self`` into a list.
@@ -467,6 +476,7 @@ class FFPDElement(sage.structure.element.RingElement):
             [-e^y, [(x - 1, 1), (x*y + x + y - 1, 2)]]
         """
         return [self.numerator(), self.denominator_factored()]
+
 
     def quotient(self):
         r"""
@@ -759,6 +769,7 @@ class FFPDElement(sage.structure.element.RingElement):
             decomp.append(self.parent()(numer, [(a, m)]))
         return FFPDSum(decomp)
 
+
     def nullstellensatz_certificate(self):
         r"""
         Return a Nullstellensatz certificate of ``self`` if it exists.
@@ -881,6 +892,7 @@ class FFPDElement(sage.structure.element.RingElement):
         # Simplify and return result.
         return decomp.combine_like_terms().whole_and_parts()
 
+
     def algebraic_dependence_certificate(self):
         r"""
         Return the algebraic dependence certificate of ``self`` if it exists.
@@ -976,6 +988,7 @@ class FFPDElement(sage.structure.element.RingElement):
         # I choose the negdeglex order because i find it useful in my work.
         RRR = PolynomialRing(F, [str(t) for t in Ts], order='negdeglex')
         return RRR.ideal(J)
+
 
     def algebraic_dependence_decomposition(self, whole_and_parts=True):
         r"""
@@ -1090,6 +1103,7 @@ class FFPDElement(sage.structure.element.RingElement):
 
         # Simplify and return result.
         return decomp.combine_like_terms().whole_and_parts()
+
 
     def leinartas_decomposition(self):
         r"""
@@ -1219,6 +1233,7 @@ class FFPDElement(sage.structure.element.RingElement):
 
         # Simplify and return result.
         return decomp.combine_like_terms().whole_and_parts()
+
 
     def cohomology_decomposition(self):
         r"""
@@ -1432,6 +1447,7 @@ class FFPDElement(sage.structure.element.RingElement):
 
         return decomp3
 
+
     def asymptotics(self, p, alpha, N, asy_var=None, numerical=0,
                     verbose=False):
         r"""
@@ -1581,6 +1597,7 @@ class FFPDElement(sage.structure.element.RingElement):
         # Multiple point.
         return self.asymptotics_multiple(p, alpha, N, asy_var, coordinate,
                                          numerical, verbose=verbose)
+
 
     def asymptotics_smooth(self, p, alpha, N, asy_var, coordinate=None,
                            numerical=0, verbose=False):
@@ -1974,6 +1991,7 @@ class FFPDElement(sage.structure.element.RingElement):
             exp_scale = prod([(P[X[i]] ** (-alpha[i])).subs(p)
                               for i in xrange(d)])
         return (exp_scale ** asy_var * subexp_part, exp_scale, subexp_part)
+
 
     def asymptotics_multiple(self, p, alpha, N, asy_var, coordinate=None,
                              numerical=0, verbose=False):
@@ -2405,6 +2423,7 @@ class FFPDElement(sage.structure.element.RingElement):
         return [tuple([diff(H[i], X[j]).subs(p) for j in xrange(d)])
                 for i in xrange(n)]
 
+
     def log_grads(self, p):
         r"""
         Return a list of the logarithmic gradients of the polynomials
@@ -2452,6 +2471,7 @@ class FFPDElement(sage.structure.element.RingElement):
         n = len(H)
         return [tuple([(X[j] * diff(H[i], X[j])).subs(p) for j in xrange(d)])
                 for i in xrange(n)]
+
 
     def critical_cone(self, p, coordinate=None):
         r"""
@@ -2512,6 +2532,7 @@ class FFPDElement(sage.structure.element.RingElement):
         except TypeError:
             cone = None
         return (Gamma, cone)
+
 
     def is_convenient_multiple_point(self, p):
         r"""
@@ -2597,6 +2618,7 @@ class FFPDElement(sage.structure.element.RingElement):
         X = R.gens()
         convenientX = [X[i] for i in convenient_coordinates]
         return (True, 'convenient in variables {}'.format(convenientX))
+
 
     def singular_ideal(self):
         r"""
@@ -2705,6 +2727,7 @@ class FFPDElement(sage.structure.element.RingElement):
                      for i in xrange(d - 1)])
         return S.ideal(J.groebner_basis())
 
+
     def maclaurin_coefficients(self, multi_indices, numerical=0):
         r"""
         Return the Maclaurin coefficients of self that have multi-indices
@@ -2806,6 +2829,7 @@ class FFPDElement(sage.structure.element.RingElement):
                 val = val.n(digits=numerical)
             coeffs[tuple(nu)] = val
         return coeffs
+
 
     def relative_error(self, approx, alpha, interval, exp_scale=Integer(1),
                        digits=10):
@@ -2915,10 +2939,6 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: g = FFPD(2*x*y, df)
             sage: f + g
             (2, [(y, 1), (x, 1)])
-
-        AUTHORS:
-
-        - Daniel Krenn (2014-12-01)
         """
         return FFPDSum([left, right]).sum()
 
@@ -2946,10 +2966,6 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: g = FFPD(2*x*y, [(y, 1), (x*y + 1, 1), (x^2*y + 1, 1)])
             sage: f * g
             (4, [(x*y + 1, 1), (x*y + 1, 1), (x*y^2 + 1, 1), (x^2*y + 1, 1)])
-
-        AUTHORS:
-
-        - Daniel Krenn (2014-12-01)
         """
         numer = left.numerator() * right.numerator()
         df = left.denominator_factored() + right.denominator_factored()
@@ -3106,7 +3122,7 @@ class FractionWithFactoredDenominatorRing(
         hasdf = kwargs.has_key('denominator_factored')
         if hasn:
             from sage.misc.superseded import deprecation
-            deprecation(99999, "Keyword argument 'numerator' "
+            deprecation(10519, "Keyword argument 'numerator' "
                                "is deprecated. "
                                "Ignoring non-keyword argumets (if any). "
                                "Specify numerator and factored denominator "
@@ -3114,7 +3130,7 @@ class FractionWithFactoredDenominatorRing(
                                "something like FFPD(n, df).")
         if hasdf:
             from sage.misc.superseded import deprecation
-            deprecation(99999, "Keyword argument 'denominator_factored' "
+            deprecation(10519, "Keyword argument 'denominator_factored' "
                                "is deprecated. "
                                "Ignoring non-keyword argumets (if any). "
                                "Specify numerator and factored denominator "
@@ -3127,7 +3143,7 @@ class FractionWithFactoredDenominatorRing(
         hasq = kwargs.has_key('quotient')
         if hasq:
             from sage.misc.superseded import deprecation
-            deprecation(99999, "Keyword argument 'quotient' "
+            deprecation(10519, "Keyword argument 'quotient' "
                                "is deprecated. "
                                "Ignoring non-keyword argumets (if any). "
                                "Specify numerator and factored denominator "
@@ -3979,6 +3995,7 @@ class FFPDSum(list):
         """
         return repr([(r.numerator(), r.denominator_factored()) for r in self])
 
+
     def __eq__(self, other):
         r"""
         Return ``True`` if ``self`` is equal to ``other``.
@@ -3999,6 +4016,7 @@ class FFPDSum(list):
         """
         return sorted(self) == sorted(other)
 
+
     def __ne__(self, other):
         r"""
         Return ``True`` if ``self`` is not equal to ``other``.
@@ -4018,6 +4036,7 @@ class FFPDSum(list):
             True
         """
         return not self.__eq__(other)
+
 
     def ring(self):
         r"""
@@ -4040,6 +4059,7 @@ class FFPDSum(list):
         for r in self:
             return r.ring()
         return None
+
 
     def whole_and_parts(self):
         r"""
@@ -4093,6 +4113,7 @@ class FFPDSum(list):
                 parts.append(r.parent()(b, r.denominator_factored(), reduce_=False))
         return FFPDSum([r.parent()(whole, ())] + parts)  # TODO: find better solution for r.parent()
 
+
     def combine_like_terms(self):
         r"""
         Combine terms in ``self`` with the same denominator.
@@ -4143,6 +4164,7 @@ class FFPDSum(list):
                 temp = f
         new_FFPDs.append(temp)
         return FFPDSum(new_FFPDs)
+
 
     def sum(self):
         r"""

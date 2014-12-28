@@ -8158,12 +8158,20 @@ cdef class Expression(CommutativeRingElement):
             1/2*log(2*t) - 1/2*log(t)
             sage: forget()
 
+        Complex logs are not contracted, :trac:`17556`::
+
+            sage: x,y = SR.var('x,y')
+            sage: assume(y, 'complex')
+            sage: f = log(x*y) - (log(x) + log(y))
+            sage: f.simplify_full()
+            log(x*y) - log(x) - log(y)
+            sage: forget()
+
         """
         x = self
         x = x.simplify_factorial()
         x = x.simplify_trig()
         x = x.simplify_rational()
-        x = x.simplify_log('one')
         x = x.simplify_rational()
         return x
 
@@ -8939,8 +8947,6 @@ cdef class Expression(CommutativeRingElement):
             sage: log_expr.simplify_log('all')
             log((sqrt(2) + 1)*(sqrt(2) - 1))
             sage: _.simplify_rational()
-            0
-            sage: log_expr.simplify_full()   # applies both simplify_log and simplify_rational
             0
 
         We should use the current simplification domain rather than

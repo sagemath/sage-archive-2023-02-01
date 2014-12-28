@@ -598,13 +598,12 @@ def v_4_1_BIBD(v, check=True):
         sage: assert designs.difference_family(37,4,existence=True)
         sage: _ = designs.difference_family(37,4)
 
-    Build the small `(v,4,1)`-BIBD::
+    Check some larger `(v,4,1)`-BIBD (see :trac:`17557`)::
 
         sage: for v in range(400):                                      # long time
         ....:     if v%12 in [1,4]:                                     # long time
         ....:         _ = designs.balanced_incomplete_block_design(v,4) # long time
     """
-    from sage.rings.finite_rings.constructor import FiniteField
     k = 4
     if v == 0:
         return []
@@ -618,6 +617,7 @@ def v_4_1_BIBD(v, check=True):
         return projective_plane(3)._blocks
     if v == 16:
         from block_design import AffineGeometryDesign
+        from sage.rings.finite_rings.constructor import FiniteField
         return AffineGeometryDesign(2,1,FiniteField(4,'x'))._blocks
     if v == 25 or v == 37:
         from difference_family import difference_family

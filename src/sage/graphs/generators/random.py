@@ -797,7 +797,7 @@ def RandomTriangulation(self, n):
 
     INPUT:
 
-    -  ``n`` -- number of vertices (recommend `n \ge 3`)
+    - ``n`` -- number of vertices (recommend `n \ge 3`)
 
     EXAMPLES::
 
@@ -814,8 +814,8 @@ def RandomTriangulation(self, n):
     # this function creates a random unit vector in R^3
     def rand_unit_vec():
         vec = [normalvariate(0, 1) for k in range(3)]
-        mag = sum([x*x for x in vec]) ** 0.5
-        return [x/mag for x in vec]
+        mag = sum([x * x for x in vec]) ** 0.5
+        return [x / mag for x in vec]
 
     # generate n unit vectors at random
     points = [rand_unit_vec() for k in range(n)]
@@ -825,5 +825,5 @@ def RandomTriangulation(self, n):
 
     # extract the 1-skeleton
     g = P.vertex_graph()
-    g.rename('Planar triangulation on %d vertices' % n)
+    g.rename('Planar triangulation on {} vertices'.format(n))
     return g

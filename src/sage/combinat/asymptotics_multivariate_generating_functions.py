@@ -197,7 +197,7 @@ class FFPDElement(sage.structure.element.RingElement):
       integers
     - ``quotient`` -- (optional) an element of a field of
       fractions of a factorial ring
-    - ``reduce_`` -- (optional) if ``True``, then represent
+    - ``reduce`` -- (optional) if ``True``, then represent
       `p/(q_1^{e_1} \cdots q_n^{e_n})` in lowest terms, otherwise
       this won't attempt to divide `p` by any of the `q_i`.
 
@@ -217,7 +217,7 @@ class FFPDElement(sage.structure.element.RingElement):
         sage: f = FFPD(x, df)
         sage: f
         (1, [(y, 1), (x*y + 1, 1)])
-        sage: ff = FFPD(x, df, reduce_=False)
+        sage: ff = FFPD(x, df, reduce=False)
         sage: ff
         (x, [(y, 1), (x, 1), (x*y + 1, 1)])
 
@@ -286,7 +286,7 @@ class FFPDElement(sage.structure.element.RingElement):
     - Daniel Krenn (2014-12-01)
     """
     def __init__(self, parent, numerator=None, denominator_factored=None,
-                 reduce_=True):
+                 reduce=True):
         r"""
         Create a FFPD instance.
 
@@ -304,7 +304,7 @@ class FFPDElement(sage.structure.element.RingElement):
         self._numerator = numerator
         self._denominator_factored = denominator_factored
         R = self.ring()
-        if numerator in R and reduce_:
+        if numerator in R and reduce:
             # Reduce fraction if possible.
             numer = R(self._numerator)
             df = self._denominator_factored
@@ -575,7 +575,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df)
-            sage: ff = FFPD(x, df, reduce_=False)
+            sage: ff = FFPD(x, df, reduce=False)
             sage: f == ff
             True
             sage: g = FFPD(y, df)
@@ -605,7 +605,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df)
-            sage: ff = FFPD(x, df, reduce_=False)
+            sage: ff = FFPD(x, df, reduce=False)
             sage: f != ff
             False
             sage: g = FFPD(y, df)
@@ -633,7 +633,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df); f
             (1, [(y, 1), (x*y + 1, 1)])
-            sage: ff = FFPD(x, df, reduce_=False); ff
+            sage: ff = FFPD(x, df, reduce=False); ff
             (x, [(y, 1), (x, 1), (x*y + 1, 1)])
             sage: g = FFPD(y, df)
             sage: h = FFPD(exp(x), df)
@@ -3096,6 +3096,8 @@ class FractionWithFactoredDenominatorRing(
         return self.base().base_ring()
 
 
+    from sage.misc.decorators import rename_keyword
+    @rename_keyword(deprecation=10519, reduce_='reduce')
     def _element_constructor_(self, *args, **kwargs):
         r"""
         Returns an element of this ring.
@@ -3155,7 +3157,7 @@ class FractionWithFactoredDenominatorRing(
             raise ValueError('Parameters ambiguous.')
 
         # process keyword arguments
-        reduce_ = kwargs.pop('reduce_', None)
+        reduce = kwargs.pop('reduce', None)
 
         if kwargs:
             raise ValueError('Unknown keyword arguments '
@@ -3239,8 +3241,8 @@ class FractionWithFactoredDenominatorRing(
             raise TypeError('Element %s is not contained '
                             'in %s.' % (x, self))
 
-        if reduce_ is None:
-            reduce_ = reduce_default
+        if reduce is None:
+            reduce = reduce_default
 
         if denominator_factored is None:
             if denominator not in R:
@@ -3270,7 +3272,7 @@ class FractionWithFactoredDenominatorRing(
         return self.element_class(self,
                                   numerator=numerator,
                                   denominator_factored=denominator_factored,
-                                  reduce_=reduce_)
+                                  reduce=reduce)
 
 
     def _coerce_map_from_(self, P):
@@ -4110,7 +4112,7 @@ class FFPDSum(list):
                     a = 0
                     b = p
                 whole += a
-                parts.append(r.parent()(b, r.denominator_factored(), reduce_=False))
+                parts.append(r.parent()(b, r.denominator_factored(), reduce=False))
         return FFPDSum([r.parent()(whole, ())] + parts)  # TODO: find better solution for r.parent()
 
 
@@ -4205,7 +4207,7 @@ class FFPDSum(list):
         df = []  # The denominator factorization for the sum.
         if denom == 1:
             # Done
-            return FractionWithFactoredDenominatorRing(numer.parent())(numer, df, reduce_=False)
+            return FractionWithFactoredDenominatorRing(numer.parent())(numer, df, reduce=False)
 
         factors = []
         for f in self:
@@ -4225,5 +4227,5 @@ class FFPDSum(list):
                 quo, rem = denom.quo_rem(q)
             if e > 0:
                 df.append((q, e))
-        return FractionWithFactoredDenominatorRing(numer.parent())(numer, df, reduce_=False)
+        return FractionWithFactoredDenominatorRing(numer.parent())(numer, df, reduce=False)
 

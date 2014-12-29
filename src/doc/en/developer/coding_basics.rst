@@ -683,8 +683,8 @@ framework. Here is a comprehensive list:
 
 - **tol** or **tolerance:** The numerical values returned by the line are only
   verified to the given tolerance. It is useful when the output is subject to
-  numerical noise (due to system-dependent floating point arithmetic or
-  non-deterministic algorithms).
+  numerical noise due to system-dependent (floating point arithmetic, math
+  libraries, ...) or non-deterministic algorithms.
 
   - This may be prefixed by ``abs[olute]`` or ``rel[ative]`` to specify whether
     to measure **absolute** or **relative** error.

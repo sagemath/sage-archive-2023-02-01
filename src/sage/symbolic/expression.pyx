@@ -8329,7 +8329,8 @@ cdef class Expression(CommutativeRingElement):
     def simplify_real(self):
         r"""
         Simplify the given expression over the real numbers. This allows
-        the simplification of `\sqrt{x^{2}}` into `\left|x\right|`.
+        the simplification of `\sqrt{x^{2}}` into `\left|x\right|` and
+        the contraction of `\log(x) + \log(y)` into `\log(xy)`.
 
         INPUT:
 
@@ -8345,6 +8346,13 @@ cdef class Expression(CommutativeRingElement):
             sage: f = sqrt(x^2)
             sage: f.simplify_real()
             abs(x)
+
+        ::
+
+            sage: y = SR.var('y')
+            sage: f = log(x) + 2*log(y)
+            sage: f.simplify_real()
+            log(x*y^2)
 
         TESTS:
 
@@ -8411,7 +8419,9 @@ cdef class Expression(CommutativeRingElement):
         for v in self.variables():
             assume(v, 'real');
 
-        result = self.simplify();
+        # This will round trip through Maxima, essentially performing
+        # self.simplify() in the process.
+        result = self.simplify_log()
 
         # Set the domain back to what it was before we were called.
         maxima.eval('domain: %s$' % original_domain)

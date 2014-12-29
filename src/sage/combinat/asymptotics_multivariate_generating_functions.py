@@ -257,8 +257,9 @@ class FFPDElement(sage.structure.element.RingElement):
         sage: H = (1 - 2*x - y) * (1 - x - 2*y)
         sage: a = FFPD(G/H)
         sage: a
-        (e^(x + y)/(2*x^2 + 5*x*y + 2*y^2 - 3*x - 3*y + 1), [])
+        (e^(x + y), [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
         sage: a.ring()
+        Multivariate Polynomial Ring in x, y over Rational Field
         sage: b = FFPD(G, H.factor())
         sage: b
         (e^(x + y), [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
@@ -427,10 +428,9 @@ class FFPDElement(sage.structure.element.RingElement):
             Multivariate Polynomial Ring in x, y over Rational Field
             sage: F = FFPD(G/H)
             sage: F
-            (e^y/(x^3*y^2 + 2*x^3*y + x^2*y^2 + x^3 - 2*x^2*y - x*y^2 - 3*x^2 -
-            2*x*y - y^2 + 3*x + 2*y - 1), [])
-            sage: print F.ring()
-            None
+            (e^y, [(x - 1, 1), (x*y + x + y - 1, 2)])
+            sage: F.ring()
+            Multivariate Polynomial Ring in x, y over Rational Field
         """
         return self.parent().base()
 
@@ -967,8 +967,8 @@ class FFPDElement(sage.structure.element.RingElement):
 
             sage: f = sin(1)/(x^3 * y^2)
             sage: J = FFPD(f).algebraic_dependence_certificate()
-            sage: print J
-            None
+            sage: J
+            Ideal (0) of Multivariate Polynomial Ring in T0, T1 over Rational Field
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -3215,18 +3215,6 @@ class FractionWithFactoredDenominatorRing(
                 raise TypeError('Factored denominator is not well-formed '
                                 'or of wrong type.')
 
-            #for d in denominator_factored:
-            #    if d[0] not in R:
-            #        print "DEBUG:   factor %s of denominator\n      is of type %s\n     (instead of %s)" % (d[0], d[0].parent(), R)  # TODO
-
-            #    try:
-            #        numerator = R(numerator)
-            #    except TypeError:
-            #        quotient = numerator
-            #        numerator = None
-            ##if numerator and numerator not in R:
-            ##    print "DEBUG: numerator %s\n      is of type %s\n     (instead of %s)" % (numerator, numerator.parent(), R)  # TODO
-
         # From now on we only have one input arguement;
         # it's called x and has parent P.
 
@@ -4131,7 +4119,7 @@ class FFPDSum(list):
                     b = p
                 whole += a
                 parts.append(r.parent()(b, r.denominator_factored(), reduce=False))
-        return FFPDSum([r.parent()(whole, ())] + parts)  # TODO: find better solution for r.parent()
+        return FFPDSum([r.parent()(whole, ())] + parts)  # r.parent() is not the nicest here
 
 
     def combine_like_terms(self):

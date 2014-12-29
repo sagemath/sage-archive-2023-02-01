@@ -24,9 +24,9 @@ the latter binds argument names to argument positions). The
 See the function ``fast_float(f, *vars)`` to create a fast-callable
 version of f.
 
-..NOTE::
+.. NOTE::
 
-Sage temporarily has two implementations of this functionality;
+Sage temporarily has two implementations of this functionality ;
 one in this file, which will probably be deprecated soon, and one in
 fast_callable.pyx.  The following instructions are for the old
 implementation; you probably want to be looking at fast_callable.pyx
@@ -281,7 +281,8 @@ cdef op_to_tuple(fast_double_op op):
         try:
             param = param_count, cfunc_names[<size_t>op.params.func]
         except KeyError:
-            raise ValueError, "Unknown C function: 0x%x" % <size_t>op.params.func
+            raise ValueError("Unknown C function: 0x%x"
+                             % <size_t>op.params.func)
     elif op.type == PY_FUNC:
         param = <object>(op.params.func)
     else:
@@ -388,7 +389,7 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
 
     elif op.type == POW:
         if stack[top-1] < 0 and stack[top] != floor(stack[top]):
-            raise ValueError, "negative number to a fractional power not real"
+            raise ValueError("negative number to a fractional power not real")
         stack[top-1] = pow(stack[top-1], stack[top])
         return top-1
 
@@ -439,7 +440,7 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
         Py_DECREF(py_args)
         return top
 
-    raise RuntimeError, "Bad op code %s" % op.type
+    raise RuntimeError("Bad op code %s" % op.type)
 
 
 cdef class FastDoubleFunc:
@@ -496,9 +497,8 @@ cdef class FastDoubleFunc:
         sage: list(f)
         ['push 1.5', 'load 0', 'dup', 'mul', 'mul', 'push 3.14', 'load 0', 'mul', 'add', 'push 7.0', 'add', 'load 1', 'load 1', 'call sin(1)', 'dup', 'mul', 'push 1.5', 'add', 'call sqrt(1)', 'div', 'sub']
 
-
     AUTHORS:
-    
+
     - Robert Bradshaw
     """
     def __init__(self, type, param, *args):
@@ -549,10 +549,9 @@ cdef class FastDoubleFunc:
             self.ops[self.nops-1].params.func = <void *>py_func
 
         else:
-            raise ValueError, "Unknown operation: %s" % type
+            raise ValueError("Unknown operation: %s" % type)
 
         self.allocate_stack()
-
 
     cdef int allocate_stack(FastDoubleFunc self) except -1:
         self.argv = <double*>sage_malloc(sizeof(double) * self.nargs)
@@ -634,7 +633,7 @@ cdef class FastDoubleFunc:
             TypeError: a float is required
         """
         if len(args) < self.nargs:
-            raise TypeError, "Wrong number of arguments (need at least %s, got %s)" % (self.nargs, len(args))
+            raise TypeError("Wrong number of arguments (need at least %s, got %s)" % (self.nargs, len(args)))
         cdef int i = 0
         for i from 0 <= i < self.nargs:
             self.argv[i] = args[i]
@@ -652,7 +651,7 @@ cdef class FastDoubleFunc:
 
     def _fast_float_(self, *vars):
         r"""
-        Returns ``self`` if there are enough arguments, otherwise raises a TypeError.
+        Returns ``self`` if there are enough arguments, otherwise raises a ``TypeError``.
 
         EXAMPLES::
 
@@ -666,7 +665,7 @@ cdef class FastDoubleFunc:
             TypeError: Needs at least 2 arguments (1 provided)
         """
         if self.nargs > len(vars):
-            raise TypeError, "Needs at least %s arguments (%s provided)" % (self.nargs, len(vars))
+            raise TypeError("Needs at least %s arguments (%s provided)" % (self.nargs, len(vars)))
         return self
 
     def op_list(self):
@@ -674,7 +673,8 @@ cdef class FastDoubleFunc:
         Returns a list of string representations of the
         operations that make up this expression.
 
-        Python and C function calls may be only available by function pointer addresses.
+        Python and C function calls may be only available by function
+        pointer addresses.
 
         EXAMPLES::
 
@@ -695,7 +695,7 @@ cdef class FastDoubleFunc:
 
     def __iter__(self):
         """
-        Returns the list of operations of self.
+        Returns the list of operations of ``self``.
 
         EXAMPLES::
 
@@ -708,7 +708,7 @@ cdef class FastDoubleFunc:
 
     cpdef bint is_pure_c(self):
         """
-        Returns True if this function can be evaluated without
+        Returns ``True`` if this function can be evaluated without
         any python calls (at any level).
 
         EXAMPLES::
@@ -888,7 +888,7 @@ cdef class FastDoubleFunc:
         if self.nargs == 0:
             return self._call_c(NULL)
         else:
-            raise TypeError, "Not a constant."
+            raise TypeError("Not a constant.")
 
     def abs(FastDoubleFunc self):
         """
@@ -1319,7 +1319,8 @@ def fast_float_constant(x):
         sage: f()
         -2.75
 
-    This is all that goes on under the hood:
+    This is all that goes on under the hood::
+
         sage: fast_float_constant(pi).op_list()
         ['push 3.14159265359']
     """
@@ -1331,7 +1332,7 @@ def fast_float_arg(n):
 
     INPUT:
 
-       - ``n`` -- the (zero-indexed) argument to select
+    - ``n`` -- the (zero-indexed) argument to select
 
     EXAMPLES::
 
@@ -1344,6 +1345,7 @@ def fast_float_arg(n):
         2.0
 
     This is all that goes on under the hood::
+
         sage: fast_float_arg(10).op_list()
         ['load 10']
     """
@@ -1367,7 +1369,8 @@ def fast_float_func(f, *args):
         sage: h(5, 10)
         -5.0
 
-    This is all that goes on under the hood:
+    This is all that goes on under the hood::
+
         sage: h.op_list()
         ['load 0', 'load 1', 'py_call <function <lambda> at 0x...>(2)']
     """
@@ -1387,10 +1390,10 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
 
     INPUT:
 
-        - ``f``    -- an expression
-        - ``vars`` -- the names of the arguments
-        - ``old``  -- use the original algorithm for fast_float
-        - ``expect_one_var`` -- don't give deprecation warning if vars is
+    - ``f``    -- an expression
+    - ``vars`` -- the names of the arguments
+    - ``old``  -- use the original algorithm for fast_float
+    - ``expect_one_var`` -- don't give deprecation warning if vars is
                           omitted, as long as expression has only one var
 
     EXAMPLES::
@@ -1448,10 +1451,10 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
         pass
 
     if f is None:
-        raise TypeError, "no way to make fast_float from None"
+        raise TypeError("no way to make fast_float from None")
 
     return f
 
+
 def is_fast_float(x):
     return PY_TYPE_CHECK(x, FastDoubleFunc) or PY_TYPE_CHECK(x, Wrapper)
-

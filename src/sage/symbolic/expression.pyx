@@ -8167,11 +8167,18 @@ cdef class Expression(CommutativeRingElement):
             log(x*y) - log(x) - log(y)
             sage: forget()
 
+        The simplifications from :meth:`simplify_rectform` are
+        performed, :trac:`17556`::
+
+            sage: f = ( e^(I*x) - e^(-I*x) ) / ( I*e^(I*x) + I*e^(-I*x) )
+            sage: f.simplify_full()
+            sin(x)/cos(x)
+
         """
         x = self
         x = x.simplify_factorial()
+        x = x.simplify_rectform()
         x = x.simplify_trig()
-        x = x.simplify_rational()
         x = x.simplify_rational()
         return x
 

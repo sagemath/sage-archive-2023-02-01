@@ -3708,14 +3708,14 @@ class FractionWithFactoredDenominatorRing(
                     P = product(S, repeat=k + l)
                     diffo = Integer(0)
                     for t in P:
-                        if product_derivs[(j, k, l) + FractionWithFactoredDenominatorRing._diff_seq(V, t)]:
+                        idx = (j, k, l) + FractionWithFactoredDenominatorRing._diff_seq(V, t)
+                        if product_derivs[idx] != Integer(0):
                             MM = Integer(1)
                             for (a, b) in t:
                                 MM *= M[a][b]
                                 if a != b:
                                     MM *= Integer(2)
-                            diffo += MM * product_derivs[(j, k, l) +
-                                                         FractionWithFactoredDenominatorRing._diff_seq(V, t)]
+                            diffo += MM * product_derivs[idx]
                     DD[(j, k, l)] = (-Integer(1)) ** (k + l) * diffo
         return DD
 

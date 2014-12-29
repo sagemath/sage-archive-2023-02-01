@@ -681,9 +681,10 @@ framework. Here is a comprehensive list:
       sage: E.regulator()        # long time (1 second)
       0.0511114082399688
 
-- **tol** or **tolerance:** The numerical values returned by the line is only
+- **tol** or **tolerance:** The numerical values returned by the line are only
   verified to the given tolerance. It is useful when the output is subject to
-  numerical noise (rounding error/floating point arithmetic).
+  numerical noise (due to system-dependent floating point arithmetic or
+  non-deterministic algorithms).
 
   - This may be prefixed by ``abs[olute]`` or ``rel[ative]`` to specify whether
     to measure **absolute** or **relative** error.
@@ -705,8 +706,9 @@ framework. Here is a comprehensive list:
      0.7071067812 + 0.7071067812*I
 
   **Multiple numerical values:** the representation of complex numbers,
-  matrices, or polynomials involve several numerical values. If a doctest with
-  tolerance contains several numbers, each of them is checked individually::
+  matrices, or polynomials usually involve several numerical values. If a
+  doctest with tolerance contains several numbers, each of them is checked
+  individually::
 
       sage: print "The sum of 1 and 1 equals 5"  # abs tol 1
       The sum of 2 and 2 equals 4
@@ -744,9 +746,10 @@ framework. Here is a comprehensive list:
        then that file will be skipped.
 
      - **directory:** If a directory contains a file ``nodoctest.py``, then that
-       whole directory will be skipped. Neither of this applies to files or
-       directories which are explicitly given as command line arguments: those
-       are always tested.
+       whole directory will be skipped.
+
+     Neither of this applies to files or directories which are explicitly given
+     as command line arguments: those are always tested.
 
 - **optional:** A line flagged with ``optional - keyword``, it is not tested
   unless the ``--optional=keyword`` flag is passed to ``sage -t`` (see

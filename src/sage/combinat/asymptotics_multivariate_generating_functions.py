@@ -707,7 +707,13 @@ class FFPDElement(sage.structure.element.RingElement):
             e^x/(3*x^2 + 1) + ((5*(x - 1)*x^3 + 2)*x - 1)/((x - 1)*x)
             sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
-            [(e^x/(3*x^2 + 1) + ((5*(x - 1)*x^3 + 2)*x - 1)/((x - 1)*x), [])]
+            [(0, []),
+             (15/4*x^7 - 15/4*x^6 + 5/4*x^5 - 5/4*x^4 + 3/2*x^3 + 1/4*x^2*e^x -
+              3/4*x^2 - 1/4*x*e^x + 1/2*x - 1/4, [(x - 1, 1)]),
+             (-15*x^7 + 15*x^6 - 5*x^5 + 5*x^4 - 6*x^3 -
+              x^2*e^x + 3*x^2 + x*e^x - 2*x + 1, [(x, 1)]),
+             (1/4*(15*x^7 - 15*x^6 + 5*x^5 - 5*x^4 + 6*x^3 + x^2*e^x -
+                   3*x^2 - x*e^x + 2*x - 1)*(3*x - 1), [(x^2 + 1/3, 1)])]
 
         One variable over a finite field::
 
@@ -742,6 +748,16 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: decomp.sum().quotient() == f # Rounding error coming
             False
 
+        TESTS::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: f = exp(x) / (x^2-x)
+            sage: f
+            e^x/((x - 1)*x)
+            sage: FFPD(f).univariate_decomposition()
+            [(0, []), (e^x, [(x - 1, 1)]), (-e^x, [(x, 1)])]
+
         AUTHORS:
 
         - Robert Bradshaw (2007-05-31)
@@ -755,8 +771,10 @@ class FFPDElement(sage.structure.element.RingElement):
         q = self.denominator()
         if p in R:
             whole, p = p.quo_rem(q)
+            mn = R.one()
         else:
-            whole = p
+            whole = R(0)
+            mn = p
             p = R.one()
         df = self.denominator_factored()
         decomp = [self.parent()(whole, [])]
@@ -766,7 +784,7 @@ class FFPDElement(sage.structure.element.RingElement):
                               if b != a]).inverse_mod(a ** m) % (a ** m)
             # The inverse exists because the product and a**m
             # are relatively prime.
-            decomp.append(self.parent()(numer, [(a, m)]))
+            decomp.append(self.parent()(mn * numer, [(a, m)]))
         return FFPDSum(decomp)
 
 

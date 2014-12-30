@@ -23,9 +23,26 @@ cimported in Cython modules:
 
   Initialize ``R`` as a copy of ``S``.
 
+- ``cdef tuple biseq_pickle(biseq_t S)``
+
+  Return a triple ``(bitset_data, itembitsize, length)`` defining ``S``.
+
+- ``cdef bint biseq_unpickle(biseq_t R, tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length) except -1``
+
+  Initialise ``R`` from data returned by ``biseq_pickle``.
+
 - ``cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1``
 
   Convert a list to a bounded integer sequence, which must not be allocated.
+
+- ``cdef inline Py_hash_t biseq_hash(biseq_t S)``
+
+  Hash value for ``S``.
+
+- ``cdef inline int biseq_cmp(biseq_t S1, biseq_t S2)``
+
+  Comparison of ``S1`` and ``S2``. This takes into account the bound, the
+  length, and the list of items of the two sequences.
 
 - ``cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1``
 
@@ -187,11 +204,7 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
         index += 1
 
 cdef inline Py_hash_t biseq_hash(biseq_t S):
-    cdef Py_hash_t hash = 0
-    cdef mp_size_t i
-    for i from 0 <= i < S.data.limbs:
-        hash = hash*(<Py_hash_t>1073807360)+S.data.bits[i]
-    return hash
+    return S.itembitsize*(<Py_hash_t>1073807360)+bitset_hash(S.data)
 
 cdef inline int biseq_cmp(biseq_t S1, biseq_t S2):
     cdef int c = cmp(S1.itembitsize, S2.itembitsize)
@@ -1346,7 +1359,10 @@ cdef class BoundedIntegerSequence:
             True
 
         """
-        return biseq_hash(self.data)
+        cdef Py_hash_t h = biseq_hash(self.data)
+        if h == -1:
+            return 0
+        return h
 
 cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length):
     """

@@ -24,24 +24,22 @@ from sage.structure.element import ModuleElement
 
 class TorsionPoint(ModuleElement):
     def __init__(self, parent, element, check=True):
-        """
+        r"""
         An element of a finite subgroup of a modular abelian variety.
 
         INPUT:
 
+        - ``parent`` -- a finite subgroup of a modular abelian variety
 
-        -  ``parent`` - a finite subgroup of a modular abelian
-           variety
+        - ``element`` -- a `\QQ`-vector space element that represents
+           this element in terms of the ambient rational homology
 
-        -  ``element`` - a QQ vector space element that
-           represents this element in terms of the ambient rational homology
+        - ``check`` -- bool (default: True): whether to check that
+           element is in the appropriate vector space
 
-        -  ``check`` - bool (default: True) whether to check
-           that element is in the appropriate vector space
+        EXAMPLES:
 
-
-        EXAMPLES: The following calls the TorsionPoint constructor
-        implicitly::
+        The following calls the TorsionPoint constructor implicitly::
 
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
@@ -58,12 +56,17 @@ class TorsionPoint(ModuleElement):
         self.__element = element
 
     def element(self):
-        """
-        Return an underlying QQ-vector space element that defines this
-        element of a modular abelian variety. This is a vector in the
-        ambient Jacobian variety's rational homology.
+        r"""
+        Return a vector over `\QQ` defining ``self``.
 
-        EXAMPLES: We create some elements of `J_0(11)`::
+        OUTPUT:
+
+        - A vector in the rational homology of the ambient modular
+          Jacobian variety.
+
+        EXAMPLES:
+
+        We create some elements of `J_0(11)`::
 
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
@@ -82,10 +85,14 @@ class TorsionPoint(ModuleElement):
 
     def _repr_(self):
         r"""
-        Return string representation of this finite subgroup element. Since
-        they are represented as equivalences classes of rational homology
-        modulo integral homology, we represent an element corresponding to
-        `v` in the rational homology by ``[v]``.
+        Return a string representation of ``self``.
+
+        .. note::
+
+            Since they are represented as equivalences classes of
+            rational homology modulo integral homology, we represent
+            an element corresponding to `v` in the rational homology
+            by ``[v]``.
 
         EXAMPLES::
 
@@ -102,15 +109,6 @@ class TorsionPoint(ModuleElement):
         Add two finite subgroup elements with the same parent. This is
         called implicitly by +.
 
-        INPUT:
-
-
-        -  ``other`` - a TorsionPoint with the same parent as
-           self
-
-
-        OUTPUT: a TorsionPoint
-
         EXAMPLES::
 
             sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
@@ -126,15 +124,6 @@ class TorsionPoint(ModuleElement):
         """
         Subtract two finite subgroup elements with the same parent. This is
         called implicitly by +.
-
-        INPUT:
-
-
-        -  ``other`` - a TorsionPoint with the same parent as
-           self
-
-
-        OUTPUT: a TorsionPoint
 
         EXAMPLES::
 
@@ -192,14 +181,12 @@ class TorsionPoint(ModuleElement):
 
     def __cmp__(self, right):
         """
-        Compare self and right.
+        Compare ``self`` and ``right``.
 
         INPUT:
 
-
-        -  ``self, right`` - elements of the same finite
-           abelian variety subgroup.
-
+        - ``self, right`` -- elements of the same finite abelian
+           variety subgroup.
 
         OUTPUT: -1, 0, or 1
 
@@ -240,7 +227,7 @@ class TorsionPoint(ModuleElement):
 
     def additive_order(self):
         """
-        Return the additive order of this element.
+        Return the additive order of ``self``.
 
         EXAMPLES::
 
@@ -258,8 +245,8 @@ class TorsionPoint(ModuleElement):
 
     def _relative_element(self):
         """
-        Return coordinates of this element in terms of basis for the
-        integral homology of the containing abelian variety.
+        Return coordinates of ``self`` on a basis for the integral
+        homology of the containing abelian variety.
 
         OUTPUT: vector
 

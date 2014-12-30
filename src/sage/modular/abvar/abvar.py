@@ -3655,11 +3655,11 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
     def lattice(self):
         r"""
-        Return the lattice the defines this modular symbols modular abelian
-        variety.
+        Return the lattice defining this modular abelian variety.
 
-        OUTPUT: a free `\ZZ`-module embedded in an ambient
-        `\QQ`-vector space
+        OUTPUT:
+
+        A free `\ZZ`-module embedded in an ambient `\QQ`-vector space.
 
         EXAMPLES::
 

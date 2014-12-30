@@ -464,13 +464,11 @@ class QQbarTorsionSubgroup(Module):
 
     def _element_constructor_(self, x):
         r"""
-        Create an element in this finite group.
+        Create an element in this torsion subgroup.
 
         INPUT:
 
-
-        -  ``x`` - vector in `\QQ^{2d}`
-
+        - ``x`` -- vector in `\QQ^{2d}`
 
         OUTPUT: torsion point
 

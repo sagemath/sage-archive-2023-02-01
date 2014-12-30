@@ -114,17 +114,15 @@ class FiniteSubgroup(Module):
 
         INPUT:
 
+        - ``abvar`` -- a modular abelian variety
 
-        -  ``abvar`` - a modular abelian variety
+        - ``field_of_definition`` -- a field over which this group is
+           defined
 
-        -  ``field_of_definition`` - a field over which this
-           group is defined.
+        EXAMPLES:
 
-
-        EXAMPLES: This is an abstract base class, so there are no instances
-        of this class itself.
-
-        ::
+        This is an abstract base class, so there are no instances of
+        this class itself::
 
             sage: A = J0(37)
             sage: G = A.torsion_subgroup(3); G
@@ -197,17 +195,19 @@ class FiniteSubgroup(Module):
     # General functionality
     def __cmp__(self, other):
         """
-        Compare this finite subgroup to other.
+        Compare ``self`` to ``other``.
 
-        If other is not a modular abelian variety finite subgroup, then the
-        types of self and other are compared. If other is a finite
-        subgroup, and the ambient abelian varieties are equal, then the
-        subgroups themselves are compared, by comparing their full modules.
-        If the containing abelian varieties are not equal and their ambient
-        varieties are different they are compared; if they are the same,
-        then a NotImplemnetedError is raised (this is temporary).
+        If ``other`` is not a :class:`FiniteSubgroup`, then the types
+        of ``self`` and ``other`` are compared.  If ``other`` is a
+        :class:`FiniteSubgroup` and the ambient abelian varieties are
+        not equal, then the ambient abelian varieties are compared.
+        If ``other`` is a :class:`FiniteSubgroup` and the ambient
+        abelian varieties are equal, then the subgroups are compared
+        via their corresponding lattices.
 
-        EXAMPLES: We first compare to subgroups of `J_0(37)`::
+        EXAMPLES:
+
+        We first compare two subgroups of `J_0(37)`::
 
             sage: A = J0(37)
             sage: G = A.torsion_subgroup(3); G.order()
@@ -595,11 +595,11 @@ class FiniteSubgroup(Module):
 
     def _element_constructor_(self, x, check=True):
         r"""
-        Coerce `x` into this finite subgroup.
+        Convert `x` into this finite subgroup.
 
-        This works when the abelian varieties that contains x and self are
-        the same, or if `x` is coercible into the rational homology
-        (viewed as an abstract `\QQ`-vector space).
+        This works when the abelian varieties that contain `x` and
+        ``self`` are the same, or if `x` is convertible into the
+        rational homology (viewed as an abstract `\QQ`-vector space).
 
         EXAMPLES: We first construct the `11`-torsion subgroup of
         `J_0(23)`::
@@ -609,20 +609,16 @@ class FiniteSubgroup(Module):
             sage: G.invariants()
             [11, 11, 11, 11]
 
-        We also construct the cuspidal subgroup.
-
-        ::
+        We also construct the cuspidal subgroup::
 
             sage: C = J.cuspidal_subgroup()
             sage: C.invariants()
             [11]
 
-        Coercing something into its parent returns it::
-
             sage: G(G.0) is G.0
             True
 
-        We coerce an element from the cuspidal subgroup into the
+        We convert an element from the cuspidal subgroup into the
         `11`-torsion subgroup::
 
             sage: z = G(C.0); z
@@ -630,15 +626,14 @@ class FiniteSubgroup(Module):
             sage: z.parent() == G
             True
 
-        We coerce a list, which defines an element of the underlying
-        ``full_module`` into `G`, and verify an
-        equality::
+        We convert a list, which defines an element of the underlying
+        ``full_module`` into `G`, and verify an equality::
 
             sage: x = G([1/11, 1/11, 0, -1/11])
             sage: x == G([1/11, 1/11, 0, 10/11])
             True
 
-        Finally we attempt to coerce in an element that shouldn't work,
+        Finally we attempt to convert an element that shouldn't work,
         since is is not in `G`::
 
             sage: G(J.torsion_subgroup(3).0)
@@ -662,10 +657,11 @@ class FiniteSubgroup(Module):
 
     def __contains__(self, x):
         """
-        Returns True if x is contained in this finite subgroup.
+        Returns True if `x` is contained in this finite subgroup.
 
-        EXAMPLES: We define two distinct finite subgroups of
-        `J_0(27)`::
+        EXAMPLES:
+
+        We define two distinct finite subgroups of `J_0(27)`::
 
             sage: G1 = J0(27).rational_cusp_subgroup(); G1
             Finite subgroup with invariants [3] over QQ of Abelian variety J0(27) of dimension 1
@@ -676,8 +672,7 @@ class FiniteSubgroup(Module):
             sage: G2.gens()
             [[(1/3, 0)], [(0, 1/3)]]
 
-        Now we check whether various elements are in `G_1` and
-        `G_2`::
+        Now we check whether various elements are in `G_1` and `G_2`::
 
             sage: G2.0 in G1
             True
@@ -688,7 +683,7 @@ class FiniteSubgroup(Module):
             sage: G1.0 in G2
             True
 
-        The integer `0` is in, since it coerces in::
+        The integer `0` is in `G_1`::
 
             sage: 0 in G1
             True
@@ -709,8 +704,8 @@ class FiniteSubgroup(Module):
 
     def subgroup(self, gens):
         """
-        Return the subgroup of self spanned by the given generators, which
-        all must be elements of self.
+        Return the subgroup of ``self`` spanned by the given
+        generators, which must all be elements of ``self``.
 
         EXAMPLES::
 
@@ -718,19 +713,16 @@ class FiniteSubgroup(Module):
             sage: G = J.torsion_subgroup(11); G
             Finite subgroup with invariants [11, 11, 11, 11] over QQ of Abelian variety J0(23) of dimension 2
 
-        We create the subgroup of the 11-torsion subgroup of
-        `J_0(23)` generated by the first `11`-torsion
-        point::
+        We create the subgroup of the 11-torsion subgroup of `J_0(23)`
+        generated by the first `11`-torsion point::
 
             sage: H = G.subgroup([G.0]); H
             Finite subgroup with invariants [11] over QQbar of Abelian variety J0(23) of dimension 2
             sage: H.invariants()
             [11]
 
-        We can also create a subgroup from a list of objects that coerce
-        into the ambient rational homology.
-
-        ::
+        We can also create a subgroup from a list of objects that can
+        be converted into the ambient rational homology::
 
             sage: H == G.subgroup([[1/11,0,0,0]])
             True

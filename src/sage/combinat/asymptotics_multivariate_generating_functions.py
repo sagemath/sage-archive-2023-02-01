@@ -61,11 +61,11 @@ A univariate smooth point example::
     sage: alpha = [1]
     sage: decomp = F.asymptotic_decomposition(alpha)
     sage: decomp
-    [(0, []),
-     (-1/2*(x^2 + 6*x + 9)*r^2/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
-      - 1/2*(5*x^2 + 24*x + 27)*r/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
-      - 3*(x^2 + 3*x + 3)/(x^5 + 9*x^4 + 27*x^3 + 27*x^2),
-     [(x - 1/2, 1)])]
+    (0, []) +
+    (-1/2*(x^2 + 6*x + 9)*r^2/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
+     - 1/2*(5*x^2 + 24*x + 27)*r/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
+     - 3*(x^2 + 3*x + 3)/(x^5 + 9*x^4 + 27*x^3 + 27*x^2),
+     [(x - 1/2, 1)])
     sage: F1 = decomp[1]
     sage: p = {x: 1/2}
     sage: asy = F1.asymptotics(p, alpha, 3)
@@ -134,11 +134,11 @@ A multiple point example (Example 6.5 of [RaWi2012]_)::
     (True, 'convenient in variables [x, y]')
     sage: alpha = (var('a'), var('b'))
     sage: decomp =  F.asymptotic_decomposition(alpha); decomp
-    [(0, []),
-     (-1/9*(2*b^2*x^2 - 5*a*b*x*y + 2*a^2*y^2)*r^2/(x^2*y^2)
-       - 1/9*(6*b*x^2 - 5*(a + b)*x*y + 6*a*y^2)*r/(x^2*y^2)
-       - 1/9*(4*x^2 - 5*x*y + 4*y^2)/(x^2*y^2),
-      [(x + 2*y - 1, 1), (2*x + y - 1, 1)])]
+    (0, []) +
+    (-1/9*(2*b^2*x^2 - 5*a*b*x*y + 2*a^2*y^2)*r^2/(x^2*y^2)
+      - 1/9*(6*b*x^2 - 5*(a + b)*x*y + 6*a*y^2)*r/(x^2*y^2)
+      - 1/9*(4*x^2 - 5*x*y + 4*y^2)/(x^2*y^2),
+     [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
     sage: F1 = decomp[1]
     sage: F1.asymptotics(p, alpha, 2)
     (-3*((2*a^2 - 5*a*b + 2*b^2)*r^2 + (a + b)*r + 3)*((1/3)^(-a)*(1/3)^(-b))^r,
@@ -693,8 +693,10 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             3*x^3 + x^2 - x)
             sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
-            [(5*x^3, []), (1, [(x - 1, 1)]), (1, [(x, 1)]),
-            (1/3, [(x^2 + 1/3, 1)])]
+            (5*x^3, []) +
+            (1, [(x - 1, 1)]) +
+            (1, [(x, 1)]) +
+            (1/3, [(x^2 + 1/3, 1)])
             sage: decomp.sum().quotient() == f
             True
 
@@ -707,13 +709,13 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             e^x/(3*x^2 + 1) + ((5*(x - 1)*x^3 + 2)*x - 1)/((x - 1)*x)
             sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
-            [(0, []),
-             (15/4*x^7 - 15/4*x^6 + 5/4*x^5 - 5/4*x^4 + 3/2*x^3 + 1/4*x^2*e^x -
-              3/4*x^2 - 1/4*x*e^x + 1/2*x - 1/4, [(x - 1, 1)]),
-             (-15*x^7 + 15*x^6 - 5*x^5 + 5*x^4 - 6*x^3 -
-              x^2*e^x + 3*x^2 + x*e^x - 2*x + 1, [(x, 1)]),
-             (1/4*(15*x^7 - 15*x^6 + 5*x^5 - 5*x^4 + 6*x^3 + x^2*e^x -
-                   3*x^2 - x*e^x + 2*x - 1)*(3*x - 1), [(x^2 + 1/3, 1)])]
+            (0, []) +
+            (15/4*x^7 - 15/4*x^6 + 5/4*x^5 - 5/4*x^4 + 3/2*x^3 + 1/4*x^2*e^x -
+             3/4*x^2 - 1/4*x*e^x + 1/2*x - 1/4, [(x - 1, 1)]) +
+            (-15*x^7 + 15*x^6 - 5*x^5 + 5*x^4 - 6*x^3 -
+             x^2*e^x + 3*x^2 + x*e^x - 2*x + 1, [(x, 1)]) +
+            (1/4*(15*x^7 - 15*x^6 + 5*x^5 - 5*x^4 + 6*x^3 + x^2*e^x -
+                  3*x^2 - x*e^x + 2*x - 1)*(3*x - 1), [(x^2 + 1/3, 1)])
 
         One variable over a finite field::
 
@@ -724,7 +726,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             (x^6 + x^4 + 1)/(x^3 + x)
             sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
-            [(x^3, []), (1, [(x, 1)]), (x, [(x + 1, 2)])]
+            (x^3, []) + (1, [(x, 1)]) + (x, [(x + 1, 2)])
             sage: decomp.sum().quotient() == f
             True
 
@@ -740,11 +742,11 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
              - 3.00000000000000*x^3 + x^2 - x)
             sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
-            [(5.00000000000000*x^3, []),
-             (1.00000000000000, [(x - 1.00000000000000, 1)]),
-             (-0.288675134594813*I, [(x - 0.577350269189626*I, 1)]),
-             (1.00000000000000, [(x, 1)]),
-             (0.288675134594813*I, [(x + 0.577350269189626*I, 1)])]
+            (5.00000000000000*x^3, []) +
+            (1.00000000000000, [(x - 1.00000000000000, 1)]) +
+            (-0.288675134594813*I, [(x - 0.577350269189626*I, 1)]) +
+            (1.00000000000000, [(x, 1)]) +
+            (0.288675134594813*I, [(x + 0.577350269189626*I, 1)])
             sage: decomp.sum().quotient() == f # Rounding error coming
             False
 
@@ -756,12 +758,13 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: f
             e^x/((x - 1)*x)
             sage: FFPD(f).univariate_decomposition()
-            [(0, []), (e^x, [(x - 1, 1)]), (-e^x, [(x, 1)])]
+            (0, []) + (e^x, [(x - 1, 1)]) + (-e^x, [(x, 1)])
 
         AUTHORS:
 
         - Robert Bradshaw (2007-05-31)
         - Alexander Raichev (2012-06-25)
+        - Daniel Krenn (2014-12-01)
         """
         if self.dimension() is None or self.dimension() > 1:
             return FractionWithFactoredDenominatorSum([self])
@@ -868,7 +871,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: f = 1/(x*(x*y + 1))
             sage: decomp = FFPD(f).nullstellensatz_decomposition()
             sage: decomp
-            [(0, []), (1, [(x, 1)]), (-y, [(x*y + 1, 1)])]
+            (0, []) + (1, [(x, 1)]) + (-y, [(x*y + 1, 1)])
             sage: decomp.sum().quotient() == f
             True
             sage: [r.nullstellensatz_certificate() is None for r in decomp]
@@ -883,7 +886,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: f = FFPD(G, H.factor())
             sage: decomp = f.nullstellensatz_decomposition()
             sage: decomp
-            [(0, []), (sin(y), [(x, 1)]), (-y*sin(y), [(x*y + 1, 1)])]
+            (0, []) + (sin(y), [(x, 1)]) + (-y*sin(y), [(x*y + 1, 1)])
             sage: bool(decomp.sum().quotient() == G/H)
             True
             sage: [r.nullstellensatz_certificate() is None for r in decomp]
@@ -1045,8 +1048,8 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: ff = FFPD(f)
             sage: decomp = ff.algebraic_dependence_decomposition()
             sage: decomp
-            [(0, []), (-x, [(x*y + 1, 1)]), (x^2*y^2 - x*y + 1,
-            [(y, 3), (x, 2)])]
+            (0, []) + (-x, [(x*y + 1, 1)]) +
+            (x^2*y^2 - x*y + 1, [(y, 3), (x, 2)])
             sage: decomp.sum().quotient() == f
             True
             sage: for r in decomp:
@@ -1065,9 +1068,9 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: f = FFPD(G, H.factor())
             sage: decomp = f.algebraic_dependence_decomposition()
             sage: decomp
-            [(0, []), (x^4*y^3*sin(x), [(x*y + 1, 1)]),
+            (0, []) + (x^4*y^3*sin(x), [(x*y + 1, 1)]) +
             (-(x^5*y^5 - x^4*y^4 + x^3*y^3 - x^2*y^2 + x*y - 1)*sin(x),
-            [(y, 3), (x, 2)])]
+             [(y, 3), (x, 2)])
             sage: bool(decomp.sum().quotient() == G/H)
             True
             sage: for r in decomp:
@@ -1166,7 +1169,8 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: f = (x^2 + 1)/((x + 2)*(x - 1)*(x^2 + x + 1))
             sage: decomp = FFPD(f).leinartas_decomposition()
             sage: decomp
-            [(0, []), (2/9, [(x - 1, 1)]), (-5/9, [(x + 2, 1)]), (1/3*x, [(x^2 + x + 1, 1)])]
+            (0, []) + (2/9, [(x - 1, 1)]) +
+            (-5/9, [(x + 2, 1)]) + (1/3*x, [(x^2 + x + 1, 1)])
             sage: decomp.sum().quotient() == f
             True
 
@@ -1177,7 +1181,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: f = 1/x + 1/y + 1/(x*y + 1)
             sage: decomp = FFPD(f).leinartas_decomposition()
             sage: decomp
-            [(0, []), (1, [(x*y + 1, 1)]), (x + y, [(y, 1), (x, 1)])]
+            (0, []) + (1, [(x*y + 1, 1)]) + (x + y, [(y, 1), (x, 1)])
             sage: decomp.sum().quotient() == f
             True
             sage: for r in decomp:
@@ -1202,10 +1206,10 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: ff = FFPD(G, H.factor())
             sage: decomp = ff.leinartas_decomposition()
             sage: decomp
-            [(0, []), (-(x*y^2*sin(x) + x^2*y + x*y + y*sin(x) + x)*y,
-            [(y, 1)]), ((x*y^2*sin(x) + x^2*y + x*y + y*sin(x) + x)*x*y,
-            [(x*y + 1, 1)]), (x*y^2*sin(x) + x^2*y + x*y + y*sin(x) + x,
-            [(y, 1), (x, 1)])]
+            (0, []) +
+            (-(x*y^2*sin(x) + x^2*y + x*y + y*sin(x) + x)*y, [(y, 1)]) +
+            ((x*y^2*sin(x) + x^2*y + x*y + y*sin(x) + x)*x*y, [(x*y + 1, 1)]) +
+            (x*y^2*sin(x) + x^2*y + x*y + y*sin(x) + x, [(y, 1), (x, 1)])
             sage: bool(decomp.sum().quotient() == f)
             True
             sage: for r in decomp:
@@ -1229,8 +1233,8 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: f = 1/(x * y * z * (x*y + z))
             sage: decomp = FFPD(f).leinartas_decomposition()
             sage: decomp
-            [(0, []), (1, [(z, 2), (x*y + z, 1)]),
-            (1, [(z, 2), (y, 1), (x, 1)])]
+            (0, []) + (1, [(z, 2), (x*y + z, 1)]) +
+            (1, [(z, 2), (y, 1), (x, 1)])
             sage: decomp.sum().quotient() == f
             True
         """
@@ -1284,19 +1288,19 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: f = 1/(x^2 + x + 1)^3
             sage: decomp = FFPD(f).cohomology_decomposition()
             sage: decomp
-            [(0, []), (2/3, [(x^2 + x + 1, 1)])]
+            (0, []) + (2/3, [(x^2 + x + 1, 1)])
 
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: FFPD(1, [(x, 1), (y, 2)]).cohomology_decomposition()
-            [(0, [])]
+            (0, [])
 
             sage: p = 1
             sage: qs = [(x*y - 1, 1), (x**2 + y**2 - 1, 2)]
             sage: f = FFPD(p, qs)
             sage: f.cohomology_decomposition()
-            [(0, []), (4/3*x*y + 4/3, [(x^2 + y^2 - 1, 1)]),
-            (1/3, [(x*y - 1, 1), (x^2 + y^2 - 1, 1)])]
+            (0, []) + (4/3*x*y + 4/3, [(x^2 + y^2 - 1, 1)]) +
+            (1/3, [(x*y - 1, 1), (x^2 + y^2 - 1, 1)])
         """
         from sage.calculus.functions import jacobian
         from sage.rings.arith import xgcd
@@ -1409,10 +1413,10 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: F = FFPD(f)
             sage: alpha = [var('a')]
             sage: F.asymptotic_decomposition(alpha)
-            [(0, []),
-             (1/54*(5*a^2*x^2 + 2*a^2*x + 11*a^2)*r^2/x^2
-              - 1/54*(5*a*x^2 - 2*a*x - 33*a)*r/x^2 + 11/27/x^2, [(x - 1, 1)]),
-             (-5/27, [(x + 2, 1)])]
+            (0, []) +
+            (1/54*(5*a^2*x^2 + 2*a^2*x + 11*a^2)*r^2/x^2
+             - 1/54*(5*a*x^2 - 2*a*x - 33*a)*r/x^2 + 11/27/x^2, [(x - 1, 1)]) +
+            (-5/27, [(x + 2, 1)])
 
         ::
 
@@ -1424,9 +1428,9 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: F = FFPD(G, Hfac)
             sage: alpha = var('a, b')
             sage: F.asymptotic_decomposition(alpha)
-            [(0, []),
-             (1/3*(2*b*x - a*y)*r/(x*y) + 1/3*(2*x - y)/(x*y),
-              [(x + 2*y - 1, 1), (2*x + y - 1, 1)])]
+            (0, []) +
+            (1/3*(2*b*x - a*y)*r/(x*y) + 1/3*(2*x - y)/(x*y),
+             [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
         """
         from sage.calculus.var import var
         from sage.symbolic.ring import SR
@@ -1532,7 +1536,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             (1, [(x*y + x + y - 1, 2)])
             sage: alpha = [4, 3]
             sage: decomp = F.asymptotic_decomposition(alpha); decomp
-            [(0, []), (-3/2*r*(y + 1)/y - 1/2*(y + 1)/y, [(x*y + x + y - 1, 1)])]
+            (0, []) + (-3/2*r*(y + 1)/y - 1/2*(y + 1)/y, [(x*y + x + y - 1, 1)])
             sage: F1 = decomp[1]
             sage: p = {y: 1/3, x: 1/2}
             sage: asy = F1.asymptotics(p, alpha, 2, verbose=True)
@@ -1565,9 +1569,9 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             (-16, [(x + 2*y + z - 4, 1), (2*x + y + z - 4, 2)])
             sage: alpha = [3, 3, 2]
             sage: decomp = F.asymptotic_decomposition(alpha); decomp
-            [(0, []),
-             (16*r*(4*y - 3*z)/(y*z) + 16*(2*y - z)/(y*z),
-              [(x + 2*y + z - 4, 1), (2*x + y + z - 4, 1)])]
+            (0, []) +
+            (16*r*(4*y - 3*z)/(y*z) + 16*(2*y - z)/(y*z),
+             [(x + 2*y + z - 4, 1), (2*x + y + z - 4, 1)])
             sage: F1 = decomp[1]
             sage: p = {x: 1, y: 1, z: 1}
             sage: asy = F1.asymptotics(p, alpha, 2, verbose=True) # long time
@@ -4006,6 +4010,8 @@ class FractionWithFactoredDenominatorSum(list):
     AUTHORS:
 
     - Alexander Raichev (2012-06-25)
+
+    - Alexander Raichev (2014-12-01)
     """
     def __repr__(self):
         r"""
@@ -4019,9 +4025,9 @@ class FractionWithFactoredDenominatorSum(list):
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x**2 + y, [(y, 1), (x, 2)])
             sage: FractionWithFactoredDenominatorSum([f, g])
-            [(x + y, [(y, 1), (x, 1)]), (x^2 + y, [(y, 1), (x, 2)])]
+            (x + y, [(y, 1), (x, 1)]) + (x^2 + y, [(y, 1), (x, 2)])
         """
-        return repr([(r.numerator(), r.denominator_factored()) for r in self])
+        return ' + '.join(repr(r) for r in self)
 
 
     def __eq__(self, other):
@@ -4036,9 +4042,9 @@ class FractionWithFactoredDenominatorSum(list):
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x*(x + y), [(y, 1), (x, 2)])
             sage: s = FractionWithFactoredDenominatorSum([f]); s
-            [(x + y, [(y, 1), (x, 1)])]
+            (x + y, [(y, 1), (x, 1)])
             sage: t = FractionWithFactoredDenominatorSum([g]); t
-            [(x + y, [(y, 1), (x, 1)])]
+            (x + y, [(y, 1), (x, 1)])
             sage: s == t
             True
         """
@@ -4057,9 +4063,9 @@ class FractionWithFactoredDenominatorSum(list):
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x + y, [(y, 1), (x, 2)])
             sage: s = FractionWithFactoredDenominatorSum([f]); s
-            [(x + y, [(y, 1), (x, 1)])]
+            (x + y, [(y, 1), (x, 1)])
             sage: t = FractionWithFactoredDenominatorSum([g]); t
-            [(x + y, [(y, 1), (x, 2)])]
+            (x + y, [(y, 1), (x, 2)])
             sage: s != t
             True
         """
@@ -4106,7 +4112,7 @@ class FractionWithFactoredDenominatorSum(list):
             sage: f = FFPD(f); f
             (x^3*y + 3*x*y^2 + x + y, [(y, 1), (x, 1)])
             sage: FractionWithFactoredDenominatorSum([f]).whole_and_parts()
-            [(x^2 + 3*y, []), (x + y, [(y, 1), (x, 1)])]
+            (x^2 + 3*y, []) + (x + y, [(y, 1), (x, 1)])
 
             sage: f = cos(x)**2 + 3*y + 1/x + 1/y; f
             cos(x)^2 + 3*y + 1/x + 1/y
@@ -4115,7 +4121,7 @@ class FractionWithFactoredDenominatorSum(list):
             sage: f = FFPD(G, H.factor()); f
             (x*y*cos(x)^2 + 3*x*y^2 + x + y, [(y, 1), (x, 1)])
             sage: FractionWithFactoredDenominatorSum([f]).whole_and_parts()
-            [(0, []), (x*y*cos(x)^2 + 3*x*y^2 + x + y, [(y, 1), (x, 1)])]
+            (0, []) + (x*y*cos(x)^2 + 3*x*y^2 + x + y, [(y, 1), (x, 1)])
         """
         whole = 0
         parts = []
@@ -4159,22 +4165,22 @@ class FractionWithFactoredDenominatorSum(list):
             sage: s = FractionWithFactoredDenominatorSum([f, g, f])
             sage: t = s._combine_like_terms_()
             sage: s
-            [(1, [(y, 1), (x, 1), (x*y + 1, 1)]),
-             (1, [(y, 1), (x*y + 1, 1)]),
-             (1, [(y, 1), (x, 1), (x*y + 1, 1)])]
+            (1, [(y, 1), (x, 1), (x*y + 1, 1)]) +
+            (1, [(y, 1), (x*y + 1, 1)]) +
+            (1, [(y, 1), (x, 1), (x*y + 1, 1)])
             sage: t
-            [(1, [(y, 1), (x*y + 1, 1)]), (2, [(y, 1), (x, 1), (x*y + 1, 1)])]
+            (1, [(y, 1), (x*y + 1, 1)]) + (2, [(y, 1), (x, 1), (x*y + 1, 1)])
 
             sage: H = x * y * (x*y + 1)
             sage: f = FFPD(1, H.factor())
             sage: g = FFPD(exp(x + y), H.factor())
             sage: s = FractionWithFactoredDenominatorSum([f, g])
             sage: s
-            [(1, [(y, 1), (x, 1), (x*y + 1, 1)]), (e^(x + y), [(y, 1), (x, 1),
-            (x*y + 1, 1)])]
+            (1, [(y, 1), (x, 1), (x*y + 1, 1)]) +
+            (e^(x + y), [(y, 1), (x, 1), (x*y + 1, 1)])
             sage: t = s._combine_like_terms_()
             sage: t
-            [(e^(x + y) + 1, [(y, 1), (x, 1), (x*y + 1, 1)])]
+            (e^(x + y) + 1, [(y, 1), (x, 1), (x*y + 1, 1)])
         """
         if not self:
             return self
@@ -4209,14 +4215,14 @@ class FractionWithFactoredDenominatorSum(list):
             sage: f = FFPD(2, df)
             sage: g = FFPD(2*x*y, df)
             sage: FractionWithFactoredDenominatorSum([f, g])
-            [(2, [(y, 1), (x, 1), (x*y + 1, 1)]), (2, [(x*y + 1, 1)])]
+            (2, [(y, 1), (x, 1), (x*y + 1, 1)]) + (2, [(x*y + 1, 1)])
             sage: FractionWithFactoredDenominatorSum([f, g]).sum()
             (2, [(y, 1), (x, 1)])
 
             sage: f = FFPD(cos(x), [(x, 2)])
             sage: g = FFPD(cos(y), [(x, 1), (y, 2)])
             sage: FractionWithFactoredDenominatorSum([f, g])
-            [(cos(x), [(x, 2)]), (cos(y), [(y, 2), (x, 1)])]
+            (cos(x), [(x, 2)]) + (cos(y), [(y, 2), (x, 1)])
             sage: FractionWithFactoredDenominatorSum([f, g]).sum()
             (y^2*cos(x) + x*cos(y), [(y, 2), (x, 2)])
         """

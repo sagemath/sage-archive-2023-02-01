@@ -69,40 +69,32 @@ are vertices and ``l`` is the label of an edge from i to j::
     sage: p
     a*d
 
-Trivial paths are indicated by passing the tuple ``(vertex, vertex)``::
+Trivial paths are indicated by passing a list containing the tuple ``(vertex, vertex)``::
 
-    sage: Q.path_semigroup()((6, 6))
-    e_6
+    sage: Q.path_semigroup()([(3, 3)])
+    e_3
 
-Trivial "edges" can occur in the input.  They are simply deleted if their
-vertex matches the start and end vertex of adjacent edges. Here is an
-alternative way to define a path::
+Here is an alternative way to define a path::
 
     sage: PQ = Q.path_semigroup()
-    sage: q = PQ([(1, 1), (1, 2, 'a'), (2, 2), (2, 3, 'd'), (3, 3)])
+    sage: q = PQ(['a', 'd'])
     sage: p == q
     True
 
-If the vertex of a trivial path does not match with adjacent edges, or if two
-adjacent edges do not match, an error is raised.
+If the vertices along the path do not match, a value error is raised::
 
-::
-
-    sage: inv1 = PQ([(1, 2, 'a'), (1, 1)])
+    sage: inv1 = PQ([(2, 3, 'd'), (1, 2, 'a')])
     Traceback (most recent call last):
     ...
-    ValueError: Cannot interpret [(1, 2, 'a'), (1, 1)] as element of
-     Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
+    ValueError: Edge d ends at 3, but edge a starts at 1
     sage: inv2 = PQ([(1, 2, 'a'), (1, 2, 'a')])
     Traceback (most recent call last):
     ...
-    ValueError: Cannot interpret [(1, 2, 'a'), (1, 2, 'a')] as element of
-     Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
+    ValueError: Edge a ends at 2, but edge a starts at 1
     sage: inv3 = PQ([(1, 2, 'x')])
     Traceback (most recent call last):
     ...
-    ValueError: Cannot interpret [(1, 2, 'x')] as element of
-     Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
+    ValueError: (1, 2, 'x') is not in list
 
 The ``*`` operator is concatenation of paths. If the two paths do not compose,
 then the result is ``None`` (whence the "partial" in "partial semigroup").  ::
@@ -135,7 +127,7 @@ The length of a path is the number of edges in that path::
 
     sage: len(p)
     2
-    sage: triv = PQ((1, 1))
+    sage: triv = PQ([(1, 1)])
     sage: len(triv)
     0
 
@@ -146,7 +138,7 @@ QuiverPaths can also be iterated over.  Trivial paths have no elements::
     (1, 2, 'a')
     (2, 3, 'd')
     sage: triv[:]
-    []
+    e_1
 
 There are methods giving the initial and terminal vertex of a path::
 
@@ -195,10 +187,10 @@ base ring::
     sage: A(5)
     5*e_1 + 5*e_2 + 5*e_3
     sage: r = PQ([(1, 2, 'b'), (2, 3, 'd')])
-    sage: e2 = PQ((2, 2))
+    sage: e2 = PQ([(2, 2)])
     sage: x = A(p) + A(e2)
     sage: x
-    e_2 + a*d
+    a*d + e_2
     sage: y = A(p) + A(r)
     sage: y
     a*d + b*d
@@ -435,7 +427,7 @@ The right action of a quiver algebra on an element is implemented via
 the ``*`` operator::
 
     sage: A2 = x.quiver().path_semigroup().algebra(QQ)
-    sage: a = A2((1, 2, 'a'))
+    sage: a = A2('a')
     sage: x*a == z
     True
 """
@@ -646,7 +638,7 @@ class QuiverRepFactory(UniqueFactory):
 
             if kwds['option'] == 'paths':
                 # Close the set under right mult by edges
-                edges = [P(e) for e in Q.edges()]
+                edges = list(P.arrows())
                 just_added = paths
                 while just_added:
                     to_be_added = []
@@ -661,7 +653,7 @@ class QuiverRepFactory(UniqueFactory):
 
             if kwds['option'] == 'dual paths':
                 # Close the set under left mult by edges
-                edges = [P(e) for e in Q.edges()]
+                edges = list(P.arrows())
                 just_added = paths
                 while just_added:
                     to_be_added = []
@@ -1000,8 +992,8 @@ class QuiverRepElement(ModuleElement):
             sage: P = Q.P(QQ, 1)
             sage: A = Q.algebra(QQ)
             sage: m = P.an_element()
-            sage: a = A((1, 2, 'a'))
-            sage: e1 = A((1, 1))
+            sage: a = A('a')
+            sage: e1 = A([(1, 1)])
             sage: m.support()
             [1, 2]
             sage: (m*a).support()
@@ -2716,13 +2708,13 @@ class QuiverRep_generic(WithEqualityById, Module):
             sage: v = M.an_element()
             sage: v.support()
             [1, 2, 3]
-            sage: M.right_edge_action(v, (1, 1)).support()
+            sage: M.right_edge_action(v, [(1, 1)]).support()
             [1]
             sage: M.right_edge_action(v, [(1, 1)]).support()
             [1]
-            sage: M.right_edge_action(v, [(1, 1), (1, 2, 'a')]).support()
+            sage: M.right_edge_action(v, [(1, 2, 'a')]).support()
             [2]
-            sage: M.right_edge_action(v, (1, 2, 'a')) == M.right_edge_action(v, [(1, 1), (1, 2, 'a'), (2, 2)])
+            sage: M.right_edge_action(v, 'a') == M.right_edge_action(v, [(1, 2, 'a')])
             True
         """
         # Convert to a QuiverPath
@@ -2822,7 +2814,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
         from sage.matrix.constructor import Matrix
         maps = {}
         for e in Q.edges():
-            arrow = P(e)
+            arrow = P([e], check=False)
             # Start with the zero matrix and fill in from there
             maps[e] = Matrix(k, len(self._bases[e[0]]), len(self._bases[e[1]]))
             for i in range(0, len(self._bases[e[0]])):
@@ -2848,7 +2840,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
                 for j in range(0, l):
                     if e[1] == self._bases[v][j].initial_vertex():
                         try:
-                            action_mats[e][v][self._bases[v].index(P(e)*self._bases[v][j]), j] = k.one()
+                            action_mats[e][v][self._bases[v].index(P([e],check=False)*self._bases[v][j]), j] = k.one()
                         except ValueError:
                             # There is no left action
                             return
@@ -3008,7 +3000,7 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
         TESTS::
 
             sage: Q1 = DiGraph({1:{2:['a']}}).path_semigroup()
-            sage: I2 = Q1.representation(QQ, [(2, 2)], option='dual paths')
+            sage: I2 = Q1.representation(QQ, [[(2, 2)]], option='dual paths')
             sage: I2.dimension()
             2
             sage: kQdual = Q1.representation(QQ, [[(1, 1)], [(2, 2)], [(1, 1), (1, 2, 'a'), (2, 2)], [(1, 2, 'a')]], option='dual paths')
@@ -3036,13 +3028,13 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
         from sage.matrix.constructor import Matrix
         maps = {}
         for e in Q.edges():
-            arrow = P(e)
+            arrow = P([e],check=False)
             # Start with the zero matrix and fill in from there
             maps[e] = Matrix(k, len(self._bases[e[0]]), len(self._bases[e[1]]))
             for i in range(0, len(self._bases[e[0]])):
                 # Add an entry to the matrix coresponding to where the new path is found
                 if self._bases[e[0]][i] % arrow in self._bases[e[1]]:
-                    j = self._bases[e[1]].index(self._bases[e[0]][i] % e)
+                    j = self._bases[e[1]].index(self._bases[e[0]][i] % arrow)
                     maps[e][i, j] = k.one()
 
         # Create the spaces and then the representation

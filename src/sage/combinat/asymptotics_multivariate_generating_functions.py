@@ -3304,6 +3304,8 @@ class FractionWithFactoredDenominatorRing(
             True
             sage: FFPD_QQ.has_coerce_map_from(ZZ)
             True
+            sage: FFPD_QQ.has_coerce_map_from(Q.fraction_field())
+            True
             sage: Z = ZZ['x,y']
             sage: FFPD_ZZ = FractionWithFactoredDenominatorRing(Z)
             sage: FFPD_ZZ.has_coerce_map_from(FFPD_QQ)
@@ -3312,9 +3314,26 @@ class FractionWithFactoredDenominatorRing(
             True
             sage: FFPD_ZZ.has_coerce_map_from(QQ)
             False
+            sage: FFPD_ZZ.has_coerce_map_from(Z.fraction_field())
+            True
+            sage: FFPD_ZZ.has_coerce_map_from(Q.fraction_field())
+            False
+            sage: FFPD_QQ.has_coerce_map_from(Z.fraction_field())
+            True
         """
         if is_FractionWithFactoredDenominatorRing(P):
-            return self.base().has_coerce_map_from(P.base())
+            if self.base().has_coerce_map_from(P.base()):
+                return True
+
+        from sage.rings.fraction_field import is_FractionField
+        if is_FractionField(P):
+            B = P.base()
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+            if is_PolynomialRing(B) or is_MPolynomialRing(B):
+                if self.base().has_coerce_map_from(B):
+                    return True
+
         if self.base().has_coerce_map_from(P):
             return True
 

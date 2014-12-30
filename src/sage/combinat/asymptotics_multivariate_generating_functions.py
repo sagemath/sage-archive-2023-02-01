@@ -2713,7 +2713,6 @@ class FFPDElement(sage.structure.element.RingElement):
         """
         from sage.calculus.functional import diff
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.fraction_field import FractionField
         from sage.sets.set import Set
         from sage.symbolic.ring import SR
 
@@ -2729,7 +2728,7 @@ class FFPDElement(sage.structure.element.RingElement):
                 indets.append(a)
         indets = sorted(Set(indets))   # Delete duplicates in indets.
         if indets:
-            L = FractionField(PolynomialRing(K, indets))
+            L = PolynomialRing(K, indets).fraction_field()
             S = R.change_ring(L)
             # Coerce alpha into L.
             alpha = [L(a) for a in alpha]

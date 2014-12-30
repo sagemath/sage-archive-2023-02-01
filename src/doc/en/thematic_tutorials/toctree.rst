@@ -13,6 +13,7 @@ Thematic tutorial document tree
    linear_programming
    numtheory_rsa
    coding_theory
+   polytutorial
    tutorial-programming-python
    tutorial-comprehensions
    tutorial-objects-and-classes

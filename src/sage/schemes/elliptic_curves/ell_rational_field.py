@@ -158,10 +158,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         When constructing a curve from the large database using a
         label, we must be careful that the copied generators have the
-        right curve (see #10999: the following used not to work when
+        right curve (see :trac:`10999`: the following used not to work when
         the large database was installed)::
 
-            sage: E=EllipticCurve('389a1')
+            sage: E = EllipticCurve('389a1')
             sage: [P.curve() is E for P in E.gens()]
             [True, True]
 
@@ -587,7 +587,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         When doing certain computations, PARI caches the results::
 
             sage: E = EllipticCurve('37a1')
-            sage: _ = E.__dict__.pop('_pari_curve')  # clear cached data
+            sage: _ = E.__dict__.pop('_pari_curve', None)  # clear cached data
             sage: Epari = E.pari_curve()
             sage: Epari
             [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, Vecsmall([1]), [Vecsmall([64, 1])], [0, 0, 0, 0, 0, 0, 0, 0]]
@@ -1313,7 +1313,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve([1234567,89101112]).analytic_rank(algorithm='rubinstein')
             Traceback (most recent call last):
             ...
-            RuntimeError: unable to compute analytic rank using rubinstein algorithm ('unable to convert x (= 6.19283e+19 and is too large) to an integer')
+            RuntimeError: unable to compute analytic rank using rubinstein algorithm (unable to convert ' 6.19283e+19 and is too large' to an integer)
             sage: EllipticCurve([1234567,89101112]).analytic_rank(algorithm='sympow')
             Traceback (most recent call last):
             ...
@@ -1332,7 +1332,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 from sage.lfunctions.lcalc import lcalc
                 return lcalc.analytic_rank(L=self)
             except TypeError as msg:
-                raise RuntimeError("unable to compute analytic rank using rubinstein algorithm ('%s')"%msg)
+                raise RuntimeError("unable to compute analytic rank using rubinstein algorithm (%s)"%msg)
         elif algorithm == 'sympow':
             if leading_coefficient:
                 raise NotImplementedError("Cannot compute leading coefficient using sympow")
@@ -1456,7 +1456,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: r, s, G = E.simon_two_descent(); r,s
             (8, 8)
 
-        Example from :trac: `10832`::
+        Example from :trac:`10832`::
 
             sage: E = EllipticCurve([1,0,0,-6664,86543])
             sage: E.simon_two_descent()
@@ -1478,7 +1478,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.gens()     # uses mwrank
             [(4311692542083/48594841 : -13035144436525227/338754636611 : 1)]
 
-        Example for :trac: `5153`::
+        Example for :trac:`5153`::
 
             sage: E = EllipticCurve([3,0])
             sage: E.simon_two_descent()
@@ -2769,7 +2769,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.tamagawa_exponent(5)
             2
 
-        See #4715::
+        See :trac:`4715`::
 
             sage: E=EllipticCurve('117a3')
             sage: E.tamagawa_exponent(13)
@@ -4654,7 +4654,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve('11a3').change_weierstrass_model([1/35,0,0,0]).manin_constant()
             5
 
-        Rather complicated examples (see #12080) ::
+        Rather complicated examples (see :trac:`12080`) ::
 
             sage: [ EllipticCurve('27a%s'%i).manin_constant() for i in [1,2,3,4]]
             [1, 1, 3, 3]
@@ -5217,19 +5217,20 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def tate_curve(self, p):
         r"""
-        Creates the Tate Curve over the `p`-adics associated to
-        this elliptic curves.
+        Create the Tate curve over the `p`-adics associated to
+        this elliptic curve.
 
-        This Tate curve a `p`-adic curve with split multiplicative
+        This Tate curve is a `p`-adic curve with split multiplicative
         reduction of the form `y^2+xy=x^3+s_4 x+s_6` which is
         isomorphic to the given curve over the algebraic closure of
         `\QQ_p`. Its points over `\QQ_p`
         are isomorphic to `\QQ_p^{\times}/q^{\ZZ}`
-        for a certain parameter `q\in\ZZ_p`.
+        for a certain parameter `q \in \ZZ_p`.
 
         INPUT:
 
-        p - a prime where the curve has multiplicative reduction.
+        - `p` -- a prime where the curve has split multiplicative
+          reduction
 
         EXAMPLES::
 
@@ -5268,7 +5269,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         except KeyError:
             pass
 
-        Eq = ell_tate_curve.TateCurve(self,p)
+        Eq = ell_tate_curve.TateCurve(self, p)
         self._tate_curve[p] = Eq
         return Eq
 
@@ -5403,7 +5404,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         from sage.libs.ratpoints import ratpoints
         xmin=Integer(xmin)
         xmax=Integer(xmax)
-        coeffs = self.division_polynomial(2).coeffs()
+        coeffs = self.division_polynomial(2).coefficients(sparse=False)
         H = max(xmin.abs(), xmax.abs())
         return set([x for x,y,z in ratpoints(coeffs, H, max_x_denom=1, intervals=[[xmin,xmax]]) if z])
 
@@ -5489,7 +5490,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         TESTS:
 
-        The bug reported on trac #4525 is now fixed::
+        The bug reported on :trac:`4525` is now fixed::
 
             sage: EllipticCurve('91b1').integral_points()
             [(-1 : 3 : 1), (1 : 0 : 1), (3 : 4 : 1)]
@@ -5499,19 +5500,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: [len(e.integral_points(both_signs=False)) for e in cremona_curves([11..100])]  # long time (15s on sage.math, 2011)
             [2, 0, 2, 3, 2, 1, 3, 0, 2, 4, 2, 4, 3, 0, 0, 1, 2, 1, 2, 0, 2, 1, 0, 1, 3, 3, 1, 1, 4, 2, 3, 2, 0, 0, 5, 3, 2, 2, 1, 1, 1, 0, 1, 3, 0, 1, 0, 1, 1, 3, 6, 1, 2, 2, 2, 0, 0, 2, 3, 1, 2, 2, 1, 1, 0, 3, 2, 1, 0, 1, 0, 1, 3, 3, 1, 1, 5, 1, 0, 1, 1, 0, 1, 2, 0, 2, 0, 1, 1, 3, 1, 2, 2, 4, 4, 2, 1, 0, 0, 5, 1, 0, 1, 2, 0, 2, 2, 0, 0, 0, 1, 0, 3, 1, 5, 1, 2, 4, 1, 0, 1, 0, 1, 0, 1, 0, 2, 2, 0, 0, 1, 0, 1, 1, 4, 1, 0, 1, 1, 0, 4, 2, 0, 1, 1, 2, 3, 1, 1, 1, 1, 6, 2, 1, 1, 0, 2, 0, 6, 2, 0, 4, 2, 2, 0, 0, 1, 2, 0, 2, 1, 0, 3, 1, 2, 1, 4, 6, 3, 2, 1, 0, 2, 2, 0, 0, 5, 4, 1, 0, 0, 1, 0, 2, 2, 0, 0, 2, 3, 1, 3, 1, 1, 0, 1, 0, 0, 1, 2, 2, 0, 2, 0, 0, 1, 2, 0, 0, 4, 1, 0, 1, 1, 0, 1, 2, 0, 1, 4, 3, 1, 2, 2, 1, 1, 1, 1, 6, 3, 3, 3, 3, 1, 1, 1, 1, 1, 0, 7, 3, 0, 1, 3, 2, 1, 0, 3, 2, 1, 0, 2, 2, 6, 0, 0, 6, 2, 2, 3, 3, 5, 5, 1, 0, 6, 1, 0, 3, 1, 1, 2, 3, 1, 2, 1, 1, 0, 1, 0, 1, 0, 5, 5, 2, 2, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1]
 
-        The bug reported at #4897 is now fixed::
+        The bug reported at :trac:`4897` is now fixed::
 
             sage: [P[0] for P in EllipticCurve([0,0,0,-468,2592]).integral_points()]
             [-24, -18, -14, -6, -3, 4, 6, 18, 21, 24, 36, 46, 102, 168, 186, 381, 1476, 2034, 67246]
 
         .. note::
 
-           This function uses the algorithm given in [Co1].
+           This function uses the algorithm given in [Co1]_.
 
         REFERENCES:
 
-        - [Co1] Cohen H., Number Theory Vol I: Tools and Diophantine
-          Equations GTM 239, Springer 2007
+        .. [Co1] H. Cohen, Number Theory, Vol. I: Tools and
+           Diophantine Equations.  GTM 239, Springer, 2007.
 
         AUTHORS:
 

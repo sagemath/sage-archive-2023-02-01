@@ -99,7 +99,7 @@ def sage_makedirs(dir):
 sage_makedirs(DOT_SAGE)
 
 _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
-_desired_mode = 040700     # drwx------
+_desired_mode = 0o40700     # drwx------
 if _mode != _desired_mode:
     print("Setting permissions of DOT_SAGE directory so only you can read and write it.")
     # Change mode of DOT_SAGE.
@@ -1590,6 +1590,69 @@ def ellipsis_iter(*args, **kwds):
                 yield next
             next = args[i]
             last_end = None
+
+
+#################################################################
+# The A \ b operator
+#################################################################
+
+class BackslashOperator:
+    """
+    Implements Matlab-style backslash operator for solving systems::
+
+        A \\ b
+
+    The preparser converts this to multiplications using
+    ``BackslashOperator()``.
+
+    EXAMPLES::
+
+        sage: preparse("A \ matrix(QQ,2,1,[1/3,'2/3'])")
+        "A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),'2/3'])"
+        sage: preparse("A \ matrix(QQ,2,1,[1/3,2*3])")
+        'A  * BackslashOperator() * matrix(QQ,Integer(2),Integer(1),[Integer(1)/Integer(3),Integer(2)*Integer(3)])'
+        sage: preparse("A \ B + C")
+        'A  * BackslashOperator() * B + C'
+        sage: preparse("A \ eval('C+D')")
+        "A  * BackslashOperator() * eval('C+D')"
+        sage: preparse("A \ x / 5")
+        'A  * BackslashOperator() * x / Integer(5)'
+        sage: preparse("A^3 \ b")
+        'A**Integer(3)  * BackslashOperator() * b'
+    """
+    def __rmul__(self, left):
+        """
+        EXAMPLES::
+
+            sage: A = random_matrix(ZZ, 4)
+            sage: B = random_matrix(ZZ, 4)
+            sage: temp = A * BackslashOperator()
+            sage: temp.left is A
+            True
+            sage: X = temp * B
+            sage: A * X == B
+            True
+        """
+        self.left = left
+        return self
+
+    def __mul__(self, right):
+        """
+        EXAMPLES::
+
+            sage: A = matrix(RDF, 5, 5, 2)
+            sage: b = vector(RDF, 5, range(5))
+            sage: v = A \ b
+            sage: v.zero_at(1e-19)  # On at least one platform, we get a "negative zero"
+            (0.0, 0.5, 1.0, 1.5, 2.0)
+            sage: v = A._backslash_(b)
+            sage: v.zero_at(1e-19)
+            (0.0, 0.5, 1.0, 1.5, 2.0)
+            sage: v = A * BackslashOperator() * b
+            sage: v.zero_at(1e-19)
+            (0.0, 0.5, 1.0, 1.5, 2.0)
+        """
+        return self.left._backslash_(right)
 
 
 #################################################################

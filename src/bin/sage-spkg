@@ -207,6 +207,8 @@ DOWNLOAD_ONLY=0
 if [ "$1" = '-d' ]; then
     DOWNLOAD_ONLY=1
     shift
+elif [ -n "$SAGE_INSTALL_FETCH_ONLY" ]; then
+    DOWNLOAD_ONLY=1
 fi
 
 if [ "$1" = '-s' ]; then

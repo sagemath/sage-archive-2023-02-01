@@ -11,8 +11,6 @@ Functions and Methods
 ----------------------
 """
 
-
-from sage.misc.superseded import deprecated_function_alias
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
@@ -229,11 +227,6 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
     import scipy.optimize
     xmin, fval, iter, funcalls = scipy.optimize.fminbound(f, a, b, full_output=1, xtol=tol, maxfun=maxfun)
     return fval, xmin
-
-
-find_maximum_on_interval = deprecated_function_alias(2607, find_local_maximum)
-find_minimum_on_interval = deprecated_function_alias(2607, find_local_minimum)
-
 
 def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
     r"""
@@ -528,7 +521,7 @@ def linear_program(c,G,h,A=None,b=None,solver=None):
         (45.000000..., 6.2499999..., 1.00000000...)
         sage: sol=linear_program(v,m,h,solver='glpk')
         GLPK Simplex Optimizer...
-        OPTIMAL SOLUTION FOUND
+        OPTIMAL LP SOLUTION FOUND
         sage: sol['x']
         (45.0..., 6.25..., 1.0...)
     """

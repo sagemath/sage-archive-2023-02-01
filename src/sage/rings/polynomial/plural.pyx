@@ -199,7 +199,8 @@ class G_AlgFactory(UniqueFactory):
         # Get the number of names:
         names = tuple(names)
         n = len(names)
-        order = TermOrder(order or 'degrevlex', n)
+        if not isinstance(order, TermOrder):
+            order = TermOrder(order or 'degrevlex', n)
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         P = PolynomialRing(base_ring, n, names, order=order)
@@ -360,10 +361,17 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: H is loads(dumps(H))  # indirect doctest
             True
 
+        Check that :trac:`17224` is fixed::
+
+            sage: from sage.rings.polynomial.term_order import TermOrder
+            sage: F.<x,y> = FreeAlgebra(QQ)
+            sage: g = F.g_algebra({y*x:-x*y}, order=TermOrder('wdegrevlex', [1,2]))
+            sage: loads(dumps(g)) == g
+            True
         """
         return g_Algebra, (self.base_ring(),self._c,self._d,
                             self.variable_names(),
-                            self.term_order().name(),
+                            self.term_order(),
                             self.category())
 
     def __dealloc__(self):

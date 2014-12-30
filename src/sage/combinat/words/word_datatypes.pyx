@@ -709,7 +709,7 @@ cdef class WordDatatype_str(WordDatatype):
         elif isinstance(sep, WordDatatype_str):
             sep = sep._data
         else:
-            raise ValueError, "the separator must be a string."
+            raise ValueError("the separator must be a string.")
 
         if maxsplit is None:
             return map(self._parent, self._data.split(sep))
@@ -760,8 +760,7 @@ cdef class WordDatatype_str(WordDatatype):
             return map(self._parent, self._data.partition(sep))
         elif isinstance(sep, WordDatatype_str):
             return map(self._parent, self._data.partition(sep._data))
-        else:
-            raise ValueError, "the separator must be a string."
+        raise ValueError("the separator must be a string.")
 
     def is_suffix(self, other):
         r"""

@@ -689,7 +689,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         sage: from sage.misc.latex import _run_latex_, _latex_file_
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
         sage: O = open(file, 'w')
-        sage: O.write(_latex_file_([ZZ[x], RR])); O.close()
+        sage: O.write(_latex_file_([ZZ['x'], RR])); O.close()
         sage: _run_latex_(file) # random - depends on whether latex is installed
         'dvi'
     """
@@ -1586,25 +1586,6 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
         else:
             _Latex_prefs._option['mathjax_avoid'] = L
 
-    # Couldn't use deprecated_function_alias for this because of circular imports.
-    def jsmath_avoid_list(self, L=None):
-        """
-        Deprecated. Use :meth:`mathjax_avoid_list` instead.
-
-        EXAMPLES::
-
-            sage: latex.jsmath_avoid_list()
-            doctest:...: DeprecationWarning: Use mathjax_avoid_list instead.
-            See http://trac.sagemath.org/13508 for details.
-            []
-        """
-        from superseded import deprecation
-        deprecation(13508, 'Use mathjax_avoid_list instead.')
-        if L is None:
-            return _Latex_prefs._option['mathjax_avoid']
-        else:
-            _Latex_prefs._option['mathjax_avoid'] = L
-
     def add_to_mathjax_avoid_list(self, s):
         r"""nodetex
         Add to the list of strings which signal that MathJax should not
@@ -1632,22 +1613,6 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
         current = latex.mathjax_avoid_list()
         if s not in current:
             _Latex_prefs._option['mathjax_avoid'].append(s)
-
-    # Couldn't use deprecated_function_alias for this because of circular imports.
-    def add_to_jsmath_avoid_list(self, s):
-        """
-        Deprecated. Use :meth:`add_to_mathjax_avoid_list` instead.
-
-        EXAMPLES::
-
-            sage: latex.add_to_jsmath_avoid_list('\\text')
-            doctest:...: DeprecationWarning: Use add_to_mathjax_avoid_list instead.
-            See http://trac.sagemath.org/13508 for details.
-            sage: latex.mathjax_avoid_list([])  # reset list to default
-        """
-        from superseded import deprecation
-        deprecation(13508, 'Use add_to_mathjax_avoid_list instead.')
-        self.add_to_mathjax_avoid_list(s)
 
     def engine(self, e = None):
         r"""
@@ -2212,7 +2177,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
             print(MathJax().eval(objects, mode=mode, combine_all=combine_all))
         else:
             base_dir = os.path.abspath("")
-            png_file = graphics_filename(ext='png')
+            png_file = graphics_filename()
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
                 debug=debug, engine=engine)

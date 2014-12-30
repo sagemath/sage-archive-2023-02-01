@@ -172,7 +172,7 @@ from sage.rings.integer import Integer
 
 
 @total_ordering
-class FFPDElement(sage.structure.element.RingElement):
+class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     r"""
     This element represents a fraction with a factored polynomial
     denominator. See also its parent
@@ -300,7 +300,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: f = FFPD(x, df)
             sage: TestSuite(f).run()
         """
-        super(FFPDElement, self).__init__(parent)
+        super(FractionWithFactoredDenominator, self).__init__(parent)
 
         self._numerator = numerator
         self._denominator_factored = denominator_factored
@@ -662,7 +662,7 @@ class FFPDElement(sage.structure.element.RingElement):
     def univariate_decomposition(self):
         r"""
         Return the usual univariate partial fraction decomposition
-        of ``self`` as a :class:`FFPDSum` instance.
+        of ``self`` as a :class:`FractionWithFactoredDenominatorSum` instance.
         Assume that ``self`` lies in the field of fractions
         of a univariate factorial polynomial ring.
 
@@ -764,7 +764,7 @@ class FFPDElement(sage.structure.element.RingElement):
         - Alexander Raichev (2012-06-25)
         """
         if self.dimension() is None or self.dimension() > 1:
-            return FFPDSum([self])
+            return FractionWithFactoredDenominatorSum([self])
 
         R = self.ring()
         p = self.numerator()
@@ -785,7 +785,7 @@ class FFPDElement(sage.structure.element.RingElement):
             # The inverse exists because the product and a**m
             # are relatively prime.
             decomp.append(self.parent()(mn * numer, [(a, m)]))
-        return FFPDSum(decomp)
+        return FractionWithFactoredDenominatorSum(decomp)
 
 
     def nullstellensatz_certificate(self):
@@ -832,7 +832,7 @@ class FFPDElement(sage.structure.element.RingElement):
     def nullstellensatz_decomposition(self):
         r"""
         Return a Nullstellensatz decomposition of ``self`` as a
-        :class:`FFPDSum` instance.
+        :class:`FractionWithFactoredDenominatorSum` instance.
 
         Let `f = p/q` where `q` lies in a `d` -variate polynomial ring
         `K[X]` for some field `K` and `d \geq 1`.
@@ -892,16 +892,16 @@ class FFPDElement(sage.structure.element.RingElement):
         L = self.nullstellensatz_certificate()
         if L is None:
             # No decomposing possible.
-            return FFPDSum([self])
+            return FractionWithFactoredDenominatorSum([self])
 
         # Otherwise decompose recursively.
-        decomp = FFPDSum()
+        decomp = FractionWithFactoredDenominatorSum()
         p = self.numerator()
         df = self.denominator_factored()
         m = len(df)
-        iteration1 = FFPDSum([self.parent()(p * L[i],
-                                            [df[j] for j in xrange(m) if j != i])
-                              for i in xrange(m) if L[i] != 0])
+        iteration1 = FractionWithFactoredDenominatorSum(
+            [self.parent()(p * L[i], [df[j] for j in xrange(m) if j != i])
+             for i in xrange(m) if L[i] != 0])
 
         # Now decompose each FFPD of iteration1.
         for r in iteration1:
@@ -1011,7 +1011,7 @@ class FFPDElement(sage.structure.element.RingElement):
     def algebraic_dependence_decomposition(self, whole_and_parts=True):
         r"""
         Return an algebraic dependence decomposition of ``self`` as a
-        :class:`FFPDSum` instance.
+        :class:`FractionWithFactoredDenominatorSum` instance.
 
         Let `f = p/q` where `q` lies in a `d` -variate polynomial ring
         `K[X]` for some field `K`.
@@ -1080,10 +1080,10 @@ class FFPDElement(sage.structure.element.RingElement):
         J = self.algebraic_dependence_certificate()
         if not J:
             # No decomposing possible.
-            return FFPDSum([self])
+            return FractionWithFactoredDenominatorSum([self])
 
         # Otherwise decompose recursively.
-        decomp = FFPDSum()
+        decomp = FractionWithFactoredDenominatorSum()
         p = self.numerator()
         df = self.denominator_factored()
         m = len(df)
@@ -1102,12 +1102,12 @@ class FFPDElement(sage.structure.element.RingElement):
         # Write r in terms of new_vars,
         # cancel factors in the denominator, and combine like terms.
         FFPD = FractionWithFactoredDenominatorRing(J.ring())
-        iteration1_temp = FFPDSum([FFPD(a, denoms)
-                                   for a in numers])._combine_like_terms_()
+        iteration1_temp = FractionWithFactoredDenominatorSum(
+            [FFPD(a, denoms) for a in numers])._combine_like_terms_()
         # Substitute in df.
         qpowsub = dict([(new_vars[j], df[j][0] ** df[j][1])
                         for j in xrange(m)])
-        iteration1 = FFPDSum()
+        iteration1 = FractionWithFactoredDenominatorSum()
         for r in iteration1_temp:
             num1 = p * J.ring()(r.numerator()).subs(qpowsub)
             denoms1 = []
@@ -1126,7 +1126,7 @@ class FFPDElement(sage.structure.element.RingElement):
     def leinartas_decomposition(self):
         r"""
         Return a Leinartas decomposition of ``self`` as a
-        :class:`FFPDSum` instance.
+        :class:`FractionWithFactoredDenominatorSum` instance.
 
         Let `f = p/q` where `q` lies in a `d` -variate polynomial
         ring `K[X]` for some field `K`.
@@ -1240,12 +1240,12 @@ class FFPDElement(sage.structure.element.RingElement):
             # So nullstellensatz_decomposition() won't work.
             # Can use algebraic_dependence_decomposition(),
             # which is sufficient.
-            # temp = FFPDSum([self])
+            # temp = FractionWithFactoredDenominatorSum([self])
             # Alternatively can use univariate_decomposition(),
             # which is more efficient.
             return self.univariate_decomposition()
         temp = self.nullstellensatz_decomposition()
-        decomp = FFPDSum()
+        decomp = FractionWithFactoredDenominatorSum()
         for r in temp:
             decomp.extend(r.algebraic_dependence_decomposition())
 
@@ -1265,7 +1265,8 @@ class FFPDElement(sage.structure.element.RingElement):
         `V_1 \cap \ldots \cap V_n` of the algebraic varieties
         `V_i = \{x \in L^d \mid q_i(x) = 0 \}`, where `L` is the algebraic
         closure of the field `K`.
-        Return a :class:`FFPDSum` `f` such that the differential form
+        Return a :class:`FractionWithFactoredDenominatorSum`
+        `f` such that the differential form
         `f dx_1 \wedge \cdots \wedge dx_d` is de Rham cohomologous to the
         differential form
         `p / (q_1^{e_1} \cdots q_n^{e_n}) dx_1 \wedge \cdots \wedge dx_d`
@@ -1307,10 +1308,10 @@ class FFPDElement(sage.structure.element.RingElement):
         n = len(df)
         if sum([e for (q, e) in df]) <= n:
             # No decomposing possible.
-            return FFPDSum([self])
+            return FractionWithFactoredDenominatorSum([self])
 
         # Otherwise decompose recursively.
-        decomp = FFPDSum()
+        decomp = FractionWithFactoredDenominatorSum()
         p = self.numerator()
         qs = [q for (q, e) in df]
         X = sorted(R.gens())
@@ -1335,7 +1336,7 @@ class FFPDElement(sage.structure.element.RingElement):
             L = R(1).lift(R.ideal(qs + dets))
 
         # Do first iteration of decomposition.
-        iteration1 = FFPDSum()
+        iteration1 = FractionWithFactoredDenominatorSum()
         # Contributions from qs.
         for i in xrange(n):
             if L[i] == 0:
@@ -1384,7 +1385,8 @@ class FFPDElement(sage.structure.element.RingElement):
 
     def asymptotic_decomposition(self, alpha, asy_var=None):
         r"""
-        Return a :class:`FFPDSum` that has the same asymptotic expansion
+        Return a :class:`FractionWithFactoredDenominatorSum`
+        that has the same asymptotic expansion
         as ``self`` in the direction ``alpha`` but each of whose FFPDs has a
         denominator factorization of the form `[(q_1, 1), \ldots, (q_n, 1)]`,
         where ``n`` is at most ``d = self.dimension()``.
@@ -1436,7 +1438,7 @@ class FFPDElement(sage.structure.element.RingElement):
 
         # Reduce number of distinct factors in denominator of self
         # down to at most d.
-        decomp1 = FFPDSum([self])
+        decomp1 = FractionWithFactoredDenominatorSum([self])
         if n > d:
             decomp1 = decomp1[0].leinartas_decomposition()
 
@@ -1448,7 +1450,7 @@ class FFPDElement(sage.structure.element.RingElement):
             asy_var = var('r')
         cauchy_stuff = prod([X[j] ** (-alpha[j] * asy_var - 1)
                              for j in xrange(d)])
-        decomp2 = FFPDSum()
+        decomp2 = FractionWithFactoredDenominatorSum()
         for f in decomp1:
             ff = self.parent()(f.numerator() * cauchy_stuff,
                       f.denominator_factored())
@@ -1456,7 +1458,7 @@ class FFPDElement(sage.structure.element.RingElement):
         decomp2 = decomp2._combine_like_terms_()
 
         # Divide out cauchy_stuff from integrands.
-        decomp3 = FFPDSum()
+        decomp3 = FractionWithFactoredDenominatorSum()
         for f in decomp2:
             ff = self.parent()((f.numerator() /
                                 cauchy_stuff).simplify_full().collect(asy_var),
@@ -2957,7 +2959,7 @@ class FFPDElement(sage.structure.element.RingElement):
             sage: f + g
             (2, [(y, 1), (x, 1)])
         """
-        return FFPDSum([left, right]).sum()
+        return FractionWithFactoredDenominatorSum([left, right]).sum()
 
 
     def _mul_(left, right):
@@ -3026,7 +3028,7 @@ class FractionWithFactoredDenominatorRing(
 
     - ``category`` -- (default: ``None``) the category.
 
-    See also :class:`FFPDElement`.
+    See also :class:`FractionWithFactoredDenominator`.
 
     AUTHORS:
 
@@ -3059,7 +3061,7 @@ class FractionWithFactoredDenominatorRing(
             base, category=category or sage.categories.rings.Rings())
 
 
-    Element = FFPDElement
+    Element = FractionWithFactoredDenominator
 
 
     def _repr_(self):
@@ -3119,7 +3121,7 @@ class FractionWithFactoredDenominatorRing(
         r"""
         Returns an element of this ring.
 
-        See :class:`FFPDElement` for details.
+        See :class:`FractionWithFactoredDenominator` for details.
 
         TESTS::
 
@@ -3996,7 +3998,7 @@ class FractionWithFactoredDenominatorRing(
         return result
 
 
-class FFPDSum(list):
+class FractionWithFactoredDenominatorSum(list):
     r"""
     A list representing the sum of :class:`FFPD` objects with distinct
     denominator factorizations.
@@ -4011,12 +4013,12 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x**2 + y, [(y, 1), (x, 2)])
-            sage: FFPDSum([f, g])
+            sage: FractionWithFactoredDenominatorSum([f, g])
             [(x + y, [(y, 1), (x, 1)]), (x^2 + y, [(y, 1), (x, 2)])]
         """
         return repr([(r.numerator(), r.denominator_factored()) for r in self])
@@ -4028,14 +4030,14 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x*(x + y), [(y, 1), (x, 2)])
-            sage: s = FFPDSum([f]); s
+            sage: s = FractionWithFactoredDenominatorSum([f]); s
             [(x + y, [(y, 1), (x, 1)])]
-            sage: t = FFPDSum([g]); t
+            sage: t = FractionWithFactoredDenominatorSum([g]); t
             [(x + y, [(y, 1), (x, 1)])]
             sage: s == t
             True
@@ -4049,14 +4051,14 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
             sage: g = FFPD(x + y, [(y, 1), (x, 2)])
-            sage: s = FFPDSum([f]); s
+            sage: s = FractionWithFactoredDenominatorSum([f]); s
             [(x + y, [(y, 1), (x, 1)])]
-            sage: t = FFPDSum([g]); t
+            sage: t = FractionWithFactoredDenominatorSum([g]); t
             [(x + y, [(y, 1), (x, 2)])]
             sage: s != t
             True
@@ -4070,15 +4072,15 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(x + y, [(y, 1), (x, 1)])
-            sage: s = FFPDSum([f])
+            sage: s = FractionWithFactoredDenominatorSum([f])
             sage: s.ring()
             Multivariate Polynomial Ring in x, y over Rational Field
             sage: g = FFPD(x + y, [])
-            sage: t = FFPDSum([g])
+            sage: t = FractionWithFactoredDenominatorSum([g])
             sage: t.ring()
             Multivariate Polynomial Ring in x, y over Rational Field
         """
@@ -4089,20 +4091,21 @@ class FFPDSum(list):
 
     def whole_and_parts(self):
         r"""
-        Rewrite ``self`` as a :class:`FFPDSum` of a (possibly zero) polynomial
+        Rewrite ``self`` as a :class:`FractionWithFactoredDenominatorSum`
+        of a (possibly zero) polynomial
         FFPD followed by reduced rational expression FFPDs.
 
         Only useful for multivariate decompositions.
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = x**2 + 3*y + 1/x + 1/y
             sage: f = FFPD(f); f
             (x^3*y + 3*x*y^2 + x + y, [(y, 1), (x, 1)])
-            sage: FFPDSum([f]).whole_and_parts()
+            sage: FractionWithFactoredDenominatorSum([f]).whole_and_parts()
             [(x^2 + 3*y, []), (x + y, [(y, 1), (x, 1)])]
 
             sage: f = cos(x)**2 + 3*y + 1/x + 1/y; f
@@ -4111,7 +4114,7 @@ class FFPDSum(list):
             sage: H = R(f.denominator())
             sage: f = FFPD(G, H.factor()); f
             (x*y*cos(x)^2 + 3*x*y^2 + x + y, [(y, 1), (x, 1)])
-            sage: FFPDSum([f]).whole_and_parts()
+            sage: FractionWithFactoredDenominatorSum([f]).whole_and_parts()
             [(0, []), (x*y*cos(x)^2 + 3*x*y^2 + x + y, [(y, 1), (x, 1)])]
         """
         whole = 0
@@ -4137,7 +4140,8 @@ class FFPDSum(list):
                     b = p
                 whole += a
                 parts.append(r.parent()(b, r.denominator_factored(), reduce=False))
-        return FFPDSum([r.parent()(whole, ())] + parts)  # r.parent() is not the nicest here
+        return FractionWithFactoredDenominatorSum(
+            [r.parent()(whole, ())] + parts)  # r.parent() is not the nicest here
 
 
     def _combine_like_terms_(self):
@@ -4147,12 +4151,12 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = FFPD(1/(x * y * (x*y + 1)))
             sage: g = FFPD(x/(x * y * (x*y + 1)))
-            sage: s = FFPDSum([f, g, f])
+            sage: s = FractionWithFactoredDenominatorSum([f, g, f])
             sage: t = s._combine_like_terms_()
             sage: s
             [(1, [(y, 1), (x, 1), (x*y + 1, 1)]),
@@ -4164,7 +4168,7 @@ class FFPDSum(list):
             sage: H = x * y * (x*y + 1)
             sage: f = FFPD(1, H.factor())
             sage: g = FFPD(exp(x + y), H.factor())
-            sage: s = FFPDSum([f, g])
+            sage: s = FractionWithFactoredDenominatorSum([f, g])
             sage: s
             [(1, [(y, 1), (x, 1), (x*y + 1, 1)]), (e^(x + y), [(y, 1), (x, 1),
             (x*y + 1, 1)])]
@@ -4189,7 +4193,7 @@ class FFPDSum(list):
                 new_FFPDs.append(temp)
                 temp = f
         new_FFPDs.append(temp)
-        return FFPDSum(new_FFPDs)
+        return FractionWithFactoredDenominatorSum(new_FFPDs)
 
 
     def sum(self):
@@ -4198,22 +4202,22 @@ class FFPDSum(list):
 
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FFPDSum
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = (x, 1), (y, 1), (x*y + 1, 1)
             sage: f = FFPD(2, df)
             sage: g = FFPD(2*x*y, df)
-            sage: FFPDSum([f, g])
+            sage: FractionWithFactoredDenominatorSum([f, g])
             [(2, [(y, 1), (x, 1), (x*y + 1, 1)]), (2, [(x*y + 1, 1)])]
-            sage: FFPDSum([f, g]).sum()
+            sage: FractionWithFactoredDenominatorSum([f, g]).sum()
             (2, [(y, 1), (x, 1)])
 
             sage: f = FFPD(cos(x), [(x, 2)])
             sage: g = FFPD(cos(y), [(x, 1), (y, 2)])
-            sage: FFPDSum([f, g])
+            sage: FractionWithFactoredDenominatorSum([f, g])
             [(cos(x), [(x, 2)]), (cos(y), [(y, 2), (x, 1)])]
-            sage: FFPDSum([f, g]).sum()
+            sage: FractionWithFactoredDenominatorSum([f, g]).sum()
             (y^2*cos(x) + x*cos(y), [(y, 2), (x, 2)])
         """
         if not self:

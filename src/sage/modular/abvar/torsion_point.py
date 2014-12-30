@@ -47,7 +47,7 @@ class TorsionPoint(ModuleElement):
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
             Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
             sage: type(G.0)
-            <class 'sage.modular.abvar.finite_subgroup.TorsionPoint'>
+            <class 'sage.modular.abvar.torsion_point.FiniteSubgroup_lattice_with_category.element_class'>
         """
         ModuleElement.__init__(self, parent)
         if check:
@@ -119,7 +119,8 @@ class TorsionPoint(ModuleElement):
             sage: G.0 + G.1
             [(1/3, 1/5)]
         """
-        return TorsionPoint(self.parent(), self.__element + other.__element, check=False)
+        P = self.parent()
+        return P.element_class(P, self.__element + other.__element, check=False)
 
     def _sub_(self, other):
         """
@@ -143,7 +144,8 @@ class TorsionPoint(ModuleElement):
             sage: G.0 - G.1
             [(1/3, -1/5)]
         """
-        return TorsionPoint(self.parent(), self.__element - other.__element, check=False)
+        P = self.parent()
+        return P.element_class(P, self.__element - other.__element, check=False)
 
     def _neg_(self):
         """
@@ -155,7 +157,8 @@ class TorsionPoint(ModuleElement):
             sage: G.0._neg_()
             [(-1/3, 0)]
         """
-        return TorsionPoint(self.parent(), -self.__element, check=False)
+        P = self.parent()
+        return P.element_class(P, -self.__element, check=False)
 
     def _rmul_(self, left):
         """
@@ -169,7 +172,8 @@ class TorsionPoint(ModuleElement):
             sage: 2*G.0
             [(2/3, 0)]
         """
-        return TorsionPoint(self.parent(), ZZ(left) * self.__element, check=False)
+        P = self.parent()
+        return P.element_class(P, left * self.__element, check=False)
 
     def _lmul_(self, right):
         """
@@ -183,7 +187,8 @@ class TorsionPoint(ModuleElement):
             sage: G.0 * 2
             [(2/3, 0)]
         """
-        return TorsionPoint(self.parent(), self.__element * right, check=False)
+        P = self.parent()
+        return P.element_class(P, self.__element * right, check=False)
 
     def __cmp__(self, right):
         """
@@ -228,10 +233,10 @@ class TorsionPoint(ModuleElement):
         B = right.parent().abelian_variety()
         if A.groups() != B.groups():
             return cmp(A,B)
-        elif self.__element.change_ring(QQ) - right.__element.change_ring(QQ) in A.lattice() + B.lattice():
+        from sage.rings.all import QQ
+        if self.__element.change_ring(QQ) - right.__element.change_ring(QQ) in A.lattice() + B.lattice():
             return 0
-        else:
-            return cmp(self.__element, right.__element)
+        return cmp(self.__element, right.__element)
 
     def additive_order(self):
         """

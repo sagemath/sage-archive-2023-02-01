@@ -94,17 +94,20 @@ TESTS::
 ###########################################################################
 
 from sage.modular.abvar.torsion_point import TorsionPoint
-from sage.modules.module      import Module_old
+from sage.modules.module      import Module
 from sage.modules.free_module import is_FreeModule
+from sage.structure.gens_py   import abelian_iterator
 from sage.structure.sequence  import Sequence
 from sage.rings.all           import gcd, lcm, QQ, ZZ, QQbar, Integer, composite_field
 from sage.misc.misc           import prod
 
 import abvar as abelian_variety
-from sage.categories.fields import Fields
-_Fields = Fields()
 
-class FiniteSubgroup(Module_old):
+
+class FiniteSubgroup(Module):
+
+    Element = TorsionPoint
+
     def __init__(self, abvar, field_of_definition=QQ):
         """
         A finite subgroup of a modular abelian variety.
@@ -127,16 +130,22 @@ class FiniteSubgroup(Module_old):
             sage: G = A.torsion_subgroup(3); G
             Finite subgroup with invariants [3, 3, 3, 3] over QQ of Abelian variety J0(37) of dimension 2
             sage: type(G)
-            <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroup_lattice'>
+            <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroup_lattice_with_category'>
             sage: from sage.modular.abvar.finite_subgroup import FiniteSubgroup
             sage: isinstance(G, FiniteSubgroup)
             True
         """
-        if field_of_definition not in _Fields:
+        from sage.categories.category import Category
+        from sage.categories.fields import Fields
+        from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+        from sage.categories.modules import Modules
+
+        if field_of_definition not in Fields():
             raise TypeError("field_of_definition must be a field")
         if not abelian_variety.is_ModularAbelianVariety(abvar):
             raise TypeError("abvar must be a modular abelian variety")
-        Module_old.__init__(self, ZZ)
+        category = Category.join((Modules(ZZ), FiniteEnumeratedSets()))
+        Module.__init__(self, ZZ, category=category)
         self.__abvar = abvar
         self.__field_of_definition = field_of_definition
 
@@ -554,7 +563,7 @@ class FiniteSubgroup(Module_old):
         except AttributeError:
             pass
 
-        B = [TorsionPoint(self, v) for v in self.lattice().basis() if v.denominator() > 1]
+        B = [self.element_class(self, v) for v in self.lattice().basis() if v.denominator() > 1]
         self.__gens = Sequence(B, immutable=True)
         return self.__gens
 
@@ -584,7 +593,7 @@ class FiniteSubgroup(Module_old):
         """
         return self.gens()[n]
 
-    def __call__(self, x):
+    def _element_constructor_(self, x, check=True):
         r"""
         Coerce `x` into this finite subgroup.
 
@@ -637,20 +646,18 @@ class FiniteSubgroup(Module_old):
             ...
             TypeError: x does not define an element of self
         """
+        if isinstance(x, self.element_class) and x.parent() is self:
+            return x
         if isinstance(x, TorsionPoint):
-            if x.parent() is self:
-                return x
-            elif x.parent() == self:
-                return TorsionPoint(self, x.element(), check=False)
+            if x.parent() == self:
+                return self.element_class(self, x.element(), check=False)
             elif x.parent().abelian_variety() == self.abelian_variety():
-                return self(x.element())
-            else:
-                raise TypeError("x does not define an element of self")
+                return self(x.element(), check=check)
         else:
-            z = self.abelian_variety().vector_space()(x)
-            if not z in self.lattice():
-                raise TypeError("x does not define an element of self")
-            return TorsionPoint(self, z, check=False)
+            z = self.abelian_variety().vector_space()(x, check=check)
+            if z in self.lattice():
+                return self.element_class(self, z, check=False)
+        raise TypeError("x does not define an element of self")
 
 
     def __contains__(self, x):
@@ -788,6 +795,23 @@ class FiniteSubgroup(Module_old):
         I.set_immutable()
         self.__invariants = I
         return I
+
+    def generator_orders(self):
+        """
+        Return the orders of the chosen generators of ``self``.
+
+        EXAMPLES::
+
+            sage: G = J0(24).cuspidal_subgroup()
+            sage: G.gens()
+            [[(1/4, 0)], [(0, 1/2)]]
+            sage: G.generator_orders()
+            [4, 2]
+        """
+        return [x.additive_order() for x in self.gens()]
+
+    __iter__ = abelian_iterator
+
 
 class FiniteSubgroup_lattice(FiniteSubgroup):
     def __init__(self, abvar, lattice, field_of_definition=QQbar, check=True):

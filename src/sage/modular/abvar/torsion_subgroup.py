@@ -110,7 +110,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             sage: T = J0(14).rational_torsion_subgroup(); T
             Torsion subgroup of Abelian variety J0(14) of dimension 1
             sage: type(T)
-            <class 'sage.modular.abvar.torsion_subgroup.RationalTorsionSubgroup'>
+            <class 'sage.modular.abvar.torsion_subgroup.RationalTorsionSubgroup_with_category'>
         """
         FiniteSubgroup.__init__(self, abvar)
 
@@ -410,8 +410,10 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         return bnd
 
 
-
 class QQbarTorsionSubgroup(Module):
+
+    Element = TorsionPoint
+
     def __init__(self, abvar):
         """
         Group of all torsion points over the algebraic closure on an
@@ -460,7 +462,7 @@ class QQbarTorsionSubgroup(Module):
         """
         return self.__abvar.base_field()
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         r"""
         Create an element in this finite group.
 
@@ -480,7 +482,7 @@ class QQbarTorsionSubgroup(Module):
             4
         """
         v = self.__abvar.vector_space()(x)
-        return TorsionPoint(self, v)
+        return self.element_class(self, v)
 
     def abelian_variety(self):
         """

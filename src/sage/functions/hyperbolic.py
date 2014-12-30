@@ -215,7 +215,7 @@ class Function_coth(HyperbolicFunction):
 
     def _eval_ (self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
         
             sage: coth(0)
             +Infinity
@@ -289,7 +289,7 @@ class Function_sech(HyperbolicFunction):
 
     def _eval_ (self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
         
             sage: sech(0)
             1
@@ -364,7 +364,7 @@ class Function_csch(HyperbolicFunction):
 
     def _eval_ (self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
         
             sage: csch(0)
             +Infinity

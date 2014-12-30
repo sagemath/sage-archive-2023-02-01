@@ -84,8 +84,9 @@ TESTS::
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
+from sage.modular.abvar.torsion_point import TorsionPoint
 from sage.modules.module            import Module
-from finite_subgroup                import FiniteSubgroup, TorsionPoint
+from finite_subgroup                import FiniteSubgroup
 from sage.rings.all                 import divisors, gcd, ZZ, prime_range
 from sage.sets.primes               import Primes
 from sage.modular.arithgroup.all    import is_Gamma0

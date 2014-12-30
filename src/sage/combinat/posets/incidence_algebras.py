@@ -28,6 +28,32 @@ from copy import copy
 class IncidenceAlgebra(CombinatorialFreeModule):
     r"""
     The incidence algebra of a poset.
+
+    Let `P` be a poset and `R` be a commutative unital associative ring.
+    The *incidence algebra* `I_P` is the algebra of functions
+    `\alpha \colon P \times P \to R` such that `\alpha(x, y) = 0`
+    if `x \not\leq y` where multiplication is given by covolution:
+
+    .. MATH::
+
+        (\alpha \ast \beta)(x, y) = \sum_{x \leq k \leq y}
+        \alpha(x, k) \beta(k, y).
+
+    This has a natural basis given by indicator functions for the
+    interval `[a, b]`, i.e. `X_{a,b}(x,y) = \delta_{ax} \delta_{by}`.
+    The incidence algebra is a unital algebra with the identity given
+    by the Kronecker delta `\delta(x, y) = \delta_{xy}`. The Mobius
+    function of `P` is another element of `I_p` whose inverse is the
+    `\zeta` function of the poset (so `\zeta(x, y) = 1` for
+    every interval `[x, y]`).
+
+    .. TODO::
+
+        Implement the incidence coalgebra.
+
+    REFERENCES:
+
+    - :wikipedia:`Incidence_algebra`
     """
     def __init__(self, R, P, prefix='I'):
         """
@@ -72,6 +98,43 @@ class IncidenceAlgebra(CombinatorialFreeModule):
         """
         return "Incidence algebra of {} over {}".format(self._poset, self.base_ring())
 
+    def _coerce_map_from_(self, R):
+        """
+        Return the coerce map from ``R`` into ``self`` if it exists
+        or ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: I = P.incidence_algebra(QQ)
+            sage: R = I.reduced_subalgebra()
+            sage: I.has_coerce_map_from(R)
+            True
+            sage: I.has_coerce_map_from(QQ)
+            True
+            sage: Pp = posets.BooleanLattice(3)
+            sage: Rp = Pp.incidence_algebra(QQ).reduced_subalgebra()
+            sage: I.has_coerce_map_from(Rp)
+            False
+        """
+        if isinstance(R, ReducedIncidenceAlgebra) and R._ambient is self:
+            return copy(R.lift)
+        return super(IncidenceAlgebra, self)._coerce_map_from_(R)
+
+    def reduced_subalgebra(self, prefix='R'):
+        """
+        Return the reduced incidence subalgebra.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: I = P.incidence_algebra(QQ)
+            sage: I.reduced_subalgebra()
+            Reduced incidence algebra of Finite lattice containing 16 elements
+             over Rational Field
+        """
+        return ReducedIncidenceAlgebra(self, prefix)
+
     def poset(self):
         """
         Return the defining poset of ``self``.
@@ -86,6 +149,21 @@ class IncidenceAlgebra(CombinatorialFreeModule):
             True
         """
         return self._poset
+
+    def some_elements(self):
+        """
+        Return a list of elements of ``self``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(1)
+            sage: I = P.incidence_algebra(QQ)
+            sage: I.some_elements()
+            [2*I[0, 0] + 2*I[0, 1] + 3*I[1, 1],
+             I[0, 0] - I[0, 1] + I[1, 1],
+             I[0, 0] + I[0, 1] + I[1, 1]]
+        """
+        return [self.an_element(), self.mobius(), self.zeta()]
 
     def product_on_basis(self, A, B):
         r"""
@@ -349,4 +427,357 @@ class IncidenceAlgebra(CombinatorialFreeModule):
             L = self.parent()._linear_extension
             return self.parent().sum_of_terms( ((L[i], L[j]), inv[i,j])
                        for i,j in inv.nonzero_positions(copy=False) )
+
+class ReducedIncidenceAlgebra(CombinatorialFreeModule):
+    r"""
+    The reduced incidence algebra of a poset.
+
+    The reduced incidence algebra `R_P` is a subalgebra of the
+    incidence algebra `I_P` where `\alpha(x, y) = \alpha(x', y')` when
+    `[x, y]` is isomorphic to `[x', y']` as posets. Thus the delta, Mobius,
+    and zeta functions are all elements of `R_P`.
+    """
+    def __init__(self, I, prefix='R'):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+            sage: TestSuite(R).run()
+        """
+        self._ambient = I
+        EC = {}
+        P = self._ambient._poset
+        if not P.is_finite():
+            raise NotImplementedError("only implemented for finite posets")
+        for i in self._ambient.basis().keys():
+            S = P.subposet(P.interval(*i))
+            added = False
+            for k in EC:
+                if S._hasse_diagram.is_isomorphic(k._hasse_diagram):
+                    EC[k].append(i)
+                    added = True
+                    break
+            if not added:
+                EC[S] = [i]
+        self._equiv_classes = map(sorted, EC.values())
+        self._equiv_classes = {cls[0]: cls for cls in self._equiv_classes}
+        cat = Algebras(I.base_ring()).FiniteDimensional().WithBasis()
+        CombinatorialFreeModule.__init__(self, I.base_ring(),
+                                         sorted(self._equiv_classes.keys()),
+                                         prefix=prefix, category=cat)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: P.incidence_algebra(QQ).reduced_subalgebra()
+            Reduced incidence algebra of Finite lattice containing 16 elements
+             over Rational Field
+        """
+        return "Reduced incidence algebra of {} over {}".format(
+                                self._ambient._poset, self.base_ring())
+
+    def poset(self):
+        """
+        Return the defining poset of ``self``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+            sage: R.poset()
+            Finite lattice containing 16 elements
+            sage: R.poset() == P
+            True
+        """
+        return self._ambient._poset
+
+    def some_elements(self):
+        """
+        Return a list of elements of ``self``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+            sage: R.some_elements()
+            [2*R[(0, 0)] + 2*R[(0, 1)] + 3*R[(0, 3)],
+             R[(0, 0)] - R[(0, 1)] + R[(0, 3)] - R[(0, 7)] + R[(0, 15)],
+             R[(0, 0)] + R[(0, 1)] + R[(0, 3)] + R[(0, 7)] + R[(0, 15)]]
+        """
+        return [self.an_element(), self.mobius(), self.zeta()]
+
+    @cached_method
+    def one_basis(self):
+        """
+        Return the index of the element `1` in ``self``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+            sage: R.one_basis()
+            (0, 0)
+        """
+        for A in self.basis().keys():
+            if A[0] == A[1]:
+                return A
+
+    def delta(self):
+        """
+        Return the Kronecker delta function in ``self``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+            sage: R.delta()
+            R[(0, 0)]
+        """
+        return self.one()
+
+    @cached_method
+    def zeta(self):
+        r"""
+        Return the `\zeta` function in ``self``.
+
+        The `\zeta` function on a poset `P` is given by
+
+        .. MATH::
+
+            \zeta(x, y) = \begin{cases}
+            1 & x \leq y, \\
+            0 & x \not\leq y.
+            \end{cases}
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+            sage: R.zeta()
+            R[(0, 0)] + R[(0, 1)] + R[(0, 3)] + R[(0, 7)] + R[(0, 15)]
+        """
+        return self.sum(self.basis())
+
+    @cached_method
+    def mobius(self):
+        """
+        Return the Mobius function of ``self``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+            sage: R.mobius()
+            R[(0, 0)] - R[(0, 1)] + R[(0, 3)] - R[(0, 7)] + R[(0, 15)]
+        """
+        mu = self._ambient._poset.mobius_function
+        R = self.base_ring()
+        return self.sum_of_terms((A, R(mu(*A))) for A in self.basis().keys())
+
+    @cached_method
+    def _lift_basis(self, x):
+        """
+        Lift the basis element indexed by ``x`` to the ambient incidence
+        algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+            sage: R._lift_basis((0, 7))
+            I[0, 7] + I[0, 11] + I[0, 13] + I[0, 14] + I[1, 15]
+             + I[2, 15] + I[4, 15] + I[8, 15]
+        """
+        return self._ambient.sum_of_monomials(self._equiv_classes[x])
+
+    @lazy_attribute
+    def lift(self):
+        """
+        Return the lift morphism from ``self`` to the ambient space.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(2)
+            sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+            sage: R.lift
+            Generic morphism:
+              From: Reduced incidence algebra of Finite lattice containing 4 elements over Rational Field
+              To:   Incidence algebra of Finite lattice containing 4 elements over Rational Field
+            sage: R.an_element() - R.one()
+            R[(0, 0)] + 2*R[(0, 1)] + 3*R[(0, 3)]
+            sage: R.lift(R.an_element() - R.one())
+            I[0, 0] + 2*I[0, 1] + 2*I[0, 2] + 3*I[0, 3] + I[1, 1]
+             + 2*I[1, 3] + I[2, 2] + 2*I[2, 3] + I[3, 3]
+        """
+        return self.module_morphism(self._lift_basis, codomain=self._ambient)
+
+    def __getitem__(self, A):
+        """
+        Return the basis element indexed by ``A``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+            sage: R[0, 0]
+            R[(0, 0)]
+            sage: R[0, 1]
+            R[(0, 1)]
+            sage: R[0, 15]
+            R[(0, 15)]
+            sage: R[0]
+            R[(0, 0)]
+
+        This works for any representative of the equivalence class::
+
+            sage: R[3, 3]
+            R[(0, 0)]
+            sage: R[3, 11]
+            R[(0, 1)]
+        """
+        if not isinstance(A, (list, tuple)):
+            if A not in self._ambient._poset.list():
+                raise ValueError("not an element of the poset")
+            return self.one()
+        else:
+            A = tuple(A)
+            if len(A) != 2:
+                raise ValueError("not an interval")
+        for k in self._equiv_classes:
+            if A in self._equiv_classes[k]:
+                return self.monomial(k)
+        raise ValueError("not an interval")
+
+    def _retract(self, x):
+        """
+        Return the retract of ``x`` from the incidence algebra to ``self``.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(4)
+            sage: I = P.incidence_algebra(QQ)
+            sage: R = I.reduced_subalgebra()
+            sage: all(R._retract(R.lift(x)) == x for x in R.basis())
+            True
+            sage: R._retract(I.zeta()) == R.zeta()
+            True
+            sage: R._retract(I.delta()) == R.delta()
+            True
+            sage: R._retract(I.mobius()) == R.mobius()
+            True
+        """
+        return self.sum_of_terms((k, x[k]) for k in self.basis().keys())
+
+    class Element(CombinatorialFreeModule.Element):
+        """
+        An element of a reduced incidence algebra.
+        """
+        def __call__(self, x, y):
+            """
+            Return ``self(x, y)``.
+
+            EXAMPLES::
+
+                sage: P = posets.BooleanLattice(4)
+                sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+                sage: x = R.an_element()
+                sage: x(0, 7)
+                0
+                sage: x(7, 15)
+                2
+                sage: x(4, 15)
+                0
+            """
+            return self.parent().lift(self)(x, y)
+
+        def _mul_(self, other):
+            """
+            Return the product of ``self`` and ``other``.
+
+            EXAMPLES::
+
+                sage: P = posets.BooleanLattice(4)
+                sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+                sage: x = R.an_element()
+                sage: x * R.zeta()
+                2*R[(0, 0)] + 4*R[(0, 1)] + 9*R[(0, 3)] + 17*R[(0, 7)] + 28*R[(0, 15)]
+                sage: x * R.mobius()
+                2*R[(0, 0)] + R[(0, 3)] - 5*R[(0, 7)] + 12*R[(0, 15)]
+                sage: x * R.mobius() * R.zeta() == x
+                True
+            """
+            P = self.parent()
+            return P._retract(P.lift(self) * P.lift(other))
+
+        @cached_method
+        def to_matrix(self):
+            r"""
+            Return ``self`` as a matrix.
+
+            EXAMPLES::
+
+                sage: P = posets.BooleanLattice(2)
+                sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+                sage: mu = R.mobius()
+                sage: mu.to_matrix()
+                [ 1 -1 -1  1]
+                [ 0  1  0 -1]
+                [ 0  0  1 -1]
+                [ 0  0  0  1]
+            """
+            return self.parent().lift(self).to_matrix()
+
+        def is_unit(self):
+            """
+            Return if ``self`` is a unit.
+
+            EXAMPLES::
+
+                sage: P = posets.BooleanLattice(4)
+                sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+                sage: x = R.an_element()
+                sage: x.is_unit()
+                True
+            """
+            return self[self.parent().one_basis()].is_unit()
+
+        def __invert__(self):
+            """
+            Return the inverse of ``self``.
+
+            EXAMPLES::
+
+                sage: P = posets.BooleanLattice(4)
+                sage: R = P.incidence_algebra(QQ).reduced_subalgebra()
+                sage: x = R.an_element()
+                sage: ~x
+                1/2*R[(0, 0)] - 1/2*R[(0, 1)] + 1/4*R[(0, 3)]
+                 + 3/2*R[(0, 7)] - 33/4*R[(0, 15)]
+            """
+            P = self.parent()
+            return P._retract(P.lift(self).__invert__())
+
+        def lift(self):
+            """
+            Return the lift of ``self`` to the ambient space.
+
+            EXAMPLES::
+
+                sage: P = posets.BooleanLattice(2)
+                sage: I = P.incidence_algebra(QQ)
+                sage: R = I.reduced_subalgebra()
+                sage: x = R.an_element(); x
+                2*R[(0, 0)] + 2*R[(0, 1)] + 3*R[(0, 3)]
+                sage: x.lift()
+                2*I[0, 0] + 2*I[0, 1] + 2*I[0, 2] + 3*I[0, 3] + 2*I[1, 1]
+                 + 2*I[1, 3] + 2*I[2, 2] + 2*I[2, 3] + 2*I[3, 3]
+            """
+            return self.parent().lift(self)
 

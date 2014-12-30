@@ -908,7 +908,7 @@ class FFPDElement(sage.structure.element.RingElement):
             decomp.extend(r.nullstellensatz_decomposition())
 
         # Simplify and return result.
-        return decomp.combine_like_terms().whole_and_parts()
+        return decomp._combine_like_terms_().whole_and_parts()
 
 
     def algebraic_dependence_certificate(self):
@@ -1103,7 +1103,7 @@ class FFPDElement(sage.structure.element.RingElement):
         # cancel factors in the denominator, and combine like terms.
         FFPD = FractionWithFactoredDenominatorRing(J.ring())
         iteration1_temp = FFPDSum([FFPD(a, denoms)
-                                   for a in numers]).combine_like_terms()
+                                   for a in numers])._combine_like_terms_()
         # Substitute in df.
         qpowsub = dict([(new_vars[j], df[j][0] ** df[j][1])
                         for j in xrange(m)])
@@ -1120,7 +1120,7 @@ class FFPDElement(sage.structure.element.RingElement):
             decomp.extend(r.algebraic_dependence_decomposition())
 
         # Simplify and return result.
-        return decomp.combine_like_terms().whole_and_parts()
+        return decomp._combine_like_terms_().whole_and_parts()
 
 
     def leinartas_decomposition(self):
@@ -1250,7 +1250,7 @@ class FFPDElement(sage.structure.element.RingElement):
             decomp.extend(r.algebraic_dependence_decomposition())
 
         # Simplify and return result.
-        return decomp.combine_like_terms().whole_and_parts()
+        return decomp._combine_like_terms_().whole_and_parts()
 
 
     def cohomology_decomposition(self):
@@ -1379,7 +1379,7 @@ class FFPDElement(sage.structure.element.RingElement):
             decomp.extend(r.cohomology_decomposition())
 
         # Simplify and return result.
-        return decomp.combine_like_terms().whole_and_parts()
+        return decomp._combine_like_terms_().whole_and_parts()
 
 
     def asymptotic_decomposition(self, alpha, asy_var=None):
@@ -1453,7 +1453,7 @@ class FFPDElement(sage.structure.element.RingElement):
             ff = self.parent()(f.numerator() * cauchy_stuff,
                       f.denominator_factored())
             decomp2.extend(ff.cohomology_decomposition())
-        decomp2 = decomp2.combine_like_terms()
+        decomp2 = decomp2._combine_like_terms_()
 
         # Divide out cauchy_stuff from integrands.
         decomp3 = FFPDSum()
@@ -4121,7 +4121,7 @@ class FFPDSum(list):
         return FFPDSum([r.parent()(whole, ())] + parts)  # r.parent() is not the nicest here
 
 
-    def combine_like_terms(self):
+    def _combine_like_terms_(self):
         r"""
         Combine terms in ``self`` with the same denominator.
         Only useful for multivariate decompositions.
@@ -4134,7 +4134,7 @@ class FFPDSum(list):
             sage: f = FFPD(1/(x * y * (x*y + 1)))
             sage: g = FFPD(x/(x * y * (x*y + 1)))
             sage: s = FFPDSum([f, g, f])
-            sage: t = s.combine_like_terms()
+            sage: t = s._combine_like_terms_()
             sage: s
             [(1, [(y, 1), (x, 1), (x*y + 1, 1)]),
              (1, [(y, 1), (x*y + 1, 1)]),
@@ -4149,7 +4149,7 @@ class FFPDSum(list):
             sage: s
             [(1, [(y, 1), (x, 1), (x*y + 1, 1)]), (e^(x + y), [(y, 1), (x, 1),
             (x*y + 1, 1)])]
-            sage: t = s.combine_like_terms()
+            sage: t = s._combine_like_terms_()
             sage: t
             [(e^(x + y) + 1, [(y, 1), (x, 1), (x*y + 1, 1)])]
         """

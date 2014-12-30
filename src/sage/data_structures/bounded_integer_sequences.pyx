@@ -145,6 +145,20 @@ cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1:
     sig_off()
 
 #
+# Pickling
+#
+
+cdef tuple biseq_pickle(biseq_t S):
+    return (bitset_pickle(S.data), S.itembitsize, S.length)
+
+cdef bint biseq_unpickle(biseq_t R, tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length) except -1:
+    biseq_init(R, length, itembitsize)
+    sig_on()
+    bitset_unpickle(R.data, bitset_data)
+    sig_off()
+    return 1
+
+#
 # Conversion
 #
 
@@ -171,6 +185,22 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
             raise OverflowError("list item {!r} larger than {}".format(item, bound) )
         biseq_inititem(R, index, item_c)
         index += 1
+
+cdef inline Py_hash_t biseq_hash(biseq_t S):
+    cdef Py_hash_t hash = 0
+    cdef mp_size_t i
+    for i from 0 <= i < S.data.limbs:
+        hash = hash*(<Py_hash_t>1073807360)+S.data.bits[i]
+    return hash
+
+cdef inline int biseq_cmp(biseq_t S1, biseq_t S2):
+    cdef int c = cmp(S1.itembitsize, S2.itembitsize)
+    if c:
+        return c
+    c = cmp(S1.length, S2.length)
+    if c:
+        return c
+    return bitset_cmp(S1.data, S2.data)
 
 #
 # Arithmetics
@@ -714,7 +744,7 @@ cdef class BoundedIntegerSequence:
             True
 
         """
-        return NewBISEQ, (bitset_pickle(self.data.data), self.data.itembitsize, self.data.length)
+        return NewBISEQ, biseq_pickle(self.data)
 
     def __len__(self):
         """
@@ -1290,13 +1320,7 @@ cdef class BoundedIntegerSequence:
             left = self
         except TypeError:
             return 1
-        cdef int c = cmp(left.data.itembitsize, right.data.itembitsize)
-        if c:
-            return c
-        c = cmp(left.data.length, right.data.length)
-        if c:
-            return c
-        return bitset_cmp(left.data.data, right.data.data)
+        return biseq_cmp(left.data, right.data)
 
     def __hash__(self):
         """
@@ -1322,7 +1346,7 @@ cdef class BoundedIntegerSequence:
             True
 
         """
-        return bitset_hash(self.data.data)
+        return biseq_hash(self.data)
 
 cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length):
     """
@@ -1354,11 +1378,7 @@ cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize
 
     """
     cdef BoundedIntegerSequence out = BoundedIntegerSequence.__new__(BoundedIntegerSequence)
-    # bitset_unpickle assumes that out.data.data is initialised.
-    biseq_init(out.data, length, itembitsize)
-    sig_on()
-    bitset_unpickle(out.data.data, bitset_data)
-    sig_off()
+    biseq_unpickle(out.data, bitset_data, itembitsize, length)
     return out
 
 def _biseq_stresstest():

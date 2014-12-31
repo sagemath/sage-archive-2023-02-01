@@ -318,7 +318,7 @@ common parent, you can use a three-way diff::
       {remote}: modified file
     Hit return to start merge resolution tool (meld):
 
-If you don't have a favorite merge tool we suggest you try `meld
+If you don't have a favourite merge tool we suggest you try `meld
 <http://meldmerge.org/>`_ (cross-platform). The result looks like the following
 screenshot.
 

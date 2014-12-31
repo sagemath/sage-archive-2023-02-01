@@ -220,6 +220,7 @@ How do I get help?
 """"""""""""""""""
 
 For support about usage of Sage, there are two options:
+
 * The question-and-answer website `ask.sagemath.org <http://ask.sagemath.org/questions/>`_
 * The email list `sage-support <http://groups.google.com/group/sage-support>`_
 

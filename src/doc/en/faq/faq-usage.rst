@@ -8,34 +8,32 @@ FAQ: Using Sage
 How do I get started?
 """""""""""""""""""""
 
-You can try out Sage without downloading anything using
-SageMathCloud™. Go to http://cloud.sagemath.org and set up a free
-account. If you log in, you will access to the latest version of Sage
-and to many other software.
+You can try out Sage without downloading anything:
 
-There is also a "once-off" version of Sage called the Sage cell server,
-available for doing one computation at a time at http://sagecell.sagemath.org/
+* **SageMathCloud™:** Go to http://cloud.sagemath.org and set up a free
+  account.
 
-A final possibility is to go to a public Sage notebook server and
-set up a free account.   If you log in, you will be working on a free Sage
-notebook server that will work identically to the one you get with
-Sage.  The server http://sagenb.org is one such, though it runs an older
-version of Sage and is scheduled to be retired in the future in favor of
-the SageMathCloud.
+  If you log in, you will access to the latest version of Sage and to
+  many other software.
 
-To download a pre-built binary Sage distribution, visit the page
+* **Sage cell:** A "once-off" version of Sage, available for doing one
+  computation at a time. http://sagecell.sagemath.org/
 
-You can try out Sage without downloading anything. Go to
-http://www.sagenb.org and set up a free account. If you log in, you
-will be working on a free Sage notebook server that will work
-identically to the one you get with Sage. To download a pre-built
-binary Sage distribution, visit the page
-http://www.sagemath.org/download.html and click on the link for the
-binary for your operating system. The source code of Sage is also
-available for you to download and use. Go to
-http://www.sagemath.org/download-source.html to download the tar
-archive for any release of Sage.
+* **Sagenb:** some public Sage notebook server allow you to create a free
+  account.
 
+  If you log in, you will be working on a free Sage notebook server that will
+  work identically to the one you get within Sage. The server http://sagenb.org
+  is one such, though it runs an older version of Sage and is scheduled to be
+  retired in the future in favor of the SageMathCloud.
+
+To download a **pre-built binary** Sage distribution, visit
+http://sagemath.org/download.html and click on the link for the binary for your
+operating system.
+
+The **source code** of Sage is also available for you to download and use. Go to
+http://www.sagemath.org/download-source.html to download the tar archive for any
+release of Sage.
 
 The Sage notebook runs within a web browser. To start the notebook,
 issue the following command in a terminal, if ``sage`` is in your ``PATH`` ::

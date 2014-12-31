@@ -668,7 +668,7 @@ framework. Here is a comprehensive list:
   :ref:`chapter-randomtesting`).
 
   When possible, avoid the problem, e.g.: rather than checking the value of the
-  hash in a dockets, one could illustrate successfully using it as a key in a
+  hash in a doctest, one could illustrate successfully using it as a key in a
   dict.
 
 - **long time:** The line is only tested if the ``--long`` option is given, e.g.

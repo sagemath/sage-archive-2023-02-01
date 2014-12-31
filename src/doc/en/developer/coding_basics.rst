@@ -706,7 +706,7 @@ framework. Here is a comprehensive list:
      0.7071067812 + 0.7071067812*I
 
   **Multiple numerical values:** the representation of complex numbers,
-  matrices, or polynomials usually involve several numerical values. If a
+  matrices, or polynomials usually involves several numerical values. If a
   doctest with tolerance contains several numbers, each of them is checked
   individually::
 
@@ -751,8 +751,8 @@ framework. Here is a comprehensive list:
      Neither of this applies to files or directories which are explicitly given
      as command line arguments: those are always tested.
 
-- **optional:** A line flagged with ``optional - keyword``, it is not tested
-  unless the ``--optional=keyword`` flag is passed to ``sage -t`` (see
+- **optional:** A line flagged with ``optional - keyword`` is not tested unless
+  the ``--optional=keyword`` flag is passed to ``sage -t`` (see
   :ref:`section-optional-doctest-flag`). The main applications are:
 
   - **optional packages:** When a line requires an optional package to be
@@ -788,16 +788,16 @@ framework. Here is a comprehensive list:
       - Optional tags are case-insensitive, so you could also write ``optional:
         chOMP``.
 
-- **32-bit** or **64-bit:** A line flagged with one of these keywords will only
-  be considered by the testing framework if it matches the current
-  architecture::
+- **32-bit** or **64-bit:** for tests that behave differently on 32-bit or
+  64-bit machines. Note that this particular flag is to be applied on the
+  **output** lines, not the input lines::
 
       sage: z = 32
       sage: z.powermodm_ui(2^32-1, 14)
       Traceback (most recent call last):                              # 32-bit
       ...                                                             # 32-bit
       OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
-      8              # 64-bit
+      8                                                               # 64-bit
 
 Using ``search_src`` from the Sage prompt (or ``grep``), one can
 easily find the aforementioned keywords. In the case of ``todo: not

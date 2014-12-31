@@ -55,7 +55,7 @@ Hyperbolicity
 
       .. MATH::
 
-          hyp(a, b, c, d) \leq \min_{u,v\in\{a,b,c,d\}}\frac{dist(u,v)}{2}
+          hyp(a, b, c, d) \leq \min_{u,v\in\{a,b,c,d\}}2dist(u,v)
 
       This result is used to reduce the number of tested 4-tuples in the naive
       implementation (called 'basic+').
@@ -1026,7 +1026,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
                 # We test if the new computed value improves upon previous value.
                 if hh > hyp or (hh==hyp and not certificate):
                     hyp = hh
-                    hyp_UB = hh_UB
+                    hyp_UB = max(hyp_UB, hh_UB)
                     certificate = certif
 
         # Last, we return the computed value and the certificate
@@ -1045,7 +1045,6 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
     # We compute the distances and store the results in a 2D array
     distances = <unsigned short **>sage_malloc(sizeof(unsigned short *)*N)
     if distances == NULL:
-        sage_free(_distances_)
         raise MemoryError("Unable to allocate array 'distances'.")
 
     if algorithm=='cuts+':

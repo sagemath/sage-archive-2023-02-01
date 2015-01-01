@@ -122,6 +122,7 @@ Basics of Writing and Testing Sage Code
 
    coding_basics
    doctesting
+   reviewer_checklist
 
 Contributing to Manuals and Tutorials
 -------------------------------------

@@ -528,13 +528,14 @@ end: git downloads both Alice's conflicting commit and her resolution.
 Reviewing
 =========
 
-This section gives an example how to review using the ``sage``
-command.  For a detailed discussion of Sage's review process, see
-:ref:`Reviewing Patches <section-review-patches>`. If you go to the
-`web interface to the Sage trac development server
-<http://trac.sagemath.org>`_ then you can click on the "Branch:" field
-and see the code that is added by combining all commits of the
-ticket. This is what needs to be reviewed.
+This section gives an example how to review using the ``sage`` command. For an
+explanation of what should be checked by the reviewer, see
+:ref:`chapter-review`.
+
+If you go to the `web interface to the Sage trac development server
+<http://trac.sagemath.org>`_ then you can click on the "Branch:" field and see
+the code that is added by combining all commits of the ticket. This is what
+needs to be reviewed.
 
 The ``git trac`` command gives you two commands that might be handy
 (replace ``12345`` with the actual ticket number) if you do not want

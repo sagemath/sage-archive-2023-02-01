@@ -90,17 +90,11 @@ if [ -z "$FC" ]; then
 fi
 
 if [ -f "$SAGE_LOCAL/bin/gcc" ]; then
-    # GCC is already installed. To disable unneeded rebuilding
-    # of GCC, we touch the installed file for GCC, such that it will
-    # really only be built if one of its dependencies has been upgraded.
-    echo >&2 "GCC was installed before, it will get re-installed if needed."
-    need_to_install_gcc=yes
-    for f in "$SAGE_SPKG_INST"/gcc-*; do
-        if [ -f "$f" ]; then
-            touch "$f"
-        fi
-    done
-elif [ -n "$SAGE_INSTALL_GCC" ]; then
+    # Ignore SAGE_INSTALL_GCC if GCC is already installed
+    SAGE_INSTALL_GCC=""
+fi
+
+if [ -n "$SAGE_INSTALL_GCC" ]; then
     # Check the value of the environment variable SAGE_INSTALL_GCC
     case "$SAGE_INSTALL_GCC" in
         yes)
@@ -119,7 +113,7 @@ else
 
     # Check whether $CXX is some version of GCC.  If it's a different
     # compiler, install GCC.
-    CXXtype=`testcxx.sh $CXX`
+    CXXtype=`source sage-env; testcxx.sh $CXX`
     if [ "$CXXtype" != GCC ]; then
         echo >&2 "Installing GCC because your '$CXX' isn't GCC (GNU C++)."
         need_to_install_gcc=yes

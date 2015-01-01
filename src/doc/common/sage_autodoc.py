@@ -39,6 +39,7 @@ from sphinx.util.inspect import isdescriptor, safe_getmembers, safe_getattr
 from sphinx.util.docstrings import prepare_docstring
 
 from sage.misc.sageinspect import _sage_getdoc_unformatted, sage_getargspec, isclassinstance
+from sage.misc.lazy_import import LazyImport
 
 try:
     base_exception = BaseException
@@ -513,6 +514,11 @@ class Documenter(object):
 
         # process members and determine which to skip
         for (membername, member) in members:
+            # Immediately skip lazy imports to avoid deprecation
+            # messages (#17455).
+            if isinstance(member, LazyImport):
+                continue
+
             # if isattr is True, the member is documented as an attribute
             isattr = False
 

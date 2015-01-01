@@ -1972,6 +1972,62 @@ cdef class RingElement(ModuleElement):
         """
         return self.__abs__()
 
+    def is_prime(self):
+        """
+        Is ``self`` a prime element?
+
+        A *prime* element is a non-zero, non-unit element `p` such that,
+        whenever `p` divides `ab` for some `a` and `b`, then `p`
+        divides `a` or `p` divides `b`.
+
+        EXAMPLES:
+
+        For polynomial rings, prime is the same as irreducible::
+
+            sage: R.<x,y> = QQ[]
+            sage: x.is_prime()
+            True
+            sage: (x^2 + y^3).is_prime()
+            True
+            sage: (x^2 - y^2).is_prime()
+            False
+            sage: R(0).is_prime()
+            False
+            sage: R(2).is_prime()
+            False
+
+        For the Gaussian integers::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: ZI = K.ring_of_integers()
+            sage: ZI(3).is_prime()
+            True
+            sage: ZI(5).is_prime()
+            False
+            sage: ZI(2+i).is_prime()
+            True
+            sage: ZI(0).is_prime()
+            False
+            sage: ZI(1).is_prime()
+            False
+
+        In fields, an element is never prime::
+
+            sage: RR(0).is_prime()
+            False
+            sage: RR(2).is_prime()
+            False
+
+        For integers, prime numbers are redefined to be positive::
+
+            sage: RingElement.is_prime(-2)
+            True
+            sage: Integer.is_prime(-2)
+            False
+        """
+        if not self:  # We exclude the 0 element
+            return False
+        return self._parent.ideal(self).is_prime()
 
 
 def is_CommutativeRingElement(x):

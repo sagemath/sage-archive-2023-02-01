@@ -3202,14 +3202,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def product(self,other):
         """
-        Returns the cartesian product of ``self`` and ``other``.
+        Return the cartesian product of ``self`` and ``other``.
 
         EXAMPLES::
 
             sage: P = Posets.ChainPoset(3)
             sage: Q = Posets.ChainPoset(4)
             sage: PQ = P.product(Q) ; PQ
-            Finite poset containing 12 elements
+            Finite lattice containing 12 elements
             sage: len(PQ.hasse_diagram().edges())
             17
             sage: Q.product(P).is_isomorphic(PQ)
@@ -3220,7 +3220,21 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_isomorphic(Posets.BooleanLattice(4))
             True
         """
-        return Poset(self.hasse_diagram().cartesian_product(other.hasse_diagram()),cover_relations=True)
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
+        if ( isinstance(self, FiniteLatticePoset) and
+             isinstance(other, FiniteLatticePoset) ):
+            constructor = FiniteLatticePoset
+        elif ( isinstance(self, FiniteMeetSemilattice) and
+               isinstance(other, FiniteMeetSemilattice) ):
+            constructor = FiniteMeetSemilattice
+        elif ( isinstance(self, FiniteJoinSemilattice) and
+               isinstance(other, FiniteJoinSemilattice) ):
+            constructor = FiniteJoinSemilattice
+        else:
+            constructor = FinitePoset
+        return constructor(self.hasse_diagram().cartesian_product(other.hasse_diagram()))
 
     def disjoint_union(self, other, labels='pairs'):
         """
@@ -3531,6 +3545,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.cover_relations()
             [[12, 6], [12, 4], [6, 3], [6, 2], [4, 2], [3, 1], [2, 1]]
 
+        Relabeling a (semi)lattice gives a (semi)lattice:
+
+            sage: P=JoinSemilattice({0:[1]})
+            sage: type(P.relabel(lambda n: n+1))
+            <class 'sage.combinat.posets.lattices.FiniteJoinSemilattice_with_category'>
+
         .. NOTE::
 
             As can be seen in the above examples, the default linear
@@ -3559,6 +3579,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: p1 == p3
             True
         """
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
         if isinstance(relabeling, (list, tuple)):
             relabeling = {i:relabeling[i] for i in range(len(self._elements))}
         else:
@@ -3570,9 +3593,18 @@ class FinitePoset(UniqueRepresentation, Parent):
         else:
             elements = tuple(relabeling[self._element_to_vertex(x)]
                              for x in self._elements)
-        return FinitePoset(self._hasse_diagram.relabel(relabeling, inplace=False),
-                           elements=elements,
-                           category=self.category(),
+
+        if isinstance(self, FiniteLatticePoset):
+            constructor = FiniteLatticePoset
+        elif isinstance(self, FiniteMeetSemilattice):
+            constructor = FiniteMeetSemilattice
+        elif isinstance(self, FiniteJoinSemilattice):
+            constructor = FiniteJoinSemilattice
+        else:
+            constructor = FinitePoset
+        return constructor(self._hasse_diagram.relabel(relabeling,
+                                                       inplace=False),
+                           elements=elements, category=self.category(),
                            facade=self._is_facade)
 
     def canonical_label(self):

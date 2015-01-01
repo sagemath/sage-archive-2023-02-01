@@ -687,7 +687,8 @@ framework. Here is a comprehensive list:
   libraries, ...) or non-deterministic algorithms.
 
   - This may be prefixed by ``abs[olute]`` or ``rel[ative]`` to specify whether
-    to measure **absolute** or **relative** error.
+    to measure **absolute** or **relative** error (see the
+    :wikipedia:`Approximation_error`).
 
   - If none of ``abs/rel`` is specified, the error is considered to be
     ``absolute`` when the expected value is **zero**, and is ``relative`` for

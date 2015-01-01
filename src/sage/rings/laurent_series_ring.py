@@ -31,7 +31,7 @@ from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 
 laurent_series = {}
-def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=False):
+def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=None, sparse=False):
     """
     EXAMPLES::
 
@@ -136,7 +136,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         sage: TestSuite(F).run()
     """
 
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False, category=None):
+    def __init__(self, base_ring, name=None, default_prec=None, sparse=False, category=None):
         """
         Initialization
 
@@ -641,7 +641,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         return self._power_series_ring
 
 class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.IntegralDomain):
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
+    def __init__(self, base_ring, name=None, default_prec=None, sparse=False):
         """
         Initialization
 
@@ -654,7 +654,7 @@ class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.Integr
 class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
     _default_category = CompleteDiscreteValuationFields()
 
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
+    def __init__(self, base_ring, name=None, default_prec=None, sparse=False):
         """
         Initialization
 

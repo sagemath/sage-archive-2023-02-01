@@ -3492,7 +3492,7 @@ cdef class Expression(CommutativeRingElement):
                        for g in self.gradient()])
 
 
-    def series(self, symbol, int order):
+    def series(self, symbol, int order=-1):
         r"""
         Return the power series expansion of self in terms of the
         given variable to the given order.
@@ -3503,7 +3503,9 @@ cdef class Expression(CommutativeRingElement):
           such as ``x == 5``; if an equality is given, the
           expansion is around the value on the right hand side
           of the equality
-        - ``order`` - an integer
+        - ``order`` - an integer; if nothing given, it is set
+          to the global default (``20``), which can be changed
+          using :meth:`set_series_precision`
 
         OUTPUT:
 
@@ -3564,6 +3566,9 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef Expression symbol0 = self.coerce_in(symbol)
         cdef GEx x
+        if order < 0:
+            from sage.misc.defaults import series_precision
+            order = series_precision()
         sig_on()
         try:
             x = self._gobj.series(symbol0._gobj, order, 0)

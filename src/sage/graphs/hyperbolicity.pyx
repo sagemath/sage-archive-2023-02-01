@@ -456,6 +456,8 @@ cdef inline distances_and_far_apart_pairs(gg,
 
     cdef unsigned short * c_distances = distances
 
+    memset(distances, -1, n * n * sizeof(unsigned short))
+
     # We run n different BFS taking each vertex as a source
     for source from 0 <= source < n:
 
@@ -576,6 +578,13 @@ cdef tuple __hyperbolicity__(int N,
     cdef list certificate = []
     cdef unsigned short *p_far_apart
     cdef int nb_p = 0
+
+    # Test if the distance matrix corresponds to a connected graph, i.e., if
+    # distances from node 0 are all less or equal to N-1.
+    for a from 0 <= a < N:
+        if distances[0][a]>=N:
+            raise ValueError("The input graph must be connected.")
+
 
     if far_apart_pairs == NULL:
         nb_p = (N*(N-1))/2
@@ -1026,8 +1035,11 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=N
                 # We test if the new computed value improves upon previous value.
                 if hh > hyp or (hh==hyp and not certificate):
                     hyp = hh
-                    hyp_UB = max(hyp_UB, hh_UB)
                     certificate = certif
+
+                # We update independently the upper bound for cases in which we
+                # are asking for an approximation.
+                hyp_UB = max(hyp_UB, hh_UB)
 
         # Last, we return the computed value and the certificate
         return  ZZ(hyp)/2, sorted(certificate), ZZ(hyp_UB)/2

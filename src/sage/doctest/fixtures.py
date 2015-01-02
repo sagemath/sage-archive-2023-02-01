@@ -139,7 +139,7 @@ class AttributeAccessTracerHelper(object):
         contained in the dictionary of the object itself but instead
         inherited from some class) then it is replaced by a wrapper
         function to report arguments and return value.
-        Otherwise a attribute read access is reported.
+        Otherwise an attribute read access is reported.
 
         EXAMPLE::
 
@@ -254,7 +254,7 @@ class AttributeAccessTracerProxy(object):
         contained in the dictionary of the object itself but instead
         inherited from some class) then it is replaced by a wrapper
         function to report arguments and return value.
-        Otherwise a attribute read access is reported.
+        Otherwise an attribute read access is reported.
 
         EXAMPLE::
 

@@ -131,13 +131,11 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
            ....: color='green', opacity=0.1, plot_points=[30,30])
            Graphics3d Object
 
-       One can use the keyword ``color_data`` to color the surface using a
-       coloring function and a colormap::
+       One can also color the surface using a coloring function and a colormap::
 
            sage: u,v = var('u,v')
            sage: def cf(u,v): return sin(u+v/2)**2
-           sage: P = parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi),
-           ....: color_data=(cf, colormaps.PiYG), plot_points=[60,60])
+           sage: P = parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), color=(cf, colormaps.PiYG), plot_points=[60,60])
            sage: P.show(viewer='tachyon')
 
        Warning: this kind of coloring cannot currently be visualized using

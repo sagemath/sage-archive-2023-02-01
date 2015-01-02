@@ -57,7 +57,7 @@ AUTHORS:
 # show(...) had a prepass where they went through their rendering
 # trees, found ImplicitSurface objects with the same function,
 # bounding box, and plot_points (other parameters, such as contours,
-# hole, color_data, would be allowed to be different),
+# hole, color, would be allowed to be different),
 # and arranged to have them all plotted simultaneously.  These
 # prepasses have not been written yet.  Combining multiple
 # ImplicitSurface plots would be particularly advantageous for animate(...),
@@ -66,7 +66,7 @@ AUTHORS:
 # If you have a reasonably simple surface (not a space-filling fractal),
 # then if n is your resolution, we have n^3 evaluations of the main
 # function, about n^2 evaluations of auxiliary functions (hole, gradient,
-# color_data), and output of size about n^2.
+# color), and output of size about n^2.
 
 # With this in mind, we pay particular attention to optimizing the n^3
 # function evaluations.  (But keep in mind that n may be as small as 20
@@ -957,7 +957,7 @@ cdef class ImplicitSurface(IndexFaceSet):
 
             sage: t = (1-sin(2*x*y+3*z)**2).function(x,y,z)
             sage: cm = colormaps.autumn
-            sage: G = ImplicitSurface(x^2 + y^2 + z^2, (x,-2, 2), (y,-2, 2), (z,-2, 2), contour=4, color_data=(t,cm))
+            sage: G = ImplicitSurface(x^2 + y^2 + z^2, (x,-2, 2), (y,-2, 2), (z,-2, 2), contour=4, color=(t,cm))
             sage: G.show(viewer='tachyon')
         """
         color_data = None

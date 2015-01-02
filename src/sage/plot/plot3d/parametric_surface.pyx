@@ -36,8 +36,7 @@ One can instead provide a coloring function and a color map::
     sage: def f(x,y): return x+y, x-y, x*y
     sage: def c(x,y): return sin((x+y)/2)**2
     sage: cm = colormaps.RdYlGn
-    sage: P = ParametricSurface(f, (srange(-5,5,0.1), srange(-5,5.0,0.1)),
-    ....:  (c,cm))
+    sage: P = ParametricSurface(f, (srange(-5,5,0.1), srange(-5,5.0,0.1)), color=(c,cm))
     sage: P.show(viewer='tachyon')
 
 Note that the coloring function should have values between 0 and
@@ -51,8 +50,7 @@ Another colored example::
 
     sage: cm = colormaps.autumn
     sage: def g(x,y): return x, y, x**2 + y**2
-    sage: P = ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)),
-    ....:  (c,cm))
+    sage: P = ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)), color=(c,cm))
     sage: P.show(viewer='tachyon')
 
 .. NOTE::

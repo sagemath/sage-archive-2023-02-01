@@ -48,9 +48,9 @@ def _new_global_texture_id():
     EXAMPLES::
 
         sage: sage.plot.plot3d.texture._new_global_texture_id()
-        'texture1'
+        'texture...'
         sage: sage.plot.plot3d.texture._new_global_texture_id()
-        'texture2'
+        'texture...'
     """
     global uniq_c
     uniq_c += 1

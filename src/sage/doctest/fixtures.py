@@ -6,7 +6,7 @@ Wrappers, proxies and mockups are typical examples of fixtures.
 
 AUTHORS:
 
-- Martin von Gagern (2014-12-15): PropertyAccessTracerProxy and trace_method
+- Martin von Gagern (2014-12-15): AttributeAccessTracerProxy and trace_method
 - Martin von Gagern (2015-01-02): Factor out TracerHelper and reproducible_repr
 
 EXAMPLES:
@@ -88,14 +88,14 @@ def reproducible_repr(val):
     return r
 
 
-class PropertyAccessTracerHelper(object):
+class AttributeAccessTracerHelper(object):
 
     def __init__(self, delegate, prefix="  ", reads=True):
         r"""
-        Helper to print proxied access to properties.
+        Helper to print proxied access to attributes.
 
         This class does the actual printing of access traces
-        for objects proxied by :class:`PropertyAccessTracerProxy`.
+        for objects proxied by :class:`AttributeAccessTracerProxy`.
         The fact that it's not a proxy at the same time
         helps avoiding complicated attribute access syntax.
 
@@ -116,8 +116,8 @@ class PropertyAccessTracerHelper(object):
             ....:         return self.x*self.x
             ....:
             sage: foo = Foo()
-            sage: from sage.doctest.fixtures import PropertyAccessTracerHelper
-            sage: pat = PropertyAccessTracerHelper(foo)
+            sage: from sage.doctest.fixtures import AttributeAccessTracerHelper
+            sage: pat = AttributeAccessTracerHelper(foo)
             sage: pat.set("x", 2)
               write x = 2
             sage: pat.get("x")
@@ -139,7 +139,7 @@ class PropertyAccessTracerHelper(object):
         contained in the dictionary of the object itself but instead
         inherited from some class) then it is replaced by a wrapper
         function to report arguments and return value.
-        Otherwise a property read access is reported.
+        Otherwise a attribute read access is reported.
 
         EXAMPLE::
 
@@ -149,8 +149,8 @@ class PropertyAccessTracerHelper(object):
             ....:
             sage: foo = Foo()
             sage: foo.x = 2
-            sage: from sage.doctest.fixtures import PropertyAccessTracerHelper
-            sage: pat = PropertyAccessTracerHelper(foo)
+            sage: from sage.doctest.fixtures import AttributeAccessTracerHelper
+            sage: pat = AttributeAccessTracerHelper(foo)
             sage: pat.get("x")
               read x = 2
             2
@@ -189,8 +189,8 @@ class PropertyAccessTracerHelper(object):
             ....:     pass
             ....:
             sage: foo = Foo()
-            sage: from sage.doctest.fixtures import PropertyAccessTracerHelper
-            sage: pat = PropertyAccessTracerHelper(foo)
+            sage: from sage.doctest.fixtures import AttributeAccessTracerHelper
+            sage: pat = AttributeAccessTracerHelper(foo)
             sage: pat.set("x", 2)
               write x = 2
             sage: foo.x
@@ -201,16 +201,16 @@ class PropertyAccessTracerHelper(object):
         setattr(self.delegate, name, val)
 
 
-class PropertyAccessTracerProxy(object):
+class AttributeAccessTracerProxy(object):
 
     def __init__(self, delegate, **kwds):
         r"""
-        Proxy object which prints all property and method access to an object.
+        Proxy object which prints all attribute and method access to an object.
 
-        The implementation is kept lean since all access to properties of
+        The implementation is kept lean since all access to attributes of
         the proxy itself requires complicated syntax.
-        For this reason, the actual handling of property access
-        is delegated to a :class:`PropertyAccessTracerHelper`.
+        For this reason, the actual handling of attribute access
+        is delegated to a :class:`AttributeAccessTracerHelper`.
 
         INPUT:
 
@@ -229,8 +229,8 @@ class PropertyAccessTracerProxy(object):
             ....:         return self.x*self.x
             ....:
             sage: foo = Foo()
-            sage: from sage.doctest.fixtures import PropertyAccessTracerProxy
-            sage: pat = PropertyAccessTracerProxy(foo)
+            sage: from sage.doctest.fixtures import AttributeAccessTracerProxy
+            sage: pat = AttributeAccessTracerProxy(foo)
             sage: pat.x = 2
               write x = 2
             sage: pat.x
@@ -243,7 +243,7 @@ class PropertyAccessTracerProxy(object):
         .. automethod:: __getattribute__
         .. automethod:: __setattr__
         """
-        helper = PropertyAccessTracerHelper(delegate, **kwds)
+        helper = AttributeAccessTracerHelper(delegate, **kwds)
         object.__setattr__(self, "helper", helper)
 
     def __getattribute__(self, name):
@@ -254,7 +254,7 @@ class PropertyAccessTracerProxy(object):
         contained in the dictionary of the object itself but instead
         inherited from some class) then it is replaced by a wrapper
         function to report arguments and return value.
-        Otherwise a property read access is reported.
+        Otherwise a attribute read access is reported.
 
         EXAMPLE::
 
@@ -264,8 +264,8 @@ class PropertyAccessTracerProxy(object):
             ....:
             sage: foo = Foo()
             sage: foo.x = 2
-            sage: from sage.doctest.fixtures import PropertyAccessTracerProxy
-            sage: pat = PropertyAccessTracerProxy(foo)
+            sage: from sage.doctest.fixtures import AttributeAccessTracerProxy
+            sage: pat = AttributeAccessTracerProxy(foo)
             sage: pat.x
               read x = 2
             2
@@ -288,8 +288,8 @@ class PropertyAccessTracerProxy(object):
             ....:     pass
             ....:
             sage: foo = Foo()
-            sage: from sage.doctest.fixtures import PropertyAccessTracerProxy
-            sage: pat = PropertyAccessTracerProxy(foo)
+            sage: from sage.doctest.fixtures import AttributeAccessTracerProxy
+            sage: pat = AttributeAccessTracerProxy(foo)
             sage: pat.x = 2
               write x = 2
             sage: foo.x
@@ -339,7 +339,7 @@ def trace_method(obj, meth, **kwds):
         exit f -> None
     """
     f = getattr(obj, meth).__func__
-    t = PropertyAccessTracerProxy(obj, **kwds)
+    t = AttributeAccessTracerProxy(obj, **kwds)
     @wraps(f)
     def g(*args, **kwds):
         arglst = [fmt(arg) for arg in args]

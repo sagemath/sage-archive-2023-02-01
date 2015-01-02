@@ -405,7 +405,7 @@ It is also possible to generate a Normal Form Game from a gambit Game::
 
 For more information on using Gambit in Sage see: :mod:`Using Gambit in
 Sage<sage.game_theory.gambit_docs>`. This includes how to access Gambit
-directly using the version of IPython shipped with Sage and an explanation
+directly using the version of iPython shipped with Sage and an explanation
 as to why the ``int`` calls are needed to handle the Sage preparser.
 
 Here is a slightly longer game that would take too long to solve with

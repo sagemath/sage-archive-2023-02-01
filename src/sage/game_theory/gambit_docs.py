@@ -10,7 +10,7 @@ To install gambit as an optional package run (from root of Sage)::
 
 The `python API documentation for gambit
 <http://www.gambit-project.org/gambit14/pyapi.html>_` shows various examples
-that can be run easily in Ipython. To run the Ipython packaged with Sage run
+that can be run easily in ipython. To run the ipython packaged with Sage run
 (from root of Sage)::
 
     $ ./sage -ipython

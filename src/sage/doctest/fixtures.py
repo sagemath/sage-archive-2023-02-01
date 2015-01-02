@@ -43,19 +43,153 @@ communicates with its surroundings::
 
 from functools import wraps
 
-class PropertyAccessTracerProxy(object):
+class PropertyAccessTracerHelper(object):
 
     def __init__(self, delegate, prefix="  ", reads=True):
         r"""
-        Proxy object which prints all property and method access to an object.
+        Helper to print proxied access to properties.
+
+        This class does the actual printing of access traces.
+        The fact that it's not a proxy at the same time
+        helps avoiding complicated attribute access syntax.
 
         INPUT:
 
-        -  ``delegate``: The actual object to be proxied.
+        - ``delegate``: The actual object to be proxied.
 
-        -  ``prefix``: String to prepend to each printed output.
+        - ``prefix``: String to prepend to each printed output.
 
-        -  ``reads``: Whether to trace read access as well
+        - ``reads``: Whether to trace read access as well.
+
+        EXAMPLE::
+
+            sage: class Foo(object):
+            ....:     def f(self, *args):
+            ....:         return self.x*self.x
+            ....:
+            sage: foo = Foo()
+            sage: from sage.doctest.fixtures import PropertyAccessTracerHelper
+            sage: pat = PropertyAccessTracerHelper(foo)
+            sage: pat.set("x", 2)
+              write x = 2
+            sage: pat.get("x")
+              read x = 2
+            2
+            sage: pat.get("f")(3)
+              call f(3) -> 4
+            4
+        """
+        self.delegate = delegate
+        self.prefix = prefix
+        self.reads = reads
+
+    def get(self, name):
+        r"""
+        EXAMPLE::
+
+            sage: class Foo(object):
+            ....:     def f(self, *args):
+            ....:         return self.x*self.x
+            ....:
+            sage: foo = Foo()
+            sage: foo.x = 2
+            sage: from sage.doctest.fixtures import PropertyAccessTracerHelper
+            sage: pat = PropertyAccessTracerHelper(foo)
+            sage: pat.get("x")
+              read x = 2
+            2
+            sage: pat.get("f")(3)
+              call f(3) -> 4
+            4
+        """
+        val = getattr(self.delegate, name)
+        if callable(val) and name not in self.delegate.__dict__:
+            @wraps(val)
+            def wrapper(*args, **kwds):
+                arglst = [self.fmt(arg) for arg in args]
+                arglst.extend("{}={}".format(k, self.fmt(v))
+                              for k, v in sorted(kwds.items()))
+                res = val(*args, **kwds)
+                print("{}call {}({}) -> {}"
+                      .format(self.prefix, name, ", ".join(arglst),
+                              self.fmt(res)))
+                return res
+            return wrapper
+        else:
+            if self.reads:
+                print("{}read {} = {}".format(self.prefix, name, self.fmt(val)))
+            return val
+
+    def set(self, name, val):
+        r"""
+        EXAMPLE::
+
+            sage: class Foo(object):
+            ....:     pass
+            ....:
+            sage: foo = Foo()
+            sage: from sage.doctest.fixtures import PropertyAccessTracerHelper
+            sage: pat = PropertyAccessTracerHelper(foo)
+            sage: pat.set("x", 2)
+              write x = 2
+            sage: foo.x
+            2
+        """
+        print("{}write {} = {}".format(self.prefix, name, self.fmt(val)))
+        setattr(self.delegate, name, val)
+
+    @classmethod
+    def fmt(cls, val):
+        r"""
+        Format a value to be printed.
+
+        This can be used to introduce normalization,
+        such that the printed value does not depend on factors
+        outside the control of the doctest.
+        One example is the order of elements in a hash-based structure.
+        For most objects, this is simply the ``repr`` of the object.
+
+        EXAMPLE::
+
+            sage: from sage.doctest.fixtures import PropertyAccessTracerHelper
+            sage: fmt = PropertyAccessTracerHelper.fmt
+            sage: print(fmt(set(["a", "c", "b", "d"])))
+            set(['a', 'b', 'c', 'd'])
+            sage: print(fmt(frozenset(["a", "c", "b", "d"])))
+            frozenset(['a', 'b', 'c', 'd'])
+            sage: print(fmt("foo\nbar"))
+            'foo\nbar'
+        """
+        if isinstance(val, frozenset):
+            return ("frozenset([{}])".format
+                    (", ".join(map(cls.fmt, sorted(val)))))
+        if isinstance(val, set):
+            return ("set([{}])".format
+                    (", ".join(map(cls.fmt, sorted(val)))))
+        r = repr(val)
+        return r
+
+
+class PropertyAccessTracerProxy(object):
+
+    def __init__(self, delegate, **kwds):
+        r"""
+        Proxy object which prints all property and method access to an object.
+
+        The implementation is kept lean since all access to properties of
+        the proxy itself requires complicated syntax.
+        For this reason, the actual handling of property access
+        is delegated to a :class:`PropertyAccessTracerHelper`.
+
+        INPUT:
+
+        - ``delegate``: The actual object to be proxied.
+
+        - ``prefix``: String to prepend to each printed output.
+          (Default: ``"  "``)
+
+        - ``reads``: Whether to trace read access as well.
+          (Default: ``True)
 
         EXAMPLE::
 
@@ -75,9 +209,8 @@ class PropertyAccessTracerProxy(object):
               call f(3) -> 4
             4
         """
-        object.__setattr__(self, "delegate", delegate)
-        object.__setattr__(self, "prefix", prefix)
-        object.__setattr__(self, "reads", reads)
+        helper = PropertyAccessTracerHelper(delegate, **kwds)
+        object.__setattr__(self, "helper", helper)
 
     def __getattribute__(self, name):
         r"""
@@ -98,25 +231,8 @@ class PropertyAccessTracerProxy(object):
               call f(3) -> 4
             4
         """
-        delegate = object.__getattribute__(self, "delegate")
-        prefix = object.__getattribute__(self, "prefix")
-        fmt = object.__getattribute__(self, "fmt")
-        val = getattr(delegate, name)
-        if callable(val) and name not in delegate.__dict__:
-            @wraps(val)
-            def wrapper(*args, **kwds):
-                arglst = [fmt(arg) for arg in args]
-                arglst.extend("{}={}".format(k, fmt(v))
-                              for k, v in sorted(kwds.items()))
-                res = val(*args, **kwds)
-                print("{}call {}({}) -> {}"
-                      .format(prefix, name, ", ".join(arglst), fmt(res)))
-                return res
-            return wrapper
-        else:
-            if object.__getattribute__(self, "reads"):
-                print("{}read {} = {}".format(prefix, name, fmt(val)))
-            return val
+        helper = object.__getattribute__(self, "helper")
+        return helper.get(name)
 
     def __setattr__(self, name, val):
         r"""
@@ -133,42 +249,8 @@ class PropertyAccessTracerProxy(object):
             sage: foo.x
             2
         """
-        delegate = object.__getattribute__(self, "delegate")
-        prefix = object.__getattribute__(self, "prefix")
-        fmt = object.__getattribute__(self, "fmt")
-        print("{}write {} = {}".format(prefix, name, fmt(val)))
-        setattr(delegate, name, val)
-
-    @classmethod
-    def fmt(cls, val):
-        r"""
-        Format a value to be printed.
-
-        This can be used to introduce normalization,
-        such that the printed value does not depend on factors
-        outside the control of the doctest.
-        One example is the order of elements in a hash-based structure.
-        For most objects, this is simply the ``repr`` of the object.
-
-        EXAMPLE::
-
-            sage: from sage.doctest.fixtures import PropertyAccessTracerProxy
-            sage: fmt = PropertyAccessTracerProxy.fmt
-            sage: print(fmt(set(["a", "c", "b", "d"])))
-            set(['a', 'b', 'c', 'd'])
-            sage: print(fmt(frozenset(["a", "c", "b", "d"])))
-            frozenset(['a', 'b', 'c', 'd'])
-            sage: print(fmt("foo\nbar"))
-            'foo\nbar'
-        """
-        if isinstance(val, frozenset):
-            return ("frozenset([{}])".format
-                    (", ".join(map(cls.fmt, sorted(val)))))
-        if isinstance(val, set):
-            return ("set([{}])".format
-                    (", ".join(map(cls.fmt, sorted(val)))))
-        r = repr(val)
-        return r
+        helper = object.__getattribute__(self, "helper")
+        return helper.set(name, val)
 
 
 def trace_method(obj, meth, **kwds):
@@ -180,9 +262,15 @@ def trace_method(obj, meth, **kwds):
 
     INPUT:
 
-    -  ``obj``: The object containing the method.
+    - ``obj``: The object containing the method.
 
-    -  ``meth``: The name of the method to be traced.
+    - ``meth``: The name of the method to be traced.
+
+    - ``prefix``: String to prepend to each printed output.
+      (Default: ``"  "``)
+
+    - ``reads``: Whether to trace read access as well.
+      (Default: ``True)
 
     EXAMPLE::
 
@@ -205,7 +293,7 @@ def trace_method(obj, meth, **kwds):
     """
     f = getattr(obj, meth).__func__
     t = PropertyAccessTracerProxy(obj, **kwds)
-    fmt = PropertyAccessTracerProxy.fmt
+    fmt = PropertyAccessTracerHelper.fmt
     @wraps(f)
     def g(*args, **kwds):
         arglst = [fmt(arg) for arg in args]

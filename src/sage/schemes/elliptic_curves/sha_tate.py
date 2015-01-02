@@ -480,10 +480,7 @@ class Sha(SageObject):
             sage: EllipticCurve('389a1').sha().an_padic(5,4) # rank 2, long time (2s on sage.math, 2011)
             1 + O(5^3)
             sage: EllipticCurve('858k2').sha().an_padic(7)   # rank 0, non trivial sha, long time (10s on sage.math, 2011)
-            Traceback (most recent call last):                           # 32-bit (see ticket :trac: `11211`)
-            ...                                                          # 32-bit
-            OverflowError: Python int too large to convert to C long     # 32-bit
-            7^2 + O(7^24) # 64-bit
+            7^2 + O(7^24)
             sage: EllipticCurve('300b2').sha().an_padic(3)   # 9 elements in sha, long time (2s on sage.math, 2011)
             3^2 + O(3^24)
             sage: EllipticCurve('300b2').sha().an_padic(7, prec=6)  # long time
@@ -747,10 +744,7 @@ class Sha(SageObject):
 
             sage: e = EllipticCurve('858k2')
             sage: e.sha().p_primary_bound(3)  # long time (10s on sage.math, 2011)
-            Traceback (most recent call last):                           # 32-bit (see :trac: `11211`)
-            ...                                                          # 32-bit
-            OverflowError: Python int too large to convert to C long     # 32-bit
-            0                                                            # 64-bit
+            0
 
         Some checks for :trac:`6406`::
 
@@ -760,10 +754,7 @@ class Sha(SageObject):
             ValueError: The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound.
 
             sage: e.sha().an_padic(7)  # long time (depends on "e.sha().p_primary_bound(3)" above)
-            Traceback (most recent call last):                           # 32-bit
-            ...                                                          # 32-bit
-            OverflowError: Python int too large to convert to C long     # 32-bit
-            7^2 + O(7^24)                                                 # 64-bit
+            7^2 + O(7^24)
 
             sage: e = EllipticCurve('11a3')
             sage: e.sha().p_primary_bound(5)

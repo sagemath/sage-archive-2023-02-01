@@ -23,16 +23,15 @@ as a formal sum of monomial Manin Symbols, with integer coefficients.
 There are various different classes holding lists of Manin symbols of
 different types.  The hierarchy is as follows:
 
-::
+- :class:`ManinSymbolList`
 
-    class ManinSymbolList(SageObject)
+  - :class:`ManinSymbolList_group`
 
-    class ManinSymbolList_group(ManinSymbolList)
-        class ManinSymbolList_gamma0(ManinSymbolList_group)
-        class ManinSymbolList_gamma1(ManinSymbolList_group)
-        class ManinSymbolList_gamma_h(ManinSymbolList_group)
+    - :class:`ManinSymbolList_gamma0`
+    - :class:`ManinSymbolList_gamma1`
+    - :class:`ManinSymbolList_gamma_h`
 
-    class ManinSymbolList_character(ManinSymbolList)
+  - :class:`ManinSymbolList_character`
 
 """
 
@@ -62,7 +61,8 @@ from sage.rings.arith import xgcd, gcd
 from sage.rings.all import Infinity
 from sage.rings.all import ZZ, Integer
 
-from sage.structure.sage_object import SageObject
+from sage.structure.element import Element
+from sage.structure.parent import Parent
 
 from apply import apply_to_monomial
 
@@ -86,15 +86,15 @@ def is_ManinSymbol(x):
     return isinstance(x, ManinSymbol)
 
 
-class ManinSymbol(SageObject):
+class ManinSymbol(Element):
     r"""
-    A Manin symbol `[X^i\cdot Y^{k-2-i},(u,v)]`.
+    A Manin symbol `[X^i Y^{k-2-i}, (u, v)]`.
 
     INPUT:
 
-    -  ``parent`` - ManinSymbolList.
+    - ``parent`` -- :class:`ManinSymbolList`
 
-    -  ``t`` - a 3-tuple `(i,u,v)` of integers.
+    - ``t`` -- a triple `(i, u, v)` of integers.
 
     EXAMPLES::
 
@@ -105,24 +105,31 @@ class ManinSymbol(SageObject):
         sage: s == loads(dumps(s))
         True
 
-        ::
+    ::
 
         sage: m = ManinSymbolList_gamma0(5,8)
         sage: s = ManinSymbol(m,(2,2,3)); s
         [X^2*Y^4,(2,3)]
 
+    ::
+
+        sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+        sage: m = ManinSymbolList_gamma0(5,8)
+        sage: s = ManinSymbol(m,(2,2,3))
+        sage: s.parent()
+        Manin Symbol List of weight 8 for Gamma0(5)
+
     """
     def __init__(self, parent, t):
         r"""
-        Create a Manin symbol `[X^i*Y^{k-2-i},(u,v)]`, where
+        Create a Manin symbol `[X^i Y^{k-2-i}, (u, v)]`, where
         `k` is the weight.
 
         INPUT:
 
+        - ``parent`` -- :class:`ManinSymbolList`
 
-        -  ``parent`` - ManinSymbolList
-
-        -  ``t`` - a 3-tuple (i,u,v) of int's.
+        - ``t`` -- a triple `(i, u, v)` of integers
 
         EXAMPLES::
 
@@ -141,10 +148,33 @@ class ManinSymbol(SageObject):
         if not isinstance(parent, ManinSymbolList):
             raise TypeError("parent (=%s) must be of type ManinSymbolList."%(
                 parent))
-        self.__parent = parent
         if not isinstance(t, tuple):
             raise TypeError("t (=%s) must be of type tuple."%t)
         self.__t = t
+        Element.__init__(self, parent)
+
+    def __setstate__(self, state):
+        """
+        Needed to unpickle old :class:`ManinSymbol` objects.
+
+        In older versions of this class, which did not inherit from
+        :class:`Element`, the state was a ``dict`` which also stored
+        the parent.  We modify this to a pair ``(parent, dict)``, as
+        required by the unpickling code of :class:`Element`.
+
+        TESTS::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
+            sage: m = ManinSymbolList_gamma0(5,2)
+            sage: s = ManinSymbol(m,(2,2,3))
+            sage: loads(dumps(s))
+            (2,3)
+
+        """
+        if isinstance(state, dict):
+            parent = state.pop('_ManinSymbol__parent')
+            state = (parent, state)
+        Element.__setstate__(self, state)
 
     def tuple(self):
         r"""
@@ -258,8 +288,6 @@ class ManinSymbol(SageObject):
         """
         if not isinstance(other, ManinSymbol):
             return -1
-        if self.__t == other.__t:
-            return 0
         return cmp(self.tuple(), other.tuple())
 
     def __mul__(self, matrix):
@@ -410,21 +438,6 @@ class ManinSymbol(SageObject):
         a,b,c,d = self.lift_to_sl2z()
         return cusps.Cusp(b,d), cusps.Cusp(a,c)
 
-    def parent(self):
-        """
-        Return the parent of this ManinSymbol.
-
-
-        EXAMPLES::
-
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol, ManinSymbolList_gamma0
-            sage: m = ManinSymbolList_gamma0(5,8)
-            sage: s = ManinSymbol(m,(2,2,3))
-            sage: s.parent()
-            Manin Symbol List of weight 8 for Gamma0(5)
-        """
-        return self.__parent
-
     def weight(self):
         """
         Return the weight of this ManinSymbol.
@@ -438,7 +451,7 @@ class ManinSymbol(SageObject):
             8
 
         """
-        return self.__parent.weight()
+        return self.parent().weight()
 
     def level(self):
         """
@@ -453,7 +466,7 @@ class ManinSymbol(SageObject):
             5
 
         """
-        return self.__parent.level()
+        return self.parent().level()
 
     def modular_symbol_rep(self):
         """
@@ -474,23 +487,27 @@ class ManinSymbol(SageObject):
         """
         # TODO: It would likely be much better to do this slightly more directly
         from sage.modular.modsym.modular_symbols import ModularSymbol
-        x = ModularSymbol(self.__parent, self.i, 0, Infinity)
+        x = ModularSymbol(self.parent(), self.i, 0, Infinity)
         a,b,c,d = self.lift_to_sl2z()
         return x.apply([a,b,c,d])
 
 
-class ManinSymbolList(SageObject):
+class ManinSymbolList(Parent):
     """
     Base class for lists of all Manin symbols for a given weight, group or character.
     """
+
+    Element = ManinSymbol
+
     def __init__(self, weight, list):
         """
         Constructor for a ManinSymbolList.
 
         INPUT:
 
-        -  ``weight``- the weight of the symbols.
-        -  ``list``- the list of symbols.
+        - ``weight`` -- the weight of the symbols
+
+        - ``list`` -- the list of symbols
 
         On construction, a ManinSymbolList constructs a dict for
         rapid determination of the index of any given symbol.
@@ -511,6 +528,27 @@ class ManinSymbolList(SageObject):
         self._weight = weight
         self._list = list
         self._index = dict([(list[i],i) for i in range(len(list))])
+        Parent.__init__(self)
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self``.
+
+        TESTS::
+
+            sage: from sage.modular.modsym.manin_symbols import ManinSymbolList
+            sage: m = ManinSymbolList(6, P1List(11))
+            sage: x = m((2, 3, 5)); x
+            [X^2*Y^2,(3,5)]
+            sage: m(x) == x
+            True
+
+        """
+        if isinstance(x, self.element_class) and parent(x) is self:
+            return x
+        if isinstance(x, ManinSymbol):
+            x = x.tuple()
+        return self.element_class(self, x)
 
     def __cmp__(self, right):
         """
@@ -666,16 +704,17 @@ class ManinSymbolList(SageObject):
 
     def index(self, x):
         """
-        Return the index of ``x`` in the list of Manin symbols, where ``x`` is a
-        3-tuple of ints. If ``x`` is not in the list, then return -1.
+        Return the index of ``x`` in the list of Manin symbols.
 
         INPUT:
 
-        - ``x`` - 3-tuple of integers, `(i,u,v)` defining a valid Manin symbol, which need not be normalized.
+        - ``x`` -- a triple of integers `(i, u, v)` defining a valid
+          Manin symbol, which need not be normalized.
 
         OUTPUT:
 
-        (``int``) the index of the normalized Manin symbol equivalent to `(i,u,v)`.
+        integer -- the index of the normalized Manin symbol equivalent
+        to `(i, u, v)`.  If ``x`` is not in ``self``, -1 is returned.
 
         EXAMPLES::
 
@@ -738,13 +777,11 @@ class ManinSymbolList(SageObject):
 
         INPUT:
 
-
-        - ``i`` - integer, a valid index of a symbol in this list.
-
+        - ``i`` -- integer, a valid index of a symbol in this list.
 
         OUTPUT:
 
-        ``ManinSymbol`` - the `i`'th Manin symbol in the list.
+        :class:`ManinSymbol` -- the `i`'th Manin symbol in the list.
 
         EXAMPLES::
 
@@ -782,10 +819,9 @@ class ManinSymbolList(SageObject):
         """
         Returns the weight of the ManinSymbols in this ManinSymbolList.
 
-
         OUTPUT:
 
-        ``integer`` - the weight of the Manin symbols in the list.
+        integer -- the weight of the Manin symbols in the list.
 
         EXAMPLES::
 
@@ -796,19 +832,19 @@ class ManinSymbolList(SageObject):
         """
         return self._weight
 
+
 class ManinSymbolList_group(ManinSymbolList):
     """
     Base class for Manin symbol lists for a given group.
 
     INPUT:
 
+    - ``level`` -- integer level
 
-    -  ``level`` - integer level
+    - ``weight`` -- integer weight
 
-    -  ``weight`` - integer weight
-
-    -  ``syms`` - something with a normalize and list
-       method, e.g., P1List.
+    - ``syms`` -- something with ``normalize`` and ``list`` methods,
+       e.g. :class:`~sage.modular.modsym.p1list.P1List`.
 
     EXAMPLES::
 
@@ -823,11 +859,12 @@ class ManinSymbolList_group(ManinSymbolList):
 
         INPUT:
 
-        -  ``level`` - integer level
+        - ``level`` -- integer level
 
-        -  ``weight`` - integer weight
+        - ``weight`` -- integer weight
 
-        -  ``syms`` - something with a normalize and list method, e.g., P1List.
+        - ``syms`` -- something with ``normalize`` and ``list``
+           methods, e.g. :class:`~sage.modular.modsym.p1list.P1List`.
 
         EXAMPLES::
 

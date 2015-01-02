@@ -49,17 +49,20 @@ class PropertyAccessTracerHelper(object):
         r"""
         Helper to print proxied access to properties.
 
-        This class does the actual printing of access traces.
+        This class does the actual printing of access traces
+        for objects proxied by :class:`PropertyAccessTracerProxy`.
         The fact that it's not a proxy at the same time
         helps avoiding complicated attribute access syntax.
 
         INPUT:
 
-        - ``delegate``: The actual object to be proxied.
+        - ``delegate`` -- the actual object to be proxied.
 
-        - ``prefix``: String to prepend to each printed output.
+        - ``prefix`` -- (default: ``"  "``)
+          string to prepend to each printed output.
 
-        - ``reads``: Whether to trace read access as well.
+        - ``reads`` -- (default: ``True``)
+          whether to trace read access as well.
 
         EXAMPLE::
 
@@ -85,6 +88,14 @@ class PropertyAccessTracerHelper(object):
 
     def get(self, name):
         r"""
+        Read an attribute from the wrapped delegate object.
+
+        If that value is a method (i.e. a callable object which is not
+        contained in the dictionary of the object itself but instead
+        inherited from some class) then it is replaced by a wrapper
+        function to report arguments and return value.
+        Otherwise a property read access is reported.
+
         EXAMPLE::
 
             sage: class Foo(object):
@@ -122,6 +133,10 @@ class PropertyAccessTracerHelper(object):
 
     def set(self, name, val):
         r"""
+        Write an attribute to the wrapped delegate object.
+
+        The name and new value are also reported in the output.
+
         EXAMPLE::
 
             sage: class Foo(object):
@@ -183,13 +198,13 @@ class PropertyAccessTracerProxy(object):
 
         INPUT:
 
-        - ``delegate``: The actual object to be proxied.
+        - ``delegate`` -- the actual object to be proxied.
 
-        - ``prefix``: String to prepend to each printed output.
-          (Default: ``"  "``)
+        - ``prefix`` -- (default: ``"  "``)
+          string to prepend to each printed output.
 
-        - ``reads``: Whether to trace read access as well.
-          (Default: ``True)
+        - ``reads`` -- (default: ``True``)
+          whether to trace read access as well.
 
         EXAMPLE::
 
@@ -208,12 +223,23 @@ class PropertyAccessTracerProxy(object):
             sage: pat.f(3)
               call f(3) -> 4
             4
+
+        .. automethod:: __getattribute__
+        .. automethod:: __setattr__
         """
         helper = PropertyAccessTracerHelper(delegate, **kwds)
         object.__setattr__(self, "helper", helper)
 
     def __getattribute__(self, name):
         r"""
+        Read an attribute from the wrapped delegate object.
+
+        If that value is a method (i.e. a callable object which is not
+        contained in the dictionary of the object itself but instead
+        inherited from some class) then it is replaced by a wrapper
+        function to report arguments and return value.
+        Otherwise a property read access is reported.
+
         EXAMPLE::
 
             sage: class Foo(object):
@@ -236,6 +262,10 @@ class PropertyAccessTracerProxy(object):
 
     def __setattr__(self, name, val):
         r"""
+        Write an attribute to the wrapped delegate object.
+
+        The name and new value are also reported in the output.
+
         EXAMPLE::
 
             sage: class Foo(object):
@@ -262,15 +292,16 @@ def trace_method(obj, meth, **kwds):
 
     INPUT:
 
-    - ``obj``: The object containing the method.
+    - ``obj`` -- the object containing the method.
 
-    - ``meth``: The name of the method to be traced.
+    - ``meth`` -- the name of the method to be traced.
 
-    - ``prefix``: String to prepend to each printed output.
-      (Default: ``"  "``)
+    - ``prefix`` -- (default: ``"  "``)
+      string to prepend to each printed output.
 
-    - ``reads``: Whether to trace read access as well.
-      (Default: ``True)
+    - ``reads`` -- (default: ``True``)
+      whether to trace read access as well.
+      
 
     EXAMPLE::
 

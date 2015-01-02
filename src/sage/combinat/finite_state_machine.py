@@ -175,6 +175,10 @@ LaTeX output
     :meth:`~FiniteStateMachine.format_letter_negative` | Format negative numbers as overlined number
     :meth:`~FiniteStateMachine.format_transition_label_reversed` | Format words in transition labels in reversed order
 
+.. SEEALSO::
+
+    :ref:`finite_state_machine_LaTeX_output`
+
 
 :class:`FSMState`
 -----------------
@@ -411,6 +415,16 @@ we use :meth:`~FiniteStateMachine.format_letter_negative` to format
     \path[->] (v1.185.00) edge node[rotate=360.00, anchor=north] {$0$} (v0.355.00);
     \end{tikzpicture}
     sage: view(NAF) # not tested
+
+To use the output of :func:`~sage.misc.latex.latex` in your own
+`\LaTeX` file, you have to include
+
+.. code-block:: latex
+
+    \usepackage{tikz}
+    \usetikzlibrary{automata}
+
+into the preamble of your file.
 
 A simple transducer (binary inverter)
 -------------------------------------

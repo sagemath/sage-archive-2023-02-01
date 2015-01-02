@@ -1015,15 +1015,22 @@ def plot(funcs, *args, **kwds):
         Graphics object consisting of 1 graphics primitive
         sage: set_verbose(0)
 
-    To plot the negative real cube root, use something like the following::
+    Plotting the real cube root function for negative input
+    requires avoiding the complex numbers one would usually get.
+    The easiest way is to use absolute value::
 
-        sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1))
+        sage: plot(sign(x)*abs(x)^(1/3), (x,-1,1))
         Graphics object consisting of 1 graphics primitive
 
-    Another way to avoid getting complex numbers for negative input is to
-    calculate for the positive and negate the answer::
+    We can also use the following::
 
-        sage: plot(sign(x)*abs(x)^(1/3),-1,1)
+        sage: plot(sign(x)*(x*sign(x))^(1/3), (x,-4,4))
+        Graphics object consisting of 1 graphics primitive
+
+    A way that points to how to plot other functions without
+    symbolic variants is using lambda functions::
+
+        sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1))
         Graphics object consisting of 1 graphics primitive
 
     We can detect the poles of a function::

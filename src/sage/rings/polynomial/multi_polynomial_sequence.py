@@ -325,6 +325,10 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
     try:
         c = K.characteristic()
     except NotImplementedError:
+        # We assume that our ring has characteristic zero if it does not implement a
+        # characteristic(). For example, generic quotient rings do not have a characteristic()
+        # method implemented. It is okay to set c = 0 here because we're only using the
+        # characteristic to pick a more specialized implementation for c = 2.
         c = 0
 
     # make sure we use the polynomial ring as ring not the monoid

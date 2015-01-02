@@ -428,10 +428,10 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
         Manin symbols can be converted to elements of the space::
 
-            sage: from sage.modular.modsym.manin_symbols import ManinSymbol
-            sage: ManinSymbol(M.manin_symbols(),(0,2,3))
+            sage: S = M.manin_symbols()
+            sage: S((0,2,3))
             (2,3)
-            sage: M(ManinSymbol(M.manin_symbols(),(0,2,3)))
+            sage: M( S((0,2,3)) )
             (1,34) - (1,35)
 
         However, it is easier to use one of the following forms.
@@ -608,7 +608,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             self.__manin_symbol = {}
         except KeyError:
             pass
-        y = manin_symbols.ManinSymbol(self.manin_symbols(), x)
+        y = self.manin_symbols()(x)
         z = self(y)
         self.__manin_symbol[x] = z
         return z
@@ -1103,7 +1103,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         k = self.weight()
         for n in B:
             z = M(0)
-            i, u, v = syms[n]
+            i, u, v = syms[n].tuple()
             # We apply each Heilbronn matrix to the
             #    Manin symbol [X^i*Y^(k-2-i), (u,v)]
             for h in H:
@@ -1842,15 +1842,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
     def manin_symbols_basis(self):
         """
         A list of Manin symbols that form a basis for the ambient space
-        self. INPUT:
-
-
-        -  ``ModularSymbols self`` - an ambient space of
-           modular symbols
-
+        ``self``.
 
         OUTPUT:
-
 
         -  ``list`` - a list of 2-tuples (if the weight is 2)
            or 3-tuples, which represent the Manin symbols basis for self.

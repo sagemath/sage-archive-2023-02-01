@@ -227,36 +227,44 @@ class GradualTextureTransform(SageObject):
             # Determine limits for function from bounding box
             bounds = group.bounding_box()
 
-            min_z = bounds[0][self.projection_axis]
-            max_z = bounds[1][self.projection_axis]
+            min_val = bounds[0][self.projection_axis]
+            max_val = bounds[1][self.projection_axis]
         else:
-            min_z = self.bounds[0]
-            max_z = self.bounds[1]
+            min_val = self.bounds[0]
+            max_val = self.bounds[1]
 
-        if max_z == min_z:
+        if max_val == min_val:
             span = 0
         else:
-            span = (len(self.values) - 1) / (max_z - min_z)
+            span = (len(self.values) - 1) / (max_val - min_val)
 
         def normalized_fun(x, y, z):
             val = self.fun(x, y, z)
-            if val > max_z:
-                val = max_z
-            if val < min_z:
-                val = min_z
-            return int((val - min_z) * span)
+            if val > max_val:
+                val = max_val
+            if val < min_val:
+                val = min_val
+            return int((val - min_val) * span)
 
         new_all = []
         kwds = {}
         for obj in group.all:
-            obj.triangulate()
-            # Faces have to exist before object can be partitioned
-
+            try:
+                obj.triangulate()
+                # Faces have to exist before object can be partitioned
+            except AttributeError:
+                # assume object is already triangulated
+                # e.g. in the case obj is an IndexFaceSet
+                pass
             parts = obj.partition(normalized_fun)
 
             for k, G in parts.iteritems():
                 kwds[self.attribute] = self.values[k]
-                G.set_texture(kwds)
+                texture_dict = (obj.get_texture().__dict__).copy()
+                _ = texture_dict.pop('id',None) # want new uniquely-generated id
+                texture_dict['name'] = None # forget name
+                texture_dict.update(kwds)
+                G.set_texture(texture_dict)
                 new_all.append(G)
 
         return Graphics3dGroup(new_all)

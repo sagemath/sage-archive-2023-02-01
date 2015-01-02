@@ -99,7 +99,6 @@ from sage.ext.fast_eval cimport FastDoubleFunc
 from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
 from sage.ext.fast_eval import fast_float
 
-
 cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
     if point_c_eq(vs[f.vertices[a]], vs[f.vertices[b]]):
         f.vertices[b] = f.vertices[a]
@@ -168,7 +167,7 @@ cdef class ParametricSurface(IndexFaceSet):
         sage: P.show(viewer='tachyon')
     """
 
-    def __init__(self, f=None, domain=None, color_data=None, **kwds):
+    def __init__(self, f=None, domain=None, **kwds):
         """
         Create the graphics primitive :class:`ParametricSurface`.  See the
         docstring of this class for full documentation.
@@ -183,6 +182,14 @@ cdef class ParametricSurface(IndexFaceSet):
             f = tuple(f)
         self.f = f
         self.render_grid = domain
+        color_data = None
+        if 'color' in kwds.keys():
+            try:
+                if len(kwds['color']) == 2 and callable(kwds['color'][0]):
+                    color_data = kwds['color']
+                    kwds.pop('color')
+            except AttributeError:
+                pass
         if color_data is not None:
             # case of a color depending on parameters
             self.color_function = color_data[0]

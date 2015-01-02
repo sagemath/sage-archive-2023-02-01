@@ -942,7 +942,7 @@ cdef class ImplicitSurface(IndexFaceSet):
 
     def __init__(self, f, xrange, yrange, zrange,
                  contour=0, plot_points="automatic",
-                 region=None, smooth=True, gradient=None, color_data=None,
+                 region=None, smooth=True, gradient=None,
                  **kwds):
         """
         TESTS::
@@ -960,6 +960,14 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: G = ImplicitSurface(x^2 + y^2 + z^2, (x,-2, 2), (y,-2, 2), (z,-2, 2), contour=4, color_data=(t,cm))
             sage: G.show(viewer='tachyon')
         """
+        color_data = None
+        if 'color' in kwds.keys():
+            try:
+                if len(kwds['color']) == 2 and callable(kwds['color'][0]):
+                    color_data = kwds['color']
+                    kwds.pop('color')
+            except AttributeError:
+                pass
         if not(color_data is None):
             # case of a color depending on parameters
             self.color_function = color_data[0]

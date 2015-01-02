@@ -1012,6 +1012,16 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: Sequence([P(0)]).reduced()
             [0]
 
+        Leading coefficients are reduced to 1::
+
+            sage: P.<x,y> = QQ[]
+            sage: Sequence([2*x,y]).reduced()
+            [x, y]
+
+            sage: P.<x,y> = CC[]
+            sage: Sequence([2*x,y]).reduced()
+            [x, y]
+
         ALGORITHM:
 
         Uses Singular's interred command or

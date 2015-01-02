@@ -100,7 +100,7 @@ games.  For example here is an implementation of Matching Pennies::
     In [12]: solver.solve(g)
     Out[12]: []
 
-If we solve this with the `LCP` solver we get the expected Nash equilibrium::
+If we solve this with the ``LCP`` solver we get the expected Nash equilibrium::
 
     In [13]: solver = gambit.nash.ExternalLCPSolver()
     In [14]: solver.solve(g)

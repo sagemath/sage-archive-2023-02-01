@@ -206,7 +206,7 @@ When obtaining Nash equilibrium there are 3 algorithms currently available:
   algorithm uses the optional 'lrs' package. To install it type ``sage -i
   lrs`` at the command line. For more information see [A2000]_.
 
-* ``LCP``: Linear complementarity program algorithm for 2 player games.
+* ``'LCP'``: Linear complementarity program algorithm for 2 player games.
   This algorithm uses the open source game theory package:
   `Gambit <http://gambit.sourceforge.net/>`_ [MMAT2014]_. At present this is
   the only gambit algorithm available in sage but further development will
@@ -1052,7 +1052,7 @@ class NormalFormGame(SageObject, MutableMapping):
           * ``'lrs'`` - This algorithm is only suited for 2 player games.
             See the lrs web site (http://cgm.cs.mcgill.ca/~avis/C/lrs.html).
 
-          * ``"LCP"`` - This algorithm is only suited for 2 player games.
+          * ``'LCP'`` - This algorithm is only suited for 2 player games.
             See the gambit web site (http://gambit.sourceforge.net/). Note
             that the output differs from the other algorithms: floats are
             returned.

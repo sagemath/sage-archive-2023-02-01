@@ -7,6 +7,7 @@ Wrappers, proxies and mockups are typical examples of fixtures.
 AUTHORS:
 
 - Martin von Gagern (2014-12-15): PropertyAccessTracerProxy and trace_method
+- Martin von Gagern (2015-01-02): Factor out TracerHelper and reproducible_repr
 
 EXAMPLES:
 
@@ -42,6 +43,50 @@ communicates with its surroundings::
 #*****************************************************************************
 
 from functools import wraps
+
+
+def reproducible_repr(val):
+    r"""
+    String representation of an object in a reproducible way.
+
+    This tries to ensure that the returned string does not depend on
+    factors outside the control of the doctest.
+    One example is the order of elements in a hash-based structure.
+    For most objects, this is simply the ``repr`` of the object.
+
+    All types which require special handling are covered by the
+    examples below. If a doctest requires special handling for
+    additional types, this function may be extended apropriately.
+
+    INPUT:
+
+    - ``val`` -- an object to be represented
+
+    OUTPUT:
+
+    A string representation of that object, similar to what ``repr``
+    returns but for certain cases with more guarantees to ensure
+    exactly the same result for semantically equivalent objects.
+
+    EXAMPLE::
+
+        sage: from sage.doctest.fixtures import reproducible_repr
+        sage: print(reproducible_repr(set(["a", "c", "b", "d"])))
+        set(['a', 'b', 'c', 'd'])
+        sage: print(reproducible_repr(frozenset(["a", "c", "b", "d"])))
+        frozenset(['a', 'b', 'c', 'd'])
+        sage: print(reproducible_repr("foo\nbar")) # demonstrate default case
+        'foo\nbar'
+    """
+    if isinstance(val, frozenset):
+        return ("frozenset([{}])".format
+                (", ".join(map(reproducible_repr, sorted(val)))))
+    if isinstance(val, set):
+        return ("set([{}])".format
+                (", ".join(map(reproducible_repr, sorted(val)))))
+    r = repr(val)
+    return r
+
 
 class PropertyAccessTracerHelper(object):
 
@@ -117,18 +162,19 @@ class PropertyAccessTracerHelper(object):
         if callable(val) and name not in self.delegate.__dict__:
             @wraps(val)
             def wrapper(*args, **kwds):
-                arglst = [self.fmt(arg) for arg in args]
-                arglst.extend("{}={}".format(k, self.fmt(v))
+                arglst = [reproducible_repr(arg) for arg in args]
+                arglst.extend("{}={}".format(k, reproducible_repr(v))
                               for k, v in sorted(kwds.items()))
                 res = val(*args, **kwds)
                 print("{}call {}({}) -> {}"
                       .format(self.prefix, name, ", ".join(arglst),
-                              self.fmt(res)))
+                              reproducible_repr(res)))
                 return res
             return wrapper
         else:
             if self.reads:
-                print("{}read {} = {}".format(self.prefix, name, self.fmt(val)))
+                print("{}read {} = {}".format(self.prefix, name,
+                                              reproducible_repr(val)))
             return val
 
     def set(self, name, val):
@@ -150,39 +196,9 @@ class PropertyAccessTracerHelper(object):
             sage: foo.x
             2
         """
-        print("{}write {} = {}".format(self.prefix, name, self.fmt(val)))
+        print("{}write {} = {}".format(self.prefix, name,
+                                       reproducible_repr(val)))
         setattr(self.delegate, name, val)
-
-    @classmethod
-    def fmt(cls, val):
-        r"""
-        Format a value to be printed.
-
-        This can be used to introduce normalization,
-        such that the printed value does not depend on factors
-        outside the control of the doctest.
-        One example is the order of elements in a hash-based structure.
-        For most objects, this is simply the ``repr`` of the object.
-
-        EXAMPLE::
-
-            sage: from sage.doctest.fixtures import PropertyAccessTracerHelper
-            sage: fmt = PropertyAccessTracerHelper.fmt
-            sage: print(fmt(set(["a", "c", "b", "d"])))
-            set(['a', 'b', 'c', 'd'])
-            sage: print(fmt(frozenset(["a", "c", "b", "d"])))
-            frozenset(['a', 'b', 'c', 'd'])
-            sage: print(fmt("foo\nbar"))
-            'foo\nbar'
-        """
-        if isinstance(val, frozenset):
-            return ("frozenset([{}])".format
-                    (", ".join(map(cls.fmt, sorted(val)))))
-        if isinstance(val, set):
-            return ("set([{}])".format
-                    (", ".join(map(cls.fmt, sorted(val)))))
-        r = repr(val)
-        return r
 
 
 class PropertyAccessTracerProxy(object):
@@ -324,14 +340,13 @@ def trace_method(obj, meth, **kwds):
     """
     f = getattr(obj, meth).__func__
     t = PropertyAccessTracerProxy(obj, **kwds)
-    fmt = PropertyAccessTracerHelper.fmt
     @wraps(f)
     def g(*args, **kwds):
         arglst = [fmt(arg) for arg in args]
-        arglst.extend("{}={}".format(k, fmt(v))
+        arglst.extend("{}={}".format(k, reproducible_repr(v))
                       for k, v in sorted(kwds.items()))
         print("enter {}({})".format(meth, ", ".join(arglst)))
         res = f(t, *args, **kwds)
-        print("exit {} -> {}".format(meth, fmt(res)))
+        print("exit {} -> {}".format(meth, reproducible_repr(res)))
         return res
     setattr(obj, meth, g)

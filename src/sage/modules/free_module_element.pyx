@@ -348,21 +348,41 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         ...
         ValueError: dictionary of entries has a key (index) exceeding the requested degree
 
-    Any 1 dimensional numpy array of type float or complex may be
-    passed to vector. The result will be a vector in the appropriate
-    dimensional vector space over the real double field or the complex
-    double field. The data in the array must be contiguous so
-    column-wise slices of numpy matrices will raise an exception. ::
+    A 1-dimensional numpy array of type float or complex may be
+    passed to vector. Unless an explicit ring is given, the result will
+    be a vector in the appropriate dimensional vector space over the
+    real double field or the complex double field. The data in the array
+    must be contiguous, so column-wise slices of numpy matrices will
+    raise an exception. ::
 
         sage: import numpy
-        sage: x=numpy.random.randn(10)
-        sage: y=vector(x)
-        sage: v=numpy.random.randn(10)*numpy.complex(0,1)
-        sage: w=vector(v)
+        sage: x = numpy.random.randn(10)
+        sage: y = vector(x)
+        sage: parent(y)
+        Vector space of dimension 10 over Real Double Field
+        sage: parent(vector(RDF, x))
+        Vector space of dimension 10 over Real Double Field
+        sage: parent(vector(CDF, x))
+        Vector space of dimension 10 over Complex Double Field
+        sage: parent(vector(RR, x))
+        Vector space of dimension 10 over Real Field with 53 bits of precision
+        sage: v = numpy.random.randn(10) * numpy.complex(0,1)
+        sage: w = vector(v)
+        sage: parent(w)
+        Vector space of dimension 10 over Complex Double Field
+
+    Multi-dimensional arrays are not supported::
+
+        sage: import numpy as np
+        sage: a = np.array([[1, 2, 3], [4, 5, 6]], np.float64)
+        sage: vector(a)
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot convert 2-dimensional array to a vector
 
     If any of the arguments to vector have Python type int, long, real,
     or complex, they will first be coerced to the appropriate Sage
-    objects. This fixes trac #3847. ::
+    objects. This fixes :trac:`3847`. ::
 
         sage: v = vector([int(0)]); v
         (0)
@@ -378,7 +398,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         Complex Double Field
 
     If the argument is a vector, it doesn't change the base ring. This
-    fixes trac #6643. ::
+    fixes :trac:`6643`. ::
 
         sage: K.<sqrt3> = QuadraticField(3)
         sage: u = vector(K, (1/2, sqrt3/2) )
@@ -469,19 +489,20 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         R = None
 
     from numpy import ndarray
-    from free_module import VectorSpace
-    if isinstance(v,ndarray):
-        if len(v.shape)==1:
-            if str(v.dtype).count('float')==1:
-                V=VectorSpace(RDF,v.shape[0])
-                import vector_real_double_dense
-                _v=vector_real_double_dense.Vector_real_double_dense(V, v)
-                return _v
-            if str(v.dtype).count('complex')==1:
-                V=VectorSpace(CDF,v.shape[0])
-                import vector_complex_double_dense
-                _v=vector_complex_double_dense.Vector_complex_double_dense(V, v)
-                return _v
+    if isinstance(v, ndarray):
+        if len(v.shape) != 1:
+            raise TypeError("cannot convert %r-dimensional array to a vector" % len(v.shape))
+        from free_module import VectorSpace
+        if (R is None or R is RDF) and v.dtype.kind == 'f':
+            V = VectorSpace(RDF, v.shape[0])
+            from vector_real_double_dense import Vector_real_double_dense
+            return Vector_real_double_dense(V, v)
+        if (R is None or R is CDF) and v.dtype.kind == 'c':
+            V = VectorSpace(CDF, v.shape[0])
+            from vector_complex_double_dense import Vector_complex_double_dense
+            return Vector_complex_double_dense(V, v)
+        # Use slower conversion via list
+        v = list(v)
 
     if isinstance(v, dict):
         if degree is None:

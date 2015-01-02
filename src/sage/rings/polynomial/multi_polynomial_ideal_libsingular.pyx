@@ -115,6 +115,17 @@ cdef ideal *sage_ideal_to_singular_ideal(I) except NULL:
 
     - ``I`` -- a Sage ideal in a ring of type
       :class:`~sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular` or a list of generators.
+
+    TESTS:
+
+
+    We test conversion::
+
+        sage: P.<x,y,z> = QQ[]
+        sage: sage.libs.singular.function_factory.ff.std(Sequence([x,y,z]))
+        [z, y, x]
+        sage: sage.libs.singular.function_factory.ff.std(Ideal([x,y,z]))
+        [z, y, x]
     """
     R = I.ring()
     try:

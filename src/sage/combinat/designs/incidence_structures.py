@@ -1809,7 +1809,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             self._groups = [[self._point_to_index[x] for x in g] for g in groups]
 
         if check:
-            assert is_group_divisible_design(self._groups,self._blocks,self.num_points(),G,K,lambd)
+            assert is_group_divisible_design(self._groups,self._blocks,self.num_points(),G,K,lambd,verbose=1)
 
 
     def groups(self):

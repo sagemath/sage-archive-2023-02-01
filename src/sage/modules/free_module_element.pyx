@@ -4065,16 +4065,23 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         We can initialize with dicts, lists, tuples and derived types::
 
             sage: from sage.modules.free_module_element import FreeModuleElement_generic_sparse
-            sage: FreeModuleElement_generic_sparse(RR^5, {0:-1, 2:2/3, 3:pi, 4:oo})
+            sage: def S(R,n):
+            ....:     return FreeModule(R, n, sparse=True)
+            sage: FreeModuleElement_generic_sparse(S(RR,5), {0:-1, 2:2/3, 3:pi, 4:oo})
             (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
-            sage: FreeModuleElement_generic_sparse(RR^5, [-1,0,2/3,pi,oo])
+            sage: FreeModuleElement_generic_sparse(S(RR,5), [-1,0,2/3,pi,oo])
             (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
-            sage: FreeModuleElement_generic_sparse(RR^5, (-1,0,2/3,pi,oo))
+            sage: FreeModuleElement_generic_sparse(S(RR,5), (-1,0,2/3,pi,oo))
             (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
-            sage: FreeModuleElement_generic_sparse(RR^5, Sequence([-1,0,2/3,pi,oo]))
+            sage: FreeModuleElement_generic_sparse(S(RR,5), Sequence([-1,0,2/3,pi,oo]))
             (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
-            sage: FreeModuleElement_generic_sparse(RR^0, 0)
+            sage: FreeModuleElement_generic_sparse(S(RR,0), 0)
             ()
+            sage: from collections import defaultdict
+            sage: D = defaultdict(RR)
+            sage: D[0] = -1
+            sage: FreeModuleElement_generic_sparse(S(RR,5), D)
+            (-1.00000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000)
 
         TESTS:
 
@@ -4108,9 +4115,16 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v = vector([RIF(-1, 1)], sparse=True)
             sage: v.is_zero()
             False
+
+        We correctly initialize values which become 0 only after coercion::
+
+            sage: v = FreeModuleElement_generic_sparse(S(GF(3),6), [1,2,3,4,5,6])
+            sage: v.nonzero_positions()
+            [0, 1, 3, 4]
         """
-        #WARNING: In creation, we do not check that the i pairs satisfy
-        #     0 <= i < degree.
+        #WARNING: In creation, we do not check that the indices i satisfy
+        #     0 <= i < degree
+        # or even that the indices are integers.
         FreeModuleElement.__init__(self, parent)
         R = self.base_ring()
         cdef Py_ssize_t i
@@ -4118,25 +4132,34 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             entries = {}
         else:
             if type(entries) is not dict:
-                if isinstance(entries, (list, tuple)):
+                if isinstance(entries, dict):
+                    # Convert derived type to dict
+                    copy = True
+                elif isinstance(entries, (list, tuple)):
                     if len(entries) != self._degree:
                         raise TypeError("entries has the wrong length")
-                    x = entries
+                    e = entries
                     entries = {}
                     for i in range(self._degree):
-                        if x[i]:
-                            entries[i] = x[i]
+                        x = e[i]
+                        if x:
+                            entries[i] = x
+                    copy = False
                 else:
                     raise TypeError("entries must be a dict, list or tuple, not %s", type(entries))
-            elif copy:
-                entries = dict(entries)  # make a copy
             if coerce:
                 coefficient_ring = parent.basis()[0][0].parent()
+                e = entries
+                entries = {}
                 try:
-                    for k, x in entries.iteritems():
-                        entries[k] = coefficient_ring(x)
+                    for k, x in e.iteritems():
+                        x = coefficient_ring(x)
+                        if x:
+                            entries[k] = x
                 except TypeError:
                     raise TypeError("Unable to coerce value (=%s) of entries dict (=%s) to %s"%(x, entries, coefficient_ring))
+            elif copy:
+                entries = dict(entries)  # make a copy/convert to dict
         self._entries = entries
 
     cpdef ModuleElement _add_(left, ModuleElement right):

@@ -94,7 +94,7 @@ AUTHORS:
 - William Stein
 - John Palmieri
 - Niles Johnson (2013-12): Expand to animate more graphics objects
-- Martin von Gagern
+- Martin von Gagern (2014-12): Added APNG support
 
 .. REFERENCES (not rendered as a section, but linked inline):
 

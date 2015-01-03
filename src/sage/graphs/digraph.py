@@ -96,15 +96,24 @@ graphs. Here is what they can do
 
     :meth:`~DiGraph.feedback_edge_set` | Computes the minimum feedback edge (arc) set of a digraph
 
+**Miscellanous:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~DiGraph.flow_polytope` | Computes the flow polytope of a digraph
+
 Methods
 -------
 """
 
 from sage.rings.integer import Integer
-from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
+
 
 class DiGraph(GenericGraph):
     """
@@ -3477,6 +3486,94 @@ class DiGraph(GenericGraph):
                 l += 1
 
         return g
+
+    def flow_polytope(self):
+        """
+        Return the flow polytope of a digraph.
+
+        The flow polytope of a directed graph is a polytope formed by
+        assigning a nonnegative flow to each of the edges of the graph
+        such that the flow is conserved on internal vertices, and
+        there is a unit of flow entering the sources (vertices of
+        indegree 0) and leaving the sinks (vertices of outdegree 0).
+
+        This requires that there are as many sources as sinks in the
+        graph, otherwise the polytope will be empty.
+
+        The faces and volume of these polytopes are of interest. Examples of
+        these polytopes are the Chan-Robbins-Yuen polytope and the
+        Pitman-Stanley polytope [PitSta]_.
+
+        .. NOTE::
+
+            Flow polytopes can also be built through the ``polytopes.<tab>``
+            object::
+
+                sage: polytopes.flow_polytope(digraphs.Path(5))
+                A 0-dimensional polyhedron in QQ^4 defined as the convex hull of 1 vertex
+
+        EXAMPLES:
+
+        A commutative square::
+
+            sage: G = DiGraph({1: [2, 3], 2: [4], 3: [4]})
+            sage: fl = G.flow_polytope(); fl
+            A 1-dimensional polyhedron in QQ^4 defined as the convex hull
+            of 2 vertices
+            sage: fl.vertices()
+            (A vertex at (0, 1, 0, 1), A vertex at (1, 0, 1, 0))
+
+        A tournament on 4 vertices::
+
+            sage: H = digraphs.TransitiveTournament(4)
+            sage: fl = H.flow_polytope(); fl
+            A 3-dimensional polyhedron in QQ^6 defined as the convex hull
+            of 4 vertices
+            sage: fl.vertices()
+            (A vertex at (0, 0, 1, 0, 0, 0),
+             A vertex at (0, 1, 0, 0, 0, 1),
+             A vertex at (1, 0, 0, 0, 1, 0),
+             A vertex at (1, 0, 0, 1, 0, 1))
+
+        A digraph with one source and two sinks::
+
+            sage: Y = DiGraph({1: [2], 2: [3, 4]})
+            sage: Y.flow_polytope()
+            The empty polyhedron in QQ^3
+
+        A digraph with one vertex and no edge::
+
+            sage: Z = DiGraph({1: []})
+            sage: Z.flow_polytope()
+            A 0-dimensional polyhedron in QQ^0 defined as the convex hull
+            of 1 vertex
+
+        REFERENCES:
+
+        .. [PitSta] Jim Pitman, Richard Stanley, "A polytope related to
+           empirical distributions, plane trees, parking functions, and
+           the associahedron", :arxiv:`math/9908029`
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        ineqs = [[0] + [Integer(j == u) for j in self.edges()]
+                 for u in self.edges()]
+
+        eqs = []
+        for u in self:
+            ins = self.incoming_edges(u)
+            outs = self.outgoing_edges(u)
+            eq = [Integer(j in ins) - Integer(j in outs) for j in self.edges()]
+
+            const = 0
+            if len(ins) == 0:  # sources (indegree 0)
+                const += 1
+            if len(outs) == 0:  # sinks (outdegree 0)
+                const -= 1
+
+            eq = [const] + eq
+            eqs.append(eq)
+
+        return Polyhedron(ieqs=ineqs, eqns=eqs)
 
 import types
 

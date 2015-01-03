@@ -5756,6 +5756,30 @@ cdef class Expression(CommutativeRingElement):
                 return R([self])
         return self.polynomial(None, ring=R)
 
+    def fraction(self, base_ring):
+        """
+        Return this expression as element of the algebraic fraction
+        field over the base ring given.
+
+        EXAMPLES::
+
+            sage: fr = (1/x).fraction(ZZ); fr
+            1/x
+            sage: parent(fr)
+            Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+            sage: parent(((pi+sqrt(2)/x).fraction(SR)))
+            Fraction Field of Univariate Polynomial Ring in x over Symbolic Ring
+            sage: parent(((pi+sqrt(2))/x).fraction(SR))
+            Fraction Field of Univariate Polynomial Ring in x over Symbolic Ring
+            sage: y=var('y')
+            sage: fr=((3*x^5 - 5*y^5)^7/(x*y)).fraction(GF(7)); fr
+            (3*x^35 + 2*y^35)/(x*y)
+            sage: parent(fr)
+            Fraction Field of Multivariate Polynomial Ring in x, y over Finite Field of size 7
+        """
+        return self.numerator().polynomial(base_ring)/\
+               self.denominator().polynomial(base_ring)
+
     def power_series(self, base_ring):
         """
         Return algebraic power series associated to this symbolic

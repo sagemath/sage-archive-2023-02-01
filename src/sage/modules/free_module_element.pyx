@@ -3642,7 +3642,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                     coefficient_ring = parent.basis()[0][0].parent()
                     try:
                         entries = [coefficient_ring(x) for x in entries]
-                    except (TypeError, ValueError):
+                    except TypeError:
                         raise TypeError("Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring))
             elif copy:
                 # Make a copy

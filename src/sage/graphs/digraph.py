@@ -3565,9 +3565,9 @@ class DiGraph(GenericGraph):
             eq = [Integer(j in ins) - Integer(j in outs) for j in self.edges()]
 
             const = 0
-            if len(ins) == 0:  # sources (indegree 0)
+            if not ins:  # sources (indegree 0)
                 const += 1
-            if len(outs) == 0:  # sinks (outdegree 0)
+            if not outs:  # sinks (outdegree 0)
                 const -= 1
 
             eq = [const] + eq

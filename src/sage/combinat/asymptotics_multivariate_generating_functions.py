@@ -184,29 +184,25 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     Here `q_1, \ldots, q_n` are elements of a 0- or multi-variate factorial
     polynomial ring `R` , `q_1, \ldots, q_n` are distinct irreducible elements
     of `R` , `e_1, \ldots, e_n` are positive integers, and `p` is a function
-    of the indeterminates of `R` (a Sage symbolic expression).
-    An element `r` with no polynomial denominator is represented as `[r, ()]`.
+    of the indeterminates of `R` (e.g., a Sage symbolic expression).
+    An element `r` with no polynomial denominator is represented as ``(r, [])``.
 
     INPUT:
 
-    - ``numerator`` -- (optional) an element `p` of a
-      0- or 1-variate factorial polynomial ring `R`
-    - ``denominator_factored`` -- (optional) a list of the form
+    - ``numerator`` -- an element `p`. This can be of any ring from which
+      parent's base has coercion in.
+    - ``denominator_factored`` -- a list of the form
       `[(q_1, e_1), \ldots, (q_n, e_n)]` where the `q_1, \ldots, q_n` are
       distinct irreducible elements of `R` and the `e_i` are positive
       integers
-    - ``quotient`` -- (optional) an element of a field of
-      fractions of a factorial ring
     - ``reduce`` -- (optional) if ``True``, then represent
       `p/(q_1^{e_1} \cdots q_n^{e_n})` in lowest terms, otherwise
       this won't attempt to divide `p` by any of the `q_i`.
 
     OUTPUT:
 
-    A FFPD instance representing the rational expression
+    An element representing the rational expression
     `p/(q_1^{e_1} \cdots q_n^{e_n})`.
-    To get a non-``None`` output, one of ``numerator`` or ``quotient``
-    must not be ``None``.
 
     EXAMPLES::
 
@@ -289,7 +285,9 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def __init__(self, parent, numerator, denominator_factored,
                  reduce=True):
         r"""
-        Create a FFPD instance.
+        Create a FractionWithFactoredDenominator instance.
+
+        See :class:`FractionWithFactoredDenominator` for details.
 
         EXAMPLES::
 
@@ -327,6 +325,14 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         r"""
         Return the numerator of ``self``.
 
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        The numerator.
+
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
@@ -345,6 +351,14 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def denominator(self):
         r"""
         Return the denominator of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        The denominator (i.e., the product of the factored denominator).
 
         EXAMPLES::
 
@@ -395,6 +409,15 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         Return the factorization in ``self.ring()`` of the denominator of
         ``self`` but without the unit part.
 
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        The factored denominator as a list of tuple ``(f, m)``, where `f` is
+        a factor and `m` its multiplicity.
+
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
@@ -412,8 +435,15 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     def ring(self):
         r"""
-        Return the ring of the denominator of ``self``, which is
-        None in the case where ``self`` doesn't have a denominator.
+        Return the ring of the denominator of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A ring.
 
         EXAMPLES::
 
@@ -438,6 +468,14 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def dimension(self):
         r"""
         Return the number of indeterminates of ``self.ring()``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
 
         EXAMPLES::
 
@@ -491,7 +529,15 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     def __repr__(self):
         r"""
-        Return a string representation of ``self``
+        Return a string representation of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
 
         EXAMPLES::
 
@@ -557,6 +603,16 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         Two FFPD instances are equal iff they represent the same
         fraction.
 
+        INPUT:
+
+        - ``other`` -- object to compare with ``self``.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        It can be assumed that ``self`` and ``other`` have the same parent.
+
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
@@ -587,6 +643,16 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     def __ne__(self, other):
         r"""
+        Tests for nonequality of the given elements.
+
+        INPUT:
+
+        - ``other`` -- object to compare with ``self``.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
@@ -613,6 +679,14 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         (the denominator factorization lengths are equal and the
         denominators are equal and the numerator of ``A`` is less than that
         of ``B`` in their ring).
+
+        INPUT:
+
+        - ``other`` -- object to compare with ``self``.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
 
         EXAMPLES::
 
@@ -651,9 +725,18 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def univariate_decomposition(self):
         r"""
         Return the usual univariate partial fraction decomposition
-        of ``self`` as a :class:`FractionWithFactoredDenominatorSum` instance.
-        Assume that ``self`` lies in the field of fractions
-        of a univariate factorial polynomial ring.
+        of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An instance of :class:`FractionWithFactoredDenominatorSum`.
+
+        Assume that the numerator of ``self`` lies in the same
+        univariate factorial polynomial ring as the factors of the denominator.
 
         Let `f = p/q` be a rational expression where `p` and `q` lie in a
         univariate factorial polynomial ring `R`.
@@ -784,12 +867,20 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         r"""
         Return a Nullstellensatz certificate of ``self`` if it exists.
 
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A list of polynomials or ``None``.
+
         Let `[(q_1, e_1), \ldots, (q_n, e_n)]` be the denominator factorization
         of ``self``.
         Return a list of polynomials `h_1, \ldots, h_m` in ``self.ring()``
         that satisfies `h_1 q_1 + \cdots + h_m q_n = 1` if it exists.
         Otherwise return ``None``.
-        Only works for multivariate ``self``.
+        Only works for multivariate base rings.
 
         EXAMPLES::
 
@@ -823,8 +914,15 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     def nullstellensatz_decomposition(self):
         r"""
-        Return a Nullstellensatz decomposition of ``self`` as a
-        :class:`FractionWithFactoredDenominatorSum` instance.
+        Return a Nullstellensatz decomposition of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An instance of :class:`FractionWithFactoredDenominatorSum`.
 
         Let `f = p/q` where `q` lies in a `d` -variate polynomial ring
         `K[X]` for some field `K` and `d \geq 1`.
@@ -905,15 +1003,22 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     def algebraic_dependence_certificate(self):
         r"""
-        Return the algebraic dependence certificate of ``self`` if it exists.
+        Return the algebraic dependence certificate of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An ideal.
 
         Return the ideal `J` of annihilating polynomials for the set
-        of polynomials ``[q**e for (q, e) in self.denominator_factored()]``,
+        of polynomials ``[q^e for (q, e) in self.denominator_factored()]``,
         which could be the zero ideal.
         The ideal `J` lies in a polynomial ring over the field
         ``self.ring().base_ring()`` that has
         ``m = len(self.denominator_factored())`` indeterminates.
-        Return ``None`` if ``self.ring()`` is ``None``.
 
         EXAMPLES::
 
@@ -1002,8 +1107,15 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     def algebraic_dependence_decomposition(self, whole_and_parts=True):
         r"""
-        Return an algebraic dependence decomposition of ``self`` as a
-        :class:`FractionWithFactoredDenominatorSum` instance.
+        Return an algebraic dependence decomposition of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An instance of :class:`FractionWithFactoredDenominatorSum`.
 
         Let `f = p/q` where `q` lies in a `d` -variate polynomial ring
         `K[X]` for some field `K`.
@@ -1117,8 +1229,15 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     def leinartas_decomposition(self):
         r"""
-        Return a Leinartas decomposition of ``self`` as a
-        :class:`FractionWithFactoredDenominatorSum` instance.
+        Return a Leinartas decomposition of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An instance of :class:`FractionWithFactoredDenominatorSum`.
 
         Let `f = p/q` where `q` lies in a `d` -variate polynomial
         ring `K[X]` for some field `K`.
@@ -1250,6 +1369,14 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         r"""
         Return the cohomology decomposition of ``self``.
 
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An instance of :class:`FractionWithFactoredDenominatorSum`.
+
         Let `p / (q_1^{e_1} \cdots q_n^{e_n})` be the fraction represented
         by ``self`` and let `K[x_1, \ldots, x_d]` be the polynomial ring
         in which the `q_i` lie.
@@ -1378,13 +1505,11 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     def asymptotic_decomposition(self, alpha, asy_var=None):
         r"""
-        Return a :class:`FractionWithFactoredDenominatorSum`
+        Return a sum
         that has the same asymptotic expansion
-        as ``self`` in the direction ``alpha`` but each of whose FFPDs has a
+        as ``self`` in the direction ``alpha`` but each summand has a
         denominator factorization of the form `[(q_1, 1), \ldots, (q_n, 1)]`,
         where ``n`` is at most ``d = self.dimension()``.
-        The output results from a Leinartas decomposition followed by a
-        cohomology decomposition.
 
         INPUT:
 
@@ -1393,9 +1518,16 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
           respect to which to compute asymptotics;
           if ``None`` is given, we set ``asy_var = var('r')``
 
+        OUTPUT:
+
+        An instance of :class:`FractionWithFactoredDenominatorSum`.
+
+        The output results from a Leinartas decomposition followed by a
+        cohomology decomposition.
+
         EXAMPLES::
 
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import *
+            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = (x^2 + 1)/((x - 1)^3*(x + 2))
@@ -1464,25 +1596,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
     def asymptotics(self, p, alpha, N, asy_var=None, numerical=0,
                     verbose=False):
         r"""
-        Return the first `N` terms (some of which could be zero)
-        of the asymptotic expansion of the Maclaurin ray coefficients
-        `F_{r \alpha}` of the function `F` represented by ``self``
-        as `r \to \infty`, where `r` is ``asy_var`` and ``alpha`` is a tuple of
-        positive integers of length `d` which is ``self.dimension()``.
-        Assume that
-
-        - `F` is holomorphic in a neighborhood of the origin;
-        - the unique factorization of the denominator `H` of `F` in the local
-          algebraic ring at `p` equals its unique factorization in the local
-          analytic ring at `p`;
-        - the unique factorization of `H` in the local algebraic ring at `p`
-          has at most ``d`` irreducible factors, none of which are repeated
-          (one can reduce to this case via :meth:`asymptotic_decomposition()`);
-        - `p` is a convenient strictly minimal smooth or multiple point
-          with all nonzero coordinates that is critical and nondegenerate
-          for ``alpha``.
-
-        The algorithms used here come from [RaWi2008a]_ and [RaWi2012]_.
+        Return the asymptotics in the given direction.
 
         INPUT:
 
@@ -1509,6 +1623,27 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         be 0) of the asymptotic expansion of `F_{r\alpha}` as `r \to \infty`;
         ``exp_scale**r`` is the exponential factor of ``asy``;
         ``subexp_part`` is the subexponential factor of ``asy``.
+
+        This function
+        returns the first `N` terms (some of which could be zero)
+        of the asymptotic expansion of the Maclaurin ray coefficients
+        `F_{r \alpha}` of the function `F` represented by ``self``
+        as `r \to \infty`, where `r` is ``asy_var`` and ``alpha`` is a tuple of
+        positive integers of length `d` which is ``self.dimension()``.
+        Assume that
+
+        - `F` is holomorphic in a neighborhood of the origin;
+        - the unique factorization of the denominator `H` of `F` in the local
+          algebraic ring at `p` equals its unique factorization in the local
+          analytic ring at `p`;
+        - the unique factorization of `H` in the local algebraic ring at `p`
+          has at most ``d`` irreducible factors, none of which are repeated
+          (one can reduce to this case via :meth:`asymptotic_decomposition()`);
+        - `p` is a convenient strictly minimal smooth or multiple point
+          with all nonzero coordinates that is critical and nondegenerate
+          for ``alpha``.
+
+        The algorithms used here come from [RaWi2008a]_ and [RaWi2012]_.
 
         EXAMPLES::
 
@@ -1618,11 +1753,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         Same as :meth:`asymptotics()`, but only in the case of a
         convenient smooth point.
 
-        The formulas used for computing the asymptotic expansions are
-        Theorems 3.2 and 3.3 [RaWi2008a]_ with the exponent of `H`
-        equal to 1. Theorem 3.2 is a specialization of Theorem 3.4
-        of [RaWi2012]_ with `n = 1`.
-
         INPUT:
 
         - ``p`` -- a dictionary with keys that can be coerced to equal
@@ -1644,6 +1774,15 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
           digits of precision; otherwise return exact values
         - ``verbose`` -- (default: ``False``) print the current state of
           the algorithm
+
+        OUTPUT:
+
+        The asymptotic expansion.
+
+        The formulas used for computing the asymptotic expansions are
+        Theorems 3.2 and 3.3 [RaWi2008a]_ with the exponent of `H`
+        equal to 1. Theorem 3.2 is a specialization of Theorem 3.4
+        of [RaWi2012]_ with `n = 1`.
 
         EXAMPLES::
 
@@ -2014,9 +2153,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         Assume also that ``self.dimension >= 2`` and that the
         ``p.values()`` are not symbolic variables.
 
-        The formulas used for computing the asymptotic expansion are
-        Theorem 3.4 and Theorem 3.7 of [RaWi2012]_.
-
         INPUT:
 
         - ``p`` -- a dictionary with keys that can be coerced to equal
@@ -2038,6 +2174,13 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
           digits of precision; otherwise return exact values
         - ``verbose`` -- (default: ``False``) print the current state of
           the algorithm
+
+        OUTPUT:
+
+        The asymptotic expansion.
+
+        The formulas used for computing the asymptotic expansion are
+        Theorem 3.4 and Theorem 3.7 of [RaWi2012]_.
 
         EXAMPLES::
 
@@ -2330,16 +2473,6 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         Return an auxiliary point associated to the multiple
         point ``p`` of the factors ``self``.
 
-        .. NOTE::
-
-            For internal use by :meth:`asymptotics_multiple()`.
-
-        .. NOTE::
-
-            Use this function only when `\Gamma` is well-defined and
-            there is a unique solution to the matrix equation
-            `y \Gamma = \alpha'`. Fails otherwise.
-
         INPUT:
 
         - ``p`` -- a dictionary with keys that can be coerced to equal
@@ -2352,6 +2485,16 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         where `\Gamma` is the matrix given by
         ``[FractionWithFactoredDenominatorRing.direction(v) for v in self.log_grads(p)]`` and
         `\alpha^{\prime}` is ``FractionWithFactoredDenominatorRing.direction(alpha)``
+
+        .. NOTE::
+
+            For internal use by :meth:`asymptotics_multiple()`.
+
+        .. NOTE::
+
+            Use this function only when `\Gamma` is well-defined and
+            there is a unique solution to the matrix equation
+            `y \Gamma = \alpha'`. Fails otherwise.
 
         EXAMPLES::
 
@@ -2403,6 +2546,10 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         - ``p`` -- (optional; default: ``None``) a dictionary whose keys are
           the generators of ``self.ring()``
 
+        OUTPUT:
+
+        A list.
+
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
@@ -2443,14 +2590,18 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         Return a list of the logarithmic gradients of the polynomials
         ``[q for (q, e) in self.denominator_factored()]`` evalutated at ``p``.
 
-        The logarithmic gradient of a function `f` at point `p` is the
-        vector `(x_1 \partial_1 f(x), \ldots, x_d \partial_d f(x) )`
-        evaluated at `p`.
-
         INPUT:
 
         - ``p`` -- (optional; default: ``None``) a dictionary whose keys
           are the generators of ``self.ring()``
+
+        OUTPUT:
+
+        A list.
+
+        The logarithmic gradient of a function `f` at point `p` is the
+        vector `(x_1 \partial_1 f(x), \ldots, x_d \partial_d f(x) )`
+        evaluated at `p`.
 
         EXAMPLES::
 
@@ -2499,7 +2650,9 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
         OUTPUT:
 
-        A list of vectors that generate the critical cone of ``p`` and
+        A list of vectors.
+
+        This list of vectors generate the critical cone of ``p`` and
         the cone itself, which is ``None`` if the values of ``p`` don't lie in
         `\QQ`. Divide logarithmic gradients by their component ``coordinate``
         entries. If ``coordinate = None``, then search from `d-1` down to 0
@@ -2550,10 +2703,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     def is_convenient_multiple_point(self, p):
         r"""
-        Return ``True`` if ``p`` is a convenient multiple point of ``self`` and
-        ``False`` otherwise. Also return a short comment.
-
-        See [RaWi2012]_ for more details.
+        Tests if ``p`` is a convenient multiple point of ``self``.
 
         INPUT:
 
@@ -2563,10 +2713,13 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         OUTPUT:
 
         A pair ``(verdict, comment)``.
+
         In case ``p`` is a convenient multiple point, ``verdict = True`` and
         ``comment`` is a string stating which variables it's convenient to use.
         In case ``p`` is not, ``verdict = False`` and ``comment`` is a string
         explaining why ``p`` fails to be a convenient multiple point.
+
+        See [RaWi2012]_ for more details.
 
         EXAMPLES::
 
@@ -2638,6 +2791,14 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         r"""
         Return the singular ideal of ``self``.
 
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An ideal.
+
         Let `R` be the ring of ``self`` and `H` its denominator.
         Let `Hred` be the reduction (square-free part) of `H`.
         Return the ideal in `R` generated by `Hred` and
@@ -2665,9 +2826,18 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         J = R.ideal([Hred] + Hred.gradient())
         return R.ideal(J.groebner_basis())
 
+
     def smooth_critical_ideal(self, alpha):
         r"""
         Return the smooth critical ideal of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An ideal.
 
         Let `R` be the ring of ``self`` and `H` its denominator.
         Return the ideal in `R` of smooth critical points of the variety
@@ -2743,8 +2913,8 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     def maclaurin_coefficients(self, multi_indices, numerical=0):
         r"""
-        Return the Maclaurin coefficients of self that have multi-indices
-        in ``multi_indices``.
+        Return the Maclaurin coefficients of ``self`` with given
+        ``multi_indices``.
 
         INPUT:
 
@@ -2863,8 +3033,10 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
         OUTPUT:
 
-        A list whose entries are of the form
-        ``[r*alpha, a_r, b_r, err_r]`` for ``r`` in ``interval``.
+        A list of tuples with properties described below.
+
+        This outputs a list whose entries are a tuple
+        ``(r*alpha, a_r, b_r, err_r)`` for ``r`` in ``interval``.
         Here ``r*alpha`` is a tuple; ``a_r`` is the ``r*alpha`` (multi-index)
         coefficient of the Maclaurin series for ``self`` divided by
         ``exp_scale**r``;
@@ -2889,12 +3061,14 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
             sage: a2 = (0.573/sqrt(r) - 0.0674/r^(3/2))*5.83^r
             sage: es = 5.83
             sage: F.relative_error([a1, a2], alpha, [1, 2, 4, 8], es) # long time
-            [((1, 1), 0.5145797599, [0.5730000000, 0.5056000000],
-            [-0.1135300000, 0.01745066667]), ((2, 2), 0.3824778089,
-            [0.4051721856, 0.3813426871], [-0.05933514614, 0.002967810973]),
-            ((4, 4), 0.2778630595, [0.2865000000, 0.2780750000],
-            [-0.03108344267, -0.0007627515584]), ((8, 8), 0.1991088276,
-            [0.2025860928, 0.1996074055], [-0.01746414394, -0.002504047242])]
+            [((1, 1), 0.5145797599,
+              [0.5730000000, 0.5056000000], [-0.1135300000, 0.01745066667]),
+             ((2, 2), 0.3824778089,
+              [0.4051721856, 0.3813426871], [-0.05933514614, 0.002967810973]),
+             ((4, 4), 0.2778630595,
+              [0.2865000000, 0.2780750000], [-0.03108344267, -0.0007627515584]),
+             ((8, 8), 0.1991088276,
+              [0.2025860928, 0.1996074055], [-0.01746414394, -0.002504047242])]
         """
         from sage.modules.free_module_element import vector
 
@@ -2934,9 +3108,9 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
         INPUT:
 
-        - ``left`` -- the left summand (i.e. self)
+        - ``left`` -- the left summand (i.e. self).
 
-        - ``right`` -- the right summand
+        - ``right`` -- the right summand.
 
         OUTPUT:
 
@@ -2962,9 +3136,9 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
         INPUT:
 
-        - ``left`` -- the left factor (i.e. self)
+        - ``left`` -- the left factor (i.e. self).
 
-        - ``right`` -- the right factor
+        - ``right`` -- the right factor.
 
         OUTPUT:
 
@@ -3022,7 +3196,17 @@ class FractionWithFactoredDenominatorRing(
 
     - ``category`` -- (default: ``None``) the category.
 
-    See also :class:`FractionWithFactoredDenominator`.
+    See also the corresponding element :class:`FractionWithFactoredDenominator`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+        sage: R.<x,y> = PolynomialRing(QQ)
+        sage: FFPD = FractionWithFactoredDenominatorRing(R)
+        sage: df = [x, 1], [y, 1], [x*y+1, 1]
+        sage: f = FFPD(x, df)  # indirect doctest
+        sage: f
+        (1, [(y, 1), (x*y + 1, 1)])
 
     AUTHORS:
 
@@ -3491,10 +3675,6 @@ class FractionWithFactoredDenominatorRing(
         The default is to key the dictionary by all nondecreasing sequences
         in `V` of length 1 up to length `n`.
 
-        .. NOTE::
-
-            For internal use.
-
         INPUT:
 
         - ``f`` -- an individual or list of `\mathcal{C}^{n+1}` functions
@@ -3509,6 +3689,7 @@ class FractionWithFactoredDenominatorRing(
         OUTPUT:
 
         The dictionary ``{s_1:deriv_1, ..., sr:deriv_r}``.
+
         Here ``s_1, ..., s_r`` is a listing of
         all nondecreasing sequences of length 1 up to length `n` over the
         alphabet `V`, where `w > v` in `X` if and only if ``str(w) > str(v)``,
@@ -3654,11 +3835,6 @@ class FractionWithFactoredDenominatorRing(
         `B` is symbolic function, and ``AB_derivs`` contains all the derivatives
         of `A` and `B` evaluated at `p` that are necessary for the computation.
 
-        .. NOTE::
-
-            For internal use by :meth:`asymptotics_smooth()` and
-            :meth:`asymptotics_multiple()`.
-
         INPUT:
 
         - ``A`` -- a single or length ``r`` list of symbolic functions in the
@@ -3676,12 +3852,20 @@ class FractionWithFactoredDenominatorRing(
 
         OUTPUT:
 
-        A dictionary whose keys are natural number tuples of the form
+        A dictionary.
+
+        The output is
+        a dictionary whose keys are natural number tuples of the form
         `(j, k, l)`, where `l \leq 2k`, `j \leq r-1`, and `j+k \leq N-1`,
         and whose values are `DD^(l+k)(A[j] B^l)` evaluated at a point
         `p`, where `DD` is the linear second-order differential operator
         `-\sum_{i=0}^{l-1} \sum_{j=0}^{l-1} M[i][j]
         \partial^2 /(\partial V[j] \partial V[i])`.
+
+        .. NOTE::
+
+            For internal use by :meth:`asymptotics_smooth()` and
+            :meth:`asymptotics_multiple()`.
 
         EXAMPLES::
 
@@ -3749,10 +3933,6 @@ class FractionWithFactoredDenominatorRing(
         list of elements of ``V`` with indices the elements of the elements
         of ``s``.
 
-        .. NOTE::
-
-            This function is for internal use by :meth:`diff_op()`.
-
         INPUT:
 
         - ``V`` -- a list
@@ -3770,6 +3950,10 @@ class FractionWithFactoredDenominatorRing(
             sage: V = list(var('x, t, z'))
             sage: FFDR._diff_seq(V,([0, 1],[0, 2, 1],[0, 0]))
             (x, x, x, x, t, t, z)
+
+        .. NOTE::
+
+            This function is for internal use by :meth:`diff_op()`.
         """
         t = []
         for ss in s:
@@ -3782,6 +3966,7 @@ class FractionWithFactoredDenominatorRing(
         r"""
         Return `DD^(e k + v l)(A B^l)` evaluated at a point `p` for
         various natural numbers `e, k, l` that depend on `v` and `N`.
+
         Here `DD` is a specific linear differential operator that depends
         on `a` and `v` , `A` and `B` are symbolic functions, and `AB_derivs`
         contains all the derivatives of `A` and `B` evaluated at `p` that are
@@ -3803,7 +3988,10 @@ class FractionWithFactoredDenominatorRing(
 
         OUTPUT:
 
-        A dictionary whose keys are natural number pairs of the form `(k, l)`,
+        A dictionary.
+
+        The output is
+        a dictionary whose keys are natural number pairs of the form `(k, l)`,
         where `k < N` and `l \leq 2k` and whose values are
         `DD^(e k + v l)(A B^l)` evaluated at a point `p`.
         Here `e=2` if `v` is even, `e=1` if `v` is odd, and `DD` is the
@@ -3851,18 +4039,6 @@ class FractionWithFactoredDenominatorRing(
         Take various derivatives of the equation `f = ug`,
         evaluate them at a point `c`, and solve for the derivatives of `u`.
 
-        This function works by differentiating the equation `f = ug`
-        with respect to the variable sequence ``s + end``,
-        for all tuples ``s`` of ``X`` of lengths in ``interval``,
-        evaluating at the point `c` ,
-        and solving for the remaining derivatives of ``u``.
-        This function assumes that ``u`` never appears in the
-        differentiations of `f = ug` after evaluating at `c`.
-
-        .. NOTE::
-
-            For internal use by :meth:`asymptotics_multiple()`.
-
         INPUT:
 
         - ``f_derivs`` -- a dictionary whose keys are all tuples of the form
@@ -3888,6 +4064,18 @@ class FractionWithFactoredDenominatorRing(
 
         A dictionary whose keys are the derivatives of ``u`` up to order
         `nn` and whose values are those derivatives evaluated at `c`.
+
+        This function works by differentiating the equation `f = ug`
+        with respect to the variable sequence ``s + end``,
+        for all tuples ``s`` of ``X`` of lengths in ``interval``,
+        evaluating at the point `c` ,
+        and solving for the remaining derivatives of ``u``.
+        This function assumes that ``u`` never appears in the
+        differentiations of `f = ug` after evaluating at `c`.
+
+        .. NOTE::
+
+            For internal use by :meth:`asymptotics_multiple()`.
 
         EXAMPLES::
 
@@ -4001,11 +4189,19 @@ class FractionWithFactoredDenominatorSum(list):
 
     - Alexander Raichev (2012-06-25)
 
-    - Alexander Raichev (2014-12-01)
+    - Daniel Krenn (2014-12-01)
     """
     def __repr__(self):
         r"""
         Return a string representation of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
 
         EXAMPLES::
 
@@ -4023,6 +4219,14 @@ class FractionWithFactoredDenominatorSum(list):
     def __eq__(self, other):
         r"""
         Return ``True`` if ``self`` is equal to ``other``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A boolean.
 
         EXAMPLES::
 
@@ -4045,6 +4249,14 @@ class FractionWithFactoredDenominatorSum(list):
         r"""
         Return ``True`` if ``self`` is not equal to ``other``.
 
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A boolean.
+
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
@@ -4065,6 +4277,14 @@ class FractionWithFactoredDenominatorSum(list):
     def ring(self):
         r"""
         Return the polynomial ring of the denominators of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A ring or ``None`` if the list is empty.
 
         EXAMPLES::
 
@@ -4087,9 +4307,17 @@ class FractionWithFactoredDenominatorSum(list):
 
     def whole_and_parts(self):
         r"""
-        Rewrite ``self`` as a :class:`FractionWithFactoredDenominatorSum`
+        Rewrite ``self`` as a sum
         of a (possibly zero) polynomial
-        FFPD followed by reduced rational expression FFPDs.
+        followed by reduced rational expressions.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An instance of :class:`FractionWithFactoredDenominatorSum`.
 
         Only useful for multivariate decompositions.
 
@@ -4145,6 +4373,14 @@ class FractionWithFactoredDenominatorSum(list):
         Combine terms in ``self`` with the same denominator.
         Only useful for multivariate decompositions.
 
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An instance of :class:`FractionWithFactoredDenominatorSum`.
+
         EXAMPLES::
 
             sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing, FractionWithFactoredDenominatorSum
@@ -4194,7 +4430,15 @@ class FractionWithFactoredDenominatorSum(list):
 
     def sum(self):
         r"""
-        Return the sum of the FFPDs in ``self`` as a :class:`FFPD`.
+        Return the sum of the elements in ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An instance of :class:`FractionWithFactoredDenominator`.
 
         EXAMPLES::
 

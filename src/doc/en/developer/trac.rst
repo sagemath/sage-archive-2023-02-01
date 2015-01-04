@@ -4,7 +4,7 @@
 The Sage Trac Server
 ====================
 
-All changes to Sage source code have to go through the `Sage trac
+All changes to Sage source code have to go through the `Sage Trac
 development server <http://trac.sagemath.org>`_. The purpose
 of the Sage trac server is to
 
@@ -176,8 +176,6 @@ issuing some basic gitolite commands, for example::
 
 .. _trac-bug-report:
 
-.. _section-trac-bug-report:
-
 Reporting Bugs
 ==============
 
@@ -243,7 +241,7 @@ describing the idea.
   no metric to measure this properly and it is highly subjective.
 
 - For bug reports: the ticket's description should contain the information
-  described at :ref:`section-trac-bug-report`.
+  described at :ref:`trac-bug-report`.
 
 - If appropriate, provide URLs to background information or sage-devel
   conversation relevant to the problem you are reporting.

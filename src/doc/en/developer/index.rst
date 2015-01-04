@@ -54,8 +54,6 @@ development!
   - :ref:`Unfamiliar with Git or revision control ? <chapter-git_trac>`
   - :ref:`How to install it ? <section-git-install>`
   - :ref:`How to configure it for use with Trac ? <section-git-setup-name>`
-  - :ref:`The dev scripts <chapter-devscript>` may be used without installing
-    git, but are only intended as a bridge to using it properly.
 
 Git and Trac
 ============
@@ -91,7 +89,6 @@ Putting your local changes on a Trac ticket.
    :maxdepth: 3
 
    git_trac
-   dev_script
 
 .. _section-git-tricks-and-tips:
 

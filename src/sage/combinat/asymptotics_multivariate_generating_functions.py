@@ -1718,7 +1718,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         R = self.ring()
 
         # Coerce keys of p into R.
-        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
 
         if asy_var is None:
             asy_var = var('r')
@@ -2262,7 +2262,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         R = self.ring()
 
         # Coerce keys of p into R.
-        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
 
         d = self.dimension()
         I = sqrt(-Integer(1))
@@ -2518,7 +2518,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         R = self.ring()
 
         # Coerce keys of p into R.
-        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
 
         d = self.dimension()
         n = len(self.denominator_factored())
@@ -2575,7 +2575,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         R = self.ring()
 
         # Coerce keys of p into R.
-        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
 
         X = R.gens()
         d = self.dimension()
@@ -2628,7 +2628,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         R = self.ring()
 
         # Coerce keys of p into R.
-        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
 
         X = R.gens()
         d = self.dimension()
@@ -2678,7 +2678,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         R = self.ring()
 
         # Coerce keys of p into R.
-        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
 
         d = self.dimension()
         lg = self.log_grads(p)
@@ -2743,7 +2743,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         R = self.ring()
 
         # Coerce keys of p into R.
-        p = FractionWithFactoredDenominatorRing.coerce_point(R, p)
+        p = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
 
         H = [h for (h, e) in self.denominator_factored()]
         n = len(H)
@@ -4142,7 +4142,7 @@ class FractionWithFactoredDenominatorRing(
 
 
     @staticmethod
-    def coerce_point(R, p):
+    def _coerce_point_(R, p):
         r"""
         Coerce the keys of the dictionary ``p`` into the ring ``R``.
 
@@ -4161,7 +4161,7 @@ class FractionWithFactoredDenominatorRing(
             ....:     print k, k.parent()
             y Symbolic Ring
             x Symbolic Ring
-            sage: q = FractionWithFactoredDenominatorRing.coerce_point(R, p)
+            sage: q = FractionWithFactoredDenominatorRing._coerce_point_(R, p)
             sage: q
             {y: 7/8, x: 1}
             sage: for k in sorted(q.keys()):

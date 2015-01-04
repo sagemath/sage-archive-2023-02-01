@@ -459,28 +459,17 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         return None
 
 
-    def list(self):
-        r"""
-        Convert ``self`` into a list.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
-            sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
-            sage: H = (1 - x - y - x*y)**2*(1-x)
-            sage: Hfac = H.factor()
-            sage: G = exp(y)/Hfac.unit()
-            sage: F = FFPD(G, Hfac)
-            sage: F.list()
-            [-e^y, [(x - 1, 1), (x*y + x + y - 1, 2)]]
-        """
-        return [self.numerator(), self.denominator_factored()]
-
-
     def quotient(self):
         r"""
         Convert ``self`` into a quotient.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element.
 
         EXAMPLES::
 

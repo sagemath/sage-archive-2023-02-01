@@ -34,6 +34,8 @@ Algebras
 
    sage/algebras/hall_algebra
 
+   quantum_groups
+
    sage/algebras/quatalg/quaternion_algebra
 
    sage/algebras/shuffle_algebra

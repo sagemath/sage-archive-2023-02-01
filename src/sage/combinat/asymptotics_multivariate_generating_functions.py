@@ -286,7 +286,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
     - Daniel Krenn (2014-12-01)
     """
-    def __init__(self, parent, numerator=None, denominator_factored=None,
+    def __init__(self, parent, numerator, denominator_factored,
                  reduce=True):
         r"""
         Create a FFPD instance.
@@ -456,7 +456,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         R = self.ring()
         if is_PolynomialRing(R) or is_MPolynomialRing(R):
             return R.ngens()
-        return None
+        raise NotImplementedError('Only polynomial rings are supported as base.')
 
 
     def quotient(self):
@@ -755,7 +755,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         - Alexander Raichev (2012-06-25)
         - Daniel Krenn (2014-12-01)
         """
-        if self.dimension() is None or self.dimension() > 1:
+        if self.dimension() > 1:
             return FractionWithFactoredDenominatorSum([self])
 
         R = self.ring()
@@ -2111,6 +2111,7 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
         from sage.modules.free_module_element import vector
         from sage.rings.all import CC
         from sage.rings.arith import binomial
+        from sage.rings.rational_field import QQ
         from sage.symbolic.constants import pi
         from sage.symbolic.relation import solve
         from sage.symbolic.ring import SR

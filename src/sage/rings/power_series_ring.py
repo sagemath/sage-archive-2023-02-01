@@ -323,6 +323,9 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
         Category of commutative rings
         sage: TestSuite(M).run()
 
+    .. SEEALSO::
+    
+        * :func:`sage.misc.defaults.set_series_precision`
     """
     #multivariate case:
     # examples for first case:

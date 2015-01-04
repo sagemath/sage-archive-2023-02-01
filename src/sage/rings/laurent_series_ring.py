@@ -12,6 +12,10 @@ EXAMPLES::
     Finite Field of size 17
     sage: S.base_ring()
     Univariate Polynomial Ring in x over Finite Field of size 17
+
+.. SEEALSO::
+
+    * :func:`sage.misc.defaults.set_series_precision`
 """
 
 import weakref

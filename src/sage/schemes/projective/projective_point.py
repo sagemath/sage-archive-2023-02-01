@@ -355,8 +355,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
             sage: hash(P([1,1]))
+            1265304440                      # 32-bit
             7316841028997809016             # 64-bit
             sage: hash(P.point([2,2], False))
+            1265304440                      # 32-bit
             7316841028997809016             # 64-bit
 
         ::
@@ -366,14 +368,17 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: O = K.maximal_order()
             sage: P.<x,y> = ProjectiveSpace(O, 1)
             sage: hash(P([1+w, 2]))
+            -609701421                     # 32-bit
             4801154424156762579            # 64-bit
             sage: hash(P([2, 1-w]))
+            -609701421                     # 32-bit
             4801154424156762579            # 64-bit
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(Zmod(10), 1)
             sage: hash(P([2,5]))
+            -479010389                     # 32-bit
             4677413289753502123            # 64-bit
         """
         R = self.codomain().base_ring()
@@ -1113,8 +1118,10 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: hash(P([1/2, 1]))
+            -1741117121                     # 32-bit
             3714374126286711103             # 64-bit
             sage: hash(P.point([1, 2], False))
+            -1741117121                     # 32-bit
             3714374126286711103             # 64-bit
         """
         P = copy(self)

@@ -1,5 +1,5 @@
 r"""
-Balanced Incomplete Block Designs (BIBD)
+(BIBD) Balanced Incomplete Block Designs
 
 This module gathers everything related to Balanced Incomplete Block Designs. One can build a
 BIBD (or check that it can be built) with :func:`balanced_incomplete_block_design`::
@@ -158,6 +158,8 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         False
     """
     lmbd = 1
+
+    # Trivial BIBD
     if v == 1:
         if existence:
             return True
@@ -168,12 +170,15 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
             return True
         return BalancedIncompleteBlockDesign(v, [range(v)], check=False, copy=False)
 
+    # Non-existence of BIBD
     if (v < k or
         k < 2 or
         (v-1) % (k-1) != 0 or
         (v*(v-1)) % (k*(k-1)) != 0 or
-        # non-existence results from the Handbook of combinatorial designs. With
-        # lambda>1 other exceptions are (15,5,2),(21,6,2),(22,7,2),(22,8,4)
+        # From the Handbook of combinatorial designs:
+        #
+        # With lambda>1 other exceptions are
+        # (15,5,2),(21,6,2),(22,7,2),(22,8,4).
         (k==6 and v in [36,46]) or
         (k==7 and v == 43) or
         # Fisher's inequality
@@ -186,7 +191,7 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         if existence:
             return True
         from itertools import combinations
-        return BalancedIncompleteBlockDesign(v, combinations(range(v),2), check=False, copy=False)
+        return BalancedIncompleteBlockDesign(v, combinations(range(v),2), check=False, copy=True)
     if k == 3:
         if existence:
             return v%6 == 1 or v%6 == 3

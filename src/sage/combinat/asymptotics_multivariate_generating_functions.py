@@ -154,6 +154,36 @@ A multiple point example (Example 6.5 of [RaWi2012]_)::
      ((8, 6), 111.9315678, [69.00000000], [0.3835519207]),
      ((16, 12), 442.7813138, [387.0000000], [0.1259793763]),
      ((32, 24), 1799.879232, [1743.000000], [0.03160169385])]
+
+TESTS::
+
+    sage: R.<x,y> = PolynomialRing(QQ)
+    sage: FFPD = FractionWithFactoredDenominatorRing(R)
+    sage: H = (1 - 2*x - y) * (1 - x - 2*y)
+    sage: G = 1
+    sage: Hfac = H.factor()
+    sage: G = G / Hfac.unit()
+    sage: F = FFPD(G, Hfac); F
+    (1, [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
+    sage: p = {x: 1, y: 1}
+    sage: alpha = [1, 1]
+    sage: F.asymptotics(p, alpha, 1)
+    (1/3, 1, 1/3)
+
+::
+
+    sage: R.<x,y,t> = PolynomialRing(QQ)
+    sage: FFPD = FractionWithFactoredDenominatorRing(R)
+    sage: H = (1 - y) * (1 + x^2) * (1 - t*(1 + x^2 + x*y^2))
+    sage: G = (1 + x) * (1 + x^2 - x*y^2)
+    sage: Hfac = H.factor()
+    sage: G = G / Hfac.unit()
+    sage: F = FFPD(G, Hfac); F
+    (-x^2*y^2 + x^3 - x*y^2 + x^2 + x + 1,
+     [(y - 1, 1), (x^2 + 1, 1), (x*y^2*t + x^2*t + t - 1, 1)])
+    sage: p = {x: 1, y: 1, t: 1/3}
+    sage: alpha = [1, 1, 1]
+    sage: F.asymptotics_multiple(p, alpha, 1, var('r'))
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Alexander Raichev <tortoise.said@gmail.com>
@@ -3074,7 +3104,10 @@ class FractionWithFactoredDenominator(sage.structure.element.RingElement):
 
         if not isinstance(approx, (list, tuple)):
             approx = [approx]
-        av = approx[0].variables()[0]
+        if approx[0].variables():
+            av = approx[0].variables()[0]
+        else:
+            av = Integer(1)
 
         #print "Calculating errors table in the form"
         #print "exponent, scaled Maclaurin coefficient, scaled asymptotic values, relative errors..."
@@ -4120,8 +4153,9 @@ class FractionWithFactoredDenominatorRing(
     @staticmethod
     def direction(v, coordinate=None):
         r"""
-        Return ``[vv/v[coordinate] for vv in v]`` where
-        ``coordinate`` is the last index of ``v`` if not specified otherwise.
+        Return ``[vv / v[coordinate] for vv in v]`` where
+        ``coordinate`` is the largest index of a nonzero entry of ``v``
+        if not specified otherwise.
 
         INPUT:
 
@@ -4137,7 +4171,8 @@ class FractionWithFactoredDenominatorRing(
             (1, 3/2, 5/2)
         """
         if coordinate is None:
-            coordinate = len(v) - 1
+            coordinate = len(v) - 1 -\
+                next(vv[0] for vv in enumerate(reversed(v)) if vv[1] != 0)
         return tuple([vv / v[coordinate] for vv in v])
 
 

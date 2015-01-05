@@ -1203,7 +1203,7 @@ class NormalFormGame(SageObject, MutableMapping):
             True
             sage: lrs_eqs == sorted(lrs_eqs)  # optional - lrs
             True
-            sage: LCP_eqs == sorted(LCP_eqs)  # optional - LCP
+            sage: LCP_eqs == sorted(LCP_eqs)  # optional - gambit
             True
             sage: lrs_eqs == enumeration_eqs  # optional - lrs
             True

@@ -165,8 +165,6 @@ def bandwidth(G, k=None):
     # All that this function does is allocate/free the memory for function
     # bandwidth_C
 
-    G = G.relabel(inplace=False) # int-labelled
-
     cdef int n = G.order()
 
     cdef unsigned short ** d                = <unsigned short **> malloc( n   * sizeof(unsigned short *))
@@ -198,9 +196,11 @@ def bandwidth(G, k=None):
         free(range_arrays)
         free(ith_range_array)
         free(range_array_tmp)
+        raise MemoryError
 
-    cdef int i,j
+    cdef int i,j,kk
     all_pairs_shortest_path_BFS(G,NULL,distances,NULL) # compute the distance matrix
+    cdef list int_to_vertex = G.vertices()
 
     # fill d so that d[i][j] works
     for i in range(n):
@@ -215,22 +215,20 @@ def bandwidth(G, k=None):
         left_to_order[i] = i
 
     if k is None:
-        for k in range((n-1)//G.diameter(),n):
-            if bandwidth_C(n,k,d,current,ordering,left_to_order,index_array_tmp,ith_range_array,range_array_tmp):
-                from sage.matrix.constructor import Matrix
-                order = [ordering[i] for i in range(n)]
-                M = Matrix([[int(G.has_edge(order[i],order[j])) for i in range(n)] for j in range(n)])
-                assert all(abs(i-j)<= k for i,j in M.dict())
-                ans = k, order, M
+        for kk in range((n-1)//G.diameter(),n):
+            if bandwidth_C(n,kk,d,current,ordering,left_to_order,index_array_tmp,ith_range_array,range_array_tmp):
+                ans = True
                 break
     else:
         ans = bool(bandwidth_C(n,k,d,current,ordering,left_to_order,index_array_tmp,ith_range_array,range_array_tmp))
-        if ans:
-            from sage.matrix.constructor import Matrix
-            order = [ordering[i] for i in range(n)]
-            M = Matrix([[int(G.has_edge(order[i],order[j])) for i in range(n)] for j in range(n)])
-            assert all(abs(i-j)<= k for i,j in M.dict())
-            ans = k, order, M
+
+    if ans:
+        from sage.matrix.constructor import Matrix
+        order = [int_to_vertex[ordering[i]] for i in range(n)]
+        M = Matrix([[int(G.has_edge(u,v)) for u in order] for v in order])
+        assert all(abs(i-j)<= (kk if k is None else k)
+                   for i,j in M.dict())
+        ans = (kk, order, M) if k is None else (order,M)
 
     free(d)
     free(distances)
@@ -265,7 +263,6 @@ cdef bint bandwidth_C(int n, int k,
 
     i = 0
     while True:
-        #print i
         current[i] += 1
 
         if current[i] == n: # All choices for this position have been exhausted

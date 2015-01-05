@@ -54,9 +54,12 @@ def reproducible_repr(val):
     One example is the order of elements in a hash-based structure.
     For most objects, this is simply the ``repr`` of the object.
 
-    All types which require special handling are covered by the
-    examples below. If a doctest requires special handling for
-    additional types, this function may be extended apropriately.
+    All types for which special handling had been implemented are
+    covered by the examples below. If a doctest requires special
+    handling for additional types, this function may be extended
+    apropriately. It is an error if an argument to this function has
+    a non-reproducible ``repr`` implementation and is not explicitely
+    mentioned in an example case below.
 
     INPUT:
 

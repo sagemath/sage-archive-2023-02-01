@@ -4,22 +4,25 @@ Asymptotic Ring
 
 import re
 
-from sage.structure.parent import Parent
-from sage.structure.element import Element
 from sage.categories.groups import Groups
+from sage.categories.partially_ordered_monoids import PartiallyOrderedMonoids
 from sage.categories.posets import Posets
 
 from sage.misc.functional import parent
-from sage.categories.partially_ordered_monoids import PartiallyOrderedMonoids
-from sage.rings.rational_field import QQ
+
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RR
+
 from sage.symbolic.constants import e
 from sage.symbolic.ring import SR
 
+from sage.structure.element import MultiplicativeGroupElement
+from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 
-class AsymptoticGrowthElement(Element):
+class AsymptoticGrowthElement(MultiplicativeGroupElement):
     r"""
     Class for an abstract asymptotic growth group element. These
     elements hold exactly one asymptotic term. These elements can
@@ -43,7 +46,7 @@ class AsymptoticGrowthElement(Element):
         sage: import sage.groups.asymptotic_growth_group as ar
         sage: P = ar.AsymptoticGrowthGroup()
         sage: e = ar.AsymptoticGrowthElement(P); e
-        Generic element of a structure
+        Abstract element of an Abstract Asymptotic Growth Group
         sage: e.parent()
         Abstract Asymptotic Growth Group
     """
@@ -101,10 +104,101 @@ class AsymptoticGrowthElement(Element):
         """
         pass
 
+    def _repr_(self):
+        r"""
+        Represent the abstract element of an abstract asymptotic growth
+        group as "Abstract element of an Abstract Asymptotic Growth
+        Group".
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as ar
+            sage: P = ar.AsymptoticGrowthGroup()
+            sage: e = ar.AsymptoticGrowthElement(P); e._repr_()
+            'Abstract element of an Abstract Asymptotic Growth Group'
+        """
+        return "Abstract element of an Abstract Asymptotic Growth Group"
+
+    def is_le_one(self):
+        r"""
+        Abstract method for comparison with one. See
+        :meth:`AsymptoticGrowthElementUnivariate.is_le_one` for a
+        concrete implementation.
+
+        INPUT:
+
+        Noting.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as ar
+            sage: P = ar.AsymptoticGrowthGroupUnivariate("x")
+            sage: (~P.gen()).is_le_one()
+            True
+        """
+        pass
+
+    def __le__(self, other): #TODO
+        r"""
+        Abstract method for comparison of ``self`` and ``other``. See
+        :meth:`AsymptoticGrowthElementUnivariate.__le__` for a concrete
+        implementation.
+
+        INPUT:
+
+            - ``other`` -- a asymptotic growth element.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as ar
+            sage: P = ar.AsymptoticGrowthGroupUnivariate("x")
+            sage: (~P.gen()).__le__(P.gen())
+            True
+        """
+        pass
+
+    def __hash__(self):
+        r"""
+        Return the hash of the representation of the element produced
+        by :meth:`AsymptoticGrowthElement._repr_`
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as ar
+            sage: P = ar.AsymptoticGrowthGroup();
+            sage: e = ar.AsymptoticGrowthElement(P); e.__hash__()
+            -7923874249531374658
+        """
+        return hash(repr(self))
+
 
 class AsymptoticGrowthGroup(Parent, UniqueRepresentation):
     r"""
-    Class for the abstract asymptotic growth group parent. Only base
+    Class for the abstract asymptotic growth group. Only base
     structure is handled here, for a concrete realization see
     :class:`AsymptoticGrowthGroupUnivariate`.
 
@@ -200,7 +294,7 @@ class AsymptoticGrowthGroup(Parent, UniqueRepresentation):
 
     def _repr_(self):
         r"""
-        Represents the abstract asymptotic growth group as
+        Represent the abstract asymptotic growth group as
         "Abstract Asymptotic Growth Group".
 
         INPUT:
@@ -218,6 +312,27 @@ class AsymptoticGrowthGroup(Parent, UniqueRepresentation):
             'Abstract Asymptotic Growth Group'
         """
         return "Abstract Asymptotic Growth Group"
+
+    def __hash__(self):
+        r"""
+        Return the hash of the representation of the group produced by
+        :meth:`AsymptoticGrowthGroup._repr_`
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as ar
+            sage: P = ar.AsymptoticGrowthGroup(); P.__hash__()
+            8493512696244708699
+        """
+        return hash(repr(self))
 
 
 class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
@@ -298,18 +413,18 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
             if x == 1:
                 self.exponent = 0
             else:
-                print(x)
-                raise NotImplementedError("Parsing of x is NYI")
-        elif exponent is not None:
-            if exponent not in QQ:
-                raise TypeError("Non-rational exponents are not supported")
+                raise NotImplementedError("Parsing of %s is not yet "
+                                          "implemented" % (x, ))
+        else:
+            if exponent not in RR:
+                raise TypeError("Non-real exponents are not supported.")
             else:
                 self.exponent = exponent
         super(AsymptoticGrowthElementUnivariate, self).__init__(parent=parent)
 
     def _repr_(self):
         r"""
-        Represents the univariate asymptotic growth element as
+        Represent the univariate asymptotic growth element as
         ``variable^{exponent}``.
 
         INPUT:
@@ -342,7 +457,7 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
 
     def _mul_(self, other):
         r"""
-        Multiplies two univariate asymptotic growth elements from the
+        Multiply two univariate asymptotic growth elements from the
         same parent by adding their exponents.
 
         INPUT:
@@ -369,9 +484,9 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
         C = self.__class__
         return C(self.parent(), exponent=self.exponent + other.exponent)
 
-    def __invert__(self):
+    def _invert_(self):
         r"""
-        Returns the multiplicative inverse from a given univariate
+        Return the multiplicative inverse from a given univariate
         asymptotic growth element.
 
         INPUT:
@@ -398,7 +513,7 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
 
     def _div_(self, other):
         r"""
-        Divides two univariate asymptotic growth elements from the same
+        Divide two univariate asymptotic growth elements from the same
         parent by subtracting their exponents.
 
         INPUT:
@@ -422,11 +537,10 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
         """
         C = self.__class__
         return C(self.parent(), exponent=self.exponent - other.exponent)
-    __div__ = _div_
 
     def _pow_(self, power):
         r"""
-        Returns a univariate asymptotic element to the power of
+        Return a univariate asymptotic element to the power of
         ``power``.
 
         INPUT:
@@ -451,14 +565,15 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
         """
         C = self.__class__
         if power not in QQ:
-            raise TypeError("Non-rational exponents are not supported")
+            raise NotImplementedError("Non-rational exponents are "
+                                      "not supported yet.")
         else:
             return C(self.parent(), exponent=self.exponent * power)
     __pow__ = _pow_
 
     def __eq__(self, other):
         r"""
-        Returns whether the univariate asymptotic growth elements
+        Return whether the univariate asymptotic growth elements
         ``self`` and ``other`` are equal and have the same parent.
 
         INPUT:
@@ -486,10 +601,40 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
         return self.parent() is other.parent() and \
                self.exponent == other.exponent
 
+    def __le__(self, other):
+        r"""
+        Return whether the growth of the univariate asymptotic growth
+        element ``self`` is less than or equal to the growth of the
+        univariate asymptotic growth element ``other``, provided they
+        come from the same parent.
+
+        INPUT:
+
+            - ``other`` -- a univariate asymptotic growth element to be
+              compared to ``self``.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as ar
+            sage: P = ar.AsymptoticGrowthGroupUnivariate("x")
+            sage: e1 = P.gen()
+            sage: e2 = P(None, exponent=2)
+            sage: e1 <= e2
+            True
+            sage: e2 <= e1
+            False
+        """
+        return parent(self).le(self, other)
+
     def is_le_one(self):
         r"""
-        Returns whether or not the univariate asymptotic growth element
-        ``self`` is in O(1).
+        Return whether or not the growth of the univariate asymptotic
+        growth element ``self`` is less than or equal to the
+        (constant) growth of `1`.
 
         INPUT:
 
@@ -541,7 +686,7 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
 
     OUTPUT:
 
-    A univariate asymptotic growth group parent.
+    A univariate asymptotic growth group.
 
     EXAMPLES::
 
@@ -551,6 +696,35 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
     """
     # TODO: implement the cartesian product structure, as well as
     # the exp_parent and log_parent methods.
+
+    @staticmethod
+    def __classcall__(cls, variable, category=None):
+        r"""
+        Normalizes the input in order to ensure a unique
+        representation.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as ar
+            sage: x1, x2, x3 = "x", PolynomialRing(ZZ, "x").gen(), var("x")
+            sage: P1 = ar.AsymptoticGrowthGroupUnivariate(x1)
+            sage: P2 = ar.AsymptoticGrowthGroupUnivariate(x2)
+            sage: P3 = ar.AsymptoticGrowthGroupUnivariate(x3)
+            sage: P1 is P2 and P2 is P3
+            True
+            sage: x4 = buffer("xylophone", 0, 1)
+            sage: P4 = ar.AsymptoticGrowthGroupUnivariate(x4)
+            sage: P1 is P4
+            True
+        """
+        if parent(variable) is SR and variable.is_symbol():
+            variable = repr(variable)
+        elif hasattr(variable, "is_gen") and variable.is_gen():
+            variable = repr(variable)
+        elif isinstance(variable, buffer):
+            variable = str(variable)
+        return super(AsymptoticGrowthGroupUnivariate, cls).\
+            __classcall__(cls, variable, category)
 
     def __init__(self, variable, category=None):
         r"""
@@ -570,28 +744,67 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
             Univariate Asymptotic Growth Group in y
             sage: P4 = ar.AsymptoticGrowthGroupUnivariate("y"); P4
             Univariate Asymptotic Growth Group in y
+            sage: P3 is P4
+            True
         """
-        if parent(variable) is SR and variable.is_symbol():
-            self.variable = repr(variable)
-        elif hasattr(variable, "is_gen") and variable.is_gen():
-            self.variable = repr(variable)
-        elif variable is None:
+        if variable is None:
             raise ValueError("Variable for initialization required.")
         else:
             if re.match("^[A-Za-z][A-Za-z0-9_]*$", variable):
                 self.variable = str(variable)
             else:
                 raise ValueError("Only alphanumeric strings starting with a "
-                                 "letter may be variables.")
-        super(AsymptoticGrowthGroupUnivariate, self).__init__(category=
-                                                              category)
+                                 "letter may be variables")
+        super(AsymptoticGrowthGroupUnivariate, self).\
+            __init__(category=category)
+        self._populate_coercion_lists_()
 
     # enable the category framework for elements
     Element = AsymptoticGrowthElementUnivariate
 
+    def _coerce_map_from_(self, S):
+        r"""
+        Only `ZZ` coerces into ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as ar
+            sage: P = ar.AsymptoticGrowthGroupUnivariate("x")
+            sage: bool(P._coerce_map_from_(QQ))
+            False
+            sage: bool(P._coerce_map_from_(ZZ))
+            True
+        """
+        if S is ZZ:
+            return True
+
+    def _element_constructor_(self, x, exponent=None):
+        r"""
+        Coerce object to this univariate asymptotic growth group.
+
+        INPUT:
+
+            - ``x`` -- an expression (string, polynomial ring element,
+              symbolic ring element, or some integer) representing the
+              element to be initialized.
+            - ``exponent`` -- the exponent of the asymptotic element.
+
+        OUTPUT:
+
+        An element of a univariate asymptotic growth group.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as ar
+            sage: P = ar.AsymptoticGrowthGroupUnivariate("x")
+            sage: 1 / P.gen()
+            x^-1
+        """
+        return self.element_class(self, x, exponent=exponent)
+
     def _repr_(self):
         r"""
-        Represents the univariate asymptotic growth group as
+        Represent the univariate asymptotic growth group as
         "Univariate Asymptotic Growth Group in ``variable``".
 
         INPUT:
@@ -634,7 +847,7 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
             sage: e1.is_idempotent()
             True
         """
-        return self(x=None, exponent=0)
+        return self(1)
 
     def gen(self):
         r"""
@@ -757,5 +970,3 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
         """
         # TODO: This has to be thoroughly discussed!
         raise NotImplementedError("Not yet implemented")
-
-

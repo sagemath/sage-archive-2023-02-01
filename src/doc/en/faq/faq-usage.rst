@@ -702,8 +702,7 @@ Another option, which sneaks around the Sage
 preparser, is ::
 
     sage: def xor(a, b):
-    ...       return eval("%s^%s" % (a, b))
-    ...
+    ....:     return eval("%s^%s" % (a, b))
     sage: xor(3, 8)
     11
 

@@ -55,7 +55,7 @@ class UniqueFactorizationDomains(Category_singleton):
         return None
 
     class ParentMethods:
-        def is_unique_factorization_domain(self):
+        def is_unique_factorization_domain(self, proof=True):
             """
             Return True, since this in an object of the category of unique factorization domains.
 

@@ -29,7 +29,7 @@ from sage.symbolic.assumptions import assume
 def _simplify_full_rad(f):
     """
     Helper function to conveniently call :meth:`simplify_full` and
-    :meth:`simplify_radical` in succession.
+    :meth:`canonicalize_radical` in succession.
 
     INPUT:
 
@@ -42,7 +42,7 @@ def _simplify_full_rad(f):
         1
 
     """
-    return f.simplify_full().simplify_radical()
+    return f.simplify_full().canonicalize_radical()
 
 
 class ParametrizedSurface3D(SageObject):

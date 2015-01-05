@@ -122,7 +122,7 @@ def weak_popov_form(M,ascend=True):
             # extract leading coefficients from current row
             x = []
             for y in w:
-                if y.degree() >= d and d >= 0:   x.append(y.coeffs()[d])
+                if y.degree() >= d and d >= 0:   x.append(y.coefficients(sparse=False)[d])
                 else:                            x.append(0)
             v.append(x)
         l = matrix(v)

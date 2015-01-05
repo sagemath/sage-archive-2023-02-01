@@ -657,7 +657,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     of the gamma function; however, we get something equivalent::
 
         sage: actual_result = integral(e^(-1/x^2), x, 0, 1)
-        sage: actual_result.simplify_radical()
+        sage: actual_result.canonicalize_radical()
         (sqrt(pi)*(erf(1)*e - e) + 1)*e^(-1)
         sage: ideal_result = 1/2*gamma(-1/2, 1)
         sage: error = actual_result - ideal_result

@@ -19,7 +19,7 @@ there. For example::
 
     sage: a = 1/2; a.parent()
     Rational Field
-    sage: b = ZZ[x].gen(); b.parent()
+    sage: b = ZZ['x'].gen(); b.parent()
     Univariate Polynomial Ring in x over Integer Ring
     sage: a+b
     x + 1/2

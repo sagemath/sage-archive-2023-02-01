@@ -5144,6 +5144,13 @@ class Permutations_mset(Permutations):
 
             sage: [ p for p in Permutations(['c','t','t'])] # indirect doctest
             [['c', 't', 't'], ['t', 'c', 't'], ['t', 't', 'c']]
+
+        TESTS:
+
+        The empty multiset::
+
+            sage: list(sage.combinat.permutation.Permutations_mset([]))
+            [[]]
         """
         mset = self.mset
         n = len(self.mset)
@@ -5152,7 +5159,7 @@ class Permutations_mset(Permutations):
 
         yield self.element_class(self, [lmset[x] for x in mset_list])
 
-        if n == 1:
+        if n <= 1:
             return
 
         while True:

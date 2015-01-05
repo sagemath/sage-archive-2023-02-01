@@ -10,7 +10,7 @@ To install gambit as an optional package run (from root of Sage)::
 
 The `python API documentation for gambit
 <http://www.gambit-project.org/gambit14/pyapi.html>`_ shows various examples
-that can be run easily in ipython. To run the ipython packaged with Sage run
+that can be run easily in IPython. To run the IPython packaged with Sage run
 (from root of Sage)::
 
     $ ./sage -ipython
@@ -76,7 +76,7 @@ Here is a list of the various solvers available in gambit:
 - ExternalIteratedPolymatrixSolver
 - ExternalLogitSolver
 
-Here is how to use the `ExternalEnumPureSolver`::
+Here is how to use the ``ExternalEnumPureSolver``::
 
     In [21]: solver = gambit.nash.ExternalEnumPureSolver()
     In [22]: solver.solve(g)
@@ -111,7 +111,7 @@ two player strategic form games. Gambit supports mulitple player games as well
 as extensive form games: for more details see http://www.gambit-project.org/.
 
 If one really wants to use gambit directly in Sage (without using the
-`NormalFormGame` class as a wrapper) then integers must first be
+``NormalFormGame`` class as a wrapper) then integers must first be
 converted to Python integers (due to the preparser). Here is an example
 showing the Battle of the Sexes::
 

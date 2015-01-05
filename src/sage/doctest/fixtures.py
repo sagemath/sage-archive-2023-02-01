@@ -78,17 +78,37 @@ def reproducible_repr(val):
         set(['a', 'b', 'c', 'd'])
         sage: print(reproducible_repr(frozenset(["a", "c", "b", "d"])))
         frozenset(['a', 'b', 'c', 'd'])
+        sage: print(reproducible_repr([1, frozenset("cab"), set("bar"), 0]))
+        [1, frozenset(['a', 'b', 'c']), set(['a', 'b', 'r']), 0]
+        sage: print(reproducible_repr({3.0:"three","2":"two",1:"one"}))
+        {'2': 'two', 1: 'one', 3.00000000000000: 'three'}
         sage: print(reproducible_repr("foo\nbar")) # demonstrate default case
         'foo\nbar'
     """
+
+    def sorted_pairs(iterable, pairs=False):
+        # We don't know whether container data structures will have
+        # homogeneous types, and if not, whether comparisons will work
+        # in a sane way. For this reason, we sort by representation first.
+        res = sorted((reproducible_repr(item), item) for item in iterable)
+        if not pairs:
+            res = [r for r, i in res]
+        return res
+
     if isinstance(val, frozenset):
-        return ("frozenset([{}])".format
-                (", ".join(map(reproducible_repr, sorted(val)))))
+        itms = sorted_pairs(val)
+        return "frozenset([{}])".format(", ".join(itms))
     if isinstance(val, set):
-        return ("set([{}])".format
-                (", ".join(map(reproducible_repr, sorted(val)))))
-    r = repr(val)
-    return r
+        itms = sorted_pairs(val)
+        return "set([{}])".format(", ".join(itms))
+    if isinstance(val, dict):
+        keys = sorted_pairs(val.keys(), True)
+        itms = ["{}: {}".format(r, reproducible_repr(val[k])) for r, k in keys]
+        return ("{{{}}}".format(", ".join(itms)))
+    if isinstance(val, list):
+        itms = map(reproducible_repr, val)
+        return ("[{}]".format(", ".join(itms)))
+    return repr(val)
 
 
 class AttributeAccessTracerHelper(object):

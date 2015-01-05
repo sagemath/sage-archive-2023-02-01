@@ -965,8 +965,8 @@ cdef class IndexFaceSet(PrimitiveObject):
                 transform.transform_point_c(&res, self.vs[i])
                 PyList_Append(points, format_pmesh_vertex(res))
 
-        # put this into play when jmol will accept the colored pmesh
-        if True:   # self.global_texture:
+        # activation of coloring in jmol
+        if self.global_texture:
             faces = [format_pmesh_face(self._faces[i], 1)
                      for i from 0 <= i < self.fcount]
         else:

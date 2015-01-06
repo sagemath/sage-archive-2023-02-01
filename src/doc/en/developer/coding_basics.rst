@@ -498,7 +498,7 @@ there is not one already. That is, you can do the following::
 LaTeX Typesetting
 -----------------
 
-In ReST documentation LaTeX code is allowed, and is marked with **backticks or
+In Sage's documentation LaTeX code is allowed, and is marked with **backticks or
 dollar signs**:
 
     ```x^2 + y^2 = 1``` and ``$x^2 + y^2 = 1$`` both yield `x^2 + y^2 = 1`
@@ -517,7 +517,8 @@ the following are valid::
         Return $\sin(x)$.
         """
 
-**MATH block:** It is similar to LaTeX' syntax ``$$<math expression>$$``. For instance::
+**MATH block:** It is similar to LaTeX' syntax ``\[<math expression>\]`` (or
+``$$<math expression>$$``). For instance::
 
     .. MATH::
 

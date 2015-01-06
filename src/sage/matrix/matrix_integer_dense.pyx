@@ -95,7 +95,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
-from sage.structure.element cimport ModuleElement, RingElement, Element, Vector, CoercionModel
+from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 
@@ -4679,9 +4679,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #################################################################
     # operations with matrices
     #################################################################
-    def stack(self, bottom, subdivide=False):
+    cdef _stack_impl(self, bottom):
         r"""
-        Return the matrix ``self`` on top of ``bottom``:
+        Return the matrix ``self`` on top of ``bottom``::
 
             [  self  ]
             [ bottom ]
@@ -4718,73 +4718,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [-----------]
             [ 0  1  2  3]
             [ 4  5  6  7]
-
-        TESTS:
-
-        Stacking a dense matrix atop a sparse one should work::
-
-            sage: M = Matrix(ZZ, 2, 3, range(6))
-            sage: M.is_sparse()
-            False
-            sage: N = diagonal_matrix([10,11,12], sparse=True)
-            sage: N.is_sparse()
-            True
-            sage: P = M.stack(N); P
-            [ 0  1  2]
-            [ 3  4  5]
-            [10  0  0]
-            [ 0 11  0]
-            [ 0  0 12]
-            sage: P.is_sparse()
-            False
-
-        One can stack matrices over different rings (:trac:`16399`). ::
-
-            sage: M = Matrix(ZZ, 2, 3, range(6))
-            sage: N = Matrix(QQ, 1, 3, [10,11,12])
-            sage: M.stack(N)
-            [0 1 2 3 4]
-            [5 6 7 8 9]
-            [0 1 2 3 4]
-            sage: N.stack(M)
-            ?
-            sage: M2 = Matrix(ZZ['x'], 2, 3, range(6))
-            sage: N.stack(M2)
-            ?
         """
-        if hasattr(bottom, '_vector_'):
-            bottom = bottom.row()
-        if self._ncols != bottom.ncols():
-            raise TypeError("number of columns must be the same")
-        cdef CoercionModel coercion_model
+        cdef Matrix_integer_dense other = <Matrix_integer_dense>bottom
+        cdef Matrix_integer_dense Z
+        Z = self.new_matrix(nrows=self._nrows + other._nrows, ncols=self._ncols)
 
-        top_ring = self._base_ring
-        bottom_ring = bottom.base_ring()
-        if not (top_ring is bottom_ring):
-            if top_ring.has_coerce_map_from(bottom_ring):
-                bottom = bottom.change_ring(top_ring)
-            elif bottom_ring.has_coerce_map_from(top_ring): 
-                new_top = self.change_ring(bottom_ring)
-                return new_top.stack(bottom, subdivide=subdivide):
-            else:
-                from sage.structure.element import get_coercion_model
-                coercion_model = get_coercion_model()
-                com_ring = coercion_model.common_parent(top_ring, bottom_ring)
-                self = self.change_ring(com_ring)   # allowed ?
-                bottom = other.change_ring(com_ring)
+        cdef Py_ssize_t r, c
+        cdef Py_ssize_t nr = self._nrows
+        for r in range(self._nrows):
+            for c in range(self._ncols):
+                fmpz_set(fmpz_mat_entry(Z._matrix, r, c),fmpz_mat_entry(self._matrix, r, c))
+        for r in range(other._nrows):
+            for c in range(other._ncols):
+                fmpz_set(fmpz_mat_entry(Z._matrix, r+nr, c),fmpz_mat_entry(other._matrix, r, c))
 
-        cdef Matrix_integer_dense other = bottom.dense_matrix()
-        cdef Matrix_integer_dense M
-        M = self.new_matrix(nrows = self._nrows + other._nrows, ncols = self.ncols())
-        cdef Py_ssize_t i, j, k
-        for j from 0 <= j < self._ncols:
-            for i from 0 <= i < self._nrows:
-                fmpz_set(fmpz_mat_entry(M._matrix,i,j),fmpz_mat_entry(self._matrix,i,j))
-            for i from 0 <= i < other._nrows:
-                fmpz_set(fmpz_mat_entry(M._matrix,self._nrows + i,j),fmpz_mat_entry(other._matrix,i,j))
-        if subdivide:
-            M._subdivide_on_stack(self, other)
-        return M
+        return Z
 
     def augment(self, right, subdivide=False):
         r"""

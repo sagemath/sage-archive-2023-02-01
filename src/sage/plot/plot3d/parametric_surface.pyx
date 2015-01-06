@@ -186,7 +186,7 @@ cdef class ParametricSurface(IndexFaceSet):
                 if len(kwds['color']) == 2 and callable(kwds['color'][0]):
                     color_data = kwds['color']
                     kwds.pop('color')
-            except AttributeError:
+            except TypeError,AttributeError:
                 pass
         if color_data is not None:
             # case of a color depending on parameters

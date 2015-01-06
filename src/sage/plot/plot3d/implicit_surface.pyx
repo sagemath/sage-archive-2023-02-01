@@ -966,7 +966,7 @@ cdef class ImplicitSurface(IndexFaceSet):
                 if len(kwds['color']) == 2 and callable(kwds['color'][0]):
                     color_data = kwds['color']
                     kwds.pop('color')
-            except AttributeError:
+            except TypeError,AttributeError:
                 pass
         if not(color_data is None):
             # case of a color depending on parameters

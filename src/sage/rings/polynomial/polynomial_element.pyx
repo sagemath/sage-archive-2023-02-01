@@ -100,6 +100,8 @@ from sage.misc.cachefunc import cached_function
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
 
+from sage.misc.superseded import deprecation
+
 cpdef is_Polynomial(f):
     """
     Return True if f is of type univariate polynomial.
@@ -274,8 +276,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: x = polygen(GF(389))
             sage: plot(x^2 + 1, rgbcolor=(0,0,1))
+            Graphics object consisting of 1 graphics primitive
             sage: x = polygen(QQ)
             sage: plot(x^2 + 1, rgbcolor=(1,0,0))
+            Graphics object consisting of 1 graphics primitive
         """
         R = self.base_ring()
         from sage.plot.all import plot, point, line
@@ -671,6 +675,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _compile(self):
         # For testing
         self._compiled = CompiledPolynomialFunction(self.list())
+        return self._compiled
+
+    def _get_compiled(self):
+        # For testing
         return self._compiled
 
     def _fast_float_(self, *vars):
@@ -1084,22 +1092,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: R.<x> = RDF[]
             sage: epsilon = RDF(1).ulp()*50   # Allow an error of up to 50 ulp
-            sage: f = inverse_mod(x^2 + 1, x^5 + x + 1); f
+            sage: f = inverse_mod(x^2 + 1, x^5 + x + 1); f  # abs tol 1e-14
             0.4*x^4 - 0.2*x^3 - 0.4*x^2 + 0.2*x + 0.8
             sage: poly = f * (x^2 + 1) % (x^5 + x + 1)
             sage: # Remove noisy zero terms:
-            sage: parent(poly)([ 0.0 if abs(c)<=epsilon else c for c in poly.coeffs() ])
+            sage: parent(poly)([ 0.0 if abs(c)<=epsilon else c for c in poly.coefficients(sparse=False) ])
             1.0
             sage: f = inverse_mod(x^3 - x + 1, x - 2); f
-            0.142857142857
+            0.14285714285714285
             sage: f * (x^3 - x + 1) % (x - 2)
             1.0
             sage: g = 5*x^3+x-7; m = x^4-12*x+13; f = inverse_mod(g, m); f
             -0.0319636125...*x^3 - 0.0383269759...*x^2 - 0.0463050900...*x + 0.346479687...
             sage: poly = f*g % m
             sage: # Remove noisy zero terms:
-            sage: parent(poly)([ 0.0 if abs(c)<=epsilon else c for c in poly.coeffs() ])
-            1.0
+            sage: parent(poly)([ 0.0 if abs(c)<=epsilon else c for c in poly.coefficients(sparse=False) ])  # abs tol 1e-14
+            1.0000000000000004
 
         ALGORITHM: Solve the system as + mt = 1, returning s as the inverse
         of a mod m.
@@ -1379,7 +1387,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.any_root(GF(11^6, 'a'))
             a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a
             sage: sorted(f.roots(GF(11^6, 'a')))
-            [(10*a^5 + 2*a^4 + 8*a^3 + 9*a^2 + a, 1), (10*a^5 + 3*a^4 + 8*a^3 + a^2 + 10*a + 4, 1), (2*a^5 + 8*a^4 + 3*a^3 + 6*a + 2, 1), (9*a^5 + 5*a^4 + 10*a^3 + 8*a^2 + 3*a + 1, 1), (a^5 + 3*a^4 + 8*a^3 + 2*a^2 + 3*a + 4, 1), (a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a, 1)]
+            [(10*a^5 + 2*a^4 + 8*a^3 + 9*a^2 + a, 1), (a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a, 1), (9*a^5 + 5*a^4 + 10*a^3 + 8*a^2 + 3*a + 1, 1), (2*a^5 + 8*a^4 + 3*a^3 + 6*a + 2, 1), (a^5 + 3*a^4 + 8*a^3 + 2*a^2 + 3*a + 4, 1), (10*a^5 + 3*a^4 + 8*a^3 + a^2 + 10*a + 4, 1)]
             sage: f.any_root(GF(11^6, 'a'))
             a^5 + a^4 + 7*a^3 + 2*a^2 + 10*a
 
@@ -1387,9 +1395,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g.any_root(ring=GF(11^10, 'b'), degree=1)
             1
             sage: g.any_root(ring=GF(11^10, 'b'), degree=2)
-            6*b^9 + 7*b^7 + 7*b^6 + 3*b^5 + b^2 + b + 3
+            5*b^9 + 4*b^7 + 4*b^6 + 8*b^5 + 10*b^2 + 10*b + 5
             sage: g.any_root(ring=GF(11^10, 'b'), degree=5)
-            7*b^9 + 2*b^8 + 6*b^7 + 3*b^6 + 2*b^5 + 7*b^3 + 7*b^2 + 2
+            5*b^9 + b^8 + 3*b^7 + 2*b^6 + b^5 + 4*b^4 + 3*b^3 + 7*b^2 + 10*b
 
         TESTS::
 
@@ -1413,10 +1421,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Also check that such computations can be interrupted::
 
-            sage: K.<a> = GF(2**8)
+            sage: K.<a> = GF(2^8)
             sage: x = polygen(K)
-            sage: alarm(1)
-            sage: (x**1000000+x+a).any_root()
+            sage: pol = x^1000000 + x + a
+            sage: alarm(0.5); pol.any_root()
             Traceback (most recent call last):
             ...
             AlarmInterrupt
@@ -1674,7 +1682,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f^3
             x^3 - 3*x^2 + 3*x - 1
 
-            sage: R = PolynomialRing(GF(2), x)
+            sage: R = PolynomialRing(GF(2), 'x')
             sage: f = R(x^9 + x^7 + x^6 + x^5 + x^4 + x^2 + x)
             sage: h = R(x^10 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + 1)
             sage: pow(f, 2, h)
@@ -2051,7 +2059,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Show the product in the symbolic ring::
 
-            sage: L = SR[x]
+            sage: L = SR['x']
             sage: var('a0,a1,b0,b1')
             (a0, a1, b0, b1)
             sage: L([a0,a1])._mul_generic(L([b0,b1]))
@@ -2262,7 +2270,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Show the product in the symbolic ring::
 
-            sage: L = SR[x]
+            sage: L = SR['x']
             sage: var('a0,a1,b0,b1')
             (a0, a1, b0, b1)
             sage: L([a0,a1])._mul_karatsuba(L([b0,b1]),0)
@@ -2426,7 +2434,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             {}
             sage: f = 7*x^5 + x^2 - 2*x - 3
             sage: f._mpoly_dict_recursive()
-            {(0,): -3, (1,): -2, (5,): 7, (2,): 1}
+            {(0,): -3, (1,): -2, (2,): 1, (5,): 7}
         """
         if not self:
             return {}
@@ -2518,6 +2526,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         - Naqi Jaffery (2006-01-24): examples
         """
+        raise NotImplementedError
+
+    def euclidean_degree(self):
+        r"""
+        Return the degree of this element as an element of a euclidean domain.
+
+        If this polynomial is defined over a field, this is simply its :meth:`degree`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: x.euclidean_degree()
+            1
+            sage: R.<x> = ZZ[]
+            sage: x.euclidean_degree()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        """
+        from sage.categories.fields import Fields
+        if self.base_ring() in Fields():
+            return self.degree()
         raise NotImplementedError
 
     def denominator(self):
@@ -3027,19 +3058,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: R.<x> = RDF[]
             sage: (-2*x^2 - 1).factor()
-            (-2.0) * (x^2 + 0.5)
+            (-2.0) * (x^2 + 0.5000000000000001)
             sage: (-2*x^2 - 1).factor().expand()
-            -2.0*x^2 - 1.0
+            -2.0*x^2 - 1.0000000000000002
             sage: f = (x - 1)^3
-            sage: f.factor() # random output (unfortunately)
-            (x - 0.999990138083) * (x^2 - 2.00000986192*x + 1.00000986201)
+            sage: f.factor()  # abs tol 2e-5
+            (x - 1.0000065719436413) * (x^2 - 1.9999934280563585*x + 0.9999934280995487)
 
         The above output is incorrect because it relies on the
         :meth:`.roots` method, which does not detect that all the roots
         are real::
 
-            sage: f.roots() # random output (unfortunately)
-            [(0.999990138083, 1)]
+            sage: f.roots()  # abs tol 2e-5
+            [(1.0000065719436413, 1)]
 
         Over the complex double field the factors are approximate and
         therefore occur with multiplicity 1::
@@ -3047,9 +3078,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = CDF[]
             sage: f = (x^2 + 2*R(I))^3
             sage: F = f.factor()
-            sage: F # random lower order digits
-            (x - 1.00000643627 + 1.00000715002*I) * (x - 1.00000297398 + 0.999990851041*I) * (x - 0.999990589745 + 1.00000199894*I) * (x + 0.999991986211 - 1.00000857983*I) * (x + 0.999996576554 - 0.999988769976*I) * (x + 1.00001143724 - 1.0000026502*I)
-            sage: [f(t[0][0]).abs() for t in F] # abs tol 1e-9
+            sage: F  # abs tol 3e-5
+            (x - 1.0000138879287663 + 1.0000013435286879*I) * (x - 0.9999942196864997 + 0.9999873009803959*I) * (x - 0.9999918923847313 + 1.0000113554909125*I) * (x + 0.9999908759550227 - 1.0000069659624138*I) * (x + 0.9999985293216753 - 0.9999886153831807*I) * (x + 1.0000105947233 - 1.0000044186544053*I)
+            sage: [f(t[0][0]).abs() for t in F] # abs tol 1e-13
             [1.979365054e-14, 1.97936298566e-14, 1.97936990747e-14, 3.6812407475e-14, 3.65211563729e-14, 3.65220890052e-14]
 
         Factoring polynomials over `\ZZ/n\ZZ` for
@@ -3225,9 +3256,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: K.<a> = QuadraticField(p*q)
             sage: R.<x> = PolynomialRing(K)
             sage: K.pari_polynomial('a').nffactor("x^2+1")
-            Traceback (most recent call last):
-            ...
-            PariError: precision too low in floorr (precision loss in truncation)
+            Mat([x^2 + 1, 1])
             sage: factor(x^2 + 1)
             x^2 + 1
             sage: factor( (x - a) * (x + 2*a) )
@@ -3540,7 +3569,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
              Ring morphism:
                From: Finite Field in a of size 7^3
                To:   Finite Field in b of size 7^6
-               Defn: a |--> 4*b^5 + 4*b^4 + 4*b^3 + 2*b^2 + 4*b + 5)
+               Defn: a |--> 2*b^4 + 6*b^3 + 2*b^2 + 3*b + 2)
 
         If the extension is trivial and the generators have the same
         name, the map will be the identity::
@@ -4157,7 +4186,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<w> = PolynomialRing(GF(9,'a'), sparse=True)
             sage: a = w._new_constant_poly(0, R); a
             0
-            sage: a.coeffs()
+            sage: a.coefficients()
             []
         """
         if a:
@@ -4344,9 +4373,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             return a*self
 
-    def coefficients(self):
+    def coefficients(self, sparse=True):
         """
         Return the coefficients of the monomials appearing in self.
+        If ``sparse=True`` (the default), it returns only the non-zero coefficients.
+        Otherwise, it returns the same value as ``self.list()``.
+        (In this case, it may be slightly faster to invoke ``self.list()`` directly.)
 
         EXAMPLES::
 
@@ -4354,9 +4386,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^4+2*x^2+1
             sage: f.coefficients()
             [1, 2, 1]
+            sage: f.coefficients(sparse=False)
+            [1, 0, 2, 0, 1]
         """
         zero = self.parent().base_ring().zero_element()
-        return [c for c in self.list() if c != zero]
+        if (sparse):
+          return [c for c in self.list() if c != zero]
+        else:
+          return self.list()
 
     def exponents(self):
         """
@@ -4472,6 +4509,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def coeffs(self):
         r"""
+        Using ``coeffs()`` is now deprecated (:trac:`17518`).
         Returns ``self.list()``.
 
         (It is potentially slightly faster to use
@@ -4482,8 +4520,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = QQ['x'].0
             sage: f = 10*x^3 + 5*x + 2/17
             sage: f.coeffs()
+            doctest:...: DeprecationWarning: The use of coeffs() is now deprecated in favor of coefficients(sparse=False).
+            See http://trac.sagemath.org/17518 for details.
             [2/17, 5, 0, 10]
         """
+        deprecation(17518, 'The use of coeffs() is now deprecated in favor of coefficients(sparse=False).')
         return self.list()
 
     def newton_raphson(self, n, x0):
@@ -4625,7 +4666,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pari(f)
             Traceback (most recent call last):
             ...
-            PariError: variable must have higher priority in gtopoly
+            PariError: incorrect priority in gtopoly: variable x <= a
 
         Stacked polynomial rings, first with a univariate ring on the
         bottom::
@@ -4884,6 +4925,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: P = x^2 - F
             sage: P.resultant(P.derivative())
             -4 - 4*T + O(T^2)
+
+        Check that :trac:`16360` is fixed::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: y.resultant(y+x)
+            x
+
+            sage: K.<a> = FunctionField(QQ)
+            sage: R.<b> = K[]
+            sage: L.<b> = K.extension(b^2-a)
+            sage: R.<x> = L[]
+            sage: f=x^2-a
+            sage: g=x-b
+            sage: f.resultant(g)
+            0
+
         """
         variable = self.variable_name()
         if variable != 'x' and self.parent()._mpoly_base_ring() != self.parent().base_ring():
@@ -4896,7 +4954,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         try:
             res = self._pari_with_name().polresultant(other._pari_with_name())
             return self.parent().base_ring()(res)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, PariError, NotImplementedError):
             return self.sylvester_matrix(other).det()
 
     def discriminant(self):
@@ -5197,8 +5255,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
              []
              sage: g = lambda f, *args, **kwds: f.change_ring(CDF).roots()
              sage: QQ._roots_univariate_polynomial = g
-             sage: (x^2 + 1).roots()
-             [(... - 1.0*I, 1), (1.0*I, 1)]
+             sage: (x^2 + 1).roots()  # abs tol 1e-14
+             [(2.7755575615628914e-17 - 1.0*I, 1), (0.9999999999999997*I, 1)]
              sage: del QQ._roots_univariate_polynomial
 
         An example over RR, which illustrates that only the roots in RR are
@@ -5249,8 +5307,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = CC['x'].0
             sage: i = CC.0
             sage: f = (x - 1)*(x - i)
-            sage: f.roots(multiplicities=False) #random - this example is numerically rather unstable
-            [2.22044604925031e-16 + 1.00000000000000*I, 1.00000000000000 + 8.32667268468867e-17*I]
+            sage: f.roots(multiplicities=False)
+            [1.00000000000000, 1.00000000000000*I]
             sage: g=(x-1.33+1.33*i)*(x-2.66-2.66*i)
             sage: g.roots(multiplicities=False)
             [1.33000000000000 - 1.33000000000000*I, 2.66000000000000 + 2.66000000000000*I]
@@ -5289,23 +5347,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = CDF[]
             sage: f = R.cyclotomic_polynomial(5); f
             x^4 + x^3 + x^2 + x + 1.0
-            sage: f.roots(multiplicities=False)   # slightly random
-            [0.309016994375 + 0.951056516295*I, 0.309016994375 - 0.951056516295*I, -0.809016994375 + 0.587785252292*I, -0.809016994375 - 0.587785252292*I]
-            sage: [z^5 for z in f.roots(multiplicities=False)]     # slightly random
-            [1.0 - 2.44929359829e-16*I, 1.0 + 2.44929359829e-16*I, 1.0 - 4.89858719659e-16*I, 1.0 + 4.89858719659e-16*I]
+            sage: f.roots(multiplicities=False)  # abs tol 1e-9
+            [-0.8090169943749469 - 0.5877852522924724*I, -0.8090169943749473 + 0.5877852522924724*I, 0.30901699437494773 - 0.951056516295154*I, 0.30901699437494756 + 0.9510565162951525*I]
+            sage: [z^5 for z in f.roots(multiplicities=False)]  # abs tol 1e-14
+            [0.9999999999999957 - 1.2864981197413038e-15*I, 0.9999999999999976 + 3.062854959141552e-15*I, 1.0000000000000024 + 1.1331077795295987e-15*I, 0.9999999999999953 - 2.0212861992297117e-15*I]
             sage: f = CDF['x']([1,2,3,4]); f
             4.0*x^3 + 3.0*x^2 + 2.0*x + 1.0
             sage: r = f.roots(multiplicities=False)
-            sage: [f(a) for a in r]    # slightly random
-            [2.55351295664e-15, -4.4408920985e-16 - 2.08166817117e-16*I, -4.4408920985e-16 + 2.08166817117e-16*I]
+            sage: [f(a).abs() for a in r]  # abs tol 1e-14
+            [2.574630599127759e-15, 1.457101633618084e-15, 1.1443916996305594e-15]
 
         Another example over RDF::
 
             sage: x = RDF['x'].0
-            sage: ((x^3 -1)).roots()
-            [(1.0, 1)]
-            sage: ((x^3 -1)).roots(multiplicities=False)
-            [1.0]
+            sage: ((x^3 -1)).roots()  # abs tol 4e-16
+            [(1.0000000000000002, 1)]
+            sage: ((x^3 -1)).roots(multiplicities=False)  # abs tol 4e-16
+            [1.0000000000000002]
 
         More examples involving the complex double field::
 
@@ -5313,24 +5371,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: i = CDF.0
             sage: f = x^3 + 2*i; f
             x^3 + 2.0*I
-            sage: f.roots()
-            [(-1.09112363597 - 0.629960524947*I, 1),
-             (... + 1.25992104989*I, 1),
-             (1.09112363597 - 0.629960524947*I, 1)]
-            sage: f.roots(multiplicities=False)
-            [-1.09112363597 - 0.629960524947*I, ... + 1.25992104989*I, 1.09112363597 - 0.629960524947*I]
-            sage: [f(z) for z in f.roots(multiplicities=False)] # random, too close to 0
-            [-2.56337823492e-15 - 6.66133814775e-15*I,
-             3.96533069372e-16 + 1.99840144433e-15*I,
-             4.19092485179e-17 - 8.881784197e-16*I]
+            sage: f.roots()  # abs tol 1e-14
+            [(-1.0911236359717227 - 0.6299605249474374*I, 1), (3.885780586188048e-16 + 1.2599210498948734*I, 1), (1.0911236359717211 - 0.6299605249474363*I, 1)]
+            sage: f.roots(multiplicities=False)  # abs tol 1e-14
+            [-1.0911236359717227 - 0.6299605249474374*I, 3.885780586188048e-16 + 1.2599210498948734*I, 1.0911236359717211 - 0.6299605249474363*I]
+            sage: [abs(f(z)) for z in f.roots(multiplicities=False)]  # abs tol 1e-14
+            [8.95090418262362e-16, 8.728374398092689e-16, 1.0235750533041806e-15]
             sage: f = i*x^3 + 2; f
             I*x^3 + 2.0
-            sage: f.roots()
-            [(-1.09112363597 + 0.629960524947*I, 1),
-             (... - 1.25992104989*I, 1),
-             (1.09112363597 + 0.629960524947*I, 1)]
-            sage: f(f.roots()[0][0]) # random, too close to 0
-            -2.56337823492e-15 - 6.66133814775e-15*I
+            sage: f.roots()  # abs tol 1e-14
+            [(-1.0911236359717227 + 0.6299605249474374*I, 1), (3.885780586188048e-16 - 1.2599210498948734*I, 1), (1.0911236359717211 + 0.6299605249474363*I, 1)]
+            sage: f(f.roots()[0][0])  # abs tol 1e-13
+            3.3306690738754696e-15 + 1.3704315460216776e-15*I
 
         Examples using real root isolation::
 
@@ -5414,25 +5466,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: rflds = (RR, RDF, RealField(100))
             sage: cflds = (CC, CDF, ComplexField(100))
             sage: def cross(a, b):
-            ...       return list(cartesian_product_iterator([a, b]))
+            ....:     return list(cartesian_product_iterator([a, b]))
             sage: flds = cross(rflds, rflds) + cross(rflds, cflds) + cross(cflds, cflds)
             sage: for (fld_in, fld_out) in flds:
-            ...       x = polygen(fld_in)
-            ...       f = x^3 - fld_in(2)
-            ...       x2 = polygen(fld_out)
-            ...       f2 = x2^3 - fld_out(2)
-            ...       for algo in (None, 'pari', 'numpy'):
-            ...           rts = f.roots(ring=fld_out, multiplicities=False)
-            ...           if fld_in == fld_out and algo is None:
-            ...               print fld_in, rts
-            ...           for rt in rts:
-            ...               assert(abs(f2(rt)) <= 1e-10)
-            ...               assert(rt.parent() == fld_out)
+            ....:     x = polygen(fld_in)
+            ....:     f = x^3 - fld_in(2)
+            ....:     x2 = polygen(fld_out)
+            ....:     f2 = x2^3 - fld_out(2)
+            ....:     for algo in (None, 'pari', 'numpy'):
+            ....:         rts = f.roots(ring=fld_out, multiplicities=False)
+            ....:         if fld_in == fld_out and algo is None:
+            ....:             print fld_in, rts
+            ....:         for rt in rts:
+            ....:             assert(abs(f2(rt)) <= 1e-10)
+            ....:             assert(rt.parent() == fld_out)
             Real Field with 53 bits of precision [1.25992104989487]
-            Real Double Field [1.25992104989]
+            Real Double Field [1.25992104989...]
             Real Field with 100 bits of precision [1.2599210498948731647672106073]
             Complex Field with 53 bits of precision [1.25992104989487, -0.62996052494743... - 1.09112363597172*I, -0.62996052494743... + 1.09112363597172*I]
-            Complex Double Field [1.25992104989, -0.62996052494... - 1.09112363597*I, -0.62996052494... + 1.09112363597*I]
+            Complex Double Field [1.25992104989..., -0.629960524947... - 1.0911236359717...*I, -0.629960524947... + 1.0911236359717...*I]
             Complex Field with 100 bits of precision [1.2599210498948731647672106073, -0.62996052494743658238360530364 - 1.0911236359717214035600726142*I, -0.62996052494743658238360530364 + 1.0911236359717214035600726142*I]
 
         Note that we can find the roots of a polynomial with algebraic
@@ -5576,10 +5628,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: R.<u> = QQ[]
             sage: g = -27*u^14 - 32*u^9
-            sage: g.roots(CDF, multiplicities=False)
-            [-1.03456371594, 0.0, -0.31969776999 - 0.983928563571*I, -0.31969776999 + 0.983928563571*I, 0.836979627962 - 0.608101294789*I, 0.836979627962 + 0.608101294789*I]
-            sage: g.roots(CDF)
-            [(-1.03456371594, 1), (0.0, 9), (-0.31969776999 - 0.983928563571*I, 1), (-0.31969776999 + 0.983928563571*I, 1), (0.836979627962 - 0.608101294789*I, 1), (0.836979627962 + 0.608101294789*I, 1)]
+            sage: g.roots(CDF, multiplicities=False)  # abs tol 2e-15
+            [-1.0345637159435719, 0.0, -0.3196977699902601 - 0.9839285635706636*I, -0.3196977699902601 + 0.9839285635706636*I, 0.8369796279620465 - 0.6081012947885318*I, 0.8369796279620465 + 0.6081012947885318*I]
+            sage: g.roots(CDF)  # abs tol 2e-15
+            [(-1.0345637159435719, 1), (0.0, 9), (-0.3196977699902601 - 0.9839285635706636*I, 1), (-0.3196977699902601 + 0.9839285635706636*I, 1), (0.8369796279620465 - 0.6081012947885318*I, 1), (0.8369796279620465 + 0.6081012947885318*I, 1)]
 
         This shows that the issue at :trac:`2418` is fixed::
 
@@ -5624,6 +5676,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [1 + O(3^5)]
             sage: parent(r[0])
             3-adic Ring with capped relative precision 5
+            
+        Spurious crash with pari-2.5.5, see :trac:`16165`::
+        
+            sage: f=(1+x+x^2)^3
+            sage: f.roots(ring=CC)
+            [(-0.500000000000000 - 0.866025403784439*I, 3),
+             (-0.500000000000000 + 0.866025403784439*I, 3)]
         """
         K = self.parent().base_ring()
         if hasattr(K, '_roots_univariate_polynomial'):
@@ -6185,13 +6244,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self   # safe because immutable.
         if n > 0:
             output = [self.base_ring().zero_element()] * n
-            output.extend(self.coeffs())
+            output.extend(self.coefficients(sparse=False))
             return self._parent(output, check=False)
         if n < 0:
             if n > self.degree():
                 return self._parent([])
             else:
-                return self._parent(self.coeffs()[-int(n):], check=False)
+                return self._parent(self.coefficients(sparse=False)[-int(n):], check=False)
 
     def __lshift__(self, k):
         return self.shift(k)
@@ -6438,7 +6497,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if p <= 0 :
             raise ValueError("The degree of the norm must be positive")
 
-        coeffs = self.coeffs()
+        coeffs = self.coefficients(sparse=False)
         if p == infinity.infinity:
             return RR(max([abs(i) for i in coeffs]))
 
@@ -6471,7 +6530,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             33
         """
         cdef long w = 0
-        for a in self.coeffs():
+        for a in self.coefficients(sparse=False):
             if a:
                 w += 1
         return w
@@ -6555,7 +6614,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Quick tests::
 
-            sage: P.<x> = ZZ[x]
+            sage: P.<x> = ZZ['x']
             sage: (x - 1).is_cyclotomic()
             True
             sage: (x + 1).is_cyclotomic()
@@ -6614,7 +6673,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if (self == gen - 1):  # the first cyc. pol. is treated apart
             return True
 
-        coefs = self.coeffs()
+        coefs = self.coefficients(sparse=False)
         if coefs[0] != 1:
             return False
 
@@ -6645,6 +6704,112 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # otherwise not cyclotomic
         return False
 
+    def homogenize(self, var='h'):
+        r"""
+        Return the homogenization of this polynomial.
+
+        The polynomial itself is returned if it homogeneous already. Otherwise,
+        its monomials are multiplied with the smallest powers of ``var`` such
+        that they all have the same total degree.
+
+        INPUT:
+
+        - ``var`` -- a variable in the polynomial ring (as a string, an element
+          of the ring, or ``0``) or a name for a new variable (default:
+          ``'h'``)
+
+        OUTPUT:
+
+        If ``var`` specifies the variable in the polynomial ring, then a
+        homogeneous element in that ring is returned. Otherwise, a homogeneous
+        element is returned in a polynomial ring with an extra last variable
+        ``var``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^2 + 1
+            sage: f.homogenize()
+            x^2 + h^2
+
+        The parameter ``var`` can be used to specify the name of the variable::
+
+            sage: g = f.homogenize('z'); g
+            x^2 + z^2
+            sage: g.parent()
+            Multivariate Polynomial Ring in x, z over Rational Field
+
+        However, if the polynomial is homogeneous already, then that parameter
+        is ignored and no extra variable is added to the polynomial ring::
+
+            sage: f = x^2
+            sage: g = f.homogenize('z'); g
+            x^2
+            sage: g.parent()
+            Univariate Polynomial Ring in x over Rational Field
+
+        For compatibility with the multivariate case, if ``var`` specifies the
+        variable of the polynomial ring, then the monomials are multiplied with
+        the smallest powers of ``var`` such that the result is homogeneous; in
+        other words, we end up with a monomial whose leading coefficient is the
+        sum of the coefficients of the polynomial::
+
+            sage: f = x^2 + x + 1
+            sage: f.homogenize('x')
+            3*x^2
+
+        In positive characterstic, the degree can drop in this case::
+
+            sage: R.<x> = GF(2)[]
+            sage: f = x + 1
+            sage: f.homogenize(x)
+            0
+
+        For compatibility with the multivariate case, the parameter ``var`` can
+        also be 0 to specify the variable in the polynomial ring::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^2 + x + 1
+            sage: f.homogenize(0)
+            3*x^2
+
+        """
+        if self.is_homogeneous():
+            return self
+
+        x, = self.variables()
+
+        if PY_TYPE_CHECK(var, int) or PY_TYPE_CHECK(var, Integer):
+            if var:
+                raise TypeError, "Variable index %d must be < 1."%var
+            else:
+                return sum(self.coefficients())*x**self.degree()
+
+        x_name = self.variable_name()
+        var = str(var)
+
+        if var == x_name:
+            return sum(self.coefficients())*x**self.degree()
+
+        P = PolynomialRing(self.base_ring(), [x_name, var])
+        return P(self)._homogenize(1)
+
+    def is_homogeneous(self):
+        r"""
+        Return ``True`` if this polynomial is homogeneous.
+
+        EXAMPLES::
+
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: x.is_homogeneous()
+            True
+            sage: P(0).is_homogeneous()
+            True
+            sage: (x+1).is_homogeneous()
+            False
+        """
+        return len(self.exponents()) < 2
+
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function
 
@@ -6661,7 +6826,7 @@ cdef do_schoolbook_product(x, y):
     Doctested indirectly in _mul_generic and _mul_karatsuba. For the doctest we
     use a ring such that default multiplication calls external libraries::
 
-        sage: K = ZZ[x]
+        sage: K = ZZ['x']
         sage: f = K.random_element(8)
         sage: g = K.random_element(8)
         sage: f*g - f._mul_generic(g)
@@ -6709,7 +6874,7 @@ cdef do_karatsuba_different_size(left, right, Py_ssize_t K_threshold):
 
     Here, we use Fibonacci numbers that need deepest recursion in this method.
 
-        sage: K = ZZ[x]
+        sage: K = ZZ['x']
         sage: f = K.random_element(21)
         sage: g = K.random_element(34)
         sage: f*g - f._mul_karatsuba(g,0)

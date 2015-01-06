@@ -99,7 +99,6 @@ def is_MatrixGroupElement(x):
     return isinstance(x, MatrixGroupElement_base)
 
 
-
 class MatrixGroupElement_base(MultiplicativeGroupElement):
     """
     Base class for elements of matrix groups.
@@ -107,10 +106,10 @@ class MatrixGroupElement_base(MultiplicativeGroupElement):
     You should use one of the two subclasses:
 
     * :class:`MatrixGroupElement_sage` implements the group
-      mulitplication using Sage matrices.
+      multiplication using Sage matrices.
 
     * :class:`MatrixGroupElement_gap` implements the group
-      mulitplication using libGAP matrices.
+      multiplication using libGAP matrices.
 
     The base class only assumes that derived classes implement
     :meth:`matrix`.

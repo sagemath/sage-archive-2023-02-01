@@ -25,39 +25,33 @@ trac server. Items on the server are called *tickets*, and anyone may
 search or browse the tickets. For a list of recent changes, just visit
 the `Sage trac timeline <http://trac.sagemath.org/timeline>`_.
 
+.. _section-trac-account:
 
-Authentication
-==============
+Obtaining an Account
+====================
+
+You need a trac account if you want to *change* anything on the Sage trac
+server, even if you just want to comment on a ticket. To obtain one, send an
+email to ``sage-trac-account@googlegroups.com`` containing:
+
+* your full name,
+* preferred username,
+* contact email,
+* and reason for needing a trac account
+
+Your trac account also grants you access to the `sage wiki
+<wiki.sagemath.org>`_. Make sure you understand the review process, and the
+procedures for opening and closing tickets before making changes. The remainder
+of this chapter contains various guidelines on using the trac server.
+
+Trac authentication through SSH
+===============================
 
 There are two avenues to prove to the trac server that you are who you
 claim to be. First, to change the ticket web pages you need to log in
 to trac using a username/password. Second, there is public key
 cryptography used by git when copying new source files to the
 repository. This section will show you how to setup both.
-
-
-.. _section-trac-account:
-
-Obtaining an Account
---------------------
-
-You first need to open an account if you want to *change* anything on
-the Sage trac server, even if you just want to comment on a
-ticket. Part of the process is to prove that you are a human to keep
-spam at a minimum. To get an account read the developer manual (this
-document) and then send an email to
-``sage-trac-account@googlegroups.com`` that contains all of the
-following:
-
-* your full name,
-* preferred username,
-* contact email,
-* and reason for needing a trac account.
-
-Your trac account also grants you access to the sage wiki. Make sure
-you understand the review process, and the procedures for opening and
-closing tickets before making changes. The remainder of this chapter
-contains various guidelines on using the trac server.
 
 Generating and Uploading your SSH Keys
 --------------------------------------
@@ -274,9 +268,9 @@ points in mind.
 The Ticket Fields
 =================
 
-When you open a new ticket or change an existing ticket, you will find
-a variety of fields that can be changed. Here is a comprehensive
-overview:
+When you open a new ticket or change an existing ticket, you will find a variety
+of fields that can be changed. Here is a comprehensive overview (for the
+'status' field, see :ref:`section-trac-ticket-status`):
 
 * **Reported by:** The trac account name of whoever created the
   ticket. Cannot be changed.
@@ -328,28 +322,59 @@ overview:
 
 * **Stopgaps:** See :ref:`section-trac-stopgaps`.
 
+.. _section-trac-ticket-status:
 
+The status of a ticket
+======================
+
+The status of a ticket appears right next to its number, at the top-left corner
+of its page. It indicates who has to work on it.
+
+- **new** -- the ticket has only been created (or the author forgot to change
+  the status to something else).
+
+  If you want to work on it yourself it is better to leave a comment to say
+  so. It could avoid having two persons doing the same job.
+
+- **needs_review** -- the code is ready to be peer-reviewed. If the code is not
+  yours, then you can review it. See :ref:`chapter-review`.
+
+- **needs_work** -- something needs to be changed in the code. The reason should
+  appear in the comments.
+
+- **needs_info** -- somebody has to answer a question before anything else can
+  happen. It should be clear from the comments.
+
+- **positive_review** -- the ticket has been reviewed, and the release manager
+  will close it.
+
+The status of a ticket can be changed using a form at the bottom of the ticket's
+page. Leave a comment explaining your reasons whenever you change it.
 
 .. _section-trac-stopgaps:
 
 Stopgaps
 ========
 
-If a component of Sage produces a mathematical error, you should open
-two tickets: a main ticket with all available details, and also a
-"stopgap" ticket. This second ticket should have a patch which will be
-merged into Sage if no one fixes the main issue; this patch should print a
-warning when anyone uses the relevant code. To produce the warning
-message, use code like the following::
+When Sage returns wrong results, two tickets should be opened:
+
+- A main ticket with all available details.
+- A "stopgap" ticket (e.g. :trac:`12699`)
+
+This second ticket does not fix the problem but adds a warning that will be
+printed whenever anyone uses the relevant code. This, until the problem is
+finally fixed.
+
+To produce the warning message, use code like the following::
 
     from sage.misc.stopgap import stopgap
     stopgap("This code contains bugs and may be mathematically unreliable.",
         TICKET_NUM)
 
-Replace ``TICKET_NUM`` by the ticket number for the main ticket.  See
-:trac:`12699`, for example.  On the main trac ticket, you should also
-enter the ticket number for the stopgap ticket in the "Stopgaps"
-field. Stopgap tickets should be marked as blockers.
+Replace ``TICKET_NUM`` by the ticket number for the main ticket. On the main
+trac ticket, enter the ticket number for the stopgap ticket in the "Stopgaps"
+field (see :ref:`section-trac-fields`). Stopgap tickets should be marked as
+blockers.
 
 .. note::
 
@@ -391,107 +416,11 @@ issues:
   priorities of bugs very differently from us, so please let us know
   if you see a problem with specific tickets.
 
+Reviewing and closing Tickets
+=============================
 
-.. _section-review-patches:
-
-Reviewing Patches
-=================
-
-All code that goes into Sage is peer-reviewed, to ensure that the
-conventions discussed in this manual are followed, to make sure that
-there are sufficient examples and doctests in the documentation, and
-to try to make sure that the code does, mathematically, what it is
-supposed to.
-
-If someone (other than you) has posted a git branch for a ticket on
-the trac server, you can review it! Look at the branch diff (by
-clicking on the ) to see if it makes sense.  Download it (see
-:ref:`section-git_trac-review`) and build Sage with the new
-code. Now ask yourself questions such as the following:
-
-- Does the new source code make sense?
-
-- When you run it in Sage, does it fix the problem reported on the
-  ticket?
-
-- Does it introduce any new problems?
-
-- Is it documented sufficiently, including both explanation and
-  doctests? All code in Sage must have doctests, so if the ticket
-  author changes code which did not have a doctest before, the new
-  version must include one. In particular, all new code must be 100%
-  doctested. Use the command ``sage -coverage <files>`` to see the
-  coverage percentage of ``<files>``.
-
-- In particular, is there a doctest illustrating that the bug has been
-  fixed? If a function used to give the wrong answer and this ticket
-  fixes that, then it should include a doctest illustrating its new
-  success.  The surrounding docstring shoud contain the ticket number,
-  for example ``See :trac:`12345```.
-
-- If the ticket claims to speed up some computation, does the ticket
-  contain code examples to illustrate the claim? The ticket should
-  explain the speed efficiency before applying the patch. It should
-  also explain the speed efficiency gained after applying the patch.
-
-- Does the reference manual build without errors? You can test the
-  reference manual using the command ``sage -docbuild reference html``
-  to build the HTML version. The PDF version of the reference manual
-  must also build without errors. Use the command ``sage -docbuild
-  reference pdf`` to test it out. The latter command requires that you
-  have LaTeX installed on your system.
-
-- Do all doctests pass without errors? It is difficult to predict
-  which components of Sage will be affected by a given patch and you
-  should run tests on the whole library---including those flagged as
-  ``#long``---before giving a positive review. You can test the Sage
-  library with ``make ptestlong``. See :ref:`chapter-doctesting` for
-  more information.
-
-- Do the code and documentation follow conventions documented in the
-  following sections?
-
-  - :ref:`chapter-code-basics`
-  - :ref:`chapter-python`
-  - :ref:`chapter-cython`
-
-If the answers to these and other such reasonable questions are yes,
-then you might want to give the patch a positive review. On the main
-ticket page, write a comment in the box explaining your review. If you
-don't feel experienced enough for this, make a comment explaining what
-you checked, and end by asking if someone more experienced will take a
-look.  If you think there are issues with the patch, explain them in
-the comment box and change the status to "needs work". Browse the
-tickets on the trac server to see how things are done.
-
-If you change the patch yourself, you must make a commit in your own
-name and mark the commit as a reviewer's patch. This must be reviewed
-itself, for example by the author of the original patch.
-
-For more advice on reviewing, please see [WSblog].
-
-.. note::
-
-    "The perfect is the enemy of the good"
-
-    The point of the review is to ensure that the Sage code guidelines
-    are followed and that the the implementation is mathematically
-    correct. Please refrain from aditional feature requests or
-    open-ended discussion about alternative implementations. If you
-    want the patch written differently, your suggestion should be a
-    clear and actionable request.
-
-.. SEEALSO::
-
-    :ref:`Review Walkthrough <section-git_trac-review>`
-
-REFERENCES:
-
-.. [WSblog] William Stein, How to Referee Sage Trac Tickets, http://sagemath.blogspot.com/2010/10/how-to-referee-sage-trac-tickets.html (Caveat: mercurial was replaced with git)
-
-
-Closing Tickets
-===============
+Tickets can be closed when they have positive review or for other reasons. To
+learn how to review, please see :ref:`chapter-review`.
 
 Only the Sage release manager will close tickets. Most likely, this is
 not you nor will your trac account have the necessary permissions. If
@@ -504,7 +433,6 @@ developer agrees, he sets the ticket to *positive review*.
 A related issue is re-opening tickets. You should refrain from
 re-opening a ticket that is already closed. Instead, open a new ticket
 and provide a link in the description to the old ticket.
-
 
 Reasons to Invalidate Tickets
 =============================

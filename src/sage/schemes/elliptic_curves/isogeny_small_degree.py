@@ -623,8 +623,7 @@ def isogenies_sporadic_Q(E, l=None):
         sage: isogenies_sporadic_Q(E,163)
         [Isogeny of degree 163 from Elliptic Curve defined by y^2 = x^3 - 34790720*x - 78984748304 over Rational Field to Elliptic Curve defined by y^2 = x^3 - 924354639680*x + 342062961763303088 over Rational Field]
     """
-    if E.base_ring() != QQ:
-        raise ValueError("The elliptic curve must be defined over QQ.")
+    F = E.base_field()
     j = E.j_invariant()
     j = QQ(j)
     if (j not in sporadic_j
@@ -637,10 +636,11 @@ def isogenies_sporadic_Q(E, l=None):
     c4, c6 = Ew.c_invariants()
     (a4,a6), f = data
     d = (c6*a4)/(18*c4*a6) # twisting factor
-    R = PolynomialRing(E.base_field(),'X')
+    R = PolynomialRing(F,'X')
     n = len(f)
     ker = R([d**(n-i-1) * f[i] for i in range(n)])
-    isog = Ew.isogeny(kernel=ker, degree=l, model="minimal", check=False)
+    model = "minimal" if F is QQ else None
+    isog = Ew.isogeny(kernel=ker, degree=l, model=model, check=False)
     isog.set_pre_isomorphism(E_to_Ew)
     return [isog]
 
@@ -2033,5 +2033,11 @@ def isogenies_prime_degree(E, l):
 
     if l in hyperelliptic_primes and not p in [2,3]:
         return isogenies_prime_degree_genus_plus_0(E,l)
+
+    j = E.j_invariant()
+    if j in QQ:
+        j = QQ(j)
+        if j in sporadic_j:
+            return isogenies_sporadic_Q(E,l)
 
     return isogenies_prime_degree_general(E,l)

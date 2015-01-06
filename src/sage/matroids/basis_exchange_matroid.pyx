@@ -37,9 +37,7 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/misc/bitset.pxi'
-
-DEF BINT_EXCEPT = -2 ** 31 - 1
+include 'sage/data_structures/bitset.pxi'
 
 from matroid cimport Matroid
 from set_system cimport SetSystem
@@ -255,21 +253,21 @@ cdef class BasisExchangeMatroid(Matroid):
         return frozenset(F)
 
     # this method needs to be overridden by child class
-    cdef bint __is_exchange_pair(self, long x, long y) except BINT_EXCEPT:
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         """
         Test if current_basis-x + y is a basis
         """
         raise NotImplementedError
 
     # if this method is overridden by a child class, the child class needs to call this method
-    cdef bint __exchange(self, long x, long y) except BINT_EXCEPT:
+    cdef int __exchange(self, long x, long y) except -1:
         """
         put current_basis <-- current_basis-x + y
         """
         bitset_discard(self._current_basis, x)
         bitset_add(self._current_basis, y)
 
-    cdef __move(self, bitset_t X, bitset_t Y):
+    cdef int __move(self, bitset_t X, bitset_t Y) except -1:
         """
         Change current_basis to minimize intersection with ``X``, maximize intersection with ``Y``.
         """
@@ -283,7 +281,7 @@ cdef class BasisExchangeMatroid(Matroid):
                     bitset_discard(Y, y)
                     bitset_discard(X, x)
                     if bitset_isempty(Y):
-                        return
+                        return 0
                     break
                 else:
                     y = bitset_next(Y, y + 1)
@@ -431,7 +429,7 @@ cdef class BasisExchangeMatroid(Matroid):
         self.__move(self._inside, self._outside)
         bitset_intersection(R, self._current_basis, Y)
 
-    cdef bint __is_independent(self, bitset_t F):
+    cdef bint __is_independent(self, bitset_t F) except -1:
         """
         Bitpacked version of ``is_independent``.
         """

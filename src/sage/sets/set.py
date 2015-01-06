@@ -99,8 +99,8 @@ def Set(X=frozenset()):
 
     We can also create sets from different types::
 
-        sage: Set([Sequence([3,1], immutable=True), 5, QQ, Partition([3,1,1])])
-        {Rational Field, [3, 1, 1], [3, 1], 5}
+        sage: sorted(Set([Sequence([3,1], immutable=True), 5, QQ, Partition([3,1,1])]), key=str)
+        [5, Rational Field, [3, 1, 1], [3, 1]]
 
     However each of the objects must be hashable::
 
@@ -780,7 +780,7 @@ class Set_object_enumerated(Set_object):
             sage: X
             {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: X.set()
-            set([0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1])
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: type(X.set())
             <type 'set'>
             sage: type(X)
@@ -799,13 +799,13 @@ class Set_object_enumerated(Set_object):
             sage: X
             {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: s = X.set(); s
-            set([0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1])
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: hash(s)
             Traceback (most recent call last):
             ...
             TypeError: unhashable type: 'set'
             sage: s = X.frozenset(); s
-            frozenset([0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1])
+            frozenset({0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1})
             sage: hash(s)
             -1390224788            # 32-bit
              561411537695332972    # 64-bit

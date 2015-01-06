@@ -19,6 +19,7 @@ whereas others have multiple bases.
    sage/rings/polynomial/polynomial_element
    sage/rings/polynomial/polynomial_element_generic
    sage/rings/polynomial/polynomial_gf2x
+   sage/rings/polynomial/polynomial_number_field
    sage/rings/polynomial/polynomial_integer_dense_flint
    sage/rings/polynomial/polynomial_integer_dense_ntl
    sage/rings/polynomial/polynomial_zmod_flint

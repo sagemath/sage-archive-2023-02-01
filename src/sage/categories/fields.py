@@ -126,7 +126,10 @@ class Fields(CategoryWithAxiom):
             sage: P.<x> = QQ[]
             sage: Q = P.quotient(x^2+2)
             sage: Q.category()
-            Join of Category of commutative algebras over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups
+            Join of Category of integral domains
+             and Category of commutative algebras over Rational Field
+             and Category of subquotients of monoids
+             and Category of quotients of semigroups
             sage: F = Fields()
             sage: F._contains_helper(Q)
             False
@@ -341,6 +344,42 @@ class Fields(CategoryWithAxiom):
             return FreeModule(self, n)
 
     class ElementMethods:
+        def euclidean_degree(self):
+            r"""
+            Return the degree of this element as an element of a euclidean
+            domain.
+
+            In a field, this returns 0 for all but the zero element (for
+            which it is undefined).
+
+            EXAMPLES::
+
+                sage: QQ.one().euclidean_degree()
+                0
+            """
+            if self.is_zero():
+                raise ValueError("euclidean degree not defined for the zero element")
+            from sage.rings.all import ZZ
+            return ZZ.zero()
+
+        def quo_rem(self, other):
+            r"""
+            Return the quotient with remainder of the division of this element
+            by ``other``.
+
+            INPUT:
+
+            - ``other`` -- an element of the field
+
+            EXAMPLES::
+
+                sage: f,g = QQ(1), QQ(2)
+                sage: f.quo_rem(g)
+                (1/2, 0)
+            """
+            if other.is_zero():
+                raise ZeroDivisionError
+            return (self/other, self.parent().zero())
 
         def is_unit( self ):
             r"""

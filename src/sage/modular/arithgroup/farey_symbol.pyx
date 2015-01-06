@@ -618,6 +618,7 @@ cdef class Farey:
         with pairings use the following command::
 
             sage: FareySymbol(Gamma0(11)).fundamental_domain()
+            Graphics object consisting of 54 graphics primitives
 
         indicating that side 1 is paired with side 3 and side 2 is
         paired with side 4, see also :meth:`.paired_sides`.
@@ -626,15 +627,18 @@ cdef class Farey:
         use the following command::
 
             sage: FareySymbol(Gamma(3)).fundamental_domain(show_pairing=False)
+            Graphics object consisting of 48 graphics primitives
 
         Plot the fundamental domain of `\Gamma_0(23)` showing the left
         coset representatives::
 
             sage: FareySymbol(Gamma0(23)).fundamental_domain(tesselation='coset')
+            Graphics object consisting of 58 graphics primitives
 
         The same as above but with a custom linestyle::
 
             sage: FareySymbol(Gamma0(23)).fundamental_domain(tesselation='coset', linestyle=':', thickness='2')
+            Graphics object consisting of 58 graphics primitives
 
         """
         from sage.plot.colors import rainbow

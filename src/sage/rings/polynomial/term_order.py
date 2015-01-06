@@ -1990,7 +1990,7 @@ class TermOrder(SageObject):
         """
         if self.name() in ('lex','degrevlex','deglex','degneglex','wdegrevlex','wdeglex'):
             return True
-        elif self.name() is 'block':
+        elif self.name() == 'block':
             return all([t.is_global() for t in self.blocks()])
         else:
             return False
@@ -2016,7 +2016,7 @@ class TermOrder(SageObject):
         if (self.name() in ('neglex','negdegrevlex','negdeglex','negwdegrevlex','negwdeglex') or
             self.singular_str() in ('ls','ds','Ds','ws','Ws')):
             return True
-        elif self.name() is 'block':
+        elif self.name() == 'block':
             return all([t.is_local() for t in self.blocks()])
         else:
             return False

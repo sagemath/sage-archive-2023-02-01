@@ -336,9 +336,13 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             Shuffle Algebra on 3 generators ['f', 'g', 'h'] over Integer Ring
             sage: A.algebra_generators()
             Family (B[word: f], B[word: g], B[word: h])
+
+            sage: A = ShuffleAlgebra(QQ, ['x1','x2'])
+            sage: A.algebra_generators()
+            Family (B[word: x1], B[word: x2])
         """
         Words = self.basis().keys()
-        return Family( [self.monomial(Words(a)) for a in self._alphabet] )
+        return Family( [self.monomial(Words([a])) for a in self._alphabet] )
         # FIXME: use this once the keys argument of FiniteFamily will be honoured
         # for the specifying the order of the elements in the family
         #return Family(self._alphabet, lambda a: self.term(self.basis().keys()(a)))

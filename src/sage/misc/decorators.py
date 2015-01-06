@@ -759,7 +759,7 @@ def decorator_keywords(func):
         ....:         return f(*args, **kwargs)
         ....:     return wrapper
 
-     This decorator can be called with and without arguments::
+    This decorator can be called with and without arguments::
 
         sage: @preprocess
         ....: def foo(x): return x

@@ -802,9 +802,7 @@ class SimplifiedDES(SageObject):
         Input must be a non-empty list of bits::
 
             sage: sdes.list_to_string([0, 1, 2])
-            Traceback (most recent call last):
-            ...
-            IndexError: tuple index out of range
+            <repr(<sage.monoids.string_monoid_element.StringMonoidElement at 0x...>) failed: IndexError: tuple index out of range>
         """
         # sanity check
         if not isinstance(B, list):

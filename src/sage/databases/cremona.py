@@ -35,6 +35,7 @@ while the full version has the layout::
     CREATE INDEX i_t_curve_class ON t_curve(class);
 """
 #*****************************************************************************
+#       Copyright (C) 2014 John Cremona <john.cremona@gmail.com>
 #       Copyright (C) 2011 R. Andrew Ohana <andrew.ohana@gmail.com>
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -104,12 +105,13 @@ def build(name, data_tgz, largest_conductor=0, mini=False, decompress=True):
 
     ... note::
 
-           For data up to level 240000, this function takes about 3
-           minutes on a AMD Opteron(tm) Processor 6174. The resulting database
-           occupies 309MB disk space.
+           For data up to level 350000, this function takes about
+           3m40s.  The resulting database occupies 426MB disk space.
 
-    To create the large Cremona database from Cremona's data_tgz tarball,
-    run the following command::
+    To create the large Cremona database from Cremona's data_tgz
+    tarball, obtainable from
+    http://homepages.warwick.ac.uk/staff/J.E.Cremona/ftp/data/, run
+    the following command::
 
         sage: d = sage.databases.cremona.build('cremona','ecdata.tgz')   # not tested
     """
@@ -130,6 +132,8 @@ def build(name, data_tgz, largest_conductor=0, mini=False, decompress=True):
         c = MiniCremonaDatabase(name,False,True)
     else:
         c = LargeCremonaDatabase(name,False,True)
+    # The following line assumes that the tarball extracts to a
+    # directory called 'ecdata'
     c._init_from_ftpdata('ecdata', largest_conductor)
     print("Total time: ", walltime(t))
 
@@ -590,8 +594,9 @@ class MiniCremonaDatabase(SQLDatabase):
 
         sage: c = CremonaDatabase()
         sage: c.allcurves(11)
-        {'a1': [[0, -1, 1, -10, -20], 0, 5], 'a3': [[0, -1, 1, 0, 0], 0, 5],
-         'a2': [[0, -1, 1, -7820, -263580], 0, 1]}
+        {'a1': [[0, -1, 1, -10, -20], 0, 5],
+         'a2': [[0, -1, 1, -7820, -263580], 0, 1],
+         'a3': [[0, -1, 1, 0, 0], 0, 5]}
     """
     def __init__(self, name, read_only=True, build=False):
         """
@@ -1312,15 +1317,21 @@ class MiniCremonaDatabase(SQLDatabase):
             print("largest conductor =", largest_conductor)
             self.__largest_conductor__ =  largest_conductor
 
-        num_curves, num_iso_classes = self._init_allcurves(ftpdata, largest_conductor)
+        # Since July 2014 the data files have been arranged in
+        # subdirectories (see :trac:`16903`).
+        allcurves_dir = os.path.join(ftpdata,'allcurves')
+        allbsd_dir = os.path.join(ftpdata,'allbsd')
+        allgens_dir = os.path.join(ftpdata,'allgens')
+        degphi_dir = os.path.join(ftpdata,'degphi')
+        num_curves, num_iso_classes = self._init_allcurves(allcurves_dir, largest_conductor)
         self.__number_of_curves__ = num_curves
         self.__number_of_isogeny_classes__ = num_iso_classes
         if hasattr(self, 'degphi'):
-            self._init_degphi(ftpdata, largest_conductor)
+            self._init_degphi(degphi_dir, largest_conductor)
         if hasattr(self, 'allbsd'):
-            self._init_allbsd(ftpdata, largest_conductor)
+            self._init_allbsd(allbsd_dir, largest_conductor)
         if hasattr(self, 'allgens'):
-            self._init_allgens(ftpdata, largest_conductor)
+            self._init_allgens(allgens_dir, largest_conductor)
         self.vacuum()
 
     def _init_allcurves(self, ftpdata, largest_conductor=0):
@@ -1332,6 +1343,8 @@ class MiniCremonaDatabase(SQLDatabase):
         sage.databases.cremona.build, do NOT run this method directly.
 
         INPUT:
+
+        - `ftpdata` (string) -- the name of the directory in which the data is
 
         -  ``largest_conductor`` - int (default: 0), if 0,
            then only include data up to that conductor.
@@ -1360,7 +1373,7 @@ class MiniCremonaDatabase(SQLDatabase):
             print("Inserting", F)
             class_data = []
             curve_data = []
-            for L in file(ftpdata + "/" + F).readlines():
+            for L in open(ftpdata + "/" + F).readlines():
                 N, iso, num, ainvs, r, tor = L.split()
                 if largest_conductor and int(N) > largest_conductor: break
                 cls = N+iso
@@ -1534,7 +1547,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
                 continue
             print("Inserting", F)
             class_data = []
-            for L in file(ftpdata + "/" + F).readlines():
+            for L in open(ftpdata + "/" + F).readlines():
                 N, iso, num, degree, primes, curve = L.split()
                 if largest_conductor and int(N) > largest_conductor: break
                 class_data.append((degree,N+iso))
@@ -1568,7 +1581,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             print("Inserting", F)
             curve_data = []
             class_data = []
-            for L in file(ftpdata + "/" + F).readlines():
+            for L in open(ftpdata + "/" + F).readlines():
                 N, iso, num, eqn, rank, tor, cp, om, L, reg, sha  = L.split()
                 if largest_conductor and int(N) > largest_conductor: break
                 cls = N+iso
@@ -1605,7 +1618,7 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
                 continue
             print("Inserting", F)
             curve_data = []
-            for L in file(ftpdata + "/" + F).readlines():
+            for L in open(ftpdata + "/" + F).readlines():
                 v = L.split()
                 if largest_conductor and int(v[0]) > largest_conductor: break
                 gens = '['+','.join(v[6:6+int(v[4])]).replace(':',',')+']'

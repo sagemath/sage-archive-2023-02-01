@@ -275,7 +275,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sage: MS = MatrixSpace(GF(13), 50, 50, sparse=True)
             sage: m = MS.random_element(density=0.002)
             sage: m._dict()
-            {(5, 25): 4, (4, 44): 7, (43, 43): 6, (26, 9): 9, (44, 38): 1}
+            {(4, 44): 7, (5, 25): 4, (26, 9): 9, (43, 43): 6, (44, 38): 1}
 
         TESTS::
 

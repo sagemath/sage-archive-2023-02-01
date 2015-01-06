@@ -96,7 +96,7 @@ class MPolynomial_element(MPolynomial):
 
             sage: P.<x,y,z> = PolynomialRing(QQbar)
             sage: x + QQbar.random_element() # indirect doctest
-            x + 4
+            x - 4
         """
         return "%s"%self.__element
 
@@ -477,15 +477,14 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         INPUT:
 
-
-        -  ``x`` - multivariate polynomial (a generator of the
-           parent of self) If x is not specified (or is None), return the
-           total degree, which is the maximum degree of any monomial.
-
+        - ``x`` - multivariate polynomial (a generator of the parent
+           of self). If ``x`` is not specified (or is None), return
+           the total degree, which is the maximum degree of any
+           monomial.
 
         OUTPUT: integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = RR[]
             sage: f = y^2 - x^9 - x
@@ -497,11 +496,42 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             3
             sage: (y^10*x - 7*x^2*y^5 + 5*x^3).degree(y)
             10
+
+        Note that if ``x`` is not a generator of the parent of self,
+        for example if it is a generator of a polynomial algebra which
+        maps naturally to this one, then it is converted to an element
+        of this algebra. (This fixes the problem reported in
+        :trac:`17366`.)
+
+        ::
+
+            sage: x, y = ZZ['x','y'].gens()
+            sage: GF(3037000453)['x','y'].gen(0).degree(x)
+            1
+
+            sage: x0, y0 = QQ['x','y'].gens()
+            sage: GF(3037000453)['x','y'].gen(0).degree(x0)
+            Traceback (most recent call last):
+            ...
+            TypeError: x must canonically coerce to parent
+
+            sage: GF(3037000453)['x','y'].gen(0).degree(x^2)
+            Traceback (most recent call last):
+            ...
+            TypeError: x must be one of the generators of the parent
         """
         if x is None:
             return self.element().degree(None)
-        if not (isinstance(x, MPolynomial) and x.parent() is self.parent() and x.is_generator()):
-            raise TypeError("x must be one of the generators of the parent.")
+        if isinstance(x, MPolynomial):
+            if not x.parent() is self.parent():
+                try:
+                    x = self.parent().coerce(x)
+                except TypeError:
+                    raise TypeError("x must canonically coerce to parent")
+            if not x.is_generator():
+                raise TypeError("x must be one of the generators of the parent")
+        else:
+            raise TypeError("x must be one of the generators of the parent")
         return self.element().degree(x.element())
 
     def total_degree(self):
@@ -760,9 +790,18 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             raise ValueError("You must pass a dictionary list or monomial.")
         return self.parent()(self.element().polynomial_coefficient(looking_for))
 
-    def exponents(self):
+    def exponents(self, as_ETuples=True):
         """
         Return the exponents of the monomials appearing in self.
+
+        INPUT:
+
+        - as_ETuples (default: ``True``): return the list of exponents as a list
+          of ETuples.
+
+        OUTPUT:
+
+        Return the list of exponents as a list of ETuples or tuples.
 
         EXAMPLES::
 
@@ -770,16 +809,30 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f = a^3 + b + 2*b^2
             sage: f.exponents()
             [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
+
+        Be default the list of exponents is a list of ETuples::
+
+            sage: type(f.exponents()[0])
+            <type 'sage.rings.polynomial.polydict.ETuple'>
+            sage: type(f.exponents(as_ETuples=False)[0])
+            <type 'tuple'>
         """
         try:
-            return self.__exponents
+            exp = self.__exponents
+            if as_ETuples:
+                return exp
+            else:
+                return [tuple(e) for e in exp]
         except AttributeError:
             self.__exponents = self.element().dict().keys()
             try:
                 self.__exponents.sort(cmp=self.parent().term_order().compare_tuples, reverse=True)
             except AttributeError:
                 pass
-            return self.__exponents
+            if as_ETuples:
+                return self.__exponents
+            else:
+                return [tuple(e) for e in self.__exponents]
 
     def is_unit(self):
         """

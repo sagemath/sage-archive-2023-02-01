@@ -57,18 +57,28 @@ Number Theory
 * :ref:`numtheory_rsa`
 * :ref:`sage.rings.padics.tutorial`
 
+Coding Theory
+-------------
+
+* :ref:`coding_theory`
+
 .. Monoids, Groups, representation Theory
 .. --------------------------------------
+
+Geometry
+========
+
+* :ref:`polytutorial`
 
 Combinatorics
 =============
 
 * :ref:`sage.combinat.tutorial`
-* :ref:`algebraic_combinatorics`
 
 Algebraic Combinatorics
 -----------------------
 
+* :ref:`algebraic_combinatorics`
 * :class:`Tutorial: Symmetric Functions <SymmetricFunctions>`
 * :ref:`lie`
 * :ref:`sage.combinat.root_system.plot`

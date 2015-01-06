@@ -56,19 +56,12 @@ from jones import JonesDatabase
 
 from stein_watkins import SteinWatkinsAllData, SteinWatkinsPrimeData
 
-from install import database_install
-
 from sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.databases.oeis', 'oeis')
 
 from symbolic_data import SymbolicData
-
-# commented out, since it's broken -- nobody updated the parser
-# for the new format; nobody complained it didn't work, so it
-# can't be that important.
-#from lincodes import linear_code_bound
 
 from odlyzko import zeta_zeros
 

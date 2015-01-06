@@ -108,7 +108,7 @@ class Dokchitser(SageObject):
         sage: L.taylor_series(1,4)
         0.000000000000000 + 0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + O(z^4)
         sage: L.check_functional_equation()
-        6.11218974800000e-18                            # 32-bit
+        6.11218974700000e-18                            # 32-bit
         6.04442711160669e-18                            # 64-bit
 
     RANK 2 ELLIPTIC CURVE:
@@ -125,8 +125,8 @@ class Dokchitser(SageObject):
         sage: L.derivative(1,E.rank())
         1.51863300057685
         sage: L.taylor_series(1,4)
-        2.90759778535572e-20 + (-1.64772676916085e-20)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)      # 32-bit
-        -3.11623283109075e-21 + (1.76595961125962e-21)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)      # 64-bit
+        2.90760251490292e-20 + (-1.64772944938078e-20)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)  # 32-bit
+        -3.11661104824958e-21 + (1.76617394576638e-21)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)  # 64-bit
 
     RAMANUJAN DELTA L-FUNCTION:
 
@@ -218,7 +218,9 @@ class Dokchitser(SageObject):
         except AttributeError:
             logfile = None
             # For debugging
-            #logfile = os.path.join(DOT_SAGE, 'dokchitser.log')
+            import os
+            from sage.env import DOT_SAGE
+            logfile = os.path.join(DOT_SAGE, 'dokchitser.log')
             g = sage.interfaces.gp.Gp(script_subdirectory='dokchitser', logfile=logfile)
             g.read('computel.gp')
             self.__gp = g
@@ -484,7 +486,7 @@ class Dokchitser(SageObject):
             sage: E = EllipticCurve('389a')
             sage: L = E.lseries().dokchitser(200)
             sage: L.taylor_series(1,3)
-            6.2240188634103774348273446965620801288836328651973234573133e-73 + (-3.527132447498646306292650465494647003849868770...e-73)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)
+            -9.094...e-82 + (5.1538...e-82)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)
         """
         self.__check_init()
         a = self.__CC(a)

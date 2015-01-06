@@ -63,7 +63,6 @@ AUTHORS:
 #    - order by clause in query strings
 #    - delete from query containing joins
 #    - add data by column
-#    - wrap sqlalchemy
 #    - create query interface (with interact)
 #    - allow kwds arguments to SQLQuery (like GraphQuery)
 

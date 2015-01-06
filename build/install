@@ -347,7 +347,6 @@ SETUPTOOLS=`newest_version setuptools`
 SINGULAR=`newest_version singular`
 SIX=`newest_version six`
 SPHINX=`newest_version sphinx`
-SQLALCHEMY=`newest_version sqlalchemy`
 SQLITE=`newest_version sqlite`
 SYMMETRICA=`newest_version symmetrica`
 SYMPOW=`newest_version sympow`

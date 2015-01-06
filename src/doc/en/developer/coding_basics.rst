@@ -654,7 +654,7 @@ together later, and each test is run for a certain amount of time on a
 regular basis.
 
 For an example, see the file
-``SAGE_ROOT/src/sage/modular/modsym/tests.py``.
+:file:`SAGE_ROOT/src/sage/modular/modsym/tests.py`.
 
 .. _section-further_conventions:
 

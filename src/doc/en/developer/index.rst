@@ -50,9 +50,9 @@ development!
   purpose.
 
   - :ref:`Here is <chapter-walkthrough>` an overview of our development flow.
-  - :ref:`Unfamiliar with Git or revision control ? <chapter-git_trac>`
-  - :ref:`How to install it ? <section-git-install>`
-  - :ref:`How to configure it for use with Trac ? <section-git-setup-name>`
+  - :ref:`Unfamiliar with Git or revision control? <chapter-git_trac>`
+  - :ref:`How to install it? <section-git-install>`
+  - :ref:`How to configure it for use with Trac? <section-git-setup-name>`
 
 Git for Sage development
 ========================

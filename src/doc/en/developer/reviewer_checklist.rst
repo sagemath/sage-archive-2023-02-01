@@ -54,9 +54,9 @@ The following should generally be checked while reading and testing the code:
   <chapter-code-basics>`? :ref:`Python's convention <chapter-python>`?
   :ref:`Cython's convention <chapter-cython>`?
 
-- **Doctest coverage**: Do all functions contain doctests ? Use ``sage -coverage
+- **Doctest coverage**: Do all functions contain doctests? Use ``sage -coverage
   <files>`` to check it. Are all aspects of the new/modified methods and classes
-  tested (see :ref:`section-doctest-writing`) ?
+  tested (see :ref:`section-doctest-writing`)?
 
 - **Bugfixes**: If the ticket contains a bugfix, does it add a doctest
   illustrating that the bug has been fixed? This new doctest should contain the

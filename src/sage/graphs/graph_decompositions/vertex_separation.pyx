@@ -146,7 +146,6 @@ sets such that an ordering `v_1, ..., v_n` of the vertices correspond to
 **MILP formulation:**
 
 .. MATH::
-    :nowrap:
 
     \begin{alignat}{2}
     \text{Minimize:}

@@ -152,8 +152,8 @@ Then in the file ``SAGE_ROOT/src/sage/all.py``, add a line ::
     from sage.measure_theory.all import *
 
 
-An Example Is Worth a Thousand Words
-====================================
+Learn by copy/paste
+===================
 
 For all of the conventions discussed here, you can find many examples
 in the Sage library.  Browsing through the code is helpful, but so is
@@ -492,8 +492,6 @@ there is not one already. That is, you can do the following::
     sage: sage_getdoc(foo.__init__)     # constructor docstring
     'Construct a Foo.\n'
 
-
-
 .. _section-latex-typeset:
 
 LaTeX Typesetting
@@ -585,6 +583,7 @@ which will appear interactively as "ZZ" while being typeset as
 See the file ``$SAGE_ROOT/src/sage/misc/latex_macros.py`` for a
 full list and for details about how to add more macros.
 
+.. _section-doctest-writing:
 
 Writing Testable Examples
 -------------------------
@@ -643,6 +642,19 @@ When writing documentation, keep the following points in mind:
       sage: n.is_prime()
       False
 
+**Randomized Testing and TestSuites**
+
+In addition to all the examples in your docstrings, which serve as
+both demonstrations and tests of your code, you should consider
+creating a test suite. Think of this as a program that will run for a
+while and "tries" to crash your code using randomly generated
+input. Your test code should define a class ``Test`` with a
+``random()`` method that runs random tests. These are all assembled
+together later, and each test is run for a certain amount of time on a
+regular basis.
+
+For an example, see the file
+``SAGE_ROOT/src/sage/modular/modsym/tests.py``.
 
 .. _section-further_conventions:
 
@@ -664,8 +676,7 @@ framework. Here is a comprehensive list:
 
   However, most functions generating pseudorandom output do not need this tag
   since the doctesting framework guarantees the state of the pseudorandom number
-  generators (PRNGs) used in Sage for a given doctest (see
-  :ref:`chapter-randomtesting`).
+  generators (PRNGs) used in Sage for a given doctest.
 
   When possible, avoid the problem, e.g.: rather than checking the value of the
   hash in a doctest, one could illustrate successfully using it as a key in a
@@ -921,24 +932,6 @@ see :func:`sage.structure.sage_object.register_unpickle_override`
     **only** be removed from the pickle jar after the corresponding objects
     have been properly deprecated. Any proposal to remove pickles from the
     pickle jar should first be discussed on sage-devel.
-
-
-.. _chapter-randomtesting:
-
-Randomized Testing
-==================
-
-In addition to all the examples in your docstrings, which serve as
-both demonstrations and tests of your code, you should consider
-creating a test suite. Think of this as a program that will run for a
-while and "tries" to crash your code using randomly generated
-input. Your test code should define a class ``Test`` with a
-``random()`` method that runs random tests. These are all assembled
-together later, and each test is run for a certain amount of time on a
-regular basis.
-
-For an example, see the file
-``SAGE_ROOT/src/sage/modular/modsym/tests.py``.
 
 
 Global Options

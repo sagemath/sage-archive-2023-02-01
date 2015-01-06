@@ -126,8 +126,8 @@ then you can set up the remote by hand as described in the section on
 :ref:`section-git-trac`.
 
 
-Trac Tickets to Local Branches
-==============================
+Trac Tickets and Git Branches
+=============================
 
 Now let's start adding code to Sage!
 
@@ -353,8 +353,8 @@ you need a new feature or if your branch conflicts.
 
 .. _section-git_trac-collaborate:
 
-Collaboration
-=============
+Collaboration and conflict resolution
+=====================================
 
 Exchanging Branches
 -------------------

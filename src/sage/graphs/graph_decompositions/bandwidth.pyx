@@ -95,6 +95,7 @@ Functions
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+include 'sage/ext/interrupt.pxi'
 
 from libc.stdint cimport uint16_t, uint32_t, uint64_t
 from libc.stdlib cimport malloc, free
@@ -161,11 +162,53 @@ def bandwidth(G, k=None):
                                                    [0 0 0 0 0 1 0 1 1 1 0 0]
         6, [0, 5, 9, 4, 10, 1, 6, 11, 3, 8, 7, 2], [0 0 0 0 0 1 1 0 1 1 0 0]
         )
+
+    TESTS::
+
+        sage: bandwidth(2*graphs.PetersenGraph())
+        (5,
+        [0, 4, 5, 8, 1, 9, 3, 7, 6, 2, 10, 14, 15, 18, 11, 19, 13, 17, 16, 12],
+        20 x 20 dense matrix over Integer Ring)
+        sage: bandwidth(Graph())
+        (0, [], [])
+        sage: bandwidth(Graph(1))
+        (0, [0], [0])
+        sage: bandwidth(Graph(3))
+        (
+                      [0 0 0]
+                      [0 0 0]
+        0, [0, 1, 2], [0 0 0]
+        )
     """
+    # Trivial cases
+    if G.order() <= 1:
+        from sage.matrix.constructor import Matrix
+        if k is None:
+            return (0,G.vertices(),Matrix([[0]*G.order()]))
+        else:
+            return (G.vertices(),Matrix([[0]*G.order()]))
+
+    if not G.is_connected():
+        from sage.matrix.constructor import block_diagonal_matrix
+        max_k = 0 if k is None else k
+        order = []
+        mat = []
+        for GG in G.connected_components_subgraphs():
+            ans = bandwidth(GG,k=k)
+            if not ans:
+                return False
+            if k is None:
+                max_k = max(max_k, ans[0])
+                ans = ans[1:]
+            order.extend(ans[0])
+            mat.append(ans[1])
+        return (max_k, order, block_diagonal_matrix(*mat,subdivide=False))
+
     # All that this function does is allocate/free the memory for function
     # bandwidth_C
 
     cdef int n = G.order()
+    cdef list int_to_vertex = G.vertices()
 
     cdef unsigned short ** d                = <unsigned short **> malloc( n   * sizeof(unsigned short *))
     cdef unsigned short *  distances        = <unsigned short *>  malloc( n*n * sizeof(unsigned short  ))
@@ -200,7 +243,6 @@ def bandwidth(G, k=None):
 
     cdef int i,j,kk
     all_pairs_shortest_path_BFS(G,NULL,distances,NULL) # compute the distance matrix
-    cdef list int_to_vertex = G.vertices()
 
     # fill d so that d[i][j] works
     for i in range(n):
@@ -214,31 +256,39 @@ def bandwidth(G, k=None):
     for i in range(n):
         left_to_order[i] = i
 
-    if k is None:
-        for kk in range((n-1)//G.diameter(),n):
-            if bandwidth_C(n,kk,d,current,ordering,left_to_order,index_array_tmp,ith_range_array,range_array_tmp):
-                ans = True
-                break
-    else:
-        ans = bool(bandwidth_C(n,k,d,current,ordering,left_to_order,index_array_tmp,ith_range_array,range_array_tmp))
+    try:
+        sig_on()
+        if k is None:
+            for kk in range((n-1)//G.diameter(),n):
+                if bandwidth_C(n,kk,d,current,ordering,left_to_order,index_array_tmp,ith_range_array,range_array_tmp):
+                    ans = True
+                    break
+        else:
+            ans = bool(bandwidth_C(n,k,d,current,ordering,left_to_order,index_array_tmp,ith_range_array,range_array_tmp))
+
+        if ans:
+            order = [int_to_vertex[ordering[i]] for i in range(n)]
+
+        sig_off()
+
+    finally:
+        free(d)
+        free(distances)
+        free(current)
+        free(ordering)
+        free(left_to_order)
+        free(index_array_tmp)
+        free(range_arrays)
+        free(ith_range_array)
+        free(range_array_tmp)
 
     if ans:
         from sage.matrix.constructor import Matrix
-        order = [int_to_vertex[ordering[i]] for i in range(n)]
         M = Matrix([[int(G.has_edge(u,v)) for u in order] for v in order])
         assert all(abs(i-j)<= (kk if k is None else k)
                    for i,j in M.dict())
         ans = (kk, order, M) if k is None else (order,M)
 
-    free(d)
-    free(distances)
-    free(current)
-    free(ordering)
-    free(left_to_order)
-    free(index_array_tmp)
-    free(range_arrays)
-    free(ith_range_array)
-    free(range_array_tmp)
     return ans
 
 cdef bint bandwidth_C(int n, int k,

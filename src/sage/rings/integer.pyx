@@ -5529,10 +5529,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         Output may differ with and without the ``minimal`` option::
 
-            sage: 2._xgcd(-2)
-            (2, 1, 0)
-            sage: 2._xgcd(-2, minimal=True)
-            (2, 0, -1)
+            sage: 5._xgcd(6)
+            (1, -1, 1)
+            sage: 5._xgcd(6, minimal=True)
+            (1, 5, -4)
 
         Exhaustive tests, checking minimality conditions::
 

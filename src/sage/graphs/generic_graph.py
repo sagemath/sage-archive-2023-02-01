@@ -225,6 +225,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.connected_components_number` | Returns the number of connected components.
     :meth:`~GenericGraph.connected_components_subgraphs` | Returns a list of connected components as graph objects.
     :meth:`~GenericGraph.connected_component_containing_vertex` | Returns a list of the vertices connected to vertex.
+    :meth:`~GenericGraph.connected_components_sizes` | Return the sizes of the connected components as a list.
     :meth:`~GenericGraph.blocks_and_cut_vertices` | Computes the blocks and cut vertices of the graph.
     :meth:`~GenericGraph.blocks_and_cuts_tree` | Computes the blocks-and-cuts tree of the graph.
     :meth:`~GenericGraph.is_cut_edge` | Returns True if the input edge is a cut-edge or a bridge.
@@ -4429,6 +4430,22 @@ class GenericGraph(GenericGraph_pyx):
         c.sort()
         return c
 
+    def connected_components_sizes(self):
+        """
+        Return the sizes of the connected components as a list.
+
+        The list is sorted from largest to lower values.
+
+        EXAMPLES::
+
+            sage: for x in graphs(3):    print x.connected_components_sizes()
+            [1, 1, 1]
+            [2, 1]
+            [3]
+            [3]
+        """
+        return sorted((len(cc) for cc in self.connected_components()),reverse=True)
+
     def blocks_and_cut_vertices(self):
         """
         Computes the blocks and cut vertices of the graph.
@@ -5342,7 +5359,7 @@ class GenericGraph(GenericGraph_pyx):
                 return self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
 
             flow_value, flow_graph = self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
-            g = self.copy()
+            g = self.copy(immutable=False)
             for u,v,l in flow_graph.edge_iterator():
                 if (not use_edge_labels or
                     (weight(g.edge_label(u,v)) == weight(l))):
@@ -11000,7 +11017,7 @@ class GenericGraph(GenericGraph_pyx):
             if induced:
                 return self.subgraph(g)
             else:
-                Gcopy=G.copy()
+                Gcopy=G.copy(immutable=False)
                 Gcopy.relabel(g)
                 return self.subgraph(vertices=Gcopy.vertices(), edges=Gcopy.edges())
 
@@ -11353,7 +11370,7 @@ class GenericGraph(GenericGraph_pyx):
                 return all( gg.is_chordal() for gg in self.connected_components_subgraphs() )
 
         hole = None
-        g = self.copy()
+        g = self.copy(immutable=False)
 
         # Algorithms
         #
@@ -11658,7 +11675,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :mod:`Interval Graph Recognition <sage.graphs.pq_trees>`.
-    
+
             - :meth:`PQ <sage.graphs.pq_trees.PQ>`
               -- Implementation of PQ-Trees.
 
@@ -11678,7 +11695,7 @@ class GenericGraph(GenericGraph_pyx):
         cliques = []
 
         # As we will be deleting vertices ...
-        g = self.copy()
+        g = self.copy(immutable=False)
 
         for cc in self.connected_components_subgraphs():
 

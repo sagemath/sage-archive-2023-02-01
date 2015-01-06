@@ -120,9 +120,16 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         ::
 
             sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
-            sage: X=P.subscheme([x^2-y*z])
+            sage: X = P.subscheme([x^2-y*z])
             sage: X([2,2,2])
             (2 : 2 : 2)
+
+        ::
+
+            sage: R.<t>=PolynomialRing(ZZ)
+            sage: P = ProjectiveSpace(1, R.quo(t^2+1))
+            sage: P([2*t, 1])
+            (2*tbar : 1)
         """
         SchemeMorphism.__init__(self, X)
         if check:
@@ -141,7 +148,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             R = X.value_ring()
             v = Sequence(v, R)
             if len(v) == d-1:     # very common special case
-                v.append(1)
+                v.append(R(1))
 
             n = len(v)
             all_zero = True
@@ -155,21 +162,15 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             X.extended_codomain()._check_satisfies_equations(v)
 
-            if isinstance(X.codomain().base_ring(), QuotientRing_generic):
-                lift_coords = [P.lift() for P in v]
-            else:
-                lift_coords = v
-            v = Sequence(lift_coords)
-
         self._coords = v
 
-    def __eq__(self,right):
+    def __eq__(self, right):
         """
         Tests the projective equality of two points.
 
         INPUT:
 
-        - ``right`` - a point on projective space
+        - ``right`` -- a point on projective space
 
         OUTPUT:
 
@@ -231,6 +232,14 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P==Q
             False
 
+        Check that :trac:`17433` is fixed::
+
+            sage: P.<x,y> = ProjectiveSpace(Zmod(10), 1)
+            sage: p1 = P(1/3, 1)
+            sage: p2 = P.point([1, 3], False)
+            sage: p1 == p2
+            True
+
         ::
 
             sage: R.<z>=PolynomialRing(QQ)
@@ -263,7 +272,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         if self.codomain() != right.codomain():
             return False
         n = len(self._coords)
-        return all([self[i]*right[j] == self[j]*right[i] for i in range(0,n) for j in range(i+1, n)])
+        return all([self[i]*right[j] == self[j]*right[i]
+                   for i in range(0,n) for j in range(i+1, n)])
 
     def __ne__(self,right):
         """
@@ -356,41 +366,38 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         - ``t`` -- a ring element
 
-        OUTPUT:
-
-        - None.
+        OUTPUT: None.
 
         EXAMPLES::
 
-            sage: R.<t>=PolynomialRing(QQ)
-            sage: P=ProjectiveSpace(R,2,'x')
-            sage: p=P([3/5*t^3,6*t, t])
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: P = ProjectiveSpace(R, 2, 'x')
+            sage: p = P([3/5*t^3, 6*t, t])
             sage: p.scale_by(1/t); p
             (3/5*t^2 : 6 : 1)
 
         ::
 
-            sage: R.<t>=PolynomialRing(QQ)
-            sage: S=R.quo(R.ideal(t^3))
-            sage: P.<x,y,z>=ProjectiveSpace(S,2)
-            sage: Q=P(t,1,1)
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: S = R.quo(R.ideal(t^3))
+            sage: P.<x,y,z> = ProjectiveSpace(S, 2)
+            sage: Q = P(t,1,1)
             sage: Q.scale_by(t);Q
             (tbar^2 : tbar : tbar)
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: Q=P(2,2,2)
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
+            sage: Q = P(2,2,2)
             sage: Q.scale_by(1/2);Q
             (1 : 1 : 1)
         """
-        if t==0:  #what if R(t) == 0 ?
+        if t == 0:  #what if R(t) == 0 ?
             raise ValueError("Cannot scale by 0")
-        R=self.codomain().base_ring()
+        R = self.codomain().base_ring()
         if isinstance(R, QuotientRing_generic):
-            phi=R._internal_coerce_map_from(self.codomain().ambient_space().base_ring())
             for i in range(self.codomain().ambient_space().dimension_relative()+1):
-                self._coords[i]=phi(self._coords[i]*t).lift()
+                self._coords[i]=R(self._coords[i].lift()*t)
         else:
             for i in range(self.codomain().ambient_space().dimension_relative()+1):
                 self._coords[i]=R(self._coords[i]*t)
@@ -401,9 +408,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         .. WARNING:: The gcd will depend on the base ring.
 
-        OUTPUT:
-
-        - None.
+        OUTPUT: None.
 
         EXAMPLES::
 
@@ -430,20 +435,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         ::
 
             sage: P.<x,y> = ProjectiveSpace(Zmod(20),1)
-            sage: Q = P(4,8)
+            sage: Q = P(3,6)
             sage: Q.normalize_coordinates()
             sage: Q
             (1 : 2)
-
-        ::
-
-            sage: R.<t> = PolynomialRing(QQ,1)
-            sage: S = R.quotient_ring(R.ideal(t^3))
-            sage: P.<x,y> = ProjectiveSpace(S,1)
-            sage: Q = P(t,t^2)
-            sage: Q.normalize_coordinates()
-            sage: Q
-            (1 : t)
 
         Since the base ring is a polynomial ring over a field, only the
         gcd `c` is removed. ::
@@ -461,30 +456,46 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q = P(2*c,4*c)
             sage: Q.normalize_coordinates();Q
             (1 : 2)
+
+        ::
+
+            sage: R.<t> = PolynomialRing(QQ,1)
+            sage: S = R.quotient_ring(R.ideal(t^3))
+            sage: P.<x,y> = ProjectiveSpace(S,1)
+            sage: Q = P(t,t^2)
+            sage: Q.normalize_coordinates()
+            sage: Q
+            (1 : tbar)
         """
-        R=self.codomain().base_ring()
-        GCD = R(gcd(self[0],self[1]))
-        index=2
-        if self[0]>0 or self[1] >0:
-            neg=0
-        else:
-            neg=1
-        while GCD!=1 and index < len(self._coords):
-            if self[index]>0:
-                neg=0
-            GCD=R(gcd(GCD,self[index]))
-            index+=1
+        R = self.codomain().base_ring()
         if isinstance(R,(QuotientRing_generic)):
-            R=R.cover_ring()
-            GCD=GCD.lift()
-        if GCD != 1:
-            if neg==1:
-                self.scale_by(R(-1)/GCD)
+            GCD = gcd(self[0].lift(),self[1].lift())
+            index = 2
+            if self[0].lift() > 0 or self[1].lift() > 0:
+                neg = 1
             else:
-                self.scale_by(R(1)/GCD)
+                neg = -1
+            while GCD != 1 and index < len(self._coords):
+                if self[index].lift() > 0:
+                    neg = 1
+                GCD = gcd(GCD,self[index].lift())
+                index += 1
         else:
-            if neg==1:
-                self.scale_by(R(-1))
+            GCD = R(gcd(self[0], self[1]))
+            index = 2
+            if self[0] > 0 or self[1] > 0:
+                neg = R(1)
+            else:
+                neg = R(-1)
+            while GCD != 1 and index < len(self._coords):
+                if self[index] > 0:
+                    neg = R(1)
+                GCD = R(gcd(GCD,self[index]))
+                index += 1
+        if GCD != 1:
+            self.scale_by(neg/GCD)
+        elif neg == -1:
+            self.scale_by(neg)
 
     def dehomogenize(self,n):
         r"""
@@ -1020,9 +1031,16 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
         ::
 
             sage: P.<x, y, z> = ProjectiveSpace(2, QQ)
-            sage: X=P.subscheme([x^2-y*z])
+            sage: X = P.subscheme([x^2-y*z])
             sage: X([2,2,2])
             (1 : 1 : 1)
+
+        ::
+
+            sage: P = ProjectiveSpace(1, GF(7))
+            sage: Q=P([2, 1])
+            sage: Q[0].parent()
+            Finite Field of size 7
         """
         SchemeMorphism.__init__(self, X)
         if check:
@@ -1041,7 +1059,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             R = X.value_ring()
             v = Sequence(v, R)
             if len(v) == d-1:     # very common special case
-                v.append(1)
+                v.append(R(1))
 
             n = len(v)
             all_zero = True
@@ -1071,24 +1089,24 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=ProjectiveSpace(GF(5),2)
-            sage: Q=P.point([1,3,0],false);Q
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5),2)
+            sage: Q = P.point([GF(5)(1), GF(5)(3), GF(5)(0)], False); Q
             (1 : 3 : 0)
-            sage: Q.normalize_coordinates();Q
+            sage: Q.normalize_coordinates(); Q
             (2 : 1 : 0)
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
-            sage: X=P.subscheme(x^2-y^2);
-            sage: Q=X.point([23,23,46], false);Q
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X  =P.subscheme(x^2-y^2);
+            sage: Q = X.point([23, 23, 46], False); Q
             (23 : 23 : 46)
-            sage: Q.normalize_coordinates();Q
+            sage: Q.normalize_coordinates(); Q
             (1/2 : 1/2 : 1)
         """
-        index=self.codomain().ambient_space().dimension_relative()
-        while self[index]==0:
-            index-=1
+        index = self.codomain().ambient_space().dimension_relative()
+        while self[index] == 0:
+            index -= 1
         self.scale_by(1/self[index])
 
 

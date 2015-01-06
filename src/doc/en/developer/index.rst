@@ -78,12 +78,12 @@ All changes to Sage source code require a ticket on the
 `Sage trac server <http://trac.sagemath.org>`_.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    trac
 
-Git and Trac integration
-------------------------
+The git-trac command
+--------------------
 
 Putting your local changes on a Trac ticket.
 
@@ -122,6 +122,7 @@ Basics of Writing and Testing Sage Code
 
    coding_basics
    doctesting
+   reviewer_checklist
 
 Contributing to Manuals and Tutorials
 -------------------------------------

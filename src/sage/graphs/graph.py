@@ -1785,11 +1785,16 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: for x in graphs(3):    print x.to_partition()
+            doctest:...: DeprecationWarning: Please use G.connected_components_sizes() instead
+            See http://trac.sagemath.org/17449 for details.
             [1, 1, 1]
             [2, 1]
             [3]
             [3]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(17449, "Please use G.connected_components_sizes() instead")
+
         from sage.combinat.partition import Partition
         return Partition(sorted([len(y) for y in self.connected_components()], reverse=True))
 
@@ -3285,7 +3290,7 @@ class Graph(GenericGraph):
 
         try:
             p.solve(log=verbose)
-            g = self.copy()
+            g = self.copy(immutable=False)
             b = p.get_values(b)
             g.delete_edges([(x,y) for x,y,_ in g.edge_iterator() if b[reorder(x,y)] < 0.5])
             return g
@@ -4201,7 +4206,7 @@ class Graph(GenericGraph):
         self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram
 
-        g = self.copy()
+        g = self.copy(immutable=False)
         p = MixedIntegerLinearProgram(solver=solver, constraint_generation = True)
 
         # One variable per edge
@@ -5826,7 +5831,7 @@ class Graph(GenericGraph):
 
             # We first create manually a copy of the graph to prevent creating
             # multi-edges when merging vertices, if edges have labels (e.g., weights).
-            g = self.copy()
+            g = self.copy(immutable=False)
 
             degree_at_most_two = set([u for u,du in g.degree(labels = True).items() if du <= 2])
 

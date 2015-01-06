@@ -666,6 +666,21 @@ then reboot. See
 `this page <http://www.macosxhints.com/article.php?story=20050709233920660>`_
 for more details.
 
+How do I plot the cube root (or other odd roots) for negative input?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+This is one of the most frequently asked questions.  There are several
+methods mentioned in the plot documentation, but this one is easiest::
+
+    sage: plot(sign(x)*abs(x)^(1/3),-1,1)
+    Graphics object consisting of 1 graphics primitive
+
+The *reason* this is necessary is that Sage returns complex numbers
+for odd roots of negative numbers when numerically approximated, which
+is a `standard convention <http://en.wikipedia.org/wiki/Cube_root#Complex_numbers>`_.
+
+    sage: N((-1)^(1/3))
+    0.500000000000000 + 0.866025403784439*I
 
 How do I use the bitwise XOR operator in Sage?
 """"""""""""""""""""""""""""""""""""""""""""""

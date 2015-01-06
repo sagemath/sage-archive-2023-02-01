@@ -647,8 +647,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
-    @cached_method
-    def is_integral_domain(self, proof = True):
+    def is_integral_domain(self, proof=None):
         """
         Return ``True`` if and only if the order of ``self`` is prime.
 
@@ -658,8 +657,16 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             True
             sage: Integers(389^2).is_integral_domain()
             False
+
+        TESTS:
+
+        Check that :trac:`17453` is fixed::
+
+            sage: R = Zmod(5)
+            sage: R in IntegralDomains()
+            True
         """
-        return self.order().is_prime()
+        return self.is_field(proof)
 
     def is_unique_factorization_domain(self, proof=None):
         """

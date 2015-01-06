@@ -1049,6 +1049,10 @@ cdef class Matrix(matrix1.Matrix):
             [1, 0, 0]
             sage: matrix([[0,0],[0,0]]).rook_vector(algorithm="Godsil")
             [1, 0, 0]
+            sage: matrix.ones(4, 2).rook_vector("Ryser")
+            [1, 8, 12]
+            sage: matrix.ones(4, 2).rook_vector("Godsil")
+            [1, 8, 12]
 
         AUTHORS:
 
@@ -1079,9 +1083,9 @@ cdef class Matrix(matrix1.Matrix):
         elif algorithm == "Godsil":
             from sage.graphs.bipartite_graph import BipartiteGraph
             g = BipartiteGraph(self)
-            p = g.matching_polynomial()
+            p = g.matching_polynomial(complement=False)
             d = p.degree()
-            return [p[i]*(-1)**((d - i)/2) for i in range(d,-1,-2)]
+            return [p[i]*(-1)**((d - i)/2) for i in range(d, d-2*mn-1, -2)]
 
         else:
             raise ValueError('algorithm must be one of "Ryser", "ButeraPernici" or "Godsil".')

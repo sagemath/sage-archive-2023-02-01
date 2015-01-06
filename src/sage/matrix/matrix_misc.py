@@ -443,7 +443,7 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
     """
     if permanent_only:
         prec = None
-    else:
+    elif prec is not None:
         prec = int(prec)
         if prec == 0:
             raise ValueError('the argument `prec` must be a positive integer')

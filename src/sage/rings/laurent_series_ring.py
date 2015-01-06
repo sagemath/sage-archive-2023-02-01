@@ -307,6 +307,8 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
             sage: L.<q> = LaurentSeriesRing(QQ)
             sage: L.set_default_prec(10)
+            doctest:...: DeprecationWarning: This method is deprecated.
+            See http://trac.sagemath.org/16201 for details.
             sage: L(pari('1/x'))
             q^-1
             sage: L(pari('poltchebi(5)'))
@@ -510,24 +512,27 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     def set_default_prec(self, n):
         """
-        Sets the default precision.
+        Set the default precision.
 
-        This operation should be discouraged: parents should be
-        immutable and this function may be deprecated in the future.
+        This method is deprecated.
 
         TESTS::
 
             sage: R.<x> = LaurentSeriesRing(QQ)
             sage: R.set_default_prec(3)
+            doctest:...: DeprecationWarning: This method is deprecated.
+            See http://trac.sagemath.org/16201 for details.
             sage: 1/(x^5-x^7)
             x^-5 + x^-3 + O(x^-2)
         """
+        from sage.misc.superseded import deprecation
+        deprecation(16201, "This method is deprecated.")
         self.power_series_ring().set_default_prec(n)
 
     def default_prec(self):
         """
-        Sets the precision to which exact elements are truncated when
-        necessary (most frequently when inverting)
+        Get the precision to which exact elements are truncated when
+        necessary (most frequently when inverting).
 
         EXAMPLES::
 

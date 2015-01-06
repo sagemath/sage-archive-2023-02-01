@@ -3492,7 +3492,7 @@ cdef class Expression(CommutativeRingElement):
                        for g in self.gradient()])
 
 
-    def series(self, symbol, int order=-65535):
+    def series(self, symbol, order=None):
         r"""
         Return the power series expansion of self in terms of the
         given variable to the given order.
@@ -3573,9 +3573,12 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef Expression symbol0 = self.coerce_in(symbol)
         cdef GEx x
-        if order == -65535:
+        cdef int prec
+        if order is None:
             from sage.misc.defaults import series_precision
-            order = series_precision()
+            prec = series_precision()
+        else:
+            prec = order
         sig_on()
         try:
             x = self._gobj.series(symbol0._gobj, order, 0)

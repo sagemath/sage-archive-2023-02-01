@@ -505,6 +505,9 @@ ext_modules = [
               sources = ['sage/graphs/graph_decompositions/rankwidth.pyx',
                          'sage/graphs/graph_decompositions/rankwidth_c/rw.c']),
 
+    Extension('sage.graphs.graph_decompositions.bandwidth',
+              sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 

@@ -548,6 +548,25 @@ The **aligned** environment works as it does in LaTeX::
      g(x) & = x^x - f(x - 2)
     \end{aligned}
 
+For **non-math** LaTeX environments (like ``align``), the pdf documentation
+will not compile unless you add a **:nowrap:** flag to the MATH mode::
+
+    .. MATH::
+       :nowrap:
+
+       \begin{align}
+	  1+...+n &= n(n+1)/2\\
+	  &= O(n^2)\\
+       \end{tabular}
+
+.. MATH::
+   :nowrap:
+
+   \begin{align}
+   1+...+n &= n(n+1)/2\\
+   &= O(n^2)\\
+   \end{align}
+
 **Readability balance:** in the interactive console, LaTeX formulas contained in
 the documentation are represented by their LaTeX code (stripped from
 backslashes). In this situation ``\\frac{a}{b}`` is less readable than ``a/b``

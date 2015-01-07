@@ -507,9 +507,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         g = self.genus()
         pol = self.hyperelliptic_polynomials()[0]
-        K = LaurentSeriesRing(self.base_ring(), name)
+        K = LaurentSeriesRing(self.base_ring(), name, default_prec=prec+2)
         t = K.gen()
-        K.set_default_prec(prec+2)
         L = PolynomialRing(self.base_ring(),'x')
         x = L.gen()
         i = 0

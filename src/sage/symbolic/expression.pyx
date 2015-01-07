@@ -3505,7 +3505,7 @@ cdef class Expression(CommutativeRingElement):
           of the equality
         - ``order`` - an integer; if nothing given, it is set
           to the global default (``20``), which can be changed
-          using :meth:`set_series_precision`
+          using :func:`set_series_precision`
 
         OUTPUT:
 
@@ -3570,6 +3570,13 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = sin(x)^(-2); f.series(x, -1)
             1*x^(-2) + Order(1/x)
+
+        Check if changing global series precision does it right::
+
+            sage: set_series_precision(3)
+            sage: (1/(1-2*x)).series(x)
+            1 + 2*x + 4*x^2 + Order(x^3)
+            sage: set_series_precision(20)
         """
         cdef Expression symbol0 = self.coerce_in(symbol)
         cdef GEx x
@@ -3581,7 +3588,7 @@ cdef class Expression(CommutativeRingElement):
             prec = order
         sig_on()
         try:
-            x = self._gobj.series(symbol0._gobj, order, 0)
+            x = self._gobj.series(symbol0._gobj, prec, 0)
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, x)

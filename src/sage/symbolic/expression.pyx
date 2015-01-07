@@ -5109,9 +5109,9 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: n != 1 only allowed for s being a variable
-            
+
         Using ``coeff()`` is now deprecated (:trac:`17438`)::
-        
+
             sage: x.coeff(x)
             doctest:...: DeprecationWarning: coeff is deprecated. Please use coefficient instead.
             See http://trac.sagemath.org/17438 for details.
@@ -5140,12 +5140,12 @@ cdef class Expression(CommutativeRingElement):
         -  ``x`` -- optional variable.
 
         OUTPUT:
-        
+
         Depending on the value of ``sparse``,
 
         - A list of pairs ``(expr, n)``, where ``expr`` is a symbolic
           expression and ``n`` is a power (``sparse=True``, default)
-        
+
         - A list of expressions where the ``n``-th element is the coefficient of
           ``x^n`` when self is seen as polynomial in ``x`` (``sparse=False``).
 
@@ -5173,7 +5173,7 @@ cdef class Expression(CommutativeRingElement):
             [[2*a^2 + 1, 0], [-2*sqrt(2)*a + 1, 1], [1, 2]]
             sage: p.coefficients(x, sparse=False)
             [2*a^2 + 1, -2*sqrt(2)*a + 1, 1]
-            
+
         TESTS:
 
         The behaviour is undefined with noninteger or negative exponents::
@@ -5185,16 +5185,16 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot return dense coefficient list with noninteger exponents.
-            
+
         Using ``coeffs()`` is now deprecated (:trac:`17438`)::
-        
+
             sage: x.coeffs()
             doctest:...: DeprecationWarning: coeffs is deprecated. Please use coefficients instead.
             See http://trac.sagemath.org/17438 for details.
             [[1, 1]]
-        
+
         Series coefficients are now handled correctly (:trac:`17399`)::
-        
+
             sage: s=(1/(1-x)).series(x,6); s
             1 + 1*x + 1*x^2 + 1*x^3 + 1*x^4 + 1*x^5 + Order(x^6)
             sage: s.coefficients()
@@ -5236,7 +5236,7 @@ cdef class Expression(CommutativeRingElement):
             return ret
 
     coeffs = deprecated_function_alias(17438, coefficients)
-    
+
     def list(self, x=None):
         r"""
         Return the coefficients of this symbolic expression as a polynomial in x.

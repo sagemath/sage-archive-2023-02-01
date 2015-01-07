@@ -1117,7 +1117,8 @@ cdef class Matrix(matrix0.Matrix):
     ###########################################################################
     def stack(self, bottom, subdivide=False):
         r"""
-        Return the matrix ``self`` on top of ``bottom``::
+        Return a new matrix formed by appending the matrix (or vector)
+        ``bottom`` below ``self``::
 
             [  self  ]
             [ bottom ]
@@ -1157,7 +1158,6 @@ cdef class Matrix(matrix0.Matrix):
             or
             :func:`~sage.matrix.constructor.block_diagonal_matrix`
             useful and simpler in some instances.
-
 
         EXAMPLES:
 

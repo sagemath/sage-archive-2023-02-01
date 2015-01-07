@@ -1230,6 +1230,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
       Discrete Mathematics
       vol.39, num.3, pages 263-281
       1982
+      http://oai.cwi.nl/oai/asset/304/0304A.pdf
     """
     from sage.combinat.designs.database import QDM
     for h in holes:

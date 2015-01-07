@@ -755,7 +755,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.permanent()
             32
 
-        A huge determinant that can not be reasonably computed with the Ryser
+        A huge permanent that can not be reasonably computed with the Ryser
         algorithm (a `50 \times 50` band matrix with width `5`)::
 
             sage: n, w = 50, 5
@@ -947,7 +947,7 @@ cdef class Matrix(matrix1.Matrix):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
 
-    def rook_vector(self, algorithm="ButeraPernici", check=False):
+    def rook_vector(self, algorithm="ButeraPernici", complement=True):
         r"""
         Return the rook vector of this matrix.
 
@@ -958,8 +958,8 @@ cdef class Matrix(matrix1.Matrix):
         another.
 
         The *rook vector* of the matrix `A` is the list consisting of `r_0,
-        r_1, \ldots, r_m`. The *rook polynomial* is defined by
-        `r(x) = \sum_{k=0}^m r_k x^k`.
+        r_1, \ldots, r_h`, where `h = min(m,n)`. The *rook polynomial* is defined by
+        `r(x) = \sum_{k=0}^h r_k x^k`.
 
         The rook vector can be generalized to matrices defined over any rings
         using permanental minors. Among the available algorithms, only "Godsil"
@@ -969,16 +969,19 @@ cdef class Matrix(matrix1.Matrix):
         method :meth:`permanental_minor` to compute individual permanental
         minor.
 
+        See also ``sage.matrix.matrix2.permanental_minor_polynomial``
+        and the graph method ``matching_polynomial``.
+
         INPUT:
 
-        - ``self`` -- an `m` by `n` (0,1)-matrix
-
-        - ``check`` -- Boolean (default: ``False``) determining whether
-          to check that ``self`` is a (0,1)-matrix.
+        - ``self`` -- an `m` by `n` matrix
 
         - ``algorithm`` - a string which must be either "Ryser" or
           "ButeraPernici" (default) or "Godsil"; Ryser one might be faster on
           simple and small instances. Godsil only accepts input in 0,1.
+
+        - ``complement`` -- Boolean (default: ``True``) whether to compute the
+          rook vector of a (0,1)-matrix from its complement.
 
         EXAMPLES:
 
@@ -995,6 +998,15 @@ cdef class Matrix(matrix1.Matrix):
             sage: factorial(8) * laguerre(8,-x)
             x^8 + 64*x^7 + 1568*x^6 + 18816*x^5 + 117600*x^4 + 376320*x^3 +
             564480*x^2 + 322560*x + 40320
+
+        The number of desarrangements of length `n` is the permanent
+        of a matrix with 0 on the diagonal and 1 elsewhere;
+        for `n=21` it is `18795307255050944540` (see OEIS A000166):
+
+           sage: n = 21
+           sage: A = matrix([[int(j != i) for i in range(n)] for j in range(n)])
+           sage: A.rook_vector()[-1]
+           18795307255050944540
 
         An other example that we convert into a rook polynomial::
 
@@ -1020,6 +1032,18 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.rook_vector(algorithm="Godsil")
             [1, 8, 20, 16, 4]
 
+        When the matrix `A` has more ones then zeroes it is usually faster
+        to compute the rook polynomial of the complementary matrix, with
+        zeroes and ones interchanged, and use the inclusion-exclusion theorem,
+        giving for a `m \times n` matrix `A` with complementary matrix `B`
+
+        .. MATH::
+
+            r_k(A) = \sum_{j=0}^k (-1)^j \binom{m-j}{k-j} \binom{n-j}{k-j} (k-j)! r_j(B)
+
+        see [Riordan] or the introductory text [Allenby].
+
+
         An example with an exotic matrix (for which only Butera-Pernici and
         Ryser algorithms are available)::
 
@@ -1032,9 +1056,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.rook_vector(algorithm="Godsil")
             Traceback (most recent call last):
             ...
-            ValueError: coefficients must be zero or one, but we have 'x' in
-            position (0,1).
-
+            ValueError: coefficients must be zero or one, but we have 'x' in position (0,1).
             sage: B = A.transpose()
             sage: B.rook_vector(algorithm="ButeraPernici")
             [1, x^2 + x*y + x + 2*y + 1, 2*x^2*y + x*y^2 + x^2 + y^2 + y]
@@ -1053,6 +1075,18 @@ cdef class Matrix(matrix1.Matrix):
             [1, 8, 12]
             sage: matrix.ones(4, 2).rook_vector("Godsil")
             [1, 8, 12]
+            sage: m = matrix(8,9,[int(j != i) for i in range(9) for j in range(8)])
+            sage: m.rook_vector()
+            [1, 64, 1568, 18816, 117600, 376320, 564480, 322560, 40320]
+            sage: m.rook_vector(complement=False)
+            [1, 64, 1568, 18816, 117600, 376320, 564480, 322560, 40320]
+
+        REFERENCES:
+
+        .. [Riordan] J. Riordan, "An Introduction to Combinatorial Analysis",
+           Dover Publ. (1958)
+
+        .. [Allenby] R.B.J.T Allenby and A. Slomson, "How to count", CRC Press (2011)
 
         AUTHORS:
 
@@ -1063,15 +1097,39 @@ cdef class Matrix(matrix1.Matrix):
         n = self._ncols
         mn = min(m,n)
 
-        if check or algorithm == "Godsil":
-            # verify that self[i, j] in {0, 1}
-            zero = self.base_ring().zero()
-            one  = self.base_ring().one()
-            for i in range(m):
-                for j in range(n):
-                    x = self.get_unsafe(i, j)
-                    if x != zero and x != one:
-                        raise ValueError("coefficients must be zero or one, but we have '{}' in position ({},{}).".format(x,i,j))
+        # z2 flag for self[i, j] in {0, 1}
+        z2 = True
+        num_ones = 1
+        zero = self.base_ring().zero()
+        one  = self.base_ring().one()
+        for i in range(m):
+            for j in range(n):
+                x = self.get_unsafe(i, j)
+                if x != zero:
+                    if x != one:
+                        z2 = False
+                        if algorithm == "Godsil":
+                            raise ValueError("coefficients must be zero or one, but we have '{}' in position ({},{}).".format(x,i,j))
+                    else:
+                        num_ones += 1
+
+        fill = 0.55
+        if z2 and complement and num_ones > fill*m*n:
+            from sage.matrix.constructor import matrix
+            B = [[1-self.get_unsafe(i, j) for j in range(n)] for i in range(m)]
+            B = matrix(B)
+            b = B.rook_vector(algorithm=algorithm, complement=False)
+            a = [1]
+            c1 = 1
+            for k in range(1, mn + 1):
+                c1 = c1*(m-k+1)*(n-k+1)/k
+                c = c1
+                s = c*b[0] + (-1)**k*b[k]
+                for j in range(1, k):
+                    c = -c*(k-j+1)/((m-j+1)*(n-j+1))
+                    s += c*b[j]
+                a.append(s)
+            return a
 
         if algorithm == "Ryser":
             return [self.permanental_minor(k,algorithm="Ryser") for k in range(mn+1)]

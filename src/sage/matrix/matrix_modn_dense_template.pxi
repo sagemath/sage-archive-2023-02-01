@@ -2152,7 +2152,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             sage: A.characteristic_polynomial()
             x^10 + 12*x^9 + 6*x^8 + 8*x^7 + 13*x^6
             sage: P.<x> = GF(17)[]
-            sage: A._charpoly_hessenberg(x)
+            sage: A._charpoly_hessenberg('x')
             x^10 + 12*x^9 + 6*x^8 + 8*x^7 + 13*x^6
         """
         if self._nrows != self._ncols:

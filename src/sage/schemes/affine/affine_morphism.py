@@ -181,6 +181,74 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         P = self._fast_eval(x._coords)
         return self.codomain().point(P, check)
 
+    def __eq__(self, right):
+        """
+        Tests the equality of two affine morphisms.
+
+        INPUT:
+
+        - ``right`` - a map on affine space
+
+        OUTPUT:
+
+        - Boolean - True if ``self`` and ``right`` define the same affine map. False otherwise.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: A2.<u,v> = AffineSpace(QQ, 2)
+            sage: H = End(A)
+            sage: H2 = End(A2)
+            sage: f = H([x^2 - 2*x*y, y/(x+1)])
+            sage: g = H2([u^3 - v, v^2])
+            sage: f == g
+            False
+
+            ::
+
+            sage: A.<x,y,z> = AffineSpace(CC, 3)
+            sage: H = End(A)
+            sage: f = H([x^2 - CC.0*x*y + z*x, 1/z^2 - y^2 , 5*x])
+            sage: f == f
+            True
+        """
+        if not isinstance(right, SchemeMorphism_polynomial):
+            return False
+        if self.parent() != right.parent():
+            return False
+        return all([self[i]==right[i] for i in range(len(self._polys))])
+
+    def __ne__(self, right):
+        """
+        Tests the inequality of two affine morphisms.
+
+        INPUT:
+
+        - ``right`` -- a map on affine space
+
+        OUTPUT:
+
+        - Boolean -- True if ``self`` and ``right`` define different affine maps. False otherwise.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(RR, 2)
+            sage: H = End(A)
+            sage: f = H([x^2 - y, y^2])
+            sage: g = H([x^3-x*y, x*y^2])
+            sage: f != g
+            True
+            sage: f != f
+            False
+        """
+        if not isinstance(right, SchemeMorphism_polynomial):
+            return True
+        if self.parent() != right.parent():
+            return True
+        if all([self[i]==right[i] for i in range(len(self._polys))]):
+            return False
+        return True
+
     @lazy_attribute
     def _fastpolys(self):
         """
@@ -353,6 +421,14 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             Polynomial Ring in a over Algebraic Field
               Defn: Defined on coordinates by sending (x0 : x1 : x2) to
                     (1.414213562373095?*x0*x1 : a*x0^2 : x2^2)
+
+        ::
+
+            sage: P.<x,y,z> = AffineSpace(QQ,3)
+            sage: H = End(P)
+            sage: f = H([x^2 - 2*x*y + z*x, z^2 -y^2 , 5*z*y])
+            sage: f.homogenize(2).dehomogenize(2) == f
+            True
         """
         #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n,(tuple,list)):

@@ -600,14 +600,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     def generalised_log(self):
         r"""
-        Return integers `n_i` such that
+        Return integers `[n_1, \ldots, n_d]` such that
 
         ..math::
 
-            \prod_i x_i^{n_i} = \text{self},
+            \prod_{i=1}^d x_i^{n_i} = \text{self},
 
         where `x_1, \dots, x_d` are the generators of the unit group
-        returned by ``self.parent().unit_gens()``. See also :meth:`log`.
+        returned by ``self.parent().unit_gens()``.
 
         EXAMPLES::
 
@@ -616,6 +616,19 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             [1, 3, 1]
             sage: prod([Zmod(1568).unit_gens()[i] ** v[i] for i in [0..2]])
             3
+
+        .. seealso::
+
+            The method :meth:`log`.
+
+        .. warning::
+
+            The output is given relative to the set of generators
+            obtained by passing ``algorithm='sage'`` to the method
+            :meth:`~sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic.unit_gens`
+            of the parent (which is the default).  Specifying
+            ``algorithm='pari'`` usually yields a different set of
+            generators that is incompatible with this method.
 
         """
         if not self.is_unit():
@@ -4299,7 +4312,26 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
         return IntegerMod_to_Integer(self._codomain)
 
 cdef class IntegerMod_to_Integer(Map):
+    """
+    Map to lift elements to :class:`~sage.rings.integer.Integer`.
+
+    EXAMPLES::
+
+        sage: ZZ.convert_map_from(GF(2))
+        Lifting map:
+          From: Finite Field of size 2
+          To:   Integer Ring
+    """
     def __init__(self, R):
+        """
+        TESTS:
+
+        Lifting maps are morphisms in the category of sets (see
+        :trac:`15618`)::
+
+            sage: ZZ.convert_map_from(GF(2)).parent()
+            Set of Morphisms from Finite Field of size 2 to Integer Ring in Category of sets
+        """
         import sage.categories.homset
         from sage.categories.all import Sets
         Morphism.__init__(self, sage.categories.homset.Hom(R, integer_ring.ZZ, Sets()))

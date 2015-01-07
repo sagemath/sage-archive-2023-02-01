@@ -25,7 +25,6 @@ Miscellaneous
    sage/misc/getusage
    sage/misc/mrange
    sage/misc/dist
-   sage/misc/preparser
    sage/misc/functional
    sage/misc/html
    sage/misc/table

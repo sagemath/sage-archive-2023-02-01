@@ -1,9 +1,7 @@
-include "sage/ext/cdefs.pxi"
+from sage.libs.gmp.types cimport mpz_t
 include "sage/libs/ntl/decl.pxi"
 
-import sage.structure.element
-cimport sage.structure.element
-from sage.structure.element cimport EuclideanDomainElement, RingElement, ModuleElement, Element
+from sage.structure.element cimport EuclideanDomainElement, RingElement
 from sage.categories.morphism cimport Morphism
 
 cdef class Integer(EuclideanDomainElement):
@@ -28,6 +26,8 @@ cdef class Integer(EuclideanDomainElement):
     cdef bint _is_power_of(Integer self, Integer n)
 
     cdef _reduce_set(self, s) # do not use, since integers are immutable.
+
+cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1
 
 cdef Integer smallInteger(long value)
 

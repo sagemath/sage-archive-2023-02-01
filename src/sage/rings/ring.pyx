@@ -1518,9 +1518,11 @@ cdef class IntegralDomain(CommutativeRing):
 
         EXAMPLES::
 
-            sage: ZZ.is_integral_domain(); QQ.is_integral_domain(); ZZ[x].is_integral_domain()
+            sage: ZZ.is_integral_domain()
             True
+            sage: QQ.is_integral_domain()
             True
+            sage: ZZ['x'].is_integral_domain()
             True
             sage: R = ZZ.quotient(ZZ.ideal(10)); R.is_integral_domain()
             False

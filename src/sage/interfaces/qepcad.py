@@ -547,7 +547,7 @@ import sys
 
 from sage.misc.flatten import flatten
 from sage.misc.sage_eval import sage_eval
-from sage.misc.preparser import implicit_mul
+from sage.repl.preparse import implicit_mul
 
 from expect import Expect, ExpectFunction, AsciiArtString
 

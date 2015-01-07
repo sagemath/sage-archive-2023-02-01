@@ -230,7 +230,7 @@ class TamariIntervalPoset(Element):
         sage: TamariIntervalPoset(2,[(2,1),(1,2)])
         Traceback (most recent call last):
         ...
-        ValueError: Hasse diagram contains cycles
+        ValueError: The graph is not directed acyclic
 
         sage: TamariIntervalPoset(3,[(1,3)])
         Traceback (most recent call last):

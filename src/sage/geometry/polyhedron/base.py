@@ -23,7 +23,6 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil
-from sage.misc.prandom import randint
 
 from sage.graphs.graph import Graph
 
@@ -171,7 +170,6 @@ class Polyhedron_base(Element):
             NotImplementedError: A derived class must implement this method.
         """
         raise NotImplementedError('A derived class must implement this method.')
-
 
     def _init_from_Hrepresentation(self, ieqs, eqns, **kwds):
         """
@@ -1014,188 +1012,6 @@ class Polyhedron_base(Element):
         for V in self.Vrepresentation():
             yield V
 
-    def facial_adjacencies(self):
-        r"""
-        Return the list of face indices (i.e. indices of
-        H-representation objects) and the indices of faces adjacent to
-        them.
-
-        .. NOTE::
-
-            Instead of working with face indices, it is recommended
-            that you use the H-representation objects directly (see
-            example).
-
-        EXAMPLES::
-
-            sage: p = polytopes.permutahedron(4)
-            sage: p.facial_adjacencies()[0:3]
-            doctest:...: DeprecationWarning:
-            This method is deprecated.
-            Use self.Hrepresentation(i).neighbors() instead.
-            See http://trac.sagemath.org/11763 for details.
-            [[0, [1, 2, 5, 10, 12, 13]], [1, [0, 2, 5, 7, 9, 11]], [2, [0, 1, 10, 11]]]
-            sage: f0 = p.Hrepresentation(0)
-            sage: f0.index() == 0
-            True
-            sage: f0_adjacencies = [f0.index(), [n.index() for n in f0.neighbors()]]
-            sage: p.facial_adjacencies()[0] == f0_adjacencies
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(11763, 'This method is deprecated. Use self.Hrepresentation(i).neighbors() instead.')
-        try:
-            return self._facial_adjacencies
-        except AttributeError:
-            self._facial_adjacencies = \
-                [ [ h.index(),
-                    [n.index() for n in h.neighbors()]
-                  ] for h in self.Hrepresentation() ]
-            return self._facial_adjacencies
-
-    def facial_incidences(self):
-        """
-        Return the face-vertex incidences in the form `[f_i, [v_{i_0}, v_{i_1},\dots ,v_{i_2}]]`.
-
-        .. NOTE::
-
-            Instead of working with face/vertex indices, it is
-            recommended that you use the
-            H-representation/V-representation objects directly (see
-            examples). Or use :meth:`incidence_matrix`.
-
-        OUTPUT:
-
-        The face indices are the indices of the H-representation
-        objects, and the vertex indices are the indices of the
-        V-representation objects.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron(vertices = [[5,0,0],[0,5,0],[5,5,0],[0,0,0],[2,2,5]])
-            sage: p.facial_incidences()
-            doctest:...: DeprecationWarning:
-            This method is deprecated. Use self.Hrepresentation(i).incident() instead.
-            See http://trac.sagemath.org/11763 for details.
-            [[0, [0, 1, 3, 4]],
-             [1, [0, 1, 2]],
-             [2, [0, 2, 3]],
-             [3, [2, 3, 4]],
-             [4, [1, 2, 4]]]
-
-            sage: f0 = p.Hrepresentation(0)
-            sage: f0.index() == 0
-            True
-            sage: f0_incidences = [f0.index(), [v.index() for v in f0.incident()]]
-            sage: p.facial_incidences()[0] == f0_incidences
-            True
-
-            sage: p.incidence_matrix().column(0)
-            (1, 1, 0, 1, 1)
-            sage: p.incidence_matrix().column(1)
-            (1, 1, 1, 0, 0)
-            sage: p.incidence_matrix().column(2)
-            (1, 0, 1, 1, 0)
-            sage: p.incidence_matrix().column(3)
-            (0, 0, 1, 1, 1)
-            sage: p.incidence_matrix().column(4)
-            (0, 1, 1, 0, 1)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(11763, 'This method is deprecated. Use self.Hrepresentation(i).incident() instead.')
-        try:
-            return self._facial_incidences
-        except AttributeError:
-            self._facial_incidences = \
-                [ [ h.index(),
-                    [v.index() for v in h.incident()]
-                  ] for h in self.Hrepresentation() ]
-            return self._facial_incidences
-
-    def vertex_adjacencies(self):
-        """
-        Return a list of vertex indices and their adjacent vertices.
-
-        .. NOTE::
-
-            Instead of working with vertex indices, you can use the
-            V-representation objects directly (see examples).
-
-        Two V-representation objects are adjacent if they generate a
-        (1-dimensional) face of the polyhedron. Examples are two
-        vertices of a polytope that bound an edge, or a vertex and a
-        ray of a polyhedron that generate a bounding half-line of the
-        polyhedron. See :meth:`vertex_adjacency_matrix` for a more
-        detailed discussion.
-
-        OUTPUT:
-
-        The vertex indices are the indices of the V-representation
-        objects.
-
-        EXAMPLES::
-
-            sage: permuta3 = Polyhedron(vertices = Permutations([1,2,3,4]))
-            sage: permuta3.vertex_adjacencies()[0:3]
-            doctest:...: DeprecationWarning:
-            This method is deprecated. Use self.Vrepresentation(i).neighbors() instead.
-            See http://trac.sagemath.org/11763 for details.
-            [[0, [1, 2, 6]], [1, [0, 3, 7]], [2, [0, 4, 8]]]
-            sage: v0 = permuta3.Vrepresentation(0)
-            sage: v0.index() == 0
-            True
-            sage: list( v0.neighbors() )
-            [A vertex at (1, 2, 4, 3), A vertex at (1, 3, 2, 4), A vertex at (2, 1, 3, 4)]
-            sage: v0_adjacencies = [v0.index(), [v.index() for v in v0.neighbors()]]
-            sage: permuta3.vertex_adjacencies()[0] == v0_adjacencies
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(11763, 'This method is deprecated. Use self.Vrepresentation(i).neighbors() instead.')
-        try:
-            return self._vertex_adjacencies
-        except AttributeError:
-            self._vertex_adjacencies = \
-                [ [ v.index(),
-                    [n.index() for n in v.neighbors()]
-                  ] for v in self.Vrepresentation() ]
-            return self._vertex_adjacencies
-
-    def vertex_incidences(self):
-        """
-        Return the vertex-face incidences in the form `[v_i, [f_{i_0}, f_{i_1},\dots ,f_{i_2}]]`.
-
-        .. NOTE::
-
-            Instead of working with face/vertex indices, you can use
-            the H-representation/V-representation objects directly
-            (see examples).
-
-        EXAMPLES::
-
-            sage: p = polytopes.n_simplex(3)
-            sage: p.vertex_incidences()
-            doctest:...: DeprecationWarning:
-            This method is deprecated. Use self.Vrepresentation(i).incident() instead.
-            See http://trac.sagemath.org/11763 for details.
-            [[0, [0, 1, 2]], [1, [0, 1, 3]], [2, [0, 2, 3]], [3, [1, 2, 3]]]
-            sage: v0 = p.Vrepresentation(0)
-            sage: v0.index() == 0
-            True
-            sage: p.vertex_incidences()[0] == [ v0.index(), [h.index() for h in v0.incident()] ]
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(11763, 'This method is deprecated. Use self.Vrepresentation(i).incident() instead.')
-        try:
-            return self._vertex_incidences
-        except AttributeError:
-            self._vertex_incidences = \
-                [ [ v.index(),
-                    [h.index() for h in v.incident()]
-                  ] for v in self.Vrepresentation() ]
-            return self._vertex_incidences
-
     def inequality_generator(self):
         """
         Return  a generator for the defining inequalities of the
@@ -1274,23 +1090,6 @@ class Polyhedron_base(Element):
         """
         return [list(x) for x in self.inequality_generator()]
 
-    def ieqs(self):
-        """
-        Deprecated. Alias for inequalities()
-
-        EXAMPLES::
-
-            sage: p3 = Polyhedron(vertices = Permutations([1,2,3,4]))
-            sage: p3.ieqs() == p3.inequalities()
-            doctest:...: DeprecationWarning:
-            This method is deprecated. Use inequalities() instead.
-            See http://trac.sagemath.org/11763 for details.
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(11763, 'This method is deprecated. Use inequalities() instead.')
-        return self.inequalities()
-
     def equation_generator(self):
         """
         Return a generator for the linear equations satisfied by the
@@ -1346,29 +1145,6 @@ class Polyhedron_base(Element):
             [[-10, 1, 1, 1, 1]]
         """
         return [list(eq) for eq in self.equation_generator()]
-
-    def linearities(self):
-        """
-        Deprecated.  Use equations() instead.
-        Returns the linear constraints of the polyhedron. As with
-        inequalities, each constraint is given as [b -a1 -a2 ... an]
-        where for variables x1, x2,..., xn, the polyhedron satisfies
-        the equation b = a1*x1 + a2*x2 + ... + an*xn.
-
-        EXAMPLES::
-
-            sage: test_p = Polyhedron(vertices = [[1,2,3,4],[2,1,3,4],[4,3,2,1],[3,4,1,2]])
-            sage: test_p.linearities()
-            doctest:...: DeprecationWarning:
-            This method is deprecated. Use equations_list() instead.
-            See http://trac.sagemath.org/11763 for details.
-            [[-10, 1, 1, 1, 1]]
-            sage: test_p.linearities() == test_p.equations_list()
-            True
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(11763, 'This method is deprecated. Use equations_list() instead.')
-        return self.equations_list()
 
     def vertices_list(self):
         """
@@ -2263,126 +2039,6 @@ class Polyhedron_base(Element):
         pc.set_engine(engine)
         return pc.triangulate()
 
-    def triangulated_facial_incidences(self):
-        """
-        Return a list of the form [face_index, [v_i_0,
-        v_i_1,...,v_i_{n-1}]] where the face_index refers to the
-        original defining inequality.  For a given face, the
-        collection of triangles formed by each list of v_i should
-        triangulate that face.
-
-        In dimensions greater than 3, this is computed by randomly
-        lifting each face up a dimension; this does not always work!
-        This should eventually be fixed by using lrs or another
-        program that computes triangulations.
-
-        EXAMPLES:
-
-        If the figure is already composed of triangles, then all is well::
-
-            sage: Polyhedron(vertices = [[5,0,0],[0,5,0],[5,5,0],[2,2,5]]
-            ...             ).triangulated_facial_incidences()
-            doctest:...: DeprecationWarning:
-            This method is deprecated. Use triangulate() instead.
-            See http://trac.sagemath.org/11634 for details.
-            doctest:...: DeprecationWarning:
-            This method is deprecated. Use self.Hrepresentation(i).incident() instead.
-            See http://trac.sagemath.org/11763 for details.
-            [[0, [0, 1, 2]], [1, [0, 1, 3]], [2, [0, 2, 3]], [3, [1, 2, 3]]]
-
-        Otherwise some faces get split up to triangles::
-
-            sage: Polyhedron(vertices = [[2,0,0],[4,1,0],[0,5,0],[5,5,0],
-            ...       [1,1,0],[0,0,1]]).triangulated_facial_incidences()
-            doctest:...: DeprecationWarning:
-            This method is deprecated. Use triangulate() instead.
-            See http://trac.sagemath.org/11634 for details.
-            doctest:...: DeprecationWarning:
-            This method is deprecated. Use self.Vrepresentation(i).neighbors() instead.
-            See http://trac.sagemath.org/11763 for details.
-            [[0, [1, 2, 5]], [0, [2, 5, 3]], [0, [5, 3, 4]], [1, [0, 1, 2]],
-             [2, [0, 2, 3]], [3, [0, 3, 4]], [4, [0, 4, 5]], [5, [0, 1, 5]]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(11634, 'This method is deprecated. Use triangulate() instead.')
-        try:
-            return self._triangulated_facial_incidences
-        except AttributeError:
-            t_fac_incs = []
-            for a_face in self.facial_incidences():
-                vert_number = len(a_face[1])
-                if vert_number == self.dim():
-                    t_fac_incs.append(a_face)
-                elif self.dim() >= 4:
-                    lifted_verts = []
-                    for vert_index in a_face[1]:
-                        lifted_verts.append(self.vertices()[vert_index] +
-                                            [randint(-vert_index,5000+vert_index + vert_number**2)])
-                    temp_poly = Polyhedron(vertices = lifted_verts)
-                    for t_face in temp_poly.facial_incidences():
-                        if len(t_face[1]) != self.dim():
-                            print 'Failed for face: ' + str(a_face)
-                            print 'Attempted simplicial face: ' + str(t_face)
-                            print 'Attempted lifted vertices: ' + str(lifted_verts)
-                            raise RuntimeError("triangulation failed")
-                        normal_fdir = temp_poly.ieqs()[t_face[0]][-1]
-                        if normal_fdir >= 0:
-                            t_fac_verts = [temp_poly.vertices()[i] for i in t_face[1]]
-                            proj_verts = [q[0:self.dim()] for q in t_fac_verts]
-                            t_fac_incs.append([a_face[0],
-                                               [self.vertices().index(q) for q in proj_verts]])
-                else:
-                    vs = a_face[1][:]
-                    adj = dict( (a[0], [p for p in a[1] if p in a_face[1]])
-                               for a in self.vertex_adjacencies() if a[0] in a_face[1])
-                    t = vs[0]
-                    vs.remove(t)
-                    ts = adj[t]
-                    for v in ts:
-                        vs.remove(v)
-                    t_fac_incs.append([a_face[0], [t] + ts])
-                    while vs:
-                        t = ts[0]
-                        ts = ts[1:]
-                        for v in adj[t]:
-                            if v in vs:
-                                vs.remove(v)
-                                ts.append(v)
-                                t_fac_incs.append([a_face[0], [t] + ts])
-                                break
-        self._triangulated_facial_incidences = t_fac_incs
-        return t_fac_incs
-
-    def simplicial_complex(self):
-        """
-        Return a simplicial complex from a triangulation of the polytope.
-
-        Warning: This first triangulates the polytope using
-        ``triangulated_facial_incidences``, and this function may fail
-        in dimensions greater than 3, although it usually doesn't.
-
-        OUTPUT:
-
-        A simplicial complex.
-
-        EXAMPLES::
-
-            sage: p = polytopes.cuboctahedron()
-            sage: sc = p.simplicial_complex()
-            doctest:...: DeprecationWarning:
-            This method is deprecated. Use triangulate().simplicial_complex() instead.
-            See http://trac.sagemath.org/11634 for details.
-            doctest:...: DeprecationWarning:
-            This method is deprecated. Use triangulate() instead.
-            See http://trac.sagemath.org/11634 for details.
-            sage: sc
-            Simplicial complex with 12 vertices and 20 facets
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(11634, 'This method is deprecated. Use triangulate().simplicial_complex() instead.')
-        from sage.homology.simplicial_complex import SimplicialComplex
-        return SimplicialComplex([x[1] for x in self.triangulated_facial_incidences()])
-
     @coerce_binop
     def Minkowski_sum(self, other):
         """
@@ -3256,9 +2912,8 @@ class Polyhedron_base(Element):
             sage: p.f_vector()
             (1, 7, 12, 7, 1)
         """
-        return vector(ZZ,[len(x) for x in self.face_lattice().level_sets()])
+        return vector(ZZ, [len(x) for x in self.face_lattice().level_sets()])
 
-    @cached_method
     def vertex_graph(self):
         """
         Return a graph in which the vertices correspond to vertices
@@ -3266,16 +2921,88 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: g3 = polytopes.n_cube(3).vertex_graph()
-            sage: len(g3.automorphism_group())
+            sage: g3 = polytopes.n_cube(3).vertex_graph(); g3
+            Graph on 8 vertices
+            sage: g3.automorphism_group().cardinality()
             48
-            sage: s4 = polytopes.n_simplex(4).vertex_graph()
+            sage: s4 = polytopes.n_simplex(4).vertex_graph(); s4
+            Graph on 5 vertices
             sage: s4.is_eulerian()
             True
         """
-        return Graph(self.vertex_adjacency_matrix(), loops=True)
+        return Graph(self.vertex_adjacency_matrix(), loops=False)
 
     graph = vertex_graph
+
+    def vertex_digraph(self, f, increasing=True):
+        """
+        Return the directed graph of the polyhedron according to a linear form.
+
+        The underlying undirected graph is the graph of vertices and edges.
+
+        INPUT:
+
+        - ``f`` -- a linear form. The linear form can be provided as:
+
+            - a vector space morphism with one-dimensional codomain, (see
+              :meth:`sage.modules.vector_space_morphism.linear_transformation`
+              and
+              :class:`sage.modules.vector_space_morphism.VectorSpaceMorphism`)
+            - a vector ; in this case the linear form is obtained by duality
+              using the dot product: ``f(v) = v.dot_product(f)``.
+
+        - ``increasing`` -- boolean (default ``True``) whether to orient
+          edges in the increasing or decreasing direction.
+
+        By default, an edge is oriented from `v` to `w` if
+        `f(v) \leq f(w)`.
+
+        If `f(v)=f(w)`, then two opposite edges are created.
+
+        EXAMPLES::
+
+            sage: penta = Polyhedron([[0,0],[1,0],[0,1],[1,2],[3,2]])
+            sage: G = penta.vertex_digraph(vector([1,1])); G
+            Digraph on 5 vertices
+            sage: G.sinks()
+            [A vertex at (3, 2)]
+
+            sage: A = matrix(ZZ, [[1], [-1]])
+            sage: f = linear_transformation(A)
+            sage: G = penta.vertex_digraph(f) ; G
+            Digraph on 5 vertices
+            sage: G.is_directed_acyclic()
+            False
+
+        .. SEEALSO::
+
+            :meth:`vertex_graph`
+        """
+        from sage.modules.vector_space_morphism import VectorSpaceMorphism
+        if isinstance(f, VectorSpaceMorphism):
+            if f.codomain().dimension() == 1:
+                orientation_check = lambda v: f(v) >= 0
+            else:
+                raise TypeError('The linear map f must have '
+                                'one-dimensional codomain')
+        else:
+            try:
+                if f.is_vector():
+                    orientation_check = lambda v: v.dot_product(f) >= 0
+                else:
+                    raise TypeError('f must be a linear map or a vector')
+            except AttributeError:
+                raise TypeError('f must be a linear map or a vector')
+        if not increasing:
+            f = -f
+        from sage.graphs.digraph import DiGraph
+        dg = DiGraph()
+        for j in range(self.n_vertices()):
+            vj = self.Vrepresentation(j)
+            for vi in vj.neighbors():
+                if orientation_check(vj.vector() - vi.vector()):
+                    dg.add_edge(vi, vj)
+        return dg
 
     def polar(self):
         """
@@ -3544,34 +3271,6 @@ class Polyhedron_base(Element):
                 return volume
 
         raise ValueError("lrs did not return a volume")
-
-    def lrs_volume(self, verbose=False):
-        """
-        Computes the volume of a polytope using lrs.
-
-        OUTPUT:
-
-        The volume, cast to RDF (although lrs seems to output a
-        rational value this must be an approximation in some cases).
-
-        EXAMPLES::
-
-            sage: polytopes.n_cube(3).lrs_volume() #optional - lrs
-            doctest:...: DeprecationWarning: use volume(engine='lrs') instead
-            See http://trac.sagemath.org/13249 for details.
-            8.0
-            sage: (polytopes.n_cube(3)*2).lrs_volume() #optional - lrs
-            64.0
-            sage: polytopes.twenty_four_cell().lrs_volume() #optional - lrs
-            2.0
-
-        REFERENCES:
-
-             David Avis's lrs program.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(13249, "use volume(engine='lrs') instead")
-        return self._volume_lrs(verbose=verbose)
 
     @cached_method
     def volume(self, engine='auto', **kwds):
@@ -3923,7 +3622,7 @@ class Polyhedron_base(Element):
         try:
             vertices = self.vertices_matrix(ZZ).columns()
         except TypeError:
-            if envelope==False:
+            if not envelope:
                 raise ValueError('Some vertices are not integral. '
                     'You probably want to add the argument '
                     '"envelope=True" to compute an enveloping lattice polytope.')
@@ -4152,7 +3851,6 @@ class Polyhedron_base(Element):
             sage: P.combinatorial_automorphism_group()
             Permutation Group with generators [(3,4)]
         """
-        from sage.groups.perm_gps.permgroup import PermutationGroup
         G = Graph()
         for edge in self.vertex_graph().edges():
             i = edge[0]
@@ -4351,8 +4049,6 @@ class Polyhedron_base(Element):
             sage: p.restricted_automorphism_group()
             Permutation Group with generators [(2,3)]
         """
-        from sage.groups.perm_gps.permgroup import PermutationGroup
-
         if self.base_ring() is ZZ or self.base_ring() is QQ:
             def rational_approximation(c):
                 return c

@@ -370,7 +370,7 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
     elif not certificate:
         return True
 
-    gg = g.copy()
+    gg = g.copy(immutable=False)
     from sage.graphs.digraph import DiGraph
     h = DiGraph()
     h.add_vertices(gg.vertices())

@@ -139,7 +139,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     One can give strings to create integers. Strings starting with
     ``0x`` are interpreted as hexadecimal, and strings starting with
-    ``0`` are interpreted as octal::
+    ``0o`` are interpreted as octal::
 
         sage: parent('37')
         <type 'str'>
@@ -149,7 +149,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         16
         sage: Z('0x1a')
         26
-        sage: Z('020')
+        sage: Z('0o20')
         16
 
     As an inverse to :meth:`~sage.rings.integer.Integer.digits`,
@@ -442,7 +442,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         cdef rational.Rational x = PY_NEW(rational.Rational)
         if mpz_sgn(right.value) == 0:
-            raise ZeroDivisionError, 'Rational division by zero'
+            raise ZeroDivisionError('Rational division by zero')
         mpz_set(mpq_numref(x.value), left.value)
         mpz_set(mpq_denref(x.value), right.value)
         mpq_canonicalize(x.value)
@@ -457,7 +457,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
             sage: ZZ[sqrt(2), sqrt(3)]
             Relative Order in Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
-            sage: ZZ[x]
+            sage: ZZ['x']
             Univariate Polynomial Ring in x over Integer Ring
             sage: ZZ['x,y']
             Multivariate Polynomial Ring in x, y over Integer Ring

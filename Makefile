@@ -64,7 +64,7 @@ doc-html: build
 # megabytes of disk space. 'doc-clean' is a prerequisite because the
 # presence of graphics is cached in src/doc/output.
 doc-html-no-pix: build doc-clean
-	$(PIPE) "./sage --docbuild --no-pdf-links all html-no-pix $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
+	$(PIPE) "./sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
 
 doc-html-mathjax: build
 	$(PIPE) "./sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"

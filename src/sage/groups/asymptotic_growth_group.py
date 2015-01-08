@@ -135,7 +135,7 @@ class AsymptoticGrowthElement(MultiplicativeGroupElement):
 
         INPUT:
 
-        Noting.
+        Nothing.
 
         OUTPUT:
 

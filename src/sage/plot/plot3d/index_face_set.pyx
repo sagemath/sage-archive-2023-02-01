@@ -1001,7 +1001,11 @@ cdef class IndexFaceSet(PrimitiveObject):
                 f.write('\n')
             f.close()
 
-        s = 'pmesh %s "%s"\n%s' % (name, filename, self.texture.jmol_str("pmesh"))
+        if self.global_texture:
+            s = 'pmesh {} "{}"\n{}'.format(name, filename,
+                                           self.texture.jmol_str("pmesh"))
+        else:
+            s = 'pmesh {} "{}"'.format(name, filename)            
 
         # Turn on display of the mesh lines or dots?
         if render_params.mesh:

@@ -100,6 +100,7 @@ Programming and Design
 * :ref:`tutorial-comprehensions`
 * :ref:`tutorial-objects-and-classes`
 * :ref:`functional_programming`
+* :ref:`cython_interface`
 
 .. Sage development
 .. ----------------

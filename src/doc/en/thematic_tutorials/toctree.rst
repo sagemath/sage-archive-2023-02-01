@@ -19,3 +19,4 @@ Thematic tutorial document tree
    tutorial-objects-and-classes
    functional_programming
    coercion_and_categories
+   cython_interface

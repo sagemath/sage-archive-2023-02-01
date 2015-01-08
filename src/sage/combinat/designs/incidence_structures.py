@@ -631,9 +631,10 @@ class IncidenceStructure(object):
             except KeyError:
                 raise ValueError("{} is not a point of the incidence structure".format(x))
 
-        points = set(points)
+        int_points = set(int_points)
         return IncidenceStructure(points,
-                                  [S for S in self._blocks if points.issuperset(S)])
+                                  [[self._points[x] for x in S] for S in self._blocks
+                                   if int_points.issuperset(S)])
 
     def ground_set(self):
         r"""

@@ -736,7 +736,7 @@ cdef class SymbolicRing(CommutativeRing):
         Note that you make get unexpected results when calling
         symbolic expressions and not explicitly giving the variables::
 
-            sage: f = function('Gamma', var('z'), var('w')); f
+            sage: f = function('Gamma')(var('z'), var('w')); f
             Gamma(z, w)
             sage: f(2)
             Gamma(z, 2)

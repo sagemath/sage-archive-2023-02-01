@@ -357,7 +357,7 @@ the interactive interpreter.
 Check to see that the problem with the variables method mentioned
 in :trac:`3779` is actually fixed::
 
-    sage: f = function('F',x)
+    sage: f = function('F')(x)
     sage: diff(f*SR(1),x)
     D[0](F)(x)
 
@@ -1282,7 +1282,7 @@ def laplace(ex, t, s):
 
     We do a formal calculation::
 
-        sage: f = function('f', x)
+        sage: f = function('f')(x)
         sage: g = f.diff(x); g
         D[0](f)(x)
         sage: g.laplace(x, s)
@@ -1308,8 +1308,8 @@ def laplace(ex, t, s):
         sage: var('t')
         t
         sage: t = var('t')
-        sage: x = function('x', t)
-        sage: y = function('y', t)
+        sage: x = function('x')(t)
+        sage: y = function('y')(t)
         sage: de1 = x.diff(t) + 16*y
         sage: de2 = y.diff(t) + x - 1
         sage: de1.laplace(t, s)
@@ -1435,7 +1435,7 @@ def at(ex, *args, **kwds):
 
         sage: var('s,t')
         (s, t)
-        sage: f=function('f', t)
+        sage: f=function('f')(t)
         sage: f.diff(t,2)
         D[0, 0](f)(t)
         sage: f.diff(t,2).laplace(t,s)
@@ -1531,7 +1531,7 @@ def dummy_diff(*args):
     Here the function is used implicitly::
 
         sage: a = var('a')
-        sage: f = function('cr', a)
+        sage: f = function('cr')(a)
         sage: g = f.diff(a); g
         D[0](cr)(a)
     """
@@ -1549,7 +1549,7 @@ def dummy_integrate(*args):
     EXAMPLES::
 
         sage: from sage.calculus.calculus import dummy_integrate
-        sage: f(x) = function('f',x)
+        sage: f = function('f')
         sage: dummy_integrate(f(x), x)
         integrate(f(x), x)
         sage: a,b = var('a,b')
@@ -1570,7 +1570,7 @@ def dummy_laplace(*args):
 
         sage: from sage.calculus.calculus import dummy_laplace
         sage: s,t = var('s,t')
-        sage: f(t) = function('f',t)
+        sage: f = function('f')
         sage: dummy_laplace(f(t),t,s)
         laplace(f(t), t, s)
     """
@@ -1585,7 +1585,7 @@ def dummy_inverse_laplace(*args):
 
         sage: from sage.calculus.calculus import dummy_inverse_laplace
         sage: s,t = var('s,t')
-        sage: F(s) = function('F',s)
+        sage: F = function('F')
         sage: dummy_inverse_laplace(F(s),s,t)
         ilt(F(s), s, t)
     """
@@ -1659,7 +1659,7 @@ def _laplace_latex_(self, *args):
         sage: from sage.calculus.calculus import _laplace_latex_
         sage: var('s,t')
         (s, t)
-        sage: f = function('f',t)
+        sage: f = function('f')(t)
         sage: _laplace_latex_(0,f,t,s)
         '\\mathcal{L}\\left(f\\left(t\\right), t, s\\right)'
         sage: latex(laplace(f, t, s))
@@ -1678,7 +1678,7 @@ def _inverse_laplace_latex_(self, *args):
         sage: from sage.calculus.calculus import _inverse_laplace_latex_
         sage: var('s,t')
         (s, t)
-        sage: F = function('F',s)
+        sage: F = function('F')(s)
         sage: _inverse_laplace_latex_(0,F,s,t)
         '\\mathcal{L}^{-1}\\left(F\\left(s\\right), s, t\\right)'
         sage: latex(inverse_laplace(F,s,t))
@@ -1741,7 +1741,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
         sage: sefms('x^%e + %e^%pi + %i + sin(0)')
         x^e + e^pi + I
-        sage: f = function('f',x)
+        sage: f = function('f')(x)
         sage: sefms('?%at(f(x),x=2)#1')
         f(2) != 1
         sage: a = sage.calculus.calculus.maxima("x#0"); a

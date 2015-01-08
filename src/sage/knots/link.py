@@ -1,5 +1,25 @@
 r"""
-Link Class
+Knots and links.
+
+A knot is defined as embedding of the circle `\\mathbb{S}^1` in the 3-dimensional
+sphere `\\mathbb{S}^3`, considered up to ambient isotopy. They represent the physical
+idea of a knotted rope, but with the particularity that the rope is closed. That
+is, the ends of the rope are joined.
+
+A link is an embedding of one or more copies of `\\mathbb{S}^1` in `\\mathbb{S}^3`,
+considered up to ambient isotopy. That is, a link represents the idea of one or more
+tied ropes. Every knot is a link, but not every link is a knot.
+
+Generically, the projection of a link on `\\mathbb{R}^2`
+is a curve with crossings. The crossings are represented to show which strand goes
+over the other. This curve is called a planar diagram of the link. If we remove the
+crossings, the resulting connected components are segments. These segments are
+called the edges of the diagram.
+
+REFERENCES:
+
+.. [Wikipedia] Wikipedia article :wikipedia:`Knot_(mathematics)`
+
 
 AUTHORS:
 
@@ -44,7 +64,7 @@ class Link:
 
     Braid:
 
-    The closure of a braid is a link::
+    - The closure of a braid is a link::
 
         sage: B = BraidGroup(8)
         sage: L = Link(B([-1, -1, -1, -2,1, -2,3,-2,3]))
@@ -54,35 +74,35 @@ class Link:
         sage: L
         Link with 2 components represented by 5 crossings
 
-    Oriented Gauss Code:
+    - Oriented Gauss Code:
 
-    Label the crossings from 1 to n (where n is the number of
-    crossings) and start moving along the link. Trace every component of
-    the link, by starting at a particular point on one component of the link and
-    writing down each of the crossings that you encounter until returning to the starting
-    point. The crossings are written with sign depending on wheter we cross them
-    as over or undercrossing. Each component is then represented as a list whose
-    elements are the crossing numbers. A second list of +1 and -1's keeps trac of
-    the orientation of each crossing::
+      Label the crossings from 1 to n (where n is the number of
+      crossings) and start moving along the link. Trace every component of
+      the link, by starting at a particular point on one component of the link and
+      writing down each of the crossings that you encounter until returning to the starting
+      point. The crossings are written with sign depending on wheter we cross them
+      as over or undercrossing. Each component is then represented as a list whose
+      elements are the crossing numbers. A second list of +1 and -1's keeps track of
+      the orientation of each crossing::
 
         sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
         sage: L
         Knot represented by 8 crossings
 
-    For links there is more than one component and the input is as follows::
+      For links there is more than one component and the input is as follows::
 
         sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
         sage: L
         Link with 3 components represented by 4 crossings
 
-    Planar Diagram Code:
+    - Planar Diagram Code:
 
-    The diagram of the link is formed by segments that are adjacent to the crossings.
-    Label each one of this segments with a positive number, and for each crossing,
-    write down the four incident segments. The order of these segments is clockwise,
-    starting with the incoming undercrossing.
+      The diagram of the link is formed by segments that are adjacent to the crossings.
+      Label each one of this segments with a positive number, and for each crossing,
+      write down the four incident segments. The order of these segments is clockwise,
+      starting with the incoming undercrossing.
 
-    There is no particular distinction between knots and links for this input.
+      There is no particular distinction between knots and links for this input.
 
     One of the representations of the Trefoil knot::
 
@@ -102,6 +122,7 @@ class Link:
         The Python constructor.
 
         A Link can be created by using one of the conventions mentioned below:
+
         1. Braid
         2. Oriented Gauss Code
         3. Planar Diagram Code
@@ -368,7 +389,7 @@ class Link:
         to reach the outgoing of the undercrossing then we label that crossing as '-1'.
 
         From the outgoing of the overcrossing if we move in the anticlockwise
-        direction to reach the outgoingo the undercrossing then we label that crossing
+        direction to reach the outgoing of the undercrossing then we label that crossing
         as '+1'.
 
         One more consideration we take in while constructing the orientation is:
@@ -1215,7 +1236,7 @@ class Link:
         Return the regions from the link diagram. Regions are obtained always
         turning left at each crossing.
 
-        Then the regions are represented as a list wiht the segments that form
+        Then the regions are represented as a list with the segments that form
         its boundary, with a sign deppending on the orientation of the segment
         as part of the boundary.
 
@@ -1446,7 +1467,8 @@ class Link:
 
         EXAMPLES::
 
-            sage: L=Link([[[-1,2,-3,1,-2,3],[4,-5,6,-4,5,-6]],[1,1,1,1,1,1]])
+            sage: L = Link([[[-1, 2, -3, 1, -2, 3], [4, -5, 6, -4, 5, -6]], [1, 1, 1, 1, 1, 1]])
+            sage: L.plot()
 
         """
         comp = self._isolated_components_()

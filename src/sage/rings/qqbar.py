@@ -3940,7 +3940,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: cmp(QQbar(0), x)
             1
 
-        One problem with this lexicographic search is the fact that if
+        One problem with this lexicographic ordering is the fact that if
         two algebraic numbers have the same real component, that real
         component has to be compared for exact equality, which can be
         a costly operation.  For the special case where both numbers

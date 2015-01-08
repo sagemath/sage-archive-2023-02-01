@@ -739,8 +739,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: B.permanent()
             36.0000000000000
 
-        The permanent above is directed to the Sloane's sequence OEIS
-        A079908(3) = 36, "The Dancing School Problems"
+        The permanent above is directed to the Sloane's sequence :oeis:`A079908`
+        ("The Dancing School Problems") for which the third term is 36: 
 
         ::
 
@@ -947,7 +947,7 @@ cdef class Matrix(matrix1.Matrix):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
 
-    def rook_vector(self, algorithm="ButeraPernici", complement=True):
+    def rook_vector(self, algorithm="ButeraPernici", complement=False, use_complement=None):
         r"""
         Return the rook vector of this matrix.
 
@@ -976,12 +976,18 @@ cdef class Matrix(matrix1.Matrix):
 
         - ``self`` -- an `m` by `n` matrix
 
-        - ``algorithm`` - a string which must be either "Ryser" or
+        - ``algorithm`` -- a string which must be either "Ryser" or
           "ButeraPernici" (default) or "Godsil"; Ryser one might be faster on
           simple and small instances. Godsil only accepts input in 0,1.
 
-        - ``complement`` -- Boolean (default: ``True``) whether to compute the
-          rook vector of a (0,1)-matrix from its complement.
+        - ``complement`` -- boolean (default: ``False``) wether we consider the
+          rook vector of the complement matrix. If set to ``True`` then the
+          matrix must have entries in {0, 1} and the complement matrix is the
+          one for which the 0's are replaced by 1's and 1's by 0's.
+
+        - ``use_complement`` -- Boolean (default: ``None``) whether to compute the
+          rook vector of a (0,1)-matrix from its complement. By default this is
+          determined by the density of ones in the matrix.
 
         EXAMPLES:
 
@@ -999,13 +1005,14 @@ cdef class Matrix(matrix1.Matrix):
             x^8 + 64*x^7 + 1568*x^6 + 18816*x^5 + 117600*x^4 + 376320*x^3 +
             564480*x^2 + 322560*x + 40320
 
-        The number of desarrangements of length `n` is the permanent
+        The number of derangements of length `n` is the permanent
         of a matrix with 0 on the diagonal and 1 elsewhere;
-        for `n=21` it is `18795307255050944540` (see OEIS A000166):
+        for `n=21` it is `18795307255050944540` (see :oeis:`A000166`):
 
-           sage: n = 21
-           sage: A = matrix([[int(j != i) for i in range(n)] for j in range(n)])
-           sage: A.rook_vector()[-1]
+           sage: A = identity_matrix(21)
+           sage: A.rook_vector(complement=True)[-1]
+           18795307255050944540
+           sage: Derangements(21).cardinality()
            18795307255050944540
 
         An other example that we convert into a rook polynomial::
@@ -1041,8 +1048,8 @@ cdef class Matrix(matrix1.Matrix):
 
             r_k(A) = \sum_{j=0}^k (-1)^j \binom{m-j}{k-j} \binom{n-j}{k-j} (k-j)! r_j(B)
 
-        see [Riordan] or the introductory text [Allenby].
-
+        see [Riordan] or the introductory text [Allenby]. This can be done
+        setting the argument ``use_complement`` to ``True``.
 
         An example with an exotic matrix (for which only Butera-Pernici and
         Ryser algorithms are available)::
@@ -1075,11 +1082,16 @@ cdef class Matrix(matrix1.Matrix):
             [1, 8, 12]
             sage: matrix.ones(4, 2).rook_vector("Godsil")
             [1, 8, 12]
-            sage: m = matrix(8,9,[int(j != i) for i in range(9) for j in range(8)])
-            sage: m.rook_vector()
-            [1, 64, 1568, 18816, 117600, 376320, 564480, 322560, 40320]
-            sage: m.rook_vector(complement=False)
-            [1, 64, 1568, 18816, 117600, 376320, 564480, 322560, 40320]
+            sage: m = matrix(ZZ,4,5)
+            sage: m[:4,:4] = identity_matrix(4)
+            sage: for algorithm in ("Godsil","Ryser","ButeraPernici"):
+            ....:     v = m.rook_vector(complement=True, use_complement=True, algorithm=algorithm)
+            ....:     if v != [1, 16, 78, 128, 53]:
+            ....:         print "ERROR with algorithm={} use_complement=True".format(algorithm)
+            ....:     v = m.rook_vector(complement=True, use_complement=False, algorithm=algorithm)
+            ....:     v = m.rook_vector(complement=True, use_complement=False)
+            ....:     if v != [1, 16, 78, 128, 53]:
+            ....:         print "ERROR with algorithm={} use_complement=False".format(algorithm)
 
         REFERENCES:
 
@@ -1093,60 +1105,80 @@ cdef class Matrix(matrix1.Matrix):
         - Jaap Spies (2006-02-24)
         - Mario Pernici (2014-07-01)
         """
-        m = self._nrows
-        n = self._ncols
-        mn = min(m,n)
-
-        # z2 flag for self[i, j] in {0, 1}
-        z2 = True
-        num_ones = 1
+        cdef Py_ssize_t i,j
+        cdef unsigned int num_ones
+        cdef int m = self._nrows
+        cdef int n = self._ncols
+        cdef int mn = min(m,n)
+        cdef Matrix B
         zero = self.base_ring().zero()
         one  = self.base_ring().one()
-        for i in range(m):
-            for j in range(n):
-                x = self.get_unsafe(i, j)
-                if x != zero:
-                    if x != one:
-                        z2 = False
-                        if algorithm == "Godsil":
-                            raise ValueError("coefficients must be zero or one, but we have '{}' in position ({},{}).".format(x,i,j))
-                    else:
-                        num_ones += 1
 
-        fill = 0.55
-        if z2 and complement and num_ones > fill*m*n:
-            from sage.matrix.constructor import matrix
-            B = [[1-self.get_unsafe(i, j) for j in range(n)] for i in range(m)]
-            B = matrix(B)
-            b = B.rook_vector(algorithm=algorithm, complement=False)
-            a = [1]
+        # we first run through the coefficients of the matrix to compute the
+        # number of non-zero coefficients and to see whether or not it contains
+        # only elements in {0,1}... but this is not always needed
+        if complement or use_complement is None or algorithm == "Godsil":
+            # z2 flag is True if all coefficients belong to {0,1}
+            z2 = True
+            num_ones = 1
+            for i in range(m):
+                for j in range(n):
+                    x = self.get_unsafe(i,j)
+                    if x != zero:
+                        if x != one:
+                            z2 = False
+                            break
+                        else:
+                            num_ones += 1
+                else:
+                    continue
+                break
+
+            if not z2 and (complement or algorithm == "Godsil"):
+                raise ValueError("coefficients must be zero or one, but we have '{}' in position ({},{}).".format(x,i,j))
+
+            if use_complement is None:
+                use_complement = z2 and num_ones > 0.55 * m * n
+
+        if use_complement:
+            B = self.new_matrix()
+            for i in range(m):
+                for j in range(n):
+                    B.set_unsafe(i,j, one-self.get_unsafe(i,j))
+            b = B.rook_vector(algorithm=algorithm, use_complement=False)
+            complement = not complement
+
+        elif algorithm == "Ryser":
+            b = [self.permanental_minor(k,algorithm="Ryser") for k in range(mn+1)]
+
+        elif algorithm == "ButeraPernici":
+            p = permanental_minor_polynomial(self)
+            b = [p[k] for k in range(mn+1)]
+
+        elif algorithm == "Godsil":
+            from sage.graphs.bipartite_graph import BipartiteGraph
+            p = BipartiteGraph(self).matching_polynomial()
+            d = p.degree()
+            b = [p[i]*(-1)**((d - i)/2) for i in range(d, d-2*mn-1, -2)]
+
+        else:
+            raise ValueError('algorithm must be one of "Ryser", "ButeraPernici" or "Godsil".')
+
+        # now compute the permanental minor of the complement matrix if needed
+        if complement:
+            a = [one]
             c1 = 1
             for k in range(1, mn + 1):
                 c1 = c1*(m-k+1)*(n-k+1)/k
                 c = c1
-                s = c*b[0] + (-1)**k*b[k]
+                s = c*b[0] + (-one)**k*b[k]
                 for j in range(1, k):
                     c = -c*(k-j+1)/((m-j+1)*(n-j+1))
                     s += c*b[j]
                 a.append(s)
             return a
-
-        if algorithm == "Ryser":
-            return [self.permanental_minor(k,algorithm="Ryser") for k in range(mn+1)]
-
-        elif algorithm == "ButeraPernici":
-            p = permanental_minor_polynomial(self)
-            return [p[k] for k in range(mn+1)]
-
-        elif algorithm == "Godsil":
-            from sage.graphs.bipartite_graph import BipartiteGraph
-            g = BipartiteGraph(self)
-            p = g.matching_polynomial(complement=False)
-            d = p.degree()
-            return [p[i]*(-1)**((d - i)/2) for i in range(d, d-2*mn-1, -2)]
-
         else:
-            raise ValueError('algorithm must be one of "Ryser", "ButeraPernici" or "Godsil".')
+            return b
 
     def minors(self, k):
         r"""

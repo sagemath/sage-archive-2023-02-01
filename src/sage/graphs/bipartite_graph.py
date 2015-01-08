@@ -894,17 +894,21 @@ class BipartiteGraph(Graph):
             kwds["pos"] = pos
         return Graph.plot(self, *args, **kwds)
 
-    def matching_polynomial(self, algorithm="Godsil", complement=True, name=None):
+    def matching_polynomial(self, algorithm="Godsil", name=None):
         r"""
         Computes the matching polynomial.
+
+        If `p(G, k)` denotes the number of `k`-matchings (matchings with `k` edges)
+        in `G`, then the *matching polynomial* is defined as [Godsil93]_:
+
+        .. MATH::
+
+            \mu(x)=\sum_{k \geq 0} (-1)^k p(G,k) x^{n-2k}
 
         INPUT:
 
         - ``algorithm`` - a string which must be either "Godsil" (default)
           or "rook"; "rook" is usually faster for larger graphs.
-
-        - ``complement`` - Boolean (default: ``True``) whether to compute the
-          rook vector from its complement; it is used in the "rook" algorithm.
 
         - ``name`` - optional string for the variable name in the polynomial.
 
@@ -936,11 +940,11 @@ class BipartiteGraph(Graph):
             True
         """
         if algorithm == "Godsil":
-            return Graph.matching_polynomial(self, complement=False, name=name)
+            return Graph.matching_polynomial(self, name=name)
         elif algorithm == "rook":
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             A = self.reduced_adjacency_matrix()
-            a = A.rook_vector(complement=complement)
+            a = A.rook_vector()
             m = A.nrows()
             n = A.ncols()
             b = [0]*(m + n + 1)

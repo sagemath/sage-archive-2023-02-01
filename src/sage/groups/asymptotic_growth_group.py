@@ -34,8 +34,8 @@ class AsymptoticGrowthElement(MultiplicativeGroupElement):
 
     INPUT:
 
-        - ``parent`` -- an AsymptoticGrowthGroup, the parent of the
-            element.
+    - ``parent`` -- an AsymptoticGrowthGroup, the parent of the
+      element.
 
     OUTPUT:
 
@@ -83,8 +83,8 @@ class AsymptoticGrowthElement(MultiplicativeGroupElement):
 
         INPUT:
 
-            - ``self``, ``other`` -- two AsymptoticGrowthElement objects
-              over the same parent.
+        - ``self``, ``other`` -- two AsymptoticGrowthElement objects
+          over the same parent.
 
         OUTPUT:
 
@@ -158,7 +158,7 @@ class AsymptoticGrowthElement(MultiplicativeGroupElement):
 
         INPUT:
 
-            - ``other`` -- a asymptotic growth element.
+        - ``other`` -- a asymptotic growth element.
 
         OUTPUT:
 
@@ -204,11 +204,11 @@ class AsymptoticGrowthGroup(Parent, UniqueRepresentation):
 
     INPUT:
 
-        - ``category`` -- The category of the parent can be specified
-          in order to broaden the base structure. Has to be a
-          subcategory of ``Join of Category of groups and Category
-          of posets``. This is also the default category if ``None``
-          is specified.
+    - ``category`` -- The category of the parent can be specified
+      in order to broaden the base structure. Has to be a
+      subcategory of ``Join of Category of groups and Category
+      of posets``. This is also the default category if ``None``
+      is specified.
 
     OUTPUT:
 
@@ -275,7 +275,7 @@ class AsymptoticGrowthGroup(Parent, UniqueRepresentation):
 
         INPUT:
 
-            - ``x``, ``y`` -- elements of ``self``.
+        - ``x``, ``y`` -- elements of ``self``.
 
 
         EXAMPLES::
@@ -355,17 +355,17 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
 
     INPUT:
 
-        - ``parent`` -- an AsymptoticGrowthGrouUnivariate, the
-          parent of the element.
-        - ``x`` -- an expression (string, polynomial ring element,
-          symbolic ring element, or the integer ``1``) representing
-          the element to be initialized.
-        - ``exponent`` -- the exponent of the asymptotic element.
+    - ``parent`` -- an AsymptoticGrowthGrouUnivariate, the
+      parent of the element.
+    - ``x`` -- an expression (string, polynomial ring element,
+      symbolic ring element, or the integer ``1``) representing
+      the element to be initialized.
+    - ``exponent`` -- the exponent of the asymptotic element.
 
     OUTPUT:
 
-        A univariate asymptotic growth element with the specified
-        parent and magnitude of growth.
+    A univariate asymptotic growth element with the specified
+    parent and magnitude of growth.
 
     EXAMPLES::
 
@@ -462,8 +462,8 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
 
         INPUT:
 
-            - ``other`` -- the asymptotic growth element to be
-              multiplied with ``self``.
+        - ``other`` -- the asymptotic growth element to be
+          multiplied with ``self``.
 
         OUTPUT:
 
@@ -518,8 +518,8 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
 
         INPUT:
 
-            - ``other`` -- the asymptotic growth element which ``self``
-              is divided by.
+        - ``other`` -- the asymptotic growth element which ``self``
+          is divided by.
 
         OUTPUT:
 
@@ -545,7 +545,7 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
 
         INPUT:
 
-            - ``power`` -- a rational number.
+        - ``power`` -- a rational number.
 
         OUTPUT:
 
@@ -578,8 +578,8 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
 
         INPUT:
 
-            - ``other`` -- a univariate asymptotic growth element to
-              be compared to ``self``.
+        - ``other`` -- a univariate asymptotic growth element to
+          be compared to ``self``.
 
         OUTPUT:
 
@@ -610,8 +610,8 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
 
         INPUT:
 
-            - ``other`` -- a univariate asymptotic growth element to be
-              compared to ``self``.
+        - ``other`` -- a univariate asymptotic growth element to be
+          compared to ``self``.
 
         OUTPUT:
 
@@ -674,15 +674,15 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
 
     INPUT:
 
-        - ``variable`` -- either a symbol from the symbolic ring, a
-          generator from a polynomial ring, or a alphanumeric string
-          starting with a letter and optionally containing underscores.
+    - ``variable`` -- either a symbol from the symbolic ring, a
+      generator from a polynomial ring, or a alphanumeric string
+      starting with a letter and optionally containing underscores.
 
-        - ``category`` -- The category of the parent can be specified
-          in order to broaden the base structure. Has to be a
-          subcategory of ``Join of Category of groups and Category of
-          posets``. This is also the default category if ``None`` is
-          specified.
+    - ``category`` -- The category of the parent can be specified
+      in order to broaden the base structure. Has to be a
+      subcategory of ``Join of Category of groups and Category of
+      posets``. This is also the default category if ``None`` is
+      specified.
 
     OUTPUT:
 
@@ -784,10 +784,10 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
 
         INPUT:
 
-            - ``x`` -- an expression (string, polynomial ring element,
-              symbolic ring element, or some integer) representing the
-              element to be initialized.
-            - ``exponent`` -- the exponent of the asymptotic element.
+        - ``x`` -- an expression (string, polynomial ring element,
+          symbolic ring element, or some integer) representing the
+          element to be initialized.
+        - ``exponent`` -- the exponent of the asymptotic element.
 
         OUTPUT:
 
@@ -891,8 +891,8 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
 
         INPUT:
 
-            - ``base`` -- a real number, the base of the
-              exponentiation. Defaults to ``e``.
+        - ``base`` -- a real number, the base of the
+          exponentiation. Defaults to ``e``.
 
         OUTPUT:
 
@@ -958,7 +958,7 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
 
         INPUT:
 
-            - ``others`` -- univariate asymptotic growth groups.
+        - ``others`` -- univariate asymptotic growth groups.
 
         OUTPUT:
 

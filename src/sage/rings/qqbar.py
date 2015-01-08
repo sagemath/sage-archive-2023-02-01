@@ -3929,6 +3929,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         multiple roots overlap with the current value. As a consequence,
         the precision of the evaluation will have to be increased.
 
+        ::
+
             sage: a = AA(sqrt(2) + 10^25)
             sage: p = a.minpoly()
             sage: v = a._value

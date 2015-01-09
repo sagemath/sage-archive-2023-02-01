@@ -20,7 +20,7 @@ Calling "hello_world()" from hello.c
 
 Let us suppose that you have in your current directory a file named hello.c::
 
-  ~/a$ cat hello.c
+  [user@localhost ~/my_dir/] cat hello.c
   #include <stdio.h>
 
   void hello_world(){
@@ -30,14 +30,14 @@ Let us suppose that you have in your current directory a file named hello.c::
   void main(){
   hello_world();
   }
-  ~/a$ gcc hello.c -o hello; ./hello
+  [user@localhost ~/my_dir/] gcc hello.c -o hello; ./hello
   Hello World
 
 In order to call this function from Sage, you must create a Cython file (i.e. a
 file whose extension is .pyx). This file contains a header containing the
 signature of the function that you want to call::
 
-  ~/a$ cat hello_sage.pyx
+  [user@localhost ~/my_dir/] cat hello_sage.pyx
   cdef extern from "hello.c":
   void hello_world()
 
@@ -123,26 +123,26 @@ The procedure is very similar again. For our purposes, we build a library from
 the file **hello.c** defined in :ref:`section-cython-interface-helloworld`
 (stripped from its ``main()`` function), and a **hello.h** header file. ::
 
-   ~/a$ cat hello.c
+   [user@localhost ~/my_dir/] cat hello.c
    #include <stdio.h>
 
    void hello_world(){
    printf("Hello World\n");
    }
-   ~/a$ cat hello.h
+   [user@localhost ~/my_dir/] cat hello.h
    void hello_world();
 
 We can now **compile it** as a library::
 
-   ~/a$ gcc -c -Wall -Werror -fpic hello.c
-   ~/a$ gcc -shared -o libhello.so hello.o
+   [user@localhost ~/my_dir/] gcc -c -Wall -Werror -fpic hello.c
+   [user@localhost ~/my_dir/] gcc -shared -o libhello.so hello.o
 
 The only files that we need now are ``hello.h`` and ``libhello.so`` (you can
 remove the others if you like). We must now indicate the location of the ``.so``
 and ``.h`` files in the header of our ``.pyx`` file: ::
 
-  ~/a$ cat hello_sage.pyx
-   #clib /home/ncohen/a/hello
+  [user@localhost ~/my_dir/] cat hello_sage.pyx
+   #clib /home/username/my_dir/hello
 
    cdef extern from "hello.h":
    void hello_world()
@@ -152,9 +152,9 @@ and ``.h`` files in the header of our ``.pyx`` file: ::
 
 .. NOTE::
 
-   The instruction ``#clib /home/ncohen/a/hello`` indicates that the library is
-   actually named ``/home/ncohen/a/libhello.so``. Change it according to your
-   needs. For more information about these instructions, see
+   The instruction ``#clib /home/username/my_dir/hello`` indicates that the
+   library is actually named ``/home/username/my_dir/hello``. Change it
+   according to your needs. For more information about these instructions, see
    :func:`~sage.misc.cython.cython`.
 
 We can now **load** this file in Sage and **call** the function::

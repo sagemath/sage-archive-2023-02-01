@@ -284,9 +284,10 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         ....:  (z,-2, 2), contour=4, color=(t,cm), plot_points=60)
         sage: G.show(viewer='tachyon')
 
-    Warning: this kind of coloring cannot currently be visualized using
-    Jmol. It works with the options ``viewer='tachyon'`` and
-    ``viewer='canvas3d'`` (in the notebook), and can be saved as an x3d file.
+    Warning: this kind of coloring can be visualized using Jmol,
+    Tachyon (option ``viewer='tachyon'``) and Canvas3D (option
+    ``viewer='canvas3d'`` in the notebook). Some colormaps do not
+    currently work well with Jmol.
     """
     # These options aren't fully implemented yet:
 

@@ -961,22 +961,22 @@ cdef class ImplicitSurface(IndexFaceSet):
             sage: G.show(viewer='tachyon')
         """
         color_data = None
-        if 'color' in kwds.keys():
+        if 'color' in kwds:
             try:
                 if len(kwds['color']) == 2 and callable(kwds['color'][0]):
                     color_data = kwds['color']
                     kwds.pop('color')
-            except TypeError,AttributeError:
+            except TypeError, AttributeError:
                 pass
-        if not(color_data is None):
+        if color_data is None:
+            # case of a global color
+            self.color_function = None
+            IndexFaceSet.__init__(self, [], [], **kwds)
+        else:
             # case of a color depending on parameters
             self.color_function = color_data[0]
             self.colormap = color_data[1]
             IndexFaceSet.__init__(self, [], [], texture_list=[], **kwds)
-        else:
-            # case of a global color
-            self.color_function = None
-            IndexFaceSet.__init__(self, [], [], **kwds)
         from sage.ext.fast_eval import fast_float
 
         orig_f = f

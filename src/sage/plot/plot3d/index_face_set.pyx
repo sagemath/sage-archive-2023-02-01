@@ -146,6 +146,9 @@ cdef inline format_pmesh_face(face_c face, int has_color):
         color = float_to_integer(face.color.r,
                                  face.color.g,
                                  face.color.b)
+        # it seems that Jmol does not like the 0 color at all
+        if color == 0:
+            color == 1
     
     if face.n == 3:
         if has_color == 1:

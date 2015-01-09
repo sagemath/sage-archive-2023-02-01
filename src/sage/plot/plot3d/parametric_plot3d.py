@@ -138,9 +138,10 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
            sage: P = parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), color=(cf, colormaps.PiYG), plot_points=[60,60])
            sage: P.show(viewer='tachyon')
 
-       Warning: this kind of coloring cannot currently be visualized using
-       Jmol. It works with the options ``viewer='tachyon'`` and
-       ``viewer='canvas3d'`` (in the notebook), and can be saved as an x3d file.
+       Warning: this kind of coloring can be visualized using Jmol,
+       Tachyon (option ``viewer='tachyon'``) and Canvas3D (option
+       ``viewer='canvas3d'`` in the notebook). Some colormaps do not
+       currently work well with Jmol.
 
     We call the space curve function but with polynomials instead of
     symbolic variables.

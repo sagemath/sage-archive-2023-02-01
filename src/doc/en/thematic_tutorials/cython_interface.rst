@@ -24,11 +24,12 @@ Let us suppose that you have in your current directory a file named hello.c::
   #include <stdio.h>
 
   void hello_world(){
-  printf("Hello World\n");
+      printf("Hello World\n");
   }
 
-  void main(){
-  hello_world();
+  int main(){
+      hello_world();
+      return 0;
   }
   [user@localhost ~/my_dir/] gcc hello.c -o hello; ./hello
   Hello World
@@ -39,13 +40,13 @@ signature of the function that you want to call::
 
   [user@localhost ~/my_dir/] cat hello_sage.pyx
   cdef extern from "hello.c":
-  void hello_world()
+      void hello_world()
 
-  def my_interface_function():
+  def my_bridge_function():
       hello_world() # This is the C function from hello.c
 
 You can now load this file in Sage, and call the C code though the Python
-function ``my_interface_function``::
+function ``my_bridge_function``::
 
   sage: %runfile hello_sage.pyx
   Compiling ./hello_sage.pyx...

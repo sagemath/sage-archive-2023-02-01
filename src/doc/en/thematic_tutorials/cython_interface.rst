@@ -1,15 +1,19 @@
-.. _cython_interface:
 .. nodoctest
-================================
-How to call a C code from Sage ?
-================================
+
+.. _cython_interface:
+
+========================================================
+How to call a C code (or a compiled library) from Sage ?
+========================================================
 
 If you have some C/C++ code that you would like to call from Sage for your own
 use, this document is for you.
 
 - Do you want to **contibute** to Sage by adding your interface to its code? The
   (more complex) instructions are `available here
-  <http://www.sagemath.org/doc/developer/index.html#packaging-third-party-code>`_
+  <http://www.sagemath.org/doc/developer/index.html#packaging-third-party-code>`_.
+
+.. _section-cython-interface-helloworld:
 
 Calling "hello_world()" from hello.c
 ------------------------------------
@@ -59,7 +63,7 @@ The following example defines a function taking and returning ``int *``
 pointers, and involves some memory allocation. The C code defines a function
 whose purpose is to return the sum of two vectors as a third vector.
 
-**The C file**::
+**The C file** (``double_vector.c``)::
 
   #include <string.h>
 
@@ -76,7 +80,7 @@ whose purpose is to return the sum of two vectors as a third vector.
     return sum;
   }
 
-**The Cython file**::
+**The Cython file** (``double_vector_sage.pyx``)::
 
   cdef extern from "double_vector.c":
       int * sum_of_two_vectors(int n, int * vec1, int * vec2)
@@ -111,3 +115,51 @@ whose purpose is to return the sum of two vectors as a third vector.
   Compiling ./double_vector_sage.pyx...
   sage: sage_sum_of_vectors(3,[1,1,1],[2,3,4])
   [3, 4, 5]
+
+Calling code from a compiled library
+------------------------------------
+
+The procedure is very similar again. For our purposes, we build a library from
+the file **hello.c** defined in :ref:`section-cython-interface-helloworld`
+(stripped from its ``main()`` function), and a **hello.h** header file. ::
+
+   ~/a$ cat hello.c
+   #include <stdio.h>
+
+   void hello_world(){
+   printf("Hello World\n");
+   }
+   ~/a$ cat hello.h
+   void hello_world();
+
+We can now **compile it** as a library::
+
+   ~/a$ gcc -c -Wall -Werror -fpic hello.c
+   ~/a$ gcc -shared -o libhello.so hello.o
+
+The only files that we need now are ``hello.h`` and ``libhello.so`` (you can
+remove the others if you like). We must now indicate the location of the ``.so``
+and ``.h`` files in the header of our ``.pyx`` file: ::
+
+  ~/a$ cat hello_sage.pyx
+   #clib /home/ncohen/a/hello
+
+   cdef extern from "hello.h":
+   void hello_world()
+
+   def my_bridge_function():
+   hello_world() # This is the C function from hello.c
+
+.. NOTE::
+
+   The instruction ``#clib /home/ncohen/a/hello`` indicates that the library is
+   actually named ``/home/ncohen/a/libhello.so``. Change it according to your
+   needs. For more information about these instructions, see
+   :func:`~sage.misc.cython.cython`.
+
+We can now **load** this file in Sage and **call** the function::
+
+   sage: %runfile hello_sage.pyx
+   Compiling ./hello_sage.pyx...
+   sage: my_bridge_function()
+   Hello World

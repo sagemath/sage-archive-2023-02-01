@@ -284,10 +284,21 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         ....:  (z,-2, 2), contour=4, color=(t,cm), plot_points=60)
         sage: G.show(viewer='tachyon')
 
-    Warning: this kind of coloring can be visualized using Jmol,
-    Tachyon (option ``viewer='tachyon'``) and Canvas3D (option
-    ``viewer='canvas3d'`` in the notebook). Some colormaps do not
-    currently work well with Jmol.
+    Here is another colored example::
+
+        sage: x, y, z = var('x,y,z')
+        sage: t = (x).function(x,y,z)
+        sage: cm = colormaps.PiYG
+        sage: G = implicit_plot3d(x^4 + y^2 + z^2, (x,-2, 2),
+        ....:   (y,-2, 2),(z,-2, 2), contour=4, color=(t,cm), plot_points=40)
+        sage: G.show()
+
+    .. WARNING::
+
+        This kind of coloring using a colormap can be visualized using
+        Jmol, Tachyon (option ``viewer='tachyon'``) and Canvas3D
+        (option ``viewer='canvas3d'`` in the notebook). Some problems
+        can affect the Jmol viewer.
     """
     # These options aren't fully implemented yet:
 

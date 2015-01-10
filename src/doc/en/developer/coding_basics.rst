@@ -623,8 +623,8 @@ written.
   checked, as they are the most likely to be broken, now or in the future. This
   probably belongs to the TESTS block (see :ref:`section-docstring-function`).
 
-- **Random of systematic tests** of all instances of small size, or of some
-  random instances if possible.
+- **Systematic tests** of all small-sized inputs, or tests of **random**
+  instances if possible.
 
   .. NOTE::
 

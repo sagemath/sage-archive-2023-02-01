@@ -7,8 +7,9 @@ constructions defined here can be accessed through ``designs.<tab>``::
     sage: designs.group_divisible_design(14,{4},{2})
     Group Divisible Design on 14 points of type 2^7
 
-The main function implemented here is :meth:`group_divisible_design`, which
-calls all others. The following functions are available:
+The main function implemented here is :meth:`group_divisible_design` (which
+calls all others) and the main class is :class:`GroupDivisibleDesign`. The
+following functions are available:
 
 .. csv-table::
     :class: contentstable
@@ -21,9 +22,9 @@ calls all others. The following functions are available:
 Functions
 ---------
 """
-from incidence_structures import GroupDivisibleDesign
 from sage.rings.arith     import is_prime_power
 from sage.misc.unknown    import Unknown
+from incidence_structures import IncidenceStructure
 
 def group_divisible_design(v,K,G,existence=False,check=False):
     r"""
@@ -227,7 +228,7 @@ class GroupDivisibleDesign(IncidenceStructure):
 
     EXAMPLE::
 
-        sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
+        sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
         sage: TD = designs.transversal_design(4,10)
         sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
         sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
@@ -239,7 +240,7 @@ class GroupDivisibleDesign(IncidenceStructure):
 
         EXAMPLE::
 
-            sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
+            sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)
             sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
             sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
@@ -273,7 +274,7 @@ class GroupDivisibleDesign(IncidenceStructure):
 
         EXAMPLE::
 
-            sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
+            sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)
             sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
             sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
@@ -308,7 +309,7 @@ class GroupDivisibleDesign(IncidenceStructure):
 
         EXAMPLE::
 
-            sage: from sage.combinat.designs.incidence_structures import GroupDivisibleDesign
+            sage: from sage.combinat.designs.group_divisible_designs import GroupDivisibleDesign
             sage: TD = designs.transversal_design(4,10)
             sage: groups = [range(i*10,(i+1)*10) for i in range(4)]
             sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD

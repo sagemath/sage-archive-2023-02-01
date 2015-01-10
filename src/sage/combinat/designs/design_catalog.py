@@ -91,9 +91,10 @@ from sage.combinat.designs.difference_family import difference_family
 from difference_matrices import difference_matrix
 
 from sage.combinat.designs.incidence_structures import IncidenceStructure
-BlockDesign = IncidenceStructure    # just an alias
+Hypergraph = BlockDesign = IncidenceStructure    # just an alias
 from sage.combinat.designs.bibd import balanced_incomplete_block_design, steiner_triple_system
 from sage.combinat.designs.resolvable_bibd import resolvable_balanced_incomplete_block_design, kirkman_triple_system
+from sage.combinat.designs.group_divisible_designs import group_divisible_design
 
 # deprecated in june 2014 (#16446)
 from sage.misc.superseded import deprecated_function_alias, deprecated_callable_import

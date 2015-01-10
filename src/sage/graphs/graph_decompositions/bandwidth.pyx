@@ -313,40 +313,56 @@ cdef bint bandwidth_C(int n, int k,
 
     i = 0
     while True:
+
+        # There are (n-i) choices for vertex i, as i-1 have already been
+        # determined. Thus, i<=current[i]<n.
         current[i] += 1
 
-        if current[i] == n: # All choices for this position have been exhausted
+        # All choices for this position i have been tested. We must change our
+        # (i-1)th choice:
+        if current[i] == n:
             if i == 0:
                 return 0
             i = i-1
             left_to_order[i], left_to_order[current[i]] = left_to_order[current[i]], left_to_order[i]
             continue
 
-        pi = (n-1-i//2) if (i%2) else (i//2) # 0, n-1,1,n-2,2,n-3,3, ... that's an ugly 'if'
+        # The position of the ith vertex. p0=0, p1=n-1, p2=1, p3=n-2, ...
+        pi = (n-1-i//2) if (i%2) else (i//2)
+
+        # The ith vertex
         vi = left_to_order[current[i]]
 
-        # Wrong choice
+        # If pi is not an admissible position for pi:
         if (ith_range_array[i][vi].m > pi or
             ith_range_array[i][vi].M < pi):
             continue
 
-        # swap
+        # As the choice is admissible, we update left_to_order so that
+        # left_to_order[i] = vi.
         left_to_order[i], left_to_order[current[i]] = left_to_order[current[i]], left_to_order[i]
+
+        # vi is at position pi in the final ordering.
         ordering[pi] = vi
 
-        if i == n-1: # We did it !
+        # If we found the position of the nth vertex, we are done.
+        if i == n-1:
             return 1
 
-        # build the range array of depth i+1 knowing that vertex vi is at
-        # position pi.
+        # As vertex vi has been assigned position pi, we use that information to
+        # update the intervals of admissible positions of all other vertices.
         #
-        # k*d[v][vi] >= |p_v-p_{vi}|
+        # \forall v, k*d[v][vi] >= |p_v-p_{vi}| (see module documentation)
         for v in range(n):
             radius = k*d[v][vi]
             ith_range_array[i+1][v].m = max(<int> ith_range_array[i][v].m,pi-radius)
             ith_range_array[i+1][v].M = min(<int> ith_range_array[i][v].M,pi+radius)
 
-        # check feasibility at depth i+1
+        # Check the feasibility of a matching with the updated intervals of
+        # admissible positions (see module doc).
+        #
+        # If it is possible we explore deeper, otherwise we undo the changes as
+        # pi is not a good position for vi after all.
         if is_matching_feasible(n,ith_range_array[i+1],range_array_tmp, index_array_tmp):
             i += 1
             current[i] = i-1

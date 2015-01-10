@@ -27,13 +27,6 @@ Let us suppose that you have in your current directory a file named hello.c::
       printf("Hello World\n");
   }
 
-  int main(){
-      hello_world();
-      return 0;
-  }
-  [user@localhost ~/my_dir/] gcc hello.c -o hello; ./hello
-  Hello World
-
 In order to call this function from Sage, you must create a Cython file (i.e. a
 file whose extension is .pyx). This file contains a header containing the
 signature of the function that you want to call::
@@ -121,14 +114,14 @@ Calling code from a compiled library
 ------------------------------------
 
 The procedure is very similar again. For our purposes, we build a library from
-the file **hello.c** defined in :ref:`section-cython-interface-helloworld`
-(stripped from its ``main()`` function), and a **hello.h** header file. ::
+the file **hello.c** defined in :ref:`section-cython-interface-helloworld`, and
+a **hello.h** header file. ::
 
    [user@localhost ~/my_dir/] cat hello.c
    #include <stdio.h>
 
    void hello_world(){
-   printf("Hello World\n");
+       printf("Hello World\n");
    }
    [user@localhost ~/my_dir/] cat hello.h
    void hello_world();
@@ -146,10 +139,10 @@ and ``.h`` files in the header of our ``.pyx`` file: ::
    #clib /home/username/my_dir/hello
 
    cdef extern from "hello.h":
-   void hello_world()
+       void hello_world()
 
    def my_bridge_function():
-   hello_world() # This is the C function from hello.c
+       hello_world() # This is the C function from hello.c
 
 .. NOTE::
 

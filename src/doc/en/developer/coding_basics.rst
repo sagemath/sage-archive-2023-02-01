@@ -498,10 +498,10 @@ there is not one already. That is, you can do the following::
 LaTeX Typesetting
 -----------------
 
-In Sage's documentation LaTeX code is allowed, and is marked with **backticks or
+In Sage's documentation LaTeX code is allowed and is marked with **backticks or
 dollar signs**:
 
-    ```x^2 + y^2 = 1``` and ``$x^2 + y^2 = 1$`` both yield `x^2 + y^2 = 1`
+    ```x^2 + y^2 = 1``` and ``$x^2 + y^2 = 1$`` both yield `x^2 + y^2 = 1`.
 
 **Backslashes:** For LaTeX commands containing backslashes, either use double
 backslashes or begin the docstring with a ``r"""`` instead of ``"""``. Both of
@@ -517,7 +517,7 @@ the following are valid::
         Return $\sin(x)$.
         """
 
-**MATH block:** It is similar to LaTeX' syntax ``\[<math expression>\]`` (or
+**MATH block:** This is similar to the LaTeX syntax ``\[<math expression>\]`` (or
 ``$$<math expression>$$``). For instance::
 
     .. MATH::
@@ -548,15 +548,21 @@ The **aligned** environment works as it does in LaTeX::
      g(x) & = x^x - f(x - 2)
     \end{aligned}
 
-For **non-math** LaTeX environments (like ``align``), the pdf documentation
-will not compile unless you add a **:nowrap:** flag to the MATH mode::
+When building the PDF documentation, everything is translated to LaTeX
+and each MATH block is automatically wrapped in a math environment --
+in particular, it is turned into ``\begin{gather} block
+\end{gather}``.  So if you want to use a LaTeX environment (like
+``align``) which in ordinary LaTeX would not be wrapped like this, you
+must add a **:nowrap:** flag to the MATH mode. See also `Sphinx's
+documentation for math blocks
+<http://sphinx-doc.org/latest/ext/math.html?highlight=nowrap#directive-math>`_. ::
 
     .. MATH::
        :nowrap:
 
        \begin{align}
-	  1+...+n &= n(n+1)/2\\
-	  &= O(n^2)\\
+          1+...+n &= n(n+1)/2\\
+          &= O(n^2)\\
        \end{tabular}
 
 .. MATH::
@@ -568,8 +574,8 @@ will not compile unless you add a **:nowrap:** flag to the MATH mode::
    \end{align}
 
 **Readability balance:** in the interactive console, LaTeX formulas contained in
-the documentation are represented by their LaTeX code (stripped from
-backslashes). In this situation ``\\frac{a}{b}`` is less readable than ``a/b``
+the documentation are represented by their LaTeX code (with
+backslashes stripped). In this situation ``\\frac{a}{b}`` is less readable than ``a/b``
 or ``a b^{-1}`` (some users may not even know LaTeX code). Make it pleasant for
 everybody as much as you can manage.
 
@@ -577,13 +583,13 @@ everybody as much as you can manage.
 standard rings and fields using the locally-defined macro ``\\Bold``
 (e.g. ``\\Bold{Z}`` gives `\Bold{Z}`).
 
-**Shortcuts** are available which preserve readability, e.g. ``\\Z`` (`\\Z`),
-``\\R`` (`\\R`), ``\\C`` (`\\C`), and ``\\Q`` (`\\Q`). They appear as
+**Shortcuts** are available which preserve readability, e.g. ``\\ZZ`` (`\ZZ`),
+``\\RR`` (`\RR`), ``\\CC`` (`\CC`), and ``\\QQ`` (`\QQ`). They appear as
 LaTeX-formatted ``\\Bold{Z}`` in the html manual, and as ``Z`` in the
-interactive help. Other examples: ``\\GF_{q}`` (`\\GF_{q}`) and ``\\Zmod{p}``
+interactive help. Other examples: ``\\GF{q}`` (`\GF{q}`) and ``\\Zmod{p}``
 (`\Zmod{p}`).
 
-See the file ``$SAGE_ROOT/src/sage/misc/latex_macros.py`` for a full list and
+See the file ``SAGE_ROOT/src/sage/misc/latex_macros.py`` for a full list and
 for details about how to add more macros.
 
 .. _section-doctest-writing:
@@ -595,18 +601,18 @@ The examples from Sage's documentation have a double purpose:
 
 - They provide **illustrations** of the code's usage to the users
 
-- They are **tests** that are checked before each release, helping us avoid the
-  apparition of new bugs.
+- They are **tests** that are checked before each release, helping us avoid
+  new bugs.
 
 All new doctests added to Sage should **pass all tests** (see
 :ref:`chapter-doctesting`), i.e. running ``sage -t your_file.py`` should not
 give any error messages. Below are instructions about how doctests should be
 written.
 
-.. centered:: **1) What doctests should test**
+**What doctests should test:**
 
-- **Interesting examples** of what the function can do. This is what will be the
-  most meaningful to a lost user. It is also the occasion to check famous
+- **Interesting examples** of what the function can do. This will be the
+  most helpful to a lost user. It is also the occasion to check famous
   theorems (just in case)::
 
     sage: is_prime(6) # 6 is not prime
@@ -629,10 +635,10 @@ written.
   .. NOTE::
 
      Note that **TestSuites** are an automatic way to generate some of these
-     tests in specific situations.
-     ``SAGE_ROOT/src/sage/modular/modsym/tests.py``.
+     tests in specific situations. See
+     ``SAGE_ROOT/src/sage/misc/sage_unittest.py``.
 
-.. centered:: **2) The syntax**
+**The syntax:**
 
 - **Environment:** doctests should work if you copy/paste them in Sage's
   interactive console. For example, the function ``AA()`` in the file
@@ -646,8 +652,8 @@ written.
   Sage does not know about the function ``AA()`` by default, so it needs to be
   imported before it is tested. Hence the first line in the example.
 
-- **Preparsing:** As in Sage's console, `4/3` return `4/3` and not `1` as in
-  Python. Testing occurs with full Sage preparsing of input within the standard
+- **Preparsing:** As in Sage's console, `4/3` returns `4/3` and not `1` as in
+  Python 2.7. Testing occurs with full Sage preparsing of input within the standard
   Sage shell environment, as described in :ref:`section-preparsing`.
 
 - **Writing files:** If a test outputs to a file, the file should be a temporary

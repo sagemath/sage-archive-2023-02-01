@@ -100,7 +100,7 @@ class AsymptoticGrowthElement(MultiplicativeGroupElement):
             sage: e1 * e2 * e1
             x^7
         """
-        pass
+        raise NotImplementedError("Only implemented in concrete realizations")
 
     def _repr_(self):
         r"""
@@ -146,9 +146,9 @@ class AsymptoticGrowthElement(MultiplicativeGroupElement):
             sage: (~P.gen()).is_le_one()
             True
         """
-        pass
+        raise NotImplementedError("Only implemented in concrete realizations")
 
-    def __le__(self, other): #TODO
+    def __le__(self, other):
         r"""
         Abstract method for comparison of ``self`` and ``other``. See
         :meth:`AsymptoticGrowthElementUnivariate.__le__` for a concrete
@@ -169,7 +169,7 @@ class AsymptoticGrowthElement(MultiplicativeGroupElement):
             sage: (~P.gen()).__le__(P.gen())
             True
         """
-        pass
+        raise NotImplementedError("Only implemented in concrete realizations")
 
     def __hash__(self):
         r"""
@@ -207,6 +207,9 @@ class AsymptoticGrowthGroup(Parent, UniqueRepresentation):
       subcategory of ``Join of Category of groups and Category
       of posets``. This is also the default category if ``None``
       is specified.
+
+    - ``base`` -- The base of the parent associated to concrete
+      implementations of this abstract base class.
 
     OUTPUT:
 
@@ -767,7 +770,7 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
     # the exp_parent and log_parent methods.
 
     @staticmethod
-    def __classcall__(cls, variable, base=ZZ, category=None):
+    def __classcall__(cls, variable=None, base=ZZ, category=None, names=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation.
@@ -786,7 +789,10 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
             sage: P1 is P4
             True
         """
-        if variable.parent() is SR and variable.is_symbol():
+        if names is not None and len(names) == 1:
+            variable = names[0]
+
+        if hasattr(variable, "is_symbol") and variable.is_symbol():
             variable = repr(variable)
         elif hasattr(variable, "is_gen") and variable.is_gen():
             variable = repr(variable)
@@ -905,6 +911,51 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
         """
         return "Univariate Asymptotic Growth Group in %s over %s" \
                % (self.variable, self.base())
+
+    def gens(self):
+        r"""
+        Return a list with all generators of ``self``. For power growth
+        groups, this is a list with only one element: the variable
+        to the power `1`.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A list of generators.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as ar
+            sage: P.<x> = ar.AsymptoticGrowthGroupUnivariate()
+            sage: P.gens()
+            (x,)
+        """
+        return (self.gen(), )
+
+    def ngens(self):
+        r"""
+        Return the number of generators of ``self``. For power growth
+        groups, this is exactly `1`.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        The number of generators of ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as ar
+            sage: P.<x> = ar.AsymptoticGrowthGroupUnivariate()
+            sage: P.ngens()
+            1
+        """
+        return 1
 
     def one(self):
         r"""

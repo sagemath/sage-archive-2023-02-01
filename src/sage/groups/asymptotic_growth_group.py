@@ -4,20 +4,13 @@ Asymptotic Ring
 
 import re
 
-from sage.categories.groups import Groups
-from sage.categories.partially_ordered_monoids import PartiallyOrderedMonoids
-from sage.categories.posets import Posets
-
-from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import RR
-
-from sage.symbolic.constants import e
-from sage.symbolic.ring import SR
-
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
+
 
 
 class AsymptoticGrowthElement(MultiplicativeGroupElement):
@@ -265,6 +258,9 @@ class AsymptoticGrowthGroup(Parent, UniqueRepresentation):
             ...
             ValueError: (Category of rings,) is not a subcategory of Join of Category of groups and Category of posets
         """
+        from sage.categories.groups import Groups
+        from sage.categories.posets import Posets
+
         if category is None:
             category = Groups() & Posets()
         else:
@@ -418,21 +414,10 @@ class AsymptoticGrowthElementUnivariate(AsymptoticGrowthElement):
             sage: e2.is_idempotent() and e2.is_one()
             True
         """
-        if x is None and exponent is None:
-            raise ValueError("Neither x nor exponent are specified.")
-        elif x is not None and exponent is not None:
-            raise ValueError("Both x and exponent are specified.")
-        elif exponent is None:
-            if x == 1:
-                self.exponent = 0
-            else:
-                raise NotImplementedError("Parsing of %s is not yet "
-                                          "implemented" % (x, ))
+        if exponent not in RR:
+            raise NotImplementedError("Non-real exponents are not supported.")
         else:
-            if exponent not in RR:
-                raise TypeError("Non-real exponents are not supported.")
-            else:
-                self.exponent = parent.base()(exponent)
+            self.exponent = parent.base()(exponent)
         super(AsymptoticGrowthElementUnivariate, self).__init__(parent=parent)
 
 
@@ -905,7 +890,17 @@ class AsymptoticGrowthGroupUnivariate(AsymptoticGrowthGroup):
         if isinstance(x, AsymptoticGrowthElementUnivariate):
             return self.element_class(self, None, exponent=x.exponent)
 
-        return self.element_class(self, x, exponent=exponent)
+        if x is None and exponent is None:
+            raise ValueError("Neither x nor exponent are specified.")
+        elif x is not None and exponent is not None:
+            raise ValueError("Both x and exponent are specified.")
+        elif exponent is None:
+            if x == 1:
+                exponent = 0
+            else:
+                raise NotImplementedError("Parsing of %s is not yet "
+                                          "implemented" % x)
+        return self.element_class(self, None, exponent=exponent)
 
 
     def _repr_(self):

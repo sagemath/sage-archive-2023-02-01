@@ -105,14 +105,6 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
            sage: parametric_plot3d(f, (0, 2*pi), (-pi, pi))
            Graphics3d Object
 
-    #. The surface, but with a mesh:
-
-       ::
-
-           sage: u, v = var('u,v')
-           sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), mesh=True)
-           Graphics3d Object
-
     #. The same surface, but where the defining functions are
        symbolic:
 
@@ -122,45 +114,49 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
            sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi))
            Graphics3d Object
 
-       We increase the number of plot points, and make the surface green
-       and transparent:
+    The surface, but with a mesh::
 
-       ::
-
-           sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi),
-           ....: color='green', opacity=0.1, plot_points=[30,30])
+           sage: u, v = var('u,v')
+           sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), mesh=True)
            Graphics3d Object
 
-       One can also color the surface using a coloring function and a colormap::
+    We increase the number of plot points, and make the surface green
+    and transparent::
 
-           sage: u,v = var('u,v')
-           sage: def cf(u,v): return sin(u+v/2)**2
-           sage: P = parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), color=(cf, colormaps.PiYG), plot_points=[60,60])
-           sage: P.show(viewer='tachyon')
+        sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi),
+        ....: color='green', opacity=0.1, plot_points=[30,30])
+        Graphics3d Object
 
-       Another example, a colored Mobius band::
+    One can also color the surface using a coloring function and a colormap::
 
-           sage: cm = colormaps.ocean
-           sage: def c(x,y): return sin(x*y)**2
-           sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-           sage: O = MobiusStrip(5,1,plot_points=200, color=(c,cm));
-           sage: O.show()
+        sage: u,v = var('u,v')
+        sage: def cf(u,v): return sin(u+v/2)**2
+        sage: P = parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), color=(cf, colormaps.PiYG), plot_points=[60,60])
+        sage: P.show(viewer='tachyon')
 
-       Yet another colored example::
+    Another example, a colored Mobius band::
 
-           sage: from sage.plot.plot3d.parametric_surface import ParametricSurface
-           sage: cm = colormaps.autumn
-           sage: def c(x,y): return sin(x*y)**2
-           sage: def g(x,y): return x, y+sin(y), x**2 + y**2
-           sage: ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)),color=(c,cm))
-           Graphics3d Object
+        sage: cm = colormaps.ocean
+        sage: def c(x,y): return sin(x*y)**2
+        sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
+        sage: O = MobiusStrip(5,1,plot_points=200, color=(c,cm));
+        sage: O.show()
 
-       .. WARNING::
+    Yet another colored example::
 
-           This kind of coloring using a colormap can be visualized
-           using Jmol, Tachyon (option ``viewer='tachyon'``) and
-           Canvas3D (option ``viewer='canvas3d'`` in the
-           notebook). Some problems can affect the Jmol viewer.
+        sage: from sage.plot.plot3d.parametric_surface import ParametricSurface
+        sage: cm = colormaps.autumn
+        sage: def c(x,y): return sin(x*y)**2
+        sage: def g(x,y): return x, y+sin(y), x**2 + y**2
+        sage: ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)),color=(c,cm))
+        Graphics3d Object
+
+    .. WARNING::
+
+        This kind of coloring using a colormap can be visualized
+        using Jmol, Tachyon (option ``viewer='tachyon'``) and
+        Canvas3D (option ``viewer='canvas3d'`` in the
+        notebook). Some problems can affect the Jmol viewer.
 
     We call the space curve function but with polynomials instead of
     symbolic variables.

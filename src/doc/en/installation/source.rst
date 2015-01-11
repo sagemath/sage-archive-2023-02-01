@@ -760,9 +760,9 @@ how it is built:
   requires that Sage be built first, so it will automatically run ``make
   build``.
 
-- ``make doc-html-no-pix`` builds Sage's documentation in html format
+- ``make doc-html-no-plot`` builds Sage's documentation in html format
   but skips the inclusion of graphics auto-generated using the
-  ``.. plot`` markup and the ``sphinx_plot`` function. This is
+  ``.. PLOT`` markup and the ``sphinx_plot`` function. This is
   primarily intended for use when producing certain binary
   distributions of Sage, to lower the size of the distribution. As of
   this writing (December 2014, Sage 6.5), there are only a few such
@@ -771,6 +771,8 @@ how it is built:
   want to build the documentation and include the pictures, you should
   run ``make doc-clean``, because the presence, or lack, of pictures
   is cached in the documentation output.
+  You can benefit from this no-plot feature with other make targets by doing
+  ``export SAGE_DOCBUILD_OPTS+=' --no-plot'``
 
 - ``make build-serial`` builds the components of Sage serially, rather
   than in parallel (parallel building is the default).

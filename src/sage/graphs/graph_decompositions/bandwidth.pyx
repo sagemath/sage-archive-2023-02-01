@@ -1,13 +1,13 @@
 r"""
-Bandwidth
+Bandwidth of undirected graphs
 
 Definition
 ----------
 
 The bandwidth `bw(M)` of a matrix `M` is the smallest integer `k` such that all
 non-zero entries of `M` are at distance `k` from the diagonal. The bandwidth
-`bw(G)` of a graph `G` is the minimum bandwidth of the adjacency matrix of `G`,
-over all possible relabellings of its vertices.
+`bw(G)` of an undirected graph `G` is the minimum bandwidth of the adjacency
+matrix of `G`, over all possible relabellings of its vertices.
 
 **Path spanner:** alternatively, the bandwidth measures how tightly a path
 represents the distance of a graph `G`. Indeed, if the vertices of `G` can be
@@ -97,11 +97,11 @@ Functions
 #*****************************************************************************
 include 'sage/ext/interrupt.pxi'
 
-from libc.stdint cimport uint16_t, uint32_t, uint64_t
+from libc.stdint cimport uint16_t
 from libc.stdlib cimport malloc, free
 from sage.graphs.distances_all_pairs cimport all_pairs_shortest_path_BFS
 
-ctypedef uint32_t index_t
+ctypedef uint16_t index_t
 
 ctypedef struct range_t:
     index_t m
@@ -109,7 +109,7 @@ ctypedef struct range_t:
 
 def bandwidth(G, k=None):
     r"""
-    Compute the bandwidth of a graph.
+    Compute the bandwidth of an undirected graph.
 
     For a definition of the bandwidth of a graph, see the documentation of the
     :mod:`~sage.graphs.graph_decompositions.bandwidth` module.
@@ -123,76 +123,91 @@ def bandwidth(G, k=None):
 
     OUTPUT:
 
-    When `k` is an integer value, the function returns either ``False`` or a
-    pair ``(ordering, adjacency_matrix)``.
+    When `k` is an integer value, the function returns either ``False`` or an
+    ordering of cost `\leq k`.
 
-    When `k` is equal to ``None``, the function returns a triple ``(bw,
-    ordering, adjacency_matrix)``.
+    When `k` is equal to ``None``, the function returns a pair ``(bw,
+    ordering)``.
+
+    .. SEEALSO::
+
+        :meth:`sage.graphs.generic_graph.GenericGraph.adjacency_matrix` --
+        return the adjacency matrix from an ordering of the vertices.
 
     EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.bandwidth import bandwidth
-        sage: bandwidth(graphs.PetersenGraph(),3)
+        sage: G = graphs.PetersenGraph()
+        sage: bandwidth(G,3)
         False
-        sage: bandwidth(graphs.PetersenGraph())
-        (
-                                           [0 1 1 0 1 0 0 0 0 0]
-                                           [1 0 0 0 0 1 1 0 0 0]
-                                           [1 0 0 1 0 0 0 1 0 0]
-                                           [0 0 1 0 0 0 1 0 1 0]
-                                           [1 0 0 0 0 0 0 0 1 1]
-                                           [0 1 0 0 0 0 0 1 1 0]
-                                           [0 1 0 1 0 0 0 0 0 1]
-                                           [0 0 1 0 0 1 0 0 0 1]
-                                           [0 0 0 1 1 1 0 0 0 0]
-        5, [0, 4, 5, 8, 1, 9, 3, 7, 6, 2], [0 0 0 0 1 0 1 1 0 0]
-        )
-        sage: bandwidth(graphs.ChvatalGraph())
-        (
-                                                   [0 0 1 1 0 1 1 0 0 0 0 0]
-                                                   [0 0 0 1 1 1 0 1 0 0 0 0]
-                                                   [1 0 0 0 1 0 0 1 1 0 0 0]
-                                                   [1 1 0 0 0 0 0 0 1 1 0 0]
-                                                   [0 1 1 0 0 0 1 0 0 1 0 0]
-                                                   [1 1 0 0 0 0 0 0 0 0 1 1]
-                                                   [1 0 0 0 1 0 0 1 0 0 0 1]
-                                                   [0 1 1 0 0 0 1 0 0 0 1 0]
-                                                   [0 0 1 1 0 0 0 0 0 0 1 1]
-                                                   [0 0 0 1 1 0 0 0 0 0 1 1]
-                                                   [0 0 0 0 0 1 0 1 1 1 0 0]
-        6, [0, 5, 9, 4, 10, 1, 6, 11, 3, 8, 7, 2], [0 0 0 0 0 1 1 0 1 1 0 0]
-        )
+        sage: bandwidth(G)
+        (5, [0, 4, 5, 8, 1, 9, 3, 7, 6, 2])
+        sage: G.adjacency_matrix(vertices=[0, 4, 5, 8, 1, 9, 3, 7, 6, 2])
+        [0 1 1 0 1 0 0 0 0 0]
+        [1 0 0 0 0 1 1 0 0 0]
+        [1 0 0 1 0 0 0 1 0 0]
+        [0 0 1 0 0 0 1 0 1 0]
+        [1 0 0 0 0 0 0 0 1 1]
+        [0 1 0 0 0 0 0 1 1 0]
+        [0 1 0 1 0 0 0 0 0 1]
+        [0 0 1 0 0 1 0 0 0 1]
+        [0 0 0 1 1 1 0 0 0 0]
+        [0 0 0 0 1 0 1 1 0 0]
+        sage: G = graphs.ChvatalGraph()
+        sage: bandwidth(G)
+        (6, [0, 5, 9, 4, 10, 1, 6, 11, 3, 8, 7, 2])
+        sage: G.adjacency_matrix(vertices=[0, 5, 9, 4, 10, 1, 6, 11, 3, 8, 7, 2])
+        [0 0 1 1 0 1 1 0 0 0 0 0]
+        [0 0 0 1 1 1 0 1 0 0 0 0]
+        [1 0 0 0 1 0 0 1 1 0 0 0]
+        [1 1 0 0 0 0 0 0 1 1 0 0]
+        [0 1 1 0 0 0 1 0 0 1 0 0]
+        [1 1 0 0 0 0 0 0 0 0 1 1]
+        [1 0 0 0 1 0 0 1 0 0 0 1]
+        [0 1 1 0 0 0 1 0 0 0 1 0]
+        [0 0 1 1 0 0 0 0 0 0 1 1]
+        [0 0 0 1 1 0 0 0 0 0 1 1]
+        [0 0 0 0 0 1 0 1 1 1 0 0]
+        [0 0 0 0 0 1 1 0 1 1 0 0]
 
     TESTS::
 
         sage: bandwidth(2*graphs.PetersenGraph())
-        (5,
-        [0, 4, 5, 8, 1, 9, 3, 7, 6, 2, 10, 14, 15, 18, 11, 19, 13, 17, 16, 12],
-        20 x 20 dense matrix over Integer Ring)
+        (5, [0, 4, 5, 8, 1, 9, 3, 7, 6, 2, 10, 14, 15, 18, 11, 19, 13, 17, 16, 12])
         sage: bandwidth(Graph())
-        (0, [], [])
+        (0, [])
         sage: bandwidth(Graph(1))
-        (0, [0], [0])
+        (0, [0])
         sage: bandwidth(Graph(3))
-        (
-                      [0 0 0]
-                      [0 0 0]
-        0, [0, 1, 2], [0 0 0]
-        )
+        (0, [0, 1, 2])
+
+    Directed/weighted graphs::
+
+        sage: bandwidth(digraphs.Circuit(5))
+        Traceback (most recent call last):
+        ...
+        ValueError: This method only works on undirected graphs
+        sage: bandwidth(Graph(graphs.PetersenGraph(), weighted=True))
+        Traceback (most recent call last):
+        ...
+        ValueError: This method only works on unweighted graphs
+
     """
+    if G.is_directed():
+        raise ValueError("This method only works on undirected graphs")
+    if G.weighted():
+        raise ValueError("This method only works on unweighted graphs")
     # Trivial cases
     if G.order() <= 1:
         from sage.matrix.constructor import Matrix
         if k is None:
-            return (0,G.vertices(),Matrix([[0]*G.order()]))
+            return (0,G.vertices())
         else:
-            return (G.vertices(),Matrix([[0]*G.order()]))
+            return (G.vertices())
 
     if not G.is_connected():
-        from sage.matrix.constructor import block_diagonal_matrix
         max_k = 0 if k is None else k
         order = []
-        mat = []
         for GG in G.connected_components_subgraphs():
             ans = bandwidth(GG,k=k)
             if not ans:
@@ -201,8 +216,7 @@ def bandwidth(G, k=None):
                 max_k = max(max_k, ans[0])
                 ans = ans[1:]
             order.extend(ans[0])
-            mat.append(ans[1])
-        return (max_k, order, block_diagonal_matrix(*mat,subdivide=False))
+        return (max_k, order)
 
     # All that this function does is allocate/free the memory for function
     # bandwidth_C
@@ -283,11 +297,7 @@ def bandwidth(G, k=None):
         free(range_array_tmp)
 
     if ans:
-        from sage.matrix.constructor import Matrix
-        M = Matrix([[int(G.has_edge(u,v)) for u in order] for v in order])
-        assert all(abs(i-j)<= (kk if k is None else k)
-                   for i,j in M.dict())
-        ans = (kk, order, M) if k is None else (order,M)
+        ans = (kk, order) if k is None else order
 
     return ans
 

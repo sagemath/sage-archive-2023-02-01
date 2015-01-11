@@ -55,6 +55,7 @@ Number Theory
 
 * :ref:`numtheory_rsa`
 * :ref:`sage.rings.padics.tutorial`
+* :ref:`explicit_methods_in_number_theory`
 
 Coding Theory
 -------------

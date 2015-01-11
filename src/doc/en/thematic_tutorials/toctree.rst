@@ -20,3 +20,4 @@ Thematic tutorial document tree
    functional_programming
    coercion_and_categories
    numerical_sage/index
+   explicit_methods_in_number_theory/index

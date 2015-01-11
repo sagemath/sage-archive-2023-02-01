@@ -39,8 +39,8 @@ One can instead provide a coloring function and a color map::
     sage: P = ParametricSurface(f, (srange(-5,5,0.1), srange(-5,5.0,0.1)), color=(c,cm))
     sage: P.show(viewer='tachyon')
 
-Note that the coloring function should have values between 0 and
-1. This value is passed to the chosen colormap.
+Note that the coloring function should have values between 0 and 1. This
+value is passed to the chosen colormap.
 
 Another colored example::
 
@@ -67,9 +67,7 @@ Another colored example::
     actually remove unused points, fix the below code::
 
         S = ParametricSurface(f=(lambda (x,y):(x,y,0)), domain=(range(10),range(10)))
-
 """
-
 #*****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
@@ -84,9 +82,6 @@ Another colored example::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-
-
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
@@ -125,7 +120,7 @@ cdef class ParametricSurface(IndexFaceSet):
     - ``domain`` - (default: ``None``) A tuple of two lists, defining the
       grid of `u,v` values. If ``None``, this will be calculated automatically.
 
-    - ``color_data`` - (default: ``None``) A pair `(h,c)` where `h` is
+    - ``color`` - (default: ``None``) A pair `(h,c)` where `h` is
       a function with values in `[0,1]` and `c` is a colormap. The
       color of a point `p` is then defined as the composition
       `c(h(p))`
@@ -158,13 +153,13 @@ cdef class ParametricSurface(IndexFaceSet):
         ....:                srange(float(-1),float(1),float(0.1))), color="blue")
         sage: show(S)
 
-    A colored example using the ``color_data`` keyword::
+    A colored example using the ``color`` keyword::
 
         sage: def g(x,y): return x, y, - x**2 + y**2
         sage: def c(x,y): return sin((x-y/2)*y/4)**2
         sage: cm = colormaps.gist_rainbow
         sage: P = ParametricSurface(g, (srange(-10,10,0.1),
-        ....:   srange(-5,5.0,0.1)),color_data=(c,cm))
+        ....:   srange(-5,5.0,0.1)),color=(c,cm))
         sage: P.show(viewer='tachyon')
     """
 

@@ -131,7 +131,8 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
 
         sage: u,v = var('u,v')
         sage: def cf(u,v): return sin(u+v/2)**2
-        sage: P = parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), color=(cf, colormaps.PiYG), plot_points=[60,60])
+        sage: P = parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)),
+        ....:   (u, 0, 2*pi), (v, -pi, pi), color=(cf, colormaps.PiYG), plot_points=[60,60])
         sage: P.show(viewer='tachyon')
 
     Another example, a colored Mobius band::

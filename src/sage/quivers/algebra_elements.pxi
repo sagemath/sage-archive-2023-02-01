@@ -384,16 +384,32 @@ cdef path_mon_t *path_mul_mon_mul_path(biseq_t p, path_mon_t *T, biseq_t q) exce
     cdef mp_bitcnt_t pTsize = p.data.size+T.path.data.size
     bitset_lshift(out.path.data, q.data, pTsize)
     cdef mp_bitcnt_t p_offset = p.data.size%GMP_LIMB_BITS
-    cdef mp_bitcnt_t p_limbs = p.data.size //GMP_LIMB_BITS
-    cdef mp_bitcnt_t pT_limbs = pTsize//GMP_LIMB_BITS
-    if (T.path.data.size%GMP_LIMB_BITS)+p_offset > GMP_LIMB_BITS:
+    # p_limbs gives the index of the limb that will store the first bit of the
+    # shifted version of T.
+    cdef mp_bitcnt_t p_limbs = (p.data.limbs - 1) if p_offset>0 else p.data.limbs
+
+    # pT_limbs gives the index of the last limb used to store p+T
+    cdef mp_bitcnt_t pT_limbs = (pTsize-1)//GMP_LIMB_BITS
+    if ((T.path.data.size-1)%GMP_LIMB_BITS)+p_offset >= GMP_LIMB_BITS:
+        # We shift all limbs of T. The highest bits of the highest limbs are
+        # pushed out and returned by mpn_lshift. We need to assign them to the
+        # beginning of the last limb that is (partially) occupied by p+T
         out.path.data.bits[pT_limbs] |= mpn_lshift(out.path.data.bits+p_limbs,
                                               T.path.data.bits, T.path.data.limbs, p_offset)
     else:
         if T.path.data.limbs>1:
+            # If we would move all limbs of T, then the result would override
+            # the lowest limb of the shifted copy of q. We thus only move all
+            # but the last limb of T, assigning to the beginning of the last
+            # limb of p+T the bits that have been pushed out.
             out.path.data.bits[pT_limbs] |= mpn_lshift(out.path.data.bits+p_limbs,
                                                   T.path.data.bits, T.path.data.limbs-1, p_offset)
-        out.path.data.bits[pT_limbs] |= (T.path.data.bits[T.path.data.limbs-1]<<p_offset)
+            # Last, we need to move the last limb of T (which is only
+            # partially occupied), namely into the spot between the previously
+            # moved parts of T and the beginning of the shifted copy of q.
+            out.path.data.bits[pT_limbs] |= (T.path.data.bits[T.path.data.limbs-1]<<p_offset)
+        else:
+            out.path.data.bits[p_limbs] |= (T.path.data.bits[T.path.data.limbs-1]<<p_offset)
     bitset_or(out.path.data, out.path.data, p.data)
     return out
 

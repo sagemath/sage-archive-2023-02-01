@@ -778,7 +778,7 @@ class QuiverRepFactory(UniqueFactory):
             sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: from sage.quivers.representation import QuiverRep
             sage: key = QuiverRep.create_key(GF(5), Q)
-            sage: QuiverRep.create_object(Q.version(), key)
+            sage: QuiverRep.create_object(0, key)
             Representation with dimension vector (0, 0)
         """
 

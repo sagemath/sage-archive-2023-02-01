@@ -18,9 +18,10 @@ use, this document is for you.
 Calling "hello_world()" from hello.c
 ------------------------------------
 
-Let us suppose that you have in your current directory a file named hello.c::
+Let us suppose that you have a file named ``~/my_dir/hello.c`` containing:
 
-  [user@localhost ~/my_dir/] cat hello.c
+.. code-block:: c
+
   #include <stdio.h>
 
   void hello_world(){
@@ -28,10 +29,11 @@ Let us suppose that you have in your current directory a file named hello.c::
   }
 
 In order to call this function from Sage, you must create a Cython file (i.e. a
-file whose extension is .pyx). This file contains a header containing the
-signature of the function that you want to call::
+file whose extension is .pyx). Here, ``~/my_dir/hello_sage.pyx`` contains a
+header describing the signature of the function that you want to call:
 
-  [user@localhost ~/my_dir/] cat hello_sage.pyx
+.. code-block:: cython
+
   cdef extern from "hello.c":
       void hello_world()
 
@@ -57,7 +59,9 @@ The following example defines a function taking and returning ``int *``
 pointers, and involves some memory allocation. The C code defines a function
 whose purpose is to return the sum of two vectors as a third vector.
 
-**The C file** (``double_vector.c``)::
+**The C file** (``double_vector.c``)
+
+.. code-block:: c
 
   #include <string.h>
 
@@ -74,7 +78,9 @@ whose purpose is to return the sum of two vectors as a third vector.
     return sum;
   }
 
-**The Cython file** (``double_vector_sage.pyx``)::
+**The Cython file** (``double_vector_sage.pyx``)
+
+.. code-block:: cython
 
   cdef extern from "double_vector.c":
       int * sum_of_two_vectors(int n, int * vec1, int * vec2)
@@ -114,16 +120,20 @@ Calling code from a compiled library
 ------------------------------------
 
 The procedure is very similar again. For our purposes, we build a library from
-the file **hello.c** defined in :ref:`section-cython-interface-helloworld`, and
-a **hello.h** header file. ::
+the file ``~/my_dir/hello.c``:
 
-   [user@localhost ~/my_dir/] cat hello.c
+.. code-block:: c
+
    #include <stdio.h>
 
    void hello_world(){
        printf("Hello World\n");
-   }
-   [user@localhost ~/my_dir/] cat hello.h
+  }
+
+We also need a ``~/my_dir/hello.h`` header file:
+
+.. code-block:: c
+
    void hello_world();
 
 We can now **compile it** as a library::
@@ -133,9 +143,10 @@ We can now **compile it** as a library::
 
 The only files that we need now are ``hello.h`` and ``libhello.so`` (you can
 remove the others if you like). We must now indicate the location of the ``.so``
-and ``.h`` files in the header of our ``.pyx`` file: ::
+and ``.h`` files in the header of our ``~/my_dir/hello_sage.pyx`` file:
 
-  [user@localhost ~/my_dir/] cat hello_sage.pyx
+.. code-block:: cython
+
    #clib /home/username/my_dir/hello
 
    cdef extern from "hello.h":

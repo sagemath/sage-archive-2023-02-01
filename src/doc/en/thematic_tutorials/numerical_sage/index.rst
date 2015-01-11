@@ -2,6 +2,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. _numerical_computing:
+
 Numerical Computing with Sage
 ==========================================
 This document is designed to introduce the reader to the tools in Sage

@@ -47,7 +47,6 @@ Calculus and plotting
 Algebra
 =======
 
-* :ref:`linear_programming`
 * :ref:`group_theory`
 * :ref:`lie`
 
@@ -83,6 +82,12 @@ Algebraic Combinatorics
 * :ref:`lie`
 * :ref:`sage.combinat.root_system.plot`
 * :ref:`abelian_sandpile_model`
+
+Numerical computations
+----------------------
+
+* :ref:`numerical_computing`
+* :ref:`linear_programming`
 
 .. Words
 .. -----

@@ -2,9 +2,13 @@
 
 .. _coercion_and_categories:
 
-=================================================
-How to implement new algebraic structures in Sage
-=================================================
+================================================
+How to implement new algebraic structure in Sage
+================================================
+
+.. contents::
+   :depth: 3
+
 --------------------------------------
 Sage's category and coercion framework
 --------------------------------------
@@ -15,12 +19,7 @@ Sage's category and coercion framework
     <simon.king@uni-jena.de>
     © 2011/2013
 
-.. toctree::
-   :maxdepth: 2
-
 .. linkall
-
-
 
 The aim of this tutorial is to explain how one can benefit from Sage's
 category framework and coercion model when implementing new algebraic

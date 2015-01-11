@@ -10,6 +10,7 @@ import sage.rings.arith as arith
 import sage.rings.all as rings
 from sage.rings.all import ZZ, Infinity
 from sage.functions.all import ceil
+from sage.misc.all import flatten
 
 class BSD_data:
     """
@@ -666,21 +667,43 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
             else:
                 BSD.proof[p] = ['Cha']
             kolyvagin_primes.append(p)
-    # Stein et al.
-    if not BSD.curve.has_cm():
-        L = arith.lcm([F.torsion_order() for F in BSD.curve.isogeny_class()])
-        for p in BSD.primes:
-            if p in kolyvagin_primes or p == 2: continue
-            if L%p != 0:
-                if len(arith.prime_divisors(D_K)) == 1:
-                    if D_K%p == 0: continue
-                if verbosity > 0:
-                    print 'Kolyvagin\'s bound for p = %d applies by Stein et al.'%p
-                kolyvagin_primes.append(p)
-                if p in BSD.proof:
-                    BSD.proof[p].append('Stein et al.')
-                else:
-                    BSD.proof[p] = ['Stein et al.']
+    # Stein et al replaced
+    for p in BSD.primes:
+        # the lemma about the vanishing of H^1 is false in Stein et al for p=5 and 11
+        # here is the correction from Lawson-Wuthrich
+        if p in kolyvagin_primes or p == 2 or D_K % p == 0: continue
+        crit_lw = False
+        if galrep.is_irreducible(p):
+            crit_lw = True
+        if p > 11 or p == 7 :
+            crit_lw = True
+        elif p == 11:
+            if BSD.N != 121 or BSD.curve.label() != "121c2":
+                crit_lw = True
+        else:
+            phis = [phi for phi in flatten(BSD.curve.isogeny_class().isogenies())
+                        if phi != 0 and
+                           phi.degree() == p and
+                           phi.domain().is_isomorphic(BSD.curve) ]
+            if len(phis) != 1:
+                crit_lw = True
+            else:
+                C = phis[0].codomain()
+                if p == 3:
+                    if BSD.curve.torsion_order() % p != 0 and C.torsion_order() % p != 0:
+                        crit_lw = True
+                else: #p == 5:
+                    Et = BSD.curve.quadratic_twist(5)
+                    if Et.torsion_order() % p != 0 and C.torsion_order() % p != 0:
+                        crite_lw = True
+        if crit_lw:
+            if verbosity > 0:
+                print 'Kolyvagin\'s bound for p = %d applies by Lawson - Wuthrich'%p
+            kolyvagin_primes.append(p)
+            if p in BSD.proof:
+                BSD.proof[p].append('Lawson-Wuthrich')
+            else:
+                BSD.proof[p] = ['Lawson-Wuthrich']
     for p in kolyvagin_primes:
         if p in BSD.primes:
             BSD.primes.remove(p)
@@ -797,7 +820,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                     if verbosity > 2:
                         print '    trying max_height =', max_height
                     old_bound = M
-                    M, _, exact = BSD.curve.heegner_index_bound(D, max_height=max_height, secs_dc=secs_dc)
+                    M, _, exact = BSD.curve.heegner_index_bound(D, max_height=max_height) #, secs_dc=secs_dc)
                     if M == -1:
                         max_height += 1
                         continue
@@ -849,7 +872,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                     old_bound = M
                     if p**(BSD.sha_an.ord(p)/2+1) > M or max_height >= 22:
                         break
-                    M, _, exact = BSD.curve.heegner_index_bound(D, max_height=max_height, secs_dc=secs_dc)
+                    M, _, exact = BSD.curve.heegner_index_bound(D, max_height=max_height) #, secs_dc=secs_dc)
                     if M == -1:
                         max_height += 1
                         continue

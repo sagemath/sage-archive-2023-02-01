@@ -1,16 +1,16 @@
 """
-Gambit
+Using Gambit as a standalone package
 
 This file contains some information and tests for the use of
-`gambit<http://www.gambit-project.org/>`_ as a stand alone package.
+`Gambit <http://www.gambit-project.org/>`_ as a stand alone package.
 
 To install gambit as an optional package run (from root of Sage)::
 
     $ ./sage -i gambit
 
 The `python API documentation for gambit
-<http://www.gambit-project.org/gambit14/pyapi.html>_` shows various examples
-that can be run easily in Ipython. To run the Ipython packaged with Sage run
+<http://www.gambit-project.org/gambit14/pyapi.html>`_ shows various examples
+that can be run easily in IPython. To run the IPython packaged with Sage run
 (from root of Sage)::
 
     $ ./sage -ipython
@@ -76,7 +76,7 @@ Here is a list of the various solvers available in gambit:
 - ExternalIteratedPolymatrixSolver
 - ExternalLogitSolver
 
-Here is how to use the `ExternalEnumPureSolver`::
+Here is how to use the ``ExternalEnumPureSolver``::
 
     In [21]: solver = gambit.nash.ExternalEnumPureSolver()
     In [22]: solver.solve(g)
@@ -100,7 +100,7 @@ games.  For example here is an implementation of Matching Pennies::
     In [12]: solver.solve(g)
     Out[12]: []
 
-If we solve this with the `LCP` solver we get the expected Nash equilibrium::
+If we solve this with the ``LCP`` solver we get the expected Nash equilibrium::
 
     In [13]: solver = gambit.nash.ExternalLCPSolver()
     In [14]: solver.solve(g)
@@ -110,7 +110,8 @@ Note that the above examples only show how to build and find equilibria for
 two player strategic form games. Gambit supports mulitple player games as well
 as extensive form games: for more details see http://www.gambit-project.org/.
 
-If one really wants to use gambit directly in Sage then integers must first be
+If one really wants to use gambit directly in Sage (without using the
+``NormalFormGame`` class as a wrapper) then integers must first be
 converted to Python integers (due to the preparser). Here is an example
 showing the Battle of the Sexes::
 

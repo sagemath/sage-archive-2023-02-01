@@ -54,9 +54,9 @@ The following should generally be checked while reading and testing the code:
   <chapter-code-basics>`? :ref:`Python's convention <chapter-python>`?
   :ref:`Cython's convention <chapter-cython>`?
 
-- **Doctest coverage**: All code in Sage must have doctests. Use
-  ``sage -coverage <files>`` to check that all functions of a file have
-  doctests.
+- **Doctest coverage**: Do all functions contain doctests? Use ``sage -coverage
+  <files>`` to check it. Are all aspects of the new/modified methods and classes
+  tested (see :ref:`section-doctest-writing`)?
 
 - **Bugfixes**: If the ticket contains a bugfix, does it add a doctest
   illustrating that the bug has been fixed? This new doctest should contain the
@@ -69,11 +69,11 @@ The following should generally be checked while reading and testing the code:
 - **Manuals**: Does the reference manual build without errors (check both html
   and pdf)? See :ref:`chapter-sage_manuals` to learn how to build the manuals.
 
-- **Doctests**: Do all doctests pass without errors? Unrelated components of
-  Sage may be affected by the change. Check all tests in the whole library,
-  including "long" doctests (this can be done with ``make ptestlong``) and
-  any optional doctests related to the functionality. See
-  :ref:`chapter-doctesting` for more information.
+- **Run the tests**: Do all doctests pass without errors? Unrelated components
+  of Sage may be affected by the change. Check all tests in the whole library,
+  including "long" doctests (this can be done with ``make ptestlong``) and any
+  optional doctests related to the functionality. See :ref:`chapter-doctesting`
+  for more information.
 
 You are now ready to change the ticket's status (see
 :ref:`section-trac-ticket-status`):

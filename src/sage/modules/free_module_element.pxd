@@ -7,7 +7,7 @@ cdef class FreeModuleElement(Vector):
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     # data
-    cdef object _entries
+    cdef list _entries
 
     # cdef'd methods
     cdef _new_c(self, object v)
@@ -15,7 +15,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
 cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     # data
-    cdef object _entries
+    cdef dict _entries
 
     # cdef'd methods
     cdef _new_c(self, object v)

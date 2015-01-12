@@ -84,13 +84,13 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=None, spars
 
     TESTS:
 
-        Check if changing global series precision does it right::
+    Check if changing global series precision does it right::
 
-            sage: set_series_precision(3)
-            sage: R.<x> = LaurentSeriesRing(ZZ)
-            sage: 1/(1 - 2*x)
-            1 + 2*x + 4*x^2 + O(x^3)
-            sage: set_series_precision(20)
+        sage: set_series_precision(3)
+        sage: R.<x> = LaurentSeriesRing(ZZ)
+        sage: 1/(1 - 2*x)
+        1 + 2*x + 4*x^2 + O(x^3)
+        sage: set_series_precision(20)
     """
     if not names is None: name = names
     if name is None:

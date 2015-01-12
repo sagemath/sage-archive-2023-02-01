@@ -3017,7 +3017,7 @@ class Graph(GenericGraph):
             sage: graphs.CycleGraph(11).odd_girth()
             11
         """
-        ch = ((self.am()).charpoly()).coeffs()
+        ch = ((self.am()).charpoly()).coefficients(sparse=False)
         n = self.order()
 
         for i in xrange(n-1,-1,-2):

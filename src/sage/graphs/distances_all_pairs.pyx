@@ -163,8 +163,6 @@ cdef inline all_pairs_shortest_path_BFS(gg,
 
     from sage.rings.infinity import Infinity
 
-    cdef CGraph cg = <CGraph> gg._backend._cg
-
     cdef list int_to_vertex = gg.vertices()
     cdef int i
 

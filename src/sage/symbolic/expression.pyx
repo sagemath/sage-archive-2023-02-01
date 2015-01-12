@@ -5119,9 +5119,9 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: n != 1 only allowed for s being a variable
-            
+
         Using ``coeff()`` is now deprecated (:trac:`17438`)::
-        
+
             sage: x.coeff(x)
             doctest:...: DeprecationWarning: coeff is deprecated. Please use coefficient instead.
             See http://trac.sagemath.org/17438 for details.
@@ -5150,12 +5150,12 @@ cdef class Expression(CommutativeRingElement):
         -  ``x`` -- optional variable.
 
         OUTPUT:
-        
+
         Depending on the value of ``sparse``,
 
         - A list of pairs ``(expr, n)``, where ``expr`` is a symbolic
           expression and ``n`` is a power (``sparse=True``, default)
-        
+
         - A list of expressions where the ``n``-th element is the coefficient of
           ``x^n`` when self is seen as polynomial in ``x`` (``sparse=False``).
 
@@ -5184,6 +5184,8 @@ cdef class Expression(CommutativeRingElement):
             sage: p.coefficients(x, sparse=False)
             [2*a^2 + 1, -2*sqrt(2)*a + 1, 1]
 
+        TESTS:
+
         The behaviour is undefined with noninteger or negative exponents::
 
             sage: p = (17/3*a)*x^(3/2) + x*y + 1/x + x^x
@@ -5193,24 +5195,41 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot return dense coefficient list with noninteger exponents.
-            
+
         Using ``coeffs()`` is now deprecated (:trac:`17438`)::
-        
+
             sage: x.coeffs()
             doctest:...: DeprecationWarning: coeffs is deprecated. Please use coefficients instead.
             See http://trac.sagemath.org/17438 for details.
             [[1, 1]]
+
+        Series coefficients are now handled correctly (:trac:`17399`)::
+
+            sage: s=(1/(1-x)).series(x,6); s
+            1 + 1*x + 1*x^2 + 1*x^3 + 1*x^4 + 1*x^5 + Order(x^6)
+            sage: s.coefficients()
+            [[1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5]]
+            sage: s.coefficients(x, sparse=False)
+            [1, 1, 1, 1, 1, 1]
+            sage: x,y = var("x,y")
+            sage: s=(1/(1-y*x-x)).series(x,3); s
+            1 + (y + 1)*x + ((y + 1)^2)*x^2 + Order(x^3)
+            sage: s.coefficients(x, sparse=False)
+            [1, y + 1, (y + 1)^2]
         """
-        f = self._maxima_()
-        maxima = f.parent()
-        maxima._eval_line('load(coeflist)')
         if x is None:
             x = self.default_variable()
-        x = self.parent().var(repr(x))
-        G = f.coeffs(x)
-        from sage.calculus.calculus import symbolic_expression_from_maxima_string
-        S = symbolic_expression_from_maxima_string(repr(G))
-        l = S[1:]
+        if is_a_series(self._gobj):
+            l = [[self.coefficient(x, d), d] for d in xrange(self.degree(x))]
+        else:
+            f = self._maxima_()
+            maxima = f.parent()
+            maxima._eval_line('load(coeflist)')
+            G = f.coeffs(x)
+            from sage.calculus.calculus import symbolic_expression_from_maxima_string
+            S = symbolic_expression_from_maxima_string(repr(G))
+            l = S[1:]
+
         if sparse is True:
             return l
         else:
@@ -5227,7 +5246,7 @@ cdef class Expression(CommutativeRingElement):
             return ret
 
     coeffs = deprecated_function_alias(17438, coefficients)
-    
+
     def list(self, x=None):
         r"""
         Return the coefficients of this symbolic expression as a polynomial in x.
@@ -5247,9 +5266,6 @@ cdef class Expression(CommutativeRingElement):
             (x, y, a)
             sage: (x^5).list()
             [0, 0, 0, 0, 0, 1]
-            sage: p = x^3 - (x-3)*(x^2+x) + 1
-            sage: p.list()
-            [1, 3, 2]
             sage: p = x - x^3 + 5/7*x^5
             sage: p.list()
             [0, 1, 0, -1, 0, 5/7]
@@ -5257,6 +5273,10 @@ cdef class Expression(CommutativeRingElement):
             -2*sqrt(2)*a*x + 2*a^2 + x^2 + x + 1
             sage: p.list(a)
             [x^2 + x + 1, -2*sqrt(2)*x, 2]
+            sage: s=(1/(1-x)).series(x,6); s
+            1 + 1*x + 1*x^2 + 1*x^3 + 1*x^4 + 1*x^5 + Order(x^6)
+            sage: s.list()
+            [1, 1, 1, 1, 1, 1]
         """
         return self.coefficients(x=x, sparse=False)
 

@@ -2130,7 +2130,7 @@ class OAMainFunctions():
         INPUT:
 
         - ``k,n,t`` (integers) -- parameters of the orthogonal array.
-x
+
         .. SEEALSO::
 
             :meth:`exists`

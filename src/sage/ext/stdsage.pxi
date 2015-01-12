@@ -42,8 +42,3 @@ cdef extern from "stdsage.h":
     void* sage_calloc(size_t nmemb, size_t size) nogil
     void  init_memory_functions() nogil
     void  init_csage()
-    void  init_csage_module()
-
-
-# Do this for every single module that links in stdsage.
-init_csage_module()

@@ -980,7 +980,7 @@ cdef class Matrix(matrix1.Matrix):
           "ButeraPernici" (default) or "Godsil"; Ryser one might be faster on
           simple and small instances. Godsil only accepts input in 0,1.
 
-        - ``complement`` -- boolean (default: ``False``) wether we consider the
+        - ``complement`` -- boolean (default: ``False``) whether we consider the
           rook vector of the complement matrix. If set to ``True`` then the
           matrix must have entries in {0, 1} and the complement matrix is the
           one for which the 0's are replaced by 1's and 1's by 0's.

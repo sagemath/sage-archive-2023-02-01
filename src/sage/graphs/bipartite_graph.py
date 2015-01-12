@@ -938,9 +938,17 @@ class BipartiteGraph(Graph):
             sage: p = g.characteristic_polynomial()
             sage: p == BipartiteGraph(g).matching_polynomial(algorithm='rook')
             True
+
+        TESTS::
+
+            sage: g = BipartiteGraph(matrix.ones(4,3))
+            sage: g.matching_polynomial()
+            x^7 - 12*x^5 + 36*x^3 - 24*x
+            sage: g.matching_polynomial(algorithm="rook")
+            x^7 - 12*x^5 + 36*x^3 - 24*x
         """
         if algorithm == "Godsil":
-            return Graph.matching_polynomial(self, name=name)
+            return Graph.matching_polynomial(self, complement=False, name=name)
         elif algorithm == "rook":
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             A = self.reduced_adjacency_matrix()

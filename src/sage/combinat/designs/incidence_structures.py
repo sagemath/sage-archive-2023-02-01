@@ -576,7 +576,7 @@ class IncidenceStructure(object):
 
     __copy__ = copy
 
-    def induced_substructure(self,points):
+    def induced_substructure(self, points):
         r"""
         Return the substructure induced by a set of points.
 
@@ -622,7 +622,7 @@ class IncidenceStructure(object):
             n = self.num_points()
             for x in points:
                 x = int(x)
-                if x<0 or x >= n:
+                if x < 0 or x >= n:
                     raise ValueError("{} is not a point of the incidence structure".format(x))
             int_points = points
         else:
@@ -633,7 +633,8 @@ class IncidenceStructure(object):
 
         int_points = set(int_points)
         return IncidenceStructure(points,
-                                  [[self._points[x] for x in S] for S in self._blocks
+                                  [[self._points[x] for x in S]
+                                   for S in self._blocks
                                    if int_points.issuperset(S)])
 
     def ground_set(self):

@@ -345,8 +345,9 @@ def trace_method(obj, meth, **kwds):
     EXAMPLE::
 
         sage: class Foo(object):
-        ....:     def f(self):
+        ....:     def f(self, arg=None):
         ....:         self.y = self.g(self.x)
+        ....:         if arg: return arg*arg
         ....:     def g(self, arg):
         ....:         return arg + 1
         ....:
@@ -360,12 +361,19 @@ def trace_method(obj, meth, **kwds):
           call g(3) -> 4
           write y = 4
         exit f -> None
+        sage: foo.f(3)
+        enter f(3)
+          read x = 3
+          call g(3) -> 4
+          write y = 4
+        exit f -> 9
+        9
     """
     f = getattr(obj, meth).__func__
     t = AttributeAccessTracerProxy(obj, **kwds)
     @wraps(f)
     def g(*args, **kwds):
-        arglst = [fmt(arg) for arg in args]
+        arglst = [reproducible_repr(arg) for arg in args]
         arglst.extend("{}={}".format(k, reproducible_repr(v))
                       for k, v in sorted(kwds.items()))
         print("enter {}({})".format(meth, ", ".join(arglst)))

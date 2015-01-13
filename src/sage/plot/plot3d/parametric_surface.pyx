@@ -31,7 +31,7 @@ By default, the surface is colored with one single color. ::
     ....:  color="red")
     sage: P.show()
 
-One can instead provide a coloring function and a color map::
+One can instead provide a coloring function and a colormap::
 
     sage: def f(x,y): return x+y, x-y, x*y
     sage: def c(x,y): return sin((x+y)/2)**2
@@ -44,9 +44,9 @@ value is passed to the chosen colormap.
 
 Another colored example::
 
-    sage: cm = colormaps.autumn
+    sage: colm = colormaps.autumn
     sage: def g(x,y): return x, y, x**2 + y**2
-    sage: P = ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)), color=(c,cm))
+    sage: P = ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)), color=(c,colm))
     sage: P.show(viewer='tachyon')
 
 .. WARNING::

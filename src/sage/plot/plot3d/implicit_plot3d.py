@@ -105,7 +105,8 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: cm = colormaps.PiYG
         sage: G = implicit_plot3d(x^4 + y^2 + z^2, (x,-2, 2),
         ....:   (y,-2, 2),(z,-2, 2), contour=4, color=(t,cm), plot_points=40)
-        sage: G.show()
+        sage: G
+        Graphics3d Object
 
     .. WARNING::
 
@@ -300,8 +301,6 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: implicit_plot3d(max_symbolic(x, y^2) - z, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=6)
         Graphics3d Object
     """
-    # These options aren't fully implemented yet:
-
     # These options, related to rendering with smooth shading, are irrelevant
     # since IndexFaceSet does not support surface normals:
     # smooth: (default: False) Whether to use vertex normals to produce a

@@ -9,7 +9,9 @@ from sage.structure.element import is_Vector
 
 from sage.ext.fast_eval import fast_float, fast_float_constant
 
-def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_style=None, **kwds):
+
+def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
+                      boundary_style=None, **kwds):
     r"""
     Return a parametric three-dimensional space curve or surface.
 
@@ -140,8 +142,8 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
         sage: cm = colormaps.ocean
         sage: def c(x,y): return sin(x*y)**2
         sage: from sage.plot.plot3d.parametric_surface import MobiusStrip
-        sage: O = MobiusStrip(5,1,plot_points=200, color=(c,cm));
-        sage: O.show()
+        sage: MobiusStrip(5,1,plot_points=200, color=(c,cm))
+        Graphics3d Object
 
     Yet another colored example::
 
@@ -185,7 +187,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
     extrema::
 
         sage: u, v = var('u,v')
-        sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, pi), (v, 0, pi), \
+        sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, pi), (v, 0, pi),
         ....:              boundary_style={"color": "black", "thickness": 2})
         Graphics3d Object
 

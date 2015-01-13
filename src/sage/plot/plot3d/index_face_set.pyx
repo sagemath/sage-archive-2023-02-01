@@ -387,7 +387,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         INPUT:
 
-        threshold -- the minimum cosine of the angle between adjacent
+        ``threshold`` -- the minimum cosine of the angle between adjacent
         faces a higher threshold separates more, all faces if >= 1, no
         faces if <= -1
         """
@@ -656,7 +656,6 @@ cdef class IndexFaceSet(PrimitiveObject):
               <Color color='1.0 0.0 0.0,1.0 0.6 0.0,0.8 1.0 0.0,0.2 1.0 0.0' />
             </IndexedFaceSet>
             <BLANKLINE>
-
         """
         cdef Py_ssize_t i
         points = ",".join(["%s %s %s" % (self.vs[i].x,
@@ -808,7 +807,6 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: S.tachyon_repr(S.default_render_params())
             ['TRI V0 2 0 0 V1 1 0 1 V2 1 1 0',
             'TEXTURE... AMBIENT 0.3 DIFFUSE 0.7 SPECULAR 0 OPACITY 1.0... COLOR 1 0 0 ... TEXFUNC 0',...]
-
         """
         cdef Transformation transform = render_params.transform
         lines = []
@@ -870,7 +868,6 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
             sage: S.json_repr(S.default_render_params())
             ["{vertices:[{x:2,y:0,z:0},{x:0,y:2,z:0},{x:0,y:0,z:2},{x:0,y:1,z:1},{x:1,y:0,z:1},{x:1,y:1,z:0}],faces:[[0,4,5],[3,4,5],[2,3,4],[1,3,5]],face_colors:['#ff0000','#ff9900','#cbff00','#33ff00']}"]
-
         """
         cdef Transformation transform = render_params.transform
         cdef point_c res
@@ -1091,12 +1088,12 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         INPUT:
 
-        - colors -- list of colors/textures to use (in cyclic order)
+        - ``colors`` -- list of colors/textures to use (in cyclic order)
 
-        - width -- offset perpendicular into the edge (to create a border)
+        - ``width`` -- offset perpendicular into the edge (to create a border)
           may also be negative
 
-        - hover -- offset normal to the face (usually have to float above
+        - ``hover`` -- offset normal to the face (usually have to float above
           the original surface so it shows, typically this value is very
           small compared to the actual object
 

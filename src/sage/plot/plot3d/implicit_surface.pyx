@@ -135,7 +135,7 @@ cdef class VertexInfo:
     # The gradient at this point in "evaluation space"
     cdef point_c gradient
 
-    # (R,G,B), so not really a point at all
+    # (R,G,B) color ; a color triple
     cdef color_c color
 
     # This point in "evaluation space"
@@ -868,7 +868,7 @@ cpdef render_implicit(f, xrange, yrange, zrange, plot_points, cube_marchers):
         sage: from sage.plot.plot3d.implicit_surface import render_implicit, MarchingCubesTriangles
         sage: plot_points, f = (40,)*3, lambda x, y, z: x + y + z
         sage: cube_marcher = MarchingCubesTriangles((0, 1), (0, 1), (0, 1), 1, (10,)*3)
-        sage: results = render_implicit(lambda x, y, z: x + y + z, \
+        sage: results = render_implicit(lambda x, y, z: x + y + z,
         ....:                           (0, 1), (0, 1), (0, 1), (10,)*3, [cube_marcher])
         sage: results[0][0]
         {'x': 1.0, 'y': 0.0, 'z': 0.0}
@@ -1200,7 +1200,7 @@ cdef class ImplicitSurface(IndexFaceSet):
                           src_face[j]['g'],
                           src_face[j]['b'])
                          for j in range(3, 6)]
-                ct = (sum(clist[j][i] for j in range(3))/3 for i in range(3))
+                ct = (sum(clist[j][i] for j in range(3)) / 3 for i in range(3))
                 # ct is the mean of the colors of vertices
                 dest_face.color.r, dest_face.color.g, dest_face.color.b = ct
 

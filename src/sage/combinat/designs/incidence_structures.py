@@ -30,6 +30,7 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.is_isomorphic` | Return whether the two incidence structures are isomorphic.
     :meth:`~IncidenceStructure.edge_coloring` | Return an optimal edge coloring`
     :meth:`~IncidenceStructure.copy` | Return a copy of the incidence structure.
+    :meth:`~IncidenceStructure.induced_substructure` | Return the substructure induced by a set of points.
 
 
 REFERENCES:
@@ -575,6 +576,66 @@ class IncidenceStructure(object):
 
     __copy__ = copy
 
+    def induced_substructure(self, points):
+        r"""
+        Return the substructure induced by a set of points.
+
+        The substructure induced in `\mathcal H` by a set `X\subseteq V(\mathcal
+        H)` of points is the incidence structure `\mathcal H_X` defined on `X`
+        whose sets are all `S\in \mathcal H` such that `S\subseteq X`.
+
+        INPUT:
+
+        - ``points`` -- a set of points.
+
+        .. NOTE::
+
+            This method goes over all sets of ``self`` before building a new
+            :class:`IncidenceStructure` (which involves some relabelling and
+            sorting). It probably should not be called in a performance-critical
+            code.
+
+        EXAMPLE:
+
+        A Fano plane with one point removed::
+
+            sage: F = designs.steiner_triple_system(7)
+            sage: F.induced_substructure([0..5])
+            Incidence structure with 6 points and 4 blocks
+
+        TESTS::
+
+            sage: F.induced_substructure([0..50])
+            Traceback (most recent call last):
+            ...
+            ValueError: 7 is not a point of the incidence structure
+            sage: F.relabel(dict(enumerate("abcdefg")))
+            sage: F.induced_substructure("abc")
+            Incidence structure with 3 points and ...
+            sage: F.induced_substructure("Y")
+            Traceback (most recent call last):
+            ...
+            ValueError: Y is not a point of the incidence structure
+        """
+        # Checking the input
+        if self._point_to_index is None:
+            n = self.num_points()
+            for x in points:
+                x = int(x)
+                if x < 0 or x >= n:
+                    raise ValueError("{} is not a point of the incidence structure".format(x))
+            int_points = points
+        else:
+            try:
+                int_points = [self._point_to_index[x] for x in points]
+            except KeyError:
+                raise ValueError("{} is not a point of the incidence structure".format(x))
+
+        int_points = set(int_points)
+        return IncidenceStructure(points,
+                                  [[self._points[x] for x in S]
+                                   for S in self._blocks
+                                   if int_points.issuperset(S)])
 
     def ground_set(self):
         r"""

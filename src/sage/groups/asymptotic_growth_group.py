@@ -728,6 +728,28 @@ class GrowthElementPower(GenericGrowthElement):
         """
         return self.exponent <= 0
 
+    def __hash__(self):
+        r"""
+        Return the hash of the tuple containing the exponent and the
+        parent.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P.<x> = agg.GrowthGroupPower()
+            sage: hash(x)  # random
+            -3234005094684624010
+        """
+        return hash((self.exponent, self.parent()))
+
 
 class GrowthGroupPower(GenericGrowthGroup):
     r"""
@@ -1019,3 +1041,25 @@ class GrowthGroupPower(GenericGrowthGroup):
             True
         """
         return self(x=None, exponent=1)
+
+    def __hash__(self):
+        r"""
+        Return the hash of the tuple containing the variable and the
+        base.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P.<x> = agg.GrowthGroupPower()
+            sage: hash(P)  # random
+            -8144479309627091876
+        """
+        return hash((self.variable, self.base()))

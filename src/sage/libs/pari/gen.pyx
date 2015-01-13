@@ -10036,13 +10036,28 @@ class PariError(RuntimeError):
             ....:     pari('pi()')
             ....: except PariError as e:
             ....:     print e.errtext()
-            ....:
-              ***   at top-level: pi()
-              ***                 ^----
-              ***   not a function in function call
+            not a function in function call
 
         """
         return self.args[1]
+
+    def errdata(self):
+        """
+        Return the error data (a ``t_ERROR`` gen) corresponding to this
+        error.
+
+        EXAMPLES::
+
+            sage: try:
+            ....:     pari(Mod(2,6))^-1
+            ....: except PariError as e:
+            ....:     E = e.errdata()
+            sage: E
+            error("impossible inverse in Fp_inv: Mod(2, 6).")
+            sage: E.component(2)
+            Mod(2, 6)
+        """
+        return self.args[2]
 
     def __repr__(self):
         r"""
@@ -10057,10 +10072,8 @@ class PariError(RuntimeError):
         r"""
         Return a suitable message for displaying this exception.
 
-        This is the last line of ``self.errtext()``, with the leading
-        ``"  ***   "`` and trailing periods and colons (if any) removed.
-        An exception is syntax errors, where the "syntax error" line is
-        shown.
+        This is simply the error text with certain trailing characters
+        stripped.
 
         EXAMPLES::
 
@@ -10075,14 +10088,9 @@ class PariError(RuntimeError):
             sage: pari('!@#$%^&*()')
             Traceback (most recent call last):
             ...
-            PariError: syntax error, unexpected $undefined: !@#$%^&*()
+            PariError: syntax error, unexpected $undefined
         """
-        lines = self.errtext().split('\n')
-        if self.errnum() == e_SYNTAX:
-            for line in lines:
-                if "syntax error" in line:
-                    return line.lstrip(" *").rstrip(" .:")
-        return lines[-1].lstrip(" *").rstrip(" .:")
+        return self.errtext().rstrip(" .:")
 
 
 cdef _factor_int_when_pari_factor_failed(x, failed_factorization):

@@ -1071,6 +1071,15 @@ Environment variables dealing with specific Sage packages:
 
     ``MPIR`` (default choice), ``GMP``.
 
+  The value used at installation time is stored in
+
+    :file:`$SAGE_LOCAL/share/mp_config`.
+
+  You should only set this environment variable before the installation process
+  starts.
+  Indeed, the only supported way to switch the library used is to restart the
+  installation process from start.
+
 - :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in particular,
   if :envvar:`SAGE_ATLAS_LIB` is not set), you can use this environment
   variable to set a particular architecture and instruction set extension,

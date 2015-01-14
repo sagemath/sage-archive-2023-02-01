@@ -1066,6 +1066,11 @@ an unsupported machine or an unusual compiler:
 
 Environment variables dealing with specific Sage packages:
 
+- :envvar:`SAGE_MP_LIBRARY` - to use an alternative library in place of ``MPIR``
+  for multiprecision integer arithmetic. Supported values are
+
+    ``MPIR`` (default choice), ``GMP``.
+
 - :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in particular,
   if :envvar:`SAGE_ATLAS_LIB` is not set), you can use this environment
   variable to set a particular architecture and instruction set extension,

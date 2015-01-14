@@ -1290,10 +1290,9 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
     # This is lemma 2.3 from [BvR82]_
     #
     # If k>3 and n>(k-1)u and there exists an OA(k,n)-OA(k,u), then there exists
-    # an OA(k,n)-OA(k,u)-2.OA(k.1)
+    # an OA(k,n)-OA(k,u)-2.OA(k,1)
     elif (k >= 3 and
-          number_of_holes <= 3 and
-          number_of_holes >= 2 and
+          2 <= number_of_holes <= 3 and
           n > (k-1)*max_hole and
           holes.count(1) == number_of_holes-1 and
           incomplete_orthogonal_array(k,n,[max_hole],existence=True)):
@@ -1307,25 +1306,27 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         # holes have to be correctly ordered in the output.
         IOA = incomplete_orthogonal_array(k,n,[max_hole])
 
-        for i in range(len(holes)): # place the big hole where it belongs
-            if holes[i] == max_hole:
-                holes[i] = [[ii]*k for ii in range(n-max_hole,n)]
+        # place the big hole where it belongs
+        i = holes.index(max_hole)
+        holes[i] = [[ii]*k for ii in range(n-max_hole,n)]
+
+        # place the first hole of size 1
+        i = holes.index(1)
+        for h1 in IOA:
+            if all(x<n-max_hole for x in h1):
                 break
-        for i in range(len(holes)): # place the first hole of size 1
-            if holes[i] == 1:
-                for h1 in IOA:
-                    if all(x<n-max_hole for x in h1):
-                        break
-                holes[i] = [h1]
-                break
-        for i in range(len(holes)): # place the potential second hole of size 1
-            if holes[i] == 1:
-                for R in IOA:
-                    if all(h1[i]!=R[i] and R[i]<n-max_hole for i in range(k)):
-                        holes[i] = [R]
-                        IOA.remove(R)
-                        break
+        holes[i] = [h1]
         IOA.remove(h1)
+
+        # place the potential second hole of size 1
+        if number_of_holes == 3:
+            i = holes.index(1)
+            for h2 in IOA:
+                if all(h1[j] != x and x<n-max_hole for j,x in enumerate(h2)):
+                    break
+            holes[i] = [h2]
+            IOA.remove(h2)
+
         holes = sum(holes,[])
         holes = map(list,zip(*holes))
 

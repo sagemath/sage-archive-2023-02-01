@@ -403,7 +403,7 @@ class PiecewisePolynomial:
         elif mode == "midpoint":
             return self._riemann_sum_helper(N, lambda x0, x1: (x1-x0)*self((x0+x1)/2))
         else:
-            raise ValueError, "invalid mode"
+            raise ValueError("invalid mode")
 
     def riemann_sum(self,N,mode=None):
         """
@@ -432,6 +432,7 @@ class PiecewisePolynomial:
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(x=a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in rsf.list()])
             sage: P + Q + L
+            Graphics object consisting of 15 graphics primitives
 
         ::
 
@@ -441,6 +442,7 @@ class PiecewisePolynomial:
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(x=a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in rsf.list()])
             sage: P + Q + L
+            Graphics object consisting of 17 graphics primitives
         """
         if mode is None:
             rsum = self._riemann_sum_helper(N, lambda x0,x1: [[(x0,x1),SR(self(x0))]],
@@ -452,7 +454,7 @@ class PiecewisePolynomial:
             rsum = self._riemann_sum_helper(N, lambda x0,x1: [[(x0,x1),SR(self((x0+x1)/2))]],
                                             initial=[])
         else:
-            raise ValueError, "invalid mode"
+            raise ValueError("invalid mode")
         return Piecewise(rsum)
 
     def trapezoid(self,N):
@@ -479,6 +481,7 @@ class PiecewisePolynomial:
             sage: Q = tf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in tf.list()])
             sage: P+Q+L
+            Graphics object consisting of 9 graphics primitives
 
         ::
 
@@ -489,6 +492,7 @@ class PiecewisePolynomial:
             sage: Q = tf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in tf.list()])
             sage: P+Q+L
+            Graphics object consisting of 14 graphics primitives
 
         TESTS:
 
@@ -527,6 +531,7 @@ class PiecewisePolynomial:
             sage: a = f.integral(definite=True)
             sage: tt = text('area under curve = %s'%a, (1.5, -0.5))
             sage: P + Q + t + tt
+            Graphics object consisting of 10 graphics primitives
 
         ::
 
@@ -538,6 +543,7 @@ class PiecewisePolynomial:
             sage: a = f.integral(definite=True)
             sage: tt = text('area under curve = %s'%a, (1.5, -0.5))
             sage: P+Q+t+tt
+            Graphics object consisting of 8 graphics primitives
         """
         def f(x0, x1):
             f0, f1 = self(x0), self(x1)
@@ -666,7 +672,7 @@ class PiecewisePolynomial:
         for i in range(n):
             if endpts[i] < x0 < endpts[i+1]:
                 return self.functions()[i](x0)
-        raise ValueError,"Value not defined outside of domain."
+        raise ValueError("Value not defined outside of domain.")
 
     def which_function(self,x0):
         """
@@ -685,7 +691,7 @@ class PiecewisePolynomial:
         for (a,b), f in self.list():
             if a <= x0 <= b:
                 return f
-        raise ValueError,"Function not defined outside of domain."
+        raise ValueError("Function not defined outside of domain.")
 
     def default_variable(self):
         r"""
@@ -828,19 +834,18 @@ class PiecewisePolynomial:
             0
 
         """
-        if a != None and b != None:
+        if a is not None and b is not None:
             F = self.integral(x)
             return F(b) - F(a)
 
-        if a != None or b != None:
-            raise TypeError, 'only one endpoint given'
+        if a is not None or b is not None:
+            raise TypeError('only one endpoint given')
 
         area = 0 # cumulative definite integral of parts to the left of the current interval
-        integrand_pieces = self.list()
-        integrand_pieces.sort()
+        integrand_pieces = sorted(self.list())
         new_pieces = []
 
-        if x == None:
+        if x is None:
             x = self.default_variable()
 
         # The integral is computed by iterating over the pieces in order.
@@ -1009,6 +1014,7 @@ class PiecewisePolynomial:
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = tf.plot(rgbcolor=(0.7,0.2,0.2), plot_points=40)
             sage: P + Q
+            Graphics object consisting of 4 graphics primitives
         """
         pt = QQ(pt)
         R = QQ[self.default_variable()]
@@ -1035,6 +1041,7 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
             sage: P
+            Graphics object consisting of 4 graphics primitives
 
         Remember: to view this, type show(P) or P.save("path/myplot.png")
         and then open it in a graphics viewer such as GIMP.
@@ -1629,8 +1636,7 @@ class PiecewisePolynomial:
         b = max(b1, b2)
         F = self.extend_by_zero_to(a,b)
         G = other.extend_by_zero_to(a,b)
-        endpts = list(set(F.end_points()).union(set(G.end_points())))
-        endpts.sort()
+        endpts = sorted(set(F.end_points()).union(set(G.end_points())))
         return F, G, zip(endpts, endpts[1:])
 
     def __add__(self,other):

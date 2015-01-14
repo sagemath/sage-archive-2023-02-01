@@ -79,9 +79,9 @@ diff -druN src.orig/Lib/distutils/unixccompiler.py src/Lib/distutils/unixccompil
 +        # Oops, didn't find it in *any* of 'dirs'
 +        return None
 diff -druN src.orig/setup.py src/setup.py
---- src.orig/setup.py	2014-01-05 18:57:04.559055835 +0100
-+++ src/setup.py	2014-01-05 20:19:37.086365466 +0100
-@@ -702,8 +702,12 @@
+--- src/setup.py.orig	2014-06-04 10:49:00.403972978 +0100
++++ src/setup.py	2014-06-04 10:52:42.131927994 +0100
+@@ -701,8 +701,12 @@
          do_readline = self.compiler.find_library_file(lib_dirs, 'readline')
          readline_termcap_library = ""
          curses_library = ""
@@ -95,7 +95,7 @@ diff -druN src.orig/setup.py src/setup.py
              fp = os.popen("ldd %s" % do_readline)
              ldd_output = fp.readlines()
              ret = fp.close()
-@@ -752,7 +756,10 @@
+@@ -751,7 +755,10 @@
  
              readline_libs = ['readline']
              if readline_termcap_library:
@@ -107,12 +107,12 @@ diff -druN src.orig/setup.py src/setup.py
              elif curses_library:
                  readline_libs.append(curses_library)
              elif self.compiler.find_library_file(lib_dirs +
-@@ -1344,6 +1351,8 @@
+@@ -1340,6 +1347,8 @@
                  # _curses_panel.so must link with panelw.
                  panel_library = 'panelw'
              curses_libs = [curses_library]
 +            if readline_termcap_library == 'tinfo' and host_platform == "cygwin":
 +                curses_libs.append(readline_termcap_library)
+             curses_incs = find_file('curses.h', inc_dirs,
+                                     [os.path.join(d, 'ncursesw') for d in inc_dirs])
              exts.append( Extension('_curses', ['_cursesmodule.c'],
-                                    libraries = curses_libs) )
-         elif curses_library == 'curses' and host_platform != 'darwin':

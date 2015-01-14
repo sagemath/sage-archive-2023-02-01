@@ -38,6 +38,5 @@ ipython-user@scipy.org
 
 == Patches ==
 
- * 0001-Allow-InputTransformers-to-raise-SyntaxErrors.patch: See
-   https://github.com/ipython/ipython/pull/4504. This patch allows
-   Sage to raise SyntaxErrors for our extensions to the Python language.
+* github_pr_5874.patch: https://github.com/ipython/ipython/pull/5874
+

@@ -176,7 +176,7 @@ def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
         op = add
     else:
         if identity is None or inverse is None or op is None:
-            raise ValueError, "identity, inverse and operation must all be specified"
+            raise ValueError("identity, inverse and operation must all be specified")
 
     if n == 0:
         return identity
@@ -308,7 +308,7 @@ class multiples:
           ``P0`` must be supplied.
         """
         if n<0:
-            raise ValueError, 'n cannot be negative in multiples'
+            raise ValueError('n cannot be negative in multiples')
 
         from operator import mul, add
 
@@ -321,9 +321,9 @@ class multiples:
         else:
             self.op = op
             if P0 is None:
-                raise ValueError, "P0 must be supplied when operation is neither addition nor multiplication"
+                raise ValueError("P0 must be supplied when operation is neither addition nor multiplication")
             if op is None:
-                raise ValueError, "op() must both be supplied when operation is neither addition nor multiplication"
+                raise ValueError("op() must both be supplied when operation is neither addition nor multiplication")
 
         self.P=copy(P)
         self.Q=copy(P0)
@@ -420,8 +420,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
         sage: F.<a> = GF(37^5)
         sage: E = EllipticCurve(F, [1,1])
         sage: P = E.lift_x(a); P
-        (a : 28*a^4 + 15*a^3 + 14*a^2 + 7 : 1)  # 32-bit
-        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)  # 64-bit
+        (a : 28*a^4 + 15*a^3 + 14*a^2 + 7 : 1)
 
     This will return a multiple of the order of P::
 
@@ -446,14 +445,14 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
         op = add
     else:
         if identity is None or inverse is None or op is None:
-            raise ValueError, "identity, inverse and operation must be given"
+            raise ValueError("identity, inverse and operation must be given")
 
     lb, ub = bounds
     if lb<0 or ub<lb:
-        raise ValueError, "bsgs() requires 0<=lb<=ub"
+        raise ValueError("bsgs() requires 0<=lb<=ub")
 
     if a.is_zero() and not b.is_zero():
-        raise ValueError, "No solution in bsgs()"
+        raise ValueError("No solution in bsgs()")
 
     ran = 1 + ub - lb   # the length of the interval
 
@@ -468,7 +467,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
             if identity == d:        # identity == b^(-1)*a^i, so return i
                 return Z(i)
             d = op(a,d)
-        raise ValueError, "No solution in bsgs()"
+        raise ValueError("No solution in bsgs()")
 
     m = ran.isqrt()+1  # we need sqrt(ran) rounded up
     table = dict()     # will hold pairs (a^(lb+i),lb+i) for i in range(m)
@@ -489,7 +488,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
             return Z(i*m + j)
         d=op(c,d)
 
-    raise ValueError, "Log of %s to the base %s does not exist in %s."%(b,a,bounds)
+    raise ValueError("Log of %s to the base %s does not exist in %s."%(b,a,bounds))
 
 def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
     """
@@ -591,12 +590,12 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
         if ord is None:
             ord = base.multiplicative_order()
     else:
-        raise(ValueError, "unknown operation")
+        raise ValueError
 
     ord = Integer(ord)
 
     if not ord.is_prime():
-        raise ValueError,"for Pollard rho algorithm the order of the group must be prime"
+        raise ValueError("for Pollard rho algorithm the order of the group must be prime")
 
     # check if we need to set immutable before hashing
     mut = hasattr(base,'set_immutable')
@@ -653,7 +652,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
                 nextsigma = 3*sigma[i0][0] #3 seems a good choice
                 H[x]=(ax,bx)
 
-    raise ValueError, "Pollard rho algorithm failed to find a logarithm"
+    raise ValueError("Pollard rho algorithm failed to find a logarithm")
 
 def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
     r"""
@@ -796,7 +795,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
             try:
                 ord = base.order()
             except Exception:
-                raise ValueError, "ord must be specified"
+                raise ValueError("ord must be specified")
     try:
         from sage.rings.infinity import Infinity
         if ord==+Infinity:
@@ -816,7 +815,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         from sage.rings.arith import CRT_list
         return  CRT_list(l,[pi**ri for pi,ri in f])
     except ValueError:
-        raise ValueError, "No discrete log of %s found to base %s"%(a,base)
+        raise ValueError("No discrete log of %s found to base %s"%(a,base))
 
 def discrete_log_generic(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
     """
@@ -853,8 +852,8 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
         sage: F.<a> = GF(37^5)
         sage: E = EllipticCurve(F, [1,1])
         sage: P = E.lift_x(a); P
-        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)  # 32-bit
-        (a : 28*a^4 + 15*a^3 + 14*a^2 + 7 : 1)  # 64-bit
+        (a : 28*a^4 + 15*a^3 + 14*a^2 + 7 : 1)  # 32-bit
+        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)  # 64-bit
 
     This will return a multiple of the order of P::
 
@@ -885,7 +884,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
 
     lb,ub = bounds
     if lb<0 or ub<lb:
-        raise ValueError, "discrete_log_lambda() requires 0<=lb<=ub"
+        raise ValueError("discrete_log_lambda() requires 0<=lb<=ub")
 
     # check for mutability
     mut = hasattr(base,'set_immutable')
@@ -922,7 +921,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
             H = mult(H,e)
             d += r
 
-    raise ValueError, "Pollard Lambda failed to find a log"
+    raise ValueError("Pollard Lambda failed to find a log")
 
 
 ################################################################
@@ -997,7 +996,7 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
             m = Q.order()
     else:
         if op is None:
-            raise ValueError, "operation must be specified"
+            raise ValueError("operation must be specified")
         n = P.order()
         m = Q.order()
 
@@ -1017,7 +1016,7 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
                     m1 * h)
         except ValueError:
             pass # to next h
-    raise ValueError, "No solution found in linear_relation!"
+    raise ValueError("No solution found in linear_relation!")
 
 ################################################################
 #
@@ -1093,7 +1092,7 @@ def order_from_multiple(P, m, plist=None, factorization=None, check=True,
     elif operation in addition_names:
         identity = P.parent()(0)
     else:
-        raise ValueError, "unknown group operation"
+        raise ValueError("unknown group operation")
 
     if P == identity:
         return Z(1)
@@ -1228,7 +1227,7 @@ def order_from_bounds(P, bounds, d=None, operation='+',
         identity = P.parent()(0)
     else:
         if op is None:
-            raise ValueError, "operation and identity must be specified"
+            raise ValueError("operation and identity must be specified")
 
     Q = P
     if d is None: d = 1
@@ -1311,7 +1310,7 @@ def merge_points(P1,P2, operation='+',
         identity = g1.parent()(0)
     else:
         if op is None:
-            raise ValueError, "operation and identity must be specified"
+            raise ValueError("operation and identity must be specified")
 
     if check:
         assert multiple(g1,n1,operation=operation) == identity

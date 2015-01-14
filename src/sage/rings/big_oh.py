@@ -70,9 +70,9 @@ def O(*x):
 
     elif isinstance(x, Polynomial):
         if x.parent().ngens() != 1:
-            raise NotImplementedError, "completion only currently defined for univariate polynomials"
+            raise NotImplementedError("completion only currently defined for univariate polynomials")
         if not x.is_monomial():
-            raise NotImplementedError, "completion only currently defined for the maximal ideal (x)"
+            raise NotImplementedError("completion only currently defined for the maximal ideal (x)")
         return x.parent().completion(x.parent().gen())(0, x.degree())
 
     elif isinstance(x, laurent_series_ring_element.LaurentSeries):
@@ -80,10 +80,10 @@ def O(*x):
 
     elif isinstance(x, (int,long,integer.Integer,rational.Rational)):  # p-adic number
         if x <= 0:
-            raise ArithmeticError, "x must be a prime power >= 2"
+            raise ArithmeticError("x must be a prime power >= 2")
         F = arith.factor(x)
         if len(F) != 1:
-            raise ArithmeticError, "x must be prime power"
+            raise ArithmeticError("x must be prime power")
         p, r = F[0]
         if r >= 0:
             return padics_factory.Zp(p, prec = max(r, 20), type = 'capped-rel')(0, absprec = r)
@@ -92,5 +92,5 @@ def O(*x):
 
     elif isinstance(x, padic_generic_element.pAdicGenericElement):
          return x.parent()(0, absprec = x.valuation())
-    raise ArithmeticError, "O(x) not defined"
+    raise ArithmeticError("O(x) not defined")
 

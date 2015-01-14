@@ -133,7 +133,7 @@ class Lisp(Expect):
                             M = M[len(L):]      # skip L in case it was echoed
                         x.append(M.strip())
                         self.__in_seq = s
-                    except TypeError, s:
+                    except TypeError as s:
                         return 'error evaluating "%s":\n%s'%(code,s)
             return '\n'.join(x)
 
@@ -166,7 +166,7 @@ class Lisp(Expect):
         cmd = '(setq %s %s)'%(var, value)
         out = self.eval(cmd)
         if '***' in out:
-            raise TypeError, "Error executing code in Sage\nCODE:\n\t%s\nSAGE ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Sage\nCODE:\n\t%s\nSAGE ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
         """
@@ -372,7 +372,7 @@ class Lisp(Expect):
             ...
             NotImplementedError: ...
         """
-        raise NotImplementedError, ("We should never reach here in the Lisp interface. " +
+        raise NotImplementedError("We should never reach here in the Lisp interface. " +
                                     "Please report this as a bug.")
 
     def help(self, command):

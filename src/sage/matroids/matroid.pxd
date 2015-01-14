@@ -3,6 +3,7 @@ from sage.structure.sage_object cimport SageObject
 cdef class Matroid(SageObject):
     cdef public __custom_name
     cdef public _custom_name
+    cdef public _cached_info
     cdef int _stored_full_rank
     cdef int _stored_size
 
@@ -50,6 +51,7 @@ cdef class Matroid(SageObject):
     cpdef circuit(self, X=*)
     cpdef fundamental_circuit(self, B, e)
     cpdef closure(self, X)
+    cpdef k_closure(self, X, k)
 
     cpdef augment(self, X, Y=*)
 
@@ -67,6 +69,7 @@ cdef class Matroid(SageObject):
     cpdef is_basis(self, X)
     cpdef is_circuit(self, X)
     cpdef is_closed(self, X)
+    cpdef is_subset_k_closed(self, X, k)
 
     cpdef coloops(self)
     cpdef is_coindependent(self, X)
@@ -95,6 +98,8 @@ cdef class Matroid(SageObject):
     cpdef coflats(self, r)
     cpdef hyperplanes(self)
     cpdef f_vector(self)
+    cpdef broken_circuits(self, ordering=*)
+    cpdef no_broken_circuits_sets(self, ordering=*)
 
     # isomorphism
     cpdef is_isomorphic(self, other)
@@ -130,6 +135,9 @@ cdef class Matroid(SageObject):
     cpdef is_connected(self)
     cpdef is_3connected(self)
 
+    # matroid k-closed
+    cpdef is_k_closed(self, k)
+
     # optimization
     cpdef max_weight_independent(self, X=*, weights=*)
     cpdef max_weight_coindependent(self, X=*, weights=*)
@@ -142,3 +150,8 @@ cdef class Matroid(SageObject):
     cpdef _external(self, B)
     cpdef tutte_polynomial(self, x=*, y=*)
     cpdef flat_cover(self)
+    
+    # visualization
+    cpdef plot(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*)
+    cpdef show(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*,lims=*)
+    cpdef _fix_positions(self,pos_dict=*,lineorders=*)

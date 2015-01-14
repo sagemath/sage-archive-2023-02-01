@@ -35,8 +35,7 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose
-from sage.misc.temporary_file import graphics_filename
-from sage.rings.number_field.all import is_NumberField
+from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ, is_RationalField
@@ -44,6 +43,7 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.misc.derivative import multi_derivative
+from copy import copy
 
 import sage.modules.free_module
 import matrix_space
@@ -279,6 +279,9 @@ cdef class Matrix(matrix1.Matrix):
             [  1]
             [124]
             [  1]
+            sage: B = B.column(0)
+            sage: A.solve_right(B)
+            (1, 124, 1)
 
         Solving a system over the p-adics::
 
@@ -326,8 +329,12 @@ cdef class Matrix(matrix1.Matrix):
             if is_IntegerModRing(K):
                 from sage.libs.pari.all import pari
                 A = pari(self.lift())
-                b = pari([c.lift() for c in B]).Col()
-                ret = A.matsolvemod(pari(K.cardinality()), b)
+                b = pari(B).lift()
+                if b.type() == "t_MAT":
+                    b = b[0]
+                elif b.type() == "t_VEC":
+                    b = b.Col()
+                ret = A.matsolvemod(K.cardinality(), b)
                 if ret.type() == 't_INT':
                     raise ValueError("matrix equation has no solutions")
                 ret = ret.Vec().sage()
@@ -563,7 +570,7 @@ cdef class Matrix(matrix1.Matrix):
 
         Notice the base ring of the results in the next two examples.  ::
 
-            sage: D = matrix(ZZ[x],2,[1+x^2,2,3,4-x])
+            sage: D = matrix(ZZ['x'],2,[1+x^2,2,3,4-x])
             sage: E = matrix(QQ,2,[1,2,3,4])
             sage: F = D.elementwise_product(E)
             sage: F
@@ -1170,7 +1177,7 @@ cdef class Matrix(matrix1.Matrix):
             # If the characteristic is prime and smaller than a machine
             # word, use PARI.
             ch = R.characteristic()
-            if ch.is_prime() and ch < (2*sys.maxint):
+            if ch.is_prime() and ch < (2*sys.maxsize):
                 d = R(self._pari_().matdet())
             else:
                 # Lift to ZZ and compute there.
@@ -1459,7 +1466,10 @@ cdef class Matrix(matrix1.Matrix):
 
     def __abs__(self):
         """
-        Synonym for self.determinant(...).
+        Deprecated.
+
+        This function used to return the determinant. It is deprecated since
+        :trac:`17443`.
 
         EXAMPLES::
 
@@ -1467,9 +1477,179 @@ cdef class Matrix(matrix1.Matrix):
             [1 2]
             [3 4]
             sage: abs(a)
+            doctest:...: DeprecationWarning: abs(matrix) is deprecated. Use matrix.det()to
+            get the determinant.
+            See http://trac.sagemath.org/17443 for details.
             -2
         """
-        return self.determinant()
+        #TODO: after expiration of the one year deprecation, we should return a
+        # TypeError with the following kind of message:
+        #   absolute value is not defined on matrices. If you want the
+        #   L^1-norm use m.norm(1) and if you want the matrix obtained by
+        #   applying the absolute value to the coefficents use
+        #   m.apply_map(abs).
+        from sage.misc.superseded import deprecation
+        deprecation(17443, "abs(matrix) is deprecated. Use matrix.det()"
+                           "to get the determinant.")
+        return self.det()
+
+    def apply_morphism(self, phi):
+        """
+        Apply the morphism phi to the coefficients of this dense matrix.
+
+        The resulting matrix is over the codomain of phi.
+
+        INPUT:
+
+
+        -  ``phi`` - a morphism, so phi is callable and
+           phi.domain() and phi.codomain() are defined. The codomain must be a
+           ring.
+
+        OUTPUT: a matrix over the codomain of phi
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 3, range(9))
+            sage: phi = ZZ.hom(GF(5))
+            sage: m.apply_morphism(phi)
+            [0 1 2]
+            [3 4 0]
+            [1 2 3]
+            sage: parent(m.apply_morphism(phi))
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 5
+
+        We apply a morphism to a matrix over a polynomial ring::
+
+            sage: R.<x,y> = QQ[]
+            sage: m = matrix(2, [x,x^2 + y, 2/3*y^2-x, x]); m
+            [          x     x^2 + y]
+            [2/3*y^2 - x           x]
+            sage: phi = R.hom([y,x])
+            sage: m.apply_morphism(phi)
+            [          y     y^2 + x]
+            [2/3*x^2 - y           y]
+        """
+        M = self.parent().change_ring(phi.codomain())
+        if self.is_sparse():
+            values = {(i,j): phi(z) for (i,j),z in self.dict()}
+        else:
+            values = [phi(z) for z in self.list()]
+        image = M(values)
+        if self._subdivisions is not None:
+            image.subdivide(*self.subdivisions())
+        return image
+
+    def apply_map(self, phi, R=None, sparse=None):
+        """
+        Apply the given map phi (an arbitrary Python function or callable
+        object) to this dense matrix. If R is not given, automatically
+        determine the base ring of the resulting matrix.
+
+        INPUT:
+
+        - ``sparse`` -- True to make the output a sparse matrix; default False
+
+        -  ``phi`` - arbitrary Python function or callable object
+
+        -  ``R`` - (optional) ring
+
+        OUTPUT: a matrix over R
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 3, range(9))
+            sage: k.<a> = GF(9)
+            sage: f = lambda x: k(x)
+            sage: n = m.apply_map(f); n
+            [0 1 2]
+            [0 1 2]
+            [0 1 2]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
+
+        In this example, we explicitly specify the codomain.
+
+        ::
+
+            sage: s = GF(3)
+            sage: f = lambda x: s(x)
+            sage: n = m.apply_map(f, k); n
+            [0 1 2]
+            [0 1 2]
+            [0 1 2]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
+
+        If self is subdivided, the result will be as well::
+
+            sage: m = matrix(2, 2, srange(4))
+            sage: m.subdivide(None, 1); m
+            [0|1]
+            [2|3]
+            sage: m.apply_map(lambda x: x*x)
+            [0|1]
+            [4|9]
+
+        If the matrix is sparse, the result will be as well::
+
+            sage: m = matrix(ZZ,100,100,sparse=True)
+            sage: m[18,32] = -6
+            sage: m[1,83] = 19
+            sage: n = m.apply_map(abs, R=ZZ)
+            sage: n.dict()
+            {(1, 83): 19, (18, 32): 6}
+            sage: n.is_sparse()
+            True
+
+        If the map sends most of the matrix to zero, then it may be useful
+        to get the result as a sparse matrix.
+
+        ::
+
+            sage: m = matrix(ZZ, 3, 3, range(1, 10))
+            sage: n = m.apply_map(lambda x: 1//x, sparse=True); n
+            [1 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: n.parent()
+            Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+
+        TESTS::
+
+            sage: m = matrix([])
+            sage: m.apply_map(lambda x: x*x) == m
+            True
+
+            sage: m.apply_map(lambda x: x*x, sparse=True).parent()
+            Full MatrixSpace of 0 by 0 sparse matrices over Integer Ring
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            if sparse is None or self.is_sparse() is sparse:
+                return self.__copy__()
+            elif sparse:
+                return self.sparse_matrix()
+            else:
+                return self.dense_matrix()
+
+        if self.is_sparse():
+            values = {(i,j): phi(v) for (i,j),v in self.dict().iteritems()}
+            if R is None:
+                R = sage.structure.sequence.Sequence(values.values()).universe()
+        else:
+            values = [phi(v) for v in self.list()]
+            if R is None:
+                R = sage.structure.sequence.Sequence(values).universe()
+
+        if sparse is None or sparse is self.is_sparse():
+            M = self.parent().change_ring(R)
+        else:
+            M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
+                       self._ncols, sparse=sparse)
+        image = M(values)
+        if self._subdivisions is not None:
+            image.subdivide(*self.subdivisions())
+        return image
 
     def characteristic_polynomial(self, *args, **kwds):
         """
@@ -2203,7 +2383,7 @@ cdef class Matrix(matrix1.Matrix):
                 K = self._base_ring.fraction_field()
                 H = self.change_ring(K)
                 H.hessenbergize()
-            except TypeError, msg:
+            except TypeError as msg:
                 raise TypeError, "%s\nHessenberg form only possible for matrices over a field"%msg
         else:
             H = self.__copy__()
@@ -2635,6 +2815,8 @@ cdef class Matrix(matrix1.Matrix):
 
           - 'default' - allows the algorithm to be chosen automatically
           - 'generic' - naive algorithm usable for matrices over any field
+          - 'flint' - FLINT library code for matrices over the rationals
+            or the integers
           - 'pari' - PARI library code for matrices over number fields
             or the integers
           - 'padic' - padic algorithm from IML library for matrices
@@ -2739,20 +2921,14 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = copy(A).sparse_matrix()
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
-            verbose ...
-            verbose 1 (<module>) computing right kernel matrix over the rationals for 4x5 matrix
-            ...
-            verbose 1 (<module>) done computing right kernel matrix over the rationals for 4x5 matrix
+            verbose 1 (<module>) computing a right kernel for 4x5 matrix over Rational Field
             ...
             Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
             [   1    0    1  1/2 -1/2]
             [   0    1 -1/2 -1/4 -1/4]
             sage: S = B.right_kernel(); S
-            verbose ...
-            verbose 1 (<module>) computing right kernel matrix over the rationals for 4x5 matrix
-            ...
-            verbose 1 (<module>) done computing right kernel matrix over the rationals for 4x5 matrix
+            verbose 1 (<module>) computing a right kernel for 4x5 matrix over Rational Field
             ...
             Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
@@ -3002,8 +3178,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = copy(A).sparse_matrix()
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
-            verbose ...
+            verbose 1 (<module>) computing a right kernel for 4x7 matrix over Integer Ring
             verbose 1 (<module>) computing right kernel matrix over the integers for 4x7 matrix
+            ...
             verbose 1 (<module>) done computing right kernel matrix over the integers for 4x7 matrix
             ...
             Free module of degree 7 and rank 3 over Integer Ring
@@ -3012,8 +3189,9 @@ cdef class Matrix(matrix1.Matrix):
             [  0  35   0  25  -1 -31  17]
             [  0   0   7  12  -3  -1  -8]
             sage: S = B.right_kernel(); S
-            verbose ...
+            verbose 1 (<module>) computing a right kernel for 4x7 matrix over Integer Ring
             verbose 1 (<module>) computing right kernel matrix over the integers for 4x7 matrix
+            ...
             verbose 1 (<module>) done computing right kernel matrix over the integers for 4x7 matrix
             ...
             Free module of degree 7 and rank 3 over Integer Ring
@@ -3154,10 +3332,12 @@ cdef class Matrix(matrix1.Matrix):
         algorithm = kwds.pop('algorithm', None)
         if algorithm is None:
             algorithm = 'default'
-        elif not algorithm in ['default', 'generic', 'pari', 'padic', 'pluq']:
+        elif not algorithm in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq']:
             raise ValueError("matrix kernel algorithm '%s' not recognized" % algorithm )
         elif algorithm == 'padic' and not (is_IntegerRing(R) or is_RationalField(R)):
             raise ValueError("'padic' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
+        elif algorithm == 'flint' and not (is_IntegerRing(R) or is_RationalField(R)):
+            raise ValueError("'flint' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
         elif algorithm == 'pari' and not (is_IntegerRing(R) or (is_NumberField(R) and not is_RationalField(R))):
             raise ValueError("'pari' matrix kernel algorithm only available over non-trivial number fields and the integers, not over %s" % R)
         elif algorithm == 'generic' and not R.is_field():
@@ -3278,6 +3458,8 @@ cdef class Matrix(matrix1.Matrix):
 
           - 'default' - allows the algorithm to be chosen automatically
           - 'generic' - naive algorithm usable for matrices over any field
+          - 'flint' - FLINT library code for matrices over the rationals
+            or the integers
           - 'pari' - PARI library code for matrices over number fields
             or the integers
           - 'padic' - padic algorithm from IML library for matrices
@@ -3620,6 +3802,8 @@ cdef class Matrix(matrix1.Matrix):
 
           - 'default' - allows the algorithm to be chosen automatically
           - 'generic' - naive algorithm usable for matrices over any field
+          - 'flint' - FLINT library code for matrices over the rationals
+            or the integers
           - 'pari' - PARI library code for matrices over number fields
             or the integers
           - 'padic' - padic algorithm from IML library for matrices
@@ -4664,10 +4848,6 @@ cdef class Matrix(matrix1.Matrix):
                 break
         return f
 
-    # Deprecated Aug 2008 Trac #3794
-    # Removed July 2011
-    # def eigenspaces(self, var='a', even_if_inexact=None):
-
     def _eigenspace_format(self, format):
         r"""
         Helper method to control output format for eigenspaces.
@@ -4696,16 +4876,16 @@ cdef class Matrix(matrix1.Matrix):
             sage: A._eigenspace_format('galois') == 'galois'
             True
 
-        The algebraic closure of the rationals, the field of algebraic numbers,
-        (aka ``QQbar``) is implemented, while in general the algebraic closure
-        of a finite field is not implemented.  ::
+        The algebraic closure of the rationals (the field ``QQbar`` of
+        algebraic numbers) is implemented, as are algebraic closures
+        of finite fields::
 
             sage: A = matrix(QQ, 2, range(4))
             sage: A._eigenspace_format(None) == 'all'
             True
             sage: B = matrix(GF(13), 2, range(4))
-            sage: B._eigenspace_format(None) == 'galois'
-            True
+            sage: B._eigenspace_format(None)
+            'all'
 
         Subrings are promoted to fraction fields and then checked for the
         existence of algebraic closures.  ::
@@ -4718,19 +4898,12 @@ cdef class Matrix(matrix1.Matrix):
             msg = "format keyword must be None, 'all' or 'galois', not {0}"
             raise ValueError(msg.format(format))
 
-        # For subrings of implemented algebraically closed fields we
-        #   default to all eigenspaces in the absence of a format keyword
-        # Add newly implemented algebraically closed fields to list below
-        #   and implement the determintion of the actual eigenvalues
-        #   in the eigenspace_left() routine
+        # In the absence of a format keyword, we default to 'all' for
+        # subrings of fields of which an algebraic closure is implemented.
         if format is None:
-            R = self.base_ring()
-            from sage.rings.qqbar import QQbar
             try:
-                if R.fraction_field().algebraic_closure() in [QQbar]:
-                    return 'all'
-                else:
-                    return 'galois'
+                F = self.base_ring().fraction_field().algebraic_closure()
+                return 'all'
             except (NotImplementedError, AttributeError):
                 return 'galois'
         else:
@@ -4945,10 +5118,10 @@ cdef class Matrix(matrix1.Matrix):
             consult numerical or symbolic matrix classes for other options
 
             sage: em = A.change_ring(RDF).eigenmatrix_left()
-            sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(2e-15)
-            [ 13.3484692283            0.0            0.0]
-            [           0.0 -1.34846922835            0.0]
-            [           0.0            0.0            0.0]
+            sage: eigenvalues = em[0]; eigenvalues.dense_matrix() # abs tol 1e-13
+            [13.348469228349522                0.0                 0.0]
+            [               0.0 -1.348469228349534                 0.0]
+            [               0.0                0.0                 0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.440242867...  0.567868371...  0.695493875...]
             [ 0.897878732...  0.278434036... -0.341010658...]
@@ -4963,7 +5136,6 @@ cdef class Matrix(matrix1.Matrix):
             sage: eigenvectors = em[1]; eigenvectors
             [                                                    1 1/2*(3*x^2 - x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y]
             [                                                    1 1/2*(3*x^2 - x + sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y]
-
 
         A request for ``'all'`` the eigenvalues, when it is not
         possible, will raise an error.  Using the ``'galois'``
@@ -5214,10 +5386,10 @@ cdef class Matrix(matrix1.Matrix):
             consult numerical or symbolic matrix classes for other options
 
             sage: em = B.change_ring(RDF).eigenmatrix_right()
-            sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(1e-15)
-            [ 13.3484692283            0.0            0.0]
-            [           0.0 -1.34846922835            0.0]
-            [           0.0            0.0            0.0]
+            sage: eigenvalues = em[0]; eigenvalues.dense_matrix() # abs tol 1e-13
+            [13.348469228349522                0.0                0.0]
+            [               0.0 -1.348469228349534                0.0]
+            [               0.0                0.0                0.0]
             sage: eigenvectors = em[1]; eigenvectors # not tested
             [ 0.164763817...  0.799699663...  0.408248290...]
             [ 0.505774475...  0.104205787... -0.816496580...]
@@ -5229,11 +5401,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: eigenvalues = em[0]; eigenvalues
             [3/2*x^2 + 1/2*x - 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)                                                       0]
             [                                                      0 3/2*x^2 + 1/2*x + 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)]
-
             sage: eigenvectors = em[1]; eigenvectors
             [                                                    1                                                     1]
             [1/2*(3*x^2 - x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y 1/2*(3*x^2 - x + sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y]
-
 
         TESTS::
 
@@ -5297,7 +5467,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: a = matrix(QQ, 4, range(16)); a
+            sage: a = matrix(ZZ, 4, range(16)); a
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
@@ -5354,49 +5524,66 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.eigenvalues(extend=False)
             [2]
 
+        The method also works for matrices over finite fields::
+
+            sage: M = matrix(GF(3), [[0,1,1],[1,2,0],[2,0,1]])
+            sage: ev = sorted(M.eigenvalues()); ev
+            [2*z3, 2*z3 + 1, 2*z3 + 2]
+
+        Similarly as in the case of QQbar, the eigenvalues belong to some
+        algebraic closure but they can be converted to elements of a finite
+        field::
+
+            sage: e = ev[0]
+            sage: e.parent()
+            Algebraic closure of Finite Field of size 3
+            sage: e.as_finite_field_element()
+            (Finite Field in z3 of size 3^3, 2*z3, Ring morphism:
+              From: Finite Field in z3 of size 3^3
+              To:   Algebraic closure of Finite Field of size 3
+              Defn: z3 |--> z3)
         """
         x = self.fetch('eigenvalues')
-        if not x is None:
+        if x is not None:
             if not extend:
-                x1=Sequence([])
-                for i in x:
-                    if i in self.base_ring():
-                        x1.append(i)
-                x=x1
+                x = Sequence(i for i in x if i in self.base_ring())
             return x
 
         if not self.base_ring().is_exact():
             from warnings import warn
             warn("Using generic algorithm for an inexact ring, which will probably give incorrect results due to numerical precision issues.")
 
-        from sage.rings.qqbar import QQbar
-        G = self.fcp()   # factored charpoly of self.
-        V = []
-        i=0
-        for h, e in G:
-            if h.degree() == 1:
-                alpha = [-h[0]/h[1]]
-                V.extend(alpha*e)
-            else:
-                if extend:
-                    F = h.root_field('%s%s'%('a',i))
-                    try:
-                        alpha = F.gen(0).galois_conjugates(QQbar)
-                    except AttributeError:
-                        raise NotImplementedError, "eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
-                    V.extend(alpha*e)
-            i+=1
-        V = Sequence(V)
-        if extend:
-            self.cache('eigenvalues', V)
         if not extend:
-            V1=Sequence([])
-            for i in V:
-                if i in self.base_ring():
-                    V1.append(i)
-            V=V1
-        return V
+            return Sequence(r for r,m in self.charpoly().roots() for _ in xrange(m))
 
+        # now we need to find a natural algebraic closure for the base ring
+        K = self.base_ring()
+        try:
+            is_field = K.is_field()
+        except (ValueError,AttributeError):
+            is_field = False
+
+        if not is_field:
+            if not K.is_integral_domain():
+                raise NotImplementedError("eigenvalues() not implemented for non integral domains")
+            K = K.fraction_field()
+
+        try:
+            A = K.algebraic_closure()
+        except (AttributeError,ValueError):
+            raise NotImplementedError("algebraic closure is not implemented for %s"%K)
+
+        res = []
+        for f, e in self.charpoly().change_ring(K).factor():
+            if f.degree() == 1:
+                res.extend([-f.constant_coefficient()]*e)
+            else:
+                for r,ee in f.change_ring(A).roots():
+                    res.extend([r]*(e*ee))
+
+        eigenvalues = Sequence(res)
+        self.cache('eigenvalues', eigenvalues)
+        return eigenvalues
 
 
     def eigenvectors_left(self,extend=True):
@@ -5590,18 +5777,18 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = matrix(QQ, 3, 3, range(9))
             sage: em = A.change_ring(RDF).eigenmatrix_left()
-            sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
-            [ 13.3484692283            0.0            0.0]
-            [           0.0 -1.34846922835            0.0]
-            [           0.0            0.0            0.0]
+            sage: evalues = em[0]; evalues.dense_matrix() # abs tol 1e-13
+            [13.348469228349522                0.0                 0.0]
+            [               0.0 -1.348469228349534                 0.0]
+            [               0.0                0.0                 0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
-            ...       scale = evectors[i,0].sign()
-            ...       evectors.rescale_row(i, scale)
-            sage: evectors
-            [ 0.440242867...  0.567868371...  0.695493875...]
-            [ 0.897878732...  0.278434036... -0.341010658...]
-            [ 0.408248290... -0.816496580...  0.408248290...]
+            ....:     scale = evectors[i,0].sign()
+            ....:     evectors.rescale_row(i, scale)
+            sage: evectors  # abs tol 1e-13
+            [0.44024286723591904  0.5678683713143027  0.6954938753926869]
+            [ 0.8978787322617111 0.27843403682172374 -0.3410106586182631]
+            [ 0.4082482904638625 -0.8164965809277263 0.40824829046386324]
         """
         from sage.misc.flatten import flatten
         evecs = self.eigenvectors_left()
@@ -5679,20 +5866,20 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: B = matrix(QQ, 3, 3, range(9))
             sage: em = B.change_ring(RDF).eigenmatrix_right()
-            sage: evalues = em[0]; evalues.dense_matrix().zero_at(2e-15)
-            [ 13.3484692283            0.0            0.0]
-            [           0.0 -1.34846922835            0.0]
-            [           0.0            0.0            0.0]
+            sage: evalues = em[0]; evalues.dense_matrix()  # abs tol 1e-13
+            [13.348469228349522                0.0                0.0]
+            [               0.0 -1.348469228349534                0.0]
+            [               0.0                0.0                0.0]
             sage: evectors = em[1];
             sage: for i in range(3):
-            ...       scale = evectors[0,i].sign()
-            ...       evectors.rescale_col(i, scale)
-            sage: evectors
-            [ 0.164763817...  0.799699663...  0.408248290...]
-            [ 0.505774475...  0.104205787... -0.816496580...]
-            [ 0.846785134... -0.591288087...  0.408248290...]
+            ....:     scale = evectors[0,i].sign()
+            ....:     evectors.rescale_col(i, scale)
+            sage: evectors  # abs tol 1e-13
+            [ 0.1647638172823028   0.799699663111865 0.40824829046386285]
+            [ 0.5057744759005657 0.10420578771917821 -0.8164965809277261]
+            [ 0.8467851345188293 -0.5912880876735089  0.4082482904638632]
         """
-        D,P=self.transpose().eigenmatrix_left()
+        D,P = self.transpose().eigenmatrix_left()
         return D,P.transpose()
 
     right_eigenmatrix = eigenmatrix_right
@@ -5872,7 +6059,7 @@ cdef class Matrix(matrix1.Matrix):
         else:
             try:
                 a, d, p = self._echelon_form_PID()
-            except TypeError, msg:
+            except TypeError as msg:
                 raise NotImplementedError, "%s\nechelon form over %s not yet implemented"%(msg, self.base_ring())
 
             for c from 0 <= c < self.ncols():
@@ -6024,7 +6211,7 @@ cdef class Matrix(matrix1.Matrix):
                 if not (algorithm in ['classical', 'strassen']):
                     kwds['algorithm'] = algorithm
                 return self._echelonize_ring(**kwds)
-        except ArithmeticError, msg:
+        except ArithmeticError as msg:
             raise NotImplementedError, "%s\nEchelon form not implemented over '%s'."%(msg,self.base_ring())
 
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
@@ -6533,6 +6720,354 @@ cdef class Matrix(matrix1.Matrix):
         """
         import sage.matrix.matrix_misc
         return sage.matrix.matrix_misc.weak_popov_form(self)
+
+    ##########################################################################
+    # Functions for symmetries of a matrix under row and column permutations #
+    ##########################################################################
+    def as_bipartite_graph(self):
+        r"""
+        Construct a bipartite graph ``B`` representing
+        the matrix uniquely.
+
+        Vertices are labeled 1 to ``nrows``
+        on the left and ``nrows`` + 1 to ``nrows`` + ``ncols`` on
+        the right, representing rows and columns correspondingly.
+        Each row is connected to each column with an edge
+        weighted by the value of the corresponding matrix entry.
+
+        This graph is a helper for calculating automorphisms of
+        a matrix under row and column permutations. See
+        :meth:`automorphisms_of_rows_and_columns`.
+
+        OUTPUT:
+
+        - A bipartite graph.
+
+        EXAMPLES::
+
+            sage: M = matrix(QQ, [[1/3, 7], [6, 1/4], [8, -5]])
+            sage: M
+            [1/3   7]
+            [  6 1/4]
+            [  8  -5]
+
+            sage: B = M.as_bipartite_graph()
+            sage: B
+            Bipartite graph on 5 vertices
+            sage: B.edges()
+            [(1, 4, 1/3), (1, 5, 7), (2, 4, 6), (2, 5, 1/4), (3, 4, 8), (3, 5, -5)]
+            sage: len(B.left) == M.nrows()
+            True
+            sage: len(B.right) == M.ncols()
+            True
+        """
+        from sage.graphs.bipartite_graph import BipartiteGraph
+        nrows = self.nrows()
+        ncols = self.ncols()
+        B = BipartiteGraph()
+        B.add_vertices(range(1, nrows + 1), left=True)
+        B.add_vertices(range(nrows + 1, nrows + ncols + 1), right=True)
+        for i in range(nrows):
+            for j in range(ncols):
+                B.add_edge(i + 1, nrows + 1 + j, self[i][j])
+        return B
+
+    def automorphisms_of_rows_and_columns(self):
+        r"""
+        Return the automorphisms of ``self`` under
+        permutations of rows and columns as a list of
+        pairs of ``PermutationGroupElement`` objects.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ,[[1,0],[1,0],[0,1]])
+            sage: M
+            [1 0]
+            [1 0]
+            [0 1]
+            sage: A = M.automorphisms_of_rows_and_columns()
+            sage: A
+            [((), ()), ((1,2), ())]
+            sage: M = matrix(ZZ,[[1,1,1,1],[1,1,1,1]])
+            sage: A = M.automorphisms_of_rows_and_columns()
+            sage: len(A)
+            48
+
+        One can now apply these automorphisms to ``M`` to show
+        that it leaves it invariant::
+
+            sage: all(M.with_permuted_rows_and_columns(*i) == M for i in A)
+            True
+        """
+        from sage.groups.perm_gps.permgroup_element import \
+            PermutationGroupElement
+        B = self.as_bipartite_graph()
+        nrows = self.nrows()
+        A = B.automorphism_group(edge_labels = True)
+        permutations = []
+        for p in A:
+            p = p.domain()
+            # Convert to elements of Sym(self) from S_n
+            if p[0] <= nrows:
+                permutations.append(
+                    (PermutationGroupElement(p[:nrows]),
+                     PermutationGroupElement([elt - nrows for elt in p[nrows:]])
+                    ))
+        return permutations
+
+    def permutation_normal_form(self, check=False):
+        r"""
+        Take the set of matrices that are ``self``
+        permuted by any row and column permutation,
+        and return the maximal one of the set where
+        matrices are ordered lexicographically
+        going along each row.
+
+        INPUT:
+
+        - ``check`` -- (default: ``False``) If ``True`` return a tuple of
+            the maximal matrix and the permutations taking taking ``self``
+            to the maximal matrix.
+            If ``False``, return only the maximal matrix.
+
+        OUTPUT:
+
+        The maximal matrix.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ, [[0, 0, 1], [1, 0, 2], [0, 0, 0]])
+            sage: M
+            [0 0 1]
+            [1 0 2]
+            [0 0 0]
+
+            sage: M.permutation_normal_form()
+            [2 1 0]
+            [1 0 0]
+            [0 0 0]
+
+            sage: M = matrix(ZZ, [[-1, 3], [-1, 5], [2, 4]])
+            sage: M
+            [-1  3]
+            [-1  5]
+            [ 2  4]
+
+            sage: M.permutation_normal_form(check=True)
+            (
+            [ 5 -1]
+            [ 4  2]
+            [ 3 -1],
+            ((1,2,3), (1,2))
+            )
+
+        TESTS::
+
+            sage: M = matrix(ZZ, [[3, 4, 5], [3, 4, 5], [3, 5, 4], [2, 0,1]])
+            sage: M.permutation_normal_form()
+            [5 4 3]
+            [5 4 3]
+            [4 5 3]
+            [1 0 2]
+        """
+        nrows = self.nrows()
+        ncols = self.ncols()
+
+        # A helper
+        def new_sorted_matrix(m):
+            return self.new_matrix(
+                ncols, nrows,
+                sorted(m.columns(), reverse=True)).transpose()
+
+        # Let us sort each row:
+        sorted_rows = [sorted([self[i][j] for j in range(ncols)], reverse=True)
+                       for i in range(nrows)]
+        # and find the maximal one:
+        first_row = max(sorted_rows)
+        first_rows = [j for j in range(nrows) if sorted_rows[j] == first_row]
+        # We construct an array S, which will record the subsymmetries of the
+        # columns, i.e. S records the automorphisms with respect to the column
+        # swappings of the upper block already constructed. For example, if
+        # allowed, and so on. S is in decreasing order and takes values between
+        # S:=[a, a, ..., a (i-th), a-1, a-1, ...] then any swap between 1 and i is
+        # me + nc and me + 1 such that no entry is present already in the matrix.
+        S = [first_row[0] + ncols] + [None]*(ncols-1)
+        for j in range(1, ncols):
+           S[j] = S[j - 1] if first_row[j] == first_row[j - 1] else S[j - 1] - 1
+        # If we want to sort the i-th row with respect to a symmetry determined
+        # by S, then we will just sort the augmented row [[S[j], PM[i, j]] :
+        # j in [1 .. nc]], S having lexicographic priority.
+
+        # MS is a list of non-isomorphic matrices where one of the maximal rows
+        # has been replaced by S
+        MS = []
+        aM = []
+        if self.is_immutable():
+            X = copy(self)
+        else:
+            X = self
+        for i in first_rows:
+            N = new_sorted_matrix(X.with_swapped_rows(0, i))
+            aN = copy(N)
+            aN.set_row(0, S)
+            if not any(aN.is_permutation_of(j) for j in aM):
+                MS.append(N)
+                aM.append(aN)
+        # We construct line l:
+        for l in range(1, nrows - 1):
+            if not S == range(first_row[0] + ncols, first_row[0], -1):
+                # Sort each row with respect to S for the first matrix in X = MS
+                X = copy(MS)
+                SM = [sorted([(S[j], X[0][k][j]) for j in range(ncols)], reverse=True)
+                                for k in range(l, nrows)]
+                SM = [[k[1] for k in s] for s in SM]
+
+                # and pick the maximal row
+                b = max(SM)
+                # Find all rows equal to the maximal (potential new cases)
+                m = [[j for j in range(nrows - l) if SM[j] == b]]
+                w = 0 # keeps track of how many entries we have removed from MS
+                # Let us find the maximal row in each of the entries in X = MS
+                for i in range(1, len(X)):
+                    SN = [sorted([(S[j], X[i][k][j]) for j in range(ncols)], reverse=True)
+                          for k in range(l, nrows)]
+                    SN = [[k[1] for k in s] for s in SN]
+                    # Maximal row in this entry of X = MS
+                    nb = max(SN)
+                    # Number of occurences.
+                    n = [j for j in range(nrows - l) if SN[j] == nb]
+                    # Now compare to our previous max
+                    if b < nb:
+                        # Bigger so save line
+                        b = nb
+                        m = [n]
+                        # and delete all previous attempts
+                        u = i - w
+                        del MS[0:u]
+                        w += u
+                    elif b == nb:
+                        # Same, so save symmetry
+                        m.append(n)
+                    else:
+                        # Smaller, so forget about it!
+                        MS.pop(i - w)
+                        w += 1
+                # Update symmetries
+                test = [(S[i], b[i]) for i in range(ncols)]
+                for j in range(1, ncols):
+                    S[j] = S[j - 1] if (test[j] == test[j - 1]) else S[j - 1] - 1
+                # For each case we check the isomorphism as previously, if
+                # test fails we add a new non-isomorphic case to MS. We
+                # pick our choice of maximal line l and sort the columns of
+                # the matrix (this preserves symmetry automatically).
+                n = len(MS)
+                for i in range(n):
+                    MS[i] = new_sorted_matrix(MS[i].with_swapped_rows(l, m[i][0] + l))
+                    if len(m[i]) > 1:
+                        aX = MS[i].submatrix(l, 0, nrows - l, ncols)
+                        aX.set_row(0, S)
+                        aX = [aX]
+                        for j in m[i][1:]:
+                            N = new_sorted_matrix(MS[i].with_swapped_rows(l, j + 1))
+                            aN = N.submatrix(l, 0, nrows - l, ncols)
+                            aN.set_row(0, S)
+                            if not any(aN.is_permutation_of(k) for k in aX):
+                                MS.append(N)
+                                aX.append(aN)
+            else:
+                MS = [self.new_matrix(nrows, ncols, sorted(s.rows(), reverse=True)) for s in MS]
+                break
+        MS_max = max(MS)
+        if check:
+            return MS_max, self.is_permutation_of(MS_max, True)[1]
+        else:
+            return MS_max
+
+    def is_permutation_of(self, N, check=False):
+        r"""
+        Return ``True`` if there exists a permutation of rows and
+        columns sending ``self`` to ``N`` and ``False`` otherwise.
+
+        INPUT:
+
+        - ``N`` -- a matrix.
+
+        - ``check`` -- boolean (default: ``False``). If ``False``
+            return Boolean indicating whether there exists a permutation of
+            rows and columns sending ``self`` to ``N`` and False otherwise.
+            If ``True`` return a tuple of a Boolean and a permutation mapping
+            ``self`` to ``N`` if such a permutation exists, and
+            (``False``, ``None``) if it does not.
+
+        OUTPUT:
+
+        A Boolean or a tuple of a Boolean and a permutation.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ,[[1,2,3],[3,5,3],[2,6,4]])
+            sage: M
+            [1 2 3]
+            [3 5 3]
+            [2 6 4]
+            sage: N = matrix(ZZ,[[1,2,3],[2,6,4],[3,5,3]])
+            sage: N
+            [1 2 3]
+            [2 6 4]
+            [3 5 3]
+            sage: M.is_permutation_of(N)
+            True
+
+        Some examples that are not permutations of each other::
+
+            sage: N = matrix(ZZ,[[1,2,3],[4,5,6],[7,8,9]])
+            sage: N
+            [1 2 3]
+            [4 5 6]
+            [7 8 9]
+            sage: M.is_permutation_of(N)
+            False
+            sage: N = matrix(ZZ,[[1,2],[3,4]])
+            sage: N
+            [1 2]
+            [3 4]
+            sage: M.is_permutation_of(N)
+            False
+
+        And for when ``check`` is True::
+
+            sage: N = matrix(ZZ,[[3,5,3],[2,6,4],[1,2,3]])
+            sage: N
+            [3 5 3]
+            [2 6 4]
+            [1 2 3]
+            sage: r = M.is_permutation_of(N, check=True)
+            sage: r
+            (True, ((1,2,3), ()))
+            sage: p = r[1]
+            sage: M.with_permuted_rows_and_columns(*p) == N
+            True
+        """
+        ncols = self.ncols()
+        nrows = self.nrows()
+        if N.ncols() <> ncols or N.nrows() <> nrows:
+            if check:
+                return (False, None)
+            else:
+                return False
+        M_B = self.as_bipartite_graph()
+        N_B = N.as_bipartite_graph()
+        if check:
+            truth, perm = N_B.is_isomorphic(M_B, certify=True, edge_labels=True)
+            from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+            if perm:
+                s = sorted(perm.items(), key=lambda x:x[0])
+                row_perms = [value for k, value in s if k <= nrows]
+                col_perms = [value - nrows for k, value in s if k > nrows]
+                perm = (PermutationGroupElement(row_perms), PermutationGroupElement(col_perms))
+            return truth, perm
+        else:
+            return N_B.is_isomorphic(M_B, certify=False, edge_labels=True)
 
     #####################################################################################
     # Windowed Strassen Matrix Multiplication and Echelon
@@ -7348,7 +7883,7 @@ cdef class Matrix(matrix1.Matrix):
 
         A matrix is said to be bistochastic if both the sums of the
         entries of each row and the sum of the entries of each column
-        are equal to 1.
+        are equal to 1 and all entries are nonnegative.
 
         INPUT:
 
@@ -7371,6 +7906,13 @@ cdef class Matrix(matrix1.Matrix):
             False
             sage: (2 * Matrix(5,5,1)).is_bistochastic(normalized = False)
             True
+
+        Here is a matrix whose row and column sums is 1, but not all entries are
+        nonnegative::
+
+            sage: m = matrix([[-1,2],[2,-1]])
+            sage: m.is_bistochastic()
+            False
         """
 
         row_sums = map(sum, self.rows())
@@ -7380,7 +7922,8 @@ cdef class Matrix(matrix1.Matrix):
                 col_sums[0] == row_sums[0] and\
                 row_sums == col_sums and\
                 row_sums == len(row_sums) * [col_sums[0]] and\
-                ((not normalized) or col_sums[0] == self.base_ring()(1))
+                ((not normalized) or col_sums[0] == self.base_ring()(1)) and\
+                all(entry>=0 for row in self for entry in row)
 
     def is_normal(self):
         r"""
@@ -7586,7 +8129,7 @@ cdef class Matrix(matrix1.Matrix):
         EXAMPLE::
 
             sage: M = random_matrix(CC, 4)
-            sage: M.visualize_structure(os.path.join(SAGE_TMP, "matrix.png"))
+            sage: M.visualize_structure()
         """
         import gd
         import os
@@ -7641,6 +8184,7 @@ cdef class Matrix(matrix1.Matrix):
                 setPixel((y,x), val)
 
         if filename is None:
+            from sage.misc.temporary_file import graphics_filename
             filename = graphics_filename()
 
         im.writePng(filename)
@@ -8449,11 +8993,10 @@ cdef class Matrix(matrix1.Matrix):
             [0.0 0.0 0.0]
             [0.0 0.0 0.0]
             [0.0 0.0 0.0]
-            sage: (G*G.conjugate_transpose()).zero_at(10^-12)
-            [1.0 0.0 0.0]
-            [0.0 1.0 0.0]
-            [0.0 0.0 1.0]
-
+            sage: (G*G.conjugate_transpose())  # random
+            [0.9999999999999999                0.0                0.0]
+            [               0.0 0.9999999999999997                0.0]
+            [               0.0                0.0                1.0]
 
         A rectangular matrix.  Note that the ``orthonormal`` keyword
         is ignored in these cases.  ::
@@ -8498,10 +9041,10 @@ cdef class Matrix(matrix1.Matrix):
             [0.0 0.0 0.0]
             [0.0 0.0 0.0]
             [0.0 0.0 0.0]
-            sage: (G*G.transpose()).zero_at(1e-14)
-            [1.0 0.0 0.0]
-            [0.0 1.0 0.0]
-            [0.0 0.0 1.0]
+            sage: (G*G.transpose())  # abs tol 1e-14
+            [0.9999999999999997                0.0                0.0]
+            [               0.0 0.9999999999999998                0.0]
+            [               0.0                0.0                1.0]
 
         Exact Rings, Orthonormalization:
 
@@ -8707,6 +9250,10 @@ cdef class Matrix(matrix1.Matrix):
                 Q = Q[0:m, 0:n]
                 R = R[0:n, 0:n]
         elif R.is_exact():
+            if self == 1:
+                # this special case occurs frequently enough to deserve a shortcut
+                return (self, self)
+
             if orthonormal:
                 Q, R = self.transpose().QR(full=False)
             else:
@@ -10086,216 +10633,6 @@ cdef class Matrix(matrix1.Matrix):
         else:
             return subspace
 
-    def cholesky_decomposition(self):
-        r"""
-        Return the Cholesky decomposition of ``self``.
-
-        .. WARNING::
-
-            ``cholesky_decomposition()`` is deprecated,
-            please use :meth:`cholesky` instead.
-
-        The computed decomposition is cached and returned on
-        subsequent calls. Methods such as :meth:`solve_left` may also
-        take advantage of the cached decomposition depending on the
-        exact implementation.
-
-        INPUT:
-
-        The input matrix must be:
-
-        - real, symmetric, and positive definite; or
-
-        - complex, Hermitian, and positive definite.
-
-        If not, a ``ValueError`` exception will be raised.
-
-        OUTPUT:
-
-        An immutable lower triangular matrix `L` such that `L L^t` equals ``self``.
-
-        ALGORITHM:
-
-        Calls the method ``_cholesky_decomposition_``, which by
-        default uses a standard recursion.
-
-        .. warning::
-
-            This implementation uses a standard recursion that is not known to
-            be numerically stable.
-
-        .. warning::
-
-            It is potentially expensive to ensure that the input is
-            positive definite.  Therefore this is not checked and it
-            is possible that the output matrix is *not* a valid
-            Cholesky decomposition of ``self``.  An example of this is
-            given in the tests below.
-
-        EXAMPLES:
-
-        Here is an example over the real double field; internally, this uses SciPy::
-
-            sage: r = matrix(RDF, 5, 5, [ 0,0,0,0,1, 1,1,1,1,1, 16,8,4,2,1, 81,27,9,3,1, 256,64,16,4,1 ])
-            sage: m = r * r.transpose(); m
-            [    1.0     1.0     1.0     1.0     1.0]
-            [    1.0     5.0    31.0   121.0   341.0]
-            [    1.0    31.0   341.0  1555.0  4681.0]
-            [    1.0   121.0  1555.0  7381.0 22621.0]
-            [    1.0   341.0  4681.0 22621.0 69905.0]
-            sage: L = m.cholesky_decomposition(); L
-            doctest:...: DeprecationWarning:
-            cholesky_decomposition() is deprecated; please use cholesky() instead.
-            See http://trac.sagemath.org/13045 for details.
-            [          1.0           0.0           0.0           0.0           0.0]
-            [          1.0           2.0           0.0           0.0           0.0]
-            [          1.0          15.0 10.7238052948           0.0           0.0]
-            [          1.0          60.0 60.9858144589 7.79297342371           0.0]
-            [          1.0         170.0 198.623524155 39.3665667796 1.72309958068]
-            sage: L.parent()
-            Full MatrixSpace of 5 by 5 dense matrices over Real Double Field
-            sage: L*L.transpose()
-            [ 1.0     1.0     1.0     1.0     1.0]
-            [ 1.0     5.0    31.0   121.0   341.0]
-            [ 1.0    31.0   341.0  1555.0  4681.0]
-            [ 1.0   121.0  1555.0  7381.0 22621.0]
-            [ 1.0   341.0  4681.0 22621.0 69905.0]
-            sage: ( L*L.transpose() - m ).norm(1) < 2^-30
-            True
-
-        The result is immutable::
-
-            sage: L[0,0] = 0
-            Traceback (most recent call last):
-                ...
-            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
-
-        Here is an example over a higher precision real field::
-
-            sage: r = matrix(RealField(100), 5, 5, [ 0,0,0,0,1, 1,1,1,1,1, 16,8,4,2,1, 81,27,9,3,1, 256,64,16,4,1 ])
-            sage: m = r * r.transpose()
-            sage: L = m.cholesky_decomposition()
-            sage: L.parent()
-            Full MatrixSpace of 5 by 5 dense matrices over Real Field with 100 bits of precision
-            sage: ( L*L.transpose() - m ).norm(1) < 2^-50
-            True
-
-        Here is a Hermitian example::
-
-            sage: r = matrix(CDF, 2, 2, [ 1, -2*I, 2*I, 6 ]); r
-            [   1.0 -2.0*I]
-            [ 2.0*I    6.0]
-            sage: r.eigenvalues()
-            [0.298437881284, 6.70156211872]
-            sage: ( r - r.conjugate().transpose() ).norm(1) < 1e-30
-            True
-            sage: L = r.cholesky_decomposition(); L
-            [          1.0           0.0]
-            [        2.0*I 1.41421356237]
-            sage: ( r - L*L.conjugate().transpose() ).norm(1) < 1e-30
-            True
-            sage: L.parent()
-            Full MatrixSpace of 2 by 2 dense matrices over Complex Double Field
-
-        TESTS:
-
-        The following examples are not positive definite::
-
-            sage: m = -identity_matrix(3).change_ring(RDF)
-            sage: m.cholesky_decomposition()
-            Traceback (most recent call last):
-            ...
-            ValueError: The input matrix was not symmetric and positive definite
-
-            sage: m = -identity_matrix(2).change_ring(RealField(100))
-            sage: m.cholesky_decomposition()
-            Traceback (most recent call last):
-            ...
-            ValueError: The input matrix was not symmetric and positive definite
-
-        Here is a large example over a higher precision complex field::
-
-            sage: r = MatrixSpace(ComplexField(100), 6, 6).random_element()
-            sage: m = r * r.conjugate().transpose()
-            sage: m.change_ring(CDF) # for display purposes
-            [                     4.03491289478    1.65865229397 + 1.20395241554*I -0.275377464753 - 0.392579363912*I   0.646019176609 - 1.80427378747*I    1.15898675468 + 2.35202344518*I   -1.07920143474 + 1.37815737417*I]
-            [   1.65865229397 - 1.20395241554*I                      5.19463366777  0.192784646673 + 0.217539084881*I   -1.24630239913 - 1.00510523556*I    1.65179716714 + 1.27031304403*I   1.17275462994 + 0.565615358757*I]
-            [-0.275377464753 + 0.392579363912*I  0.192784646673 - 0.217539084881*I                      2.04647180997 -0.550558880479 + 0.379933796418*I   1.00862850855 + 0.945317139306*I  -0.740344951784 - 0.46578741292*I]
-            [  0.646019176609 + 1.80427378747*I   -1.24630239913 + 1.00510523556*I -0.550558880479 - 0.379933796418*I                      4.07227967662   -2.81600845862 - 0.56060176804*I  -2.28695708255 - 0.360066613053*I]
-            [   1.15898675468 - 2.35202344518*I    1.65179716714 - 1.27031304403*I   1.00862850855 - 0.945317139306*I   -2.81600845862 + 0.56060176804*I                      5.26892394669  0.964830717551 + 0.111780339251*I]
-            [  -1.07920143474 - 1.37815737417*I   1.17275462994 - 0.565615358757*I  -0.740344951784 + 0.46578741292*I  -2.28695708255 + 0.360066613053*I  0.964830717551 - 0.111780339251*I                      3.49912480167]
-            sage: eigs = m.change_ring(CDF).eigenvalues() # again for display purposes
-            sage: all(abs(imag(e)) < 1.3e-15 for e in eigs)
-            True
-            sage: [real(e) for e in eigs]
-            [12.1121838768, 5.17714373118, 0.183583821657, 0.798520682956, 2.03399202232, 3.81092266261]
-
-            sage: ( m - m.conjugate().transpose() ).norm(1) < 1e-50
-            True
-            sage: L = m.cholesky_decomposition(); L.change_ring(CDF)
-            [                      2.00870926089                                 0.0                                 0.0                                 0.0                                 0.0                                 0.0]
-            [  0.825730396261 - 0.599366189511*I                       2.03802923221                                 0.0                                 0.0                                 0.0                                 0.0]
-            [ -0.137091748475 + 0.195438618996*I    0.20761467212 - 0.145606613292*I                       1.38750721467                                 0.0                                 0.0                                 0.0]
-            [  0.321609099528 + 0.898225453828*I -0.477666770113 + 0.0346666053769*I  -0.416429223553 - 0.094835914364*I                       1.65839194165                                 0.0                                 0.0]
-            [   0.576980839012 - 1.17091282993*I   0.232362216253 - 0.318581071175*I   0.880672963687 - 0.692440838276*I  -0.920603548686 + 0.566479149373*I                      0.992988116915                                 0.0]
-            [ -0.537261143636 - 0.686091014267*I   0.591339766401 + 0.158450627525*I  -0.561877938537 + 0.106470627954*I  -0.871217053358 + 0.176042897482*I  0.0516893015902 + 0.656402869037*I                      0.902427551681]
-            sage: ( m - L*L.conjugate().transpose() ).norm(1) < 1e-20
-            True
-            sage: L.parent()
-            Full MatrixSpace of 6 by 6 dense matrices over Complex Field with 100 bits of precision
-            sage: L[0,0] = 0
-            Traceback (most recent call last):
-                ...
-            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
-
-        Here is an example that returns an incorrect answer, because the input is *not* positive definite::
-
-            sage: r = matrix(CDF, 2, 2, [ 1, -2*I, 2*I, 0 ]); r
-            [   1.0 -2.0*I]
-            [ 2.0*I    0.0]
-            sage: r.eigenvalues()
-            [2.56155281281, -1.56155281281]
-            sage: ( r - r.conjugate().transpose() ).norm(1) < 1e-30
-            True
-            sage: L = r.cholesky_decomposition(); L
-            [  1.0   0.0]
-            [2.0*I 2.0*I]
-            sage: L*L.conjugate().transpose()
-            [   1.0 -2.0*I]
-            [ 2.0*I    8.0]
-
-        This test verifies that the caching of the two variants
-        of the Cholesky decomposition have been cleanly separated.
-        It can be safely removed as part of removing this method
-        at the end of the deprecation period.
-        (From :trac:`13045`.)  ::
-
-            sage: r = matrix(CDF, 2, 2, [ 0, -2*I, 2*I, 0 ]); r
-            [   0.0 -2.0*I]
-            [ 2.0*I    0.0]
-            sage: r.cholesky_decomposition()
-            [        0.0         0.0]
-            [NaN + NaN*I NaN + NaN*I]
-            sage: r.cholesky()
-            Traceback (most recent call last):
-            ...
-            ValueError: matrix is not positive definite
-            sage: r[0,0] = 0  # clears cache
-            sage: r.cholesky()
-            Traceback (most recent call last):
-            ...
-            ValueError: matrix is not positive definite
-            sage: r.cholesky_decomposition()
-            [        0.0         0.0]
-            [NaN + NaN*I NaN + NaN*I]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(13045, "cholesky_decomposition() is deprecated; please use cholesky() instead.")
-        assert self._nrows == self._ncols, "Can only Cholesky decompose square matrices"
-        if self._nrows == 0:
-            return self.__copy__()
-        return self._cholesky_decomposition_()
-
     def _cholesky_decomposition_(self):
         r"""
         Return the Cholesky decomposition of ``self``; see ``cholesky_decomposition``.
@@ -10544,14 +10881,8 @@ cdef class Matrix(matrix1.Matrix):
             ValueError: matrix is not positive definite,
             so cannot compute Cholesky decomposition
 
-        Even in light of the above, you can sometimes get lucky
-        and arrive at a situation where a particular matrix has
-        a Cholesky decomposition when the general characteristics
-        of the matrix suggest this routine would fail. In this
-        example, the indefinite factorization produces a
-        diagonal matrix whose elements from the finite field
-        convert naturally to positive integers and are also
-        perfect squares.  ::
+        In certain cases, the algorithm can find an analogue of the
+        Cholesky decomposition over finite fields::
 
             sage: F.<a> = FiniteField(5^3)
             sage: A = matrix(F, [[         4,       2*a^2 + 3,         4*a + 1],
@@ -10562,6 +10893,12 @@ cdef class Matrix(matrix1.Matrix):
             sage: L = A.cholesky()
             sage: L*L.transpose() == A
             True
+
+            sage: F = FiniteField(7)
+            sage: A = matrix(F, [[4, 0], [0, 3]])
+            sage: A.cholesky()
+            [       2        0]
+            [       0 2*z2 + 6]
 
         TESTS:
 
@@ -10617,8 +10954,7 @@ cdef class Matrix(matrix1.Matrix):
                     except (NotImplementedError, AttributeError):
                         msg = "base field needs an algebraic closure with square roots, not {0}"
                         raise TypeError(msg.format(F))
-                    # try again
-                    sqrt = F(x.sqrt())
+                    sqrt = F(x).sqrt()
                 splits.append(sqrt)
             # move square root of the diagonal matrix
             # into the lower triangular matrix
@@ -11279,6 +11615,20 @@ cdef class Matrix(matrix1.Matrix):
             sage: isinstance(ds, tuple), isinstance(dh, tuple)
             (True, True)
 
+        We check that :trac:`16633` is fixed::
+
+            sage: A = matrix(QQ, [[ 4, -2,  4,  2],
+            ....:                 [-2, 10, -2, -7],
+            ....:                 [ 4, -2,  8,  4],
+            ....:                 [ 2, -7,  4,  7]])
+            sage: A.set_immutable()
+            sage: L,d = A._indefinite_factorization('symmetric')
+            sage: A
+            [ 4 -2  4  2]
+            [-2 10 -2 -7]
+            [ 4 -2  8  4]
+            [ 2 -7  4  7]
+
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
@@ -11326,6 +11676,10 @@ cdef class Matrix(matrix1.Matrix):
             # we need a copy no matter what, so we
             # (potentially) change to fraction field at the same time
             L = self.change_ring(F)
+            # The change ring doesn't necessarily return a copy if ``self``
+            #   is immutable and ``F`` is the same as the base ring
+            if L is self:
+                L = self.__copy__()
             m = L._nrows
             zero = F(0)
             one = F(1)
@@ -12030,8 +12384,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: Id.norm(2)
             1.0
             sage: A = matrix(RR, 2, 2, [13,-4,-4,7])
-            sage: A.norm()
-            15.0
+            sage: A.norm()  # rel tol 2e-16
+            14.999999999999998
 
         Norms of numerical matrices over high-precision reals are computed by this routine.
         Faster routines for double precision entries from `RDF` or `CDF` are provided by
@@ -12039,13 +12393,13 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = matrix(CC, 2, 3, [3*I,4,1-I,1,2,0])
             sage: A.norm('frob')
-            5.65685424949
+            5.656854249492381
             sage: A.norm(2)
-            5.47068444321
+            5.470684443210...
             sage: A.norm(1)
             6.0
             sage: A.norm(Infinity)
-            8.41421356237
+            8.414213562373096
             sage: a = matrix([[],[],[],[]])
             sage: a.norm()
             0.0
@@ -12191,6 +12545,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]])
             sage: A.plot()
+            Graphics object consisting of 1 graphics primitive
 
         Here we make a random matrix over RR and use cmap='hsv' to color
         the matrix elements different RGB colors (see documentation for
@@ -12198,11 +12553,13 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: A = random_matrix(RDF, 50)
             sage: plot(A, cmap='hsv')
+            Graphics object consisting of 1 graphics primitive
 
         Another random plot, but over GF(389)::
 
             sage: A = random_matrix(GF(389), 10)
             sage: A.plot(cmap='Oranges')
+            Graphics object consisting of 1 graphics primitive
         """
         from sage.plot.plot import matrix_plot
         return matrix_plot(self, *args, **kwds)
@@ -12271,9 +12628,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: a.exp()
             [ 1/11882424341266*(e^(3/1275529100*sqrt(227345670387496707609))*(11*sqrt(227345670387496707609) + 5941212170633) - 11*sqrt(227345670387496707609) + 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)                            445243650/75781890129165569203*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
             [                                     10000/53470909535697*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200) -1/11882424341266*(e^(3/1275529100*sqrt(227345670387496707609))*(11*sqrt(227345670387496707609) - 5941212170633) - 11*sqrt(227345670387496707609) - 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
-            sage: a.change_ring(RDF).exp()
-            [42748127.3153 7368259.24416]
-            [234538976.138 40426191.4516]
+            sage: a.change_ring(RDF).exp()  # rel tol 1e-14
+            [42748127.31532951 7368259.244159399]
+            [234538976.1381042 40426191.45156228]
         """
         from sage.symbolic.ring import SR
         return self.change_ring(SR).exp()
@@ -13084,7 +13441,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.eigenvalues()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar
+            NotImplementedError: algebraic closures of finite fields are only implemented for prime fields
 
         Subdivisions are optional.  ::
 
@@ -13461,7 +13818,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.eigenvalues()
             Traceback (most recent call last):
             ...
-            NotImplementedError: eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar
+            NotImplementedError: algebraic closures of finite fields are only implemented for prime fields
 
         Companion matrices may be selected as any one of four different types.
         See the documentation for the companion matrix constructor,
@@ -13815,7 +14172,7 @@ def _generic_clear_column(m):
         if a[k,0] not in I:
             try:
                 v = R.ideal(a[0,0], a[k,0]).gens_reduced()
-            except Exception, msg:
+            except Exception as msg:
                 raise ArithmeticError, "%s\nCan't create ideal on %s and %s" % (msg, a[0,0], a[k,0])
             if len(v) > 1:
                 raise ArithmeticError, "Ideal %s not principal" %  R.ideal(a[0,0], a[k,0])

@@ -114,7 +114,7 @@ class SageTimeit:
         """
         if 'seconds' in kwds:
             return self.eval(code, globals, preparse=preparse, **kwds)
-        print self.eval(code, globals, preparse=preparse, **kwds)
+        print(self.eval(code, globals, preparse=preparse, **kwds))
 
 
 timeit = SageTimeit()

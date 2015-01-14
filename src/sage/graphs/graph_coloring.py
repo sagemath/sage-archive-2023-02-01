@@ -163,7 +163,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
     G._scream_if_not_simple(allow_multiple_edges=True)
 
     if n == 0: return
-    if n < 0: raise ValueError, "n must be non-negative."
+    if n < 0: raise ValueError("n must be non-negative.")
 
     V = G.vertices()
     E = G.edges()
@@ -232,7 +232,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
                                 coloring[color_dict[colors[c]]] = [v]
             yield coloring
     except RuntimeError:
-        raise RuntimeError, "Too much recursion!  Graph coloring failed."
+        raise RuntimeError("Too much recursion!  Graph coloring failed.")
 
 def first_coloring(G, n=0, hex_colors=False):
     r"""
@@ -400,7 +400,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.plot.colors import rainbow
 
-    # If k==None, tries to find an optimal coloring
+    # If k is None, tries to find an optimal coloring
     if k is None:
         # No need to start a linear program if the graph is an
         # independent set or bipartite.
@@ -646,11 +646,11 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     classes = range(k)
 
     # b[v,i] is set to 1 if and only if v is colored with i
-    b = p.new_variable()
+    b = p.new_variable(binary = True)
 
     # is_used[i] is set to 1 if and only if color [i] is used by some
     # vertex
-    is_used = p.new_variable()
+    is_used = p.new_variable(binary = True)
 
     # Each vertex is in exactly one class
     for v in g:
@@ -678,10 +678,6 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     # is_used[i] can be set to 1 only if the color is used
     for i in classes:
         p.add_constraint( p.sum( b[v,i] for v in g ) - is_used[i], min = 0)
-
-    # Both variables are binary
-    p.set_binary(b)
-    p.set_binary(is_used)
 
     # Trying to use as many colors as possible
     p.set_objective( p.sum( is_used[i] for i in classes ) )
@@ -1264,7 +1260,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     c = p.new_variable(binary = True)
 
     # relaxed value
-    r = p.new_variable()
+    r = p.new_variable(nonnegative=True)
 
     E = lambda x,y : (x,y) if x<y else (y,x)
 
@@ -1308,7 +1304,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
         answer = [[] for i in range(k)]
         add = lambda (u,v),i : answer[i].append((u,v))
     else:
-        gg = g.copy()
+        gg = g.copy(immutable=False)
         gg.delete_edges(g.edges())
         answer = [gg.copy() for i in range(k)]
         add = lambda (u,v),i : answer[i].add_edge((u,v))
@@ -1467,7 +1463,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
     c = p.new_variable(binary = True)
 
     # relaxed value
-    r = p.new_variable()
+    r = p.new_variable(nonnegative=True)
 
     E = lambda x,y : (x,y) if x<y else (y,x)
 
@@ -1513,7 +1509,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
         answer = [[] for i in range(k)]
         add = lambda (u,v),i : answer[i].append((u,v))
     else:
-        gg = g.copy()
+        gg = g.copy(immutable=False)
         gg.delete_edges(g.edges())
         answer = [gg.copy() for i in range(k)]
         add = lambda (u,v),i : answer[i].add_edge((u,v))
@@ -1584,10 +1580,10 @@ class Test:
                 for i in range(l):
                     for j in range(i+1,l):
                         if G.has_edge(P[i],P[j]):
-                            raise RuntimeError, "Coloring Failed."
+                            raise RuntimeError("Coloring Failed.")
 
             #make the dict into a set for quick uniqueness checking
             S+= Set([Set([(k,tuple(C[k])) for k in C])])
 
         if len(S) != Q(m):
-            raise RuntimeError, "Incorrect number of unique colorings!"
+            raise RuntimeError("Incorrect number of unique colorings!")

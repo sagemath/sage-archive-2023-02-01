@@ -512,7 +512,7 @@ cdef int refine_by_degree(PartitionStack *PS, void *S, int *cells_to_refine_by, 
         while current_cell < PS.degree:
             i = current_cell
             r = 0
-            while 1:
+            while True:
                 if G.has_vertex(PS.entries[i]):
                     degrees[i-current_cell] = 0
                 else:
@@ -532,7 +532,7 @@ cdef int refine_by_degree(PartitionStack *PS, void *S, int *cells_to_refine_by, 
             i = current_cell
             necessary_to_split_cell = 0
             max_degree = 0
-            while 1:
+            while True:
                 degrees[i-current_cell] = degree(PS, G, i, cells_to_refine_by[current_cell_against], 0)
                 if degrees[i-current_cell] != degrees[0]:
                     necessary_to_split_cell = 1
@@ -553,7 +553,7 @@ cdef int refine_by_degree(PartitionStack *PS, void *S, int *cells_to_refine_by, 
                         break
                     against_index += 1
                 r = current_cell
-                while 1:
+                while True:
                     if r == current_cell or PS.levels[r-1] == PS.depth:
                         if r != first_largest_subcell:
                             cells_to_refine_by[ctrb_len] = r
@@ -572,7 +572,7 @@ cdef int refine_by_degree(PartitionStack *PS, void *S, int *cells_to_refine_by, 
                 i = current_cell
                 necessary_to_split_cell = 0
                 max_degree = 0
-                while 1:
+                while True:
                     degrees[i-current_cell] = degree(PS, G, i, cells_to_refine_by[current_cell_against], 1)
                     if degrees[i-current_cell] != degrees[0]:
                         necessary_to_split_cell = 1
@@ -594,7 +594,7 @@ cdef int refine_by_degree(PartitionStack *PS, void *S, int *cells_to_refine_by, 
                         against_index += 1
                     against_index = ctrb_len
                     r = current_cell
-                    while 1:
+                    while True:
                         if r == current_cell or PS.levels[r-1] == PS.depth:
                             if r != first_largest_subcell:
                                 cells_to_refine_by[against_index] = r
@@ -696,7 +696,7 @@ cdef inline int degree(PartitionStack *PS, CGraph G, int entry, int cell_index, 
     cdef int num_arcs = 0
     entry = PS.entries[entry]
     if not reverse:
-        while 1:
+        while True:
             if G.has_arc_unsafe(PS.entries[cell_index], entry):
                 num_arcs += 1
             if PS.levels[cell_index] > PS.depth:
@@ -704,7 +704,7 @@ cdef inline int degree(PartitionStack *PS, CGraph G, int entry, int cell_index, 
             else:
                 break
     else:
-        while 1:
+        while True:
             if G.has_arc_unsafe(entry, PS.entries[cell_index]):
                 num_arcs += 1
             if PS.levels[cell_index] > PS.depth:
@@ -1048,7 +1048,7 @@ cdef void *dg_edge_gen_next(void *data, int *degree, bint *mem_err):
     cdef bint mem_err_sub = 0
     if mem_err[0]:
         (<canonical_generator_data *> degd.edge_iterator.data).mem_err = 1
-    while 1:
+    while True:
         edge_candidate = <subset *> degd.edge_iterator.next(degd.edge_iterator.data, NULL, &mem_err_sub)
         if edge_candidate is NULL:
             break
@@ -1336,7 +1336,7 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
     else:
         number = Integer(0)
     if construct:
-        while 1:
+        while True:
             thing = graph_iterator.next(graph_iterator.data, NULL, &mem_err)
             if thing is NULL: break
             ODG = (<GraphStruct>thing).G
@@ -1346,7 +1346,7 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
             G._backend._cg = DG
             out_list.append(G)
     else:
-        while 1:
+        while True:
             thing = graph_iterator.next(graph_iterator.data, NULL, &mem_err)
             if thing is NULL: break
             number += 1
@@ -1607,7 +1607,7 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
     else:
         number = Integer(0)
     if construct:
-        while 1:
+        while True:
             thing = graph_iterator.next(graph_iterator.data, NULL, &mem_err)
             if thing is NULL: break
             ODG = (<GraphStruct>thing).G
@@ -1617,7 +1617,7 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
             G._backend._cg = DG
             out_list.append(G)
     else:
-        while 1:
+        while True:
             thing = graph_iterator.next(graph_iterator.data, NULL, &mem_err)
             if thing is NULL: break
             number += 1

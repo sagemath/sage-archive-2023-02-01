@@ -391,6 +391,25 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         scalar = LCM(map(lambda x: QQ(x).denominator(), sym))
         return Family( {iset[i]: ZZ(val*scalar) for i, val in enumerate(sym)} )
 
+    @cached_method
+    def symmetrized_matrix(self):
+        """
+        Return the symmetrized matrix of ``self`` if symmetrizable.
+
+        EXAMPLES::
+
+            sage: cm = CartanMatrix(['B',4,1])
+            sage: cm.symmetrized_matrix()
+            [ 4  0 -2  0  0]
+            [ 0  4 -2  0  0]
+            [-2 -2  4 -2  0]
+            [ 0  0 -2  4 -2]
+            [ 0  0  0 -2  2]
+        """
+        M = matrix.diagonal(list(self.symmetrizer())) * self
+        M.set_immutable()
+        return M
+
     ##########################################################################
     # Cartan type methods
 
@@ -443,6 +462,26 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             8
         """
         return self.ncols()
+
+    def relabel(self, relabelling):
+        """
+        Return the relabelled Cartan matrix.
+
+        EXAMPLES::
+
+            sage: CM = CartanMatrix(['C',3])
+            sage: R = CM.relabel({1:0, 2:4, 3:1}); R
+            [ 2  0 -1]
+            [ 0  2 -1]
+            [-1 -2  2]
+            sage: R.index_set()
+            (0, 1, 4)
+            sage: CM
+            [ 2 -1  0]
+            [-1  2 -2]
+            [ 0 -1  2]
+        """
+        return self.dynkin_diagram().relabel(relabelling, inplace=False).cartan_matrix()
 
     @cached_method
     def dynkin_diagram(self):
@@ -520,6 +559,25 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         if self._cartan_type is not None:
             return CartanMatrix(self._cartan_type.dual())
         return CartanMatrix(self.transpose())
+
+    def is_simply_laced(self):
+        """
+        Implements :meth:`CartanType_abstract.is_simply_laced()`.
+
+        A Cartan matrix is simply-laced if all non diagonal entries are `0`
+        or `-1`.
+
+        EXAMPLES::
+
+            sage: cm = CartanMatrix([[2, -1, -1, -1], [-1, 2, -1, -1], [-1, -1, 2, -1], [-1, -1, -1, 2]])
+            sage: cm.is_simply_laced()
+            True
+        """
+        for i in range(self.nrows()):
+            for j in range(i+1, self.ncols()):
+                if self[i, j] < -1 or self[j, i] < -1:
+                    return False
+        return True
 
     def is_crystallographic(self):
         """
@@ -716,7 +774,7 @@ def cartan_matrix(t):
     EXAMPLES::
 
         sage: cartan_matrix(['A', 4])
-        doctest:1: DeprecationWarning: cartan_matrix() is deprecated. Use CartanMatrix() instead
+        doctest:...: DeprecationWarning: cartan_matrix() is deprecated. Use CartanMatrix() instead
         See http://trac.sagemath.org/14137 for details.
         [ 2 -1  0  0]
         [-1  2 -1  0]

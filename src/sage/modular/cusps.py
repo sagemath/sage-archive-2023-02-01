@@ -304,7 +304,7 @@ class Cusp(Element):
                 self.__b = ZZ(1)
             elif isinstance(a, (tuple, list)):
                 if len(a) != 2:
-                    raise TypeError, "Unable to convert %s to a Cusp"%a
+                    raise TypeError("Unable to convert %s to a Cusp"%a)
                 if ZZ(a[1]) == 0:
                     self.__a = ZZ(1)
                     self.__b = ZZ(0)
@@ -314,25 +314,25 @@ class Cusp(Element):
                     self.__a = r.numer()
                     self.__b = r.denom()
                 except (ValueError, TypeError):
-                    raise TypeError, "Unable to convert %s to a Cusp"%a
+                    raise TypeError("Unable to convert %s to a Cusp"%a)
             else:
                 try:
                     r = QQ(a)
                     self.__a = r.numer()
                     self.__b = r.denom()
                 except (ValueError, TypeError):
-                    raise TypeError, "Unable to convert %s to a Cusp"%a
+                    raise TypeError("Unable to convert %s to a Cusp"%a)
             return
 
         if is_InfinityElement(b):
             if is_InfinityElement(a) or (isinstance(a, Cusp) and a.is_infinity()):
-                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
+                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
             self.__a = ZZ(0)
             self.__b = ZZ(1)
             return
         elif not b:
             if not a:
-                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
+                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
             self.__a = ZZ(1)
             self.__b = ZZ(0)
             return
@@ -354,13 +354,13 @@ class Cusp(Element):
             r = ZZ(a) / b
         elif isinstance(a, (tuple, list)):
             if len(a) != 2:
-                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
+                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
             r = ZZ(a[0]) / (ZZ(a[1]) * b)
         else:
             try:
                 r = QQ(a) / b
             except (ValueError, TypeError):
-                raise TypeError, "Unable to convert (%s, %s) to a Cusp"%(a, b)
+                raise TypeError("Unable to convert (%s, %s) to a Cusp"%(a, b))
 
         self.__a = r.numer()
         self.__b = r.denom()
@@ -530,7 +530,7 @@ class Cusp(Element):
             pass
 
         if not self.__b:
-            raise TypeError, "cusp %s is not a rational number"%self
+            raise TypeError("cusp %s is not a rational number"%self)
         self.__rational = self.__a / self.__b
         return self.__rational
 
@@ -557,7 +557,7 @@ class Cusp(Element):
             TypeError: cusp -3/7 is not an integer
         """
         if self.__b != 1:
-            raise TypeError, "cusp %s is not an integer"%self
+            raise TypeError("cusp %s is not an integer"%self)
         return self.__a
 
     def _repr_(self):
@@ -668,7 +668,7 @@ class Cusp(Element):
         Modular Elliptic Curves', or Prop 2.27 of Stein's Ph.D. thesis.
         """
         if transformation not in [False,True,"matrix",None,"corner"]:
-            raise ValueError, "Value %s of the optional argument transformation is not valid."
+            raise ValueError("Value %s of the optional argument transformation is not valid.")
 
         if not isinstance(other, Cusp):
             other = Cusp(other)
@@ -928,7 +928,7 @@ class Cusp(Element):
         if not isinstance(other, Cusp):
             other = Cusp(other)
         if not is_GammaH(G):
-            raise TypeError, "G must be a group GammaH(N)."
+            raise TypeError("G must be a group GammaH(N).")
 
         H = G._list_of_elements_in_H()
         N = ZZ(G.level())

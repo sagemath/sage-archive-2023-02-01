@@ -40,7 +40,7 @@ struct ZZ* int_to_ZZ(int value)
    Assumes output has been mpz_init'd.
    AUTHOR: David Harvey
            Joel B. Mohler moved the ZZX_getitem_as_mpz code out to this function (2007-03-13) */
-void ZZ_to_mpz(mpz_t* output, const struct ZZ* x)
+void ZZ_to_mpz(mpz_t output, const struct ZZ* x)
 {
     unsigned char stack_bytes[4096];
     int use_heap;
@@ -48,9 +48,9 @@ void ZZ_to_mpz(mpz_t* output, const struct ZZ* x)
     use_heap = (size > sizeof(stack_bytes));
     unsigned char* bytes = use_heap ? (unsigned char*) malloc(size) : stack_bytes;
     BytesFromZZ(bytes, *x, size);
-    mpz_import(*output, size, -1, 1, 0, 0, bytes);
+    mpz_import(output, size, -1, 1, 0, 0, bytes);
     if (sign(*x) < 0)
-        mpz_neg(*output, *output);
+        mpz_neg(output, output);
     if (use_heap)
         free(bytes);
 }
@@ -61,19 +61,18 @@ void ZZ_to_mpz(mpz_t* output, const struct ZZ* x)
 
 /* Copies the mpz_t into the ZZ
    AUTHOR: Joel B. Mohler (2007-03-15) */
-// This should be changed to an mpz_t not an mpz_t*
-void mpz_to_ZZ(struct ZZ* output, const mpz_t *x)
+void mpz_to_ZZ(struct ZZ* output, const mpz_t x)
 {
     unsigned char stack_bytes[4096];
     int use_heap;
-    size_t size = (mpz_sizeinbase(*x, 2) + bits_in_byte-1) / bits_in_byte;
+    size_t size = (mpz_sizeinbase(x, 2) + bits_in_byte-1) / bits_in_byte;
     use_heap = (size > sizeof(stack_bytes));
     void* bytes = use_heap ? malloc(size) : stack_bytes;
     size_t words_written;
-    mpz_export(bytes, &words_written, -1, 1, 0, 0, *x);
+    mpz_export(bytes, &words_written, -1, 1, 0, 0, x);
     clear(*output);
     ZZFromBytes(*output, (unsigned char *)bytes, words_written);
-    if (mpz_sgn(*x) < 0)
+    if (mpz_sgn(x) < 0)
         NTL::negate(*output, *output);
     if (use_heap)
         free(bytes);
@@ -246,7 +245,7 @@ int ZZX_getitem_as_int(struct ZZX* x, long i)
 /* Copies ith coefficient of x to output.
    Assumes output has been mpz_init'd.
    AUTHOR: David Harvey (2007-02) */
-void ZZX_getitem_as_mpz(mpz_t* output, struct ZZX* x, long i)
+void ZZX_getitem_as_mpz(mpz_t output, struct ZZX* x, long i)
 {
     const ZZ& z = coeff(*x, i);
     ZZ_to_mpz(output, &z);

@@ -78,7 +78,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
             Category of Hecke modules over Rational Field
         """
         if not is_CommutativeRing(base_ring):
-            raise TypeError, "base_ring must be commutative ring"
+            raise TypeError("base_ring must be commutative ring")
 
         from sage.categories.hecke_modules import HeckeModules
         default_category = HeckeModules(base_ring)
@@ -91,7 +91,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
 
         level = sage.rings.all.ZZ(level)
         if level <= 0:
-            raise ValueError, "level (=%s) must be positive"%level
+            raise ValueError("level (=%s) must be positive"%level)
         self.__level = level
         self._hecke_matrices = {}
         self._diamond_matrices = {}
@@ -112,13 +112,14 @@ class HeckeModule_generic(sage.modules.module.Module_old):
 
     def __hash__(self):
         r"""
-        Return a hash value for self.
+        The hash is determined by the base ring and the level.
 
         EXAMPLE::
 
-            sage: CuspForms(Gamma0(17),2).__hash__()
-            -1797992588 # 32-bit
-            -3789716081060032652 # 64-bit
+            sage: MS = sage.modular.hecke.module.HeckeModule_generic(QQ,1)
+            sage: hash(MS) == hash((MS.base_ring(), MS.level()))
+            True
+
         """
         return hash((self.base_ring(), self.__level))
 
@@ -134,7 +135,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
             ...
             NotImplementedError: ...
         """
-        raise NotImplementedError, "Derived class %s should implement __cmp__" % type(self)
+        raise NotImplementedError("Derived class %s should implement __cmp__" % type(self))
 
     def _compute_hecke_matrix_prime_power(self, p, r, **kwds):
         r"""
@@ -154,7 +155,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
         # convert input arguments to int's.
         (p,r) = (int(p), int(r))
         if not arith.is_prime(p):
-            raise ArithmeticError, "p must be a prime"
+            raise ArithmeticError("p must be a prime")
         # T_{p^r} := T_p * T_{p^{r-1}} - eps(p)p^{k-1} T_{p^{r-2}}.
         pow = p**(r-1)
         if pow not in self._hecke_matrices:
@@ -167,7 +168,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
         Tpr1 = self._hecke_matrices[pow]
         eps = self.character()
         if eps is None:
-            raise NotImplementedError, "either character or _compute_hecke_matrix_prime_power must be overloaded in a derived class"
+            raise NotImplementedError("either character or _compute_hecke_matrix_prime_power must be overloaded in a derived class")
         k = self.weight()
         Tpr2 = self._hecke_matrices[pow/p]
         return Tp*Tpr1 - eps(p)*(p**(k-1)) * Tpr2
@@ -222,7 +223,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
         """
         n = int(n)
         if n<1:
-            raise ValueError, "Hecke operator T_%s is not defined."%n
+            raise ValueError("Hecke operator T_%s is not defined."%n)
         if n==1:
             Mat = matrix_space.MatrixSpace(self.base_ring(),self.rank())
             return Mat(1)
@@ -251,7 +252,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
             ...
             NotImplementedError: All subclasses must implement _compute_hecke_matrix_prime
         """
-        raise NotImplementedError, "All subclasses must implement _compute_hecke_matrix_prime"
+        raise NotImplementedError("All subclasses must implement _compute_hecke_matrix_prime")
 
     def _compute_diamond_matrix(self, d):
         r"""
@@ -267,7 +268,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
             ...
             NotImplementedError: All subclasses without fixed character must implement _compute_diamond_matrix
         """
-        raise NotImplementedError, "All subclasses without fixed character must implement _compute_diamond_matrix"
+        raise NotImplementedError("All subclasses without fixed character must implement _compute_diamond_matrix")
 
     def _hecke_operator_class(self):
         """
@@ -487,7 +488,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
             ...
             NotImplementedError: Derived subclasses must implement rank
         """
-        raise NotImplementedError, "Derived subclasses must implement rank"
+        raise NotImplementedError("Derived subclasses must implement rank")
 
     def submodule(self, X):
         r"""
@@ -501,7 +502,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
             ...
             NotImplementedError: Derived subclasses should implement submodule
         """
-        raise NotImplementedError, "Derived subclasses should implement submodule"
+        raise NotImplementedError("Derived subclasses should implement submodule")
 
 
 class HeckeModule_free_module(HeckeModule_generic):
@@ -550,6 +551,22 @@ class HeckeModule_free_module(HeckeModule_generic):
 #            return True
 #        return x.element() in self.free_module()
 
+    def _repr_(self):
+        r"""
+
+        EXAMPLES::
+
+            sage: M = sage.modular.hecke.module.HeckeModule_free_module(QQ, 12, -4); M
+            <class 'sage.modular.hecke.module.HeckeModule_free_module_with_category'>
+
+        .. TODO::
+
+            Implement a nicer repr, or implement the methods required
+            by :class:`ModulesWithBasis` to benefit from
+            :meth:`ModulesWithBasis.ParentMethods._repr_`.
+        """
+        return repr(type(self))
+
     def __getitem__(self, n):
         r"""
         Return the nth term in the decomposition of self. See the docstring for
@@ -563,18 +580,19 @@ class HeckeModule_free_module(HeckeModule_generic):
         n = int(n)
         D = self.decomposition()
         if n < 0 or n >= len(D):
-            raise IndexError, "index (=%s) must be between 0 and %s"%(n, len(D)-1)
+            raise IndexError("index (=%s) must be between 0 and %s"%(n, len(D)-1))
         return D[n]
 
     def __hash__(self):
         r"""
-        Return a hash of self.
+        The hash is determined by the weight, the level and the base ring.
 
         EXAMPLES::
 
-            sage: ModularSymbols(22).__hash__()
-            1471905187 # 32-bit
-            -3789725500948382301 # 64-bit
+            sage: MS = ModularSymbols(22)
+            sage: hash(MS) == hash((MS.weight(), MS.level(), MS.base_ring()))
+            True
+
         """
         return hash((self.__weight, self.level(), self.base_ring()))
 
@@ -644,7 +662,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             4*(1,0) + (2,21) - (11,1) + (11,2)
         """
         if self.rank() == 0:
-            raise ArithmeticError, "the rank of self must be positive"
+            raise ArithmeticError("the rank of self must be positive")
         A = self.ambient_hecke_module()
         i = self._eigen_nonzero()
         return A._hecke_image_of_ith_basis_vector(n, i)
@@ -675,9 +693,9 @@ class HeckeModule_free_module(HeckeModule_generic):
             1
         """
         if not element.is_HeckeModuleElement(x):
-            raise TypeError, "x must be a Hecke module element."
+            raise TypeError("x must be a Hecke module element.")
         if not x in self.ambient_hecke_module():
-            raise ArithmeticError, "x must be in the ambient Hecke module."
+            raise ArithmeticError("x must be in the ambient Hecke module.")
         v = self.dual_eigenvector(names=name)
         return v.dot_product(x.element())
 
@@ -832,7 +850,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             d = self.level()
         d = int(d)
         if self.level() % d != 0:
-            raise ArithmeticError, "d (=%s) must be a divisor of the level (=%s)"%(d,self.level())
+            raise ArithmeticError("d (=%s) must be a divisor of the level (=%s)"%(d,self.level()))
 
         N = self.level()
         for p, e in arith.factor(d):
@@ -971,12 +989,12 @@ class HeckeModule_free_module(HeckeModule_generic):
             ]
         """
         if not isinstance(anemic, bool):
-            raise TypeError, "anemic must be of type bool."
+            raise TypeError("anemic must be of type bool.")
 
         key = (bound, anemic)
 
         try:
-            if self.__decomposition[key] != None:
+            if self.__decomposition[key] is not None:
                 return self.__decomposition[key]
         except AttributeError:
             self.__decomposition = {}
@@ -1122,7 +1140,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             self.__dual_eigenvector = {}
 
         if not self.is_simple():
-            raise ArithmeticError, "self must be simple"
+            raise ArithmeticError("self must be simple")
 
         # Find a Hecke operator that acts irreducibly on this space:
         p = 2
@@ -1261,9 +1279,18 @@ class HeckeModule_free_module(HeckeModule_generic):
               though it will not give the constant coefficient of one
               of the corresponding Eisenstein series (i.e., the
               generalized Bernoulli number).
+
+        TESTS:
+
+        This checks that :trac:`15201` is fixed::
+
+            sage: M = ModularSymbols(5, 6, sign=1)
+            sage: f = M.decomposition()[0]
+            sage: f.eigenvalue(10)
+            50
         """
         if not self.is_simple():
-            raise ArithmeticError, "self must be simple"
+            raise ArithmeticError("self must be simple")
         n = int(n)
         try:
             return self.__eigenvalues[n][name]
@@ -1272,7 +1299,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         except KeyError:
             pass
         if n <= 0:
-            raise IndexError, "n must be a positive integer"
+            raise IndexError("n must be a positive integer")
 
         ev = self.__eigenvalues
 
@@ -1302,11 +1329,14 @@ class HeckeModule_free_module(HeckeModule_generic):
                     _dict_set(ev, pow, name, self._element_eigenvalue(Tn_e, name=name))
                 else:
                     # a_{p^r} := a_p * a_{p^{r-1}} - eps(p)p^{k-1} a_{p^{r-2}}
-                    apr1 = self.eigenvalue(pow//p, name=name)
                     ap = self.eigenvalue(p, name=name)
-                    k = self.weight()
-                    apr2 = self.eigenvalue(pow//(p*p), name=name)
-                    apow = ap*apr1 - eps(p)*(p**(k-1)) * apr2
+                    if r == 1:
+                        apow = ap
+                    else:
+                        apr1 = self.eigenvalue(pow//p, name=name)
+                        k = self.weight()
+                        apr2 = self.eigenvalue(pow//(p*p), name=name)
+                        apow = ap*apr1 - eps(p)*(p**(k-1)) * apr2
                     _dict_set(ev, pow, name, apow)
             if prod is None:
                 prod = ev[pow][name]
@@ -1357,7 +1387,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         """
         n = int(n)
         if n <= 0:
-            raise IndexError, "n must be positive."
+            raise IndexError("n must be positive.")
         if n not in self._hecke_matrices:
             T = self._compute_hecke_matrix(n)
             T.set_immutable()
@@ -1617,9 +1647,8 @@ class HeckeModule_free_module(HeckeModule_generic):
         except AttributeError:
             i = self.factor_number()
             if i == -1:
-                raise NotImplementedError,\
-                      "Computation of projection only implemented "+\
-                      "for decomposition factors."
+                raise NotImplementedError("Computation of projection only implemented "+\
+                      "for decomposition factors.")
             A = self.ambient_hecke_module()
             B = A.decomposition_matrix_inverse()
             i = (A.decomposition()).index(self)

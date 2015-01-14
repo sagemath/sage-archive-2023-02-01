@@ -452,7 +452,7 @@ cdef int refine_set(PartitionStack *PS, void *S, int *cells_to_refine_by, int ct
     start = 0
     while start < n:
         i = 0
-        while 1:
+        while True:
             scratch[i] = bitset_in(&subset1.bits, PS.entries[start+i])
             if PS.levels[start+i] <= PS.depth:
                 break
@@ -533,7 +533,7 @@ cdef void *subset_generator_next(void *data, int *degree, bint *mem_err):
     Returns the next element to consider adding to the set.
     """
     cdef subset_generator_data *sgd = <subset_generator_data *> data
-    while 1:
+    while True:
         sgd.cur_point += 1
         if sgd.cur_point == sgd.orbits.degree:
             break

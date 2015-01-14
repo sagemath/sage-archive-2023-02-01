@@ -58,16 +58,16 @@ class FreeMonoidElement(MonoidElement):
             if x == 1:
                 self._element_list = []
             else:
-                raise TypeError, "Argument x (= %s) is of the wrong type."%x
+                raise TypeError("Argument x (= %s) is of the wrong type."%x)
         elif isinstance(x, list):
             if check:
                 x2 = []
                 for v in x:
                     if not isinstance(v, tuple) and len(v) == 2:
-                        raise TypeError, "x (= %s) must be a list of 2-tuples or 1."%x
+                        raise TypeError("x (= %s) must be a list of 2-tuples or 1."%x)
                     if not (isinstance(v[0], (int,long,Integer)) and \
                             isinstance(v[1], (int,long,Integer))):
-                        raise TypeError, "x (= %s) must be a list of 2-tuples of integers or 1."%x
+                        raise TypeError("x (= %s) must be a list of 2-tuples of integers or 1."%x)
                     if len(x2) > 0 and v[0] == x2[len(x2)-1][0]:
                         x2[len(x2)-1] = (v[0], v[1]+x2[len(x2)-1][1])
                     else:
@@ -78,7 +78,7 @@ class FreeMonoidElement(MonoidElement):
 
         else:
             # TODO: should have some other checks here...
-            raise TypeError, "Argument x (= %s) is of the wrong type."%x
+            raise TypeError("Argument x (= %s) is of the wrong type."%x)
 
     def __iter__(self):
         """
@@ -181,7 +181,7 @@ class FreeMonoidElement(MonoidElement):
         - Joel B. Mohler (2007-10-27)
         """
         if kwds and x:
-            raise ValueError, "must not specify both a keyword and positional argument"
+            raise ValueError("must not specify both a keyword and positional argument")
 
         P = self.parent()
 
@@ -196,7 +196,7 @@ class FreeMonoidElement(MonoidElement):
             x = x[0]
 
         if len(x) != self.parent().ngens():
-            raise ValueError, "must specify as many values as generators in parent"
+            raise ValueError("must specify as many values as generators in parent")
 
         # I don't start with 0, because I don't want to preclude evaluation with
         #arbitrary objects (e.g. matrices) because of funny coercion.

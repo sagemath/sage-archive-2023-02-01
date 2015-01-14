@@ -123,9 +123,9 @@ def FractionField(R, names=None):
         TypeError: R must be an integral domain.
     """
     if not ring.is_Ring(R):
-        raise TypeError, "R must be a ring"
+        raise TypeError("R must be a ring")
     if not R.is_integral_domain():
-        raise TypeError, "R must be an integral domain."
+        raise TypeError("R must be an integral domain.")
     return R.fraction_field()
 
 def is_FractionField(x):
@@ -271,8 +271,15 @@ class FractionField_generic(field.Field):
             sage: T = PolynomialRing(ZZ, 'x')
             sage: R.gen() + FractionField(T).gen()
             2*x
-            sage: 1/R.gen()
-            1/x
+            sage: 1/(R.gen() + 1)
+            1/(x + 1)
+
+            sage: R = LaurentPolynomialRing(ZZ, 'x,y')
+            sage: FF = FractionField(PolynomialRing(ZZ, 'x,y'))
+            sage: prod(R.gens()) + prod(FF.gens())
+            2*x*y
+            sage: 1/(R.gen(0) + R.gen(1))
+            1/(x + y)
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
@@ -668,20 +675,25 @@ class FractionField_generic(field.Field):
         """
         Returns a random element in this fraction field.
 
+        The arguments are passed to the random generator of the underlying ring.
+
         EXAMPLES::
 
             sage: F = ZZ['x'].fraction_field()
-            sage: F.random_element()
+            sage: F.random_element()  # random
             (2*x - 8)/(-x^2 + x)
 
         ::
 
-            sage: F.random_element(degree=5)
-            (-12*x^5 - 2*x^4 - x^3 - 95*x^2 + x + 2)/(-x^5 + x^4 - x^3 + x^2)
+            sage: f = F.random_element(degree=5)
+            sage: f.numerator().degree()
+            5
+            sage: f.denominator().degree()
+            5
         """
         return self._element_class(self, self._R.random_element(*args, **kwds),
             self._R._random_nonzero_element(*args, **kwds),
-            coerce = False, reduce=True)
+            coerce=False, reduce=True)
 
 class FractionField_1poly_field(FractionField_generic):
     """

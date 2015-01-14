@@ -55,7 +55,7 @@ def KRTToRCBijection(tp_krt):
 
     TESTS::
 
-        sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+        sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
         sage: from sage.combinat.rigged_configurations.bijection import KRTToRCBijection
         sage: bijection = KRTToRCBijection(KRT(pathlist=[[5,2]]))
     """

@@ -9,6 +9,7 @@
 
 #include "ccobject.h"
 #include <pynac/ginac.h>
+#include <pynac/extern_templates.h>
 #include <string>
 
 using namespace GiNaC;

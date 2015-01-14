@@ -58,9 +58,9 @@ class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
             True
         """
         if not module.is_HeckeModule(X) or not module.is_HeckeModule(Y):
-            raise TypeError, "X and Y must be Hecke modules"
+            raise TypeError("X and Y must be Hecke modules")
         if X.base_ring() != Y.base_ring():
-            raise TypeError, "X and Y must have the same base ring"
+            raise TypeError("X and Y must have the same base ring")
         if category is None:
             category = X.category()
         sage.categories.homset.HomsetWithBase.__init__(self, X, Y, category = category)
@@ -105,7 +105,7 @@ class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
                 A._set_parent(self)
                 return A
             else:
-                raise TypeError, "unable to coerce A to self"
+                raise TypeError("unable to coerce A to self")
         except AttributeError:
             pass
         return morphism.HeckeModuleMorphism_matrix(self, A, name)

@@ -79,7 +79,7 @@ cpdef fibers(f, domain):
         sage: fibers(lambda x: 1, [])
         {}
         sage: fibers(lambda x: x^2, [-1, 2, -3, 1, 3, 4])
-        {16: {4}, 1: {1, -1}, 4: {2}, 9: {3, -3}}
+        {1: {1, -1}, 4: {2}, 9: {3, -3}, 16: {4}}
         sage: fibers(lambda x: 1,   [-1, 2, -3, 1, 3, 4])
         {1: {1, 2, 3, 4, -3, -1}}
         sage: fibers(lambda x: 1, [1,1,1])
@@ -108,7 +108,7 @@ def fibers_args(f, domain, *args, **opts):
 
         sage: from sage.sets.finite_set_map_cy import fibers_args
         sage: fibers_args(operator.pow, [-1, 2, -3, 1, 3, 4], 2)
-        {16: {4}, 1: {1, -1}, 4: {2}, 9: {3, -3}}
+        {1: {1, -1}, 4: {2}, 9: {3, -3}, 16: {4}}
     """
     return fibers(lambda x: f(x, *args, **opts), domain)
 

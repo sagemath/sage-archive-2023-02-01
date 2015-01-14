@@ -119,8 +119,6 @@ cdef class ntl_GF2X:
             sage: ntl.GF2X(f)
             [1 0 1 0 0 1]
         """
-
-        from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
         from sage.rings.finite_rings.element_givaro import FiniteField_givaroElement
         from sage.rings.finite_rings.element_ntl_gf2e import FiniteField_ntl_gf2eElement
         from sage.rings.finite_rings.finite_field_base import FiniteField
@@ -147,10 +145,6 @@ cdef class ntl_GF2X:
         elif PY_TYPE_CHECK(x, FiniteField):
             if x.characteristic() == 2:
                 x= list(x.modulus())
-        elif PY_TYPE_CHECK(x, FiniteField_ext_pariElement):
-            if x.parent().characteristic() == 2:
-                x=x._pari_().centerlift().centerlift().subst('a',2).int_unsafe()
-                x="0x"+hex(x)[2:][::-1]
         elif PY_TYPE_CHECK(x, FiniteField_givaroElement):
             x = "0x"+hex(x.integer_representation())[2:][::-1]
         elif PY_TYPE_CHECK(x, FiniteField_ntl_gf2eElement):
@@ -535,7 +529,7 @@ cdef class ntl_GF2X:
             sage: f._sage_(PolynomialRing(Integers(2),'y'))
             y^5 + y^3 + y^2 + 1
         """
-        if R==None:
+        if R is None:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             from sage.rings.finite_rings.constructor import FiniteField
             R = PolynomialRing(FiniteField(2), 'x')

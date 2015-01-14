@@ -177,11 +177,11 @@ class RingHomset_generic(HomsetWithBase):
             return self._coerce_impl(im_gens)
         try:
             return morphism.RingHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError), err:
+        except (NotImplementedError, ValueError) as err:
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:
-                raise TypeError, "images do not define a valid homomorphism"
+                raise TypeError("images do not define a valid homomorphism")
 
 
     def natural_map(self):
@@ -261,11 +261,11 @@ class RingHomset_quo_ring(RingHomset_generic):
             pi = self.domain().cover()
             phi = pi.domain().hom(im_gens, check=check)
             return morphism.RingHomomorphism_from_quotient(self, phi)
-        except (NotImplementedError, ValueError), err:
+        except (NotImplementedError, ValueError) as err:
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:
-                raise TypeError, "images do not define a valid homomorphism"
+                raise TypeError("images do not define a valid homomorphism")
 
     def _coerce_impl(self, x):
         """
@@ -288,18 +288,15 @@ class RingHomset_quo_ring(RingHomset_generic):
                       From: Multivariate Polynomial Ring in x, y over Integer Ring
                       To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
                     then
-                      Composite map:
+                      Ring morphism:
                       From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+                      To:   Multivariate Polynomial Ring in x, y over Rational Field
+                      Defn: a |--> b
+                            b |--> a
+                    then
+                      Conversion map:
+                      From: Multivariate Polynomial Ring in x, y over Rational Field
                       To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
-                      Defn:   Ring morphism:
-                              From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
-                              To:   Multivariate Polynomial Ring in x, y over Rational Field
-                              Defn: a |--> b
-                                    b |--> a
-                            then
-                              Conversion map:
-                              From: Multivariate Polynomial Ring in x, y over Rational Field
-                              To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
 
         """
         if not isinstance(x, morphism.RingHomomorphism_from_quotient):

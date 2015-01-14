@@ -177,14 +177,14 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
                 try:
                     v = [C(A(g)) for g in self.domain().gens()]
                     A = matrix.matrix([C.coordinates(a) for a in v])
-                except TypeError, msg:
+                except TypeError as msg:
                     # Let us hope that FreeModuleMorphism knows to handle that case
                     pass
             else:
                 try:
                     v = [C(a) for a in A]
                     A = matrix.matrix([C.coordinates(a) for a in v])
-                except TypeError, msg:
+                except TypeError as msg:
                     # Let us hope that FreeModuleMorphism knows to handle that case
                     pass
         return free_module_morphism.FreeModuleMorphism(self, A)
@@ -296,5 +296,5 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         if self.is_endomorphism_set():
             return self(matrix.identity_matrix(self.base_ring(),self.domain().rank()))
         else:
-            raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
+            raise TypeError("Identity map only defined for endomorphisms. Try natural_map() instead.")
 

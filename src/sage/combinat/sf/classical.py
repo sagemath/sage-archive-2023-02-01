@@ -129,7 +129,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         # Partitions #
         ##############
         if x in sage.combinat.partition.Partitions():
-            return eclass(self, {sage.combinat.partition.Partition(filter(lambda x: x!=0, x)): R.one()})
+            return eclass(self, {sage.combinat.partition.Partition([z for z in x if z!=0]): R.one()})
 
         # Todo: discard all of this which is taken care by Sage's coercion
         # (up to changes of base ring)
@@ -180,7 +180,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             try:
                 t = conversion_functions[(xP.basis_name(),self.basis_name())]
             except AttributeError:
-                raise TypeError, "do not know how to convert from %s to %s"%(xP.basis_name(), self.basis_name())
+                raise TypeError("do not know how to convert from %s to %s"%(xP.basis_name(), self.basis_name()))
 
             if R == QQ and xP.base_ring() == QQ:
                 if xm:
@@ -226,7 +226,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             zero = BR.zero()
             PBR = P.base_ring()
             if not BR.has_coerce_map_from(PBR):
-                raise TypeError, "no coerce map from x's parent's base ring (= %s) to self's base ring (= %s)"%(PBR, self.base_ring())
+                raise TypeError("no coerce map from x's parent's base ring (= %s) to self's base ring (= %s)"%(PBR, self.base_ring()))
 
             z_elt = {}
             for m, c in x._monomial_coefficients.iteritems():
@@ -314,7 +314,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             try:
                 return eclass(self, {sage.combinat.partition.Partition([]):R(x)})
             except Exception:
-                raise TypeError, "do not know how to make x (= %s) an element of self"%(x)
+                raise TypeError("do not know how to make x (= %s) an element of self"%(x))
 
     # This subclass is currently needed for the test above:
     #    isinstance(x, SymmetricFunctionAlgebra_classical.Element):

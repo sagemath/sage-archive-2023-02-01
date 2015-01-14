@@ -24,7 +24,7 @@ from enums import ATLAS_OSTYPE, ATLAS_MACHTYPE, ATLAS_ISAEXT, make_check_enums
 PATCH_DIR = os.path.join(conf['SPKG_DIR'], 'patches')
 
 # the current lapack source tarball
-LAPACK_TARFILE = os.path.join(conf['SPKG_DIR'], 'src', 'lapack-3.4.2.tar')
+LAPACK_TARFILE = os.path.join(conf['SPKG_DIR'], 'src', 'lapack-3.5.0.tar')
 
 # temporary directory to build everything in
 BUILD_DIR = os.path.join(conf['SPKG_DIR'], 'src', 'ATLAS-build')
@@ -313,6 +313,12 @@ def configure(arch=None, isa_ext=None):
         if conf['Darwin?']:
             atlas_osnam = 'OSX'
         elif conf['CYGWIN?']:
+# Picking Win64 currently does not work on Cygwin though it might be a better
+# choice in the future.
+# Not that ATLAS does not seem to officialy support Cygwin64 anyway in 3.10.1.
+#            if conf['64bit?']:
+#                atlas_osnam = 'Win64'
+#            else:
             atlas_osnam = 'WinNT'
         else:
             atlas_osnam = conf['system']
@@ -320,6 +326,10 @@ def configure(arch=None, isa_ext=None):
         cmd += ' -O '+str(atlas_system)
     except ValueError:
         pass
+
+    # use hard floats on ARM
+    if conf['ARM?']:
+        cmd += ' -D c -DATL_ARM_HARDFP=1'
 
     # set machine architecture
     if arch is not None:

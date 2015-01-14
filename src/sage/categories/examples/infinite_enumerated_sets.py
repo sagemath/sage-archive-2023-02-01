@@ -137,7 +137,7 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
         if elt in self:
             return self._element_constructor_(elt)
         else:
-            raise ValueError, "Value %s is not a non negative integer."%(elt)
+            raise ValueError("Value %s is not a non negative integer."%(elt))
 
     def an_element(self):
         """

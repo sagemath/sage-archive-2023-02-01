@@ -51,7 +51,7 @@ class GroupAlgebra(Algebra):
         EXAMPLES::
 
             sage: from sage.algebras.group_algebra import GroupAlgebra
-            doctest:1: DeprecationWarning:...
+            doctest:...: DeprecationWarning:...
             sage: GroupAlgebra(GL(3, GF(7)))
             Group algebra of group "General Linear Group of degree 3 over Finite
             Field of size 7" over base ring Integer Ring

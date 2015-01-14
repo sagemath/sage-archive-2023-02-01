@@ -17,6 +17,7 @@ from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_deg, ZZ_pX_coeff
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_to_PyString
 from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_rep
+from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 
 # We need to define this stuff before including the templating stuff
 # to make sure the function get_cparent is found since it is used in
@@ -25,12 +26,12 @@ from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_rep
 cdef cparent get_cparent(parent) except? NULL:
     if parent is None:
         return NULL
-    cdef ntl_ZZ_pEContext_class c
+    cdef ntl_ZZ_pEContext_class pec
     try:
-        c = parent._modulus
+        pec = parent._modulus
     except AttributeError:
         return NULL
-    return &(c.x)
+    return &(pec.ptrs)
 
 # first we include the definitions
 include "sage/libs/ntl/ntl_ZZ_pEX_linkage.pxi"
@@ -79,9 +80,9 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: x^2+a
             x^2 + a
 
-        TEST:
+        TESTS:
 
-        The following tests against a bug that was fixed in trac ticket #9944.
+        The following tests against a bug that was fixed in :trac:`9944`.
         With the ring definition above, we now have::
 
             sage: R([3,'1234'])
@@ -89,11 +90,21 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: R([3,'12e34'])
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=12e34) to an integer
+            TypeError: unable to convert '12e34' to an integer
             sage: R([3,x])
             Traceback (most recent call last):
             ...
             TypeError: not a constant polynomial
+
+        Check that NTL contexts are correctly restored and that
+        :trac:`9524` has been fixed::
+
+            sage: x = polygen(GF(9, 'a'))
+            sage: x = polygen(GF(49, 'a'))
+            sage: -x
+            6*x
+            sage: 5*x
+            5*x
 
         Check that :trac:`11239` is fixed::
 
@@ -169,7 +180,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
             return r << start
         else:
-            (<Polynomial_template>self)._cparent[0].restore()
+            self._parent._modulus.restore()
             c_pE = ZZ_pEX_coeff(self.x, i)
 
             K = self._parent.base_ring()
@@ -192,7 +203,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         cdef Py_ssize_t i
 
-        (<Polynomial_template>self)._cparent[0].restore()
+        self._parent._modulus.restore()
 
         K = self._parent.base_ring()
         return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i))) for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
@@ -251,6 +262,16 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             ...
             TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>__call__() accepts no named argument except 'y'
 
+        Check that polynomial evaluation works when using logarithmic
+        representation of finite field elements (:trac:`16383`)::
+
+            sage: for i in xrange(10):
+            ....:     F = FiniteField(random_prime(15) ** ZZ.random_element(2, 5), 'a', repr='log')
+            ....:     b = F.random_element()
+            ....:     P = PolynomialRing(F, 'x')
+            ....:     f = P.random_element(8)
+            ....:     assert f(b) == sum(c * b^i for i, c in enumerate(f))
+
         """
         cdef ntl_ZZ_pE _a
         cdef ZZ_pE_c c_b
@@ -278,9 +299,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         _a = self._parent._modulus.ZZ_pE(list(a.polynomial()))
         ZZ_pEX_eval(c_b, self.x, _a.x)
-
-        R = K.polynomial_ring()
-        return K(str(R(ZZ_pE_c_to_list(c_b))))
+        return K(ZZ_pE_c_to_list(c_b))
 
     def resultant(self, other):
         """

@@ -54,6 +54,3 @@ update GAP, please also update and use the spkg-src script.
 
  * writeandcheck.patch: fix infinite loop in writeandcheck() when
    writing an error message fails.
-
- * sparc_segfault.patch: fix alignment issue on SPARC
-

@@ -307,7 +307,7 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     """
     bases = tuple(bases)
     #assert(len(bases) > 0 )
-    assert(type(name) is str)
+    assert(isinstance(name, str))
     #    assert(cls is None or issubtype(type(cls), type) or type(cls) is classobj)
     if cache is True:
         return dynamic_class_internal(name, bases, cls, reduction, doccls, prepend_cls_bases)
@@ -406,7 +406,7 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
     # approach won't scale well if we start using metaclasses
     # elsewhere in Sage.
     for base in bases:
-        if type(base) is ClasscallMetaclass:
+        if isinstance(base, ClasscallMetaclass):
             metaclass = DynamicClasscallMetaclass
     return metaclass(name, bases, methods)
 

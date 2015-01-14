@@ -699,7 +699,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         try:
             return PowerSeries.__div__(self, denom)
-        except (PariError, ZeroDivisionError), e: # PariError to general?
+        except (PariError, ZeroDivisionError) as e: # PariError to general?
             if is_PowerSeries(denom) and denom.degree() == 0 and denom[0] in self._parent.base_ring():
                 denom = denom[0]
             elif not denom in self._parent.base_ring():

@@ -175,10 +175,21 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: z = (1+w)^5; z # indirect doctest
             1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
 
+        TESTS:
+
         Check that :trac:`3865` is fixed::
 
             sage: W(gp('2 + O(5^2)'))
             2 + O(w^25)
+
+        Check that :trac:`13612` has been fixed::
+
+            sage: R = ZpFM(3)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2+1)
+            sage: W(W.residue_field().zero())
+            O(3^20)
+
         """
         pAdicZZpXElement.__init__(self, parent)
         ZZ_pX_construct(&self.value)
@@ -222,18 +233,23 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
                 x = x.lift()
             else:
                 raise TypeError, "cannot coerce from the given integer mod ring (not a power of the same prime)"
+        elif x in parent.residue_field():
+            # Should only reach here if x is not in F_p
+            z = parent.gen()
+            poly = x.polynomial().list()
+            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))], parent.zero())
         elif PY_TYPE_CHECK(x, ntl_ZZ_p):
             ctx_prec = ZZ_remove(tmp_z, (<ntl_ZZ>x.modulus()).x, self.prime_pow.pow_ZZ_tmp(1)[0])
             if ZZ_IsOne(tmp_z):
                 x = x.lift()
                 tmp_Int = PY_NEW(Integer)
-                ZZ_to_mpz(&tmp_Int.value, &(<ntl_ZZ>x).x)
+                ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
                 x = tmp_Int
             else:
                 raise TypeError, "cannot coerce the given ntl_ZZ_p (modulus not a power of the same prime)"
         elif PY_TYPE_CHECK(x, ntl_ZZ):
             tmp_Int = PY_NEW(Integer)
-            ZZ_to_mpz(&tmp_Int.value, &(<ntl_ZZ>x).x)
+            ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
             x = tmp_Int
         elif isinstance(x, (int, long)):
             x = Integer(x)
@@ -279,7 +295,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         sig_on()
         mpz_init(tmp_m)
         mpz_set(tmp_m, x)
-        mpz_to_ZZ(&tmp, &tmp_m)
+        mpz_to_ZZ(&tmp, tmp_m)
         mpz_clear(tmp_m)
         ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp))
         sig_off()
@@ -308,10 +324,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         cdef ZZ_c tmp_z
         sig_on()
         mpz_init(tmp_m)
-        mpz_invert(tmp_m, mpq_denref(x), self.prime_pow.pow_mpz_t_top()[0])
+        mpz_invert(tmp_m, mpq_denref(x), self.prime_pow.pow_mpz_t_top())
         mpz_mul(tmp_m, tmp_m, mpq_numref(x))
-        mpz_mod(tmp_m, tmp_m, self.prime_pow.pow_mpz_t_top()[0])
-        mpz_to_ZZ(&tmp_z, &tmp_m)
+        mpz_mod(tmp_m, tmp_m, self.prime_pow.pow_mpz_t_top())
+        mpz_to_ZZ(&tmp_z, tmp_m)
         ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp_z))
         mpz_clear(tmp_m)
         sig_off()
@@ -355,7 +371,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         self.prime_pow.restore_top_context()
         ZZX_to_ZZ_pX(self.value, poly)
 
-    cpdef bint _is_inexact_zero(self):
+    cpdef bint _is_inexact_zero(self) except -1:
         """
         Tests if ``self`` is an inexact zero.
 
@@ -761,7 +777,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             return self.parent(1)
         cdef pAdicZZpXFMElement ans = self._new_c()
         cdef ntl_ZZ rZZ = PY_NEW(ntl_ZZ)
-        mpz_to_ZZ(&rZZ.x, &(<Integer>right).value)
+        mpz_to_ZZ(&rZZ.x, (<Integer>right).value)
         if mpz_sgn((<Integer>right).value) < 0:
             if self.valuation_c() > 0:
                 raise ValueError, "cannot invert non-unit"
@@ -1018,7 +1034,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             raise ValueError, "This element not well approximated by an integer."
         ans = PY_NEW(Integer)
         tmp_z = ZZ_p_rep(ZZ_pX_ConstTerm(self.value))
-        ZZ_to_mpz(&ans.value, &tmp_z)
+        ZZ_to_mpz(ans.value, &tmp_z)
         return ans
 
     def matrix_mod_pn(self):

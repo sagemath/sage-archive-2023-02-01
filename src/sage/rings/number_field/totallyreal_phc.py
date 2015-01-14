@@ -105,7 +105,7 @@ def __lagrange_bounds_phc(n, m, a, tmpfile=None):
     fi.close()
     fo.close()
     if find_phc == []:
-        raise RuntimeError, "PHCpack not installed."
+        raise RuntimeError("PHCpack not installed.")
 
     # Initialization.
     if tmpfile is None:

@@ -336,17 +336,6 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         return x
 
 class AmbientSpaceElement(CombinatorialFreeModuleElement):
-    def __hash__(self):
-        """
-        EXAMPLES::
-
-            sage: e = RootSystem(['A',2]).ambient_space()
-            sage: hash(e.simple_root(0))
-            -4601450286177489034          # 64-bit
-            549810038                     # 32-bit
-        """
-        return hash(tuple(sorted([(m,c) for m,c in self._monomial_coefficients.iteritems()])))
-
     # For backward compatibility
     def _repr_(self):
         """

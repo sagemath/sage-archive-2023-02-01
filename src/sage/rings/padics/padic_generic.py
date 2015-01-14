@@ -848,7 +848,7 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
     if isinstance(print_options, str):
         print_options = {'mode': print_options}
     elif not isinstance(print_options, dict):
-        raise TypeError, "print_options must be a dictionary or a string"
+        raise TypeError("print_options must be a dictionary or a string")
     if pos is not None:
         print_options['pos'] = pos
     if ram_name is not None:

@@ -163,15 +163,18 @@ NOTES::
 
 AUTHORS:
 
-- David Roe  (2008-01-01) initial version
+- David Roe (2008-01-01): initial version
 
-- Robert Harron (2011-09) fixes/enhancements
+- Robert Harron (2011-09): fixes/enhancements
+
+- Julian Rueth (2014-05-09): enable caching through ``_cache_key``
 
 """
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
 #                          William Stein <wstein@gmail.com>
+#                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -259,10 +262,28 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W(w, 14)
             w + O(w^14)
 
-        Check that #3865 is fixed::
+        TESTS:
+
+        Check that :trac:`3865` is fixed::
 
             sage: W(gp('3 + O(5^10)'))
             3 + O(w^3125)
+
+
+        Check that :trac:`13612` has been fixed::
+
+            sage: R = Zp(3)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2+1)
+            sage: W(W.residue_field().zero())
+            O(3)
+
+            sage: K = Qp(3)
+            sage: S.<a> = K[]
+            sage: L.<a> = K.extension(a^2+1)
+            sage: L(L.residue_field().zero())
+            O(3)
+
         """
         pAdicZZpXElement.__init__(self, parent)
         self.relprec = 0
@@ -347,7 +368,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             if ZZ_IsOne(tmp_z):
                 x = x.lift()
                 tmp_Int = PY_NEW(Integer)
-                ZZ_to_mpz(&tmp_Int.value, &(<ntl_ZZ>x).x)
+                ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
                 x = tmp_Int
                 if absprec is infinity or ctx_prec < aprec:
                     aprec = ctx_prec
@@ -356,7 +377,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 raise TypeError, "cannot coerce the given ntl_ZZ_p (modulus not a power of the same prime)"
         elif PY_TYPE_CHECK(x, ntl_ZZ):
             tmp_Int = PY_NEW(Integer)
-            ZZ_to_mpz(&tmp_Int.value, &(<ntl_ZZ>x).x)
+            ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
             x = tmp_Int
         elif isinstance(x, (int, long)):
             x = Integer(x)
@@ -364,7 +385,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             # Should only reach here if x is not in F_p
             z = parent.gen()
             poly = x.polynomial().list()
-            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))])
+            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))], parent.zero())
             if absprec is infinity or 1 < aprec:
                 aprec = 1
                 absprec = 0 # absprec just has to be non-infinite: everything else uses aprec
@@ -468,6 +489,58 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 self._set_from_list_rel(x, rprec)
             else:
                 self._set_from_list_both(x, aprec, rprec)
+
+    def _cache_key(self):
+        r"""
+        Return a hashable key which identifies this element.
+
+        This makes it possible to use this element in caches such as
+        functions or methods decorated with ``@cached_function`` or
+        ``@cached_method`` respectively.
+
+        EXAMPLE:
+
+        In the following example, ``a`` and ``b`` compare equal. They cannot
+        have a meaningful hash value since then their hash value would have to
+        be the same::
+
+            sage: K.<a> = Qq(9)
+            sage: b = a + O(3)
+            sage: a == b
+            True
+            sage: hash(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+
+        However, we want to cache computations which depend on them. Therefore
+        they define a ``_cache_key`` which is hashable and uniquely identifies
+        them::
+
+            sage: a._cache_key()
+            (..., ((0, 1),), 0, 20)
+            sage: b._cache_key()
+            (..., ((0, 1),), 0, 1)
+
+        TESTS:
+
+        Check that zero values are handled correctly::
+
+            sage: K.zero()._cache_key()
+            (..., 0)
+            sage: K(0,1)._cache_key()
+            (..., 0, 1)
+
+        """
+        if self._is_exact_zero():
+            return (self.parent(), 0)
+        elif self._is_inexact_zero():
+            return (self.parent(), 0, self.valuation())
+        else:
+            return (self.parent(),
+                    tuple(tuple(c) if isinstance(c, list) else c
+                          for c in self.unit_part().list()),
+                    self.valuation(), self.precision_relative())
 
     cdef int _set_inexact_zero(self, long absprec) except -1:
         """
@@ -679,7 +752,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         shift = mpz_remove(tmp_m, x, self.prime_pow.prime.value)
         sig_off()
         self._set_prec_rel(relprec)
-        mpz_to_ZZ(&tmp_z, &tmp_m)
+        mpz_to_ZZ(&tmp_z, tmp_m)
         mpz_clear(tmp_m)
         if self.relprec != 0:
             ZZ_pX_SetCoeff(self.unit, 0, ZZ_to_ZZ_p(tmp_z))
@@ -730,7 +803,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             # This indicates that self._set_inexact_zero was called
             mpz_clear(tmp_m)
             return 0
-        mpz_to_ZZ(&tmp_z, &tmp_m)
+        mpz_to_ZZ(&tmp_z, tmp_m)
         mpz_clear(tmp_m)
         if self.relprec != 0:
             ZZ_pX_SetCoeff(self.unit, 0, ZZ_to_ZZ_p(tmp_z))
@@ -885,9 +958,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         if self.relprec != 0:
             mpz_init(tmp_m)
             mpz_set(tmp_m, num_unit)
-            mpz_to_ZZ(&num_zz, &tmp_m)
+            mpz_to_ZZ(&num_zz, tmp_m)
             mpz_set(tmp_m, den_unit)
-            mpz_to_ZZ(&den_zz, &tmp_m)
+            mpz_to_ZZ(&den_zz, tmp_m)
             mpz_clear(tmp_m)
             #The context has been restored in setting self.relprec
             ZZ_p_div(tmp_zp, ZZ_to_ZZ_p(num_zz), ZZ_to_ZZ_p(den_zz))
@@ -2003,7 +2076,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             ans.ordp = mpz_get_si(tmp)
             mpz_clear(tmp)
         cdef ntl_ZZ rZZ = PY_NEW(ntl_ZZ)
-        mpz_to_ZZ(&rZZ.x, &right.value)
+        mpz_to_ZZ(&rZZ.x, right.value)
         sig_on()
         if mpz_sgn(right.value) < 0:
             if self.prime_pow.e == 1:
@@ -2305,7 +2378,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             raise ValueError, "This element not well approximated by an integer."
         ans = PY_NEW(Integer)
         tmp_z = ZZ_p_rep(ZZ_pX_ConstTerm(f.x))
-        ZZ_to_mpz(&ans.value, &tmp_z)
+        ZZ_to_mpz(ans.value, &tmp_z)
         return ans
 
     def is_zero(self, absprec = None):

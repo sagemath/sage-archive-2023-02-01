@@ -1,0 +1,21 @@
+From cb1986230f78a936a905378f1aed92a4c67dba6d Mon Sep 17 00:00:00 2001
+From: Thomas Kluyver <takowl@gmail.com>
+Date: Fri, 16 May 2014 15:57:03 -0700
+Subject: [PATCH 2/2] Close database when HistorySavingThread stops
+
+---
+ IPython/core/history.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/IPython/core/history.py b/IPython/core/history.py
+index da10813..c9b8435 100644
+--- a/IPython/core/history.py
++++ b/IPython/core/history.py
+@@ -775,6 +775,7 @@ def run(self):
+             while True:
+                 self.history_manager.save_flag.wait()
+                 if self.stop_now:
++                    self.db.close()
+                     return
+                 self.history_manager.save_flag.clear()
+                 self.history_manager.writeout_cache(self.db)

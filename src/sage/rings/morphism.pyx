@@ -3,9 +3,9 @@ Homomorphisms of rings
 
 We give a large number of examples of ring homomorphisms.
 
-EXAMPLE: Natural inclusion `\ZZ \hookrightarrow \QQ`.
+EXAMPLE:
 
-::
+Natural inclusion `\ZZ \hookrightarrow \QQ`::
 
     sage: H = Hom(ZZ, QQ)
     sage: phi = H([1])
@@ -441,7 +441,6 @@ cdef class RingMap_lift(RingMap):
         sage: Q.0*Q.1   # indirect doctest
         [0 1]
         [0 0]
-
     """
     def __init__(self, R, S):
         """
@@ -466,11 +465,35 @@ cdef class RingMap_lift(RingMap):
         except TypeError:
             raise TypeError, "No natural lift map"
 
-    cdef _update_slots(self, _slots):
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zmod(8).lift()
+            sage: g = copy(f)    # indirect doctest
+            sage: g(3) == f(3)
+            True
+            sage: f == g
+            True
+            sage: f is g
+            False
+        """
         self.S = _slots['S']
         Morphism._update_slots(self, _slots)
 
-    cdef _extra_slots(self, _slots):
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zmod(8).lift()
+            sage: g = copy(f)    # indirect doctest
+            sage: g(3) == f(3)
+            True
+        """
         _slots['S'] = self.S
         return Morphism._extra_slots(self, _slots)
 
@@ -525,7 +548,7 @@ cdef class RingMap_lift(RingMap):
             sage: hash(f) == hash(g)
             False
         """
-        return hash((self._domain, self._codomain))
+        return hash((self.domain(), self.codomain()))
 
     def _repr_defn(self):
         """
@@ -656,12 +679,40 @@ cdef class RingHomomorphism(RingMap):
             raise TypeError, "lift must have correct codomain"
         self._lift = lift
 
-    cdef _update_slots(self, _slots):
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZZ.hom(Zmod(6))
+            sage: g = copy(f)    # indirect doctest
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(7)
+            1
+        """
         if '_lift' in _slots:
             self._lift = _slots['_lift']
         Morphism._update_slots(self, _slots)
 
-    cdef _extra_slots(self, _slots):
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZZ.hom(Zmod(6))
+            sage: g = copy(f)    # indirect doctest
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(7)
+            1
+        """
         try:
             _slots['_lift'] = self._lift
         except AttributeError:
@@ -730,7 +781,6 @@ cdef class RingHomomorphism(RingMap):
 
         - Simon King (2010-05)
         - Francis Clarke (2011-02)
-
         """
         from sage.all import Rings
         if homset.homset_category().is_subcategory(Rings()):
@@ -951,7 +1001,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
             sage: {f: 1}[f]
             1
         """
-        return hash((self._domain, self._codomain))
+        return hash((self.domain(), self.codomain()))
 
     cpdef Element _call_(self, x):
         """
@@ -1052,11 +1102,41 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         """
         return list(self.__im_gens)
 
-    cdef _update_slots(self, _slots):
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = R.hom([x,x+y])
+            sage: g = copy(f)   # indirect doctest
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(y)
+            x + y
+        """
         self.__im_gens = _slots['__im_gens']
         RingHomomorphism._update_slots(self, _slots)
 
-    cdef _extra_slots(self, _slots):
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = R.hom([x,x+y])
+            sage: g = copy(f)   # indirect doctest
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(y)
+            x + y
+        """
         _slots['__im_gens'] = self.__im_gens
         return RingHomomorphism._extra_slots(self, _slots)
 
@@ -1250,8 +1330,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         sage: MPf(M)
         [                    z*t^2 + 58*t - 6*z^2 (-6/7*z^2 - 1/20*z)*t^2 + 29*z^2*t + 6*z]
         [    (-z + 1)*t^2 + 11*z^2 + 15/2*z + 1/4                           (20*z + 1)*t^2]
-
-
     """
     def __init__(self, parent, underlying):
         """
@@ -1279,7 +1357,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             Traceback (most recent call last):
             ...
             ValueError: Domain and codomain must have the same functorial construction over their base rings
-
         """
         RingHomomorphism.__init__(self, parent)
         if underlying.domain() != parent.domain().base():
@@ -1304,15 +1381,66 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: g = MR.hom(f,MS)
             sage: g.underlying_map() == f
             True
-
         """
         return self.__underlying
 
-    cdef _update_slots(self, _slots):
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: S.<z> = QQ[]
+            sage: f = R.hom([2*z,3*z],S)
+            sage: PR.<t> = R[]
+            sage: PS = S['t']
+            sage: phi = PR.hom(f,PS)
+            sage: type(phi)
+            <type 'sage.rings.morphism.RingHomomorphism_from_base'>
+            sage: psi = copy(phi); psi    # indirect doctest
+            Ring morphism:
+              From: Univariate Polynomial Ring in t over Multivariate Polynomial Ring in x, y over Rational Field
+              To:   Univariate Polynomial Ring in t over Univariate Polynomial Ring in z over Rational Field
+              Defn: Induced from base ring by
+                    Ring morphism:
+                      From: Multivariate Polynomial Ring in x, y over Rational Field
+                      To:   Univariate Polynomial Ring in z over Rational Field
+                      Defn: x |--> 2*z
+                            y |--> 3*z
+            sage: psi(x*t)
+            2*z*t
+        """
         self.__underlying = _slots['__underlying']
         RingHomomorphism._update_slots(self, _slots)
 
-    cdef _extra_slots(self, _slots):
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: S.<z> = QQ[]
+            sage: f = R.hom([2*z,3*z],S)
+            sage: PR.<t> = R[]
+            sage: PS = S['t']
+            sage: phi = PR.hom(f,PS)
+            sage: type(phi)
+            <type 'sage.rings.morphism.RingHomomorphism_from_base'>
+            sage: psi = copy(phi); psi    # indirect doctest
+            Ring morphism:
+              From: Univariate Polynomial Ring in t over Multivariate Polynomial Ring in x, y over Rational Field
+              To:   Univariate Polynomial Ring in t over Univariate Polynomial Ring in z over Rational Field
+              Defn: Induced from base ring by
+                    Ring morphism:
+                      From: Multivariate Polynomial Ring in x, y over Rational Field
+                      To:   Univariate Polynomial Ring in z over Rational Field
+                      Defn: x |--> 2*z
+                            y |--> 3*z
+            sage: psi(x*t)
+            2*z*t
+        """
         _slots['__underlying'] = self.__underlying
         return RingHomomorphism._extra_slots(self, _slots)
 
@@ -1554,7 +1682,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             sage: {phi: 1}[phi]
             1
         """
-        return hash((self._domain, self._codomain))
+        return hash((self.domain(), self.codomain()))
 
 cdef class RingHomomorphism_from_quotient(RingHomomorphism):
     r"""
@@ -1625,11 +1753,57 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         self._lift = pi.lift()
         self.phi = phi
 
-    cdef _update_slots(self, _slots):
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<x, y, z> = PolynomialRing(QQ, 3)
+            sage: S.<a, b, c> = R.quo(x^3 + y^3 + z^3)
+            sage: phi = S.hom([b, c, a]); phi
+            Ring endomorphism of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by the ideal (x^3 + y^3 + z^3)
+              Defn: a |--> b
+                    b |--> c
+                    c |--> a
+            sage: phi(a+b+c)
+            a + b + c
+            sage: psi = copy(phi)    # indirect doctest
+            sage: psi == phi
+            True
+            sage: psi is phi
+            False
+            sage: psi(a) == phi(a)
+            True
+
+        """
         self.phi = _slots['phi']
         RingHomomorphism._update_slots(self, _slots)
 
-    cdef _extra_slots(self, _slots):
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<x, y, z> = PolynomialRing(QQ, 3)
+            sage: S.<a, b, c> = R.quo(x^3 + y^3 + z^3)
+            sage: phi = S.hom([b, c, a]); phi
+            Ring endomorphism of Quotient of Multivariate Polynomial Ring in x, y, z over Rational Field by the ideal (x^3 + y^3 + z^3)
+              Defn: a |--> b
+                    b |--> c
+                    c |--> a
+            sage: phi(a+b+c)
+            a + b + c
+            sage: psi = copy(phi)    # indirect doctest
+            sage: psi == phi
+            True
+            sage: psi is phi
+            False
+            sage: psi(a) == phi(a)
+            True
+
+        """
         _slots['phi'] = self.phi
         return RingHomomorphism._extra_slots(self, _slots)
 

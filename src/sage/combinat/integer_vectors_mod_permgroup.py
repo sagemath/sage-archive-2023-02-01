@@ -136,20 +136,19 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         [[6, 0, 0], [5, 1, 0], [5, 0, 1], [4, 2, 0], [4, 1, 1],
          [4, 0, 2], [3, 3, 0], [3, 2, 1], [3, 1, 2], [2, 2, 2]]
         sage: I.category()
-        Join of Category of finite enumerated sets and Category of quotients of sets
+        Join of Category of finite enumerated sets and Category of subquotients of finite sets and Category of quotients of sets
 
     To get the orbit of any integer vector `v` under the action of the group,
     use the method :meth:`~sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup_All.orbit`;
     we convert the returned set of vectors into a list in increasing lexicographic order,
     to get a reproducible test::
 
-        sage: from sage.combinat.enumeration_mod_permgroup import lex_cmp
-        sage: sorted(I.orbit([6,0,0]), cmp=lex_cmp)
+        sage: sorted(I.orbit([6,0,0]))
         [[0, 0, 6], [0, 6, 0], [6, 0, 0]]
-        sage: sorted(I.orbit([5,1,0]), cmp=lex_cmp)
+        sage: sorted(I.orbit([5,1,0]))
         [[0, 5, 1], [1, 0, 5], [5, 1, 0]]
         sage: I.orbit([2,2,2])
-        set([[2, 2, 2]])
+        {[2, 2, 2]}
 
     TESTS:
 
@@ -473,7 +472,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             if v.parent() is self:
                 return v
             else:
-                raise ValueError, '%s shoud be a Python list of integer'%(v)
+                raise ValueError('%s shoud be a Python list of integer'%(v))
         except Exception:
             return self.element_class(self, list(v), check=check)
 
@@ -487,18 +486,17 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         In order to get reproducible doctests, we convert the returned sets
         into lists in increasing lexicographic order::
 
-            sage: from sage.combinat.enumeration_mod_permgroup import lex_cmp
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
-            sage: sorted(I.orbit([2,2,0,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,2,0,0]))
             [[0, 0, 2, 2], [0, 2, 2, 0], [2, 0, 0, 2], [2, 2, 0, 0]]
-            sage: sorted(I.orbit([2,1,0,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,1,0,0]))
             [[0, 0, 2, 1], [0, 2, 1, 0], [1, 0, 0, 2], [2, 1, 0, 0]]
-            sage: sorted(I.orbit([2,0,1,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,0,1,0]))
             [[0, 1, 0, 2], [0, 2, 0, 1], [1, 0, 2, 0], [2, 0, 1, 0]]
-            sage: sorted(I.orbit([2,0,2,0]), cmp=lex_cmp)
+            sage: sorted(I.orbit([2,0,2,0]))
             [[0, 2, 0, 2], [2, 0, 2, 0]]
             sage: I.orbit([1,1,1,1])
-            set([[1, 1, 1, 1]])
+            {[1, 1, 1, 1]}
         """
         assert isinstance(v, (list, ClonableIntArray)), '%s shoud be a Python list or an element of %s'%(v, self)
         try:
@@ -719,7 +717,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             if v.parent() is self:
                 return v
             else:
-                raise ValueError, '%s shoud be a Python list of integer'%(v)
+                raise ValueError('%s shoud be a Python list of integer'%(v))
         except Exception:
             return self.element_class(self, list(v), check=check)
 
@@ -925,11 +923,10 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         We convert the result in a list in increasing lexicographic
         order, to get a reproducible doctest::
 
-            sage: from sage.combinat.enumeration_mod_permgroup import lex_cmp
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]),4)
             sage: I.orbit([1,1,1,1])
-            set([[1, 1, 1, 1]])
-            sage: sorted(I.orbit([3,0,0,1]), cmp=lex_cmp)
+            {[1, 1, 1, 1]}
+            sage: sorted(I.orbit([3,0,0,1]))
             [[0, 0, 1, 3], [0, 1, 3, 0], [1, 3, 0, 0], [3, 0, 0, 1]]
         """
         assert isinstance(v, (list, ClonableIntArray)), '%s shoud be a Python list or an element of %s'%(v, self)

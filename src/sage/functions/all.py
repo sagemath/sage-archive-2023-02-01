@@ -32,12 +32,19 @@ from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y, Besse
 from special import (hypergeometric_U,
                      spherical_bessel_J, spherical_bessel_Y,
                      spherical_hankel1, spherical_hankel2,
-                     spherical_harmonic, jacobi,
-                     inverse_jacobi,
-                     lngamma, error_fcn, elliptic_e,
+                     spherical_harmonic,
+                     error_fcn, elliptic_e,
                      elliptic_f, elliptic_ec, elliptic_eu,
                      elliptic_kc, elliptic_pi, elliptic_j,
                      airy_ai, airy_bi)
+
+from jacobi import (jacobi, inverse_jacobi, jacobi_nd, jacobi_ns, jacobi_nc,
+                    jacobi_dn, jacobi_ds, jacobi_dc, jacobi_sn, jacobi_sd,
+                    jacobi_sc, jacobi_cn, jacobi_cd, jacobi_cs, jacobi_am,
+                    inverse_jacobi_nd, inverse_jacobi_ns, inverse_jacobi_nc,
+                    inverse_jacobi_dn, inverse_jacobi_ds, inverse_jacobi_dc,
+                    inverse_jacobi_sn, inverse_jacobi_sd, inverse_jacobi_sc,
+                    inverse_jacobi_cn, inverse_jacobi_cd, inverse_jacobi_cs)
 
 from orthogonal_polys import (chebyshev_T,
                               chebyshev_U,
@@ -54,7 +61,7 @@ from orthogonal_polys import (chebyshev_T,
 
 from spike_function import spike_function
 
-from prime_pi import prime_pi
+from prime_pi import legendre_phi, partial_sieve_function, prime_pi
 
 from wigner import (wigner_3j, clebsch_gordan, racah, wigner_6j,
                     wigner_9j, gaunt)
@@ -69,3 +76,5 @@ from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li,
                           sin_integral, cos_integral, Si, Ci,
                           sinh_integral, cosh_integral, Shi, Chi,
                           exponential_integral_1, Ei)
+
+from hypergeometric import hypergeometric

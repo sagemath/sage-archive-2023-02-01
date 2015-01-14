@@ -71,12 +71,12 @@ def var(*args, **kwds):
     Custom latex expression can be assigned to variable::
 
         sage: x = var('sui', latex_name="s_{u,i}"); x._latex_()
-        's_{u,i}'
+        '{s_{u,i}}'
 
     In notebook, we can also colorize latex expression::
 
         sage: x = var('sui', latex_name="\\color{red}{s_{u,i}}"); x._latex_()
-        '\\color{red}{s_{u,i}}'
+        '{\\color{red}{s_{u,i}}}'
 
     We can substitute a new variable name for n::
 

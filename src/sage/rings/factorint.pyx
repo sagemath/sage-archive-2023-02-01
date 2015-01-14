@@ -25,7 +25,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.fast_arith import prime_range
 from sage.structure.factorization_integer import IntegerFactorization
 from math import floor
-from sage.misc.superseded import deprecated_function_alias
 from sage.misc.misc_c import prod
 
 cdef extern from "limits.h":
@@ -121,8 +120,6 @@ cpdef aurifeuillian(n, m, F=None, bint check=True):
     Fm = Fm.upper().round()
     assert (not check or Fm.divides(F))
     return [Fm, F // Fm]
-
-base_exponent = deprecated_function_alias(12116, lambda n: n.perfect_power())
 
 cpdef factor_aurifeuillian(n, check=True):
     r"""

@@ -626,7 +626,7 @@ class LiE(Expect):
         #Check to see if an error has occurred
         err = max( out.find("\n(in"), out.find('not defined'), out.find('Argument types')  )
         if err != -1:
-            raise RuntimeError, "An error occurred running a LiE command:\n%s"%(out.replace('\r\n','\n'))
+            raise RuntimeError("An error occurred running a LiE command:\n%s"%(out.replace('\r\n','\n')))
         return out
 
 
@@ -656,7 +656,7 @@ class LiE(Expect):
         out = self.eval(cmd)
         i = min( out.find('not defined'), out.find('\(in'), out.find('Argument types') )
         if i != -1:
-            raise RuntimeError, out
+            raise RuntimeError(out)
 
     def get(self, var):
         """
@@ -756,7 +756,7 @@ class LiEElement(ExpectElement):
                 m = m.change_ring(R)
             return m
         else:
-            raise ValueError, "not a matrix"
+            raise ValueError("not a matrix")
 
 
     def _sage_(self):
@@ -772,7 +772,7 @@ class LiEElement(ExpectElement):
         """
         t = self.type()
         if t == 'grp':
-            raise ValueError, "cannot convert Lie groups to native Sage objects"
+            raise ValueError("cannot convert Lie groups to native Sage objects")
         elif t == 'mat':
             import sage.matrix.constructor
             return  sage.matrix.constructor.matrix( eval( str(self).replace('\n','').strip())  )

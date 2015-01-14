@@ -1,5 +1,5 @@
 import sys
-def flatten(in_list, ltypes=(list, tuple), max_level=sys.maxint):
+def flatten(in_list, ltypes=(list, tuple), max_level=sys.maxsize):
    """
    Flattens a nested list.
 

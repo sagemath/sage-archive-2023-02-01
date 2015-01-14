@@ -38,10 +38,12 @@ cdef class Parent(category_object.CategoryObject):
 
     # returns a Morphism from S to self, or None
     cpdef coerce_map_from(self, S)
+    cpdef _internal_coerce_map_from(self, S)
     cpdef _coerce_map_from_(self, S)
 
     # returns a Map from S to self, or None
     cpdef convert_map_from(self, S)
+    cpdef _internal_convert_map_from(self, S)
     cpdef _convert_map_from_(self, S)
 
     # returns the Action by/on self on/by S
@@ -67,6 +69,11 @@ cdef class Parent(category_object.CategoryObject):
     # results in natural coercion.
     # Initialized at ring creation.
     cdef list _coerce_from_list
+    # List of the domains of the registered coercions, to make
+    # sure that the maps in _coerce_from_list remain valid.
+    # This is important, since they are fundamental for discovering
+    # new coercions by backtracking.
+    cdef list _registered_domains
     # Hashtable of everything we've (possibly recursively) discovered so far.
     cdef MonoDict _coerce_from_hash
 

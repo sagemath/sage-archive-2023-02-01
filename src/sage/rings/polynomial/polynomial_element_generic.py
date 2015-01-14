@@ -301,7 +301,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: e = RDF(e)
             sage: f = sum(e^n*w^n for n in range(4)); f   # abs tol 1.1e-14
             20.085536923187664*w^3 + 7.3890560989306495*w^2 + 2.718281828459045*w + 1.0
-            sage: f[1]  # abs tol 5e-15
+            sage: f[1]  # abs tol 5e-16
             2.718281828459045
             sage: f[5]
             0.0

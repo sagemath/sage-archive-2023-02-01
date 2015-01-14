@@ -311,8 +311,7 @@ rm -f "$SAGE_LOCAL"/include/{gmp,mpir}*.h
 # Do NOT delete old GMP/GMP shared libraries as Sage's versions of libraries
 # used by GCC might still refer to them, such that their deletion would break
 # GCC inside Sage. (We could perhaps remove libgmp* though.)
-# Unless we are switching the default MP library which breaks GCC anyway.
-if [ "$SAGE_CHANGE_MP_LIBRARY" = "yes" ]; then
+if false; then
     echo "Removing old GMP/MPIR libraries..."
     rm -f "$SAGE_LOCAL"/lib/lib{gmp,mpir}*
 else

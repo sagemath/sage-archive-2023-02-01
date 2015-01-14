@@ -96,16 +96,6 @@ fi
 export SAGE_MP_LIBRARY
 
 ###############################################################################
-# Determine whether we should automatically rebuild dependencies.
-###############################################################################
-
-if [ "$SAGE_UPGRADING" = yes ]; then
-    # We're doing an upgrade. Let build/Makefile call sage-spkg with
-    # "-f" to force rebuilding dependent packages, too:
-    export SAGE_SPKG_OPTS="-f"
-fi
-
-###############################################################################
 # Determine whether to install GCC (gcc, g++, gfortran).
 ###############################################################################
 

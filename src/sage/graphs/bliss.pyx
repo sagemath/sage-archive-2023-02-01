@@ -259,7 +259,7 @@ def is_isomorphic(G,H, cert=False):
         sage: from sage.graphs.bliss import is_isomorphic           # optional - bliss
         sage: G1 = graphs.RandomGNP(10,0.5)                         # optional - bliss
         sage: G2 = graphs.RandomGNP(10,0.8)                         # optional - bliss
-        sage: is_isomorphic(G1,G2)
+        sage: is_isomorphic(G1,G2)                                  # optional - bliss
         False
 
         sage: G = graphs.CubeGraph(3)                               # optional - bliss

@@ -378,7 +378,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: zeta = 0
         sage: sigma = 1
         sage: T = RealDistribution('lognormal', [zeta, sigma])
-        sage: T.get_random_element()
+        sage: T.get_random_element()  # abs tol 1e-16
         0.3876433713532701
         sage: T.distribution_function(0)
         0.0

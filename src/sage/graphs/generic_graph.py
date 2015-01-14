@@ -17327,9 +17327,11 @@ class GenericGraph(GenericGraph_pyx):
         -  ``orbits`` - returns the orbits of the group acting
            on the vertices of the graph
 
-        -  ``algorithm`` - If ``algorithm = "bliss"`` the automorphism group
-            is computed using bliss (`http://www.tcs.tkk.fi/Software/bliss/index.html`_).
-            Note that bliss package must be installed. 
+        - ``algorithm`` - If ``algorithm = "bliss"`` the automorphism group is
+            computed using the optional package bliss
+            (`http://www.tcs.tkk.fi/Software/bliss/index.html`_).  Setting it to
+            "sage" uses Sage's implementation. If set to ``None`` (default),
+            bliss is used when available.
 
         .. WARNING::
 
@@ -17437,15 +17439,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: C.automorphism_group(orbits=True, return_group=False)
             [['000', '001', '010', '011', '100', '101', '110', '111']]
 
-        One can also use the faster algorithm for computing the automorphism 
+        One can also use the faster algorithm for computing the automorphism
         group of the graph - bliss::
 
             sage: G = graphs.HallJankoGraph()                   # optional - bliss
             sage: A1 = G.automorphism_group()                   # optional - bliss
-            sage: A2 = G.automorphism_group(algorithm='bliss'   # optional - bliss
+            sage: A2 = G.automorphism_group(algorithm='bliss')  # optional - bliss
             sage: A1.is_isomorphic(A2)                          # optional - bliss
             True                                                # optional - bliss
-
 
         TESTS:
 
@@ -17494,25 +17495,39 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         from sage.misc.package import is_package_installed
-        if algorithm == 'bliss' and is_package_installed('bliss') and not edge_labels:
-            from sage.graphs.bliss import automorphism_group
-            
-            A = automorphism_group(self, partition)                
+        if (algorithm == 'bliss'           or   # explicit choice from the user; or
+            (algorithm is None             and  # by default
+             not edge_labels               and
+             is_package_installed('bliss'))):
+            if edge_labels:
+                raise ValueError("bliss cannot be used when edge_labels is True")
+            try:
+                from sage.graphs.bliss import automorphism_group
+            except ImportError:
+                raise ImportError("You must install the 'bliss' package to run this command.")
+
+            A = automorphism_group(self, partition)
 
             # If the user only wants the automorphism group, lets return it
             # without much hassle
             if return_group and not (orbits or order):
                 return A
-            
+
             ret = []
-            if order:
-                ret+=[A.order()]
             if return_group:
-                ret+=[A]
+                ret.append(A)
+            if order:
+                ret.append(A.order())
             if orbits:
-                ret+=[A.orbits()]
-        
-            return tuple(ret)    
+                ret.append(A.orbits())
+
+            if return_group + order + orbits == 1:
+                return ret[0]
+            return ret
+
+        if (algorithm is not None and
+            algorithm != "sage"):
+            raise ValueError("'algorithm' must be equal to 'bliss', 'sage', or None")
 
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -18033,10 +18048,9 @@ class GenericGraph(GenericGraph_pyx):
                     isom_trans[v] = other_vertices[isom[G_to[v]]]
             return True, isom_trans
 
-    def canonical_label(self, partition=None, certify=False, verbosity=0, 
+    def canonical_label(self, partition=None, certify=False, verbosity=0,
                         edge_labels=False,algorithm=None,return_graph=True):
-        """
-        Returns the unique graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which
+        """Return a graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which
 
         - is isomorphic to self,
 
@@ -18067,12 +18081,19 @@ class GenericGraph(GenericGraph_pyx):
         -  ``edge_labels`` - default False, otherwise allows
            only permutations respecting edge labels.
 
-        -  ``algorithm`` - If ``algorithm = "bliss"`` the automorphism group
-            is computed using bliss (`http://www.tcs.tkk.fi/Software/bliss/index.html`_).
-            Note that bliss package must be installed. NOTE. Make sure you always compare
-            canonical forms obtained by the same algorithm.
+        - ``algorithm`` - If ``algorithm = "bliss"`` the automorphism group is
+            computed using the optional package bliss
+            (`http://www.tcs.tkk.fi/Software/bliss/index.html`_). Setting it to
+            "sage" uses Sage's implementation. If set to ``None`` (default),
+            bliss is used when available.
 
-        -  ``return_graph`` - If ``return_graph = 'False'``  do not return the canonical graph.
+            .. NOTE::
+
+                Make sure you always compare canonical forms obtained by the
+                same algorithm.
+
+        - ``return_graph`` - If ``return_graph = 'False'`` do not return the
+           canonical graph.
 
         EXAMPLES::
 
@@ -18129,19 +18150,31 @@ class GenericGraph(GenericGraph_pyx):
             [0, 1, 2]
 
         Canonical forms can be computed by bliss as well::
-        
+
             sage: G = graphs.CubeGraph(6)                                       # optional - bliss
             sage: H = G.copy()                                                  # optional - bliss
             sage: s1 = G.canonical_label(return_graph=false,algorithm='bliss')  # optional - bliss
             sage: s2 = H.canonical_label(return_graph=false,algorithm='bliss')  # optional - bliss
             sage: s1 == s2                                                      # optional - bliss
             True                                                                # optional - bliss
+
         """
         from sage.misc.package import is_package_installed
-        if algorithm == 'bliss'  and is_package_installed('bliss') and not edge_labels:
-            from sage.graphs.bliss import canonical_form 
-            
+        if (algorithm == 'bliss'           or  # explicit request; or
+            (algorithm is None             and # default choice
+             is_package_installed('bliss') and
+             not edge_labels)):
+            if edge_labels:
+                raise ValueError("bliss cannot be used when edge_labels is True")
+            try:
+                from sage.graphs.bliss import canonical_form
+            except ImportError:
+                raise ImportError("You must install the 'bliss' package to run this command.")
             return canonical_form(self, partition, return_graph, certify)
+
+        if (algorithm is not None and
+            algorithm != "sage"):
+            raise ValueError("'algorithm' must be equal to 'bliss', 'sage', or None")
 
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
 

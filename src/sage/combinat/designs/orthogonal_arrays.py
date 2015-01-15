@@ -1193,6 +1193,36 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         sage: is_orthogonal_array(iOA,10,153)
         True
 
+    An `OA(9,82)-OA(9,9)-OA(9,1)`::
+
+        sage: ioa = designs.incomplete_orthogonal_array(9,82,[9,1])
+        sage: ioa.extend([[x+72 for x in B] for B in designs.orthogonal_arrays.build(9,9)])
+        sage: ioa.extend([[x+81 for x in B] for B in designs.orthogonal_arrays.build(9,1)])
+        sage: is_orthogonal_array(ioa,9,82,verbose=1)
+        True
+
+    An `OA(9,82)-OA(9,9)-2.OA(9,1)` in different orders::
+
+        sage: ioa = designs.incomplete_orthogonal_array(9,82,[1,9,1])
+        sage: ioa.extend([[x+71 for x in B] for B in designs.orthogonal_arrays.build(9,1)])
+        sage: ioa.extend([[x+72 for x in B] for B in designs.orthogonal_arrays.build(9,9)])
+        sage: ioa.extend([[x+81 for x in B] for B in designs.orthogonal_arrays.build(9,1)])
+        sage: is_orthogonal_array(ioa,9,82,verbose=1)
+        True
+        sage: ioa = designs.incomplete_orthogonal_array(9,82,[9,1,1])
+        sage: ioa.extend([[x+71 for x in B] for B in designs.orthogonal_arrays.build(9,9)])
+        sage: ioa.extend([[x+80 for x in B] for B in designs.orthogonal_arrays.build(9,1)])
+        sage: ioa.extend([[x+81 for x in B] for B in designs.orthogonal_arrays.build(9,1)])
+        sage: is_orthogonal_array(ioa,9,82,verbose=1)
+        True
+
+    Three holes of size 1::
+
+        sage: ioa = designs.incomplete_orthogonal_array(3,6,[1,1,1])
+        sage: ioa.extend([[i]*3 for i in [3,4,5]])
+        sage: is_orthogonal_array(ioa,3,6,verbose=1)
+        True
+
     REFERENCES:
 
     .. [BvR82] More mutually orthogonal Latin squares,
@@ -1200,6 +1230,7 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
       Discrete Mathematics
       vol.39, num.3, pages 263-281
       1982
+      http://oai.cwi.nl/oai/asset/304/0304A.pdf
     """
     from sage.combinat.designs.database import QDM
     for h in holes:
@@ -1256,14 +1287,59 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
         OA = orthogonal_array(k,n)
         independent_set = OA[:number_of_holes]
 
-    # This is lemma 2.3 from [BvR82]_ with u=1
+    # This is lemma 2.3 from [BvR82]_
     #
-    # TODO: handle larger holes too
-    elif (max_hole==1          and
-          existence            and
-          number_of_holes <= 3 and
-          n > k-1 and k >= 3):
-        return orthogonal_array(k,n,existence=True)
+    # If k>3 and n>(k-1)u and there exists an OA(k,n)-OA(k,u), then there exists
+    # an OA(k,n)-OA(k,u)-2.OA(k,1)
+    elif (k >= 3 and
+          2 <= number_of_holes <= 3 and
+          n > (k-1)*max_hole and
+          holes.count(1) == number_of_holes-1 and
+          incomplete_orthogonal_array(k,n,[max_hole],existence=True)):
+        if existence:
+            return True
+
+        # The 1<=?<=2 other holes of size 1 can be picked greedily as the
+        # conflict graph is regular and not complete (see proof of lemma 2.3)
+        #
+        # This code is a bit awkward for max_hole may be equal to 1, and the
+        # holes have to be correctly ordered in the output.
+        IOA = incomplete_orthogonal_array(k,n,[max_hole])
+
+        # place the big hole where it belongs
+        i = holes.index(max_hole)
+        holes[i] = [[ii]*k for ii in range(n-max_hole,n)]
+
+        # place the first hole of size 1
+        i = holes.index(1)
+        for h1 in IOA:
+            if all(x<n-max_hole for x in h1):
+                break
+        holes[i] = [h1]
+        IOA.remove(h1)
+
+        # place the potential second hole of size 1
+        if number_of_holes == 3:
+            i = holes.index(1)
+            for h2 in IOA:
+                if all(h1[j] != x and x<n-max_hole for j,x in enumerate(h2)):
+                    break
+            holes[i] = [h2]
+            IOA.remove(h2)
+
+        holes = sum(holes,[])
+        holes = map(list,zip(*holes))
+
+        # Building the relabel matrix
+        for l in holes:
+            for i in range(n):
+                if i not in l:
+                    l.insert(0,i)
+        for i in range(len(holes)):
+            holes[i] = {v:i for i,v in enumerate(holes[i])}
+
+        IOA = OA_relabel(IOA,k,n,matrix=holes)
+        return IOA
 
     elif max_hole==1 and number_of_holes >= 2 and k == n+1:
         if existence:
@@ -1369,7 +1445,6 @@ def OA_find_disjoint_blocks(OA,k,n,x):
         ...
         ValueError: There does not exist 5 disjoint blocks in this OA(3,4)
     """
-
     # Computing an independent set of order x with a Linear Program
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
     p = MixedIntegerLinearProgram()

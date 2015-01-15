@@ -52,6 +52,7 @@ from sage.rings.complex_field      import ComplexField
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
+from sage.rings.fraction_field_element import is_FractionFieldElement
 from sage.rings.integer_ring       import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
@@ -2204,20 +2205,20 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             ([x, (x + 1)/(x - 1), (-x + 1)/(x + 1), -x, 1/x, -1/x, (x - 1)/(x + 1), (-x - 1)/(x - 1)], 'Dihedral of order 8')
         """
 
-        alg=kwds.get('algorithm',None)
-        p=kwds.get('starting_prime', 5)
-        return_functions=kwds.get('return_functions', False)
-        iso_type=kwds.get('iso_type',False)
+        alg = kwds.get('algorithm',None)
+        p = kwds.get('starting_prime', 5)
+        return_functions = kwds.get('return_functions', False)
+        iso_type = kwds.get('iso_type',False)
 
-        if self.domain().dimension_relative()!=1:
-            raise NotImplementedError, "Must be dimension 1"
+        if self.domain().dimension_relative() != 1:
+            raise NotImplementedError("Must be dimension 1")
         else:
-            f=self.dehomogenize(1)
-            z=f[0].parent().gen()
-        if f[0].denominator()!=1:
-            F=(f[0].numerator().polynomial(z))/f[0].denominator().polynomial(z)
+            f = self.dehomogenize(1)
+            z = f[0].parent().gen()
+        if is_FractionFieldElement(f[0]):
+            F = (f[0].numerator().polynomial(z))/f[0].denominator().polynomial(z)
         else:
-            F=f[0].numerator().polynomial(z)
+            F = f[0].polynomial(z)
         from endPN_automorphism_group import automorphism_group_QQ_CRT, automorphism_group_QQ_fixedpoints
         if alg is None:
             if self.degree() <= 12:
@@ -2225,7 +2226,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             return(automorphism_group_QQ_CRT(F, p, return_functions, iso_type))
         elif alg == 'CRT':
             return(automorphism_group_QQ_CRT(F, p, return_functions, iso_type))
-        
+
         return(automorphism_group_QQ_fixedpoints(F, return_functions, iso_type))
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):

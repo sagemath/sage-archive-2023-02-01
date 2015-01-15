@@ -184,7 +184,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions = Fals
                              (1 - zeta), (alpha*zeta - beta)]))
 
     #first look at rational fixed points
-    #Subsets is ok since we just needed unordered pair over QQ
+    #Subsets is ok since we just needed unordered pairs
     for S in Subsets(rational_roots, 2):
         zeta = -1
         alpha = S[0]
@@ -524,24 +524,24 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
     """
     z = rational_function.parent().gen(0)
     valid_auto = []
+
     for A in automorphisms_CRT:
-        a = A[0][0].lift()
-        b = A[0][1].lift()
-        c = A[1][0].lift()
-        d = A[1][1].lift()
-        for scalar in range(1, M-1):
-            aa = scalar*a - (scalar*a/M).round()*M
-            bb = scalar*b - (scalar*b/M).round()*M
-            cc = scalar*c - (scalar*c/M).round()*M
-            dd = scalar*d - (scalar*d/M).round()*M
-            g = gcd([aa,bb,cc,dd])
-            if  gcd(scalar, M) == 1 and max(abs(aa), abs(bb), abs(cc), abs(dd)) <= ht_bound*g:
-                f = ((aa/g)*z + bb/g)/(cc/g*z + dd/g)
+        init_lift = [x.lift() for x in A.list()]  # lift coefficients of A
+        # multiply lift by appropriate scalar matrices and adjust (mod M)
+        # to find an element of minimal height. These will have
+        # coefficients in [-M/2, M/2)
+        for scalar in [y for y in xrange(1, M) if gcd(y,M) == 1]:
+            new_lift = [scalar*x - (scalar*x/M).round()*M for x in init_lift]
+            g = gcd(new_lift)
+            new_lift = [x // g for x in new_lift]
+            if  all([abs(x) <= ht_bound for x in new_lift]):
+                a,b,c,d = new_lift
+                f = (a*z + b) / (c*z + d)
                 if rational_function(f(z)) == f(rational_function(z)):
                     if return_functions:
                         valid_auto.append(f)
                     else:
-                        valid_auto.append(matrix(ZZ,[[aa/g,bb/g],[cc/g,dd/g]]))
+                        valid_auto.append(matrix(ZZ,2,2,new_lift))
                     break
 
     return valid_auto
@@ -1000,6 +1000,7 @@ def rational_function_coefficient_descent(rational_function, sigma, poly_ring):
     fe = num.exponents()
     g = denom.coefficients()
     ge = denom.exponents()
+    #force the cancellation of common coefficient factors by scaling by f[-1]
     ff = [ field_descent(sigma, x/f[-1]) for x in f]
     gg = [ field_descent(sigma, x/f[-1]) for x in g]
     if None in ff or None in gg:

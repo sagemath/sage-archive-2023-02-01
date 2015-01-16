@@ -55,7 +55,6 @@ from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
 from sage.rings.integer_ring       import ZZ
-from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
 from sage.rings.rational_field     import QQ
@@ -1659,8 +1658,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.height_difference_bound()
             10.3089526606443
 
-       ::
-        
+       A number field example::
+
             sage: R.<x>=QQ[]
             sage: K.<c> = NumberField(x^3 - 2)
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
@@ -1668,10 +1667,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([1/(c+1)*x^2+c*y^2,210*x*y,10000*z^2])
             sage: f.height_difference_bound()
             11.0020998412042
-"""
-        BR = self.domain().base_ring()
-        if not BR in NumberFields() and not is_NumberFieldOrder(BR):
-            raise NotImplementedError("Must be a number field or the integers")
+        """
+        FF = FractionField(self.domain().base_ring()) #lift will only work over fields, so coercing into FF
+        if not FF in NumberFields():
+            raise NotImplementedError("Fraction field of the base ring must be a number field")
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if prec is None:
@@ -1685,8 +1684,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         U = self.global_height(prec) + R(binomial(N + d, d)).log()
         #compute lower bound - from explicit polynomials of Nullstellensatz
         CR = self.domain().coordinate_ring()
-        if is_NumberFieldOrder(BR):
-            CR = CR.change_ring(FractionField(BR)) #lift only works over fields
+        CR = CR.change_ring(FractionField(BR))
         I = CR.ideal(self.defining_polynomials())
         MCP = []
         for k in range(N + 1):

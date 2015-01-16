@@ -1,6 +1,22 @@
 r"""
 Asymptotic Growth Group
+
+AUTHORS:
+
+- Benjamin Hackl (2014 - 2015): initial version
+
 """
+
+#*****************************************************************************
+# Copyright (C) 2014--2015 Benjamin Hackl <benjamin.hackl@aau.at>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 import re
 

@@ -1,5 +1,5 @@
 r"""
-(RBIBD) Resolvable Balanced Incomplete Block Design
+Resolvable Balanced Incomplete Block Design (RBIBD)
 
 This module contains everything related to resolvable Balanced Incomplete Block
 Designs. The constructions implemented here can be obtained through the
@@ -7,8 +7,10 @@ Designs. The constructions implemented here can be obtained through the
 
     designs.resolvable_balanced_incomplete_block_design(15,3)
 
-A BIBD is said to be *resolvable* if its blocks can be partitionned into
-parallel classes, i.e. partitions of its ground set.
+For Balanced Incomplete Block Design (BIBD) see the module :mod:`bibd
+<sage.combinat.designs.bibd>`. A BIBD
+is said to be *resolvable* if its blocks can be partitionned into parallel
+classes, i.e.  partitions of its ground set.
 
 The main function of this module is
 :func:`resolvable_balanced_incomplete_block_design`, which calls all others.
@@ -152,62 +154,18 @@ def kirkman_triple_system(v,existence=False):
     A solution to Kirkmman's original problem::
 
         sage: kts = designs.kirkman_triple_system(15)
-        sage: names = map(str,[0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e'])
         sage: classes = kts.is_resolvable(1)[1]
-        sage: for i,classs in enumerate(classes):
-        ....:     print "Day",i+1
-        ....:     for row in classs:
-        ....:         print "   ",names[row[0]]+names[row[1]]+names[row[2]]
-        ....:     print ""
-        Day 1
-            07e
-            139
-            26b
-            458
-            acd
-        <BLANKLINE>
-        Day 2
-            18e
-            24a
-            03c
-            569
-            7bd
-        <BLANKLINE>
-        Day 3
-            29e
-            35b
-            14d
-            06a
-            78c
-        <BLANKLINE>
-        Day 4
-            3ae
-            46c
-            257
-            01b
-            89d
-        <BLANKLINE>
-        Day 5
-            4be
-            05d
-            368
-            12c
-            79a
-        <BLANKLINE>
-        Day 6
-            5ce
-            167
-            049
-            23d
-            8ab
-        <BLANKLINE>
-        Day 7
-            6de
-            028
-            15a
-            347
-            9bc
-        <BLANKLINE>
+        sage: names = '0123456789abcde'
+        sage: to_name = lambda (r,s,t): ' '+names[r]+names[s]+names[t]+' '
+        sage: rows = [join(('Day {}'.format(i) for i in range(1,8)), '   ')]
+        sage: rows.extend(join(map(to_name,row), '   ') for row in zip(*classes))
+        sage: print join(rows,'\n')
+        Day 1   Day 2   Day 3   Day 4   Day 5   Day 6   Day 7
+         07e     18e     29e     3ae     4be     5ce     6de
+         139     24a     35b     46c     05d     167     028
+         26b     03c     14d     257     368     049     15a
+         458     569     06a     01b     12c     23d     347
+         acd     7bd     78c     89d     79a     8ab     9bc
 
     TESTS:
 
@@ -257,18 +215,17 @@ def kirkman_triple_system(v,existence=False):
         t = (q-1)/6
 
         # m is the solution of a^m=(a^t+1)/2
-        m = 0
-        rhs = (a**t+1)/2
-        while rhs != 1:
-            rhs = rhs/a
-            m += 1
+        from sage.groups.generic import discrete_log
+        m = discrete_log((a**t+1)/2, a)
         assert 2*a**m==a**t+1
 
         # First parallel class
         first_class = [[(0,1),(0,2),'inf']]
-        first_class.extend([[(a**i,1),(a**(i+t),1),(a**(i+m),2)]
-                            for i in range(t)+range(2*t,3*t)+range(4*t,5*t)])
-        first_class.extend([[(a**(i+m+t),2),(a**(i+m+3*t),2),(a**(i+m+5*t),2)]
+        b0 = K.one(); b1 = a**t; b2 = a**m
+        first_class.extend([(b0*a**i,1),(b1*a**i,1),(b2*a**i,2)]
+                            for i in range(t)+range(2*t,3*t)+range(4*t,5*t))
+        b0 = a**(m+t); b1=a**(m+3*t); b2=a**(m+5*t)
+        first_class.extend([[(b0*a**i,2),(b1*a**i,2),(b2*a**i,2)]
                             for i in range(t)])
 
         # Action of K on the points

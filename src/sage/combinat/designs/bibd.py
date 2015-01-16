@@ -1,5 +1,5 @@
 r"""
-(BIBD) Balanced Incomplete Block Designs
+Balanced Incomplete Block Designs (BIBD)
 
 This module gathers everything related to Balanced Incomplete Block Designs. One can build a
 BIBD (or check that it can be built) with :func:`balanced_incomplete_block_design`::

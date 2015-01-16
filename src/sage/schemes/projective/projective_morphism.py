@@ -1660,7 +1660,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
        A number field example::
 
-            sage: R.<x>=QQ[]
+            sage: R.<x> = QQ[]
             sage: K.<c> = NumberField(x^3 - 2)
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
             sage: H = End(P)
@@ -1684,7 +1684,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         U = self.global_height(prec) + R(binomial(N + d, d)).log()
         #compute lower bound - from explicit polynomials of Nullstellensatz
         CR = self.domain().coordinate_ring()
-        CR = CR.change_ring(FractionField(BR))
+        CR = CR.change_ring(FF)
         I = CR.ideal(self.defining_polynomials())
         MCP = []
         for k in range(N + 1):

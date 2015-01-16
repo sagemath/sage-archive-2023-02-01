@@ -1059,6 +1059,12 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             -339
             sage: f.discriminant(proof=False)
             -339
+        
+        TESTS:
+        Confirm that ticket 17603 has been applied::
+            sage: f.disc()
+            -339
+
         """
         cdef ZZX_c ntl_poly
         cdef ZZ_c* temp
@@ -1072,6 +1078,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         return x
 
+    # Alias for discriminant
+    def disc = discriminant
 
     def _pari_(self, variable=None):
         """

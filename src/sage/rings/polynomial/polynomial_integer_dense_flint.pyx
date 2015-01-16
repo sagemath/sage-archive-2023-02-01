@@ -1079,7 +1079,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         return x
 
     # Alias for discriminant
-    def disc = discriminant
+    disc = discriminant
 
     def _pari_(self, variable=None):
         """

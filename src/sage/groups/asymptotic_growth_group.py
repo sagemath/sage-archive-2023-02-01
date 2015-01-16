@@ -3,7 +3,7 @@ Asymptotic Growth Group
 
 AUTHORS:
 
-- Benjamin Hackl (2014 - 2015): initial version
+- Benjamin Hackl (2015-01): initial version
 
 """
 

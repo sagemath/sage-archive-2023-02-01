@@ -1503,7 +1503,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def canonical_height(self, P, **kwds):
         r"""
-        Evaluates the (absolute) canonical height of ``self`` with respect to ``F``. Must be over number field
+        Evaluates the (absolute) canonical height of ``P`` with respect to ``self``. Must be over number field
         or order of a number field. Specify either the number of terms of the series to evaluate or
         the error bound required.
 

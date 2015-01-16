@@ -705,9 +705,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def green_function(self, G, v, **kwds):
         r"""
-        Evaluates the local Green's function at the place ``v`` for ``P`` with ``N`` terms of the
+        Evaluates the local Green's function with respect to the morphism ``G``
+        at the place ``v`` for ``self`` with ``N`` terms of the
         series or to within a given error bound.  Must be over a number field
-        or order of a number field. Note that this is absolute local greens function
+        or order of a number field. Note that this is the absolute local Green's function
         so is scaled by the degree of the base field.
 
         Use ``v=0`` for the archimedean place over `\QQ` or field embedding. Non-archimedean
@@ -719,7 +720,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``P`` - a projective point
+        - ``G`` - a projective morphism whose local Green's function we are computing
 
         - ``v`` - non-negative integer. a place, use v=0 for the archimedean place
 
@@ -878,7 +879,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         INPUT:
 
-        - ``P`` - a projective point
+        - ``F`` - a projective morphism
 
         kwds:
 

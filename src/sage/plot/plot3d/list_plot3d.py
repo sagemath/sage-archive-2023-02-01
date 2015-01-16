@@ -367,7 +367,7 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
         sage: list_plot3d([(1,2,3),(0,1,3),(2,1,4),(1,0,-2)], texture='yellow', num_points=50)
         Graphics3d Object
     """
-    from matplotlib import delaunay
+    from matplotlib import tri
     import numpy
     import scipy
     from random import random
@@ -425,17 +425,14 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
 
     if interpolation_type == 'linear':
 
-        T= delaunay.Triangulation(x,y)
-        f=T.linear_interpolator(z)
-        f.default_value=0.0
+        T= tri.Triangulation(x,y)
+        f= tri.LinearTriInterpolator(T,z)
         j=numpy.complex(0,1)
-        vals=f[ymin:ymax:j*num_points,xmin:xmax:j*num_points]
+        
         from parametric_surface import ParametricSurface
 
         def g(x,y):
-            i=round( (x-xmin)/(xmax-xmin)*(num_points-1) )
-            j=round( (y-ymin)/(ymax-ymin)*(num_points-1) )
-            z=vals[int(j),int(i)]
+            z=f(x,y)
             return (x,y,z)
 
 
@@ -444,18 +441,16 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
         return G
 
 
-    if interpolation_type == 'nn'  or interpolation_type =='default':
+    if interpolation_type == 'cubic'  or interpolation_type =='default':
 
-        T=delaunay.Triangulation(x,y)
-        f=T.nn_interpolator(z)
-        f.default_value=0.0
+        T=tri.Triangulation(x,y)
+        f=tri.CubicTriInterpolator(T,z)
         j=numpy.complex(0,1)
-        vals=f[ymin:ymax:j*num_points,xmin:xmax:j*num_points]
+
         from parametric_surface import ParametricSurface
+
         def g(x,y):
-            i=round( (x-xmin)/(xmax-xmin)*(num_points-1) )
-            j=round( (y-ymin)/(ymax-ymin)*(num_points-1) )
-            z=vals[int(j),int(i)]
+            z=f(x,y)
             return (x,y,z)
 
         G = ParametricSurface(g, (list(numpy.r_[xmin:xmax:num_points*j]), list(numpy.r_[ymin:ymax:num_points*j])), texture=texture, **kwds)

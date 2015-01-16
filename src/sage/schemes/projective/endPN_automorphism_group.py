@@ -368,7 +368,7 @@ def PGL_order(A):
     r"""
     Find the multiplicative order of a linear fractional transformation that
     has a finite order as an element of `PGL_2(R)`. ``A`` can be represented
-    either as a rational function or a 2x2 matrix 
+    either as a rational function or a 2x2 matrix
 
     INPUT:
 
@@ -1081,8 +1081,8 @@ def rational_function_reduce(rational_function):
 
 def three_stable_points(rational_function, invariant_list):
     r"""
-    Implementation of Algorithm 1 for automorphism groups from 
-    Fbaer-Manes-Viary [FMV].
+    Implementation of Algorithm 1 for automorphism groups from
+    Faber-Manes-Viray [FMV].
 
     INPUT:
 
@@ -1272,7 +1272,7 @@ def automorphism_group_FF_alg2(rational_function):
 def order_p_automorphisms(rational_function, pre_image):
     r"""
     Determine the order-p automorphisms given the input data.
-    This is algorithm 4 in Faber-Manes-Viary [FMV].
+    This is algorithm 4 in Faber-Manes-Viray [FMV].
 
     INPUT:
 

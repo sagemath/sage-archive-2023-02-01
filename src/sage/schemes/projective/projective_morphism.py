@@ -1323,7 +1323,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         R = self.coordinate_ring()
         F = self._polys
         K = FractionField(self.codomain().base_ring())
-        if self.base_ring() in NumberFields and self.base_ring != QQ:
+        if self.base_ring() in NumberFields and self.base_ring() != QQ:
            F = copy(self)
            F.normalize_coordinates()
            return (K(F.resultant()).support())

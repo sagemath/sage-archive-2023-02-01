@@ -149,7 +149,9 @@ def numerical_integral(func, a, b=None,
         sage: numerical_integral(x*y, 0, 1)
         Traceback (most recent call last):
         ...
-        ValueError: Integrand has 2 variables but only 0 parameters
+        ValueError: The function to be integrated depends on 2 variables (x, y),
+        and so cannot be integrated in one dimension. Please fix additional
+        variables with the 'params' argument
 
     Note the parameters are always a tuple even if they have one component.
 
@@ -254,8 +256,12 @@ def numerical_integral(func, a, b=None,
                return (((<double>b - <double>a) * <double>func), 0.0)
             if len(vars) != 1:
                 if len(params) + 1 != len(vars):
-                    raise ValueError, \
-                        "Integrand has {} variables but only {} parameters".format(len(vars), len(params))
+                   raise ValueError(("The function to be integrated depends on "
+                                     "{} variables {}, and so cannot be "
+                                     "integrated in one dimension. Please fix "
+                                     "additional variables with the 'params' "
+                                     "argument").format(len(vars),tuple(vars)))
+
                 to_sub = dict(zip(vars[1:], params))
                 func = func.subs(to_sub)
             func = func._fast_float_(str(vars[0]))

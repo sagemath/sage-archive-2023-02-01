@@ -637,12 +637,13 @@ class IncidenceStructure(object):
                                    for S in self._blocks
                                    if int_points.issuperset(S)])
 
-    def trace(self,points,min_size=1,multiset=True):
+    def trace(self, points, min_size=1, multiset=True):
         r"""
-        Return the trace of a set of points
+        Return the trace of a set of points.
 
-        The trace of a set `X` of points in `\mathcal H` is the hypergraph whose
-        blocks are all non-empty `S\cap X` where `S\in \mathcal H`.
+        Given an hypergraph `\mathcal H`, the *trace* of a set `X` of points in
+        `\mathcal H` is the hypergraph whose blocks are all non-empty `S \cap X`
+        where `S \in \mathcal H`.
 
         INPUT:
 
@@ -692,18 +693,17 @@ class IncidenceStructure(object):
         # Checking the input
         if self._point_to_index is None:
             n = self.num_points()
-            for x in points:
-                x = int(x)
-                if x<0 or x >= n:
+            int_points = frozenset(int(x) for x in points)
+            for x in int_points:
+                if x < 0 or x >= n:
                     raise ValueError("{} is not a point of the incidence structure".format(x))
-            int_points = points
         else:
             try:
-                int_points = [self._point_to_index[x] for x in points]
+                int_points = frozenset(self._point_to_index[x] for x in points)
             except KeyError:
-                raise ValueError("{} is not a point of the incidence structure".format(x))
+                bad_pt = (x for x in points if x not in self._point_to_index).next()
+                raise ValueError("{} is not a point of the incidence structure".format(bad_pt))
 
-        int_points = frozenset(int_points)
         blocks = [int_points.intersection(S) for S in self._blocks]
         if min_size:
             blocks = [S for S in blocks if len(S)>=min_size]

@@ -45,7 +45,7 @@ definition can be found in the documentation of
 ``link_distance``, ``link_strength``, ``gravity``, ``vertex_size``,
 ``edge_thickness``.
 
-.. WARNING:: 
+.. WARNING::
 
     Since the d3js package is not standard yet, the javascript is fetched from
     d3js.org website by the browser. If you want to avoid that (e.g.  to
@@ -53,7 +53,7 @@ definition can be found in the documentation of
     the d3js package for offline use with the Sage command
     ``install_package('d3js')`` or by running ``sage -i d3js`` from the command
     line.
-  
+
 .. TODO::
 
     - Add tooltip like in `<http://bl.ocks.org/bentwonk/2514276>`_.
@@ -87,7 +87,7 @@ import os
 
 
 def gen_html_code(G,
-                  vertex_labels=False,
+                  vertex_labels=True,
                   edge_labels=False,
                   vertex_partition=[],
                   edge_partition=[],

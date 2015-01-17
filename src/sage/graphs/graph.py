@@ -1493,7 +1493,7 @@ class Graph(GenericGraph):
                     loops = False
             if weighted is None: weighted = False
             for u in data:
-                if len(uniq(data[u])) != len(data[u]):
+                if len(set(data[u])) != len(data[u]):
                     if multiedges is False:
                         v = (v for v in data[u] if data[u].count(v) > 1).next()
                         raise ValueError("Non-multigraph got several edges (%s,%s)"%(u,v))

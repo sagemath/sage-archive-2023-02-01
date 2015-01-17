@@ -34,11 +34,3 @@ where they can find more information.
    using_compiled_code_iteractively
    parallel_computation
    visualization
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

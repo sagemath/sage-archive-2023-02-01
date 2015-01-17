@@ -142,6 +142,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
+from sage.sets.set import Set
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.posets import Posets
 from sage.categories.finite_posets import FinitePosets
@@ -5037,6 +5038,104 @@ class FinitePoset(UniqueRepresentation, Parent):
             descents = [i + 1 for i in xrange(n-1) if tupdict[lin[i]] > tupdict[lin[i+1]]]
             res += QR.Fundamental()(Composition(from_subset=(descents, n)))
         return res
+
+    def set_of_upper_bounds(self, A):
+        r"""
+        Return the set of upper bounds of the subset `A` of ``self``
+
+        An element `x` is called an upper bound of `A` if `a\leq x`
+        for all `a \in A`
+
+        INPUT:
+
+        - `A` -- a subset of the poset ``self``
+
+        OUTPUT:
+
+        - a subset of the poset ``self``
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.set_of_upper_bounds([P(0), P(1)])
+            {1, 4}
+            sage: P.set_of_upper_bounds([u for u in P])
+            {4}
+            sage: P.set_of_upper_bounds([P(0)])
+            {1, 0, 3, 2, 4}
+        """
+        return Set([x for x in self if all([x >= a for a in A])])
+
+    def set_of_lower_bounds(self, A):
+        r"""
+        Return the set of lower bounds of the subset `A` of ``self``
+
+        An element `x` is called an lower bound of `A` if `x\leq a`
+        for all `a \in A`
+
+        INPUT:
+
+        - `A` -- a subset of the poset ``self``
+
+        OUTPUT:
+
+        - a subset of the poset ``self``
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.set_of_lower_bounds([P(1), P(4)])
+            {1, 0}
+            sage: P.set_of_lower_bounds([u for u in P])
+            {0}
+            sage: P.set_of_lower_bounds([P(4)])
+            {1, 0, 3, 2, 4}
+        """
+        return Set([x for x in self if all([x <= a for a in A])])
+
+    def cuts(self):
+        """
+        Return the set of cuts of the poset ``self``
+
+        A cut is a subset `A` of ``self`` such that the set of lower
+        bounds of the set of upper bounds of `A` is exactly `A`.
+
+        EXAMPLES::
+
+            sage: P = posets.AntichainPoset(3)
+            sage: P.cuts()
+            [{}, {1}, {0}, {2}, {1, 0, 2}]
+        """
+        return [A for A in Set(self).subsets()
+                if self.set_of_lower_bounds(self.set_of_upper_bounds([self(a) for a in A])) == Set([self(a) for a in A])]
+
+    def completion_by_cuts(self):
+        """
+        Return the completion by cuts of ``self``
+
+        This is also called the Dedekind-MacNeille completion.
+
+        See the :wikipedia:`Wikipedia page <Dedekind-MacNeille completion>`.
+
+        The algorithm is naive.
+
+        OUTPUT:
+
+        - a finite poset
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.completion_by_cuts().is_isomorphic(P)
+            True
+            sage: P = posets.AntichainPoset(3)
+            sage: Q = P.completion_by_cuts(); Q
+            Finite poset containing 5 elements
+            sage: Q.is_isomorphic(posets.DiamondPoset(5))
+            True
+        """
+        from sage.misc.misc import attrcall
+        return Poset((self.cuts(), attrcall("issubset")))
 
 FinitePoset._dual_class = FinitePoset
 

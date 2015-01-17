@@ -1,16 +1,15 @@
 r"""
-Compact structure for fast operations on less than 32 vertices
+Compact structure for fast operations on directed graphs
 
-This module implements a digraph structure meant to be used in Cython in
-**highly enumerative** algorithms. It can store graphs on less than
-``sizeof(int)`` vertices and perform several basic operations **quickly**
-(add/remove arcs, count the out-neighborhood of a set of vertices or return its
-cardinality).
+This module implements digraph structures meant to be used in Cython in
+**highly enumerative** algorithms:
 
-**Sets and integers :**
+- ``FastDigraph`` -- This structure can store graphs on less than
+  ``sizeof(int)`` vertices and perform several basic operations **quickly**
+  (add/remove arcs, count the out-neighborhood of a set of vertices or return
+  its cardinality). In this structure, sets are represented as integers, where
+  the ith bit is set if element i belongs to the set.
 
-In the following code, sets are represented as integers, where the ith bit is
-set if element i belongs to the set.
 """
 
 include 'sage/ext/stdsage.pxi'
@@ -18,6 +17,10 @@ include 'sage/ext/cdefs.pxi'
 include 'sage/ext/interrupt.pxi'
 
 from libc.stdint cimport uint8_t
+
+###############################################################################
+# FastDigraph data structure to store graphs with at most sizeof(int) vertices
+###############################################################################
 
 cdef class FastDigraph:
     cdef uint8_t n
@@ -130,3 +133,5 @@ cdef inline int slow_popcount32(int i):
        j += (i>>k) & 1
 
    return j
+
+

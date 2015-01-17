@@ -41,6 +41,7 @@ This is a result of Kinnersley [Kin92]_ and Bodlaender [Bod98]_.
     :meth:`path_decomposition` | Returns the pathwidth of the given graph and the ordering of the vertices resulting in a corresponding path decomposition
     :meth:`vertex_separation` | Returns an optimal ordering of the vertices and its cost for vertex-separation
     :meth:`vertex_separation_MILP` | Computes the vertex separation of `G` and the optimal ordering of its vertices using an MILP formulation
+    :meth:`vertex_separation_BAB` | Computes the vertex separation of `G` and the optimal ordering of its vertices using a branch and bound algorithm
     :meth:`lower_bound` | Returns a lower bound on the vertex separation of `G`
     :meth:`is_valid_ordering` | Test if the linear vertex ordering `L` is valid for (di)graph `G`
     :meth:`width_of_path_decomposition` | Returns the width of the path decomposition induced by the linear ordering `L` of the vertices of `G`
@@ -168,6 +169,58 @@ The vertex separation of `G` is given by the value of `z`, and the order of
 vertex `v` in the optimal layout is given by the smallest `t` for which
 `y_v^t==1`.
 
+
+Branch and Bound algorithm for the vertex separation
+----------------------------------------------------
+
+We describe below the principle of a branch and bound algorithm (BAB) for
+determining an optimal ordering for the vertex separation of `G`, as proposed in
+[CMN14]_.
+
+**Greedy steps:**
+
+Let us denote `{\cal L}(S)` the set of all possible orderings of the vertices in
+`S`, and let `{\cal L}_P(S)\subseteq {\cal L}(S)` be the orderings starting with
+a prefix `P`. Let also `c(L)` be the cost of the ordering `L\in{\cal L}(V)` as
+defined above.
+
+Given a digraph `D=(V,A)`, a set `S\subset V`, and a prefix `P`, it has been
+proved in [CMN14]_ that `\min_{L\in{\cal L}_P(V)} c(L) = \min_{L\in{\cal
+L}_{P+v}(V)} c(L)` holds in two (non exhaustive) cases:
+
+.. MATH::
+
+    \text{or} \left\{ \begin{align}
+        &N^+(v)\subseteq S\cup N^+(S)\\
+        &v\in N^+(S)\text{ and }N^+(v)\setminus(S\cup N^+(S)) = \{w\}
+    \end{align}\right.
+
+In other words, if we find a vertex `v` satisfying above conditions, the best
+possible ordering with prefix `P` has the same cost as the best possible
+ordering with prefix `P+v`. So we can greedily extend the prefix with vertices
+satisfying the conditions which results in a significant reduction of the search
+space.
+
+**The algorithm:**
+
+Given the current prefix `P` and the current upper bound `UB` (either an input
+upper bound or the cost of the best solution found so far), apply the following
+steps:
+
+- Extend the prefix `P` into a prefix `P'` using the greedy steps as described
+  above.
+
+- Sort the vertices `v\in V\setminus P'` by increasing values of `|N^+(P+v)|`,
+  and prune the vertices with a value larger or equal to `UB`. Let `\Delta` be
+  the resulting sorted list.
+
+- Repeat with prefix `P'+v` for all `v\in\Delta` and keep the best found
+  solution.
+
+If a lower bound is passed to the algorithm, it will stop as soon as a solution
+with cost equal to that lower bound is found.
+
+
 REFERENCES
 ----------
 
@@ -181,6 +234,11 @@ REFERENCES
   Michal Pioro, IEEE/OSA Journal of Optical Communication and Networking
   2(12):1010-1021, 2010.
 
+.. [CMN14] *Experimental Evaluation of a Branch and Bound Algorithm for
+  computing Pathwidth*, David Coudert, Dorian Mazauric, and Nicolas Nisse. In
+  Symposium on Experimental Algorithms (SEA), volume 8504 of LNCS, Copenhagen,
+  Denmark, pages 46-58, June 2014,
+  http://hal.inria.fr/hal-00943549/document
 
 AUTHORS
 -------
@@ -189,6 +247,7 @@ AUTHORS
 
 - David Coudert (2012-04): MILP formulation and tests functions
 
+- David Coudert (2015-01): BAB formulation and tests functions
 
 
 METHODS
@@ -200,6 +259,8 @@ include 'sage/ext/cdefs.pxi'
 include 'sage/ext/interrupt.pxi'
 include 'fast_digraph.pyx'
 from libc.stdint cimport uint8_t, int8_t
+include "sage/data_structures/binary_matrix.pxi"
+from sage.graphs.base.static_dense_graph cimport dense_graph_init
 
 #*****************************************************************************
 #          Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
@@ -890,3 +951,372 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     vs = int(round( tabz['z'] ))
 
     return vs, seq
+
+
+##########################################
+# Branch and Bound for vertex separation #
+##########################################
+
+def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
+    r"""
+    Branch and Bound algorithm for the vertex separation.
+
+    This method implements the branch and bound algorithm for the vertex
+    separation of directed graphs and the pathwidth of undirected graphs
+    proposed in [CMN14]_. The implementation is valid for both Graph and
+    DiGraph. See the documentation of the
+    :mod:`~sage.graphs.graph_decompositions.vertex_separation` module.
+
+    INPUTS:
+
+    - ``G`` -- a Graph or a DiGraph.
+
+    - ``lower_bound`` -- (default: None) lower bound to consider in the branch
+      and  bound algorithm. This allows us to stop the search as soon as a
+      solution with width at most ``lower_bound`` is found.
+
+    - ``upper_bound`` -- (default: None) if specified, the algorithm searches
+      for a solution with ``width < upper_bound``. It helps cutting branches.
+      However, if the given upper bound is too low, the algorithm may not be
+      able to find a solution.
+
+    OUTPUTS:
+
+    - ``width`` -- the computed vertex separation
+
+    - ``seq`` -- an ordering of the vertices of width ``width``.
+
+
+    EXAMPLES:
+
+    The algorithm is valid for the vertex separation::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: D = digraphs.RandomDirectedGNP(15, .2)
+        sage: vb, seqb = VS.vertex_separation_BAB(D)
+        sage: vd, seqd = VS.vertex_separation(D)
+        sage: vb == vd
+        True
+        sage: vb == VS.width_of_path_decomposition(D, seqb)
+        True
+
+    The vertex separation of a `N\times N` grid is `N`::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: G = graphs.Grid2dGraph(4,4)
+        sage: vs, seq = VS.vertex_separation_BAB(G); vs
+        4
+        sage: vs == VS.width_of_path_decomposition(G, seq)
+        True
+
+    The vertex separation of a `N\times M` grid with `N<M` is `N`::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: G = graphs.Grid2dGraph(3,5)
+        sage: vs, seq = VS.vertex_separation_BAB(G); vs
+        3
+        sage: vs == VS.width_of_path_decomposition(G, seq)
+        True
+
+    The vertex separation of circuit of order `N\geq 2` is 1::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: D = digraphs.Circuit(10)
+        sage: vs, seq = VS.vertex_separation_BAB(D); vs
+        1
+        sage: vs == VS.width_of_path_decomposition(D, seq)
+        True
+
+    The vertex separation of cycle of order `N\geq 3` is 2::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: G = graphs.CycleGraph(10)
+        sage: vs, seq = VS.vertex_separation_BAB(G); vs
+        2
+
+    TESTS:
+
+    Giving anything else than a Graph or a DiGraph::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: VS.vertex_separation_BAB(range(5))
+        Traceback (most recent call last):
+        ...
+        ValueError: The input parameter must be a Graph or a DiGraph.
+
+    Giving an empty Graph or DiGraph::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: VS.vertex_separation_BAB(Graph())
+        (0, [])
+        sage: VS.vertex_separation_BAB(DiGraph())
+        (0, [])
+
+    Giving a higher lower bound than the upper bound::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: VS.vertex_separation_BAB(digraphs.Circuit(3), lower_bound=3, upper_bound=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The input upper bound is lower than the input lower bound.
+
+    Giving a too low upper bound::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: VS.vertex_separation_BAB(digraphs.Circuit(3), upper_bound=0)
+        Traceback (most recent call last):
+        ...
+        ValueError: The input upper bound must be at least 1.
+    """
+    from sage.graphs.graph import Graph
+    from sage.graphs.digraph import DiGraph
+    if not isinstance(G, DiGraph) and not isinstance(G, Graph):
+        raise ValueError("The input parameter must be a Graph or a DiGraph.")
+
+    cdef int n = G.order()
+    if n==0:
+        return 0, []
+
+    lower_bound = 0 if lower_bound is None else lower_bound
+    upper_bound = n if upper_bound is None else upper_bound
+    if lower_bound > upper_bound:
+        raise ValueError("The input upper bound is lower than the input lower bound.")
+    if upper_bound < 1:
+        raise ValueError("The input upper bound must be at least 1.")
+
+    # ==> Allocate and initialize some data structures
+
+    # We use a binary matrix to store the (di)graph. This way the neighborhoud
+    # of a vertex is stored in one bitset.
+    cdef binary_matrix_t H
+    cdef dict vertex_to_int = dense_graph_init(H, G, translation = True)
+    cdef int i
+    cdef dict int_to_vertex = dict((i, v) for v,i in vertex_to_int.iteritems())
+
+    # We need 3 bitsets here + 5 per call to vertex_separation_BAB_C, so overall
+    # 5*n + 3. We use another binary matrix as a pool of bitsets.
+    cdef binary_matrix_t bm_pool
+    binary_matrix_init(bm_pool, 5*n+3, n)
+    # one of them is initialized with 1's
+    bitset_complement(bm_pool.rows[5*n+2], bm_pool.rows[5*n+2])
+    
+    cdef int * current_prefix = <int *>sage_malloc(n * sizeof(int))
+    cdef int * best_seq       = <int *>sage_malloc(n * sizeof(int))
+    cdef int * positions      = <int *>sage_malloc(n * sizeof(int))
+    if current_prefix==NULL or best_seq==NULL or positions==NULL:
+        sage_free(current_prefix)
+        sage_free(best_seq)
+        sage_free(positions)
+        binary_matrix_free(H)
+        binary_matrix_free(bm_pool)
+        raise MemoryError("Unable to allocate data strutures.")
+
+    for i in range(n):
+        current_prefix[i] = i
+        best_seq[i] = i
+        positions[i] = i
+
+    cdef int width = upper_bound
+    cdef list order = list()
+
+    try:
+        # ==> Call the cython method
+        sig_on()
+        width = vertex_separation_BAB_C(H                      = H,
+                                        n                      = n,
+                                        current_prefix         = current_prefix,
+                                        positions              = positions,
+                                        best_seq               = best_seq,
+                                        level                  = 0,
+                                        b_current_prefix       = bm_pool.rows[5*n],
+                                        b_current_neighborhood = bm_pool.rows[5*n+1],
+                                        b_current_other        = bm_pool.rows[5*n+2],
+                                        lower_bound            = lower_bound,
+                                        upper_bound            = upper_bound,
+                                        current_cost           = 0,
+                                        bm_pool                = bm_pool )
+
+        sig_off()
+
+        # ==> Build the final ordering
+        for 0 <= i < n:
+            order.append(int_to_vertex[best_seq[i]])
+
+    finally:
+        sage_free(current_prefix)
+        sage_free(best_seq)
+        sage_free(positions)
+        binary_matrix_free(H)
+        binary_matrix_free(bm_pool)
+
+    return (width if width<upper_bound else -1), order
+
+cdef inline _my_invert_positions(int *prefix, int *positions, int i, int target_pos):
+    """
+    Put i at target position and put element previously at target position at
+    original position of i
+    """
+    cdef int a, pos_a
+    if prefix[target_pos]!=i:
+        a = prefix[target_pos]
+        pos_a = positions[i]
+        prefix[target_pos] = i
+        positions[i] = target_pos
+        positions[a] = pos_a
+        prefix[pos_a] = a
+
+cdef int vertex_separation_BAB_C(binary_matrix_t H,
+                                 int             n,
+                                 int *           current_prefix,
+                                 int *           positions,
+                                 int *           best_seq,
+                                 int             level,
+                                 bitset_t        b_current_prefix,
+                                 bitset_t        b_current_neighborhood,
+                                 bitset_t        b_current_other,
+                                 int             lower_bound,
+                                 int             upper_bound,
+                                 int             current_cost,
+                                 binary_matrix_t bm_pool):
+    r"""
+    Branch and Bound algorithm for the process number and the vertex separation.
+    """
+    cdef int i
+
+    # ==> Test termination
+
+    if level==n:
+        if current_cost < upper_bound:
+            for i in range(n):
+                best_seq[i] = current_prefix[i]
+
+        return current_cost
+
+    cdef int delta_i, j, v, somemore, select_it
+    cdef list delta = list()
+    cdef int loc_level = level
+
+    # ==> Allocate local data structures
+
+    cdef bitset_s *bits_tmp                   = bm_pool.rows[5*level]
+    cdef bitset_s *bits_tmp2                  = bm_pool.rows[5*level+1]
+    cdef bitset_s *loc_b_current_prefix       = bm_pool.rows[5*level+2]
+    cdef bitset_s *loc_b_current_neighborhood = bm_pool.rows[5*level+3]
+    cdef bitset_s *loc_b_current_other        = bm_pool.rows[5*level+4]
+    bitset_copy(loc_b_current_prefix, b_current_prefix)
+    bitset_copy(loc_b_current_neighborhood, b_current_neighborhood)
+    bitset_copy(loc_b_current_other, b_current_other)
+
+    # ==> Greedy steps
+    #
+    # We extend the current prefix with all vertices u such that either
+    # (i) All out-neighbors of u are in the prefix or in its out-neighborhood
+    # (ii) or u is an out-neighbor of the prefix and all but one of its
+    #      out-neighbors are in the prefix or in its out-neighborhood.
+
+    # We compute the union of the prefix and its neighborhood
+    bitset_union(bits_tmp, loc_b_current_prefix, loc_b_current_neighborhood)
+
+    somemore = 1
+    select_it = 0
+    while somemore:
+        somemore = 0
+
+        for i from loc_level <= i < n:
+            j = current_prefix[i]
+
+            if bitset_issubset(H.rows[j], bits_tmp):
+                # (i) Vertex j is such that all its out-neighbors are in the
+                # prefix or in its out-neighborhood (so in bits_tmp).
+                bitset_add(bits_tmp, j)
+                select_it = 1
+
+            elif bitset_in(loc_b_current_neighborhood, j):
+                bitset_difference(bits_tmp2, H.rows[j], bits_tmp)
+                if bitset_len(bits_tmp2)==1:
+                    # (ii) Vertex j is an out-neighbor of the prefix and all but
+                    # one of its out-neighbors are in the prefix or in its
+                    # out-neighborhood.
+                    v = bitset_first(bits_tmp2)
+                    bitset_add(bits_tmp, v)
+                    bitset_add(loc_b_current_neighborhood, v)
+                    select_it = 1
+
+            if select_it:
+                # We add j to the prefix and update neighborhoods
+                _my_invert_positions(current_prefix, positions, j, loc_level)
+                loc_level += 1
+                bitset_add(loc_b_current_prefix, j)
+                bitset_discard(loc_b_current_other, j)
+                bitset_discard(loc_b_current_neighborhood, j)
+                somemore = 1
+                select_it = 0
+
+
+    # ==> Test termination
+    #
+    if loc_level==n:
+        if current_cost < upper_bound:
+            for i in range(n):
+                best_seq[i] = current_prefix[i]
+
+        return current_cost
+
+
+    # ==> Sort and Prune
+    #
+    # We compute for each remaining vertex v a lower bound on the width of any
+    # ordering with prefix current_prefix+v
+    for i from loc_level <= i < n:
+        j = current_prefix[i]
+        bitset_union(bits_tmp, loc_b_current_neighborhood, H.rows[j])
+        bitset_difference(bits_tmp, bits_tmp, loc_b_current_prefix)
+        bitset_discard(bits_tmp, j)
+        delta_i = bitset_len(bits_tmp)
+        if delta_i < upper_bound:
+            delta.append( (delta_i, j) )
+
+    delta.sort()
+
+
+    # ==> Recursion
+
+    for delta_i, i in delta:
+
+        delta_i = max(current_cost, delta_i)
+
+        if delta_i < upper_bound:
+            # We extend the current prefix with vertex i and explore the branch
+
+            bitset_union(bits_tmp, loc_b_current_neighborhood,  H.rows[i])
+            bitset_difference(bits_tmp, bits_tmp, loc_b_current_prefix)
+            bitset_discard(bits_tmp, i)
+            _my_invert_positions(current_prefix, positions, i, loc_level)
+            bitset_add(loc_b_current_prefix, i)
+            bitset_discard(loc_b_current_other, i)
+
+            cost_i = vertex_separation_BAB_C(H                      = H,
+                                             n                      = n,
+                                             current_prefix         = current_prefix,
+                                             positions              = positions,
+                                             best_seq               = best_seq,
+                                             level                  = loc_level+1,
+                                             b_current_prefix       = loc_b_current_prefix,
+                                             b_current_neighborhood = bits_tmp,
+                                             b_current_other        = loc_b_current_other,
+                                             lower_bound            = lower_bound,
+                                             upper_bound            = upper_bound,
+                                             current_cost           = delta_i,
+                                             bm_pool                = bm_pool )
+
+            bitset_discard(loc_b_current_prefix, i)
+            bitset_add(loc_b_current_other, i)
+
+            if cost_i < upper_bound:
+                upper_bound = cost_i
+                if upper_bound <= lower_bound:
+                    # Either we have optimal solution, or we are satisfied with
+                    # current solution.
+                    break
+
+    return upper_bound

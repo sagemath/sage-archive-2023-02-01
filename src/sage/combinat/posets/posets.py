@@ -31,11 +31,13 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.closed_interval` | Returns a list of the elements `z` such that `x \le z \le y`.
     :meth:`~FinitePoset.compare_elements` | Compares `x` and `y` in the poset.
     :meth:`~FinitePoset.comparability_graph` | Returns the comparability graph of the poset.
+    :meth:`~FinitePoset.completion_by_cuts` | Returns the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.cover_relations_iterator` | Returns an iterator for the cover relations of the poset.
     :meth:`~FinitePoset.cover_relations` | Returns the list of pairs `[u,v]` which are cover relations
     :meth:`~FinitePoset.cover_relations_graph` | Return the graph of cover relations
     :meth:`~FinitePoset.covers` | Returns True if y covers x and False otherwise.
     :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
+    :meth:`~FinitePoset.cuts` | Returns the cuts of the given poset.
     :meth:`~FinitePoset.dilworth_decomposition` | Returns a partition of the points into the minimal number of chains.
     :meth:`~FinitePoset.disjoint_union` | Return the disjoint union of the poset with ``other``.
     :meth:`~FinitePoset.dual` | Returns the dual poset of the given poset.
@@ -5039,77 +5041,75 @@ class FinitePoset(UniqueRepresentation, Parent):
             res += QR.Fundamental()(Composition(from_subset=(descents, n)))
         return res
 
-    def poset_aux(self):
-        """
-        Return an auxiliary poset `Q` used for :meth:`cuts`.
-
-        The poset `Q` is `P \times [0,1]` with covering relations
-        `(x, 0) <_Q (y, 1)` if and only if `x \not\geq_P y`.
-
-        See the end of section 4 in [JRJ94]_.
-
-        EXAMPLES::
-
-            sage: P = posets.AntichainPoset(3)
-            sage: Q = P.poset_aux(); Q
-            Finite poset containing 6 elements
-            sage: len(Q.relations())
-            12
-
-        REFERENCES:
-
-        .. [JRJ94] Jourdan, Guy-Vincent; Rampon, Jean-Xavier; Jard, Claude
-          (1994), "Computing on-line the lattice of maximal antichains
-          of posets", Order 11 (3) p. 197–210, :doi:`10.1007/BF02115811`
-        """
-        return Poset([[(u, i) for u in self for i in (0, 1)],
-                      [((u, 0), (v, 1))
-                       for u in self for v in self if not self.ge(u, v)]],
-                     cover_relations=True)
-
     def cuts(self):
-        """
-        Return the set of cuts of the poset ``self``
+        r"""
+        Return the list of cuts of the poset ``self``.
 
         A cut is a subset `A` of ``self`` such that the set of lower
         bounds of the set of upper bounds of `A` is exactly `A`.
+
+        The cuts are computed here using the maximal cliques in the
+        incomparability graph of the auxiliary poset `Q` defined as
+        `P \times [0,1]` with covering relations `(x, 0) <_Q (y, 1)` if
+        and only if `x \not\geq_P y`. See the end of section 4 in [JRJ94]_.
 
         EXAMPLES::
 
             sage: P = posets.AntichainPoset(3)
             sage: P.cuts()
-            [{}, {1}, {0}, {2}, {1, 0, 2}]
+            [{0}, {0, 1, 2}, {}, {1}, {2}]
+
+        .. SEEALSO::
+
+            :meth:`completion_by_cuts`
+
+        REFERENCES:
+
+        .. [JRJ94] Jourdan, Guy-Vincent; Rampon, Jean-Xavier; Jard, Claude
+           (1994), "Computing on-line the lattice of maximal antichains
+           of posets", Order 11 (3) p. 197-210, :doi:`10.1007/BF02115811`
         """
-        cuts = self.poset_aux().incomparability_graph().cliques_maximal()
-        return [Set([xa for xa, xb in c if xb == 0]) for c in cuts]
+        auxP = Poset([[(u, i) for u in self for i in (0, 1)],
+                      [((u, 0), (v, 1))
+                       for u in self for v in self if not self.ge(u, v)]],
+                     cover_relations=True)
+        cliqs = auxP.incomparability_graph().cliques_maximal()
+        return [Set([xa for xa, xb in c if xb == 0]) for c in cliqs]
 
     def completion_by_cuts(self):
         """
-        Return the completion by cuts of ``self``
+        Return the completion by cuts of ``self``.
 
-        This is also called the Dedekind-MacNeille completion.
+        This is a lattice, also called the Dedekind-MacNeille completion.
 
-        See the :wikipedia:`Wikipedia page <Dedekind-MacNeille completion>`.
-
-        The algorithm is naive.
+        See the :wikipedia:`Dedekind-MacNeille completion`.
 
         OUTPUT:
 
-        - a finite poset
+        - a finite lattice
 
         EXAMPLES::
 
             sage: P = posets.PentagonPoset()
             sage: P.completion_by_cuts().is_isomorphic(P)
             True
+
             sage: P = posets.AntichainPoset(3)
-            sage: Q = P.completion_by_cuts(); Q
-            Finite poset containing 5 elements
+            sage: Q = P.completion_by_cuts()
             sage: Q.is_isomorphic(posets.DiamondPoset(5))
             True
+
+            sage: P = posets.SymmetricGroupBruhatOrderPoset(3)
+            sage: Q = P.completion_by_cuts(); Q
+            Finite lattice containing 7 elements
+
+        .. SEEALSO::
+
+            :meth:`cuts`
         """
+        from sage.combinat.posets.lattices import LatticePoset
         from sage.misc.misc import attrcall
-        return Poset((self.cuts(), attrcall("issubset")))
+        return LatticePoset((self.cuts(), attrcall("issubset")))
 
 FinitePoset._dual_class = FinitePoset
 

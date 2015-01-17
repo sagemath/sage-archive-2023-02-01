@@ -109,13 +109,6 @@ and classes are similar. There are four relevant functions.
    This is the function you should override to implement addition in a
    python subclass of RingElement.
 
-   .. WARNING::
-
-       if you override this in a *Cython* class, it won't get called.
-       You should override _add_ instead. It is especially important to
-       keep this in mind whenever you move a class down from Python to
-       Cython.
-
    The two arguments to this function are guaranteed to have the
    SAME PARENT. Its return value MUST have the SAME PARENT as its
    arguments.
@@ -2888,7 +2881,8 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
         """
         Return the least common multiple of ``self`` and right. 
         """
-        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
+        if not isinstance(right, Element) or not ((<Element>right)._parent is self._parent):
+            from sage.rings.arith import lcm
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
 
@@ -3385,36 +3379,8 @@ coerce_binop = NamedBinopMethod
 
 ###############################################################################
 
-def lcm(x, y):
-    """
-    TESTS::
-
-        sage: lcm(3,-4)
-        12
-    """
-    from sage.rings.arith import lcm
-    return lcm(x, y)
-
-def gcd(x, y):
-    """
-    TESTS::
-
-        sage: gcd(12,15)
-        3
-    """
-    from sage.rings.arith import gcd
-    return gcd(x, y)
-
-def xgcd(x, y):
-    """
-    TESTS::
-
-        sage: x = polygen(QQ)
-        sage: xgcd(x^3 - 1, x^2 - 1)
-        (x - 1, 1, -x)
-    """
-    from sage.rings.arith import xgcd
-    return xgcd(x, y)
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.rings.arith', ['gcd', 'xgcd', 'lcm'], deprecation=10779)
 
 
 ######################

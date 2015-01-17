@@ -5039,59 +5039,33 @@ class FinitePoset(UniqueRepresentation, Parent):
             res += QR.Fundamental()(Composition(from_subset=(descents, n)))
         return res
 
-    def set_of_upper_bounds(self, A):
-        r"""
-        Return the set of upper bounds of the subset `A` of ``self``
+    def poset_aux(self):
+        """
+        Return an auxiliary poset `Q` used for :meth:`cuts`.
 
-        An element `x` is called an upper bound of `A` if `a\leq x`
-        for all `a \in A`
+        The poset `Q` is `P \times [0,1]` with covering relations
+        `(x, 0) <_Q (y, 1)` if and only if `x \not\geq_P y`.
 
-        INPUT:
-
-        - `A` -- a subset of the poset ``self``
-
-        OUTPUT:
-
-        - a subset of the poset ``self``
+        See the end of section 4 in [JRJ94]_.
 
         EXAMPLES::
 
-            sage: P = posets.PentagonPoset()
-            sage: P.set_of_upper_bounds([P(0), P(1)])
-            {1, 4}
-            sage: P.set_of_upper_bounds([u for u in P])
-            {4}
-            sage: P.set_of_upper_bounds([P(0)])
-            {1, 0, 3, 2, 4}
+            sage: P = posets.AntichainPoset(3)
+            sage: Q = P.poset_aux(); Q
+            Finite poset containing 6 elements
+            sage: len(Q.relations())
+            12
+
+        REFERENCES:
+
+        .. [JRJ94] Jourdan, Guy-Vincent; Rampon, Jean-Xavier; Jard, Claude
+          (1994), "Computing on-line the lattice of maximal antichains
+          of posets", Order 11 (3) p. 197–210, :doi:`10.1007/BF02115811`
         """
-        return Set([x for x in self if all([x >= a for a in A])])
-
-    def set_of_lower_bounds(self, A):
-        r"""
-        Return the set of lower bounds of the subset `A` of ``self``
-
-        An element `x` is called an lower bound of `A` if `x\leq a`
-        for all `a \in A`
-
-        INPUT:
-
-        - `A` -- a subset of the poset ``self``
-
-        OUTPUT:
-
-        - a subset of the poset ``self``
-
-        EXAMPLES::
-
-            sage: P = posets.PentagonPoset()
-            sage: P.set_of_lower_bounds([P(1), P(4)])
-            {1, 0}
-            sage: P.set_of_lower_bounds([u for u in P])
-            {0}
-            sage: P.set_of_lower_bounds([P(4)])
-            {1, 0, 3, 2, 4}
-        """
-        return Set([x for x in self if all([x <= a for a in A])])
+        return Poset([[(u, i) for u in self for i in (0, 1)],
+                      [((u, 0), (v, 1))
+                       for u in self for v in self if not self.ge(u, v)]],
+                     cover_relations=True)
 
     def cuts(self):
         """
@@ -5106,8 +5080,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cuts()
             [{}, {1}, {0}, {2}, {1, 0, 2}]
         """
-        return [A for A in Set(self).subsets()
-                if self.set_of_lower_bounds(self.set_of_upper_bounds([self(a) for a in A])) == Set([self(a) for a in A])]
+        cuts = self.poset_aux().incomparability_graph().cliques_maximal()
+        return [Set([xa for xa, xb in c if xb == 0]) for c in cuts]
 
     def completion_by_cuts(self):
         """

@@ -706,7 +706,9 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
     - ``vars`` - list of dependent variables
 
-    - ``ics`` - (optional) list of initial values for ivar and vars
+    - ``ics`` - (optional) list of initial values for ivar and vars.
+      If ics is defined, it should provide initial conditions for each variable,
+      otherwise an exception would be raised.
 
     - ``ivar`` - (optional) the independent variable, which must be
       specified if there is more than one independent variable in the
@@ -770,11 +772,31 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
     Now type show(P1), show(P2) to view these plots.
 
+    Check that :trac:`9824` is fixed::
+
+        sage: t = var('t')
+        sage: epsilon = var('epsilon')
+        sage: x1 = function('x1', t)
+        sage: x2 = function('x2', t)
+        sage: de1 = diff(x1,t) == epsilon
+        sage: de2 = diff(x2,t) == -2
+        sage: desolve_system([de1, de2], [x1, x2], ivar=t)
+        [x1(t) == epsilon*t + x1(0), x2(t) == -2*t + x2(0)]
+        sage: desolve_system([de1, de2], [x1, x2], ics=[1,1], ivar=t)
+        Traceback (most recent call last):
+        ...
+        ValueError: Initial conditions aren't complete: number of vars is different from number of dependent variables. Got ics = [1, 1], vars = [x1(t), x2(t)]
+
+
     AUTHORS:
 
     - Robert Bradshaw (10-2008)
     - Sergey Bykov (10-2014)
     """
+    if ics is not None:
+        if len(ics) != (len(vars) + 1):
+            raise ValueError("Initial conditions aren't complete: number of vars is different from number of dependent variables. Got ics = {0}, vars = {1}".format(ics, vars))
+
     if len(des)==1:
         return desolve_laplace(des[0], vars[0], ics=ics, ivar=ivar)
     ivars = set([])

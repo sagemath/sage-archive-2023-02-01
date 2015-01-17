@@ -623,6 +623,11 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             ValueError: The name "x,y" is not a valid Python identifier.
+
+        Check that :trac:`17206` is fixed::
+
+            sage: var1 = var('var1', latex_name=r'\sigma^2_1'); latex(var1)
+            {\sigma^2_1}
         """
         if is_Expression(name):
             return name
@@ -645,7 +650,10 @@ cdef class SymbolicRing(CommutativeRing):
         if len(names_list) == 0:
             raise ValueError('You need to specify the name of the new variable.')
         if len(names_list) == 1:
-            return self.symbol(name, latex_name=latex_name, domain=domain)
+            formatted_latex_name = None
+            if latex_name is not None:
+                formatted_latex_name = '{{{0}}}'.format(latex_name)
+            return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
         if len(names_list) > 1:
             if latex_name:
                 raise ValueError, "cannot specify latex_name for multiple symbol names"
@@ -925,7 +933,7 @@ def is_SymbolicVariable(x):
 
     TESTS::
 
-        sage: ZZ[x]
+        sage: ZZ['x']
         Univariate Polynomial Ring in x over Integer Ring
     """
     return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)

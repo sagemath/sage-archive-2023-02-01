@@ -1448,8 +1448,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g.conjugacy_class()
             Conjugacy class of (1,3,5,2,4) in Dihedral group of order 10 as a permutation group
         """
-        from sage.groups.conjugacy_classes import ConjugacyClassGAP
-        return ConjugacyClassGAP(self.parent(), self)
+        return self.parent().conjugacy_class(self)
 
 
 cdef bint is_valid_permutation(int* perm, int n):

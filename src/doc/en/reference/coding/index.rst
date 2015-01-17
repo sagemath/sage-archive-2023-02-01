@@ -1,3 +1,5 @@
+.. _sage.coding:
+
 Coding Theory
 =============
 

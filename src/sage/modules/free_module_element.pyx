@@ -348,21 +348,41 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         ...
         ValueError: dictionary of entries has a key (index) exceeding the requested degree
 
-    Any 1 dimensional numpy array of type float or complex may be
-    passed to vector. The result will be a vector in the appropriate
-    dimensional vector space over the real double field or the complex
-    double field. The data in the array must be contiguous so
-    column-wise slices of numpy matrices will raise an exception. ::
+    A 1-dimensional numpy array of type float or complex may be
+    passed to vector. Unless an explicit ring is given, the result will
+    be a vector in the appropriate dimensional vector space over the
+    real double field or the complex double field. The data in the array
+    must be contiguous, so column-wise slices of numpy matrices will
+    raise an exception. ::
 
         sage: import numpy
-        sage: x=numpy.random.randn(10)
-        sage: y=vector(x)
-        sage: v=numpy.random.randn(10)*numpy.complex(0,1)
-        sage: w=vector(v)
+        sage: x = numpy.random.randn(10)
+        sage: y = vector(x)
+        sage: parent(y)
+        Vector space of dimension 10 over Real Double Field
+        sage: parent(vector(RDF, x))
+        Vector space of dimension 10 over Real Double Field
+        sage: parent(vector(CDF, x))
+        Vector space of dimension 10 over Complex Double Field
+        sage: parent(vector(RR, x))
+        Vector space of dimension 10 over Real Field with 53 bits of precision
+        sage: v = numpy.random.randn(10) * numpy.complex(0,1)
+        sage: w = vector(v)
+        sage: parent(w)
+        Vector space of dimension 10 over Complex Double Field
+
+    Multi-dimensional arrays are not supported::
+
+        sage: import numpy as np
+        sage: a = np.array([[1, 2, 3], [4, 5, 6]], np.float64)
+        sage: vector(a)
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot convert 2-dimensional array to a vector
 
     If any of the arguments to vector have Python type int, long, real,
     or complex, they will first be coerced to the appropriate Sage
-    objects. This fixes trac #3847. ::
+    objects. This fixes :trac:`3847`. ::
 
         sage: v = vector([int(0)]); v
         (0)
@@ -378,7 +398,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         Complex Double Field
 
     If the argument is a vector, it doesn't change the base ring. This
-    fixes trac #6643. ::
+    fixes :trac:`6643`. ::
 
         sage: K.<sqrt3> = QuadraticField(3)
         sage: u = vector(K, (1/2, sqrt3/2) )
@@ -469,19 +489,20 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         R = None
 
     from numpy import ndarray
-    from free_module import VectorSpace
-    if isinstance(v,ndarray):
-        if len(v.shape)==1:
-            if str(v.dtype).count('float')==1:
-                V=VectorSpace(RDF,v.shape[0])
-                import vector_real_double_dense
-                _v=vector_real_double_dense.Vector_real_double_dense(V, v)
-                return _v
-            if str(v.dtype).count('complex')==1:
-                V=VectorSpace(CDF,v.shape[0])
-                import vector_complex_double_dense
-                _v=vector_complex_double_dense.Vector_complex_double_dense(V, v)
-                return _v
+    if isinstance(v, ndarray):
+        if len(v.shape) != 1:
+            raise TypeError("cannot convert %r-dimensional array to a vector" % len(v.shape))
+        from free_module import VectorSpace
+        if (R is None or R is RDF) and v.dtype.kind == 'f':
+            V = VectorSpace(RDF, v.shape[0])
+            from vector_real_double_dense import Vector_real_double_dense
+            return Vector_real_double_dense(V, v)
+        if (R is None or R is CDF) and v.dtype.kind == 'c':
+            V = VectorSpace(CDF, v.shape[0])
+            from vector_complex_double_dense import Vector_complex_double_dense
+            return Vector_complex_double_dense(V, v)
+        # Use slower conversion via list
+        v = list(v)
 
     if isinstance(v, dict):
         if degree is None:
@@ -842,6 +863,60 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         return self.list()
 
+    def _pari_(self):
+        """
+        Convert ``self`` to a PARI vector.
+
+        OUTPUT:
+
+        A PARI ``gen`` of type ``t_VEC``.
+
+        EXAMPLES::
+
+            sage: v = vector(range(4))
+            sage: v._pari_()
+            [0, 1, 2, 3]
+            sage: v._pari_().type()
+            't_VEC'
+
+        A list of vectors::
+
+            sage: L = [vector(i^n for i in range(4)) for n in [1,3,5]]
+            sage: pari(L)
+            [[0, 1, 2, 3], [0, 1, 8, 27], [0, 1, 32, 243]]
+        """
+        from sage.libs.pari.all import pari
+        return pari(self.list())
+
+    def _pari_init_(self):
+        """
+        Give a string which, when evaluated in GP, gives a PARI
+        representation of ``self``.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: v = vector(range(4))
+            sage: v._pari_init_()
+            '[0,1,2,3]'
+
+        Create the multiplication table of `GF(4)` using GP::
+
+            sage: k.<a> = GF(4, impl="pari_ffelt")
+            sage: v = gp(vector(list(k)))
+            sage: v
+            [0, 1, a, a + 1]
+            sage: v.mattranspose() * v
+            [0, 0, 0, 0; 0, 1, a, a + 1; 0, a, a + 1, 1; 0, a + 1, 1, a]
+        """
+        # Elements in vectors are always Sage Elements, so they should
+        # have a _pari_init_() method.
+        L = [x._pari_init_() for x in self.list()]
+        return "[" + ",".join(L) + "]"
+
     def _magma_init_(self, magma):
         r"""
         Convert self to Magma.
@@ -1115,44 +1190,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (0.5000, 0.0000, 0.0000, 0.3333, 0.0000, 0.0000, 0.0000, 0.2500)
         """
         return vector([e.n(prec, digits, algorithm) for e in self])
-
-    def transpose(self):
-        r"""
-        Return self as a column matrix.
-
-        .. note::
-
-            The ``transpose()`` method has been deprecated as of Sage 4.6.2,
-            in favor of the :meth:`column` method which is functionally identical.
-
-        EXAMPLES::
-
-            sage: v = vector(ZZ, [2, 12, 22])
-            sage: transpose(vector(v))
-            doctest:...: DeprecationWarning: The transpose() method for vectors has been deprecated, use column() instead
-            (or check to see if you have a vector when you really want a matrix)
-            See http://trac.sagemath.org/10541 for details.
-            [ 2]
-            [12]
-            [22]
-
-        ::
-
-            sage: transpose(vector(GF(7), v))
-            [2]
-            [5]
-            [1]
-
-        ::
-
-            sage: transpose(vector(v, ZZ['x', 'y']))
-            [ 2]
-            [12]
-            [22]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(10541, 'The transpose() method for vectors has been deprecated, use column() instead\n(or check to see if you have a vector when you really want a matrix)')
-        return self._matrix_().transpose()
 
     def row(self):
         r"""
@@ -2420,47 +2457,47 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         ::
 
-            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ[x],[1,2,3,4])))
+            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ['x'],[1,2,3,4])))
             Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
             sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(QQ,[1,2,3,4])))
             Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
 
         ::
 
-            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
+            sage: parent(vector(QQ,[1,2,3,4]).pairwise_product(vector(ZZ['x']['y'],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
             sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ,[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
 
         ::
 
-            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
+            sage: parent(vector(QQ['x'],[1,2,3,4]).pairwise_product(vector(ZZ['x']['y'],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ[x],[1,2,3,4])))
-            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-
-        ::
-
-            sage: parent(vector(QQ[y],[1,2,3,4]).pairwise_product(vector(ZZ[x][y],[1,2,3,4])))
-            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
-            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ['x'],[1,2,3,4])))
             Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
 
         ::
 
-            sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(ZZ[y],[1,2,3,4])))
+            sage: parent(vector(QQ['y'],[1,2,3,4]).pairwise_product(vector(ZZ['x']['y'],[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: parent(vector(ZZ[x][y],[1,2,3,4]).pairwise_product(vector(QQ['y'],[1,2,3,4])))
+            Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+
+        ::
+
+            sage: parent(vector(ZZ['x'],[1,2,3,4]).pairwise_product(vector(ZZ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
-            sage: parent(vector(ZZ[x],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            sage: parent(vector(ZZ['x'],[1,2,3,4]).pairwise_product(vector(QQ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in x over Integer Ring' and 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
-            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(ZZ[y],[1,2,3,4])))
+            sage: parent(vector(QQ['x'],[1,2,3,4]).pairwise_product(vector(ZZ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 4 over the integral domain Univariate Polynomial Ring in y over Integer Ring'
-            sage: parent(vector(QQ[x],[1,2,3,4]).pairwise_product(vector(QQ[y],[1,2,3,4])))
+            sage: parent(vector(QQ['x'],[1,2,3,4]).pairwise_product(vector(QQ['y'],[1,2,3,4])))
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field' and 'Ambient free module of rank 4 over the principal ideal domain Univariate Polynomial Ring in y over Rational Field'
@@ -2540,25 +2577,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             if self[i] != 0:
                 return (~self[i]) * self
         return self
-
-    def normalize(self):
-        """
-        This function is deprecated. For division by the p-norm use
-        'normalized', and for division by the first nonzero entry use
-        'monic' (previously the purpose of this function).
-
-        EXAMPLES::
-
-            sage: v = vector(QQ, [0, 4/3, 5, 1, 2])
-            sage: v.normalize()
-            doctest:...: DeprecationWarning: 'normalize' is deprecated...
-            (0, 1, 15/4, 3/4, 3/2)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(13393, "'normalize' is deprecated. For division by the \
-p-norm use 'normalized', and for division by the first nonzero entry use \
-'monic'.")
-        return self.monic()
 
     def normalized(self, p=sage.rings.integer.Integer(2)):
         """
@@ -3925,7 +3943,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: w=v.function([x]); w
             x |--> (x, y, x*sin(y))
             sage: w.base_ring()
-            Callable function ring with arguments (x,)
+            Callable function ring with argument x
             sage: w(4)
             (4, y, 4*sin(y))
         """
@@ -4406,7 +4424,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w[39893] = sqrt(2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=sqrt(2)) to an integer
+            TypeError: unable to convert sqrt(2) to an integer
         """
         if not self._is_mutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")

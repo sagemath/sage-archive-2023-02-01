@@ -22,13 +22,14 @@ Website: http://www.cs.uwaterloo.ca/~astorjoh/iml.html
  * Arne Storjohann astorjoh@uwaterloo.ca
 
 == Dependencies ==
- * GMP/MPIR
+ * GMP
  * ATLAS
 
 == Special Update/Build Instructions ==
 
- * Various files should be made executable. Run spkg-src after
-   extracting the sources to src/ to fix this.
+ * As of version 1.0.4, you need to repackage the upstream tarball
+   using the spkg-src script because there was a bugfix version of 1.0.4
+   reposted upstream without version number bump.
 
 === Patches ===
 

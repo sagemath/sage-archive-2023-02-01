@@ -38,7 +38,7 @@ from finite_dimensional_algebras.all import FiniteDimensionalAlgebra
 
 from group_algebra_new import GroupAlgebra
 
-from iwahori_hecke_algebra import IwahoriHeckeAlgebra, IwahoriHeckeAlgebraT
+from iwahori_hecke_algebra import IwahoriHeckeAlgebra
 from affine_nil_temperley_lieb import AffineNilTemperleyLiebTypeA
 lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra')
 

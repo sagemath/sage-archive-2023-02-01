@@ -615,7 +615,7 @@ class IncidenceStructure(object):
             sage: F.induced_substructure("Y")
             Traceback (most recent call last):
             ...
-            ValueError: Y is not a point of the incidence structure
+            ValueError: 'Y' is not a point of the incidence structure
         """
         # Checking the input
         if self._point_to_index is None:
@@ -628,8 +628,8 @@ class IncidenceStructure(object):
         else:
             try:
                 int_points = [self._point_to_index[x] for x in points]
-            except KeyError:
-                raise ValueError("{} is not a point of the incidence structure".format(x))
+            except KeyError as bad_pt:
+                raise ValueError("{} is not a point of the incidence structure".format(bad_pt))
 
         int_points = set(int_points)
         return IncidenceStructure(points,
@@ -688,7 +688,7 @@ class IncidenceStructure(object):
             sage: F.trace("Y")
             Traceback (most recent call last):
             ...
-            ValueError: Y is not a point of the incidence structure
+            ValueError: 'Y' is not a point of the incidence structure
         """
         # Checking the input
         if self._point_to_index is None:
@@ -700,8 +700,7 @@ class IncidenceStructure(object):
         else:
             try:
                 int_points = frozenset(self._point_to_index[x] for x in points)
-            except KeyError:
-                bad_pt = (x for x in points if x not in self._point_to_index).next()
+            except KeyError as bad_pt:
                 raise ValueError("{} is not a point of the incidence structure".format(bad_pt))
 
         blocks = [int_points.intersection(S) for S in self._blocks]

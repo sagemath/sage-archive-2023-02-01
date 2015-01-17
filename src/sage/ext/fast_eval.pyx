@@ -26,11 +26,11 @@ version of f.
 
 .. NOTE::
 
-Sage temporarily has two implementations of this functionality ;
-one in this file, which will probably be deprecated soon, and one in
-fast_callable.pyx.  The following instructions are for the old
-implementation; you probably want to be looking at fast_callable.pyx
-instead.
+    Sage temporarily has two implementations of this functionality ;
+    one in this file, which will probably be deprecated soon, and one in
+    fast_callable.pyx.  The following instructions are for the old
+    implementation; you probably want to be looking at fast_callable.pyx
+    instead.
 
 To provide this interface for a class, implement ``fast_float_(self, *vars)``.  The basic building blocks are
 provided by the functions ``fast_float_constant`` (returns a
@@ -42,12 +42,12 @@ math functions such ``sqrt``, ``exp``, and trig functions.
 
 EXAMPLES::
 
-   sage: from sage.ext.fast_eval import fast_float
-   sage: f = fast_float(sqrt(x^7+1), 'x', old=True)
-   sage: f(1)
-   1.4142135623730951
-   sage: f.op_list()
-   ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)']
+    sage: from sage.ext.fast_eval import fast_float
+    sage: f = fast_float(sqrt(x^7+1), 'x', old=True)
+    sage: f(1)
+    1.4142135623730951
+    sage: f.op_list()
+    ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)']
 
 To interpret that last line, we load argument 0 (``x`` in this case) onto
 the stack, push the constant 2.0 onto the stack, call the pow function
@@ -1393,8 +1393,8 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
     - ``f``    -- an expression
     - ``vars`` -- the names of the arguments
     - ``old``  -- use the original algorithm for fast_float
-    - ``expect_one_var`` -- don't give deprecation warning if vars is
-                          omitted, as long as expression has only one var
+    - ``expect_one_var`` -- don't give deprecation warning if ``vars`` is
+      omitted, as long as expression has only one var
 
     EXAMPLES::
 
@@ -1405,9 +1405,7 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
         5.0
 
     Specifying the argument names is essential, as fast_float objects
-    only distinguish between arguments by order.
-
-    ::
+    only distinguish between arguments by order. ::
 
         sage: f = fast_float(x-y, 'x','y')
         sage: f(1,2)

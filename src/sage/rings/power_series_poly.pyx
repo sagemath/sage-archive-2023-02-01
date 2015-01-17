@@ -1186,6 +1186,26 @@ cdef class PowerSeries_poly(PowerSeries):
         resu_u = resu_u / lead_u
         return lead_u / lead_v * resu_u / resu_v
 
+    def _symbolic_(self, ring):
+        """
+        Conversion to symbolic series.
+
+        EXAMPLES::
+
+            sage: R.<x> = PowerSeriesRing(QQ)
+            sage: s = R([1,2,3,4,5],prec=10); s
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4 + O(x^10)
+            sage: SR(s)
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4
+            sage: SR(s).is_terminating_series()
+            True
+            sage: SR(s).variables()
+            (x,)
+        """
+        from sage.symbolic.ring import SR
+        pex = SR(self.polynomial())
+        return pex.series(pex.variables()[0], self.prec())
+
 
 def make_powerseries_poly_v0(parent,  f, prec, is_gen):
     """

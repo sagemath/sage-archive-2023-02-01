@@ -48,6 +48,8 @@ Functions
 from sage.rings.arith import is_prime_power
 from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
 from sage.categories.sets_cat import EmptySetError
+from bibd import balanced_incomplete_block_design
+from sage.misc.unknown import Unknown
 
 def resolvable_balanced_incomplete_block_design(v,k,existence=False):
     r"""
@@ -80,6 +82,13 @@ def resolvable_balanced_incomplete_block_design(v,k,existence=False):
         (15,3,1)-Balanced Incomplete Block Design
         sage: KTS15.is_resolvable()
         True
+
+    TESTS::
+
+        sage: for v in range(40):
+        ....:     for k in range(v):
+        ....:         if designs.resolvable_balanced_incomplete_block_design(v,k,existence=True):
+        ....:             _ = designs.resolvable_balanced_incomplete_block_design(v,k)
     """
     # Trivial cases
     if v==1 or k==v:
@@ -108,10 +117,11 @@ def resolvable_balanced_incomplete_block_design(v,k,existence=False):
         classes = [[[(c+i)%(v-1),(c+v-i)%(v-1)] for i in range(1,v//2)]
                    for c in range(v-1)]
         for i,classs in enumerate(classes):
-            classs.append([v-1,c])
+            classs.append([v-1,i])
 
         B = BalancedIncompleteBlockDesign(v,
-                                          classes,
+                                          sum(classes,[]),
+                                          k = k,
                                           check=True,
                                           copy=False)
         B._classes = classes

@@ -1,5 +1,5 @@
 r"""
-Orthogonal arrays
+Orthogonal arrays (OA)
 
 This module gathers some construction related to orthogonal arrays (or
 transversal designs). One can build an `OA(k,n)` (or check that it can be built)

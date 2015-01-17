@@ -1,5 +1,5 @@
 r"""
-(GDD) Group-Divisible Designs
+Group-Divisible Designs (GDD)
 
 This module gathers everything related to Group-Divisible Designs. The
 constructions defined here can be accessed through ``designs.<tab>``::
@@ -195,11 +195,11 @@ class GroupDivisibleDesign(IncidenceStructure):
 
     - `\mathcal B` is a family of subsets of `V` whose size belongs to `K` such
       that any two points `p_1,p_2\in V` from different groups appear
-      simultaneously in exactly `\lambda` elements of `mathcal B`. Besides, a
+      simultaneously in exactly `\lambda` elements of `\mathcal B`. Besides, a
       group and a block intersect on at most one point.
 
-    If `K=\{k_1,...,k_k\}` and `G` has exactly `m_i` groups of cardinality `k_i`
-    then `G` is said to have type `k_1^{m_1}...k_k^{m_k}`.
+    If `K=\{k_1,...,k_l\}` and `G` has exactly `m_i` groups of cardinality `k_i`
+    then `G` is said to have type `k_1^{m_1}...k_l^{m_l}`.
 
     INPUT:
 

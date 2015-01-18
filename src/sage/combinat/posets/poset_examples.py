@@ -403,12 +403,12 @@ class Posets(object):
              [[2, 2, 1, 1], [3, 1, 1, 1]],
              [[2, 2, 2], [3, 2, 1]],
              [[3, 1, 1, 1], [3, 2, 1]],
-             [[3, 2, 1], [4, 1, 1]],
              [[3, 2, 1], [3, 3]],
-             [[4, 1, 1], [4, 2]],
+             [[3, 2, 1], [4, 1, 1]],
              [[3, 3], [4, 2]],
+             [[4, 1, 1], [4, 2]],
              [[4, 2], [5, 1]],
-             [[5, 1], [6]]]            
+             [[5, 1], [6]]]
         """
         from sage.combinat.partition import Partitions, Partition
         return Poset((Partitions(n),Partition.dominates)).dual()
@@ -698,6 +698,7 @@ class Posets(object):
 
             The same for all finite Coxeter groups.
         """
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if n >= 10:
             raise ValueError('index ({}) is too large'.format(n))
         W = SymmetricGroup(n)
@@ -760,8 +761,8 @@ class Posets(object):
             [[[], [1]],
              [[1], [1, 1]],
              [[1], [2]],
-             [[1, 1], [2, 1]],
              [[1, 1], [1, 1, 1]],
+             [[1, 1], [2, 1]],
              [[2], [2, 1]],
              [[2], [3]]]
         """
@@ -785,10 +786,10 @@ class Posets(object):
             sage: P = Posets.YoungsLatticePrincipalOrderIdeal(Partition([2,2]))
             sage: P.cover_relations()
             [[[], [1]],
-             [[1], [2]],
              [[1], [1, 1]],
-             [[2], [2, 1]],
+             [[1], [2]],
              [[1, 1], [2, 1]],
+             [[2], [2, 1]],
              [[2, 1], [2, 2]]]
         """
         from sage.misc.flatten import flatten

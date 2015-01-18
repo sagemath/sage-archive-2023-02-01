@@ -4,10 +4,12 @@ from parent cimport Parent
 cdef inline parent_c(x):
     if isinstance(x, Element):
         return (<Element>x)._parent
-    elif hasattr(x, 'parent'):
-        return x.parent()
-    else:
+    try:
+        p = x.parent
+    except AttributeError:
         return type(x)
+    else:
+        return p()
 
 cdef inline bint have_same_parent_c(left, right):
     """
@@ -22,6 +24,7 @@ cdef inline bint have_same_parent_c(left, right):
     if isinstance(right, Element) and isinstance(left, Element):
         return (<Element>left)._parent is (<Element>right)._parent
     return False
+
 
 cdef str arith_error_message(x, y, op)
 

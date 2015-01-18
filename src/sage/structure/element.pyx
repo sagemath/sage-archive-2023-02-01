@@ -237,7 +237,7 @@ def parent(x):
     OUTPUT: the parent of ``x`` if it exists, otherwise the Python type
     of ``x``.
 
-    .. seealso::
+    .. SEEALSO::
     
         `Parents, Conversion and Coercion <http://www.sagemath.org/doc/tutorial/tour_coercion.html>`_
             Section in the Sage Tutorial

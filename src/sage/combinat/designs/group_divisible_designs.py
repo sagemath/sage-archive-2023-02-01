@@ -104,6 +104,13 @@ def group_divisible_design(v,K,G,existence=False,check=False):
             return True
         return GDD_4_2(v//2,check=check)
 
+    # From a TD(k,g)
+    elif (len(G)    == 1 and
+          len(K)    == 1 and
+          K[0]*G[0] == v):
+        from orthogonal_arrays import transversal_design
+        return transversal_design(k=K[0],n=G[0],existence=existence)
+
     if blocks:
         return GroupDivisibleDesign(v,
                                     groups = groups,

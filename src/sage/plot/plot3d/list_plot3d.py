@@ -399,17 +399,17 @@ def list_plot3d_tuples(v, interpolation_type, texture, **kwds):
     # Alternatively, the code in the if block above which adds random
     # error could be applied to perturb the points.
     drop_list = []
-    for i in range(len(x)):
-        for j in range(i+1, len(x)):
+    nb_points = len(x)
+    for i in range(nb_points):
+        for j in range(i+1, nb_points):
             if x[i] == x[j] and y[i] == y[j]:
                 if z[i] != z[j]:
                     raise ValueError("Two points with same x,y coordinates and different z coordinates were given. Interpolation cannot handle this.")
                 elif z[i] == z[j]:
                     drop_list.append(j)
-
-    x = [x[i] for i in range(len(x)) if i not in drop_list]
-    y = [y[i] for i in range(len(x)) if i not in drop_list]
-    z = [z[i] for i in range(len(x)) if i not in drop_list]
+    x = [x[i] for i in range(nb_points) if i not in drop_list]
+    y = [y[i] for i in range(nb_points) if i not in drop_list]
+    z = [z[i] for i in range(nb_points) if i not in drop_list]
 
     xmin = float(min(x))
     xmax = float(max(x))

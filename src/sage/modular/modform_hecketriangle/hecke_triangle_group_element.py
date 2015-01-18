@@ -166,7 +166,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     # TODO: allow output of words?
     # We cache this method since the calculation is rather long and the
-    # data is beeing reused at several places (e.g. in _repr_)
+    # data is beeing reused at several places:
+    # - It is used to check if an element is indeed a member of the group
+    # - It is used (through decompose_basic) to determine the automorphy factor
+    #   of modular forms
+    # - It is used to determine the representative of an element of the upper
+    #   half plane in the fundamental domain
+    # - It is also used for the "basic" string representation
     @cached_method
     def _basic_data(self):
         r"""
@@ -547,7 +553,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         else:
             raise NotImplementedError
 
-    # We cache this method for performance reason (the result is beeing reused)
+    # We cache this method since the calculation is rather long and the
+    # result is beeing reused:
+    # - For block decompositions
+    # - For calculating reduced (and simple) elements (and all dependent methods)
     @cached_method
     def continued_fraction(self):
         r"""
@@ -654,7 +663,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     # TODO: allow output as word?
     # We cache this method since the calculation is rather long and the
-    # data is beeing reused at several places (e.g. in _repr_)
+    # data is beeing reused when working with primitive representatives
+    # and conjugacy classes.
     @cached_method
     def _primitive_block_data(self):
         r"""
@@ -1265,7 +1275,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
                 raise AssertionError("This shouldn't happen!")
 
     # We cache this method since the calculation is rather long and the
-    # (small) data is beeing reused
+    # (very small amount of) data is beeing reused:
+    # - When calculating the primitive power (e.g. for block decompositions)
+    # - To determine if an element is primitive
     @cached_method
     def primitive_power(self, method="cf"):
         r"""
@@ -1508,7 +1520,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     # TODO: allow output as word?
     # We cache this method since the calculation is rather long and the
-    # (small) data is beeing reused at several places (e.g. in _repr_)
+    # data is beeing reused when working with general block decompositions
+    # resp. conjugacy classes. It is also used for "block" and "conj"
+    # string representations.
     @cached_method
     def _block_data(self):
         r"""

@@ -5048,16 +5048,19 @@ class FinitePoset(UniqueRepresentation, Parent):
         A cut is a subset `A` of ``self`` such that the set of lower
         bounds of the set of upper bounds of `A` is exactly `A`.
 
-        The cuts are computed here using the maximal cliques in the
-        incomparability graph of the auxiliary poset `Q` defined as
-        `P \times [0,1]` with covering relations `(x, 0) <_Q (y, 1)` if
+        The cuts are computed here using the maximal independent sets in the
+        auxiliary graph defined as `P \times [0,1]` with an edge
+        from `(x, 0)` to `(y, 1)` if
         and only if `x \not\geq_P y`. See the end of section 4 in [JRJ94]_.
 
         EXAMPLES::
 
             sage: P = posets.AntichainPoset(3)
-            sage: P.cuts()
-            [{0}, {0, 1, 2}, {}, {1}, {2}]
+            sage: Pc = P.cuts()
+            sage: [list(c) for c in Pc]
+            [[0], [0, 1, 2], [], [1], [2]]
+            sage: Pc[0]
+            frozenset({0})
 
         .. SEEALSO::
 
@@ -5069,12 +5072,13 @@ class FinitePoset(UniqueRepresentation, Parent):
            (1994), "Computing on-line the lattice of maximal antichains
            of posets", Order 11 (3) p. 197-210, :doi:`10.1007/BF02115811`
         """
-        auxP = Poset([[(u, i) for u in self for i in (0, 1)],
-                      [((u, 0), (v, 1))
-                       for u in self for v in self if not self.ge(u, v)]],
-                     cover_relations=True)
-        cliqs = auxP.incomparability_graph().cliques_maximal()
-        return [Set([xa for xa, xb in c if xb == 0]) for c in cliqs]
+        from sage.graphs.graph import Graph
+        from sage.graphs.independent_sets import IndependentSets
+        auxg = Graph({(u, 0): [(v, 1) for v in self if not self.ge(u, v)]
+                      for u in self})
+        auxg.add_vertices([(v, 1) for v in self])
+        return [frozenset([xa for xa, xb in c if xb == 0])
+                for c in IndependentSets(auxg, maximal=True)]
 
     def completion_by_cuts(self):
         """

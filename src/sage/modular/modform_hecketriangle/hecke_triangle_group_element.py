@@ -2711,10 +2711,6 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         this is the linking number of the closed geodesic
         (corresponding to ``self``) with the trefoil knot.
 
-        .. TODO:
-
-          Improve the documentation!
-
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup

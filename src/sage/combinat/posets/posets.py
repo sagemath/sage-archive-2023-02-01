@@ -144,7 +144,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
-from sage.sets.set import Set
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.posets import Posets
 from sage.categories.finite_posets import FinitePosets

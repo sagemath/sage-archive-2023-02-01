@@ -26,7 +26,7 @@ abstract base class.
 import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
-import sage.misc.misc as misc
+import sage.misc.all as misc
 import sage.modular.hecke.all as hecke
 import sage.rings.arith as arith
 import sage.rings.fast_arith as fast_arith

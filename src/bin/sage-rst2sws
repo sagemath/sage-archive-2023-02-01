@@ -129,7 +129,7 @@ worksheet_txt = translator.process_doc_html(html)
 
 # create a Notebook object
 from sagenb.notebook.notebook import Notebook
-from sage.misc.misc import tmp_dir
+from sage.misc.all import tmp_dir
 nb = Notebook(tmp_dir()+'.sagenb')
 nb.user_manager().create_default_users('password')
 

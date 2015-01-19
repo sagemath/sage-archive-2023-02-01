@@ -51,7 +51,7 @@ import os,re
 from sage.rings.integer import Integer
 from sqlite3 import dbapi2 as sqlite # if anyone would like to explain why dbapi2...
 from sage.databases.sql_db import SQLDatabase, SQLQuery
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 from sage.graphs.graph import Graph
 dblocation = os.path.join(SAGE_SHARE,'graphs','graphs.db')
 

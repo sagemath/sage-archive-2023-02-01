@@ -153,7 +153,7 @@ from sage.rings.arith import bernoulli, binomial
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.libs.all import pari
 from sage.misc.prandom import randint
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute

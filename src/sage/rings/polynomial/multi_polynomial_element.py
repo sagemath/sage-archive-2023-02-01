@@ -58,7 +58,7 @@ We verify Lagrange's four squares identity::
 from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
 
 
-import sage.misc.misc as misc
+from sage.misc.all import prod
 import sage.rings.integer
 
 import polydict
@@ -153,7 +153,7 @@ class MPolynomial_element(MPolynomial):
             K = self.parent().base_ring()
         y = K(0)
         for (m,c) in self.element().dict().iteritems():
-            y += c*misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0])
+            y += c*prod([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
     def __cmp__(self, right):
@@ -205,7 +205,7 @@ class MPolynomial_element(MPolynomial):
             return codomain._coerce_(self)
         y = codomain(0)
         for (m,c) in self.element().dict().iteritems():
-            y += codomain(c)*misc.mul([ im_gens[i]**m[i] for i in range(n) if m[i] ])
+            y += codomain(c)*prod([ im_gens[i]**m[i] for i in range(n) if m[i] ])
         return y
 
 

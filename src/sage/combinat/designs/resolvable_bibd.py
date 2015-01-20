@@ -211,7 +211,7 @@ def kirkman_triple_system(v,existence=False):
         # m is the solution of a^m=(a^t+1)/2
         from sage.groups.generic import discrete_log
         m = discrete_log((a**t+1)/2, a)
-        assert 2*a**m==a**t+1
+        assert 2*a**m == a**t+1
 
         # First parallel class
         first_class = [[(0,1),(0,2),'inf']]
@@ -418,12 +418,12 @@ def PBD_4_7(v,check=True, existence=False):
         sage: PBD_4_7(22)
         Pairwise Balanced Design on 22 points with sets of sizes in set([4, 7])
 
-    TESTS::
+    TESTS:
 
     All values `\leq 300`::
 
-        sage: for i in range(300):
-        ....:     if i%3==1 and i not in [10,19,31]:
+        sage: for i in range(1,300,3):
+        ....:     if i not in [10,19,31]:
         ....:         assert PBD_4_7(i,existence=True)
         ....:         _ = PBD_4_7(i,check=True)
     """
@@ -536,7 +536,7 @@ def PBD_4_7(v,check=True, existence=False):
         # new points are a set of the final PBD
         PBD22 = PBD_4_7(15+7)
         S = (SS for SS in PBD22 if len(SS) == 7).next() # a set of size 7
-        PBD22.relabel({v:i for i,v in enumerate(sorted(range(15+7),key=lambda x:x in S))})
+        PBD22.relabel({v:i for i,v in enumerate([i for i in range(15+7) if i not in S] + S)})
 
         for B in PBD22:
             if B == S:
@@ -646,6 +646,7 @@ def PBD_4_7(v,check=True, existence=False):
                                   K = [4,7],
                                   check = check,
                                   copy = False)
+
 def PBD_4_7_from_Y(gdd,check=True):
     r"""
     Return a `(3v+1,\{4,7\})`-PBD from a `(v,\{4,5,7\},\N-\{3,6,10\})`-GDD.
@@ -660,7 +661,7 @@ def PBD_4_7_from_Y(gdd,check=True):
     - A block of size `s\in\{4,5,7\}` becomes a `(3s,\{4,7\},\{3\})`-GDD.
 
     This lemma is part of the existence proof of `(v,\{4,7\})`-PBD as explained
-    in IX.4.5 from [BJL99]).
+    in IX.4.5 from [BJL99]_).
 
     INPUT:
 
@@ -713,7 +714,7 @@ def PBD_4_7_from_Y(gdd,check=True):
         # in sets of size 4
         GDD[7] = PBD_4_7(22)
         x = set(range(22)).difference(*[S for S in GDD[7] if len(S) != 4]).pop()
-        relabel = sum([S for S in GDD[7] if x in S],[]) # the groups must be 012,345,...
+        relabel = sum((S for S in GDD[7] if x in S),[]) # the groups must be 012,345,...
         relabel = [xx for xx in relabel if xx != x]+[x]
         GDD[7].relabel({v:i for i,v in enumerate(relabel)})
         GDD[7] = [S for S in GDD[7] if 21 not in S]

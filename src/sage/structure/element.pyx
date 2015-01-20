@@ -238,7 +238,7 @@ def parent(x):
     of ``x``.
 
     .. SEEALSO::
-    
+
         `Parents, Conversion and Coercion <http://www.sagemath.org/doc/tutorial/tour_coercion.html>`_
             Section in the Sage Tutorial
 

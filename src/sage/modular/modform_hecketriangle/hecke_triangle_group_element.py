@@ -156,15 +156,6 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
                 raise ValueError("The matrix is not an element of {}, it has determinant {} != 1.".format(parent, self._matrix.determinant()))
             self._basic_data()
 
-    # TODO: allow output of words?
-    # We cache this method since the calculation is rather long and the
-    # data is beeing reused at several places:
-    # - It is used to check if an element is indeed a member of the group
-    # - It is used (through decompose_basic) to determine the automorphy factor
-    #   of modular forms
-    # - It is used to determine the representative of an element of the upper
-    #   half plane in the fundamental domain
-    # - It is also used for the "basic" string representation
     def _basic_data(self):
         r"""
         Return a tuple ``(L, sgn)`` which describes the decomposition
@@ -1248,10 +1239,6 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             else:
                 raise AssertionError("This shouldn't happen!")
 
-    # We cache this method since the calculation is rather long and the
-    # (very small amount of) data is beeing reused:
-    # - When calculating the primitive power (e.g. for block decompositions)
-    # - To determine if an element is primitive
     def primitive_power(self, method="cf"):
         r"""
         Return the primitive power of ``self``. I.e. an integer
@@ -1497,12 +1484,6 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         else:
             return sum(abs(v[1]) for v in L)
 
-    # TODO: allow output as word?
-    # We cache this method since the calculation is rather long and the
-    # data is beeing reused when working with general block decompositions
-    # resp. conjugacy classes. It is also used for "block" and "conj"
-    # string representations.
-    @cached_method
     def _block_data(self):
         r"""
         Return a tuple ``(L, R, sgn)`` which describes the

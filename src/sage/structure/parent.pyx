@@ -1378,7 +1378,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: (QQ^2).list()
             Traceback (most recent call last):
             ...
-            AttributeError: 'FreeModule_ambient_field_with_category' object has no attribute 'list'
+            NotImplementedError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
 
         TESTS:
 

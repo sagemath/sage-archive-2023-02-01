@@ -752,11 +752,17 @@ class GraphClasses(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: t = graph_classes.inclusions()
-            sage: type(t)
-            <type 'list'>
-            sage: t[0]
-            {'sub': 'gc_1', 'super': 'gc_2'}
+            sage: t = graph_classes.smallgraphs()
+            sage: t
+            {'2C_4': Graph on 8 vertices,
+             '2K_2': Graph on 4 vertices,
+             '2K_3': Graph on 6 vertices,
+             '2K_3 + e': Graph on 6 vertices,
+             '2K_4': Graph on 8 vertices,
+             '2P_3': Graph on 6 vertices,
+            ...
+            sage: t['fish']
+            Graph on 6 vertices
         """
         self._get_ISGCI()
         return self.smallgraphs()

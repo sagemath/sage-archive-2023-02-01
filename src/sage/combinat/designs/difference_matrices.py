@@ -22,6 +22,10 @@ def find_product_decomposition(g, k, lmbda=1):
     r"""
     Try to find a product decomposition construction for difference matrices.
 
+    INPUT:
+
+    - ``g,k,lmbda`` -- integers, parameters of the difference matrix
+
     OUTPUT:
 
     A pair of pairs ``(g1,lmbda),(g2,lmbda2)`` if Sage knows how to build
@@ -42,24 +46,27 @@ def find_product_decomposition(g, k, lmbda=1):
         lmbda2 = lmbda//lmbda1
 
         # To avoid infinite loop:
-        # if lmbda1 == 1, then g1 should not be g
-        # if lmbda2 == 1, then g2 should not be g
-        if lmbda1 != 1:
-            if lmbda2 != 1:
-                div = divisors(g)
+        # if lmbda1 == lmbda, then g1 should not be g
+        # if lmbda2 == lmbda, then g2 should not be g
+        if lmbda1 == lmbda:
+            if lmbda2 == lmbda:
+                div = divisors(g)[1:-1]
             else:
                 div = divisors(g)[:-1]
         else:
-            if lmbda2 != 1:
+            if lmbda2 == lmbda:
                 div = divisors(g)[1:]
             else:
-                div = divisors(g)[1:-1]
+                div = divisors(g)
 
         for g1 in div:
             g2 = g//g1
+            if g1 > g2:
+                break
             if (difference_matrix(g1,k,lmbda1,existence=True) and
                 difference_matrix(g2,k,lmbda2,existence=True)):
                 return (g1,lmbda1),(g2,lmbda2)
+
     return False
 
 def difference_matrix_product(k, M1, G1, lmbda1, M2, G2, lmbda2, check=True):
@@ -68,6 +75,18 @@ def difference_matrix_product(k, M1, G1, lmbda1, M2, G2, lmbda2, check=True):
     matrices ``M1`` and ``M2``.
 
     The result is a `(G1 \times G2, k, \lambda_1 \lambda_2)`-difference matrix.
+
+    INPUT:
+
+    - ``k,lmbda1,lmbda2`` -- positive integer
+
+    - ``G1, G2`` -- groups
+
+    - ``M1, M2`` -- ``(G1,k,lmbda1)`` and ``(G,k,lmbda2)`` difference
+      matrices
+
+    - ``check`` (boolean) -- if ``True`` (default), the output is checked before
+      being returned.
 
     EXAMPLES::
 
@@ -93,11 +112,10 @@ def difference_matrix_product(k, M1, G1, lmbda1, M2, G2, lmbda2, check=True):
     from sage.categories.cartesian_product import cartesian_product
     G = cartesian_product([G1,G2])
 
-    M = [[G((M1[j1][i],M2[j2][i])) for j1 in range(lmbda1*g1) for j2 in range(lmbda2*g2)] for i in range(k)]
-    M = zip(*M)
+    M = [[G((M1[j1][i],M2[j2][i])) for i in range(k)] for j1 in range(lmbda1*g1) for j2 in range(lmbda2*g2)]
 
     if check and not is_difference_matrix(M,G,k,lmbda,True):
-        raise RuntimeError("Sage built something which is not a ({},{},{})-DM!".format(g,k,lmbda))
+        raise RuntimeError("In the product construction, Sage built something which is not a ({},{},{})-DM!".format(g,k,lmbda))
 
     return G,M
 
@@ -146,8 +164,42 @@ def difference_matrix(g,k,lmbda=1,existence=False,check=True):
         Finite Field in x of size 5^2
         sage: designs.difference_matrix(993,None,existence=1)
         32
-        sage: designs.difference_matrix(56,None,existence=1)
-        8
+
+    Here we print for each `g` the maximum possible `k` for which Sage knows
+    how to build a `(g,k,1)`-difference matrix::
+
+        sage: for g in range(2,30):
+        ....:     k_max = designs.difference_matrix(g=g,k=None,existence=True)
+        ....:     print "{:2} {}".format(g, k_max)
+        ....:     _ = designs.difference_matrix(g,k_max)
+         2 2
+         3 3
+         4 4
+         5 5
+         6 2
+         7 7
+         8 8
+         9 9
+        10 2
+        11 11
+        12 6
+        13 13
+        14 2
+        15 3
+        16 16
+        17 17
+        18 2
+        19 19
+        20 4
+        21 6
+        22 2
+        23 23
+        24 8
+        25 25
+        26 2
+        27 27
+        28 6
+        29 29
 
     TESTS::
 
@@ -186,13 +238,17 @@ def difference_matrix(g,k,lmbda=1,existence=False,check=True):
         G = F
         M = [[x*y for y in F_k_set] for x in F_set]
 
+    # Treat the case k=None
+    # (find the max k such that there exists a DM)
+    elif k is None:
+        i = 2
+        while difference_matrix(g=g,k=i,lmbda=lmbda,existence=True):
+            i += 1
+        return i-1
+
     # From the database
-    elif (g,lmbda) in DM_constructions and (k is None or DM_constructions[g,lmbda][0]>=k):
-        if k is None:
-            k = DM_constructions[g,lmbda][0]
-            if existence:
-                return k
-        elif existence:
+    elif (g,lmbda) in DM_constructions and DM_constructions[g,lmbda][0]>=k:
+        if existence:
             return True
         _,f = DM_constructions[g,lmbda]
         G, M = f()

@@ -57,7 +57,7 @@ In contrast, input to the ``%time`` magic command is preparsed::
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
-import sage.misc.preparser as preparser
+from sage.repl.load import load_wrap
 
 from sage.env import SAGE_IMPORTALL, SAGE_STARTUP_FILE
 
@@ -107,7 +107,7 @@ class SageMagics(Magics):
             sage: shell.run_cell('a')
             2
         """
-        return self.shell.ex(preparser.load_wrap(s, attach=False))
+        return self.shell.ex(load_wrap(s, attach=False))
 
     @line_magic
     def attach(self, s):
@@ -147,7 +147,7 @@ class SageMagics(Magics):
             []
             sage: os.remove(tmp)
         """
-        return self.shell.ex(preparser.load_wrap(s, attach=True))
+        return self.shell.ex(load_wrap(s, attach=True))
 
     @line_magic
     def iload(self, args):
@@ -298,9 +298,9 @@ class SageCustomizations(object):
         self.auto_magics = SageMagics(shell)
         self.shell.register_magics(self.auto_magics)
 
-        import sage.misc.displayhook as displayhook
+        import sage.repl.display.formatter as formatter
         self.shell.display_formatter.formatters['text/plain'] = (
-                displayhook.SagePlainTextFormatter(config=shell.config))
+                formatter.SageConsoleTextFormatter(config=shell.config))
 
         import sage.misc.edit_module as edit_module
         self.shell.set_hook('editor', edit_module.edit_devel)

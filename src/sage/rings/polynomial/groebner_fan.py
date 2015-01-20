@@ -1482,7 +1482,13 @@ class GroebnerFan(SageObject):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: G = R.ideal([y^3 - x^2, y^2 - 13*x]).groebner_fan()
             sage: G._gfan_stats()
-            {'Number of reduced Groebner bases': 3, 'Number of variables': 2, 'Maximal number of terms in Groebner basis': 6, 'Minimal total degree of a Groebner basis': 2, 'Maximal total degree of a Groebner basis': 4, 'Maximal number of polynomials in Groebner basis': 3, 'Dimension of homogeneity space': 0}
+            {'Dimension of homogeneity space': 0,
+             'Maximal number of polynomials in Groebner basis': 3,
+             'Maximal number of terms in Groebner basis': 6,
+             'Maximal total degree of a Groebner basis': 4,
+             'Minimal total degree of a Groebner basis': 2,
+             'Number of reduced Groebner bases': 3,
+             'Number of variables': 2}
         """
         try:
             return self.__stats

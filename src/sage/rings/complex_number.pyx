@@ -1223,11 +1223,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: z = CC(0,1)
             sage: plot(z)
+            Graphics object consisting of 1 graphics primitive
 
         or the more direct::
 
             sage: z = CC(0,1)
             sage: z.plot()
+            Graphics object consisting of 1 graphics primitive
         """
         return sage.plot.point.point2d((self.real(), self.imag()), **kargs)
 

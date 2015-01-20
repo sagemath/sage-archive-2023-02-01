@@ -149,7 +149,8 @@ Or you can create a homomorphism from one lattice to any other::
 from sage.geometry.toric_lattice_element import (ToricLatticeElement,
                                                  is_ToricLatticeElement)
 from sage.geometry.toric_plotter import ToricPlotter
-from sage.misc.all import latex, parent
+from sage.misc.all import latex
+from sage.structure.all import parent
 from sage.modules.fg_pid.fgp_element import FGP_Element
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.free_module import (FreeModule_ambient_pid,
@@ -982,6 +983,7 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
 
             sage: N = ToricLattice(3)
             sage: N.plot()
+            Graphics3d Object
         """
         if "show_lattice" not in options:
             # Unless user made an explicit decision, we assume that lattice
@@ -1128,10 +1130,12 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
             sage: N = ToricLattice(3)
             sage: sublattice = N.submodule_with_basis([(1,1,0), (3,2,1)])
             sage: sublattice.plot()
+            Graphics3d Object
 
         Now we plot both the ambient lattice and its sublattice::
 
             sage: N.plot() + sublattice.plot(point_color="red")
+            Graphics3d Object
         """
         if "show_lattice" not in options:
             # Unless user made an explicit decision, we assume that lattice

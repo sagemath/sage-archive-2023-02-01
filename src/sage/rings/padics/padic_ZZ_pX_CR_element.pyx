@@ -262,10 +262,28 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W(w, 14)
             w + O(w^14)
 
-        Check that #3865 is fixed::
+        TESTS:
+
+        Check that :trac:`3865` is fixed::
 
             sage: W(gp('3 + O(5^10)'))
             3 + O(w^3125)
+
+
+        Check that :trac:`13612` has been fixed::
+
+            sage: R = Zp(3)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2+1)
+            sage: W(W.residue_field().zero())
+            O(3)
+
+            sage: K = Qp(3)
+            sage: S.<a> = K[]
+            sage: L.<a> = K.extension(a^2+1)
+            sage: L(L.residue_field().zero())
+            O(3)
+
         """
         pAdicZZpXElement.__init__(self, parent)
         self.relprec = 0
@@ -367,7 +385,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             # Should only reach here if x is not in F_p
             z = parent.gen()
             poly = x.polynomial().list()
-            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))])
+            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))], parent.zero())
             if absprec is infinity or 1 < aprec:
                 aprec = 1
                 absprec = 0 # absprec just has to be non-infinite: everything else uses aprec

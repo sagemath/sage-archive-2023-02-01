@@ -1095,7 +1095,7 @@ In particular, the construction functors can be composed::
 
     sage: Poly*Fract
     Poly[x](FractionField(...))
-    sage: (Poly*Fract)(ZZ) is QQ[x]
+    sage: (Poly*Fract)(ZZ) is QQ['x']
     True
 
 .. end of output

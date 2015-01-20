@@ -148,7 +148,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         sage: sorted(I.orbit([5,1,0]))
         [[0, 5, 1], [1, 0, 5], [5, 1, 0]]
         sage: I.orbit([2,2,2])
-        set([[2, 2, 2]])
+        {[2, 2, 2]}
 
     TESTS:
 
@@ -496,7 +496,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: sorted(I.orbit([2,0,2,0]))
             [[0, 2, 0, 2], [2, 0, 2, 0]]
             sage: I.orbit([1,1,1,1])
-            set([[1, 1, 1, 1]])
+            {[1, 1, 1, 1]}
         """
         assert isinstance(v, (list, ClonableIntArray)), '%s shoud be a Python list or an element of %s'%(v, self)
         try:
@@ -925,7 +925,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
 
             sage: I = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]),4)
             sage: I.orbit([1,1,1,1])
-            set([[1, 1, 1, 1]])
+            {[1, 1, 1, 1]}
             sage: sorted(I.orbit([3,0,0,1]))
             [[0, 0, 1, 3], [0, 1, 3, 0], [1, 3, 0, 0], [3, 0, 0, 1]]
         """

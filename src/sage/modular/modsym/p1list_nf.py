@@ -513,9 +513,9 @@ class P1NFList(SageObject):
             sage: N2 = k.ideal(a + 2)
             sage: P2 = P1NFList(N2)
             sage: P1 < P2
-            False
-            sage: P1 > P2
             True
+            sage: P1 > P2
+            False
             sage: P1 == P1NFList(N1)
             True
         """

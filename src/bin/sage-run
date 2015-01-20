@@ -20,7 +20,7 @@ if fn.startswith('-'):
 if fn.endswith('.sage'):
     if call(['sage-preparse', fn]) != 0:
         sys.exit(1)
-    os.execvp('sage-python', ['sage-python', fn[:-5] + '.py'] + opts)
+    os.execvp('sage-python', ['sage-python', fn + '.py'] + opts)
 elif fn.endswith('.pyx') or fn.endswith('.spyx'):
     os.execvp('sage-run-cython', ['sage-run-cython', fn] + opts)
 else:

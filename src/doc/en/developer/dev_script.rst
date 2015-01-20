@@ -322,9 +322,9 @@ you need a new feature or if your branch conflicts.
 Reviewing
 =========
 
-This section gives an example how to review using the ``sage`` command.
-For a detailed discussion of Sage's review process,
-see :ref:`Reviewing Patches <section-review-patches>`.
+This section gives an example how to review using the ``sage`` command.  For a
+detailed discussion of what should be checked during a review, see
+:ref:`chapter-review`.
 
 Now suppose you want to review the existing work on a ticket, such as the one
 you created in the last section.  For definiteness, suppose you want to review

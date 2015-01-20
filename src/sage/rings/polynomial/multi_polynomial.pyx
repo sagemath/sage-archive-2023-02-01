@@ -472,7 +472,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: t,s = R.gens()
             sage: x,y,z = R.base_ring().gens()
             sage: (x+y+2*z*s+3*t)._mpoly_dict_recursive(['z','t','s'])
-            {(1, 0, 1): 2, (0, 1, 0): 3, (0, 0, 0): x + y}
+            {(0, 0, 0): x + y, (0, 1, 0): 3, (1, 0, 1): 2}
 
         TESTS::
 

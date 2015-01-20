@@ -547,7 +547,7 @@ import sys
 
 from sage.misc.flatten import flatten
 from sage.misc.sage_eval import sage_eval
-from sage.misc.preparser import implicit_mul
+from sage.repl.preparse import implicit_mul
 
 from expect import Expect, ExpectFunction, AsciiArtString
 
@@ -1562,7 +1562,7 @@ class qformula:
             sage: f.formula
             'x + y = 0'
             sage: f.vars
-            frozenset(['y', 'x'])
+            frozenset({'x', 'y'})
             sage: f.qvars
             []
         """
@@ -1629,13 +1629,13 @@ class qepcad_formula_factory:
             (x, y)
             sage: K.<p,q> = QQ[]
             sage: qf._varset(x)
-            frozenset(['x'])
+            frozenset({'x'})
             sage: qf._varset(x*y)
-            frozenset(['y', 'x'])
+            frozenset({'x', 'y'})
             sage: qf._varset(q)
-            frozenset(['q'])
+            frozenset({'q'})
             sage: qf._varset(p*q)
-            frozenset(['q', 'p'])
+            frozenset({'p', 'q'})
         """
         try:
             vars = p.variables()
@@ -1667,7 +1667,7 @@ class qepcad_formula_factory:
             (x, y)
             sage: qf = qepcad_formula
             sage: qf._combine_formulas([x^2 == 0, y < 17])
-            (['x^2 = 0', 'y < 17'], frozenset(['y', 'x']))
+            (['x^2 = 0', 'y < 17'], frozenset({'x', 'y'}))
         """
         formulas = map(self.atomic, formulas)
         formulas = map(self.atomic, formulas)
@@ -1706,13 +1706,13 @@ class qepcad_formula_factory:
             sage: def test_qf(qf):
             ....:     return qf, qf.vars
             sage: test_qf(qf.atomic(a^2 + 17))
-            (a^2 + 17 = 0, frozenset(['a']))
+            (a^2 + 17 = 0, frozenset({'a'}))
             sage: test_qf(qf.atomic(a*b*c <= c^3))
-            (a b c <= c^3, frozenset(['a', 'c', 'b']))
+            (a b c <= c^3, frozenset({'a', 'b', 'c'}))
             sage: test_qf(qf.atomic(x+y^2, '!=', a+b))
-            (y^2 + x /= a + b, frozenset(['y', 'x', 'b', 'a']))
+            (y^2 + x /= a + b, frozenset({'a', 'b', 'x', 'y'}))
             sage: test_qf(qf.atomic(x, operator.lt))
-            (x < 0, frozenset(['x']))
+            (x < 0, frozenset({'x'}))
         """
         if isinstance(lhs, qformula):
             return lhs

@@ -138,12 +138,14 @@ cdef class Riemann_Map:
         sage: fprime(t) = I*e^(I*t)
         sage: m = Riemann_Map([f], [fprime], 0)  # long time (4 sec)
         sage: m.plot_colored() + m.plot_spiderweb()  # long time
+        Graphics object consisting of 22 graphics primitives
 
     The exterior map for the unit circle::
 
         sage: m = Riemann_Map([f], [fprime], 0, exterior=True)  # long time (4 sec)
         sage: #spiderwebs are not supported for exterior maps
         sage: m.plot_colored() # long time
+        Graphics object consisting of 1 graphics primitive
 
     The unit circle with a small hole::
 
@@ -155,6 +157,7 @@ cdef class Riemann_Map:
         sage: #spiderweb and color plots cannot be added for multiply
         sage: #connected regions. Instead we do this.
         sage: m.plot_spiderweb(withcolor = True)  # long time
+        Graphics object consisting of 3 graphics primitives
 
     A square::
 
@@ -163,6 +166,7 @@ cdef class Riemann_Map:
         sage: fprime = lambda t: ps.derivative(real(t))
         sage: m = Riemann_Map([f], [fprime], 0.25, ncorners=4)
         sage: m.plot_colored() + m.plot_spiderweb()  # long time
+        Graphics object consisting of 22 graphics primitives
 
     Compute rough error for this map::
 
@@ -420,6 +424,7 @@ cdef class Riemann_Map:
             sage: sz = m.get_szego(boundary=0)
             sage: points = m.get_szego(absolute_value=True)
             sage: list_plot(points)
+            Graphics object consisting of 1 graphics primitive
 
         Extending the points by a spline::
 
@@ -427,6 +432,7 @@ cdef class Riemann_Map:
             sage: s(3*pi / 4)
             0.0012158...
             sage: plot(s,0,2*pi) # plot the kernel
+            Graphics object consisting of 1 graphics primitive
 
         The unit circle with a small hole::
 
@@ -493,6 +499,7 @@ cdef class Riemann_Map:
             sage: m = Riemann_Map([f], [fprime], 0)
             sage: points = m.get_theta_points()
             sage: list_plot(points)
+            Graphics object consisting of 1 graphics primitive
 
         Extending the points by a spline::
 
@@ -749,10 +756,12 @@ cdef class Riemann_Map:
         Default plot::
 
             sage: m.plot_boundaries()
+            Graphics object consisting of 1 graphics primitive
 
         Big blue collocation points::
 
             sage: m.plot_boundaries(plotjoined=False, rgbcolor=[0,0,1], thickness=6)
+            Graphics object consisting of 1 graphics primitive
         """
         plots = range(self.B)
         for k in xrange(self.B):
@@ -909,14 +918,17 @@ cdef class Riemann_Map:
         Default plot::
 
             sage: m.plot_spiderweb()
+            Graphics object consisting of 21 graphics primitives
 
         Simplified plot with many discrete points::
 
             sage: m.plot_spiderweb(spokes=4, circles=1, pts=400, linescale=0.95, plotjoined=False)
+            Graphics object consisting of 6 graphics primitives
 
         Plot with thick, red lines::
 
             sage: m.plot_spiderweb(rgbcolor=[1,0,0], thickness=3)
+            Graphics object consisting of 21 graphics primitives
 
         To generate the unit circle map, it's helpful to see what the
         original spiderweb looks like::
@@ -925,6 +937,7 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t)
             sage: m = Riemann_Map([f], [fprime], 0, 1000)
             sage: m.plot_spiderweb()
+            Graphics object consisting of 21 graphics primitives
 
         A multiply connected region with corners. We set ``min_mag`` higher
         to remove "fuzz" outside the domain::
@@ -1026,14 +1039,17 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
             sage: m = Riemann_Map([f], [fprime], 0)
             sage: m.plot_colored()
+            Graphics object consisting of 1 graphics primitive
 
         Plot zoomed in on a specific spot::
 
             sage: m.plot_colored(plot_range=[0,1,.25,.75])
+            Graphics object consisting of 1 graphics primitive
 
         High resolution plot::
 
             sage: m.plot_colored(plot_points=1000)  # long time (29s on sage.math, 2012)
+            Graphics object consisting of 1 graphics primitive
 
         To generate the unit circle map, it's helpful to see what the
         colors correspond to::
@@ -1042,6 +1058,7 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t)
             sage: m = Riemann_Map([f], [fprime], 0, 1000)
             sage: m.plot_colored()
+            Graphics object consisting of 1 graphics primitive
         """
         z_values, xmin, xmax, ymin, ymax = self.compute_on_grid(plot_range,
             plot_points)
@@ -1072,6 +1089,7 @@ cdef comp_pt(clist, loop=True):
         sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
         sage: m = Riemann_Map([f], [fprime], 0)
         sage: m.plot_spiderweb()
+        Graphics object consisting of 21 graphics primitives
     """
     list2 = range(len(clist) + 1) if loop else range(len(clist))
     for i in xrange(len(clist)):

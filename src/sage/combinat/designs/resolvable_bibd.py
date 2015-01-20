@@ -293,25 +293,43 @@ def kirkman_triple_system(v,existence=False):
 
         # We create the small KTS(n') we need, and relabel them such that
         # 01(n'-1),23(n'-1),... are blocks of the design.
-        gdd = {4:kirkman_triple_system(9),
-               7:kirkman_triple_system(15)}
-        gdd[4].relabel({v:i for i,v in enumerate(sum([list(set(S).difference([ 8])) for S in gdd[4] if  8 in S]+[[ 8]],[]))})
-        gdd[7].relabel({v:i for i,v in enumerate(sum([list(set(S).difference([14])) for S in gdd[7] if 14 in S]+[[14]],[]))})
-        gdd[4] = gdd[4].is_resolvable(True)[1]
-        gdd[7] = gdd[7].is_resolvable(True)[1]
+        gdd4 = kirkman_triple_system(9)
+        gdd7 = kirkman_triple_system(15)
+
+        X = [B for B in gdd4 if 8 in B]
+        for b in X:
+            b.remove(8)
+        X = sum(X, []) + [8]
+        gdd4.relabel({v:i for i,v in enumerate(X)})
+        gdd4 = gdd4.is_resolvable(True)[1] # the relabeled classes
+
+        X = [B for B in gdd7 if 14 in B]
+        for b in X:
+            b.remove(14)
+        X = sum(X, []) + [14]
+        gdd7.relabel({v:i for i,v in enumerate(X)})
+        gdd7 = gdd7.is_resolvable(True)[1] # the relabeled classes
 
         # The first parallel class contains 01(n'-1), the second contains
         # 23(n'-1), etc..
-        gdd[4].sort(key=lambda x:[list(set(S).difference([ 8])) for S in x if  8 in S][0][0])
-        gdd[7].sort(key=lambda x:[list(set(S).difference([14])) for S in x if 14 in S][0][0])
+        # Then remove the blocks containing (n'-1)
+        for B in gdd4:
+            for i,b in enumerate(B):
+                if 8 in b: j = min(b); del B[i]; B.insert(0,j); break
+        gdd4.sort()
+        for B in gdd4:
+            B.pop(0)
 
-        # Remove the blocks containing (n'-1)
-        gdd[4] = [[B for B in classs if  8 not in B] for classs in gdd[4]]
-        gdd[7] = [[B for B in classs if 14 not in B] for classs in gdd[7]]
-
-        classes = [[] for i in range((v-1)/2)]
+        for B in gdd7:
+            for i,b in enumerate(B):
+                if 14 in b: j = min(b); del B[i]; B.insert(0,j); break
+        gdd7.sort()
+        for B in gdd7:
+            B.pop(0)
 
         # Pasting the KTS(n') without {x,x',\infty} blocks
+        classes = [[] for i in range((v-1)/2)]
+        gdd = {4:gdd4, 7: gdd7}
         for B in PBD_4_7((v-1)//2,check=False):
             for i,classs in enumerate(gdd[len(B)]):
                 classes[B[i]].extend([[2*B[x//2]+x%2 for x in BB] for BB in classs])

@@ -16,7 +16,7 @@ Boost Software License - see http://www.boost.org/users/license.html
 
 == Maintainers ==
 
- * Michael Abshoff
+None
 
 == Upstream Contact ==
 

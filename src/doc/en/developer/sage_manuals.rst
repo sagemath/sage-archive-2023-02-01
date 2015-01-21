@@ -58,7 +58,7 @@ your web browser.
 - Do you want to **add a new file** to the documentation? :ref:`Click here
   <section-add-file>`.
 
-- For more detailed information on the ``-docbuild`` command, see
+- For more detailed information on the ``--docbuild`` command, see
   :ref:`section-building-manuals`.
 
 **Run doctests:** All files must pass tests. After modifying a document
@@ -175,13 +175,13 @@ is::
 
 For example::
 
-    sage -docbuild reference html
+    sage --docbuild reference html
 
 Two **help** commands which give plenty of documentation for the ``sage
 --docbuild`` script::
 
-    sage -docbuild -h # short help message
-    sage -docbuild -H # a more comprehensive one
+    sage --docbuild -h # short help message
+    sage --docbuild -H # a more comprehensive one
 
 **Output formats:** All output formats supported by Sphinx (e.g. pdf) can be
 used in Sage. See `<http://sphinx.pocoo.org/builders.html>`_.

@@ -503,7 +503,7 @@ Running Sage from a directory with spaces in its name will also fail.
    we appreciate everything.)
 
    See :ref:`section_make` for some targets for the ``make`` command,
-   :ref:`section_envvar` for additional informatio on useful environment
+   :ref:`section_envvar` for additional information on useful environment
    variables used by Sage,
    and :ref:`section_notebook_ssl` for additional instruction on how to build
    the notebook with SSL support.

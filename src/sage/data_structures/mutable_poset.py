@@ -151,6 +151,80 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         return hash(self.value)
 
 
+    def __le__(left, right):
+        r"""
+        Return if ``left`` is less or equal to ``right``.
+
+        INPUT:
+
+        - ``left`` -- an element.
+
+        - ``right`` -- an element.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        This methods usually returns if the values of the given
+        elements are less or equal. The only exception is if this
+        value is ``None``. In this case the elements are considered as
+        special elements: If it has no predecessors, then it is
+        interpreted as an element smaller than any other, if it has no
+        successors, then as larger than any other.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: from sage.data_structures.mutable_poset import MutablePosetElement
+            sage: e = MutablePosetElement(P, (1, 2))
+            sage: z = P._zero_
+            sage: oo = P._oo_
+            sage: z <= e
+            True
+            sage: e <= oo
+            True
+            sage: z <= oo
+            True
+            sage: oo <= z
+            False
+            sage: oo <= e
+            False
+            sage: e <= z
+            False
+            sage: z <= z
+            True
+            sage: oo <= oo
+            True
+            sage: e <= e
+            True
+        """
+        if left.value is None:
+            if not left.predecessors:
+                # zero on the left
+                return True
+            else:
+                # oo on the left
+                if right.value is None:
+                    # zero or oo on the right
+                    return not right.successors
+                else:
+                    # not zero, not oo on the right
+                    return False
+        if right.value is None:
+            if not right.successors:
+                # oo on the right
+                return True
+            else:
+                # zero on the right
+                if left.value is None:
+                    # zero or oo on the left
+                    return not left.predecessors
+                else:
+                    # not zero, not oo on the right
+                    return False
+        return left.value <= right.value
+
 # *****************************************************************************
 
 

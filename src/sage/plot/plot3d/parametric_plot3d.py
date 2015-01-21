@@ -159,7 +159,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
         This kind of coloring using a colormap can be visualized
         using Jmol, Tachyon (option ``viewer='tachyon'``) and
         Canvas3D (option ``viewer='canvas3d'`` in the
-        notebook). Some problems can affect the Jmol viewer.
+        notebook).
 
     We call the space curve function but with polynomials instead of
     symbolic variables.

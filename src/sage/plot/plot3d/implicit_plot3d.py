@@ -112,8 +112,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
         This kind of coloring using a colormap can be visualized using
         Jmol, Tachyon (option ``viewer='tachyon'``) and Canvas3D
-        (option ``viewer='canvas3d'`` in the notebook). Some problems
-        can affect the Jmol viewer.
+        (option ``viewer='canvas3d'`` in the notebook).
 
     MANY MORE EXAMPLES:
 

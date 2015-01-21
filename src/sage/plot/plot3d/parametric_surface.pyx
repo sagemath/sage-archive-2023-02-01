@@ -39,8 +39,8 @@ One can instead provide a coloring function and a colormap::
     sage: P = ParametricSurface(f, (srange(-5,5,0.1), srange(-5,5.0,0.1)), color=(c,cm))
     sage: P.show(viewer='tachyon')
 
-Note that the coloring function should have values between 0 and 1. This
-value is passed to the chosen colormap.
+Note that the coloring function should rather have values between 0 and 1.
+This value is passed to the chosen colormap.
 
 Another colored example::
 
@@ -53,8 +53,7 @@ Another colored example::
 
     This kind of coloring using a colormap can be visualized using
     Jmol, Tachyon (option ``viewer='tachyon'``) and Canvas3D
-    (option ``viewer='canvas3d'`` in the notebook). Some problems
-    can affect the Jmol viewer.
+    (option ``viewer='canvas3d'`` in the notebook).
 
 .. NOTE::
 

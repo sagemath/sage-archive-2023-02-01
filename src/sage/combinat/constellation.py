@@ -47,6 +47,7 @@ ZZ_0 = Integer(0)
 
 # constructors
 
+
 def Constellations(*data, **options):
     r"""
     Build a set of constellations.
@@ -80,7 +81,7 @@ def Constellations(*data, **options):
 
     if data:
         if len(data) == 1:
-            if isinstance(data[0],(tuple,list)):
+            if isinstance(data[0], (tuple, list)):
                 profile = data[0]
             else:
                 length = Integer(data[0])
@@ -89,14 +90,16 @@ def Constellations(*data, **options):
             degree = Integer(data[1])
 
     if profile:
-        profile = tuple(map(Partition,profile))
+        profile = tuple(map(Partition, profile))
         return Constellations_p(profile, bool(connected))
     if degree is None and length is None:
         return Constellations_all(bool(connected))
     elif degree is not None and length is not None:
-        return Constellations_ld(Integer(length), Integer(degree), bool(connected))
+        return Constellations_ld(Integer(length), Integer(degree),
+                                 bool(connected))
     else:
         raise NotImplementedError("one cannot give just degree or just length")
+
 
 def Constellation(g=None, mutable=False, connected=True, check=True):
     r"""
@@ -140,9 +143,10 @@ def Constellation(g=None, mutable=False, connected=True, check=True):
         g1 (0,2)(1)
         g2 (0,1,2)
     """
-    return Constellations(connected=connected)(g,check=check,mutable=mutable)
+    return Constellations(connected=connected)(g, check=check, mutable=mutable)
 
 # classes
+
 
 class Constellation_class(Element):
     r"""
@@ -247,8 +251,9 @@ class Constellation_class(Element):
             g2 (0,1,3,4)(2)
         """
         if not self._mutable:
-            raise ValueError("this constellation is immutable. Take a mutable copy first.")
-        perm_switch(self._g[i], self._g[i+1], j0, j1)
+            raise ValueError("this constellation is immutable."
+                             " Take a mutable copy first.")
+        perm_switch(self._g[i], self._g[i + 1], j0, j1)
 
     def _set_g_unsafe(self, i, j, k):
         r"""
@@ -293,8 +298,8 @@ class Constellation_class(Element):
             sage: c.euler_characteristic()
             2
         """
-        return Integer(self.degree()*2 -
-                       sum(sum(i-1 for i in self.profile(i))
+        return Integer(self.degree() * 2 -
+                       sum(sum(i - 1 for i in self.profile(i))
                            for i in xrange(self.length())))
 
     def genus(self):
@@ -307,7 +312,7 @@ class Constellation_class(Element):
             sage: c.genus()
             0
         """
-        return 1 - self.euler_characteristic()/2
+        return 1 - self.euler_characteristic() / 2
 
     def _check(self):
         r"""
@@ -444,12 +449,12 @@ class Constellation_class(Element):
             mm.sort()
         m.sort()
         g = [[] for _ in xrange(len(m))]
-        m_inv = [None]*self.degree()
+        m_inv = [None] * self.degree()
         for t in xrange(len(m)):
             for i in xrange(len(m[t])):
                 m_inv[m[t][i]] = i
             for k in xrange(self.length()):
-                tmp = [None]*len(m[t])
+                tmp = [None] * len(m[t])
                 for i in xrange(len(m[t])):
                     tmp[i] = m_inv[self._g[k][m[t][i]]]
                 g[t].append(tmp)
@@ -486,9 +491,10 @@ class Constellation_class(Element):
         r"""
         Test of isomorphism
 
-        Returns ``True`` if the constellations are isomorphic (i.e. common conjugacy)
-        and returns the permutation that conjugate the two permutations if
-        return_map is ``True`` in such a way that self.relabel(m) == other
+        Returns ``True`` if the constellations are isomorphic
+        (i.e. common conjugacy) and returns the permutation that
+        conjugate the two permutations if return_map is ``True`` in
+        such a way that self.relabel(m) == other
 
         ALGORITHM:
 
@@ -505,8 +511,8 @@ class Constellation_class(Element):
             True
         """
         if return_map:
-            if (self.degree() != other.degree() or
-                self.length() != other.length()):
+            if not(self.degree() == other.degree() and
+                   self.length() == other.length()):
                 return False, None
             sn, sn_map = self.relabel(return_map=True)
             on, on_map = other.relabel(return_map=True)
@@ -533,8 +539,8 @@ class Constellation_class(Element):
             return self.length().__cmp__(other.length())
         if self.degree() != other.degree():
             return self.degree().__cmp__(other.degree())
-        for i in xrange(self.length()-1):
-            for j in xrange(self.degree()-1):
+        for i in xrange(self.length() - 1):
+            for j in xrange(self.degree() - 1):
                 if self._g[i][j] != other._g[i][j]:
                     return self._g[i][j].__cmp__(other._g[i][j])
         return 0
@@ -608,7 +614,9 @@ class Constellation_class(Element):
         if i is None:
             return tuple(self.profile(j) for j in xrange(self.length()))
         else:
-            return Partition(sorted(map(len, perm_cycle_tuples(self._g[i], True)), reverse=True))
+            return Partition(sorted(map(len,
+                                        perm_cycle_tuples(self._g[i], True)),
+                                    reverse=True))
 
     passport = profile
 
@@ -636,7 +644,8 @@ class Constellation_class(Element):
 
     def g_cycle_tuples(self, i, singletons=False):
         r"""
-        Return the tuples associated to the cycles of the permutations of ``self``
+        Return the tuples associated to the cycles of the permutations
+        of ``self``
 
         EXAMPLES::
 
@@ -704,7 +713,7 @@ class Constellation_class(Element):
         if i is None:
             return [self.g_prev(k, j) for k in xrange(self.length())]
         else:
-            for k in xrange(i+1, self.length()):
+            for k in xrange(i + 1, self.length()):
                 j = self._g[k][j]
             for k in xrange(0, i):
                 j = self._g[k][j]
@@ -780,7 +789,7 @@ class Constellation_class(Element):
         """
         if perm is not None:
             perm.extend(xrange(len(perm), self.degree()))
-            g = [[None]*self.degree() for _ in xrange(self.length())]
+            g = [[None] * self.degree() for _ in xrange(self.length())]
             for i in xrange(len(perm)):
                 for k in xrange(self.length()):
                     g[k][perm[i]] = perm[self._g[k][i]]
@@ -797,10 +806,10 @@ class Constellation_class(Element):
             except AttributeError:
                 pass
 
-
         # compute canonical labels
         if not self.is_connected():
-            raise ValueError("No canonical labels implemented for non connected constellation")
+            raise ValueError("No canonical labels implemented for"
+                             " non connected constellation")
 
         c_win, m_win = perms_canonical_labels(self._g)
         c_win = self.parent()(c_win, mutable=False, check=False)
@@ -868,8 +877,8 @@ class Constellation_class(Element):
             True
         """
         if i < 0 or i >= self.length():
-            raise ValueError("i should be between 0 and %d"%(self.length()-1))
-        j = i+1
+            raise ValueError("i should be between 0 and %d" % (self.length() - 1))
+        j = i + 1
         if j == self.length():   # wrap around the cylinder
             j = 0
         h = self.copy()
@@ -913,6 +922,7 @@ class Constellation_class(Element):
                 G.add_edge(c, cc, i)
         return G
 
+
 class Constellations_all(UniqueRepresentation, Parent):
     Element = Constellation_class
 
@@ -926,7 +936,7 @@ class Constellations_all(UniqueRepresentation, Parent):
         Parent.__init__(self, category=InfiniteEnumeratedSets())
         self._connected = connected
 
-    def __contains__(self,elt):
+    def __contains__(self, elt):
         r"""
         TESTS::
 
@@ -1008,7 +1018,7 @@ class Constellations_all(UniqueRepresentation, Parent):
             g0 (0,1)
             g1 (0,1)
         """
-        return Constellations(2,2).an_element()
+        return Constellations(2, 2).an_element()
 
     def __iter__(self):
         r"""
@@ -1042,11 +1052,12 @@ class Constellations_all(UniqueRepresentation, Parent):
         """
         n = 2
         while True:
-            for d in xrange(1,n):
-                l = n-d
-                for c in Constellations(l,d,connected=self._connected):
+            for d in xrange(1, n):
+                l = n - d
+                for c in Constellations(l, d, connected=self._connected):
                     yield c
             n += 1
+
 
 class Constellations_ld(UniqueRepresentation, Parent):
     r"""
@@ -1072,7 +1083,8 @@ class Constellations_ld(UniqueRepresentation, Parent):
             sage: TestSuite(Constellations(length=6,degree=4)).run()
         """
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-        Parent.__init__(self, facade=Constellations_all(), category=FiniteEnumeratedSets())
+        Parent.__init__(self, facade=Constellations_all(),
+                        category=FiniteEnumeratedSets())
         self._length = Integer(length)
         self._degree = Integer(degree)
         if self._length <= 0:
@@ -1186,10 +1198,11 @@ class Constellations_ld(UniqueRepresentation, Parent):
                 yield self([[0]])
             return
 
-        for p in product(permutations(srange(self._degree)), repeat=self._length-1):
+        for p in product(permutations(srange(self._degree)),
+                         repeat=self._length - 1):
             if self._connected and not perms_are_connected(p, self._degree):
                 continue
-            yield self(map(list,p)+[None], check=False)
+            yield self(map(list, p) + [None], check=False)
 
     def random_element(self, mutable=False):
         r"""
@@ -1213,13 +1226,14 @@ class Constellations_ld(UniqueRepresentation, Parent):
         l = self._length
         d = self._degree
 
-        g = [SymmetricGroup(d).random_element() for _ in xrange(l-1)]
+        g = [SymmetricGroup(d).random_element() for _ in xrange(l - 1)]
         G = PermutationGroup(g)
-        while not G.degree() == d or (self._connected and not G.is_transitive()):
-            g = [SymmetricGroup(d).random_element() for _ in xrange(l-1)]
+        while not G.degree() == d or (self._connected and
+                                      not G.is_transitive()):
+            g = [SymmetricGroup(d).random_element() for _ in xrange(l - 1)]
             G = PermutationGroup(g)
 
-        return self(map(permutation_to_perm, g)+[None], mutable=mutable)
+        return self(map(permutation_to_perm, g) + [None], mutable=mutable)
 
     def _element_constructor_(self, *data, **options):
         r"""
@@ -1239,9 +1253,9 @@ class Constellations_ld(UniqueRepresentation, Parent):
         """
         c = Constellations(connected=self._connected)(*data, **options)
         if c.degree() != self._degree:
-            raise ValueError("not able to build a constellation of degree %d from the given data"%self._degree)
+            raise ValueError("not able to build a constellation of degree %d from the given data" % self._degree)
         if c.length() != self._length:
-            raise ValueError("not able to build a constellation of length %d from the given data"%self._length)
+            raise ValueError("not able to build a constellation of length %d from the given data" % self._length)
         return c
 
     def an_element(self):
@@ -1274,16 +1288,16 @@ class Constellations_ld(UniqueRepresentation, Parent):
 
         d = self._degree
         if self._connected:
-            g = [[d-1] + range(d-1), range(1,d) + [0]] + [range(d)]*(self._length-2)
+            g = [[d - 1] + range(d - 1), range(1, d) + [0]]
+            g += [range(d)] * (self._length - 2)
         else:
-            g = [range(d)]*self._length
+            g = [range(d)] * self._length
         return self(g)
 
     def braid_group_action(self):
         r"""
-        List of graphs that corresponds to the braid group action on ``self`` up
-        to isomorphism.
-
+        List of graphs that corresponds to the braid group action on
+        ``self`` up to isomorphism.
 
         OUTPUT:
 
@@ -1323,6 +1337,7 @@ class Constellations_ld(UniqueRepresentation, Parent):
             [([3], [3], [3])]
         """
         return [g.vertices() for g in self.braid_group_action()]
+
 
 class Constellations_p(UniqueRepresentation, Parent):
     r"""
@@ -1388,7 +1403,8 @@ class Constellations_p(UniqueRepresentation, Parent):
         d = Integer(sum(profile[0]))
         for p in profile[1:]:
             if sum(p) != d:
-                raise ValueError("all partition in the passport should have the same sum.")
+                raise ValueError("all partition in the passport should "
+                                 "have the same sum.")
 
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
         Parent.__init__(self, facade=Constellations_all(), category=FiniteEnumeratedSets())
@@ -1404,7 +1420,7 @@ class Constellations_p(UniqueRepresentation, Parent):
             sage: Constellations(([3,2],[2,2,1]))
             Constellations with profile ([3, 2], [2, 2, 1])
         """
-        return "Constellations with profile %s"%(self._profile,)
+        return "Constellations with profile %s" % (self._profile,)
 
     def isomorphism_representatives(self):
         r"""
@@ -1456,7 +1472,7 @@ class Constellations_p(UniqueRepresentation, Parent):
         c = Constellations(connected=self._connected)(*data, **options)
         if options.get('check', True):
             if c.profile() != self._profile:
-                raise ValueError("not able to build a constellation with profile %s from the given data"%(self._profile,))
+                raise ValueError("not able to build a constellation with profile %s from the given data" % (self._profile,))
         return c
 
     def __iter__(self):
@@ -1499,17 +1515,18 @@ class Constellations_p(UniqueRepresentation, Parent):
                 yield self([[0]])
             return
 
-        for p in product(permutations(srange(self._degree)), repeat=self._length-1):
+        for p in product(permutations(srange(self._degree)),
+                         repeat=self._length - 1):
             if self._connected and not perms_are_connected(p, self._degree):
                 continue
-            c = Constellations(connected=self._connected)(map(list,p)+[None], check=False)
+            c = Constellations(connected=self._connected)(map(list, p) + [None], check=False)
             if c.profile() == self._profile:
                 yield c
 
     def braid_group_action(self):
         r"""
-        List of graphs that corresponds to the braid group action on ``self`` up
-        to isomorphism.
+        List of graphs that corresponds to the braid group action on
+        ``self`` up to isomorphism.
 
         OUTPUT:
 
@@ -1549,4 +1566,3 @@ class Constellations_p(UniqueRepresentation, Parent):
             [([3], [3], [3])]
         """
         return [g.vertices() for g in self.braid_group_action()]
-

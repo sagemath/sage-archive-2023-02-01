@@ -225,6 +225,36 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
                     return False
         return left.value <= right.value
 
+
+# *****************************************************************************
+
+
+def _sort_set_by_tuple_iter_(S, T):
+    r"""
+    Return an iterator over ``S`` respecting the order given by ``T``.
+
+    INPUT:
+
+    - ``S`` -- a set (or something which supports containment test).
+
+    - ``T`` -- a tuple (or other iterable).
+
+    OUTPUT:
+
+    An iterator.
+
+    In the iterator all elements of ``T``, which are also in ``S``
+    appear. The order given by ``T`` is kept.
+
+    EXAMPLES::
+
+        sage: from sage.data_structures.mutable_poset import _sort_set_by_tuple_iter_
+        sage: tuple(_sort_set_by_tuple_iter_({3, 4, 6}, (5, 4, 1, 2, 3, 6)))
+        (4, 3, 6)
+    """
+    return iter(ell for ell in T if ell in S)
+
+
 # *****************************************************************************
 
 

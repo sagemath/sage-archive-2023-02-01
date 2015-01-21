@@ -892,7 +892,8 @@ class GrowthGroupPower(GenericGrowthGroup):
             True
         """
         if isinstance(S, GrowthGroupPower):
-            if self.base().coerce_map_from(S.base()) is not None:
+            if self.base().coerce_map_from(S.base()) is not None \
+               and self.variable == S.variable:
                 return True
 
 

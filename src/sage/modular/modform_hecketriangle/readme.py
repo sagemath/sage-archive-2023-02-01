@@ -79,7 +79,7 @@ Hecke triangle groups and elements:
       sage: G = HeckeTriangleGroup(6)
       sage: G.element_repr_method("basic")
       sage: A = G.V(2)*G.V(3)^(-2)
-      sage: (L, sgn) = A.decompose_basic()
+      sage: (L, sgn) = A.word_S_T()
       sage: L
       (S, T^(-2), S, T^(-1), S, T^(-1))
       sage: sgn
@@ -482,7 +482,7 @@ Hecke triangle groups and elements:
       -(T*S*T) * (V(6)^3*V(3)*V(2)) * (T*S*T)^(-1)
       sage: A.sign()
       -1
-      sage: (L, R, sgn) = A.decompose_block()
+      sage: (L, R, sgn) = A.block_decomposition()
       sage: L
       ((-S*T^(-1)*S) * (V(6)^3) * (-S*T^(-1)*S)^(-1), (T*S*T*S*T) * (V(3)) * (T*S*T*S*T)^(-1), (T*S*T) * (V(2)) * (T*S*T)^(-1))
       sage: prod(L).sign()

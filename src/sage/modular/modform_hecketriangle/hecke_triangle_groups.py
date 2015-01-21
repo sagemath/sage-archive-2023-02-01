@@ -520,6 +520,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             True
 
             sage: G = HeckeTriangleGroup(5)
+            sage: G.element_repr_method("default")
             sage: G.V(1)
             [  1 lam]
             [  0   1]
@@ -882,10 +883,10 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: G = HeckeTriangleGroup(n=5)
             sage: G.element_repr_method("conj")
             sage: G._elliptic_conj_reps()
-            sage: G._conj_prim
-            {0: [[V(4)]], -4: [[S], [S]], lam - 3: [[U], [U]]}
-            sage: G._conj_nonprim
-            {lam - 3: [[U^(-1)], [U^(-1)]], -lam - 2: [[U^(-2)], [U^2], [U^(-2)], [U^2]]}
+            sage: sorted(G._conj_prim.iteritems())
+            [(-4, [[S], [S]]), (lam - 3, [[U], [U]]), (0, [[V(4)]])]
+            sage: sorted(G._conj_nonprim.iteritems())
+            [(-lam - 2, [[U^(-2)], [U^2], [U^(-2)], [U^2]]), (lam - 3, [[U^(-1)], [U^(-1)]])]
         """
 
         if not hasattr(self, "_max_block_length"):

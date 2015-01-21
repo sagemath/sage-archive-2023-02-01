@@ -752,7 +752,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         elif (gamma.is_reflection()):
             return self._ep * (t/AlgebraicField()(i))**self._weight
         else:
-            L = [v for v in gamma.decompose_basic()[0]]
+            L = [v for v in gamma.word_S_T()[0]]
             aut_f = ZZ(1)
             while (len(L) > 0):
                 M = L.pop(-1)

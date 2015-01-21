@@ -355,6 +355,53 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         return s
 
 
+    def repr_full(self):
+        r"""
+        Return a representation with ordering details of the poset.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: print MP().repr_full()
+            poset()
+            +-- oo
+            |   +-- no successors
+            |   +-- predecessors: zero
+            +-- zero
+            |   +-- successors:   oo
+            |   +-- no predecessors
+        """
+        sortedelements = tuple(self.iter_all())
+        strings = [self.repr()]
+        for element in sortedelements:
+            s = '+-- ' + repr(element) + '\n'
+            if element.successors:
+                s += '|   +-- successors:   '
+                s += ', '.join(repr(e) for e in
+                               _sort_set_by_tuple_iter_(element.successors,
+                                                        sortedelements))
+            else:
+                s += '|   +-- no successors'
+            s += '\n'
+            if element.predecessors:
+                s += '|   +-- predecessors: '
+                s += ', '.join(repr(e) for e in
+                               _sort_set_by_tuple_iter_(element.predecessors,
+                                                        sortedelements))
+            else:
+                s += '|   +-- no predecessors'
+            strings.append(s)
+        return '\n'.join(strings)
+
+
     __repr__ = repr
 
 

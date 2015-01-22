@@ -366,53 +366,41 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         self._elements_ = {}
 
 
-    def iter_elements(self):
+
+    def elements(self, include_special=False, reverse=False):
         r"""
         Return an iterator over all elements.
 
         INPUT:
 
-        Nothing.
+        - ``include_special`` -- (default: ``False``) if set, then
+          including a smallest element (`0`) and a largest element
+          (`\infty`).
+
+        - ``reverse`` -- (default: ``False``) if set, the order is
+          reversed. This only affects the elements `0` and `\infty`.
 
         OUTPUT:
 
         An iterator.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: P = MP()
-            sage: tuple(P.iter_elements())
+            sage: tuple(P.elements())
             ()
-        """
-        return self._elements_.itervalues()
-
-
-    def iter_all(self, reverse=False):
-        r"""
-        Return an iterator over all elements including a smallest
-        element (`0`) and a largest element (`\infty`).
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        An iterator.
-
-        TESTS::
-
-            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: tuple(P.iter_all())
+            sage: tuple(P.elements(include_special=True))
             (zero, oo)
+            sage: tuple(P.elements(include_special=True, reverse=True))
+            (oo, zero)
         """
-        yield self._oo_ if reverse else self._zero_
+        if include_special:
+            yield self._zero_ if not reverse else self._oo_
         for e in self._elements_.itervalues():
             yield e
-        yield self._zero_ if reverse else self._oo_
-
+        if include_special:
+            yield self._oo_ if not reverse else self._zero_
 
 
     def repr(self):
@@ -434,12 +422,12 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             poset()
         """
         s = 'poset('
-        s += ', '.join(repr(element) for element in self.iter_elements())
+        s += ', '.join(repr(element) for element in self.elements())
         s += ')'
         return s
 
 
-    def repr_full(self):
+    def repr_full(self, reverse=False):
         r"""
         Return a representation with ordering details of the poset.
 
@@ -454,7 +442,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: print MP().repr_full()
+            sage: print MP().repr_full(reverse=True)
             poset()
             +-- oo
             |   +-- no successors
@@ -463,7 +451,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             |   +-- successors:   oo
             |   +-- no predecessors
         """
-        sortedelements = tuple(self.iter_all(reverse=True))
+        sortedelements = tuple(
+            self.elements(include_special=True, reverse=reverse))
         strings = [self.repr()]
         for element in sortedelements:
             s = '+-- ' + repr(element) + '\n'

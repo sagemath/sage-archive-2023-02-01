@@ -72,6 +72,29 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         return self._value_
 
 
+    @property
+    def key(self):
+        r"""
+        The key of the element.
+
+        The value of the element is converted by the poset to the key.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: from sage.data_structures.mutable_poset import MutablePosetElement
+            sage: P = MP()
+            sage: e = MutablePosetElement(P, (1, 2))
+            sage: e.key
+            (1, 2)
+            sage: Q = MP(key=lambda k: k[0])
+            sage: f = MutablePosetElement(Q, (1, 2))
+            sage: f.key
+            1
+        """
+        return self.poset.get_key(self._value_)
+
+
     def predecessors(self, reverse=False):
         r"""
         Return the predecessors of the element.
@@ -256,7 +279,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
         A hash value.
 
-        This returns the hash value of the element.
+        This returns the hash value of the key of this element.
 
         TESTS::
 
@@ -266,7 +289,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: hash(MutablePosetElement(P, (1, 2))) == hash((1, 2))
             True
         """
-        return hash(self.value)
+        return hash(self.key)
 
 
     def le(left, right, reverse=False):
@@ -286,8 +309,8 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
         ``True`` or ``False``.
 
-        This methods usually returns if the values of the given
-        elements are less or equal. The only exception is if this
+        This methods usually returns if the keys of the given
+        elements are less or equal. The only exception is if the
         value is ``None``. In this case the elements are considered as
         special elements: If it has no predecessors, then it is
         interpreted as an element smaller than any other, if it has no
@@ -368,7 +391,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
                 else:
                     # not null, not oo on the right
                     return False
-        return left.value <= right.value
+        return left.key <= right.key
 
 
     __le__ = le
@@ -387,6 +410,8 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         OUTPUT:
 
         ``True`` or ``False``.
+
+        This method compares the keys of the elements.
 
         TESTS::
 
@@ -411,7 +436,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         """
         if left.value is None and right.value is None:
             return left.is_null() == right.is_null()
-        return left.value == right.value
+        return left.key == right.key
 
 
     __eq__ = eq
@@ -502,7 +527,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: covers = set()
             sage: P.null._search_covers_(covers, e)
             True
-            sage: sorted(covers, key=lambda c: tuple(c.value))
+            sage: sorted(covers, key=lambda c: repr(c.value))
             [(1, 2, 2), (2, 1, 2)]
         """
         if not self.le(element, reverse) or self == element:
@@ -559,10 +584,10 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: e = P.add_element(T((2, 2))); e
             (2, 2)
             sage: sorted(P.null.covers(e),
-            ....:        key=lambda c: tuple(c.value))
+            ....:        key=lambda c: repr(c.value))
             [(1, 2), (2, 1)]
             sage: sorted(P.oo.covers(e, reverse=True),
-            ....:        key=lambda c: tuple(c.value))
+            ....:        key=lambda c: repr(c.value))
             [(4, 4)]
         """
         covers = set()
@@ -845,7 +870,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
     r"""
     A mutable poset.
     """
-    def __init__(self, data=None):
+    def __init__(self, data=None, key=None):
         r"""
         See :class:`MutablePoset` for details.
 
@@ -864,6 +889,11 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         self._null_.successors().add(self._oo_)
         self._oo_.predecessors().add(self._null_)
         self._elements_ = {}
+
+        if key is None:
+            self._key_ = lambda k: k
+        else:
+            self._key_ = key
 
 
     @property
@@ -898,6 +928,36 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             True
         """
         return self._oo_
+
+
+    def get_key(self, value):
+        r"""
+        Return the key corresponding to ``value``.
+
+        INPUT:
+
+        - ``value`` -- an object.
+
+        OUTPUT:
+
+        An object (the key of ``value``).
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: from sage.data_structures.mutable_poset import MutablePosetElement
+            sage: P = MP()
+            sage: P.get_key(None) is None
+            True
+            sage: P.get_key((1, 2))
+            (1, 2)
+            sage: Q = MP(key=lambda k: k[0])
+            sage: Q.get_key((1, 2))
+            1
+        """
+        if value is None:
+            return None
+        return self._key_(value)
 
 
     def copy(self):
@@ -937,7 +997,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         memo = {}
         new._null_ = self._null_._copy_all_linked_(memo, new)
         new._oo_ = memo[id(self._oo_)]
-        new._elements_ = dict((f.value, f) for f in
+        new._elements_ = dict((f.key, f) for f in
                               iter(memo[id(e)]
                                    for e in self._elements_.itervalues()))
         return new
@@ -1097,13 +1157,13 @@ class MutablePoset(sage.structure.sage_object.SageObject):
     __repr__ = repr
 
 
-    def __contains__(self, value):
+    def __contains__(self, key):
         r"""
-        Tests if ``value`` is encapsulated by one of the poset's elements.
+        Tests if ``key`` is encapsulated by one of the poset's elements.
 
         INPUT:
 
-        - ``value`` -- an object.
+        - ``key`` -- an object.
 
         OUTPUT:
 
@@ -1123,7 +1183,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: T((1, 2)) in P
             False
         """
-        return value in self._elements_
+        return key in self._elements_
 
 
     def add_element(self, value):
@@ -1216,13 +1276,45 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             (2, 2)
             sage: e == f, e is f
             (True, False)
+
+        TESTS::
+
+            sage: R = MP(key=lambda k: T(k[2:3]))
+            sage: R.add_element(T((1, 1, 42)))
+            (1, 1, 42)
+            sage: R.add_element(T((1, 3, 42)))
+            (1, 1, 42)
+            sage: R.add_element(T((2, 1, 7)))
+            (2, 1, 7)
+            sage: R.add_element(T((4, 4, 42)))
+            (1, 1, 42)
+            sage: R.add_element(T((1, 2, 7)))
+            (2, 1, 7)
+            sage: R.add_element(T((2, 2, 7)))
+            (2, 1, 7)
+            sage: print R.repr_full(reverse=True)
+            poset((1, 1, 42), (2, 1, 7))
+            +-- oo
+            |   +-- no successors
+            |   +-- predecessors: (1, 1, 42)
+            +-- (1, 1, 42)
+            |   +-- successors:   oo
+            |   +-- predecessors: (2, 1, 7)
+            +-- (2, 1, 7)
+            |   +-- successors:   (1, 1, 42)
+            |   +-- predecessors: null
+            +-- null
+            |   +-- successors:   (2, 1, 7)
+            |   +-- no predecessors
         """
-        try:
-            return self._elements_[value]
-        except KeyError:
-            pass
         if value is None:
             raise ValueError('None is not allowed as value.')
+        key = self.get_key(value)
+
+        try:
+            return self._elements_[key]
+        except KeyError:
+            pass
 
         new = MutablePosetElement(self, value)
         smaller = self.null.covers(new, reverse=False)
@@ -1238,11 +1330,11 @@ class MutablePoset(sage.structure.sage_object.SageObject):
                 new.predecessors(reverse).add(element)
                 element.successors(reverse).add(new)
 
-        self._elements_[value] = new
+        self._elements_[key] = new
         return new
 
 
-    def remove_element(self, value):
+    def remove_element(self, key):
         r"""
         Remove the given object from the poset.
 
@@ -1326,22 +1418,80 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
 
-        When adding an element which is already in the poset, the
-        existing one is returned::
+        TESTS::
 
-            sage: e = T((2, 2))
-            sage: f = P.add_element(e).value; f
-            (2, 2)
-            sage: e == f, e is f
-            (True, False)
+            sage: Q = MP(key=lambda k: T(k[0:2]))
+            sage: Q.add_element(T((1, 1, 42)))
+            (1, 1, 42)
+            sage: Q.add_element(T((1, 3, 42)))
+            (1, 3, 42)
+            sage: Q.add_element(T((2, 1, 7)))
+            (2, 1, 7)
+            sage: Q.add_element(T((4, 4, 42)))
+            (4, 4, 42)
+            sage: Q.add_element(T((1, 2, 7)))
+            (1, 2, 7)
+            sage: Q.add_element(T((2, 2, 7)))
+            (2, 2, 7)
+            sage: print Q.repr_full(reverse=True)
+            poset((4, 4, 42), (1, 3, 42), (2, 2, 7),
+                  (1, 2, 7), (2, 1, 7), (1, 1, 42))
+            +-- oo
+            |   +-- no successors
+            |   +-- predecessors: (4, 4, 42)
+            +-- (4, 4, 42)
+            |   +-- successors:   oo
+            |   +-- predecessors: (1, 3, 42), (2, 2, 7)
+            +-- (1, 3, 42)
+            |   +-- successors:   (4, 4, 42)
+            |   +-- predecessors: (1, 2, 7)
+            +-- (2, 2, 7)
+            |   +-- successors:   (4, 4, 42)
+            |   +-- predecessors: (1, 2, 7), (2, 1, 7)
+            +-- (1, 2, 7)
+            |   +-- successors:   (1, 3, 42), (2, 2, 7)
+            |   +-- predecessors: (1, 1, 42)
+            +-- (2, 1, 7)
+            |   +-- successors:   (2, 2, 7)
+            |   +-- predecessors: (1, 1, 42)
+            +-- (1, 1, 42)
+            |   +-- successors:   (1, 2, 7), (2, 1, 7)
+            |   +-- predecessors: null
+            +-- null
+            |   +-- successors:   (1, 1, 42)
+            |   +-- no predecessors
+            sage: Q.remove_element((1,1))
+            sage: print Q.repr_full(reverse=True)
+            poset((4, 4, 42), (1, 3, 42), (2, 2, 7), (1, 2, 7), (2, 1, 7))
+            +-- oo
+            |   +-- no successors
+            |   +-- predecessors: (4, 4, 42)
+            +-- (4, 4, 42)
+            |   +-- successors:   oo
+            |   +-- predecessors: (1, 3, 42), (2, 2, 7)
+            +-- (1, 3, 42)
+            |   +-- successors:   (4, 4, 42)
+            |   +-- predecessors: (1, 2, 7)
+            +-- (2, 2, 7)
+            |   +-- successors:   (4, 4, 42)
+            |   +-- predecessors: (1, 2, 7), (2, 1, 7)
+            +-- (1, 2, 7)
+            |   +-- successors:   (1, 3, 42), (2, 2, 7)
+            |   +-- predecessors: null
+            +-- (2, 1, 7)
+            |   +-- successors:   (2, 2, 7)
+            |   +-- predecessors: null
+            +-- null
+            |   +-- successors:   (1, 2, 7), (2, 1, 7)
+            |   +-- no predecessors
         """
-        if value is None:
-            raise ValueError('None is not allowed as value.')
+        if key is None:
+            raise ValueError('None is not allowed as key.')
 
         try:
-            element = self._elements_[value]
+            element = self._elements_[key]
         except KeyError:
-            raise KeyError('%s is not contained in this poset.' % (value,))
+            raise KeyError('Key %s is not contained in this poset.' % (key,))
 
         for reverse in (False, True):
             for p in element.predecessors(reverse):
@@ -1351,7 +1501,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
                         if s in element.successors(reverse))
                 S.update(element.successors(reverse))
                 S.difference_update(D)
-        del self._elements_[value]
+        del self._elements_[key]
 
 
 # *****************************************************************************

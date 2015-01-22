@@ -1022,14 +1022,15 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         sage: G
         Finite Field of size 73
         sage: D
-        [[0, 1, 8, 64],
-         [0, 2, 16, 55],
-         [0, 3, 24, 46],
-         [0, 25, 54, 67],
-         [0, 35, 50, 61],
-         [0, 36, 41, 69]]
+        [[0, 1, 5, 18],
+         [0, 3, 15, 54],
+         [0, 9, 45, 16],
+         [0, 27, 62, 48],
+         [0, 8, 40, 71],
+         [0, 24, 47, 67]]
+
         sage: print designs.difference_family(73, 4, explain_construction=True)
-        Radical difference family on a finite field
+        The database contains a (73,4)-evenly distributed set
 
         sage: G,D = designs.difference_family(15,7,3)
         sage: G
@@ -1067,9 +1068,9 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         sage: for q in islice(prime_power_mod(1,42), 60):
         ....:     l7[designs.difference_family(q,7,existence=True)].append(q)
         sage: l7[True]
-        [337, 421, 463, 883, 1723, 3067, 3319, 3529, 3823, 3907, 4621, 4957, 5167]
+        [169, 337, 379, 421, 463, 547, 631, 673, 757, 841, 883, 967, ...,  4621, 4957, 5167]
         sage: l7[Unknown]
-        [43, 127, 169, 211, ..., 4999, 5041, 5209]
+        [43, 127, 211, 2017, 2143, 2269, 2311, 2437, 2521, 2647, ..., 4999, 5041, 5209]
         sage: l7[False]
         []
 
@@ -1124,7 +1125,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         55: (3,1), (9,4)
         57: (3,1), (7,3), (8,1)
         59: (2,1)
-        61: (2,1), (3,1), (3,2), (4,3), (5,1), (5,4), (6,2), (6,3), (6,5)
+        61: (2,1), (3,1), (3,2), (4,1), (4,3), (5,1), (5,4), (6,2), (6,3), (6,5)
         63: (3,1)
         64: (3,2), (4,1), (7,2), (7,6), (9,8)
         65: (5,1)
@@ -1175,9 +1176,17 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
     Check the database::
 
-        sage: from sage.combinat.designs.database import DF
+        sage: from sage.combinat.designs.database import DF,EDS
         sage: for v,k,l in DF:
+        ....:     assert designs.difference_family(v,k,l,existence=True) is True
         ....:     df = designs.difference_family(v,k,l,check=True)
+
+        sage: for k in EDS:
+        ....:     for v in EDS[k]:
+        ....:         if EDS[k][v] is False:
+        ....:             continue
+        ....:         assert designs.difference_family(v,k,1,existence=True) is True
+        ....:         df = designs.difference_family(v,k,1,check=True)
 
     Check a failing construction (:trac:`17528`)::
 
@@ -1194,7 +1203,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
     """
     from block_design import are_hyperplanes_in_projective_geometry_parameters
 
-    from database import DF
+    from database import DF, EDS
 
     if (v,k,l) in DF:
         if existence:
@@ -1219,6 +1228,29 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
                     "family in the database... Please contact "
                     "sage-devel@googlegroups.com".format(v,k,l))
 
+        return G,df
+
+    elif l == 1 and k in EDS and v in EDS[k] and EDS[k][v] is not False:
+        if existence:
+            return True
+        elif explain_construction:
+            return "The database contains a ({},{})-evenly distributed set".format(v,k)
+
+        from sage.rings.finite_rings.constructor import GF
+        poly,B = EDS[k][v]
+        if poly is None:  # q is prime
+            K = G = GF(v)
+        else:
+            K = G = GF(v,'a',modulus=poly)
+
+        B = map(K,B)
+        e = k*(k-1)/2
+        xe = G.multiplicative_generator()**e
+        df = [[xe**j*b for b in B] for j in range((v-1)/(2*e))]
+        if check and not is_difference_family(G, df, v=v, k=k, l=l):
+            raise RuntimeError("There is an invalid ({},{})-evenly distributed "
+                     "set in the database... Please contact "
+                     "sage-devel@googlegroups.com".format(v,k,l))
         return G,df
 
     e = k*(k-1)

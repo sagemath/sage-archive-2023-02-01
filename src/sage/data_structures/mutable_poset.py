@@ -989,6 +989,34 @@ class MutablePoset(sage.structure.sage_object.SageObject):
     __repr__ = repr
 
 
+    def __contains__(self, value):
+        r"""
+        Tests if ``value`` is encapsulated by one of the poset's elements.
+
+        INPUT:
+
+        - ``value`` -- an object.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add_element(T((1, 1)))
+            (1, 1)
+            sage: T((1, 1)) in P
+            True
+            sage: T((1, 2)) in P
+            False
+        """
+        return value in self._elements_
+
 
     def add_element(self, value):
         r"""

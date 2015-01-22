@@ -34,8 +34,8 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         """
         self._poset_ = poset
         self._value_ = value
-        self.predecessors = set()
-        self.successors = set()
+        self._predecessors_ = set()
+        self._successors_ = set()
 
 
     @property
@@ -88,6 +88,60 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         return self._value_
 
 
+    def predecessors(self, reverse=False):
+        r"""
+        Return the predecessors of the element.
+
+        INPUT:
+
+        - ``reverse`` -- (default: ``False``) if set, then returns
+          successors instead.
+
+        OUTPUT:
+
+        A set.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: from sage.data_structures.mutable_poset import MutablePosetElement
+            sage: e = MutablePosetElement(P, (1, 2))
+            sage: e.predecessors()
+            set()
+        """
+        if reverse:
+            return self._successors_
+        return self._predecessors_
+
+
+    def successors(self, reverse=False):
+        r"""
+        Return the successors of the element.
+
+        INPUT:
+
+        - ``reverse`` -- (default: ``False``) if set, then returns
+          predecessors instead.
+
+        OUTPUT:
+
+        A set.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: from sage.data_structures.mutable_poset import MutablePosetElement
+            sage: e = MutablePosetElement(P, (1, 2))
+            sage: e.successors()
+            set()
+        """
+        if reverse:
+            return self._predecessors_
+        return self._successors_
+
+
     def __repr__(self):
         r"""
         Return the representation of the element.
@@ -119,9 +173,9 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             'oo'
         """
         if self.value is None:
-            if not self.predecessors:
+            if not self.predecessors():
                 return 'zero'
-            if not self.successors:
+            if not self.successors():
                 return 'oo'
         return repr(self.value)
 
@@ -200,26 +254,26 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             True
         """
         if left.value is None:
-            if not left.predecessors:
+            if not left.predecessors():
                 # zero on the left
                 return True
             else:
                 # oo on the left
                 if right.value is None:
                     # zero or oo on the right
-                    return not right.successors
+                    return not right.successors()
                 else:
                     # not zero, not oo on the right
                     return False
         if right.value is None:
-            if not right.successors:
+            if not right.successors():
                 # oo on the right
                 return True
             else:
                 # zero on the right
                 if left.value is None:
                     # zero or oo on the left
-                    return not left.predecessors
+                    return not left.predecessors()
                 else:
                     # not zero, not oo on the right
                     return False
@@ -278,8 +332,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
         self._zero_ = MutablePosetElement(self, None)
         self._oo_ = MutablePosetElement(self, None)
-        self._zero_.successors.add(self._oo_)
-        self._oo_.predecessors.add(self._zero_)
+        self._zero_.successors().add(self._oo_)
+        self._oo_.predecessors().add(self._zero_)
         self._elements_ = {}
 
 
@@ -383,18 +437,18 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         strings = [self.repr()]
         for element in sortedelements:
             s = '+-- ' + repr(element) + '\n'
-            if element.successors:
+            if element.successors():
                 s += '|   +-- successors:   '
                 s += ', '.join(repr(e) for e in
-                               _sort_set_by_tuple_iter_(element.successors,
+                               _sort_set_by_tuple_iter_(element.successors(),
                                                         sortedelements))
             else:
                 s += '|   +-- no successors'
             s += '\n'
-            if element.predecessors:
+            if element.predecessors():
                 s += '|   +-- predecessors: '
                 s += ', '.join(repr(e) for e in
-                               _sort_set_by_tuple_iter_(element.predecessors,
+                               _sort_set_by_tuple_iter_(element.predecessors(),
                                                         sortedelements))
             else:
                 s += '|   +-- no predecessors'

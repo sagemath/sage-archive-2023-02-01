@@ -730,7 +730,8 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
         ::
 
-            sage: for e in P.elements_topological(reverse=True):
+            sage: for e in P.elements_topological(include_special=True,
+            ....:                                 reverse=True):
             ....:     print e
             ....:     print list(e.iter_topological(reverse=True,
             ....:                                   key=lambda c: repr(c)))
@@ -753,7 +754,8 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
         ::
 
-            sage: for e in P.elements_topological(reverse=True):
+            sage: for e in P.elements_topological(include_special=True,
+            ....:                                 reverse=True):
             ....:     print e
             ....:     print list(e.iter_topological(reverse=False,
             ....:                                   key=lambda c: repr(c)))
@@ -872,7 +874,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             yield self._oo_ if not reverse else self._zero_
 
 
-    def elements_topological(self, reverse=False, key=None):
+    def elements_topological(self, include_special=False,
+                             reverse=False, key=None):
         r"""
         EXAMPLES::
 
@@ -894,17 +897,23 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: P.add_element(T((2, 2)))
             (2, 2)
             sage: list(P.elements_topological())
-            [zero, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
+            [(1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4)]
             sage: list(P.elements_topological(reverse=True))
+            [(4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1)]
+            sage: list(P.elements_topological(include_special=True))
+            [zero, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
+            sage: list(P.elements_topological(
+            ....:     include_special=True, reverse=True))
             [oo, (4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1), zero]
         """
         if key is None:
             key = lambda c: repr(c)
         element = self._oo_ if not reverse else self._zero_
-        return element.iter_topological(reverse, key)
+        return iter(e for e in element.iter_topological(reverse, key)
+                    if include_special or not e.is_special())
 
 
-    def repr(self):
+    def repr(self, include_special=False):
         r"""
         Return a representation of the poset.
 
@@ -923,7 +932,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             poset()
         """
         s = 'poset('
-        s += ', '.join(repr(element) for element in self.elements())
+        s += ', '.join(repr(element) for element in
+                       self.elements_topological(include_special, reverse=True))
         s += ')'
         return s
 
@@ -953,8 +963,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             |   +-- no predecessors
         """
         sortedelements = tuple(
-            self.elements(include_special=True, reverse=reverse))
-        strings = [self.repr()]
+            self.elements_topological(include_special=True, reverse=reverse))
+        strings = [self.repr(include_special=False)]
         for element in sortedelements:
             s = '+-- ' + repr(element) + '\n'
             if element.successors():
@@ -1011,50 +1021,50 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: P.add_element(T((1, 2)))
             (1, 2)
             sage: print P.repr_full(reverse=True)
-            poset((1, 2), (1, 3), (1, 1), (2, 1), (4, 4))
+            poset((4, 4), (1, 3), (1, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
             |   +-- predecessors: (4, 4)
-            +-- (1, 2)
-            |   +-- successors:   (1, 3)
-            |   +-- predecessors: (1, 1)
-            +-- (1, 3)
-            |   +-- successors:   (4, 4)
-            |   +-- predecessors: (1, 2)
-            +-- (1, 1)
-            |   +-- successors:   (1, 2), (2, 1)
-            |   +-- predecessors: zero
-            +-- (2, 1)
-            |   +-- successors:   (4, 4)
-            |   +-- predecessors: (1, 1)
             +-- (4, 4)
             |   +-- successors:   oo
             |   +-- predecessors: (1, 3), (2, 1)
+            +-- (1, 3)
+            |   +-- successors:   (4, 4)
+            |   +-- predecessors: (1, 2)
+            +-- (1, 2)
+            |   +-- successors:   (1, 3)
+            |   +-- predecessors: (1, 1)
+            +-- (2, 1)
+            |   +-- successors:   (4, 4)
+            |   +-- predecessors: (1, 1)
+            +-- (1, 1)
+            |   +-- successors:   (1, 2), (2, 1)
+            |   +-- predecessors: zero
             +-- zero
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
             sage: P.add_element(T((2, 2)))
             (2, 2)
             sage: print P.repr_full(reverse=True)
-            poset((1, 2), (1, 3), (4, 4), (2, 1), (2, 2), (1, 1))
+            poset((4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
             |   +-- predecessors: (4, 4)
-            +-- (1, 2)
-            |   +-- successors:   (1, 3), (2, 2)
-            |   +-- predecessors: (1, 1)
-            +-- (1, 3)
-            |   +-- successors:   (4, 4)
-            |   +-- predecessors: (1, 2)
             +-- (4, 4)
             |   +-- successors:   oo
             |   +-- predecessors: (1, 3), (2, 2)
-            +-- (2, 1)
-            |   +-- successors:   (2, 2)
-            |   +-- predecessors: (1, 1)
+            +-- (1, 3)
+            |   +-- successors:   (4, 4)
+            |   +-- predecessors: (1, 2)
             +-- (2, 2)
             |   +-- successors:   (4, 4)
             |   +-- predecessors: (1, 2), (2, 1)
+            +-- (1, 2)
+            |   +-- successors:   (1, 3), (2, 2)
+            |   +-- predecessors: (1, 1)
+            +-- (2, 1)
+            |   +-- successors:   (2, 2)
+            |   +-- predecessors: (1, 1)
             +-- (1, 1)
             |   +-- successors:   (1, 2), (2, 1)
             |   +-- predecessors: zero

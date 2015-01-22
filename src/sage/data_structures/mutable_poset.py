@@ -129,7 +129,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
     def is_special(self):
         r"""
 
-        Return if the element is either the zero-element, i.e., the
+        Return if the element is either the null-element, i.e., the
         element smaller than any possible other element or the
         infinity-element, i.e., the element larger than any possible
         other element.
@@ -146,7 +146,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: P = MP()
-            sage: P.zero.is_special()
+            sage: P.null.is_special()
             True
             sage: P.oo.is_special()
             True
@@ -154,9 +154,9 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         return self.value is None
 
 
-    def is_zero(self, reverse=False):
+    def is_null(self, reverse=False):
         r"""
-        Return if the element is the zero-element, i.e., the element
+        Return if the element is the null-element, i.e., the element
         smaller than any possible other element.
 
         INPUT:
@@ -172,9 +172,9 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: P = MP()
-            sage: P.zero.is_zero()
+            sage: P.null.is_null()
             True
-            sage: P.oo.is_zero()
+            sage: P.oo.is_null()
             False
         """
         return self.value is None and not self.predecessors(reverse)
@@ -198,7 +198,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: P = MP()
-            sage: P.zero.is_oo()
+            sage: P.null.is_oo()
             False
             sage: P.oo.is_oo()
             True
@@ -220,7 +220,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
         This methods usually returns the representation string of its
         :meth:`value`. The only exception is if this value is
-        ``None``. In this case either ``'zero'`` or ``'oo'`` is
+        ``None``. In this case either ``'null'`` or ``'oo'`` is
         returned depending in the nonexistence of predecessors and
         sucessors respectively.
 
@@ -231,14 +231,14 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: from sage.data_structures.mutable_poset import MutablePosetElement
             sage: repr(MutablePosetElement(P, (1, 2)))  # indirect doctest
             '(1, 2)'
-            sage: repr(P.zero)  # indirect doctest
-            'zero'
+            sage: repr(P.null)  # indirect doctest
+            'null'
             sage: repr(P.oo)  # indirect doctest
             'oo'
         """
         if self.value is None:
             if not self.predecessors():
-                return 'zero'
+                return 'null'
             if not self.successors():
                 return 'oo'
         return repr(self.value)
@@ -299,7 +299,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: P = MP()
             sage: from sage.data_structures.mutable_poset import MutablePosetElement
             sage: e = MutablePosetElement(P, (1, 2))
-            sage: z = P.zero
+            sage: z = P.null
             sage: oo = P.oo
             sage: z <= e
             True
@@ -346,27 +346,27 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
         if left.value is None:
             if not left.predecessors():
-                # zero on the left
+                # null on the left
                 return True
             else:
                 # oo on the left
                 if right.value is None:
-                    # zero or oo on the right
+                    # null or oo on the right
                     return not right.successors()
                 else:
-                    # not zero, not oo on the right
+                    # not null, not oo on the right
                     return False
         if right.value is None:
             if not right.successors():
                 # oo on the right
                 return True
             else:
-                # zero on the right
+                # null on the right
                 if left.value is None:
-                    # zero or oo on the left
+                    # null or oo on the left
                     return not left.predecessors()
                 else:
-                    # not zero, not oo on the right
+                    # not null, not oo on the right
                     return False
         return left.value <= right.value
 
@@ -394,7 +394,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: P = MP()
             sage: from sage.data_structures.mutable_poset import MutablePosetElement
             sage: e = MutablePosetElement(P, (1, 2))
-            sage: z = P.zero
+            sage: z = P.null
             sage: oo = P.oo
             sage: z == z
             True
@@ -410,7 +410,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             False
         """
         if left.value is None and right.value is None:
-            return left.is_zero() == right.is_zero()
+            return left.is_null() == right.is_null()
         return left.value == right.value
 
 
@@ -438,7 +438,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: P = MP()
             sage: Q = MP()
             sage: memo = {}
-            sage: z = P.zero._copy_all_linked_(memo, Q)
+            sage: z = P.null._copy_all_linked_(memo, Q)
             sage: z.poset is Q
             True
             sage: oo = z.successors().pop()
@@ -500,7 +500,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: e = P.add_element(T((2, 2, 2))); e
             (2, 2, 2)
             sage: covers = set()
-            sage: P.zero._search_covers_(covers, e)
+            sage: P.null._search_covers_(covers, e)
             True
             sage: sorted(covers, key=lambda c: tuple(c.value))
             [(1, 2, 2), (2, 1, 2)]
@@ -558,7 +558,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             (1, 2)
             sage: e = P.add_element(T((2, 2))); e
             (2, 2)
-            sage: sorted(P.zero.covers(e),
+            sage: sorted(P.null.covers(e),
             ....:        key=lambda c: tuple(c.value))
             [(1, 2), (2, 1)]
             sage: sorted(P.oo.covers(e, reverse=True),
@@ -597,7 +597,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             5
             sage: marked = set()
             sage: list(P.oo._iter_depth_first_visit_(marked, True))
-            [oo, 42, 5, zero]
+            [oo, 42, 5, null]
         """
         if self in marked:
             return
@@ -618,7 +618,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         INPUT:
 
         - ``reverse`` -- (default: ``False``) -- if set, reverses the
-          order, i.e., ``False`` starts at bottom (`0`),
+          order, i.e., ``False`` starts at bottom (`\emptyset`),
           ``True`` starts at top (`\infty`).
 
         - ``key`` -- (default: ``None``) a function used for sorting
@@ -652,12 +652,12 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             (1, 2)
             sage: P.add_element(T((2, 2)))
             (2, 2)
-            sage: list(P.zero.iter_depth_first(reverse=False,
+            sage: list(P.null.iter_depth_first(reverse=False,
             ....:                                key=lambda c: repr(c)))
-            [zero, (1, 1), (1, 2), (1, 3), (4, 4), oo, (2, 2), (2, 1)]
+            [null, (1, 1), (1, 2), (1, 3), (4, 4), oo, (2, 2), (2, 1)]
             sage: list(P.oo.iter_depth_first(reverse=True,
             ....:                                key=lambda c: repr(c)))
-            [oo, (4, 4), (1, 3), (1, 2), (1, 1), zero, (2, 2), (2, 1)]
+            [oo, (4, 4), (1, 3), (1, 2), (1, 1), null, (2, 2), (2, 1)]
         """
         marked = set()
         return self._iter_depth_first_visit_(marked, reverse, key)
@@ -689,8 +689,8 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: P.add_element(5)
             5
             sage: marked = set()
-            sage: list(P.zero._iter_topological_visit_(marked, True))
-            [oo, 42, 5, zero]
+            sage: list(P.null._iter_topological_visit_(marked, True))
+            [oo, 42, 5, null]
         """
         if self in marked:
             return
@@ -778,8 +778,8 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             [oo, (4, 4), (2, 2), (2, 1)]
             (1, 1)
             [oo, (4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1)]
-            zero
-            [oo, (4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1), zero]
+            null
+            [oo, (4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1), null]
 
         ::
 
@@ -789,21 +789,21 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             ....:     print list(e.iter_topological(reverse=False,
             ....:                                   key=lambda c: repr(c)))
             oo
-            [zero, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
+            [null, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
             (4, 4)
-            [zero, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4)]
+            [null, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4)]
             (1, 3)
-            [zero, (1, 1), (1, 2), (1, 3)]
+            [null, (1, 1), (1, 2), (1, 3)]
             (2, 2)
-            [zero, (1, 1), (1, 2), (2, 1), (2, 2)]
+            [null, (1, 1), (1, 2), (2, 1), (2, 2)]
             (1, 2)
-            [zero, (1, 1), (1, 2)]
+            [null, (1, 1), (1, 2)]
             (2, 1)
-            [zero, (1, 1), (2, 1)]
+            [null, (1, 1), (2, 1)]
             (1, 1)
-            [zero, (1, 1)]
-            zero
-            [zero]
+            [null, (1, 1)]
+            null
+            [null]
         """
         marked = set()
         return self._iter_topological_visit_(marked, reverse, key)
@@ -859,28 +859,28 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         if data is not None:
             raise NotImplementedError
 
-        self._zero_ = MutablePosetElement(self, None)
+        self._null_ = MutablePosetElement(self, None)
         self._oo_ = MutablePosetElement(self, None)
-        self._zero_.successors().add(self._oo_)
-        self._oo_.predecessors().add(self._zero_)
+        self._null_.successors().add(self._oo_)
+        self._oo_.predecessors().add(self._null_)
         self._elements_ = {}
 
 
     @property
-    def zero(self):
+    def null(self):
         r"""
-        The element `0` which is smaller than any other element.
+        The element `\emptyset` which is smaller than any other element.
 
         EXAMPLES:
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: P = MP()
-            sage: z = P.zero; z
-            zero
-            sage: z.is_zero()
+            sage: z = P.null; z
+            null
+            sage: z.is_null()
             True
         """
-        return self._zero_
+        return self._null_
 
 
     @property
@@ -935,7 +935,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         """
         new = self.__class__()
         memo = {}
-        new._zero_ = self._zero_._copy_all_linked_(memo, new)
+        new._null_ = self._null_._copy_all_linked_(memo, new)
         new._oo_ = memo[id(self._oo_)]
         new._elements_ = dict((f.value, f) for f in
                               iter(memo[id(e)]
@@ -953,11 +953,11 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         INPUT:
 
         - ``include_special`` -- (default: ``False``) if set, then
-          including a smallest element (`0`) and a largest element
+          including a smallest element (`\emptyset`) and a largest element
           (`\infty`).
 
         - ``reverse`` -- (default: ``False``) if set, the order is
-          reversed. This only affects the elements `0` and `\infty`.
+          reversed. This only affects the elements `\emptyset` and `\infty`.
 
         OUTPUT:
 
@@ -970,16 +970,16 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: tuple(P.elements())
             ()
             sage: tuple(P.elements(include_special=True))
-            (zero, oo)
+            (null, oo)
             sage: tuple(P.elements(include_special=True, reverse=True))
-            (oo, zero)
+            (oo, null)
         """
         if include_special:
-            yield self.zero if not reverse else self.oo
+            yield self.null if not reverse else self.oo
         for e in self._elements_.itervalues():
             yield e
         if include_special:
-            yield self.oo if not reverse else self.zero
+            yield self.oo if not reverse else self.null
 
 
     def elements_topological(self, include_special=False,
@@ -1009,14 +1009,14 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: list(P.elements_topological(reverse=True))
             [(4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1)]
             sage: list(P.elements_topological(include_special=True))
-            [zero, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
+            [null, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
             sage: list(P.elements_topological(
             ....:     include_special=True, reverse=True))
-            [oo, (4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1), zero]
+            [oo, (4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1), null]
         """
         if key is None:
             key = lambda c: repr(c)
-        element = self.oo if not reverse else self.zero
+        element = self.oo if not reverse else self.null
         return iter(e for e in element.iter_topological(reverse, key)
                     if include_special or not e.is_special())
 
@@ -1065,8 +1065,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             poset()
             +-- oo
             |   +-- no successors
-            |   +-- predecessors: zero
-            +-- zero
+            |   +-- predecessors: null
+            +-- null
             |   +-- successors:   oo
             |   +-- no predecessors
         """
@@ -1175,8 +1175,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             |   +-- predecessors: (1, 1)
             +-- (1, 1)
             |   +-- successors:   (1, 2), (2, 1)
-            |   +-- predecessors: zero
-            +-- zero
+            |   +-- predecessors: null
+            +-- null
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
             sage: P.add_element(T((2, 2)))
@@ -1203,8 +1203,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             |   +-- predecessors: (1, 1)
             +-- (1, 1)
             |   +-- successors:   (1, 2), (2, 1)
-            |   +-- predecessors: zero
-            +-- zero
+            |   +-- predecessors: null
+            +-- null
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
 
@@ -1225,7 +1225,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             raise ValueError('None is not allowed as value.')
 
         new = MutablePosetElement(self, value)
-        smaller = self.zero.covers(new, reverse=False)
+        smaller = self.null.covers(new, reverse=False)
         larger = self.oo.covers(new, reverse=True)
 
         for reverse in (False, True):
@@ -1297,8 +1297,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             |   +-- predecessors: (1, 1)
             +-- (1, 1)
             |   +-- successors:   (1, 2), (2, 1)
-            |   +-- predecessors: zero
-            +-- zero
+            |   +-- predecessors: null
+            +-- null
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
             sage: P.remove_element(T((1, 2)))
@@ -1321,8 +1321,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             |   +-- predecessors: (1, 1)
             +-- (1, 1)
             |   +-- successors:   (1, 3), (2, 1)
-            |   +-- predecessors: zero
-            +-- zero
+            |   +-- predecessors: null
+            +-- null
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
 

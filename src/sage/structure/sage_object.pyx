@@ -10,13 +10,13 @@ from sage.misc.sage_unittest import TestSuite
 
 sys_modules = sys.modules
 
+from sage.misc.lazy_import import LazyImport
+have_same_parent = LazyImport('sage.structure.element', 'have_same_parent', deprecation=17533)
+
 # change to import zlib to use zlib instead; but this
 # slows down loading any data stored in the other format
 import zlib; comp = zlib
 import bz2; comp_other = bz2
-
-from sage.misc.lazy_import import LazyImport
-have_same_parent = LazyImport('sage.structure.element', 'have_same_parent', deprecation=17533)
 
 base=None
 

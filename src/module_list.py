@@ -241,6 +241,9 @@ ext_modules = [
     Extension('sage.combinat.designs.orthogonal_arrays_find_recursive',
               sources=['sage/combinat/designs/orthogonal_arrays_find_recursive.pyx']),
 
+    Extension('sage.combinat.designs.evenly_distributed_sets',
+              sources=['sage/combinat/designs/evenly_distributed_sets.pyx']),
+
     ################################
     ##
     ## sage.crypto

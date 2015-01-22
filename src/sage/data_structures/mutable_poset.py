@@ -513,6 +513,99 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         return covers
 
 
+    def _iter_depth_first_visit_(self, marked, reverse=False, key=None):
+        r"""
+        Helper function for :meth:`iter_depth_first`.
+
+        INPUT:
+
+        - ``marked`` -- a set in which marked elements are stored.
+
+        - ``reverse`` -- (default: ``False``) -- if set, reverses the order.
+
+        - ``key`` -- (default: ``None``) a function used for sorting
+          the successors. If this is ``None``, no sorting occurrs.
+
+        OUTPUT:
+
+        An iterator.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add_element(42)
+            42
+            sage: P.add_element(5)
+            5
+            sage: marked = set()
+            sage: list(P._oo_._iter_depth_first_visit_(marked, True))
+            [oo, 42, 5, zero]
+        """
+        if self in marked:
+            return
+        marked.add(self)
+        yield self
+        S = self.successors(reverse)
+        if key is not None:
+            S = sorted(S, key=key)
+        for element in S:
+            for e in element._iter_depth_first_visit_(marked, reverse, key):
+                yield e
+
+
+    def iter_depth_first(self, reverse=False, key=None):
+        r"""
+        Iterates over all elements in depth first order.
+
+        INPUT:
+
+        - ``reverse`` -- (default: ``False``) -- if set, reverses the
+          order, i.e., ``False`` starts at bottom (`0`),
+          ``True`` starts at top (`\infty`).
+
+        - ``key`` -- (default: ``None``) a function used for sorting
+          the direct successors of an element (used in case of a
+          tie). If this is ``None``, no sorting occurrs.
+
+        OUTPUT:
+
+        An iterator.
+
+        ALGORITHM:
+
+        See :wikipedia:`Depth-first_search`.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add_element(T((1, 1)))
+            (1, 1)
+            sage: P.add_element(T((1, 3)))
+            (1, 3)
+            sage: P.add_element(T((2, 1)))
+            (2, 1)
+            sage: P.add_element(T((4, 4)))
+            (4, 4)
+            sage: P.add_element(T((1, 2)))
+            (1, 2)
+            sage: P.add_element(T((2, 2)))
+            (2, 2)
+            sage: list(P._zero_.iter_depth_first(reverse=False,
+            ....:                                key=lambda c: repr(c)))
+            [zero, (1, 1), (1, 2), (1, 3), (4, 4), oo, (2, 2), (2, 1)]
+            sage: list(P._oo_.iter_depth_first(reverse=True,
+            ....:                                key=lambda c: repr(c)))
+            [oo, (4, 4), (1, 3), (1, 2), (1, 1), zero, (2, 2), (2, 1)]
+        """
+        marked = set()
+        return self._iter_depth_first_visit_(marked, reverse, key)
+
+
     def _iter_topological_visit_(self, marked, reverse=False, key=None):
         r"""
         Helper function for :meth:`iter_topological`.

@@ -3949,11 +3949,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             interval_field = self._value.parent()
         else:
             interval_field = ComplexIntervalField(self._value.prec())
-        roots = SR(poly).solve(var, explicit_solutions=True)
+        roots = poly.roots(SR, multiplicities=False)
         if len(roots) != poly.degree():
             return self
-        assert all(root.lhs() == var for root in roots)
-        roots = [root.rhs() for root in roots]
         while True:
             candidates = []
             for root in roots:

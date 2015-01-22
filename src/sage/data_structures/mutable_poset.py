@@ -361,6 +361,49 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
     __le__ = le
 
+
+    def eq(left, right):
+        r"""
+        Return if ``left`` is equal to ``right``.
+
+        INPUT:
+
+        - ``left`` -- an element.
+
+        - ``right`` -- an element.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: from sage.data_structures.mutable_poset import MutablePosetElement
+            sage: e = MutablePosetElement(P, (1, 2))
+            sage: z = P._zero_
+            sage: oo = P._oo_
+            sage: z == z
+            True
+            sage: oo == oo
+            True
+            sage: e == e
+            True
+            sage: z == e
+            False
+            sage: e == oo
+            False
+            sage: oo == z
+            False
+        """
+        if left.value is None and right.value is None:
+            return left.is_zero() == right.is_zero()
+        return left.value == right.value
+
+
+    __eq__ = eq
+
 # *****************************************************************************
 
 

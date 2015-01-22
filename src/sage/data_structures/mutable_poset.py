@@ -502,8 +502,8 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: covers = set()
             sage: P.zero._search_covers_(covers, e)
             True
-            sage: covers
-            {(2, 1, 2), (1, 2, 2)}
+            sage: sorted(covers, key=lambda c: tuple(c.value))
+            [(1, 2, 2), (2, 1, 2)]
         """
         if not self.le(element, reverse) or self == element:
             return False

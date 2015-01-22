@@ -84,81 +84,71 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         self._entries = {}  # crucial so that pickling works
 
     def __init__(self, parent, entries=None, coerce=True, copy=True):
-        cdef Py_ssize_t i, j
         matrix.Matrix.__init__(self, parent)
-
         R = self._base_ring
-        self._zero = R(0)
-        if not isinstance(entries, (list, dict)):
-            if entries is None:
-                x = R.zero_element()
-            else:
-                x = R(entries)
-            entries = {}
-            if x != self._zero:
-                if self._nrows != self._ncols:
-                    raise TypeError, "scalar matrix must be square"
-                for i from 0 <= i < self._nrows:
-                    entries[(int(i),int(i))] = x
+        self._zero = R.zero_element()
 
-        if isinstance(entries, list) and len(entries) > 0 and \
-                hasattr(entries[0], "is_vector"):
-            entries = _convert_sparse_entries_to_dict(entries)
+        if entries is None or entries == 0:
+            return
+
+        cdef Py_ssize_t i, j, k
 
         if isinstance(entries, list):
-            if len(entries) != self.nrows() * self.ncols():
-                raise TypeError, "entries has the wrong length"
-            x = entries
-            entries = {}
-            k = 0
-            for i from 0 <= i < self._nrows:
-                for j from 0 <= j < self._ncols:
-                    if x[k] != 0:
-                        entries[(int(i),int(j))] = x[k]
-                    k = k + 1
-            copy = False
+            if entries and hasattr(entries[0], "is_vector"):
+                entries = _convert_sparse_entries_to_dict(entries)
 
-        if not isinstance(entries, dict):
-            raise TypeError, "entries must be a dict"
+            else:
+                if len(entries) != self.nrows() * self.ncols():
+                    raise TypeError("entries has the wrong length")
+                x = entries
+                entries = {}
+                k = 0
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < self._ncols:
+                        if not x[k]:
+                            entries[(i,j)] = x[k]
+                        k += 1
+                copy = False
+
+        elif not isinstance(entries, dict):
+            # assume that entries is a scalar
+            x = R(entries)
+            entries = {}
+            if self._nrows != self._ncols:
+                raise TypeError("scalar matrix must be square")
+            for i from 0 <= i < self._nrows:
+                entries[(i,i)] = x
+
 
         if coerce:
-            try:
-                v = {}
-                for k, x in entries.iteritems():
-                    w = R(x)
-                    if w != 0:
-                        i, j = k
-                        v[(int(i),int(j))] = w
-                entries = v
-            except TypeError:
-                raise TypeError, "Unable to coerce entries to %s"%R
+            v = {}
+            for key, x in entries.iteritems():
+                w = R(x)
+                if w:
+                    i,j = key
+                    v[(i,j)] = w
+            entries = v
         else:
             if copy:
                 # Make a copy
                 entries = dict(entries)
-            for k in entries.keys():
-                if entries[k].is_zero():
-                    del entries[k]
+            for key in entries.keys():
+                if not entries[key]:
+                    del entries[key]
 
         self._entries = entries
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
-        # TODO: maybe make faster with Python/C API
-        k = (int(i),int(j))
-        if value.is_zero():
+        if not value:
             try:
-                del self._entries[k]
+                del self._entries[(i,j)]
             except KeyError:
                 pass
         else:
-            self._entries[k] = value
+            self._entries[(i,j)] = value
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
-        # TODO: maybe make faster with Python/C API
-        try:
-            return self._entries[(int(i),int(j))]
-        except KeyError:
-            return self._zero
+        return self._entries.get((i,j), self._zero)
 
     def _pickle(self):
         version = 0
@@ -174,13 +164,11 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             sage: loads(dumps(a)) == a
             True
         """
-        cdef Py_ssize_t i, j, k
-
         if version == 0:
             self._entries = data
             self._zero = self._base_ring(0)
         else:
-            raise RuntimeError, "unknown matrix version (=%s)"%version
+            raise RuntimeError("unknown matrix version (=%s)"%version)
 
     def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
         return self._richcmp(right, op)
@@ -228,36 +216,36 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         cdef Py_ssize_t i, j, len_v, len_w
         cdef Matrix_generic_sparse other
         other = <Matrix_generic_sparse> _other
-        v = self._entries.items()
+        cdef list v = self._entries.items()
         v.sort()
-        w = other._entries.items()
+        cdef list w = other._entries.items()
         w.sort()
         s = {}
         i = 0  # pointer into self
         j = 0  # pointer into other
-        len_v = len(v)   # could be sped up with Python/C API??
+        len_v = len(v)
         len_w = len(w)
         while i < len_v and j < len_w:
             vi = v[i][0]
             wj = w[j][0]
             if vi < wj:
                 s[vi] = v[i][1]
-                i = i + 1
+                i += 1
             elif vi > wj:
                 s[wj] = w[j][1]
-                j = j + 1
+                j += 1
             else:  # equal
                 sm = v[i][1] + w[j][1]
-                if not sm.is_zero():
+                if sm:
                     s[vi] = sm
-                i = i + 1
-                j = j + 1
+                i += 1
+                j += 1
         while i < len(v):
             s[v[i][0]] = v[i][1]
-            i = i + 1
+            i += 1
         while j < len(w):
             s[w[j][0]] = w[j][1]
-            j = j + 1
+            j += 1
 
         cdef Matrix_generic_sparse A
         A = Matrix_generic_sparse.__new__(Matrix_generic_sparse, self._parent, 0,0,0)
@@ -279,14 +267,13 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         Return all entries of self as a list of numbers of rows times
         number of columns entries.
         """
-        x = self.fetch('list')
-        if not x is None:
-            return x
-        v = [self._base_ring(0)]*(self._nrows * self._ncols)
-        for ij, x in self._entries.iteritems():
-            i, j = ij          # todo: optimize
-            v[i*self._ncols + j] = x
-        self.cache('list', v)
+        cdef Py_ssize_t i,j
+        cdef list v = self.fetch('list')
+        if v is None:
+            v = [self._zero]*(self._nrows * self._ncols)
+            for (i,j), x in self._entries.iteritems():
+                v[i*self._ncols + j] = x
+            self.cache('list', v)
         return v
 
     def _dict(self):
@@ -300,34 +287,23 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
 
     def _nonzero_positions_by_row(self, copy=True):
-        x = self.fetch('nonzero_positions')
-        if x is not None:
-            if copy:
-                return list(x)
-            return x
-
-        v = self._entries.keys()
-        v.sort()
-
-        self.cache('nonzero_positions', v)
+        cdef list v = self.fetch('nonzero_positions')
+        if v is None:
+            v = self._entries.keys()
+            v.sort()
+            self.cache('nonzero_positions', v)
         if copy:
-            return list(v)
-
+            return v[:]
         return v
 
     def _nonzero_positions_by_column(self, copy=True):
-        x = self.fetch('nonzero_positions_by_column')
-        if x is not None:
-            if copy:
-                return list(x)
-            return x
-
-        v = self._entries.keys()
-        v.sort(_cmp_backward)
-
-        self.cache('nonzero_positions_by_column', v)
+        cdef list v = self.fetch('nonzero_positions_by_column')
+        if v is None:
+            v = self._entries.keys()
+            v.sort(_cmp_backward)
+            self.cache('nonzero_positions_by_column', v)
         if copy:
-            return list(v)
+            return v[:]
         return v
 
     ######################
@@ -483,9 +459,9 @@ def Matrix_sparse_from_rows(X):
     cdef Py_ssize_t i, j
 
     if not isinstance(X, (list, tuple)):
-        raise TypeError, "X (=%s) must be a list or tuple"%X
+        raise TypeError("X (=%s) must be a list or tuple"%X)
     if len(X) == 0:
-        raise ArithmeticError, "X must be nonempty"
+        raise ArithmeticError("X must be nonempty")
     entries = {}
     R = X[0].base_ring()
     ncols = X[0].degree()
@@ -507,20 +483,29 @@ def Matrix_sparse_from_rows(X):
 ##         a = a + v[k]*w[k]
 ##     return a
 
-cdef _convert_sparse_entries_to_dict(entries):
-    e = {}
-    for i in xrange(len(entries)):
-        for j, x in (entries[i].dict()).iteritems():
+cdef dict _convert_sparse_entries_to_dict(list entries):
+    cdef Py_ssize_t i
+    cdef dict e = {}
+    for i in range(len(entries)):
+        for j, x in entries[i].dict().iteritems():
             e[(i,j)] = x
     return e
 
 
 
-def _cmp_backward(x,y):  # todo: speed up via Python/C API
-    cdef int c
+def _cmp_backward(x, y):  # todo: speed up via Python/C API
     # compare two 2-tuples, but in reverse order, i.e., second entry than first
-    c = cmp(x[1],y[1])
-    if c: return c
-    c = cmp(x[0],y[0])
-    if c: return c
+    cdef Py_ssize_t i,j
+    i = x[1]
+    j = y[1]
+    if i < j:
+        return -1
+    elif i > j:
+        return 1
+    i = x[0]
+    j = y[0]
+    if i < j:
+        return -1
+    elif i > j:
+        return 1
     return 0

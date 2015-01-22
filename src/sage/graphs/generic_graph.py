@@ -5353,6 +5353,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = DiGraph([(0, 3, 1), (0, 4, 1), (2, 1, 1), (3, 2, 1), (4, 2, 1)])
             sage: G.edge_cut(0,1,value_only=False,use_edge_labels=True)
             [1, [(2, 1, 1)]]
+            sage: G.edge_cut(0,1,value_only=False,use_edge_labels=True,method='LP')
+            (1.0, [(2, 1)])
         """
         self._scream_if_not_simple(allow_loops=True)
         if vertices:

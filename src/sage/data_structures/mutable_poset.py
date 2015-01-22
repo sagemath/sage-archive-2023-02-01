@@ -359,7 +359,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         return self._elements_.itervalues()
 
 
-    def iter_all(self):
+    def iter_all(self, reverse=False):
         r"""
         Return an iterator over all elements including a smallest
         element (`0`) and a largest element (`\infty`).
@@ -377,12 +377,13 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: P = MP()
             sage: tuple(P.iter_all())
-            (oo, zero)
+            (zero, oo)
         """
-        yield self._oo_
+        yield self._oo_ if reverse else self._zero_
         for e in self._elements_.itervalues():
             yield e
-        yield self._zero_
+        yield self._zero_ if reverse else self._oo_
+
 
 
     def repr(self):
@@ -433,7 +434,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             |   +-- successors:   oo
             |   +-- no predecessors
         """
-        sortedelements = tuple(self.iter_all())
+        sortedelements = tuple(self.iter_all(reverse=True))
         strings = [self.repr()]
         for element in sortedelements:
             s = '+-- ' + repr(element) + '\n'

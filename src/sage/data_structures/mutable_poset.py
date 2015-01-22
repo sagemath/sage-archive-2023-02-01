@@ -433,6 +433,49 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
     __eq__ = eq
 
 
+    def _copy_all_linked_(self, memo, poset):
+        r"""
+        Helper function for :meth:`MutablePoset.copy`.
+
+        INPUT:
+
+        - ``memo`` -- a dictionary which assigns to the id of ``self``
+          a copy of ``self``.
+
+        - ``poset`` -- the poset to which the newly created element belongs.
+
+        OUTPUT:
+
+        A new element.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: Q = MP()
+            sage: memo = {}
+            sage: z = P._zero_._copy_all_linked_(memo, Q)
+            sage: z.poset is Q
+            True
+            sage: oo = z.successors().pop()
+            sage: oo == P._oo_
+            True
+        """
+        try:
+            return memo[id(self)]
+        except KeyError:
+            pass
+
+        new = self.__class__(poset, self.value)
+        memo[id(self)] = new
+
+        for reverse in (False, True):
+            for e in self.successors(reverse):
+                new.successors(reverse).add(e._copy_all_linked_(memo, poset))
+
+        return new
+
+
     def _search_covers_(self, covers, element, reverse=False):
         r"""
         Helper function for :meth:`covers`.
@@ -838,6 +881,51 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         self._oo_.predecessors().add(self._zero_)
         self._elements_ = {}
 
+
+    def copy(self):
+        r"""
+        Creates a shallow copy.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A poset with the same content as ``self``.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add_element(T((1, 1)))
+            (1, 1)
+            sage: P.add_element(T((1, 3)))
+            (1, 3)
+            sage: P.add_element(T((2, 1)))
+            (2, 1)
+            sage: P.add_element(T((4, 4)))
+            (4, 4)
+            sage: P.add_element(T((1, 2)))
+            (1, 2)
+            sage: Q = P.copy()
+            sage: P.repr_full() == Q.repr_full()
+            True
+        """
+        new = self.__class__()
+        memo = {}
+        new._zero_ = self._zero_._copy_all_linked_(memo, new)
+        new._oo_ = memo[id(self._oo_)]
+        new._elements_ = dict((f.value, f) for f in
+                              iter(memo[id(e)]
+                                   for e in self._elements_.itervalues()))
+        return new
+
+
+    __copy__ = copy
 
 
     def elements(self, include_special=False, reverse=False):

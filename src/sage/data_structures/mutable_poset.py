@@ -531,10 +531,12 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             (1, 2)
             sage: e = P.add_element(T((2, 2))); e
             (2, 2)
-            sage: P._zero_.covers(e)
-            {(2, 1), (1, 2)}
-            sage: P._oo_.covers(e, reverse=True)
-            {(4, 4)}
+            sage: sorted(P._zero_.covers(e),
+            ....:        key=lambda c: tuple(c.value))
+            [(1, 2), (2, 1)]
+            sage: sorted(P._oo_.covers(e, reverse=True),
+            ....:        key=lambda c: tuple(c.value))
+            [(4, 4)]
         """
         covers = set()
         self._search_covers_(covers, element, reverse)

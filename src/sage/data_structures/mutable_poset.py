@@ -205,7 +205,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         return hash(self.value)
 
 
-    def __le__(left, right):
+    def le(left, right, reverse=False):
         r"""
         Return if ``left`` is less or equal to ``right``.
 
@@ -214,6 +214,9 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         - ``left`` -- an element.
 
         - ``right`` -- an element.
+
+        - ``reverse`` -- (default: ``False``) if set, then return
+          ``right <= left`` instead.
 
         OUTPUT:
 
@@ -252,7 +255,31 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             True
             sage: e <= e
             True
+
+        ::
+
+            sage: z.le(e, reverse=True)
+            False
+            sage: e.le(oo, reverse=True)
+            False
+            sage: z.le(oo, reverse=True)
+            False
+            sage: oo.le(z, reverse=True)
+            True
+            sage: oo.le(e, reverse=True)
+            True
+            sage: e.le(z, reverse=True)
+            True
+            sage: z.le(z, reverse=True)
+            True
+            sage: oo.le(oo, reverse=True)
+            True
+            sage: e.le(e, reverse=True)
+            True
         """
+        if reverse:
+            left, right = (right, left)
+
         if left.value is None:
             if not left.predecessors():
                 # zero on the left
@@ -279,6 +306,8 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
                     return False
         return left.value <= right.value
 
+
+    __le__ = le
 
 # *****************************************************************************
 

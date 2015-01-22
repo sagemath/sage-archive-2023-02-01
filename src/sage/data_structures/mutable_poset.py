@@ -142,6 +142,58 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         return self._successors_
 
 
+    def is_zero(self, reverse=False):
+        r"""
+        Return if the element is the zero-element, i.e., the element
+        smaller than any possible other element.
+
+        INPUT:
+
+        - ``reverse`` -- (default: ``False``) if set, then returns
+          if the element is the largest possible.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P._zero_.is_zero()
+            True
+            sage: P._oo_.is_zero()
+            False
+        """
+        return self.value is None and not self.predecessors(reverse)
+
+
+    def is_oo(self, reverse=False):
+        r"""
+        Return if the element is the infinity-element, i.e., the element
+        larger than any possible other element.
+
+        INPUT:
+
+        - ``reverse`` -- (default: ``False``) if set, then returns
+          if the element is the smallest possible.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P._zero_.is_oo()
+            False
+            sage: P._oo_.is_oo()
+            True
+        """
+        return self.value is None and not self.successors(reverse)
+
+
     def __repr__(self):
         r"""
         Return the representation of the element.

@@ -660,8 +660,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: P.add_element(5)
             5
             sage: marked = set()
-            sage: list(P._zero_._iter_topological_visit_(
-            ....:     marked, True))
+            sage: list(P._zero_._iter_topological_visit_(marked, True))
             [oo, 42, 5, zero]
         """
         if self in marked:
@@ -776,8 +775,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             [zero]
         """
         marked = set()
-        return self._iter_topological_visit_(
-            marked, reverse, key)
+        return self._iter_topological_visit_(marked, reverse, key)
 
 
 # *****************************************************************************

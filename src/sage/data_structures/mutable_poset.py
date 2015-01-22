@@ -404,6 +404,114 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
     __eq__ = eq
 
+
+    def _search_covers_(self, covers, element, reverse=False):
+        r"""
+        Helper function for :meth:`covers`.
+
+        INPUT:
+
+        - ``covers`` -- a set which finally contains all covers.
+
+        - ``element`` -- the element for which to find the covering elements.
+
+        - ``reverse`` -- (default: ``False``) if not set, then find
+          the lower covers, otherwise find the upper covers.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        Note that ``False`` is returned if we do not have
+        ``self <= element``.
+
+       TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add_element(T((1, 1, 1)))
+            (1, 1, 1)
+            sage: P.add_element(T((1, 3, 1)))
+            (1, 3, 1)
+            sage: P.add_element(T((2, 1, 2)))
+            (2, 1, 2)
+            sage: P.add_element(T((4, 4, 2)))
+            (4, 4, 2)
+            sage: P.add_element(T((1, 2, 2)))
+            (1, 2, 2)
+            sage: e = P.add_element(T((2, 2, 2))); e
+            (2, 2, 2)
+            sage: covers = set()
+            sage: P._zero_._search_covers_(covers, e)
+            True
+            sage: covers
+            {(2, 1, 2), (1, 2, 2)}
+        """
+        if not self.le(element, reverse) or self == element:
+            return False
+        if not any([e._search_covers_(covers, element, reverse)
+                    for e in self.successors(reverse)]):
+            covers.add(self)
+        return True
+
+
+    def covers(self, element, reverse=False):
+        r"""
+        Return the covers of the given element (considering only
+        elements which originate from ``self``).
+
+        INPUT:
+
+        - ``element`` -- the element for which to find the covering elements.
+
+        - ``reverse`` -- (default: ``False``) if not set, then find
+          the lower covers, otherwise find the upper covers.
+
+        OUTPUT:
+
+        A set of the covers.
+
+        Suppose ``reverse`` is ``False``. This method returns all the
+        lower covers of the given ``element``, i.e., elements in the
+        poset, which are at most the given element and maximal with
+        this property. Only elements which are (not necessarily
+        direct) successors of ``self`` are considered.
+
+        If ``reverse`` is ``True``, then the reverse direction is
+        taken, i.e., in the text above replace lower covers by upper
+        covers, maximal by minimal, and successors by predecessors.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add_element(T((1, 1)))
+            (1, 1)
+            sage: P.add_element(T((1, 3)))
+            (1, 3)
+            sage: P.add_element(T((2, 1)))
+            (2, 1)
+            sage: P.add_element(T((4, 4)))
+            (4, 4)
+            sage: P.add_element(T((1, 2)))
+            (1, 2)
+            sage: e = P.add_element(T((2, 2))); e
+            (2, 2)
+            sage: P._zero_.covers(e)
+            {(2, 1), (1, 2)}
+            sage: P._oo_.covers(e, reverse=True)
+            {(4, 4)}
+        """
+        covers = set()
+        self._search_covers_(covers, element, reverse)
+        return covers
+
 # *****************************************************************************
 
 
@@ -571,6 +679,123 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
 
     __repr__ = repr
+
+
+
+    def add_element(self, value):
+        r"""
+        Add the given object as element to the poset.
+
+        INPUT:
+
+        - ``value`` -- an object (hashable and supporting comparison
+          with the operator ``<=``.
+
+        OUTPUT:
+
+        The created (or already existing) element.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add_element(T((1, 1)))
+            (1, 1)
+            sage: P.add_element(T((1, 3)))
+            (1, 3)
+            sage: P.add_element(T((2, 1)))
+            (2, 1)
+            sage: P.add_element(T((4, 4)))
+            (4, 4)
+            sage: P.add_element(T((1, 2)))
+            (1, 2)
+            sage: print P.repr_full(reverse=True)
+            poset((1, 2), (1, 3), (1, 1), (2, 1), (4, 4))
+            +-- oo
+            |   +-- no successors
+            |   +-- predecessors: (4, 4)
+            +-- (1, 2)
+            |   +-- successors:   (1, 3)
+            |   +-- predecessors: (1, 1)
+            +-- (1, 3)
+            |   +-- successors:   (4, 4)
+            |   +-- predecessors: (1, 2)
+            +-- (1, 1)
+            |   +-- successors:   (1, 2), (2, 1)
+            |   +-- predecessors: zero
+            +-- (2, 1)
+            |   +-- successors:   (4, 4)
+            |   +-- predecessors: (1, 1)
+            +-- (4, 4)
+            |   +-- successors:   oo
+            |   +-- predecessors: (1, 3), (2, 1)
+            +-- zero
+            |   +-- successors:   (1, 1)
+            |   +-- no predecessors
+            sage: P.add_element(T((2, 2)))
+            (2, 2)
+            sage: print P.repr_full(reverse=True)
+            poset((1, 2), (1, 3), (4, 4), (2, 1), (2, 2), (1, 1))
+            +-- oo
+            |   +-- no successors
+            |   +-- predecessors: (4, 4)
+            +-- (1, 2)
+            |   +-- successors:   (1, 3), (2, 2)
+            |   +-- predecessors: (1, 1)
+            +-- (1, 3)
+            |   +-- successors:   (4, 4)
+            |   +-- predecessors: (1, 2)
+            +-- (4, 4)
+            |   +-- successors:   oo
+            |   +-- predecessors: (1, 3), (2, 2)
+            +-- (2, 1)
+            |   +-- successors:   (2, 2)
+            |   +-- predecessors: (1, 1)
+            +-- (2, 2)
+            |   +-- successors:   (4, 4)
+            |   +-- predecessors: (1, 2), (2, 1)
+            +-- (1, 1)
+            |   +-- successors:   (1, 2), (2, 1)
+            |   +-- predecessors: zero
+            +-- zero
+            |   +-- successors:   (1, 1)
+            |   +-- no predecessors
+
+        When adding an element which is already in the poset, the
+        existing one is returned::
+
+            sage: e = T((2, 2))
+            sage: f = P.add_element(e).value; f
+            (2, 2)
+            sage: e == f, e is f
+            (True, False)
+        """
+        try:
+            return self._elements_[value]
+        except KeyError:
+            pass
+        if value is None:
+            raise ValueError('None is not allowed as value.')
+
+        new = MutablePosetElement(self, value)
+        smaller = self._zero_.covers(new, reverse=False)
+        larger = self._oo_.covers(new, reverse=True)
+
+        for reverse in (False, True):
+            sm = smaller if not reverse else larger
+            la = larger if not reverse else smaller
+            for element in sm:
+                for e in element.successors(reverse).intersection(la):
+                    e.predecessors(reverse).remove(element)
+                    element.successors(reverse).remove(e)
+                new.predecessors(reverse).add(element)
+                element.successors(reverse).add(new)
+
+        self._elements_[value] = new
+        return new
 
 
 # *****************************************************************************

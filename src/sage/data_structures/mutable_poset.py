@@ -1106,4 +1106,116 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         return new
 
 
+    def remove_element(self, value):
+        r"""
+        Remove the given object from the poset.
+
+        INPUT:
+
+        - ``value`` -- an object.
+
+        OUTPUT:
+
+        Nothing.
+
+        If the element is not a member, raise a ``KeyError``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add_element(T((1, 1)))
+            (1, 1)
+            sage: P.add_element(T((1, 3)))
+            (1, 3)
+            sage: P.add_element(T((2, 1)))
+            (2, 1)
+            sage: P.add_element(T((4, 4)))
+            (4, 4)
+            sage: P.add_element(T((1, 2)))
+            (1, 2)
+            sage: P.add_element(T((2, 2)))
+            (2, 2)
+            sage: print P.repr_full(reverse=True)
+            poset((4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1))
+            +-- oo
+            |   +-- no successors
+            |   +-- predecessors: (4, 4)
+            +-- (4, 4)
+            |   +-- successors:   oo
+            |   +-- predecessors: (1, 3), (2, 2)
+            +-- (1, 3)
+            |   +-- successors:   (4, 4)
+            |   +-- predecessors: (1, 2)
+            +-- (2, 2)
+            |   +-- successors:   (4, 4)
+            |   +-- predecessors: (1, 2), (2, 1)
+            +-- (1, 2)
+            |   +-- successors:   (1, 3), (2, 2)
+            |   +-- predecessors: (1, 1)
+            +-- (2, 1)
+            |   +-- successors:   (2, 2)
+            |   +-- predecessors: (1, 1)
+            +-- (1, 1)
+            |   +-- successors:   (1, 2), (2, 1)
+            |   +-- predecessors: zero
+            +-- zero
+            |   +-- successors:   (1, 1)
+            |   +-- no predecessors
+            sage: P.remove_element(T((1, 2)))
+            sage: print P.repr_full(reverse=True)
+            poset((4, 4), (1, 3), (2, 2), (2, 1), (1, 1))
+            +-- oo
+            |   +-- no successors
+            |   +-- predecessors: (4, 4)
+            +-- (4, 4)
+            |   +-- successors:   oo
+            |   +-- predecessors: (1, 3), (2, 2)
+            +-- (1, 3)
+            |   +-- successors:   (4, 4)
+            |   +-- predecessors: (1, 1)
+            +-- (2, 2)
+            |   +-- successors:   (4, 4)
+            |   +-- predecessors: (2, 1)
+            +-- (2, 1)
+            |   +-- successors:   (2, 2)
+            |   +-- predecessors: (1, 1)
+            +-- (1, 1)
+            |   +-- successors:   (1, 3), (2, 1)
+            |   +-- predecessors: zero
+            +-- zero
+            |   +-- successors:   (1, 1)
+            |   +-- no predecessors
+
+        When adding an element which is already in the poset, the
+        existing one is returned::
+
+            sage: e = T((2, 2))
+            sage: f = P.add_element(e).value; f
+            (2, 2)
+            sage: e == f, e is f
+            (True, False)
+        """
+        if value is None:
+            raise ValueError('None is not allowed as value.')
+
+        try:
+            element = self._elements_[value]
+        except KeyError:
+            raise KeyError('%s is not contained in this poset.' % (value,))
+
+        for reverse in (False, True):
+            for p in element.predecessors(reverse):
+                S = p.successors(reverse)
+                S.remove(element)
+                D = set(s for s in p.iter_depth_first(reverse)
+                        if s in element.successors(reverse))
+                S.update(element.successors(reverse))
+                S.difference_update(D)
+        del self._elements_[value]
+
+
 # *****************************************************************************

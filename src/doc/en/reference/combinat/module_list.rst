@@ -85,6 +85,7 @@ Comprehensive Module list
     sage/combinat/designs/designs_pyx
     sage/combinat/designs/difference_family
     sage/combinat/designs/difference_matrices
+    sage/combinat/designs/evenly_distributed_sets
     sage/combinat/designs/ext_rep
     sage/combinat/designs/incidence_structures
     sage/combinat/designs/latin_squares

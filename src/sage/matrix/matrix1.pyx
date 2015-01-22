@@ -2065,6 +2065,14 @@ cdef class Matrix(matrix0.Matrix):
             sage: b = a.sparse_matrix().dense_matrix()
             sage: b.subdivisions()
             ([1, 2], [2])
+
+        Ensure we can compute the correct dense matrix even if the
+        dict items are ETuples (see :trac:`17658`)::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: matrix(GF(5^2,"z"),{ETuple((1, 1)): 2}).dense_matrix()
+            [0 0]
+            [0 2]
         """
         if self.is_dense():
             return self

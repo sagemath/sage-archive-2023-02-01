@@ -142,6 +142,34 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         return self._successors_
 
 
+    def is_special(self):
+        r"""
+
+        Return if the element is either the zero-element, i.e., the
+        element smaller than any possible other element or the
+        infinity-element, i.e., the element larger than any possible
+        other element.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P._zero_.is_special()
+            True
+            sage: P._oo_.is_special()
+            True
+        """
+        return self.value is None
+
+
     def is_zero(self, reverse=False):
         r"""
         Return if the element is the zero-element, i.e., the element

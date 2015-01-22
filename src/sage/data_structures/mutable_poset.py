@@ -43,14 +43,6 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         r"""
         The poset to which the element belongs.
 
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        A poset.
-
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -67,14 +59,6 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
     def value(self):
         r"""
         The value of the element.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        An object.
 
         TESTS::
 

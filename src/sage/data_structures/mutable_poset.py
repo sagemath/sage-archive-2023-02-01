@@ -512,6 +512,153 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         self._search_covers_(covers, element, reverse)
         return covers
 
+
+    def _iter_topological_visit_(self, marked, reverse=False, key=None):
+        r"""
+        Helper function for :meth:`iter_topological`.
+
+        INPUT:
+
+        - ``marked`` -- a set in which marked elements are stored.
+
+        - ``reverse`` -- (default: ``False``) -- if set, reverses the order.
+
+        - ``key`` -- (default: ``None``) a function used for sorting
+          the successors. If this is ``None``, no sorting occurrs.
+
+        OUTPUT:
+
+        An iterator.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add_element(42)
+            42
+            sage: P.add_element(5)
+            5
+            sage: marked = set()
+            sage: list(P._zero_._iter_topological_visit_(
+            ....:     marked, True))
+            [oo, 42, 5, zero]
+        """
+        if self in marked:
+            return
+        marked.add(self)
+        S = self.predecessors(reverse)
+        if key is not None:
+            S = sorted(S, key=key)
+        for element in S:
+            for e in element._iter_topological_visit_(marked, reverse, key):
+                yield e
+        yield self
+
+
+    def iter_topological(self, reverse=False, key=None):
+        r"""
+        Iterates over all elements in topological order.
+
+        INPUT:
+
+        - ``reverse`` -- (default: ``False``) -- if set, reverses the
+          order, i.e., ``False`` gives smallest elements first,
+          ``True`` gives largest first.
+
+        - ``key`` -- (default: ``None``) a function used for sorting
+          the direct successors of an element (used in case of a
+          tie). If this is ``None``, no sorting occurrs.
+
+        OUTPUT:
+
+        An iterator.
+
+        ALGORITHM:
+
+        Here a simplified version of the algorithm found in [T1976]_
+        and [CLRS]_ is used. See also
+        :wikipedia:`Topological_sorting`.
+
+        .. [T1976] Robert E. Tarjan, *Edge-disjoint spanning trees and
+           depth-first search*, Acta Informatica 6 (2), 1976, 171-185,
+           :doi:`10.1007/BF00268499`.
+
+        .. [CLRS2001] Thomas H. Cormen, Charles E. Leiserson, Ronald
+           L. Rivest and Clifford Stein, *Section 22.4: Topological
+           sort*, Introduction to Algorithms (2nd ed.), MIT Press and
+           McGraw-Hill, 2001, 549-552, ISBN 0-262-03293-7.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add_element(T((1, 1)))
+            (1, 1)
+            sage: P.add_element(T((1, 3)))
+            (1, 3)
+            sage: P.add_element(T((2, 1)))
+            (2, 1)
+            sage: P.add_element(T((4, 4)))
+            (4, 4)
+            sage: P.add_element(T((1, 2)))
+            (1, 2)
+            sage: P.add_element(T((2, 2)))
+            (2, 2)
+
+        ::
+
+            sage: for e in P.elements_topological(reverse=True):
+            ....:     print e
+            ....:     print list(e.iter_topological(reverse=True,
+            ....:                                   key=lambda c: repr(c)))
+            oo
+            [oo]
+            (4, 4)
+            [oo, (4, 4)]
+            (1, 3)
+            [oo, (4, 4), (1, 3)]
+            (2, 2)
+            [oo, (4, 4), (2, 2)]
+            (1, 2)
+            [oo, (4, 4), (1, 3), (2, 2), (1, 2)]
+            (2, 1)
+            [oo, (4, 4), (2, 2), (2, 1)]
+            (1, 1)
+            [oo, (4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1)]
+            zero
+            [oo, (4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1), zero]
+
+        ::
+
+            sage: for e in P.elements_topological(reverse=True):
+            ....:     print e
+            ....:     print list(e.iter_topological(reverse=False,
+            ....:                                   key=lambda c: repr(c)))
+            oo
+            [zero, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
+            (4, 4)
+            [zero, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4)]
+            (1, 3)
+            [zero, (1, 1), (1, 2), (1, 3)]
+            (2, 2)
+            [zero, (1, 1), (1, 2), (2, 1), (2, 2)]
+            (1, 2)
+            [zero, (1, 1), (1, 2)]
+            (2, 1)
+            [zero, (1, 1), (2, 1)]
+            (1, 1)
+            [zero, (1, 1)]
+            zero
+            [zero]
+        """
+        marked = set()
+        return self._iter_topological_visit_(
+            marked, reverse, key)
+
+
 # *****************************************************************************
 
 
@@ -604,6 +751,38 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             yield e
         if include_special:
             yield self._oo_ if not reverse else self._zero_
+
+
+    def elements_topological(self, reverse=False, key=None):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add_element(T((1, 1)))
+            (1, 1)
+            sage: P.add_element(T((1, 3)))
+            (1, 3)
+            sage: P.add_element(T((2, 1)))
+            (2, 1)
+            sage: P.add_element(T((4, 4)))
+            (4, 4)
+            sage: P.add_element(T((1, 2)))
+            (1, 2)
+            sage: P.add_element(T((2, 2)))
+            (2, 2)
+            sage: list(P.elements_topological())
+            [zero, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
+            sage: list(P.elements_topological(reverse=True))
+            [oo, (4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1), zero]
+        """
+        if key is None:
+            key = lambda c: repr(c)
+        element = self._oo_ if not reverse else self._zero_
+        return element.iter_topological(reverse, key)
 
 
     def repr(self):

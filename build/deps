@@ -103,7 +103,6 @@ all-sage: \
      $(INST)/$(SINGULAR) \
      $(INST)/$(SIX) \
      $(INST)/$(SPHINX) \
-     $(INST)/$(SQLALCHEMY) \
      $(INST)/$(SQLITE) \
      $(INST)/$(SYMMETRICA) \
      $(INST)/$(SYMPOW) \
@@ -446,9 +445,6 @@ $(INST)/$(ZNPOLY): $(INST)/$(SAGE_MP_LIBRARY) | $(INST)/$(PYTHON)
 $(INST)/$(SAGENB): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PEXPECT) \
                    $(INST)/$(JINJA2) $(INST)/$(SPHINX) $(INST)/$(DOCUTILS)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGENB) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGENB).log"
-
-$(INST)/$(SQLALCHEMY): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
-	+$(PIPE) "$(SAGE_SPKG) $(SQLALCHEMY) 2>&1" "tee -a $(SAGE_LOGS)/$(SQLALCHEMY).log"
 
 $(INST)/$(SPHINX): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS) \
                    $(INST)/$(JINJA2) $(INST)/$(PYGMENTS)

@@ -1722,14 +1722,14 @@ def OA_520_plus_x(x):
         Only a row `[p,p,...]` is missing from the `OA(10+x,520+x)`
 
     This construction is used in :func:`OA(10,520) <OA_10_520>`,
-    :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524) <OA_10_524>`.
+    :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524) <OA_14_524>`.
 
     EXAMPLE::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_520_plus_x
-        sage: OA = OA_520_plus_x(0)                   # not tested (already tested in OA_10_520
-        sage: print is_orthogonal_array(OA,10,520,2)  # not tested (already tested in OA_10_520
+        sage: OA = OA_520_plus_x(0)                   # not tested (already tested in OA_10_520)
+        sage: print is_orthogonal_array(OA,10,520,2)  # not tested (already tested in OA_10_520)
         True
 
     """

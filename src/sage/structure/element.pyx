@@ -109,13 +109,6 @@ and classes are similar. There are four relevant functions.
    This is the function you should override to implement addition in a
    python subclass of RingElement.
 
-   .. warning::
-
-      if you override this in a *Cython* class, it won't get called.
-      You should override _add_ instead. It is especially important to
-      keep this in mind whenever you move a class down from Python to
-      Cython.
-
    The two arguments to this function are guaranteed to have the
    SAME PARENT. Its return value MUST have the SAME PARENT as its
    arguments.
@@ -220,7 +213,7 @@ def py_scalar_to_element(py):
     elif PyComplex_Check(py):
         return CDF(py)
     else:
-        raise TypeError, "Not a scalar"
+        raise TypeError("Not a scalar")
 
 
 def parent(x):
@@ -306,7 +299,7 @@ cdef str arith_error_message(x, y, op):
 
 def is_Element(x):
     """
-    Return True if x is of type Element.
+    Return ``True`` if x is of type Element.
 
     EXAMPLES::
 
@@ -421,7 +414,7 @@ cdef class Element(SageObject):
             AttributeError: 'LeftZeroSemigroup_with_category.element_class' object has no attribute 'blah_blah'
 
         We test that "private" attributes are not requested from the element class
-        of the category (trac ticket #10467)::
+        of the category (:trac:`10467`)::
 
             sage: C = EuclideanDomains()
             sage: P.<x> = QQ[]
@@ -470,7 +463,7 @@ cdef class Element(SageObject):
 
     def __getstate__(self):
         """
-        Returns a tuple describing the state of your object.
+        Return a tuple describing the state of your object.
 
         This should return all information that will be required to unpickle
         the object. The functionality for unpickling is implemented in
@@ -510,7 +503,7 @@ cdef class Element(SageObject):
 
     def __copy__(self):
         """
-        Returns a copy of ``self``.
+        Return a copy of ``self``.
 
         OUTPUT:
 
@@ -556,8 +549,8 @@ cdef class Element(SageObject):
 
     def _im_gens_(self, codomain, im_gens):
         """
-        Return the image of self in codomain under the map that sends
-        the images of the generators of the parent of self to the
+        Return the image of ``self`` in codomain under the map that sends
+        the images of the generators of the parent of ``self`` to the
         tuple of elements of im_gens.
         """
         raise NotImplementedError
@@ -578,7 +571,14 @@ cdef class Element(SageObject):
 
     def base_ring(self):
         """
-        Returns the base ring of this element's parent (if that makes sense).
+        Return the base ring of this element's parent (if that makes sense).
+
+        TESTS::
+
+            sage: QQ.base_ring()
+            Rational Field
+            sage: identity_matrix(3).base_ring()
+            Integer Ring
         """
         return self._parent.base_ring()
 
@@ -601,8 +601,8 @@ cdef class Element(SageObject):
 
             sage: from sage.categories.examples.sets_cat import PrimeNumbers
             sage: class CCls(PrimeNumbers):
-            ...       def an_element(self):
-            ...           return 18
+            ....:     def an_element(self):
+            ....:         return 18
             sage: CC = CCls()
             sage: CC._test_an_element()
             Traceback (most recent call last):
@@ -638,8 +638,8 @@ cdef class Element(SageObject):
         Let us now write a broken class method::
 
             sage: class CCls(Element):
-            ...       def __eq__(self, other):
-            ...           return True
+            ....:     def __eq__(self, other):
+            ....:         return True
             sage: CCls(Parent())._test_eq()
             Traceback (most recent call last):
             ...
@@ -648,8 +648,8 @@ cdef class Element(SageObject):
         Let us now break inequality::
 
             sage: class CCls(Element):
-            ...       def __ne__(self, other):
-            ...           return True
+            ....:     def __ne__(self, other):
+            ....:         return True
             sage: CCls(Parent())._test_eq()
             Traceback (most recent call last):
             ...
@@ -670,7 +670,7 @@ cdef class Element(SageObject):
 
     def parent(self, x=None):
         """
-        Returns parent of this element; or, if the optional argument x is
+        Return the parent of this element; or, if the optional argument x is
         supplied, the result of coercing x into the parent of this element.
         """
         if x is None:
@@ -746,9 +746,9 @@ cdef class Element(SageObject):
 
             sage: (2/3).n()
             0.666666666666667
-            sage: pi.n(digits=10)
+            sage: pi.n(digits=10)  # indirect doctest
             3.141592654
-            sage: pi.n(prec=20)   # 20 bits
+            sage: pi.n(prec=20)   # indirect doctest
             3.1416
 
         TESTS:
@@ -758,21 +758,20 @@ cdef class Element(SageObject):
             sage: (0).n(algorithm='foo')
             0.000000000000000
         """
-        import sage.misc.functional
-        return sage.misc.functional.numerical_approx(self, prec=prec,
-                                                     digits=digits,
-                                                     algorithm=algorithm)
-    n = numerical_approx
-    N = n
+        from sage.misc.functional import numerical_approx
+        return numerical_approx(self, prec=prec, digits=digits,
+                                algorithm=algorithm)
+    n = numerical_approx 
+    N = n 
 
     def _mpmath_(self, prec=53, rounding=None):
         """
         Evaluates numerically and returns an mpmath number.
         Used as fallback for conversion by mpmath.mpmathify().
 
-        .. note::
+        .. NOTE::
 
-           Currently, the rounding mode is ignored.
+            Currently, the rounding mode is ignored.
 
         EXAMPLES::
 
@@ -824,7 +823,7 @@ cdef class Element(SageObject):
 
     cpdef _act_on_(self, x, bint self_on_left):
         """
-        Use this method to implement self acting on x.
+        Use this method to implement ``self`` acting on x. 
 
         Return None or raise a CoercionException if no
         such action is defined here.
@@ -833,7 +832,7 @@ cdef class Element(SageObject):
 
     cpdef _acted_upon_(self, x, bint self_on_left):
         """
-        Use this method to implement self acted on by x.
+        Use this method to implement ``self`` acted on by x.
 
         Return None or raise a CoercionException if no
         such action is defined here.
@@ -842,8 +841,8 @@ cdef class Element(SageObject):
 
 
     def __xor__(self, right):
-        raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
-              "in Python, and has the wrong precedence."
+        raise RuntimeError("Use ** for exponentiation, not '^', which means xor\n"+\
+              "in Python, and has the wrong precedence.")
 
     def __pos__(self):
         return self
@@ -869,7 +868,7 @@ cdef class Element(SageObject):
 
     def _is_atomic(self):
         """
-        Return True if and only if parenthesis are not required when
+        Return ``True`` if and only if parenthesis are not required when
         *printing* out any of `x - s`, `x + s`, `x^s` and `x/s`.
 
         EXAMPLES::
@@ -886,7 +885,7 @@ cdef class Element(SageObject):
 
     def __nonzero__(self):
         r"""
-        Return True if self does not equal self.parent()(0).
+        Return ``True`` if ``self`` does not equal self.parent()(0).
 
         Note that this is automatically called when converting to
         boolean, as in the conditional of an if or while statement.
@@ -911,13 +910,15 @@ cdef class Element(SageObject):
 
     def is_zero(self):
         """
-        Return True if self equals self.parent()(0). The default
-        implementation is to fall back to 'not self.__nonzero__'.
+        Return ``True`` if ``self`` equals self.parent()(0).
 
-        .. warning::
+        The default implementation is to fall back to 'not
+        self.__nonzero__'.
 
-           Do not re-implement this method in your subclass but
-           implement __nonzero__ instead.
+        .. WARNING::
+
+            Do not re-implement this method in your subclass but
+            implement __nonzero__ instead.
         """
         return not self
 
@@ -1055,7 +1056,7 @@ cdef class Element(SageObject):
     cdef int _cmp_c_impl(left, Element right) except -2:
         ### For derived Cython code, you *MUST* ALSO COPY the __richcmp__ above
         ### into your class!!!  For Python code just use __cmp__.
-        raise NotImplementedError, "BUG: sort algorithm for elements of '%s' not implemented"%right.parent()
+        raise NotImplementedError("BUG: sort algorithm for elements of '%s' not implemented"%right.parent())
 
 cdef inline bint _rich_to_bool(int op, int r):
     if op == Py_LT:  #<
@@ -1074,7 +1075,7 @@ cdef inline bint _rich_to_bool(int op, int r):
 
 def is_ModuleElement(x):
     """
-    Return True if x is of type ModuleElement.
+    Return ``True`` if x is of type ModuleElement.
 
     This is even faster than using isinstance inline.
 
@@ -1098,7 +1099,7 @@ cdef class ElementWithCachedMethod(Element):
 
     The :class:`~sage.misc.cachefunc.cached_method` decorator provides
     a convenient way to automatically cache the result of a computation.
-    Since trac ticket #11115, the cached method decorator applied to a
+    Since :trac:`11115`, the cached method decorator applied to a
     method without optional arguments is faster than a hand-written cache
     in Python, and a cached method without any arguments (except ``self``)
     is actually faster than a Python method that does nothing more but
@@ -1249,10 +1250,11 @@ cdef class ElementWithCachedMethod(Element):
         This getattr method ensures that cached methods and lazy attributes
         can be inherited from the element class of a category.
 
-        NOTE:
+        .. NOTE::
 
-        The use of cached methods is demonstrated in the main doc string of
-        this class. Here, we demonstrate lazy attributes.
+            The use of cached methods is demonstrated in the main doc
+            string of this class. Here, we demonstrate lazy
+            attributes.
 
         EXAMPLE::
 
@@ -1338,7 +1340,7 @@ cdef class ModuleElement(Element):
         return coercion_model.bin_op(left, right, add)
 
     cpdef ModuleElement _add_(left, ModuleElement right):
-        raise TypeError, arith_error_message(left, right, add)
+        raise TypeError(arith_error_message(left, right, add))
 
     def __iadd__(ModuleElement self, right):
         if have_same_parent_c(self, right):
@@ -1417,7 +1419,7 @@ cdef class ModuleElement(Element):
         if PyInt_CheckExact(left):
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         if have_same_parent_c(left, right):
-            raise TypeError, arith_error_message(left, right, mul)
+            raise TypeError(arith_error_message(left, right, mul))
         # Always do this
         global coercion_model
         return coercion_model.bin_op(left, right, mul)
@@ -1490,7 +1492,7 @@ cdef class ModuleElement(Element):
 
 def is_MonoidElement(x):
     """
-    Return True if x is of type MonoidElement.
+    Return ``True`` if x is of type MonoidElement.
     """
     return IS_INSTANCE(x, MonoidElement)
 
@@ -1548,7 +1550,7 @@ cdef class MonoidElement(Element):
         Return the (integral) power of self.
         """
         if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument not used"
+            raise RuntimeError("__pow__ dummy argument not used")
         return generic_power_c(self,n,None)
 
     def powers(self, n):
@@ -1578,7 +1580,7 @@ cdef class MonoidElement(Element):
 
 def is_AdditiveGroupElement(x):
     """
-    Return True if x is of type AdditiveGroupElement.
+    Return ``True`` if x is of type AdditiveGroupElement.
     """
     return IS_INSTANCE(x, AdditiveGroupElement)
 
@@ -1593,7 +1595,7 @@ cdef class AdditiveGroupElement(ModuleElement):
         return self.additive_order()
 
     def __invert__(self):
-        raise NotImplementedError, "multiplicative inverse not defined for additive group elements"
+        raise NotImplementedError("multiplicative inverse not defined for additive group elements")
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         return self._lmul_(left)
@@ -1610,7 +1612,7 @@ cdef class AdditiveGroupElement(ModuleElement):
 
 def is_MultiplicativeGroupElement(x):
     """
-    Return True if x is of type MultiplicativeGroupElement.
+    Return ``True`` if x is of type MultiplicativeGroupElement.
     """
     return IS_INSTANCE(x, MultiplicativeGroupElement)
 
@@ -1625,7 +1627,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         return self.multiplicative_order()
 
     def _add_(self, x):
-        raise ArithmeticError, "addition not defined in a multiplicative group"
+        raise ArithmeticError("addition not defined in a multiplicative group")
 
     def __div__(left, right):
         if have_same_parent_c(left, right):
@@ -1648,7 +1650,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
 
 def is_RingElement(x):
     """
-    Return True if x is of type RingElement.
+    Return ``True`` if x is of type RingElement.
     """
     return IS_INSTANCE(x, RingElement)
 
@@ -1843,7 +1845,7 @@ cdef class RingElement(ModuleElement):
         Cython classes should override this function to implement multiplication.
         See extensive documentation at the top of element.pyx.
         """
-        raise TypeError, arith_error_message(self, right, mul)
+        raise TypeError(arith_error_message(self, right, mul))
 
     def __imul__(left, right):
         if have_same_parent_c(left, right):
@@ -1904,7 +1906,7 @@ cdef class RingElement(ModuleElement):
             sage: 2r^(1/2)
             sqrt(2)
 
-        Exponent overflow should throw an OverflowError (trac #2956)::
+        Exponent overflow should throw an OverflowError (:trac:`2956`)::
 
             sage: K.<x,y> = AA[]
             sage: x^(2^64 + 12345)
@@ -1912,7 +1914,7 @@ cdef class RingElement(ModuleElement):
             ...
             OverflowError: Exponent overflow (2147483648).
 
-        Another example from trac #2956; this should overflow on x32
+        Another example from :trac:`2956`; this should overflow on x32
         and succeed on x64::
 
             sage: K.<x,y> = ZZ[]
@@ -1924,7 +1926,7 @@ cdef class RingElement(ModuleElement):
 
         """
         if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument not used"
+            raise RuntimeError("__pow__ dummy argument not used")
         return generic_power_c(self,n,None)
 
     def powers(self, n):
@@ -1979,9 +1981,9 @@ cdef class RingElement(ModuleElement):
             return self._parent.fraction_field()(self, right)
         except AttributeError:
             if not right:
-                raise ZeroDivisionError, "Cannot divide by zero"
+                raise ZeroDivisionError("Cannot divide by zero")
             else:
-                raise TypeError, arith_error_message(self, right, div)
+                raise TypeError(arith_error_message(self, right, div))
 
     def __idiv__(self, right):
         """
@@ -2006,23 +2008,37 @@ cdef class RingElement(ModuleElement):
 
     def additive_order(self):
         """
-        Return the additive order of self.
+        Return the additive order of ``self``.
         """
         raise NotImplementedError
 
     def multiplicative_order(self):
         r"""
-        Return the multiplicative order of self, if self is a unit, or raise
-        ``ArithmeticError`` otherwise.
+        Return the multiplicative order of ``self``, if ``self`` is a unit,
+        or raise ``ArithmeticError`` otherwise.
         """
         if not self.is_unit():
-            raise ArithmeticError, "self (=%s) must be a unit to have a multiplicative order."
+            raise ArithmeticError("self (=%s) must be a unit to have a multiplicative order.")
         raise NotImplementedError
 
     def is_nilpotent(self):
         """
-        Return True if self is nilpotent, i.e., some power of self
+        Return ``True`` if ``self`` is nilpotent, i.e., some power of ``self``
         is 0.
+
+        TESTS::
+
+            sage: a = QQ(2)
+            sage: a.is_nilpotent()
+            False
+            sage: a = QQ(0)
+            sage: a.is_nilpotent()
+            True
+            sage: m = matrix(QQ,3,[[3,2,3],[9,0,3],[-9,0,-3]])
+            sage: m.is_nilpotent()
+            Traceback (most recent call last):
+            ...
+            AttributeError: ... object has no attribute 'is_nilpotent'
         """
         if self.is_unit():
             return False
@@ -2054,7 +2070,16 @@ cdef class RingElement(ModuleElement):
 
 def is_CommutativeRingElement(x):
     """
-    Return True if x is of type CommutativeRingElement.
+    Return ``True`` if x is of type CommutativeRingElement.
+
+    TESTS::
+
+        sage: from sage.rings.commutative_ring_element import is_CommutativeRingElement
+        sage: is_CommutativeRingElement(oo)
+        False
+
+        sage: is_CommutativeRingElement(1)
+        True
     """
     return IS_INSTANCE(x, CommutativeRingElement)
 
@@ -2064,14 +2089,14 @@ cdef class CommutativeRingElement(RingElement):
     """
     def inverse_mod(self, I):
         r"""
-        Return an inverse of self modulo the ideal `I`, if defined,
-        i.e., if `I` and self together generate the unit ideal.
+        Return an inverse of ``self`` modulo the ideal `I`, if defined,
+        i.e., if `I` and ``self`` together generate the unit ideal.
         """
         raise NotImplementedError
 
     def divides(self, x):
         """
-        Return True if self divides x.
+        Return ``True`` if ``self`` divides x.
 
         EXAMPLES::
 
@@ -2090,7 +2115,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: (x^2+2).divides(x)
             False
 
-        Ticket \#5347 has been fixed::
+        :trac:`5347` has been fixed::
 
             sage: K = GF(7)
             sage: K(3).divides(1)
@@ -2118,7 +2143,7 @@ cdef class CommutativeRingElement(RingElement):
 
         If x has different parent than `self`, they are first coerced to a
         common parent if possible. If this coercion fails, it returns a
-        TypeError. This fixes \#5759
+        TypeError. This fixes :trac:`5759`
 
         ::
             sage: Zmod(2)(0).divides(Zmod(2)(0))
@@ -2173,7 +2198,7 @@ cdef class CommutativeRingElement(RingElement):
 
     def mod(self, I):
         r"""
-        Return a representative for self modulo the ideal I (or the ideal
+        Return a representative for ``self`` modulo the ideal I (or the ideal
         generated by the elements of I if I is not an ideal.)
 
         EXAMPLE:  Integers
@@ -2205,15 +2230,15 @@ cdef class CommutativeRingElement(RingElement):
             sage: f.mod(x + 1)
             -1
 
-        When little is implemented about a given ring, then mod may
-        return simply return `f`.  For example, reduction is not
-        implemented for `\ZZ[x]` yet. (TODO!)
+        Reduction for `\ZZ[x]`::
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = x^3 + x + 1
             sage: f.mod(x + 1)
             -1
 
+        When little is implemented about a given ring, then mod may
+        return simply return `f`.
 
         EXAMPLE: Multivariate polynomials
         We reduce a polynomial in two variables modulo a polynomial
@@ -2250,25 +2275,22 @@ cdef class CommutativeRingElement(RingElement):
 
     def is_square(self, root=False):
         """
-        Returns whether or not ring element is a square. If the optional
-        argument root is True, then also returns the square root (or None,
-        if the it is not a square).
+        Return whether or not the ring element ``self`` is a square.
+
+        If the optional argument root is ``True``, then also return
+        the square root (or ``None``, if it is not a square).
 
         INPUT:
 
-
-        -  ``root`` - whether or not to also return a square
-           root (default: False)
-
+        - ``root`` - whether or not to also return a square
+          root (default: ``False``)
 
         OUTPUT:
 
+        - ``bool`` -- whether or not a square
 
-        -  ``bool`` - whether or not a square
-
-        -  ``object`` - (optional) an actual square root if
-           found, and None otherwise.
-
+        - ``object`` -- (optional) an actual square root if
+          found, and ``None`` otherwise.
 
         EXAMPLES::
 
@@ -2284,33 +2306,33 @@ cdef class CommutativeRingElement(RingElement):
             sage: h.is_square(root=True)
             (True, 2*x^2 + 8*x + 6)
 
-        .. NOTE:
+        .. NOTE::
 
-        This is the is_square implementation for general commutative ring
-        elements. It's implementation is to raise a NotImplementedError.
-        The function definition is here to show what functionality is expected and
-        provide a general framework.
+            This is the is_square implementation for general
+            commutative ring elements. It's implementation is to raise
+            a NotImplementedError. The function definition is here to
+            show what functionality is expected and provide a general
+            framework.
         """
-        raise NotImplementedError("is_square() not implemented for elements of %s" %self.parent())
+        raise NotImplementedError("is_square() not implemented for elements of %s" % self.parent())
 
-
-    def sqrt(self, extend = True, all = False, name=None ):
+    def sqrt(self, extend=True, all=False, name=None):
         """
         It computes the square root.
 
         INPUT:
 
-        -  ``extend`` - Whether to make a ring extension containing a square root if self is not a square (default: True)
+        -  ``extend`` - Whether to make a ring extension containing a square root if ``self`` is not a square (default: ``True``)
 
         -  ``all`` - Whether to return a list of all square roots or just a square root (default: False)
 
-        -  ``name`` - Required when extend=True and self is not a square. This will be the name of the generator extension.
+        -  ``name`` - Required when extend=``True`` and ``self`` is not a square. This will be the name of the generator extension.
 
         OUTPUT:
 
-        - if all=False it returns a square root. (throws an error if extend=False and self is not a square)
+        - if all=False it returns a square root. (throws an error if extend=False and ``self`` is not a square)
 
-        - if all=True it returns a list of all the square roots (could be empty if extend=False and self is not a square)
+        - if all=``True`` it returns a list of all the square roots (could be empty if extend=False and ``self`` is not a square)
 
         ALGORITHM:
 
@@ -2405,10 +2427,10 @@ cdef class CommutativeRingElement(RingElement):
             #all square roots of a non-square should be an empty list
             if all:
                 return []
-            raise ValueError, 'trying to take square root of non-square %s with extend = False' % self
+            raise ValueError('trying to take square root of non-square %s with extend = False' % self)
 
         if name == None:
-            raise TypeError ("Polynomial is not a square. You must specify the name of the square root when using the default extend = True")
+            raise TypeError("Polynomial is not a square. You must specify the name of the square root when using the default extend = True")
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         PY = PolynomialRing(P,'y')
         y = PY.gen()
@@ -2444,10 +2466,10 @@ cdef class Vector(ModuleElement):
 
         - Gonzalo Tornaria (2007-06-21) - write test cases and fix them
 
-        .. note::
+        .. NOTE::
 
-           scalar * vector is implemented (and tested) in class RingElement
-           matrix * vector is implemented (and tested) in class Matrix
+            scalar * vector is implemented (and tested) in class RingElement
+            matrix * vector is implemented (and tested) in class Matrix
 
         TESTS:
 
@@ -2603,10 +2625,10 @@ cdef class Vector(ModuleElement):
         return coercion_model.bin_op(left, right, mul)
 
     cpdef Element _dot_product_(Vector left, Vector right):
-        raise TypeError, arith_error_message(left, right, mul)
+        raise TypeError(arith_error_message(left, right, mul))
 
     cpdef Vector _pairwise_product_(Vector left, Vector right):
-        raise TypeError, "unsupported operation for '%s' and '%s'"%(parent_c(left), parent_c(right))
+        raise TypeError("unsupported operation for '%s' and '%s'"%(parent_c(left), parent_c(right)))
 
     def __div__(self, right):
         if PY_IS_NUMERIC(right):
@@ -2620,10 +2642,10 @@ cdef class Vector(ModuleElement):
                 return W.coordinates(self)[0] / W.coordinates(right)[0]
             except ArithmeticError:
                 if right.is_zero():
-                    raise ZeroDivisionError, "division by zero vector"
+                    raise ZeroDivisionError("division by zero vector")
                 else:
-                    raise ArithmeticError, "vector is not in free module"
-        raise TypeError, arith_error_message(self, right, div)
+                    raise ArithmeticError("vector is not in free module")
+        raise TypeError(arith_error_message(self, right, div))
 
     def _magma_init_(self, magma):
         """
@@ -2689,10 +2711,10 @@ cdef class Matrix(ModuleElement):
 
         - Gonzalo Tornaria (2007-06-25) - write test cases and fix them
 
-        .. note::
+        .. NOTE::
 
-           scalar * matrix is implemented (and tested) in class RingElement
-           vector * matrix is implemented (and tested) in class Vector
+            scalar * matrix is implemented (and tested) in class RingElement
+            vector * matrix is implemented (and tested) in class Vector
 
         TESTS:
 
@@ -2944,7 +2966,7 @@ def is_Matrix(x):
 
 def is_IntegralDomainElement(x):
     """
-    Return True if x is of type IntegralDomainElement.
+    Return ``True`` if x is of type IntegralDomainElement.
     """
     return IS_INSTANCE(x, IntegralDomainElement)
 
@@ -2955,7 +2977,7 @@ cdef class IntegralDomainElement(CommutativeRingElement):
 
 def is_DedekindDomainElement(x):
     """
-    Return True if x is of type DedekindDomainElement.
+    Return ``True`` if x is of type DedekindDomainElement.
     """
     return IS_INSTANCE(x, DedekindDomainElement)
 
@@ -2964,18 +2986,20 @@ cdef class DedekindDomainElement(IntegralDomainElement):
 
 def is_PrincipalIdealDomainElement(x):
     """
-    Return True if x is of type PrincipalIdealDomainElement.
+    Return ``True`` if x is of type PrincipalIdealDomainElement.
     """
     return IS_INSTANCE(x, PrincipalIdealDomainElement)
 
 cdef class PrincipalIdealDomainElement(DedekindDomainElement):
     def lcm(self, right):
         """
-        Returns the least common multiple of self and right.
+        Return the least common multiple of ``self`` and right. 
         """
-        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
+        if not isinstance(right, Element) or not ((<Element>right)._parent is self._parent):
+            from sage.rings.arith import lcm
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
+
 
 # This is pretty nasty low level stuff. The idea is to speed up construction
 # of EuclideanDomainElements (in particular Integers) by skipping some tp_new
@@ -2984,7 +3008,7 @@ PY_SET_TP_NEW(EuclideanDomainElement, Element)
 
 def is_EuclideanDomainElement(x):
     """
-    Return True if x is of type EuclideanDomainElement.
+    Return ``True`` if x is of type EuclideanDomainElement.
     """
     return IS_INSTANCE(x, EuclideanDomainElement)
 
@@ -3001,7 +3025,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
     def __divmod__(self, other):
         """
-        Return the quotient and remainder of self divided by other.
+        Return the quotient and remainder of ``self`` divided by other.
 
         EXAMPLES::
 
@@ -3021,14 +3045,14 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
     def __floordiv__(self,right):
         """
-        Quotient of division of self by other.  This is denoted //.
+        Quotient of division of ``self`` by other.  This is denoted //.
         """
         Q, _ = self.quo_rem(right)
         return Q
 
     def __mod__(self, other):
         """
-        Remainder of division of self by other.
+        Remainder of division of ``self`` by other.
 
         EXAMPLES::
 
@@ -3043,7 +3067,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
 def is_FieldElement(x):
     """
-    Return True if x is of type FieldElement.
+    Return ``True`` if x is of type FieldElement.
     """
     return IS_INSTANCE(x, FieldElement)
 
@@ -3053,15 +3077,15 @@ cdef class FieldElement(CommutativeRingElement):
         return self / other
 
     def is_unit(self):
-        """
-        Return True if self is a unit in its parent ring.
+        r"""
+        Return ``True`` if ``self`` is a unit in its parent ring.
 
         EXAMPLES::
 
             sage: a = 2/3; a.is_unit()
             True
 
-        On the other hand, 2 is not a unit, since its parent is ZZ.
+        On the other hand, 2 is not a unit, since its parent is `\ZZ`.
 
         ::
 
@@ -3079,7 +3103,7 @@ cdef class FieldElement(CommutativeRingElement):
 
     def _lcm(self, FieldElement other):
         """
-        Return the least common multiple of self and other.
+        Return the least common multiple of ``self`` and other.
         """
         if self.is_zero() and other.is_zero():
             return self
@@ -3109,7 +3133,7 @@ cdef class FieldElement(CommutativeRingElement):
 
     def divides(self, FieldElement other):
         r"""
-        Check whether self divides other, for field elements.
+        Check whether ``self`` divides other, for field elements.
 
         Since this is a field, all values divide all other values,
         except that zero does not divide any non-zero values.
@@ -3132,7 +3156,17 @@ cdef class FieldElement(CommutativeRingElement):
 
 def is_AlgebraElement(x):
     """
-    Return True if x is of type AlgebraElement.
+    Return ``True`` if x is of type AlgebraElement.
+
+    TESTS::
+
+        sage: from sage.structure.element import is_AlgebraElement
+        sage: R.<x,y> = FreeAlgebra(QQ,2)
+        sage: is_AlgebraElement(x*y)
+        True
+
+        sage: is_AlgebraElement(1)
+        False
     """
     return IS_INSTANCE(x, AlgebraElement)
 
@@ -3141,7 +3175,7 @@ cdef class AlgebraElement(RingElement):
 
 def is_CommutativeAlgebraElement(x):
     """
-    Return True if x is of type CommutativeAlgebraElement.
+    Return ``True`` if x is of type CommutativeAlgebraElement.
     """
     return IS_INSTANCE(x, CommutativeAlgebraElement)
 
@@ -3150,7 +3184,16 @@ cdef class CommutativeAlgebraElement(CommutativeRingElement):
 
 def is_InfinityElement(x):
     """
-    Return True if x is of type InfinityElement.
+    Return ``True`` if x is of type InfinityElement.
+
+    TESTS::
+
+        sage: from sage.structure.element import is_InfinityElement
+        sage: is_InfinityElement(1)
+        False
+
+        sage: is_InfinityElement(oo)
+        True
     """
     return IS_INSTANCE(x, InfinityElement)
 
@@ -3221,12 +3264,12 @@ cdef class CoercionModel:
     cpdef canonical_coercion(self, x, y):
         if parent_c(x) is parent_c(y):
             return x,y
-        raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(parent_c(x), parent_c(y))
+        raise TypeError("no common canonical parent for objects with parents: '%s' and '%s'"%(parent_c(x), parent_c(y)))
 
     cpdef bin_op(self, x, y, op):
         if parent_c(x) is parent_c(y):
             return op(x,y)
-        raise TypeError, arith_error_message(x,y,op)
+        raise TypeError(arith_error_message(x,y,op))
 
 import coerce
 cdef CoercionModel coercion_model = coerce.CoercionModel_cache_maps()
@@ -3420,7 +3463,7 @@ cdef class NamedBinopMethod:
 
     def _sage_src_(self):
         """
-        Returns the source of the wrapped object for introspection.
+        Return the source of the wrapped object for introspection.
 
         EXAMPLES::
 
@@ -3433,7 +3476,7 @@ cdef class NamedBinopMethod:
 
     def _sage_argspec_(self):
         """
-        Returns the argspec of the wrapped object for introspection.
+        Return the argspec of the wrapped object for introspection.
 
         EXAMPLES::
 
@@ -3448,19 +3491,8 @@ coerce_binop = NamedBinopMethod
 
 ###############################################################################
 
-def lcm(x,y):
-    from sage.rings.arith import lcm
-    return lcm(x,y)
-
-def gcd(x,y):
-    from sage.rings.arith import gcd
-    return gcd(x,y)
-
-def xgcd(x,y):
-    from sage.rings.arith import xgcd
-    return xgcd(x,y)
-
-
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.rings.arith', ['gcd', 'xgcd', 'lcm'], deprecation=10779)
 
 
 ######################
@@ -3512,7 +3544,7 @@ cdef generic_power_c(a, nn, one):
             from sage.rings.integer import Integer
             n = int(Integer(nn))
         except TypeError:
-            raise NotImplementedError, "non-integral exponents not supported"
+            raise NotImplementedError("non-integral exponents not supported")
 
     if not n:
         if one is None:

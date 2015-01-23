@@ -562,9 +562,23 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
             sage: G = NumberField(x^3 - x - 1, 'a').galois_closure('b').galois_group()
             sage: GaloisGroup_subgroup( G, [ G(1), G([(1,2,3),(4,5,6)]), G([(1,3,2),(4,6,5)])])
             Subgroup [(), (1,2,3)(4,5,6), (1,3,2)(4,6,5)] of Galois group of Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
+
+        TESTS:
+
+        Check that :trac:`17664` is fixed::
+
+            sage: L.<c> = QuadraticField(-1)
+            sage: P = L.primes_above(5)[0]
+            sage: G = L.galois_group()
+            sage: H = G.decomposition_group(P)
+            sage: H.domain()
+            {1, 2}
+            sage: G.artin_symbol(P)
+            ()
         """
         #XXX: This should be fixed so that this can use GaloisGroup_v2.__init__
-        PermutationGroup_generic.__init__(self, elts, canonicalize = True)
+        PermutationGroup_generic.__init__(self, elts, canonicalize=True,
+                                          domain=ambient.domain())
         self._ambient = ambient
         self._number_field = ambient.number_field()
         self._galois_closure = ambient._galois_closure

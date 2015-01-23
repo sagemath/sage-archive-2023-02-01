@@ -2,9 +2,9 @@
 
 .. _coercion_and_categories:
 
-================================================
-How to implement new algebraic structure in Sage
-================================================
+=================================================
+How to implement new algebraic structures in Sage
+=================================================
 
 .. contents::
    :depth: 3

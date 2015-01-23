@@ -1081,7 +1081,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
                     if include_special or not e.is_special())
 
 
-    def repr(self, include_special=False):
+    def repr(self, include_special=False, reverse=False):
         r"""
         Return a representation of the poset.
 
@@ -1101,7 +1101,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         """
         s = 'poset('
         s += ', '.join(repr(element) for element in
-                       self.elements_topological(include_special, reverse=True))
+                       self.elements_topological(include_special, reverse))
         s += ')'
         return s
 
@@ -1132,25 +1132,19 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         """
         sortedelements = tuple(
             self.elements_topological(include_special=True, reverse=reverse))
-        strings = [self.repr(include_special=False)]
+        strings = [self.repr(include_special=False, reverse=reverse)]
         for element in sortedelements:
-            s = '+-- ' + repr(element) + '\n'
-            if element.successors():
-                s += '|   +-- successors:   '
-                s += ', '.join(repr(e) for e in
-                               sorted_set_by_tuple(element.successors(),
-                                                   sortedelements))
-            else:
-                s += '|   +-- no successors'
-            s += '\n'
-            if element.predecessors():
-                s += '|   +-- predecessors: '
-                s += ', '.join(repr(e) for e in
-                               sorted_set_by_tuple(element.predecessors(),
-                                                   sortedelements))
-            else:
-                s += '|   +-- no predecessors'
-            strings.append(s)
+            strings.append('+-- ' + repr(element))
+            for rev in (not reverse, reverse):
+                what = 'successors' if not rev else 'predecessors'
+                if element.successors(rev):
+                    s = '|   +-- ' + what + ':   '
+                    s += ', '.join(repr(e) for e in
+                                   sorted_set_by_tuple(element.successors(rev),
+                                                       sortedelements))
+                else:
+                    s = '|   +-- no ' + what
+                strings.append(s)
         return '\n'.join(strings)
 
 

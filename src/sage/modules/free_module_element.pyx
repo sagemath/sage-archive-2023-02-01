@@ -2145,14 +2145,50 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         else:
             return points(v, **kwds)
 
+    cpdef Element _dot_product_coerce_(left, Vector right):
+        """
+        Return the dot product of left and right.
+
+        This function works even if the parents are different, the
+        degrees have to match however.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: v = vector(RDF, [0,1,2])
+            sage: w = vector(R, [x,0,0])
+            sage: p = v._dot_product_coerce_(w)
+            sage: p
+            0
+            sage: parent(p)
+            Univariate Polynomial Ring in x over Real Double Field
+
+        Zero-dimensional vectors also work correctly::
+
+            sage: v = vector(RDF, [])
+            sage: w = vector(R, [])
+            sage: parent(v._dot_product_coerce_(w))
+            Univariate Polynomial Ring in x over Real Double Field
+        """
+        if left._degree == 0:
+            return (left.base_ring().zero_element()
+                    * right.base_ring().zero_element())
+        cdef list a = left.list(copy=False)
+        cdef list b = right.list(copy=False)
+        cdef Py_ssize_t i
+        z = a[0] * b[0]
+        for i in range(1, left._degree):
+            z += a[i] * b[i]
+        return z
+
     def dot_product(self, right):
         r"""
-        Return the dot product of ``self`` and ``right``, which is the sum of the
-        product of the corresponding entries.
+        Return the dot product of ``self`` and ``right``, which is the
+        sum of the product of the corresponding entries.
 
         INPUT:
 
-        - ``right`` - a vector of the same degree as ``self``.
+        - ``right`` -- a vector of the same degree as ``self``.
           It does not need to belong to the same parent as ``self``,
           so long as the necessary products and sums are defined.
 
@@ -2179,6 +2215,17 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: w = V([4,5,6])
             sage: v.dot_product(w)
             32
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: v = vector([x,x^2,3*x]); w = vector([2*x,x,3+x])
+            sage: v*w
+            x^3 + 5*x^2 + 9*x
+            sage: (x*2*x) + (x^2*x) + (3*x*(3+x))
+            x^3 + 5*x^2 + 9*x
+            sage: w*v
+            x^3 + 5*x^2 + 9*x
 
         The vectors may be from different vector spaces,
         provided the necessary operations make sense.
@@ -2212,7 +2259,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.dot_product('junk')
             Traceback (most recent call last):
             ...
-            TypeError: right must be a free module element
+            TypeError: Cannot convert str to sage.modules.free_module_element.FreeModuleElement
 
         The degrees of the arguments must match. ::
 
@@ -2229,21 +2276,14 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             8.0
 
         """
-        if not isinstance(right, FreeModuleElement):
-            raise TypeError("right must be a free module element")
-        cdef FreeModuleElement r = <FreeModuleElement>right
-        cdef Py_ssize_t d = self._degree
-        if d != r._degree:
-            raise ArithmeticError("degrees (%s and %s) must be the same"%(self._degree, r._degree))
-        if d == 0:
-            return self._parent.base_ring()(0)
-        cdef list a = self.list(copy=False)
-        cdef list b = r.list(copy=False)
-        sum = a[0] * b[0]
-        cdef Py_ssize_t i
-        for i in range(1, d):
-            sum += a[i] * b[i]
-        return sum
+        cdef FreeModuleElement r = <FreeModuleElement?>right
+        if self._parent is r._parent:
+            # If the parents are equal, the degree is also equal
+            return self._dot_product_(r)
+        if self._degree != r._degree:
+            raise ArithmeticError("degrees (%s and %s) must be the same"%(self.degree(), right.degree()))
+        # Base rings are not equal => use dot product with coercion
+        return self._dot_product_coerce_(r)
 
     def cross_product(self, right):
         """
@@ -3700,23 +3740,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             v = [x * right for x in self._entries]
         return self._new_c(v)
 
-    cpdef Element _dot_product_(left, Vector right):
-        """
-        Return the dot product of left and right.
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]
-            sage: v = vector([x,x^2,3*x]); w = vector([2*x,x,3+x])
-            sage: v*w
-            x^3 + 5*x^2 + 9*x
-            sage: (x*2*x) + (x^2*x) + (3*x*(3+x))
-            x^3 + 5*x^2 + 9*x
-            sage: w*v
-            x^3 + 5*x^2 + 9*x
-        """
-        return left.dot_product(right)
-
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef Vector _pairwise_product_(left, Vector right):
@@ -3937,18 +3960,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 #############################################
 # Generic sparse element
 #############################################
-def _sparse_dot_product(v, w):
-    """
-    v and w are dictionaries with integer keys.
-
-    EXAMPLES::
-
-        sage: sage.modules.free_module_element._sparse_dot_product({0:5,1:7,2:3}, {0:-1, 2:2})
-        1
-    """
-    x = set(v.keys()).intersection(set(w.keys()))
-    return sum([v[k]*w[k] for k in x])
-
 def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     """
     EXAMPLES::
@@ -4226,7 +4237,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return self._new_c(v)
 
-    cpdef Element _dot_product_(left, Vector right):
+    cpdef Element _dot_product_coerce_(left, Vector right):
         """
         Return the dot product of left and right.
 
@@ -4237,12 +4248,32 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             10
             sage: w * v
             10
+
+        Over different rings::
+
+            sage: R.<x> = ZZ[]
+            sage: v = vector(RDF, [0,1,2], sparse=True)
+            sage: w = vector(R, [x,0,0], sparse=True)
+            sage: p = v._dot_product_coerce_(w)
+            sage: p
+            0
+            sage: parent(p)
+            Univariate Polynomial Ring in x over Real Double Field
+
+        Zero-dimensional vectors also work correctly::
+
+            sage: v = vector(RDF, [], sparse=True)
+            sage: w = vector(R, [], sparse=True)
+            sage: parent(v._dot_product_coerce_(w))
+            Univariate Polynomial Ring in x over Real Double Field
         """
         cdef dict e = (<FreeModuleElement_generic_sparse>right)._entries
-        z = left.base_ring()(0)
+        z = left.base_ring().zero_element()
+        if left.base_ring() is not right.base_ring():
+            z *= right.base_ring().zero_element()
         for i, a in left._entries.iteritems():
             if i in e:
-                z += (<RingElement>a)._mul_(<RingElement> e[i])
+                z += a * e[i]
         return z
 
     cpdef Vector _pairwise_product_(left, Vector right):

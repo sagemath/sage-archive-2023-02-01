@@ -837,7 +837,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 # *****************************************************************************
 
 
-def _sort_set_by_tuple_iter_(S, T):
+def sorted_set_by_tuple(S, T):
     r"""
     Return an iterator over ``S`` respecting the order given by ``T``.
 
@@ -856,8 +856,8 @@ def _sort_set_by_tuple_iter_(S, T):
 
     EXAMPLES::
 
-        sage: from sage.data_structures.mutable_poset import _sort_set_by_tuple_iter_
-        sage: tuple(_sort_set_by_tuple_iter_({3, 4, 6}, (5, 4, 1, 2, 3, 6)))
+        sage: from sage.data_structures.mutable_poset import sorted_set_by_tuple
+        sage: tuple(sorted_set_by_tuple({3, 4, 6}, (5, 4, 1, 2, 3, 6)))
         (4, 3, 6)
     """
     return iter(ell for ell in T if ell in S)
@@ -1138,16 +1138,16 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             if element.successors():
                 s += '|   +-- successors:   '
                 s += ', '.join(repr(e) for e in
-                               _sort_set_by_tuple_iter_(element.successors(),
-                                                        sortedelements))
+                               sorted_set_by_tuple(element.successors(),
+                                                   sortedelements))
             else:
                 s += '|   +-- no successors'
             s += '\n'
             if element.predecessors():
                 s += '|   +-- predecessors: '
                 s += ', '.join(repr(e) for e in
-                               _sort_set_by_tuple_iter_(element.predecessors(),
-                                                        sortedelements))
+                               sorted_set_by_tuple(element.predecessors(),
+                                                   sortedelements))
             else:
                 s += '|   +-- no predecessors'
             strings.append(s)

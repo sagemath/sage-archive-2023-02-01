@@ -255,7 +255,6 @@ def quit_sage(verbose=True):
     # Free globally allocated mpir integers.
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()
-    sage.rings.integer.clear_mpz_globals()
     import sage.algebras.quatalg.quaternion_algebra_element
     sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
 

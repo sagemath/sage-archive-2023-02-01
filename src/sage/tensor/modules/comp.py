@@ -2,9 +2,9 @@ r"""
 Components as indexed sets of ring elements
 
 The class :class:`Components` is a technical class to take in charge the
-storage and manipulation of **indexed elements of a commutative ring** that represent the
-components of some "mathematical entity" with respect to some "frame".
-Examples of *entity/frame* are *vector/vector-space basis* or
+storage and manipulation of **indexed elements of a commutative ring** that
+represent the components of some "mathematical entity" with respect to some
+"frame". Examples of *entity/frame* are *vector/vector-space basis* or
 *vector field/vector frame on some manifold*. More generally, the components
 can be those of a tensor on a free module or those of a tensor field on a
 manifold. They can also be non-tensorial quantities, like connection
@@ -36,7 +36,7 @@ Various subclasses of class :class:`Components` are
 
 AUTHORS:
 
-- Eric Gourgoulhon, Michal Bejger (2014): initial version
+- Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
 - Joris Vankerschaver (2010): for the idea of storing only the non-zero
   components as dictionaries, whose keys are the component indices (see
   class :class:`~sage.tensor.differential_form_element.DifferentialForm`)
@@ -237,8 +237,8 @@ In case of symmetries, only non-redundant components are stored::
 """
 
 #******************************************************************************
-#       Copyright (C) 2014 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2014 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -411,7 +411,7 @@ class Components(SageObject):
         {(0,): -1, (2,): 3}
 
 
-    ARITHMETIC EXAMPLES:
+    .. RUBRIC:: ARITHMETIC EXAMPLES:
 
     Unary plus operator::
 
@@ -1439,9 +1439,17 @@ class Components(SageObject):
                                  antisym)
         elif self._nid == 1 and other._nid == 1:
             if self is other:  # == would be dangerous here
-                # the result is symmetric:
+                # The result is symmetric:
                 result = CompFullySym(self._ring, self._frame, 2, self._sindex,
                                       self._output_formatter)
+                # The loop below on self._comp.iteritems() and
+                # other._comp.iteritems() cannot be used in the present case
+                # (it would not deal correctly with redundant indices)
+                # So we use a loop specific to the current case and return the
+                # result:
+                for ind in result.non_redundant_index_generator():
+                    result[[ind]] = self[[ind[0]]] * self[[ind[1]]]
+                return result
             else:
                 result = Components(self._ring, self._frame, 2, self._sindex,
                                     self._output_formatter)
@@ -4641,4 +4649,3 @@ class KroneckerDelta(CompFullySym):
 
         """
         raise TypeError("the components of a Kronecker delta cannot be changed")
-

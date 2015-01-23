@@ -6,16 +6,20 @@ finite rank over a commutative ring,
 while the class :class:`FreeModuleCoBasis` implements the dual bases (i.e.
 bases of the dual module `M^*`).
 
-
 AUTHORS:
 
-- Eric Gourgoulhon, Michal Bejger (2014): initial version
+- Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
 
+REFERENCES:
+
+- Chap. 10 of R. Godement : *Algebra*, Hermann (Paris) / Houghton Mifflin
+  (Boston) (1968)
+- Chap. 3 of S. Lang : *Algebra*, 3rd ed., Springer (New York) (2002)
 
 """
 #******************************************************************************
-#       Copyright (C) 2014 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2014 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -32,7 +36,7 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
 
     INPUT:
 
-    - ``fmodule`` -- free module `M` (must be an instance of
+    - ``fmodule`` -- free module `M` (as an instance of
       :class:`FiniteRankFreeModule`)
     - ``symbol`` -- string; a letter (of a few letters) to denote a generic
       element of the basis
@@ -49,8 +53,9 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         sage: e = FreeModuleBasis(M0, 'e') ; e
         Basis (e_0,e_1,e_2) on the Rank-3 free module M_0 over the Integer Ring
 
-    Instead of importing FreeModuleBasis in the global name space, one can
-    use the module's method :meth:`basis`::
+    Instead of importing FreeModuleBasis in the global name space, it is
+    recommended to use the module's method
+    :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.basis`::
 
         sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
         sage: e = M.basis('e') ; e
@@ -65,12 +70,13 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         True
 
     The LaTeX symbol can be set explicitely, as the second argument of
-    :meth:`basis`::
+    :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.basis`::
 
         sage: latex(e)
         \left(e_0,e_1,e_2\right)
         sage: eps = M.basis('eps', r'\epsilon') ; eps
-        Basis (eps_0,eps_1,eps_2) on the Rank-3 free module M over the Integer Ring
+        Basis (eps_0,eps_1,eps_2) on the Rank-3 free module M over the Integer
+         Ring
         sage: latex(eps)
         \left(\epsilon_0,\epsilon_1,\epsilon_2\right)
 
@@ -89,7 +95,7 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         Normalize input to ensure a unique representation.
 
         TESTS::
-    
+
             sage: from sage.tensor.modules.free_module_basis import FreeModuleBasis
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = FreeModuleBasis(M, 'e', latex_symbol='e')
@@ -146,6 +152,11 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         # base module itself, since it is considered as a type-(1,0) tensor
         # module)
         for t in fmodule._tensor_modules.itervalues():
+            t._zero_element._components[self] = t._zero_element._new_comp(self)
+                               # (since new components are initialized to zero)
+        # Initialization of the components w.r.t the current basis of the zero
+        # elements of all exterior powers constructed up to now
+        for t in fmodule._dual_exterior_powers.itervalues():
             t._zero_element._components[self] = t._zero_element._new_comp(self)
                                # (since new components are initialized to zero)
         # The dual basis:
@@ -240,9 +251,9 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
             sage: f = e.dual_basis() ; f
             Dual basis (e^1,e^2,e^3) on the Rank-3 free module M over the Integer Ring
 
-        Let us check that the elements of f are tensors of type (0,1) on M::
+        Let us check that the elements of f are elements of the dual of M::
 
-            sage: f[1] in M.tensor_module(0,1)
+            sage: f[1] in M.dual()
             True
             sage: f[1]
             Linear form e^1 on the Rank-3 free module M over the Integer Ring
@@ -350,7 +361,7 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         INPUT:
 
         - ``change_of_basis`` -- instance of
-          :class:`~sage.tensor.modules.free_module_tensor_spec.FreeModuleAutomorphismTensor`
+          :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
           describing the automorphism `P` that relates the current basis
           `(e_i)` (described by ``self``) to the new basis `(n_i)` according
           to `n_i = P(e_i)`
@@ -366,28 +377,29 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
 
         EXAMPLES:
 
-        Change of basis on a rank-2 free module::
+        Change of basis on a vector space of dimension 2::
 
             sage: M = FiniteRankFreeModule(QQ, 2, name='M', start_index=1)
             sage: e = M.basis('e')
-            sage: a = M.automorphism_tensor()
+            sage: a = M.automorphism()
             sage: a[:] = [[1, 2], [-1, 3]]
             sage: f = e.new_basis(a, 'f') ; f
-            Basis (f_1,f_2) on the Rank-2 free module M over the Rational Field
-            sage: f[1].view()
+            Basis (f_1,f_2) on the 2-dimensional vector space M over the
+             Rational Field
+            sage: f[1].display()
             f_1 = e_1 - e_2
-            sage: f[2].view()
+            sage: f[2].display()
             f_2 = 2 e_1 + 3 e_2
-            sage: e[1].view(f)
+            sage: e[1].display(f)
             e_1 = 3/5 f_1 + 1/5 f_2
-            sage: e[2].view(f)
+            sage: e[2].display(f)
             e_2 = -2/5 f_1 + 1/5 f_2
 
         """
-        from free_module_tensor_spec import FreeModuleAutomorphismTensor
-        if not isinstance(change_of_basis, FreeModuleAutomorphismTensor):
+        from free_module_automorphism import FreeModuleAutomorphism
+        if not isinstance(change_of_basis, FreeModuleAutomorphism):
             raise TypeError("the argument change_of_basis must be some " +
-                            "instance of FreeModuleAutomorphismTensor")
+                            "instance of FreeModuleAutomorphism")
         fmodule = self._fmodule
         # self._new_instance used instead of FreeModuleBasis for a correct
         # construction in case of derived classes:
@@ -456,10 +468,9 @@ class FreeModuleCoBasis(UniqueRepresentation, SageObject):
         sage: f = FreeModuleCoBasis(e, 'f') ; f
         Dual basis (f^1,f^2,f^3) on the Rank-3 free module M over the Integer Ring
 
-    Let us check that the elements of ``f`` are tensors of type `(0,1)`
-    on ``M``::
+    Let us check that the elements of ``f`` are in the dual of ``M``::
 
-        sage: f[1] in M.tensor_module(0,1)
+        sage: f[1] in M.dual()
         True
         sage: f[1]
         Linear form f^1 on the Rank-3 free module M over the Integer Ring
@@ -572,7 +583,6 @@ class FreeModuleCoBasis(UniqueRepresentation, SageObject):
         si = self._fmodule._sindex
         i = index - si
         if i < 0 or i > n-1:
-            raise IndexError("out of range: {} not in [{},{}]".format(i+si. si,n-1+si))
+            raise IndexError("out of range: {} not in [{},{}]".format(i+si,
+                                                                   si, n-1+si))
         return self._form[i]
-
-

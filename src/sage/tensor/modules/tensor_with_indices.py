@@ -3,12 +3,12 @@ Index notation for tensors
 
 AUTHORS:
 
-- Eric Gourgoulhon, Michal Bejger (2014): initial version
+- Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
 
 """
 #******************************************************************************
-#       Copyright (C) 2014 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2014 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -43,7 +43,8 @@ class TensorWithIndices(SageObject):
         sage: b = M.tensor((0,2), name='b')
         sage: b[:] = [[-1,2,-3], [-4,5,6], [7,-8,9]]
         sage: t = a*b ; t.set_name('t') ; t
-        Type-(2,2) tensor t on the Rank-3 free module M over the Rational Field
+        Type-(2,2) tensor t on the 3-dimensional vector space M over the
+         Rational Field
         sage: from sage.tensor.modules.tensor_with_indices import TensorWithIndices
         sage: T = TensorWithIndices(t, '^ij_kl') ; T
         t^ij_kl
@@ -78,7 +79,8 @@ class TensorWithIndices(SageObject):
     a symmetrization::
 
         sage: s = t['^(ij)_kl'] ; s  # the symmetrization on i,j is indicated by parentheses
-        Type-(2,2) tensor on the Rank-3 free module M over the Rational Field
+        Type-(2,2) tensor on the 3-dimensional vector space M over the
+         Rational Field
         sage: s.symmetries()
         symmetry: (0, 1);  no antisymmetry
         sage: s == t.symmetrize(0,1)
@@ -93,7 +95,8 @@ class TensorWithIndices(SageObject):
     Similarly, for an antisymmetrization::
 
         sage: s = t['^ij_[kl]'] ; s # the symmetrization on k,l is indicated by square brackets
-        Type-(2,2) tensor on the Rank-3 free module M over the Rational Field
+        Type-(2,2) tensor on the 3-dimensional vector space M over the Rational
+         Field
         sage: s.symmetries()
         no symmetry;  antisymmetry: (2, 3)
         sage: s == t.antisymmetrize(2,3)
@@ -102,7 +105,8 @@ class TensorWithIndices(SageObject):
     Another example of an operation indicated by indices is a contraction::
 
         sage: s = t['^ki_kj'] ; s  # contraction on the repeated index k
-        Endomorphism tensor on the Rank-3 free module M over the Rational Field
+        Type-(1,1) tensor on the 3-dimensional vector space M over the Rational
+         Field
         sage: s == t.trace(0,2)
         True
 
@@ -115,11 +119,13 @@ class TensorWithIndices(SageObject):
     the ``*`` operator::
 
         sage: s = a['^ik'] * b['_kj'] ; s
-        Endomorphism tensor on the Rank-3 free module M over the Rational Field
+        Type-(1,1) tensor on the 3-dimensional vector space M over the Rational
+         Field
         sage: s == a.contract(1, b, 0)
         True
         sage: s = t['^.k_..'] * b['_.k'] ; s
-        Type-(1,3) tensor on the Rank-3 free module M over the Rational Field
+        Type-(1,3) tensor on the 3-dimensional vector space M over the Rational
+         Field
         sage: s == t.contract(1, b, 1)
         True
         sage: t['^{ik}_{jl}']*b['_{mk}'] == s # LaTeX notation
@@ -250,8 +256,8 @@ class TensorWithIndices(SageObject):
                                      # tensor
                 cov = cov.replace('[','').replace(']','')
             if len(cov) != tensor._tensor_type[1]:
-                raise IndexError("number of covariant indices not compatible " +
-                                 "with the tensor type")
+                raise IndexError("number of covariant indices not " +
+                                 "compatible with the tensor type")
             self._cov = cov
         else:
             raise IndexError("too many '_' in the list of indices")
@@ -397,7 +403,8 @@ class TensorWithIndices(SageObject):
             sage: ai = TensorWithIndices(a, '^ij')
             sage: bi = TensorWithIndices(b, '_k')
             sage: s = ai.__mul__(bi) ; s  # no repeated indices ==> tensor product
-            Type-(2,1) tensor a*b on the Rank-3 free module M over the Rational Field
+            Type-(2,1) tensor a*b on the 3-dimensional vector space M over the
+             Rational Field
             sage: s == a*b
             True
             sage: s[:]
@@ -406,7 +413,7 @@ class TensorWithIndices(SageObject):
              [[28, 14, 7], [-32, -16, -8], [36, 18, 9]]]
             sage: ai = TensorWithIndices(a, '^kj')
             sage: s = ai.__mul__(bi) ; s  # repeated index k ==> contraction
-            Element of the Rank-3 free module M over the Rational Field
+            Element of the 3-dimensional vector space M over the Rational Field
             sage: s == a.contract(0, b)
             True
             sage: s[:]
@@ -514,4 +521,3 @@ class TensorWithIndices(SageObject):
         """
         return TensorWithIndices(-self._tensor,
                                  self._con + '_' + self._cov)
-

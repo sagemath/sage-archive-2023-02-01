@@ -93,24 +93,24 @@ underscores), one of which has both a Python and a Cython version
 
 - **def RingElement.__add__**
 
-   This function is called by Python or Cython when the binary "+" operator
-   is encountered. It ASSUMES that at least one of its arguments is a
-   RingElement; only a really twisted programmer would violate this
-   condition. It has a fast pathway to deal with the most common case
-   where the arguments have the same parent. Otherwise, it uses the coercion
-   module to work out how to make them have the same parent. After any
-   necessary coercions have been performed, it calls ``_add_`` to dispatch to
-   the correct underlying addition implementation.
+  This function is called by Python or Cython when the binary "+" operator
+  is encountered. It **assumes** that at least one of its arguments is a
+  RingElement; only a really twisted programmer would violate this
+  condition. It has a fast pathway to deal with the most common case
+  where the arguments have the same parent. Otherwise, it uses the coercion
+  module to work out how to make them have the same parent. After any
+  necessary coercions have been performed, it calls ``_add_`` to dispatch to
+  the correct underlying addition implementation.
 
-   Note that although this function is declared as def, it doesn't have the
-   usual overheads associated with python functions (either for the caller
-   or for ``__add__`` itself). This is because python has optimised calling
-   protocols for such special functions.
+  Note that although this function is declared as ``def``, it doesn't have the
+  usual overheads associated with Python functions (either for the caller or
+  for ``__add__`` itself). This is because Python has optimised calling
+  protocols for such special functions.
 
 -  **cpdef RingElement._add_** vs. **def RingElement._add_**
 
    This is the function you should override to implement addition in a
-   subclass of RingElement.
+   subclass of ``RingElement``.
 
    .. warning::
 
@@ -120,16 +120,16 @@ underscores), one of which has both a Python and a Cython version
 
       In *Python*, this has to be overridden as a ``def``.
 
-   The two arguments to this function are guaranteed to have the
-   SAME PARENT. Its return value MUST have the SAME PARENT as its
+   The two arguments to this function are guaranteed to have the **same
+   parent**. Its return value **must** have the **same parent** as its
    arguments.
 
-   If you want to add two objects from python, and you know that their
+   If you want to add two objects from Python, and you know that their
    parents are the same object, you are encouraged to call this function
-   directly, instead of using "x + y".
+   directly, instead of using ``x + y``.
 
-For speed, there are also **inplace** versions of the arithmetic commands.
-DO NOT call them directly, they may mutate the object and will be called
+For speed, there are also *inplace* versions of the arithmetic commands.
+**Do not** call them directly, they may mutate the object and will be called
 when and only when it has been determined that the old object will no longer
 be accessible from the calling function after this operation.
 
@@ -138,12 +138,12 @@ be accessible from the calling function after this operation.
    This is the function you should override to implement inplace
    addition in a Python subclass of RingElement.
 
-   The two arguments to this function are guaranteed to have the
-   SAME PARENT. Its return value MUST have the SAME PARENT as its
+   The two arguments to this function are guaranteed to have the **same
+   parent**. Its return value **must** have the **same parent** as its
    arguments.
 
-   The default implementation of this function is to call _add_,
-   so if no-one has defined a Python implementation, the correct Cython
+   The default implementation of this function is to call ``_add_``,
+   so if no one has defined a Python implementation, the correct Cython
    implementation will get called.
 """
 

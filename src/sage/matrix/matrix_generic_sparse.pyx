@@ -63,14 +63,12 @@ import sage.misc.misc as misc
 cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     r"""
     Generic sparse matrix.
-    
-    The ``Matrix_generic_sparse`` class derives from
-    ``Matrix``, and defines functionality for sparse
-    matrices over any base ring. A generic sparse matrix is represented
-    using a dictionary with keys pairs `(i,j)` and values in
-    the base ring. The values of the dictionary must never be zero.
 
-    This datastructure is not very efficient.
+    The ``Matrix_generic_sparse`` class derives from
+    :class:`~sage.matrix.matrix_sparse.Matrix_sparse`, and defines functionality
+    for sparse matrices over any base ring. A generic sparse matrix is
+    represented using a dictionary whose keys are pairs of integers `(i,j)` and
+    values in the base ring. The values of the dictionary must never be zero.
 
     EXAMPLES::
 
@@ -90,12 +88,19 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         [0 0 0 0 3]
         sage: V = FreeModule(ZZ, 5,sparse=True)
         sage: m = M([V({0:3}), V({2:2, 4:-1}), V(0), V(0), V({1:2})])
-        sage: m.change_ring(ZZ)
+        sage: m
         [ 3  0  0  0  0]
         [ 0  0  2  0 -1]
         [ 0  0  0  0  0]
         [ 0  0  0  0  0]
         [ 0  2  0  0  0]
+
+    .. NOTE::
+
+        The datastructure can potentially be optimized. Firstly, as noticed in
+        :trac:`17663`, we lose time in using 2-tuples to store indices.
+        Secondly, there is no fast way to access non-zero elements in a given
+        row/column.
     """
     ########################################################################
     # LEVEL 1 functionality
@@ -125,12 +130,33 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             4
             sage: loads(dumps(m)) == m
             True
+
+            sage: R2.<a,b> = PolynomialRing(QQ,'a','b')
+            sage: M2 = MatrixSpace(R2,2,3,sparse=True)
+            sage: M2(m)
+            [4 1 0]
+            [0 0 2]
+            sage: M2.has_coerce_map_from(M)
+            True
+
+            sage: M3 = M2.change_ring(R2.fraction_field())
+            sage: M3.has_coerce_map_from(M2)
+            True
         """
         matrix.Matrix.__init__(self, parent)
         R = self._base_ring
         self._zero = R.zero_element()
 
-        if entries is None or entries == 0:
+        if entries is None or not entries:
+            # be careful here. We might get entries set to be an empty list
+            # because of the code implemented in matrix_space.MatrixSpace
+            # So the condtion
+            #   if entries is None or not entries:
+            #       ...
+            # is valid. But
+            #   if entries is None or entries == 0:
+            #       ...
+            # is not!
             return
 
         cdef Py_ssize_t i, j, k
@@ -164,6 +190,27 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
                     del entries[key]
 
         self._entries = entries
+
+    def __nonzero__(self):
+        r"""
+        Test wether this matrix is non-zero.
+
+        TESTS::
+
+            sage: R.<a,b> = Zmod(5)['a','b']
+            sage: m = matrix(R,3,4,sparse=True)
+            sage: bool(m)      # indirect doctest
+            False
+            sage: m[0,3] = 1
+            sage: bool(m)      # indirect doctest
+            True
+            sage: m[0,3] = 0   # indirect doctest
+            sage: bool(m)
+            False
+            sage: m.is_zero()  # indirect doctest
+            True
+        """
+        return bool(self._entries)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         if not value:
@@ -199,6 +246,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
     def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
         return self._richcmp(right, op)
+
     def __hash__(self):
         return self._hash()
 
@@ -306,6 +354,18 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     def _dict(self):
         """
         Return the underlying dictionary of self.
+
+        This is used in comparisons.
+
+        TESTS::
+
+            sage: R.<a,b> = Zmod(6)['a','b']
+            sage: M = MatrixSpace(R, 4,3)
+            sage: m = M({(0,3): a+3*b*a, (1,1): -b})
+            sage: m == m    # indirect doctest
+            True
+            sage: M(0) == m # indirect doctest
+            False
         """
         return self._entries
 
@@ -529,6 +589,17 @@ def Matrix_sparse_from_rows(X):
 ##     return a
 
 def _cmp_backward(x, y):  # todo: speed up via Python/C API
+    r"""
+    TESTS::
+
+        sage: from sage.matrix.matrix_generic_sparse import _cmp_backward
+        sage: l0 = [(-1,-1), (0,0), (1,0), (-1,1), (0,1), (1,1), (-1,2)]
+        sage: l = l0[:]
+        sage: for _ in range(10):
+        ....:   shuffle(l)
+        ....:   l.sort(_cmp_backward)
+        ....:   assert l0 == l
+    """
     # compare two 2-tuples, but in reverse order, i.e., second entry than first
     cdef Py_ssize_t i,j
     i = x[1]
@@ -539,8 +610,4 @@ def _cmp_backward(x, y):  # todo: speed up via Python/C API
         return 1
     i = x[0]
     j = y[0]
-    if i < j:
-        return -1
-    elif i > j:
-        return 1
-    return 0
+    return i-j

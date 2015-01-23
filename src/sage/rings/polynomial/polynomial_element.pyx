@@ -5313,13 +5313,48 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g.roots(multiplicities=False)
             [1.33000000000000 - 1.33000000000000*I, 2.66000000000000 + 2.66000000000000*I]
 
+        Describing roots using radical expressions::
+
+            sage: x = QQ['x'].0
+            sage: f = x^2 + 2
+            sage: f.roots(SR)
+            [(-I*sqrt(2), 1), (I*sqrt(2), 1)]
+            sage: f.roots(SR, multiplicities=False)
+            [-I*sqrt(2), I*sqrt(2)]
+
+        The roots of some polynomials can't be described using radical
+        expressions::
+
+            sage: (x^5 - x + 1).roots(SR)
+            []
+
+        For some other polynomials, no roots can be found at the moment
+        due to the way roots are computed. :trac:`17516` addresses
+        these defecits. Until that gets implemented, one such example
+        is the following::
+
+            sage: f = x^6-300*x^5+30361*x^4-1061610*x^3+1141893*x^2-915320*x+101724
+            sage: f.roots()
+            []
+
         A purely symbolic roots example::
 
             sage: X = var('X')
             sage: f = expand((X-1)*(X-I)^3*(X^2 - sqrt(2))); f
             X^6 - (3*I + 1)*X^5 - sqrt(2)*X^4 + (3*I - 3)*X^4 + (3*I + 1)*sqrt(2)*X^3 + (I + 3)*X^3 - (3*I - 3)*sqrt(2)*X^2 - I*X^2 - (I + 3)*sqrt(2)*X + I*sqrt(2)
-            sage: print f.roots()
+            sage: f.roots()
             [(I, 3), (-2^(1/4), 1), (2^(1/4), 1), (1, 1)]
+
+        The same operation, performed over a polynomial ring
+        with symbolic coefficients::
+
+            sage: X = SR['X'].0
+            sage: f = (X-1)*(X-I)^3*(X^2 - sqrt(2)); f
+            X^6 + (-3*I - 1)*X^5 + (-sqrt(2) + 3*I - 3)*X^4 + ((3*I + 1)*sqrt(2) + I + 3)*X^3 + (-(3*I - 3)*sqrt(2) - I)*X^2 + (-(I + 3)*sqrt(2))*X + I*sqrt(2)
+            sage: f.roots()
+            [(I, 3), (-2^(1/4), 1), (2^(1/4), 1), (1, 1)]
+            sage: f.roots(multiplicities=False)
+            [I, -2^(1/4), 2^(1/4), 1]
 
         A couple of examples where the base ring doesn't have a
         factorization algorithm (yet). Note that this is currently done via
@@ -5563,6 +5598,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
         back to pari (numpy will fail if some coefficient is infinite,
         for instance).
 
+        If L is SR, then the roots will be radical expressions,
+        computed as the solutions of a symbolic polynomial expression.
+        At the moment this delegates to
+        :meth:`sage.symbolic.expression.Expression.solve`
+        which in turn uses Maxima to find radical solutions.
+        Some solutions may be lost in this approach.
+        Once :trac:`17516` gets implemented, all possible radical
+        solutions should become available.
+
         If L is AA or RIF, and K is ZZ, QQ, or AA, then the root isolation
         algorithm sage.rings.polynomial.real_roots.real_roots() is used.
         (You can call real_roots() directly to get more control than this
@@ -5774,6 +5818,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return rts_mult
             else:
                 return [rt for (rt, mult) in rts_mult]
+
+        from sage.symbolic.ring import SR
+        if L is SR:
+            vname = 'do_not_use_this_name_in_a_polynomial_coefficient'
+            var = SR(vname)
+            expr = self(var)
+            rts = expr.solve(var,
+                             explicit_solutions=True,
+                             multiplicities=multiplicities)
+            if multiplicities:
+                return [(rt.rhs(), mult) for rt, mult in zip(*rts)]
+            else:
+                return [rt.rhs() for rt in rts]
 
         if L != K or is_AlgebraicField_common(L):
             # So far, the only "special" implementations are for real

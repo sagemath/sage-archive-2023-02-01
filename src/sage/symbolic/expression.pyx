@@ -8239,12 +8239,27 @@ cdef class Expression(CommutativeRingElement):
             1/2*log(2*t) - 1/2*log(t)
             sage: forget()
 
+        Complex logs are not contracted, :trac:`17556`::
+
+            sage: x,y = SR.var('x,y')
+            sage: assume(y, 'complex')
+            sage: f = log(x*y) - (log(x) + log(y))
+            sage: f.simplify_full()
+            log(x*y) - log(x) - log(y)
+            sage: forget()
+
+        The simplifications from :meth:`simplify_rectform` are
+        performed, :trac:`17556`::
+
+            sage: f = ( e^(I*x) - e^(-I*x) ) / ( I*e^(I*x) + I*e^(-I*x) )
+            sage: f.simplify_full()
+            sin(x)/cos(x)
+
         """
         x = self
         x = x.simplify_factorial()
+        x = x.simplify_rectform()
         x = x.simplify_trig()
-        x = x.simplify_rational()
-        x = x.simplify_log('one')
         x = x.simplify_rational()
         return x
 
@@ -8395,7 +8410,8 @@ cdef class Expression(CommutativeRingElement):
     def simplify_real(self):
         r"""
         Simplify the given expression over the real numbers. This allows
-        the simplification of `\sqrt{x^{2}}` into `\left|x\right|`.
+        the simplification of `\sqrt{x^{2}}` into `\left|x\right|` and
+        the contraction of `\log(x) + \log(y)` into `\log(xy)`.
 
         INPUT:
 
@@ -8411,6 +8427,13 @@ cdef class Expression(CommutativeRingElement):
             sage: f = sqrt(x^2)
             sage: f.simplify_real()
             abs(x)
+
+        ::
+
+            sage: y = SR.var('y')
+            sage: f = log(x) + 2*log(y)
+            sage: f.simplify_real()
+            log(x*y^2)
 
         TESTS:
 
@@ -8477,7 +8500,9 @@ cdef class Expression(CommutativeRingElement):
         for v in self.variables():
             assume(v, 'real');
 
-        result = self.simplify();
+        # This will round trip through Maxima, essentially performing
+        # self.simplify() in the process.
+        result = self.simplify_log()
 
         # Set the domain back to what it was before we were called.
         maxima.eval('domain: %s$' % original_domain)
@@ -9020,8 +9045,6 @@ cdef class Expression(CommutativeRingElement):
             sage: log_expr.simplify_log('all')
             log((sqrt(2) + 1)*(sqrt(2) - 1))
             sage: _.simplify_rational()
-            0
-            sage: log_expr.simplify_full()   # applies both simplify_log and simplify_rational
             0
 
         We should use the current simplification domain rather than

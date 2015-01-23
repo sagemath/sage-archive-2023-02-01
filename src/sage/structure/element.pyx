@@ -1940,7 +1940,7 @@ cdef class RingElement(ModuleElement):
 
     def abs(self):
         """
-        Return the absolute value of self.  (This just calls the ``__abs__``
+        Return the absolute value of ``self``.  (This just calls the ``__abs__``
         method, so it is equivalent to the ``abs()`` built-in function.)
 
         EXAMPLES::

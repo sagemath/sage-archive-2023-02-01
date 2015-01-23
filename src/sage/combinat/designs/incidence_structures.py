@@ -31,7 +31,7 @@ matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following me
     :meth:`~IncidenceStructure.edge_coloring` | Return an optimal edge coloring`
     :meth:`~IncidenceStructure.copy` | Return a copy of the incidence structure.
     :meth:`~IncidenceStructure.induced_substructure` | Return the substructure induced by a set of points.
-
+    :meth:`~IncidenceStructure.trace` | Return the trace of a set of point
 
 REFERENCES:
 
@@ -615,7 +615,7 @@ class IncidenceStructure(object):
             sage: F.induced_substructure("Y")
             Traceback (most recent call last):
             ...
-            ValueError: Y is not a point of the incidence structure
+            ValueError: 'Y' is not a point of the incidence structure
         """
         # Checking the input
         if self._point_to_index is None:
@@ -628,14 +628,89 @@ class IncidenceStructure(object):
         else:
             try:
                 int_points = [self._point_to_index[x] for x in points]
-            except KeyError:
-                raise ValueError("{} is not a point of the incidence structure".format(x))
+            except KeyError as bad_pt:
+                raise ValueError("{} is not a point of the incidence structure".format(bad_pt))
 
         int_points = set(int_points)
         return IncidenceStructure(points,
                                   [[self._points[x] for x in S]
                                    for S in self._blocks
                                    if int_points.issuperset(S)])
+
+    def trace(self, points, min_size=1, multiset=True):
+        r"""
+        Return the trace of a set of points.
+
+        Given an hypergraph `\mathcal H`, the *trace* of a set `X` of points in
+        `\mathcal H` is the hypergraph whose blocks are all non-empty `S \cap X`
+        where `S \in \mathcal H`.
+
+        INPUT:
+
+        - ``points`` -- a set of points.
+
+        - ``min_size`` (integer; default 1) -- minimum size of the sets to
+          keep. By default all empty sets are discarded, i.e. ``min_size=1``.
+
+        - ``multiset`` (boolean; default ``True``) -- whether to keep multiple
+          copies of the same set.
+
+        .. NOTE::
+
+            This method goes over all sets of ``self`` before building a new
+            :class:`IncidenceStructure` (which involves some relabelling and
+            sorting). It probably should not be called in a performance-critical
+            code.
+
+        EXAMPLE:
+
+        A Baer subplane of order 2 (i.e. a Fano plane) in a projective plane of order 4::
+
+            sage: P4 = designs.projective_plane(4)
+            sage: F = designs.projective_plane(2)
+            sage: for x in Subsets(P4.ground_set(),7):
+            ....:     if P4.trace(x,min_size=2).is_isomorphic(F):
+            ....:         break
+            sage: subplane = P4.trace(x,min_size=2); subplane
+            Incidence structure with 7 points and 7 blocks
+            sage: subplane.is_isomorphic(F)
+            True
+
+        TESTS::
+
+            sage: F.trace([0..50])
+            Traceback (most recent call last):
+            ...
+            ValueError: 7 is not a point of the incidence structure
+            sage: F.relabel(dict(enumerate("abcdefg")))
+            sage: F.trace("abc")
+            Incidence structure with 3 points and ...
+            sage: F.trace("Y")
+            Traceback (most recent call last):
+            ...
+            ValueError: 'Y' is not a point of the incidence structure
+        """
+        # Checking the input
+        if self._point_to_index is None:
+            n = self.num_points()
+            int_points = frozenset(int(x) for x in points)
+            for x in int_points:
+                if x < 0 or x >= n:
+                    raise ValueError("{} is not a point of the incidence structure".format(x))
+        else:
+            try:
+                int_points = frozenset(self._point_to_index[x] for x in points)
+            except KeyError as bad_pt:
+                raise ValueError("{} is not a point of the incidence structure".format(bad_pt))
+
+        blocks = [int_points.intersection(S) for S in self._blocks]
+        if min_size:
+            blocks = [S for S in blocks if len(S)>=min_size]
+        if not multiset:
+            blocks = set(blocks)
+        IS = IncidenceStructure(blocks)
+        IS.relabel({i:self._points[i] for i in int_points})
+        return IS
 
     def ground_set(self):
         r"""

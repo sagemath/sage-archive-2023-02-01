@@ -62,13 +62,40 @@ import sage.misc.misc as misc
 
 cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     r"""
+    Generic sparse matrix.
+    
     The ``Matrix_generic_sparse`` class derives from
     ``Matrix``, and defines functionality for sparse
     matrices over any base ring. A generic sparse matrix is represented
     using a dictionary with keys pairs `(i,j)` and values in
-    the base ring.
+    the base ring. The values of the dictionary must never be zero.
 
-    The values of the dictionary must never be zero.
+    This datastructure is not very efficient.
+
+    EXAMPLES::
+
+        sage: R.<a,b> = PolynomialRing(ZZ,'a,b')
+        sage: M = MatrixSpace(R,5,5,sparse=True)
+        sage: M({(0,0):5*a+2*b, (3,4): -a})
+        [5*a + 2*b         0         0         0         0]
+        [        0         0         0         0         0]
+        [        0         0         0         0         0]
+        [        0         0         0         0        -a]
+        [        0         0         0         0         0]
+        sage: M(3)
+        [3 0 0 0 0]
+        [0 3 0 0 0]
+        [0 0 3 0 0]
+        [0 0 0 3 0]
+        [0 0 0 0 3]
+        sage: V = FreeModule(ZZ, 5,sparse=True)
+        sage: m = M([V({0:3}), V({2:2, 4:-1}), V(0), V(0), V({1:2})])
+        sage: m.change_ring(ZZ)
+        [ 3  0  0  0  0]
+        [ 0  0  2  0 -1]
+        [ 0  0  0  0  0]
+        [ 0  0  0  0  0]
+        [ 0  2  0  0  0]
     """
     ########################################################################
     # LEVEL 1 functionality
@@ -84,6 +111,21 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         self._entries = {}  # crucial so that pickling works
 
     def __init__(self, parent, entries=None, coerce=True, copy=True):
+        r"""
+        TESTS::
+
+            sage: R.<a> = PolynomialRing(ZZ,'a')
+            sage: M = MatrixSpace(R,2,3,sparse=True)
+            sage: m = M([4,1,0,0,0,2]); m
+            [4 1 0]
+            [0 0 2]
+            sage: m2 = copy(m)
+            sage: m2[0,0] = -1
+            sage: m[0,0]
+            4
+            sage: loads(dumps(m)) == m
+            True
+        """
         matrix.Matrix.__init__(self, parent)
         R = self._base_ring
         self._zero = R.zero_element()
@@ -93,24 +135,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
         cdef Py_ssize_t i, j, k
 
-        if isinstance(entries, list):
-            if entries and hasattr(entries[0], "is_vector"):
-                entries = _convert_sparse_entries_to_dict(entries)
-
-            else:
-                if len(entries) != self.nrows() * self.ncols():
-                    raise TypeError("entries has the wrong length")
-                x = entries
-                entries = {}
-                k = 0
-                for i from 0 <= i < self._nrows:
-                    for j from 0 <= j < self._ncols:
-                        if not x[k]:
-                            entries[(i,j)] = x[k]
-                        k += 1
-                copy = False
-
-        elif not isinstance(entries, dict):
+        if not isinstance(entries, dict):
             # assume that entries is a scalar
             x = R(entries)
             entries = {}
@@ -119,6 +144,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             for i from 0 <= i < self._nrows:
                 entries[(i,i)] = x
 
+        if not isinstance(entries, dict):
+            raise TypeError("The input must be scalar or a dictionary, not %s"%type(entries))
 
         if coerce:
             v = {}
@@ -131,7 +158,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         else:
             if copy:
                 # Make a copy
-                entries = dict(entries)
+                entries = entries.copy()
             for key in entries.keys():
                 if not entries[key]:
                     del entries[key]
@@ -287,6 +314,15 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
 
     def _nonzero_positions_by_row(self, copy=True):
+        r"""
+        TESTS::
+
+            sage: R.<a> = PolynomialRing(Zmod(8), 'a')
+            sage: M = MatrixSpace(R,4,3,sparse=True)
+            sage: m = M({(3,0): 1, (3,1): 2*a^2 + 1, (2,0): -1, (0,1): -2})
+            sage: m._nonzero_positions_by_row()
+            [(0, 1), (2, 0), (3, 0), (3, 1)]
+        """
         cdef list v = self.fetch('nonzero_positions')
         if v is None:
             v = self._entries.keys()
@@ -297,6 +333,15 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         return v
 
     def _nonzero_positions_by_column(self, copy=True):
+        r"""
+        TESTS::
+
+            sage: R.<a> = PolynomialRing(Zmod(8), 'a')
+            sage: M = MatrixSpace(R,4,3,sparse=True)
+            sage: m = M({(3,0): 1, (3,1): 2*a^2 + 1, (2,0): -1, (0,1): -2})
+            sage: m._nonzero_positions_by_column()
+            [(2, 0), (3, 0), (0, 1), (3, 1)]
+        """
         cdef list v = self.fetch('nonzero_positions_by_column')
         if v is None:
             v = self._entries.keys()
@@ -482,16 +527,6 @@ def Matrix_sparse_from_rows(X):
 ##     for k in x:
 ##         a = a + v[k]*w[k]
 ##     return a
-
-cdef dict _convert_sparse_entries_to_dict(list entries):
-    cdef Py_ssize_t i
-    cdef dict e = {}
-    for i in range(len(entries)):
-        for j, x in entries[i].dict().iteritems():
-            e[(i,j)] = x
-    return e
-
-
 
 def _cmp_backward(x, y):  # todo: speed up via Python/C API
     # compare two 2-tuples, but in reverse order, i.e., second entry than first

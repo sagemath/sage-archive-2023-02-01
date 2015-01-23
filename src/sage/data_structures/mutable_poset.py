@@ -1,5 +1,149 @@
 r"""
 Mutable Poset
+
+This module provides a class representing a finite partially ordered
+set (poset) for the purpose of being used as a data structure. Thus
+the here introduced posets are mutable, i.e., elements can be added and
+removed from a poset at any time.
+
+To get in touch with Sage's "usual" posets, start with the page
+:mod:`Posets <sage.combinat.posets.__init__>` in the reference manual.
+
+
+.. _mutable_poset_intro:
+
+Introduction
+============
+
+
+.. _mutable_poset_examples:
+
+Examples
+========
+
+First Steps
+-----------
+
+We start by creating an empty poset. This is simply done by
+
+::
+
+    sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+    sage: P = MP()
+    sage: P
+    poset()
+
+A poset should contain elements, thus let us add them with
+
+::
+
+    sage: P.add_element(42)
+    sage: P.add_element(7)
+    sage: P.add_element(13)
+    sage: P.add_element(3)
+
+Let us look at the poset again::
+
+    sage: P
+    poset(3, 7, 13, 42)
+
+We see that they elements are sorted using `\leq` which exists on the
+integers `\ZZ`. Since this is even a total order, we could have used
+the more efficient :class:`MutableToset`. (Note that also other data
+structures are suitable for totally ordered sets.)
+
+
+A less boring Example
+---------------------
+
+Let us continue with a less boring example. We define the class
+
+::
+
+    sage: class T(tuple):
+    ....:     def __le__(left, right):
+    ....:         return all(l <= r for l, r in zip(left, right))
+
+It is equipped with a `\leq`-operation which makes `a \leq b` if all
+entries of `a` are at most `b`. For example, we have
+
+::
+
+    sage: a = T((1,1))
+    sage: b = T((2,1))
+    sage: c = T((1,2))
+    sage: a <= b, a <= c, b <= c
+    (True, True, False)
+
+The last comparison gives ``False``, since the first entries give `2 \leq 1`.
+
+Now, let us add such elements to a poset::
+
+    sage: Q = MP()
+    sage: Q.add_element(T((1, 1)))
+    sage: Q.add_element(T((3, 3)))
+    sage: Q.add_element(T((4, 1)))
+    sage: Q.add_element(T((3, 2)))
+    sage: Q.add_element(T((2, 3)))
+    sage: Q.add_element(T((2, 2)))
+    sage: Q
+    poset((1, 1), (2, 2), (2, 3), (3, 2), (3, 3), (4, 1))
+
+In the representation above, the elements are sorted topologically,
+smallest first. This does not show (directly) more structural
+information. We can overcome this and display a "wiring layout" by
+typing::
+
+    sage: print Q.repr_full(reverse=True)
+    poset((3, 3), (2, 3), (3, 2), (2, 2), (4, 1), (1, 1))
+    +-- oo
+    |   +-- no successors
+    |   +-- predecessors:   (3, 3), (4, 1)
+    +-- (3, 3)
+    |   +-- successors:   oo
+    |   +-- predecessors:   (2, 3), (3, 2)
+    +-- (2, 3)
+    |   +-- successors:   (3, 3)
+    |   +-- predecessors:   (2, 2)
+    +-- (3, 2)
+    |   +-- successors:   (3, 3)
+    |   +-- predecessors:   (2, 2)
+    +-- (2, 2)
+    |   +-- successors:   (2, 3), (3, 2)
+    |   +-- predecessors:   (1, 1)
+    +-- (4, 1)
+    |   +-- successors:   oo
+    |   +-- predecessors:   (1, 1)
+    +-- (1, 1)
+    |   +-- successors:   (2, 2), (4, 1)
+    |   +-- predecessors:   null
+    +-- null
+    |   +-- successors:   (1, 1)
+    |   +-- no predecessors
+
+Note that we use ``reverse=True`` to let the elements appear from
+largest (on the top) to smallest (on the bottom).
+
+If you look at the output above, you'll see two additional elements,
+namely ``oo`` (`\infty`) and ``null`` (`\emptyset`). So what are these
+strange animals? The answer is simple and maybe you can guess it
+already. The `\infty`-element is larger than every other element,
+therefore a successor of the maximal elements in the poset. Similarly,
+the `\emptyset`-element is smaller than any other element, therefore a
+predecessor of the poset's minimal elements. Both do not have to scare
+us; they are just there and sometimes useful.
+
+
+AUTHORS:
+
+- Daniel Krenn (2015-01-21): initial version
+
+ACKNOWLEDGEMENT:
+
+- Daniel Krenn is supported by the Austrian Science Fund (FWF): P 24644-N26.
+
+Classes and their Methods
+=========================
 """
 #*****************************************************************************
 # Copyright (C) 2015 Daniel Krenn <dev@danielkrenn.at>
@@ -868,7 +1012,7 @@ def sorted_set_by_tuple(S, T):
 
 class MutablePoset(sage.structure.sage_object.SageObject):
     r"""
-    A mutable poset.
+    A mutable poset (partially ordered set) as data structure.
     """
     def __init__(self, data=None, key=None):
         r"""

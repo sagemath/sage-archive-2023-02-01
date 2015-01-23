@@ -1505,3 +1505,20 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
 
 # *****************************************************************************
+
+
+class MutableTosetElement(MutablePosetElement):
+    pass
+
+
+# *****************************************************************************
+
+
+class MutableToset(MutablePoset):
+    r"""
+    A mutable toset (totally ordered set) as data structure.
+    """
+    pass
+
+
+# *****************************************************************************

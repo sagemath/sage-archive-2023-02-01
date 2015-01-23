@@ -76,6 +76,7 @@ Comprehensive Module list
     sage/combinat/designs/all
     sage/combinat/designs/bibd
     sage/combinat/designs/resolvable_bibd
+    sage/combinat/designs/group_divisible_designs
     sage/combinat/designs/block_design
     sage/combinat/designs/covering_design
     sage/combinat/designs/database

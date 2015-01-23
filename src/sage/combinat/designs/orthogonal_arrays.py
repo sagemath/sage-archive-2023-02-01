@@ -1,5 +1,5 @@
 r"""
-Orthogonal arrays
+Orthogonal arrays (OA)
 
 This module gathers some construction related to orthogonal arrays (or
 transversal designs). One can build an `OA(k,n)` (or check that it can be built)
@@ -59,7 +59,7 @@ from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from designs_pyx import is_orthogonal_array
-from incidence_structures import GroupDivisibleDesign
+from group_divisible_designs import GroupDivisibleDesign
 from designs_pyx import _OA_cache_set, _OA_cache_get, _OA_cache_construction_available
 
 def transversal_design(k,n,resolvable=False,check=True,existence=False):

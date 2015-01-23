@@ -42,7 +42,7 @@ issue the following command in a terminal, if ``sage`` is in your ``PATH`` ::
 
 You can also run it from the command line of sage::
 
-    sage: notebook()
+    sage: notebook() # not tested
 
 
 What are Sage's prerequisites?

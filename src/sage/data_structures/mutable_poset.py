@@ -1,5 +1,5 @@
 r"""
-Asymptotic Ring
+Mutable Poset
 """
 #*****************************************************************************
 # Copyright (C) 2015 Daniel Krenn <dev@danielkrenn.at>
@@ -750,7 +750,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         ALGORITHM:
 
         Here a simplified version of the algorithm found in [T1976]_
-        and [CLRS]_ is used. See also
+        and [CLRS2001]_ is used. See also
         :wikipedia:`Topological_sorting`.
 
         .. [T1976] Robert E. Tarjan, *Edge-disjoint spanning trees and

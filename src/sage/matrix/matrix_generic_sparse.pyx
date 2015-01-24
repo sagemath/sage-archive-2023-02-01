@@ -620,18 +620,6 @@ def Matrix_sparse_from_rows(X):
     M = matrix_space.MatrixSpace(R, len(X), ncols, sparse=True)
     return M(entries, coerce=False, copy=False)
 
-
-## def _sparse_dot_product(v, w):
-##     """
-##     INPUT:
-##         v and w are dictionaries with integer keys.
-##     """
-##     x = set(v.keys()).intersection(set(w.keys()))
-##     a = 0
-##     for k in x:
-##         a = a + v[k]*w[k]
-##     return a
-
 def _cmp_backward(x, y):  # todo: speed up via Python/C API
     r"""
     TESTS::

@@ -20,3 +20,4 @@ Thematic tutorial document tree
    functional_programming
    coercion_and_categories
    cython_interface
+   numerical_sage/index

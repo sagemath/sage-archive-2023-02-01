@@ -31,11 +31,13 @@ This module implements finite partially ordered sets. It defines:
     :meth:`~FinitePoset.closed_interval` | Returns a list of the elements `z` such that `x \le z \le y`.
     :meth:`~FinitePoset.compare_elements` | Compares `x` and `y` in the poset.
     :meth:`~FinitePoset.comparability_graph` | Returns the comparability graph of the poset.
+    :meth:`~FinitePoset.completion_by_cuts` | Returns the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.cover_relations_iterator` | Returns an iterator for the cover relations of the poset.
     :meth:`~FinitePoset.cover_relations` | Returns the list of pairs `[u,v]` which are cover relations
     :meth:`~FinitePoset.cover_relations_graph` | Return the graph of cover relations
     :meth:`~FinitePoset.covers` | Returns True if y covers x and False otherwise.
     :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
+    :meth:`~FinitePoset.cuts` | Returns the cuts of the given poset.
     :meth:`~FinitePoset.dilworth_decomposition` | Returns a partition of the points into the minimal number of chains.
     :meth:`~FinitePoset.disjoint_union` | Return the disjoint union of the poset with ``other``.
     :meth:`~FinitePoset.dual` | Returns the dual poset of the given poset.
@@ -5037,6 +5039,80 @@ class FinitePoset(UniqueRepresentation, Parent):
             descents = [i + 1 for i in xrange(n-1) if tupdict[lin[i]] > tupdict[lin[i+1]]]
             res += QR.Fundamental()(Composition(from_subset=(descents, n)))
         return res
+
+    def cuts(self):
+        r"""
+        Return the list of cuts of the poset ``self``.
+
+        A cut is a subset `A` of ``self`` such that the set of lower
+        bounds of the set of upper bounds of `A` is exactly `A`.
+
+        The cuts are computed here using the maximal independent sets in the
+        auxiliary graph defined as `P \times [0,1]` with an edge
+        from `(x, 0)` to `(y, 1)` if
+        and only if `x \not\geq_P y`. See the end of section 4 in [JRJ94]_.
+
+        EXAMPLES::
+
+            sage: P = posets.AntichainPoset(3)
+            sage: Pc = P.cuts()
+            sage: [list(c) for c in Pc]
+            [[0], [0, 1, 2], [], [1], [2]]
+            sage: Pc[0]
+            frozenset({0})
+
+        .. SEEALSO::
+
+            :meth:`completion_by_cuts`
+
+        REFERENCES:
+
+        .. [JRJ94] Jourdan, Guy-Vincent; Rampon, Jean-Xavier; Jard, Claude
+           (1994), "Computing on-line the lattice of maximal antichains
+           of posets", Order 11 (3) p. 197-210, :doi:`10.1007/BF02115811`
+        """
+        from sage.graphs.graph import Graph
+        from sage.graphs.independent_sets import IndependentSets
+        auxg = Graph({(u, 0): [(v, 1) for v in self if not self.ge(u, v)]
+                      for u in self})
+        auxg.add_vertices([(v, 1) for v in self])
+        return [frozenset([xa for xa, xb in c if xb == 0])
+                for c in IndependentSets(auxg, maximal=True)]
+
+    def completion_by_cuts(self):
+        """
+        Return the completion by cuts of ``self``.
+
+        This is a lattice, also called the Dedekind-MacNeille completion.
+
+        See the :wikipedia:`Dedekind-MacNeille completion`.
+
+        OUTPUT:
+
+        - a finite lattice
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.completion_by_cuts().is_isomorphic(P)
+            True
+
+            sage: P = posets.AntichainPoset(3)
+            sage: Q = P.completion_by_cuts()
+            sage: Q.is_isomorphic(posets.DiamondPoset(5))
+            True
+
+            sage: P = posets.SymmetricGroupBruhatOrderPoset(3)
+            sage: Q = P.completion_by_cuts(); Q
+            Finite lattice containing 7 elements
+
+        .. SEEALSO::
+
+            :meth:`cuts`
+        """
+        from sage.combinat.posets.lattices import LatticePoset
+        from sage.misc.misc import attrcall
+        return LatticePoset((self.cuts(), attrcall("issubset")))
 
 FinitePoset._dual_class = FinitePoset
 

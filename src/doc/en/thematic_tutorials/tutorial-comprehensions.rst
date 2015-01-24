@@ -250,20 +250,20 @@ One can very easily write new iterators using the keyword
 demonstrating the use of ``yield``::
 
     sage: def f(n):
-    ...     for i in range(n):
-    ...         yield i
+    ....:   for i in range(n):
+    ....:       yield i
     sage: [ u for u in f(5) ]
     [0, 1, 2, 3, 4]
 
 Iterators can be recursive::
 
     sage: def words(alphabet,l):
-    ...      if l == 0:
-    ...          yield []
-    ...      else:
-    ...          for word in words(alphabet, l-1):
-    ...              for a in alphabet:
-    ...                  yield word + [a]
+    ....:    if l == 0:
+    ....:        yield []
+    ....:    else:
+    ....:        for word in words(alphabet, l-1):
+    ....:            for a in alphabet:
+    ....:                yield word + [a]
 
     sage: [ w for w in words(['a','b','c'], 3) ]
     [['a', 'a', 'a'], ['a', 'a', 'b'], ['a', 'a', 'c'], ['a', 'b', 'a'], ['a', 'b', 'b'], ['a', 'b', 'c'], ['a', 'c', 'a'], ['a', 'c', 'b'], ['a', 'c', 'c'], ['b', 'a', 'a'], ['b', 'a', 'b'], ['b', 'a', 'c'], ['b', 'b', 'a'], ['b', 'b', 'b'], ['b', 'b', 'c'], ['b', 'c', 'a'], ['b', 'c', 'b'], ['b', 'c', 'c'], ['c', 'a', 'a'], ['c', 'a', 'b'], ['c', 'a', 'c'], ['c', 'b', 'a'], ['c', 'b', 'b'], ['c', 'b', 'c'], ['c', 'c', 'a'], ['c', 'c', 'b'], ['c', 'c', 'c']]
@@ -273,13 +273,13 @@ Iterators can be recursive::
 Here is another recursive iterator::
 
     sage: def dyck_words(l):
-    ...       if l==0:
-    ...           yield ''
-    ...       else:
-    ...           for k in range(l):
-    ...               for w1 in dyck_words(k):
-    ...                   for w2 in dyck_words(l-k-1):
-    ...                       yield '('+w1+')'+w2
+    ....:     if l==0:
+    ....:         yield ''
+    ....:     else:
+    ....:         for k in range(l):
+    ....:             for w1 in dyck_words(k):
+    ....:                 for w2 in dyck_words(l-k-1):
+    ....:                     yield '('+w1+')'+w2
 
     sage: list(dyck_words(4))
     ['()()()()',

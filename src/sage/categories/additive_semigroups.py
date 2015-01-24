@@ -13,6 +13,7 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_singleton
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
+from sage.categories.homsets import HomsetsCategory
 from sage.categories.additive_magmas import AdditiveMagmas
 
 class AdditiveSemigroups(CategoryWithAxiom_singleton):
@@ -38,7 +39,7 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
          Category of objects]
 
         sage: C.axioms()
-        frozenset(['AdditiveAssociative'])
+        frozenset({'AdditiveAssociative'})
         sage: C is AdditiveMagmas().AdditiveAssociative()
         True
 
@@ -83,6 +84,23 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
             for x,y,z in tester.some_elements(CartesianProduct(S,S,S)):
                 tester.assert_((x + y) + z == x + (y + z))
 
+    class Homsets(HomsetsCategory):
+
+        def extra_super_categories(self):
+            r"""
+            Implement the fact that a homset between two semigroups is a
+            semigroup.
+
+            EXAMPLES::
+
+                sage: from sage.categories.additive_semigroups import AdditiveSemigroups
+                sage: AdditiveSemigroups().Homsets().extra_super_categories()
+                [Category of additive semigroups]
+                sage: AdditiveSemigroups().Homsets().super_categories()
+                [Category of homsets of additive magmas, Category of additive semigroups]
+            """
+            return [AdditiveSemigroups()]
+
     class CartesianProducts(CartesianProductsCategory):
 
         def extra_super_categories(self):
@@ -97,7 +115,7 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
                 sage: C.extra_super_categories()
                 [Category of additive semigroups]
                 sage: C.axioms()
-                frozenset(['AdditiveAssociative'])
+                frozenset({'AdditiveAssociative'})
             """
             return [AdditiveSemigroups()]
 

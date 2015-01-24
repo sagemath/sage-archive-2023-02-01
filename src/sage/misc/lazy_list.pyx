@@ -662,8 +662,8 @@ cdef class lazy_list(object):
 
             sage: from itertools import count
             sage: from sage.misc.lazy_list import lazy_list
-            sage: iter(lazy_list(count()))    #random indirect doctest
-            <generator object lazy_list at 0x5201190>
+            sage: iter(lazy_list(count()))
+            iterator of lazy list [0, 1, 2, ...]
         """
         if self.stop == PY_SSIZE_T_MAX:
             return lazy_list_iterator(self)

@@ -21,7 +21,6 @@ class HyperbolicFunction(BuiltinFunction):
         sage: f(x)._mathematica_init_()
         'Foo[x]'
     """
-    _eval_ = BuiltinFunction._eval_default
     def __init__(self, name, latex_name=None, conversions=None,
             evalf_float=None):
         """
@@ -164,8 +163,8 @@ class Function_tanh(GinacFunction):
             0.997524731976164 - 0.00279068768100315*I
             sage: ComplexField(100)(tanh(pi + I*e))
             0.99752473197616361034204366446 - 0.0027906876810031453884245163923*I
-            sage: CDF(tanh(pi + I*e))
-            0.997524731976 - 0.002790687681*I
+            sage: CDF(tanh(pi + I*e))  # rel tol 4e-16
+            0.9975247319761636 - 0.002790687681003147*I
 
         To prevent automatic evaluation, use the ``hold`` parameter::
 
@@ -540,8 +539,18 @@ class Function_arccoth(HyperbolicFunction):
             0.402359478108525 - 0.553574358897045*I
             sage: arccoth(2).n(200)
             0.54930614433405484569762261846126285232374527891137472586735
-            sage: float(arccoth(2))
+
+        Using first the `.n(53)` method is slightly more precise than
+        converting directly to a ``float``::
+
+            sage: float(arccoth(2))  # abs tol 1e-16
+            0.5493061443340548
+            sage: float(arccoth(2).n(53))   # Correct result to 53 bits
             0.5493061443340549
+            sage: float(arccoth(2).n(100))  # Compute 100 bits and then round to 53
+            0.5493061443340549
+
+        TESTS::
 
             sage: latex(arccoth(x))
             {\rm arccoth}\left(x\right)
@@ -608,7 +617,7 @@ class Function_arcsech(HyperbolicFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,1,3)
             sage: arcsech(a)
-            doctest:614: RuntimeWarning: divide by zero encountered in divide
+            doctest:...: RuntimeWarning: divide by zero encountered in divide
             array([       inf,  1.3169579,  0.       ])
         """
         return arccosh(1.0 / x)
@@ -658,7 +667,7 @@ class Function_arccsch(HyperbolicFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,1,3)
             sage: arccsch(a)
-            doctest:664: RuntimeWarning: divide by zero encountered in divide
+            doctest:...: RuntimeWarning: divide by zero encountered in divide
             array([        inf,  1.44363548,  0.88137359])
         """
         return arcsinh(1.0 / x)

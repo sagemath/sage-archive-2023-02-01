@@ -1213,6 +1213,52 @@ cdef class RealField_class(sage.rings.ring.Field):
             return self(-1)
         raise ValueError, "No %sth root of unity in self"%n
 
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the real numbers
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the real numbers into a unit and monic
+          irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+            This method calls PARI to compute the factorization.
+
+        TESTS::
+
+            sage: k = RealField(100)
+            sage: R.<x> = k[]
+            sage: k._factor_univariate_polynomial( x )
+            x
+            sage: k._factor_univariate_polynomial( 2*x )
+            (2.0000000000000000000000000000) * x
+            sage: k._factor_univariate_polynomial( x^2 )
+            x^2
+            sage: k._factor_univariate_polynomial( x^2 + 1 )
+            x^2 + 1.0000000000000000000000000000
+            sage: k._factor_univariate_polynomial( x^2 - 1 )
+            (x - 1.0000000000000000000000000000) * (x + 1.0000000000000000000000000000)
+            sage: k._factor_univariate_polynomial( (x - 1)^3 )
+            (x - 1.0000000000000000000000000000)^3
+            sage: k._factor_univariate_polynomial( x^2 - 3 )
+            (x - 1.7320508075688772935274463415) * (x + 1.7320508075688772935274463415)
+
+        """
+        R = f.parent()
+        F = list(f._pari_with_name().factor())
+
+        from sage.structure.factorization import Factorization
+        return Factorization([(R(g).monic(),e) for g,e in zip(*F)], f.leading_coefficient())
+
 #*****************************************************************************
 #
 #     RealNumber -- element of Real Field
@@ -3723,7 +3769,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def is_integer(self):
         """
-        Return ``True`` if this number is a integer
+        Return ``True`` if this number is a integer.
 
         EXAMPLES::
         
@@ -3732,7 +3778,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(0.1).is_integer()
             False
         """
-        return self in ZZ
+        return mpfr_integer_p(self.value) != 0
 
     def __nonzero__(self):
         """
@@ -4025,7 +4071,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         else:
             return bin_op(self, exponent, operator.pow)
 
-    def log(self, base='e'):
+    def log(self, base=None):
         """
         Return the logarithm of ``self`` to the ``base``.
 
@@ -4036,7 +4082,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             0.693147180559945
             sage: log(RR(2))
             0.693147180559945
-            sage: log(RR(2),e)
+            sage: log(RR(2), "e")
+            0.693147180559945
+            sage: log(RR(2), e)
             0.693147180559945
 
         ::
@@ -4059,11 +4107,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         cdef RealNumber x
         if self < 0:
-            if base is 'e':
+            if base is None or base == 'e':
                 return self._complex_number_().log()
             else:
                 return self._complex_number_().log(base)
-        if base == 'e':
+        if base is None or base == 'e':
             x = self._new()
             if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
             mpfr_log(x.value, self.value, (<RealField_class>self._parent).rnd)
@@ -4942,23 +4990,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_gamma(x.value, self.value, (<RealField_class>self._parent).rnd)
         if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
         return x
-
-    def lngamma(self):
-        r"""
-        This method is deprecated, please use :meth:`.log_gamma` instead.
-
-        See the :meth:`.log_gamma` method for documentation and examples.
-
-        EXAMPLES::
-
-            sage: RR(6).lngamma()
-            doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
-            See http://trac.sagemath.org/6992 for details.
-            4.78749174278205
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
-        return self.log_gamma()
 
     def log_gamma(self):
         """

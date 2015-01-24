@@ -230,6 +230,7 @@ class ComplexPlot(GraphicPrimitive):
         TESTS::
 
             sage: complex_plot(lambda x: x^2, (-5, 5), (-5, 5))
+            Graphics object consisting of 1 graphics primitive
         """
         options = self.options()
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
@@ -274,35 +275,43 @@ def complex_plot(f, xrange, yrange, **options):
     Here we plot a couple of simple functions::
 
         sage: complex_plot(sqrt(x), (-5, 5), (-5, 5))
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: complex_plot(sin(x), (-5, 5), (-5, 5))
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: complex_plot(log(x), (-10, 10), (-10, 10))
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: complex_plot(exp(x), (-10, 10), (-10, 10))
+        Graphics object consisting of 1 graphics primitive
 
     A function with some nice zeros and a pole::
 
         sage: f(z) = z^5 + z - 1 + 1/z
         sage: complex_plot(f, (-3, 3), (-3, 3))
+        Graphics object consisting of 1 graphics primitive
 
     Here is the identity, useful for seeing what values map to what colors::
 
         sage: complex_plot(lambda z: z, (-3, 3), (-3, 3))
+        Graphics object consisting of 1 graphics primitive
 
     The Riemann Zeta function::
 
         sage: complex_plot(zeta, (-30,30), (-30,30))
+        Graphics object consisting of 1 graphics primitive
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: complex_plot(lambda z: z, (-3, 3), (-3, 3), figsize=[1,1])
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
@@ -320,6 +329,10 @@ def complex_plot(f, xrange, yrange, **options):
         sage: R = complex_plot(h, (-10, 10), (-10, 10))
         sage: S = complex_plot(exp(x)-sin(x), (-10, 10), (-10, 10))
         sage: P; Q; R; S
+        Graphics object consisting of 1 graphics primitive
+        Graphics object consisting of 1 graphics primitive
+        Graphics object consisting of 1 graphics primitive
+        Graphics object consisting of 1 graphics primitive
 
     Test to make sure symbolic functions still work without declaring
     a variable.  (We don't do this in practice because it doesn't use
@@ -328,6 +341,7 @@ def complex_plot(f, xrange, yrange, **options):
     ::
 
         sage: complex_plot(sqrt, (-5, 5), (-5, 5))
+        Graphics object consisting of 1 graphics primitive
     """
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid

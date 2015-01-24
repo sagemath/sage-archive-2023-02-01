@@ -245,7 +245,7 @@ class Order(IntegralDomain):
 
             sage: k.<a> = NumberField(x^2 + 5077); G = k.class_group(); G
             Class group of order 22 with structure C22 of Number Field in a with defining polynomial x^2 + 5077
-            sage: G.0
+            sage: G.0 ^ -9
             Fractional ideal class (11, a + 7)
             sage: Ok = k.maximal_order(); Ok
             Maximal Order in Number Field in a with defining polynomial x^2 + 5077
@@ -683,14 +683,14 @@ class Order(IntegralDomain):
         """
         return self._K
 
-    def residue_field(self, prime, name = None, check = False):
+    def residue_field(self, prime, names=None, check=False):
         """
         Return the residue field of this order at a given prime, ie `O/pO`.
 
         INPUT:
 
         - ``prime`` -- a prime ideal of the maximal order in this number field.
-        - ``name`` -- the name of the variable in the residue field
+        - ``names`` -- the name of the variable in the residue field
         - ``check`` -- whether or not to check the primality of prime.
 
         OUTPUT:
@@ -705,11 +705,15 @@ class Order(IntegralDomain):
             sage: OK = K.maximal_order()
             sage: OK.residue_field(P)
             Residue field in abar of Fractional ideal (61, a^2 + 30)
+            sage: Fp.<b> = OK.residue_field(P)
+            sage: Fp
+            Residue field in b of Fractional ideal (61, a^2 + 30)
         """
         if self.is_maximal():
-            return self.number_field().residue_field(prime, name, check)
-        else:
-            raise NotImplementedError("Residue fields of non-maximal orders are not yet supported.")
+            return self.number_field().residue_field(prime, names, check)
+
+        raise NotImplementedError("Residue fields of non-maximal orders "
+                                  "are not yet supported.")
 
     def fraction_field(self):
         """

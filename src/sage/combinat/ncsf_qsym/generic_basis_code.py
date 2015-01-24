@@ -117,9 +117,9 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 assert len(rest) == 0
             else:
                 if len(rest) > 0 or isinstance(c, (int, Integer)):
-                    c = self._basis_keys([c] + list(rest))
+                    c = self._indices([c] + list(rest))
                 else:
-                    c = self._basis_keys(list(c))
+                    c = self._indices(list(c))
             return self.monomial(c)
 
         # could go to Algebras(...).Graded().Connected() or Modules(...).Graded().Connected()
@@ -297,7 +297,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 sage: elementary.sum_of_partition_rearrangements(Partition([]))
                 L[]
             """
-            return self.sum_of_monomials( self._basis_keys(comp) for comp in Permutations(par) )
+            return self.sum_of_monomials( self._indices(comp) for comp in Permutations(par) )
 
         def _comp_to_par(self, comp):
             """
@@ -994,7 +994,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
             2*Psi[] + 3*Psi[1, 1, 3, 3, 2, 2] + Psi[2, 2, 4, 4]
             sage: f.category()
-            Join of Category of hom sets in Category of modules with basis over Rational Field and Category of hom sets in Category of rings
+            Category of endsets of unital magmas and right modules over Rational Field and left modules over Rational Field
 
         When extra properties about the morphism are known, one
         can specify the category of which it is a morphism::
@@ -1006,7 +1006,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
             2*Psi[] - 3*Psi[1, 3, 2] + Psi[2, 4]
             sage: f.category()
-            Join of Category of hom sets in Category of modules with basis over Rational Field and Category of hom sets in Category of rings
+            Category of endsets of hopf algebras over Rational Field and graded modules over Rational Field
 
         If ``anti`` is true, this returns an anti-algebra morphism::
 
@@ -1016,8 +1016,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             sage: f(2*Psi[[]] + 3 * Psi[1,3,2] + Psi[2,4] )
             2*Psi[] + 3*Psi[2, 2, 3, 3, 1, 1] + Psi[4, 4, 2, 2]
             sage: f.category()
-            Category of hom sets in Category of modules with basis over Rational Field
-
+            Category of endsets of modules with basis over Rational Field
 
         TESTS::
 

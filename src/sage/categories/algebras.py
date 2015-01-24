@@ -63,12 +63,12 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
         EXAMPLES::
 
-            sage: QQ[x] in Algebras(QQ)
+            sage: QQ['x'] in Algebras(QQ)
             True
 
             sage: QQ^3 in Algebras(QQ)
             False
-            sage: QQ[x] in Algebras(CDF)
+            sage: QQ['x'] in Algebras(CDF)
             False
         """
         if super(Algebras, self).__contains__(x):
@@ -136,10 +136,9 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                 sage: C.extra_super_categories()
                 [Category of algebras over Rational Field]
                 sage: sorted(C.super_categories(), key=str)
-                [Category of Cartesian products of commutative additive groups,
-                 Category of Cartesian products of distributive magmas and additive magmas,
-                 Category of Cartesian products of semigroups,
-                 Category of Cartesian products of unital magmas,
+                [Category of Cartesian products of distributive magmas and additive magmas,
+                 Category of Cartesian products of monoids,
+                 Category of Cartesian products of vector spaces over Rational Field,
                  Category of algebras over Rational Field]
             """
             return [self.base_category()]
@@ -154,7 +153,8 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                 sage: Algebras(QQ).TensorProducts().extra_super_categories()
                 [Category of algebras over Rational Field]
                 sage: Algebras(QQ).TensorProducts().super_categories()
-                [Category of algebras over Rational Field]
+                [Category of algebras over Rational Field,
+                 Category of tensor products of vector spaces over Rational Field]
 
             Meaning: a tensor product of algebras is an algebra
             """

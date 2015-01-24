@@ -33,12 +33,14 @@ from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.all import PolynomialRing
 from sage.matrix.all import matrix
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
-include "sage/libs/flint/ntl_interface.pxd"
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
+from sage.libs.ntl.ntl_ZZ_decl cimport mpz_to_ZZ, ZZ_to_mpz
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.ntl_interface cimport *
 
 # variables for holding temporary values computed in
 # QuaternionAlgebraElement_rational_field._mul_()
@@ -1662,10 +1664,10 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         fmpz_poly_set_ZZX(self.z, (<NumberFieldElement>z).__numerator)
         fmpz_poly_set_ZZX(self.w, (<NumberFieldElement>w).__numerator)
 
-        ZZ_to_mpz(&T1, &(<NumberFieldElement>x).__denominator)
-        ZZ_to_mpz(&T2, &(<NumberFieldElement>y).__denominator)
-        ZZ_to_mpz(&t3, &(<NumberFieldElement>z).__denominator)
-        ZZ_to_mpz(&t4, &(<NumberFieldElement>w).__denominator)
+        ZZ_to_mpz(T1, &(<NumberFieldElement>x).__denominator)
+        ZZ_to_mpz(T2, &(<NumberFieldElement>y).__denominator)
+        ZZ_to_mpz(t3, &(<NumberFieldElement>z).__denominator)
+        ZZ_to_mpz(t4, &(<NumberFieldElement>w).__denominator)
 
         mpz_lcm(self.d, T1, T2)
         mpz_lcm(self.d, self.d, t3)
@@ -1723,7 +1725,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         else:
             raise IndexError, "quaternion element index out of range"
 
-        mpz_to_ZZ(&item.__denominator, &self.d)
+        mpz_to_ZZ(&item.__denominator, self.d)
 
         return item
 
@@ -1749,12 +1751,20 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         Add self and _right:
 
         EXAMPLES::
+
             sage: K.<a> = QQ[2^(1/3)]; Q.<i,j,k> = QuaternionAlgebra(K, -3, a)
             sage: z = a + i + (2/3)*a^3*j + (1+a)*k; w = a - i - (2/3)*a^3*j + (1/3+a)*k
             sage: type(z)
             <type 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_number_field'>
             sage: z._add_(w)
             2*a + (2*a + 4/3)*k
+
+        Check that the fix in :trac:`17099` is correct::
+
+            sage: K = NumberField(x**3 + x - 1, 'a')
+            sage: D.<i,j,k> = QuaternionAlgebra(K, -1, -3)
+            sage: j/3 + (2*j)/3 == j
+            True
         """
 
         #   Given two quaternion algebra elements
@@ -1803,13 +1813,9 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         mpz_mul(result.d, self.d, right.d)
 
-        self.canonicalize()
+        result.canonicalize()
 
         return result
-
-
-
-
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):
         """
@@ -1823,7 +1829,6 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
             <type 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_number_field'>
             sage: z._sub_(w)
             2*i + 8/3*j + 2/3*k
-
         """
         # Implementation Note: To obtain _sub_, we simply replace every occurrence of
         # "add" in _add_ with "sub"; that is, we s/add/sub to get _sub_
@@ -1858,7 +1863,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         mpz_mul(result.d, self.d, right.d)
 
-        self.canonicalize()
+        result.canonicalize()
 
         return result
 
@@ -1875,7 +1880,6 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
             sage: z._mul_(w)
             5*a^2 - 7/9*a + 9 + (-8/3*a^2 - 16/9*a)*i + (-6*a - 4)*j + (2*a^2 + 4/3*a)*k
         """
-
         # We use the following formula for multiplication:
         #
         #    Given two quaternion algebra elements
@@ -2005,7 +2009,7 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
 
         mpz_mul(result.d, self.d, right.d)
 
-        self.canonicalize()
+        result.canonicalize()
 
         return result
 

@@ -467,8 +467,8 @@ cdef class FastDoubleFunc:
         998.5
         sage: h.is_pure_c()
         False
-        sage: list(h)        # random address
-        ['load 0', 'push 1.5', 'py_call <function <lambda> at 0x9fedf70>(2)']
+        sage: list(h)
+        ['load 0', 'push 1.5', 'py_call <function <lambda> at 0x...>(2)']
 
     Here's a more complicated expression:
         sage: from sage.ext.fast_eval import fast_float_constant, fast_float_arg
@@ -1310,8 +1310,8 @@ def fast_float_func(f, *args):
         -5.0
 
     This is all that goes on under the hood:
-        sage: h.op_list() # random memory address
-        ['load 0', 'load 1', 'py_call <function <lambda> at 0xb62b230>(2)']
+        sage: h.op_list()
+        ['load 0', 'load 1', 'py_call <function <lambda> at 0x...>(2)']
     """
     return FastDoubleFunc('callable', f, *args)
 

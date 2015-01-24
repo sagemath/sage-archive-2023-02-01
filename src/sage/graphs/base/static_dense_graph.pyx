@@ -41,7 +41,7 @@ Functions
 ---------
 """
 
-cdef dict dense_graph_init(binary_matrix_t m, g, translation = False):
+cdef dict dense_graph_init(binary_matrix_t m, g, translation=False):
     r"""
     Initializes the binary matrix from a Sage (di)graph.
 

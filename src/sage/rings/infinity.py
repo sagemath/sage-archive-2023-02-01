@@ -443,6 +443,17 @@ class AnInfinity(object):
             Traceback (most recent call last):
             ...
             SignError: cannot multiply infinity by zero
+
+        Check that :trac:`14857` is fixed::
+
+            sage: infinity / unsigned_infinity
+            Traceback (most recent call last):
+            ...
+            ValueError: unsigned oo times smaller number not defined
+            sage: SR(infinity) / unsigned_infinity
+            Traceback (most recent call last):
+            ...
+            ValueError: unsigned oo times smaller number not defined
         """
         return self * ~other
 

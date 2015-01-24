@@ -10,14 +10,11 @@ AUTHOR:
 
 import sys
 
-cdef extern from "gmp.h":
-    ctypedef void* mpz_t
+from sage.libs.gmp.types cimport mpz_t
 
 cdef extern from "partitions_c.h":
     int part(mpz_t answer, unsigned int n)
     int test(bint longtest, bint forever)
-
-#from libc.stdlib cimport malloc, free
 
 include "sage/ext/interrupt.pxi"
 

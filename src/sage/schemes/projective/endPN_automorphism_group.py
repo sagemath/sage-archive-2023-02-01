@@ -933,8 +933,8 @@ def field_descent(sigma, y):
 
     K = F.prime_subfield()
     R = PolynomialRing(K,'X')
-    f = R(sigma(a).polynomial().coeffs())
-    g = R(y.polynomial().coeffs())
+    f = R(sigma(a).polynomial().coefficients(sparse=False))
+    g = R(y.polynomial().coefficients(sparse=False))
 
     x = F(0)
     quotient, remainder = g.quo_rem(f)
@@ -1044,8 +1044,8 @@ def rational_function_coerce(rational_function, sigma, S_polys):
     else:
         R = rational_function.parent()
 
-    f = R(rational_function.numerator()).coeffs()
-    g = R(rational_function.denominator()).coeffs()
+    f = R(rational_function.numerator()).coefficients(sparse=False)
+    g = R(rational_function.denominator()).coefficients(sparse=False)
 
     if g == [R(1)]:
         return S_polys([sigma(a) for a in f]) # allows for coercion of polynomials
@@ -1222,7 +1222,7 @@ def automorphism_group_FF_alg2(rational_function):
             infinity_check = 1
         # Infinity is not a fixed point
         else:
-            C = minimal_fix_poly.coeffs()
+            C = minimal_fix_poly.coefficients(sparse=False)
             preimage = C[2]*f(z)**2 + C[1]*f(z)*g(z) + C[0]*g(z)**2
             infinity_check = bool(preimage.degree() < 2*D)
 

@@ -3123,8 +3123,11 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             sage: H = End(R)
             sage: f=H([x^2+25*x*y+y^2,x*y+3*y^2])
             sage: f.automorphism_group(absolute=True)
-            [Univariate Polynomial Ring in w over Finite Field in b of size 3^4, [[1 0]
-            [0 1]]]
+            [Univariate Polynomial Ring in w over Finite Field in b of size 3^4,
+             [
+            [1 0]
+            [0 1]
+            ]]
         """
         absolute=kwds.get('absolute',False)
         iso_type=kwds.get('iso_type',False)

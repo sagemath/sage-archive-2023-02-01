@@ -422,9 +422,10 @@ def CRT_helper(automorphisms, moduli):
 
         sage: from sage.schemes.projective.endPN_automorphism_group import CRT_helper
         sage: CRT_helper([[matrix([[4,0],[0,1]]), matrix([[0,1],[1,0]])]],[5])
-        ([[4 0]
-        [0 1], [0 1]
-        [1 0]], 5)
+        ([
+        [4 0]  [0 1]
+        [0 1], [1 0]
+        ], 5)
     """
     if len(automorphisms) > 2:
         temp, modulus = CRT_helper(
@@ -478,8 +479,10 @@ def CRT_automorphisms(automorphisms, order_elts, degree, moduli):
         sage: mods = [5]
         sage: from sage.schemes.projective.endPN_automorphism_group import CRT_automorphisms
         sage: CRT_automorphisms(aut,ords,degree,mods)
-        ([[0 1]
-        [1 0]], 5)
+        ([
+        [0 1]
+        [1 0]
+        ], 5)
     """
     # restrict to automorphisms of degree `degree`
     degree_d_autos = []
@@ -576,15 +579,10 @@ def remove_redundant_automorphisms(automorphisms, order_elts, moduli,integral_au
         sage: R.<x> = PolynomialRing(QQ)
         sage: int_auts = [-1/x]
         sage: from sage.schemes.projective.endPN_automorphism_group import remove_redundant_automorphisms
-        sage: remove_redundant_automorphisms(auts, ord_elts, mods, int_auts)
-        [[[1 0]
-        [0 1], [6 0]
-        [0 1], [0 1]
-        [1 0], [6 1]
-        [1 1], [1 1]
-        [1 6], [1 6]
-        [1 1], [6 6]
-        [1 6]]]
+        [[
+        [1 0]  [6 0]  [0 1]  [6 1]  [1 1]  [1 6]  [6 6]
+        [0 1], [0 1], [1 0], [1 1], [1 6], [1 1], [1 6]
+        ]]
     """
     to_del = []
 

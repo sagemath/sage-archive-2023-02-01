@@ -1136,6 +1136,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            much faster if ``use_eclib=False``, though evaluation of
            it after computing it won't be any faster.
 
+        .. SEEALSO::
+
+            :meth:`modular_symbol_numerical`
+
         EXAMPLES::
 
             sage: E=EllipticCurve('37a1')
@@ -1241,13 +1245,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # all equivalent?
             t = Cusps(tau)
             M = []
-            b, m = t.is_gamma0_equiv(p*tau, N, transformation='matrix')
+            b, m = t.is_gamma0_equiv(p * tau, N, transformation='matrix')
             if not b:
                 continue
             M.append(m)
             good = True
             for j in range(p):
-                b, m = t.is_gamma0_equiv((tau+j)/p, N, transformation='matrix')
+                b, m = t.is_gamma0_equiv((tau + j) / p, N,
+                                         transformation='matrix')
                 if not b:
                     good = False
                     break
@@ -1262,7 +1267,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         Return the modular symbol as a numerical function.
 
-        .. note::
+        .. NOTE::
 
             This method does not compute spaces of modular symbols, so
             it is suitable for curves of larger conductor than can be
@@ -1289,10 +1294,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         lam = self.period_lattice().basis(prec=prec)
         if sign == 1:
             P = lam[0].real()
-            return lambda a: self._modsym(a, prec).real()/P
+            return lambda a: self._modsym(a, prec).real() / P
         else:
             P = lam[1].imag()
-            return lambda a: self._modsym(a, prec).imag()/P
+            return lambda a: self._modsym(a, prec).imag() / P
 
     padic_lseries = padics.padic_lseries
 

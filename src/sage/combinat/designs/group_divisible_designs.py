@@ -83,9 +83,11 @@ def group_divisible_design(v,K,G,existence=False,check=False):
     if (len(G) == 1 and
         len(K) == 1 and
         G[0]+1 in K):
+        from bibd import balanced_incomplete_block_design
+        k = K[0]
         if existence:
-            return balanced_incomplete_block_design(v+1,K[0],existence=True)
-        BIBD = balanced_incomplete_block_design(v+1,K[0],check=False)
+            return balanced_incomplete_block_design(v+1,k,existence=True)
+        BIBD = balanced_incomplete_block_design(v+1,k)
         groups = [[x for x in S if x!=v] for S in BIBD if v in S]
         d = {p:i for i,p in enumerate(sum(groups,[]))}
         d[v]=v
@@ -101,6 +103,13 @@ def group_divisible_design(v,K,G,existence=False,check=False):
         if existence:
             return True
         return GDD_4_2(v//2,check=check)
+
+    # From a TD(k,g)
+    elif (len(G)    == 1 and
+          len(K)    == 1 and
+          K[0]*G[0] == v):
+        from orthogonal_arrays import transversal_design
+        return transversal_design(k=K[0],n=G[0],existence=existence)
 
     if blocks:
         return GroupDivisibleDesign(v,

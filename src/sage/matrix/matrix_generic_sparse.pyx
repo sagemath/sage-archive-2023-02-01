@@ -142,6 +142,26 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             sage: M3 = M2.change_ring(R2.fraction_field())
             sage: M3.has_coerce_map_from(M2)
             True
+
+
+        Check that it is not possible to use wrong indices::
+
+            sage: M = MatrixSpace(R,2,2,sparse=True)
+            sage: M({(3,0): 1})
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix indices (3, 0) out of range
+
+            sage: M({(0,-3): 1})
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix indices (0, -3) out of range
+
+        But negative indices are valid::
+
+            sage: M({(-1,-1): 1})
+            [0 0]
+            [0 1]
         """
         matrix.Matrix.__init__(self, parent)
         R = self._base_ring
@@ -176,16 +196,40 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         if coerce:
             v = {}
             for key, x in entries.iteritems():
+                i,j = key
+                if i < 0: i += self._nrows
+                if j < 0: j += self._ncols
+                if (i < 0 or i >= self._nrows or j < 0 or j >= self._ncols):
+                    raise IndexError("matrix indices {} out of range".format(key))
                 w = R(x)
                 if w:
-                    i,j = key
                     v[(i,j)] = w
             entries = v
         else:
+            # Here we do not pay attention to the indices. We just check that it
+            # *converts* to a pair of Py_ssize_t. In particular it is possible
+            # to do:
+            #
+            #    sage: R = QQ['a','b']
+            #    sage: M = MatrixSpace(R, 3, 3, sparse=True)
+            #    sage: m = M({(Zmod(3)(1), Zmod(6)(2)): R.one()}, coerce=False)
+            #
+            #  and this is bad since:
+            #
+            #    sage: map(type,m.dict().keys()[0])
+            #    [<type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>,
+            #     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>]
+            #
+            # But not that setting coerce=False is advanced usage and we assume
+            # that in such case the user knows what he/she is doing.
             if copy:
-                # Make a copy
                 entries = entries.copy()
             for key in entries.keys():
+                i,j = key
+                if i < 0: i += self._nrows
+                if j < 0: j += self._ncols
+                if (i < 0 or i >= self._nrows or j < 0 or j >= self._ncols):
+                    raise IndexError("matrix indices {} out of range".format(key))
                 if not entries[key]:
                     del entries[key]
 

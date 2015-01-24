@@ -24,7 +24,7 @@ The main function of this module is
     :func:`kirkman_triple_system` | Return a Kirkman Triple System on `v` points.
     :func:`v_4_1_rbibd` | Return a `(v,4,1)`-RBIBD
     :func:`PBD_4_7` | Return a `(v,\{4,7\})`-PBD
-    :func:`PBD_4_7_from_Y` | Return a `(3v+1,\{4,7\})`-PBD from a `(v,\{4,5,7\},\N-\{3,6,10\})`-GDD.
+    :func:`PBD_4_7_from_Y` | Return a `(3v+1,\{4,7\})`-PBD from a `(v,\{4,5,7\},\NN-\{3,6,10\})`-GDD.
 
 References:
 
@@ -667,12 +667,12 @@ def PBD_4_7(v,check=True, existence=False):
 
 def PBD_4_7_from_Y(gdd,check=True):
     r"""
-    Return a `(3v+1,\{4,7\})`-PBD from a `(v,\{4,5,7\},\N-\{3,6,10\})`-GDD.
+    Return a `(3v+1,\{4,7\})`-PBD from a `(v,\{4,5,7\},\NN-\{3,6,10\})`-GDD.
 
     This implements Lemma IX.3.11 from [BJL99]_ (p.625). All points of the GDD
     are tripled, and a `+\infty` point is added to the design.
 
-    - A group of size `s\in Y=\N-\{3,6,10\}` becomes a set of size `3s`. Adding
+    - A group of size `s\in Y=\NN-\{3,6,10\}` becomes a set of size `3s`. Adding
       `\infty` to it gives it size `3s+1`, and this set is then replaced by a
       `(3s+1,\{4,7\})`-PBD.
 
@@ -683,7 +683,7 @@ def PBD_4_7_from_Y(gdd,check=True):
 
     INPUT:
 
-    - ``gdd`` -- a `(v,\{4,5,7\},Y)`-GDD where `Y=\N-\{3,6,10\}`.
+    - ``gdd`` -- a `(v,\{4,5,7\},Y)`-GDD where `Y=\NN-\{3,6,10\}`.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious

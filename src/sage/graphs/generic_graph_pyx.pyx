@@ -1321,8 +1321,7 @@ def transitive_reduction_acyclic(G):
         for vv in G.neighbors_out(uu):
             v = v_to_int[vv]
             binary_matrix_set1(closure, u, v)
-            for i in range(closure.width):
-                closure.rows[u][i] |= closure.rows[v][i]
+        bitset_or(closure.rows+u, closure.rows+u, closure.rows+v)
 
     # Build the transitive reduction of G
     #
@@ -1334,8 +1333,7 @@ def transitive_reduction_acyclic(G):
         u = v_to_int[uu]
         for vv in G.neighbors_out(uu):
             v = v_to_int[vv]
-            for i in range(closure.width):
-                closure.rows[u][i] &= ~closure.rows[v][i]
+        bitset_difference(closure.rows+u, closure.rows+u, closure.rows+v)
         for vv in G.neighbors_out(uu):
             v = v_to_int[vv]
             if binary_matrix_get(closure, u, v):

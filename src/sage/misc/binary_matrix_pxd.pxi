@@ -1,6 +1,8 @@
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/cdefs.pxi'
-include 'sage/data_structures/bitset_t.pxi'
+
+cimport sage.data_structures.bitset
+from sage.data_structures.bitset cimport bitset_s
 
 cdef extern from *:
     int __builtin_popcountl(unsigned long)

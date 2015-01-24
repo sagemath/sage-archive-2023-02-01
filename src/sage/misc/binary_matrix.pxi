@@ -17,7 +17,9 @@ a ``binary_matrix_t`` structure contains :
   containing the bits of row `i`.
 
 """
-include "binary_matrix_pxd.pxi"
+#include "binary_matrix_pxd.pxi"
+from sage.misc.binary_matrix cimport *
+include 'sage/data_structures/bitset.pxi'
 
 cdef inline binary_matrix_init(binary_matrix_t m, long n_rows, long n_cols):
     r"""
@@ -82,8 +84,10 @@ cdef inline binary_matrix_set(binary_matrix_t m, long row, long col, bint value)
     r"""
     Sets an entry
     """
-    binary_matrix_set0(m,row,col)
-    m.rows[row][col >> index_shift] |= (<unsigned long>1) << (value & offset_mask)
+    if value:
+        binary_matrix_set1(m,row,col)
+    else:
+        binary_matrix_set0(m,row,col)
 
 cdef inline bint binary_matrix_get(binary_matrix_t m, long row, long col):
     r"""
@@ -102,6 +106,6 @@ cdef inline binary_matrix_print(binary_matrix_t m):
         # use the following line instead
         #
         # for j in (m.width*8*sizeof(unsigned long)):
-        for j in from 0 <= j < m.n_cols:
+        for j from 0 <= j < m.n_cols:
             sys.stdout.write("1" if binary_matrix_get(m, i, j) else ".",)
         print ""

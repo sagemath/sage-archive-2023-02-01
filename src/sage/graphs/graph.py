@@ -6461,11 +6461,11 @@ class Graph(GenericGraph):
         r"""
         Tests whether the current graph is prime. A graph is prime if
         all its modules are trivial (i.e. empty, all of the graph or
-        singletons)-- see `self.modular_decomposition?`.
+        singletons)-- see ``self.modular_decomposition?``.
 
         EXAMPLE:
 
-        The Petersen Graph and the Bull Graph are both prime ::
+        The Petersen Graph and the Bull Graph are both prime::
 
             sage: graphs.PetersenGraph().is_prime()
             True

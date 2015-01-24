@@ -1,5 +1,6 @@
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/cdefs.pxi'
+include 'sage/data_structures/bitset_t.pxi'
 
 cdef extern from *:
     int __builtin_popcountl(unsigned long)
@@ -18,7 +19,7 @@ cdef struct binary_matrix_s:
     # Number of "unsigned long" per row
     long width
 
-    unsigned long ** rows
-
+    bitset_s * rows
+    
 ctypedef binary_matrix_s[1] binary_matrix_t
 

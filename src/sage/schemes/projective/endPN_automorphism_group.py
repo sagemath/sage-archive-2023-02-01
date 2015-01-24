@@ -579,6 +579,7 @@ def remove_redundant_automorphisms(automorphisms, order_elts, moduli,integral_au
         sage: R.<x> = PolynomialRing(QQ)
         sage: int_auts = [-1/x]
         sage: from sage.schemes.projective.endPN_automorphism_group import remove_redundant_automorphisms
+        sage: remove_redundant_automorphisms(auts, ord_elts, mods, int_auts)
         [[
         [1 0]  [6 0]  [0 1]  [6 1]  [1 1]  [1 6]  [6 6]
         [0 1], [0 1], [1 0], [1 1], [1 6], [1 1], [1 6]

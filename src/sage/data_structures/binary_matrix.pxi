@@ -17,7 +17,7 @@ a ``binary_matrix_t`` structure contains :
   containing the bits of row `i`.
 
 """
-from sage.misc.binary_matrix cimport *
+from sage.data_structures.binary_matrix cimport *
 include 'sage/data_structures/bitset.pxi'
 
 cdef inline binary_matrix_init(binary_matrix_t m, long n_rows, long n_cols):

@@ -1,5 +1,5 @@
 from libc.stdint cimport uint32_t, uint64_t
-from sage.misc.binary_matrix cimport *
+from sage.data_structures.binary_matrix cimport *
 
 
 cdef class IndependentSets:

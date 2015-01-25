@@ -18,7 +18,7 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
-include "sage/misc/binary_matrix.pxi"
+include "sage/data_structures/binary_matrix.pxi"
 
 # import from Python standard library
 from sage.misc.prandom import random

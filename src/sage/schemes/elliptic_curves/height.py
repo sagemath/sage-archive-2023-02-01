@@ -55,8 +55,6 @@ from sage.ext.fast_callable import fast_callable
 from sage.functions.log import log, exp
 from sage.symbolic.all import SR
 
-from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
-
 class UnionOfIntervals:
     r"""
     A class representing a finite union of closed intervals in
@@ -1704,6 +1702,8 @@ class EllipticCurveCanonicalHeight:
             sage: H.complex_intersection_is_empty([H.B(n,0.03) for n in [1..6]],v)
             True
         """
+        from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
+
         b2 = v(self.E.b2())
         # Note that we normalise w1, w2 differently from [TT]_!
         w2, w1 = self.E.period_lattice(v).normalised_basis()

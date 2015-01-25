@@ -21,7 +21,6 @@ class HyperbolicFunction(BuiltinFunction):
         sage: f(x)._mathematica_init_()
         'Foo[x]'
     """
-    _eval_ = BuiltinFunction._eval_default
     def __init__(self, name, latex_name=None, conversions=None,
             evalf_float=None):
         """
@@ -540,8 +539,18 @@ class Function_arccoth(HyperbolicFunction):
             0.402359478108525 - 0.553574358897045*I
             sage: arccoth(2).n(200)
             0.54930614433405484569762261846126285232374527891137472586735
-            sage: float(arccoth(2))
+
+        Using first the `.n(53)` method is slightly more precise than
+        converting directly to a ``float``::
+
+            sage: float(arccoth(2))  # abs tol 1e-16
+            0.5493061443340548
+            sage: float(arccoth(2).n(53))   # Correct result to 53 bits
             0.5493061443340549
+            sage: float(arccoth(2).n(100))  # Compute 100 bits and then round to 53
+            0.5493061443340549
+
+        TESTS::
 
             sage: latex(arccoth(x))
             {\rm arccoth}\left(x\right)

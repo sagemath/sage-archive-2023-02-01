@@ -152,19 +152,6 @@ cdef extern from "descrobject.h":
     void* PyCFunction_GET_FUNCTION(object)
     bint PyCFunction_Check(object)
 
-cdef extern from *:
-    Py_ssize_t PyDict_Size(object)
-    Py_ssize_t PyTuple_GET_SIZE(object)
-
-    ctypedef class __builtin__.dict [object PyDictObject]:
-        cdef Py_ssize_t ma_fill
-        cdef Py_ssize_t ma_used
-
-    void* PyDict_GetItem(object, object)
-
-cdef inline Py_ssize_t PyDict_GET_SIZE(o):
-    return (<dict>o).ma_used
-
 ###############################################################################
 #       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2008 Burcin Erocal   <burcin@erocal.org>
@@ -510,6 +497,7 @@ cdef class Parent(category_object.CategoryObject):
         # needs to be erased now.
         try:
             self.__dict__.__delitem__('element_class')
+            self.__dict__.__delitem__('_abstract_element_class')
         except (AttributeError, KeyError):
             pass
         if debug.refine_category_hash_check and hash_old != hash(self):
@@ -578,6 +566,30 @@ cdef class Parent(category_object.CategoryObject):
             while issubclass(self.__class__, Sets_parent_class):
                 self.__class__ = self.__class__.__base__
 
+    @lazy_attribute
+    def _abstract_element_class(self):
+        """
+        An abstract class for the elements of this parent.
+
+        By default, this is the element class provided by the category
+        of the parent.
+
+        .. SEEALSO::
+
+            - :meth:`sage.categories.homset.Homset._abstract_element_class`
+            - :meth:`element_class`
+            - :meth:`Element.__getattr__`
+
+        EXAMPLES::
+
+            sage: S = Semigroups().example()
+            sage: S.category()
+            Category of semigroups
+            sage: S._abstract_element_class
+            <class 'sage.categories.semigroups.Semigroups.element_class'>
+        """
+        return self.category().element_class
+
     # This probably should go into Sets().Parent
     @lazy_attribute
     def element_class(self):
@@ -609,7 +621,7 @@ cdef class Parent(category_object.CategoryObject):
         if inherit is None:
             inherit = not is_extension_type(cls)
         if inherit:
-            return dynamic_class(name, (cls, self.category().element_class))
+            return dynamic_class(name, (cls, self._abstract_element_class))
         else:
             return cls
 
@@ -1077,7 +1089,7 @@ cdef class Parent(category_object.CategoryObject):
                 raise NotImplementedError
         cdef Py_ssize_t i
         cdef R = parent_c(x)
-        cdef bint no_extra_args = PyTuple_GET_SIZE(args) == 0 and PyDict_GET_SIZE(kwds) == 0
+        cdef bint no_extra_args = len(args) == 0 and len(kwds) == 0
         if R is self and no_extra_args:
             return x
 
@@ -2607,11 +2619,15 @@ cdef class Parent(category_object.CategoryObject):
                 raise TypeError("_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
         if not PY_TYPE_CHECK(S, type) and not PY_TYPE_CHECK(S, Parent):
-            # Sequences is used as a category and a "Parent"
+            # Sequences is not a Parent but a category!! As we would like to
+            # consider them as a parent we consider a workaround by using
+            # Set_PythonType from sage.structure.parent
             from sage.categories.category_types import Sequences
             from sage.structure.coerce_maps import ListMorphism
             if isinstance(S, Sequences):
-                return ListMorphism(S, self.convert_map_from(list))
+                from sage.structure.sequence import Sequence_generic
+                SS = Set_PythonType(Sequence_generic)
+                return ListMorphism(SS, self.convert_map_from(list))
 
         mor = self._generic_convert_map(S)
         return mor
@@ -3012,6 +3028,24 @@ cpdef Parent Set_PythonType(theType):
         return theSet
 
 cdef class Set_PythonType_class(Set_generic):
+    r"""
+    The set of Python objects of a given type.
+
+    EXAMPLES::
+
+        sage: S = sage.structure.parent.Set_PythonType(int)
+        sage: S
+        Set of Python objects of type 'int'
+        sage: int('1') in S
+        True
+        sage: Integer('1') in S
+        False
+
+        sage: sage.structure.parent.Set_PythonType(2)
+        Traceback (most recent call last):
+        ...
+        TypeError: must be intialized with a type, not 2
+    """
 
     cdef _type
 
@@ -3023,8 +3057,22 @@ cdef class Set_PythonType_class(Set_generic):
             sage: S.category()
             Category of sets
         """
+        if not isinstance(theType, type):
+            raise TypeError("must be intialized with a type, not %r" % theType)
         Set_generic.__init__(self, element_constructor=theType, category=Sets())
         self._type = theType
+
+    def __reduce__(self):
+        r"""
+        Pickling support
+
+        TESTS::
+
+            sage: S = sage.structure.parent.Set_PythonType(object)
+            sage: loads(dumps(S))
+            Set of Python objects of type 'object'
+        """
+        return Set_PythonType, (self._type,)
 
     def __call__(self, x):
         """

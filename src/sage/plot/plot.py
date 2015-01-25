@@ -97,24 +97,33 @@ We draw a circle and a curve::
     sage: circle((1,1), 1) + plot(x^2, (x,0,5))
     Graphics object consisting of 2 graphics primitives
 
-Notice that the aspect ratio of the above plot makes the plot very tall because
-the plot adopts the default aspect ratio of the circle (to make the circle appear
-like a circle).  We can change the aspect ratio to be what we normally expect for a plot
-by explicitly asking for an 'automatic' aspect ratio::
+Notice that the aspect ratio of the above plot makes the plot very tall
+because the plot adopts the default aspect ratio of the circle (to make
+the circle appear like a circle).  We can change the aspect ratio to be
+what we normally expect for a plot by explicitly asking for an
+'automatic' aspect ratio::
 
     sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), aspect_ratio='automatic')
 
-The aspect ratio describes the apparently height/width ratio of a unit square.  If you want the vertical units to be twice as big as the horizontal units, specify an aspect ratio of 2::
+The aspect ratio describes the apparently height/width ratio of a unit
+square.  If you want the vertical units to be twice as big as the
+horizontal units, specify an aspect ratio of 2::
 
     sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), aspect_ratio=2)
 
-The ``figsize`` option adjusts the figure size.  The default figsize is 4.  To make a figure that is roughly twice as big, use ``figsize=8``::
+The ``figsize`` option adjusts the figure size.  The default figsize is
+4.  To make a figure that is roughly twice as big, use ``figsize=8``::
 
     sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), figsize=8)
 
-You can also give separate horizontal and vertical dimensions::
+You can also give separate horizontal and vertical dimensions.  Both
+will be measured in inches::
 
     sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), figsize=[4,8])
+
+However, do not make the figsize too big (e.g. one dimension greater
+than 327 or both in the mid-200s) as this will lead to errors or crashes.
+See :meth:`~sage.plot.graphics.Graphics.show` for full details.
 
 Note that the axes will not cross if the data is not on both sides of
 both axes, even if it is quite close::
@@ -655,13 +664,17 @@ def plot(funcs, *args, **kwds):
       to logarithmic scale. The ``"linear"`` scale is the default value
       when :class:`~sage.plot.graphics.Graphics` is initialized.
 
-    - ``xmin`` - starting x value
+    - ``xmin`` - starting x value in the rendered figure. This parameter is
+      passed directly to the ``show`` procedure and it could be overwritten.
 
-    - ``xmax`` - ending x value
+    - ``xmax`` - ending x value in the rendered figure. This parameter is passed
+      directly to the ``show`` procedure and it could be overwritten.
 
-    - ``ymin`` - starting y value in the rendered figure
+    - ``ymin`` - starting y value in the rendered figure. This parameter is
+      passed directly to the ``show`` procedure and it could be overwritten.
 
-    - ``ymax`` - ending y value in the rendered figure
+    - ``ymax`` - ending y value in the rendered figure. This parameter is passed
+      directly to the ``show`` procedure and it could be overwritten.
 
     - ``color`` - an RGB tuple (r,g,b) with each of r,g,b between 0 and 1,
       or a color name as a string (e.g., 'purple'), or an HTML color
@@ -965,6 +978,20 @@ def plot(funcs, *args, **kwds):
         sage: P          # show the result
         Graphics object consisting of 2 graphics primitives
 
+    It is important to mention that when we draw several graphs at the same time,
+    parameters ``xmin``, ``xmax``, ``ymin`` and ``ymax`` are just passed directly
+    to the ``show`` procedure. In fact, these parameters would be overwritten::
+
+        sage: p=plot(x^3, x, xmin=-1, xmax=1,ymin=-1, ymax=1)
+        sage: q=plot(exp(x), x, xmin=-2, xmax=2, ymin=0, ymax=4)
+        sage: (p+q).show()
+
+    As a workaround, we can perform the trick::
+
+        sage: p1 = line([(a,b) for a,b in zip(p[0].xdata,p[0].ydata) if (b>=-1 and b<=1)])
+        sage: q1 = line([(a,b) for a,b in zip(q[0].xdata,q[0].ydata) if (b>=0 and b<=4)])
+        sage: (p1+q1).show()
+
     We can also directly plot the elliptic curve::
 
         sage: E = EllipticCurve([0,-1])
@@ -1006,15 +1033,22 @@ def plot(funcs, *args, **kwds):
         Graphics object consisting of 1 graphics primitive
         sage: set_verbose(0)
 
-    To plot the negative real cube root, use something like the following::
+    Plotting the real cube root function for negative input
+    requires avoiding the complex numbers one would usually get.
+    The easiest way is to use absolute value::
 
-        sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1))
+        sage: plot(sign(x)*abs(x)^(1/3), (x,-1,1))
         Graphics object consisting of 1 graphics primitive
 
-    Another way to avoid getting complex numbers for negative input is to
-    calculate for the positive and negate the answer::
+    We can also use the following::
 
-        sage: plot(sign(x)*abs(x)^(1/3),-1,1)
+        sage: plot(sign(x)*(x*sign(x))^(1/3), (x,-4,4))
+        Graphics object consisting of 1 graphics primitive
+
+    A way that points to how to plot other functions without
+    symbolic variants is using lambda functions::
+
+        sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1))
         Graphics object consisting of 1 graphics primitive
 
     We can detect the poles of a function::
@@ -2314,9 +2348,10 @@ def reshape(v, n, m):
         sage: graphics_array(L,0,-1) # indirect doctest
         Traceback (most recent call last):
         ...
-        AssertionError: array sizes must be positive
+        ValueError: array sizes must be positive
     """
-    assert n>0 and m>0, 'array sizes must be positive'
+    if not (n > 0 and m > 0):
+        raise ValueError('array sizes must be positive')
     G = Graphics()
     G.axes(False)
     if len(v) == 0:

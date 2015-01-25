@@ -155,7 +155,6 @@ cimport numpy
 from math import fabs
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 
 from sage.libs.mpfr cimport *
 
@@ -1573,7 +1572,7 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
             sage: bp2
             <IBP: (-0.369375, -0.45125, -0.3275, 0.14500000000000002, 0.99) + [-0.1 .. 0.01] over [1/2 .. 1]>
             sage: bp1, bp2, ok = bp.de_casteljau(ctx, 2/3)
-            sage: bp1
+            sage: bp1 # rel tol 2e-16
             <IBP: (0.5, 0.30000000000000004, -0.2555555555555555, -0.5444444444444444, -0.32172839506172846) + [-0.1 .. 0.01] over [0 .. 2/3]>
             sage: bp2  # rel tol 3e-15
             <IBP: (-0.32172839506172846, -0.21037037037037046, 0.028888888888888797, 0.4266666666666666, 0.99) + [-0.1 .. 0.01] over [2/3 .. 1]>

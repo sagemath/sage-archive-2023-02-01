@@ -280,14 +280,14 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         ([1, 1, 1, 1, 1, 1], -5.378832842208748)
         sage: m.baum_welch([0,1,0,1,0,1])
         (0.0, 22)
-        sage: m
+        sage: m  # rel tol 1e-10
         Discrete Hidden Markov Model with 2 States and 2 Emissions
         Transition matrix:
-        [1.0134345614...e-70               1.0]
-        [              1.0 3.997435271...e-19]
+        [1.0134345614745788e-70                    1.0]
+        [                   1.0 3.9974352713558623e-19]
         Emission matrix:
-        [7.3802215662...e-54               1.0]
-        [              1.0  3.99743526...e-19]
+        [ 7.380221566254936e-54                    1.0]
+        [                   1.0 3.9974352626002193e-19]
         Initial probabilities: [0.0000, 1.0000]
         sage: m.sample(10)
         [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
@@ -1236,7 +1236,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             [0.2 0.8]
             sage: m = hmm.DiscreteHiddenMarkovModel([[0.1,0.9],[0.9,0.1]], [[.5,.5],[.2,.8]], [.2,.8])
             sage: m.baum_welch(v)
-            (-66.7823606592935..., 100)
+            (-66.782360659293..., 100)
             sage: m.emission_matrix()  # rel tol 1e-14
             [ 0.5303085748626447 0.46969142513735535]
             [ 0.2909775550173978  0.7090224449826023]

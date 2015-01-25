@@ -36,7 +36,7 @@ from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 from cpython.string cimport *
 
 # for details about the implementation of hamming_weight_int,
@@ -555,11 +555,11 @@ cdef class BooleanFunction(SageObject):
             ...
             ValueError: unknown output format
         """
-        if format is 'bin':
+        if format == 'bin':
             return tuple(self)
-        if format is 'int':
+        if format == 'int':
             return tuple(map(int,self))
-        if format is 'hex':
+        if format == 'hex':
             S = ""
             S = ZZ(self.truth_table(),2).str(16)
             S = "0"*((1<<(self._nvariables-2)) - len(S)) + S

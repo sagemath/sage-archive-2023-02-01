@@ -5174,7 +5174,7 @@ def _nonnegative_coefficients(x):
         False
     """
     if is_Polynomial(x) or is_MPolynomial(x):
-        return all([ c >= 0 for c in x.coeffs() ])
+        return all([ c >= 0 for c in x.coefficients(sparse=False) ])
     else:
         return x >= 0
 

@@ -3143,7 +3143,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpf('-1.5')
         """
         if prec is not None:
-            return self.n(prec=prec)._mpmath_()
+            return RealField(prec)(self)._mpmath_()
         from sage.libs.mpmath.all import make_mpf
         return make_mpf(mpfr_to_mpfval(self.value))
 
@@ -5383,6 +5383,47 @@ cdef class RealLiteral(RealNumber):
             return RealLiteral(self._parent, self.literal[1:], self.base)
         else:
             return RealLiteral(self._parent, '-'+self.literal, self.base)
+
+    def _numerical_approx(self, prec=53, algorithm=None):
+        """
+        Convert ``self`` to a ``RealField`` with ``prec`` bits of
+        precision.
+
+        INPUT:
+
+        - ``prec`` -- (default: 53) a precision in bits
+
+        - ``algorithm`` -- ignored
+
+        OUTPUT:
+
+        A ``RealNumber`` with ``prec`` bits of precision.
+
+        EXAMPLES::
+
+            sage: (1.3)._numerical_approx()
+            1.30000000000000
+            sage: n(1.3, 120)
+            1.3000000000000000000000000000000000
+
+        Compare with::
+
+            sage: RealField(120)(RR(13/10))
+            1.3000000000000000444089209850062616
+            sage: n(RR(13/10), 120)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot approximate to a precision of 120 bits, use at most 53 bits
+
+        The result is a non-literal::
+
+            sage: type(1.3)
+            <type 'sage.rings.real_mpfr.RealLiteral'>
+            sage: type(n(1.3))
+            <type 'sage.rings.real_mpfr.RealNumber'>
+        """
+        return RealField(prec)(self.literal)
+
 
 RR = RealField()
 

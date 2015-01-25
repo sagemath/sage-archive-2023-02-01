@@ -19,7 +19,6 @@ Complex Plots
 
 # TODO: use NumPy buffers and complex fast_callable (when supported)
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
 cimport numpy as cnumpy
@@ -29,17 +28,13 @@ from sage.misc.decorators import options
 from sage.rings.complex_double cimport ComplexDoubleElement
 from sage.misc.misc import srange
 
-cdef extern from "math.h":
-    double hypot(double, double)
-    double atan2(double, double)
-    double atan(double)
-    double log(double)
-    double exp(double)
-    double sqrt(double)
-    double PI
+from libc.math cimport hypot, atan2, atan, log, sqrt
+
+cdef double PI = 4 * atan(1)
+
 
 cdef inline ComplexDoubleElement new_CDF_element(double x, double y):
-    cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+    cdef ComplexDoubleElement z = ComplexDoubleElement.__new__(ComplexDoubleElement)
     z._complex.dat[0] = x
     z._complex.dat[1] = y
     return z
@@ -115,7 +110,10 @@ def complex_to_rgb(z_values):
         for j from 0 <= j < jmax:
 
             zz = row[j]
-            z = <ComplexDoubleElement>(zz if PY_TYPE_CHECK_EXACT(zz, ComplexDoubleElement) else CDF(zz))
+            if type(zz) is ComplexDoubleElement:
+                z = <ComplexDoubleElement>zz
+            else:
+                z = CDF(zz)
             x, y = z._complex.dat[0], z._complex.dat[1]
             mag = hypot(x, y)
             arg = atan2(y, x) # math module arctan has range from -pi to pi, so cut along negative x-axis

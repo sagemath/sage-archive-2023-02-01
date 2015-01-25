@@ -507,8 +507,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            separately. Thus calling ``E.conductor('pari')``, then
            ``E.conductor('mwrank')`` and getting the same result
            checks that both systems compute the same answer.
-        """
 
+        TESTS::
+
+            sage: E.conductor(algorithm="bogus")
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'bogus' is not known
+        """
         if algorithm == "pari":
             try:
                 return self.__conductor_pari
@@ -546,11 +552,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             N3 = self.conductor("gp")
             N4 = self.conductor("generic")
             if N1 != N2 or N2 != N3 or N2 != N4:
-                raise ArithmeticError("PARI, mwrank, gp and Sage compute different conductors (%s,%s,%s,%3) for %s"%(
+                raise ArithmeticError("PARI, mwrank, gp and Sage compute different conductors (%s,%s,%s,%s) for %s"%(
                     N1, N2, N3, N4, self))
             return N1
         else:
-            raise RuntimeError("algorithm '%s' is not known."%algorithm)
+            raise ValueError("algorithm %r is not known"%algorithm)
 
     ####################################################################
     #  Access to PARI curves related to this curve.
@@ -5404,7 +5410,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         from sage.libs.ratpoints import ratpoints
         xmin=Integer(xmin)
         xmax=Integer(xmax)
-        coeffs = self.division_polynomial(2).coeffs()
+        coeffs = self.division_polynomial(2).coefficients(sparse=False)
         H = max(xmin.abs(), xmax.abs())
         return set([x for x,y,z in ratpoints(coeffs, H, max_x_denom=1, intervals=[[xmin,xmax]]) if z])
 

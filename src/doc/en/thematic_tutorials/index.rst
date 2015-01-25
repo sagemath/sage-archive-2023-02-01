@@ -47,7 +47,6 @@ Calculus and plotting
 Algebra
 =======
 
-* :ref:`linear_programming`
 * :ref:`group_theory`
 * :ref:`lie`
 
@@ -74,15 +73,21 @@ Combinatorics
 =============
 
 * :ref:`sage.combinat.tutorial`
-* :ref:`algebraic_combinatorics`
 
 Algebraic Combinatorics
 -----------------------
 
+* :ref:`algebraic_combinatorics`
 * :class:`Tutorial: Symmetric Functions <SymmetricFunctions>`
 * :ref:`lie`
 * :ref:`sage.combinat.root_system.plot`
 * :ref:`abelian_sandpile_model`
+
+Numerical computations
+----------------------
+
+* :ref:`numerical_computing`
+* :ref:`linear_programming`
 
 .. Words
 .. -----
@@ -100,6 +105,7 @@ Programming and Design
 * :ref:`tutorial-comprehensions`
 * :ref:`tutorial-objects-and-classes`
 * :ref:`functional_programming`
+* :ref:`cython_interface`
 
 .. Sage development
 .. ----------------

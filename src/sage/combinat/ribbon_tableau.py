@@ -700,7 +700,7 @@ def spin_polynomial(part, weight, length):
     from sage.symbolic.ring import var
     sp = spin_polynomial_square(part,weight,length)
     t = var('t')
-    c = sp.coeffs()
+    c = sp.coefficients(sparse=False)
     return sum([c[i]*t**(QQ(i)/2) for i in range(len(c))])
 
 def cospin_polynomial(part, weight, length):
@@ -736,7 +736,7 @@ def cospin_polynomial(part, weight, length):
     if sp == 0:
         return R(0)
 
-    coeffs = [c for c in sp.coeffs() if c != 0]
+    coeffs = [c for c in sp.coefficients(sparse=False) if c != 0]
     d = len(coeffs)-1
     exponents = [d-e for e in range(len(coeffs))]
 

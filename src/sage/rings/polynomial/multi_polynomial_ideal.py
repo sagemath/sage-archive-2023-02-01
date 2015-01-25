@@ -4184,12 +4184,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
     def random_element(self, degree, compute_gb=False, *args, **kwds):
         """
-        Return a random element in this ideal as `r = \sum hᵢ·fᵢ`.
+        Return a random element in this ideal as `r = \sum h_i·f_i`.
 
         INPUT:
 
         - ``compute_gb`` - if ``True`` then a Gröbner basis is computed first
-          and `fᵢ` are the elements in the Gröbner basis. Otherwise whatever
+          and `f_i` are the elements in the Gröbner basis. Otherwise whatever
           basis is returned by ``self.gens()`` is used.
 
         - ``*args`` and ``**kwds`` are passed to ``R.random_element()`` with

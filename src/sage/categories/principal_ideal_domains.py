@@ -59,7 +59,45 @@ class PrincipalIdealDomains(Category_singleton):
         return None
 
     class ParentMethods:
-        pass
+        def _test_gcd_vs_xgcd(self, **options):
+            r"""
+            Check that gcd and xgcd are compatible if implemented.
+
+            This test prevents things like :trac:`17671` to happen.
+
+            TESTS::
+
+                sage: ZZ._test_gcd_vs_xgcd()
+                sage: QQ._test_gcd_vs_xgcd()
+                sage: QQ['x']._test_gcd_vs_xgcd()
+            """
+            tester = self._tester(**options)
+            elts = list(tester.some_elements())
+
+            # there are some strange things in Sage doctests... so it is better
+            # to cut the list in order to avoid lists of size 531441.
+            elts = elts[:10]
+            pairs = [(x,y) for x in elts for y in elts]
+
+            has_xgcd = True
+            try:
+                xgcds = [x.xgcd(y) for x,y in pairs]
+            except AttributeError:
+                return
+
+            has_gcd = True
+            try:
+                gcds = [x.gcd(y) for x,y in pairs]
+            except AttributeError:
+                has_gcd = False
+
+            tester.assertTrue(has_gcd,
+                    "The ring {} provides a xgcd but no gcd".format(self))
+            for (x,y),gcd,xgcd in zip(pairs,gcds,xgcds):
+                tester.assertTrue(gcd==xgcd[0],
+                        "The methods gcd and xgcd disagree:\n"
+                        "  gcd({},{}) = {}\n"
+                        " xgcd({},{}) = {}\n".format(x,y,gcd,x,y,xgcd))
 
     class ElementMethods:
         pass

@@ -424,72 +424,72 @@ class Fields(CategoryWithAxiom):
         # Fields are unique factorization domains, so, there is gcd and lcm
         # Of course, in general gcd and lcm in a field are not very interesting.
         # However, they should be implemented!
+        @coerce_binop
         def gcd(self,other):
             """
             Greatest common divisor.
 
-            NOTE:
+            .. NOTE::
 
-            Since we are in a field and the greatest common divisor is
-            only determined up to a unit, it is correct to either return
-            zero or one. Note that fraction fields of unique factorization
-            domains provide a more sophisticated gcd.
+                Since we are in a field and the greatest common divisor is only
+                determined up to a unit, it is correct to either return zero or
+                one. Note that fraction fields of unique factorization domains
+                provide a more sophisticated gcd.
 
             EXAMPLES::
 
-                sage: GF(5)(1).gcd(GF(5)(1))
+                sage: K = GF(5)
+                sage: K(2).gcd(K(1))
                 1
-                sage: GF(5)(1).gcd(GF(5)(0))
-                1
-                sage: GF(5)(0).gcd(GF(5)(0))
+                sage: K(0).gcd(K(0))
                 0
+                sage: all(x.gcd(y) == (0 if x == 0 and y == 0 else 1) for x in K for y in K)
+                True
 
-            For fields of characteristic zero (i.e., containing the
-            integers as a sub-ring), evaluation in the integer ring is
-            attempted. This is for backwards compatibility::
+            For fields of characteristic zero, the gcd of integers in that field
+            is considered as if they were elements of the integer ring::
 
                 sage: gcd(6.0,8); gcd(6.0,8).parent()
                 2
                 Integer Ring
 
-            If this fails, we resort to the default we see above::
+            But not for the other elements::
 
-                sage: gcd(6.0*CC.0,8*CC.0); gcd(6.0*CC.0,8*CC.0).parent()
+                sage: gcd(3.0, 2.5)
                 1.00000000000000
-                Complex Field with 53 bits of precision
 
             AUTHOR:
 
-            - Simon King (2011-02): Trac ticket #10771
-
+            - Simon King (2011-02) -- :trac:`10771`
+            - Vincent Delecroix (2015) -- :trac:`17671`
             """
             P = self.parent()
+            zero_char = False
             try:
-                other = P(other)
-            except (TypeError, ValueError):
-                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd")
-            from sage.rings.integer_ring import ZZ
-            if ZZ.is_subring(P):
+                zero_char = P.characteristic() == 0
+            except NotImplementedError:
+                pass
+            if zero_char:
+                from sage.rings.integer_ring import ZZ
                 try:
                     return ZZ(self).gcd(ZZ(other))
                 except TypeError:
                     pass
-            # there is no custom gcd, so, we resort to something that always exists
-            # (that's new behaviour)
-            if self==0 and other==0:
+            if self == P.zero() and other == P.zero():
                 return P.zero()
             return P.one()
 
-        def lcm(self,other):
+        @coerce_binop
+        def lcm(self, other):
             """
             Least common multiple.
 
-            NOTE:
+            .. NOTE::
 
-            Since we are in a field and the least common multiple is
-            only determined up to a unit, it is correct to either return
-            zero or one. Note that fraction fields of unique factorization
-            domains provide a more sophisticated lcm.
+                Since we are in a field and the least common multiple is only
+                determined up to a unit, it is correct to either return zero or
+                one. Note that fraction fields of unique factorization domains
+                provide a more sophisticated lcm.
 
             EXAMPLES::
 
@@ -498,39 +498,31 @@ class Fields(CategoryWithAxiom):
                 sage: GF(2)(1).lcm(GF(2)(1))
                 1
 
-            If the field contains the integer ring, it is first
-            attempted to compute the gcd there::
+            For field of characteristic zero, the lcm of integers is considered
+            as if they were elements of the integer ring::
 
                 sage: lcm(15.0,12.0); lcm(15.0,12.0).parent()
                 60
                 Integer Ring
 
-            If this fails, we resort to the default we see above::
-
-                sage: lcm(6.0*CC.0,8*CC.0); lcm(6.0*CC.0,8*CC.0).parent()
-                1.00000000000000
-                Complex Field with 53 bits of precision
-                sage: lcm(15.2,12.0)
-                1.00000000000000
-
             AUTHOR:
 
-            - Simon King (2011-02): Trac ticket #10771
-
+            - Simon King (2011-02) -- :trac:`10771`
+            - Vincent Delecroix (2015) -- :trac:`17671`
             """
             P = self.parent()
+            zero_char = False
             try:
-                other = P(other)
-            except (TypeError, ValueError):
-                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm")
-            from sage.rings.integer_ring import ZZ
-            if ZZ.is_subring(P):
+                zero_char = P.characteristic() == 0
+            except NotImplementedError:
+                pass
+            if zero_char:
+                from sage.rings.integer_ring import ZZ
                 try:
                     return ZZ(self).lcm(ZZ(other))
                 except TypeError:
                     pass
-            # there is no custom lcm, so, we resort to something that always exists
-            if self==0 or other==0:
+            if self.is_zero() or other.is_zero():
                 return P.zero()
             return P.one()
 
@@ -557,18 +549,37 @@ class Fields(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: (1/2).xgcd(2)
-                (1, 2, 0)
-                sage: (0/2).xgcd(2)
-                (1, 0, 1/2)
-                sage: (0/2).xgcd(0)
+                sage: K = GF(5)
+                sage: K(2).xgcd(K(1))
+                (1, 3, 0)
+                sage: K(0).xgcd(K(4))
+                (1, 0, 4)
+                sage: K(1).xgcd(K(1))
+                (1, 1, 0)
+                sage: GF(5)(0).xgcd(GF(5)(0))
                 (0, 0, 0)
-            """
-            R = self.parent()
-            if not self.is_zero():
-                return (R.one(), ~self, R.zero())
-            if not other.is_zero():
-                return (R.one(), R.zero(), ~other)
-            # else both are 0
-            return (R.zero(), R.zero(), R.zero())
 
+            For field of characteristic zero, the xgcd of integer elements is
+            still considered as if they were element of the integer ring::
+
+                sage: xgcd(2.0, 3.0)
+                (1, -1, 1)
+            """
+            P = self.parent()
+            zero_char = False
+            try:
+                zero_char = P.characteristic() == 0
+            except NotImplementedError:
+                pass
+            if zero_char:
+                from sage.rings.integer_ring import ZZ
+                try:
+                    return ZZ(self).xgcd(ZZ(other))
+                except TypeError:
+                    pass
+            if not self.is_zero():
+                return (P.one(), ~self, P.zero())
+            if not other.is_zero():
+                return (P.one(), P.zero(), ~other)
+            # else both are 0
+            return (P.zero(), P.zero(), P.zero())

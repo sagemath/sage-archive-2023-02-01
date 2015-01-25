@@ -12,6 +12,8 @@ from sage.categories.category_singleton import Category_singleton
 from sage.misc.abstract_method import abstract_method
 from sage.categories.fields import Fields
 
+from sage.structure.element import coerce_binop
+
 class QuotientFields(Category_singleton):
     """
     The category of quotient fields over an integral domain
@@ -50,26 +52,27 @@ class QuotientFields(Category_singleton):
         def denominator(self):
             pass
 
-        def gcd(self,other):
+        @coerce_binop
+        def gcd(self, other):
             """
             Greatest common divisor
 
-            NOTE:
+            .. NOTE::
 
-            In a field, the greatest common divisor is not very
-            informative, as it is only determined up to a unit. But in
-            the fraction field of an integral domain that provides
-            both gcd and lcm, it is possible to be a bit more specific
-            and define the gcd uniquely up to a unit of the base ring
-            (rather than in the fraction field).
+                In a field, the greatest common divisor is not very informative,
+                as it is only determined up to a unit. But in the fraction field
+                of an integral domain that provides both gcd and lcm, it is
+                possible to be a bit more specific and define the gcd uniquely
+                up to a unit of the base ring (rather than in the fraction
+                field).
 
             AUTHOR:
 
-            - Simon King (2011-02): See trac ticket #10771
+            - Simon King (2011-02): See trac ticket :trac:`10771`
 
             EXAMPLES::
 
-                sage: R.<x>=QQ[]
+                sage: R.<x> = QQ['x']
                 sage: p = (1+x)^3*(1+2*x^2)/(1-x^5)
                 sage: q = (1+x)^2*(1+3*x^2)/(1-x^4)
                 sage: factor(p)
@@ -106,12 +109,7 @@ class QuotientFields(Category_singleton):
                 1
                 sage: gcd(R.zero(),0)
                 0
-
             """
-            try:
-                other = self.parent()(other)
-            except (TypeError, ValueError):
-                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd")
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()
@@ -129,24 +127,24 @@ class QuotientFields(Category_singleton):
                     return self.parent().zero()
                 return self.parent().one()
 
+        @coerce_binop
         def lcm(self,other):
             """
             Least common multiple
 
-            NOTE:
+            .. NOTE::
 
-            In a field, the least common multiple is not very
-            informative, as it is only determined up to a unit. But in
-            the fraction field of an integral domain that provides
-            both gcd and lcm, it is reasonable to be a bit more
-            specific and to define the least common multiple so that
-            it restricts to the usual least common multiple in the
-            base ring and is unique up to a unit of the base ring
-            (rather than up to a unit of the fraction field).
+                In a field, the least common multiple is not very informative,
+                as it is only determined up to a unit. But in the fraction field
+                of an integral domain that provides both gcd and lcm, it is
+                reasonable to be a bit more specific and to define the least
+                common multiple so that it restricts to the usual least common
+                multiple in the base ring and is unique up to a unit of the base
+                ring (rather than up to a unit of the fraction field).
 
             AUTHOR:
 
-            - Simon King (2011-02): See trac ticket #10771
+            - Simon King (2011-02): See trac ticket :trac:`10771`
 
             EXAMPLES::
 
@@ -188,10 +186,6 @@ class QuotientFields(Category_singleton):
 
             """
             try:
-                other = self.parent()(other)
-            except (TypeError, ValueError):
-                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm")
-            try:
                 selfN = self.numerator()
                 selfD = self.denominator()
                 selfGCD = selfN.gcd(selfD)
@@ -207,6 +201,73 @@ class QuotientFields(Category_singleton):
                 if self==0 or other==0:
                     return self.parent().zero()
                 return self.parent().one()
+
+        @coerce_binop
+        def xgcd(self, other):
+            """
+            Return a triple ``(g,s,t)`` of elements of that field such that
+            ``g`` is the greatest common divisor of ``self`` and ``other`` and
+            ``g = s*self + t*other``.
+
+            .. NOTE::
+
+                In a field, the greatest common divisor is not very informative,
+                as it is only determined up to a unit. But in the fraction field
+                of an integral domain that provides both xgcd and lcm, it is
+                possible to be a bit more specific and define the gcd uniquely
+                up to a unit of the base ring (rather than in the fraction
+                field).
+
+            EXAMPLES::
+
+                sage: QQ(3).xgcd(QQ(2))
+                (1, 1, -1)
+                sage: QQ(3).xgcd(QQ(1/2))
+                (1/2, 0, 1)
+                sage: QQ(1/3).xgcd(QQ(2))
+                (1/3, 1, 0)
+                sage: QQ(3/2).xgcd(QQ(5/2))
+                (1/2, 2, -1)
+
+                sage: R.<x> = QQ['x']
+                sage: p = (1+x)^3*(1+2*x^2)/(1-x^5)
+                sage: q = (1+x)^2*(1+3*x^2)/(1-x^4)
+                sage: factor(p)
+                (-2) * (x - 1)^-1 * (x + 1)^3 * (x^2 + 1/2) * (x^4 + x^3 + x^2 + x + 1)^-1
+                sage: factor(q)
+                (-3) * (x - 1)^-1 * (x + 1) * (x^2 + 1)^-1 * (x^2 + 1/3)
+                sage: g,s,t = xgcd(p,q)
+                sage: g
+                (x + 1)/(x^7 + x^5 - x^2 - 1)
+                sage: g == s*p + t*q
+                True
+            """
+            try:
+                selfN = self.numerator()
+                selfD = self.denominator()
+                selfGCD = selfN.gcd(selfD)
+
+                otherN = other.numerator()
+                otherD = other.denominator()
+                otherGCD = otherN.gcd(otherD)
+
+                selfN = selfN // selfGCD
+                selfD = selfD // selfGCD
+                otherN = otherN // otherGCD
+                otherD = otherD // otherGCD
+
+                lcmD = selfD.lcm(otherD)
+                g,s,t = selfN.xgcd(otherN)
+                return (g/lcmD, s*selfD/lcmD,t*otherD/lcmD)
+            except (AttributeError, NotImplementedError, TypeError, ValueError):
+                zero = self.parent.zero()
+                one  = self.parent.one()
+                if self == zero:
+                    return (other, zero, one)
+                elif other == zero:
+                    return (self, one, zero)
+                else:
+                    return (zero, zero, zero)
 
         def factor(self, *args, **kwds):
             """

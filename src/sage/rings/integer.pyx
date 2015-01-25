@@ -140,7 +140,6 @@ import operator
 
 import sys
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
@@ -194,12 +193,6 @@ cdef object numpy_object_interface = {'typestr': '|O'}
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
-
-def init_mpz_globals():
-    init_mpz_globals_c()
-
-def clear_mpz_globals():
-    clear_mpz_globals_c()
 
 cdef int set_mpz(Integer self, mpz_t value):
     mpz_set(self.value, value)
@@ -3026,7 +3019,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         elif PY_TYPE_CHECK_EXACT(other, Integer):
             if mpz_sgn((<Integer>other).value) == 0:
                 raise ZeroDivisionError, "Integer division by zero"
-            if mpz_size((<Integer>x).value) > 100000:
+            if mpz_size(self.value) > 100000:
                 sig_on()
                 mpz_fdiv_qr(q.value, r.value, self.value, (<Integer>other).value)
                 sig_off()
@@ -5529,10 +5522,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         Output may differ with and without the ``minimal`` option::
 
-            sage: 2._xgcd(-2)
-            (2, 1, 0)
-            sage: 2._xgcd(-2, minimal=True)
-            (2, 0, -1)
+            sage: 5._xgcd(6)
+            (1, -1, 1)
+            sage: 5._xgcd(6, minimal=True)
+            (1, 5, -4)
 
         Exhaustive tests, checking minimality conditions::
 
@@ -6621,7 +6614,6 @@ cdef set_zero_one_elements():
     if initialized: return
     the_integer_ring._zero_element = Integer(0)
     the_integer_ring._one_element = Integer(1)
-    init_mpz_globals()
     initialized = True
 set_zero_one_elements()
 

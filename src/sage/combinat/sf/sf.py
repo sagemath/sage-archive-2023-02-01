@@ -267,7 +267,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     and restriction, respectively. The Schur functions can also be interpreted
     as characters of `GL_n`, see `Partitions and Schur functions`__.
 
-    __ ../../../../thematic_tutorials/lie/lie_basics.html#partitions-and-schur-polynomials
+    __ ../../../../../thematic_tutorials/lie/lie_basics.html#partitions-and-schur-polynomials
 
     .. rubric:: The omega involution
 

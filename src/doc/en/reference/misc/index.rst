@@ -49,6 +49,7 @@ Miscellaneous
    sage/misc/messaging
    sage/misc/viewer
    sage/misc/session
+   sage/misc/defaults
 
 
 Profiling and Performance Testing

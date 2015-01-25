@@ -1769,19 +1769,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return ZZ(0)
 
-    def parent(self):
-        """
-        Return the parent of ``self``.
-
-        EXAMPLES::
-
-            sage: R = RealField()
-            sage: a = R('1.2456')
-            sage: a.parent()
-            Real Field with 53 bits of precision
-        """
-        return self._parent
-
     def str(self, int base=10, no_sci=None, e=None, int truncate=1, bint skip_zeroes=0):
         """
         Return a string representation of ``self``.

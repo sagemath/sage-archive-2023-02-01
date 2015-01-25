@@ -15,7 +15,7 @@ import sage.structure.element
 coercion_model = sage.structure.element.get_coercion_model()
 
 # avoid name conflicts with `parent` as a function parameter
-from sage.structure.coerce import parent as s_parent
+from sage.structure.all import parent as s_parent
 
 from sage.symbolic.constants import pi
 from sage.functions.log import exp

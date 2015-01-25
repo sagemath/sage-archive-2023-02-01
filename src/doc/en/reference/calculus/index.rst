@@ -13,6 +13,7 @@ Symbolic Calculus
    sage/symbolic/function
    sage/symbolic/function_factory
    sage/calculus/functional
+   sage/symbolic/series
    sage/symbolic/integration/integral
    sage/calculus/test_sympy
    sage/calculus/tests

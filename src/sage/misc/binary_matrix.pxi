@@ -17,7 +17,6 @@ a ``binary_matrix_t`` structure contains :
   containing the bits of row `i`.
 
 """
-#include "binary_matrix_pxd.pxi"
 from sage.misc.binary_matrix cimport *
 include 'sage/data_structures/bitset.pxi'
 

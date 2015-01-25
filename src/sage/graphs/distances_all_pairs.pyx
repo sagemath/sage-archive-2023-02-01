@@ -143,7 +143,6 @@ Functions
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/data_structures/bitset.pxi"
 include "sage/misc/binary_matrix.pxi"
 from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
 from sage.graphs.base.c_graph cimport CGraph

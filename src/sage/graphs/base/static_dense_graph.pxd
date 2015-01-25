@@ -1,5 +1,3 @@
-#include "sage/misc/binary_matrix_pxd.pxi"
-cimport sage.misc.binary_matrix
 from sage.misc.binary_matrix cimport binary_matrix_t
 
 

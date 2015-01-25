@@ -15,7 +15,6 @@ Classes and methods
 
 """
 
-include "sage/data_structures/bitset.pxi"
 include "sage/misc/binary_matrix.pxi"
 from sage.misc.cachefunc import cached_method
 from sage.graphs.base.static_dense_graph cimport dense_graph_init

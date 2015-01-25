@@ -201,7 +201,7 @@ def is_strongly_regular(g, parameters = False):
 
             # The intersection of the common neighbors of i and j is a AND of
             # their respective rows. A popcount then returns its cardinality.
-            bitset_and(b_tmp, m.rows+i, m.rows+j)
+            bitset_and(b_tmp, m.rows[i], m.rows[j])
             inter = bitset_len(b_tmp)
 
             # Check that this cardinality is correct according to the values of lambda and mu

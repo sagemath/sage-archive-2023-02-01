@@ -23,7 +23,7 @@ from sage.graphs.base.static_dense_graph cimport dense_graph_init
 cdef inline int ismaximal(binary_matrix_t g, int n, bitset_t s):
     cdef int i
     for i in range(n):
-        if (not bitset_in(s,i)) and bitset_are_disjoint(g.rows+i, s):
+        if (not bitset_in(s,i)) and bitset_are_disjoint(g.rows[i], s):
             return False
 
     return True
@@ -235,7 +235,7 @@ cdef class IndependentSets:
             if bitset_in(current_set,i):
 
                 # We have found an independent set !
-                if bitset_are_disjoint(self.g.rows+i, current_set):
+                if bitset_are_disjoint(self.g.rows[i], current_set):
 
                     # Saving that set
                     bitset_copy(tmp, current_set)
@@ -381,7 +381,7 @@ cdef class IndependentSets:
             bitset_add(s, i)
 
             # Checking that the set s is independent
-            if not bitset_are_disjoint(self.g.rows+i, s):
+            if not bitset_are_disjoint(self.g.rows[i], s):
                 return False
 
         if self.maximal and not ismaximal(self.g, self.n,s):

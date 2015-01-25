@@ -575,9 +575,9 @@ def is_distance_regular(G, parameters = False):
 
             # Computations of b_d and c_d for u,v. We intersect sets stored in
             # b_distance_matrix.
-            bitset_and(b_tmp, b_distance_matrix.rows+(d+1)*n+u, b_distance_matrix.rows+n+v)
+            bitset_and(b_tmp, b_distance_matrix.rows[(d+1)*n+u], b_distance_matrix.rows[n+v])
             b = bitset_len(b_tmp)
-            bitset_and(b_tmp, b_distance_matrix.rows+(d-1)*n+u, b_distance_matrix.rows+n+v)
+            bitset_and(b_tmp, b_distance_matrix.rows[(d-1)*n+u], b_distance_matrix.rows[n+v])
             c = bitset_len(b_tmp)
 
             # Consistency of b_d and c_d

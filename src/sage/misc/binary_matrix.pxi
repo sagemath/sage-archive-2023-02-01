@@ -29,12 +29,12 @@ cdef inline binary_matrix_init(binary_matrix_t m, long n_rows, long n_cols):
     m.n_cols = n_cols
     m.n_rows = n_rows
     m.width = (n_cols - 1)/(8*sizeof(unsigned long)) + 1
-    m.rows = <bitset_s *>sage_malloc(n_rows * sizeof(bitset_s))
+    m.rows = <bitset_t *>sage_malloc(n_rows * sizeof(bitset_t))
     if m.rows == NULL:
         raise MemoryError
 
     for i from 0 <= i < n_rows:
-        bitset_init(m.rows+i, n_cols)
+        bitset_init(m.rows[i], n_cols)
 
 cdef inline binary_matrix_free(binary_matrix_t m):
     r"""
@@ -43,7 +43,7 @@ cdef inline binary_matrix_free(binary_matrix_t m):
     cdef int i
 
     for i from 0 <= i < m.n_rows:
-        bitset_free(m.rows+i)
+        bitset_free(m.rows[i])
     sage_free(m.rows)
 
 cdef inline binary_matrix_fill(binary_matrix_t m, bint bit):
@@ -54,10 +54,10 @@ cdef inline binary_matrix_fill(binary_matrix_t m, bint bit):
 
     if bit: # set the matrix to 1
         for i from 0 <= i < m.n_rows:
-            bitset_set_first_n(m.rows+i, m.n_cols)
+            bitset_set_first_n(m.rows[i], m.n_cols)
     else:
         for i from 0 <= i < m.n_rows:
-            bitset_clear(m.rows+i)
+            bitset_clear(m.rows[i])
 
 cdef inline binary_matrix_complement(binary_matrix_t m):
     r"""
@@ -65,19 +65,19 @@ cdef inline binary_matrix_complement(binary_matrix_t m):
     """
     cdef int i
     for i from 0 <= i < m.n_rows:
-        bitset_complement(m.rows+i, m.rows+i)
+        bitset_complement(m.rows[i], m.rows[i])
 
 cdef inline binary_matrix_set1(binary_matrix_t m, long row, long col):
     r"""
     Sets an entry to 1
     """
-    bitset_add(m.rows+row, col)
+    bitset_add(m.rows[row], col)
 
 cdef inline binary_matrix_set0(binary_matrix_t m, long row, long col):
     r"""
     Sets an entry to 0
     """
-    bitset_discard(m.rows+row, col)
+    bitset_discard(m.rows[row], col)
 
 cdef inline binary_matrix_set(binary_matrix_t m, long row, long col, bint value):
     r"""
@@ -92,7 +92,7 @@ cdef inline bint binary_matrix_get(binary_matrix_t m, long row, long col):
     r"""
     Returns the value of a given entry
     """
-    return bitset_in(m.rows+row, col)
+    return bitset_in(m.rows[row], col)
 
 cdef inline binary_matrix_print(binary_matrix_t m):
     r"""

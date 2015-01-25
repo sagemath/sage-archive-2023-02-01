@@ -190,9 +190,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             for i from 0 <= i < self._nrows:
                 entries[(i,i)] = x
 
-        if not isinstance(entries, dict):
-            raise TypeError("The input must be scalar or a dictionary, not %s"%type(entries))
-
         if coerce:
             v = {}
             for key, x in entries.iteritems():

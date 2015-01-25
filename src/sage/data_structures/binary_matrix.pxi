@@ -13,7 +13,7 @@ a ``binary_matrix_t`` structure contains :
 
 - ``long width`` -- number of ``unsigned long`` per row
 
-- ``bitset_s * rows`` -- ``rows+i`` points toward a block of type ``bitset_t``
+- ``bitset_t * rows`` -- ``rows[i]`` points toward a block of type ``bitset_t``
   containing the bits of row `i`.
 
 """

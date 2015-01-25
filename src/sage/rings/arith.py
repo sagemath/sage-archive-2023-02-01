@@ -1848,32 +1848,28 @@ def xgcd(a, b):
     r"""
     Return a triple ``(g,s,t)`` such that `g = s\cdot a+t\cdot b = \gcd(a,b)`.
 
-    .. note::
+    .. NOTE::
 
-       One exception is if `a` and `b` are not in a PID, e.g., they are
-       both polynomials over the integers, then this function can't in
-       general return ``(g,s,t)`` as above, since they need not exist.
-       Instead, over the integers, we first multiply `g` by a divisor of
-       the resultant of `a/g` and `b/g`, up to sign.
+       One exception is if `a` and `b` are not in a principal ideal domain (see
+       :wikipedia:`Principal_ideal_domain`), e.g., they are both polynomials
+       over the integers. Then this function can't in general return ``(g,s,t)``
+       as above, since they need not exist.  Instead, over the integers, we
+       first multiply `g` by a divisor of the resultant of `a/g` and `b/g`, up
+       to sign.
 
     INPUT:
 
-
-    -  ``a, b`` - integers or univariate polynomials (or
-       any type with an xgcd method).
-
+    -  ``a, b`` - integers or more generally, element of a ring for which the
+       xgcd make sense (e.g. a field or univariate polynomials).
 
     OUTPUT:
 
     -  ``g, s, t`` - such that `g = s\cdot a + t\cdot b`
 
-
-    .. note::
+    .. NOTE::
 
        There is no guarantee that the returned cofactors (s and t) are
-       minimal. In the integer case, see
-       :meth:`sage.rings.integer.Integer._xgcd()` for minimal
-       cofactors.
+       minimal.
 
     EXAMPLES::
 
@@ -1881,14 +1877,20 @@ def xgcd(a, b):
         (4, 4, -5)
         sage: 4*56 + (-5)*44
         4
+
         sage: g, a, b = xgcd(5/1, 7/1); g, a, b
-        (1, 1/5, 0)
+        (1, 3, -2)
         sage: a*(5/1) + b*(7/1) == g
         True
+
         sage: x = polygen(QQ)
         sage: xgcd(x^3 - 1, x^2 - 1)
         (x - 1, 1, -x)
+
         sage: K.<g> = NumberField(x^2-3)
+        sage: g.xgcd(g+2)
+        (1, 1/3*g, 0)
+
         sage: R.<a,b> = K[]
         sage: S.<y> = R.fraction_field()[]
         sage: xgcd(y^2, a*y+b)
@@ -1896,8 +1898,8 @@ def xgcd(a, b):
         sage: xgcd((b+g)*y^2, (a+g)*y+b)
         (1, (a^2 + (2*g)*a + 3)/(b^3 + (g)*b^2), ((-a + (-g))/b^2)*y + 1/b)
 
-    We compute an xgcd over the integers, where the linear combination
-    is not the gcd but the resultant::
+    Here is an example of a xgcd for two polynomials over the integers, where the linear
+    combination is not the gcd but the resultant::
 
         sage: R.<x> = ZZ[]
         sage: gcd(2*x*(x-1), x^2)
@@ -1911,9 +1913,7 @@ def xgcd(a, b):
         return a.xgcd(b)
     except AttributeError:
         pass
-    if not isinstance(a, sage.rings.integer.Integer):
-        a = ZZ(a)
-    return a.xgcd(ZZ(b))
+    return ZZ(a).xgcd(ZZ(b))
 
 XGCD = xgcd
 

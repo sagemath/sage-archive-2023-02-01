@@ -892,7 +892,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
     def points_of_bounded_height(self,bound):
         r"""
-        Returns an iterator of the points in self of height less than the given bound. Requires self
+        Returns an iterator of the points in self of absolute height of at most the given bound. Bound check is strict for the rational field. Requires self
         to be projective space over a number field.
 
         INPUT:
@@ -918,13 +918,15 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: len(list(P.points_of_bounded_height(4)))
             553
         """
-        numberField = False
+        ftype = False # stores whether the field is a number field or the rational field
         if (is_RationalField(self.base_ring())):
-            numberField = False
+            ftype = False
         elif (self.base_ring() in NumberFields()):
-            numberField = True
+            ftype = True
         else:
             raise NotImplementedError("self must be projective space over a number field.")
+
+        bound = bound^(1/self.base_ring().absolute_degree()) # Convert to relative height
 
         n = self.dimension_relative()
         R = self.base_ring()
@@ -933,7 +935,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         while not i < 0:
             P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
             yield self(P)
-            if (numberField == False): # if rational field
+            if (ftype == False): # if rational field
                 iters = [ R.range_by_height(bound) for _ in range(i) ]
             else: # if number field
                 iters = [ R.elements_of_bounded_height(bound) for _ in range(i) ]
@@ -945,7 +947,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     yield self(P)
                     j = 0
                 except StopIteration:
-                    if (numberField == False): # if rational field
+                    if (ftype == False): # if rational field
                         iters[j] = R.range_by_height(bound) # reset
                     else: # if number field
                         iters[j] = R.elements_of_bounded_height(bound) # reset

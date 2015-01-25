@@ -745,7 +745,7 @@ class AffineSpace_field(AffineSpace_generic):
 
     def points_of_bounded_height(self,bound):
         r"""
-        Returns an iterator of the points in self of height less than the given bound. Requires self
+        Returns an iterator of the points in self of absolute height of at most the given bound. Bound check is strict for the rational field. Requires self
         to be affine space over a number field.
 
         INPUT:
@@ -774,20 +774,22 @@ class AffineSpace_field(AffineSpace_generic):
             sage: len(list(A.points_of_bounded_height(4)))
             529
         """
-        numberField = False
+        ftype = False # stores whether field is a number field or the rational field
         if (is_RationalField(self.base_ring())):
-            numberField = False
+            ftype = False
         elif (self.base_ring() in NumberFields()): # True for rational field as well, so check is_RationalField first
-            numberField = True
+            ftype = True
         else:
             raise NotImplementedError("self must be affine space over a number field.")
+
+        bound = bound^(1/self.base_ring().absolute_degree()) # Convert to relative height 
 
         n = self.dimension_relative()
         R = self.base_ring()
         zero = R(0)
         P = [ zero for _ in range(n) ]
         yield self(P)
-        if (numberField == False):
+        if (ftype == False):
             iters = [ R.range_by_height(bound) for _ in range(n) ]
         else:
             iters = [ R.elements_of_bounded_height(bound) for _ in range(n) ]
@@ -799,7 +801,7 @@ class AffineSpace_field(AffineSpace_generic):
                 yield self(P)
                 i = 0
             except StopIteration:
-                if (numberField == False):
+                if (ftype == False):
                     iters[i] = R.range_by_height(bound) # reset
                 else:
                     iters[i] = R.elements_of_bounded_height(bound)

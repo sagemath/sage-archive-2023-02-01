@@ -99,17 +99,17 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             sage: P1(F).points()
             [(0 : 1), (1 : 0), (1 : 1), (a : 1), (a + 1 : 1)]
         """
-        from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
-        from sage.schemes.projective.projective_rational_point import enum_projective_number_field
-        from sage.schemes.projective.projective_rational_point import enum_projective_finite_field
         R = self.value_ring()
         if is_RationalField(R):
             if not B > 0:
                 raise TypeError("A positive bound B (= %s) must be specified."%B)
+            from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
             return enum_projective_rational_field(self,B)
         elif R in NumberFields():
+            from sage.schemes.projective.projective_rational_point import enum_projective_number_field
             return enum_projective_number_field(self,B)
         elif is_FiniteField(R):
+            from sage.schemes.projective.projective_rational_point import enum_projective_finite_field
             return enum_projective_finite_field(self.extended_codomain())
         else:
             raise TypeError("Unable to enumerate points over %s."%R)

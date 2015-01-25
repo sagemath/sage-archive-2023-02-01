@@ -145,7 +145,7 @@ def enum_affine_rational_field(X,B):
 def enum_affine_number_field(X,B):
     """
     Enumerates affine points on scheme ``X`` defined over a number field. Simply checks all of the
-    points of height up to ``B`` and adds those that are on the scheme to the list.
+    points of absolute height up to ``B`` and adds those that are on the scheme to the list.
 
     INPUT:
 
@@ -155,7 +155,7 @@ def enum_affine_number_field(X,B):
 
     OUTPUT:
 
-     - a list containing the affine points of ``X`` of height up to ``B``,
+     - a list containing the affine points of ``X`` of absolute height up to ``B``,
        sorted.
 
     EXAMPLES::
@@ -175,10 +175,12 @@ def enum_affine_number_field(X,B):
         (-1/5*v^2, -1/5*v^2, 1/5*v^2), (-v, -v, 1/5*v^2), (1/5*v^2, 1/5*v^2, 1/5*v^2), (v, v, 1/5*v^2), (0, 0, v),
         (-1, -1, v), (1, 1, v), (-1/5*v^2, -1/5*v^2, v), (-v, -v, v), (1/5*v^2, 1/5*v^2, v), (v, v, v)]
     """
+    if is_Scheme(X):
+        X = X(X.base_ring())
     R = X.codomain().ambient_space()
 
     pts = []
-    for P in R.points_of_bounded_height(B):
+    for P in R.points_of_bounded_height(B^(1/R.base_ring().absolute_height())):
         try:
             pts.append(X(P))
         except TypeError:

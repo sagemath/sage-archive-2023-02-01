@@ -132,7 +132,7 @@ def enum_projective_rational_field(X,B):
 def enum_projective_number_field(X,B):
     """
     Enumerates projective points on scheme ``X`` defined over a number field. Simply checks all of the
-    points of height up to ``B`` and adds those that are on the scheme to the list.
+    points of absolute height of at most ``B`` and adds those that are on the scheme to the list.
 
     INPUT:
 
@@ -142,7 +142,7 @@ def enum_projective_number_field(X,B):
 
     OUTPUT:
 
-     - a list containing the projective points of ``X`` of height up to ``B``,
+     - a list containing the projective points of ``X`` of absolute height up to ``B``,
        sorted.
 
     EXAMPLES::
@@ -156,11 +156,13 @@ def enum_projective_number_field(X,B):
         [(0 : 0 : 1), (-1 : -1 : 1), (1 : 1 : 1), (-1/5*v^2 : -1/5*v^2 : 1), (-v : -v : 1),
         (1/5*v^2 : 1/5*v^2 : 1), (v : v : 1), (1 : 1 : 0)]
     """
+    if is_Scheme(X):
+        X = X(X.base_ring())
     R = X.codomain().ambient_space()
 
     pts = []
 
-    for P in R.points_of_bounded_height(B):
+    for P in R.points_of_bounded_height(B^(1/R.base_ring().absolute_degree())):
         try:
             pts.append(X(P))
         except TypeError:

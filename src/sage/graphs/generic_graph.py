@@ -1939,13 +1939,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G._check_embedding_validity(d)
             True
 
-        TESTS::
-
-            sage: G.check_embedding_validity(d)
-            doctest:...: DeprecationWarning: check_embedding_validity is deprecated. Please use _check_embedding_validity instead.
-            See http://trac.sagemath.org/15551 for details.
-            True
-
         """
         if embedding is None:
             embedding = getattr(self, '_embedding', None)
@@ -1966,8 +1959,6 @@ class GenericGraph(GenericGraph_pyx):
                 if not connected(v,u):
                     return False
         return True
-
-    check_embedding_validity = deprecated_function_alias(15551, _check_embedding_validity)
 
     def has_loops(self):
         """
@@ -2516,13 +2507,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PetersenGraph()
             sage: G._check_pos_validity(p)
             True
-
-        TESTS::
-
-            sage: G.check_pos_validity(p)
-            doctest:...: DeprecationWarning: check_pos_validity is deprecated. Please use _check_pos_validity instead.
-            See http://trac.sagemath.org/15551 for details.
-            True
         """
         if pos is None:
             pos = self.get_pos(dim = dim)
@@ -2536,8 +2520,6 @@ class GenericGraph(GenericGraph_pyx):
             if len(pos[v]) != dim:
                 return False
         return True
-
-    check_pos_validity = deprecated_function_alias(15551,_check_pos_validity)
 
     def set_pos(self, pos, dim = 2):
         """
@@ -4280,16 +4262,6 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: No embedding is provided and the graph is not planar.
-
-        TESTS:
-
-        :trac:`15551` deprecated the ``trace_faces`` name::
-
-            sage: T.trace_faces({0: [1, 3, 2], 1: [0, 2, 3], 2: [0, 3, 1], 3: [0, 1, 2]})
-            doctest:...: DeprecationWarning: trace_faces is deprecated. Please use faces instead.
-            See http://trac.sagemath.org/15551 for details.
-            [[(0, 1), (1, 2), (2, 0)], [(3, 2), (2, 1), (1, 3)], [(2, 3), (3, 0), (0, 2)], [(0, 3), (3, 1), (1, 0)]]
-
         """
         # Which embedding should we use ?
         if embedding is None:
@@ -4335,8 +4307,6 @@ class GenericGraph(GenericGraph_pyx):
                 edgeset -= Set([tup])
         if (len(path) != 0): faces.append(path)
         return faces
-
-    trace_faces = deprecated_function_alias(15551, faces)
 
     ### Connectivity
 

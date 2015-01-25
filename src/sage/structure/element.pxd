@@ -123,8 +123,11 @@ cdef class InfinityElement(RingElement):
 cdef class Vector(ModuleElement):
     cdef Py_ssize_t _degree
 
-    # Returns the dot product, using the simple metric $e_i \cdot e_j = \delta_{ij}$.
-    cpdef Element _dot_product_(Vector left, Vector right)  # override, call if parents the same
+    # Return the dot product using the simple metric
+    # $e_i \cdot e_j = \delta_{ij}$. The first assumes that the parents
+    # are equal, both assume that the degrees are equal.
+    cpdef Element _dot_product_(Vector left, Vector right)
+    cpdef Element _dot_product_coerce_(Vector left, Vector right)
 
     cpdef Vector _pairwise_product_(Vector left, Vector right) # override, call if parents the same
 

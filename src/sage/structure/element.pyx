@@ -2681,6 +2681,9 @@ cdef class Vector(ModuleElement):
         return coercion_model.bin_op(left, right, mul)
 
     cpdef Element _dot_product_(Vector left, Vector right):
+        return left._dot_product_coerce_(right)
+
+    cpdef Element _dot_product_coerce_(Vector left, Vector right):
         raise TypeError(arith_error_message(left, right, mul))
 
     cpdef Vector _pairwise_product_(Vector left, Vector right):

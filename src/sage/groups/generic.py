@@ -1329,10 +1329,9 @@ def merge_points(P1,P2, operation='+',
     g2 = multiple(g2,m2,operation=operation)
     return (op(g1,g2), m)
 
-@cached_method
-def structure_description(self, latex=False):
+def structure_description(G, latex=False):
     r"""
-    Return a string that tries to describe the structure of ``self``.
+    Return a string that tries to describe the structure of ``G``.
 
     This methods wraps GAP's ``StructureDescription`` method.
 
@@ -1383,13 +1382,25 @@ def structure_description(self, latex=False):
         sage: D4.structure_description()    # optional - database_gap
         'D4'
 
+    Works for finitely presented groups (:trac:`17573`)::
+
+        sage: F.<x, y> = FreeGroup()
+        sage: G=F / [x^2*y^-1, x^3*y^2, x*y*x^-1*y^-1]
+        sage: G.structure_description()     # optional - database_gap
+        'C7'
+
+    And matrix groups (:trac:`17573`)::
+
+        sage: groups.matrix.GL(4,2).structure_description() # optional - database_gap
+        'A8'
     """
     import re
+    from sage.misc.package import is_package_installed
     def correct_dihedral_degree(match):
         return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
     try:
-        description = self._gap_().StructureDescription().str()
+        description = G._gap_().StructureDescription().__str__()
     except RuntimeError:
         if not is_package_installed('database_gap'):
             raise RuntimeError("You must install the optional database_gap package first.")
@@ -1403,3 +1414,4 @@ def structure_description(self, latex=False):
     description = re.sub(r"O([+-])", r"O^{\g<1>}", description)
 
     return description
+

@@ -123,8 +123,9 @@ class QuotientFields(Category_singleton):
                 otherD = otherD // otherGCD
                 return selfN.gcd(otherN)/selfD.lcm(otherD)
             except (AttributeError, NotImplementedError, TypeError, ValueError):
-                if self==0 and other==0:
-                    return self.parent().zero()
+                zero = self.parent().zero()
+                if self == zero and other == zero:
+                    return zero
                 return self.parent().one()
 
         @coerce_binop
@@ -183,7 +184,6 @@ class QuotientFields(Category_singleton):
                 0
                 sage: lcm(R.zero(),0)
                 0
-
             """
             try:
                 selfN = self.numerator()
@@ -198,8 +198,9 @@ class QuotientFields(Category_singleton):
                 otherD = otherD // otherGCD
                 return selfN.lcm(otherN)/selfD.gcd(otherD)
             except (AttributeError, NotImplementedError, TypeError, ValueError):
-                if self==0 or other==0:
-                    return self.parent().zero()
+                zero = self.parent.zero()
+                if self == zero or other == zero:
+                    return zero
                 return self.parent().one()
 
         @coerce_binop
@@ -241,6 +242,25 @@ class QuotientFields(Category_singleton):
                 (x + 1)/(x^7 + x^5 - x^2 - 1)
                 sage: g == s*p + t*q
                 True
+
+            An example without a well defined gcd or xgcd on its base ring::
+
+                sage: K = QuadraticField(5)
+                sage: O = K.maximal_order()
+                sage: R = PolynomialRing(O, 'x')
+                sage: F = R.fraction_field()
+                sage: x = F.gen(0)
+                sage: x.gcd(x+1)
+                1
+                sage: x.xgcd(x+1)
+                (1, 1/x, 0)
+                sage: zero = F.zero()
+                sage: zero.gcd(x)
+                1
+                sage: zero.xgcd(x)
+                (1, 0, 1/x)
+                sage: zero.xgcd(zero)
+                (0, 0, 0)
             """
             try:
                 selfN = self.numerator()
@@ -260,12 +280,12 @@ class QuotientFields(Category_singleton):
                 g,s,t = selfN.xgcd(otherN)
                 return (g/lcmD, s*selfD/lcmD,t*otherD/lcmD)
             except (AttributeError, NotImplementedError, TypeError, ValueError):
-                zero = self.parent.zero()
-                one  = self.parent.one()
-                if self == zero:
-                    return (other, zero, one)
-                elif other == zero:
-                    return (self, one, zero)
+                zero = self.parent().zero()
+                one  = self.parent().one()
+                if self != zero:
+                    return (one, ~self, zero)
+                elif other != zero:
+                    return (one, zero, ~other)
                 else:
                     return (zero, zero, zero)
 

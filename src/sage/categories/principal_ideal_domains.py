@@ -63,13 +63,26 @@ class PrincipalIdealDomains(Category_singleton):
             r"""
             Check that gcd and xgcd are compatible if implemented.
 
-            This test prevents things like :trac:`17671` to happen.
+            This test will prevent things like :trac:`17671` to happen again.
 
             TESTS::
 
                 sage: ZZ._test_gcd_vs_xgcd()
                 sage: QQ._test_gcd_vs_xgcd()
                 sage: QQ['x']._test_gcd_vs_xgcd()
+
+            A slightly more involved example of polynomial ring with a non UFD
+            base ring::
+
+                sage: K = QuadraticField(5)
+                sage: O = K.maximal_order()
+                sage: O in UniqueFactorizationDomains()
+                False
+                sage: R = PolynomialRing(O, 'x')
+                sage: F = R.fraction_field()
+                sage: F in PrincipalIdealDomains()
+                True
+                sage: F._test_gcd_vs_xgcd()
             """
             tester = self._tester(**options)
             elts = list(tester.some_elements())
@@ -79,25 +92,24 @@ class PrincipalIdealDomains(Category_singleton):
             elts = elts[:10]
             pairs = [(x,y) for x in elts for y in elts]
 
-            has_xgcd = True
             try:
                 xgcds = [x.xgcd(y) for x,y in pairs]
-            except AttributeError:
+            except (AttributeError,NotImplementedError):
                 return
 
             has_gcd = True
             try:
                 gcds = [x.gcd(y) for x,y in pairs]
-            except AttributeError:
+            except (AttributeError,NotImplementedError):
                 has_gcd = False
 
             tester.assertTrue(has_gcd,
                     "The ring {} provides a xgcd but no gcd".format(self))
             for (x,y),gcd,xgcd in zip(pairs,gcds,xgcds):
                 tester.assertTrue(gcd==xgcd[0],
-                        "The methods gcd and xgcd disagree:\n"
+                        "The methods gcd and xgcd disagree on {}:\n"
                         "  gcd({},{}) = {}\n"
-                        " xgcd({},{}) = {}\n".format(x,y,gcd,x,y,xgcd))
+                        " xgcd({},{}) = {}\n".format(self,x,y,gcd,x,y,xgcd))
 
     class ElementMethods:
         pass

@@ -742,7 +742,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         - ``reverse`` -- (default: ``False``) -- if set, reverses the order.
 
         - ``key`` -- (default: ``None``) a function used for sorting
-          the successors. If this is ``None``, no sorting occurrs.
+          the successors. If this is ``None``, no sorting occurs.
 
         OUTPUT:
 
@@ -782,7 +782,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of an element (used in case of a
-          tie). If this is ``None``, no sorting occurrs.
+          tie). If this is ``None``, no sorting occurs.
 
         OUTPUT:
 
@@ -825,7 +825,8 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         - ``reverse`` -- (default: ``False``) -- if set, reverses the order.
 
         - ``key`` -- (default: ``None``) a function used for sorting
-          the successors. If this is ``None``, no sorting occurrs.
+          the direct successors of an element (used in case of a
+          tie). If this is ``None``, no sorting occurs.
 
         OUTPUT:
 
@@ -865,7 +866,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of an element (used in case of a
-          tie). If this is ``None``, no sorting occurrs.
+          tie). If this is ``None``, no sorting occurs.
 
         OUTPUT:
 
@@ -1212,6 +1213,27 @@ class MutablePoset(sage.structure.sage_object.SageObject):
     def elements_topological(self, include_special=False,
                              reverse=False, key=None):
         r"""
+        Return an iterator over all elements in topological order.
+
+        INPUT:
+
+        - ``include_special`` -- (default: ``False``) if set, then
+          including a smallest element (`\emptyset`) and a largest element
+          (`\infty`).
+
+        - ``reverse`` -- (default: ``False``) -- if set, reverses the
+          order, i.e., ``False`` gives smallest elements first,
+          ``True`` gives largest first.
+
+        - ``key`` -- (default: ``None``) a function used for sorting
+          the direct successors of an element (used in case of a
+          tie). If this is ``None``, no sorting according to the reprsentation
+          string occurs.
+
+        OUTPUT:
+
+        An iterator.
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP

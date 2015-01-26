@@ -1657,13 +1657,13 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         self._elements_[key] = new
 
 
-    def remove(self, key):
+    def remove(self, key, raise_key_error=True):
         r"""
         Remove the given object from the poset.
 
         INPUT:
 
-        - ``value`` -- an object.
+        - ``key`` -- the key of an object.
 
         OUTPUT:
 
@@ -1802,7 +1802,9 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         try:
             element = self._elements_[key]
         except KeyError:
-            raise KeyError('Key %s is not contained in this poset.' % (key,))
+            if raise_key_error:
+                raise KeyError('Key %s is not contained '
+                               'in this poset.' % (key,))
 
         for reverse in (False, True):
             for p in element.predecessors(reverse):

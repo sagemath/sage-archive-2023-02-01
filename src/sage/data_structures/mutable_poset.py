@@ -1665,11 +1665,15 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
         - ``key`` -- the key of an object.
 
+        - ``raise_key_error`` -- (default: ``True``) switch raising
+          ``KeyError``on and off.
+
         OUTPUT:
 
         Nothing.
 
-        If the element is not a member, raise a ``KeyError``.
+        If the element is not a member and ``raise_key_error`` is set
+        (default), raise a ``KeyError``.
 
         EXAMPLES::
 
@@ -1815,6 +1819,89 @@ class MutablePoset(sage.structure.sage_object.SageObject):
                 S.update(element.successors(reverse))
                 S.difference_update(D)
         del self._elements_[key]
+
+
+    def discard(self, key, raise_key_error=False):
+        r"""
+        Remove the given object from the poset.
+
+        INPUT:
+
+        - ``key`` -- the key of an object.
+
+        - ``raise_key_error`` -- (default: ``False``) switch raising
+          ``KeyError``on and off.
+
+        OUTPUT:
+
+        Nothing.
+
+        If the element is not a member and ``raise_key_error`` is set
+        (not default), raise a ``KeyError``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 1)))
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: P.discard(T((1, 2)))
+            sage: P.remove(T((1, 2)))
+            Traceback (most recent call last):
+            ...
+            KeyError: 'Key (1, 2) is not contained in this poset.'
+            sage: P.discard(T((1, 2)))
+        """
+        return self.remove(key, raise_key_error)
+
+
+    def pop(self, **kwargs):
+        r"""
+        Remove and return an arbitrary poset element.
+
+        INPUT:
+
+        - ``kwargs`` -- arguments are passed to :meth:`elements_topological`.
+
+        OUTPUT:
+
+        An object.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP(key=lambda c: -c)
+            sage: P.add(3)
+            sage: P
+            poset(3)
+            sage: P.pop()
+            3
+            sage: P
+            poset()
+            sage: P.pop()
+            Traceback (most recent call last):
+            ...
+            KeyError: 'pop from an empty poset'
+        """
+        try:
+            del kwargs['include_special']
+        except KeyError:
+            pass
+        kwargs['include_special'] = False
+
+        try:
+            element = next(self.elements_topological(**kwargs))
+        except StopIteration:
+            raise KeyError('pop from an empty poset')
+        self.remove(element.key)
+        return element.value
 
 
 # *****************************************************************************

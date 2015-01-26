@@ -623,10 +623,9 @@ cdef class PowComputer_ext(PowComputer_class):
             # values of n the powers are taken from self.small_powers, for large
             # values, the computation dominates the cost of the sig_on()/sig_off().
             mpz_pow_ui(self.temp_m, self.prime.value, n)
-            sig_off()
-        return <mpz_srcptr>address_of_mpz(self.temp_m)
+        return self.temp_m
 
-    cdef ZZ_c* pow_ZZ_tmp(self, long n) except NULL:
+    cdef ZZ_c* pow_ZZ_tmp(self, long n):
         """
         Provides fast access to a ZZ_c* pointing to self.prime^n.
 
@@ -721,20 +720,7 @@ cdef class PowComputer_ext(PowComputer_class):
             15625
         """
         ZZ_to_mpz(self.temp_m, &self.top_power)
-        return <mpz_srcptr>address_of_mpz(self.temp_m)
-
-    #def _pow_mpz_t_top_test(self):
-    #    """
-    #    Tests the pow_mpz_t_top function
-    #
-    #    EXAMPLES:
-    #    sage: PC = PowComputer_ext_maker(5, 6, 6, 12, False, ntl.ZZ_pX([-5,0,1],5^6),'small', 'e',ntl.ZZ_pX([1],5^6))
-    #    sage: PC._pow_mpz_t_top_test()
-    #    15625
-    #    """
-    #    cdef Integer ans = PY_NEW(Integer)
-    #    mpz_set(ans.value, self.pow_mpz_t_top()[0])
-    #    return ans
+        return self.temp_m
 
     cdef ZZ_c* pow_ZZ_top(self):
         """

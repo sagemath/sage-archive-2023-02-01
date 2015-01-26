@@ -444,7 +444,7 @@ class SageInputBuilder:
         # However, we don't want to assume that hashing x is always
         # efficient, so we only try the lookup if some value of the same
         # type as x has been cached.
-        from sage.misc.functional import parent
+        from sage.structure.all import parent
 
         if type(x) in self._cached_types:
             v = self._cache.get((parent(x), x))
@@ -655,7 +655,7 @@ class SageInputBuilder:
             GF_101 = GF(101)
             GF_101(42) + GF_101(43)
         """
-        from sage.misc.functional import parent
+        from sage.structure.all import parent
 
         self._cached_types.add(type(x))
         self._cache[(parent(x), x)] = sie
@@ -1428,7 +1428,7 @@ class SageInputExpression(object):
         """
         return SIE_getattr(self._sie_builder, self, attr)
 
-    def _graphics_(self):
+    def _graphics_(self, **kwds):
         """
         Disable graphical output.
 
@@ -1440,10 +1440,10 @@ class SageInputExpression(object):
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib.name('x')
-            sage: sie._graphics_()
-            False
+            sage: sie._graphics_() is None
+            True
         """
-        return False
+        return None
 
     def __pow__(self, other):
         r"""

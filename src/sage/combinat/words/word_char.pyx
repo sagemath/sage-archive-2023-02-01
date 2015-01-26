@@ -13,6 +13,7 @@ Fast word datatype using an array of unsigned char.
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
+include "sage/data_structures/bitset.pxi"
 
 cimport cython
 from sage.rings.integer cimport Integer, smallInteger
@@ -20,17 +21,9 @@ from sage.rings.rational cimport Rational
 from libc.string cimport memcpy, memcmp
 from sage.combinat.words.word_datatypes cimport WordDatatype
 
-cdef extern from "Python.h":
-    # check functions
-    int PyIndex_Check(object o)
-    int PySlice_Check(object o)
-    int PySequence_Check(object o)
-    int PyNumber_Check(object o)
-
-    # get numbers from Python slice
-    int PySlice_GetIndicesEx(object slice, Py_ssize_t length,
-            Py_ssize_t *start, Py_ssize_t *stop, Py_ssize_t *step,
-            Py_ssize_t *slicelength) except -1
+from cpython.number cimport PyIndex_Check, PyNumber_Check
+from cpython.sequence cimport PySequence_Check
+from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
 
 # the maximum value of a size_t
 cdef size_t SIZE_T_MAX = -(<size_t> 1)
@@ -38,7 +31,7 @@ cdef size_t SIZE_T_MAX = -(<size_t> 1)
 def reversed_word_iterator(WordDatatype_char w):
     r"""
     This function exists only because it is not possible to use yield in the
-    special method `__reversed__`.
+    special method ``__reversed__``.
 
     EXAMPLES::
 
@@ -59,7 +52,13 @@ cdef class WordDatatype_char(WordDatatype):
     """
     cdef unsigned char * _data
     cdef size_t _length
+
+    # _master is a just a reference to another Python object in case the finite
+    # word is just a slice of another one. But because Cython takes care of
+    # Python attributes *before* the call to __dealloc__ we need to duplicate
+    # the information.
     cdef WordDatatype_char _master
+    cdef int _is_slice
 
     def __cinit__(self):
         r"""
@@ -72,6 +71,7 @@ cdef class WordDatatype_char(WordDatatype):
         """
         self._data = NULL
         self._length = 0
+        self._is_slice = 0
 
     def __init__(self, parent, data):
         r"""
@@ -115,7 +115,9 @@ cdef class WordDatatype_char(WordDatatype):
         Note that ``sage_free`` will not deallocate memory if self is the
         master of another word.
         """
-        if self._master is None:
+        # it is strictly forbidden here to access _master here! (it will be set
+        # to None most of the time)
+        if self._is_slice == 0:
             sage_free(self._data)
 
     def __nonzero__(self):
@@ -178,16 +180,40 @@ cdef class WordDatatype_char(WordDatatype):
         """
         return smallInteger(self._length)
 
+    def letters(self):
+        r"""
+        Return the list of letters that appear in this word, listed in the
+        order of first appearance.
+
+        EXAMPLES::
+
+            sage: W = Words(5)
+            sage: W([1,3,1,2,2,3,1]).letters()
+            [1, 3, 2]
+        """
+        cdef bitset_t seen
+        bitset_init(seen, 256) # allocation + initialization to 0
+
+        cdef size_t i
+        cdef list res = []
+        cdef unsigned char letter
+        for i in range(self._length):
+            letter = self._data[i]
+            if not bitset_in(seen, letter):
+                bitset_add(seen, letter)
+                res.append(letter)
+        bitset_free(seen)
+        return res
+
     cdef _new_c(self, unsigned char * data, size_t length, WordDatatype_char master):
         r"""
         TO DISCUSS: in Integer (sage.rings.integer) this method is actually an
         external function. But we might want to have several possible inheritance.
         """
         cdef WordDatatype_char other = PY_NEW_SAME_TYPE(self)
-        if HAS_DICTIONARY(self):
-            other.__class__ = self.__class__
         other._data = data
         other._master = master # can be None
+        other._is_slice = 0 if master is None else 1
         other._length = length
         other._parent = self._parent
 
@@ -325,6 +351,11 @@ cdef class WordDatatype_char(WordDatatype):
             Traceback (most recent call last):
             ...
             TypeError: slice indices must be integers or None or have an __index__ method
+
+        Check a weird behavior of PySlice_GetIndicesEx (:trac:`17056`)::
+
+            sage: w[1:0]
+            word:
         """
         cdef Py_ssize_t i, start, stop, step, slicelength
         cdef unsigned char * data
@@ -335,6 +366,8 @@ cdef class WordDatatype_char(WordDatatype):
                     self._length,
                     &start, &stop, &step,
                     &slicelength) 
+            if slicelength == 0:
+                return self._new_c(NULL, 0, None)
             if step == 1:
                 return self._new_c(self._data+start, stop-start, self)
             data = <unsigned char *> sage_malloc(slicelength * sizeof(unsigned char))

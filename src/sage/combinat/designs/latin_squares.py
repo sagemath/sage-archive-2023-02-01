@@ -293,15 +293,20 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
 
     What is the maximum number of MOLS of size 8 that Sage knows how to build?::
 
-        sage: designs.mutually_orthogonal_latin_squares(None,8,existence=True)
+        sage: designs.orthogonal_arrays.largest_available_k(8)-2
         7
 
-    If you only want to know if Sage is able to build a given set of MOLS, just
-    set the argument ``existence`` to ``True``::
+    If you only want to know if Sage is able to build a given set of
+    MOLS, query the ``orthogonal_arrays.*`` functions::
 
-        sage: designs.mutually_orthogonal_latin_squares(5, 5, existence=True)
+        sage: designs.orthogonal_arrays.is_available(5+2, 5) # 5 MOLS of order 5
         False
-        sage: designs.mutually_orthogonal_latin_squares(4,6, existence=True)
+        sage: designs.orthogonal_arrays.is_available(4+2,6) # 4 MOLS of order 6
+        False
+
+    Sage, however, is not able to prove that the second MOLS do not exist::
+
+        sage: designs.orthogonal_arrays.exists(4+2,6) # 4 MOLS of order 6
         Unknown
 
     If you ask for such a MOLS then you will respecively get an informative
@@ -322,14 +327,10 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
 
         sage: designs.mutually_orthogonal_latin_squares(3, 1)
         [[0], [0], [0]]
-        sage: designs.mutually_orthogonal_latin_squares(None,1, existence=True)
-        +Infinity
         sage: designs.mutually_orthogonal_latin_squares(None, 1)
         Traceback (most recent call last):
         ...
         ValueError: there are no bound on k when 0<=n<=1
-        sage: designs.mutually_orthogonal_latin_squares(2,10,existence=True)
-        True
         sage: designs.mutually_orthogonal_latin_squares(2,10)
         [
         [1 8 9 0 2 4 6 3 5 7]  [1 7 6 5 0 9 8 2 3 4]
@@ -351,6 +352,8 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
 
     # Is k is None we find the largest available
     if k is None:
+        from sage.misc.superseded import deprecation
+        deprecation(17034,"please use designs.orthogonal_arrays.largest_available_k instead of k=None")
         if n == 0 or n == 1:
             if existence:
                 from sage.rings.infinity import Infinity
@@ -360,6 +363,10 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
         k = orthogonal_array(None,n,existence=True) - 2
         if existence:
             return k
+
+    if existence:
+        from sage.misc.superseded import deprecation
+        deprecation(17034,"please use designs.orthogonal_arrays.is_available/exists instead of existence=True")
 
     if n == 1:
         if existence:
@@ -522,6 +529,7 @@ def MOLS_table(start,stop=None,compare=False,width=None):
          60|   +
          80|
     """
+    from orthogonal_arrays import largest_available_k
     if stop is None:
         start,stop = 0,start
     # make start and stop be congruent to 0 mod 20
@@ -549,7 +557,7 @@ def MOLS_table(start,stop=None,compare=False,width=None):
     for i in range(start,stop):
         if i%20==0:
             print "\n{:>{width}}|".format(i,width=width),
-        k = mutually_orthogonal_latin_squares(None,i,existence=True)
+        k = largest_available_k(i)-2
         if compare:
             if i < 2 or hb[i] == k:
                 c = ""

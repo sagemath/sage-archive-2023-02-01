@@ -84,7 +84,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         sage: m**2
         [ 7.0 10.0]
         [15.0 22.0]
-        sage: m^(-1)
+        sage: m^(-1)        # rel tol 1e-15
         [-1.9999999999999996  0.9999999999999998]
         [ 1.4999999999999998 -0.4999999999999999]
     """
@@ -989,9 +989,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: sv = A.singular_values()
             sage: sv[0:3]  # tol 1e-14
             [1440.7336659952966, 18.404403413369227, 6.839707797136151]
-            sage: (10^-15 < sv[3] < 10^-13) or sv[3]
+            sage: (sv[3] < 10^-13) or sv[3]
             True
-            sage: (10^-16 < sv[4] < 10^-14) or sv[4]
+            sage: (sv[4] < 10^-14) or sv[4]
             True
 
         A full-rank matrix that is ill-conditioned.  We use this to
@@ -1009,11 +1009,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.condition() > 1.6e16 or A.condition()
             True
 
-            sage: A.singular_values(eps=None)  # abs tol 2e-16
+            sage: A.singular_values(eps=None)  # abs tol 7e-16
             [1.7953720595619975, 0.38027524595503703, 0.04473854875218107, 0.0037223122378911614, 0.0002330890890217751, 1.116335748323284e-05, 4.082376110397296e-07, 1.1228610675717613e-08, 2.2519645713496478e-10, 3.1113486853814003e-12, 2.6500422260778388e-14, 9.87312834948426e-17]
-            sage: A.singular_values(eps='auto')  # abs tol 2e-16
+            sage: A.singular_values(eps='auto')  # abs tol 7e-16
             [1.7953720595619975, 0.38027524595503703, 0.04473854875218107, 0.0037223122378911614, 0.0002330890890217751, 1.116335748323284e-05, 4.082376110397296e-07, 1.1228610675717613e-08, 2.2519645713496478e-10, 3.1113486853814003e-12, 2.6500422260778388e-14, 0.0]
-            sage: A.singular_values(eps=1e-4)  # abs tol 2e-16
+            sage: A.singular_values(eps=1e-4)  # abs tol 7e-16
             [1.7953720595619975, 0.38027524595503703, 0.04473854875218107, 0.0037223122378911614, 0.0002330890890217751, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         With Sage's "verbose" facility, you can compactly see the cutoff
@@ -1135,7 +1135,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 0.0  1.0  2.0  3.0]
             [ 8.0  9.0 10.0 11.0]
             [ 4.0  5.0  6.0  7.0]
-            sage: L*U
+            sage: L*U # rel tol 2e-16 
             [12.0 13.0 14.0 15.0]
             [ 0.0  1.0  2.0  3.0]
             [ 8.0  9.0 10.0 11.0]
@@ -3798,7 +3798,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         d /= 2
         return int(math.ceil(d / math.log(10)))
 
-    def exp(self, algorithm='pade', order=None):
+    def exp(self, algorithm=None, order=None):
         r"""
         Calculate the exponential of this matrix X, which is the matrix
 
@@ -3808,12 +3808,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         INPUT:
 
-        - algorithm -- 'pade', 'eig', or 'taylor'; the algorithm used to
-          compute the exponential.
+        - algorithm -- deprecated
 
-        - order -- for the Taylor series algorithm, this specifies the
-          order of the Taylor series used. This is ignored for the
-          other algorithms. The current default (from scipy) is 20.
+        - order -- deprecated
 
         EXAMPLES::
 
@@ -3823,53 +3820,42 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.exp()  # tol 1e-15
             [51.968956198705044  74.73656456700327]
             [112.10484685050491 164.07380304920997]
-            sage: A.exp(algorithm='eig')  # tol 1e-15
-            [ 51.96895619870499  74.73656456700319]
-            [112.10484685050479  164.0738030492098]
-            sage: A.exp(algorithm='taylor', order=5)
-            [19.958333333333336 28.083333333333336]
-            [            42.125  62.08333333333334]
-            sage: A.exp(algorithm='taylor')   # tol 1e-15
-            [ 51.96890355105711  74.73648783689403]
-            [112.10473175534102  164.0736353063982]
-
             sage: A=matrix(CDF, 2, [1,2+I,3*I,4]); A
             [        1.0 2.0 + 1.0*I]
             [      3.0*I         4.0]
             sage: A.exp()  # tol 1e-14
             [-19.614602953804912 + 12.517743846762578*I   3.7949636449582176 + 28.88379930658099*I]
             [ -32.383580980922254 + 21.88423595789845*I   2.269633004093535 + 44.901324827684824*I]
-            sage: A.exp(algorithm='eig')  # tol 2e-14
+
+        TESTS::
+
+            sage: A = matrix(RDF, 2, [1,2,3,4])
+            sage: E = A.exp(algorithm='eig')
+            doctest:...: DeprecationWarning: The algorithm and order arguments are deprecated.
+            See http://trac.sagemath.org/17140 for details.
+            sage: E  # tol 1e-15
+            [51.968956198705044  74.73656456700327]
+            [112.10484685050491 164.07380304920997]
+            sage: A.exp(algorithm='taylor')   # tol 1e-15
+            [51.968956198705044  74.73656456700327]
+            [112.10484685050491 164.07380304920997]
+            sage: A = matrix(CDF, 2, [1,2+I,3*I,4])
+            sage: A.exp(algorithm='eig')  # tol 3e-14
             [-19.614602953804923 + 12.51774384676257*I 3.7949636449582016 + 28.883799306580997*I]
             [-32.38358098092227 + 21.884235957898433*I  2.2696330040935084 + 44.90132482768484*I]
-            sage: A.exp(algorithm='taylor', order=5)  # tol 1e-14
-            [             -6.291666666666666 + 14.25*I 14.083333333333332 + 15.791666666666666*I]
-            [                         -10.5 + 26.375*I              20.083333333333336 + 24.75*I]
-            sage: A.exp(algorithm='taylor')  # tol 1e-14
-            [ -19.61460061633755 + 12.51774321692722*I  3.7949644247243204 + 28.88379648284456*I]
-            [-32.383577124578885 + 21.88423519937592*I  2.2696345830383797 + 44.90132034150611*I]
         """
-        if algorithm not in ('pade', 'eig', 'taylor'):
-            raise ValueError("algorithm must be 'pade', 'eig', or 'taylor'")
-
         global scipy
         if scipy is None:
             import scipy
         import scipy.linalg
 
+        if algorithm is not None or order is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(17140,'The algorithm and order arguments are deprecated.')
+
         cdef Matrix_double_dense M
         M = self._new()
-
-        if algorithm=='pade':
-            M._matrix_numpy = scipy.linalg.expm(self._matrix_numpy)
-        elif algorithm=='eig':
-            M._matrix_numpy = scipy.linalg.expm2(self._matrix_numpy)
-        elif algorithm=='taylor':
-            if order is None:
-                M._matrix_numpy = scipy.linalg.expm3(self._matrix_numpy)
-            else:
-                M._matrix_numpy = scipy.linalg.expm3(self._matrix_numpy, q=order)
-
+        M._matrix_numpy = scipy.linalg.expm(self._matrix_numpy)
         return M
 
     def zero_at(self, eps):
@@ -3892,7 +3878,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: a=matrix([[1, 1e-4r, 1+1e-100jr], [1e-8+3j, 0, 1e-58r]])
+            sage: a = matrix(CDF, [[1, 1e-4r, 1+1e-100jr], [1e-8+3j, 0, 1e-58r]])
             sage: a
             [           1.0         0.0001 1.0 + 1e-100*I]
             [ 1e-08 + 3.0*I            0.0          1e-58]
@@ -3902,9 +3888,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: a.zero_at(1e-4)
             [  1.0   0.0   1.0]
             [3.0*I   0.0   0.0]
-
-
-
         """
         global numpy
         cdef Matrix_double_dense M

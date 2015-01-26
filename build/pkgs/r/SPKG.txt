@@ -13,11 +13,6 @@ much code written for S runs unaltered under R.
 == License ==
  * GPL v2 or GPL v3
 
-== SPKG Maintainers ==
-
- * Jason Grout
- * William Stein
-
 == Upstream Contact ==
  * R mailing list, #R in IRC
 
@@ -42,9 +37,7 @@ much code written for S runs unaltered under R.
    R_HOME_DIR, but scripts/Makefile.in hardcodes these
    locations. This patch removes this hardcoding. See Sage trac
    #9668.
- * libintl-visibility.patch: fix visibility of symbols for optional
-   libintl library.
  * large_address_aware.patch: don't pass --large-address-aware to ld on
    Cygwin64.
- * 3.1 : Upstream now handles some of these issues. Some examples changed.
- * 3.1.1 : mostly bugfixes. No changes
+ * parent_sig_handler.patch: make sure the parent_sig_handler function is
+   defined before getting used.

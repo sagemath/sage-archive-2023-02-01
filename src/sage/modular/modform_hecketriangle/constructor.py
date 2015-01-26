@@ -38,9 +38,9 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
 
     INPUT:
 
-    - `f`                -- A rational function in ``x,y,z,d`` over ``base_ring``.
+    - ``f``              -- A rational function in ``x,y,z,d`` over ``base_ring``.
 
-    - `n`                -- An integer greater or equal to `3` corresponding
+    - ``n``              -- An integer greater or equal to `3` corresponding
                             to the ``HeckeTriangleGroup`` with that parameter
                             (default: `3`).
 
@@ -48,19 +48,23 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
                             polynomial ring (default: ``ZZ``).
 
     OUTPUT:
-    
+
     A tuple ``(elem, homo, k, ep, analytic_type)`` describing the basic
     analytic properties of `f` (with the interpretation indicated above).
-    
-    - ``elem``            - ``True`` if `f` has a homogeneous denominator.
-    - ``homo``            - ``True`` if `f` also has a homogeneous numerator.
-    - ``k``               - ``None`` if `f` is not homogeneneous, otherwise
+
+    - ``elem``           -- ``True`` if `f` has a homogeneous denominator.
+
+    - ``homo``           -- ``True`` if `f` also has a homogeneous numerator.
+
+    - ``k``              -- ``None`` if `f` is not homogeneneous, otherwise
                             the weight of `f` (which is the first component
                             of its degree).
-    - ``ep``              - ``None`` if `f` is not homogeneous, otherwise
+
+    - ``ep``             -- ``None`` if `f` is not homogeneous, otherwise
                             the multiplier of `f` (which is the second component
                             of its degree)
-    - ``analytic_type``   - The ``AnalyticType`` of `f`.
+
+    - ``analytic_type``  -- The ``AnalyticType`` of `f`.
 
     For the zero function the degree `(0, 1)` is choosen.
 
@@ -102,6 +106,15 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
 
         sage: rational_type(1.1 * z * (x^8-y^2), n=8, base_ring=CC)
         (True, True, 22/3, -1, quasi cuspidal)
+
+        sage: rational_type(x-y^2, n=infinity)
+        (True, True, 4, 1, modular)
+
+        sage: rational_type(x*(x-y^2), n=infinity)
+        (True, True, 8, 1, cuspidal)
+
+        sage: rational_type(1/x, n=infinity)
+        (True, True, -4, 1, weakly holomorphic modular)
     """
 
     from analytic_type import AnalyticType
@@ -111,24 +124,29 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
     if (f == 0):
         #       elem, homo, k,     ep,    analytic_type
         return (True, True, QQ(0), ZZ(1), AT([]))
- 
+
     analytic_type = AT(["quasi", "mero"])
 
-    R          = PolynomialRing(base_ring,'x,y,z,d')
-    F          = FractionField(R)
-    (x,y,z,d)  = R.gens()
-    R2         = PolynomialRing(PolynomialRing(base_ring, 'd'), 'x,y,z')
-    dhom       = R.hom( R2.gens() + (R2.base().gen(),), R2)
+    R              = PolynomialRing(base_ring,'x,y,z,d')
+    F              = FractionField(R)
+    (x,y,z,d)      = R.gens()
+    R2             = PolynomialRing(PolynomialRing(base_ring, 'd'), 'x,y,z')
+    dhom           = R.hom( R2.gens() + (R2.base().gen(),), R2)
 
-    f          = F(f)
-    n          = ZZ(n)
+    f              = F(f)
 
-    num        = R(f.numerator())
-    denom      = R(f.denominator())
-    hom_num    = R(   num.subs(x=x**4, y=y**(2*n), z=z**(2*(n-2))) )
-    hom_denom  = R( denom.subs(x=x**4, y=y**(2*n), z=z**(2*(n-2))) )
-    ep_num     = set([ZZ(1) - 2*(( sum([g.exponents()[0][m] for m in [1,2]]) )%2) for g in   dhom(num).monomials()])
-    ep_denom   = set([ZZ(1) - 2*(( sum([g.exponents()[0][m] for m in [1,2]]) )%2) for g in dhom(denom).monomials()])
+    num            = R(f.numerator())
+    denom          = R(f.denominator())
+    ep_num         = set([ZZ(1) - 2*(( sum([g.exponents()[0][m] for m in [1,2]]) )%2) for g in   dhom(num).monomials()])
+    ep_denom       = set([ZZ(1) - 2*(( sum([g.exponents()[0][m] for m in [1,2]]) )%2) for g in dhom(denom).monomials()])
+
+    if (n == infinity):
+        hom_num    = R(   num.subs(x=x**4, y=y**2, z=z**2) )
+        hom_denom  = R( denom.subs(x=x**4, y=y**2, z=z**2) )
+    else:
+        n          = ZZ(n)
+        hom_num    = R(   num.subs(x=x**4, y=y**(2*n), z=z**(2*(n-2))) )
+        hom_denom  = R( denom.subs(x=x**4, y=y**(2*n), z=z**(2*(n-2))) )
 
     # Determine whether the denominator of f is homogeneous
     if (len(ep_denom) == 1 and dhom(hom_denom).is_homogeneous()):
@@ -141,7 +159,10 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
     # Determine whether f is homogeneous
     if (len(ep_num) == 1 and dhom(hom_num).is_homogeneous()):
         homo   = True
-        weight = (dhom(hom_num).degree() - dhom(hom_denom).degree()) / (n-2)
+        if (n == infinity):
+            weight = (dhom(hom_num).degree() - dhom(hom_denom).degree())
+        else:
+            weight = (dhom(hom_num).degree() - dhom(hom_denom).degree()) / (n-2)
         ep     = ep_num.pop() / ep_denom.pop()
     # TODO: decompose f (resp. its degrees) into homogeneous parts
     else:
@@ -150,7 +171,10 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
         ep     = None
 
     # Note that we intentially leave out the d-factor!
-    finf_pol = x**n-y**2
+    if (n == infinity):
+        finf_pol = (x-y**2)
+    else:
+        finf_pol = x**n-y**2
 
     # Determine whether f is modular
     if not ( (num.degree(z) > 0) or (denom.degree(z) > 0) ):
@@ -161,8 +185,9 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
         analytic_type = analytic_type.reduce_to(["quasi", "holo"])
         # Determine whether f is cuspidal in the sense that finf divides it...
         # Bug in singular: finf_pol.dividess(1.0) fails over RR
-        if (not dhom(num).is_constant()) and finf_pol.divides(num):
-            analytic_type = analytic_type.reduce_to(["quasi", "cusp"])
+        if (not dhom(num).is_constant() and finf_pol.divides(num)):
+            if (n != infinity or x.divides(num)):
+                analytic_type = analytic_type.reduce_to(["quasi", "cusp"])
     else:
         # -> Because of a bug with singular in some cases
         try:
@@ -171,6 +196,12 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
                 # and dividing would/may result with an element of the quotient ring of the polynomial ring
                 denom = denom.quo_rem(finf_pol)[0]
                 denom = R(denom)
+            if (n == infinity):
+                while (x.divides(denom)):
+                    # a simple "denom /= x" is strangely not enough for non-exact rings
+                    # and dividing would/may result with an element of the quotient ring of the polynomial ring
+                    denom = denom.quo_rem(x)[0]
+                    denom = R(denom)
         except TypeError:
             pass
 
@@ -244,6 +275,9 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
 
         sage: FormsSpace(["quasi", "mero"], group=7, base_ring=ZZ, k=2, ep=-1)
         QuasiMeromorphicModularForms(n=7, k=2, ep=-1) over Integer Ring
+
+        sage: FormsSpace(["quasi", "cusp"], group=infinity, base_ring=ZZ, k=2, ep=-1)
+        QuasiCuspForms(n=+Infinity, k=2, ep=-1) over Integer Ring
     """
 
     from space import canonical_parameters
@@ -349,6 +383,9 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
 
         sage: FormsRing(["quasi", "mero"], group=7, base_ring=ZZ, red_hom=True)
         QuasiMeromorphicModularFormsRing(n=7) over Integer Ring
+
+        sage: FormsRing(["quasi", "cusp"], group=infinity)
+        QuasiCuspFormsRing(n=+Infinity) over Integer Ring
     """
 
     from graded_ring import canonical_parameters

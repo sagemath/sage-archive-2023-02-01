@@ -19,14 +19,12 @@ Miscellaneous
    sage/misc/exceptions
    sage/misc/misc
    sage/misc/temporary_file
-   sage/misc/bitset
    sage/misc/constant_function
    sage/misc/package
    sage/misc/explain_pickle
    sage/misc/getusage
    sage/misc/mrange
    sage/misc/dist
-   sage/misc/preparser
    sage/misc/functional
    sage/misc/html
    sage/misc/table

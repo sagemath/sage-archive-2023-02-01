@@ -429,14 +429,14 @@ in some computations::
 If such objects defined a non-trivial hash function, this would break
 caching in many places. However, such objects should still be usable
 in caches. This can be achieved by defining an appropriate method
-``_cache_key``.
+``_cache_key``::
 
     sage: hash(b)
     Traceback (most recent call last):
     ...
     TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
     sage: @cached_method
-    ....: def f(x): return x==a
+    ....: def f(x): return x == a
     sage: f(b)
     True
     sage: f(c) # if b and c were hashable, this would return True
@@ -896,7 +896,7 @@ cdef class CachedFunction(object):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: @cached_function
             ....: def f(x): return x+x
@@ -905,7 +905,7 @@ cdef class CachedFunction(object):
             1 + O(2)
             sage: y = K(1,2); y
             1 + O(2^2)
-            sage: x==y
+            sage: x == y
             True
             sage: f(x) is f(x)
             True
@@ -974,7 +974,7 @@ cdef class CachedFunction(object):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: @cached_function
             ....: def f(x): return x
@@ -1020,7 +1020,7 @@ cdef class CachedFunction(object):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: @cached_function
             ....: def f(x): return x
@@ -1110,6 +1110,14 @@ cdef class CachedFunction(object):
         Cache values for a number of inputs.  Do the computation
         in parallel, and only bother to compute values that we
         haven't already cached.
+
+        INPUT:
+
+        - ``arglist`` -- list (or iterables) of arguments for which
+          the method shall be precomputed.
+
+        - ``num_processes`` -- number of processes used by
+          :func:`~sage.parallel.decorate.parallel`
 
         EXAMPLES::
 
@@ -1248,7 +1256,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1259,7 +1267,7 @@ cdef class WeakCachedFunction(CachedFunction):
             (1 + O(2^20))*t + 1 + O(2)
             sage: y = t + K(1,2); y
             (1 + O(2^20))*t + 1 + O(2^2)
-            sage: x==y
+            sage: x == y
             True
             sage: f(x) is f(x)
             True
@@ -1325,7 +1333,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1373,7 +1381,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1806,18 +1814,18 @@ cdef class CachedMethodCaller(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: K.<u> = Qq(4)
             sage: class A(object):
             ....:   @cached_method
             ....:   def f(self, x): return x+x
-            sage: a=A()
+            sage: a = A()
             sage: x = K(1,1); x
             1 + O(2)
             sage: y = K(1,2); y
             1 + O(2^2)
-            sage: x==y
+            sage: x == y
             True
             sage: a.f(x) is a.f(x)
             True
@@ -2020,6 +2028,46 @@ cdef class CachedMethodCaller(CachedFunction):
         except AttributeError as msg:
             pass
         return Caller
+
+    def precompute(self, arglist, num_processes=1):
+        """
+        Cache values for a number of inputs.  Do the computation
+        in parallel, and only bother to compute values that we
+        haven't already cached.
+
+        INPUT:
+
+        - ``arglist`` -- list (or iterables) of arguments for which
+          the method shall be precomputed.
+
+        - ``num_processes`` -- number of processes used by
+          :func:`~sage.parallel.decorate.parallel`
+
+        EXAMPLES::
+
+            sage: class Foo(object):
+            ....:     @cached_method
+            ....:     def f(self, i):
+            ....:         return i^2
+            sage: foo = Foo()
+            sage: foo.f(3)
+            9
+            sage: foo.f(1)
+            1
+            sage: foo.f.precompute(range(2), 2)
+            sage: foo.f.cache
+            {((0,), ()): 0, ((1,), ()): 1, ((3,), ()): 9}
+        """
+        from sage.parallel.decorate import parallel, normalize_input
+        P = parallel(num_processes)(self._instance_call)
+        has_key = self.cache.has_key
+        if self._argument_fixer is None:
+            self.argfix_init()
+        get_key = self._fix_to_pos
+        new = lambda x: not has_key(get_key(*x[0],**x[1]))
+        arglist = filter(new, map(normalize_input, arglist))
+        for ((args,kwargs), val) in P(arglist):
+            self.set_cache(val, *args, **kwargs)
 
 cdef class CachedMethodCallerNoArgs(CachedFunction):
     """

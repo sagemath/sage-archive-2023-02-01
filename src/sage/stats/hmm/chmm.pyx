@@ -1337,7 +1337,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             (2.18905068682..., 15)
             sage: m.log_likelihood(v)
             2.18905068682...
-            sage: m  # rel tol 3e-14
+            sage: m  # rel tol 6e-14
             Gaussian Mixture Hidden Markov Model with 2 States
             Transition matrix:
             [   0.8746363339773399   0.12536366602266016]

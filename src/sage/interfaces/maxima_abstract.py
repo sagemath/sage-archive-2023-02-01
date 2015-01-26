@@ -165,9 +165,9 @@ class MaximaAbstract(Interface):
             p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             res = p.stdout.read()
-            # We now get 16 lines of commented verbosity
+            # We get 4 lines of commented verbosity
             # every time Maxima starts, so we need to get rid of them
-            for _ in range(16):
+            for _ in range(4):
                 res = res[res.find('\n')+1:]
             return AsciiArtString(res)
         else:
@@ -367,7 +367,7 @@ class MaximaAbstract(Interface):
 
             sage: maxima.console()             # not tested (since we can't)
             Maxima 5.34.1 http://maxima.sourceforge.net
-            Using Lisp ECL 12.12.1
+            Using Lisp ECL 13.5.1
             Distributed under the GNU Public License. See the file COPYING.
             Dedicated to the memory of William Schelter.
             This is a development version of Maxima. The function bug_report()
@@ -418,7 +418,7 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.34.1'
+            '5.35.1'
         """
         return maxima_version()
 
@@ -2347,7 +2347,7 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima_abstract import maxima_version
         sage: maxima_version()
-        '5.34.1'
+        '5.35.1'
     """
     return os.popen('maxima --version').read().split()[-1]
 

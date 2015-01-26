@@ -507,6 +507,71 @@ class InterfaceInit(Converter):
             D[0](f)(x*y)
             sage: m.derivative(t, t.operator())
             "at(diff('f(_SAGE_VAR_t0), _SAGE_VAR_t0, 1), [_SAGE_VAR_t0 = (_SAGE_VAR_x)*(_SAGE_VAR_y)])"
+
+        TESTS:
+
+        Most of these confirm that :trac:`7401` was fixed::
+
+            sage: t = var('t'); f = function('f')(t)
+            sage: a = 2^e^t * f.subs(t=e^t) * diff(f, t).subs(t=e^t) + 2*t
+            sage: solve(a == 0, diff(f, t).subs(t=e^t))
+            [D[0](f)(e^t) == -2^(-e^t + 1)*t/f(e^t)]
+
+        ::
+
+            sage: f = function('f', x)
+            sage: df = f.diff(x); df
+            D[0](f)(x)
+            sage: maxima(df)
+            'diff('f(_SAGE_VAR_x),_SAGE_VAR_x,1)
+
+        ::
+
+            sage: a = df.subs(x=exp(x)); a
+            D[0](f)(e^x)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=%e^_SAGE_VAR_x])
+            sage: bool(b.sage() == a)
+            True
+
+        ::
+
+            sage: a = df.subs(x=4); a
+            D[0](f)(4)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4])
+            sage: bool(b.sage() == a)
+            True
+
+        It also works with more than one variable.  Note the preferred
+        syntax ``function('f')(x, y)`` to create a general symbolic
+        function of more than one variable::
+
+            sage: x, y = var('x y')
+            sage: f = function('f')(x, y)
+            sage: f_x = f.diff(x); f_x
+            D[0](f)(x, y)
+            sage: maxima(f_x)
+            'diff('f(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)
+
+        ::
+
+            sage: a = f_x.subs(x=4); a
+            D[0](f)(4, y)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=_SAGE_VAR_y])
+            sage: bool(b.sage() == a)
+            True
+
+        ::
+
+            sage: a = f_x.subs(x=4).subs(y=8); a
+            D[0](f)(4, 8)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=8])
+            sage: bool(b.sage() == a)
+            True
+
         """
         #This code should probably be moved into the interface
         #object in a nice way.
@@ -1084,7 +1149,7 @@ def polynomial(ex, base_ring=None, ring=None):
          sage: polynomial(x*y, ring=SR['x'])
          y*x
 
-         sage: polynomial(y - sqrt(x), ring=SR[y])
+         sage: polynomial(y - sqrt(x), ring=SR['y'])
          y - sqrt(x)
          sage: _.list()
          [-sqrt(x), 1]

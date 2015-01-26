@@ -1904,6 +1904,63 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         return element.value
 
 
+    def union(left, right):
+        r"""
+        """
+        new = left.copy()
+        new.update(right)
+        return new
+
+
+    def update(self, other):
+        r"""
+        """
+        try:
+            it = other.values()
+        except AttributeError:
+            it = iter(other)
+        for value in it:
+            self.add(value)
+
+
+    def difference(left, right):
+        r"""
+        """
+        new = left.copy()
+        new.difference_update(right)
+        return new
+
+
+    def difference_update(self, other):
+        r"""
+        """
+        try:
+            it = other.keys()
+        except AttributeError:
+            it = iter(other)
+        for key in it:
+            self.discard(key)
+
+
+    def intersection(left, right):
+        r"""
+        """
+        new = left.copy()
+        new.intersection_update(right)
+        return new
+
+
+    def intersection_update(self, other):
+        r"""
+        """
+        try:
+            it = other.keys()
+        except AttributeError:
+            it = iter(other)
+        for key in it:
+            if key not in other:
+                self.discard(key)
+
 # *****************************************************************************
 
 

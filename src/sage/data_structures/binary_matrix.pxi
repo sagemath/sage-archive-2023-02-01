@@ -17,8 +17,10 @@ a ``binary_matrix_t`` structure contains :
   containing the bits of row `i`.
 
 """
+
 from sage.data_structures.binary_matrix cimport *
 include 'sage/data_structures/bitset.pxi'
+
 
 cdef inline binary_matrix_init(binary_matrix_t m, long n_rows, long n_cols):
     r"""
@@ -28,7 +30,6 @@ cdef inline binary_matrix_init(binary_matrix_t m, long n_rows, long n_cols):
 
     m.n_cols = n_cols
     m.n_rows = n_rows
-    m.width = (n_cols - 1)/(8*sizeof(unsigned long)) + 1
     m.rows = <bitset_t *>sage_malloc(n_rows * sizeof(bitset_t))
     if m.rows == NULL:
         raise MemoryError
@@ -101,10 +102,6 @@ cdef inline binary_matrix_print(binary_matrix_t m):
     cdef int i,j
     import sys
     for i from 0 <= i < m.n_rows:
-        # If you want to print the *whole* matrix, including the useless bits,
-        # use the following line instead
-        #
-        # for j in (m.width*8*sizeof(unsigned long)):
         for j from 0 <= j < m.n_cols:
             sys.stdout.write("1" if binary_matrix_get(m, i, j) else ".",)
         print ""

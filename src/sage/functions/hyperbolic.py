@@ -2,6 +2,11 @@
 Hyperbolic Functions
 """
 from sage.symbolic.function import GinacFunction, BuiltinFunction
+from sage.rings.infinity import Infinity
+from sage.symbolic.expression import Expression
+from sage.symbolic.constants import pi, I
+from sage.rings.integer_ring import ZZ
+
 import math
 
 class HyperbolicFunction(BuiltinFunction):
@@ -208,6 +213,33 @@ class Function_coth(HyperbolicFunction):
         HyperbolicFunction.__init__(self, "coth", latex_name=r"\coth",
                                    evalf_float=lambda x: 1/math.tanh(x))
 
+    def _eval_ (self, x):
+        """
+        EXAMPLES::
+        
+            sage: coth(0)
+            +Infinity
+            sage: coth(pi*I)
+            +Infinity
+            sage: coth(pi*I/2)
+            0
+            sage: coth(7*pi*I/2)
+            0
+            sage: coth(8*pi*I/2)
+            +Infinity
+            sage: coth(7.*pi*I/2)
+            coth(3.50000000000000*I*pi)
+        """
+        if x.is_zero():
+            return Infinity
+        if isinstance(x, Expression):
+            x = 2*x/pi/I
+            if x.is_integer():
+                if ZZ(x)%2 == 1:
+                    return 0
+                else:
+                    return Infinity
+
     def _eval_numpy_(self, x):
         """
         EXAMPLES::
@@ -254,6 +286,33 @@ class Function_sech(HyperbolicFunction):
         """
         HyperbolicFunction.__init__(self, "sech", latex_name=r"{\rm sech}",
                                    evalf_float=lambda x: 1/math.cosh(x))
+
+    def _eval_ (self, x):
+        """
+        EXAMPLES::
+        
+            sage: sech(0)
+            1
+            sage: sech(pi*I)
+            -1
+            sage: sech(pi*I/2)
+            +Infinity
+            sage: sech(7*pi*I/2)
+            +Infinity
+            sage: sech(8*pi*I/2)
+            1
+            sage: sech(8.*pi*I/2)
+            sech(4.00000000000000*I*pi)
+        """
+        if x.is_zero():
+            return 1
+        if isinstance(x, Expression):
+            x = 2*x/pi/I
+            if x.is_integer():
+                if ZZ(x)%2 == 1:
+                    return Infinity
+                else:
+                    return ZZ(-1)**ZZ(x/2)
 
     def _eval_numpy_(self, x):
         """
@@ -302,6 +361,31 @@ class Function_csch(HyperbolicFunction):
         """
         HyperbolicFunction.__init__(self, "csch", latex_name=r"{\rm csch}",
                                    evalf_float=lambda x: 1/math.sinh(x))
+
+    def _eval_ (self, x):
+        """
+        EXAMPLES::
+        
+            sage: csch(0)
+            +Infinity
+            sage: csch(pi*I)
+            +Infinity
+            sage: csch(pi*I/2)
+            -I
+            sage: csch(7*pi*I/2)
+            I
+            sage: csch(7.*pi*I/2)
+            csch(3.50000000000000*I*pi)
+        """
+        if x.is_zero():
+            return Infinity
+        if isinstance(x, Expression):
+            x = 2*x/pi/I
+            if x.is_integer():
+                if ZZ(x)%2 == 1:
+                    return ZZ(-1)**ZZ((x+1)/2)*I
+                else:
+                    return Infinity
 
     def _eval_numpy_(self, x):
         """

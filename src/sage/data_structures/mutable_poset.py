@@ -1806,9 +1806,9 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         try:
             element = self._elements_[key]
         except KeyError:
-            if raise_key_error:
-                raise KeyError('Key %s is not contained '
-                               'in this poset.' % (key,))
+            if not raise_key_error:
+                return
+            raise KeyError('Key %s is not contained in this poset.' % (key,))
 
         for reverse in (False, True):
             for p in element.predecessors(reverse):

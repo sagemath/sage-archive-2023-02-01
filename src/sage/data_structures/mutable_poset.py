@@ -1074,6 +1074,31 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         return self._oo_
 
 
+    def element(self, key):
+        r"""
+        Return the element corresponding to ``key``.
+
+        INPUT:
+
+        ``key`` -- the key of an object.
+
+        OUTPUT:
+
+        An instance of :class:`MutablePosetElement`.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(42)
+            sage: e = P.element(42); e
+            42
+            sage: type(e)
+            <class 'sage.data_structures.mutable_poset.MutablePosetElement'>
+        """
+        return self._elements_[key]
+
+
     def get_key(self, value):
         r"""
         Return the key corresponding to ``value``.

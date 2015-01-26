@@ -5,13 +5,11 @@ It's almost a copy of the bitset datatype, but allows a differentiation of the
 rows of the matrix. That's the only advantage compared to storing all the rows
 of a matrix in a loooooonng bitset.
 
-a ``binary_matrix_t`` structure contains :
+A ``binary_matrix_t`` structure contains :
 
 - ``long n_cols`` -- number of columns
 
 - ``long n_rows`` -- number of rows
-
-- ``long width`` -- number of ``unsigned long`` per row
 
 - ``bitset_t * rows`` -- ``rows[i]`` points toward a block of type ``bitset_t``
   containing the bits of row `i`.
@@ -84,10 +82,7 @@ cdef inline binary_matrix_set(binary_matrix_t m, long row, long col, bint value)
     r"""
     Sets an entry
     """
-    if value:
-        binary_matrix_set1(m,row,col)
-    else:
-        binary_matrix_set0(m,row,col)
+    bitset_set_to(m.rows[row],col,value)
 
 cdef inline bint binary_matrix_get(binary_matrix_t m, long row, long col):
     r"""

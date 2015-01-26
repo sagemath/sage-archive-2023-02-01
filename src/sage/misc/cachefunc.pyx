@@ -1111,6 +1111,14 @@ cdef class CachedFunction(object):
         in parallel, and only bother to compute values that we
         haven't already cached.
 
+        INPUT:
+
+        - ``arglist`` -- list (or iterables) of arguments for which
+          the method shall be precomputed.
+
+        - ``num_processes`` -- number of processes used by
+          :func:`~sage.parallel.decorate.parallel`
+
         EXAMPLES::
 
             sage: @cached_function
@@ -2020,6 +2028,46 @@ cdef class CachedMethodCaller(CachedFunction):
         except AttributeError as msg:
             pass
         return Caller
+
+    def precompute(self, arglist, num_processes=1):
+        """
+        Cache values for a number of inputs.  Do the computation
+        in parallel, and only bother to compute values that we
+        haven't already cached.
+
+        INPUT:
+
+        - ``arglist`` -- list (or iterables) of arguments for which
+          the method shall be precomputed.
+
+        - ``num_processes`` -- number of processes used by
+          :func:`~sage.parallel.decorate.parallel`
+
+        EXAMPLES::
+
+            sage: class Foo(object):
+            ....:     @cached_method
+            ....:     def f(self, i):
+            ....:         return i^2
+            sage: foo = Foo()
+            sage: foo.f(3)
+            9
+            sage: foo.f(1)
+            1
+            sage: foo.f.precompute(range(2), 2)
+            sage: foo.f.cache
+            {((0,), ()): 0, ((1,), ()): 1, ((3,), ()): 9}
+        """
+        from sage.parallel.decorate import parallel, normalize_input
+        P = parallel(num_processes)(self._instance_call)
+        has_key = self.cache.has_key
+        if self._argument_fixer is None:
+            self.argfix_init()
+        get_key = self._fix_to_pos
+        new = lambda x: not has_key(get_key(*x[0],**x[1]))
+        arglist = filter(new, map(normalize_input, arglist))
+        for ((args,kwargs), val) in P(arglist):
+            self.set_cache(val, *args, **kwargs)
 
 cdef class CachedMethodCallerNoArgs(CachedFunction):
     """

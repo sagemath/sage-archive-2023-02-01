@@ -23,7 +23,9 @@ Moreover, it offers you full development capabilities:
 you can change absolutely any part of Sage or the programs on which it depends,
 and recompile the modified parts.
 
-`Download the Sage source code <http://www.sagemath.org/download-source.html>`_.
+`Download the Sage source code <http://www.sagemath.org/download-source.html>`_
+or `check it out with git <https://github.com/sagemath/sage>`_ (see also.
+`the developers guide <http://www.sagemath.org/doc/developer/manual_git.html#section-git-checkout>`_).
 If you changed your mind, you can also download a
 `binary distribution <http://www.sagemath.org/download.html>`_
 for some operating systems.
@@ -121,6 +123,8 @@ includes virtually everything you need.
 
 After extracting the Sage tarball, the subdirectory :file:`upstream`
 contains the source distributions for everything on which Sage depends.
+If cloned from a git repository, the upstream tarballs will be downloaded,
+verified, and cached as part of the Sage installation process.
 We emphasize that all of this software is included with Sage, so you do not
 have to worry about trying to download and install any one of these packages
 (such as Python, for example) yourself.
@@ -937,6 +941,10 @@ Here are some of the more commonly used variables affecting the build process:
   Typically, building the documentation using LaTeX and dvipng takes longer
   and uses more memory and disk space than using MathJax.
 
+- :envvar:`SAGE_DOCBUILD_OPTS` - the value of this variable is passed
+  as an argument to ``sage --docbuild all html`` or ``sage --docbuild
+  all pdf`` when you run ``make``, ``make doc``, or ``make doc-pdf``.
+
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each spkg in a
   subdirectory of :file:`$SAGE_ROOT/local/var/tmp/sage/build/`; for
   example, build version 3.8.3.p12 of
@@ -1058,6 +1066,20 @@ an unsupported machine or an unusual compiler:
 
 Environment variables dealing with specific Sage packages:
 
+- :envvar:`SAGE_MP_LIBRARY` - to use an alternative library in place of ``MPIR``
+  for multiprecision integer arithmetic. Supported values are
+
+    ``MPIR`` (default choice), ``GMP``.
+
+  The value used at installation time is stored in
+
+    :file:`$SAGE_LOCAL/share/mp_config`.
+
+  You should only set this environment variable before the installation process
+  starts.
+  Indeed, the only supported way to switch the library used is to restart the
+  installation process from start.
+
 - :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in particular,
   if :envvar:`SAGE_ATLAS_LIB` is not set), you can use this environment
   variable to set a particular architecture and instruction set extension,
@@ -1138,6 +1160,21 @@ Environment variables dealing with specific Sage packages:
 
   - If this variable is unset, include the patch on sun4v machines only.
 
+- :envvar:`PARI_CONFIGURE` - use this to pass extra parameters to
+  PARI's ``Configure`` script, for example to specify graphics
+  support (which is disabled by default). See the file
+  :file:`build/pkgs/pari/spkg-install` for more information.
+
+- :envvar:`SAGE_TUNE_PARI`: If yes, enable PARI self-tuning. Note that
+  this can be time-consuming. If you set this variable to "yes", you
+  will also see this: ``WARNING: Tuning PARI/GP is unreliable. You may
+  find your build of PARI fails, or PARI/GP does not work properly
+  once built. We recommend to build this package with
+  SAGE_CHECK="yes".``
+
+- :envvar:`PARI_MAKEFLAGS`: The value of this variable is passed as an
+  argument to the ``$MAKE`` command when compiling PARI.
+
 Some standard environment variables which are used by Sage:
 
 - :envvar:`CC` - while some programs allow you to use this to specify your C
@@ -1166,7 +1203,13 @@ Some standard environment variables which are used by Sage:
 - :envvar:`CFLAGS`, :envvar:`CXXFLAGS` and :envvar:`FCFLAGS` - the flags for
   the C compiler, the C++ compiler and the Fortran compiler, respectively.
   The same comments apply to these: setting them may cause problems, because
-  they are not universally respected among the Sage packages.
+  they are not universally respected among the Sage packages. Note
+  also that ``export CFLAGS=""`` does not have the same effect as
+  ``unset CFLAGS``. The latter is preferable.
+
+- Similar comments apply to other compiler and linker flags like
+  :envvar:`CPPFLAGS`, :envvar:`LDFLAGS`, :envvar:`CXXFLAG64`,
+  :envvar:`LDFLAG64`, and :envvar:`LD`.
 
 Sage uses the following environment variables when it runs:
 
@@ -1231,7 +1274,7 @@ Variables dealing with doctesting:
 
 - :envvar:`SAGE_TIMEOUT` - used for Sage's doctesting: the number of seconds
   to allow a doctest before timing it out.
-  If this isn't set, the default is 360 seconds (6 minutes).
+  If this isn't set, the default is 300 seconds (5 minutes).
 
 - :envvar:`SAGE_TIMEOUT_LONG` - used for Sage's doctesting: the number of
   seconds to allow a doctest before timing it out, if tests are run using
@@ -1247,6 +1290,27 @@ Variables dealing with doctesting:
   <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.picklejar>`_
   and `here (unpickle_all)
   <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.unpickle_all>`_.
+
+- :envvar:`SAGE_TEST_GLOBAL_ITER`, :envvar:`SAGE_TEST_ITER`: these can
+  be used instead of passing the flags ``--global-iterations`` and
+  ``--file-iterations``, respectively, to ``sage -t``. Indeed, these
+  variables are only used if the flags are unset. Run ``sage -t -h``
+  for more information on the effects of these flags (and therefore
+  these variables).
+
+Sage sets some other environment variables. The most accurate way to
+see what Sage does is to first run ``env`` from a shell prompt to see
+what environment variables you have set. Then run ``sage --sh -c
+env`` to see the list after Sage sets its variables. (This runs a
+separate shell, executes the shell command ``env``, and then exits
+that shell, so after running this, your settings will be restored.)
+Alternatively, you can peruse the shell script
+:file:`src/bin/sage-env`.
+
+Sage also has some environment-like settings. Some of these correspond
+to actual environment variables while others have names like
+environment variables but are only available while Sage is running. To
+see a list, execute ``sage.env.[TAB]`` while running Sage.
 
 .. comment:
     ***************************************************************************
@@ -1370,4 +1434,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in October 2014 (Sage 6.4).**
+**This page was last updated in November 2014 (Sage 6.5).**

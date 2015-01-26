@@ -2,7 +2,8 @@ from lazy_attribute import lazy_attribute, lazy_class_attribute
 from lazy_import import lazy_import
 
 from misc import (alarm, cancel_alarm,
-                  ellipsis_range, ellipsis_iter, srange, xsrange, sxrange, getitem,
+                  ellipsis_range, ellipsis_iter, srange, xsrange, sxrange,
+                  BackslashOperator, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
                   version, banner, add, union, uniq, powerset, subsets,
@@ -42,9 +43,6 @@ from mrange import xmrange, mrange, xmrange_iter, mrange_iter, cartesian_product
 
 from fpickle import pickle_function, unpickle_function
 
-# deprecated
-#from bug import bug
-
 from dist import install_scripts
 
 from package import install_package, is_package_installed, standard_packages, optional_packages, experimental_packages, upgrade
@@ -65,13 +63,8 @@ from log import log_html, log_dvi, log_text
 
 from mathml import mathml
 
-from defaults import set_default_variable_name
-
-from preparser import preparse, implicit_multiplication, BackslashOperator
-
-lazy_import('sage.misc.attached_files', [
-        'attach', 'detach', 'attached_files', 'load_attach_path',
-        'reset_load_attach_path', 'load_attach_mode'])
+from defaults import (set_default_variable_name,
+                        series_precision, set_series_precision)
 
 from sage_eval import sage_eval, sageobj
 
@@ -87,7 +80,6 @@ from persist import save, load, dumps, loads, db, db_save
 from func_persist import func_persist
 
 from functional import (additive_order,
-                        sqrt as numerical_sqrt,
                         base_ring,
                         base_field,
                         basis,
@@ -104,13 +96,10 @@ from functional import (additive_order,
                         discriminant,
                         disc,
                         eta,
-                        exp,
-                        factor,
                         fcp,
                         gen,
                         gens,
                         hecke_operator,
-                        ideal,
                         image,
                         integral, integrate,
                         integral_closure,
@@ -124,6 +113,7 @@ from functional import (additive_order,
                         kernel,
                         krull_dimension,
                         lift,
+                        log as log_b,
                         minimal_polynomial,
                         minpoly,
                         multiplicative_order,
@@ -146,9 +136,7 @@ from functional import (additive_order,
                         squarefree_part,
                         symbolic_sum as sum,
                         transpose,
-                        zero,
-                        log as log_b,
-                        parent)
+                        zero)
 
 
 from latex import LatexExpr, latex, view, pretty_print, pretty_print_default
@@ -172,6 +160,8 @@ from explain_pickle import explain_pickle, unpickle_newobj, unpickle_global, unp
 from decorators import specialize, sage_wraps, infix_operator
 
 from unknown import Unknown
+
+lazy_import('sage.misc.inline_fortran', 'fortran')
 
 ##########################################################################
 def benchmark(n=-1):

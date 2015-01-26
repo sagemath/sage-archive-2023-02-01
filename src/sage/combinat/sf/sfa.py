@@ -212,7 +212,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import Integer, PolynomialRing, QQ
+from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 import sage.combinat.partition
@@ -881,6 +881,479 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             if n in _Partitions:
                 n = _Partitions(n)
             return self(F.Eulerian(n, j, k).to_symmetric_function())
+
+        def gessel_reutenauer(self, lam):
+            r"""
+            Return the Gessel-Reutenauer symmetric function
+            corresponding to the partition ``lam`` written in the basis
+            ``self``.
+
+            Let `\lambda` be a partition. The *Gessel-Reutenauer
+            symmetric function* `\mathbf{GR}_\lambda` corresponding to
+            `\lambda` is the symmetric function denoted `L_\lambda` in
+            [GR1993]_ and in Exercise 7.89 of [STA]_. It can be defined
+            in several ways:
+
+            - It is the sum of the monomials `\mathbf{x}_w` over all
+              words `w` over the alphabet
+              `\left\{ 1, 2, 3, \ldots \right\}` which have CFL type
+              `\lambda`. Here, the monomial `\mathbf{x}_w` for a word
+              `w = \left(w_1, w_2, \ldots, w_k\right)` is defined as
+              `x_{w_1} x_{w_2} \cdots x_{w_k}`, and the *CFL type* of
+              a word `w` is defined as the partition obtained by
+              sorting (in decreasing order) the lengths of the factors
+              in the Lyndon factorization
+              (:meth:`~sage.combinat.words.finite_word.FiniteWord_class.lyndon_factorization`)
+              of `w`. The fact that this power series
+              `\mathbf{GR}_\lambda` is symmetric is not obvious.
+
+            - It is the sum of the fundamental quasisymmetric
+              functions `F_{\operatorname{Des} \sigma}` over all
+              permutations `\sigma` which have cycle type `\lambda`. See
+              :class:`sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Fundamental`
+              for the definition of fundamental quasisymmetric functions,
+              and :meth:`~sage.combinat.permutation.Permutation.cycle_type`
+              for that of cycle type. For a permutation `\sigma`, we use
+              `\operatorname{Des} \sigma` to denote the descent composition
+              (:meth:`~sage.combinat.permutation.Permutation.descents_composition`)
+              of `\sigma`. Again, this definition makes the symmetry
+              of `\mathbf{GR}_\lambda` far from obvious.
+
+            - For every positive integer `n`, we have
+
+              .. MATH::
+
+                  \mathbf{GR}_{\left(n\right)}
+                  = \frac{1}{n} \sum_{d \mid n} \mu(d) p_d^{n/d},
+
+              where `p_d` denotes the `d`-th power-sum symmetric
+              function. This `\mathbf{GR}_{\left(n\right)}` is also
+              denoted by `L_n`. Now, `\mathbf{GR}_\lambda` is defined
+              as the product:
+
+              .. MATH::
+
+                  h_{m_1} \left[L_1\right] \cdot h_{m_2} \left[L_2\right]
+                  \cdot h_{m_3} \left[L_3\right] \cdots,
+
+              where `m_i` denotes the multiplicity of the part `i` in
+              `\lambda`, and where the square brackets stand for
+              plethysm (:meth:`plethysm`). This definition makes
+              the symmetry (but not the integrality!) of
+              `\mathbf{GR}_\lambda` obvious.
+
+            The equivalences of these three definitions are proven in
+            [GR1993]_ Sections 2-3.
+
+            INPUT:
+
+            - ``lam`` -- a partition or a positive integer (in the latter
+              case, it is understood to mean the partition ``[lam]``)
+
+            OUTPUT:
+
+            The Gessel-Reutenauer symmetric function
+            `\mathbf{GR}_\lambda`, where `\lambda` is ``lam``,
+            expanded in the basis ``self``.
+
+            REFERENCES:
+
+            .. [GR1993] Ira M. Gessel, Christophe Reutenauer.
+               *Counting Permutations with Given Cycle Structure
+               and Descent Set*.
+               Journal of Combinatorial Theory, Series A, 64 (1993),
+               pp. 189--215.
+
+            EXAMPLES:
+
+            The first few values of `\mathbf{GR}_{(n)} = L_n`::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: h = Sym.h()
+                sage: h.gessel_reutenauer(1)
+                h[1]
+                sage: h.gessel_reutenauer(2)
+                h[1, 1] - h[2]
+                sage: h.gessel_reutenauer(3)
+                h[2, 1] - h[3]
+                sage: h.gessel_reutenauer(4)
+                h[2, 1, 1] - h[2, 2]
+                sage: h.gessel_reutenauer(5)
+                h[2, 1, 1, 1] - h[2, 2, 1] - h[3, 1, 1] + h[3, 2] + h[4, 1] - h[5]
+                sage: h.gessel_reutenauer(6)
+                h[2, 1, 1, 1, 1] - h[2, 2, 1, 1] - h[2, 2, 2]
+                 - 2*h[3, 1, 1, 1] + 5*h[3, 2, 1] - 2*h[3, 3] + h[4, 1, 1]
+                 - h[4, 2] - h[5, 1] + h[6]
+
+            Gessel-Reutenauer functions indexed by partitions::
+            
+                sage: h.gessel_reutenauer([2, 1])
+                h[1, 1, 1] - h[2, 1]
+                sage: h.gessel_reutenauer([2, 2])
+                h[1, 1, 1, 1] - 3*h[2, 1, 1] + 2*h[2, 2] + h[3, 1] - h[4]
+
+            The Gessel-Reutenauer functions are Schur-postive::
+
+                sage: s = Sym.s()
+                sage: s.gessel_reutenauer([2, 1])
+                s[1, 1, 1] + s[2, 1]
+                sage: s.gessel_reutenauer([2, 2, 1])
+                s[1, 1, 1, 1, 1] + s[2, 1, 1, 1] + s[2, 2, 1] + s[3, 2]
+
+            They do not form a basis, as the following example (from
+            [GR1993]_ p. 201) shows::
+
+                sage: s.gessel_reutenauer([4]) == s.gessel_reutenauer([2, 1, 1])
+                True
+
+            Of the above three equivalent definitions of
+            `\mathbf{GR}_\lambda`, we use the third one for
+            computations. Let us check that the second one gives the
+            same results::
+
+                sage: QSym = QuasiSymmetricFunctions(ZZ)
+                sage: F = QSym.F() # fundamental basis
+                sage: def GR_def2(lam): # `\mathbf{GR}_\lambda`
+                ....:     n = lam.size()
+                ....:     r = F.sum_of_monomials([sigma.descents_composition()
+                ....:                             for sigma in Permutations(n)
+                ....:                             if sigma.cycle_type() == lam])
+                ....:     return r.to_symmetric_function()
+                sage: all( GR_def2(lam) == h.gessel_reutenauer(lam)
+                ....:      for n in range(5) for lam in Partitions(n) )
+                True
+
+            And the first one, too (assuming symmetry)::
+
+                sage: m = Sym.m()
+                sage: def GR_def1(lam): # `\mathbf{GR}_\lambda`
+                ....:     n = lam.size()
+                ....:     Permus_mset = sage.combinat.permutation.Permutations_mset
+                ....:     def coeff_of_m_mu_in_result(mu):
+                ....:         words_to_check = Permus_mset([i for (i, l) in enumerate(mu)
+                ....:                                       for _ in range(l)])
+                ....:         return sum((1 for w in words_to_check if
+                ....:                     Partition(list(reversed(sorted([len(v) for v in Word(w).lyndon_factorization()]))))
+                ....:                     == lam))
+                ....:     r = m.sum_of_terms([(mu, coeff_of_m_mu_in_result(mu))
+                ....:                         for mu in Partitions(n)],
+                ....:                        distinct=True)
+                ....:     return r
+                sage: all( GR_def1(lam) == h.gessel_reutenauer(lam)
+                ....:      for n in range(5) for lam in Partitions(n) )
+                True
+
+            TESTS:
+
+            This works fine over other base rings::
+
+                sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+                sage: P = Sym.macdonald().P()
+                sage: h = Sym.h()
+                sage: P.gessel_reutenauer(3) == P(h.gessel_reutenauer(3))
+                True
+
+            .. NOTE::
+
+                The currently existing implementation of this function is
+                technically unsatisfactory. It distinguishes the case when the
+                base ring is a `\QQ`-algebra from the case
+                where it isn't. In the latter, it does a computation using
+                universal coefficients, again distinguishing the case when it is
+                able to compute the "corresponding" basis of the symmetric function
+                algebra over `\QQ` (using the ``corresponding_basis_over`` hack)
+                from the case when it isn't (in which case it transforms everything
+                into the Schur basis, which is slow).
+            """
+            if lam in ZZ:
+                lam = [lam]
+            lam = _Partitions(lam)
+            R = self.base_ring()
+            # We use [GR1993]_ Theorem 3.6 and work over `\QQ` to
+            # compute the Gessel-Reutenauer symmetric function.
+            if self.has_coerce_map_from(QQ):
+                # [GR1993]_ Theorem 3.6
+                m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
+                p = self.realization_of().power()
+                h = self.realization_of().complete()
+                mu = sage.rings.arith.Moebius()
+                from sage.rings.arith import squarefree_divisors
+                def component(i, g): # == h_g[L_i]
+                    L_i = p.sum_of_terms([(_Partitions([d] * (i//d)), R(mu(d)))
+                                          for d in squarefree_divisors(i)],
+                                         distinct=True) / i
+                    return p(h[g]).plethysm(L_i)
+                return self( p.prod(component(i, g) for i, g in m.items()) )
+
+            # The base ring does not coerce into `\QQ`
+
+            # comp_parent is the parent that is going to be used for
+            # computations. In most cases it will just be self.
+            comp_parent = self
+            # Now let's try to find out what basis self is in, and
+            # construct the corresponding basis of symmetric functions
+            # over QQ.
+            corresponding_parent_over_QQ = self.corresponding_basis_over(QQ)
+            if corresponding_parent_over_QQ is None:
+                # This is the case where the corresponding basis
+                # over QQ cannot be found. This can have two reasons:
+                # Either the basis depends on variables (like the
+                # Macdonald symmetric functions), or its basis_name()
+                # is not identical to the name of the method on
+                # SymmetricFunctions(QQ) that builds it. Either way,
+                # give up looking for the corresponding parent, and
+                # transform everything into the Schur basis (very
+                # slow!) instead.
+                comp_parent = self.realization_of().schur()
+                from sage.combinat.sf.sf import SymmetricFunctions
+                corresponding_parent_over_QQ = SymmetricFunctions(QQ).schur()
+            corresponding_result = corresponding_parent_over_QQ.gessel_reutenauer(lam)
+            comp_base_ring = comp_parent.base_ring()
+            result = comp_parent.sum_of_terms((nu, comp_base_ring(c))
+                                               for nu, c in corresponding_result)
+            return self(result)    # just in case comp_parent != self.
+
+        def carlitz_shareshian_wachs(self, n, d, s, comparison=None):
+            r"""
+            Return the Carlitz-Shareshian-Wachs symmetric function
+            `X_{n, d, s}` (if ``comparison`` is ``None``), or
+            `U_{n, d, s}` (if ``comparison`` is ``-1``), or
+            `V_{n, d, s}` (if ``comparison`` is ``0``), or
+            `W_{n, d, s}` (if ``comparison`` is ``1``) written in the
+            basis ``self``. These functions are defined below.
+
+            The Carlitz-Shareshian-Wachs symmetric functions have been
+            introduced in [GriRei2014]_, Exercise 2.84, as
+            refinements of a certain particular case of chromatic
+            quasisymmetric functions defined by Shareshian and Wachs.
+            Their definitions are as follows:
+
+            Let `n`, `d` and `s` be three nonnegative integers. Let
+            `W(n, d, s)` denote the set of all `n`-tuples
+            `(w_1, w_2, \ldots, w_n)` of positive integers having the
+            property that there exist precisely `d` elements `i`
+            of `\left\{ 1, 2, \ldots, n-1 \right\}` satisfying
+            `w_i > w_{i+1}`, and precisely `s` elements `i` of
+            `\left\{ 1, 2, \ldots, n-1 \right\}` satisfying
+            `w_i = w_{i+1}`. For every
+            `w = (w_1, w_2, \ldots, w_n) \in W(n, d, s)`, let `x_w`
+            be the monomial `x_{w_1} x_{w_2} \cdots x_{w_n}`. We then
+            define the power series `X_{n, d, s}` by
+
+            .. MATH::
+
+                X_{n, d, s} = \sum_{w \in W(n, d, s)} x_w .
+
+            This is a symmetric function (according to
+            [GriRei2014]_, Exercise 2.84(b)), and for `s = 0` equals
+            the `t^d`-coefficient of the descent enumerator of Smirnov
+            words of length `n` (an example of a chromatic
+            quasisymmetric function which happens to be symmetric --
+            see [ShaWach2014]_, Example 2.5).
+
+            Assume that `n > 0`. Then, we can define three further
+            power series as follows:
+
+            .. MATH::
+
+                U_{n, d, s} = \sum_{w_1 < w_n} x_w ; \qquad
+                V_{n, d, s} = \sum_{w_1 = w_n} x_w ; \qquad
+                W_{n, d, s} = \sum_{w_1 > w_n} x_w ,
+
+            where all three sums range over
+            `w = (w_1, w_2, \ldots, w_n) \in W(n, d, s)`. These
+            three power series `U_{n, d, s}`, `V_{n, d, s}` and
+            `W_{n, d, s}` are symmetric functions as well
+            ([GriRei2014]_, Exercise 2.84(c)). Their sum is
+            `X_{n, d, s}`.
+
+            REFERENCES:
+
+            .. [ShaWach2014] John Shareshian, Michelle L. Wachs.
+               *Chromatic quasisymmetric functions*.
+               :arxiv:`1405.4629v1`.
+
+            INPUT:
+
+            - ``n`` -- a nonnegative integer
+
+            - ``d`` -- a nonnegative integer
+
+            - ``s`` -- a nonnegative integer
+
+            - ``comparison`` (default: ``None``) -- a variable
+              which can take the forms ``None``, ``-1``, ``0``
+              and ``1``
+
+            OUTPUT:
+
+            The Carlitz-Shareshian-Wachs symmetric function
+            `X_{n, d, s}` (if ``comparison`` is ``None``), or
+            `U_{n, d, s}` (if ``comparison`` is ``-1``), or
+            `V_{n, d, s}` (if ``comparison`` is ``0``), or
+            `W_{n, d, s}` (if ``comparison`` is ``1``) written in the
+            basis ``self``.
+
+            EXAMPLES:
+
+            The power series `X_{n, d, s}`::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: m = Sym.m()
+                sage: m.carlitz_shareshian_wachs(3, 2, 1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 1)
+                m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 2, 0)
+                m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 2)
+                m[3]
+                sage: m.carlitz_shareshian_wachs(3, 1, 0)
+                4*m[1, 1, 1] + m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 1)
+                m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 0)
+                m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(5, 2, 2)
+                m[2, 2, 1] + m[3, 1, 1]
+                sage: m.carlitz_shareshian_wachs(1, 0, 0)
+                m[1]
+                sage: m.carlitz_shareshian_wachs(0, 0, 0)
+                m[]
+
+            The power series `U_{n, d, s}`::
+
+                sage: m.carlitz_shareshian_wachs(3, 2, 1, comparison=-1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 1, comparison=-1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 2, 0, comparison=-1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 0, 2, comparison=-1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 0, comparison=-1)
+                2*m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 1, comparison=-1)
+                m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 0, comparison=-1)
+                m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(5, 2, 2, comparison=-1)
+                0
+                sage: m.carlitz_shareshian_wachs(4, 2, 0, comparison=-1)
+                3*m[1, 1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(1, 0, 0, comparison=-1)
+                0
+
+            The power series `V_{n, d, s}`::
+
+                sage: m.carlitz_shareshian_wachs(3, 2, 1, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 1, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 2, 0, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 0, 2, comparison=0)
+                m[3]
+                sage: m.carlitz_shareshian_wachs(3, 1, 0, comparison=0)
+                m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 1, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 0, 0, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(5, 2, 2, comparison=0)
+                0
+                sage: m.carlitz_shareshian_wachs(4, 2, 0, comparison=0)
+                m[2, 1, 1]
+                sage: m.carlitz_shareshian_wachs(1, 0, 0, comparison=0)
+                m[1]
+
+            The power series `W_{n, d, s}`::
+
+                sage: m.carlitz_shareshian_wachs(3, 2, 1, comparison=1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 1, comparison=1)
+                m[2, 1]
+                sage: m.carlitz_shareshian_wachs(3, 2, 0, comparison=1)
+                m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 2, comparison=1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 1, 0, comparison=1)
+                2*m[1, 1, 1]
+                sage: m.carlitz_shareshian_wachs(3, 0, 1, comparison=1)
+                0
+                sage: m.carlitz_shareshian_wachs(3, 0, 0, comparison=1)
+                0
+                sage: m.carlitz_shareshian_wachs(5, 2, 2, comparison=1)
+                m[2, 2, 1] + m[3, 1, 1]
+                sage: m.carlitz_shareshian_wachs(4, 2, 0, comparison=1)
+                8*m[1, 1, 1, 1] + 2*m[2, 1, 1] + m[2, 2]
+                sage: m.carlitz_shareshian_wachs(1, 0, 0, comparison=1)
+                0
+
+            TESTS:
+
+            This works fine over other base rings::
+
+                sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+                sage: P = Sym.macdonald().P()
+                sage: m = Sym.m()
+                sage: m.carlitz_shareshian_wachs(4, 1, 1)
+                4*m[2, 1, 1] + 2*m[2, 2] + 2*m[3, 1]
+                sage: P.carlitz_shareshian_wachs(4, 1, 1) == P(m.carlitz_shareshian_wachs(4, 1, 1))
+                True
+            """
+            # Stupid implementation.
+            R = self.base_ring()
+            m = self.realization_of().m()
+            Permus_mset = sage.combinat.permutation.Permutations_mset
+            # Defining a ``check_word`` function. This function will be used
+            # to check if an `n`-tuple `w` of positive integers belongs to
+            # `W(n, d, s)` and satisfies the additional requirement
+            # determined by ``comparison``.
+            # The ``comparison`` check has been factored out so that
+            # ``comparison`` needs not be called a myriad of times. Might
+            # be folly.
+            if comparison is None:
+                def check_word(w):
+                    if sum((1 for i in range(n-1) if w[i] > w[i+1])) != d:
+                        return False
+                    if sum((1 for i in range(n-1) if w[i] == w[i+1])) != s:
+                        return False
+                    return True
+            elif comparison == -1:
+                def check_word(w):
+                    if sum((1 for i in range(n-1) if w[i] > w[i+1])) != d:
+                        return False
+                    if sum((1 for i in range(n-1) if w[i] == w[i+1])) != s:
+                        return False
+                    return (w[0] < w[-1])
+            elif comparison == 0:
+                def check_word(w):
+                    if sum((1 for i in range(n-1) if w[i] > w[i+1])) != d:
+                        return False
+                    if sum((1 for i in range(n-1) if w[i] == w[i+1])) != s:
+                        return False
+                    return (w[0] == w[-1])
+            elif comparison == 1:
+                def check_word(w):
+                    if sum((1 for i in range(n-1) if w[i] > w[i+1])) != d:
+                        return False
+                    if sum((1 for i in range(n-1) if w[i] == w[i+1])) != s:
+                        return False
+                    return (w[0] > w[-1])
+
+            def coeff_of_m_mu_in_result(mu):
+                # Compute the coefficient of the monomial symmetric
+                # function ``m[mu]`` in the result.
+                words_to_check = Permus_mset([i for (i, l) in enumerate(mu)
+                                              for _ in range(l)])
+                return R( sum(1 for w in words_to_check if check_word(w)) )
+
+            from sage.combinat.partition import Partitions_n
+            r = m.sum_of_terms([(mu, coeff_of_m_mu_in_result(mu))
+                                for mu in Partitions_n(n)],
+                               distinct=True)
+            return self(r)
 
     class ElementMethods:
 
@@ -2161,6 +2634,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         (To compute outer plethysms over general binomial rings, change
         bases to the fraction field.)
 
+        The outer plethysm of `f` with `g` is commonly denoted by
+        `f \left[ g \right]` or by `f \circ g`. It is an algebra map
+        in `f`, but not (generally) in `g`.
+
         By default, the degree one elements are taken to be the
         generators for the ``self``'s base ring. This setting can be
         modified by specifying the ``include`` and ``exclude`` keywords.
@@ -2748,8 +3225,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: F = FractionField(QQ['q','t'])
             sage: mq = SymmetricFunctions(F).macdonald().Q()
             sage: mh = SymmetricFunctions(F).macdonald().H()
-            sage: all( all( mq(p).itensor(mh(r)) == mh(r).itensor(mq(p)) for r in Partitions(4) )
-            ....:      for p in Partitions(3) )   # long time
+            sage: all( all( mq(p).itensor(mh(r)) == mh(r).itensor(mq(p))   # long time
+            ....:           for r in Partitions(4) )
+            ....:      for p in Partitions(3) )
             True
 
         Let us check (on examples) Proposition 5.2 of Gelfand, Krob, Lascoux, Leclerc,
@@ -2766,10 +3244,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:     for partition_pair, coeff in w.coproduct():
             ....:         result += coeff * w.parent()(u).itensor(partition_pair[0]) * w.parent()(v).itensor(partition_pair[1])
             ....:     return result
-            sage: all( all( all( tensor_copr(e[u], s[v], m[w]) == (e[u] * s[v]).itensor(m[w])
+            sage: all( all( all( tensor_copr(e[u], s[v], m[w])   # long time
+            ....:                == (e[u] * s[v]).itensor(m[w])
             ....:                for w in Partitions(5) )
             ....:           for v in Partitions(2) )
-            ....:      for u in Partitions(3) )   # long time
+            ....:      for u in Partitions(3) )
             True
 
         Some examples from Briand, Orellana, Rosas, "The stability of the Kronecker
@@ -2795,7 +3274,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             sage: s = SymmetricFunctions(QQ).s()
             sage: a = s([8,8])
-            sage: a.itensor(a)
+            sage: a.itensor(a) # long time
             s[4, 4, 4, 4] + s[5, 5, 3, 3] + s[5, 5, 5, 1] + s[6, 4, 4, 2]
              + s[6, 6, 2, 2] + s[6, 6, 4] + s[7, 3, 3, 3] + s[7, 5, 3, 1]
              + s[7, 7, 1, 1] + s[8, 4, 2, 2] + s[8, 4, 4] + s[8, 6, 2]
@@ -2817,7 +3296,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             sage: s = SymmetricFunctions(ZZ).s()
             sage: a = s([8,8])
-            sage: a.itensor(a)
+            sage: a.itensor(a) # long time
             s[4, 4, 4, 4] + s[5, 5, 3, 3] + s[5, 5, 5, 1] + s[6, 4, 4, 2]
              + s[6, 6, 2, 2] + s[6, 6, 4] + s[7, 3, 3, 3] + s[7, 5, 3, 1]
              + s[7, 7, 1, 1] + s[8, 4, 2, 2] + s[8, 4, 4] + s[8, 6, 2]
@@ -3605,7 +4084,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def scalar(self, x, zee=None):
         r"""
-        Return standard scalar product between ``self`` and ``x``.
+        Return the standard scalar product between ``self`` and ``x``.
 
         INPUT:
 
@@ -3941,7 +4420,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         The Frobenius endomorphisms are multiplicative::
 
-            sage: all( all( s(lam).frobenius(3) * s(mu).frobenius(3)
+            sage: all( all( s(lam).frobenius(3) * s(mu).frobenius(3) # long time
             ....:           == (s(lam) * s(mu)).frobenius(3)
             ....:           for mu in Partitions(3) )
             ....:      for lam in Partitions(3) )
@@ -4288,7 +4767,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         OUTPUT:
 
-        A monomial expansion of an instance of ``self`` in `n` variables.
+        A monomial expansion of ``self`` in the `n` variables labelled
+        by ``alphabet``.
 
         EXAMPLES::
 
@@ -4394,7 +4874,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             True
         """
         s_self = s(self)
-        return all([ _nonnegative_coefficients(c) for c in s_self.coefficients()])
+        return all(( _nonnegative_coefficients(c) for c in s_self.coefficients() ))
 
     def degree(self):
         r"""
@@ -4508,8 +4988,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def expand(self, n, alphabet = 'x'):
         r"""
-        Expand the symmetric function as a symmetric polynomial in ``n``
-        variables.
+        Expand the symmetric function ``self`` as a symmetric polynomial
+        in ``n`` variables.
 
         INPUT:
 
@@ -4519,13 +4999,19 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         OUTPUT:
 
-        A monomial expansion of an instance of ``self`` in `n` variables.
+        A monomial expansion of ``self`` in the `n` variables
+        labelled ``x0``, ``x1``, ..., ``x{n-1}`` (or just ``x``
+        if `n = 1`), where ``x`` is ``alphabet``.
 
         EXAMPLES::
 
             sage: J = SymmetricFunctions(QQ).jack(t=2).J()
             sage: J([2,1]).expand(3)
             4*x0^2*x1 + 4*x0*x1^2 + 4*x0^2*x2 + 6*x0*x1*x2 + 4*x1^2*x2 + 4*x0*x2^2 + 4*x1*x2^2
+            sage: (2*J([2])).expand(0)
+            0
+            sage: (3*J([])).expand(0)
+            3
         """
         s = self.parent().realization_of().schur()
         condition = lambda part: len(part) > n
@@ -4578,11 +5064,14 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ...
             ValueError: x needs to be a symmetric function
         """
-        if x not in self.parent().realization_of():
+        parent = self.parent()
+        Sym = parent.realization_of()
+        if x not in Sym:
             raise ValueError("x needs to be a symmetric function")
-        s = self.parent().realization_of().schur()
-        f = lambda part1, part2: s([part1,part2]) if part1.contains(part2) else 0
-        return self.parent()(s._apply_multi_module_morphism(s(self),s(x),f))
+        s = Sym.schur()
+        zero = s.zero()
+        f = lambda part1, part2: s([part1,part2]) if part1.contains(part2) else zero
+        return parent(s._apply_multi_module_morphism(s(self), s(x), f))
 
     def hl_creation_operator(self, nu, t = None):
         r"""
@@ -4685,7 +5174,7 @@ def _nonnegative_coefficients(x):
         False
     """
     if is_Polynomial(x) or is_MPolynomial(x):
-        return all([ c >= 0 for c in x.coeffs() ])
+        return all([ c >= 0 for c in x.coefficients(sparse=False) ])
     else:
         return x >= 0
 

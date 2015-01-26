@@ -281,9 +281,6 @@ cdef class Cache_ntl_gf2e(SageObject):
             sage: K.<a> = GF(2^19, impl="ntl")
             sage: a^20
             a^6 + a^3 + a^2 + a
-            sage: L.<b> = GF(2^19, impl="pari_mod")
-            sage: K(b^20)
-            a^6 + a^3 + a^2 + a
             sage: M.<c> = GF(2^19, impl="pari_ffelt")
             sage: K(c^20)
             a^6 + a^3 + a^2 + a

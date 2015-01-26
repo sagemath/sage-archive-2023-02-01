@@ -43,7 +43,7 @@ two-sided ideals, and thus provide ideal containment tests::
     True
 
 Positive integral degree weights for the letterplace implementation
-was introduced in trac ticket #...::
+was introduced in :trac:`7797`::
 
     sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[2,1,3])
     sage: x.degree()

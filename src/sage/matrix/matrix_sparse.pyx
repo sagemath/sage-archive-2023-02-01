@@ -8,7 +8,6 @@ from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
 from sage.rings.ring import is_Ring
 from sage.misc.misc import verbose
 
-include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
 include 'sage/ext/interrupt.pxi'
@@ -18,8 +17,8 @@ cdef extern from "Python.h":
     PyObject* PyList_GET_ITEM0 "PyList_GET_ITEM" (PyObject*  list, Py_ssize_t i)
     Py_ssize_t PyNumber_AsSsize_t(PyObject* o, PyObject* exc)
 
-
 import sage.matrix.matrix_space
+
 
 cdef class Matrix_sparse(matrix.Matrix):
 
@@ -855,9 +854,9 @@ cdef class Matrix_sparse(matrix.Matrix):
                         A.set_unsafe(new_row, new_col, entry)
         return A
 
-    def stack(self, bottom, subdivide=False):
+    cdef _stack_impl(self, bottom):
         r"""
-        Stack ``self`` on top of ``bottom``.
+        Stack ``self`` on top of ``bottom``::
 
             [ self  ]
             [ bottom ]
@@ -894,29 +893,36 @@ cdef class Matrix_sparse(matrix.Matrix):
             [-----------]
             [ 0  1  2  3]
             [ 4  5  6  7]
+
+        TESTS::
+
+        One can stack matrices over different rings (:trac:`16399`). ::
+
+            sage: M = Matrix(ZZ, 2, 3, range(6), sparse=True)
+            sage: N = Matrix(QQ, 1, 3, [10,11,12], sparse=True)
+            sage: M.stack(N)
+            [ 0  1  2]
+            [ 3  4  5]
+            [10 11 12]
+            sage: N.stack(M)
+            [10 11 12]
+            [ 0  1  2]
+            [ 3  4  5]
+            sage: M2 = Matrix(ZZ['x'], 2, 3, range(6), sparse=True)
+            sage: N.stack(M2)
+            [10 11 12]
+            [ 0  1  2]
+            [ 3  4  5]
         """
-        if hasattr(bottom, '_vector_'):
-            bottom = bottom.row()
-        if not isinstance(bottom, matrix.Matrix):
-            raise TypeError, "other must be a matrix"
-
-        cdef Matrix_sparse other = bottom.sparse_matrix()
-
-        if self._ncols != other._ncols:
-            raise TypeError, "number of columns must be the same"
-
-        if not (self._base_ring is other.base_ring()):
-            other = other.change_ring(self._base_ring)
-
+        cdef Matrix_sparse other = <Matrix_sparse>bottom
         cdef Matrix_sparse Z
-        Z = self.new_matrix(nrows = self._nrows + other.nrows())
+        Z = self.new_matrix(nrows=self._nrows + other._nrows, ncols=self._ncols)
 
         for i, j in self.nonzero_positions(copy=False):
             Z.set_unsafe(i, j, self.get_unsafe(i,j))
         for i, j in other.nonzero_positions(copy=False):
             Z.set_unsafe(i + self._nrows, j, other.get_unsafe(i,j))
-        if subdivide:
-            Z._subdivide_on_stack(self, other)
+
         return Z
 
     def augment(self, right, subdivide=False):

@@ -40,6 +40,7 @@ from field_element import FieldElement
 
 # Ideals
 from ideal import Ideal
+ideal = Ideal
 
 # Quotient
 from quotient_ring import QuotientRing

@@ -73,7 +73,7 @@ Sage example in ./nonlinear.tex, line 315::
     sage: x, a, b, c, d = var('x, a, b, c, d')
     sage: P = a * x^3 + b * x^2 + c * x + d
     sage: alpha = var('alpha')
-    sage: P.subs(x=x + alpha).expand().coeff(x, 2)
+    sage: P.subs(x=x + alpha).expand().coefficient(x, 2)
     3*a*alpha + b
     sage: P.subs(x = x - b / (3 * a)).expand().collect(x)
     a*x^3 - 1/3*(b^2/a - 3*c)*x + 2/27*b^3/a^2 - 1/3*b*c/a + d

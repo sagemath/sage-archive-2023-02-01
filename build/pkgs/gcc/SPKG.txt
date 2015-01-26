@@ -8,10 +8,6 @@ The GNU Compiler Collection, including the C, C++ and Fortran compiler.
 
 GPL version 2 or version 3
 
-== SPKG Maintainers ==
-
- * Jeroen Demeyer
-
 == Upstream Contact ==
 
 http://gcc.gnu.org/
@@ -23,3 +19,8 @@ http://gcc.gnu.org/
  * MPFR
  * MPC
 
+== Special Update/Build Instructions ==
+
+=== Patches ===
+
+ * bug-63740.patch: let GCC build on ARM.

@@ -805,11 +805,9 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: P.add(T((4, 4)))
             sage: P.add(T((1, 2)))
             sage: P.add(T((2, 2)))
-            sage: list(P.null.iter_depth_first(reverse=False,
-            ....:                                key=lambda c: repr(c)))
+            sage: list(P.null.iter_depth_first(reverse=False, key=repr))
             [null, (1, 1), (1, 2), (1, 3), (4, 4), oo, (2, 2), (2, 1)]
-            sage: list(P.oo.iter_depth_first(reverse=True,
-            ....:                                key=lambda c: repr(c)))
+            sage: list(P.oo.iter_depth_first(reverse=True, key=repr))
             [oo, (4, 4), (1, 3), (1, 2), (1, 1), null, (2, 2), (2, 1)]
         """
         marked = set()
@@ -907,8 +905,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: for e in P.elements_topological(include_special=True,
             ....:                                 reverse=True):
             ....:     print e
-            ....:     print list(e.iter_topological(reverse=True,
-            ....:                                   key=lambda c: repr(c)))
+            ....:     print list(e.iter_topological(reverse=True, key=repr))
             oo
             [oo]
             (4, 4)
@@ -931,8 +928,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
             sage: for e in P.elements_topological(include_special=True,
             ....:                                 reverse=True):
             ....:     print e
-            ....:     print list(e.iter_topological(reverse=False,
-            ....:                                   key=lambda c: repr(c)))
+            ....:     print list(e.iter_topological(reverse=False, key=repr))
             oo
             [null, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
             (4, 4)
@@ -1240,7 +1236,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             [oo, (4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1), null]
         """
         if key is None:
-            key = lambda c: repr(c)
+            key = repr
         element = self.oo if not reverse else self.null
         return iter(e for e in element.iter_topological(reverse, key)
                     if include_special or not e.is_special())

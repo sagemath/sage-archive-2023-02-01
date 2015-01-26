@@ -1004,16 +1004,47 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         if data is not None:
             raise NotImplementedError
 
-        self._null_ = MutablePosetElement(self, None)
-        self._oo_ = MutablePosetElement(self, None)
-        self._null_.successors().add(self._oo_)
-        self._oo_.predecessors().add(self._null_)
-        self._elements_ = {}
+        self.clear()
 
         if key is None:
             self._key_ = lambda k: k
         else:
             self._key_ = key
+
+
+    def clear(self):
+        r"""
+        Remove all elements from this poset.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        Nothing.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(42); P
+            poset(42)
+            sage: P.clear()
+            sage: print P.repr_full()
+            poset()
+            +-- null
+            |   +-- no predecessors
+            |   +-- successors:   oo
+            +-- oo
+            |   +-- predecessors:   null
+            |   +-- no successors
+        """
+        self._null_ = MutablePosetElement(self, None)
+        self._oo_ = MutablePosetElement(self, None)
+        self._null_.successors().add(self._oo_)
+        self._oo_.predecessors().add(self._null_)
+        self._elements_ = {}
 
 
     @property

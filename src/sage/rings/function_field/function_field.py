@@ -66,8 +66,8 @@ The following two test suites do not pass ``_test_elements`` yet since
 It is not the fault of the function field code so this will
 be fixed in another ticket::
 
-    sage: TestSuite(R).run(skip = ('_test_elements', '_test_gcd_vs_xgcd'))
-    sage: TestSuite(S).run(skip = ('_test_elements', '_test_gcd_vs_xgcd'))
+    sage: TestSuite(R).run(skip = '_test_elements')
+    sage: TestSuite(S).run(skip = '_test_elements')
 """
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>

@@ -70,6 +70,7 @@ class PrincipalIdealDomains(Category_singleton):
                 sage: ZZ._test_gcd_vs_xgcd()
                 sage: QQ._test_gcd_vs_xgcd()
                 sage: QQ['x']._test_gcd_vs_xgcd()
+                sage: QQbar['x']._test_gcd_vs_xgcd()
 
             A slightly more involved example of polynomial ring with a non UFD
             base ring::

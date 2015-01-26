@@ -1899,7 +1899,7 @@ def xgcd(a, b):
         (1, (a^2 + (2*g)*a + 3)/(b^3 + (g)*b^2), ((-a + (-g))/b^2)*y + 1/b)
 
     Here is an example of a xgcd for two polynomials over the integers, where the linear
-    combination is not the gcd but the resultant::
+    combination is not the gcd but the gcd multiplied by the resultant::
 
         sage: R.<x> = ZZ[]
         sage: gcd(2*x*(x-1), x^2)

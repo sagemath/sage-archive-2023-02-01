@@ -98,15 +98,17 @@ TESTS::
     (168, 194, 110, 116, 102)
 """
 
-import math
-import operator
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
+import math
+
 include 'sage/ext/stdsage.pxi'
-from cpython.dict cimport *
-from cpython.list cimport *
-import sage.misc.misc as misc
-import sage.misc.latex
 
 from sage.structure.sequence import Sequence
 
@@ -122,9 +124,6 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.misc.derivative import multi_derivative
 
-
-# We use some cimports for very quick checking of Integer and Ring
-# type to optimize vector(ring,n) for creating the zero vector.
 from sage.rings.ring cimport Ring
 from sage.rings.integer cimport Integer
 
@@ -1142,20 +1141,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
             Vector space of dimension 3 over Real Field with 53 bits of precision
-            sage: v.n(prec=75)
-            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
-            sage: _.parent()
-            Vector space of dimension 3 over Real Field with 75 bits of precision
-
             sage: v = vector(CDF, [1,2,3])
             sage: v.n()
             (1.00000000000000, 2.00000000000000, 3.00000000000000)
             sage: _.parent()
             Vector space of dimension 3 over Complex Field with 53 bits of precision
-            sage: v.n(prec=75)
-            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
-            sage: _.parent()
-            Vector space of dimension 3 over Complex Field with 75 bits of precision
 
             sage: v = vector(Integers(8), [1,2,3])
             sage: v.n()
@@ -3148,7 +3138,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: latex(w)
             \left[1.0,\,2.0,\,3.0\right\rangle
         """
-        latex = sage.misc.latex.latex
+        from sage.misc.latex import latex
         vector_delimiters = latex.vector_delimiters()
         s = '\\left' + vector_delimiters[0]
         s += ',\,'.join([latex(a) for a in self.list()])
@@ -3577,18 +3567,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     cdef bint is_sparse_c(self):
         return 0
 
-    def _hash(self):
-        """
-        Return hash of an immutable form of self (works even if self
-        is mutable).
-
-            sage: v = vector([-1,0,3,pi])
-            sage: type(v)
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
-            sage: v._hash()   # random output
-        """
-        return hash(tuple(list(self)))
-
     def __copy__(self):
         """
         Return a copy of this generic dense vector.
@@ -3616,12 +3594,48 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         EXAMPLES::
 
-            sage: type(vector([-1,0,3,pi]))   # indirect doctest
-            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+            sage: type(vector(RR, [-1,0,2/3,pi,oo]))
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+
+        We can initialize with lists, tuples and derived types::
+
+            sage: from sage.modules.free_module_element import FreeModuleElement_generic_dense
+            sage: FreeModuleElement_generic_dense(RR^5, [-1,0,2/3,pi,oo])
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_dense(RR^5, (-1,0,2/3,pi,oo))
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_dense(RR^5, Sequence([-1,0,2/3,pi,oo]))
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_dense(RR^0, 0)
+            ()
 
         TESTS:
 
-        Check that #11751 is fixed::
+        Disabling coercion can lead to illegal objects::
+
+            sage: FreeModuleElement_generic_dense(RR^5, [-1,0,2/3,pi,oo], coerce=False)
+            (-1, 0, 2/3, pi, +Infinity)
+
+        We test the ``copy`` flag::
+
+            sage: from sage.modules.free_module_element import FreeModuleElement_generic_dense
+            sage: L = [RR(x) for x in (-1,0,2/3,pi,oo)]
+            sage: FreeModuleElement_generic_dense(RR^5, tuple(L), coerce=False, copy=False)
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: v = FreeModuleElement_generic_dense(RR^5, L, coerce=False, copy=False)
+            sage: L[4] = 42.0
+            sage: v  # last entry changed since we didn't copy
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, 42.0000000000000)
+
+        ::
+
+            sage: L = [RR(x) for x in (-1,0,2/3,pi,oo)]
+            sage: v = FreeModuleElement_generic_dense(RR^5, L, coerce=False, copy=True)
+            sage: L[4] = 42.0
+            sage: v  # last entry did not change
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+
+        Check that :trac:`11751` is fixed::
 
             sage: K.<x> = QQ[]
             sage: M = K^1
@@ -3647,26 +3661,25 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             Univariate Polynomial Ring in x over Rational Field
         """
         FreeModuleElement.__init__(self, parent)
-        R = self.parent().base_ring()
-        if entries == 0:
-            entries = [R(0)]*self.degree()
+        R = self.base_ring()
+        if not entries:
+            entries = [R.zero_element()]*self._degree
         else:
-            if not isinstance(entries, (list, tuple)):
-                raise TypeError("entries (=%s) must be a list"%(entries, ))
+            if type(entries) is not list:
+                if not isinstance(entries, (list, tuple)):
+                    raise TypeError("entries must be a list or tuple, not %s" % type(entries))
+                copy = True  # ensure we have a true Python list
 
-            if len(entries) != self.degree():
-                raise TypeError("entries must be a list of length %s"%\
-                            self.degree())
+            if len(entries) != self._degree:
+                raise TypeError("entries must be a list of length %s" % self.degree())
             if coerce:
-                if len(entries) != 0:
-                    coefficient_ring = parent.basis()[0][0].parent()
-                    try:
-                        entries = [coefficient_ring(x) for x in entries]
-                    except TypeError:
-                        raise TypeError("Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring))
+                coefficient_ring = parent.basis()[0][0].parent()
+                try:
+                    entries = [coefficient_ring(x) for x in entries]
+                except TypeError:
+                    raise TypeError("Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring))
             elif copy:
-                # Make a copy
-                entries = list(entries)
+                entries = list(entries)  # make a copy/convert to list
         self._entries = entries
 
     cpdef ModuleElement _add_(left, ModuleElement right):
@@ -3680,7 +3693,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             (1/3, pi^2 + 2/3, pi + 1)
         """
         cdef Py_ssize_t i, n
-        n = PyList_Size(left._entries)
+        n = len(left._entries)
         v = [None]*n
         for i from 0 <= i < n:
             v[i] = (<RingElement>left._entries[i])._add_(<RingElement>
@@ -3701,7 +3714,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             (1, -1, 0, 0, 0)
         """
         cdef Py_ssize_t i, n
-        n = PyList_Size(left._entries)
+        n = len(left._entries)
         v = [None]*n
         for i from 0 <= i < n:
             v[i] = (<RingElement>left._entries[i])._sub_(<RingElement>
@@ -3770,7 +3783,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             right = left.parent().ambient_module()(right)
         # Component wise vector * vector multiplication.
         cdef Py_ssize_t i, n
-        n = PyList_Size(left._entries)
+        n = len(left._entries)
         v = [None]*n
         for i from 0 <= i < n:
             v[i] = (<RingElement>left._entries[i])._mul_((<FreeModuleElement_generic_dense>right)._entries[i])
@@ -4061,6 +4074,27 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v.is_sparse()
             True
 
+        We can initialize with dicts, lists, tuples and derived types::
+
+            sage: from sage.modules.free_module_element import FreeModuleElement_generic_sparse
+            sage: def S(R,n):
+            ....:     return FreeModule(R, n, sparse=True)
+            sage: FreeModuleElement_generic_sparse(S(RR,5), {0:-1, 2:2/3, 3:pi, 4:oo})
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_sparse(S(RR,5), [-1,0,2/3,pi,oo])
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_sparse(S(RR,5), (-1,0,2/3,pi,oo))
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_sparse(S(RR,5), Sequence([-1,0,2/3,pi,oo]))
+            (-1.00000000000000, 0.000000000000000, 0.666666666666667, 3.14159265358979, +infinity)
+            sage: FreeModuleElement_generic_sparse(S(RR,0), 0)
+            ()
+            sage: from collections import defaultdict
+            sage: D = defaultdict(RR)
+            sage: D[0] = -1
+            sage: FreeModuleElement_generic_sparse(S(RR,5), D)
+            (-1.00000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000)
+
         TESTS:
 
         Test that :trac:`11751` is fixed::
@@ -4093,36 +4127,51 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v = vector([RIF(-1, 1)], sparse=True)
             sage: v.is_zero()
             False
+
+        We correctly initialize values which become 0 only after coercion::
+
+            sage: v = FreeModuleElement_generic_sparse(S(GF(3),6), [1,2,3,4,5,6])
+            sage: v.nonzero_positions()
+            [0, 1, 3, 4]
         """
-        #WARNING: In creation, we do not check that the i pairs satisfy
-        #     0 <= i < degree.
+        #WARNING: In creation, we do not check that the indices i satisfy
+        #     0 <= i < degree
+        # or even that the indices are integers.
         FreeModuleElement.__init__(self, parent)
         R = self.base_ring()
-        if entries == 0:
+        cdef Py_ssize_t i
+        if not entries:
             entries = {}
         else:
-            if isinstance(entries, list):
-                if len(entries) != self.degree():
-                    raise TypeError("entries has the wrong length")
-                x = entries
-                entries = {}
-                for i in xrange(self.degree()):
-                    if x[i]:
-                        entries[i] = x[i]
-                copy = False
-            if not isinstance(entries, dict):
-                raise TypeError, "entries must be a dict"
-            if copy:
-                # Make a copy
-                entries = dict(entries)
+            if type(entries) is not dict:
+                if isinstance(entries, dict):
+                    # Convert derived type to dict
+                    copy = True
+                elif isinstance(entries, (list, tuple)):
+                    if len(entries) != self._degree:
+                        raise TypeError("entries has the wrong length")
+                    e = entries
+                    entries = {}
+                    for i in range(self._degree):
+                        x = e[i]
+                        if x:
+                            entries[i] = x
+                    copy = False
+                else:
+                    raise TypeError("entries must be a dict, list or tuple, not %s", type(entries))
             if coerce:
-                if len(entries) != 0:
-                    coefficient_ring = parent.basis()[0][0].parent()
-                    try:
-                        for k, x in entries.iteritems():
-                            entries[k] = coefficient_ring(x)
-                    except TypeError:
-                        raise TypeError("Unable to coerce value (=%s) of entries dict (=%s) to %s"%(x, entries, coefficient_ring))
+                coefficient_ring = parent.basis()[0][0].parent()
+                e = entries
+                entries = {}
+                try:
+                    for k, x in e.iteritems():
+                        x = coefficient_ring(x)
+                        if x:
+                            entries[k] = x
+                except TypeError:
+                    raise TypeError("Unable to coerce value (=%s) of entries dict (=%s) to %s"%(x, entries, coefficient_ring))
+            elif copy:
+                entries = dict(entries)  # make a copy/convert to dict
         self._entries = entries
 
     cpdef ModuleElement _add_(left, ModuleElement right):
@@ -4135,18 +4184,17 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v._add_(v)
             (2, 4/3, 2*pi)
         """
-        cdef object v, e
-        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
+        cdef dict v = dict((<FreeModuleElement_generic_sparse>right)._entries)
         for i, a in left._entries.iteritems():
-            if i in e:
-                sum = (<RingElement>a)._add_(<RingElement> e[i])
+            if i in v:
+                sum = (<RingElement>a)._add_(<RingElement> v[i])
                 if sum:
-                    e[i] = sum
+                    v[i] = sum
                 else:
-                    del e[i]
+                    del v[i]
             elif a:
-                e[i] = a
-        return left._new_c(e)
+                v[i] = a
+        return left._new_c(v)
 
     cpdef ModuleElement _sub_(left, ModuleElement right):
         """
@@ -4156,18 +4204,17 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v._sub_(v)
             (0, 0, 0)
         """
-        cdef object v, e
-        e = dict(left._entries)   # dict to make a copy
+        cdef dict v = dict(left._entries)   # dict to make a copy
         for i, a in (<FreeModuleElement_generic_sparse>right)._entries.iteritems():
-            if i in e:
-                diff = (<RingElement> e[i])._sub_(<RingElement>a)
+            if i in v:
+                diff = (<RingElement> v[i])._sub_(<RingElement>a)
                 if diff:
-                    e[i] = diff
+                    v[i] = diff
                 else:
-                    del e[i]
+                    del v[i]
             elif a:
-                e[i] = -a
-        return left._new_c(e)
+                v[i] = -a
+        return left._new_c(v)
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         """
@@ -4177,8 +4224,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v._lmul_(SR(3))
             (3, 2, 3*pi)
         """
-        cdef object v
-        v = PyDict_New()
+        cdef dict v = {}
         if right:
             for i, a in self._entries.iteritems():
                 prod = (<RingElement>a)._mul_(right)
@@ -4194,8 +4240,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v._rmul_(SR(3))
             (3, 2, 3*pi)
         """
-        cdef object v
-        v = PyDict_New()
+        cdef dict v = {}
         if left:
             for i, a in self._entries.iteritems():
                 prod = left._mul_(a)
@@ -4215,8 +4260,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w * v
             10
         """
-        cdef object v, e, z
-        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
+        cdef dict e = (<FreeModuleElement_generic_sparse>right)._entries
         z = left.base_ring()(0)
         for i, a in left._entries.iteritems():
             if i in e:
@@ -4232,9 +4276,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             (-2/3, 2/3*pi^2, pi)
         """
         # Component wise vector * vector multiplication.
-        cdef object v, e
-        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
-        v = PyDict_New()
+        cdef dict e = (<FreeModuleElement_generic_sparse>right)._entries
+        cdef dict v = {}
         for i, a in left._entries.iteritems():
             if i in e:
                 prod = (<RingElement>a)._mul_(<RingElement> e[i])

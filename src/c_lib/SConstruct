@@ -129,10 +129,10 @@ env['PYV']=platform.python_version().rsplit('.', 1)[0]
 includes = ['$SAGE_LOCAL/include/', '$SAGE_LOCAL/include/python$PYV/',
             '$SAGE_LOCAL/include/NTL/', 'include']
 cFiles = Split( "convert.c  interrupt.c  memory.c  mpn_pylong.c  mpz_pylong.c") + \
-         Split( "mpz_longlong.c stdsage.c  gmp_globals.c" )
+         Split( "mpz_longlong.c stdsage.c" )
 cppFiles = Split( "ZZ_pylong.cpp  ntl_wrap.cpp" )
 srcFiles = cFiles + cppFiles
-incFiles = Split( "ccobject.h  convert.h  gmp_globals.h" ) + \
+incFiles = Split( "ccobject.h  convert.h" ) + \
            Split( "interrupt.h  memory.h  mpn_pylong.h  mpz_longlong.h" ) + \
            Split( "mpz_pylong.h  ntl_wrap.h  parisage.h  stdsage.h  ZZ_pylong.h" )
 

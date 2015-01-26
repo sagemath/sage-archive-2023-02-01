@@ -16,6 +16,8 @@ design catalog:
 
 - :ref:`sage.combinat.designs.block_design`
 - :ref:`sage.combinat.designs.bibd`
+- :ref:`sage.combinat.designs.resolvable_bibd`
+- :ref:`sage.combinat.designs.group_divisible_designs`
 - :ref:`sage.combinat.designs.latin_squares`
 - :ref:`sage.combinat.designs.orthogonal_arrays`
 - :ref:`sage.combinat.designs.orthogonal_arrays_build_recursive`

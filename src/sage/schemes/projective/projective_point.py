@@ -35,10 +35,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.integral_domains import IntegralDomains
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
 from sage.rings.infinity       import infinity
 from sage.rings.arith          import gcd, lcm, is_prime
+from sage.rings.fraction_field     import FractionField
 from sage.rings.integer_ring   import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.padics.all     import Qp
@@ -356,6 +358,56 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 if self._coords[i]*right._coords[j] != self._coords[j]*right._coords[i]:
                     return True
         return False
+
+    def __hash__(self):
+        """
+        Computes the hash value of ``self``. If the base ring has a fraction
+        field, normalize the point in the fraction field and then hash so
+        that equal points have equal hash values. If the base ring is not
+        an integral domain, return the hash of the parent.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: hash(P([1,1]))
+            1265304440                      # 32-bit
+            7316841028997809016             # 64-bit
+            sage: hash(P.point([2,2], False))
+            1265304440                      # 32-bit
+            7316841028997809016             # 64-bit
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(x^2 + 3)
+            sage: O = K.maximal_order()
+            sage: P.<x,y> = ProjectiveSpace(O, 1)
+            sage: hash(P([1+w, 2]))
+            -609701421                     # 32-bit
+            4801154424156762579            # 64-bit
+            sage: hash(P([2, 1-w]))
+            -609701421                     # 32-bit
+            4801154424156762579            # 64-bit
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(Zmod(10), 1)
+            sage: hash(P([2,5]))
+            -479010389                     # 32-bit
+            4677413289753502123            # 64-bit
+        """
+        R = self.codomain().base_ring()
+        #if there is a fraction field normalize the point so that
+        #equal points have equal hash values
+        if R in IntegralDomains():
+            P = self.change_ring(FractionField(R))
+            P.normalize_coordinates()
+            return hash(str(P))
+        #if there is no good way to normalize return
+        #a constant value
+        return hash(self.codomain())
 
     def scale_by(self,t):
         """
@@ -1081,6 +1133,26 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
 
         self._coords = v
 
+    def __hash__(self):
+        """
+        Computes the hash value of ``self``.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: hash(P([1/2, 1]))
+            -1741117121                     # 32-bit
+            3714374126286711103             # 64-bit
+            sage: hash(P.point([1, 2], False))
+            -1741117121                     # 32-bit
+            3714374126286711103             # 64-bit
+        """
+        P = copy(self)
+        P.normalize_coordinates()
+        return hash(str(P))
+
     def normalize_coordinates(self):
         r"""
         Normalizes ``self`` so that the last non-zero coordinate is `1`.
@@ -1157,38 +1229,35 @@ class SchemeMorphism_point_projective_finite_field(SchemeMorphism_point_projecti
         r"""
         Returns the integer hash of ``self``
 
-
-        OUTPUT:
-
-        - integer
+        OUTPUT: Integer.
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=ProjectiveSpace(GF(5),2)
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
             sage: hash(P(2,1,2))
             41
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(GF(7),2)
-            sage: X=P.subscheme(x^2-y^2)
-            sage: hash(X(1,1,2))
+            sage: P.<x,y,z> = ProjectiveSpace(GF(7), 2)
+            sage: X = P.subscheme(x^2 - y^2)
+            sage: hash(X(1, 1, 2))
             81
 
         ::
 
-            sage: P.<x,y>=ProjectiveSpace(GF(13),1)
+            sage: P.<x,y> = ProjectiveSpace(GF(13), 1)
             sage: hash(P(3,4))
             17
 
         ::
 
-            sage: P.<x,y>=ProjectiveSpace(GF(13^3,'t'),1)
+            sage: P.<x,y> = ProjectiveSpace(GF(13^3,'t'), 1)
             sage: hash(P(3,4))
             2201
         """
-        p=self.codomain().base_ring().order()
-        N=self.codomain().ambient_space().dimension_relative()
+        p = self.codomain().base_ring().order()
+        N = self.codomain().ambient_space().dimension_relative()
         return sum(hash(self[i])*p**i for i in range(N+1))
 
     def orbit_structure(self,f):

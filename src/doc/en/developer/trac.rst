@@ -4,7 +4,7 @@
 The Sage Trac Server
 ====================
 
-All changes to Sage source code have to go through the `Sage trac
+All changes to Sage source code have to go through the `Sage Trac
 development server <http://trac.sagemath.org>`_. The purpose
 of the Sage trac server is to
 
@@ -168,83 +168,58 @@ issuing some basic gitolite commands, for example::
         perms
         writable
 
+.. _trac-bug-report:
 
 Reporting Bugs
 ==============
 
-If you think you have found a bug in Sage, you should first search
-through the following Google groups for postings related to your
-possible bug:
+If you think you have found a bug in Sage, here is the procedure:
 
-* ``sage-devel``: http://groups.google.com/group/sage-devel
-* ``sage-support``: http://groups.google.com/group/sage-support
+- Search through our Google groups for postings related to your possible bug (it
+  may have been fixed/reported already):
 
-Maybe the problem you have encountered has already been discussed. You
-should also search the trac server to see if anyone else has opened a
-ticket about your bug.
+  * ``sage-devel``: `<http://groups.google.com/group/sage-devel>`_
+  * ``sage-support``: `<http://groups.google.com/group/sage-support>`_
 
-If you do not find anything, and you are not sure that you have found
-a bug, ask about it on ``sage-devel``. You might be asked to open a
-new ticket on the trac server. As mentioned above, you need an account
-to do this. To report a bug, login and click on the "New ticket"
-button. Type a meaningful one-liner in the "Short summary" box, with
-more information in the larger box below. You should include at least
-one explicit, reproducible example illustrating your bug (and/or the
-steps required to reproduce the buggy behavior). You should also
-include the version of Sage (and any relevant packages) you are using,
-and operating system information, being precise as possible (32-bit,
-64-bit, ...).
+  Similarly, you can search :ref:`chapter-sage-trac` to see if anyone else has
+  opened a ticket about your bug.
 
-Between the "Summary" and "Full description" boxes, there is a
-place to choose the "Type" of the ticket: "Defect", "Enhancement",
-or "Task". Use your best judgment here; a bug should probably be
-reported as a "Defect".
+- If you do not find anything, and you are not sure that you have found a bug,
+  ask about it on `sage-devel <http://groups.google.com/group/sage-devel>`_. A
+  bug report should contain:
 
-Also pick a component for your bug; this is sometimes
-straightforward. If your bug deals with Sage's calculus
-implementation, choose "calculus". If it is not obvious, do your
-best. Choose a milestone; if you are not sure what to choose, just
-choose the numbered version of Sage from the menu ("sage-5.10", for
-example). Type in some helpful keywords. In the box labeled "Assign
-to", type "somebody" if you are not sure what else to do.
+  - An explicit and **reproducible example** illustrating your bug (and/or the
+    steps required to reproduce the buggy behavior).
 
-Hit the "Preview" button to make sure everything looks okay, and
-then hit "Submit ticket".
+  - The **version** of Sage you run, as well as the version of the optional
+    packages that may be involved in the bug.
 
-If you do not have an account on the trac system to report directly,
-you are still encouraged to report any possible bug to the
-``sage-devel`` mailing list at ``sage-devel@googlegroups.com``.
-The list is moderated for new users and requires subscription.
-In your bug report to ``sage-devel``, make sure to include the
-following information:
+  - Describe your **operating system** as accurately as you can and your
+    architecture (32-bit, 64-bit, ...).
 
-- **operating system**: as precise as possible and architecture
-  (32-bit, 64-bit, ...)
-
-- affected version: the exact **version number** and the downloaded
-  package (source, precompiled, virtual machine image, or an upgrade
-  from a previous version (which one?))
-
-- provide a **reproducible example** and/or define the steps to
-  reproduce the erroneous behaviour.
+- You might be asked to open a new ticket. In this case, follow the
+  :ref:`section-trac-new-ticket`.
 
 Thank you in advance for reporting bugs to improve Sage in the future!
 
+.. _section-trac-new-ticket:
 
 Guidelines for Opening Tickets
 ==============================
 
-In addition to bug reports, you should also open a ticket if you
-have some new code which extends Sage's capabilities. If you have a
-feature request, start a discussion on ``sage-devel`` first,
-and then if there seems to be general agreement that you have a
-good idea, open a ticket describing the idea.
+In addition to bug reports (see :ref:`trac-bug-report`), you should also open a
+ticket if you have some new code that makes Sage a better tool. If you have a
+feature request, start a discussion on ``sage-devel`` first, and then if there
+seems to be general agreement that you have a good idea, open a ticket
+describing the idea.
 
-When you consider opening a new ticket, please bear the following
-points in mind.
+- Do you already have a **trac account**? If not, :ref:`click here
+  <section-trac-account>`.
 
-- Before opening a ticket, make sure that nobody else has opened a
-  ticket about the same or closely related issue.
+**Before** opening a new ticket, consider the following points:
+
+- Make sure that nobody else has opened a ticket about the same or closely
+  related issue.
 
 - It is much better to open several specific tickets than one that
   is very broad. Indeed, a single ticket which deals with lots of
@@ -259,9 +234,17 @@ points in mind.
   "Make Sage the best mathematical software in the world". There is
   no metric to measure this properly and it is highly subjective.
 
-- If appropriate, provide URLs to background information or email
-  threads relevant to the problem you are reporting.
+- For bug reports: the ticket's description should contain the information
+  described at :ref:`trac-bug-report`.
 
+- If appropriate, provide URLs to background information or sage-devel
+  conversation relevant to the problem you are reporting.
+
+**When creating** the ticket, you may find useful to read
+:ref:`section-trac-fields`.
+
+Unless you know what you are doing, leave the milestone field to its default
+value.
 
 .. _section-trac-fields:
 
@@ -275,8 +258,11 @@ of fields that can be changed. Here is a comprehensive overview (for the
 * **Reported by:** The trac account name of whoever created the
   ticket. Cannot be changed.
 
-* **Owned by:** Trac account name of owner, by default the person in
-  charge of the **Component:**. Generally not used in the Sage trac.
+* **Owned by:** Trac account name of owner, by default the person in charge of
+  the Component (see below). Generally not used in the Sage trac.
+
+* **Type:** One of ``enhancement`` (e.g. a new feature), ``defect`` (e.g. a bug
+  fix), or ``task`` (rarely used).
 
 * **Priority:** The priority of the ticket. Keep in mind that the
   "blocker" label should be used very sparingly.
@@ -300,10 +286,9 @@ of fields that can be changed. Here is a comprehensive overview (for the
 * **Merged in:** The Sage release where the ticket was merged in. Only
   changed by the release manager.
 
-* **Authors:** Real name of the ticket author (or list of authors).
+* **Authors:** Real name of the ticket author(s).
 
-* **Reviewers:** Real name of the ticket reviewer (or list of
-  reviewers).
+* **Reviewers:** Real name of the ticket reviewer(s).
 
 * **Report Upstream:** If the ticket is a bug in an upstream component
   of Sage, this field is used to summarize the communication with the
@@ -312,7 +297,11 @@ of fields that can be changed. Here is a comprehensive overview (for the
 * **Work issues:** Issues that need to be resolved before the ticket
   can leave the "needs work" status.
 
-* **Branch:** See :ref:`section-walkthrough-branch`
+* **Branch:** The Git branch containing the ticket's code (see
+  :ref:`section-walkthrough-branch`). It is displayed in green color,
+  unless there is a conflict between the branch and the latest beta
+  release (red color). In this case, the branch should be merged or
+  rebased.
 
 * **Dependencies:** Does the ticket depend on another ticket?
   Sometimes, a ticket requires that another ticket be applied

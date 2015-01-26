@@ -426,7 +426,8 @@ ext_modules = [
               sources = ['sage/graphs/graph_generators_pyx.pyx']),
 
     Extension('sage.graphs.distances_all_pairs',
-              sources = ['sage/graphs/distances_all_pairs.pyx']),
+              sources = ['sage/graphs/distances_all_pairs.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.graphs.base.static_dense_graph',
               sources = ['sage/graphs/base/static_dense_graph.pyx']),
@@ -505,6 +506,9 @@ ext_modules = [
               sources = ['sage/graphs/graph_decompositions/rankwidth.pyx',
                          'sage/graphs/graph_decompositions/rankwidth_c/rw.c']),
 
+    Extension('sage.graphs.graph_decompositions.bandwidth',
+              sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
@@ -515,7 +519,8 @@ ext_modules = [
               sources = ['sage/graphs/genus.pyx']),
 
     Extension('sage.graphs.hyperbolicity',
-              sources = ['sage/graphs/hyperbolicity.pyx']),
+              sources = ['sage/graphs/hyperbolicity.pyx'],
+              libraries = ['gmp']),
 
         ################################
         ##

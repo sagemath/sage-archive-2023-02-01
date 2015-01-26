@@ -1357,12 +1357,9 @@ class GenericGraph(GenericGraph_pyx):
 
         return d
 
-    def adjacency_matrix(self, sparse=None, boundary_first=False):
+    def adjacency_matrix(self, sparse=None, boundary_first=False, vertices=None):
         """
         Returns the adjacency matrix of the (di)graph.
-
-        Each vertex is represented by its position in the list returned by the
-        vertices() function.
 
         The matrix returned is over the integers. If a different ring is
         desired, use either the change_ring function or the matrix
@@ -1370,11 +1367,14 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        -  ``sparse`` - whether to represent with a sparse
-           matrix
+        - ``sparse`` - whether to represent with a sparse matrix
 
-        -  ``boundary_first`` - whether to represent the
-           boundary vertices in the upper left block
+        - ``boundary_first`` - whether to represent the boundary vertices in the
+           upper left block. Cannot be used in conjunction with ``vertices``.
+
+        - ``vertices`` (list) -- the ordering of the vertices defining how they
+          should appear in the matrix. By default, the ordering given by
+          :meth:`GenericGraph.vertices` is used.
 
         EXAMPLES::
 
@@ -1428,6 +1428,16 @@ class GenericGraph(GenericGraph_pyx):
             [1 0 0 0 0 1]
             [0 1 0 0 0 0]
 
+        A different ordering of the vertices::
+
+            sage: graphs.PathGraph(5).adjacency_matrix(vertices=[2,4,1,3,0])
+            [0 0 1 1 0]
+            [0 0 0 1 0]
+            [1 0 0 0 1]
+            [1 1 0 0 0]
+            [0 0 1 0 0]
+
+
         TESTS::
 
             sage: graphs.CubeGraph(8).adjacency_matrix().parent()
@@ -1436,14 +1446,29 @@ class GenericGraph(GenericGraph_pyx):
             Full MatrixSpace of 512 by 512 sparse matrices over Integer Ring
             sage: Graph([(i,i+1) for i in range(500)]+[(0,1),], multiedges=True).adjacency_matrix().parent()
             Full MatrixSpace of 501 by 501 dense matrices over Integer Ring
+            sage: graphs.PathGraph(5).adjacency_matrix(vertices=[0,0,0,0,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: ``vertices`` must be a permutation of the vertices
+            sage: graphs.PathGraph(5).adjacency_matrix(vertices=[1,2,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: ``vertices`` must be a permutation of the vertices
         """
         n = self.order()
         if sparse is None:
             sparse=True
             if self.has_multiple_edges() or n <= 256 or self.density() > 0.05:
                 sparse=False
-        verts = self.vertices(boundary_first=boundary_first)
-        new_indices = dict((v,i) for i,v in enumerate(verts))
+        if vertices is None:
+            vertices = self.vertices(boundary_first=boundary_first)
+        elif (len(vertices) != n or
+              set(vertices) != set(self.vertices())):
+            raise ValueError("``vertices`` must be a permutation of the vertices")
+        elif boundary_first:
+            raise ValueError("``boundary`` and ``vertices`` cannot be used simultaneously")
+
+        new_indices = dict((v,i) for i,v in enumerate(vertices))
         D = {}
         directed = self._directed
         multiple_edges = self.allows_multiple_edges()
@@ -5344,6 +5369,17 @@ class GenericGraph(GenericGraph_pyx):
            sage: g = graphs.PappusGraph()
            sage: g.edge_cut(1, 2, value_only=True, method = "LP")
            3
+
+        :trac:`12797`::
+
+            sage: G = Graph([(0, 3, 1), (0, 4, 1), (1, 2, 1), (2, 3, 1), (2, 4, 1)])
+            sage: G.edge_cut(0,1,value_only=False,use_edge_labels=True)
+            [1, [(1, 2, 1)]]
+            sage: G = DiGraph([(0, 3, 1), (0, 4, 1), (2, 1, 1), (3, 2, 1), (4, 2, 1)])
+            sage: G.edge_cut(0,1,value_only=False,use_edge_labels=True)
+            [1, [(2, 1, 1)]]
+            sage: G.edge_cut(0,1,value_only=False,use_edge_labels=True,method='LP')
+            (1.0, [(2, 1)])
         """
         self._scream_if_not_simple(allow_loops=True)
         if vertices:
@@ -5358,9 +5394,13 @@ class GenericGraph(GenericGraph_pyx):
             if value_only:
                 return self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
 
+            from sage.graphs.digraph import DiGraph
+            g = DiGraph(self)
+
             flow_value, flow_graph = self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
-            g = self.copy(immutable=False)
+
             for u,v,l in flow_graph.edge_iterator():
+                g.add_edge(v,u)
                 if (not use_edge_labels or
                     (weight(g.edge_label(u,v)) == weight(l))):
                     g.delete_edge(u,v)
@@ -15670,39 +15710,24 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``method`` --
+        - ``method`` -- set to ``"matplotlib"`` (default) to display the graph
+          using matplotlib, or to ``"js"`` to visualize it in a browser using
+          `d3.js <http://d3js.org/>`_.
 
-            - If ``method="matplotlib"`` (default) then graph is drawn as a
-              picture file, then displayed. In this situation, the method
-              accepts any other option understood by
-              :meth:`~sage.graphs.generic_graph.plot` (graph-specific) or by
+        - Any other argument supported by the drawing functions:
+
+            - ``"matplotlib"`` -- see :meth:`GenericGraph.plot
+              <sage.graphs.generic_graph.GenericGraph.plot>` and
               :meth:`sage.plot.graphics.Graphics.show`.
 
-            - If ``method="js"`` the graph is displayed using the `d3.js
-              <http://d3js.org/>`_ library in a browser. In this situation, the
-              method accepts any other option understood by
-              :meth:`sage.graphs.graph_plot_js.gen_html_code`. Depending on
-              whether d3js optional package is installed or not, the javascript
-              code will be used locally or fetched from d3js.org website by the
-              browser.
-
-        This method accepts any other option understood by
-        :meth:`~sage.graphs.generic_graph.GenericGraph.plot` (graph-specific) or
-        by :meth:`sage.plot.graphics.Graphics.show`.
-
-        .. NOTE::
-
-            - See the documentation of the :mod:`sage.graphs.graph_plot` module
-              for information on default arguments of this method.
-
-            - For the javascript counterpart, refer to
-              :mod:`sage.graphs.graph_plot_js`.
+            - ``"js"`` -- see :meth:`~sage.graphs.graph_plot_js.gen_html_code`.
 
         EXAMPLES::
 
             sage: C = graphs.CubeGraph(8)
             sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()  # long time (3s on sage.math, 2011)
+
         """
         if method == "js":
             from sage.graphs.graph_plot_js import gen_html_code

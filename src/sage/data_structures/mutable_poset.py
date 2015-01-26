@@ -1264,6 +1264,167 @@ class MutablePoset(sage.structure.sage_object.SageObject):
                     if include_special or not e.is_special())
 
 
+    def values(self, **kwargs):
+        r"""
+        Return an iterator over all values of the elements.
+
+        INPUT:
+
+        - ``kwargs`` -- arguments are passed to :meth:`elements`.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3)
+            sage: P.add(42)
+            sage: P.add(7)
+            sage: [(v, type(v)) for v in sorted(P.values())]
+            [(3, <type 'sage.rings.integer.Integer'>),
+             (7, <type 'sage.rings.integer.Integer'>),
+             (42, <type 'sage.rings.integer.Integer'>)]
+
+        Note that
+
+        ::
+
+            sage: it = iter(P)
+            sage: sorted(it)
+            [3, 7, 42]
+
+        returns all values as well.
+        """
+        for element in self.elements(**kwargs):
+            yield element.value
+
+
+    __iter__ = values
+
+
+    def values_topological(self, **kwargs):
+        r"""
+        Return an iterator over all values of the elements in
+        topological order.
+
+        INPUT:
+
+        - ``kwargs`` -- arguments are passed to :meth:`elements_topological`.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 1)))
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: [(v, type(v)) for v in P.values_topological()]
+            [((1, 1), <class '__main__.T'>),
+             ((1, 2), <class '__main__.T'>),
+             ((1, 3), <class '__main__.T'>),
+             ((2, 1), <class '__main__.T'>),
+             ((2, 2), <class '__main__.T'>),
+             ((4, 4), <class '__main__.T'>)]
+        """
+        for element in self.elements_topological(**kwargs):
+            yield element.value
+
+
+    def keys(self, **kwargs):
+        r"""
+        Return an iterator over all keys of the elements.
+
+        INPUT:
+
+        - ``kwargs`` -- arguments are passed to :meth:`elements`.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP(key=lambda c: -c)
+            sage: P.add(3)
+            sage: P.add(42)
+            sage: P.add(7)
+            sage: [(v, type(v)) for v in sorted(P.keys())]
+            [(-42, <type 'sage.rings.integer.Integer'>),
+             (-7, <type 'sage.rings.integer.Integer'>),
+             (-3, <type 'sage.rings.integer.Integer'>)]
+
+            sage: [(v, type(v)) for v in sorted(P.values())]
+            [(3, <type 'sage.rings.integer.Integer'>),
+             (7, <type 'sage.rings.integer.Integer'>),
+             (42, <type 'sage.rings.integer.Integer'>)]
+
+            sage: [(v, type(v)) for v in sorted(P.elements(),
+            ....:                               key=lambda c: c.value)]
+            [(3, <class 'sage.data_structures.mutable_poset.MutablePosetElement'>),
+             (7, <class 'sage.data_structures.mutable_poset.MutablePosetElement'>),
+             (42, <class 'sage.data_structures.mutable_poset.MutablePosetElement'>)]
+        """
+        for element in self.elements(**kwargs):
+            yield element.key
+
+
+    def keys_topological(self, **kwargs):
+        r"""
+        Return an iterator over all keys of the elements in
+        topological order.
+
+        INPUT:
+
+        - ``kwargs`` -- arguments are passed to :meth:`elements_topological`.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP(key=lambda c: c[0])
+            sage: P.add(T((1, 1)))
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: [(v, type(v)) for v in P.keys_topological()]
+            [(1, <type 'sage.rings.integer.Integer'>),
+             (2, <type 'sage.rings.integer.Integer'>),
+             (4, <type 'sage.rings.integer.Integer'>)]
+            sage: [(v, type(v)) for v in P.values_topological()]
+            [((1, 1), <class '__main__.T'>),
+             ((2, 1), <class '__main__.T'>),
+             ((4, 4), <class '__main__.T'>)]
+            sage: [(v, type(v)) for v in P.elements_topological()]
+            [((1, 1), <class 'sage.data_structures.mutable_poset.MutablePosetElement'>),
+             ((2, 1), <class 'sage.data_structures.mutable_poset.MutablePosetElement'>),
+             ((4, 4), <class 'sage.data_structures.mutable_poset.MutablePosetElement'>)]
+        """
+        for element in self.elements_topological(**kwargs):
+            yield element.key
+
+
     def repr(self, include_special=False, reverse=False):
         r"""
         Return a representation of the poset.

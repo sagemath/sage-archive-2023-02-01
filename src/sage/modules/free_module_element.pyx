@@ -2577,16 +2577,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
         This operation is sometimes written using the `hat operator`_.
         It is only defined for vectors of length 3 or 7.
-        For a vector `v` the cross product matrix `\hat v`
-        is a matrix which satisfies `\hat v\cdot w=v\times w`
-        and also `w\cdot\hat v=w\times v` for all vectors `w`.
+        For a vector `v` the cross product matrix `\hat{v}`
+        is a matrix which satisfies `\hat{v} \cdot w = v \times w`
+        and also `w \cdot \hat{v} = w \times v` for all vectors `w`.
         The basis vectors are assumed to be orthonormal.
 
         .. _hat operator: http://en.wikipedia.org/wiki/Hat_operator#Cross_product
-
-        INPUT:
-
-        - ``self`` - A vector of length three or seven.
 
         OUTPUT:
 
@@ -2634,17 +2630,21 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             ...
             ArithmeticError: Cross product only defined for vectors of length three or seven, not 5
         """
-        from sage.matrix.constructor import matrix
-        s = self.list(copy=False)
+        from sage.matrix.matrix_space import MatrixSpace
+        rank = self.parent().rank()
         R = self.base_ring()
         zero = R.zero()
-        if len(s) == 3:
-            return matrix(R, 3, 3, [
+        if rank == 3:
+            MS = MatrixSpace(R, rank, rank, sparse=self.is_sparse())
+            s = self.list(copy=False)
+            return MS([
                 [ zero, -s[2],  s[1]],
                 [ s[2],  zero, -s[0]],
                 [-s[1],  s[0],  zero]])
-        elif len(s) == 7:
-            return matrix(R, 7, 7, [
+        elif rank == 7:
+            MS = MatrixSpace(R, rank, rank, sparse=self.is_sparse())
+            s = self.list(copy=False)
+            return MS([
                 [ zero, -s[3], -s[6],  s[1], -s[5],  s[4],  s[2]],
                 [ s[3],  zero, -s[4], -s[0],  s[2], -s[6],  s[5]],
                 [ s[6],  s[4],  zero, -s[5], -s[1],  s[3], -s[0]],
@@ -2653,7 +2653,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
                 [-s[4],  s[6], -s[3],  s[2],  s[0],  zero, -s[1]],
                 [-s[2], -s[5],  s[0], -s[4],  s[3],  s[1],  zero]])
         else:
-            raise ArithmeticError("Cross product only defined for vectors of length three or seven, not {}".format(len(s)))
+            raise ArithmeticError("Cross product only defined for vectors of length three or seven, not {}".format(rank))
 
     def pairwise_product(self, right):
         """

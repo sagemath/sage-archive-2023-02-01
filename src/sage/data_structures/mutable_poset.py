@@ -1334,7 +1334,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
     __repr__ = repr
 
 
-    def __contains__(self, key):
+    def contains(self, key):
         r"""
         Tests if ``key`` is encapsulated by one of the poset's elements.
 
@@ -1354,12 +1354,15 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             ....:         return all(l <= r for l, r in zip(left, right))
             sage: P = MP()
             sage: P.add(T((1, 1)))
-            sage: T((1, 1)) in P
+            sage: T((1, 1)) in P  # indirect doctest
             True
-            sage: T((1, 2)) in P
+            sage: T((1, 2)) in P  # indirect doctest
             False
         """
         return key in self._elements_
+
+
+    __contains__ = contains
 
 
     def add(self, value):

@@ -641,7 +641,7 @@ def mrrw1_bound_asymp(delta,q):
 
     EXAMPLES::
 
-        sage: mrrw1_bound_asymp(1/4,2)   # abs tol 2e-16
+        sage: mrrw1_bound_asymp(1/4,2)   # abs tol 4e-16
         0.3545789026652697
     """
     return RDF(entropy((q-1-delta*(q-2)-2*sqrt((q-1)*delta*(1-delta)))/q,q))

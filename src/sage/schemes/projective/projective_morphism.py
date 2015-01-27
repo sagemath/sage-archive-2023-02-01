@@ -56,6 +56,7 @@ from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
+from sage.rings.fraction_field_element import is_FractionFieldElement
 from sage.rings.integer_ring       import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
@@ -2210,6 +2211,101 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         from endPN_minimal_model import affine_minimal
         return(affine_minimal(self, return_transformation, prime_list, False))
 
+    def automorphism_group(self, **kwds):
+        r"""
+        Given a homogenous rational function, this calculates the subsgroup of `PGL2` that is
+        the automorphism group of ``self``.
+
+        INPUT:
+
+        keywords:
+
+        - ``starting_prime`` -- The first prime to use for CRT. default: 5.(optional)
+
+        - ``algorithm``-- Choose ``CRT``-Chinese Remainder Theorem- or ``fixed_points`` algorithm.
+            default: depends on ``self``. (optional)
+
+        - ``return_functions``-- Boolean - True returns elements as linear fractional transformations.
+            False returns elements as `PGL2` matrices. default: False. (optional)
+
+        - ``iso_type`` -- Boolean - True returns the isomorphism type of the automorphism group.
+            default: False (optional)
+
+        OUTPUT:
+
+        - list - elements of automorphism group.
+
+        AUTHORS:
+
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray
+
+        - Modified by Joao Alberto de Faria, Ben Hutz, Bianca Thompson
+
+        REFERENCES:
+
+        .. [FMV] Computing Conjugating Sets and Automorphism Groups of Rational Functions
+            by Xander Faber, Michelle Manes, and Bianca Viray
+
+        EXAMPLES::
+
+            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(R)
+            sage: f = H([x^2-y^2,x*y])
+            sage: f.automorphism_group(return_functions=True)
+            [x, -x]
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(R)
+            sage: f = H([x^2 + 5*x*y + 5*y^2,5*x^2 + 5*x*y + y^2])
+            sage: f.automorphism_group()
+            [
+            [1 0]  [0 2]
+            [0 1], [2 0]
+            ]
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(R)
+            sage: f=H([x^2-2*x*y-2*y^2,-2*x^2-2*x*y+y^2])
+            sage: f.automorphism_group(return_functions=True)
+            [x, 2/(2*x), -x - 1, -2*x/(2*x + 2), (-x - 1)/x, -1/(x + 1)]
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(R)
+            sage: f = H([3*x^2*y - y^3,x^3 - 3*x*y^2])
+            sage: f.automorphism_group(algorithm='CRT',return_functions=True,iso_type=True)
+            ([x, (x + 1)/(x - 1), (-x + 1)/(x + 1), -x, 1/x, -1/x, (x - 1)/(x + 1), (-x - 1)/(x - 1)], 'Dihedral of order 8')
+        """
+
+        alg = kwds.get('algorithm',None)
+        p = kwds.get('starting_prime', 5)
+        return_functions = kwds.get('return_functions', False)
+        iso_type = kwds.get('iso_type',False)
+
+        if self.domain().dimension_relative() != 1:
+            raise NotImplementedError("Must be dimension 1")
+        else:
+            f = self.dehomogenize(1)
+            z = f[0].parent().gen()
+        if is_FractionFieldElement(f[0]):
+            F = (f[0].numerator().polynomial(z))/f[0].denominator().polynomial(z)
+        else:
+            F = f[0].polynomial(z)
+        from endPN_automorphism_group import automorphism_group_QQ_CRT, automorphism_group_QQ_fixedpoints
+        if alg is None:
+            if self.degree() <= 12:
+                return(automorphism_group_QQ_fixedpoints(F, return_functions, iso_type))
+            return(automorphism_group_QQ_CRT(F, p, return_functions, iso_type))
+        elif alg == 'CRT':
+            return(automorphism_group_QQ_CRT(F, p, return_functions, iso_type))
+
+        return(automorphism_group_QQ_fixedpoints(F, return_functions, iso_type))
+
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):
 
     def lift_to_rational_periodic(self, points_modp, B=None):
@@ -3086,3 +3182,88 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         """
         return _fast_possible_periods(self,return_points)
 
+    def automorphism_group(self, **kwds):
+        r"""
+        Given a homogenous rational function, this calculates the subsgroup of `PGL2` that is
+        the automorphism group of ``self``, see [FMV] fir algorithm.
+
+        INPUT:
+
+        keywords:
+
+        - ``absolute``-- Boolean - True returns the absolute automorphism group and a field of definition. default: False (optional)
+
+        - ``iso_type`` -- Boolean - True returns the isomorphism type of the automorphism group. default: False (optional)
+
+        - ``return_functions``-- Boolean - True returns elements as linear fractional transformations.
+            False returns elements as `PGL2` matrices. default: False. (optional)
+
+        OUTPUT:
+
+        - list - elements of automorphism group.
+
+        AUTHORS:
+
+        - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray\
+
+        - Modified by Joao Alberto de Faria, Ben Hutz, Bianca Thompson
+
+        EXAMPLES::
+
+            sage: R.<x,y> = ProjectiveSpace(GF(7^3,'t'),1)
+            sage: H = End(R)
+            sage: f = H([x^2-y^2,x*y])
+            sage: f.automorphism_group()
+            [
+            [1 0]  [6 0]
+            [0 1], [0 1]
+            ]
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(GF(3^2,'t'),1)
+            sage: H = End(R)
+            sage: f = H([x^3,y^3])
+            sage: f.automorphism_group(return_functions=True,iso_type=True) # long time
+            ([x, x/(x + 1), x/(2*x + 1), 2/(x + 2), (2*x + 1)/(2*x), (2*x + 2)/x,
+            1/(2*x + 2), x + 1, x + 2, x/(x + 2), 2*x/(x + 1), 2*x, 1/x, 2*x + 1,
+            2*x + 2, ((t + 2)*x + t + 2)/((2*t + 1)*x + t + 2), (t*x + 2*t)/(t*x +
+            t), 2/x, (x + 1)/(x + 2), (2*t*x + t)/(t*x), (2*t + 1)/((2*t + 1)*x +
+            2*t + 1), ((2*t + 1)*x + 2*t + 1)/((2*t + 1)*x), t/(t*x + 2*t), (2*x +
+            1)/(x + 1)], 'PGL(2,3)')
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(GF(2^5,'t'),1)
+            sage: H = End(R)
+            sage: f=H([x^5,y^5])
+            sage: f.automorphism_group(return_functions=True,iso_type=True)
+            ([x, 1/x], 'Cyclic of order 2')
+
+            ::
+
+            sage: R.<x,y> = ProjectiveSpace(GF(3^4,'t'),1)
+            sage: H = End(R)
+            sage: f=H([x^2+25*x*y+y^2,x*y+3*y^2])
+            sage: f.automorphism_group(absolute=True)
+            [Univariate Polynomial Ring in w over Finite Field in b of size 3^4,
+             [
+            [1 0]
+            [0 1]
+            ]]
+        """
+        absolute=kwds.get('absolute',False)
+        iso_type=kwds.get('iso_type',False)
+        return_functions=kwds.get('return_functions',False)
+
+        if self.domain().dimension_relative()!=1:
+            raise NotImplementedError, "Must be dimension 1"
+        else:
+            f=self.dehomogenize(1)
+            z=f[0].parent().gen()
+        if f[0].denominator()!=1:
+            F=(f[0].numerator().polynomial(z))/f[0].denominator().polynomial(z)
+        else:
+            F=f[0].numerator().polynomial(z)
+        from endPN_automorphism_group import automorphism_group_FF
+        return(automorphism_group_FF(F, absolute, iso_type, return_functions))

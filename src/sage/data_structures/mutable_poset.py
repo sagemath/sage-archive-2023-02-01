@@ -2202,6 +2202,120 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         self.difference_update(other)
         self.union_update(T)
 
+
+    def is_disjoint(self, other):
+        r"""
+        Return if another poset is disjoint to this poset.
+
+        INPUT:
+
+        - ``other`` -- a poset or an iterable. In the latter case the
+          iterated objects are seen as values of a poset.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3); P.add(42); P.add(7); P
+            poset(3, 7, 42)
+            sage: Q = MP()
+            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            poset(4, 8, 42)
+            sage: P.is_disjoint(Q)
+            False
+            sage: P.is_disjoint(Q.difference(P))
+            True
+        """
+        return all(key not in other for key in self.keys())
+
+
+    isdisjoint = is_disjoint  # as in a Python set
+
+
+    def is_subset(self, other):
+        r"""
+        Return if another poset contains this poset, i.e., if this poset
+        is a subset of the other poset.
+
+        INPUT:
+
+        - ``other`` -- a poset or an iterable. In the latter case the
+          iterated objects are seen as values of a poset.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3); P.add(42); P.add(7); P
+            poset(3, 7, 42)
+            sage: Q = MP()
+            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            poset(4, 8, 42)
+            sage: P.is_subset(Q)
+            False
+            sage: Q.is_subset(P)
+            False
+            sage: P.is_subset(P)
+            True
+            sage: P.is_subset(P.union(Q))
+            True
+        """
+        return all(key in other for key in self.keys())
+
+
+    issubset = is_subset  # as in a Python set
+
+
+    def is_superset(self, other):
+        r"""
+        Return if this poset contains another poset, i.e., if this poset
+        is a superset of the other poset.
+
+        INPUT:
+
+        - ``other`` -- a poset or an iterable. In the latter case the
+          iterated objects are seen as values of a poset.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3); P.add(42); P.add(7); P
+            poset(3, 7, 42)
+            sage: Q = MP()
+            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            poset(4, 8, 42)
+            sage: P.is_superset(Q)
+            False
+            sage: Q.is_superset(P)
+            False
+            sage: P.is_superset(P)
+            True
+            sage: P.union(Q).is_superset(P)
+            True
+        """
+        try:
+            it = other.keys()
+        except AttributeError:
+            it = iter(other)
+        return all(key in self for key in it)
+
+
+    issuperset = is_superset  # as in a Python set
+
+
 # *****************************************************************************
 
 

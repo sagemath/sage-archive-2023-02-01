@@ -543,11 +543,8 @@ setup(ext_modules = ext_modules,
 
     if create_local_so_file:
         # Copy from lib directory into local directory
-        libext = 'so'
-        UNAME = os.uname()[0].lower()
-        if UNAME[:6] == 'cygwin':
-            libext = 'dll'
-        cmd = 'cp %s/%s.%s %s'%(build_dir, name, libext, os.path.abspath(os.curdir))
+        from sage.misc.sageinspect import generic_so_extension
+        cmd = 'cp %s/%s%s %s'%(build_dir, name, generic_so_extension, os.path.abspath(os.curdir))
         if os.system(cmd):
             raise RuntimeError("Error making local copy of shared object library for {}".format(filename))
 

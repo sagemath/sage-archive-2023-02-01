@@ -95,7 +95,7 @@ primes ?
 ::
 
     sage: x = var('x') ; f(x) = e^(e^x - 1)
-    sage: L = [a*factorial(b) for a,b in taylor(f(x), x, 0, 20).coeffs()] ; L
+    sage: L = [a*factorial(b) for a,b in taylor(f(x), x, 0, 20).coefficients()] ; L
     [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147, 115975, 678570, 4213597,
     27644437, 190899322, 1382958545, 10480142147, 82864869804, 682076806159,
     5832742205057, 51724158235372]

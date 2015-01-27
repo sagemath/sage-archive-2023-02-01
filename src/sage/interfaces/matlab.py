@@ -168,7 +168,7 @@ class Matlab(Expect):
            122
            505
     """
-    def __init__(self, maxread=100, script_subdirectory="",
+    def __init__(self, maxread=100, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
         Expect.__init__(self,
                         name = 'matlab',
@@ -359,7 +359,7 @@ class MatlabElement(ExpectElement):
         P.eval('{0}({1},{2}) = {3}'.format(self.name(), i, j, z.name()))
 
 # An instance
-matlab = Matlab(script_subdirectory='user')
+matlab = Matlab()
 
 def reduce_load_Matlab():
     return matlab

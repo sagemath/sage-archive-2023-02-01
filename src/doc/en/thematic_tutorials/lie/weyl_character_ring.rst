@@ -418,7 +418,7 @@ coroot notation, you are working with `SL` automatically::
 
     sage: A2 = WeylCharacterRing("A2", style="coroots")
     sage: A2(1,0).weight_multiplicities()
-    {(-1/3, -1/3, 2/3): 1, (2/3, -1/3, -1/3): 1, (-1/3, 2/3, -1/3): 1}
+    {(-1/3, -1/3, 2/3): 1, (-1/3, 2/3, -1/3): 1, (2/3, -1/3, -1/3): 1}
 
 There is no convenient way to create the determinant in the Weyl
 character ring if you adopt the coroot style.

@@ -221,16 +221,20 @@ def _multiple_of_constant(n,pos,const):
     Here is the intended use::
 
         sage: plot(sin(x), (x,0,2*pi), ticks=pi/3, tick_formatter=pi)
+        Graphics object consisting of 1 graphics primitive
 
     Here is an unintended use, which yields unexpected (and probably
     undesired) results::
 
         sage: plot(x^2, (x, -2, 2), tick_formatter=pi)
+        Graphics object consisting of 1 graphics primitive
 
     We can also use more unusual constant choices::
 
         sage: plot(ln(x), (x,0,10), ticks=e, tick_formatter=e)
+        Graphics object consisting of 1 graphics primitive
         sage: plot(x^2, (x,0,10), ticks=[sqrt(2),8], tick_formatter=sqrt(2))
+        Graphics object consisting of 1 graphics primitive
     """
     from sage.misc.latex import latex
     from sage.rings.arith import convergents

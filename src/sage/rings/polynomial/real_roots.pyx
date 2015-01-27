@@ -155,7 +155,6 @@ cimport numpy
 from math import fabs
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 
 from sage.libs.mpfr cimport *
 
@@ -1573,7 +1572,7 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
             sage: bp2
             <IBP: (-0.369375, -0.45125, -0.3275, 0.14500000000000002, 0.99) + [-0.1 .. 0.01] over [1/2 .. 1]>
             sage: bp1, bp2, ok = bp.de_casteljau(ctx, 2/3)
-            sage: bp1
+            sage: bp1 # rel tol 2e-16
             <IBP: (0.5, 0.30000000000000004, -0.2555555555555555, -0.5444444444444444, -0.32172839506172846) + [-0.1 .. 0.01] over [0 .. 2/3]>
             sage: bp2  # rel tol 3e-15
             <IBP: (-0.32172839506172846, -0.21037037037037046, 0.028888888888888797, 0.4266666666666666, 0.99) + [-0.1 .. 0.01] over [2/3 .. 1]>
@@ -4521,11 +4520,12 @@ def dprod_imatrow_vec(Matrix_integer_dense m, Vector_integer_dense v, int k):
     cdef int vsize = len(v)
     cdef int ra
     cdef int a
-
+    mpz_init(tmp)
     for a from 0 <= a < msize:
         ra = subsample_vec(a, msize, vsize)
-        mpz_addmul(sum.value, m._matrix[k][a], v._entries[ra])
-
+        m.get_unsafe_mpz(k,a,tmp)
+        mpz_addmul(sum.value, tmp, v._entries[ra])
+    mpz_clear(tmp)
     return sum
 
 def min_max_delta_intvec(Vector_integer_dense a, Vector_integer_dense b):
@@ -4622,4 +4622,3 @@ def min_max_diff_doublevec(Vector_real_double_dense c):
             max_diff = diff
 
     return (min_diff, max_diff)
-

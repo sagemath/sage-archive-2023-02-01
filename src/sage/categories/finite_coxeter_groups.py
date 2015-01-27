@@ -27,6 +27,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
         sage: G = FiniteCoxeterGroups().example()
         sage: G.cayley_graph(side = "right").plot()
+        Graphics object consisting of 40 graphics primitives
 
     Here are some further examples::
 
@@ -335,12 +336,12 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: word = [1,2,1,3,2]
                 sage: w = W.from_reduced_word(word)
                 sage: w.coxeter_knuth_neighbor(word)
-                set([(1, 2, 3, 1, 2), (2, 1, 2, 3, 2)])
+                {(1, 2, 3, 1, 2), (2, 1, 2, 3, 2)}
 
                 sage: word = [1,2,1,3,2,4,3]
                 sage: w = W.from_reduced_word(word)
                 sage: w.coxeter_knuth_neighbor(word)
-                set([(1, 2, 1, 3, 4, 2, 3), (2, 1, 2, 3, 2, 4, 3), (1, 2, 3, 1, 2, 4, 3)])
+                {(1, 2, 1, 3, 4, 2, 3), (1, 2, 3, 1, 2, 4, 3), (2, 1, 2, 3, 2, 4, 3)}
 
             TESTS::
 

@@ -725,7 +725,7 @@ class FiniteFamily(AbstractFamily):
             sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a'})
             sage: f.__getstate__()
-            {'keys': None, 'dictionary': {3: 'a'}}
+            {'dictionary': {3: 'a'}, 'keys': None}
         """
         return {'dictionary': self._dictionary, 'keys': self._keys}
 

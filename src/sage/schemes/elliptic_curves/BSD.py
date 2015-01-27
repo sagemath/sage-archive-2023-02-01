@@ -290,9 +290,9 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
        Hautes Études Sci. Publ. Math. No. 47 (1977), 33--186 (1978).
     .. [Rubin] K. Rubin. The "main conjectures" of Iwasawa theory for
        imaginary quadratic fields. Invent. Math. 103 (1991), no. 1, 25--68.
-    .. [SteinWuthrich] W. Stein and C. Wuthrich. Computations about
-       Tate-Shafarevich groups using Iwasawa theory.
-       http://wstein.org/papers/shark, February 2008.
+    .. [SteinWuthrich] W. Stein and C. Wuthrich, Algorithms
+       for the Arithmetic of Elliptic Curves using Iwasawa Theory
+       Mathematics of Computation 82 (2013), 1757-1792.
     .. [SteinEtAl] G. Grigorov, A. Jorza, S. Patrikis, W. Stein,
        C. Tarniţǎ. Computational verification of the Birch and
        Swinnerton-Dyer conjecture for individual elliptic curves.
@@ -302,21 +302,30 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
     EXAMPLES::
 
         sage: EllipticCurve('11a').prove_BSD(verbosity=2)
-        p = 2: True by 2-descent...
+        p = 2: True by 2-descent
         True for p not in {2, 5} by Kolyvagin.
-        True for p=5 by Mazur
+        Kato further implies that #Sha[5] is trivial.
         []
 
         sage: EllipticCurve('14a').prove_BSD(verbosity=2)
         p = 2: True by 2-descent
         True for p not in {2, 3} by Kolyvagin.
+        Kato further implies that #Sha[3] is trivial.
+        []
+
+        sage: E = EllipticCurve("50b1")
+        sage: E.prove_BSD(verbosity=2)
+        p = 2: True by 2-descent
+        True for p not in {2, 3, 5} by Kolyvagin.
+        Kolyvagin's bound for p = 3 applies by Stein et al.
+        True for p = 3 by Kolyvagin bound
         Remaining primes:
-        p = 3: reducible, not surjective, good ordinary, divides a Tamagawa number
+        p = 5: reducible, not surjective, additive, divides a Tamagawa number
             (no bounds found)
             ord_p(#Sha_an) = 0
-        [3]
-        sage: EllipticCurve('14a').prove_BSD(two_desc='simon')
-        [3]
+        [5]
+        sage: E.prove_BSD(two_desc='simon')
+        [5]
 
     A rank two curve::
 
@@ -336,9 +345,9 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
 
         sage: E = EllipticCurve('19a')
         sage: E.prove_BSD(verbosity=2)
-        p = 2: True by 2-descent...
+        p = 2: True by 2-descent
         True for p not in {2, 3} by Kolyvagin.
-        True for p=3 by Mazur
+        Kato further implies that #Sha[3] is trivial.
         []
 
         sage: E = EllipticCurve('37a')
@@ -409,7 +418,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: B.gens
         []
         sage: B.primes
-        [7]
+        []
         sage: B.heegner_indexes
         {-23: 2}
 

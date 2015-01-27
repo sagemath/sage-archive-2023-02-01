@@ -175,10 +175,21 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: z = (1+w)^5; z # indirect doctest
             1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
 
+        TESTS:
+
         Check that :trac:`3865` is fixed::
 
             sage: W(gp('2 + O(5^2)'))
             2 + O(w^25)
+
+        Check that :trac:`13612` has been fixed::
+
+            sage: R = ZpFM(3)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2+1)
+            sage: W(W.residue_field().zero())
+            O(3^20)
+
         """
         pAdicZZpXElement.__init__(self, parent)
         ZZ_pX_construct(&self.value)
@@ -222,6 +233,11 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
                 x = x.lift()
             else:
                 raise TypeError, "cannot coerce from the given integer mod ring (not a power of the same prime)"
+        elif x in parent.residue_field():
+            # Should only reach here if x is not in F_p
+            z = parent.gen()
+            poly = x.polynomial().list()
+            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))], parent.zero())
         elif PY_TYPE_CHECK(x, ntl_ZZ_p):
             ctx_prec = ZZ_remove(tmp_z, (<ntl_ZZ>x.modulus()).x, self.prime_pow.pow_ZZ_tmp(1)[0])
             if ZZ_IsOne(tmp_z):
@@ -355,7 +371,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         self.prime_pow.restore_top_context()
         ZZX_to_ZZ_pX(self.value, poly)
 
-    cpdef bint _is_inexact_zero(self):
+    cpdef bint _is_inexact_zero(self) except -1:
         """
         Tests if ``self`` is an inexact zero.
 

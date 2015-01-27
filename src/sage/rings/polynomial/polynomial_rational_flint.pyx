@@ -6,27 +6,28 @@ AUTHOR:
 - Sebastian Pancratz
 """
 
-###############################################################################
-#          Copyright (C) 2010 Sebastian Pancratz <sfp@pancratz.org>           #
-#                                                                             #
-#     Distributed under the terms of the GNU General Public License (GPL)     #
-#                                                                             #
-#                        http://www.gnu.org/licenses/                         #
-###############################################################################
+#*****************************************************************************
+#          Copyright (C) 2010 Sebastian Pancratz <sfp@pancratz.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/gmp.pxi"
-include "sage/ext/cdefs.pxi"
 
-include "sage/libs/ntl/decl.pxi"
-include "sage/libs/flint/fmpq_poly.pxi"
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpq cimport *
+from sage.libs.flint.fmpz_poly cimport *
 
 from sage.interfaces.all import singular as singular_default
 
 from sage.libs.all import pari, pari_gen
-from sage.libs.flint.ntl_interface cimport *
-from sage.libs.flint.fmpz_poly cimport fmpz_poly_set
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
@@ -37,10 +38,10 @@ from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 
+from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.element import coerce_binop
 from sage.structure.factorization import Factorization
-
 
 cdef inline bint _do_sig(fmpq_poly_t op):
     """
@@ -61,9 +62,9 @@ cdef inline bint _do_sig(fmpq_poly_t op):
     """
     # Trac #12173: check that the degree is greater than 1000 before computing
     # the max limb size
-    return fmpq_poly_length(op) > 0 and \
-       (fmpq_poly_degree(op) > 1000 or
-        _fmpz_vec_max_limbs(fmpq_poly_numref(op), fmpq_poly_length(op)) > 1)
+    return (fmpq_poly_length(op) > 0 and
+            (fmpq_poly_degree(op) > 1000 or
+                sage_fmpq_poly_max_limbs(op) > 1))
 
 cdef class Polynomial_rational_flint(Polynomial):
     """
@@ -1640,7 +1641,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.factor_padic('hello', 'world')
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=hello) to an integer
+            TypeError: unable to convert 'hello' to an integer
         """
         from sage.rings.padics.factory import Qp
 

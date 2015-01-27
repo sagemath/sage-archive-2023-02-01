@@ -415,7 +415,7 @@ def OrthogonalArrayBlockGraph(k,n,OA=None):
     Two graphs built from different orthogonal arrays are also different::
 
         sage: k=4;n=10
-        sage: OAa = designs.orthogonal_array(k,n)
+        sage: OAa = designs.orthogonal_arrays.build(k,n)
         sage: OAb = [[(x+1)%n for x in R] for R in OAa]
         sage: set(map(tuple,OAa)) == set(map(tuple,OAb))
         False

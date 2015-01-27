@@ -126,6 +126,7 @@ class Box(IndexFaceSet):
 
             sage: from sage.plot.plot3d.shapes import Box
             sage: Box(10, 1, 1) + Box(1, 10, 1) + Box(1, 1, 10)
+            Graphics3d Object
         """
         if isinstance(size[0], (tuple, list)):
             size = validate_frame_size(size[0])
@@ -227,10 +228,12 @@ cdef class Cone(ParametricSurface):
     We may omit the base::
 
         sage: Cone(1, 1, closed=False)
+        Graphics3d Object
 
     A spiky plot of the sine function::
 
         sage: sum(Cone(.1, sin(n), color='yellow').translate(n, sin(n), 0) for n in [0..10, step=.1])
+        Graphics3d Object
 
     A Christmas tree::
 
@@ -317,6 +320,7 @@ cdef class Cylinder(ParametricSurface):
     We may omit the base::
 
         sage: Cylinder(1, 1, closed=False)
+        Graphics3d Object
 
     Some gears::
 
@@ -332,6 +336,7 @@ cdef class Cylinder(ParametricSurface):
 
             sage: from sage.plot.plot3d.shapes import Cylinder
             sage: Cylinder(1, 1, color='red')
+            Graphics3d Object
         """
         ParametricSurface.__init__(self, **kwds)
         self.radius = radius
@@ -565,27 +570,33 @@ def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, *
     The default arrow::
 
         sage: arrow3d((0,0,0), (1,1,1), 1)
+        Graphics3d Object
 
     A fat arrow::
 
         sage: arrow3d((0,0,0), (1,1,1), radius=0.1)
+        Graphics3d Object
 
     A green arrow::
 
         sage: arrow3d((0,0,0), (1,1,1), color='green')
+        Graphics3d Object
 
     A fat arrow head::
 
         sage: arrow3d((2,1,0), (1,1,1), color='green', head_radius=0.3, aspect_ratio=[1,1,1])
+        Graphics3d Object
 
     Many arrow arranged in a circle (flying spears?)::
 
         sage: sum([arrow3d((cos(t),sin(t),0),(cos(t),sin(t),1)) for t in [0,0.3,..,2*pi]])
+        Graphics3d Object
 
     Change the width of the arrow. (Note: for an arrow that scales with zoom, please consider
     the 'line3d' function with the option 'arrow_head=True')::
 
         sage: arrow3d((0,0,0), (1,1,1), width=1)
+        Graphics3d Object
 
     TESTS:
 
@@ -615,7 +626,7 @@ def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, *
         sage: arrow3d((0,0,0), (1,1,1), thickness=1)
         doctest:...: DeprecationWarning: use the option 'width' instead of 'thickness'
         See http://trac.sagemath.org/7154 for details.
-        <BLANKLINE>
+        Graphics3d Object
     """
     if radius is None:
         radius = width/50.0
@@ -652,6 +663,7 @@ cdef class Sphere(ParametricSurface):
 
         sage: from sage.plot.plot3d.shapes import Sphere
         sage: Sphere(3)
+        Graphics3d Object
 
     Plot with aspect_ratio=1 to see it unsquashed::
 
@@ -669,6 +681,7 @@ cdef class Sphere(ParametricSurface):
 
             sage: from sage.plot.plot3d.shapes import Sphere
             sage: Sphere(3)
+            Graphics3d Object
         """
         ParametricSurface.__init__(self, **kwds)
         self.radius = radius
@@ -873,8 +886,10 @@ class Text(PrimitiveObject):
 
         sage: from sage.plot.plot3d.shapes import Text
         sage: Text("Just a lonely label.")
+        Graphics3d Object
         sage: pts = [(RealField(10)^3).random_element() for k in range(20)]
         sage: sum(Text(str(P)).translate(P) for P in pts)
+        Graphics3d Object
     """
     def __init__(self, string, **kwds):
         """

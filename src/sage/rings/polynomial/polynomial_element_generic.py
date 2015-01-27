@@ -118,14 +118,14 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f = 5 + w^1997 - w^10000; f
             7*w^10000 + w^1997 + 5
             sage: d = f.dict(); d
-            {0: 5, 10000: 7, 1997: 1}
+            {0: 5, 1997: 1, 10000: 7}
             sage: d[0] = 10
             sage: f.dict()
-            {0: 5, 10000: 7, 1997: 1}
+            {0: 5, 1997: 1, 10000: 7}
         """
         return dict(self.__coeffs)
 
-    def coefficients(self):
+    def coefficients(self,sparse=True):
         """
         Return the coefficients of the monomials appearing in self.
 
@@ -137,7 +137,10 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.coefficients()
             [5, 1, 7]
         """
-        return [c[1] for c in sorted(self.__coeffs.iteritems())]
+        if sparse:
+          return [c[1] for c in sorted(self.__coeffs.iteritems())]
+        else:
+          return [self.__coeffs[i] if self.__coeffs.has_key(i) else 0 for i in xrange(self.degree() + 1)]
 
     def exponents(self):
         """

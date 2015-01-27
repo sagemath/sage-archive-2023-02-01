@@ -983,6 +983,21 @@ def sorted_set_by_tuple(S, T):
 # *****************************************************************************
 
 
+def is_MutablePoset(P):
+    r"""
+    Tests if ``P`` inherits from :class:`MutablePoset`.
+
+    TESTS::
+
+        sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+        sage: from sage.data_structures.mutable_poset import is_MutablePoset
+        sage: P = MP()
+        sage: is_MutablePoset(P)
+        True
+    """
+    return isinstance(P, MutablePoset)
+
+
 class MutablePoset(sage.structure.sage_object.SageObject):
     r"""
     A mutable poset (partially ordered set) as data structure.

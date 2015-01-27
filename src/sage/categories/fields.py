@@ -446,15 +446,6 @@ class Fields(CategoryWithAxiom):
                 sage: all(x.gcd(y) == (0 if x == 0 and y == 0 else 1) for x in K for y in K)
                 True
 
-            For fields of characteristic zero, the gcd of integers in that field
-            is considered as if they were elements of the integer ring::
-
-                sage: gcd(6.0,8); gcd(6.0,8).parent()
-                2
-                Integer Ring
-
-            But not for the other elements::
-
                 sage: gcd(3.0, 2.5)
                 1.00000000000000
 
@@ -464,17 +455,6 @@ class Fields(CategoryWithAxiom):
             - Vincent Delecroix (2015) -- :trac:`17671`
             """
             P = self.parent()
-            zero_char = False
-            try:
-                zero_char = P.characteristic() == 0
-            except NotImplementedError:
-                pass
-            if zero_char:
-                from sage.rings.integer_ring import ZZ
-                try:
-                    return ZZ(self).gcd(ZZ(other))
-                except TypeError:
-                    pass
             if self == P.zero() and other == P.zero():
                 return P.zero()
             return P.one()
@@ -502,8 +482,8 @@ class Fields(CategoryWithAxiom):
             as if they were elements of the integer ring::
 
                 sage: lcm(15.0,12.0); lcm(15.0,12.0).parent()
-                60
-                Integer Ring
+                1.00000000000000
+                Real Field with 53 bits of precision
 
             AUTHOR:
 
@@ -511,17 +491,6 @@ class Fields(CategoryWithAxiom):
             - Vincent Delecroix (2015) -- :trac:`17671`
             """
             P = self.parent()
-            zero_char = False
-            try:
-                zero_char = P.characteristic() == 0
-            except NotImplementedError:
-                pass
-            if zero_char:
-                from sage.rings.integer_ring import ZZ
-                try:
-                    return ZZ(self).lcm(ZZ(other))
-                except TypeError:
-                    pass
             if self.is_zero() or other.is_zero():
                 return P.zero()
             return P.one()
@@ -559,24 +528,14 @@ class Fields(CategoryWithAxiom):
                 sage: GF(5)(0).xgcd(GF(5)(0))
                 (0, 0, 0)
 
-            For field of characteristic zero, the xgcd of integer elements is
-            still considered as if they were element of the integer ring::
+            TESTS::
+
+            Since :trac:`16761` the gcd of non-zero real numbers is `1.0`::
 
                 sage: xgcd(2.0, 3.0)
-                (1, -1, 1)
+                (1.00000000000000, 0.500000000000000, 0.000000000000000)
             """
             P = self.parent()
-            zero_char = False
-            try:
-                zero_char = P.characteristic() == 0
-            except NotImplementedError:
-                pass
-            if zero_char:
-                from sage.rings.integer_ring import ZZ
-                try:
-                    return ZZ(self).xgcd(ZZ(other))
-                except TypeError:
-                    pass
             if not self.is_zero():
                 return (P.one(), ~self, P.zero())
             if not other.is_zero():

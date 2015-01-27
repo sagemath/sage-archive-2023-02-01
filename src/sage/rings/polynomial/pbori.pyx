@@ -189,6 +189,8 @@ include "sage/ext/python.pxi"
 
 import operator
 
+from sage.misc.cachefunc import cached_method
+
 from sage.misc.randstate import current_randstate
 import sage.misc.weak_dict
 from sage.rings.integer import Integer
@@ -577,9 +579,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         Any boolean monomial is contained in the ring::
 
             sage: e = B.random_element(); e
-            a*c + a*d + a + b*d + 1
+            a*b + a*c + a + b*d + 1
             sage: e.lt()
-            a*c
+            a*b
             sage: e.lt().parent()
             MonomialMonoid of Boolean PolynomialRing in a, b, c, d
             sage: e.lt() in B   # indirect doctest
@@ -1099,17 +1101,18 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         gens = flatten(gens)
         return BooleanPolynomialIdeal(self, gens, coerce)
 
-    def random_element(self, degree=None, terms=None, choose_degree=True, vars_set=None):
+    def random_element(self, degree=None, terms=None, choose_degree=False, vars_set=None):
         """
         Return a random boolean polynomial. Generated polynomial has the
         given number of terms, and at most given degree.
 
         INPUT:
 
-
         -  ``degree`` - maximum degree (default: 2 for len(var_set) > 1, 1 otherwise)
 
-        -  ``terms`` - number of terms (default: 5 for len(var_set) > 2, smaller otherwise)
+        -  ``terms`` -- number of terms requested (default: 5). If more
+           terms are requested than exist, then this parameter is
+           silently reduced to the maximum number of available terms.
 
         -  ``choose_degree`` - choose degree of monomials
            randomly first, rather than monomials uniformly random
@@ -1122,7 +1125,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: P.random_element(degree=3, terms=4)
-            x*y*z + x*z + y*z + z
+            x*y*z + x*z + x + y*z
 
         ::
 
@@ -1133,11 +1136,17 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: P = BooleanPolynomialRing(2,'y')
             sage: P.random_element()
-            y0*y1 + 1
+            y0*y1 + y0
 
             sage: P = BooleanPolynomialRing(1,'y')
             sage: P.random_element()
-            1
+            y
+
+        We return uniformly random polynomials up to degree 2::
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: B.random_element(terms=Infinity)
+            a*b + a*c + a*d + b*c + b*d + d
 
         TESTS::
 
@@ -1147,19 +1156,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             ...
             ValueError: Given degree should be less than or equal to number of variables (3)
 
-        ::
+            sage: P.random_element(degree=1, terms=5)
+            y + 1
 
-            sage: t = P.random_element(degree=1, terms=5)
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot generate random polynomial with 5 terms and maximum degree 1 using 3 variables
-
-        ::
-
-            sage: t = P.random_element(degree=2,terms=5,vars_set=(0,1))
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot generate random polynomial with 5 terms using 2 variables
+            sage: P.random_element(degree=2, terms=5, vars_set=(0,1))
+            x*y + y
 
         We test that :trac:`13845` is fixed::
 
@@ -1181,8 +1182,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 terms = 2
             elif nvars == 1:
                 terms = 1
-        else:
-            terms = Integer(terms)
 
         if degree is None:
             if nvars > 1:
@@ -1195,9 +1194,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         if degree > nvars:
             raise ValueError, "Given degree should be less than or equal to number of variables (%s)"%(nvars)
 
-        if Integer(terms-1).nbits() > nvars:
-            raise ValueError, "Cannot generate random polynomial with %s terms using %s variables"%(terms, nvars)
-
         tot_terms=0
         monom_counts = []
         for i from 0 <= i <= degree:
@@ -1205,7 +1201,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             monom_counts.append(tot_terms)
 
         if terms > tot_terms:
-            raise ValueError, "Cannot generate random polynomial with %s terms and maximum degree %s using %s variables"%(terms, degree, nvars)
+            terms = tot_terms//2 + (tot_terms%2)
+        else:
+            terms = Integer(terms)
 
         p = self._zero_element
         while len(p) < terms:
@@ -4863,7 +4861,7 @@ cdef class BooleanPolynomialIterator:
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: list(B.random_element()) # indirect doctest
-            [a*c, a*d, a, b*d, 1]
+            [a*b, a*c, a, b*d, 1]
         """
         return self
 
@@ -4878,7 +4876,7 @@ cdef class BooleanPolynomialIterator:
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: it = iter(B.random_element())
             sage: it.next() # indirect doctest
-            a*c
+            a*b
         """
         cdef PBMonom value
         if self._iter.equal(self._end):
@@ -4901,19 +4899,16 @@ cdef inline BooleanPolynomialIterator new_BPI_from_BooleanPolynomial(BooleanPoly
 
 class BooleanPolynomialIdeal(MPolynomialIdeal):
     def __init__(self, ring, gens=[], coerce=True):
-        r"""
+        """
         Construct an ideal in the boolean polynomial ring.
 
         INPUT:
-
 
         -  ``ring`` - the ring this ideal is defined in
 
         -  ``gens`` - a list of generators
 
-        - ``coerce`` - coerce all elements to the ring ``ring``
-           (default: ``True``)
-
+        - ``coerce`` - coerce all elements to the ring ``ring`` (default: ``True``)
 
         EXAMPLES::
 
@@ -4945,11 +4940,14 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         return 0
 
 
-    def groebner_basis(self, **kwds):
-        r"""
+    def groebner_basis(self, algorithm='polybori', **kwds):
+        """
         Return a Groebner basis of this ideal.
 
         INPUT:
+
+        - ``algorithm`` - either ``"polybori"`` (built-in default)
+          or ``"magma"`` (requires Magma).
 
         - ``red_tail`` - tail reductions in intermediate polynomials,
           this options affects mainly heuristics. The reducedness of
@@ -4973,7 +4971,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
           to ``True`` linear algebra takes affect in this
           block. (default: ``True``)
 
-        - "gauss_on_linear" - perform Gaussian elimination on linear
+        - ``gauss_on_linear`` - perform Gaussian elimination on linear
            polynomials (default: ``True``)
 
         - ``selection_size`` - maximum number of polynomials for
@@ -5016,6 +5014,22 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: I.groebner_basis()
             Polynomial Sequence with 36 Polynomials in 36 Variables
 
+        We compute the same example with Magma::
+
+            sage: sr = mq.SR(2,1,1,4,gf2=True, polybori=True)
+            sage: F,s = sr.polynomial_system()
+            sage: I = F.ideal()
+            sage: I.groebner_basis(algorithm='magma', prot='sage') # optional - magma
+            Leading term degree:  1. Critical pairs: 148.
+            Leading term degree:  2. Critical pairs: 144.
+            Leading term degree:  3. Critical pairs: 462.
+            Leading term degree:  1. Critical pairs: 167.
+            Leading term degree:  2. Critical pairs: 147.
+            Leading term degree:  3. Critical pairs: 101 (all pairs of current degree eliminated by criteria).
+            <BLANKLINE>
+            Highest degree reached during computation:  3.
+            Polynomial Sequence with 35 Polynomials in 36 Variables
+
         TESTS:
 
         This example shows, that a bug in our variable indices was
@@ -5057,13 +5071,17 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         except AttributeError:
             pass
 
-        if "redsb" not in kwds:
-            kwds["redsb"]=True
-        sig_on()
-        gb = self._groebner_basis(**kwds)
-        sig_off()
-        if gb:
-          if kwds.get("deg_bound", False) is False:
+        if algorithm == 'magma':
+            from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal_magma_repr
+            gb = MPolynomialIdeal_magma_repr._groebner_basis_magma(self, **kwds)
+        else:
+            if "redsb" not in kwds:
+                kwds["redsb"]=True
+            sig_on()
+            gb = self._groebner_basis(**kwds)
+            sig_off()
+
+        if kwds.get("deg_bound", False) is False:
             g = GroebnerStrategy(gb[0].ring())
             for p in gb:
                 g.add_as_you_wish(p)
@@ -5195,7 +5213,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         If this ideal is spanned by ``(f_1, ..., f_n)`` this method
         returns ``(g_1, ..., g_s)`` such that:
 
-        -  ``(f_1,...,f_n) = (g_1,...,g_s)``
+        -  ``<f_1,...,f_n> = <g_1,...,g_s>``
         -  ``LT(g_i) != LT(g_j)`` for all ``i != j```
         - ``LT(g_i)`` does not divide ``m`` for all monomials ``m`` of
           ``{g_1,...,g_{i-1},g_{i+1},...,g_s}``
@@ -5208,12 +5226,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: I.interreduced_basis()
             [k100 + 1, k101 + k001 + 1, k102, k103 + 1, x100 + k001 + 1, x101 + k001, x102, x103 + k001, w100 + 1, w101 + k001 + 1, w102 + 1, w103 + 1, s000 + k001, s001 + k001 + 1, s002, s003 + k001 + 1, k000 + 1, k002 + 1, k003 + 1]
         """
-        R = self.ring()
-
-        from polybori.interred import interred as inter_red
-        l = [p for p in self.gens() if not p==0]
-        l = sorted(inter_red(l, completely=True), reverse=True)
-        return Sequence(l, R, check=False, immutable=True)
+        return self.basis.reduced()
 
     def __cmp__(self, other):
         """
@@ -5235,33 +5248,6 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         else:
             r = cmp(self.groebner_basis(),other.groebner_basis())
         return r
-
-#     def __richcmp__(self, other, int op):
-#         """
-#         EXAMPLE::
-#             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
-#             sage: F,s = sr.polynomial_system()
-#             sage: I = F.ideal()
-#             sage: J = Ideal(I.interreduced_basis())
-#             sage: I == J
-#             True
-#             sage: J = Ideal(I.gens()[1:] + (I.gens()[0] + 1,))
-#             sage: I == J
-#             False
-#         """
-#         r = self.__cmp__(other)
-#         if op == 0:  #<
-#             return r  < 0
-#         elif op == 2: #==
-#             return r == 0
-#         elif op == 4: #>
-#             return r  > 0
-#         elif op == 1: #<=
-#             return r <= 0
-#         elif op == 3: #!=
-#             return r != 0
-#         elif op == 5: #>=
-#             return r >= 0
 
 ##
 #
@@ -5973,10 +5959,10 @@ cdef class BooleSetIterator:
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: f = B.random_element()
             sage: f
-            a*c + a*d + a + b*d + 1
+            a*b + a*c + a + b*d + 1
             sage: it = iter(f.set())
             sage: it.next()
-            a*c
+            a*b
         """
         cdef PBMonom value
         if self._iter.equal(self._end):
@@ -6061,9 +6047,9 @@ cdef class BooleanPolynomialVector:
         sage: len(v)
         3
         sage: v[0]
-        a*b + a*d + a + d + e
+        a*b + a + b*e + c*d + e*f
         sage: list(v)
-        [a*b + a*d + a + d + e, a*e + a + c*f + d*f + 1, b*c + c*f + d*f + e + 1]
+        [a*b + a + b*e + c*d + e*f, a*d + c*d + d*f + e + f, a*c + a*e + b*c + c*f + f]
     """
     def __init__(self, I=None):
         """
@@ -6082,9 +6068,9 @@ cdef class BooleanPolynomialVector:
             sage: len(v)
             3
             sage: v[0]
-            a*b + a*d + a + d + e
+            a*b + a + b*e + c*d + e*f
             sage: list(v)
-            [a*b + a*d + a + d + e, a*e + a + c*f + d*f + 1, b*c + c*f + d*f + e + 1]
+            [a*b + a + b*e + c*d + e*f, a*d + c*d + d*f + e + f, a*c + a*e + b*c + c*f + f]
         """
         # This is used by PolyBoRi python code
         PBPolyVector_construct(&self._vec)
@@ -6108,7 +6094,7 @@ cdef class BooleanPolynomialVector:
             sage: l = [B.random_element() for _ in range(3)]
             sage: v = BooleanPolynomialVector(l)
             sage: list(iter(v))
-            [a*b + a*d + a + d + e, a*e + a + c*f + d*f + 1, b*c + c*f + d*f + e + 1]
+            [a*b + a + b*e + c*d + e*f, a*d + c*d + d*f + e + f, a*c + a*e + b*c + c*f + f]
         """
         return new_BPVI_from_PBPolyVectorIter(self)
 
@@ -6139,9 +6125,9 @@ cdef class BooleanPolynomialVector:
             sage: len(v)
             3
             sage: v[0]
-            a*b + a*d + a + d + e
+            a*b + a + b*e + c*d + e*f
             sage: v[-1]
-            b*c + c*f + d*f + e + 1
+            a*c + a*e + b*c + c*f + f
             sage: v[3]
             Traceback (most recent call last):
             ...
@@ -6199,11 +6185,7 @@ cdef class BooleanPolynomialVector:
             ...     v.append(B.random_element())
 
             sage: list(v)
-            [a*b + a*d + a + d + e,
-             a*e + a + c*f + d*f + 1,
-             b*c + c*f + d*f + e + 1,
-             a*e + a + c*f + d*f + 1,
-             b*e + d + e*f + f + 1]
+            [a*b + a + b*e + c*d + e*f, a*d + c*d + d*f + e + f, a*c + a*e + b*c + c*f + f, a*c + a*d + a*e + a*f + b*e, b*c + b*d + c*d + c + 1]
         """
         if not self._parent:
             self._parent = el.ring()
@@ -7183,9 +7165,9 @@ def add_up_polynomials(BooleanPolynomialVector v, BooleanPolynomial init):
         sage: l = [B.random_element() for _ in range(5)]
         sage: _ = [v.append(e) for e in l]
         sage: add_up_polynomials(v, B.zero())
-        a*c + a*d + b*c + b*d + c*d + c + 1
+        a*d + b*c + b*d + c + 1
         sage: sum(l)
-        a*c + a*d + b*c + b*d + c*d + c + 1
+        a*d + b*c + b*d + c + 1
     """
     return new_BP_from_PBPoly(v._parent, pb_add_up_polynomials(v._vec, init._pbpoly))
 
@@ -7747,29 +7729,30 @@ def gauss_on_polys(inp):
         sage: l = [B.random_element() for _ in range(B.ngens())]
         sage: A,v = Sequence(l,B).coefficient_matrix()
         sage: A
-        [1 0 1 0 1 0 0 0 0 1 0 1 0 0]
-        [0 0 0 1 1 0 0 1 1 0 0 0 0 1]
-        [0 0 0 0 0 1 0 1 1 0 0 1 0 1]
-        [0 0 0 1 1 0 0 1 1 0 0 0 0 1]
-        [0 0 0 0 0 0 1 0 0 1 1 0 1 1]
-        [0 1 1 0 0 0 0 0 0 0 0 1 1 1]
+        [1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 0]
+        [0 0 1 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
+        [0 1 0 1 0 0 1 0 0 0 1 0 0 0 0 0 1 0]
+        [0 1 1 1 1 0 0 0 1 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 1 1 0 1 0 1 0 0 0 0 0 1]
+        [0 1 0 0 1 0 1 0 0 0 0 0 1 0 0 0 0 1]
 
         sage: e = gauss_on_polys(l)
         sage: E,v = Sequence(e,B).coefficient_matrix()
         sage: E
-        [1 0 1 0 1 0 0 0 0 1 0 1 0 0]
-        [0 1 1 0 0 0 0 0 0 0 0 1 1 1]
-        [0 0 0 1 1 0 0 1 1 0 0 0 0 1]
-        [0 0 0 0 0 1 0 1 1 0 0 1 0 1]
-        [0 0 0 0 0 0 1 0 0 1 1 0 1 1]
+        [1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 0]
+        [0 1 0 0 0 0 0 0 1 1 1 0 1 1 0 1 0 1]
+        [0 0 1 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
+        [0 0 0 1 0 0 0 1 1 0 0 1 1 1 0 1 1 0]
+        [0 0 0 0 1 0 0 1 1 0 1 1 0 1 0 1 0 1]
+        [0 0 0 0 0 0 1 1 0 1 0 1 0 0 0 0 0 1]
 
         sage: A.echelon_form()
-        [1 0 1 0 1 0 0 0 0 1 0 1 0 0]
-        [0 1 1 0 0 0 0 0 0 0 0 1 1 1]
-        [0 0 0 1 1 0 0 1 1 0 0 0 0 1]
-        [0 0 0 0 0 1 0 1 1 0 0 1 0 1]
-        [0 0 0 0 0 0 1 0 0 1 1 0 1 1]
-        [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        [1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 0]
+        [0 1 0 0 0 0 0 0 1 1 1 0 1 1 0 1 0 1]
+        [0 0 1 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
+        [0 0 0 1 0 0 0 1 1 0 0 1 1 1 0 1 1 0]
+        [0 0 0 0 1 0 0 1 1 0 1 1 0 1 0 1 0 1]
+        [0 0 0 0 0 0 1 1 0 1 0 1 0 0 0 0 0 1]
 
     """
     cdef BooleanPolynomialVector _vec = BooleanPolynomialVector(inp)
@@ -8252,5 +8235,3 @@ cdef class PolynomialFactory:
                                           self._factory.call_monom((<BooleanMonomial>arg)._pbmonom))
 
             raise TypeError, "Cannot convert %s to BooleanPolynomial"%(type(arg))
-
-

@@ -2097,6 +2097,9 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
 
     update = union_update  # as in a Python set
+    r"""
+    Alias of :meth:`union_update`.
+    """
 
 
     def difference(left, *right):
@@ -2342,6 +2345,9 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
 
     isdisjoint = is_disjoint  # as in a Python set
+    r"""
+    Alias of :meth:`is_disjoint`.
+    """
 
 
     def is_subset(self, other):
@@ -2380,6 +2386,9 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
 
     issubset = is_subset  # as in a Python set
+    r"""
+    Alias of :meth:`is_subset`.
+    """
 
 
     def is_superset(self, other):
@@ -2422,6 +2431,9 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
 
     issuperset = is_superset  # as in a Python set
+    r"""
+    Alias of :meth:`is_superset`.
+    """
 
 
 # *****************************************************************************

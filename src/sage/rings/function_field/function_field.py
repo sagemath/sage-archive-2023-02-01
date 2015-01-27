@@ -56,10 +56,7 @@ TESTS::
 
     sage: TestSuite(K).run()
     sage: TestSuite(L).run()  # long time (8s on sage.math, 2012)
-
-On ``M``, the test '_test_gcd_vs_xgcd' just take too long, so we skip it::
-
-    sage: TestSuite(M).run(skip = '_test_gcd_vs_xgcd')  # long time (52s on sage.math, 2012)
+    sage: TestSuite(M).run()  # long time (52s on sage.math, 2012)
 
 The following two test suites do not pass ``_test_elements`` yet since
 ``R.an_element()`` has a ``_test_category`` method wich it should not have.

@@ -165,7 +165,7 @@ def enum_affine_number_field(X,B):
         sage: K = NumberField(u^3 - 5,'v')
         sage: A.<x,y,z> = AffineSpace(K, 3)
         sage: X = A.subscheme([x - y])
-        sage: enum_affine_number_field(X(K),5)
+        sage: enum_affine_number_field(X(K),125)
         [(0, 0, 0), (-1, -1, 0), (1, 1, 0), (-1/5*v^2, -1/5*v^2, 0), (-v, -v, 0), (1/5*v^2, 1/5*v^2, 0), (v, v, 0),
         (0, 0, -1), (-1, -1, -1), (1, 1, -1), (-1/5*v^2, -1/5*v^2, -1), (-v, -v, -1), (1/5*v^2, 1/5*v^2, -1), (v, v, -1),
         (0, 0, 1), (-1, -1, 1), (1, 1, 1), (-1/5*v^2, -1/5*v^2, 1), (-v, -v, 1), (1/5*v^2, 1/5*v^2, 1), (v, v, 1),
@@ -174,13 +174,24 @@ def enum_affine_number_field(X,B):
         (-v, -v, -v), (1/5*v^2, 1/5*v^2, -v), (v, v, -v), (0, 0, 1/5*v^2), (-1, -1, 1/5*v^2), (1, 1, 1/5*v^2),
         (-1/5*v^2, -1/5*v^2, 1/5*v^2), (-v, -v, 1/5*v^2), (1/5*v^2, 1/5*v^2, 1/5*v^2), (v, v, 1/5*v^2), (0, 0, v),
         (-1, -1, v), (1, 1, v), (-1/5*v^2, -1/5*v^2, v), (-v, -v, v), (1/5*v^2, 1/5*v^2, v), (v, v, v)]
+
+    ::
+
+        sage: u = QQ['u'].0
+        sage: K = NumberField(u^2 + 3,'v')
+        sage: A.<x,y> = AffineSpace(K,2)
+        sage: X=A.subscheme(x-y)
+        sage: from sage.schemes.affine.affine_rational_point import enum_affine_number_field
+        sage: enum_affine_number_field(X,3)
+        [(-1, -1), (-1/2*v - 1/2, -1/2*v - 1/2), (1/2*v - 1/2, 1/2*v - 1/2), (0, 0), (-1/2*v + 1/2, -1/2*v + 1/2),
+        (1/2*v + 1/2, 1/2*v + 1/2), (1, 1)]
     """
     if is_Scheme(X):
         X = X(X.base_ring())
     R = X.codomain().ambient_space()
 
     pts = []
-    for P in R.points_of_bounded_height(B^(1/R.base_ring().absolute_height())):
+    for P in R.points_of_bounded_height(B):
         try:
             pts.append(X(P))
         except TypeError:

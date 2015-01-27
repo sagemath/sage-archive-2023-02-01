@@ -943,18 +943,18 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
             sage: u = QQ['u'].0
             sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2,'v'), 2)
-            sage: len(list(P.points_of_bounded_height(4)))
-            553
+            sage: len(list(P.points_of_bounded_height(6)))
+            133
         """
         ftype = False # stores whether the field is a number field or the rational field
         if (is_RationalField(self.base_ring())):
             ftype = False
-        elif (self.base_ring() in NumberFields()):
+        elif (self.base_ring() in NumberFields()): # true for rational field as well, so check is_RationalField first
             ftype = True
         else:
             raise NotImplementedError("self must be projective space over a number field.")
 
-        bound = bound^(1/self.base_ring().absolute_degree()) # Convert to relative height
+        bound = bound**(1/self.base_ring().absolute_degree()) # convert to relative height
 
         n = self.dimension_relative()
         R = self.base_ring()

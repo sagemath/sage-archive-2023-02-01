@@ -89,8 +89,8 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             sage: u = QQ['u'].0
             sage: K.<v> = NumberField(u^2 + 3)
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
-            sage: len(P(K).points(5))
-            1893
+            sage: len(P(K).points(9))
+            381
 
         ::
 

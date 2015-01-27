@@ -152,9 +152,19 @@ def enum_projective_number_field(X,B):
         sage: K = NumberField(u^3 - 5,'v')
         sage: P.<x,y,z> = ProjectiveSpace(K, 2)
         sage: X = P.subscheme([x - y])
-        sage: enum_projective_number_field(X(K),5)
+        sage: enum_projective_number_field(X(K),125)
         [(0 : 0 : 1), (-1 : -1 : 1), (1 : 1 : 1), (-1/5*v^2 : -1/5*v^2 : 1), (-v : -v : 1),
         (1/5*v^2 : 1/5*v^2 : 1), (v : v : 1), (1 : 1 : 0)]
+
+    ::
+
+        sage: u = QQ['u'].0
+        sage: K = NumberField(u^2 + 3,'v')
+        sage: A.<x,y> = ProjectiveSpace(K,1)
+        sage: X=A.subscheme(x-y)
+        sage: from sage.schemes.projective.projective_rational_point import enum_projective_number_field
+        sage: enum_projective_number_field(X,3)
+        [(1 : 1)]
     """
     if is_Scheme(X):
         X = X(X.base_ring())
@@ -162,7 +172,7 @@ def enum_projective_number_field(X,B):
 
     pts = []
 
-    for P in R.points_of_bounded_height(B^(1/R.base_ring().absolute_degree())):
+    for P in R.points_of_bounded_height(B):
         try:
             pts.append(X(P))
         except TypeError:

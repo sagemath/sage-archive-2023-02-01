@@ -131,6 +131,7 @@ AUTHORS:
 #    class AlgebraicScheme_quasi
 
 
+from sage.categories.number_fields import NumberFields
 
 from sage.rings.all import ZZ
 
@@ -1445,11 +1446,20 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return AlgebraicScheme_quasi(other, self)
 
-    def rational_points(self, F=None, bound=0):
+    def rational_points(self, bound=0, F=None):
         """
         Return the rational points on the algebraic subscheme.
 
         EXAMPLES:
+
+        Enumerate over a projective scheme over a number field::
+
+            sage: u = QQ['u'].0
+            sage: K.<v> = NumberField(u^2 + 3)
+            sage: A.<x,y> = ProjectiveSpace(K,1)
+            sage: X=A.subscheme(x^2 - y^2)
+            sage: X.rational_points(3)
+            [(-1 : 1), (1 : 1)]
 
         One can enumerate points up to a given bound on a projective scheme
         over the rationals::
@@ -1489,7 +1499,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         if F is None:
             F = self.base_ring()
         X = self(F)
-        if is_RationalField(F) or F == ZZ:
+        if F in NumberFields() or is_RationalField(F) or F == ZZ:
             if not bound > 0:
                 raise TypeError("A positive bound (= %s) must be specified."%bound)
             try:

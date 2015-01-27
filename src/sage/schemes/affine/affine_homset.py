@@ -157,8 +157,8 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: u = QQ['u'].0
             sage: K.<v> = NumberField(u^2 + 3)
             sage: A.<x,y> = AffineSpace(K,2)
-            sage: len(A(K).points(4))
-            1849
+            sage: len(A(K).points(9))
+            361
         """
         R = self.value_ring()
         if is_RationalField(R) or R == ZZ:

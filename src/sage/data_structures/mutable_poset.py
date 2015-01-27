@@ -592,8 +592,8 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
 
         INPUT:
 
-        - ``memo`` -- a dictionary which assigns to the id of ``self``
-          a copy of ``self``.
+        - ``memo`` -- a dictionary which assigns to the id of the
+          calling element to a copy of it.
 
         - ``poset`` -- the poset to which the newly created element belongs.
 
@@ -681,7 +681,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
     def covers(self, element, reverse=False):
         r"""
         Return the covers of the given element (considering only
-        elements which originate from ``self``).
+        elements which originate from itself).
 
         INPUT:
 
@@ -698,7 +698,7 @@ class MutablePosetElement(sage.structure.sage_object.SageObject):
         lower covers of the given ``element``, i.e., elements in the
         poset, which are at most the given element and maximal with
         this property. Only elements which are (not necessarily
-        direct) successors of ``self`` are considered.
+        direct) successors of the calling element are considered.
 
         If ``reverse`` is ``True``, then the reverse direction is
         taken, i.e., in the text above replace lower covers by upper

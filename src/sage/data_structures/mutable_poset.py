@@ -162,7 +162,7 @@ import sage
 
 class MutablePosetElement(sage.structure.sage_object.SageObject):
     r"""
-    An element of a mutable poset.
+    An element of a :class:`mutable poset <MutablePoset>`.
     """
     def __init__(self, poset, value):
         r"""
@@ -986,6 +986,35 @@ def sorted_set_by_tuple(S, T):
 class MutablePoset(sage.structure.sage_object.SageObject):
     r"""
     A mutable poset (partially ordered set) as data structure.
+
+    .. TODO::
+
+        Implement the following methods of
+        :class:`~sage.combinat.posets.posets.FinitePoset`:
+
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.bottom`: Returns the bottom element of the poset, if it exists.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.cardinality`: Returns the number of elements in the poset.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.compare_elements`: Compares x and y in the poset.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.covers`: Returns True if y covers x and False otherwise.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.has_bottom`: Returns True if the poset has a unique minimal element.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.has_top`: Returns True if the poset contains a unique maximal element, and False otherwise.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_bounded`: Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_chain`: Returns True if the poset is totally ordered, and False otherwise.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_gequal`: Returns True if x is greater than or equal to y in the poset, and False otherwise.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_greater_than`: Returns True if x is greater than but not equal to y in the poset, and False otherwise.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_lequal`: Returns True if x is less than or equal to y in the poset, and False otherwise.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_less_than`: Returns True if x is less than but not equal to y in the poset, and False otherwise.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.linear_extension`: Returns a linear extension of this poset.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.list`: List the elements of the poset. This just returns the result of linear_extension().
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.lower_covers_iterator`: Returns an iterator for the lower covers of the element y. An lower cover of y is an element x such that y x is a cover relation.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.lower_covers`: Returns a list of lower covers of the element y. An lower cover of y is an element x such that y x is a cover relation.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.maximal_elements`: Returns a list of the maximal elements of the poset.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.minimal_elements`: Returns a list of the minimal elements of the poset.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.relations_iterator`: Returns an iterator for all the relations of the poset.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.relations`: Returns a list of all relations of the poset.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.top`: Returns the top element of the poset, if it exists.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.upper_covers_iterator`: Returns an iterator for the upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
+        - :meth:`~sage.combinat.posets.posets.FinitePoset.upper_covers`: Returns a list of upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
     """
     def __init__(self, data=None, key=None):
         r"""
@@ -1666,7 +1695,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         - ``key`` -- the key of an object.
 
         - ``raise_key_error`` -- (default: ``True``) switch raising
-          ``KeyError``on and off.
+          ``KeyError`` on and off.
 
         OUTPUT:
 
@@ -1830,7 +1859,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         - ``key`` -- the key of an object.
 
         - ``raise_key_error`` -- (default: ``False``) switch raising
-          ``KeyError``on and off.
+          ``KeyError`` on and off.
 
         OUTPUT:
 
@@ -2320,6 +2349,13 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
 
 class MutableTosetElement(MutablePosetElement):
+    r"""
+    An element of a mutable toset (totally ordered set).
+
+    .. TODO::
+
+        Implement this class.
+    """
     pass
 
 
@@ -2329,6 +2365,10 @@ class MutableTosetElement(MutablePosetElement):
 class MutableToset(MutablePoset):
     r"""
     A mutable toset (totally ordered set) as data structure.
+
+    .. TODO::
+
+        Implement this class.
     """
     pass
 

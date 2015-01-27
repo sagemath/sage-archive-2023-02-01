@@ -1040,17 +1040,46 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: MP()
             poset()
+
+        ::
+
+            sage: P = MP()
+            sage: P.add(42)
+            sage: MP(P)
+            poset(42)
+
+        ::
+
+            sage: MP([3, 5, 7])
+            poset(3, 5, 7)
+
+        ::
+
+            sage: MP(33)
+            Traceback (most recent call last):
+            ...
+            TypeError: 33 is not iterable; do not know what to do with it.
         """
+        if is_MutablePoset(data):
+            if key is not None:
+                raise TypeError('Cannot use key when data is a poset.')
+            self._copy_elements_(data)
 
-        if data is not None:
-            raise NotImplementedError
-
-        self.clear()
-
-        if key is None:
-            self._key_ = lambda k: k
         else:
-            self._key_ = key
+            self.clear()
+
+            if key is None:
+                self._key_ = lambda k: k
+            else:
+                self._key_ = key
+
+            if data is not None:
+                try:
+                    it = iter(data)
+                except TypeError:
+                    raise TypeError('%s is not iterable; do not know what to '
+                                    'do with it.' % (data,))
+                self.union_update(it)
 
 
     def clear(self):

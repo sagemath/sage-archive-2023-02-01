@@ -1904,16 +1904,81 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         return element.value
 
 
-    def union(left, right):
+    def union(left, *right):
         r"""
-        """
+        Return the union of the given posets as a new poset
+
+        INPUT:
+
+        - ``left`` -- a poset.
+
+        - ``right`` -- a poset or an iterable. In the latter case the
+          iterated objects are seen as values of a poset.
+
+        OUTPUT:
+
+        A poset.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3); P.add(42); P.add(7); P
+            poset(3, 7, 42)
+            sage: Q = MP()
+            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            poset(4, 8, 42)
+            sage: P.union(Q)
+            poset(3, 4, 7, 8, 42)
+
+        TESTS::
+
+            sage: P.union(P, Q, Q, P)
+            poset(3, 4, 7, 8, 42)
+       """
         new = left.copy()
-        new.update(right)
+        for r in right:
+            new.update(r)
         return new
 
 
-    def update(self, other):
+    def union_update(self, other):
         r"""
+        Update the poset with the union of itself and another poset.
+
+        INPUT:
+
+        - ``other`` -- a poset or an iterable. In the latter case the
+          iterated objects are seen as values of a poset.
+
+        OUTPUT:
+
+        Nothing.
+
+        .. TODO::
+
+            Use the already existing information in the other poset to speed
+            up this function. (At the moment each element of the other poset
+            is inserted one by one and without using this information.)
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3); P.add(42); P.add(7); P
+            poset(3, 7, 42)
+            sage: Q = MP()
+            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            poset(4, 8, 42)
+            sage: P.union_update(Q)
+            sage: P
+            poset(3, 4, 7, 8, 42)
+
+        TESTS::
+
+            sage: Q.update(P)
+            sage: Q
+            poset(3, 4, 7, 8, 42)
         """
         try:
             it = other.values()
@@ -1923,16 +1988,77 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             self.add(value)
 
 
-    def difference(left, right):
+    update = union_update  # as in a Python set
+
+
+    def difference(left, *right):
         r"""
+        Return a new poset where all elements of this poset, which are
+        contained in one of the other given posets, are removed.
+
+        INPUT:
+
+        - ``left`` -- a poset.
+
+        - ``right`` -- a poset or an iterable. In the latter case the
+          iterated objects are seen as values of a poset.
+
+        OUTPUT:
+
+        A poset.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3); P.add(42); P.add(7); P
+            poset(3, 7, 42)
+            sage: Q = MP()
+            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            poset(4, 8, 42)
+            sage: P.difference(Q)
+            poset(3, 7)
+
+        TESTS::
+
+            sage: P.difference(Q, Q)
+            poset(3, 7)
+            sage: P.difference(P)
+            poset()
+            sage: P.difference(Q, P)
+            poset()
         """
         new = left.copy()
-        new.difference_update(right)
+        for r in right:
+            new.difference_update(r)
         return new
 
 
     def difference_update(self, other):
         r"""
+        Remove all elements of another poset from this poset.
+
+        INPUT:
+
+        - ``other`` -- a poset or an iterable. In the latter case the
+          iterated objects are seen as values of a poset.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3); P.add(42); P.add(7); P
+            poset(3, 7, 42)
+            sage: Q = MP()
+            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            poset(4, 8, 42)
+            sage: P.difference_update(Q)
+            sage: P
+            poset(3, 7)
         """
         try:
             it = other.keys()
@@ -1942,24 +2068,139 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             self.discard(key)
 
 
-    def intersection(left, right):
+    def intersection(left, *right):
         r"""
+        Return the intersection of the given posets as a new poset
+
+        INPUT:
+
+        - ``left`` -- a poset.
+
+        - ``right`` -- a poset or an iterable. In the latter case the
+          iterated objects are seen as values of a poset.
+
+        OUTPUT:
+
+        A poset.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3); P.add(42); P.add(7); P
+            poset(3, 7, 42)
+            sage: Q = MP()
+            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            poset(4, 8, 42)
+            sage: P.intersection(Q)
+            poset(42)
+
+        TESTS::
+
+            sage: P.intersection(P, Q, Q, P)
+            poset(42)
         """
         new = left.copy()
-        new.intersection_update(right)
+        for r in right:
+            new.intersection_update(r)
         return new
 
 
     def intersection_update(self, other):
         r"""
+        Update the poset with the intersection of itself and another poset.
+
+        INPUT:
+
+        - ``other`` -- a poset or an iterable. In the latter case the
+          iterated objects are seen as values of a poset.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3); P.add(42); P.add(7); P
+            poset(3, 7, 42)
+            sage: Q = MP()
+            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            poset(4, 8, 42)
+            sage: P.intersection_update(Q)
+            sage: P
+            poset(42)
         """
         try:
-            it = other.keys()
+            keys = tuple(self.keys())
         except AttributeError:
-            it = iter(other)
-        for key in it:
+            keys = tuple(iter(self))
+        for key in keys:
             if key not in other:
                 self.discard(key)
+
+
+    def symmetric_difference(left, right):
+        r"""
+        Return the symmetric difference of two posets as a new poset.
+
+        INPUT:
+
+        - ``left`` -- a poset.
+
+        - ``right`` -- a poset.
+
+        OUTPUT:
+
+        A poset.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3); P.add(42); P.add(7); P
+            poset(3, 7, 42)
+            sage: Q = MP()
+            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            poset(4, 8, 42)
+            sage: P.symmetric_difference(Q)
+            poset(3, 4, 7, 8)
+        """
+        new = left.copy()
+        new.symmetric_difference_update(right)
+        return new
+
+
+    def symmetric_difference_update(self, other):
+        r"""
+        Update the poset with the symmetric difference of itself and
+        another poset.
+
+        INPUT:
+
+        - ``other`` -- a poset.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(3); P.add(42); P.add(7); P
+            poset(3, 7, 42)
+            sage: Q = MP()
+            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            poset(4, 8, 42)
+            sage: P.symmetric_difference_update(Q)
+            sage: P
+            poset(3, 4, 7, 8)
+        """
+        T = other.difference(self)
+        self.difference_update(other)
+        self.union_update(T)
 
 # *****************************************************************************
 

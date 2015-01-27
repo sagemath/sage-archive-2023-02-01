@@ -2031,6 +2031,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I.quotient(eD).gens()
             [2, x*z + x, x*y]
         """
+        from sage.misc.stopgap import stopgap
         R = self.ring()
 
         if not isinstance(J, MPolynomialIdeal):
@@ -2040,6 +2041,8 @@ class MPolynomialIdeal_singular_repr(
             raise TypeError("base rings do not match")
 
         import sage.libs.singular.function_factory
+        if self.base_ring() == ZZ:
+            stopgap("Singular's quotient()-routine for rings over ZZ contains bugs and may be mathematically unreliable", 12803)
         quotient = sage.libs.singular.function_factory.ff.quotient
         return R.ideal(quotient(self, J))
 

@@ -712,8 +712,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         resultant of ``self`` and ``other``.
 
         As integer polynomials do not form a principal ideal domain, it is not
-        always possible given `p` and `q` to find a pair `s,t` sucht that
-        `gcd(a,b) = sa + tb`. Take `x+2` and `x+4` as an example for which the
+        always possible given `a` and `b` to find a pair `s,t` such that
+        `gcd(a,b) = sa + tb`. Take `a=x+2` and `b=x+4` as an example for which the
         gcd is `1` but the best you can achieve in the Bezout identity is `2`.
 
         If ``self`` and ``right`` are coprime as polynomials over the
@@ -723,15 +723,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         EXAMPLES::
 
             sage: P.<x> = PolynomialRing(ZZ)
-            sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
-            sage: g, u, v = F.xgcd(G)
-            sage: g, u, v
-            (27*x^2 + 54, 1, -x^2 - 3*x - 9)
-            sage: u*F + v*G
-            27*x^2 + 54
-
-        Here is a simple example where the result is not the gcd but the gcd
-        multiplied by the resultant::
 
             sage: (x+2).xgcd(x+4)
             (2, -1, 1)
@@ -739,6 +730,13 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             2
             sage: (x+2).gcd(x+4)
             1
+
+            sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
+            sage: g, u, v = F.xgcd(G)
+            sage: g, u, v
+            (27*x^2 + 54, 1, -x^2 - 3*x - 9)
+            sage: u*F + v*G
+            27*x^2 + 54
 
             sage: zero = P(0)
             sage: x.xgcd(zero)
@@ -765,7 +763,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: R(2).xgcd(R.zero())
             (2, 1, 0)
         """
-        # trivial casess first
+        # trivial cases first
         if self.is_zero():
             return (right, Integer(0), Integer(1))
         elif right.is_zero():

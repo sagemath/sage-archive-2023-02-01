@@ -1258,7 +1258,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def primes_of_bad_reduction(self, check=True):
         r"""
         Determines the primes of bad reduction for a map `self: \mathbb{P}^N \to \mathbb{P}^N`
-        defined over `\ZZ` or `\QQ`.
+        defined over number fields and number field rings
 
         If ``check`` is ``True``, each prime is verified to be of bad reduction.
 
@@ -1299,6 +1299,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [2, 3, 7, 13, 31]
 
         ::
+
             sage: R.<z> = QQ[]
             sage: K.<a> = NumberField(z^2 - 2)
             sage: P.<x,y> = ProjectiveSpace(K,1)
@@ -1318,37 +1319,36 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [5, 37, 2239, 304432717]
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        if is_ProjectiveSpace(self.domain()) is False or is_ProjectiveSpace(self.codomain()) is False:
-            raise NotImplementedError
+        if is_ProjectiveSpace(self.domain()) is False or self.is_endomorphism() is False:
+            raise NotImplementedError("Function must be an endomorphism of projective space")
         R = self.coordinate_ring()
         F = self._polys
         K = FractionField(self.codomain().base_ring())
-        if self.base_ring() in NumberFields and self.base_ring() != QQ:
+        BR = self.base_ring()
+        if BR in NumberFields and BR != QQ:
            F = copy(self)
            F.normalize_coordinates()
            return (K(F.resultant()).support())
-        elif self.base_ring() != ZZ and self.base_ring() != QQ:
+        elif BR != ZZ and BR not in NumberFields():
             raise TypeError("Base Ring must be ZZ or NumberField") 
         if R.base_ring().is_field():
             J = R.ideal(F)
         else:
-            S = PolynomialRing(R.base_ring().fraction_field(), R.gens(), R.ngens())
+            S = PolynomialRing(BR.fraction_field(), R.gens(), R.ngens())
             J = S.ideal([S.coerce(F[i]) for i in range(R.ngens())])
         if J.dimension() > 0:
             raise TypeError("Not a morphism.")
         #normalize to coefficients in the ring not the fraction field.
         F = [F[i] * lcm([F[j].denominator() for j in range(len(F))]) for i in range(len(F))]
-
         #move the ideal to the ring of integers
         if R.base_ring().is_field():
-            S = PolynomialRing(R.base_ring().ring_of_integers(), R.gens(), R.ngens())
-            F = [F[i].change_ring(R.base_ring().ring_of_integers()) for i in range(len(F))]
+            S = PolynomialRing(BR.ring_of_integers(), R.gens(), R.ngens())
+            F = [F[i].change_ring(BR.ring_of_integers()) for i in range(len(F))]
             J = S.ideal(F)
         else:
             J = R.ideal(F)
         GB = J.groebner_basis()
         badprimes = []
-
         #get the primes dividing the coefficients of the monomials x_i^k_i
         for i in range(len(GB)):
             LT = GB[i].lt().degrees()

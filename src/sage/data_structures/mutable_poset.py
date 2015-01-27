@@ -1162,6 +1162,46 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         return self._key_(value)
 
 
+    def _copy_elements_(self, other):
+        r"""
+        Helper function for copying elements.
+
+        INPUT:
+
+        - ``other`` -- the mutable poset from which the elements
+          should be copied this poset.
+
+        OUTPUT:
+
+        Nothing.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 1)))
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: Q = MP()
+            sage: Q._copy_elements_(P)
+            sage: P.repr_full() == Q.repr_full()
+            True
+        """
+        from copy import copy
+        self._key_ = copy(other._key_)
+        memo = {}
+        self._null_ = other._null_._copy_all_linked_(memo, self)
+        self._oo_ = memo[id(other._oo_)]
+        self._elements_ = dict((f.key, f) for f in
+                              iter(memo[id(e)]
+                                   for e in other._elements_.itervalues()))
+
+
     def copy(self):
         r"""
         Creates a shallow copy.
@@ -1186,17 +1226,12 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: P.add(T((2, 1)))
             sage: P.add(T((4, 4)))
             sage: P.add(T((1, 2)))
-            sage: Q = P.copy()
+            sage: Q = copy(P)  # indirect doctest
             sage: P.repr_full() == Q.repr_full()
             True
         """
         new = self.__class__()
-        memo = {}
-        new._null_ = self._null_._copy_all_linked_(memo, new)
-        new._oo_ = memo[id(self._oo_)]
-        new._elements_ = dict((f.key, f) for f in
-                              iter(memo[id(e)]
-                                   for e in self._elements_.itervalues()))
+        new._copy_elements_(self)
         return new
 
 

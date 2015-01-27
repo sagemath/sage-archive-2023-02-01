@@ -1634,7 +1634,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
     __contains__ = contains
 
 
-    def add(self, value):
+    def add(self, value, element_exists_hook=None):
         r"""
         Add the given object as element to the poset.
 
@@ -1643,9 +1643,19 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         - ``value`` -- an object (hashable and supporting comparison
           with the operator ``<=``.
 
+        - ``element_exists_hook`` -- a function. It is called when
+          value is already in this poset. The function gets as a first
+          parameter this existing value and as a second parameter
+          ``value``, and it should return the value which to put in
+          the poset. If this is ``None`` (default) the value is not
+          changed, i.e., this is equivalent to ``element_exists_hook``
+          returns the first parameter. Note that it is not allowed
+          that the key of this new element differs from the key of
+          existing.
+
         OUTPUT:
 
-        The created (or already existing) element.
+        Nothing.
 
         EXAMPLES::
 
@@ -1717,6 +1727,18 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: P.repr_full(reverse=True) == reprP
             True
 
+        ::
+
+            sage: S = MP(key=lambda k: k[0])
+            sage: S.add((3, 'a'))
+            sage: S
+            poset((3, 'a'))
+            sage: def add_existing(existing, other):
+            ....:     return (existing[0], existing[1] + other[1])
+            sage: S.add((3, 'b'), element_exists_hook=add_existing)
+            sage: S
+            poset((3, 'ab'))
+
         TESTS::
 
             sage: R = MP(key=lambda k: T(k[2:3]))
@@ -1746,6 +1768,10 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         key = self.get_key(value)
 
         if key in self._elements_:
+            if element_exists_hook is not None:
+                existing = self.element(key)
+                new = element_exists_hook(existing.value, value)
+                existing._value_ = new
             return
 
         new = MutablePosetElement(self, value)

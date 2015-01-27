@@ -22,7 +22,7 @@ include 'sage/data_structures/bitset.pxi'
 
 cdef inline binary_matrix_init(binary_matrix_t m, Py_ssize_t n_rows, Py_ssize_t n_cols):
     r"""
-    Allocates the binary matrix.
+    Allocate an empty binary matrix with ``n_rows`` rows and ``n_cols`` columns.
     """
     cdef Py_ssize_t i
 

@@ -1315,7 +1315,6 @@ def transitive_reduction_acyclic(G):
     # A point is reachable from u if it is one of its neighbours, or if it is
     # reachable from one of its neighbours.
     binary_matrix_init(closure, n, n)
-    binary_matrix_fill(closure, 0)
     for uu in linear_extension:
         u = v_to_int[uu]
         for vv in G.neighbors_out(uu):

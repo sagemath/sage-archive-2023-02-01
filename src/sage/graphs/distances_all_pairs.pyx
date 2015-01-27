@@ -544,7 +544,6 @@ def is_distance_regular(G, parameters = False):
     cdef binary_matrix_t b_distance_matrix
     try:
         binary_matrix_init(b_distance_matrix,n*(diameter+2),n)
-        binary_matrix_fill(b_distance_matrix, 0)
     except MemoryError:
         sage_free(distance_matrix)
         bitset_free(b_tmp)

@@ -294,7 +294,7 @@ cdef inline bint bitset_are_disjoint(bitset_t a, bitset_t b):
     """
     Tests whether ``a`` and ``b`` have an empty intersection.
 
-    We assume ``a.limbs == b.limbs``.
+    We assume ``a.limbs <= b.limbs``.
     """
     cdef mp_size_t i
     for i from 0 <= i < a.limbs:

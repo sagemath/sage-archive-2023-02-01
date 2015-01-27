@@ -61,7 +61,6 @@ cdef dict dense_graph_init(binary_matrix_t m, g, translation=False):
     cdef int n = g.order()
 
     binary_matrix_init(m, n, n)
-    binary_matrix_fill(m, 0)
 
     # If the vertices are 0...n-1, let's avoid an unnecessary dictionary
     if g.vertices() == range(n):

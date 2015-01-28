@@ -110,6 +110,7 @@ class QuotientFields(Category_singleton):
                 sage: gcd(R.zero(),0)
                 0
             """
+            P = self.parent()
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()
@@ -121,12 +122,13 @@ class QuotientFields(Category_singleton):
                 selfD = selfD // selfGCD
                 otherN = otherN // otherGCD
                 otherD = otherD // otherGCD
-                return selfN.gcd(otherN)/selfD.lcm(otherD)
+                tmp = P(selfN.gcd(otherN))/P(selfD.lcm(otherD))
+                return tmp
             except (AttributeError, NotImplementedError, TypeError, ValueError):
-                zero = self.parent().zero()
+                zero = P.zero()
                 if self == zero and other == zero:
                     return zero
-                return self.parent().one()
+                return P.one()
 
         @coerce_binop
         def lcm(self,other):
@@ -185,6 +187,7 @@ class QuotientFields(Category_singleton):
                 sage: lcm(R.zero(),0)
                 0
             """
+            P = self.parent()
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()
@@ -196,12 +199,12 @@ class QuotientFields(Category_singleton):
                 selfD = selfD // selfGCD
                 otherN = otherN // otherGCD
                 otherD = otherD // otherGCD
-                return selfN.lcm(otherN)/selfD.gcd(otherD)
+                return P(selfN.lcm(otherN))/P(selfD.gcd(otherD))
             except (AttributeError, NotImplementedError, TypeError, ValueError):
-                zero = self.parent.zero()
+                zero = P.zero()
                 if self == zero or other == zero:
                     return zero
-                return self.parent().one()
+                return P.one()
 
         @coerce_binop
         def xgcd(self, other):
@@ -262,6 +265,7 @@ class QuotientFields(Category_singleton):
                 sage: zero.xgcd(zero)
                 (0, 0, 0)
             """
+            P = self.parent()
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()
@@ -278,7 +282,7 @@ class QuotientFields(Category_singleton):
 
                 lcmD = selfD.lcm(otherD)
                 g,s,t = selfN.xgcd(otherN)
-                return (g/lcmD, s*selfD/lcmD,t*otherD/lcmD)
+                return (P(g)/P(lcmD), P(s*selfD)/P(lcmD),P(t*otherD)/P(lcmD))
             except (AttributeError, NotImplementedError, TypeError, ValueError):
                 zero = self.parent().zero()
                 one  = self.parent().one()

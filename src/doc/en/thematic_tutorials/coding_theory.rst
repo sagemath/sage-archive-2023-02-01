@@ -84,10 +84,10 @@ call GUAVA:
          sage: C = codes.HammingCode(3,GF(2))
          sage: C.zeta_polynomial()
          2/5*T^2 + 2/5*T + 1/5
-         sage: C = best_known_linear_code(6,3,GF(2))
-         sage: C.minimum_distance()
+         sage: C = best_known_linear_code(6,3,GF(2)) # not tested (see trac #17617)
+         sage: C.minimum_distance()                  # not tested (see trac #17617)
          3
-         sage: C.zeta_polynomial()
+         sage: C.zeta_polynomial()                   # not tested (see trac #17617)
          2/5*T^2 + 2/5*T + 1/5
 
 #. ``gen_mat``, ``check_mat``, ``decode``, ``dual_code``,

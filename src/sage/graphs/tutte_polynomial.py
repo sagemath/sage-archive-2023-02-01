@@ -499,7 +499,7 @@ def _cache_key(G):
          (7, 9),
          (8, 9))    
     """
-    return tuple(sorted(G.canonical_label().edges(labels=False)))
+    return tuple(sorted(G.canonical_label(algorithm='sage').edges(labels=False)))
 
 
 def _cached(func):

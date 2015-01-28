@@ -528,7 +528,7 @@ class Fields(CategoryWithAxiom):
                 sage: GF(5)(0).xgcd(GF(5)(0))
                 (0, 0, 0)
 
-            TESTS::
+            TESTS:
 
             Since :trac:`16761` the gcd of non-zero real numbers is `1.0`::
 

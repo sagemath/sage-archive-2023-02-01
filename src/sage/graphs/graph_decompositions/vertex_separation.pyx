@@ -1139,8 +1139,7 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
         sig_off()
 
         # ==> Build the final ordering
-        for 0 <= i < n:
-            order.append(int_to_vertex[best_seq[i]])
+        order = [int_to_vertex[best_seq[i]] for i in range(n)]
 
     finally:
         sage_free(current_prefix)
@@ -1180,6 +1179,47 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
                                  binary_matrix_t bm_pool):
     r"""
     Branch and Bound algorithm for the process number and the vertex separation.
+
+    INPUTS:
+
+    - ``H`` -- a binary matrix storing the adjacency of the (di)graph
+
+    - ``n`` -- the number of vertices of the (di)graph
+
+    - ``current_prefix`` -- array of ``n`` integers containing a permutation of
+      the vertices. The vertices forming the current prefix under consideration
+      are stored in cells ``[0,level-1]``.
+
+    - ``positions`` -- array of ``n`` integers associating to each vertex its
+      index in array ``current_prefix``.
+
+    - ``best_seq`` -- array of ``n`` integers storing the best ordering found so
+      far.
+
+    - ``level`` -- an integer specifying the length of the current prefix.
+
+    - ``b_current_prefix`` -- a bitset of size ``n`` recording the vertices in
+      the current prefix (in cells ``[0,level-1]``).
+
+    - ``b_current_neighborhood`` -- a bitset of size ``n`` recording the strict
+      neighborhood of the vertices in the current prefix, i.e., without vertices
+      of the current prefix.
+
+    - ``b_current_other`` -- a bitset of size ``n`` recording the vertices that
+      are neither in the current prefix nor in its strict neighborhood.
+      
+    - ``lower_bound`` -- lower bound to consider in the branch and  bound
+      algorithm. This allows us to stop the search as soon as a solution with
+      width at most ``lower_bound`` is found.
+
+    - ``upper_bound`` -- the algorithm searches for a solution with ``width <
+      upper_bound``. It helps cutting branches. Each time a new solution is
+      found, the upper bound is reduced.
+
+    - ``bm_pool`` -- a binary matrix used with ``5*n+3`` rows of size
+      ``n``. Each rows is a bitset of size ``n``. This data structure is used as
+      a pool of initialized bitsets. Each call of this method needs 5 bitsets
+      for local operations, so it uses rows ``[5*level,5*level+4]``.
     """
     cdef int i
 

@@ -1,0 +1,171 @@
+.. nodoctest
+
+.. _profiling:
+
+Profiling in Sage
+=================
+
+This page lists several methods available in Sage to measure and analyze the
+performances of a piece of code. For more general information on profiling, see
+:wikipedia:`Profiling_(computer_programming)`.
+
+.. contents:: Table of contents
+   :depth: 2
+
+How long does it take? %time and %timeit
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The two commands ``time`` and :mod:`timeit <sage.misc.sage_timeit_class>` measure the time it takes to run a command::
+
+  sage: %time p=random_prime(2**500)
+  CPU times: user 440 ms, sys: 0 ns, total: 440 ms
+  Wall time: 440 ms
+
+  sage: %timeit p=random_prime(2**500)
+  1 loops, best of 3: 334 ms per loop
+
+Note that while ``%time`` only runs the command once, :mod:`timeit
+<sage.misc.sage_timeit_class>` tries to return a more meaningful value over
+several runs.
+
+For more information on :mod:`timeit <sage.misc.sage_timeit_class>`, `click here
+<https://docs.python.org/2/library/timeit.html>`_
+
+Python-level function calls: %prun
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With ``%prun``, you can obtain the list of all Python functions involved in a
+computation, as well as the time spent on each of them::
+
+  sage: %prun  _=random_prime(2**500)
+        468 function calls in 0.439 seconds
+
+  Ordered by: internal time
+
+  ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      32    0.438    0.014    0.438    0.014 {method 'is_prime' of 'sage.rings.integer.Integer' objects}
+      32    0.001    0.000    0.439    0.014 arith.py:407(is_prime)
+      32    0.000    0.000    0.001    0.000 random.py:175(randrange)
+      32    0.000    0.000    0.000    0.000 random.py:244(_randbelow)
+   ...
+
+Critical functions should appear on the top, but you may want to sort this list
+differently, e.g: use ``%prun -s cumulative`` for decreasing cumulative time.
+
+Alternatively, you can "save" this data to a :class:`~pstats.Stats` object for
+further inspection::
+
+  sage: %prun -r random_prime(2**500)
+  sage: stats_object = _
+  sage: stats.total_calls
+  2547
+
+For more information on ``%prun``, see ``prun?`` or `this page
+<http://ipython.org/ipython-doc/dev/interactive/magics.html#magic-prun>`_.
+
+**Visualize the call graph:** you can easily save the information from ``%prun``
+to a file: ::
+
+  sage: import cProfile
+  sage: cProfile.run("random_prime(2**500)", filename="/tmp/profile.prof")
+
+You can now visualize it with an external software like `RunSnake
+<https://pypi.python.org/pypi/RunSnakeRun>`_::
+
+  [user@localhost ~] runsnake /tmp/profile.prof
+
+Python-level line-by-line profiling: %lprun
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With `line_profiler <https://pypi.python.org/pypi/line_profiler/>`_ and its
+``%lprun`` function, you can find out which lines of one (or many) functions are
+the most time-consuming. The syntax is the following::
+
+  %lprun -f function1 -f function2 code_to_run
+
+This will display the line-by-line analysis of ``function1`` and ``function2``
+when ``code_to_run`` is executed::
+
+  sage: %lprun -f random_prime random_prime(2**500)
+  Line #      Hits         Time  Per Hit   % Time  Line Contents
+  ==============================================================
+  1193                                           def random_prime(n, proof=None, lbound=2):
+  ...                                                ...
+  1251                                               # since we don't want current_randstate to get
+  1252                                               # pulled when you say "from sage.arith import *".
+  1253         1           11     11.0      0.0      from sage.misc.randstate import current_randstate
+  1254         1            7      7.0      0.0      from sage.structure.proof.proof import get_flag
+  1255         1            6      6.0      0.0      proof = get_flag(proof, "arithmetic")
+  1256         1           17     17.0      0.0      n = ZZ(n)
+  ...
+
+In order to install ``line_profiler`` you must first run the following command::
+
+  [user@localhost ~] sage -pip install "line_profiler"
+
+C-level function calls: %crun
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With ``%crun``, you can obtain the list of all C functions involved in a
+computation, as well as the time spent on each of them. You will need to have
+`the Google performance analysis tools <https://code.google.com/p/gperftools/>`_
+installed on your system::
+
+  sage: %crun p=random_prime(2**500)
+  PROFILE: interrupts/evictions/bytes = 45/0/18344
+  Total: 45 samples
+         0   0.0%   0.0%       35  77.8% PyEval_EvalCode
+         0   0.0%   0.0%       35  77.8% PyEval_EvalCodeEx
+         0   0.0%   0.0%       35  77.8% PyEval_EvalFrameEx
+         0   0.0%   0.0%       35  77.8% PyObject_Call
+         0   0.0%   0.0%       35  77.8% PyRun_StringFlags
+         0   0.0%   0.0%       35  77.8% __Pyx_PyObject_Call.constprop.73
+  ...
+
+For more information on ``%crun``, see :mod:`sage.misc.gperftools`.
+
+C-level line-by-line profiling: perf (Linux only)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If your code is written in C or in Cython, you can find out line-by-line which
+are the most costly using `perf
+<https://perf.wiki.kernel.org/index.php/Main_Page>`_ (included in the Ubuntu
+package ``linux-tools``).
+
+The easiest way to use it is to run some (very long) computation in Sage, and to
+type in a console::
+
+  [user@localhost ~] sudo perf top
+
+Select the entry that interests you, and press ``Enter``. The ``annotate``
+command will show you:
+
+* the CPU instructions
+* the source code
+* the associated time
+
+::
+
+        │     *         cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
+        │     *         return (self.edges[place] & word) >> (v & self.radix_mod_mask)             # <<<<<<<<<<<<<<
+        │     *
+        │     *     cpdef bint has_arc(self, int u, int v) except -1:
+        │     */
+        │      __pyx_r = (((__pyx_v_self->edges[__pyx_v_place]) & __pyx_v_word) >> (__pyx_v_v & __pyx_v_self->radix_mod_mask));
+  10.88 │      movslq %esi,%rsi
+   6.52 │      and    (%rdi,%rsi,8),%rax
+  12.84 │      shr    %cl,%rax
+
+
+.. NOTE::
+
+  * press ``s`` to toggle source code view
+  * press ``H`` to cycle through hottest instructions
+  * press ``h`` for help
+
+Alternatively, or if you have no ``sudo`` privileges, you can record the statistics
+of a specific process into a file ``perf.data`` from its PID. Then, visualize
+the result using ``perf report``::
+
+  [user@localhost ~] perf record -p PID
+  [user@localhost ~] perf report --vmlinux vmlinux

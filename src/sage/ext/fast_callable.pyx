@@ -3,7 +3,7 @@ Fast Expression Evaluation.
 
 For many applications such as numerical integration, differential
 equation approximation, plotting a 3d surface, optimization problems,
-monte-carlo simulations, etc., one wishes to pass around and evaluate
+Monte-Carlo simulations, etc., one wishes to pass around and evaluate
 a single algebraic expression many, many times at various floating
 point values.  Other applications may need to evaluate an expression
 many times in interval arithmetic, or in a finite field.  Doing this

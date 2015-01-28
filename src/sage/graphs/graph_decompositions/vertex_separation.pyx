@@ -1192,7 +1192,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
         return current_cost
 
-    cdef int delta_i, j, v, somemore, select_it
+    cdef int delta_i, j, v, select_it
     cdef list delta = list()
     cdef int loc_level = level
 
@@ -1217,41 +1217,41 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     # We compute the union of the prefix and its neighborhood
     bitset_union(bits_tmp, loc_b_current_prefix, loc_b_current_neighborhood)
 
-    somemore = 1
     select_it = 0
-    while somemore:
-        somemore = 0
+    i = loc_level
+    while i<n:
 
-        for i from loc_level <= i < n:
-            j = current_prefix[i]
+        j = current_prefix[i]
 
-            if bitset_issubset(H.rows[j], bits_tmp):
-                # (i) Vertex j is such that all its out-neighbors are in the
-                # prefix or in its out-neighborhood (so in bits_tmp).
-                bitset_add(bits_tmp, j)
+        if bitset_issubset(H.rows[j], bits_tmp):
+            # (i) Vertex j is such that all its out-neighbors are in the prefix
+            # or in its out-neighborhood (so in bits_tmp).
+            bitset_add(bits_tmp, j)
+            select_it = 1
+
+        elif bitset_in(loc_b_current_neighborhood, j):
+            bitset_difference(bits_tmp2, H.rows[j], bits_tmp)
+            if bitset_len(bits_tmp2)==1:
+                # (ii) Vertex j is an out-neighbor of the prefix and all but one
+                # of its out-neighbors are in the prefix or in its
+                # out-neighborhood.
+                v = bitset_first(bits_tmp2)
+                bitset_add(bits_tmp, v)
+                bitset_add(loc_b_current_neighborhood, v)
                 select_it = 1
 
-            elif bitset_in(loc_b_current_neighborhood, j):
-                bitset_difference(bits_tmp2, H.rows[j], bits_tmp)
-                if bitset_len(bits_tmp2)==1:
-                    # (ii) Vertex j is an out-neighbor of the prefix and all but
-                    # one of its out-neighbors are in the prefix or in its
-                    # out-neighborhood.
-                    v = bitset_first(bits_tmp2)
-                    bitset_add(bits_tmp, v)
-                    bitset_add(loc_b_current_neighborhood, v)
-                    select_it = 1
-
-            if select_it:
-                # We add j to the prefix and update neighborhoods
-                _my_invert_positions(current_prefix, positions, j, loc_level)
-                loc_level += 1
-                bitset_add(loc_b_current_prefix, j)
-                bitset_discard(loc_b_current_other, j)
-                bitset_discard(loc_b_current_neighborhood, j)
-                somemore = 1
-                select_it = 0
-
+        if select_it:
+            # We add j to the prefix and update neighborhoods
+            _my_invert_positions(current_prefix, positions, j, loc_level)
+            loc_level += 1
+            bitset_add(loc_b_current_prefix, j)
+            bitset_discard(loc_b_current_other, j)
+            bitset_discard(loc_b_current_neighborhood, j)
+            select_it = 0
+            # We search for vertices that can now be selected
+            i = loc_level
+        else:
+            i += 1
 
     # ==> Test termination
     #

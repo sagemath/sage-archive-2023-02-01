@@ -1644,14 +1644,22 @@ class MutablePoset(sage.structure.sage_object.SageObject):
           with the operator ``<=``.
 
         - ``element_exists_hook`` -- a function. It is called when
-          value is already in this poset. The function gets as a first
-          parameter this existing value and as a second parameter
-          ``value``, and it should return the value which to put in
-          the poset. If this is ``None`` (default) the value is not
-          changed, i.e., this is equivalent to ``element_exists_hook``
-          returns the first parameter. Note that it is not allowed
-          that the key of this new element differs from the key of
-          existing.
+          ``value`` (more precisely its key) is already in this
+          poset. This function has the following properties:
+
+          - It gets as a first parameter the existing value mentioned above.
+
+          - As a second parameter it gets ``value``.
+
+          - It should return the value which to put in the poset
+            instead of the existing one. If this return value is ``None``,
+            the existing element is removed out of the poset.
+
+          If ``element_exists_hook`` is ``None`` (default) the value
+          (existing element) is not changed, i.e., this is equivalent
+          to ``element_exists_hook`` returns the first parameter. Note
+          that it is not allowed that the key of this new element
+          differs from the key of existing.
 
         OUTPUT:
 
@@ -1727,17 +1735,34 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: P.repr_full(reverse=True) == reprP
             True
 
-        ::
+        We can influence the behavior when an value with existing key
+        is to be inserted in the poset. For example, we can perform an
+        addition on some argument of the values::
 
-            sage: S = MP(key=lambda k: k[0])
-            sage: S.add((3, 'a'))
-            sage: S
+            sage: A = MP(key=lambda k: k[0])
+            sage: A.add((3, 'a'))
+            sage: A
             poset((3, 'a'))
             sage: def add_existing(existing, other):
             ....:     return (existing[0], existing[1] + other[1])
-            sage: S.add((3, 'b'), element_exists_hook=add_existing)
-            sage: S
+            sage: A.add((3, 'b'), element_exists_hook=add_existing)
+            sage: A
             poset((3, 'ab'))
+
+        We can also deal with cancellations. If the return value of
+        our hook-function is ``None``, then the element is removed out of
+        the poset::
+
+            sage: B = MP(key=lambda k: k[0])
+            sage: def add_existing_None(existing, other):
+            ....:     s = existing[1] + other[1]
+            ....:     if s == 0:
+            ....:         return None
+            ....:     return (existing[0], s)
+            sage: B.add((7, 42))
+            sage: B.add((7, -42), element_exists_hook=add_existing_None)
+            sage: B
+            poset()
 
         TESTS::
 
@@ -1771,7 +1796,10 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             if element_exists_hook is not None:
                 existing = self.element(key)
                 new = element_exists_hook(existing.value, value)
-                existing._value_ = new
+                if new is None:
+                    self.remove(key)
+                else:
+                    existing._value_ = new
             return
 
         new = MutablePosetElement(self, value)

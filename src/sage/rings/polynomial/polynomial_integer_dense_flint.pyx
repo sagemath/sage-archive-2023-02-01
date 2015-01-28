@@ -751,7 +751,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: u*F + v*G
             2985984
 
-        TESTS::
+        TESTS:
 
         Check that :trac:`17675` is fixed::
 

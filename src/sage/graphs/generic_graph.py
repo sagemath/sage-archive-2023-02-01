@@ -10891,11 +10891,16 @@ class GenericGraph(GenericGraph_pyx):
             [3, 4, 5]
             sage: h.get_vertices()
             {3: 'v3', 4: 'v4', 5: 'v5'}
+
+        :trac:`17683`::
+
+            sage: graphs.PetersenGraph().copy(immutable=True).subgraph([1,2])
+            Subgraph of (Petersen graph): Graph on 2 vertices
         """
         if inplace:
             G = self
         else:
-            G = self.copy()
+            G = self.copy(immutable=False)
         G.name("Subgraph of (%s)"%self.name())
 
         G.delete_vertices([v for v in G if v not in vertices])
@@ -10922,6 +10927,8 @@ class GenericGraph(GenericGraph_pyx):
 
         G.delete_edges(edges_to_delete)
         if not inplace:
+            if getattr(self, '_immutable', False):
+                return G.copy(immutable=True)
             return G
 
     def subgraph_search(self, G, induced=False):

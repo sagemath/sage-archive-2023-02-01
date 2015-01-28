@@ -446,8 +446,19 @@ class Fields(CategoryWithAxiom):
                 sage: all(x.gcd(y) == (0 if x == 0 and y == 0 else 1) for x in K for y in K)
                 True
 
-                sage: gcd(3.0, 2.5)
+            For field of characteristic zero, the gcd of integers is considered
+            as if they were elements of the integer ring::
+
+                sage: gcd(15.0,12.0)
+                3.00000000000000
+
+            But for others floating point numbers, the gcd is just `0.0` or `1.0`::
+
+                sage: gcd(3.2, 2.18)
                 1.00000000000000
+
+                sage: gcd(0.0, 0.0)
+                0.000000000000000
 
             AUTHOR:
 
@@ -455,6 +466,17 @@ class Fields(CategoryWithAxiom):
             - Vincent Delecroix (2015) -- :trac:`17671`
             """
             P = self.parent()
+            try:
+                has_zero_char = P.characteristic() == 0
+            except (AttributeError, NotImplementedError):
+                has_zero_char = False
+            if has_zero_char:
+                from sage.rings.integer_ring import ZZ
+                try:
+                    return P(ZZ(self).gcd(ZZ(other)))
+                except TypeError:
+                    pass
+
             if self == P.zero() and other == P.zero():
                 return P.zero()
             return P.one()
@@ -481,9 +503,16 @@ class Fields(CategoryWithAxiom):
             For field of characteristic zero, the lcm of integers is considered
             as if they were elements of the integer ring::
 
-                sage: lcm(15.0,12.0); lcm(15.0,12.0).parent()
+                sage: lcm(15.0,12.0)
+                60.0000000000000
+
+            But for others floating point numbers, it is just `0.0` or `1.0`::
+
+                sage: lcm(3.2, 2.18)
                 1.00000000000000
-                Real Field with 53 bits of precision
+
+                sage: lcm(0.0, 0.0)
+                0.000000000000000
 
             AUTHOR:
 
@@ -491,6 +520,17 @@ class Fields(CategoryWithAxiom):
             - Vincent Delecroix (2015) -- :trac:`17671`
             """
             P = self.parent()
+            try:
+                has_zero_char = P.characteristic() == 0
+            except (AttributeError, NotImplementedError):
+                has_zero_char = False
+            if has_zero_char:
+                from sage.rings.integer_ring import ZZ
+                try:
+                    return P(ZZ(self).lcm(ZZ(other)))
+                except TypeError:
+                    pass
+
             if self.is_zero() or other.is_zero():
                 return P.zero()
             return P.one()
@@ -528,14 +568,32 @@ class Fields(CategoryWithAxiom):
                 sage: GF(5)(0).xgcd(GF(5)(0))
                 (0, 0, 0)
 
-            TESTS:
+            The xgcd of non-zero floating point numbers will be a triple of
+            floating points. But if the input are two integral floating points
+            the result is a floating point version of the standard gcd on
+            `\ZZ`::
 
-            Since :trac:`16761` the gcd of non-zero real numbers is `1.0`::
+                sage: xgcd(12.0, 8.0)
+                (4.00000000000000, 1.00000000000000, -1.00000000000000)
 
-                sage: xgcd(2.0, 3.0)
-                (1.00000000000000, 0.500000000000000, 0.000000000000000)
+                sage: xgcd(3.1, 2.98714)
+                (1.00000000000000, 0.322580645161290, 0.000000000000000)
+
+                sage: xgcd(0.0, 1.1)
+                (1.00000000000000, 0.000000000000000, 0.909090909090909)
             """
             P = self.parent()
+            try:
+                has_zero_char = P.characteristic() == 0
+            except (AttributeError, NotImplementedError):
+                has_zero_char = False
+            if has_zero_char:
+                from sage.rings.integer_ring import ZZ
+                try:
+                    return tuple(P(x) for x in ZZ(self).xgcd(ZZ(other)))
+                except TypeError:
+                    pass
+
             if not self.is_zero():
                 return (P.one(), ~self, P.zero())
             if not other.is_zero():

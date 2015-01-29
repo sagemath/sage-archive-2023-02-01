@@ -1,8 +1,8 @@
 """
 p-Adic Extension Element
 
-A common superclass for all elements of extension rings and field of `\Z_p` and
-`\Q_p`.
+A common superclass for all elements of extension rings and field of `\ZZ_p` and
+`\QQ_p`.
 
 AUTHORS:
 

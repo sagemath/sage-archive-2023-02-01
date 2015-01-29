@@ -163,6 +163,28 @@ import sage
 class MutablePosetShell(sage.structure.sage_object.SageObject):
     r"""
     A shell for an element of a :class:`mutable poset <MutablePoset>`.
+
+    INPUT:
+
+    - ``poset`` -- the poset to which this shell belongs.
+
+    - ``element`` -- the element which should be
+      contained/encapsulated in this shell.
+
+    OUTPUT:
+
+    A shell for the given element.
+
+    EXAMPLES::
+
+        sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+        sage: P = MP()
+        sage: P.add(66)
+        sage: P
+        poset(66)
+        sage: s = P.shell(66)
+        sage: type(s)
+        <class 'sage.data_structures.mutable_poset.MutablePosetShell'>
     """
     def __init__(self, poset, element):
         r"""
@@ -739,10 +761,13 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
 
         - ``marked`` -- a set in which marked shells are stored.
 
-        - ``reverse`` -- (default: ``False``) -- if set, reverses the order.
+        - ``reverse`` -- (default: ``False``) if set, reverses the
+          order, i.e., ``False`` gives smallest shells first,
+          ``True`` gives largest first.
 
         - ``key`` -- (default: ``None``) a function used for sorting
-          the successors. If this is ``None``, no sorting occurs.
+          the direct successors of a shell (used in case of a
+          tie). If this is ``None``, no sorting occurs.
 
         OUTPUT:
 
@@ -776,9 +801,9 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
 
         INPUT:
 
-        - ``reverse`` -- (default: ``False``) -- if set, reverses the
-          order, i.e., ``False`` starts at bottom (`\emptyset`),
-          ``True`` starts at top (`\infty`).
+        - ``reverse`` -- (default: ``False``) if set, reverses the
+          order, i.e., ``False`` gives smallest shells first,
+          ``True`` gives largest first.
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
@@ -822,7 +847,9 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
 
         - ``marked`` -- a set in which marked shells are stored.
 
-        - ``reverse`` -- (default: ``False``) -- if set, reverses the order.
+        - ``reverse`` -- (default: ``False``) if set, reverses the
+          order, i.e., ``False`` gives smallest shells first,
+          ``True`` gives largest first.
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
@@ -860,7 +887,7 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
 
         INPUT:
 
-        - ``reverse`` -- (default: ``False``) -- if set, reverses the
+        - ``reverse`` -- (default: ``False``) if set, reverses the
           order, i.e., ``False`` gives smallest shells first,
           ``True`` gives largest first.
 
@@ -1004,6 +1031,19 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
     INPUT:
 
+    - ``data`` -- data from which to construct the poset. It can be
+      any of the following:
+
+      #. ``None`` (default), in which case an empty poset is created,
+
+      #. a :class:`MutablePoset`, which will be copied during creation,
+
+      #. an iterable, whose elements will be in the poset.
+
+    - ``key`` -- a function which maps elements to keys. If ``None``
+      (default), this is the identity, i.e., keys are equal to their
+      elements.
+
     - ``element_exists_hook`` -- a function. It is called during
       :meth:`add` when an element (more precisely its key) is already
       in this poset. This function has the following properties:
@@ -1012,9 +1052,9 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
       - As a second parameter it gets the element from :meth:`add`.
 
-      - It should return the element which to put in the poset
-      instead of the existing one. If this return value is ``None``,
-      the existing element is removed out of the poset.
+      - It should return the element which to put in the poset instead
+        of the existing one. If this return value is ``None``, the
+        existing element is removed out of the poset.
 
       If ``element_exists_hook`` is ``None`` (default) the
       (existing element) is not changed, i.e., this is equivalent
@@ -1022,6 +1062,36 @@ class MutablePoset(sage.structure.sage_object.SageObject):
       that it is not allowed that the key of this new element
       differs from the key of existing.
 
+    OUTPUT:
+
+    A mutable poset.
+
+    You can find a short introduction and examples
+    :mod:`here <sage.data_structures.mutable_poset>`.
+
+    EXAMPLES::
+
+        sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+
+    We illustrate the different input formats
+
+    #. No input::
+
+        sage: A = MP(); A
+        poset()
+
+    #. A :class:`MutablePoset`::
+
+        sage: B = MP(A); B
+        poset()
+        sage: B.add(42)
+        sage: C = MP(B); C
+        poset(42)
+
+    #. An iterable::
+
+        sage: C = MP([5, 3, 11]); C
+        poset(3, 5, 11)
 
     .. TODO::
 
@@ -1186,6 +1256,10 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
         An instance of :class:`MutablePosetShell`.
 
+        .. NOTE::
+
+            Each element is contained/encapusalted in a shell inside the poset.
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -1347,6 +1421,10 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
         An iterator.
 
+        .. NOTE::
+
+            Each element is contained/encapusalted in a shell inside the poset.
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -1389,6 +1467,10 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         OUTPUT:
 
         An iterator.
+
+        .. NOTE::
+
+            Each element is contained/encapusalted in a shell inside the poset.
 
         EXAMPLES::
 

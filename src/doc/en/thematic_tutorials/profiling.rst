@@ -49,15 +49,21 @@ computation, as well as the time spent on each of them::
       32    0.000    0.000    0.000    0.000 random.py:244(_randbelow)
    ...
 
-Critical functions should appear on the top, but you may want to sort this list
-differently, e.g: use ``%prun -s cumulative`` for decreasing cumulative time.
+The most time-consuming functions should appear on the top. A description of the
+different columns is `available here
+<https://docs.python.org/2/library/profile.html#instant-user-s-manual>`_.
+
+.. NOTE::
+
+   You may want to sort this list differently, e.g: use ``%prun -s cumulative``
+   for decreasing cumulative time.
 
 Alternatively, you can "save" this data to a :class:`~pstats.Stats` object for
 further inspection::
 
   sage: %prun -r random_prime(2**500)
   sage: stats_object = _
-  sage: stats.total_calls
+  sage: stats_object.total_calls
   2547
 
 For more information on ``%prun``, see ``prun?`` or `this page

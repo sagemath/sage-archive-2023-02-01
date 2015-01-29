@@ -799,9 +799,10 @@ class SageTerminalApp(TerminalIPythonApp):
         # Load the %lprun extension if available
         try:
             import line_profiler
-            self.extensions.append('line_profiler')
         except ImportError:
             pass
+        else:
+            self.extensions.append('line_profiler')
 
         if self.shell.has_sage_extensions:
             self.extensions.remove(SAGE_EXTENSION)

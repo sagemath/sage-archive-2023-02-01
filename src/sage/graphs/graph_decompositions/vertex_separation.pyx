@@ -1193,7 +1193,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     - ``b_prefix_and_neighborhood`` -- a bitset of size ``n`` recording the
       vertices in the current prefix and the vertices in its neighborhood.
 
-    - ``lower_bound`` -- lower bound to consider in the branch and  bound
+    - ``lower_bound`` -- lower bound to consider in the branch and bound
       algorithm. This allows us to stop the search as soon as a solution with
       width at most ``lower_bound`` is found.
 
@@ -1326,8 +1326,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
             if cost_i < upper_bound:
                 upper_bound = cost_i
                 if upper_bound <= lower_bound:
-                    # Either we have optimal solution, or we are satisfied with
-                    # current solution.
+                    # We are satisfied with current solution.
                     break
 
     return upper_bound

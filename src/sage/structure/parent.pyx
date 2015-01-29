@@ -818,6 +818,7 @@ cdef class Parent(category_object.CategoryObject):
              pass
             running ._test_eq() . . . pass
             running ._test_euclidean_degree() . . . pass
+            running ._test_gcd_vs_xgcd() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
@@ -886,6 +887,7 @@ cdef class Parent(category_object.CategoryObject):
             _test_enumerated_set_iter_list
             _test_eq
             _test_euclidean_degree
+            _test_gcd_vs_xgcd
             _test_not_implemented_methods
             _test_one
             _test_pickling

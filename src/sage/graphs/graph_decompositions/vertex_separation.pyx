@@ -1093,10 +1093,10 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
     cdef int i
     cdef dict int_to_vertex = dict((i, v) for v,i in vertex_to_int.iteritems())
 
-    # We need 2 bitsets here + 4 per call to vertex_separation_BAB_C, so overall
-    # 4*n + 2. We use another binary matrix as a pool of bitsets.
+    # We need 2 bitsets here + 3 per call to vertex_separation_BAB_C, so overall
+    # 3*n + 2. We use another binary matrix as a pool of bitsets.
     cdef binary_matrix_t bm_pool
-    binary_matrix_init(bm_pool, 4*n+2, n)
+    binary_matrix_init(bm_pool, 3*n+2, n)
     
     cdef int * prefix    = <int *>sage_malloc(n * sizeof(int))
     cdef int * positions = <int *>sage_malloc(n * sizeof(int))
@@ -1118,18 +1118,18 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
     try:
         # ==> Call the cython method
         sig_on()
-        width = vertex_separation_BAB_C(H              = H,
-                                        n              = n,
-                                        prefix         = prefix,
-                                        positions      = positions,
-                                        best_seq       = best_seq,
-                                        level          = 0,
-                                        b_prefix       = bm_pool.rows[4*n],
-                                        b_neighborhood = bm_pool.rows[4*n+1],
-                                        lower_bound    = lower_bound,
-                                        upper_bound    = upper_bound,
-                                        current_cost   = 0,
-                                        bm_pool        = bm_pool )
+        width = vertex_separation_BAB_C(H                         = H,
+                                        n                         = n,
+                                        prefix                    = prefix,
+                                        positions                 = positions,
+                                        best_seq                  = best_seq,
+                                        level                     = 0,
+                                        b_prefix                  = bm_pool.rows[3*n],
+                                        b_prefix_and_neighborhood = bm_pool.rows[3*n+1],
+                                        lower_bound               = lower_bound,
+                                        upper_bound               = upper_bound,
+                                        current_cost              = 0,
+                                        bm_pool                   = bm_pool )
 
         sig_off()
 
@@ -1161,7 +1161,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
                                  list            best_seq,
                                  int             level,
                                  bitset_t        b_prefix,
-                                 bitset_t        b_neighborhood,
+                                 bitset_t        b_prefix_and_neighborhood,
                                  int             lower_bound,
                                  int             upper_bound,
                                  int             current_cost,
@@ -1190,9 +1190,8 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     - ``b_prefix`` -- a bitset of size ``n`` recording the vertices in the
       current prefix (in cells ``[0,level-1]``).
 
-    - ``b_neighborhood`` -- a bitset of size ``n`` recording the strict
-      neighborhood of the vertices in the current prefix, i.e., without vertices
-      of the current prefix.
+    - ``b_prefix_and_neighborhood`` -- a bitset of size ``n`` recording the
+      vertices in the current prefix and the vertices in its neighborhood.
 
     - ``lower_bound`` -- lower bound to consider in the branch and  bound
       algorithm. This allows us to stop the search as soon as a solution with
@@ -1202,10 +1201,10 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
       upper_bound``. It helps cutting branches. Each time a new solution is
       found, the upper bound is reduced.
 
-    - ``bm_pool`` -- a binary matrix used with ``4*n+2`` rows of size
+    - ``bm_pool`` -- a binary matrix used with ``3*n+2`` rows of size
       ``n``. Each rows is a bitset of size ``n``. This data structure is used as
-      a pool of initialized bitsets. Each call of this method needs 4 bitsets
-      for local operations, so it uses rows ``[4*level,4*level+3]``.
+      a pool of initialized bitsets. Each call of this method needs 3 bitsets
+      for local operations, so it uses rows ``[3*level,3*level+2]``.
     """
     cdef int i
 
@@ -1224,12 +1223,11 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
     # ==> Allocate local data structures
 
-    cdef bitset_s *bits_tmp           = bm_pool.rows[4*level]
-    cdef bitset_s *bits_tmp2          = bm_pool.rows[4*level+1]
-    cdef bitset_s *loc_b_prefix       = bm_pool.rows[4*level+2]
-    cdef bitset_s *loc_b_neighborhood = bm_pool.rows[4*level+3]
+    cdef bitset_s *loc_b_prefix         = bm_pool.rows[3*level]
+    cdef bitset_s *loc_b_pref_and_neigh = bm_pool.rows[3*level+1]
+    cdef bitset_s *b_tmp                = bm_pool.rows[3*level+2]
     bitset_copy(loc_b_prefix, b_prefix)
-    bitset_copy(loc_b_neighborhood, b_neighborhood)
+    bitset_copy(loc_b_pref_and_neigh, b_prefix_and_neighborhood)
 
     # ==> Greedy steps
     #
@@ -1238,30 +1236,26 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     # (ii) or u is an out-neighbor of the prefix and all but one of its
     #      out-neighbors are in the prefix or in its out-neighborhood.
 
-    # We compute the union of the prefix and its neighborhood
-    bitset_union(bits_tmp, loc_b_prefix, loc_b_neighborhood)
-
     select_it = 0
     i = loc_level
     while i<n:
 
         j = prefix[i]
 
-        if bitset_issubset(H.rows[j], bits_tmp):
+        if bitset_issubset(H.rows[j], loc_b_pref_and_neigh):
             # (i) Vertex j is such that all its out-neighbors are in the prefix
-            # or in its out-neighborhood (so in bits_tmp).
-            bitset_add(bits_tmp, j)
+            # or in its out-neighborhood (so in loc_b_pref_and_neigh).
+            bitset_add(loc_b_pref_and_neigh, j)
             select_it = 1
 
-        elif bitset_in(loc_b_neighborhood, j):
-            bitset_difference(bits_tmp2, H.rows[j], bits_tmp)
-            if bitset_len(bits_tmp2)==1:
+        elif bitset_in(loc_b_pref_and_neigh, j) and not bitset_in(loc_b_prefix, j):
+            bitset_difference(b_tmp, H.rows[j], loc_b_pref_and_neigh)
+            if bitset_len(b_tmp)==1:
                 # (ii) Vertex j is an out-neighbor of the prefix and all but one
                 # of its out-neighbors are in the prefix or in its
                 # out-neighborhood.
-                v = bitset_first(bits_tmp2)
-                bitset_add(bits_tmp, v)
-                bitset_add(loc_b_neighborhood, v)
+                v = bitset_first(b_tmp)
+                bitset_add(loc_b_pref_and_neigh, v)
                 select_it = 1
 
         if select_it:
@@ -1269,7 +1263,6 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
             _my_invert_positions(prefix, positions, i, loc_level)
             loc_level += 1
             bitset_add(loc_b_prefix, j)
-            bitset_discard(loc_b_neighborhood, j)
             select_it = 0
             # We search for vertices that can now be selected
             i = loc_level
@@ -1292,10 +1285,10 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     # ordering with prefix prefix+v
     for i from loc_level <= i < n:
         j = prefix[i]
-        bitset_union(bits_tmp, loc_b_neighborhood, H.rows[j])
-        bitset_difference(bits_tmp, bits_tmp, loc_b_prefix)
-        bitset_discard(bits_tmp, j)
-        delta_i = bitset_len(bits_tmp)
+        bitset_union(b_tmp, loc_b_pref_and_neigh, H.rows[j])
+        bitset_difference(b_tmp, b_tmp, loc_b_prefix)
+        bitset_discard(b_tmp, j)
+        delta_i = bitset_len(b_tmp)
         if delta_i < upper_bound:
             delta.append( (delta_i, j) )
 
@@ -1310,25 +1303,23 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
         if delta_i < upper_bound:
             # We extend the current prefix with vertex i and explore the branch
-
-            bitset_union(bits_tmp, loc_b_neighborhood,  H.rows[i])
-            bitset_difference(bits_tmp, bits_tmp, loc_b_prefix)
-            bitset_discard(bits_tmp, i)
+            bitset_union(b_tmp, loc_b_pref_and_neigh,  H.rows[i])
+            bitset_discard(b_tmp, i)
             _my_invert_positions(prefix, positions, positions[i], loc_level)
             bitset_add(loc_b_prefix, i)
 
-            cost_i = vertex_separation_BAB_C(H              = H,
-                                             n              = n,
-                                             prefix         = prefix,
-                                             positions      = positions,
-                                             best_seq       = best_seq,
-                                             level          = loc_level+1,
-                                             b_prefix       = loc_b_prefix,
-                                             b_neighborhood = bits_tmp,
-                                             lower_bound    = lower_bound,
-                                             upper_bound    = upper_bound,
-                                             current_cost   = delta_i,
-                                             bm_pool        = bm_pool )
+            cost_i = vertex_separation_BAB_C(H                         = H,
+                                             n                         = n,
+                                             prefix                    = prefix,
+                                             positions                 = positions,
+                                             best_seq                  = best_seq,
+                                             level                     = loc_level+1,
+                                             b_prefix                  = loc_b_prefix,
+                                             b_prefix_and_neighborhood = b_tmp,
+                                             lower_bound               = lower_bound,
+                                             upper_bound               = upper_bound,
+                                             current_cost              = delta_i,
+                                             bm_pool                   = bm_pool )
 
             bitset_discard(loc_b_prefix, i)
 

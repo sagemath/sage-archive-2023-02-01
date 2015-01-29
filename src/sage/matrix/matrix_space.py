@@ -125,21 +125,21 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,5).category()
         Category of modules over (euclidean domains and infinite enumerated sets)
-
-        sage: MatrixSpace(ZZ,10,2^31)
-        Traceback (most recent call last):                                   # 32-bit
-        ...                                                                  # 32-bit
-        ValueError: number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)           # 32-bit
-        Full MatrixSpace of 10 by 2147483648 dense matrices over Integer Ring   # 64-bit
-        sage: MatrixSpace(ZZ,2^31,10)
-        Traceback (most recent call last):                                   # 32-bit
-        ...                                                                  # 32-bit
-        ValueError: number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)           # 32-bit
-        Full MatrixSpace of 2147483648 by 10 dense matrices over Integer Ring   # 64-bit
         sage: MatrixSpace(ZZ,10,10).category()
         Category of algebras over (euclidean domains and infinite enumerated sets)
         sage: MatrixSpace(QQ,10).category()
         Category of algebras over quotient fields
+
+    TESTS::
+
+        sage: MatrixSpace(ZZ, 1, 2^63)
+        Traceback (most recent call last):
+        ...
+        ValueError: number of rows and columns may be at most...
+        sage: MatrixSpace(ZZ, 2^100, 10)
+        Traceback (most recent call last):
+        ...
+        ValueError: number of rows and columns may be at most...
     """
     _no_generic_basering_coercion = True
 

@@ -47,6 +47,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+import types
 from sage.rings.all import ZZ
 from sage.rings.integer import is_Integer
 from sage.rings.ring import is_Ring
@@ -59,6 +60,7 @@ from sage.structure.sequence import Sequence
 from sage.structure.sage_object import SageObject
 from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
+from sage.groups.generic import structure_description
 
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP
@@ -692,3 +694,4 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             raise NotImplementedError('group must be finite')
         return tuple(iter(self))
 
+MatrixGroup_gap.structure_description = types.MethodType(structure_description, None, MatrixGroup_gap)

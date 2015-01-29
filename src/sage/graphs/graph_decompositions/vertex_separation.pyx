@@ -1147,19 +1147,15 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
 
     return (width if width<upper_bound else -1), order
 
-cdef inline _my_invert_positions(int *prefix, int *positions, int i, int target_pos):
+cdef inline _my_invert_positions(int *prefix, int *positions, int pos_a, int pos_b):
     """
-    Put i at target position and put element previously at target position at
-    original position of i
+    Permute vertices at positions ``pos_a`` and ``pos_b`` in array ``prefix``,
+    and record the new positions in array ``positions``.
     """
-    cdef int a, pos_a
-    if prefix[target_pos]!=i:
-        a = prefix[target_pos]
-        pos_a = positions[i]
-        prefix[target_pos] = i
-        positions[i] = target_pos
-        positions[a] = pos_a
-        prefix[pos_a] = a
+    if pos_a!=pos_b:
+        positions[prefix[pos_a]],positions[prefix[pos_b]] = positions[prefix[pos_b]],positions[prefix[pos_a]]
+        prefix[pos_a], prefix[pos_b] = prefix[pos_b], prefix[pos_a]
+
 
 cdef int vertex_separation_BAB_C(binary_matrix_t H,
                                  int             n,
@@ -1273,7 +1269,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
         if select_it:
             # We add j to the prefix and update neighborhoods
-            _my_invert_positions(prefix, positions, j, loc_level)
+            _my_invert_positions(prefix, positions, i, loc_level)
             loc_level += 1
             bitset_add(loc_b_prefix, j)
             bitset_discard(loc_b_neighborhood, j)
@@ -1321,7 +1317,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
             bitset_union(bits_tmp, loc_b_neighborhood,  H.rows[i])
             bitset_difference(bits_tmp, bits_tmp, loc_b_prefix)
             bitset_discard(bits_tmp, i)
-            _my_invert_positions(prefix, positions, i, loc_level)
+            _my_invert_positions(prefix, positions, positions[i], loc_level)
             bitset_add(loc_b_prefix, i)
 
             cost_i = vertex_separation_BAB_C(H              = H,

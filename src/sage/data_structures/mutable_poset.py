@@ -1199,6 +1199,31 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         return self._shells_[key]
 
 
+    def element(self, key):
+        r"""
+        Return the element corresponding to ``key``.
+
+        INPUT:
+
+        ``key`` -- the key of an object.
+
+        OUTPUT:
+
+        An object.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: P.add(42)
+            sage: e = P.element(42); e
+            42
+            sage: type(e)
+            <type 'sage.rings.integer.Integer'>
+        """
+        return self._shells_[key].element
+
+
     def get_key(self, element):
         r"""
         Return the key corresponding to the given element.

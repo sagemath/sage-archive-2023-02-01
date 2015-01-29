@@ -1091,7 +1091,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
       (default), this is the identity, i.e., keys are equal to their
       elements.
 
-    - ``element_exists_hook`` -- a function. It is called during
+    - ``merge_hook`` -- a function. It is called during
       :meth:`add` when an element (more precisely its key) is already
       in this poset. This function has the following properties:
 
@@ -1103,9 +1103,9 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         of the existing one. If this return value is ``None``, the
         existing element is removed out of the poset.
 
-      If ``element_exists_hook`` is ``None`` (default) the
+      If ``merge_hook`` is ``None`` (default) the
       (existing element) is not changed, i.e., this is equivalent
-      to ``element_exists_hook`` returns the first parameter. Note
+      to ``merge_hook`` returns the first parameter. Note
       that it is not allowed that the key of this new element
       differs from the key of existing.
 
@@ -1169,7 +1169,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         - :meth:`~sage.combinat.posets.posets.FinitePoset.upper_covers_iterator`: Returns an iterator for the upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
         - :meth:`~sage.combinat.posets.posets.FinitePoset.upper_covers`: Returns a list of upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
     """
-    def __init__(self, data=None, key=None, element_exists_hook=None):
+    def __init__(self, data=None, key=None, merge_hook=None):
         r"""
         See :class:`MutablePoset` for details.
 
@@ -1211,7 +1211,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             else:
                 self._key_ = key
 
-            self._element_exists_hook_ = element_exists_hook
+            self._merge_hook_ = merge_hook
 
             if data is not None:
                 try:
@@ -1897,9 +1897,9 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         is to be inserted in the poset. For example, we can perform an
         addition on some argument of the elements::
 
-            sage: def add_existing(existing, other):
+            sage: def add(existing, other):
             ....:     return (existing[0], existing[1] + other[1])
-            sage: A = MP(key=lambda k: k[0], element_exists_hook=add_existing)
+            sage: A = MP(key=lambda k: k[0], merge_hook=add)
             sage: A.add((3, 'a'))
             sage: A
             poset((3, 'a'))
@@ -1911,13 +1911,13 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         our hook-function is ``None``, then the element is removed out of
         the poset::
 
-            sage: def add_existing_None(existing, other):
+            sage: def add_None(existing, other):
             ....:     s = existing[1] + other[1]
             ....:     if s == 0:
             ....:         return None
             ....:     return (existing[0], s)
             sage: B = MP(key=lambda k: k[0],
-            ....:        element_exists_hook=add_existing_None)
+            ....:        merge_hook=add_None)
             sage: B.add((7, 42))
             sage: B.add((7, -42))
             sage: B
@@ -1952,9 +1952,9 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         key = self.get_key(element)
 
         if key in self._shells_:
-            if self._element_exists_hook_ is not None:
+            if self._merge_hook_ is not None:
                 existing = self.shell(key)
-                new = self._element_exists_hook_(existing.element, element)
+                new = self._merge_hook_(existing.element, element)
                 if new is None:
                     self.remove(key)
                 else:

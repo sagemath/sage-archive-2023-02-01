@@ -58,6 +58,7 @@ from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
 from sage.rings.fraction_field_element import is_FractionFieldElement
 from sage.rings.integer_ring       import ZZ
+from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
 from sage.rings.rational_field     import QQ
@@ -72,6 +73,8 @@ from sage.ext.fast_callable        import fast_callable
 from sage.misc.lazy_attribute      import lazy_attribute
 from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 import sys
+from sage.categories.number_fields import NumberFields
+_NumberFields = NumberFields()
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     """
@@ -1480,9 +1483,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def green_function(self, P, v, **kwds):
         r"""
         Evaluates the local Green's function at the place ``v`` for ``P`` with ``N`` terms of the
-        series or, in dimension 1, to within a given error bound.
+        series or to within a given error bound.  Must be over a number field
+        or order of a number field. Note that this is absolute local greens function
+        so is scaled by the degree of the base field.
 
-        Use ``v=0`` for the archimedean place. Must be over `\ZZ` or `\QQ`.
+        Use ``v=0`` for the archimedean place over `\QQ` or field embedding. Non-archimedean
+        places are prime ideals for number fields or primes over `\QQ`.
 
         ALGORITHM:
 
@@ -1496,7 +1502,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         kwds:
 
-        - ``N`` - positive integer. number of terms of the series to use
+        - ``N`` - positive integer. number of terms of the series to use, default: 10
 
         - ``prec`` - positive integer, float point or p-adic precision, default: 100
 
@@ -1518,20 +1524,17 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.green_function(P.point([1,1],False),0,N=30)
             0.43288629610862338612700146098
         """
-        if self.base_ring() != ZZ and self.base_ring() != QQ:
-            raise TypeError("Must be ZZ or QQ")
         return(P.green_function(self, v, **kwds))
 
     def canonical_height(self, P, **kwds):
         r"""
-        Evaluates the canonical height of ``P`` with respect to ``self``. Must be over `\ZZ` or `\QQ`.
-
-        Specify either the number of terms of the series to evaluate
-        or, in dimension 1, the error bound required.
+        Evaluates the (absolute) canonical height of ``P`` with respect to ``self``. Must be over number field
+        or order of a number field. Specify either the number of terms of the series to evaluate or
+        the error bound required.
 
         ALGORITHM:
 
-        The sum of the Green's function at the archimedean place and the places of bad reduction.
+        The sum of the Green's function at the archimedean places and the places of bad reduction.
 
         INPUT:
 
@@ -1556,18 +1559,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(ZZ,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2+y^2,2*x*y]);
-            sage: f.canonical_height(P.point([5,4]),error_bound=0.001)
-            2.1970553519503404898926835324
-            sage: f.canonical_height(P.point([2,1]),error_bound=0.001)
-            1.0984430632822307984974382955
+            sage: f.canonical_height(P.point([5,4]), error_bound=0.001)
+            2.1968861265644615969948765910
+            sage: f.canonical_height(P.point([2,1]), error_bound=0.001)
+            1.0982738378963519055996313540
 
         Notice that preperiodic points may not be exactly 0::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
             sage: f = H([x^2-29/16*y^2,y^2]);
-            sage: f.canonical_height(P.point([1,4]),N=60)
-            1.2024186864216154694752186858e-18
+            sage: f.canonical_height(P.point([1,4]), error_bound=0.000001)
+            4.6394113279707749011644196028e-7
 
         ::
 
@@ -1576,11 +1579,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(X,X)
             sage: f = H([x^2,y^2,4*z^2]);
             sage: Q = X([4,4,1])
-            sage: f.canonical_height(Q,badprimes=[2])
+            sage: f.canonical_height(Q, badprimes=[2])
             0.0013538030870311431824555314882
         """
-        if self.base_ring() != ZZ and self.base_ring() != QQ:
-            raise TypeError("Must be ZZ or QQ")
         return(P.canonical_height(self, **kwds))
 
     def global_height(self, prec=None):
@@ -1628,6 +1629,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         .. TODO:: add heights to integer.pyx and remove special case
         """
+        if self.domain().base_ring() not in _NumberFields and not is_NumberFieldOrder(self.domain().base_ring()):
+            raise TypeError("Must be over a Numberfield or a Numberfield Order")
         if self.domain().base_ring() == ZZ:
             if prec is None:
                 R = RealField()
@@ -1645,6 +1648,99 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             h = max([c.global_height(prec) for c in C])
             H = max(H, h)
         return(H)
+
+    def local_height(self, v, prec=None):
+        r"""
+        Returns the maximum of the local height of the coefficients in any
+        of the coordinate functions of ``self``.
+
+        INPUT:
+
+        - ``v`` -- a prime or prime ideal of the base ring
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([1/1331*x^2+1/4000*y^2,210*x*y]);
+            sage: f.local_height(1331)
+            7.19368581839511
+
+        This function does not automatically normalize::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = Hom(P,P)
+            sage: f = H([4*x^2+3/100*y^2,8/210*x*y,1/10000*z^2]);
+            sage: f.local_height(2)
+            2.77258872223978
+            sage: f.normalize_coordinates()
+            sage: f.local_height(2)
+            0.000000000000000
+
+        ::
+
+            sage: R.<z> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(z^2-2)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = Hom(P,P)
+            sage: f = H([2*x^2 + w/3*y^2,1/w*y^2])
+            sage: f.local_height(K.ideal(3))
+            1.09861228866811
+        """
+        K = FractionField(self.domain().base_ring())
+        if K not in _NumberFields:
+            raise TypeError("Must be over a Numberfield or a Numberfield Order")
+        return max([K(c).local_height(v, prec) for f in self for c in f.coefficients()])
+
+    def local_height_arch(self, i, prec=None):
+        r"""
+        Returns the maximum of the local height at the ``i``-th infinite place of the coefficients in any
+        of the coordinate functions of ``self``.
+
+        INPUT:
+
+        - ``i`` -- an integer
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([1/1331*x^2+1/4000*y^2,210*x*y]);
+            sage: f.local_height_arch(0)
+            5.34710753071747
+
+        ::
+
+            sage: R.<z> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(z^2-2)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = Hom(P,P)
+            sage: f = H([2*x^2 + w/3*y^2,1/w*y^2])
+            sage: f.local_height_arch(1)
+            0.6931471805599453094172321214582
+        """
+        K = FractionField(self.domain().base_ring())
+        if K not in _NumberFields:
+            raise TypeError("Must be over a Numberfield or a Numberfield Order")
+        if K == QQ:
+            return max([K(c).local_height_arch(prec=prec) for f in self for c in f.coefficients()])
+        else:
+            return max([K(c).local_height_arch(i, prec=prec) for f in self for c in f.coefficients()])
+
 
     def height_difference_bound(self, prec=None):
         r"""

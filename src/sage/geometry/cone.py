@@ -1055,17 +1055,17 @@ def classify_cone_2d(ray0, ray1, check=True):
 
         sage: from sage.geometry.cone import normalize_rays
         sage: for i in range(10):
-        ...       ray0 = random_vector(ZZ, 3)
-        ...       ray1 = random_vector(ZZ, 3)
-        ...       if ray0.is_zero() or ray1.is_zero(): continue
-        ...       ray0, ray1 = normalize_rays([ray0, ray1], ZZ^3)
-        ...       d, k = classify_cone_2d(ray0, ray1, check=True)
-        ...       assert (d,k) == classify_cone_2d(ray1, ray0)
-        ...       if d == 0: continue
-        ...       frac = Hirzebruch_Jung_continued_fraction_list(k/d)
-        ...       if len(frac)>100: continue   # avoid expensive computation
-        ...       hilb = Cone([ray0, ray1]).Hilbert_basis()
-        ...       assert len(hilb) == len(frac) + 1
+        ....:     ray0 = random_vector(ZZ, 3)
+        ....:     ray1 = random_vector(ZZ, 3)
+        ....:     if ray0.is_zero() or ray1.is_zero(): continue
+        ....:     ray0, ray1 = normalize_rays([ray0, ray1], ZZ^3)
+        ....:     d, k = classify_cone_2d(ray0, ray1, check=True)
+        ....:     assert (d,k) == classify_cone_2d(ray1, ray0)
+        ....:     if d == 0: continue
+        ....:     frac = (k/d).continued_fraction_list("hj")
+        ....:     if len(frac)>100: continue   # avoid expensive computation
+        ....:     hilb = Cone([ray0, ray1]).Hilbert_basis()
+        ....:     assert len(hilb) == len(frac) + 1
     """
     if check:
         assert ray0.parent() is ray1.parent()

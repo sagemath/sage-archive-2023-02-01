@@ -1099,19 +1099,17 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
     binary_matrix_init(bm_pool, 4*n+2, n)
     
     cdef int * prefix    = <int *>sage_malloc(n * sizeof(int))
-    cdef int * best_seq  = <int *>sage_malloc(n * sizeof(int))
     cdef int * positions = <int *>sage_malloc(n * sizeof(int))
-    if prefix==NULL or best_seq==NULL or positions==NULL:
+    if prefix==NULL or positions==NULL:
         sage_free(prefix)
-        sage_free(best_seq)
         sage_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
         raise MemoryError("Unable to allocate data strutures.")
 
+    cdef list best_seq = range(n)
     for i in range(n):
         prefix[i] = i
-        best_seq[i] = i
         positions[i] = i
 
     cdef int width = upper_bound
@@ -1140,7 +1138,6 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
 
     finally:
         sage_free(prefix)
-        sage_free(best_seq)
         sage_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
@@ -1161,7 +1158,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
                                  int             n,
                                  int *           prefix,
                                  int *           positions,
-                                 int *           best_seq,
+                                 list            best_seq,
                                  int             level,
                                  bitset_t        b_prefix,
                                  bitset_t        b_neighborhood,

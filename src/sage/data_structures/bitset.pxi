@@ -289,6 +289,20 @@ cdef inline bint bitset_issuperset(bitset_t a, bitset_t b):
     """
     return bitset_issubset(b, a)
 
+
+cdef inline bint bitset_are_disjoint(bitset_t a, bitset_t b):
+    """
+    Tests whether ``a`` and ``b`` have an empty intersection.
+
+    We assume ``a.limbs <= b.limbs``.
+    """
+    cdef mp_size_t i
+    for i from 0 <= i < a.limbs:
+        if (a.bits[i]&b.bits[i]) != 0:
+            return False
+    return True
+
+
 #############################################################################
 # Bitset Bit Manipulation
 #############################################################################

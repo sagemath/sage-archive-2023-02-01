@@ -295,7 +295,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         r"""
         Return the string representation of ``self``.
         The result depends on the default element representation
-        method of the parent: ``self.element_repr_method()``.
+        method of the parent: ``self.parent().element_repr_method()``.
 
         See :meth:`string_repr` for a list of possible methods
         and for more examples.
@@ -321,7 +321,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     def string_repr(self, method="default"):
         r"""
         Return a string representation of ``self`` using the specified ``method``.
-        This method is used by to represent ``self``.
+        This method is used to represent ``self``.
         The default representation method can be set for the parent with
         ``self.parent().element_repr_method(method)``.
 
@@ -641,7 +641,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         Together they describe the primitive part of self.
         I.e. an element which is equal to ``self`` up
-        to a sign after taking the appropriate power.
+        to a sign after taking the appropriate power
+        and which itself cannot be written as a non-trivial
+        power (at least for non-elliptic ellements).
 
         To construct the representative see
         :meth:`primitive_representative`. To construct
@@ -651,8 +653,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         In the hyperbolic and parabolic case the
         representative is given as a product of powers of
-        ``V(j)``, where ``1 <= j <= n-1``. The number
-        of such factors is called ``block length``
+        ``V(j)`` (more precisely ``self.parent().V(j)``),
+        where ``1 <= j <= n-1``.
+
+        The number of such factors is called ``block length``
         (see :meth:`block_length`). Each block (and also
         their product) has a positive sign and
         non-negative entries.
@@ -1043,12 +1047,14 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         r"""
         Return the primitive part of ``self``. I.e. a group element
         ``A`` with non-negative trace such that
-        ``self = sign * A^power``, where
-        ``sign = self.sign()`` is +- the identity (to correct the
-        sign) and ``power = self.primitive_power()``. The primitive
-        part itself is choosen such that it cannot be written
-        as a non-trivial power of another element. It is a generator
-        of the stabilizer of the corresponding (attracting) fixed point.
+        ``self = sign * A^power``, where ``sign = self.sign()``
+        is +- the identity (to correct the sign) and
+        ``power = self.primitive_power()``.
+
+        The primitive part itself is choosen such that it cannot be
+        written as a non-trivial power of another element.
+        It is a generator of the stabilizer of the corresponding
+        (attracting) fixed point.
 
         If ``self`` is elliptic then the primitive part is
         chosen as a conjugate of ``S`` or ``U``.
@@ -1379,7 +1385,9 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         r"""
         Return the block length of ``self``. The block length is
         given by the number of factors used for the decomposition
-        of the (specific) conjugacy representative of ``self``.
+        of the conjugacy representative of ``self`` described in
+        :meth:`primitive_representative`. In particular the block
+        length is invariant under conjugation.
 
         The definition is mostly used for parabolic or hyperbolic
         elements: In particular it gives a lower bound for the
@@ -1499,9 +1507,12 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         to the sign of the sign matrix ``self.sign()``).
 
         The function is a generalization of
-        :meth:`_primitive_block_decomposition_data` (see for more information)
-        to give the decomposition data for possibly non-primitive
-        elements.
+        :meth:`_primitive_block_decomposition_data`
+        (see for more information) to give the decomposition data
+        for possibly non-primitive elements.
+
+        Also see :meth:`block_decomposition()` for more information
+        on the block decomposition.
 
         Warning: The case ``n=infinity`` is not verified at all
         and probably wrong!
@@ -1643,13 +1654,15 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     def block_decomposition(self):
         r"""
         Return a tuple ``(L, R, sgn)`` such that
-        ``self = sgn * R.acton(prod(L))``. The tuple entries
-        in ``L`` are powers of basic matrices:
-        ``V(j) = U^(j-1)*T`` for ``1 <= j <= n-1`` in the
-        parabolic and hyperbolic case and ``S`` resp. ``U``
-        in the elliptic case.
+        ``self = sgn * R.acton(prod(L)) = sgn * R*prod(L)*R.inverse()``.
 
-        Also see :meth:`_block_decomposition_data` for more information.
+        In the parabolic and hyperbolic case the tuple entries
+        in ``L`` are powers of basic block matrices:
+        ``V(j) = U^(j-1)*T = self.parent().V(j)`` for ``1 <= j <= n-1``.
+        In the elliptic case the tuple entries are either ``S`` or ``U``.
+
+        This decomposition data is (also) described by
+        :meth:`_block_decomposition_data`.
 
         Warning: The case ``n=infinity`` is not verified at all
         and probably wrong!
@@ -1813,7 +1826,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
     def reduced_elements(self):
         r"""
         Return the cycle of reduced elements in the (primitive)
-        conjugacy class of ``self``. Also see :meth:`is_reduced`.
+        conjugacy class of ``self``.
+
+        I.e. the set (cycle) of all reduced elements which are
+        conjugate to ``self.primitive_part()``.
+        E.g. ``self.primitive_representative().reduce()``.
+
+        Also see :meth:`is_reduced`.
         In particular the result of this method only depends on the
         (primitive) conjugacy class of ``self``.
 
@@ -1872,8 +1891,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     def simple_elements(self):
         r"""
-        Return all simple elements in the conjugacy class of
-        the primitive part of ``self``. Also see :meth:`is_simple`.
+        Return all simple elements in the primitive conjugacy
+        class of ``self``.
+
+        I.e. the set of all simple elements which are
+        conjugate to ``self.primitive_part()``.
+
+        Also see :meth:`is_simple`.
         In particular the result of this method only depends on the
         (primitive) conjugacy class of ``self``.
 
@@ -2322,6 +2346,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         r"""
         Returns whether ``self`` is reduced. We call an element
         reduced if the associated lambda-CF is purely periodic.
+
         I.e. (in the hyperbolic case) if the associated hyperbolic
         fixed point (resp. the associated hyperbolic binary quadratic form)
         is reduced.
@@ -2389,9 +2414,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         simple if it is hyperbolic, primitive, has positive sign
         and if the associated hyperbolic fixed points satisfy:
         ``alpha' < 0 < alpha`` where ``alpha`` is the attracting
-        fixed point for the element. I.e. if the associated
-        hyperbolic fixed point (resp. the associated hyperbolic
-        binary quadratic form) is simple.
+        fixed point for the element.
+
+        I.e. if the associated hyperbolic fixed point (resp. the
+        associated hyperbolic binary quadratic form) is simple.
 
         There are only finitely many simple elements for a given
         discriminant. They can be used to provide explicit

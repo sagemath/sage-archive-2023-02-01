@@ -80,7 +80,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: action = lambda x,i: domain.monomial(x.apply_simple_reflection(i, side="right"))
             sage: HeckeAlgebraRepresentation(domain, action, CartanType(["A",2]), 1, -1)
             A representation of the (1, -1)-Hecke algebra of type ['A', 2]
-            on Group algebra of Symmetric group of order 3! as a permutation group over Rational Field
+             on Symmetric group algebra of order 3 over Rational Field
         """
         self._domain = domain
         self._Ti_on_basis = on_basis
@@ -227,7 +227,7 @@ class HeckeAlgebraRepresentation(SageObject):
             sage: rho = HeckeAlgebraRepresentation(domain, action, CartanType(["A",2]), 1, -1)
 
             sage: rho.on_basis(W.one(), (1,2,1))
-            B[(1,3)]
+            (1,3)
 
             sage: word = (1,2)
             sage: u = W.from_reduced_word(word)

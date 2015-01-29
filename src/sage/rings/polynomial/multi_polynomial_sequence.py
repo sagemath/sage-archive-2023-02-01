@@ -757,8 +757,8 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: F,s = sr.polynomial_system()
             sage: F.set_immutable()
             sage: magma(F)  # indirect doctest; optional - magma
-            Ideal of Polynomial ring of rank 20 over GF(2)
-            Order: Graded Reverse Lexicographical
+            Ideal of Boolean polynomial ring of rank 20 over GF(2)
+            Order: Graded Lexicographical (bit vector word)
             Variables: k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003
             Basis:
             [
@@ -927,7 +927,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
     """
     Polynomial Sequences over `\mathbb{F}_2`.
     """
-    def eliminate_linear_variables(self, maxlength=Infinity, skip=None, return_reductors=False):
+    def eliminate_linear_variables(self, maxlength=Infinity, skip=None, return_reductors=False, use_polybori=False):
         """
         Return a new system where linear leading variables are
         eliminated if the tail of the polynomial has length at most
@@ -948,6 +948,11 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         - ``return_reductors`` - if ``True`` the list of polynomials
           with linear leading terms which were used for reduction is
           also returned (default: ``False``).
+
+        - ```use_polybori`` - if ``True`` then ``polybori.ll.eliminate`` is
+          called. While this is typically faster what is implemented here, it
+          is less flexible (``skip` is not supported) and may increase the
+          degree (default: ``False``)
 
         OUTPUT:
 
@@ -990,6 +995,21 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: R
             [a + b + d, c + d]
 
+
+        If the input system is detected to be inconsistent then [1] is returned
+        and the list of reductors is empty::
+
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: S = Sequence([x*y*z+x*y+z*y+x*z, x+y+z+1, x+y+z])
+            sage: S.eliminate_linear_variables()
+            [1]
+
+            sage: R.<x,y,z> = BooleanPolynomialRing()
+            sage: S = Sequence([x*y*z+x*y+z*y+x*z, x+y+z+1, x+y+z])
+            sage: S.eliminate_linear_variables(return_reductors=True)
+            ([1], [])
+
+
         TESTS:
 
         The function should really dispose of linear equations (:trac:`13968`)::
@@ -1008,6 +1028,18 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
             sage: S.eliminate_linear_variables(return_reductors=True)
             ([], [x + y, z + 1])
 
+        We test a case which would increase the degree with ``polybori=True``::
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: f = a*d + a + b*d + c*d + 1
+            sage: Sequence([f, a + b*c + c+d + 1]).eliminate_linear_variables()
+            [a*d + a + b*d + c*d + 1, a + b*c + c + d + 1]
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: f = a*d + a + b*d + c*d + 1
+            sage: Sequence([f, a + b*c + c+d + 1]).eliminate_linear_variables(use_polybori=True)
+            [b*c*d + b*c + b*d + c + d]
+
         .. NOTE::
 
             This is called "massaging" in [CBJ07]_.
@@ -1019,6 +1051,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
            Multivariate Polynomials over GF(2) via SAT-Solvers*.
            Cryptology ePrint Archive: Report 2007/024. available at
            http://eprint.iacr.org/2007/024
+
         """
         from sage.rings.polynomial.pbori import BooleanPolynomialRing
         from polybori import gauss_on_polys
@@ -1032,7 +1065,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         F = self
         reductors = []
 
-        if skip is None and maxlength==Infinity:
+        if use_polybori and skip is None and maxlength==Infinity:
             # faster solution based on polybori.ll.eliminate
             while True:
                 (this_step_reductors, _, higher) = eliminate(F)
@@ -1063,6 +1096,11 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
                     break
 
                 linear = gauss_on_polys(linear)
+                if 1 in linear:
+                    if return_reductors:
+                        return PolynomialSequence(R, [R(1)]), PolynomialSequence(R, [])
+                    else:
+                        return PolynomialSequence(R, [R(1)])
                 rb = ll_encode(linear)
                 reductors.extend(linear)
 
@@ -1320,4 +1358,3 @@ class PolynomialSequence_gf2e(PolynomialSequence_generic):
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialSystem_generic", PolynomialSequence_generic)
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialRoundSystem_generic", PolynomialSequence_generic)
-

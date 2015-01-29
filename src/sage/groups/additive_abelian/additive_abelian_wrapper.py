@@ -15,9 +15,9 @@ We create a toy example based on the Mordell-Weil group of an elliptic curve ove
     sage: pts = [E(4,-7,1), E(7/4, -11/8, 1), E(3, -2, 1)]
     sage: M = AdditiveAbelianGroupWrapper(pts[0].parent(), pts, [3, 2, 2])
     sage: M
-    Additive abelian group isomorphic to Z/2 + Z/6 embedded in Abelian group of
-    points on Elliptic Curve defined by y^2 + x*y + y = x^3 - 19*x + 26 over
-    Rational Field
+    Additive abelian group isomorphic to Z/3 + Z/2 + Z/2 embedded in Abelian
+    group of points on Elliptic Curve defined by y^2 + x*y + y = x^3 - 19*x + 26
+    over Rational Field
     sage: M.gens()
     ((4 : -7 : 1), (7/4 : -11/8 : 1), (3 : -2 : 1))
     sage: 3*M.0
@@ -265,6 +265,10 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: G(V([6,2]))
             (6, 2)
             sage: G([1,1])
+            doctest:...: DeprecationWarning: The default behaviour changed!
+             If you *really* want a linear combination of smith generators,
+             use .linear_combination_of_smith_form_gens.
+            See http://trac.sagemath.org/16261 for details.
             (6, 2)
             sage: G(G([1,1]))
             (6, 2)

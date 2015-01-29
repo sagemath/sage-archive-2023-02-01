@@ -148,7 +148,7 @@ These functions are available so that Python modules from Sage can call the
 Cython routines this module implements (as they can not directly call methods
 with C arguments).
 """
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 cimport cpython
 
 ##############################################################################

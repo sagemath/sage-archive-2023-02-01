@@ -13,6 +13,7 @@ of various groups not listed elsewhere.
 # docstring of groups/groups_catalog.py
 
 from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup as AdditiveAbelian
+from sage.groups.abelian_gps.abelian_group import AbelianGroup as MultiplicativeAbelian
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
 from sage.groups.free_group import FreeGroup as Free
 from sage.groups.braid import BraidGroup as Braid

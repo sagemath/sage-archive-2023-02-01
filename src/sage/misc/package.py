@@ -145,6 +145,15 @@ def install_package(package=None, force=False):
             import sage.env
             __installed_packages = sorted(os.listdir(sage.env.SAGE_SPKG_INST))
         return __installed_packages
+
+
+
+    import stopgap
+    stopgap.stopgap("The Sage function 'install_packages' is currently broken: it does not correctly install new packages. Please use 'sage -i {}' from a shell prompt instead.".format(package), 16759)
+    return
+
+
+
     # Get full package name / list of candidates:
     if force:
         # Also search packages already installed.

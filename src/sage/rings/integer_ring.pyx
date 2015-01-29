@@ -52,7 +52,6 @@ other types will also coerce to the integers, when it makes sense.
 ###########################################################################
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/random.pxi"
@@ -68,6 +67,7 @@ import sage.structure.factorization as factorization
 import sage.libs.pari.all
 import sage.rings.ideal
 from sage.categories.basic import EuclideanDomains
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
 
@@ -87,6 +87,13 @@ cdef void late_import():
         arith = sage.rings.arith
 
 cdef int number_of_integer_rings = 0
+
+# Used by IntegerRing_class._randomize_mpz():
+#   When the user requests an integer sampled from a
+#   DiscreteGaussianDistributionIntegerSampler with parameter sigma, we store the pair
+#   (sigma, sampler) here.  When the user requests an integer for the same
+#   sigma, we do not recreate the sampler but take it from this "cache".
+_prev_discrete_gaussian_integer_sampler = (None, None)
 
 def is_IntegerRing(x):
     r"""
@@ -124,13 +131,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sage: Z.is_field()
         False
         sage: Z.category()
-        Category of euclidean domains
+        Join of Category of euclidean domains
+            and Category of infinite enumerated sets
         sage: Z(2^(2^5) + 1)
         4294967297
 
     One can give strings to create integers. Strings starting with
     ``0x`` are interpreted as hexadecimal, and strings starting with
-    ``0`` are interpreted as octal::
+    ``0o`` are interpreted as octal::
 
         sage: parent('37')
         <type 'str'>
@@ -140,7 +148,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         16
         sage: Z('0x1a')
         26
-        sage: Z('020')
+        sage: Z('0o20')
         16
 
     As an inverse to :meth:`~sage.rings.integer.Integer.digits`,
@@ -294,8 +302,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: from sage.rings.integer_ring import IntegerRing_class
             sage: A = IntegerRing_class()
 
+        We check that ``ZZ`` is an infinite enumerated set
+        (see :trac:`16239`)::
+
+            sage: A in InfiniteEnumeratedSets()
+            True
         """
-        ParentWithGens.__init__(self, self, ('x',), normalize=False, category = EuclideanDomains())
+        ParentWithGens.__init__(self, self, ('x',), normalize=False,
+                                category=(EuclideanDomains(), InfiniteEnumeratedSets()))
         self._populate_coercion_lists_(element_constructor=integer.Integer,
                                        init_no_parent=True,
                                        convert_method_name='_integer_')
@@ -427,7 +441,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         cdef rational.Rational x = PY_NEW(rational.Rational)
         if mpz_sgn(right.value) == 0:
-            raise ZeroDivisionError, 'Rational division by zero'
+            raise ZeroDivisionError('Rational division by zero')
         mpz_set(mpq_numref(x.value), left.value)
         mpz_set(mpq_denref(x.value), right.value)
         mpq_canonicalize(x.value)
@@ -442,7 +456,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
             sage: ZZ[sqrt(2), sqrt(3)]
             Relative Order in Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
-            sage: ZZ[x]
+            sage: ZZ['x']
             Univariate Polynomial Ring in x over Integer Ring
             sage: ZZ['x,y']
             Multivariate Polynomial Ring in x, y over Integer Ring
@@ -565,7 +579,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef integer.Integer i
         i = PY_NEW(integer.Integer)
         sig_on()
-        ZZ_to_mpz(&i.value, z)
+        ZZ_to_mpz(i.value, z)
         sig_off()
         return i
 
@@ -662,6 +676,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             - ``'uniform'``
             - ``'mpz_rrandomb'``
             - ``'1/n'``
+            - ``'gaussian'``
 
         OUTPUT:
 
@@ -681,6 +696,16 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
           If the distribution ``'mpz_rrandomb'`` is specified, the output is
           in the range from 0 to `2^x - 1`.
+
+          If the distribution ``'gaussian'`` is specified, the output is
+          sampled from a discrete Gaussian distribution with parameter
+          `\sigma=x` and centered at zero. That is, the integer `v` is returned
+          with probability proportional to `\mathrm{exp}(-v^2/(2\sigma^2))`.
+          See :mod:`sage.stats.distributions.discrete_gaussian_integer` for
+          details.  Note that if many samples from the same discrete Gaussian
+          distribution are needed, it is faster to construct a
+          :class:`sage.stats.distributions.discrete_gaussian_integer.DiscreteGaussianDistributionIntegerSampler`
+          object which is then repeatedly queried.
 
         The default distribution for ``ZZ.random_element()`` is based on
         `X = \mbox{trunc}(4/(5R))`, where `R` is a random
@@ -742,6 +767,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
             sage: sorted(d.items())
             [(-1955, 1), (-1026, 1), (-357, 1), (-248, 1), (-145, 1), (-81, 1), (-80, 1), (-79, 1), (-75, 1), (-69, 1), (-68, 1), (-63, 2), (-61, 1), (-57, 1), (-50, 1), (-37, 1), (-35, 1), (-33, 1), (-29, 2), (-27, 1), (-25, 1), (-23, 2), (-22, 3), (-20, 1), (-19, 1), (-18, 1), (-16, 4), (-15, 3), (-14, 1), (-13, 2), (-12, 2), (-11, 2), (-10, 7), (-9, 3), (-8, 3), (-7, 7), (-6, 8), (-5, 13), (-4, 24), (-3, 34), (-2, 75), (-1, 206), (0, 208), (1, 189), (2, 63), (3, 35), (4, 13), (5, 11), (6, 10), (7, 4), (8, 3), (10, 1), (11, 1), (12, 1), (13, 1), (14, 1), (16, 3), (18, 2), (19, 1), (26, 2), (27, 1), (28, 2), (29, 1), (30, 1), (32, 1), (33, 2), (35, 1), (37, 1), (39, 1), (41, 1), (42, 1), (52, 1), (91, 1), (94, 1), (106, 1), (111, 1), (113, 2), (132, 1), (134, 1), (232, 1), (240, 1), (2133, 1), (3636, 1)]
+
+        We return a sample from a discrete Gaussian distribution::
+
+             sage: ZZ.random_element(11.0, distribution="gaussian")
+             5
+
         """
         cdef integer.Integer z
         z = <integer.Integer>PY_NEW(integer.Integer)
@@ -768,6 +799,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ.random_element() # indirect doctest # random
             6
         """
+        cdef integer.Integer r
         cdef integer.Integer n_max, n_min, n_width
         cdef randstate rstate = current_randstate()
         cdef int den = rstate.c_random()-SAGE_RAND_MAX/2
@@ -794,6 +826,16 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             if x is None:
                 raise ValueError("must specify x to use 'distribution=mpz_rrandomb'")
             mpz_rrandomb(value, rstate.gmp_state, int(x))
+        elif distribution == "gaussian":
+            global _prev_discrete_gaussian_integer_sampler
+            if x == _prev_discrete_gaussian_integer_sampler[0]:
+                r = _prev_discrete_gaussian_integer_sampler[1]()
+            else:
+                from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
+                D = DiscreteGaussianDistributionIntegerSampler(sigma=x, algorithm="uniform+logtable")
+                r = D()
+                _prev_discrete_gaussian_integer_sampler = (x, D)
+            mpz_set(value, r.value)
         else:
             raise ValueError, "Unknown distribution for the integers: %s"%distribution
 
@@ -1010,7 +1052,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             raise TypeError, "%s is neither an ideal of ZZ nor an integer"%prime
         if check and not p.is_prime():
             raise TypeError, "%s is not prime"%prime
-        from sage.rings.residue_field import ResidueField
+        from sage.rings.finite_rings.residue_field import ResidueField
         return ResidueField(p, names = None, check = check)
 
     def gens(self):
@@ -1238,8 +1280,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         EXAMPLES::
 
-            sage: magma(ZZ)           # optional - magma
-            Integer Ring              # indirect doctest
+            sage: magma(ZZ)           # indirect doctest, optional - magma
+            Integer Ring
         """
         return 'IntegerRing()'
 

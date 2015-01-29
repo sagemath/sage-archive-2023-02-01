@@ -217,6 +217,8 @@ class Converter(object):
             return self.relation(ex, operator)
         elif isinstance(operator, FDerivativeOperator):
             return self.derivative(ex, operator)
+        elif operator == tuple:
+            return self.tuple(ex)
         else:
             return self.composition(ex, operator)
 
@@ -399,7 +401,7 @@ class InterfaceInit(Converter):
             sage: m(sin(a))
             'sin((%pi)+(2))'
             sage: m(exp(x^2) + pi + 2)
-            '(%pi)+(exp((x)^(2)))+(2)'
+            '(%pi)+(exp((_SAGE_VAR_x)^(2)))+(2)'
 
         """
         self.name_init = "_%s_init_"%interface.name()
@@ -413,12 +415,18 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.symbol(x)
-            'x'
+            '_SAGE_VAR_x'
             sage: f(x) = x
             sage: m.symbol(f)
+            '_SAGE_VAR_x'
+            sage: ii = InterfaceInit(gp)
+            sage: ii.symbol(x)
             'x'
         """
-        return repr(SR(ex))
+        if self.interface.name()=='maxima':
+            return '_SAGE_VAR_'+repr(SR(ex))
+        else:
+            return repr(SR(ex))
 
     def pyobject(self, ex, obj):
         """
@@ -453,12 +461,26 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.relation(x==3, operator.eq)
-            'x = 3'
+            '_SAGE_VAR_x = 3'
             sage: m.relation(x==3, operator.lt)
-            'x < 3'
+            '_SAGE_VAR_x < 3'
         """
         return "%s %s %s"%(self(ex.lhs()), self.relation_symbols[operator],
                            self(ex.rhs()))
+
+    def tuple(self, ex):
+        """
+        EXAMPLES::
+
+            sage: from sage.symbolic.expression_conversions import InterfaceInit
+            sage: m = InterfaceInit(maxima)
+            sage: t = SR._force_pyobject((3, 4, e^x))
+            sage: m.tuple(t)
+            '[3,4,exp(_SAGE_VAR_x)]'
+        """
+        x = map(self, ex.operands())
+        X = ','.join(x)
+        return str(self.interface._left_list_delim()) + X + str(self.interface._right_list_delim())
 
     def derivative(self, ex, operator):
         """
@@ -470,10 +492,10 @@ class InterfaceInit(Converter):
             sage: a = f(x).diff(x); a
             D[0](f)(x)
             sage: print m.derivative(a, a.operator())
-            diff('f(x), x, 1)
+            diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 1)
             sage: b = f(x).diff(x, x)
             sage: print m.derivative(b, b.operator())
-            diff('f(x), x, 2)
+            diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 2)
 
         We can also convert expressions where the argument is not just a
         variable, but the result is an "at" expression using temporary
@@ -484,7 +506,72 @@ class InterfaceInit(Converter):
             sage: t
             D[0](f)(x*y)
             sage: m.derivative(t, t.operator())
-            "at(diff('f(t0), t0, 1), [t0 = x*y])"
+            "at(diff('f(_SAGE_VAR_t0), _SAGE_VAR_t0, 1), [_SAGE_VAR_t0 = (_SAGE_VAR_x)*(_SAGE_VAR_y)])"
+
+        TESTS:
+
+        Most of these confirm that :trac:`7401` was fixed::
+
+            sage: t = var('t'); f = function('f')(t)
+            sage: a = 2^e^t * f.subs(t=e^t) * diff(f, t).subs(t=e^t) + 2*t
+            sage: solve(a == 0, diff(f, t).subs(t=e^t))
+            [D[0](f)(e^t) == -2^(-e^t + 1)*t/f(e^t)]
+
+        ::
+
+            sage: f = function('f', x)
+            sage: df = f.diff(x); df
+            D[0](f)(x)
+            sage: maxima(df)
+            'diff('f(_SAGE_VAR_x),_SAGE_VAR_x,1)
+
+        ::
+
+            sage: a = df.subs(x=exp(x)); a
+            D[0](f)(e^x)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=%e^_SAGE_VAR_x])
+            sage: bool(b.sage() == a)
+            True
+
+        ::
+
+            sage: a = df.subs(x=4); a
+            D[0](f)(4)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4])
+            sage: bool(b.sage() == a)
+            True
+
+        It also works with more than one variable.  Note the preferred
+        syntax ``function('f')(x, y)`` to create a general symbolic
+        function of more than one variable::
+
+            sage: x, y = var('x y')
+            sage: f = function('f')(x, y)
+            sage: f_x = f.diff(x); f_x
+            D[0](f)(x, y)
+            sage: maxima(f_x)
+            'diff('f(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)
+
+        ::
+
+            sage: a = f_x.subs(x=4); a
+            D[0](f)(4, y)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=_SAGE_VAR_y])
+            sage: bool(b.sage() == a)
+            True
+
+        ::
+
+            sage: a = f_x.subs(x=4).subs(y=8); a
+            D[0](f)(4, 8)
+            sage: b = maxima(a); b
+            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=8])
+            sage: bool(b.sage() == a)
+            True
+
         """
         #This code should probably be moved into the interface
         #object in a nice way.
@@ -500,23 +587,21 @@ class InterfaceInit(Converter):
             # variable e.g. `t0` and then evaluate the derivative
             # f'(t0) symbolically at t0=1. See trac #12796.
             temp_args=[var("t%s"%i) for i in range(len(args))]
-            f = operator.function()
+            f = operator.function()(*temp_args)
             params = operator.parameter_set()
-            params = ["%s, %s"%(temp_args[i], params.count(i)) for i in set(params)]
-            subs = ["%s = %s"%(t,a) for t,a in zip(temp_args,args)]
-            return "at(diff('%s(%s), %s), [%s])"%(f.name(),
-                ", ".join(map(repr,temp_args)),
+            params = ["%s, %s"%(temp_args[i]._maxima_init_(), params.count(i)) for i in set(params)]
+            subs = ["%s = %s"%(t._maxima_init_(),a._maxima_init_()) for t,a in zip(temp_args,args)]
+            outstr = "at(diff(%s, %s), [%s])"%(f._maxima_init_(),
                 ", ".join(params),
-                ", ".join(subs))
-
-        f = operator.function()
-        params = operator.parameter_set()
-        params = ["%s, %s"%(args[i], params.count(i)) for i in set(params)]
-
-        return "diff('%s(%s), %s)"%(f.name(),
-                                    ", ".join(map(repr, args)),
-                                    ", ".join(params))
-
+                ", ".join(subs))            
+        else:
+            f = operator.function()(*args)
+            params = operator.parameter_set()
+            params = ["%s, %s"%(args[i]._maxima_init_(), params.count(i)) for i in set(params)]
+            outstr = "diff(%s, %s)"%(f._maxima_init_(),
+                                        ", ".join(params))
+        return outstr
+    
     def arithmetic(self, ex, operator):
         """
         EXAMPLES::
@@ -525,7 +610,7 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.arithmetic(x+2, operator.add)
-            '(x)+(2)'
+            '(_SAGE_VAR_x)+(2)'
         """
         args = ["(%s)"%self(op) for op in ex.operands()]
         return arithmetic_operators[operator].join(args)
@@ -537,9 +622,9 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.composition(sin(x), sin)
-            'sin(x)'
+            'sin(_SAGE_VAR_x)'
             sage: m.composition(ceil(x), ceil)
-            'ceiling(x)'
+            'ceiling(_SAGE_VAR_x)'
 
             sage: m = InterfaceInit(mathematica)
             sage: m.composition(sin(x), sin)
@@ -928,8 +1013,17 @@ class PolynomialConverter(Converter):
             x
             sage: _.parent()
             Univariate Polynomial Ring in x over Rational Field
+            sage: y = var('y')
+            sage: p = PolynomialConverter(x*y, ring=SR['x'])
+            sage: p.symbol(y)
+            y
         """
-        return self.ring(repr(ex))
+        try:
+            #The symbol is one of the polynomial generators
+            return self.ring(repr(ex))
+        except TypeError:
+            #The symbol should go into the base ring
+            return self.base_ring(repr(ex))
 
     def pyobject(self, ex, obj):
         """
@@ -1052,7 +1146,10 @@ def polynomial(ex, base_ring=None, ring=None):
          sage: _.parent()
          Univariate Polynomial Ring in t over Symbolic Ring
 
-         sage: polynomial(y - sqrt(x), ring=SR[y])
+         sage: polynomial(x*y, ring=SR['x'])
+         y*x
+
+         sage: polynomial(y - sqrt(x), ring=SR['y'])
          y - sqrt(x)
          sage: _.list()
          [-sqrt(x), 1]
@@ -1310,7 +1407,7 @@ class FastCallableConverter(Converter):
             pi
             sage: etb = ExpressionTreeBuilder(vars=['x'], domain=RDF)
             sage: pi._fast_callable_(etb)
-            3.14159265359
+            3.141592653589793
         """
         from sage.symbolic.constants import Constant
         if isinstance(obj, Constant):
@@ -1361,6 +1458,7 @@ class FastCallableConverter(Converter):
             sage: (x^7)._fast_callable_(etb)
             ipow(v_0, 7)
             sage: f(x)=1/pi/x; plot(f,2,3)
+            Graphics object consisting of 1 graphics primitive
         """
         # This used to convert the operands first.  Doing it this way
         # instead gives a chance to notice powers with an integer
@@ -1419,6 +1517,18 @@ class FastCallableConverter(Converter):
         """
         return self.etb.call(function, *ex.operands())
 
+    def tuple(self, ex):
+        r"""
+        Given a symbolic tuple, return its elements as a Python list.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x'])
+            sage: SR._force_pyobject((2, 3, x^2))._fast_callable_(etb)
+            [2, 3, x^2]
+        """
+        return ex.operands()
 
 def fast_callable(ex, etb):
     """

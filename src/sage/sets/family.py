@@ -547,6 +547,34 @@ class FiniteFamily(AbstractFamily):
             self.keys   = dictionary.keys
             self.values = dictionary.values
 
+    @cached_method
+    def __hash__(self):
+        """
+        Return a hash value for ``self``.
+
+        EXAMPLES::
+
+            sage: f = Family(["c", "a", "b"], lambda x: x+x)
+            sage: hash(f) == hash(f)
+            True
+            sage: f2 = Family(["a", "c", "b"], lambda x: x+x)
+            sage: hash(f) == hash(f2)
+            True
+            sage: g = Family(["b", "c", "a"], lambda x: x+x+x)
+            sage: hash(f) == hash(g)
+            False
+
+        ::
+
+            sage: f = Family({1:[1,2]})
+            sage: hash(f) == hash(f)
+            True
+        """
+        try:
+            return hash(frozenset(self._dictionary.items()))
+        except (TypeError, ValueError):
+            return hash(frozenset(list(self.keys()) + map(repr, self.values())))
+
     def keys(self):
         """
         Returns the index set of this family
@@ -697,7 +725,7 @@ class FiniteFamily(AbstractFamily):
             sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a'})
             sage: f.__getstate__()
-            {'keys': None, 'dictionary': {3: 'a'}}
+            {'dictionary': {3: 'a'}, 'keys': None}
         """
         return {'dictionary': self._dictionary, 'keys': self._keys}
 
@@ -856,6 +884,39 @@ class LazyFamily(AbstractFamily):
         self.set = copy(set)
         self.function = function
         self.function_name = name
+
+    @cached_method
+    def __hash__(self):
+        """
+        Return a hash value for ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.sets.family import LazyFamily
+            sage: f = LazyFamily([3,4,7], lambda i: 2*i)
+            sage: hash(f) == hash(f)
+            True
+            sage: g = LazyFamily(ZZ, lambda i: 2*i)
+            sage: hash(g) == hash(g)
+            True
+            sage: h = LazyFamily(ZZ, lambda i: 2*i, name='foo')
+            sage: hash(h) == hash(h)
+            True
+
+        ::
+
+            sage: class X(object):
+            ....:     def __call__(self, x):
+            ....:         return x
+            ....:     __hash__ = None
+            sage: f = Family([1,2,3], X())
+            sage: hash(f) == hash(f)
+            True
+        """
+        try:
+            return hash(self.keys()) + hash(self.function)
+        except (TypeError, ValueError):
+            return super(LazyFamily, self).__hash__()
 
     def __eq__(self, other):
         """
@@ -1072,6 +1133,19 @@ class TrivialFamily(AbstractFamily):
         """
         return (isinstance(other, self.__class__) and
                 self._enumeration == other._enumeration)
+
+    def __hash__(self):
+        """
+        Return a hash value for ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.sets.family import TrivialFamily
+            sage: f = TrivialFamily((3,4,7))
+            sage: hash(f) == hash(f)
+            True
+        """
+        return hash(self._enumeration)
 
     def _repr_(self):
         """

@@ -21,6 +21,7 @@ from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.with_realizations import WithRealizationsCategory
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.element import generic_power
 
 class Monoids(CategoryWithAxiom):
@@ -46,7 +47,7 @@ class Monoids(CategoryWithAxiom):
          Category of objects]
 
         sage: Monoids().axioms()
-        frozenset(['Associative', 'Unital'])
+        frozenset({'Associative', 'Unital'})
         sage: Semigroups().Unital()
         Category of monoids
 
@@ -65,6 +66,48 @@ class Monoids(CategoryWithAxiom):
     Finite = LazyImport('sage.categories.finite_monoids', 'FiniteMonoids', at_startup=True)
     Inverse = LazyImport('sage.categories.groups', 'Groups', at_startup=True)
 
+    @staticmethod
+    def free(index_set=None, names=None, **kwds):
+        r"""
+        Return a free monoid on `n` generators or with the generators
+        indexed by a set `I`.
+
+        A free monoid is constructed by specifing either:
+
+        - the number of generators and/or the names of the generators
+        - the indexing set for the generators
+
+        INPUT:
+
+        - ``index_set`` -- (optional) an index set for the generators; if
+          an integer, then this represents `\{0, 1, \ldots, n-1\}`
+
+        - ``names`` -- a string or list/tuple/iterable of strings
+          (default: ``'x'``); the generator names or name prefix
+
+        EXAMPLES::
+
+            sage: Monoids.free(index_set=ZZ)
+            Free monoid indexed by Integer Ring
+            sage: Monoids().free(ZZ)
+            Free monoid indexed by Integer Ring
+            sage: F.<x,y,z> = Monoids().free(); F
+            Free monoid indexed by {'x', 'y', 'z'}
+        """
+        if names is not None:
+            if isinstance(names, str):
+                from sage.rings.all import ZZ
+                if ',' not in names and index_set in ZZ:
+                    names = [names + repr(i) for i in range(index_set)]
+                else:
+                    names = names.split(',')
+            names = tuple(names)
+            if index_set is None:
+                index_set = names
+
+        from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
+        return IndexedFreeMonoid(index_set, names=names, **kwds)
+
     class ParentMethods:
 
         def one_element(self):
@@ -79,6 +122,26 @@ class Monoids(CategoryWithAxiom):
 
             """
             return self.one()
+
+        def semigroup_generators(self):
+            """
+            Return the generators of ``self`` as a semigroup.
+
+            The generators of a monoid `M` as a semigroup are the generators
+            of `M` as a monoid and the unit.
+
+            EXAMPLES::
+
+                sage: M = Monoids().free([1,2,3])
+                sage: M.semigroup_generators()
+                Family (1, F[1], F[2], F[3])
+            """
+            G = self.monoid_generators()
+            from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+            if G not in FiniteEnumeratedSets():
+                raise NotImplementedError("currently only implemented for finitely generated monoids")
+            from sage.sets.family import Family
+            return Family((self.one(),) + tuple(G))
 
         def prod(self, args):
             r"""
@@ -194,6 +257,78 @@ class Monoids(CategoryWithAxiom):
                 result *= self
             return result
 
+        def powers(self, n):
+            r"""
+            Return the list `[x^0, x^1, \ldots, x^{n-1}]`.
+
+            EXAMPLES::
+
+                sage: A = Matrix([[1, 1], [-1, 0]])
+                sage: A.powers(6)
+                [
+                [1 0]  [ 1  1]  [ 0  1]  [-1  0]  [-1 -1]  [ 0 -1]
+                [0 1], [-1  0], [-1 -1], [ 0 -1], [ 1  0], [ 1  1]
+                ]
+            """
+            if n < 0:
+                raise ValueError("negative number of powers requested")
+            elif n == 0:
+                return []
+            x = self.parent().one_element()
+            l = [x]
+            for i in xrange(n - 1):
+                x = x * self
+                l.append(x)
+            return l
+
+    class Commutative(CategoryWithAxiom):
+        """
+        Category of commutative (abelian) monoids.
+
+        A monoid `M` is *commutative* if `xy = yx` for all `x,y \in M`.
+        """
+        @staticmethod
+        def free(index_set=None, names=None, **kwds):
+            r"""
+            Return a free abelian monoid on `n` generators or with
+            the generators indexed by a set `I`.
+
+            A free monoid is constructed by specifing either:
+
+            - the number of generators and/or the names of the generators, or
+            - the indexing set for the generators.
+
+            INPUT:
+
+            - ``index_set`` -- (optional) an index set for the generators; if
+              an integer, then this represents `\{0, 1, \ldots, n-1\}`
+
+            - ``names`` -- a string or list/tuple/iterable of strings
+              (default: ``'x'``); the generator names or name prefix
+
+            EXAMPLES::
+
+                sage: Monoids.Commutative.free(index_set=ZZ)
+                Free abelian monoid indexed by Integer Ring
+                sage: Monoids().Commutative().free(ZZ)
+                Free abelian monoid indexed by Integer Ring
+                sage: F.<x,y,z> = Monoids().Commutative().free(); F
+                Free abelian monoid indexed by {'x', 'y', 'z'}
+            """
+            if names is not None:
+                if isinstance(names, str):
+                    from sage.rings.all import ZZ
+                    if ',' not in names and index_set in ZZ:
+                        names = [names + repr(i) for i in range(index_set)]
+                    else:
+                        names = names.split(',')
+                names = tuple(names)
+                if index_set is None:
+                    index_set = names
+
+            from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
+            return IndexedFreeAbelianMonoid(index_set, names=names, **kwds)
+
     class WithRealizations(WithRealizationsCategory):
 
         class ParentMethods:
@@ -296,4 +431,73 @@ class Monoids(CategoryWithAxiom):
                 """
                 return all([i*self == self*i for i in self.parent().algebra_generators()])
 
+    class CartesianProducts(CartesianProductsCategory):
+        """
+        The category of monoids constructed as cartesian products of monoids.
+
+        This construction gives the direct product of monoids. See
+        :wikipedia:`Direct_product` for more information.
+        """
+        def extra_super_categories(self):
+            """
+            A cartesian product of monoids is endowed with a natural
+            group structure.
+
+            EXAMPLES::
+
+                sage: C = Monoids().CartesianProducts()
+                sage: C.extra_super_categories()
+                [Category of monoids]
+                sage: sorted(C.super_categories(), key=str)
+                [Category of Cartesian products of semigroups,
+                 Category of Cartesian products of unital magmas,
+                 Category of monoids]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+            @cached_method
+            def monoid_generators(self):
+                """
+                Return the generators of ``self``.
+
+                EXAMPLES::
+
+                    sage: M = Monoids.free([1,2,3])
+                    sage: N = Monoids.free(['a','b'])
+                    sage: C = cartesian_product([M, N])
+                    sage: C.monoid_generators()
+                    Family ((F[1], 1), (F[2], 1), (F[3], 1),
+                            (1, F['a']), (1, F['b']))
+
+                An example with an infinitely generated group (a better output
+                is needed)::
+
+                    sage: N = Monoids.free(ZZ)
+                    sage: C = cartesian_product([M, N])
+                    sage: C.monoid_generators()
+                    Lazy family (gen(i))_{i in The cartesian product of (...)}
+                """
+                F = self.cartesian_factors()
+                ids = tuple(M.one() for M in F)
+                def lift(i, gen):
+                    cur = list(ids)
+                    cur[i] = gen
+                    return self._cartesian_product_of_elements(cur)
+                from sage.sets.family import Family
+
+                # Finitely generated
+                cat = FiniteEnumeratedSets()
+                if all(M.monoid_generators() in cat
+                       or isinstance(M.monoid_generators(), (tuple, list)) for M in F):
+                    ret = [lift(i, gen) for i,M in enumerate(F) for gen in M.monoid_generators()]
+                    return Family(ret)
+
+                # Infinitely generated
+                # This does not return a good output, but it is "correct"
+                # TODO: Figure out a better way to do things
+                gens_prod = cartesian_product([Family(M.monoid_generators(),
+                                                      lambda g: (i, g))
+                                               for i,M in enumerate(F)])
+                return Family(gens_prod, lift, name="gen")
 

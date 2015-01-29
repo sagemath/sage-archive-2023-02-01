@@ -26,7 +26,7 @@ EXAMPLES::
     sage: b[0,0]
     1
     sage: c.dict()
-    {(0, 1): x, (1, 2): x^5, (0, 0): 5, (1, 0): x^3, (0, 2): x^2, (1, 1): x^4}
+    {(0, 0): 5, (0, 1): x, (0, 2): x^2, (1, 0): x^3, (1, 1): x^4, (1, 2): x^5}
     sage: c.list()
     [5, x, x^2, x^3, x^4, x^5]
     sage: c.rows()
@@ -127,7 +127,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
                 for k, x in entries.iteritems():
                     w = R(x)
                     if w != 0:
-                        v[k] = w
+                        i, j = k
+                        v[(int(i),int(j))] = w
                 entries = v
             except TypeError:
                 raise TypeError, "Unable to coerce entries to %s"%R

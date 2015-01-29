@@ -139,19 +139,20 @@ cdef class FP_LLL:
             ValueError: fpLLL cannot handle matrices with zero rows.
 
         """
-        cdef int i,j
-
-        cdef Z_NR[mpz_t] t
+        cdef unsigned long i,j
 
         if A._nrows == 0:
             raise ValueError('fpLLL cannot handle matrices with zero rows.')
 
         self._lattice = new ZZ_mat[mpz_t](A._nrows,A._ncols)
-
-        for i in range(A._nrows):
-            for j in range(A._ncols):
-                t.set(A._matrix[i][j])
-                self._lattice[0][i][j] = t
+        cdef mpz_t tmp
+        mpz_init(tmp)
+        for i from 0 <= i < A._nrows:
+            for j from 0 <= j < A._ncols:
+                A.get_unsafe_mpz(i,j,tmp)
+                # mpz_set(self._lattice[0][i][j],tmp)
+                self._lattice[0][i][j].set(tmp)
+        mpz_clear(tmp)
 
     def __dealloc__(self):
         """
@@ -487,6 +488,16 @@ cdef class FP_LLL:
             sage: F._sage_()[0].norm().n()
             6.164...
 
+
+            sage: from sage.libs.fplll.fplll import FP_LLL
+            sage: A = sage.crypto.gen_lattice(type='random', n=1, m=60, q=2^90, seed=42)
+            sage: F = FP_LLL(A)
+            sage: F.BKZ(10, max_loops=10, verbose=True)
+            ====== Wrapper: calling fast<mpz_t,double> method ======
+            ...
+            loops limit exceeded in BKZ
+            sage: F._sage_()[0].norm().n()
+            6.480...
         """
         if block_size <= 0:
             raise ValueError("block size must be > 0")
@@ -526,7 +537,12 @@ cdef class FP_LLL:
         cdef int r = bkzReduction(o)
         sig_off()
         if r:
-            raise RuntimeError( str(getRedStatusStr(r)) )
+            if r in (RED_BKZ_LOOPS_LIMIT, RED_BKZ_TIME_LIMIT):
+                if verbose:
+                    print str(getRedStatusStr(r))
+            else:
+                raise RuntimeError( str(getRedStatusStr(r)) )
+
 
     def HKZ(self):
         """
@@ -1441,12 +1457,10 @@ cdef to_sage(ZZ_mat[mpz_t] *A):
     - ``A`` -- ZZ_mat
     """
     cdef int i,j
-    cdef mpz_t *t
 
     cdef Matrix_integer_dense B = <Matrix_integer_dense>matrix(ZZ, A.getRows(), A.getCols())
 
     for i from 0 <= i < A.getRows():
         for j from 0 <= j < A.getCols():
-            t = &B._matrix[i][j]
-            mpz_set(t[0], A[0][i][j].getData())
+            B.set_unsafe_mpz(i,j,A[0][i][j].getData())
     return B

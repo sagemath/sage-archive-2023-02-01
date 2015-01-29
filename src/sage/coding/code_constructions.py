@@ -776,8 +776,8 @@ def DuadicCodeEvenPair(F,S1,S2):
     g2 = prod([x-zeta**i for i in S2+[0]])
     P2 = PolynomialRing(F,"x")
     x = P2.gen()
-    gg1 = P2([lift2smallest_field(c)[0] for c in g1.coeffs()])
-    gg2 = P2([lift2smallest_field(c)[0] for c in g2.coeffs()])
+    gg1 = P2([lift2smallest_field(c)[0] for c in g1.coefficients(sparse=False)])
+    gg2 = P2([lift2smallest_field(c)[0] for c in g2.coefficients(sparse=False)])
     C1 = CyclicCodeFromGeneratingPolynomial(n,gg1)
     C2 = CyclicCodeFromGeneratingPolynomial(n,gg2)
     return C1,C2
@@ -823,8 +823,8 @@ def DuadicCodeOddPair(F,S1,S2):
     j = sum([x**i/n for i in range(n)])
     P2 = PolynomialRing(F,"x")
     x = P2.gen()
-    coeffs1 = [lift2smallest_field(c)[0] for c in (g1+j).coeffs()]
-    coeffs2 = [lift2smallest_field(c)[0] for c in (g2+j).coeffs()]
+    coeffs1 = [lift2smallest_field(c)[0] for c in (g1+j).coefficients(sparse=False)]
+    coeffs2 = [lift2smallest_field(c)[0] for c in (g2+j).coefficients(sparse=False)]
     gg1 = P2(coeffs1)
     gg2 = P2(coeffs2)
     C1 = CyclicCodeFromGeneratingPolynomial(n,gg1)
@@ -980,7 +980,7 @@ def HammingCode(r,F):
     ``HammingCode`` is still available in the global namespace::
 
         sage: HammingCode(3,GF(2))
-        doctest:1: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.HammingCode
+        doctest:...: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.HammingCode
         See http://trac.sagemath.org/15445 for details.
         Linear code of length 7, dimension 4 over Finite Field of size 2
 
@@ -1296,7 +1296,7 @@ def ReedSolomonCode(n,k,F,pts = None):
     ``ReedSolomonCode`` is still available in the global namespace::
 
         sage: ReedSolomonCode(6,4,GF(7))
-        doctest:1: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.ReedSolomonCode
+        doctest:...: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.ReedSolomonCode
         See http://trac.sagemath.org/15445 for details.
         Linear code of length 6, dimension 4 over Finite Field of size 7
 

@@ -159,7 +159,7 @@ cdef class ntl_ZZ:
         Agrees with the hash of the corresponding sage integer.
         """
         cdef Integer v = PY_NEW(Integer)
-        ZZ_to_mpz(&v.value, &self.x)
+        ZZ_to_mpz(v.value, &self.x)
         return v.hash_c()
 
     def __mul__(self, other):
@@ -285,7 +285,7 @@ cdef class ntl_ZZ:
         AUTHOR: Joel B. Mohler
         """
         cdef Integer ans = PY_NEW(Integer)
-        ZZ_to_mpz(&ans.value, &self.x)
+        ZZ_to_mpz(ans.value, &self.x)
         return ans
         #return (<IntegerRing_class>ZZ_sage)._coerce_ZZ(&self.x)
 

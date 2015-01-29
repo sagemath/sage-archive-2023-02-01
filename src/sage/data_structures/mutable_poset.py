@@ -753,7 +753,9 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
         return covers
 
 
-    def _iter_depth_first_visit_(self, marked, reverse=False, key=None):
+    def _iter_depth_first_visit_(self, marked,
+                                 reverse=False, key=None,
+                                 condition=None):
         r"""
         Helper function for :meth:`iter_depth_first`.
 
@@ -769,6 +771,12 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
           the direct successors of a shell (used in case of a
           tie). If this is ``None``, no sorting occurs.
 
+        - ``condition`` -- (default: ``None``) a function mapping a
+          shell to ``True`` (include in iteration) or ``False`` (do
+          not include). ``None`` is equivalent to a function returning
+          always ``True``. Note that the iteration does not go beyond a
+          not shell included shell.
+
         OUTPUT:
 
         An iterator.
@@ -783,6 +791,9 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             sage: list(P.oo._iter_depth_first_visit_(marked, True))
             [oo, 42, 5, null]
         """
+        if (condition is not None and
+            not self.is_special() and not condition(self)):
+            return
         if self in marked:
             return
         marked.add(self)
@@ -791,11 +802,12 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
         if key is not None:
             S = sorted(S, key=key)
         for shell in S:
-            for e in shell._iter_depth_first_visit_(marked, reverse, key):
+            for e in shell._iter_depth_first_visit_(marked, reverse,
+                                                    key, condition):
                 yield e
 
 
-    def iter_depth_first(self, reverse=False, key=None):
+    def iter_depth_first(self, reverse=False, key=None, condition=None):
         r"""
         Iterates over all shells in depth first order.
 
@@ -808,6 +820,12 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
           tie). If this is ``None``, no sorting occurs.
+
+        - ``condition`` -- (default: ``None``) a function mapping a
+          shell to ``True`` (include in iteration) or ``False`` (do
+          not include). ``None`` is equivalent to a function returning
+          always ``True``. Note that the iteration does not go beyond a
+          not shell included shell.
 
         OUTPUT:
 
@@ -834,12 +852,17 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             [null, (1, 1), (1, 2), (1, 3), (4, 4), oo, (2, 2), (2, 1)]
             sage: list(P.oo.iter_depth_first(reverse=True, key=repr))
             [oo, (4, 4), (1, 3), (1, 2), (1, 1), null, (2, 2), (2, 1)]
+            sage: list(P.null.iter_depth_first(
+            ....:     condition=lambda s: s.element[0] == 1))
+            [null, (1, 1), (1, 2), (1, 3)]
         """
         marked = set()
-        return self._iter_depth_first_visit_(marked, reverse, key)
+        return self._iter_depth_first_visit_(marked, reverse, key, condition)
 
 
-    def _iter_topological_visit_(self, marked, reverse=False, key=None):
+    def _iter_topological_visit_(self, marked,
+                                 reverse=False, key=None,
+                                 condition=None):
         r"""
         Helper function for :meth:`iter_topological`.
 
@@ -855,6 +878,12 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
           the direct successors of a shell (used in case of a
           tie). If this is ``None``, no sorting occurs.
 
+        - ``condition`` -- (default: ``None``) a function mapping a
+          shell to ``True`` (include in iteration) or ``False`` (do
+          not include). ``None`` is equivalent to a function returning
+          always ``True``. Note that the iteration does not go beyond a
+          not shell included shell.
+
         OUTPUT:
 
         An iterator.
@@ -869,6 +898,9 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             sage: list(P.null._iter_topological_visit_(marked, True))
             [oo, 42, 5, null]
         """
+        if (condition is not None and
+            not self.is_special() and not condition(self)):
+            return
         if self in marked:
             return
         marked.add(self)
@@ -876,12 +908,13 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
         if key is not None:
             S = sorted(S, key=key)
         for shell in S:
-            for e in shell._iter_topological_visit_(marked, reverse, key):
+            for e in shell._iter_topological_visit_(marked, reverse,
+                                                    key, condition):
                 yield e
         yield self
 
 
-    def iter_topological(self, reverse=False, key=None):
+    def iter_topological(self, reverse=False, key=None, condition=None):
         r"""
         Iterates over all shells in topological order.
 
@@ -894,6 +927,12 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
           tie). If this is ``None``, no sorting occurs.
+
+        - ``condition`` -- (default: ``None``) a function mapping a
+          shell to ``True`` (include in iteration) or ``False`` (do
+          not include). ``None`` is equivalent to a function returning
+          always ``True``. Note that the iteration does not go beyond a
+          not shell included shell.
 
         OUTPUT:
 
@@ -973,9 +1012,17 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             [null, (1, 1)]
             null
             [null]
+
+        ::
+
+            sage: def C(shell):
+            ....:     return shell.element[0] == 1
+            sage: list(P.null.iter_topological(
+            ....:     reverse=True, condition=lambda s: s.element[0] == 1))
+            [(1, 3), (1, 2), (1, 1), null]
         """
         marked = set()
-        return self._iter_topological_visit_(marked, reverse, key)
+        return self._iter_topological_visit_(marked, reverse, key, condition)
 
 
 # *****************************************************************************

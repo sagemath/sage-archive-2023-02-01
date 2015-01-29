@@ -467,10 +467,15 @@ def point2d(points, **options):
         pass
     else:
         try:
-            if not points:
-                return Graphics()
-        except ValueError: # numpy raises a ValueError if not empty
-            pass
+            l = len(points)
+        except TypeError:
+            # argument is an iterator
+            points = list(points)
+            l = len(points)
+
+        if l == 0:
+            return Graphics()
+
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

@@ -1089,7 +1089,8 @@ def point3d(v, size=5, **kwds):
         l = len(v)
     except TypeError:
         # argument is an iterator
-        l = None
+        v = list(v)
+        l = len(v)
 
     if l == 0:
         from sage.plot.plot3d.base import Graphics3d

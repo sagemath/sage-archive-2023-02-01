@@ -42,7 +42,7 @@ AUTHORS:
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset        import Hom
 from sage.functions.all            import sqrt
-from sage.libs.pari.gen            import PariError
+from sage.libs.pari.all            import PariError
 from sage.matrix.constructor       import matrix, identity_matrix
 from sage.misc.cachefunc           import cached_method
 from sage.misc.misc                import subsets

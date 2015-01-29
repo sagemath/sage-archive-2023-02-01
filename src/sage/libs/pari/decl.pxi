@@ -164,7 +164,8 @@ cdef extern from 'parisage.h':
     extern int INIT_JMPm, INIT_SIGm, INIT_DFTm
     extern int new_galois_format, precdl
     # The "except 0" here is to ensure compatibility with
-    # _pari_handle_exception() in handle_error.pyx
+    # _pari_err_handle() in handle_error.pyx
+    extern int (*cb_pari_err_handle)(GEN) except 0
     extern int (*cb_pari_handle_exception)(long) except 0
     extern void (*cb_pari_err_recover)(long)
 
@@ -3756,3 +3757,6 @@ cdef extern from 'pari/paripriv.h':
         unsigned long flags
     
     extern gp_data* GP_DATA
+
+cdef extern from 'pari/anal.h':
+    char* closure_func_err()

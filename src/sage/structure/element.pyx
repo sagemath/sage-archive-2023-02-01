@@ -76,7 +76,7 @@ followed by both arithmetic implementers and callers.
 A quick summary for the impatient:
 
 - To implement addition for any Element class, override ``def _add_()``.
-- If you want to add ``x`` and ``y``, whose parents you know are IDENTICAL,
+- If you want to add ``x`` and ``y``, whose parents you know are **identical**,
   you may call ``_add_(x, y)``. This will be the fastest way to guarantee
   that the correct implementation gets called. Of course you can still
   always use ``x + y``.
@@ -2296,7 +2296,7 @@ cdef class CommutativeRingElement(RingElement):
 
         -  ``all`` - Whether to return a list of all square roots or just a square root (default: False)
 
-        -  ``name`` - Required when extend=``True`` and ``self`` is not a square. This will be the name of the generator extension.
+        -  ``name`` - Required when ``extend=True`` and ``self`` is not a square. This will be the name of the generator extension.
 
         OUTPUT:
 

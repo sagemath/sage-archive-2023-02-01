@@ -6774,9 +6774,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return False
             return f.is_cyclotomic()
 
-        if not self.is_irreducible():
-            return False
-
         if not self.is_monic():
             return False
 
@@ -6785,9 +6782,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if (self == gen - 1):  # the first cyc. pol. is treated apart
             return True
 
-        coefs = self.coefficients(sparse=False)
-        if coefs[0] != 1:
+        if self.constant_coefficient() != 1:
             return False
+
+        if not self.is_irreducible():
+            return False
+
+        coefs = self.coefficients(sparse=False)
 
         # construct the odd and even part of self
         po_odd = sum(coefs[i]*(gen**((i-1)/2)) for i in xrange(1,len(coefs),2))

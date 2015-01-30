@@ -152,7 +152,7 @@ class Cusps_class(ParentWithBase):
             return self._coerce_try(x, QQ)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero cusp.
 
@@ -163,11 +163,26 @@ class Cusps_class(ParentWithBase):
 
         EXAMPLE::
 
-            sage: Cusps.zero_element()
+            sage: Cusps.zero()
             0
 
         """
         return Cusp(0, parent=self)
+
+    def zero_element(self):
+        r"""
+        Deprecated. Use .zero() instead.
+
+        TESTS::
+
+            sage: Cusps.zero_element()
+            doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead.
+            See http://trac.sagemath.org/17694 for details.
+            0
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(17694, ".zero_element() is deprecated. Use .zero() instead.")
+        return self.zero()
 
 Cusps = Cusps_class()
 
@@ -678,8 +693,8 @@ class Cusp(Element):
         u2 = other.__a
         v2 = other.__b
 
-        zero = ZZ.zero_element()
-        one = ZZ.one_element()
+        zero = ZZ.zero()
+        one = ZZ.one()
 
         if transformation == "matrix":
             from sage.matrix.constructor import matrix

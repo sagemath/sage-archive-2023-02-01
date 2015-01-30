@@ -199,17 +199,33 @@ class WeightSpace_class(ParentWithBase):
             return ArbitraryWeight(self, arg1, arg2)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero of this weight space.
 
         EXAMPLES::
 
             sage: W = pAdicWeightSpace(17)
-            sage: W.zero_element()
+            sage: W.zero()
             0
         """
         return self(0)
+
+    def zero_element(self):
+        r"""
+        Deprecated. Use :meth:`zero` instead.
+
+        TESTS::
+
+            sage: W = pAdicWeightSpace(17)
+            sage: W.zero_element()
+            doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead.
+            See http://trac.sagemath.org/17694 for details.
+            0
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(17694, ".zero_element() is deprecated. Use .zero() instead.")
+        return self.zero()
 
     def prime(self):
         r"""

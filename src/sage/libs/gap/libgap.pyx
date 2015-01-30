@@ -567,7 +567,7 @@ class Gap(Parent):
         """
         return self(0)
 
-    def zero_element(self):
+    def zero(self):
         """
         Return (integer) zero in GAP.
 
@@ -577,11 +577,26 @@ class Gap(Parent):
 
         EXAMPLES::
 
-            sage: libgap.zero_element()
+            sage: libgap.zero()
             0
         """
         return self(0)
 
+    def zero_element(self):
+        r"""
+        Derecated. Use :meth:`zero` instead.
+
+        TESTS::
+
+            sage: libgap.zero_element()
+            doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead.
+            See http://trac.sagemath.org/17694 for details.
+            0
+
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(17694, ".zero_element() is deprecated. Use .zero() instead.")
+        return self.zero()
 
     def __init__(self):
         r"""

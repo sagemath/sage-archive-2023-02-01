@@ -121,7 +121,6 @@ class LazyPowerSeriesRing(Algebra):
         """
         return self(x)
 
-
     def __call__(self, x=None, order=unk):
         """
         EXAMPLES::
@@ -203,17 +202,17 @@ class LazyPowerSeriesRing(Algebra):
 
         raise TypeError("do not know how to coerce %s into self"%x)
 
-    def zero_element(self):
+    def zero(self):
         """
         Returns the zero power series.
 
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: L.zero_element()
+            sage: L.zero()
             0
         """
-        return self(self.base_ring()(0))
+        return self(self.base_ring().zero())
 
     def identity_element(self):
         """
@@ -486,7 +485,7 @@ class LazyPowerSeries(AlgebraElement):
             self.order = inf
         self.aorder_changed = aorder_changed
         self.is_initialized = is_initialized
-        self._zero = A.base_ring().zero_element()
+        self._zero = A.base_ring().zero()
         self._name = name
 
     def compute_aorder(*args, **kwargs):

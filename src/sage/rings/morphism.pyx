@@ -625,7 +625,7 @@ cdef class RingHomomorphism(RingMap):
             sage: bool(ZZ.hom(R1, [1]))
             False
         """
-        return bool(self.codomain().one_element())
+        return bool(self.codomain().one())
 
     def _repr_type(self):
         """

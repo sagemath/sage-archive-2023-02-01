@@ -725,17 +725,33 @@ class OverconvergentModularFormsSpace(Module_old):
             raise TypeError("Don't know how to create an overconvergent modular form from %s" % input)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero of this space.
 
         EXAMPLE::
 
             sage: K.<w> = Qp(13).extension(x^2-13); M = OverconvergentModularForms(13, 20, radius=1/2, base_ring=K)
-            sage: K.zero_element()
+            sage: K.zero()
             0
         """
         return self(0)
+
+    def zero_element(self):
+        r"""
+        Deprecated. Use :meth:`zero` instead.
+
+        TESTS::
+
+            sage: K.<w> = Qp(13).extension(x^2-13); M = OverconvergentModularForms(13, 20, radius=1/2, base_ring=K)
+            sage: K.zero_element()
+            doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead
+            See http://trac.sagemath.org/17694 for details.
+            0
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(17694, ".zero_element() is deprecated. Use .zero() instead")
+        return self.zero()
 
     def _coerce_from_ocmf(self, f):
         r"""

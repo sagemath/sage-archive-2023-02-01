@@ -246,7 +246,7 @@ def ChainComplex(data=None, **kwds):
         try:
             zero = grading_group.identity()
         except AttributeError:
-            zero = grading_group.zero_element()
+            zero = grading_group.zero()
         if base_ring is None:
             base_ring = ZZ
         data_dict = dict()

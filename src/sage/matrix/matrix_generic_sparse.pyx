@@ -165,7 +165,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         """
         matrix.Matrix.__init__(self, parent)
         R = self._base_ring
-        self._zero = R.zero_element()
+        self._zero = R.zero()
 
         if entries is None or not entries:
             # be careful here. We might get entries set to be an empty list

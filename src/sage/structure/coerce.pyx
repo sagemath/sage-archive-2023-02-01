@@ -670,7 +670,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
     cpdef Parent division_parent(self, Parent parent):
         r"""
         Deduces where the result of division in parent lies by calculating
-        the inverse of ``parent.one_element()`` or ``parent.an_element()``.
+        the inverse of ``parent.one()`` or ``parent.an_element()``.
 
         The result is cached.
 
@@ -695,7 +695,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         except KeyError:
             pass
         try:
-            ret = parent_c(~parent.one_element())
+            ret = parent_c(~parent.one())
         except Exception:
             self._record_exception()
             ret = parent_c(~parent.an_element())

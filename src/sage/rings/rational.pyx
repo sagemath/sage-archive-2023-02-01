@@ -1098,10 +1098,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         else:
             R = RealField(prec)
         if self.is_zero():
-            return R.zero_element()
+            return R.zero()
         val = self.valuation(p)
         if val >= 0:
-            return R.zero_element()
+            return R.zero()
         return -val * R(p).log()
 
     def local_height_arch(self, prec=None):
@@ -1137,7 +1137,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             R = RealField(prec)
         a = self.abs()
         if a <= 1:
-            return R.zero_element()
+            return R.zero()
         return R(a).log()
 
     def global_height_non_arch(self, prec=None):
@@ -1180,7 +1180,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             R = RealField(prec)
         d = self.denominator()
         if d.is_one():
-            return R.zero_element()
+            return R.zero()
         return R(d).log()
 
     def global_height_arch(self, prec=None):

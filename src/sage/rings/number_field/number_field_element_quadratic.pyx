@@ -2127,7 +2127,7 @@ cdef class Z_to_quadratic_field_element(Morphism):
         """
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(ZZ, K))
-        self.zero_element = K.zero_element()
+        self.zero_element = K.zero()
 
     cdef dict _extra_slots(self, dict _slots):
         """
@@ -2248,7 +2248,7 @@ cdef class Q_to_quadratic_field_element(Morphism):
         """
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(QQ, K))
-        self.zero_element = K.zero_element()
+        self.zero_element = K.zero()
 
     cdef dict _extra_slots(self, dict _slots):
         """

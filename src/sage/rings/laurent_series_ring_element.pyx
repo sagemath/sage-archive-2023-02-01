@@ -448,7 +448,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f.coefficients()
             [-5, 1, 1, -10/3]
         """
-        zero = self.parent().base_ring().zero_element()
+        zero = self.parent().base_ring().zero()
         return [c for c in self.list() if c != zero]
 
     def residue(self):
@@ -491,7 +491,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f.exponents()
             [-2, 1, 2, 3]
         """
-        zero = self.parent().base_ring().zero_element()
+        zero = self.parent().base_ring().zero()
         l = self.list()
         v = self.valuation()
         return [i+v for i in range(len(l)) if l[i] != zero]

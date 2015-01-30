@@ -624,17 +624,17 @@ class Polynomial_generic_sparse(Polynomial):
 
         d = other.degree()
         if self.degree() < d:
-            return R.zero_element(), self
+            return R.zero(), self
 
-        quo = R.zero_element()
+        quo = R.zero()
         rem = self
-        inv_lc = R.base_ring().one_element()/other.leading_coefficient()
+        inv_lc = R.base_ring().one()/other.leading_coefficient()
 
         while rem.degree() >= d:
 
             c = rem.leading_coefficient()*inv_lc
             e = rem.degree() - d
-            quo += c*R.one_element().shift(e)
+            quo += c*R.one().shift(e)
             # we know that the leading coefficient of rem vanishes
             # thus we avoid doing a useless computation
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
@@ -702,7 +702,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         A = self
         B = other
         R = A
-        Q = P.zero_element()
+        Q = P.zero()
         while R.degree() >= B.degree():
             aaa = R.leading_coefficient()/B.leading_coefficient()
             diff_deg=R.degree()-B.degree()
@@ -732,7 +732,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             sage: (2*x).gcd(2*x^2)
             x
 
-            sage: zero = R.zero_element()
+            sage: zero = R.zero()
             sage: zero.gcd(2*x)
             x
             sage: (2*x).gcd(zero)
@@ -787,7 +787,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         gcd (:trac:`17671`)::
 
             sage: R.<x> = QQbar[]
-            sage: zero = R.zero_element()
+            sage: zero = R.zero()
             sage: zero.xgcd(2*x)
             (x, 0, 1/2)
             sage: (2*x).xgcd(zero)
@@ -796,8 +796,8 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             (0, 0, 0)
         """
         R = self.parent()
-        zero = R.zero_element()
-        one = R.one_element()
+        zero = R.zero()
+        one = R.one()
         if other.is_zero():
             if self.is_zero():
                 return (zero, zero, zero)

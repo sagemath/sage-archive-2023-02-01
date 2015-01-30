@@ -2162,8 +2162,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             Univariate Polynomial Ring in x over Real Double Field
         """
         if left._degree == 0:
-            return (left.base_ring().zero_element()
-                    * right.base_ring().zero_element())
+            return (left.base_ring().zero()
+                    * right.base_ring().zero())
         cdef list a = left.list(copy=False)
         cdef list b = right.list(copy=False)
         cdef Py_ssize_t i
@@ -3645,7 +3645,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         FreeModuleElement.__init__(self, parent)
         R = self.base_ring()
         if not entries:
-            entries = [R.zero_element()]*self._degree
+            entries = [R.zero()]*self._degree
         else:
             if type(entries) is not list:
                 if not isinstance(entries, (list, tuple)):
@@ -4259,9 +4259,9 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             Univariate Polynomial Ring in x over Real Double Field
         """
         cdef dict e = (<FreeModuleElement_generic_sparse>right)._entries
-        z = left.base_ring().zero_element()
+        z = left.base_ring().zero()
         if left.base_ring() is not right.base_ring():
-            z *= right.base_ring().zero_element()
+            z *= right.base_ring().zero()
         for i, a in left._entries.iteritems():
             if i in e:
                 z += a * e[i]

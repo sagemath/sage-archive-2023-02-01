@@ -101,7 +101,7 @@ def weak_popov_form(M,ascend=True):
         num = matrix([(lambda x : map(numerator,  x))(v) for v in map(list,(M*den).rows())])
     else:
         # No need to clear denominators
-        den = R.one_element()
+        den = R.one()
         num = M
 
     r = [list(v) for v in num.rows()]

@@ -312,9 +312,8 @@ class FormsSpace_abstract(FormsRing_abstract):
                 and self.coeff_ring().has_coerce_map_from(S)
 
     # Since forms spaces are modules instead of rings
-    # we have to manually define one_element() and one().
+    # we have to manually define one().
     # one() allows to take the power 0 of an element
-    # one_element() allows to take negative powers of elements
     @cached_method
     def one(self):
         r"""
@@ -332,7 +331,6 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.Delta()^0).parent()
             ModularForms(n=3, k=0, ep=1) over Integer Ring
         """
-
         return self.extend_type("holo", ring=True)(1).reduce()
 
     def one_element(self):
@@ -349,9 +347,12 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.Delta()^(-1)).parent()
             MeromorphicModularForms(n=3, k=-12, ep=1) over Integer Ring
             sage: MF.one_element()
+            doctest:...: DeprecationWarning: .one_element() is deprecated. Use .one() instead.
+            See http://trac.sagemath.org/17694 for details.
             1 + O(q^5)
         """
-
+        from sage.misc.superseded import deprecation
+        deprecation(17694, ".one_element() is deprecated. Use .one() instead.")
         return self.one()
 
     def is_ambient(self):

@@ -1575,8 +1575,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         zeta_order = G.zeta_order()
         zeta = R.zeta(zeta_order)
         A = rings.Integers(zeta_order)
-        A_zero = A.zero_element()
-        A_one = A.one_element()
+        A_zero = A.zero()
+        A_one = A.one()
         ZZ = rings.ZZ
 
         S = G._integers

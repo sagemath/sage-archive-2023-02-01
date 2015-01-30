@@ -353,7 +353,7 @@ class NFCuspsSpace(ParentWithBase):
         return NFCusp(self.number_field(), x, parent=self)
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero cusp.
 
@@ -367,11 +367,28 @@ class NFCuspsSpace(ParentWithBase):
 
              sage: k.<a> = NumberField(x^2 + 5)
              sage: kCusps = NFCusps(k)
-             sage: kCusps.zero_element()
+             sage: kCusps.zero()
              Cusp [0: 1] of Number Field in a with defining polynomial x^2 + 5
 
         """
         return self(0)
+
+    def zero_element(self):
+        r"""
+        Deprecated. Use :meth:`zero` instead.
+
+        TESTS::
+
+             sage: k.<a> = NumberField(x^2 + 5)
+             sage: kCusps = NFCusps(k)
+             sage: kCusps.zero_element()
+             doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead.
+             See http://trac.sagemath.org/17694 for details.
+             Cusp [0: 1] of Number Field in a with defining polynomial x^2 + 5
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(17694, ".zero_element() is deprecated. Use .zero() instead.")
+        return self.zero()
 
     def number_field(self):
         """

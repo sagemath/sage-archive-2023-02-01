@@ -39,6 +39,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.number_fields import NumberFields
 from sage.categories.homset        import Hom
 from sage.functions.all            import sqrt
 from sage.libs.pari.gen            import PariError
@@ -324,11 +325,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if self.parent() != right.parent():
             return False
         n = len(self._polys)
-        for i in range(0, n):
-            for j in range(i + 1, n):
-                if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
-                    return False
-        return True
+        return all([self[i]*right[j] == self[j]*right[i] for i in range(0, n) for j in range(i+1, n)])
 
     def __ne__(self, right):
         """
@@ -1684,10 +1681,21 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             11.0020998412042
             sage: f.normalize_coordinates()
             sage: f.height_difference_bound()
-            10.7632079329219
+            10.3089526606443
+
+       A number field example::
+
+            sage: R.<x> = QQ[]
+            sage: K.<c> = NumberField(x^3 - 2)
+            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: H = End(P)
+            sage: f = H([1/(c+1)*x^2+c*y^2,210*x*y,10000*z^2])
+            sage: f.height_difference_bound()
+            11.0020998412042
         """
-        if self.domain().base_ring() != ZZ and self.domain().base_ring() != QQ:
-            raise NotImplementedError("Must be over ZZ or QQ")
+        FF = FractionField(self.domain().base_ring()) #lift will only work over fields, so coercing into FF
+        if not FF in NumberFields():
+            raise NotImplementedError("Fraction field of the base ring must be a number field")
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if prec is None:
@@ -1701,26 +1709,24 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         U = self.global_height(prec) + R(binomial(N + d, d)).log()
         #compute lower bound - from explicit polynomials of Nullstellensatz
         CR = self.domain().coordinate_ring()
-        CR = CR.change_ring(QQ) #.lift() only works over fields
+        CR = CR.change_ring(FF)
         I = CR.ideal(self.defining_polynomials())
         MCP = []
         for k in range(N + 1):
             CoeffPolys = (CR.gen(k) ** D).lift(I)
             Res = 1
-            h = 1
             for j in range(len(CoeffPolys)):
                 if CoeffPolys[j] != 0:
                     for i in range(len(CoeffPolys[j].coefficients())):
                         Res = lcm(Res, abs(CoeffPolys[j].coefficients()[i].denominator()))
-                        h = max(h, abs(CoeffPolys[j].coefficients()[i].numerator()))
-            MCP.append([Res, Res * h]) #since we need to clear denominators
-        maxh = 1
+            h = max([c.global_height() for g in CoeffPolys for c in (Res*g).coefficients()])
+            MCP.append([Res, h]) #since we need to clear denominators
+        maxh = 0
         gcdRes = 0
         for k in range(len(MCP)):
             gcdRes = gcd(gcdRes, MCP[k][0])
             maxh = max(maxh, MCP[k][1])
-        L = abs(R(gcdRes / ((N + 1) * binomial(N + D - d, D - d) * maxh)).log())
-
+        L = abs( R(gcdRes).log() - R((N + 1) * binomial(N + D - d, D - d)).log() - maxh)
         C = max(U, L) #height difference dh(P) - L <= h(f(P)) <= dh(P) +U
         return(C / (d - 1))
 

@@ -1187,4 +1187,4 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             x = R.gen()
             E = self.short_weierstrass_model()
             f=(x**3+E.a4()*x+E.a6())**((p-1)//2)
-            return f.coeffs()[p-1]
+            return f.coefficients(sparse=False)[p-1]

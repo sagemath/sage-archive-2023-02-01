@@ -88,6 +88,7 @@ pari                        GPLv2+
 patch                       GPLv2+
 pexpect                     Python License
 pillow                      Apache License 2.0
+pip                         MIT License
 pkgconf                     ISC License (equivalent to Simplified BSD)
 pkgconfig                   MIT License
 polybori                    GPLv2+
@@ -116,7 +117,6 @@ setuptools                  Python License
 singular                    GPLv2 or GPLv3 (see below)
 six                         MIT License
 sphinx                      Modified BSD
-sqlalchemy                  MIT License
 sqlite                      Public Domain (see below)
 symmetrica                  MIT-like License (see below)
 sympow                      Modified BSD

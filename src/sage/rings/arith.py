@@ -4752,10 +4752,18 @@ def falling_factorial(x, a):
         sage: falling_factorial(x, 4)
         x^4 - 6*x^3 + 11*x^2 - 6*x
 
+    TESTS:
+
     Check that :trac:`14858` is fixed::
 
         sage: falling_factorial(-4, SR(2))
         20
+
+    Check that :trac:`16770` is fixed::
+
+        sage: d = var('d')
+        sage: type(falling_factorial(d, 0))
+        <type 'sage.symbolic.expression.Expression'>
 
     AUTHORS:
 
@@ -4764,7 +4772,7 @@ def falling_factorial(x, a):
     if (isinstance(a, (integer.Integer, int, long)) or
         (isinstance(a, sage.symbolic.expression.Expression) and
          a.is_integer())) and a >= 0:
-        return misc.prod([(x - i) for i in range(a)])
+        return misc.prod([(x - i) for i in range(a)], z=x.parent()(1))
     from sage.functions.all import gamma
     return gamma(x+1) / gamma(x-a+1)
 
@@ -4830,12 +4838,20 @@ def rising_factorial(x, a):
         sage: rising_factorial(x, 4)
         x^4 + 6*x^3 + 11*x^2 + 6*x
 
+    TESTS:
+
     Check that :trac:`14858` is fixed::
 
         sage: bool(rising_factorial(-4, 2) ==
         ....:      rising_factorial(-4, SR(2)) ==
         ....:      rising_factorial(SR(-4), SR(2)))
         True
+
+    Check that :trac:`16770` is fixed::
+
+        sage: d = var('d')
+        sage: type(rising_factorial(d, 0))
+        <type 'sage.symbolic.expression.Expression'>
 
     AUTHORS:
 
@@ -4844,7 +4860,7 @@ def rising_factorial(x, a):
     if (isinstance(a, (integer.Integer, int, long)) or
         (isinstance(a, sage.symbolic.expression.Expression) and
          a.is_integer())) and a >= 0:
-        return misc.prod([(x + i) for i in range(a)])
+        return misc.prod([(x + i) for i in range(a)], z=x.parent()(1))
     from sage.functions.all import gamma
     return gamma(x+a) / gamma(x)
 

@@ -52,7 +52,6 @@ other types will also coerce to the integers, when it makes sense.
 ###########################################################################
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/random.pxi"
@@ -442,7 +441,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         cdef rational.Rational x = PY_NEW(rational.Rational)
         if mpz_sgn(right.value) == 0:
-            raise ZeroDivisionError, 'Rational division by zero'
+            raise ZeroDivisionError('Rational division by zero')
         mpz_set(mpq_numref(x.value), left.value)
         mpz_set(mpq_denref(x.value), right.value)
         mpq_canonicalize(x.value)

@@ -489,7 +489,7 @@ class AdditiveMagmas(Category_singleton):
                 sage: AdditiveMagmas().Homsets().extra_super_categories()
                 [Category of additive magmas]
                 sage: AdditiveMagmas().Homsets().super_categories()
-                [Category of additive magmas]
+                [Category of additive magmas, Category of homsets]
             """
             return [AdditiveMagmas()]
 
@@ -864,7 +864,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: AdditiveMagmas().AdditiveUnital().Homsets().extra_super_categories()
                     [Category of additive unital additive magmas]
                     sage: AdditiveMagmas().AdditiveUnital().Homsets().super_categories()
-                    [Category of additive unital additive magmas]
+                    [Category of additive unital additive magmas, Category of homsets]
                 """
                 return [AdditiveMagmas().AdditiveUnital()]
 

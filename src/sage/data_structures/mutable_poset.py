@@ -1025,6 +1025,59 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
         return self._iter_topological_visit_(marked, reverse, key, condition)
 
 
+    def merge(self, element, check=True, delete=True):
+        r"""
+        Merge the given element with itself.
+
+        INPUT:
+
+        - ``element`` -- an element (of the poset).
+
+        - ``check`` -- (default: ``True``) if set, then the
+          ``can_merge``-function of :class:`MutablePoset` is asked
+          before the merge if the merge is possible.
+
+        - ``delete`` -- (default: ``True``) if set, then given element
+          is removed out of the poset after the merge.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: def add(left, right):
+            ....:     return (left[0], ''.join(sorted(left[1] + right[1])))
+            sage: def can_add(left, right):
+            ....:     return left[0] <= right[0]
+            sage: P = MP(key=lambda c: c[0], merge=add, can_merge=can_add)
+            sage: P.add((1, 'a'))
+            sage: P.add((3, 'b'))
+            sage: P.add((2, 'c'))
+            sage: P.add((4, 'd'))
+            sage: P
+            poset((1, 'a'), (2, 'c'), (3, 'b'), (4, 'd'))
+            sage: P.shell(2).merge((3, 'b'))
+            sage: P
+            poset((1, 'a'), (2, 'bc'), (4, 'd'))
+        """
+        poset = self.poset
+        if poset._merge_ is None:
+            return
+        self_element = self.element
+        if check and poset._can_merge_ is not None and \
+                not poset._can_merge_(self_element, element):
+            return
+        new = poset._merge_(self_element, element)
+        if new is None:
+            poset.discard(poset.get_key(self.element))
+        else:
+            self._element_ = new
+        if delete:
+            poset.remove(poset.get_key(element))
+
+
 # *****************************************************************************
 
 
@@ -1958,13 +2011,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         key = self.get_key(element)
 
         if key in self._shells_:
-            if self._merge_hook_ is not None:
-                existing = self.shell(key)
-                new = self._merge_hook_(existing.element, element)
-                if new is None:
-                    self.remove(key)
-                else:
-                    existing._element_ = new
+            if self._merge_ is not None:
+                self.shell(key).merge(element, delete=False)
             return
 
         new = MutablePosetShell(self, element)
@@ -2653,6 +2701,95 @@ class MutablePoset(sage.structure.sage_object.SageObject):
     r"""
     Alias of :meth:`is_superset`.
     """
+
+
+    def merge(self, key):
+        r"""
+        Merge the given element with its successors/predecessors.
+
+        INPUT:
+
+        ``key`` -- the key specifying an element.
+
+        OUTPUT:
+
+        Nothing.
+
+        This method tests all (not necessarily direct) successors and
+        predecessors of the given element if they can be merged with
+        the element itself. This is done by the ``can_merge``-function
+        of :class:`MutablePoset`. If this merge is possible, then it
+        is performed by calling :class:`MutablePoset`'s
+        ``merge``-function and the corresponding successor/predecessor
+        is removed from the poset.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: key = lambda t: T(t[0:2])
+            sage: def add(left, right):
+            ....:     return (left[0], left[1],
+            ....:             ''.join(sorted(left[2] + right[2])))
+            sage: def can_add(left, right):
+            ....:     return key(left) >= key(right)
+            sage: P = MP(key=key, merge=add, can_merge=can_add)
+            sage: P.add((1, 1, 'a'))
+            sage: P.add((1, 3, 'b'))
+            sage: P.add((2, 1, 'c'))
+            sage: P.add((4, 4, 'd'))
+            sage: P.add((1, 2, 'e'))
+            sage: P.add((2, 2, 'f'))
+            sage: Q = copy(P)
+            sage: Q.merge(T((1, 3)))
+            sage: print Q.repr_full(reverse=True)
+            poset((4, 4, 'd'), (1, 3, 'abe'), (2, 2, 'f'), (2, 1, 'c'))
+            +-- oo
+            |   +-- no successors
+            |   +-- predecessors:   (4, 4, 'd')
+            +-- (4, 4, 'd')
+            |   +-- successors:   oo
+            |   +-- predecessors:   (1, 3, 'abe'), (2, 2, 'f')
+            +-- (1, 3, 'abe')
+            |   +-- successors:   (4, 4, 'd')
+            |   +-- predecessors:   null
+            +-- (2, 2, 'f')
+            |   +-- successors:   (4, 4, 'd')
+            |   +-- predecessors:   (2, 1, 'c')
+            +-- (2, 1, 'c')
+            |   +-- successors:   (2, 2, 'f')
+            |   +-- predecessors:   null
+            +-- null
+            |   +-- successors:   (1, 3, 'abe'), (2, 1, 'c')
+            |   +-- no predecessors
+            sage: for k in P.keys():
+            ....:     Q = copy(P)
+            ....:     Q.merge(k)
+            ....:     print 'merging %s: %s' % (k, Q)
+            merging (1, 2): poset((1, 2, 'ae'), (1, 3, 'b'),
+                                  (2, 1, 'c'), (2, 2, 'f'), (4, 4, 'd'))
+            merging (1, 3): poset((1, 3, 'abe'), (2, 1, 'c'),
+                                  (2, 2, 'f'), (4, 4, 'd'))
+            merging (4, 4): poset((4, 4, 'abcdef'))
+            merging (2, 1): poset((1, 2, 'e'), (1, 3, 'b'),
+                                  (2, 1, 'ac'), (2, 2, 'f'), (4, 4, 'd'))
+            merging (2, 2): poset((1, 3, 'b'), (2, 2, 'acef'), (4, 4, 'd'))
+            merging (1, 1): poset((1, 1, 'a'), (1, 2, 'e'), (1, 3, 'b'),
+                                  (2, 1, 'c'), (2, 2, 'f'), (4, 4, 'd'))
+        """
+        shell = self.shell(key)
+        def can_merge(other):
+            return self._can_merge_(shell.element, other.element)
+        for reverse in (False, True):
+            to_merge = shell.iter_depth_first(
+                reverse=reverse, condition=can_merge)
+            next(to_merge)
+            for m in tuple(to_merge):
+                if m.is_special():
+                    continue
+                shell.merge(m.element, delete=True)
 
 
 # *****************************************************************************

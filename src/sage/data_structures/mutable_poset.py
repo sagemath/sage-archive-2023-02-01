@@ -1091,23 +1091,29 @@ class MutablePoset(sage.structure.sage_object.SageObject):
       (default), this is the identity, i.e., keys are equal to their
       elements.
 
-    - ``merge_hook`` -- a function. It is called during
+    - ``merge`` -- a function which merges its second argument (an
+      element) to its first (again an element) and returns the result
+      (as an element). If the return value is ``None``, the element is
+      removed out of the poset.
+
+      This hook is called by :meth:`merge`. Moreover it is used during
       :meth:`add` when an element (more precisely its key) is already
-      in this poset. This function has the following properties:
+      in this poset.
 
-      - It gets as a first parameter the existing element mentioned above.
+      ``merge`` is ``None`` (default) is equivalent to ``merge``
+      returns its first argument. Note that it is not allowed that the
+      key of the returning element differs from the key of the first
+      input parameter.
 
-      - As a second parameter it gets the element from :meth:`add`.
+    - ``can_merge`` -- a function which checks if its second argument
+      can be merged to its first.
 
-      - It should return the element which to put in the poset instead
-        of the existing one. If this return value is ``None``, the
-        existing element is removed out of the poset.
+      This hook is called by :meth:`merge`. Moreover it is used during
+      :meth:`add` when an element (more precisely its key) is already
+      in this poset.
 
-      If ``merge_hook`` is ``None`` (default) the
-      (existing element) is not changed, i.e., this is equivalent
-      to ``merge_hook`` returns the first parameter. Note
-      that it is not allowed that the key of this new element
-      differs from the key of existing.
+      ``can_merge`` is ``None`` (default) is equivalent to ``can_merge``
+      returns ``True`` in all cases.
 
     OUTPUT:
 
@@ -1169,7 +1175,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         - :meth:`~sage.combinat.posets.posets.FinitePoset.upper_covers_iterator`: Returns an iterator for the upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
         - :meth:`~sage.combinat.posets.posets.FinitePoset.upper_covers`: Returns a list of upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
     """
-    def __init__(self, data=None, key=None, merge_hook=None):
+    def __init__(self, data=None, key=None, merge=None, can_merge=None):
         r"""
         See :class:`MutablePoset` for details.
 
@@ -1211,7 +1217,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             else:
                 self._key_ = key
 
-            self._merge_hook_ = merge_hook
+            self._merge_ = merge
+            self._can_merge_ = can_merge
 
             if data is not None:
                 try:
@@ -1407,6 +1414,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         """
         from copy import copy
         self._key_ = copy(other._key_)
+        self._merge_ = copy(other._merge_)
+        self._can_merge_ = copy(other._can_merge_)
         memo = {}
         self._null_ = other._null_._copy_all_linked_(memo, self)
         self._oo_ = memo[id(other._oo_)]

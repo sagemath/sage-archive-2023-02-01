@@ -1168,7 +1168,6 @@ class Gap(Gap_generic):
             if self.__use_workspace_cache and first_try:
                 first_try = False
                 self.quit(timeout=0)
-                expect.failed_to_start.remove(self.name())
                 gap_reset_workspace(verbose=False)
                 Expect._start(self, "Failed to start GAP.")
                 self._session_number = n

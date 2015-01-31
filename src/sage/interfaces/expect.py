@@ -67,8 +67,6 @@ from sage.misc.object_multiplexer import Multiplex
 
 BAD_SESSION = -2
 
-failed_to_start = []
-
 # The subprocess is a shared resource.  In a multi-threaded
 # environment, there would have to be a lock to control access to the
 # subprocess.  Fortunately, Sage does not use Python threads.
@@ -181,8 +179,11 @@ class Expect(Interface):
 
         #Handle the log file
         if isinstance(logfile, basestring):
-            logfile = open(logfile,'w')
-        self.__logfile = logfile
+            self.__logfile = None
+            self.__logfilename = logfile
+        else:
+            self.__logfile = logfile
+            self.__logfilename = None
 
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
@@ -377,20 +378,21 @@ If this all works, you can then make calls like:
     def _start(self, alt_message=None, block_during_init=True):
         from sage.misc.misc import sage_makedirs
         self.quit()  # in case one is already running
-        global failed_to_start
 
         self._session_number += 1
 
-        #If the 'SAGE_PEXPECT_LOG' environment variable is set and
-        #the current logfile is None, then set the logfile to be one
-        #in .sage/pexpect_logs/
-        if self.__logfile is None and 'SAGE_PEXPECT_LOG' in os.environ:
-            from sage.env import DOT_SAGE
-            logs = os.path.join(DOT_SAGE, 'pexpect_logs')
-            sage_makedirs(logs)
+        if self.__logfile is None:
+            # If the 'SAGE_PEXPECT_LOG' environment variable is set and
+            # there is no logfile already defined, then create a
+            # logfile in .sage/pexpect_logs/
+            if self.__logfilename is None and 'SAGE_PEXPECT_LOG' in os.environ:
+                from sage.env import DOT_SAGE
+                logs = os.path.join(DOT_SAGE, 'pexpect_logs')
+                sage_makedirs(logs)
 
-            filename = '%s/%s-%s-%s-%s.log'%(logs, self.name(), os.getpid(), id(self), self._session_number)
-            self.__logfile = open(filename, 'w')
+                self.__logfilename = '%s/%s-%s-%s-%s.log'%(logs, self.name(), os.getpid(), id(self), self._session_number)
+            if self.__logfilename is not None:
+                self.__logfile = open(self.__logfilename, 'w')
 
         cmd = self.__command
 
@@ -398,41 +400,43 @@ If this all works, you can then make calls like:
             print cmd
             print "Starting %s"%cmd.split()[0]
 
+        if self.__remote_cleaner and self._server:
+            c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &'%self._server
+            os.system(c)
+
+        # Unset some environment variables for the children to
+        # reduce the chances they do something complicated breaking
+        # the terminal interface.
+        # See Trac #12221 and #13859.
+        pexpect_env = dict(os.environ)
+        pexpect_del_vars = ['TERM', 'COLUMNS']
+        for i in pexpect_del_vars:
+            try:
+                del pexpect_env[i]
+            except KeyError:
+                pass
+
+        # Run child from self.__path
+        currentdir = os.getcwd()
+        os.chdir(self.__path)
         try:
-            if self.__remote_cleaner and self._server:
-                c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &'%self._server
-                os.system(c)
-
-            # Unset some environment variables for the children to
-            # reduce the chances they do something complicated breaking
-            # the terminal interface.
-            # See Trac #12221 and #13859.
-            pexpect_env = dict(os.environ)
-            pexpect_del_vars = ['TERM', 'COLUMNS']
-            for i in pexpect_del_vars:
-                try:
-                    del pexpect_env[i]
-                except KeyError:
-                    pass
-
-            # Run child from self.__path
-            currentdir = os.getcwd()
-            os.chdir(self.__path)
-            self._expect = pexpect.spawn(cmd, logfile=self.__logfile, env=pexpect_env)
-            os.chdir(currentdir)
-
-            if self._do_cleaner():
-                cleaner.cleaner(self._expect.pid, cmd)
-
-        except (ExceptionPexpect, pexpect.EOF, IndexError):
+            try:
+                self._expect = pexpect.spawn(cmd, logfile=self.__logfile, env=pexpect_env)
+            except (ExceptionPexpect, pexpect.EOF) as e:
+                # Change pexpect errors to RuntimeError
+                raise RuntimeError("unable to start %s because the command %r failed: %s\n%s" %
+                        (self.name(), cmd, e, self._install_hints()))
+        except BaseException:
             self._expect = None
             self._session_number = BAD_SESSION
-            failed_to_start.append(self.name())
-            raise RuntimeError("unable to start %s because the command %r failed\n%s" % (
-                self.name(), cmd, self._install_hints()))
+            raise
+        finally:
+            os.chdir(currentdir)
+
+        if self._do_cleaner():
+            cleaner.cleaner(self._expect.pid, cmd)
 
         self._expect.timeout = self.__max_startup_time
-
         self._expect.maxread = self.__maxread
         self._expect.delaybeforesend = 0
         try:
@@ -440,7 +444,6 @@ If this all works, you can then make calls like:
         except (pexpect.TIMEOUT, pexpect.EOF) as msg:
             self._expect = None
             self._session_number = BAD_SESSION
-            failed_to_start.append(self.name())
             raise RuntimeError("unable to start %s" % self.name())
         self._expect.timeout = None
 

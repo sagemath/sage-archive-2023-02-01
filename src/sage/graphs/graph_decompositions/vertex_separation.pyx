@@ -957,7 +957,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
 # Branch and Bound for vertex separation #
 ##########################################
 
-def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
+def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
     r"""
     Branch and Bound algorithm for the vertex separation.
 
@@ -971,9 +971,11 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
 
     - ``G`` -- a Graph or a DiGraph.
 
-    - ``lower_bound`` -- (default: None) lower bound to consider in the branch
-      and  bound algorithm. This allows us to stop the search as soon as a
-      solution with width at most ``lower_bound`` is found.
+    - ``cut_off`` -- (default: None) bound to consider in the branch and  bound
+      algorithm. This allows us to stop the search as soon as a solution with
+      width at most ``cut_off`` is found, if any. If this bound cannot be
+      reached, the best solution found is returned, unless a too low
+      ``upper_bound`` is given.
 
     - ``upper_bound`` -- (default: None) if specified, the algorithm searches
       for a solution with ``width < upper_bound``. It helps cutting branches.
@@ -1034,6 +1036,35 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
         sage: vs, seq = VS.vertex_separation_BAB(G); vs
         2
 
+    The vertex separation of MycielskiGraph(5) is 10::
+    
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: G = graphs.MycielskiGraph(5)
+        sage: vs, seq = VS.vertex_separation_BAB(G); vs
+        10
+
+    Searching for any solution with width less or equal to ``cut_off``::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: G = graphs.MycielskiGraph(5)
+        sage: vs, seq = VS.vertex_separation_BAB(G, cut_off=11); vs
+        11
+        sage: vs, seq = VS.vertex_separation_BAB(G, cut_off=10); vs
+        10
+        sage: vs, seq = VS.vertex_separation_BAB(G, cut_off=9); vs
+        10
+    
+    Testing for the existence of a solution with width strictly less than ``upper_bound``::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: G = graphs.MycielskiGraph(5)
+        sage: vs, seq = VS.vertex_separation_BAB(G, upper_bound=11); vs
+        10
+        sage: vs, seq = VS.vertex_separation_BAB(G, upper_bound=10); vs
+        -1
+        sage: vs, seq = VS.vertex_separation_BAB(G, cut_off=11, upper_bound=10); vs
+        -1
+
     TESTS:
 
     Giving anything else than a Graph or a DiGraph::
@@ -1052,14 +1083,6 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
         sage: VS.vertex_separation_BAB(DiGraph())
         (0, [])
 
-    Giving a higher lower bound than the upper bound::
-
-        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
-        sage: VS.vertex_separation_BAB(digraphs.Circuit(3), lower_bound=3, upper_bound=2)
-        Traceback (most recent call last):
-        ...
-        ValueError: The input upper bound is lower than the input lower bound.
-
     Giving a too low upper bound::
 
         sage: from sage.graphs.graph_decompositions import vertex_separation as VS
@@ -1077,10 +1100,8 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
     if n==0:
         return 0, []
 
-    lower_bound = 0 if lower_bound is None else lower_bound
+    cut_off = 0 if cut_off is None else cut_off
     upper_bound = n if upper_bound is None else upper_bound
-    if lower_bound > upper_bound:
-        raise ValueError("The input upper bound is lower than the input lower bound.")
     if upper_bound < 1:
         raise ValueError("The input upper bound must be at least 1.")
 
@@ -1126,7 +1147,7 @@ def vertex_separation_BAB(G, lower_bound=None, upper_bound=None):
                                         level                     = 0,
                                         b_prefix                  = bm_pool.rows[3*n],
                                         b_prefix_and_neighborhood = bm_pool.rows[3*n+1],
-                                        lower_bound               = lower_bound,
+                                        cut_off                   = cut_off,
                                         upper_bound               = upper_bound,
                                         current_cost              = 0,
                                         bm_pool                   = bm_pool )
@@ -1162,7 +1183,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
                                  int             level,
                                  bitset_t        b_prefix,
                                  bitset_t        b_prefix_and_neighborhood,
-                                 int             lower_bound,
+                                 int             cut_off,
                                  int             upper_bound,
                                  int             current_cost,
                                  binary_matrix_t bm_pool):
@@ -1193,9 +1214,9 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     - ``b_prefix_and_neighborhood`` -- a bitset of size ``n`` recording the
       vertices in the current prefix and the vertices in its neighborhood.
 
-    - ``lower_bound`` -- lower bound to consider in the branch and bound
+    - ``cut_off`` -- (default: None) bound to consider in the branch and  bound
       algorithm. This allows us to stop the search as soon as a solution with
-      width at most ``lower_bound`` is found.
+      width at most ``cut_off`` is found, if any.
 
     - ``upper_bound`` -- the algorithm searches for a solution with ``width <
       upper_bound``. It helps cutting branches. Each time a new solution is
@@ -1301,32 +1322,34 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
         delta_i = max(current_cost, delta_i)
 
-        if delta_i < upper_bound:
-            # We extend the current prefix with vertex i and explore the branch
-            bitset_union(b_tmp, loc_b_pref_and_neigh,  H.rows[i])
-            bitset_discard(b_tmp, i)
-            _my_invert_positions(prefix, positions, positions[i], loc_level)
-            bitset_add(loc_b_prefix, i)
+        if delta_i >= upper_bound:
+            break
+        
+        # We extend the current prefix with vertex i and explore the branch
+        bitset_union(b_tmp, loc_b_pref_and_neigh,  H.rows[i])
+        bitset_discard(b_tmp, i)
+        _my_invert_positions(prefix, positions, positions[i], loc_level)
+        bitset_add(loc_b_prefix, i)
 
-            cost_i = vertex_separation_BAB_C(H                         = H,
-                                             n                         = n,
-                                             prefix                    = prefix,
-                                             positions                 = positions,
-                                             best_seq                  = best_seq,
-                                             level                     = loc_level+1,
-                                             b_prefix                  = loc_b_prefix,
-                                             b_prefix_and_neighborhood = b_tmp,
-                                             lower_bound               = lower_bound,
-                                             upper_bound               = upper_bound,
-                                             current_cost              = delta_i,
-                                             bm_pool                   = bm_pool )
+        cost_i = vertex_separation_BAB_C(H                         = H,
+                                         n                         = n,
+                                         prefix                    = prefix,
+                                         positions                 = positions,
+                                         best_seq                  = best_seq,
+                                         level                     = loc_level+1,
+                                         b_prefix                  = loc_b_prefix,
+                                         b_prefix_and_neighborhood = b_tmp,
+                                         cut_off                   = cut_off,
+                                         upper_bound               = upper_bound,
+                                         current_cost              = delta_i,
+                                         bm_pool                   = bm_pool )
 
-            bitset_discard(loc_b_prefix, i)
+        bitset_discard(loc_b_prefix, i)
 
-            if cost_i < upper_bound:
-                upper_bound = cost_i
-                if upper_bound <= lower_bound:
-                    # We are satisfied with current solution.
-                    break
+        if cost_i < upper_bound:
+            upper_bound = cost_i
+            if upper_bound <= cut_off:
+                # We are satisfied with current solution.
+                break
 
     return upper_bound

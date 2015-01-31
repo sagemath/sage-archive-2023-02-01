@@ -378,12 +378,13 @@ def cython(filename, verbose=False, compile_message=False,
         # There is already a module here. Maybe we do not have to rebuild?
         # Find the name.
         if use_cache:
-            prev_so = [F for F in os.listdir(build_dir) if F[-3:] == '.so']
+            from sage.misc.sageinspect import generic_so_extension
+            prev_so = [F for F in os.listdir(build_dir) if F[-len(generic_so_extension):] == generic_so_extension]
             if len(prev_so) > 0:
                 prev_so = prev_so[0]     # should have length 1 because of deletes below
                 if os.path.getmtime(filename) <= os.path.getmtime('%s/%s'%(build_dir, prev_so)):
                     # We do not have to rebuild.
-                    return prev_so[:-3], build_dir
+                    return prev_so[:-len(generic_so_extension)], build_dir
     else:
         os.makedirs(build_dir)
     for F in os.listdir(build_dir):

@@ -61,6 +61,7 @@ Libraries of algorithms
 
    sage/graphs/graph_coloring
    sage/graphs/cliquer
+   sage/graphs/asteroidal_triples
    sage/graphs/independent_sets
    sage/graphs/comparability
    sage/graphs/line_graph

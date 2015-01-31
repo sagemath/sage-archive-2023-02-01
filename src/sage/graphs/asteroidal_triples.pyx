@@ -117,6 +117,8 @@ def is_asteroidal_triple_free(G):
     """
     return not has_an_asteroidal_triple(G, certificate=False)
 
+is_AT_free = is_asteroidal_triple_free
+
 
 def has_an_asteroidal_triple(G, certificate=False):
     """

@@ -41,6 +41,7 @@ graphs.
     :widths: 30, 70
     :delim: |
 
+    :meth:`~Graph.is_AT_free` | Tests whether the current graph is asteroidal triple free.
     :meth:`~Graph.is_prime` | Tests whether the current graph is prime.
     :meth:`~Graph.is_split` | Returns ``True`` if the graph is a Split graph, ``False`` otherwise.
     :meth:`~Graph.is_triangle_free` | Returns whether ``self`` is triangle-free.
@@ -6929,6 +6930,9 @@ import sage.graphs.weakly_chordal
 Graph.is_long_hole_free = types.MethodType(sage.graphs.weakly_chordal.is_long_hole_free, None, Graph)
 Graph.is_long_antihole_free = types.MethodType(sage.graphs.weakly_chordal.is_long_antihole_free, None, Graph)
 Graph.is_weakly_chordal = types.MethodType(sage.graphs.weakly_chordal.is_weakly_chordal, None, Graph)
+
+import sage.graphs.asteroidal_triples
+Graph.is_AT_free = types.MethodType(sage.graphs.asteroidal_triples.is_AT_free, None, Graph)
 
 import sage.graphs.chrompoly
 Graph.chromatic_polynomial = types.MethodType(sage.graphs.chrompoly.chromatic_polynomial, None, Graph)

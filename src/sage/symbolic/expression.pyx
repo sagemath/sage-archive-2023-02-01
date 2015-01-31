@@ -5253,6 +5253,14 @@ cdef class Expression(CommutativeRingElement):
             1 + (y + 1)*x + ((y + 1)^2)*x^2 + Order(x^3)
             sage: s.coefficients(x, sparse=False)
             [1, y + 1, (y + 1)^2]
+
+        We can find coefficients of symbolic functions, :trac:`12255`::
+
+            sage: g = function('g', var('t'))
+            sage: f = 3*g + g**2 + t
+            sage: f.coefficients(g)
+            [[t, 0], [3, 1], [1, 2]]
+
         """
         if x is None:
             x = self.default_variable()

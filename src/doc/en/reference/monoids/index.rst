@@ -9,6 +9,7 @@ finite number of indeterminates.
 
    sage/monoids/automatic_semigroup
    sage/monoids/monoid
+   sage/monoids/asymptotic_term_monoid
    sage/monoids/free_monoid
    sage/monoids/free_monoid_element
    sage/monoids/free_abelian_monoid

@@ -102,7 +102,7 @@ class GenericTerm(MonoidElement):
         is able to *absorb* another :class:`OTerm` or an
         :class:`ExactTerm` with lower (or equal) growth. For more
         information see :class:`OTerm`, :class:`ExactTerm`, and
-        :class:`GenericLTerm`.
+        :class:`LTermGeneric`.
 
         INPUT:
 
@@ -114,9 +114,9 @@ class GenericTerm(MonoidElement):
 
         EXAMPLES:
 
-            We want to show step by step which terms can be absorbed
-            by which other terms. We start by defining the necessary
-            term monoids and some terms::
+        We want to show step by step which terms can be absorbed
+        by which other terms. We start by defining the necessary
+        term monoids and some terms::
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
@@ -128,10 +128,10 @@ class GenericTerm(MonoidElement):
             sage: et1 = ET(x^2, 2)
             sage: lt1 = LT(x^2, 2, start=0)
 
-            :class:`OTerm` is able to absorb other :class:`OTerm`,
-            :class:`LTermGeneric` (and descendants thereof) as well
-            as :class:`ExactTerm`, as long as the growth of the other
-            term is less than or equal to the growth of ``self``::
+        :class:`OTerm` is able to absorb other :class:`OTerm`,
+        :class:`LTermGeneric` (and descendants thereof) as well
+        as :class:`ExactTerm`, as long as the growth of the other
+        term is less than or equal to the growth of ``self``::
 
             sage: ot1, ot2
             (O(x), O(x^2))
@@ -150,18 +150,18 @@ class GenericTerm(MonoidElement):
             sage: ot2.can_absorb(lt1)
             True
 
-            :class:`ExactTerm` can only absorb another
-            :class:`ExactTerm` if the growth coincides with the
-            growth of ``self``::
+        :class:`ExactTerm` can only absorb another
+        :class:`ExactTerm` if the growth coincides with the
+        growth of ``self``::
 
             sage: et1.can_absorb(ET(x^2, 5))
             True
             sage: any(et1.can_absorb(t) for t in [ot1, ot2, lt1])
             False
 
-            :class:`LTermGeneric` can absorb arbitrary other
-            :class:`LTermGeneric`, and :class:`ExactTerm` whose
-            growth is less than or equal to the growth of ``self``::
+        :class:`LTermGeneric` can absorb arbitrary other
+        :class:`LTermGeneric`, and :class:`ExactTerm` whose
+        growth is less than or equal to the growth of ``self``::
 
             sage: any(lt1.can_absorb(t) for t in [ot1, ot2])
             False
@@ -305,7 +305,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
     :class:`GenericTerm` or :class:`OTerm`). Basically, asymptotic
     terms consist of a ``growth`` (which is an asymptotic growth
     group element, for example
-    :class:`~sage.src.groups.asymptotic_growth_group.GrowthElementPower`).
+    :class:`~sage.groups.asymptotic_growth_group.GrowthElementPower`).
 
     INPUT:
 
@@ -322,6 +322,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
     A generic asymptotic term monoid.
 
     EXAMPLES::
+
         sage:  # todo: write example.
     """
 
@@ -515,7 +516,7 @@ class OTerm(GenericTerm):
 
 class OTermMonoid(GenericTermMonoid):
     r"""
-    Parent for asymptotic big ``O`` terms.
+    Parent for asymptotic big `O` terms.
 
     INPUT:
 
@@ -850,18 +851,17 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
 class LTermGeneric(TermWithCoefficient):
     r"""
-    Base class for asymptotic ``L`` terms, that is ``O`` terms with
-    explicitly given constant.
+    Base class for asymptotic `L` terms, i.e. big `O` terms with
+    explicitly specified constant.
 
     .. NOTE::
 
-        When adding ("absorbing") various different ``L`` terms, some
+        When adding ("absorbing") various different `L` terms, some
         sort of "lifting" occurs in general. This lifting affects the
-        coefficient of the resulting ``L`` term, and works
+        coefficient of the resulting `L` term, and works
         differently for various growth classes. This makes different
         implementations for different growth classes necessary.
 
-    TODO: Description
     """
 
     def __init__(self, parent, growth, coefficient=1, start=0):
@@ -902,7 +902,7 @@ class LTermGeneric(TermWithCoefficient):
 
 class LTermGenericMonoid(TermWithCoefficientMonoid):
     r"""
-    Base class for parents of asymptotic ``L`` terms. Also, the parent
+    Base class for parents of asymptotic `L` terms. Also, the parent
     for :class:`LTermGeneric`.
 
     TODO: Description
@@ -917,9 +917,9 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
         INPUT:
 
-        - ``x`` -- an asymptotic L term to be coerced into ``self``,
-          or an asymptotic growth group element to be used to
-          construct a generic L term of ``self``.
+        - ``x`` -- an asymptotic `L` term to be coerced into
+          ``self``, or an asymptotic growth group element to be used
+           to construct a generic `L` term of ``self``.
 
         - ``coefficient`` -- an element of the ``coefficient_ring``
           of ``self``.
@@ -978,6 +978,21 @@ class ExactTerm(TermWithCoefficient):
     the growth of the asymptotic term.
 
     INPUT:
+
+    - ``parent`` -- the parent of the asymptotic term.
+
+    - ``growth`` -- an asymptotic growth element from
+      ``parent.base()``.
+
+    - ``coefficient`` -- an element from ``parent.coefficient_ring``.
+
+    OUTPUT:
+
+    An asymptotic exact term.
+
+    EXAMPLES::
+
+        sage:  # todo: examples
     """
 
     def _repr_(self):

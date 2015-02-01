@@ -534,7 +534,6 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
         return vertex_separation_exp(G, verbose = verbose)
 
     elif algorithm == "MILP":
-        G = DiGraph(G) if isinstance(G, Graph) else G
         return vertex_separation_MILP(G, verbosity = (1 if verbose else 0))
 
     elif algorithm == "BAB":
@@ -926,7 +925,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
 
     INPUTS:
 
-    - ``G`` -- a DiGraph
+    - ``G`` -- a Graph or a DiGraph
 
     - ``integrality`` -- (default: ``False``) Specify if variables `x_v^t` and
       `u_v^t` must be integral or if they can be relaxed. This has no impact on
@@ -990,17 +989,18 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
         ....:     if va != vb:
         ....:        print "The integrality parameter changes the result!"
 
-    Giving anything else than a DiGraph::
+    Giving anything else than a Graph or a DiGraph::
 
         sage: from sage.graphs.graph_decompositions import vertex_separation
         sage: vertex_separation.vertex_separation_MILP([])
         Traceback (most recent call last):
         ...
-        ValueError: The first input parameter must be a DiGraph.
+        ValueError: The first input parameter must be a Graph or a DiGraph.
     """
+    from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
-    if not isinstance(G, DiGraph):
-        raise ValueError("The first input parameter must be a DiGraph.")
+    if not isinstance(G, Graph) and not isinstance(G, DiGraph):
+        raise ValueError("The first input parameter must be a Graph or a DiGraph.")
 
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
     p = MixedIntegerLinearProgram( maximization = False, solver = solver )
@@ -1013,6 +1013,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
 
     N = G.num_verts()
     V = G.vertices()
+    neighbors_out = G.neighbors_out if G.is_directed() else G.neighbors
 
     # (2) x[v,t] <= x[v,t+1]   for all v in V, and for t:=0..N-2
     # (3) y[v,t] <= y[v,t+1]   for all v in V, and for t:=0..N-2
@@ -1023,7 +1024,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
 
     # (4) y[v,t] <= x[w,t]  for all v in V, for all w in N^+(v), and for all t:=0..N-1
     for v in V:
-        for w in G.neighbors_out(v):
+        for w in neighbors_out(v):
             for t in xrange(N):
                 p.add_constraint( y[v,t] - x[w,t] <= 0 )
 

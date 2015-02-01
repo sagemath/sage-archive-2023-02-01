@@ -9,7 +9,6 @@ Asteroidal triples
     :delim: |
 
     :meth:`is_asteroidal_triple_free` | Test if the input graph is asteroidal triple-free
-    :meth:`is_AT_free` | Test if the input graph is asteroidal triple-free
     :meth:`has_an_asteroidal_triple` | Test if the input graph contains an asteroidal triple
 
     
@@ -76,7 +75,7 @@ from libc.stdint cimport uint32_t
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph
 
 
-def is_asteroidal_triple_free(G):
+def is_asteroidal_triple_free(G, certificate=False):
     """
     Test if the input graph is asteroidal triple-free
 
@@ -88,9 +87,15 @@ def is_asteroidal_triple_free(G):
 
     This method returns ``True`` is the graph is AT-free and ``False`` otherwise.
 
-    INPUT:
+    INPUTS:
 
     - ``G`` -- a Graph
+
+    - ``certificate`` -- (default: False) By default, this method returns
+      ``True`` if the graph is asteroidal triple-free and ``False``
+      otherwise. When ``certificate==True``, this method returns in addition a
+      list of three vertices forming an asteroidal triple if such a triple is
+      found, and the empty list otherwise.
 
     EXAMPLES:
 
@@ -98,26 +103,31 @@ def is_asteroidal_triple_free(G):
 
         sage: from sage.graphs.asteroidal_triples import *
         sage: G = graphs.CompleteGraph(5)
-        sage: is_AT_free(G)
+        sage: is_asteroidal_triple_free(G)
         True
+        sage: is_asteroidal_triple_free(G, certificate=True)
+        (True, [])
         sage: LG = G.line_graph()
-        sage: is_AT_free(LG)
+        sage: is_asteroidal_triple_free(LG)
         True
         sage: LLG = LG.line_graph()
-        sage: is_AT_free(LLG)
+        sage: is_asteroidal_triple_free(LLG)
         False
 
     The PetersenGraph is not AT-free::
 
         sage: from sage.graphs.asteroidal_triples import *
         sage: G = graphs.PetersenGraph()
-        sage: is_AT_free(G)
+        sage: is_asteroidal_triple_free(G)
         False
+        sage: is_asteroidal_triple_free(G, certificate=True)
+        (False, [0, 2, 6])
 
     """
+    if certificate:
+        bool,certif = has_an_asteroidal_triple(G, certificate=certificate)
+        return not bool, certif
     return not has_an_asteroidal_triple(G, certificate=False)
-
-is_AT_free = is_asteroidal_triple_free
 
 
 def has_an_asteroidal_triple(G, certificate=False):
@@ -138,9 +148,9 @@ def has_an_asteroidal_triple(G, certificate=False):
 
     - ``certificate`` -- (default: False) By default, this method returns
       ``True`` if the graph contains an asteroidal triple and ``False``
-      otherwise. When ``certificate==True``, this method returns a list of three
-      vertices forming an asteroidal triple if such a triple is found, and the
-      empty list otherwise.
+      otherwise. When ``certificate==True``, this method returns in addition a
+      list of three vertices forming an asteroidal triple if such a triple is
+      found, and the empty list otherwise.
 
     EXAMPLES:
 
@@ -151,7 +161,7 @@ def has_an_asteroidal_triple(G, certificate=False):
         sage: has_an_asteroidal_triple(G)
         True
         sage: has_an_asteroidal_triple(G, certificate=True)
-        [0, 2, 6]
+        (True, [0, 2, 6])
 
     The Path graph has no asteroidal triple::
 
@@ -160,7 +170,7 @@ def has_an_asteroidal_triple(G, certificate=False):
         sage: has_an_asteroidal_triple(G)
         False
         sage: has_an_asteroidal_triple(G, certificate=True)
-        []
+        (False, [])
 
     TEST:
 
@@ -182,7 +192,7 @@ def has_an_asteroidal_triple(G, certificate=False):
 
     # ==> Trivial cases
     if n<3:
-        return False if not certificate else []
+        return False if not certificate else (False, [])
 
 
 
@@ -238,8 +248,8 @@ def has_an_asteroidal_triple(G, certificate=False):
     if certificate:
         if ret:
             V = G.vertices()
-            ret = [V[i] for i in ret]
-        return ret
+            return True, [V[i] for i in ret]
+        return False,[]
 
     return True if ret else False
 
@@ -250,7 +260,7 @@ cdef list has_an_asteroidal_triple_C(int n,
                                      uint32_t *  waiting_list,
                                      bitset_t seen):
     """
-    PARAMETERS:
+    INPUTS:
 
     - ``p_vertices`` -- bidimensional array allowing to access to the list of
       neighbors of the graph quicker than by calling out_neighbors.  This data

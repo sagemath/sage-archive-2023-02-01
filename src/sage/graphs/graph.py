@@ -6932,7 +6932,7 @@ Graph.is_long_antihole_free = types.MethodType(sage.graphs.weakly_chordal.is_lon
 Graph.is_weakly_chordal = types.MethodType(sage.graphs.weakly_chordal.is_weakly_chordal, None, Graph)
 
 import sage.graphs.asteroidal_triples
-Graph.is_AT_free = types.MethodType(sage.graphs.asteroidal_triples.is_AT_free, None, Graph)
+Graph.is_asteroidal_triple_free = types.MethodType(sage.graphs.asteroidal_triples.is_asteroidal_triple_free, None, Graph)
 
 import sage.graphs.chrompoly
 Graph.chromatic_polynomial = types.MethodType(sage.graphs.chrompoly.chromatic_polynomial, None, Graph)

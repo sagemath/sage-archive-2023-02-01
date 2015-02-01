@@ -74,6 +74,7 @@ Geometry and Topology
 Number Theory, Algebraic Geometry
 ---------------------------------
 
+* :doc:`Diophantine approximation <diophantine_approximation/index>`
 * :doc:`Quadratic Forms <quadratic_forms/index>`
 * :doc:`L-Functions <lfunctions/index>`
 * :doc:`Schemes <schemes/index>`
@@ -104,7 +105,6 @@ Doctesting, Interfaces, Databases, Miscellany
 ---------------------------------------------
 
 * :doc:`Doctesting <doctest/index>`
-* :doc:`Development Scripts <dev/index>`
 * :doc:`Interpreter Interfaces <interfaces/index>`
 * :doc:`C/C++ Library Interfaces <libs/index>`
 * :doc:`Databases <databases/index>`

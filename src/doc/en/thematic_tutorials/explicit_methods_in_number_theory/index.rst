@@ -1,3 +1,5 @@
+.. _explicit_methods_in_number_theory:
+
 Three Lectures about Explicit Methods in Number Theory Using Sage
 =================================================================
 

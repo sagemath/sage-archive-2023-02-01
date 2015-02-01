@@ -664,13 +664,17 @@ def plot(funcs, *args, **kwds):
       to logarithmic scale. The ``"linear"`` scale is the default value
       when :class:`~sage.plot.graphics.Graphics` is initialized.
 
-    - ``xmin`` - starting x value
+    - ``xmin`` - starting x value in the rendered figure. This parameter is
+      passed directly to the ``show`` procedure and it could be overwritten.
 
-    - ``xmax`` - ending x value
+    - ``xmax`` - ending x value in the rendered figure. This parameter is passed
+      directly to the ``show`` procedure and it could be overwritten.
 
-    - ``ymin`` - starting y value in the rendered figure
+    - ``ymin`` - starting y value in the rendered figure. This parameter is
+      passed directly to the ``show`` procedure and it could be overwritten.
 
-    - ``ymax`` - ending y value in the rendered figure
+    - ``ymax`` - ending y value in the rendered figure. This parameter is passed
+      directly to the ``show`` procedure and it could be overwritten.
 
     - ``color`` - an RGB tuple (r,g,b) with each of r,g,b between 0 and 1,
       or a color name as a string (e.g., 'purple'), or an HTML color
@@ -973,6 +977,20 @@ def plot(funcs, *args, **kwds):
         sage: P = plot([h1, h2], 1,4)
         sage: P          # show the result
         Graphics object consisting of 2 graphics primitives
+
+    It is important to mention that when we draw several graphs at the same time,
+    parameters ``xmin``, ``xmax``, ``ymin`` and ``ymax`` are just passed directly
+    to the ``show`` procedure. In fact, these parameters would be overwritten::
+
+        sage: p=plot(x^3, x, xmin=-1, xmax=1,ymin=-1, ymax=1)
+        sage: q=plot(exp(x), x, xmin=-2, xmax=2, ymin=0, ymax=4)
+        sage: (p+q).show()
+
+    As a workaround, we can perform the trick::
+
+        sage: p1 = line([(a,b) for a,b in zip(p[0].xdata,p[0].ydata) if (b>=-1 and b<=1)])
+        sage: q1 = line([(a,b) for a,b in zip(q[0].xdata,q[0].ydata) if (b>=0 and b<=4)])
+        sage: (p1+q1).show()
 
     We can also directly plot the elliptic curve::
 

@@ -55,7 +55,7 @@ from sage.misc.unknown import Unknown
 from design_catalog import transversal_design
 from block_design import BlockDesign
 from sage.rings.arith import binomial, is_prime_power
-from incidence_structures import GroupDivisibleDesign
+from group_divisible_designs import GroupDivisibleDesign
 from designs_pyx import is_pairwise_balanced_design
 
 def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
@@ -157,6 +157,8 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         False
     """
     lmbd = 1
+
+    # Trivial BIBD
     if v == 1:
         if existence:
             return True
@@ -167,12 +169,15 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
             return True
         return BalancedIncompleteBlockDesign(v, [range(v)], check=False, copy=False)
 
+    # Non-existence of BIBD
     if (v < k or
         k < 2 or
         (v-1) % (k-1) != 0 or
         (v*(v-1)) % (k*(k-1)) != 0 or
-        # non-existence results from the Handbook of combinatorial designs. With
-        # lambda>1 other exceptions are (15,5,2),(21,6,2),(22,7,2),(22,8,4)
+        # From the Handbook of combinatorial designs:
+        #
+        # With lambda>1 other exceptions are
+        # (15,5,2),(21,6,2),(22,7,2),(22,8,4).
         (k==6 and v in [36,46]) or
         (k==7 and v == 43) or
         # Fisher's inequality
@@ -185,7 +190,7 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         if existence:
             return True
         from itertools import combinations
-        return BalancedIncompleteBlockDesign(v, combinations(range(v),2), check=False, copy=False)
+        return BalancedIncompleteBlockDesign(v, combinations(range(v),2), check=False, copy=True)
     if k == 3:
         if existence:
             return v%6 == 1 or v%6 == 3

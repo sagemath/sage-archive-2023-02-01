@@ -280,7 +280,7 @@ def lower_bound(G):
 
     INPUT:
 
-    - ``G`` -- a digraph
+    - ``G`` -- a Graph or a DiGraph
 
     OUTPUT:
 
@@ -303,21 +303,30 @@ def lower_bound(G):
 
     TEST:
 
-    Given anything else than a DiGraph::
+    Given anything else than a Graph or a DiGraph::
 
         sage: from sage.graphs.graph_decompositions.vertex_separation import lower_bound
-        sage: g = graphs.CycleGraph(5)
-        sage: lower_bound(g)
+        sage: lower_bound(range(2))
         Traceback (most recent call last):
         ...
-        ValueError: The parameter must be a DiGraph.
+        ValueError: The parameter must be a Graph or a DiGraph.
+
+    Given a too large graph::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import lower_bound
+        sage: lower_bound(graphs.PathGraph(50))
+        Traceback (most recent call last):
+        ...
+        ValueError: The (di)graph can have at most 31 vertices.
+    
     """
+    from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
-    if not isinstance(G, DiGraph):
-        raise ValueError("The parameter must be a DiGraph.")
+    if not isinstance(G, Graph) and not isinstance(G, DiGraph):
+        raise ValueError("The parameter must be a Graph or a DiGraph.")
 
     if G.order() >= 32:
-        raise ValueError("The graph can have at most 31 vertices.")
+        raise ValueError("The (di)graph can have at most 31 vertices.")
 
     cdef FastDigraph FD = FastDigraph(G)
     cdef int * g = FD.graph
@@ -420,8 +429,7 @@ def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, ver
     Given anything else than a Graph::
 
         sage: from sage.graphs.graph_decompositions.vertex_separation import path_decomposition
-        sage: g = digraphs.Circuit(6)
-        sage: path_decomposition(g)
+        sage: path_decomposition(DiGraph())
         Traceback (most recent call last):
         ...
         ValueError: The parameter must be a Graph.
@@ -580,7 +588,7 @@ def vertex_separation_exp(G, verbose = False):
 
     TEST:
 
-    Given anything else than a DiGraph::
+    Given anything else than a Graph or a DiGraph::
 
         sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation_exp
         sage: vertex_separation_exp(range(3))
@@ -594,6 +602,14 @@ def vertex_separation_exp(G, verbose = False):
         sage: D=digraphs.DeBruijn(2,3)
         sage: vertex_separation_exp(D)
         (2, ['000', '001', '100', '010', '101', '011', '110', '111'])
+
+    Given a too large graph::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation_exp
+        sage: vertex_separation_exp(graphs.PathGraph(50))
+        Traceback (most recent call last):
+        ...
+        ValueError: The graph should have at most 31 vertices !
     """
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
@@ -879,6 +895,8 @@ def width_of_path_decomposition(G, L):
     if not is_valid_ordering(G, L):
         raise ValueError("The input linear vertex ordering L is not valid for G.")
 
+    neighbors = G.neighbors_out if G.is_directed() else G.neighbors
+    
     vsL = 0
     S = set()
     neighbors_of_S_in_V_minus_S = set()
@@ -891,13 +909,8 @@ def width_of_path_decomposition(G, L):
         # We add vertex u to the set S
         S.add(u)
 
-        if G._directed:
-            Nu = G.neighbors_out(u)
-        else:
-            Nu = G.neighbors(u)
-
         # We add the (out-)neighbors of u to the neighbors of S
-        for v in Nu:
+        for v in neighbors(u):
             if (not v in S):
                 neighbors_of_S_in_V_minus_S.add(v)
 

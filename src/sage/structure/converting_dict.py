@@ -63,6 +63,8 @@ class KeyConvertingDict(dict):
 
     - ``key_conversion_function`` -- a function which will be
       applied to all method arguments which represent keys.
+    - ``data`` -- optional dictionary or sequence of key-value pairs
+      to initialize this mapping.
 
     EXAMPLES::
 
@@ -77,7 +79,7 @@ class KeyConvertingDict(dict):
 
     """
 
-    def __init__(self, key_conversion_function, *args, **kwargs):
+    def __init__(self, key_conversion_function, data=None):
         r"""
         Construct a dictionary with a given conversion function.
 
@@ -89,9 +91,10 @@ class KeyConvertingDict(dict):
             sage: d.items()
             [(3, 42)]
         """
+        super(KeyConvertingDict, self).__init__()
         self.key_conversion_function = key_conversion_function
-        if args or kwargs:
-            self.update(*args, **kwargs)
+        if data:
+            self.update(data)
 
     def __getitem__(self, key):
         r"""
@@ -265,6 +268,9 @@ class KeyConvertingDict(dict):
             sage: d.update([("3",1),(4,2)])
             sage: d[3]
             1
+            sage: d.update({"5": 7, "9": 12})
+            sage: d[9]
+            12
             sage: d = KeyConvertingDict(QQ['x'])
             sage: d.update(x=42)
             sage: d

@@ -514,6 +514,27 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
         sage: vs,L = vertex_separation(G, algorithm="MILP"); vs
         3
 
+    Digraphs with multiple strongly connected components::
+        
+        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
+        sage: D = digraphs.Path(8)
+        sage: print vertex_separation(D)
+        (0, [7, 6, 5, 4, 3, 2, 1, 0])
+        sage: D = DiGraph( random_DAG(30) )
+        sage: vs,L = vertex_separation(D); vs
+        0
+        sage: K4 = DiGraph( graphs.CompleteGraph(4) )
+        sage: D = K4+K4
+        sage: D.add_edge(0, 4)
+        sage: print vertex_separation(D)
+        (3, [4, 5, 6, 7, 0, 1, 2, 3])
+        sage: D = K4+K4+K4
+        sage: D.add_edge(0, 4)
+        sage: D.add_edge(0, 8)
+        sage: print vertex_separation(D)
+        (3, [8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3])
+        
+
     TESTS:
 
     Given a wrong algorithm::
@@ -534,8 +555,54 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
     """
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
-    if not isinstance(G, Graph) and not isinstance(G, DiGraph):
+
+    if isinstance(G, DiGraph):
+
+        # We decompose the graph into strongly connected components, solve the
+        # problem on each strongly connected subgraph, and order partial
+        # solutions in the inverse order of the topological sort of the digraph
+        # of the strongly connected components. The vertex separation is the
+        # maximum over all these subgraphs.
+        scc_digraph = G.strongly_connected_components_digraph()
+
+        if scc_digraph.order()>1:
+
+            vs, L = 0, []
+            for V in scc_digraph.topological_sort()[::-1]:
+
+                if len(V)==1:
+                    # We can directly add this vertex to the solution
+                    L.extend(V)
+
+                else:
+                    # We build the strongly connected subgraph and do a
+                    # recursive call to get its vertex separation and
+                    # corresponding ordering
+                    D = G.subgraph(V)
+                    vsD,LD = vertex_separation(D, algorithm=algorithm,
+                                               cut_off=cut_off,
+                                               upper_bound=upper_bound,
+                                               verbose=verbose)
+
+                    if vsD==-1:
+                        # We have not been able to find a solution. This case
+                        # happens when a too low upper bound is given.
+                        return -1, []
+
+                    # We update the vertex separation and ordering
+                    vs = max(vs, vsD)
+                    L.extend(LD)
+
+                    # We also update the cut_off parameter that could speed up
+                    # resolution for other components (used when
+                    # algorithm=="BAB")
+                    cut_off = max(cut_off, vs)
+
+            return vs, L
+
+    elif not isinstance(G, Graph):
         raise ValueError('The parameter must be a Graph or a DiGraph.')
+
 
     if algorithm == "exponential":
         return vertex_separation_exp(G, verbose = verbose)

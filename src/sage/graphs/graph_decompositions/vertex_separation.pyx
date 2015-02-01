@@ -530,7 +530,6 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
         raise ValueError('The parameter must be a Graph or a DiGraph.')
 
     if algorithm == "exponential":
-        G = DiGraph(G) if isinstance(G, Graph) else G
         return vertex_separation_exp(G, verbose = verbose)
 
     elif algorithm == "MILP":
@@ -554,7 +553,7 @@ def vertex_separation_exp(G, verbose = False):
 
     INPUT:
 
-    - ``G`` -- a digraph
+    - ``G`` -- a Graph or a DiGraph.
 
     - ``verbose`` (boolean) -- whether to display information on the
       computations.
@@ -583,12 +582,11 @@ def vertex_separation_exp(G, verbose = False):
 
     Given anything else than a DiGraph::
 
-        sage: from sage.graphs.graph_decompositions.vertex_separation import lower_bound
-        sage: g = graphs.CycleGraph(5)
-        sage: lower_bound(g)
+        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation_exp
+        sage: vertex_separation_exp(range(3))
         Traceback (most recent call last):
         ...
-        ValueError: The parameter must be a DiGraph.
+        ValueError: The parameter must be a Graph or a DiGraph.
 
     Graphs with non-integer vertices::
 
@@ -597,9 +595,10 @@ def vertex_separation_exp(G, verbose = False):
         sage: vertex_separation_exp(D)
         (2, ['000', '001', '100', '010', '101', '011', '110', '111'])
     """
+    from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
-    if not isinstance(G, DiGraph):
-        raise ValueError("The parameter must be a DiGraph.")
+    if not isinstance(G, Graph) and not isinstance(G, DiGraph):
+        raise ValueError("The parameter must be a Graph or a DiGraph.")
 
     if G.order() >= 32:
         raise ValueError("The graph should have at most 31 vertices !")

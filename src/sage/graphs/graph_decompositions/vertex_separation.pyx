@@ -40,6 +40,7 @@ This is a result of Kinnersley [Kin92]_ and Bodlaender [Bod98]_.
 
     :meth:`path_decomposition` | Returns the pathwidth of the given graph and the ordering of the vertices resulting in a corresponding path decomposition
     :meth:`vertex_separation` | Returns an optimal ordering of the vertices and its cost for vertex-separation
+    :meth:`vertex_separation_exp` | Computes the vertex separation of `G` using an exponential time and space algorithm
     :meth:`vertex_separation_MILP` | Computes the vertex separation of `G` and the optimal ordering of its vertices using an MILP formulation
     :meth:`vertex_separation_BAB` | Computes the vertex separation of `G` and the optimal ordering of its vertices using a branch and bound algorithm
     :meth:`lower_bound` | Returns a lower bound on the vertex separation of `G`
@@ -350,27 +351,44 @@ def lower_bound(G):
 
     return min
 
-################################
-# Exact exponential algorithms #
-################################
+##################################################################
+# Front end methods for path decomposition and vertex separation #
+##################################################################
 
-def path_decomposition(G, algorithm = "exponential", verbose = False):
+def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, verbose = False):
     r"""
     Returns the pathwidth of the given graph and the ordering of the vertices
     resulting in a corresponding path decomposition.
 
     INPUT:
 
-    - ``G`` -- a digraph
+    - ``G`` -- a Graph
 
-    - ``algorithm`` -- (default: ``"exponential"``) Specify the algorithm to use
-      among
+    - ``algorithm`` -- (default: ``"BAB"``) Specify the algorithm to use among
+
+      - ``"BAB"`` -- Use a branch-and-bound algorithm. This algorithm has no
+        size restriction but could take a very long time on large graphs. It can
+        also be used to test is the input (di)graph has vertex separation at
+        most ``upper_bound`` or to return the first found solution with vertex
+        separation less or equal to a ``cut_off`` value.
 
       - ``exponential`` -- Use an exponential time and space algorithm. This
         algorithm only works of graphs on less than 32 vertices.
 
       - ``MILP`` -- Use a mixed integer linear programming formulation. This
         algorithm has no size restriction but could take a very long time.
+
+    - ``upper_bound`` -- (default: ``None``) This is parameter is used by the
+      ``"BAB"`` algorithm. If specified, the algorithm searches for a solution
+      with ``width < upper_bound``. It helps cutting branches.  However, if the
+      given upper bound is too low, the algorithm may not be able to find a
+      solution.
+
+    - ``cut_off`` -- (default: None) This is parameter is used by the ``"BAB"``
+      algorithm. This bound allows us to stop the search as soon as a solution
+      with width at most ``cut_off`` is found, if any. If this bound cannot be
+      reached, the best solution found is returned, unless a too low
+      ``upper_bound`` is given.
 
     - ``verbose`` (boolean) -- whether to display information on the
       computations.
@@ -380,25 +398,21 @@ def path_decomposition(G, algorithm = "exponential", verbose = False):
     A pair ``(cost, ordering)`` representing the optimal ordering of the
     vertices and its cost.
 
-    .. NOTE::
-
-        Because of its current implementation, this exponential algorithm only
-        works on graphs on less than 32 vertices. This can be changed to 54 if
-        necessary, but 32 vertices already require 4GB of memory.
-
     .. SEEALSO::
 
         * :meth:`Graph.treewidth` -- computes the treewidth of a graph
 
     EXAMPLE:
 
-    The vertex separation of a cycle is equal to 2::
+    The pathwidth of a cycle is equal to 2::
 
         sage: from sage.graphs.graph_decompositions.vertex_separation import path_decomposition
         sage: g = graphs.CycleGraph(6)
-        sage: pw, L = path_decomposition(g); pw
+        sage: pw, L = path_decomposition(g, algorithm = "BAB"); pw
         2
-        sage: pwm, Lm = path_decomposition(g, algorithm = "MILP"); pwm
+        sage: pw, L = path_decomposition(g, algorithm = "exponential"); pw
+        2
+        sage: pw, L = path_decomposition(g, algorithm = "MILP"); pw
         2
 
     TEST:
@@ -411,19 +425,130 @@ def path_decomposition(G, algorithm = "exponential", verbose = False):
         Traceback (most recent call last):
         ...
         ValueError: The parameter must be a Graph.
+
+    Given a wrong algorithm::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import path_decomposition
+        sage: path_decomposition(Graph(), algorithm="SuperFast")
+        Traceback (most recent call last):
+        ...
+        ValueError: Algorithm "SuperFast" has not been implemented yet. Please contribute.
+
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
         raise ValueError("The parameter must be a Graph.")
 
+    return vertex_separation(G, algorithm=algorithm, cut_off=cut_off,
+                             upper_bound=upper_bound, verbose=verbose)
+
+
+def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verbose = False):
+    r"""
+    Returns an optimal ordering of the vertices and its cost for
+    vertex-separation.
+
+    INPUT:
+
+    - ``G`` -- a Graph or a DiGraph
+
+    - ``algorithm`` -- (default: ``"BAB"``) Specify the algorithm to use among
+
+      - ``"BAB"`` -- Use a branch-and-bound algorithm. This algorithm has no
+        size restriction but could take a very long time on large graphs. It can
+        also be used to test is the input (di)graph has vertex separation at
+        most ``upper_bound`` or to return the first found solution with vertex
+        separation less or equal to a ``cut_off`` value.
+
+      - ``exponential`` -- Use an exponential time and space algorithm. This
+        algorithm only works of graphs on less than 32 vertices.
+
+      - ``MILP`` -- Use a mixed integer linear programming formulation. This
+        algorithm has no size restriction but could take a very long time.
+
+    - ``upper_bound`` -- (default: ``None``) This is parameter is used by the
+      ``"BAB"`` algorithm. If specified, the algorithm searches for a solution
+      with ``width < upper_bound``. It helps cutting branches.  However, if the
+      given upper bound is too low, the algorithm may not be able to find a
+      solution.
+
+    - ``cut_off`` -- (default: None) This is parameter is used by the ``"BAB"``
+      algorithm. This bound allows us to stop the search as soon as a solution
+      with width at most ``cut_off`` is found, if any. If this bound cannot be
+      reached, the best solution found is returned, unless a too low
+      ``upper_bound`` is given.
+
+    - ``verbose`` (boolean) -- whether to display information on the
+      computations.
+
+    OUTPUT:
+
+    A pair ``(cost, ordering)`` representing the optimal ordering of the
+    vertices and its cost.
+
+    EXAMPLES:
+
+    Comparison of methods::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
+        sage: G = digraphs.DeBruijn(2,3)
+        sage: vs,L = vertex_separation(G, algorithm="BAB"); vs
+        2
+        sage: vs,L = vertex_separation(G, algorithm="exponential"); vs
+        2
+        sage: vs,L = vertex_separation(G, algorithm="MILP"); vs
+        2
+        sage: G = graphs.Grid2dGraph(3,3)
+        sage: vs,L = vertex_separation(G, algorithm="BAB"); vs
+        3
+        sage: vs,L = vertex_separation(G, algorithm="exponential"); vs
+        3
+        sage: vs,L = vertex_separation(G, algorithm="MILP"); vs
+        3
+
+    TESTS:
+
+    Given a wrong algorithm::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
+        sage: vertex_separation(Graph(), algorithm="SuperFast")
+        Traceback (most recent call last):
+        ...
+        ValueError: Algorithm "SuperFast" has not been implemented yet. Please contribute.
+   
+    Given anything else than a Graph or a DiGraph::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
+        sage: vertex_separation(range(4))
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameter must be a Graph or a DiGraph.
+    """
+    from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
+    if not isinstance(G, Graph) and not isinstance(G, DiGraph):
+        raise ValueError('The parameter must be a Graph or a DiGraph.')
+
     if algorithm == "exponential":
-        return vertex_separation(DiGraph(G), verbose = verbose)
+        G = DiGraph(G) if isinstance(G, Graph) else G
+        return vertex_separation_exp(G, verbose = verbose)
+
+    elif algorithm == "MILP":
+        G = DiGraph(G) if isinstance(G, Graph) else G
+        return vertex_separation_MILP(G, verbosity = (1 if verbose else 0))
+
+    elif algorithm == "BAB":
+        return vertex_separation_BAB(G, cut_off=cut_off, upper_bound=upper_bound)
+
     else:
-        return vertex_separation_MILP(DiGraph(G), verbosity = (1 if verbose else 0))
+        raise ValueError('Algorithm "{}" has not been implemented yet. Please contribute.'.format(algorithm))
 
 
-def vertex_separation(G, verbose = False):
+################################
+# Exact exponential algorithms #
+################################
+
+def vertex_separation_exp(G, verbose = False):
     r"""
     Returns an optimal ordering of the vertices and its cost for
     vertex-separation.
@@ -450,9 +575,9 @@ def vertex_separation(G, verbose = False):
 
     The vertex separation of a circuit is equal to 1::
 
-        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
+        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation_exp
         sage: g = digraphs.Circuit(6)
-        sage: vertex_separation(g)
+        sage: vertex_separation_exp(g)
         (1, [0, 1, 2, 3, 4, 5])
 
     TEST:
@@ -468,9 +593,9 @@ def vertex_separation(G, verbose = False):
 
     Graphs with non-integer vertices::
 
-        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
+        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation_exp
         sage: D=digraphs.DeBruijn(2,3)
-        sage: vertex_separation(D)
+        sage: vertex_separation_exp(D)
         (2, ['000', '001', '100', '010', '101', '011', '110', '111'])
     """
     from sage.graphs.digraph import DiGraph
@@ -996,7 +1121,7 @@ def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
         sage: from sage.graphs.graph_decompositions import vertex_separation as VS
         sage: D = digraphs.RandomDirectedGNP(15, .2)
         sage: vb, seqb = VS.vertex_separation_BAB(D)
-        sage: vd, seqd = VS.vertex_separation(D)
+        sage: vd, seqd = VS.vertex_separation_exp(D)
         sage: vb == vd
         True
         sage: vb == VS.width_of_path_decomposition(D, seqb)

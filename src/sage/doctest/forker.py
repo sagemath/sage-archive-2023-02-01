@@ -843,9 +843,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
             globs.start()
         example.sequence_number = len(self.history)
         self.history.append(example)
-        timer = Timer()
+        timer = Timer().start()
         try:
-            timer.start()
             compiled = compiler(example)
             timer.start()    # reset timer
             exec(compiled, globs)

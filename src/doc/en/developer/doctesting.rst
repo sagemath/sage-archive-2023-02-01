@@ -2,16 +2,16 @@
 
 .. _chapter-doctesting:
 
-===========================
-Doctesting the Sage Library
-===========================
+=======================
+Running Sage's doctests
+=======================
 
 Doctesting a function ensures that the function performs as claimed by
 its documentation. Testing can be performed using one thread or
 multiple threads. After compiling a source version of Sage, doctesting
 can be run on the whole Sage library, on all modules under a given
 directory, or on a specified module only. For the purposes of this
-chapter, suppose we have compiled Sage 5.9 from source and the top
+chapter, suppose we have compiled Sage 6.0 from source and the top
 level Sage directory is::
 
     [jdemeyer@sage sage-6.0]$ pwd
@@ -776,6 +776,8 @@ You can also pass in an explicit amount of time::
 Finally, you can disable any warnings about long tests with
 ``--warn-long 0``.
 
+
+.. _section-optional-doctest-flag:
 
 Run Optional Tests
 ------------------

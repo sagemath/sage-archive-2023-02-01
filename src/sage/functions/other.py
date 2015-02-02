@@ -15,7 +15,7 @@ import sage.structure.element
 coercion_model = sage.structure.element.get_coercion_model()
 
 # avoid name conflicts with `parent` as a function parameter
-from sage.structure.coerce import parent as s_parent
+from sage.structure.all import parent as s_parent
 
 from sage.symbolic.constants import pi
 from sage.functions.log import exp
@@ -1756,8 +1756,23 @@ def sqrt(x, *args, **kwds):
             [2, -2]
             sage: sqrt(x^2)
             sqrt(x^2)
+
+        For a non-symbolic square root, there are a few options.
+        The best is to numerically approximate afterward::
+
             sage: sqrt(2).n()
             1.41421356237310
+            sage: sqrt(2).n(prec=100)
+            1.4142135623730950488016887242
+
+        Or one can input a numerical type.
+
+            sage: sqrt(2.)
+            1.41421356237310
+            sage: sqrt(2.000000000000000000000000)
+            1.41421356237309504880169
+            sage: sqrt(4.0)
+            2.00000000000000
 
         To prevent automatic evaluation, one can use the ``hold`` parameter
         after coercing to the symbolic ring::

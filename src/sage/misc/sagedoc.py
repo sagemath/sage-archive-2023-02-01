@@ -408,10 +408,11 @@ def format(s, embedded=False):
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import format
-        sage: identity_matrix(2).rook_vector.__doc__[115:184]
-        '   Let `A` be an `m` by `n` (0,1)-matrix with `m \\le n`. We identify\n'
-        sage: format(identity_matrix(2).rook_vector.__doc__[115:184])
-        '   Let A be an m by n (0,1)-matrix with m <= n. We identify\n'
+        sage: identity_matrix(2).rook_vector.__doc__[110:182]
+        'Let `A` be an `m` by `n` (0,1)-matrix. We identify `A` with a chessboard'
+
+        sage: format(identity_matrix(2).rook_vector.__doc__[110:182])
+        'Let A be an m by n (0,1)-matrix. We identify A with a chessboard\n'
 
     If the first line of the string is 'nodetex', remove 'nodetex' but
     don't modify any TeX commands::
@@ -1035,7 +1036,7 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
 
         sage: len(search_doc('tree', interact=False).splitlines()) > 4000  # long time
         True
-        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 1000  # long time
+        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 2000  # long time
         True
     """
     return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2,

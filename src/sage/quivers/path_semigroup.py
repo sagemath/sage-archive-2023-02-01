@@ -880,7 +880,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         An example with multiple edges::
 
-            sage: Q = DiGraph([[1,2,'abc'], [1,2,'def']])
+            sage: Q = DiGraph([[1,2,'abc'], [1,2,'def']], multiedges=True)
             sage: PQ = Q.path_semigroup()
             sage: PQ.all_paths(1,2)
             [abc, def]

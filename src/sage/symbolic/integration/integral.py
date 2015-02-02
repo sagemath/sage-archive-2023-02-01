@@ -724,6 +724,25 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         2*log(2)
         sage: integral(e^(-abs(x))/cosh(x),x,-infinity,infinity)
         2*log(2)
+
+    Check that :trac:`12628` is fixed::
+
+        sage: var('z,n')
+        (z, n)
+        sage: f(z, n) = sin(n*z) / (n*z)
+        sage: integrate(f(z,1)*f(z,3)*f(z,5)*f(z,7),z,0,oo)
+        22/315*pi
+        sage: for k in srange(1, 16, 2):
+        ....:     print integrate(prod(f(z, ell)
+        ....:                     for ell in srange(1, k+1, 2)), z, 0, oo)
+        1/2*pi
+        1/6*pi
+        1/10*pi
+        22/315*pi
+        3677/72576*pi
+        48481/1247400*pi
+        193359161/6227020800*pi
+        5799919/227026800*pi
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

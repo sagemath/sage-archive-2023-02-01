@@ -1428,10 +1428,19 @@ class Ideal_pid(Ideal_principal):
             Principal ideal (x^2 + 1) of Univariate Polynomial Ring in x over Rational Field
             sage: P.is_prime()
             True
+
+        In fields, only the zero ideal is prime::
+
+            sage: RR.ideal(0).is_prime()
+            True
+            sage: RR.ideal(7).is_prime()
+            False
         """
         if self.is_zero(): # PIDs are integral domains by definition
             return True
         g = self.gen()
+        if g.is_one():     # The ideal (1) is never prime
+            return False
         if hasattr(g, 'is_irreducible'):
             return g.is_irreducible()
 

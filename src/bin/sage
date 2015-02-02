@@ -204,7 +204,6 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
     echo "  -bdist VER          -- build a binary distribution of Sage"
-    echo "  -crap sage-ver.tar  -- detect suspicious garbage in sage source tarball"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
     echo "  -sdist              -- build a source distribution of Sage"
@@ -449,10 +448,6 @@ if [ "$1" = '-scons' -o "$1" = '--scons' ]; then
 fi
 
 if [ "$1" = '-pip' -o "$1" = '--pip' ]; then
-    if [ ! -x "$SAGE_LOCAL/bin/pip" ]; then
-        echo "Pip is not installed. Run \"sage -i pip\" to install it."
-        exit 1
-    fi
     shift
     exec pip "$@"
 fi
@@ -629,15 +624,6 @@ if [ "$1" = '-rst2sws' -o "$1" = '--rst2sws' ]; then
 fi
 
 #####################################################################
-# Crap
-#####################################################################
-
-if [ "$1" = "-crap" -o "$1" = "--crap" ]; then
-    shift
-    exec sage-crap $@
-fi
-
-#####################################################################
 # Run Sage's versions of the standard Algebra/Geometry etc. software
 #####################################################################
 
@@ -646,7 +632,7 @@ build_sage() {
     sage-build "$@" || exit $?
 }
 
-if [[ "$1" =~ "--notebook="* || "$1" =~ "-n="* || "$1" =~ "-notebook="* ]]; then
+if [[ "$1" =~ ^--notebook=.* || "$1" =~ ^-n=.* || "$1" =~ ^-notebook=.* ]] ; then
     sage-cleaner &>/dev/null &
     exec sage-notebook "$@"
 fi

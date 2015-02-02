@@ -151,7 +151,6 @@ def is_asteroidal_triple_free(G, certificate=False):
     # module sage.graphs.base.static_sparse_graph
     cdef short_digraph sd
     init_short_digraph(sd, G)
-    cdef uint32_t ** p_vertices = sd.neighbors
 
     cdef bitset_t seen
     bitset_init(seen, n)
@@ -178,7 +177,7 @@ def is_asteroidal_triple_free(G, certificate=False):
 
     try:
         sig_on()
-        ret = is_asteroidal_triple_free_C(n, p_vertices, connected_structure, waiting_list, seen)
+        ret = is_asteroidal_triple_free_C(n, sd, connected_structure, waiting_list, seen)
         sig_off()
 
     finally:
@@ -202,15 +201,16 @@ def is_asteroidal_triple_free(G, certificate=False):
 
 
 cdef list is_asteroidal_triple_free_C(int n,
-                                      uint32_t ** p_vertices,
+                                      short_digraph sd,
                                       uint32_t ** connected_structure,
                                       uint32_t *  waiting_list,
                                       bitset_t seen):
     """
     INPUT:
 
-    - ``p_vertices`` -- bidimensional array allowing to access to the list of
-      neighbors of the graph quicker than by calling out_neighbors.  This data
+    - ``n`` (int) -- number of points in the graph
+
+    - ``sd`` (``short_digraph``) -- a graph on ``n`` points. This data
       structure is well documented in the module
       sage.graphs.base.static_sparse_graph
 
@@ -243,8 +243,8 @@ cdef list is_asteroidal_triple_free_C(int n,
         bitset_add(seen, source)
 
         # The neighbors of the source are forbidden and seen
-        p_tmp = p_vertices[source]
-        end = p_vertices[source+1]
+        p_tmp = sd.neighbors[source]
+        end = sd.neighbors[source+1]
         # Iterating over all the outneighbors u of v
         while p_tmp < end:
             bitset_add(seen, p_tmp[0])
@@ -269,8 +269,8 @@ cdef list is_asteroidal_triple_free_C(int n,
 
                 # We pick the first one
                 v = waiting_list[waiting_beginning]
-                p_tmp = p_vertices[v]
-                end = p_vertices[v+1]
+                p_tmp = sd.neighbors[v]
+                end = sd.neighbors[v+1]
 
                 # Iterating over all the outneighbors u of v
                 while p_tmp < end:

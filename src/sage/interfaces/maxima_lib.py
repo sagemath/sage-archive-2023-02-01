@@ -1535,7 +1535,7 @@ def sr_to_max(expr):
         <ECL: $X>
         sage: sr_to_max(cos(x))
         <ECL: ((%COS) $X)>
-        sage: f = function('f',x)
+        sage: f = function('f')(x)
         sage: sr_to_max(f.diff())
         <ECL: ((%DERIVATIVE) (($F) $X) $X 1)>
 
@@ -1644,7 +1644,7 @@ def max_to_sr(expr):
     TESTS::
 
         sage: from sage.interfaces.maxima_lib import sr_to_max, max_to_sr
-        sage: f = function('f',x).diff()
+        sage: f = function('f')(x).diff()
         sage: bool(max_to_sr(sr_to_max(f)) == f)
         True
     """

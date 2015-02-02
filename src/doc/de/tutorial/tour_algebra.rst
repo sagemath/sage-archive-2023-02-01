@@ -153,7 +153,7 @@ berechnen. Die Gleichung :math:`x'+x-1=0` berechnen Sie wie folgt:
 ::
 
     sage: t = var('t')    # definiere die Variable t
-    sage: x = function('x',t)   # definiere x als Funktion dieser Variablen
+    sage: x = function('x')(t)   # definiere x als Funktion dieser Variablen
     sage: DE = diff(x, t) + x - 1
     sage: desolve(DE, [x,t])
     (_C + e^t)*e^(-t)

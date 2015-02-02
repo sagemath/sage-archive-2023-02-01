@@ -433,8 +433,8 @@ In the present case, `P=y^2-y+x`. We formally differentiate this
 equation with respect to `z`::
 
     sage: x, y, z = var('x, y, z')
-    sage: P = function('P', x, y)
-    sage: C = function('C', z)
+    sage: P = function('P')(x, y)
+    sage: C = function('C')(z)
     sage: equation =  P(x=z, y=C) == 0
     sage: diff(equation, z)
     D[0](C)(z)*D[1](P)(z, C(z)) + D[0](P)(z, C(z)) == 0

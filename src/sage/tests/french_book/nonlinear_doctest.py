@@ -118,8 +118,8 @@ Sage example in ./nonlinear.tex, line 367::
 Sage example in ./nonlinear.tex, line 424::
 
     sage: alpha, m, x = var('alpha, m, x')
-    sage: p = function('p', x)
-    sage: q = function('q', x)
+    sage: p = function('p')(x)
+    sage: q = function('q')(x)
     sage: p = (x - alpha)^m * q
     sage: p.derivative(x)
     (-alpha + x)^(m - 1)*m*q(x) + (-alpha + x)^m*D[0](q)(x)

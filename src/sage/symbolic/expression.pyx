@@ -10784,9 +10784,7 @@ cdef class Expression(CommutativeRingElement):
 
         - ``n`` - (default : 1) the order of the derivative.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: var('x, y')
             (x, y)
@@ -10797,7 +10795,8 @@ cdef class Expression(CommutativeRingElement):
             sage: g.implicit_derivative(y, x, 3)
             -1/4*(y + 2*y/x)/x^2 + 1/4*(2*y^2/x - y^2/x^2)/(x*y) - 3/4*y/x^3
 
-            It is an error to not include a Y term in the expression F::
+        It is an error to not include an independent variable term
+        in the expression::
 
             sage: (cos(x)*sin(x)).implicit_derivative(y, x)
             Traceback (most recent call last):
@@ -10809,13 +10808,15 @@ cdef class Expression(CommutativeRingElement):
 
             sage: var('x,y')  # check that the pynac registry is not polluted
             (x, y)
-            sage: psr=copy(sage.symbolic.ring.pynac_symbol_registry)
+            sage: psr = copy(sage.symbolic.ring.pynac_symbol_registry)
             sage: (x^6*y^5).implicit_derivative(y, x, 3)
             -792/125*y/x^3 + 12/25*(15*x^4*y^5 + 28*x^3*y^5)/(x^6*y^4) - 36/125*(20*x^5*y^4 + 43*x^4*y^4)/(x^7*y^3)
-            sage: psr==sage.symbolic.ring.pynac_symbol_registry
+            sage: psr == sage.symbolic.ring.pynac_symbol_registry
             True
         """
-        from sage.calculus.calculus import SR
+        from sage.symbolic.ring import SR
+        from sage.symbolic.function_factory import SymbolicFunction
+
         if not self.has(Y):
             raise ValueError, "Expression {} contains no {} terms".format(self, Y)
         x = SR.symbol()

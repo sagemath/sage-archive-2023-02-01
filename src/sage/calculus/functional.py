@@ -32,7 +32,6 @@ EXAMPLES: We illustrate each of the calculus functional functions.
 
 from calculus import SR
 from sage.symbolic.expression import Expression
-from sage.symbolic.function_factory import SymbolicFunction
 
 def simplify(f):
     r"""

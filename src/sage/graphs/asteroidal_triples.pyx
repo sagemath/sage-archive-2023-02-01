@@ -1,7 +1,7 @@
 r"""
 Asteroidal triples
 
-**This module contains the following methods**
+This module contains the following function:
 
 .. csv-table::
     :class: contentstable
@@ -10,7 +10,6 @@ Asteroidal triples
 
     :meth:`is_asteroidal_triple_free` | Test if the input graph is asteroidal triple-free
 
-    
 Definition
 ----------
 
@@ -19,8 +18,9 @@ of them are connected by a path avoiding the neighborhood of the third one. A
 graph is *asteroidal triple-free* (*AT-free*, for short) if it contains no
 asteroidal triple [LB62]_.
 
-Use :meth:`graph_classes.get_class('gc_61').description()` to get some known
-properties of AT-free graphs.
+Use ``graph_classes.AT_free.description()`` to get some known properties of
+AT-free graphs, or visit `this page
+<http://www.graphclasses.org/classes/gc_61.html>`_.
 
 
 Algorithm
@@ -57,8 +57,8 @@ References
       51:45-64, 1962.
 
 
-Methods
--------
+Functions
+---------
 """
 #*****************************************************************************
 # Copyright (C) 2015 David Coudert <david.coudert@inria.fr>
@@ -98,7 +98,7 @@ def is_asteroidal_triple_free(G, certificate=False):
 
     EXAMPLES:
 
-    The complete graph is AT-free, and its line graph too::
+    The complete graph is AT-free, as well as its line graph::
 
         sage: from sage.graphs.asteroidal_triples import *
         sage: G = graphs.CompleteGraph(5)
@@ -144,12 +144,10 @@ def is_asteroidal_triple_free(G, certificate=False):
     if n<3:
         return True if not certificate else (True, [])
 
-
-
     # ==> Initialize some data structures for is_asteroidal_triple_free_C
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
-    # calling out_neighbors.  This data structure is well documented in the
+    # calling out_neighbors. This data structure is well documented in the
     # module sage.graphs.base.static_sparse_graph
     cdef short_digraph sd
     init_short_digraph(sd, G)
@@ -175,7 +173,6 @@ def is_asteroidal_triple_free(G, certificate=False):
         connected_structure[i+1] = connected_structure[i] + n
 
     cdef list ret = list()
-
 
     # ==> call is_asteroidal_triple_free_C
 
@@ -224,14 +221,17 @@ cdef list is_asteroidal_triple_free_C(int n,
     - ``waiting_list`` -- an array of size `n` to be used for BFS.
 
     - ``seen`` -- a bitset of size `n`.
+
+    ALGORITHM:
+
+    See the module's documentation.
     """
     cdef uint32_t waiting_beginning = 0
     cdef uint32_t waiting_end       = 0
     cdef uint32_t idx_cc            = 0
-    cdef uint32_t source, u, v
+    cdef uint32_t source, u, v, w
     cdef uint32_t * p_tmp
     cdef uint32_t * end
-
 
     # ==> We build the connected structure
 
@@ -253,7 +253,7 @@ cdef list is_asteroidal_triple_free_C(int n,
         # We now search for an unseen vertex
         v = bitset_first_in_complement(seen)
         while v!=-1:
-            # and added it to the queue
+            # and add it to the queue
             waiting_list[0] = v
             waiting_beginning = 0
             waiting_end = 0
@@ -266,7 +266,7 @@ cdef list is_asteroidal_triple_free_C(int n,
             # For as long as there are vertices left to explore in this
             # component
             while waiting_beginning <= waiting_end:
-            
+
                 # We pick the first one
                 v = waiting_list[waiting_beginning]
                 p_tmp = p_vertices[v]
@@ -291,19 +291,28 @@ cdef list is_asteroidal_triple_free_C(int n,
             # We search for a possibly unseen vertex
             v = bitset_first_in_complement(seen)
 
-
     # ==> Now that we have the component structure of the graph, we search for
     # an asteroidal triple.
 
-    for source in range(n-2):
-        for u from source+1 <= u < n-1:
-            if connected_structure[source][u]>0:
-                for v from u+1 <= v < n:
-                    if connected_structure[source][u] == connected_structure[source][v] \
-                        and connected_structure[u][source] == connected_structure[u][v] \
-                        and connected_structure[v][source] == connected_structure[v][u]:
+    # (Possible improvement) right now, the code fixes u and tries to find v,w
+    # in the same connected component of G-N[u] by going over all
+    # binomial(n-1,2) pairs of point. It would be faster to:
+    #
+    # - Iterate on all connected components of G-N[u]
+    # - Enumerate all v,w in G-N[u]
+    #
+    # The list of connected components of G-N[u] can be built from
+    # connected_structure in O(n) time.
+
+    for u in range(n-2):
+        for v in range(u+1,n-1):
+            if connected_structure[u][v]>0:
+                for w in range(v+1,n):
+                    if (connected_structure[u][v] == connected_structure[u][w] and
+                        connected_structure[v][u] == connected_structure[v][w] and
+                        connected_structure[w][u] == connected_structure[w][v]):
                         # We have found an asteroidal triple
-                        return [source, u, v]
+                        return [u,v,w]
 
     # No asteroidal triple was found
     return []

@@ -1,5 +1,5 @@
 Welcome to Sage's Reference Manual!
-=================================================
+===================================
 
 This is a thematic index of all of `Sage's <http://www.sagemath.org/>`_
 features. It also contains many examples that illustrate their use, all of them
@@ -29,12 +29,13 @@ Combinatorics, Discrete Mathematics
 * :doc:`Graph Theory <graphs/index>`
 * :doc:`Matroid Theory <matroids/index>`
 * :doc:`Discrete Dynamics <dynamics/index>`
-* :doc:`Quviers <quivers/index>`
+* :doc:`Quivers <quivers/index>`
 
 Structures, Coercion, Categories
 --------------------------------
 
 * :doc:`Basic Structures <structure/index>`
+* :doc:`Data Structures <data_structures/index>`
 * :doc:`Coercion <coercion/index>`
 * :doc:`Category Theory and Categories <categories/index>`
 
@@ -81,6 +82,7 @@ Number Theory, Algebraic Geometry
 * :doc:`General Hecke Algebras and Hecke Modules <hecke/index>`
 * :doc:`Modular Symbols <modsym/index>`
 * :doc:`Modular Forms <modfrm/index>`
+* :doc:`Modular Forms for Hecke Triangle Groups <modfrm_hecketriangle/index>`
 * :doc:`Modular Abelian Varieties <modabvar/index>`
 * :doc:`Miscellaneous Modular-Form-Related Modules <modmisc/index>`
 
@@ -96,12 +98,12 @@ Miscellaneous Mathematics
 * :doc:`Statistics <stats/index>`
 * :doc:`Quantitative Finance <finance/index>`
 * :doc:`Coding Theory <coding/index>`
+* :doc:`Game Theory <game_theory/index>`
 
 Doctesting, Interfaces, Databases, Miscellany
 ---------------------------------------------
 
 * :doc:`Doctesting <doctest/index>`
-* :doc:`Development Scripts <dev/index>`
 * :doc:`Interpreter Interfaces <interfaces/index>`
 * :doc:`C/C++ Library Interfaces <libs/index>`
 * :doc:`Databases <databases/index>`

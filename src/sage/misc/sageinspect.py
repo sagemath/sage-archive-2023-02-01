@@ -326,7 +326,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         sage: visitor.visit(ast.parse('[1,2,3]').body[0].value)
         [1, 2, 3]
         sage: visitor.visit(ast.parse("{'a':('e',2,[None,({False:True},'pi')]), 37.0:'temp'}").body[0].value)
-        {'a': ('e', 2, [None, ({False: True}, 'pi')]), 37.0: 'temp'}
+        {37.0: 'temp', 'a': ('e', 2, [None, ({False: True}, 'pi')])}
         sage: v = ast.parse("jc = ['veni', 'vidi', 'vici']").body[0]; v
         <_ast.Assign object at ...>
         sage: [x for x in dir(v) if not x.startswith('__')]
@@ -787,6 +787,13 @@ def _split_syntactical_unit(s):
         sage: _split_syntactical_unit('123')
         ('1', '23')
 
+    TEST:
+
+    The following was fixed in :trac:`16309`::
+
+        sage: _split_syntactical_unit('()): pass')
+        ('()', '): pass')
+
     """
     s = s.strip()
     if not s:
@@ -862,11 +869,11 @@ def _split_syntactical_unit(s):
         tmp_group, s = _split_syntactical_unit(s)
         out.append(tmp_group)
         s = s.strip()
-        if s.startswith(stop):
+        if tmp_group==stop:
+            return ''.join(out), s
+        elif s.startswith(stop):
             out.append(stop)
             return ''.join(out), s[1:].strip()
-        elif tmp_group==stop:
-            return ''.join(out), s
     raise SyntaxError("Syntactical group starting with %s did not end with %s"%(repr(start),repr(stop)))
 
 def _sage_getargspec_from_ast(source):
@@ -899,7 +906,7 @@ def _sage_getargspec_from_ast(source):
         sage: from_ast(s) == inspect.getargspec(context['f'])
         True
         sage: set(from_ast(sms.sage_getsource(x)) == inspect.getargspec(x) for x in [factor, identity_matrix, Graph.__init__])
-        set([True])
+        {True}
     """
     ast_args = ast.parse(source.lstrip()).body[0].args
 
@@ -975,12 +982,12 @@ def _sage_getargspec_cython(source):
     Some input that is malformed in Python but wellformed in Cython
     is correctly parsed::
 
-        sage: def dummy(self,*args,x=1): pass
+        sage: def dummy_python(self,*args,x=1): pass
         Traceback (most recent call last):
         ...
         SyntaxError: invalid syntax
-        sage: cython("def dummy(self,*args,x=1): pass")
-        sage: sgc("def dummy(self,*args,x=1): pass")
+        sage: cython("def dummy_cython(self,*args,x=1): pass")
+        sage: sgc("def dummy_cython(self,*args,x=1): pass")
         ArgSpec(args=['self', 'x'], varargs='args', keywords=None, defaults=(1,))
 
     In some examples above, a syntax error was raised when a type
@@ -1142,6 +1149,17 @@ def sage_getfile(obj):
         sage: sage_getfile(P)
         '...sage/rings/polynomial/multi_polynomial_libsingular.pyx'
 
+    A problem fixed in :trac:`16309`::
+
+        sage: cython('''
+        ....: class Bar: pass
+        ....: cdef class Foo: pass
+        ....: ''')
+        sage: sage_getfile(Bar)
+        '...pyx'
+        sage: sage_getfile(Foo)
+        '...pyx'
+
     AUTHORS:
 
     - Nick Alexander
@@ -1162,7 +1180,10 @@ def sage_getfile(obj):
         return sage_getfile(obj.__class__) #inspect.getabsfile(obj.__class__)
 
     # No go? fall back to inspect.
-    return inspect.getabsfile(obj)
+    sourcefile = inspect.getabsfile(obj)
+    if sourcefile.endswith(os.path.extsep+'so'):
+        return sourcefile[:-3]+os.path.extsep+'pyx'
+    return sourcefile
 
 def sage_getargspec(obj):
     r"""
@@ -1287,6 +1308,30 @@ def sage_getargspec(obj):
 
         sage: sage.misc.sageinspect.sage_getargspec(r.lm)
 
+    The following was fixed in :trac:`16309`::
+
+        sage: cython('''
+        ....: class Foo:
+        ....:     @staticmethod
+        ....:     def join(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()): pass
+        ....: cdef class Bar:
+        ....:     @staticmethod
+        ....:     def join(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()): pass
+        ....:     cpdef meet(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()): pass
+        ....: ''')
+        sage: sage_getargspec(Foo.join)
+        ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
+        sage: sage_getargspec(Bar.join)
+        ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
+        sage: sage_getargspec(Bar.meet)
+        ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
+
+    Test that :trac:`17009` is fixed::
+
+        sage: sage_getargspec(gap)
+        ArgSpec(args=['self', 'x', 'name'], varargs=None, keywords=None, defaults=(None,))
+
+
     AUTHORS:
 
     - William Stein: a modified version of inspect.getargspec from the
@@ -1305,11 +1350,13 @@ def sage_getargspec(obj):
         return inspect.ArgSpec(*obj._sage_argspec_())
     except (AttributeError, TypeError):
         pass
-    if inspect.isfunction(obj):
-        func_obj = obj
-    elif inspect.ismethod(obj):
-        func_obj = obj.__func__
-    elif isclassinstance(obj):
+    if hasattr(obj, 'func_code'):
+        try:
+            args, varargs, varkw = inspect.getargs(obj.func_code)
+            return inspect.ArgSpec(args, varargs, varkw, obj.func_defaults)
+        except (TypeError, AttributeError):
+            pass
+    if isclassinstance(obj):
         if hasattr(obj,'_sage_src_'): #it may be a decorator!
             source = sage_getsource(obj)
             # we try to find the definition and parse it by _sage_getargspec_ast
@@ -1590,12 +1637,43 @@ def _sage_getsourcelines_name_with_dot(object):
                 Returns the Lie bracket `[x, y] = x y - y x` of `x` and `y`.
         ...
 
+    TESTS:
+
+    The following was fixed in :trac:`16309`::
+
+        sage: cython('''
+        ....: class A:
+        ....:     def __init__(self):
+        ....:         "some init doc"
+        ....:         pass
+        ....: class B:
+        ....:     "some class doc"
+        ....:     class A(A):
+        ....:         pass
+        ....: ''')
+        sage: B.A.__name__
+        'A'
+        sage: B.A.__qualname__
+        'B.A'
+        sage: sage_getsource(B.A)
+        '    class A(A):\n        pass\n\n'
+
+    Note that for this example to work, it is essential that the class ``B``
+    has a docstring. Otherwise, the code of ``B`` could not be found (Cython
+    inserts embedding information into the docstring) and thus the code of
+    ``B.A`` couldn't be found either.
+
     AUTHOR:
 
     - Simon King (2011-09)
     """
     # First, split the name:
-    splitted_name = object.__name__.split('.')
+    if '.' in object.__name__:
+        splitted_name = object.__name__.split('.')
+    elif hasattr(object,'__qualname__'):
+        splitted_name = object.__qualname__.split('.')
+    else:
+        splitted_name = object.__name__
     path = object.__module__.split('.')+splitted_name[:-1]
     name = splitted_name[-1]
     try:
@@ -1725,19 +1803,17 @@ def sage_getsourcelines(obj, is_binary=False):
         (['cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):\n',
           '\n',
           '    def __cinit__(self):\n',
-        ...
-          '          M.append(new_MP(self, p_Copy(tempvector, _ring)))\n',
-          '          return M\n'], ...)
+        ...)
         sage: sage_getsourcelines(I)
         (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
-        ...
-        '        return result_ring.ideal(result)\n'], ...)
+        ...)
         sage: x = var('x')
         sage: sage_getsourcelines(x)
         (['cdef class Expression(CommutativeRingElement):\n',
           '    cpdef object pyobject(self):\n',
-        ...
-          '        return self / x\n'], ...)
+        ...)
+        sage: sage_getsourcelines(x)[0][-1]    # last line
+        '        return self / x\n'
 
     We show some enhancements provided by :trac:`11768`. First, we
     use a dummy parent class that has defined an element class by a
@@ -1764,11 +1840,10 @@ def sage_getsourcelines(obj, is_binary=False):
     Here is another example that relies on a nested class definition
     in the background::
 
-        sage: C = Rings()
-        sage: HC = C.hom_category()
+        sage: C = AdditiveMagmas()
+        sage: HC = C.Homsets()
         sage: sage_getsourcelines(HC)
-        (['    class HomCategory(HomCategory):\n', ...], ...)
-
+        (['    class Homsets(HomsetsCategory):\n', ...], ...)
 
     Testing against a bug that has occured during work on #11768::
 
@@ -1780,8 +1855,7 @@ def sage_getsourcelines(obj, is_binary=False):
           '                        MPolynomialIdeal_magma_repr, \\\n',
           '                        Ideal_generic ):\n',
           '    def __init__(self, ring, gens, coerce=True):\n',
-          ...
-          '        return result_ring.ideal(result)\n'], ...)
+          ...)
 
     AUTHORS:
 
@@ -1817,17 +1891,17 @@ def sage_getsourcelines(obj, is_binary=False):
     d = inspect.getdoc(obj)
     pos = _extract_embedded_position(d)
     if pos is None:
+        if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
+            # That hapens for ParentMethods
+            # of categories
+            if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
+                return _sage_getsourcelines_name_with_dot(obj)
         d = _sage_getdoc_unformatted(obj)
         pos = _extract_embedded_position(d)
         if pos is None:
             try:
                 return inspect.getsourcelines(obj)
-            except IOError:
-                if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
-                    # That hapens for ParentMethods
-                    # of categories
-                    if '.' in obj.__name__:
-                        return _sage_getsourcelines_name_with_dot(obj)
+            except (IOError, TypeError):
                 if inspect.isclass(obj):
                     try:
                         B = obj.__base__

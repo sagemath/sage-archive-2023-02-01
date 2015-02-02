@@ -81,9 +81,10 @@ AUTHORS:
 
 from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power, parent
 from sage.structure.sequence  import Sequence
-from sage.categories.homset   import Homset, Hom
+from sage.categories.homset   import Homset, Hom, End
 from sage.rings.all           import Integer
 from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.morphism import is_RingHomomorphism
 from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
@@ -157,7 +158,7 @@ class SchemeMorphism(Element):
         sage: A2.structure_morphism().domain()
         Affine Space of dimension 2 over Rational Field
         sage: A2.structure_morphism().category()
-        Category of hom sets in Category of schemes
+        Category of homsets of schemes
     """
 
     def __init__(self, parent, codomain=None):
@@ -428,7 +429,7 @@ class SchemeMorphism(Element):
 
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.structure_morphism().category()
-            Category of hom sets in Category of schemes
+            Category of homsets of schemes
         """
         return self.parent().category()
 
@@ -665,9 +666,7 @@ class SchemeMorphism_structure_map(SchemeMorphism):
     EXAMPLES::
 
         sage: Spec(ZZ).structure_morphism()    # indirect doctest
-        Scheme morphism:
-          From: Spectrum of Integer Ring
-          To:   Spectrum of Integer Ring
+        Scheme endomorphism of Spectrum of Integer Ring
           Defn: Structure map
     """
     def __init__(self, parent, codomain=None):
@@ -784,7 +783,10 @@ class SchemeMorphism_spec(SchemeMorphism):
 
         The image scheme point.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The following fails because inverse images of prime ideals
+        under ring homomorphisms are not yet implemented::
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: phi = R.hom([QQ(7)])
@@ -793,10 +795,7 @@ class SchemeMorphism_spec(SchemeMorphism):
             sage: f(X.an_element())    # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: Point on Spectrum of Rational Field defined by the
-            Principal ideal (0) of Rational Field fails to convert into the
-            map's domain Spectrum of Rational Field, but a `pushforward`
-            method is not properly implemented
+            NotImplementedError
         """
         # By virtue of argument preprocessing in __call__, we can assume that
         # x is a topological scheme point of self
@@ -1285,7 +1284,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
     def change_ring(self,R, check=True):
         r"""
-        Returns a new :class:`SchemeMorphism_polynomial` which is ``self`` coerced to `R`. If ``check``
+        Returns a new :class:`SchemeMorphism_polynomial` which is ``self`` coerced to ``R``. If ``check``
         is ``True``, then the initialization checks are performed.
 
         INPUT:
@@ -1296,7 +1295,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         OUTPUT:
 
-        - element of the coordinate ring of the domain
+        - A new :class: `SchemeMorphism_polynomial` which is ``self`` coerced to ``R``.
 
         EXAMPLES::
 
@@ -1315,7 +1314,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: f=H([5/2*x^3 + 3*x*y^2-y^3,3*z^3 + y*x^2, x^3-z^3])
             sage: f.change_ring(GF(3))
             Scheme endomorphism of Projective Space of dimension 2 over Finite Field of size 3
-              Defn: Defined on coordinates by sending (x : y : z) to
+                Defn: Defined on coordinates by sending (x : y : z) to
                     (x^3 - y^3 : x^2*y : x^3 - z^3)
 
         ::
@@ -1327,16 +1326,58 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: f.change_ring(GF(3))
             Scheme endomorphism of Closed subscheme of Projective Space of dimension
             1 over Finite Field of size 3 defined by:
-              -x^2 - y^2
-              Defn: Defined on coordinates by sending (x : y) to
+                -x^2 - y^2
+                Defn: Defined on coordinates by sending (x : y) to
                     (x : y)
-            """
-        F=self._polys
-        S=self._codomain.change_ring(R)
-        H=Hom(S,S)
-        G=[]
-        for i in range(self._codomain.ambient_space().dimension_relative()+1):
-            G.append(F[i].change_ring(R))
+
+            Check that :trac:'16834' is fixed::
+
+                sage: A.<x,y,z> = AffineSpace(RR,3)
+                sage: h = Hom(A,A)
+                sage: f = h([x^2+1.5,y^3,z^5-2.0])
+                sage: f.change_ring(CC)
+                Scheme endomorphism of Affine Space of dimension 3 over Complex Field with 53 bits of precision
+                Defn: Defined on coordinates by sending (x, y, z) to
+                    (x^2 + 1.50000000000000, y^3, z^5 - 2.00000000000000)
+
+            ::
+
+                sage: A.<x,y> = ProjectiveSpace(ZZ,1)
+                sage: B.<u,v> = AffineSpace(QQ,2)
+                sage: h = Hom(A,B)
+                sage: f = h([x^2, y^2])
+                sage: f.change_ring(QQ)
+                Scheme morphism:
+                    From: Projective Space of dimension 1 over Rational Field
+                    To:   Affine Space of dimension 2 over Rational Field
+                    Defn: Defined on coordinates by sending (x : y) to
+                    (x^2, y^2)
+
+            ::
+
+                sage: A.<x,y>=AffineSpace(QQ,2)
+                sage: H=Hom(A,A)
+                sage: f=H([3*x^2/y,y^2/x])
+                sage: f.change_ring(RR)
+                Scheme endomorphism of Affine Space of dimension 2 over Real Field with
+                53 bits of precision
+                Defn: Defined on coordinates by sending (x, y) to
+                        (3.00000000000000*x^2/y, y^2/x)
+        """
+        T=self.domain().change_ring(R)
+
+        if self.is_endomorphism():
+            H=End(T)
+        else:
+            S=self.codomain().change_ring(R)
+            H=Hom(T,S)
+
+        G = []
+        for f in self._polys:
+            if isinstance(f,FractionFieldElement):
+                G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
+            else:
+                G.append(f.change_ring(R))
         return(H(G,check))
 
 
@@ -1556,7 +1597,7 @@ class SchemeMorphism_point(SchemeMorphism):
         Q=[]
         for i in range(len(self._coords)):
             Q.append(R(self._coords[i]))
-        return(S.point(Q,check))
+        return(S.point(Q, check=check))
 
     def __copy__(self):
         r"""
@@ -1575,4 +1616,4 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: copy(Q) == Q
             True
         """
-        return(self._codomain.point(self._coords,False))
+        return(self._codomain.point(self._coords, check=False))

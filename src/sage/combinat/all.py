@@ -1,12 +1,14 @@
+"""
+Combinatorics features that are imported by default in the interpreter namespace
+"""
 from combinat import bell_number, catalan_number, euler_number, fibonacci, \
         lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
         CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
         UnionCombinatorialClass, MapCombinatorialClass, \
         InfiniteAbstractCombinatorialClass, \
-        number_of_combinations, number_of_arrangements, \
-        derangements, number_of_derangements, tuples, number_of_tuples, \
-        unordered_tuples, number_of_unordered_tuples, permutations, \
-        permutations_iterator, number_of_permutations, cyclic_permutations, \
+        tuples, number_of_tuples, \
+        unordered_tuples, number_of_unordered_tuples, \
+        permutations, cyclic_permutations, \
         cyclic_permutations_iterator, bell_polynomial, fibonacci_sequence, \
         fibonacci_xrange, bernoulli_polynomial
 
@@ -86,9 +88,6 @@ from skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, Semist
 from ribbon_shaped_tableau import RibbonShapedTableau, StandardRibbonShapedTableaux
 from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
 from composition_tableau import CompositionTableau, CompositionTableaux
-#deprecated
-from ribbon import Ribbon, StandardRibbons
-
 
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
 from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux

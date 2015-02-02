@@ -4,6 +4,11 @@ LaTeX printing support
 In order to support latex formatting, an object should define a
 special method ``_latex_(self)`` that returns a string, which will be typeset
 in a mathematical mode (the exact mode depends on circumstances).
+
+    AUTHORS:
+
+    - William Stein: original implementation
+    - Joel B. Mohler: latex_variable_name() drastic rewrite and many doc-tests
 """
 
 #*****************************************************************************
@@ -14,7 +19,6 @@ in a mathematical mode (the exact mode depends on circumstances).
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 
 EMBEDDED_MODE = False
 
@@ -685,7 +689,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         sage: from sage.misc.latex import _run_latex_, _latex_file_
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
         sage: O = open(file, 'w')
-        sage: O.write(_latex_file_([ZZ[x], RR])); O.close()
+        sage: O.write(_latex_file_([ZZ['x'], RR])); O.close()
         sage: _run_latex_(file) # random - depends on whether latex is installed
         'dvi'
     """
@@ -1582,25 +1586,6 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
         else:
             _Latex_prefs._option['mathjax_avoid'] = L
 
-    # Couldn't use deprecated_function_alias for this because of circular imports.
-    def jsmath_avoid_list(self, L=None):
-        """
-        Deprecated. Use :meth:`mathjax_avoid_list` instead.
-
-        EXAMPLES::
-
-            sage: latex.jsmath_avoid_list()
-            doctest:...: DeprecationWarning: Use mathjax_avoid_list instead.
-            See http://trac.sagemath.org/13508 for details.
-            []
-        """
-        from superseded import deprecation
-        deprecation(13508, 'Use mathjax_avoid_list instead.')
-        if L is None:
-            return _Latex_prefs._option['mathjax_avoid']
-        else:
-            _Latex_prefs._option['mathjax_avoid'] = L
-
     def add_to_mathjax_avoid_list(self, s):
         r"""nodetex
         Add to the list of strings which signal that MathJax should not
@@ -1628,22 +1613,6 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
         current = latex.mathjax_avoid_list()
         if s not in current:
             _Latex_prefs._option['mathjax_avoid'].append(s)
-
-    # Couldn't use deprecated_function_alias for this because of circular imports.
-    def add_to_jsmath_avoid_list(self, s):
-        """
-        Deprecated. Use :meth:`add_to_mathjax_avoid_list` instead.
-
-        EXAMPLES::
-
-            sage: latex.add_to_jsmath_avoid_list('\\text')
-            doctest:...: DeprecationWarning: Use add_to_mathjax_avoid_list instead.
-            See http://trac.sagemath.org/13508 for details.
-            sage: latex.mathjax_avoid_list([])  # reset list to default
-        """
-        from superseded import deprecation
-        deprecation(13508, 'Use add_to_mathjax_avoid_list instead.')
-        self.add_to_mathjax_avoid_list(s)
 
     def engine(self, e = None):
         r"""
@@ -2208,7 +2177,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
             print(MathJax().eval(objects, mode=mode, combine_all=combine_all))
         else:
             base_dir = os.path.abspath("")
-            png_file = graphics_filename(ext='png')
+            png_file = graphics_filename()
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
                 debug=debug, engine=engine)
@@ -2515,7 +2484,7 @@ def pretty_print_default(enable=True):
         'foo'
     """
     import sys
-    sys.displayhook.set_display('typeset' if enable else 'simple')
+    sys.displayhook.formatter.set_display('typeset' if enable else 'simple')
 
 
 common_varnames = ['alpha',
@@ -2659,9 +2628,12 @@ def latex_variable_name(x, is_fname=False):
         sage: latex_variable_name('x_ast')
         'x_{\\ast}'
 
-    AUTHORS:
-
-    - Joel B. Mohler: drastic rewrite and many doc-tests
+    TESTS::
+    
+        sage: latex_variable_name('_C')  # :trac:`16007`
+        'C'
+        sage: latex_variable_name('_K1')
+        'K_{1}'
     """
     underscore = x.find("_")
     if underscore == -1:
@@ -2679,6 +2651,11 @@ def latex_variable_name(x, is_fname=False):
     else:
         prefix = x[:underscore]
         suffix = x[underscore+1:]
+        if prefix == '':
+            from sage.calculus.calculus import symtable
+            for sym in symtable.values():
+                if sym[0] == '_' and sym[1:] == suffix:
+                    return latex_variable_name(suffix)
     if suffix and len(suffix) > 0:
         # handle the suffix specially because it very well might be numeric
         # I use strip to avoid using regex's -- It makes it a bit faster (and the code is more comprehensible to non-regex'ed people)

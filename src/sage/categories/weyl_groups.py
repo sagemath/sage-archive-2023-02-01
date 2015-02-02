@@ -58,6 +58,23 @@ class WeylGroups(Category_singleton):
         """
         return [CoxeterGroups()]
 
+    def additional_structure(self):
+        r"""
+        Return  ``None``.
+
+        Indeed, the category of Weyl groups defines no additional
+        structure: Weyl groups are a special class of Coxeter groups.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: WeylGroups().additional_structure()
+        """
+        return None
+
     Finite = LazyImport('sage.categories.finite_weyl_groups', 'FiniteWeylGroups')
 
     class ParentMethods:

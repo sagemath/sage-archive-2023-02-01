@@ -286,7 +286,7 @@ We illustrate Laplace transforms::
 ::
 
     sage: maxima("laplace(diff(x(t),t,2),t,s)")
-    -?%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s
+    -%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s
 
 It is difficult to read some of these without the 2d
 representation::
@@ -421,7 +421,7 @@ TESTS: This working tests that a subtle bug has been fixed::
     gamma(1/7)
     sage: del f
     sage: maxima(sin(x))
-    sin(x)
+    sin(_SAGE_VAR_x)
 
 This tests to make sure we handle the case where Maxima asks if an
 expression is positive or zero.
@@ -1102,7 +1102,7 @@ class MaximaElement(MaximaAbstractElement, ExpectElement):
         sage: maxima(3)
         3
         sage: maxima(cos(x)+e^234)
-        cos(x)+%e^234
+        cos(_SAGE_VAR_x)+%e^234
     """
 
     def __init__(self, parent, value, is_name=False, name=None):

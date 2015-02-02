@@ -167,12 +167,14 @@ class WeightSpace(CombinatorialFreeModule):
             sage: WeightSpace(R, QQ, extended = True)
             Traceback (most recent call last):
             ...
-            AssertionError: extended weight lattices are only implemented for affine root systems
+            ValueError: extended weight lattices are only implemented for affine root systems
         """
         basis_keys = root_system.index_set()
         self._extended = extended
         if extended:
-            assert root_system.cartan_type().is_affine(), "extended weight lattices are only implemented for affine root systems"
+            if not root_system.cartan_type().is_affine():
+                raise ValueError("extended weight lattices are only"
+                                 " implemented for affine root systems")
             basis_keys = tuple(basis_keys) + ("delta",)
 
         self.root_system = root_system
@@ -260,13 +262,15 @@ class WeightSpace(CombinatorialFreeModule):
             delta
         """
         if i == "delta":
-            assert self.cartan_type().is_affine()
+            if not self.cartan_type().is_affine():
+                raise ValueError("delta is only defined for affine weight spaces")
             if self.is_extended():
                 return self.monomial(i)
             else:
                 return self.zero()
         else:
-            assert i in self.index_set()
+            if i not in self.index_set():
+                raise ValueError("{} is not in the index set".format(i))
             return self.monomial(i)
 
     @cached_method
@@ -347,7 +351,8 @@ class WeightSpace(CombinatorialFreeModule):
             - :meth:`~sage.combinat.root_system.type_affine.AmbientSpace.simple_root`
             - :meth:`CartanType.col_annihilator`
         """
-        assert(j in self.index_set())
+        if j not in self.index_set():
+            raise ValueError("{} is not in the index set".format(j))
         K = self.base_ring()
         result = self.sum_of_terms((i,K(c)) for i,c in self.root_system.dynkin_diagram().column(j))
         if self._extended and j == self.cartan_type().special_node():
@@ -463,12 +468,12 @@ class WeightSpaceElement(CombinatorialFreeModuleElement):
             sage: alphacheck = R.coweight_space().roots()
             sage: alpha[1].scalar(alphacheck[1])
             Traceback (most recent call last):
-              ...
-              assert lambdacheck in self.parent().coroot_lattice() or lambdacheck in self.parent().coroot_space()
-            AssertionError
+            ...
+            ValueError: -Lambdacheck[1] + 2*Lambdacheck[2] - Lambdacheck[3] is not in the coroot space
         """
         # TODO: Find some better test
-        assert lambdacheck in self.parent().coroot_lattice() or lambdacheck in self.parent().coroot_space()
+        if lambdacheck not in self.parent().coroot_lattice() and lambdacheck not in self.parent().coroot_space():
+            raise ValueError("{} is not in the coroot space".format(lambdacheck))
         zero = self.parent().base_ring().zero()
         if len(self) < len(lambdacheck):
             return sum( (lambdacheck[i]*c for (i,c) in self), zero)

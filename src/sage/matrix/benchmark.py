@@ -21,6 +21,8 @@ from sage.rings.all import ZZ, QQ, GF
 from sage.misc.misc import alarm, cancel_alarm, cputime
 from sage.ext.c_lib import AlarmInterrupt
 
+from sage.interfaces.all import magma
+
 verbose = False
 
 timeout = 60

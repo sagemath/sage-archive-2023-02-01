@@ -21,7 +21,6 @@ AUTHORS:
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
@@ -41,9 +40,10 @@ from sage.structure.factorization import Factorization
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.arith import lcm
 
-from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse
-from sage.libs.flint.ntl_interface cimport fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
-from sage.libs.ntl.ntl_ZZX_decl cimport *, vec_pair_ZZX_long_c
+from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_series
+from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
+from sage.libs.ntl.ntl_ZZX_decl cimport *
 
 cdef extern from "limits.h":
     long LONG_MAX
@@ -330,7 +330,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     cpdef Integer content(self):
         r"""
         Return the greatest common divisor of the coefficients of this
-        polynomial.
+        polynomial. The sign is the sign of the leading coefficient.  The
+        content of the zero polynomial is zero.
 
         EXAMPLES::
 
@@ -351,14 +352,27 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             1
             sage: (123456789123456789123456789123456789123456789*t).content()
             123456789123456789123456789123456789123456789
+
+        Verify that :trac:`13053` has been resolved::
+
+            sage: R(-1).content()
+            -1
+
         """
+        if self.is_zero():
+            return ZZ.zero()
+
         cdef fmpz_t c
         fmpz_init(c)
+        fmpz_poly_get_coeff_fmpz(c, self.__poly, fmpz_poly_degree(self.__poly))
+        cdef int sign = fmpz_sgn(c)
+
         fmpz_poly_content(c, self.__poly)
+
         cdef Integer z = PY_NEW(Integer)
         fmpz_get_mpz(z.value, c)
         fmpz_clear(c)
-        return z
+        return z if sign == 1 else -z
 
     def __reduce__(self):
         r"""
@@ -436,19 +450,17 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         if name is None:
             name = self.parent().variable_name()
         cdef long i
-        cdef mpz_t coef
-        mpz_init(coef)
+        cdef Integer coef = PY_NEW(Integer)
         all = []
         for i from fmpz_poly_degree(self.__poly) >= i >= 0:
-            fmpz_poly_get_coeff_mpz(coef, self.__poly, i)
-            sign = mpz_sgn(coef)
-            if sign:
-                if sign > 0:
+            fmpz_poly_get_coeff_mpz(coef.value, self.__poly, i)
+            if coef:
+                if coef > 0:
                     sign_str = '+'
-                    coeff_str = mpz_to_str(coef)
+                    coeff_str = str(coef)
                 else:
                     sign_str = '-'
-                    coeff_str = mpz_to_str(coef)[1:]
+                    coeff_str = str(coef)[1:]
                 if i > 0:
                     if coeff_str == '1':
                         coeff_str = ''
@@ -465,7 +477,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     PyList_Append(all, " %s %s%s" % (sign_str, coeff_str, name))
                 else:
                     PyList_Append(all, " %s %s" % (sign_str, coeff_str))
-        mpz_clear(coef)
         if len(all) == 0:
             return '0'
         leading = all[0]
@@ -1019,7 +1030,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             True
         """
         cdef Polynomial_integer_dense_flint Q = self._new(), R = self._new(), _B = B
-        cdef unsigned long d
+        cdef ulong d
         fmpz_poly_pseudo_divrem(Q.__poly, R.__poly, &d, self.__poly, _B.__poly)
         return Q, R, Integer(d)
 
@@ -1052,7 +1063,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         temp = ZZX_discriminant(&ntl_poly, proof)
         x = PY_NEW(Integer)
-        ZZ_to_mpz(&x.value, temp)
+        ZZ_to_mpz(x.value, temp)
         ZZ_delete(temp)
 
         return x
@@ -1091,6 +1102,16 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: p = 37 * (x-1)^2 * (x-2)^2 * (x-3)^3 * (x-4)
             sage: p.squarefree_decomposition()
             (37) * (x - 4) * (x^2 - 3*x + 2)^2 * (x - 3)^3
+
+        TESTS:
+
+        Verify that :trac:`13053` has been resolved::
+
+            sage: R.<x> = PolynomialRing(ZZ, implementation='FLINT')
+            sage: f=-x^2
+            sage: f.squarefree_decomposition()
+            (-1) * x^2
+
         """
         cdef ZZX_c** v
         cdef long* e
@@ -1100,10 +1121,13 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         cdef Integer z
         cdef Polynomial_integer_dense_flint fac
 
+        # the sign of the content is the sign of the leading coefficient
         z = self.content()
         if not z.is_one():
             fmpz_poly_init(ppart)
 
+            # the primitive part returned by FLINT has positive leading
+            # coefficient
             fmpz_poly_primitive_part(ppart, self.__poly)
 
             fmpz_poly_get_ZZX(ntl_poly, ppart)
@@ -1111,6 +1135,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         else:
             fmpz_poly_get_ZZX(ntl_poly, self.__poly)
 
+        # input is primitive, with positive leading coefficient
         ZZX_squarefree_decomposition(&v, &e, &n, &ntl_poly)
 
         F = []
@@ -1405,4 +1430,40 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         else:
             fmpz_poly_reverse(res.__poly, self.__poly,
                     fmpz_poly_length(self.__poly))
+        return res
+
+    def revert_series(self, n):
+        r"""
+        Return a polynomial `f` such that `f(self(x)) = self(f(x)) = x mod x^n`.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: f = t - t^3 + t^5
+            sage: f.revert_series(6)
+            2*t^5 + t^3 + t
+
+            sage: f.revert_series(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: argument n must be a non-negative integer, got -1
+
+            sage: g = - t^3 + t^5
+            sage: g.revert_series(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: self must have constant coefficient 0 and a unit for coefficient t^1
+        """
+        cdef Polynomial_integer_dense_flint res = self._new()
+        cdef unsigned long m
+        if n < 0:
+            raise ValueError("argument n must be a non-negative integer, got {}".format(n))
+        m = n
+        if not self[0].is_zero() or not self[1].is_unit():
+            raise ValueError("self must have constant coefficient 0 and a unit for coefficient {}^1".format(self.parent().gen()))
+
+        sig_on()
+        fmpz_poly_revert_series(res.__poly, self.__poly, m)
+        sig_off()
+
         return res

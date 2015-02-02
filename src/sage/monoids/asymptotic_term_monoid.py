@@ -194,7 +194,9 @@ class GenericTerm(MonoidElement):
     def absorb(self, other):
         r"""
         Absorb the asymptotic term ``other``, yielding a new
-        asymptotic term (or ``None``).
+        asymptotic term (or ``None``). For a more detailed
+        explanation of the *absorption* of asymptotic terms see
+        the introduction of this module, or the following examples.
 
         INPUT:
 
@@ -203,15 +205,123 @@ class GenericTerm(MonoidElement):
 
         OUTPUT:
 
-        An asymptotic term.
+        An asymptotic term or ``None``.
+
+        EXAMPLES:
+
+        We want to demonstrate in which cases an asymptotic term
+        is able to absorb another term, as well as explain the output
+        of this operation. We start by defining some parents and
+        elements::
+
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: PG.<x> = agg.GrowthGroupPower(base=QQ)
+            sage: OT = atm.OTermMonoid(base=PG)
+            sage: ET = atm.ExactTermMonoid(base=PG, coefficient_ring=QQ)
+            sage: LT = atm.LTermGenericMonoid(base=PG, coefficient_ring=QQ)
+            sage: ot1, ot2 = OT(x), OT(x^2)
+            sage: et1, et2 = ET(x, 100), ET(x^2, 2)
+            sage: et3, et4 = ET(x^2, 1), ET(x^2, -2)
+            sage: lt1 = LT(x, 5, start=0)
+
+        Because of the definition of `O` terms (see
+        :wikipedia:`Big_O_notation`), they are able to absorb all
+        other asymptotic terms with weaker or equal growth. The
+        result of the absorption is the original `O` Term::
+
+            sage: ot1.absorb(ot1)
+            O(x)
+            sage: ot1.absorb(et1)
+            O(x)
+            sage: ot1.absorb(lt1)
+            O(x)
+
+        This corresponds to `O(x) + O(x) = O(x)`,
+        `O(x) + 100x = O(x)`, and `O(x) + 5\cdot L(x,0) = O(x)`.
+        If absorb is called on a term that cannot be absorbed, an
+        ``ArithmeticError`` is raised::
+
+            sage: ot1.absorb(ot2)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: O(x) cannot absorb O(x^2)
+
+        This would only work the other way around::
+
+            sage: ot2.absorb(ot1)
+            O(x^2)
+
+        :class:`ExactTerm` is able to absorb another
+        :class:`ExactTerm` if the terms have the same growth. In this
+        case, *absorption* is nothing else than an addition of the
+        respective coefficients::
+
+            sage: et2.absorb(et3)
+            3 * x^2
+            sage: et3.absorb(et2)
+            3 * x^2
+            sage: et3.absorb(et4)
+            -1 * x^2
+
+        Note that, for technical reasons, the coefficient `0` is not
+        allowed, and thus ``None`` is returned if two exact terms
+        cancel each other out::
+
+            sage: et2.absorb(et4)
+            sage: repr(et4.absorb(et2))
+            'None'
+
+        .. TODO:
+
+            The absorption of `L` terms is implemented at a later
+            point.
+        """
+        from sage.structure.sage_object import have_same_parent
+        if not self.can_absorb(other):
+            raise ArithmeticError("%s cannot absorb %s" % (self, other))
+
+        if have_same_parent(self, other):
+            return self._absorb_(other)
+
+        from sage.structure.element import get_coercion_model
+        try:  # potential error source
+            return get_coercion_model().bin_op(self, other,
+                                               lambda self, other:
+                                               self._absorb_(other))
+        except TypeError:
+            return False
+
+    def _absorb_(self, other):
+        r"""
+        Absorption of ``other`` by ``self``, where ``self`` and
+        ``other`` have the same parent. This is not implemented
+        for abstract base classes, for concrete realizations
+        see :meth:`OTerm._absorb_` or :meth:`ExactTerm._absorb_`.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term from the same parent as
+          ``self``.
+
+        OUTPUT:
+
+        An asymptotic term representing the result of the absorption
+        of ``other`` by ``self``, or ``None``.
 
         EXAMPLES::
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: # todo: write examples!
+            sage: PG.<x> = agg.GrowthGroupPower()
+            sage: P = atm.GenericTermMonoid(PG)
+            sage: t1, t2 = P(x), P(x^2)
+            sage: t2.absorb(t1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Generic Term with growth x^2 cannot absorb Generic Term with growth x
         """
-        # TODO: implement this.
+        raise NotImplementedError("Not implemented in abstract base classes")
 
 
     def __le__(self, other):
@@ -512,6 +622,41 @@ class OTerm(GenericTerm):
             O(x^3)
         """
         return "O(%s)" % self.growth
+
+
+    def _absorb_(self, other):
+        r"""
+        Absorption of :class:`OTerm` ``other`` by :class:`OTerm`
+        ``self``. Provided that the absorption is possible, the `O`
+        term ``self`` is the dominant `O` term, and thus the result
+        is ``self``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic `O` term from the same parent
+          as ``self``.
+
+        OUTPUT:
+
+        The asymptotic `O` term ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: PG.<x> = agg.GrowthGroupPower()
+            sage: OT = atm.OTermMonoid(base=PG)
+            sage: ot1, ot2 = OT(x), OT(x^2)
+            sage: ot1.absorb(ot1)
+            O(x)
+            sage: ot2.absorb(ot1)
+            O(x^2)
+            sage: ot1.absorb(ot2)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: O(x) cannot absorb O(x^2)
+        """
+        return self
 
 
 class OTermMonoid(GenericTermMonoid):
@@ -852,7 +997,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 class LTermGeneric(TermWithCoefficient):
     r"""
     Base class for asymptotic `L` terms, i.e. big `O` terms with
-    explicitly specified constant.
+    an explicitly specified constant and starting point.
 
     .. NOTE::
 
@@ -862,6 +1007,9 @@ class LTermGeneric(TermWithCoefficient):
         differently for various growth classes. This makes different
         implementations for different growth classes necessary.
 
+    .. TODO::
+
+        Implement *absorption* (:meth:_absorb_) for `L` terms.
     """
 
     def __init__(self, parent, growth, coefficient=1, start=0):
@@ -898,6 +1046,74 @@ class LTermGeneric(TermWithCoefficient):
             '5 * L(x^2, 0)'
         """
         return "%s * L(%s, %s)" % (self.coefficient, self.growth, self.start)
+
+
+    def _absorb_(self, other):
+        r"""
+        Absorption of one `L` term ``other`` by another `L` term
+        ``self``.
+
+        INPUT:
+
+        - ``other`` -- another asymptotic `L` term from the same
+          parent as ``self``.
+
+        OUTPUT:
+
+        An asymptotic `L` term, representing the result of the
+        absorption of ``other`` by ``self``.
+
+
+        ..TODO::
+
+            Implement this method for specific growth parents.
+
+        EXAMPLES::
+
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage:  # todo: examples!
+        """
+        raise NotImplementedError("Not yet implemented")
+
+
+    def _mul_(self, other):
+        r"""
+        Multiplication method for asymptotic `L` terms.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic `L` term from the same parent
+          as ``self``.
+
+        OUTPUT:
+
+        An asymptotic `L` term representing the product of ``self``
+        and ``other``.
+
+        .. NOTE::
+
+            When taking the product of two asymptotic `L` terms,
+            the growth of the product is the product of the growth
+            elements of the factors, and analogue for the respective
+            coefficient. The starting point of the resulting `L`
+            term is the maximum starting point of the factors.
+
+        EXAMPLES::
+
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: PG.<x> = agg.GrowthGroupPower()
+            sage: LT = atm.LTermGenericMonoid(PG, QQ)
+            sage: lt1, lt2 = LT(x^2, 2, 0), LT(x^-1, 3, 5)
+            sage: lt1._mul_(lt1)
+            4 * L(x^4, 0)
+            sage: lt1._mul_(lt2)
+            6 * L(x, 5)
+        """
+        result = super(LTermGeneric, self)._mul_(other)
+        result.start = max(self.start, other.start)
+        return result
 
 
 class LTermGenericMonoid(TermWithCoefficientMonoid):
@@ -1018,6 +1234,54 @@ class ExactTerm(TermWithCoefficient):
             2 * x^2
         """
         return "%s * %s" % (self.coefficient, self.growth)
+
+
+    def _absorb_(self, other):
+        r"""
+        Absorption of ``other`` by ``self``, where ``self`` and
+        ``other`` are asymptotic exact terms over the same parent.
+        For exact terms, absorption translates to adding the
+        respective coefficients. For technical reasons, we return
+        ``None`` if the resulting coefficient is `0`.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic exact term from the same parent
+          as ``self``.
+
+        OUTPUT:
+
+        An asymptotic exact term or ``None``.
+
+        EXAMPLES::
+
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: PG.<x> = agg.GrowthGroupPower()
+            sage: ET = atm.ExactTermMonoid(PG, QQ)
+
+        Asymptotic exact terms can absorb other asymptotic exact
+        terms with the same growth::
+
+            sage: et1, et2 = ET(x^2, 2), ET(x^2, -2)
+            sage: et1.absorb(et1)
+            4 * x^2
+            sage: repr(et1.absorb(et2))
+            'None'
+
+        If the growth differs, an ``ArithmeticException`` is raised::
+
+            sage: ET(x^5, 1).absorb(et1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: 1 * x^5 cannot absorb 2 * x^2
+        """
+        cls = self.__class__
+        coef_new = self.coefficient + other.coefficient
+        if coef_new == 0:
+            return None
+        else:
+            return cls(self.parent(), self.growth, coef_new)
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

@@ -718,6 +718,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         48481/1247400*pi
         193359161/6227020800*pi
         5799919/227026800*pi
+
+    Check that :trac:`12628` is fixed::
+
+        sage: integrate(1/(sqrt(x)*((1+sqrt(x))^2)),x,1,9)
+        1/2
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

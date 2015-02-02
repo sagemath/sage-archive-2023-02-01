@@ -732,6 +732,13 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             sage: (2*x).gcd(2*x^2)
             x
 
+            sage: zero = R.zero_element()
+            sage: zero.gcd(2*x)
+            x
+            sage: (2*x).gcd(zero)
+            x
+            sage: zero.gcd(zero)
+            0
         """
         from sage.categories.euclidean_domains import EuclideanDomains
         g = EuclideanDomains().ElementMethods().gcd(self, other)

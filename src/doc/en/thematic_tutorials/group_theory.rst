@@ -7,17 +7,11 @@ Group Theory and Sage
 
 .. MODULEAUTHOR:: Robert A. Beezer, University of Puget Sound
 
-Changelog:
-
-* 2009/01/30  Version 1.0, first complete release
-* 2009/03/03  Version 1.1, added cyclic group size interact
-* 2010/03/10  Version 1.3, dropped US on license, some edits.
-
 This compilation collects Sage commands that are useful for a student
 in an introductory course on group theory.  It is not intended to
 teach Sage or to teach group theory.  (There are many introductory
 texts on group theory and more information on Sage can be found via
-www.sagemath.org.) Rather, by presenting commands roughly in the
+`<www.sagemath.org>`_) Rather, by presenting commands roughly in the
 order a student would learn the corresponding mathematics they might
 be encouraged to experiment and learn more about mathematics and learn
 more about Sage.  Not coincidentally, when Sage was the acronym SAGE,
@@ -31,6 +25,14 @@ link below each cell, for a fully interactive experience. A PDF and
 Sage worksheet versions of this tutorial are available at
 http://abstract.ups.edu/sage-aata.html.
 
+.. contents:: Table of contents
+   :depth: 2
+
+Changelog:
+
+* 2009/01/30  Version 1.0, first complete release
+* 2009/03/03  Version 1.1, added cyclic group size interact
+* 2010/03/10  Version 1.3, dropped US on license, some edits.
 
 Basic properties of the integers
 ================================

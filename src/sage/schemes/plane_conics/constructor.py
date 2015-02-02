@@ -26,10 +26,9 @@ AUTHORS:
 
 from sage.matrix.constructor import Matrix
 from sage.modules.free_module_element import vector
-from sage.quadratic_forms.all import is_QuadraticForm
-from sage.rings.all import (PolynomialRing,
-                            is_PrimeFiniteField
-                           )
+from sage.quadratic_forms.quadratic_form import is_QuadraticForm
+from sage.rings.all import PolynomialRing
+from sage.rings.finite_rings.constructor import is_PrimeFiniteField
 
 from sage.rings.integral_domain import is_IntegralDomain
 from sage.rings.rational_field import is_RationalField
@@ -140,7 +139,7 @@ def Conic(base_field, F=None, names=None, unique=True):
         sage: Conic([a([x,x^2]) for x in range(5)])
         Projective Conic Curve over Finite Field of size 13 defined by x^2 - y*z
     """
-    if not (is_IntegralDomain(base_field) or base_field == None):
+    if not (is_IntegralDomain(base_field) or base_field is None):
         if names is None:
             names = F
         F = base_field
@@ -148,7 +147,7 @@ def Conic(base_field, F=None, names=None, unique=True):
     if isinstance(F, (list,tuple)):
         if len(F) == 1:
             return Conic(base_field, F[0], names)
-        if names == None:
+        if names is None:
             names = 'x,y,z'
         if len(F) == 5:
             L=[]
@@ -196,7 +195,7 @@ def Conic(base_field, F=None, names=None, unique=True):
     if is_QuadraticForm(F):
         F = F.matrix()
     if is_Matrix(F) and F.is_square() and F.ncols() == 3:
-        if names == None:
+        if names is None:
             names = 'x,y,z'
         temp_ring = PolynomialRing(F.base_ring(), 3, names)
         F = vector(temp_ring.gens()) * F * vector(temp_ring.gens())
@@ -208,12 +207,12 @@ def Conic(base_field, F=None, names=None, unique=True):
     if F.total_degree() != 2:
         raise TypeError("F (=%s) must have degree 2" % F)
 
-    if base_field == None:
+    if base_field is None:
         base_field = F.base_ring()
     if not is_IntegralDomain(base_field):
         raise ValueError("Base field (=%s) must be a field" % base_field)
     base_field = base_field.fraction_field()
-    if names == None:
+    if names is None:
         names = F.parent().variable_names()
     pol_ring = PolynomialRing(base_field, 3, names)
 

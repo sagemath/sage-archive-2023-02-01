@@ -322,7 +322,7 @@ class NakajimaYMonomial(Element):
                         continue
                     else:
                         d[(i,a)] = 0
-                S = sorted(filter(lambda x: x[0][0]==i, d.iteritems()), key=lambda x: x[0][1])
+                S = sorted((x for x in d.iteritems() if x[0][0]==i), key=lambda x: x[0][1])
                 return max(sum(S[k][1] for k in range(s)) for s in range(1,len(S)+1))
 
     def _ke(self,i):
@@ -354,7 +354,7 @@ class NakajimaYMonomial(Element):
                     continue
                 else:
                     d[(i,a)] = 0
-            S = sorted(filter(lambda x: x[0][0]==i, d.iteritems()), key=lambda x: x[0][1])
+            S = sorted((x for x in d.iteritems() if x[0][0]==i), key=lambda x: x[0][1])
             for var,exp in S:
                 sum += exp
                 if sum == phi:
@@ -390,7 +390,7 @@ class NakajimaYMonomial(Element):
                     continue
                 else:
                     d[(i,a)] = 0
-            S = sorted(filter(lambda x: x[0][0]==i, d.iteritems()), key=lambda x: x[0][1])
+            S = sorted((x for x in d.iteritems() if x[0][0]==i), key=lambda x: x[0][1])
             sum = 0
             phi = self.phi(i)
             for var,exp in S:

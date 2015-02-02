@@ -89,6 +89,7 @@ import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.all as rings
 import sage.rings.arith as arith
+import sage.rings.polynomial.multi_polynomial_element
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
 from sage.modular.cusps import Cusp
@@ -158,7 +159,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if not isinstance(base_ring, rings.Ring) and base_ring.is_field():
             raise TypeError("base_ring must be a commutative ring")
 
-        if character == None and arithgroup.is_Gamma0(group):
+        if character is None and arithgroup.is_Gamma0(group):
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
 
         space.ModularSymbolsSpace.__init__(self, group, weight,
@@ -173,7 +174,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             formula = None
 
         rank = self.rank()
-        if formula != None:
+        if formula is not None:
             assert rank == formula, \
                    "Computed dimension (=%s) of ambient space \"%s\" doesn't match dimension formula (=%s)!\n"%(d, self, formula) + \
                    "ModularSymbolsAmbient: group = %s, weight = %s, sign = %s, base_ring = %s, character = %s"%(
@@ -479,7 +480,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             return sum([c*self(y) for c, y in x], self(0))
 
         elif isinstance(x, list):
-            if len(x) == 3 and rings.is_MPolynomial(x[0]):
+            if len(x) == 3 and sage.rings.polynomial.multi_polynomial_element.is_MPolynomial(x[0]):
                 return self.modular_symbol_sum(x)
             else:
                 return self.modular_symbol(x)
@@ -640,7 +641,10 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         if alpha.is_infinity():
             return self.manin_symbol((i,0,1), check=False)
-        v, c = arith.continued_fraction_list(alpha._rational_(), partial_convergents=True)
+        # v, c = arith.continued_fraction_list(alpha._rational_(), partial_convergents=True)
+        cf = alpha._rational_().continued_fraction()
+        v = list(cf)
+        c = [(cf.p(k),cf.q(k)) for k in xrange(len(cf))]
         a = self(0)
         zero = rings.ZZ(0)
         one = rings.ZZ(1)
@@ -1468,7 +1472,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
             sage: M = ModularSymbols(37,4)
             sage: M._degeneracy_raising_matrix_1(ModularSymbols(74, 4))
-            20 x 58 dense matrix over Rational Field
+            20 x 58 dense matrix over Rational Field (use the '.str()' method to see the entries)
         """
         raise NotImplementedError
 
@@ -2284,19 +2288,23 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
             sage: M = ModularSymbols(DirichletGroup(24,QQ).1,2,sign=1)
             sage: M.compact_newform_eigenvalues(prime_range(10),'a')
-            [([-1/2 -1/2]
-            [ 1/2 -1/2]
-            [  -1    1]
-            [  -2    0], (1, -2*a0 - 1))]
+            [(
+            [-1/2 -1/2]                
+            [ 1/2 -1/2]                
+            [  -1    1]                
+            [  -2    0], (1, -2*a0 - 1)
+            )]
             sage: a = M.compact_newform_eigenvalues([1..10],'a')[0]
             sage: a[0]*a[1]
             (1, a0, a0 + 1, -2*a0 - 2, -2*a0 - 2, -a0 - 2, -2, 2*a0 + 4, -1, 2*a0 + 4)
             sage: M = ModularSymbols(DirichletGroup(13).0^2,2,sign=1)
             sage: M.compact_newform_eigenvalues(prime_range(10),'a')
-            [([  -zeta6 - 1]
-            [ 2*zeta6 - 2]
-            [-2*zeta6 + 1]
-            [           0], (1))]
+            [(
+            [  -zeta6 - 1]     
+            [ 2*zeta6 - 2]     
+            [-2*zeta6 + 1]     
+            [           0], (1)
+            )]
             sage: a = M.compact_newform_eigenvalues([1..10],'a')[0]
             sage: a[0]*a[1]
             (1, -zeta6 - 1, 2*zeta6 - 2, zeta6, -2*zeta6 + 1, -2*zeta6 + 4, 0, 2*zeta6 - 1, -zeta6, 3*zeta6 - 3)
@@ -2504,7 +2512,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
 
             sage: M = ModularSymbols(37,4)
             sage: M._degeneracy_raising_matrix_1(ModularSymbols(74, 4))
-            20 x 58 dense matrix over Rational Field
+            20 x 58 dense matrix over Rational Field (use the '.str()' method to see the entries)
             sage: M.dimension()
             20
             sage: ModularSymbols(74,4).dimension()
@@ -3147,7 +3155,7 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
             sage: M = ModularSymbols(Gamma1(7),3)
             sage: N = ModularSymbols(Gamma1(21), 3)
             sage: M._degeneracy_raising_matrix_1(N)
-            8 x 64 dense matrix over Rational Field
+            8 x 64 dense matrix over Rational Field (use the '.str()' method to see the entries)
             sage: M.dimension()
             8
             sage: N.dimension()

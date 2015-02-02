@@ -14,16 +14,12 @@ public setting on `the Sage Trac server <http://trac.sagemath.org>`_
 (the Sage bug and enhancement tracker).
 
 One can use ``git`` :ref:`the hard way <chapter-manual-git>` for this,
-but this section presumes use of the helper ``git trac`` command, which
+but this section explains how to use the helper ``git trac`` command, which
 simplifies many of the most common actions in collaboration on Sage.
-Sage itself has a more limited set of actions built in to work with
-(see :ref:`chapter-devscript`), but the recommended path is using
-this section of the manual to get started.
 
 Most of the commands in the following section will not work unless
 you have an account on Trac. If you want to contribute to Sage, it
 is a good idea to get an account now (see :ref:`section-trac-account`).
-Alternatively, see the :ref:`section-git_trac-readonly` section.
 
 
 .. _section-git_trac-install:
@@ -71,18 +67,16 @@ Git and Trac Configuration
 
 .. note::
 
-    * See :ref:`section-git_trac-readonly` if you do not have a trac
-      account.
-
     * `trac <http://trac.sagemath.org>`_ uses username/password for
-      authentication
+      authentication.
 
-    * our `git repository server <http://git.sagemath.org>`_ uses SSH
-      public key authentication
+    * Our `git repository server <http://git.sagemath.org>`_ uses SSH
+      public key authentication for write access.
 
 You need to set up both authentication mechanisms to be able to upload
-your changes with "git trac". First, go to the Sage directory and tell
-``git trac`` about your trac account::
+your changes with "git trac". For read-only access neither
+authentication mechanism is needed. To set up ``git trac``, first go
+to the Sage directory and tell ``git trac`` about your trac account::
 
     [user@localhost sage]$ git trac config --user USERNAME --pass 'PASSWORD'
     Trac xmlrpc URL:
@@ -95,23 +89,18 @@ your changes with "git trac". First, go to the Sage directory and tell
         1024 ab:1b:7c:c9:9b:48:fe:dd:59:56:1e:9d:a4:a6:51:9d  My SSH Key
     
 where you have to replace USERNAME with your trac user name and
-PASSWORD with your trac password, of course. The single quotes
+PASSWORD with your trac password. If you don't have a trac account,
+use ``git trac config`` without any arguments. The single quotes in
 ``'PASSWORD'`` escape special characters that you might have in your
-password. The password is stored in ``.git/config``, so make sure that
-it is not readable by other users on your system. For example, by
-running ``chmod 0600 .git/config`` if your home directory is not
-already private.
+password. The password is stored in plain-text in ``.git/config``, so
+make sure that it is not readable by other users on your system. For
+example, by running ``chmod 0600 .git/config`` if your home directory
+is not already private.
 
 If there is no SSH key listed then you haven't uploaded your SSH
 public key to the trac server. You should do that now following the
-instructions to :ref:`section-trac-ssh-key`.
-
-
-
-.. _section-git_trac-readonly:
-
-Optional: Readonly Access
-=========================
+instructions to :ref:`section-trac-ssh-key`, if you want to upload
+any changes.
 
 .. note::
 
@@ -124,31 +113,21 @@ repositories set up::
     [user@localhost sage]$ git remote -v
     origin      git://github.com/sagemath/sage.git (fetch)
     origin      git://github.com/sagemath/sage.git (push)
-    trac        git@trac.sagemath.org:sage.git (fetch)
+    trac        git://trac.sagemath.org/sage.git (fetch)
     trac        git@trac.sagemath.org:sage.git (push)
 
-The ``git@...`` part of the url means that communication is secured
-with SSH keys, which you must have set up as in
-:ref:`section-trac-ssh-key`. If you **do not have a trac account** you
-can setup the ``trac`` remote as readonly, which uses a slightly
-different URL for our git server::
+The ``git@...`` part of the push url means that write access is
+secured with SSH keys, which you must have set up as in
+:ref:`section-trac-ssh-key`. Read-only access happens through the
+fetch url and does not require SSH.
 
-    [user@localhost sage]$ git trac config --readonly
-    [user@localhost sage]$ git remote -v
-    origin      git://github.com/sagemath/sage.git (fetch)
-    origin      git://github.com/sagemath/sage.git (push)
-    trac        git://trac.sagemath.org/sage.git (fetch)
-    trac        git://trac.sagemath.org/sage.git (push)
-
-You can then only download tickets, but not contribute new
-code. Finally, if you do not want to use the ``git trac`` subcommand
-at all then you can set up the remote by hand as described in the
-section on :ref:`section-git-trac`.
-  
+Finally, if you do not want to use the ``git trac`` subcommand at all
+then you can set up the remote by hand as described in the section on
+:ref:`section-git-trac`.
 
 
-Trac Tickets to Local Branches
-==============================
+Trac Tickets and Git Branches
+=============================
 
 Now let's start adding code to Sage!
 
@@ -204,26 +183,19 @@ one if there is none yet. Just like the create command, you can
 specify the remote branch name explicitly using the ``-b`` switch if
 you want.
 
-
-
 .. _section-git_trac-branch-names:
 
 Note on Branch Names
 --------------------
 
-Trac tickets that are finished or in the process of being worked on
-can have a git branch attached to them. This is the "Branch:" field in
-the ticket description. The branch name is generally of the form
-``u/user/description``, where ``user`` is the name of the user who
-made the branch and ``description`` is some free-form short
-description (and can include further slashes, but not whitespace). Our
-git server implements the following access restrictions for **remote
-branch names**:
+The "Branch:" field of a trac ticket (see :ref:`section-trac-fields`) indicates
+the git branch containing its code. Our git server implements the following
+access restrictions for **remote branch names**:
 
-* Only the developer with the ``user`` trac account can create
-  branches starting with ``u/user/``.
+* You can read/write/create a branch named
+  ``u/your_username/whatever_you_like``. Everybody else can read.
 
-* Everybody can write to branches named ``public/description``.
+* Everybody can read/write/create a branch named ``public/whatever_you_like``.
 
 Depending on your style of collaboration, you can use one or the
 other. The ``git trac`` subcommands defaults to the former.
@@ -381,8 +353,8 @@ you need a new feature or if your branch conflicts.
 
 .. _section-git_trac-collaborate:
 
-Collaboration
-=============
+Collaboration and conflict resolution
+=====================================
 
 Exchanging Branches
 -------------------
@@ -546,13 +518,14 @@ end: git downloads both Alice's conflicting commit and her resolution.
 Reviewing
 =========
 
-This section gives an example how to review using the ``sage``
-command.  For a detailed discussion of Sage's review process, see
-:ref:`Reviewing Patches <section-review-patches>`. If you go to the
-`web interface to the Sage trac development server
-<http://trac.sagemath.org>`_ then you can click on the "Branch:" field
-and see the code that is added by combining all commits of the
-ticket. This is what needs to be reviewed.
+This section gives an example how to review using the ``sage`` command. For an
+explanation of what should be checked by the reviewer, see
+:ref:`chapter-review`.
+
+If you go to the `web interface to the Sage trac development server
+<http://trac.sagemath.org>`_ then you can click on the "Branch:" field and see
+the code that is added by combining all commits of the ticket. This is what
+needs to be reviewed.
 
 The ``git trac`` command gives you two commands that might be handy
 (replace ``12345`` with the actual ticket number) if you do not want

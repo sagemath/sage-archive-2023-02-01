@@ -24,6 +24,8 @@ AUTHORS:
 
 - Travis Scrimshaw (2012-10-18): Added doctests for full coverage.
 
+- Vincent Delecroix (2013): continued fraction
+
 TESTS::
 
     sage: a = -2/3
@@ -42,7 +44,6 @@ TESTS::
 
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
 include "sage/libs/pari/decl.pxi"
@@ -65,6 +66,7 @@ from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport PariInstance
 
 from integer_ring import ZZ
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.structure.element import bin_op
@@ -575,6 +577,125 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return [ self ]
 
+    def continued_fraction_list(self, type="std"):
+        r"""
+        Return the list of partial quotients of this rational number.
+
+        INPUT:
+
+        - ``type`` - either "std" (the default) for the standard continued
+          fractions or "hj" for the Hirzebruch-Jung ones.
+
+        EXAMPLES::
+
+            sage: (13/9).continued_fraction_list()
+            [1, 2, 4]
+            sage: 1 + 1/(2 + 1/4)
+            13/9
+
+            sage: (225/157).continued_fraction_list()
+            [1, 2, 3, 4,  5]
+            sage: 1 + 1/(2 + 1/(3 + 1/(4 + 1/5)))
+            225/157
+
+            sage: (fibonacci(20)/fibonacci(19)).continued_fraction_list()
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2]
+
+            sage: (-1/3).continued_fraction_list()
+            [-1, 1, 2]
+
+        Check that the partial quotients of an integer ``n`` is simply ``[n]``::
+
+            sage: QQ(1).continued_fraction_list()
+            [1]
+            sage: QQ(0).continued_fraction_list()
+            [0]
+            sage: QQ(-1).continued_fraction_list()
+            [-1]
+
+        Hirzebruch-Jung continued fractions::
+
+            sage: (11/19).continued_fraction_list("hj")
+            [1, 3, 2, 3, 2]
+            sage: 1 - 1/(3 - 1/(2 - 1/(3 - 1/2)))
+            11/19
+
+            sage: (225/137).continued_fraction_list("hj")
+            [2, 3, 5, 10]
+            sage: 2 - 1/(3 - 1/(5 - 1/10))
+            225/137
+
+            sage: (-23/19).continued_fraction_list("hj")
+            [-1, 5, 4]
+            sage: -1 - 1/(5 - 1/4)
+            -23/19
+        """
+        cdef Integer z
+        cdef mpz_t p,q,tmp
+        cdef list res = []
+
+        mpz_init(tmp)
+        mpz_init(p)
+        mpz_init(q)
+        mpz_set(p, mpq_numref(self.value))
+        mpz_set(q, mpq_denref(self.value))
+
+        if type == "std":
+            while mpz_sgn(q) != 0:
+                z = PY_NEW(Integer)
+                mpz_fdiv_qr(z.value,tmp,p,q)
+                mpz_set(p,q)
+                mpz_set(q,tmp)
+                res.append(z)
+        elif type == "hj":
+            while mpz_sgn(q) != 0:
+                z = PY_NEW(Integer)
+                mpz_cdiv_qr(z.value,tmp,p,q)
+                mpz_set(p,q)
+                mpz_set(q,tmp)
+                res.append(z)
+                if mpz_sgn(q) == 0:
+                    break
+                z = PY_NEW(Integer)
+                mpz_fdiv_qr(z.value,tmp,p,q)
+                mpz_set(p,q)
+                mpz_set(q,tmp)
+                mpz_neg(z.value,z.value)
+                res.append(z)
+        else:
+            mpz_clear(p)
+            mpz_clear(q)
+            mpz_clear(tmp)
+            raise ValueError("the type must be one of 'floor', 'hj'")
+
+        mpz_clear(p)
+        mpz_clear(q)
+        mpz_clear(tmp)
+
+        return res
+
+    def continued_fraction(self):
+        r"""
+        Return the continued fraction of that rational.
+
+        EXAMPLES::
+
+            sage: (641/472).continued_fraction()
+            [1; 2, 1, 3, 1, 4, 1, 5]
+
+            sage: a = (355/113).continued_fraction(); a
+            [3; 7, 16]
+            sage: a.n(digits=10)
+            3.141592920
+            sage: pi.n(digits=10)
+            3.141592654
+
+        It's almost pi!
+        """
+        #TODO: do better
+        from sage.rings.continued_fraction import ContinuedFraction_periodic
+        l = self.continued_fraction_list()
+        return ContinuedFraction_periodic(l)
 
     def __richcmp__(left, right, int op):
         """
@@ -1193,7 +1314,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 0.is_norm(K)
             True
             sage: (1/7).is_norm(K, element=True)
-            (True, -1/7*beta - 3/7)
+            (True, 1/7*beta + 3/7)
             sage: (1/10).is_norm(K, element=True)
             (False, None)
             sage: (1/691).is_norm(QQ, element=True)
@@ -1232,7 +1353,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if not element:
             return self.is_norm(L, element=True, proof=proof)[0]
 
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         if not is_NumberField(L):
             raise ValueError, "L (=%s) must be a NumberField in is_norm" % L
         if L.degree() == 1 or self.is_zero():
@@ -1314,7 +1435,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         - Marco Streng (2010-12-03)
         """
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         if not is_NumberField(K):
             raise ValueError, "K must be a NumberField in bnfisnorm"
 
@@ -1948,6 +2069,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             0.3333333333333333
             sage: float(1/10)
             0.1
+            sage: n = QQ(902834098234908209348209834092834098); float(n)
+            9.028340982349083e+35
 
         TESTS:
 
@@ -1966,15 +2089,15 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         Test larger rationals::
 
-            sage: Q = continued_fraction(pi, bits=3000).convergents()
-            sage: all([RDF(q) == RR(q) for q  in Q])
+            sage: Q = continued_fraction(pi).convergents()[:100]
+            sage: all([RDF(q) == RR(q) for q in Q])
             True
 
         At some point, the continued fraction and direct conversion
         to ``RDF`` should agree::
 
             sage: RDFpi = RDF(pi)
-            sage: all([RDF(q) == RDFpi for q  in Q[20:]])
+            sage: all([RDF(q) == RDFpi for q in Q[20:]])
             True
         """
         return mpq_get_d_nearest(self.value)
@@ -3455,7 +3578,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
 
     TESTS::
 
-        sage: q= QQ(); float(q)
+        sage: q = QQ(); float(q)
         0.0
         sage: q = 2^-10000; float(q)
         0.0
@@ -3529,8 +3652,8 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
 
     - Paul Zimmermann, Jeroen Demeyer (:trac:`14416`)
     """
-    cdef __mpz_struct* a = <__mpz_struct*>(mpq_numref(x))
-    cdef __mpz_struct* b = <__mpz_struct*>(mpq_denref(x))
+    cdef mpz_ptr a = mpq_numref(x)
+    cdef mpz_ptr b = mpq_denref(x)
     cdef int resultsign = mpz_sgn(a)
 
     if resultsign == 0:
@@ -3572,10 +3695,9 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
     cdef mpz_t q, r
     mpz_init(q)
     mpz_init(r)
-    cdef bint remainder_is_zero
+    cdef int remainder_is_zero
     if shift > 0:
-        mpz_tdiv_r_2exp(r, a, shift)
-        remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
+        remainder_is_zero = mpz_divisible_2exp_p(a, shift)
         mpz_tdiv_q_2exp(q, a, shift)
     else:
         mpz_mul_2exp(q, a, -shift)
@@ -3588,8 +3710,8 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
     if remainder_is_zero:
         remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
 
-    # Convert q to a 64-bit integer.
-    cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
+    # Convert abs(q) to a 64-bit integer.
+    cdef mp_limb_t* q_limbs = (<mpz_ptr>q)._mp_d
     cdef uint64_t q64
     if sizeof(mp_limb_t) >= 8:
         q64 = q_limbs[0]
@@ -3628,6 +3750,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
             remainder_is_zero = ((q64 & mask) == 0)
         q64 = q64 >> add_shift
 
+    # Round q64 from 54 to 53 bits of precision.
     if ((q64 & 1) == 0):
         # Round towards zero
         pass
@@ -3636,6 +3759,7 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
             # Remainder is non-zero: round away from zero
             q64 += 1
         else:
+            # Halfway case: round to even
             q64 += (q64 & 2) - 1
 
     # The conversion of q64 to double is *exact*.
@@ -3646,47 +3770,6 @@ cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
         d = -d
     return ldexp(d, shift)
 
-
-def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
-    """
-    Find the rational reconstruction of ``a mod m``, if it exists.
-
-    INPUT:
-
-    -  ``a`` - Integer
-
-    -  ``m`` - Integer
-
-    OUTPUT:
-
-    -  ``x`` - rings.rational.Rational
-
-    EXAMPLES::
-
-        sage: Integers(100)(2/3)
-        34
-        sage: sage.rings.rational.pyrex_rational_reconstruction(34, 100)
-        2/3
-
-    TEST:
-
-    Check that ticket #9345 is fixed::
-
-        sage: sage.rings.rational.pyrex_rational_reconstruction(0,0)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError: The modulus cannot be zero
-        sage: sage.rings.rational.pyrex_rational_reconstruction(ZZ.random_element(-10^6, 10^6), 0)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError: The modulus cannot be zero
-    """
-    if not m.__nonzero__():
-        raise ZeroDivisionError("The modulus cannot be zero")
-    cdef Rational x
-    x = <Rational> PY_NEW(Rational)
-    mpq_rational_reconstruction(x.value, a.value, m.value)
-    return x
 
 def make_rational(s):
     """
@@ -3761,12 +3844,19 @@ cdef class Z_to_Q(Morphism):
 
         EXAMPLES::
 
-            sage: QQ.coerce_map_from(ZZ).section()
+            sage: f = QQ.coerce_map_from(ZZ).section(); f
             Generic map:
               From: Rational Field
               To:   Integer Ring
+
+        This map is a morphism in the category of sets with partial
+        maps (see :trac:`15618`)::
+
+            sage: f.parent()
+            Set of Morphisms from Rational Field to Integer Ring in Category of sets with partial maps
         """
-        return Q_to_Z(self._codomain, self.domain())
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        return Q_to_Z(self._codomain.Hom(self.domain(), category=SetsWithPartialMaps()))
 
 cdef class Q_to_Z(Map):
     r"""

@@ -350,6 +350,20 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         return sage.rings.finite_rings.integer_mod.mod, (self.lift(), self.modulus(), self.parent())
 
+    def _im_gens_(self, codomain, im_gens):
+        """
+        Return the image of ``self`` under the map that sends the
+        generators of the parent to ``im_gens``.
+
+        EXAMPLE::
+
+            sage: a = Mod(7, 10)
+            sage: R = ZZ.quotient(5)
+            sage: a._im_gens_(R, (R(1),))
+            2
+        """
+        return codomain._coerce_(self)
+
     def is_nilpotent(self):
         r"""
         Return ``True`` if ``self`` is nilpotent,
@@ -586,14 +600,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     def generalised_log(self):
         r"""
-        Return integers `n_i` such that
+        Return integers `[n_1, \ldots, n_d]` such that
 
         ..math::
 
-            \prod_i x_i^{n_i} = \text{self},
+            \prod_{i=1}^d x_i^{n_i} = \text{self},
 
         where `x_1, \dots, x_d` are the generators of the unit group
-        returned by ``self.parent().unit_gens()``. See also :meth:`log`.
+        returned by ``self.parent().unit_gens()``.
 
         EXAMPLES::
 
@@ -602,6 +616,19 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             [1, 3, 1]
             sage: prod([Zmod(1568).unit_gens()[i] ** v[i] for i in [0..2]])
             3
+
+        .. seealso::
+
+            The method :meth:`log`.
+
+        .. warning::
+
+            The output is given relative to the set of generators
+            obtained by passing ``algorithm='sage'`` to the method
+            :meth:`~sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic.unit_gens`
+            of the parent (which is the default).  Specifying
+            ``algorithm='pari'`` usually yields a different set of
+            generators that is incompatible with this method.
 
         """
         if not self.is_unit():
@@ -1352,10 +1379,22 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     def rational_reconstruction(self):
         """
+        Use rational reconstruction to try to find a lift of this element to
+        the rational numbers.
+
         EXAMPLES::
 
             sage: R = IntegerModRing(97)
             sage: a = R(2) / R(3)
+            sage: a
+            33
+            sage: a.rational_reconstruction()
+            2/3
+
+        This method is also inherited by prime finite fields elements::
+
+            sage: k = GF(97)
+            sage: a = k(RationalField()('2/3'))
             sage: a
             33
             sage: a.rational_reconstruction()
@@ -1705,9 +1744,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         mpz_set_si(self.value, value)
         if value < 0 or mpz_cmp_si(self.__modulus.sageInteger.value, value) >= 0:
             mpz_mod(self.value, self.value, self.__modulus.sageInteger.value)
-
-    cdef mpz_t* get_value(IntegerMod_gmp self):
-        return &self.value
 
     def __lshift__(IntegerMod_gmp self, k):
         r"""
@@ -4276,7 +4312,26 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
         return IntegerMod_to_Integer(self._codomain)
 
 cdef class IntegerMod_to_Integer(Map):
+    """
+    Map to lift elements to :class:`~sage.rings.integer.Integer`.
+
+    EXAMPLES::
+
+        sage: ZZ.convert_map_from(GF(2))
+        Lifting map:
+          From: Finite Field of size 2
+          To:   Integer Ring
+    """
     def __init__(self, R):
+        """
+        TESTS:
+
+        Lifting maps are morphisms in the category of sets (see
+        :trac:`15618`)::
+
+            sage: ZZ.convert_map_from(GF(2)).parent()
+            Set of Morphisms from Finite Field of size 2 to Integer Ring in Category of sets
+        """
         import sage.categories.homset
         from sage.categories.all import Sets
         Morphism.__init__(self, sage.categories.homset.Hom(R, integer_ring.ZZ, Sets()))

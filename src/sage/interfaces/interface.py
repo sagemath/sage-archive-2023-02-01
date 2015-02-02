@@ -876,8 +876,10 @@ class InterfaceElement(RingElement):
         except AttributeError:
             s = self.parent().get(self._name)
         if s.__contains__(self._name):
-            if hasattr(self, '__custom_name'):
-                s =  s.replace(self._name, self.__dict__['__custom_name'])
+            try:
+                s = s.replace(self._name, self.__custom_name)
+            except AttributeError:
+                pass
         return s
 
     def __getattr__(self, attrname):
@@ -1082,11 +1084,11 @@ class InterfaceElement(RingElement):
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f + g
-            sin(x)+cos(x)
+            sin(_SAGE_VAR_x)+cos(_SAGE_VAR_x)
             sage: f + 2
-            cos(x)+2
+            cos(_SAGE_VAR_x)+2
             sage: 2 + f
-            cos(x)+2
+            cos(_SAGE_VAR_x)+2
         """
         return self._operation("+", right)
 
@@ -1097,11 +1099,11 @@ class InterfaceElement(RingElement):
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f - g
-            cos(x)-sin(x)
+            cos(_SAGE_VAR_x)-sin(_SAGE_VAR_x)
             sage: f - 2
-            cos(x)-2
+            cos(_SAGE_VAR_x)-2
             sage: 2 - f
-            2-cos(x)
+            2-cos(_SAGE_VAR_x)
         """
         return self._operation('-', right)
 
@@ -1112,9 +1114,9 @@ class InterfaceElement(RingElement):
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f*g
-            cos(x)*sin(x)
+            cos(_SAGE_VAR_x)*sin(_SAGE_VAR_x)
             sage: 2*f
-            2*cos(x)
+            2*cos(_SAGE_VAR_x)
         """
         return self._operation('*', right)
 
@@ -1125,9 +1127,9 @@ class InterfaceElement(RingElement):
             sage: f = maxima.cos(x)
             sage: g = maxima.sin(x)
             sage: f/g
-            cos(x)/sin(x)
+            cos(_SAGE_VAR_x)/sin(_SAGE_VAR_x)
             sage: f/2
-            cos(x)/2
+            cos(_SAGE_VAR_x)/2
         """
         return self._operation("/", right)
 

@@ -25,7 +25,7 @@ Sie können ``beispiel.sage`` einlesen und ausführen, indem Sie den
 
 ::
 
-    sage: load "beispiel.sage"
+    sage: load("beispiel.sage")
     Hello World
     8
 
@@ -36,7 +36,7 @@ indem Sie den ``attach``-Befehl verwenden:
 
 ::
 
-    sage: attach "beispiel.sage"
+    sage: attach("beispiel.sage")
     Hello World
     8
 
@@ -153,7 +153,7 @@ Dann funktioniert das Folgende:
 
 ::
 
-    sage: attach "test.spyx"
+    sage: attach("test.spyx")
     Compiling (...)/test.spyx...
     sage: test(10)
     11
@@ -500,16 +500,18 @@ ob ein Element zu der Menge gehört oder nicht, sehr schnell geht.
 ::
 
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
-    sage: X
-    set(['a', 1, 19])
+    sage: X   # random sort order
+    {1, 19, 'a'}
+    sage: X == set(['a', 1, 1, 19])
+    True
     sage: Y
-    set([1, 2/3])
+    {2/3, 1}
     sage: 'a' in X
     True
     sage: 'a' in Y
     False
     sage: X.intersection(Y)
-    set([1])
+    {1}
 
 Sage besitzt auch einen eigenen Mengen-Datentyp, welcher (manchmal)
 mit Hilfe des standardmäßigen Python-Mengen-Datentyps implementiert
@@ -520,8 +522,10 @@ verwenden. Zum Beispiel,
 ::
 
     sage: X = Set([1,19,'a']);   Y = Set([1,1,1, 2/3])
-    sage: X
+    sage: X   # random sort order
     {'a', 1, 19}
+    sage: X == Set(['a', 1, 1, 19])
+    True
     sage: Y
     {1, 2/3}
     sage: X.intersection(Y)
@@ -624,8 +628,8 @@ Das Symbol ``==`` wird verwendet um Gleichheit zu testen:
 ::
 
     sage: for i in range(15):
-    ...       if gcd(i,15) == 1:
-    ...           print(i)
+    ....:     if gcd(i,15) == 1:
+    ....:         print(i)
     1
     2
     4
@@ -642,11 +646,11 @@ wird:
 ::
 
     sage: def legendre(a,p):
-    ...       is_sqr_modp=-1
-    ...       for i in range(p):
-    ...           if a % p == i^2 % p:
-    ...               is_sqr_modp=1
-    ...       return is_sqr_modp
+    ....:     is_sqr_modp=-1
+    ....:     for i in range(p):
+    ....:         if a % p == i^2 % p:
+    ....:             is_sqr_modp=1
+    ....:     return is_sqr_modp
 
     sage: legendre(2,7)
     1

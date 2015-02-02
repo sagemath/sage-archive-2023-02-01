@@ -11,7 +11,6 @@ Ring ideals
 #******************************************************************************
 
 from category_types import Category_ideal
-from sage.misc.cachefunc import cached_method
 from modules import Modules
 from sage.categories.rings import Rings
 _Rings = Rings()

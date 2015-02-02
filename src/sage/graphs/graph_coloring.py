@@ -400,7 +400,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.plot.colors import rainbow
 
-    # If k==None, tries to find an optimal coloring
+    # If k is None, tries to find an optimal coloring
     if k is None:
         # No need to start a linear program if the graph is an
         # independent set or bipartite.
@@ -1304,7 +1304,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
         answer = [[] for i in range(k)]
         add = lambda (u,v),i : answer[i].append((u,v))
     else:
-        gg = g.copy()
+        gg = g.copy(immutable=False)
         gg.delete_edges(g.edges())
         answer = [gg.copy() for i in range(k)]
         add = lambda (u,v),i : answer[i].add_edge((u,v))
@@ -1509,7 +1509,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
         answer = [[] for i in range(k)]
         add = lambda (u,v),i : answer[i].append((u,v))
     else:
-        gg = g.copy()
+        gg = g.copy(immutable=False)
         gg.delete_edges(g.edges())
         answer = [gg.copy() for i in range(k)]
         add = lambda (u,v),i : answer[i].add_edge((u,v))

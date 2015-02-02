@@ -23,6 +23,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.ring import Algebra
 
 from sage.misc.cachefunc import cached_method
+from functools import reduce
 
 
 class FiniteDimensionalAlgebra(Algebra):
@@ -169,8 +170,7 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: A._Hom_(B, A.category())
             Set of Homomorphisms from Finite-dimensional algebra of degree 1 over Rational Field to Finite-dimensional algebra of degree 2 over Rational Field
         """
-        if isinstance(B, FiniteDimensionalAlgebra):
-            category = FiniteDimensionalAlgebrasWithBasis(self.base_ring()).or_subcategory(category)
+        if category.is_subcategory(FiniteDimensionalAlgebrasWithBasis(self.base_ring())):
             from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra_morphism import FiniteDimensionalAlgebraHomset
             return FiniteDimensionalAlgebraHomset(self, B, category=category)
         return super(FiniteDimensionalAlgebra, self)._Hom_(B, category)
@@ -214,6 +214,25 @@ class FiniteDimensionalAlgebra(Algebra):
             [e0, e1]
         """
         return list(self.gens())
+
+    def __iter__(self):
+        """
+        Iterates over the elements of ``self``.
+
+        EXAMPLES::
+
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: list(A)
+            [0, e0, 2*e0, e1, e0 + e1, 2*e0 + e1, 2*e1, e0 + 2*e1, 2*e0 + 2*e1]
+
+        This is used in the :class:`Testsuite`'s when ``self`` is
+        finite.
+        """
+        if not self.is_finite():
+            raise NotImplementedError("object does not support iteration")
+        V = self.zero_element().vector().parent()
+        for v in V:
+            yield self(v)
 
     def _ideal_class_(self, n=0):
         """

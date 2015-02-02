@@ -179,6 +179,7 @@ import sage.rings.rational_field
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
+from sage.rings.integer_ring import ZZ
 import sage.structure.parent_gens as gens
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.commutative_rings import CommutativeRings
@@ -2230,6 +2231,42 @@ class FreeModule_generic_pid(FreeModule_generic):
             raise TypeError("ambient vector spaces must be equal")
         return self.span(self.basis() + other.basis())
 
+    def _mul_(self, other, switch_sides=False):
+        r"""
+        Multiplication of the basis by ``other``.
+
+        EXAMPLES::
+
+            sage: A = ZZ^3
+            sage: A * 3
+            Free module of degree 3 and rank 3 over Integer Ring
+            Echelon basis matrix:
+            [3 0 0]
+            [0 3 0]
+            [0 0 3]
+
+            sage: V = A.span([A([1,2,2]), A([-1,0,2])])
+            sage: 2 * V
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 2  0 -4]
+            [ 0  4  8]
+
+            sage: m = matrix(3, range(9))
+            sage: A * m
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1 1 1]
+            [0 3 6]
+            sage: m * A
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 3  0 -3]
+            [ 0  1  2]
+        """
+        if switch_sides:
+            return self.span([v * other for v in self.basis()])
+        return self.span([other * v for v in self.basis()])
 
     def base_field(self):
         """
@@ -2262,7 +2299,8 @@ class FreeModule_generic_pid(FreeModule_generic):
             [ 1 -1]
             [ 1  0]
 
-        See #3699:
+        See :trac:`3699`::
+
             sage: K = FreeModule(ZZ, 2000)
             sage: I = K.basis_matrix()
         """
@@ -2810,6 +2848,16 @@ class FreeModule_generic_pid(FreeModule_generic):
         if is_FreeModule(basis):
             basis = basis.gens()
         if base_ring is None or base_ring == self.base_ring():
+            try:
+                if self.is_dense():
+                    from free_module_integer import FreeModule_submodule_with_basis_integer
+                    return FreeModule_submodule_with_basis_integer(self.ambient_module(),
+                                                                   basis=basis, check=check,
+                                                                   already_echelonized=already_echelonized,
+                                                                   lll_reduce=False)
+            except TypeError:
+                pass
+
             return FreeModule_submodule_with_basis_pid(
                 self.ambient_module(), basis=basis, check=check,
                 already_echelonized=already_echelonized)
@@ -3362,11 +3410,11 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Basis matrix:
             [0 1 0]
             sage: v = V((1, pi, e)); v
-            (1.0, 3.14159265359, 2.71828182846)
+            (1.0, 3.141592653589793, 2.718281828459045)
             sage: W.span([v], base_ring=GF(7))
             Traceback (most recent call last):
             ...
-            ValueError: Argument gens (= [(1.0, 3.14159265359, 2.71828182846)]) is not compatible with base_ring (= Finite Field of size 7).
+            ValueError: Argument gens (= [(1.0, 3.141592653589793, 2.718281828459045)]) is not compatible with base_ring (= Finite Field of size 7).
             sage: W = V.submodule([v])
             sage: W.span([V.gen(2)], base_ring=GF(7))
             Vector space of degree 3 and dimension 1 over Finite Field of size 7
@@ -3548,28 +3596,10 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         if not self.base_ring().is_finite():
             raise RuntimeError("Base ring must be finite.")
-        # First, we select which columns will be pivots:
-        from sage.combinat.subset import Subsets
-        BASE = self.basis_matrix()
-        for pivots in Subsets(range(self.dimension()), dim):
-            MAT = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), dim,
-                self.dimension(), sparse = self.is_sparse())()
-            free_positions = []
-            for i in range(dim):
-                MAT[i, pivots[i]] = 1
-                for j in range(pivots[i]+1,self.dimension()):
-                    if j not in pivots:
-                        free_positions.append((i,j))
-            # Next, we fill in those entries that are not
-            # determined by the echelon form alone:
-            num_free_pos = len(free_positions)
-            ENTS = VectorSpace(self.base_ring(), num_free_pos)
-            for v in ENTS:
-                for k in range(num_free_pos):
-                    MAT[free_positions[k]] = v[k]
-                # Finally, we have to multiply by the basis matrix
-                # to take corresponding linear combinations of the basis
-                yield self.subspace((MAT*BASE).rows())
+        b = self.basis_matrix()
+        from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
+        for m in reduced_echelon_matrix_iterator(self.base_ring(), dim, self.dimension(), self.is_sparse(), copy=False):
+            yield self.subspace((m*b).rows())
 
     def subspace_with_basis(self, gens, check=True, already_echelonized=False):
         """
@@ -4155,19 +4185,16 @@ class FreeModule_ambient(FreeModule_generic):
 
     def __hash__(self):
         """
-        The hash of self.
+        The hash is obtained from the rank and the base ring.
+
+        .. TODO::
+
+            Make pickling so that the hash is available early enough.
 
         EXAMPLES::
 
             sage: V = QQ^7
-            sage: V.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U = QQ^7
-            sage: U.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U is V
+            sage: hash(V) == hash((V.rank(), V.base_ring()))
             True
         """
         try:
@@ -5036,7 +5063,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
 
 class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
     r"""
-    Construct a submodule of a free module over PID with a distiguished basis.
+    Construct a submodule of a free module over PID with a distinguished basis.
 
     INPUT:
 
@@ -5157,19 +5184,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def __hash__(self):
         """
-        The hash of self.
+        The hash is given by the basis.
 
         EXAMPLES::
 
-            sage: V = QQ^7
-            sage: V.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U = QQ^7
-            sage: U.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U is V
+            sage: M = ZZ^3
+            sage: W = M.span_of_basis([[1,2,3],[4,5,6]])
+            sage: hash(W) == hash(W.basis())
             True
         """
         return hash(self.__basis)

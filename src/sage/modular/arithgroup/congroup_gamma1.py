@@ -609,7 +609,7 @@ class Gamma1_class(GammaH_class):
 
         """
 
-        if eps == None:
+        if eps is None:
             return GammaH_class.dimension_new_cusp_forms(self, k, p)
 
         N = self.level()

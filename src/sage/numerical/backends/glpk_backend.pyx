@@ -386,7 +386,7 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x,y = p[0], p[1]
-            doctest:839: DeprecationWarning: The default behaviour of new_variable() will soon change ! It will return 'real' variables instead of nonnegative ones. Please be explicit and call new_variable(nonnegative=True) instead.
+            doctest:...: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
             See http://trac.sagemath.org/15521 for details.
             sage: p.add_constraint(2*x + 3*y, max = 6)
             sage: p.add_constraint(3*x + 2*y, max = 6)
@@ -886,7 +886,7 @@ cdef class GLPKBackend(GenericBackend):
             0
             sage: p.get_objective_value()
             7.5
-            sage: p.get_variable_value(0)
+            sage: p.get_variable_value(0) # abs tol 1e-15
             0.0
             sage: p.get_variable_value(1)
             1.5
@@ -916,7 +916,7 @@ cdef class GLPKBackend(GenericBackend):
             0
             sage: p.get_objective_value()
             7.5
-            sage: p.get_variable_value(0)
+            sage: p.get_variable_value(0) # abs tol 1e-15
             0.0
             sage: p.get_variable_value(1)
             1.5

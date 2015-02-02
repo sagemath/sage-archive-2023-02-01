@@ -1,33 +1,9 @@
 Welcome to Sage's Reference Manual!
-=================================================
+===================================
 
-This is the manual for the Sage mathematical software system. Sage
-is free open source math software that supports research and
-teaching in algebra, geometry, number theory, cryptography, and
-related areas. Both the Sage development model and the technology
-in Sage itself are distinguished by an extremely strong emphasis on
-openness, community, cooperation, and collaboration: we are
-building the car, not reinventing the wheel.
-
-This reference manual contains many examples that illustrate the
-usage of Sage. The examples are all tested with each release of
-Sage, and should produce exactly the same output as in this manual,
-except for line breaks.
-
-The Sage command line is briefly described in :doc:`The Sage Command Line
-<repl/index>`, which lists the command line options. For more
-details about the command line, see the Sage tutorial.
-
-The Sage graphical user interface is described in :doc:`The Sage Notebook
-<notebook/index>`. This graphical user interface is unusual in
-that it operates via your web browser. It provides you with Sage
-worksheets that you can edit and evaluate, which contain scalable
-typeset mathematics and beautiful antialiased images.
-
-This work is licensed under a `Creative Commons Attribution-Share Alike
-3.0 License`__.
-
-__ http://creativecommons.org/licenses/by-sa/3.0/
+This is a thematic index of all of `Sage's <http://www.sagemath.org/>`_
+features. It also contains many examples that illustrate their use, all of them
+systematically tested with each release.
 
 Enjoy Sage!
 
@@ -53,11 +29,13 @@ Combinatorics, Discrete Mathematics
 * :doc:`Graph Theory <graphs/index>`
 * :doc:`Matroid Theory <matroids/index>`
 * :doc:`Discrete Dynamics <dynamics/index>`
+* :doc:`Quivers <quivers/index>`
 
 Structures, Coercion, Categories
 --------------------------------
 
 * :doc:`Basic Structures <structure/index>`
+* :doc:`Data Structures <data_structures/index>`
 * :doc:`Coercion <coercion/index>`
 * :doc:`Category Theory and Categories <categories/index>`
 
@@ -96,6 +74,7 @@ Geometry and Topology
 Number Theory, Algebraic Geometry
 ---------------------------------
 
+* :doc:`Diophantine approximation <diophantine_approximation/index>`
 * :doc:`Quadratic Forms <quadratic_forms/index>`
 * :doc:`L-Functions <lfunctions/index>`
 * :doc:`Schemes <schemes/index>`
@@ -104,6 +83,7 @@ Number Theory, Algebraic Geometry
 * :doc:`General Hecke Algebras and Hecke Modules <hecke/index>`
 * :doc:`Modular Symbols <modsym/index>`
 * :doc:`Modular Forms <modfrm/index>`
+* :doc:`Modular Forms for Hecke Triangle Groups <modfrm_hecketriangle/index>`
 * :doc:`Modular Abelian Varieties <modabvar/index>`
 * :doc:`Miscellaneous Modular-Form-Related Modules <modmisc/index>`
 
@@ -119,12 +99,12 @@ Miscellaneous Mathematics
 * :doc:`Statistics <stats/index>`
 * :doc:`Quantitative Finance <finance/index>`
 * :doc:`Coding Theory <coding/index>`
+* :doc:`Game Theory <game_theory/index>`
 
 Doctesting, Interfaces, Databases, Miscellany
 ---------------------------------------------
 
 * :doc:`Doctesting <doctest/index>`
-* :doc:`Development Scripts <dev/index>`
 * :doc:`Interpreter Interfaces <interfaces/index>`
 * :doc:`C/C++ Library Interfaces <libs/index>`
 * :doc:`Databases <databases/index>`
@@ -147,3 +127,8 @@ Indices and Tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+This work is licensed under a `Creative Commons Attribution-Share Alike
+3.0 License`__.
+
+__ http://creativecommons.org/licenses/by-sa/3.0/

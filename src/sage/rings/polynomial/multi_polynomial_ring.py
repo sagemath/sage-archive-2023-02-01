@@ -79,7 +79,7 @@ from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_s
 from sage.rings.polynomial.polydict import PolyDict, ETuple
 from sage.rings.polynomial.term_order import TermOrder
 
-from sage.interfaces.all import is_SingularElement
+from sage.interfaces.singular import is_SingularElement
 from sage.interfaces.all import macaulay2 as macaulay2_default
 from sage.interfaces.macaulay2 import is_Macaulay2Element
 
@@ -250,7 +250,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         Conversion from symbolic variables::
 
             sage: x,y,z = var('x,y,z')
-            sage: R = QQ[x,y,z]
+            sage: R = QQ['x,y,z']
             sage: type(x)
             <type 'sage.symbolic.expression.Expression'>
             sage: type(R(x))
@@ -267,7 +267,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         ::
 
-            sage: R = QQ[x,y,z]
+            sage: R = QQ['x,y,z']
             sage: f = (x^3 + y^3 - z^3)^10; f
             (x^3 + y^3 - z^3)^10
             sage: g = R(f); parent(g)

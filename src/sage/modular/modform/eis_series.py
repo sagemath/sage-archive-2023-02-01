@@ -20,8 +20,9 @@ from sage.modular.arithgroup.congroup_gammaH import GammaH_class
 from sage.rings.all import Integer
 
 from sage.rings.all import (bernoulli, CyclotomicField,
-                            is_FiniteField, ZZ, QQ, Integer, divisors,
+                            ZZ, QQ, Integer, divisors,
                             LCM, is_squarefree)
+from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.power_series_ring import PowerSeriesRing
 from eis_series_cython import eisenstein_series_poly, Ek_ZZ
 
@@ -175,8 +176,8 @@ def __common_minimal_basering(chi, psi):
 
     EXAMPLES::
 
-        sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(1).0, DirichletGroup(1).0)
-        (Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1, Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1)
+        sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(1)[0], DirichletGroup(1)[0])
+        (Dirichlet character modulo 1 of conductor 1, Dirichlet character modulo 1 of conductor 1)
 
         sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(3).0, DirichletGroup(5).0)
         (Dirichlet character modulo 3 of conductor 3 mapping 2 |--> -1, Dirichlet character modulo 5 of conductor 5 mapping 2 |--> zeta4)

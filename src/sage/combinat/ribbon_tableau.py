@@ -474,7 +474,8 @@ def insertion_tableau(skp, perm, evaluation, tableau, length):
         tableau[-(k+1)] += [0]* ( skp[0][k] - partc[k] - len(tableau[-(k+1)]))
 
     ## We construct a tableau from the southwest corner to the northeast one
-    tableau =  [[0]*(skp[0][k] - partc[k]) for k in reversed(range(len(tableau), len(skp[0])))] + tableau
+    tableau = [[0] * (skp[0][k] - partc[k])
+               for k in reversed(range(len(tableau), len(skp[0])))] + tableau
 
     tableau = SkewTableaux().from_expr([skp[1], tableau]).conjugate()
     tableau = tableau.to_expr()[1]
@@ -625,7 +626,8 @@ def spin_rec(t, nexts, current, part, weight, length):
     #compute the contribution of the ribbons added at
     #the current node
     for perms in [current[i][1] for i in range(len(current))]:
-        perm =  [partp[i] + len(partp)-(i+1)-perms[i] for i in range(len(partp))]
+        perm = [partp[i] + len(partp) - (i + 1) - perms[i]
+                for i in range(len(partp))]
         perm.reverse()
         perm = Word(perm).standard_permutation()
         tmp.append( (weight[-1]*(length-1)-perm.number_of_inversions()) )
@@ -698,7 +700,7 @@ def spin_polynomial(part, weight, length):
     from sage.symbolic.ring import var
     sp = spin_polynomial_square(part,weight,length)
     t = var('t')
-    c = sp.coeffs()
+    c = sp.coefficients(sparse=False)
     return sum([c[i]*t**(QQ(i)/2) for i in range(len(c))])
 
 def cospin_polynomial(part, weight, length):
@@ -734,7 +736,7 @@ def cospin_polynomial(part, weight, length):
     if sp == 0:
         return R(0)
 
-    coeffs = [c for c in sp.coeffs() if c != 0]
+    coeffs = [c for c in sp.coefficients(sparse=False) if c != 0]
     d = len(coeffs)-1
     exponents = [d-e for e in range(len(coeffs))]
 
@@ -784,7 +786,7 @@ def graph_implementation_rec(skp, weight, length, function):
         retire = [ retire[i] - len(partp) + (i+1) for i in range(len(retire))]
 
         if retire[-1] >= 0 and retire == [i for i in reversed(sorted(retire))]:
-            retire = Partition(filter(lambda x: x != 0, retire)).conjugate()
+            retire = Partition([x for x in retire if x != 0]).conjugate()
 
             # Cutting branches if the retired partition has a line strictly included into the inner one
             append = True
@@ -1160,47 +1162,6 @@ class SemistandardMultiSkewTableaux(MultiSkewTableaux):
                 w = [l[k][j] for j in range(pos+s[i-1], pos+s[i-1]+s[i])]
                 restmp.append( S.from_shape_and_word(parts[i], w) )
             yield self.element_class(self, restmp)
-
-def from_expr(l):
-    """
-    Deprecated in :trac:`14101`. Use instead :meth:`RibbonTableaux.from_expr()`.
-
-    EXAMPLES::
-
-        sage: sage.combinat.ribbon_tableau.from_expr([[1,1],[[5],[3,4],[1,2]]])
-        doctest:...: DeprecationWarning: from_expr is deprecated. Use RibbonTableaux().from_expr instead
-        See http://trac.sagemath.org/14101 for details.
-        [[None, 1, 2], [None, 3, 4], [5]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'from_expr is deprecated. Use RibbonTableaux().from_expr instead')
-    return RibbonTableaux().from_expr(l)
-
-def RibbonTableaux_shapeweightlength(shape, weight, length):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.ribbon_tableau.RibbonTableaux_shapeweightlength([[2,1],[]], [1,1,1], 1)
-        doctest:...: DeprecationWarning: this class is deprecated. Use RibbonTableaux instead
-        See http://trac.sagemath.org/14101 for details.
-        Ribbon tableaux of shape [2, 1] / [] and weight [1, 1, 1] with 1-ribbons
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'this class is deprecated. Use RibbonTableaux instead')
-    return RibbonTableaux(shape, weight, length)
-
-def SemistandardMultiSkewTtableaux_shapeweight(shape, weight):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.ribbon_tableau.SemistandardMultiSkewTtableaux_shapeweight([ [[2,1],[]], [[2,2],[1]] ], [2,2,2])
-        doctest:...: DeprecationWarning: this class is deprecated. Use SemistandardMultiSkewTableaux instead
-        See http://trac.sagemath.org/14101 for details.
-        Semistandard multi skew tableaux of shape [[2, 1] / [], [2, 2] / [1]] and weight [2, 2, 2]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'this class is deprecated. Use SemistandardMultiSkewTableaux instead')
-    return SemistandardMultiSkewTableaux(shape, weight)
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.ribbon_tableau', 'RibbonTableau_class', RibbonTableau)

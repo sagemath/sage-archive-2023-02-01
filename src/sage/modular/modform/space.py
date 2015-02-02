@@ -239,7 +239,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,QQ).change_ring(GF(7))
+            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], QQ).change_ring(GF(7))
             Traceback (most recent call last):
             ...
             NotImplementedError: This function has not yet been implemented.
@@ -327,7 +327,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         ::
 
             sage: ModularForms(Gamma1(1),12).character()
-            Dirichlet character modulo 1 of conductor 1 mapping 0 |--> 1
+            Dirichlet character modulo 1 of conductor 1
         """
         return self.__character
 
@@ -763,7 +763,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         EXAMPLES::
 
-            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,QQ)._compute_q_expansion_basis(5)
+            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], QQ)._compute_q_expansion_basis(5)
             Traceback (most recent call last):
             ...
             NotImplementedError: this must be implemented in the derived class
@@ -1561,7 +1561,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         try:
             if self.__is_cuspidal == True:
                 return self
-            if self.__cuspidal_submodule != None:
+            if self.__cuspidal_submodule is not None:
                 return self.__cuspidal_submodule
         except AttributeError:
             pass
@@ -1649,7 +1649,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
          EXAMPLES::
 
-             sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.new_submodule()
+             sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.new_submodule()
              Traceback (most recent call last):
              ...
              NotImplementedError: computation of new submodule not yet implemented
@@ -1662,7 +1662,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.new_subspace()
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.new_subspace()
             Traceback (most recent call last):
             ...
             NotImplementedError: computation of new submodule not yet implemented
@@ -1679,7 +1679,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.eisenstein_series()
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.eisenstein_series()
             Traceback (most recent call last):
             ...
             NotImplementedError: computation of Eisenstein series in this space not yet implemented
@@ -1759,7 +1759,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         except AttributeError:
             pass
         try:
-            if self.__eisenstein_submodule != None:
+            if self.__eisenstein_submodule is not None:
                 return self.__eisenstein_submodule
         except AttributeError:
             pass
@@ -1881,7 +1881,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         EXAMPLES::
 
-            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.modular_symbols()
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11), 2, DirichletGroup(1)[0], base_ring=QQ); M.modular_symbols()
             Traceback (most recent call last):
             ...
             NotImplementedError: computation of associated modular symbols space not yet implemented

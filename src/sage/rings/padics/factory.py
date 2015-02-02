@@ -38,6 +38,7 @@ from padic_base_leaves import pAdicRingCappedRelative, \
 ######################################################
 
 from padic_extension_leaves import *
+from functools import reduce
 #This imports all of the classes used in the ext_table below.
 
 ext_table = {}
@@ -2276,7 +2277,7 @@ class pAdicExtension_class(UniqueFactory):
             # the information needed to shift right with full precision from the premodulus.
             if is_Expression(premodulus):
                 # Here we assume that the output of coeffs is sorted in increasing order by exponent:
-                coeffs = premodulus.coeffs()
+                coeffs = premodulus.coefficients()
                 preseed = premodulus / coeffs[-1][0]
                 preseed -= preseed.variables()[0]**coeffs[-1][1]
                 preseed /= base.prime() # here we assume that the base is unramified over Qp

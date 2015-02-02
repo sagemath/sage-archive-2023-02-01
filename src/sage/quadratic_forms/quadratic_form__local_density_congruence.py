@@ -107,16 +107,16 @@ def local_good_density_congruence_odd(self, p, m, Zvec, NZvec):
     n = self.dim()
 
     ## Put the Zvec congruence condition in a standard form
-    if Zvec == None:
+    if Zvec is None:
         Zvec = []
 
 
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
+    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
+    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
@@ -131,7 +131,7 @@ def local_good_density_congruence_odd(self, p, m, Zvec, NZvec):
     NonUnitVec_minus_Zvec = list(Set(NonUnitVec) - Set(Zvec))
     Q_Unit_minus_Zvec = self.extract_variables(UnitVec_minus_Zvec)
 
-    if (NZvec == None):
+    if (NZvec is None):
         if m % p != 0:
             total = Q_Unit_minus_Zvec.count_modp_solutions__by_Gauss_sum(p, m) * p**len(NonUnitVec_minus_Zvec)          ## m != 0 (mod p)
         else:
@@ -242,16 +242,16 @@ def local_good_density_congruence_even(self, m, Zvec, NZvec):
     n = self.dim()
 
     ## Put the Zvec congruence condition in a standard form
-    if Zvec == None:
+    if Zvec is None:
         Zvec = []
 
 
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
+    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
+    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
@@ -316,7 +316,7 @@ def local_good_density_congruence_even(self, m, Zvec, NZvec):
 
 
     ## Take cases on the existence of additional non-zero congruence conditions (mod 2)
-    if NZvec == None:
+    if NZvec is None:
         total = (4 ** len(Z_Is8)) * (8 ** len(Is8_minus_Z)) \
             * Q_Not8.count_congruence_solutions__good_type(2, 3, m, list(Z_Not8), None)
     else:
@@ -400,7 +400,7 @@ def local_good_density_congruence(self, p, m, Zvec=None, NZvec=None):
     verbose(" NZvec = " + str(NZvec))
 
     ## Put the Zvec congruence condition in a standard form
-    if Zvec == None:
+    if Zvec is None:
         Zvec = []
 
 
@@ -409,9 +409,9 @@ def local_good_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
+    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
+    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
@@ -494,7 +494,7 @@ def local_zero_density_congruence(self, p, m, Zvec=None, NZvec=None):
     verbose(" NZvec = " + str(NZvec))
 
     ## Put the Zvec congruence condition in a standard form
-    if Zvec == None:
+    if Zvec is None:
         Zvec = []
 
 
@@ -503,16 +503,16 @@ def local_zero_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
+    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
+    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
     p2 = p * p
 
     ## Check some conditions for no zero-type solutions to exist
-    if ((m % (p2) != 0) or (NZvec != None)):
+    if ((m % (p2) != 0) or (NZvec is not None)):
         return 0
 
     ## Use the reduction procedure to return the result
@@ -599,7 +599,7 @@ def local_badI_density_congruence(self, p, m, Zvec=None, NZvec=None):
     verbose(" NZvec = " + str(NZvec))
 
     ## Put the Zvec congruence condition in a standard form
-    if Zvec == None:
+    if Zvec is None:
         Zvec = []
 
 
@@ -610,9 +610,9 @@ def local_badI_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
+    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
+    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
@@ -653,7 +653,7 @@ def local_badI_density_congruence(self, p, m, Zvec=None, NZvec=None):
         return 0
 
     ## Check some conditions for no bad-type I solutions to exist
-    if (NZvec != None) and (len(Set(S0).intersection(Set(NZvec))) != 0):
+    if (NZvec is not None) and (len(Set(S0).intersection(Set(NZvec))) != 0):
         return 0
 
 
@@ -700,7 +700,7 @@ def local_badI_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
     ## Do the reduction
     Zvec_geq_1 = list(Set([i  for i in Zvec  if i not in S0]))
-    if NZvec == None:
+    if NZvec is None:
         NZvec_geq_1 = NZvec
     else:
         NZvec_geq_1 = list(Set([i  for i in NZvec  if i not in S0]))
@@ -773,7 +773,7 @@ def local_badII_density_congruence(self, p, m, Zvec=None, NZvec=None):
     verbose(" NZvec = " + str(NZvec))
 
     ## Put the Zvec congruence condition in a standard form
-    if Zvec == None:
+    if Zvec is None:
         Zvec = []
 
 
@@ -783,9 +783,9 @@ def local_badII_density_congruence(self, p, m, Zvec=None, NZvec=None):
     ## Sanity Check on Zvec and NZvec:
     ## -------------------------------
     Sn = Set(range(n))
-    if (Zvec != None) and (len(Set(Zvec) + Sn) > n):
+    if (Zvec is not None) and (len(Set(Zvec) + Sn) > n):
         raise RuntimeError("Zvec must be a subset of {0, ..., n-1}.")
-    if (NZvec != None) and (len(Set(NZvec) + Sn) > n):
+    if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
 
@@ -827,7 +827,7 @@ def local_badII_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
 
     ## Check some conditions for no bad-type II solutions to exist
-    if (NZvec != None) and (len(Set(S2plus).intersection(Set(NZvec))) == 0):
+    if (NZvec is not None) and (len(Set(S2plus).intersection(Set(NZvec))) == 0):
         return 0
 
 
@@ -870,7 +870,7 @@ def local_badII_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
     ## Perform the reduction formula
     Zvec_geq_2 = list(Set([i  for i in Zvec  if i in S2plus]))
-    if NZvec == None:
+    if NZvec is None:
         NZvec_geq_2 = NZvec
     else:
         NZvec_geq_2 = list(Set([i  for i in NZvec  if i in S2plus]))

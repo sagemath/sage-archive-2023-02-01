@@ -6,7 +6,7 @@ Nauty (`<http://cs.anu.edu.au/~bdm/nauty/>`_) to enumerate hypergraphs up to
 isomorphism.
 """
 
-class HyperGraphGenerators():
+class HypergraphGenerators():
     r"""
     A class consisting of constructors for common hypergraphs.
     """
@@ -159,4 +159,4 @@ class HyperGraphGenerators():
 
             yield tuple( tuple( x for x in G.neighbors(v)) for v in range(number_of_vertices, total))
 
-hypergraphs = HyperGraphGenerators()
+hypergraphs = HypergraphGenerators()

@@ -10,16 +10,15 @@ Coxeter Groups
 # With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling, Christian Stump, Mark Shimozono
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
+from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.misc import attrcall, uniq
-from sage.misc.superseded import deprecation
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.groups import Groups
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.sage_object import have_same_parent
-from sage.combinat.finite_class import FiniteCombinatorialClass
+from sage.structure.element import have_same_parent
 from sage.misc.flatten import flatten
 from copy import copy
 
@@ -33,7 +32,7 @@ class CoxeterGroups(Category_singleton):
 
     `I` is the *index set* of `W` and `|I|` is the *rank* of `W`.
 
-    See http://en.wikipedia.org/wiki/Coxeter_group for details.
+    See :Wikipedia:`Coxeter_group` for details.
 
     EXAMPLES::
 
@@ -67,6 +66,19 @@ class CoxeterGroups(Category_singleton):
     .. TODO:: add a demo of usual computations on Coxeter groups.
 
     .. SEEALSO:: :class:`WeylGroups`, :mod:`sage.combinat.root_system`
+
+    .. WARNING::
+
+        It is assumed that morphisms in this category preserve the
+        distinguished choice of simple reflections. In particular,
+        subobjects in this category are parabolic subgroups. In this
+        sense, this category might be better named ``Coxeter
+        Systems``. In the long run we might want to have two distinct
+        categories, one for Coxeter groups (with morphisms being just
+        group morphisms) and one for Coxeter systems::
+
+            sage: CoxeterGroups().is_full_subcategory(Groups())
+            False
 
     TESTS::
 
@@ -108,6 +120,9 @@ class CoxeterGroups(Category_singleton):
             [Category of groups, Category of enumerated sets]
         """
         return [Groups(), EnumeratedSets()]
+
+    Finite = LazyImport('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
+    Algebras = LazyImport('sage.categories.coxeter_group_algebras', 'CoxeterGroupAlgebras')
 
     class ParentMethods:
 
@@ -447,7 +462,7 @@ class CoxeterGroups(Category_singleton):
 
         semigroup_generators = group_generators
 
-        def simple_projection(self, i, side = 'right', length_increasing = True, toward_max = None):
+        def simple_projection(self, i, side = 'right', length_increasing = True):
             r"""
             INPUT:
 
@@ -488,13 +503,10 @@ class CoxeterGroups(Category_singleton):
             """
             if not (i in self.index_set() or i == 0):
                 raise ValueError("%s is not 0 and not in the Dynkin node set %s"%(i, self.index_set()))
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
             return lambda x: x.apply_simple_projection(i, side = side, length_increasing = length_increasing)
 
         @cached_method
-        def simple_projections(self, side = 'right', length_increasing = True, toward_max = None):
+        def simple_projections(self, side = 'right', length_increasing = True):
             r"""
             Returns the family of simple projections, also known as 0-Hecke or Demazure operators.
 
@@ -545,9 +557,6 @@ class CoxeterGroups(Category_singleton):
                 (1, 3, 2, 0)
             """
             from sage.sets.family import Family
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projections is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
             return Family(self.index_set(), lambda i: self.simple_projection(i, side = side, length_increasing = length_increasing))
 
         def demazure_product(self,Q):
@@ -629,7 +638,63 @@ class CoxeterGroups(Category_singleton):
                 [2 3 1]
             """
             from sage.groups.matrix_gps.coxeter_group import CoxeterMatrixGroup
-            return CoxeterMatrixGroup(self.coxeter_matrix(), index_set=self.index_set())
+            return CoxeterMatrixGroup(self.coxeter_matrix(),
+                                      index_set=self.index_set())
+
+        def elements_of_length(self, n):
+            r"""
+            Return all elements of length `n`.
+
+            EXAMPLES::
+
+                sage: A = AffinePermutationGroup(['A',2,1])
+                sage: [len(list(A.elements_of_length(i))) for i in [0..5]]
+                [1, 3, 6, 9, 12, 15]
+
+                sage: W = CoxeterGroup(['H',3])
+                sage: [len(list(W.elements_of_length(i))) for i in range(4)]
+                [1, 3, 5, 7]
+
+                sage: W = CoxeterGroup(['A',2])
+                sage: [len(list(W.elements_of_length(i))) for i in range(6)]
+                [1, 2, 2, 1, 0, 0]
+            """
+            I = self.weak_order_ideal(ConstantFunction(True), side='right')
+            return I.elements_of_depth_iterator(n)
+
+        def random_element_of_length(self, n):
+            r"""
+            Return a random element of length ``n`` in ``self``.
+
+            Starts at the identity, then chooses an upper cover at random.
+
+            Not very uniform: actually constructs a uniformly random
+            reduced word of length `n`. Thus we most likely get
+            elements with lots of reduced words!
+
+            EXAMPLES::
+
+                sage: A = AffinePermutationGroup(['A', 7, 1])
+                sage: p = A.random_element_of_length(10)
+                sage: p in A
+                True
+                sage: p.length() == 10
+                True
+
+                sage: W = CoxeterGroup(['A', 4])
+                sage: p = W.random_element_of_length(5)
+                sage: p in W
+                True
+                sage: p.length() == 5
+                True
+            """
+            from sage.misc.prandom import randint
+            x = self.one()
+            for i in xrange(1, n + 1):
+                antiD = x.descents(positive=True)
+                rnd = randint(0, len(antiD) - 1)
+                x = x.apply_simple_reflection_right(antiD[rnd])
+            return x
 
         # TODO: Groups() should have inverse() call __invert__
         # With strong doc stating that this is just a convenience for the user
@@ -843,7 +908,7 @@ class CoxeterGroups(Category_singleton):
 
                 TODO: side, index_set, positive
             """
-            if index_set==None:
+            if index_set is None:
                 index_set=self.parent().index_set()
             return [ i for i in index_set if self.has_descent(i, side = side, positive = positive) ]
 
@@ -1121,7 +1186,7 @@ v            EXAMPLES::
                     return self
                 self = self.apply_simple_reflection(i, side = side)
 
-        def apply_simple_projection(self, i, side = 'right', length_increasing = True, toward_max = None):
+        def apply_simple_projection(self, i, side = 'right', length_increasing = True):
             r"""
             INPUT:
 
@@ -1158,11 +1223,6 @@ v            EXAMPLES::
                 s1*s2*s3*s4*s3
 
             """
-
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ElementMethods.apply_simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
-
             if self.has_descent(i, side = side, positive = length_increasing):
                 return self.apply_simple_reflection(i, side=side)
             return self
@@ -1214,7 +1274,8 @@ v            EXAMPLES::
             from sage.combinat.backtrack import SearchForest
             W = self.parent()
             if not predicate(W.one()):
-                return FiniteCombinatorialClass([])
+                from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+                return FiniteEnumeratedSet([])
             s = W.simple_reflections()
             def succ(u_v):
                 (u, v) = u_v
@@ -2119,4 +2180,3 @@ v            EXAMPLES::
                 [[1, 2, 3]]
             """
             return self.weak_covers(side = side, index_set = index_set, positive = True)
-

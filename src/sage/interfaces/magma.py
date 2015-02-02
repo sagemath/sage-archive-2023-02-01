@@ -183,7 +183,6 @@ coercion system compared to Sage's::
     ...
     TypeError: Error evaluating Magma code.
     ...
-    Runtime error in '*': Bad argument types
     Argument types given: RngUPolElt[RngInt], FldRatElt
 
 
@@ -463,10 +462,10 @@ class Magma(Expect):
         EXAMPLES::
 
             sage: magma.eval('System("pwd")')   # random, optional - magma
-            '/Users/was/s/devel/sage-main/sage'
+            '/Users/was/s/src/sage'
             sage: magma.chdir('..')             # optional - magma
             sage: magma.eval('System("pwd")')   # random, optional - magma
-            '/Users/was/s/devel/sage-main'
+            '/Users/was/s/src'
         """
         self.eval('ChangeDirectory("%s")'%dir, strip=False)
 
@@ -711,6 +710,17 @@ class Magma(Expect):
             sage: R._magma_cache                    # optional - magma
             {Magma: Univariate Polynomial Ring in x over Integer Ring,
              Magma: Univariate Polynomial Ring in x over Integer Ring}
+
+            sage: P.<x,y> = PolynomialRing(GF(127)) # optional - magma
+            sage: m = Magma()                       # optional - magma
+            sage: m(P)                              # optional - magma
+            Polynomial ring of rank 2 over GF(127)
+            Order: Graded Reverse Lexicographical
+            Variables: x, y
+            sage: P._magma_cache                    # optional - magma
+            {Magma: Polynomial ring of rank 2 over GF(127)
+            Order: Graded Reverse Lexicographical
+            Variables: x, y}
         """
         if isinstance(x, bool):
             return Expect.__call__(self, 'true' if x else 'false')
@@ -933,10 +943,12 @@ class Magma(Expect):
 
         EXAMPLES: Attaching a file that exists is fine::
 
+            sage: SAGE_EXTCODE = SAGE_ENV['SAGE_EXTCODE']               # optional - magma
             sage: magma.attach('%s/magma/sage/basic.m'%SAGE_EXTCODE)    # optional - magma
 
         Attaching a file that doesn't exist raises an exception::
 
+            sage: SAGE_EXTCODE = SAGE_ENV['SAGE_EXTCODE']                 # optional - magma
             sage: magma.attach('%s/magma/sage/basic2.m'%SAGE_EXTCODE)     # optional - magma
             Traceback (most recent call last):
             ...
@@ -961,6 +973,7 @@ class Magma(Expect):
 
         EXAMPLES::
 
+            sage: SAGE_EXTCODE = SAGE_ENV['SAGE_EXTCODE']            # optional - magma
             sage: magma.attach_spec('%s/magma/spec'%SAGE_EXTCODE)    # optional - magma
             sage: magma.attach_spec('%s/magma/spec2'%SAGE_EXTCODE)   # optional - magma
             Traceback (most recent call last):
@@ -996,7 +1009,7 @@ class Magma(Expect):
             sage: filename = os.path.join(SAGE_TMP, 'a.m')
             sage: open(filename, 'w').write('function f(n) return n^2; end function;\nprint "hi";')
             sage: print magma.load(filename)      # optional - magma
-            Loading ".../tmp/.../a.m"
+            Loading ".../a.m"
             hi
             sage: magma('f(12)')       # optional - magma
             144
@@ -1875,7 +1888,7 @@ class MagmaElement(ExpectElement):
         Return Sage version of this object. Use self.sage() to get the Sage
         version.
 
-        Edit devel/ext/magma/sage.m to add functionality.
+        Edit src/ext/magma/sage/basic.m to add functionality.
 
         EXAMPLES: Enumerated Sets::
 
@@ -2911,3 +2924,75 @@ class MagmaGBLogPrettyPrinter:
         """
         import sys
         sys.stdout.flush()
+
+class MagmaGBDefaultContext:
+    """
+    Context to force preservation of verbosity options for Magma's
+    Groebner basis computation.
+    """
+    def __init__(self, magma=None):
+        """
+        INPUT:
+
+        - ``magma`` - (default: ``magma_default``)
+
+        EXAMPLE::
+
+            sage: from sage.interfaces.magma import MagmaGBDefaultContext
+            sage: magma.SetVerbose('Groebner',1) # optional - magma
+            sage: with MagmaGBDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
+            0
+        """
+        if magma is None:
+            from sage.interfaces.all import magma as magma_default
+            magma = magma_default
+
+        self.magma = magma
+
+    def __enter__(self):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.magma import MagmaGBDefaultContext
+            sage: magma.SetVerbose('Groebner',1) # optional - magma
+            sage: with MagmaGBDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
+            0
+        """
+        self.groebner_basis_verbose = self.magma.GetVerbose('Groebner')
+        self.magma.SetVerbose('Groebner',0)
+
+    def __exit__(self, typ, value, tb):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.magma import MagmaGBDefaultContext
+            sage: magma.SetVerbose('Groebner',1) # optional - magma
+            sage: with MagmaGBDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
+            0
+            sage: magma.GetVerbose('Groebner') # optional - magma
+            1
+        """
+        self.magma.SetVerbose('Groebner',self.groebner_basis_verbose)
+
+def magma_gb_standard_options(func):
+    """
+    Decorator to force default options for Magma.
+
+    EXAMPLE::
+
+        sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
+        sage: J = sage.rings.ideal.Cyclic(P).homogenize()
+        sage: from sage.misc.sageinspect import sage_getsource
+        sage: "mself" in sage_getsource(J._groebner_basis_magma)
+        True
+
+    """
+    from sage.misc.decorators import sage_wraps
+    @sage_wraps(func)
+    def wrapper(*args, **kwds):
+        """
+        Execute function in ``MagmaGBDefaultContext``.
+        """
+        with MagmaGBDefaultContext():
+            return func(*args, **kwds)
+    return wrapper

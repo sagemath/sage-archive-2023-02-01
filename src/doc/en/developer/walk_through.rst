@@ -15,6 +15,10 @@ We also have a handy `one-page "cheat sheet"
 <http://github.com/sagemath/git-trac-command/raw/master/doc/git-cheat-sheet.pdf>`_
 of commonly used git commands that you can print out and leave on your
 desk.
+You can alternatively fork and create a pull request at
+`github <http://github.com/sagemath/sage>`_ which will automatically fetch
+your code and open a ticket on our trac server.
+
 
 .. _section-walkthrough-setup-git:
 
@@ -144,12 +148,13 @@ To dig deeper, you can inspect the log::
 
     [user@localhost sage]$ git log
 
-By default, this lists all commits in reverse chronological order. If
-you find your branch to be in the wrong place, you can use the ``git
-reset --hard`` command to reset it to something else; see
-:ref:`section-git-recovery` for details.
+By default, this lists all commits in reverse chronological order.
 
+- If you find your branch to be in the wrong place, see the
+  :ref:`section-git-recovery` section.
 
+- Many programs are available to help you visualize the history tree
+  better. ``tig`` is a very nice text-mode such tool.
 
 .. _section-walkthrough-add-edit:
 

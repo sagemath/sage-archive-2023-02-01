@@ -181,16 +181,45 @@ EXAMPLES::
     -1
     sage: cmp(RIF(0, 1), RIF(0, 1))
     0
+
+Comparison with infinity is defined through coercion to the infinity
+ring where semi-infinite intervals are sent to their central value
+(plus or minus infinity); This implements the above convention for
+inequalities::
+
+    sage: InfinityRing.has_coerce_map_from(RIF)
+    True
+    sage: -oo < RIF(-1,1) < oo
+    True
+    sage: -oo < RIF(0,oo) <= oo
+    True
+    sage: -oo <= RIF(-oo,-1) < oo
+    True
+
+Comparison by equality shows what the semi-infinite intervals actually
+coerce to::
+
+    sage: RIF(1,oo) == oo
+    True
+    sage: RIF(-oo,-1) == -oo
+    True
+
+For lack of a better value in the infinity ring, the doubly infinite
+interval coerces to plus infinity::
+
+    sage: RIF(-oo,oo) == oo
+    True
 """
 
-############################################################################
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
+#*****************************************************************************
 #       Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-############################################################################
+#*****************************************************************************
 
 import math # for log
 import sys
@@ -1412,19 +1441,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             True
         """
         return self
-
-    def parent(self):
-        """
-        Return the parent of ``self``.
-
-        EXAMPLES::
-
-            sage: R = RealIntervalField()
-            sage: a = R('1.2456')
-            sage: a.parent()
-            Real Interval Field with 53 bits of precision
-        """
-        return self._parent
 
     # MPFR had an elaborate "truncation" scheme to avoid printing
     # inaccurate-looking results; this has been removed for MPFI,

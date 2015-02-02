@@ -225,19 +225,25 @@ class ProjectiveCurve_generic(Curve_generic_projective):
             sage: R.<x, y, z> = QQ[]
             sage: C = Curve(x^3 - y^2*z)
             sage: C.plot()
+            Graphics object consisting of 1 graphics primitive
 
         The other affine patches of the same curve::
 
             sage: C.plot(patch=0)
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=1)
+            Graphics object consisting of 1 graphics primitive
 
         An elliptic curve::
 
             sage: E = EllipticCurve('101a')
             sage: C = Curve(E)
             sage: C.plot()
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=0)
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=1)
+            Graphics object consisting of 1 graphics primitive
 
         A hyperelliptic curve::
 
@@ -245,8 +251,11 @@ class ProjectiveCurve_generic(Curve_generic_projective):
             sage: f = 4*x^5 - 30*x^3 + 45*x - 22
             sage: C = HyperellipticCurve(f)
             sage: C.plot()
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=0)
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=1)
+            Graphics object consisting of 1 graphics primitive
         """
         # if user hasn't specified a favourite affine patch, take the
         # one avoiding "infinity", i.e. the one corresponding to the
@@ -541,7 +550,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         # faster (and more robust).
         v = singular('POINTS').sage_flattened_str_list()
         pnts = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2]))
-                for i in range(len(v)/3)]
+                for i in range(len(v)//3)]
         # singular always dehomogenizes with respect to the last variable
         # so if this variable divides the curve equation, we need to add
         # points at infinity
@@ -613,7 +622,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         R = X2[5][1][1]
         singular.set_ring(R)
         v = singular('POINTS').sage_flattened_str_list()
-        coords = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)/3)]
+        coords = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)//3)]
         # build correct representation of D for singular
         Dsupport = D.support()
         Dcoeffs = []

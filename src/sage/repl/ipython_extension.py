@@ -57,7 +57,7 @@ In contrast, input to the ``%time`` magic command is preparsed::
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
-import sage.misc.preparser as preparser
+from sage.repl.load import load_wrap
 
 from sage.env import SAGE_IMPORTALL, SAGE_STARTUP_FILE
 
@@ -107,7 +107,7 @@ class SageMagics(Magics):
             sage: shell.run_cell('a')
             2
         """
-        return self.shell.ex(preparser.load_wrap(s, attach=False))
+        return self.shell.ex(load_wrap(s, attach=False))
 
     @line_magic
     def attach(self, s):
@@ -147,7 +147,7 @@ class SageMagics(Magics):
             []
             sage: os.remove(tmp)
         """
-        return self.shell.ex(preparser.load_wrap(s, attach=True))
+        return self.shell.ex(load_wrap(s, attach=True))
 
     @line_magic
     def iload(self, args):
@@ -191,10 +191,13 @@ class SageMagics(Magics):
     _magic_display_status = 'simple'
     @line_magic
     def display(self, args):
-        """
+        r"""
         A magic command to switch between simple display and ASCII art display.
 
-        - ``args`` -- string. The mode (``ascii_art`` (and optionally a ``width``) or ``simple``)
+        - ``args`` -- string.  See
+          :meth:`sage.misc.display_hook.DisplayHookBase.set_display`
+          for allowed values. If the mode is ``ascii_art``, it can
+          optionally be followed by a width.
 
         How to use: if you want activate the ASCII art mod::
 
@@ -241,7 +244,25 @@ class SageMagics(Magics):
                               1  4    1  3    1  2    2 ]
               1  3    1  2    2       2       3       3 ]
               2  4,   3  4,   3   ,   4   ,   4   ,   4 ]
+
+        As yet another option, typeset mode. This is used in the emacs
+        interface::
+
+            sage: shell.run_cell('%display typeset')
+            sage: shell.run_cell('1/2')
+            <html><script type="math/tex">...\frac{1}{2}</script></html>
+
+        Switch back::
+
             sage: shell.run_cell('%display simple')
+
+        TESTS::
+
+            sage: shell.run_cell('%display invalid_mode')
+            ---------------------------------------------------------------------------
+            ValueError                                Traceback (most recent call last)
+            ...
+            ValueError: invalid mode set
         """
         args = args.strip().split()
         if not args:
@@ -250,8 +271,6 @@ class SageMagics(Magics):
                     self._magic_display_status == 'simple' else 'simple')
         else:
             mode = args[0]
-            if mode not in ('simple', 'ascii_art'):
-                raise ValueError('unrecognized display type "%s"'%mode)
             self._magic_display_status = mode
 
         if self._magic_display_status == 'ascii_art' and len(args) > 1:
@@ -279,9 +298,9 @@ class SageCustomizations(object):
         self.auto_magics = SageMagics(shell)
         self.shell.register_magics(self.auto_magics)
 
-        import sage.misc.displayhook as displayhook
+        import sage.repl.display.formatter as formatter
         self.shell.display_formatter.formatters['text/plain'] = (
-                displayhook.SagePlainTextFormatter(config=shell.config))
+                formatter.SageConsoleTextFormatter(config=shell.config))
 
         import sage.misc.edit_module as edit_module
         self.shell.set_hook('editor', edit_module.edit_devel)
@@ -332,10 +351,11 @@ class SageCustomizations(object):
         """
         Set the exit hook to cleanly exit Sage.
         """
-        def quit(shell):
+        def quit():
             import sage.all
             sage.all.quit_sage(self.shell.verbose_quit)
-        self.shell.set_hook('shutdown_hook', quit)
+        import atexit
+        atexit.register(quit)
 
     def init_environment(self):
         """

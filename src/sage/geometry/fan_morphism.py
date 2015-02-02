@@ -88,6 +88,7 @@ from sage.modules.free_module_morphism import (FreeModuleMorphism,
                                                is_FreeModuleMorphism)
 from sage.rings.all import Infinity, ZZ
 from sage.rings.infinity import is_Infinite
+from functools import reduce
 
 class FanMorphism(FreeModuleMorphism):
     r"""
@@ -357,10 +358,14 @@ class FanMorphism(FreeModuleMorphism):
             sage: fm = FanMorphism(identity_matrix(2),
             ...           normal, face, subdivide=True)
             sage: fm._RISGIS()
-            (frozenset([3]), frozenset([2]),
-             frozenset([1]), frozenset([0]),
-             frozenset([1, 3]), frozenset([0, 1]),
-             frozenset([0, 2]), frozenset([2, 3]))
+            (frozenset({3}),
+             frozenset({2}),
+             frozenset({1}),
+             frozenset({0}),
+             frozenset({1, 3}),
+             frozenset({0, 1}),
+             frozenset({0, 2}),
+             frozenset({2, 3}))
         """
         if "_RISGIS_" not in self.__dict__:
             try:

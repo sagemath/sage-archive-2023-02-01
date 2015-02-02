@@ -3,14 +3,15 @@ Cached Functions and Methods
 
 AUTHORS:
 
-- William Stein (inspired by conversation with Justin Walker).
-- Mike Hansen (added doctests and made it work with class methods).
-- Willem Jan Palenstijn (add CachedMethodCaller for binding cached
-  methods to instances).
-- Tom Boothby (added DiskCachedFunction).
-- Simon King (improved performance, more doctests, cython version,
-  CachedMethodCallerNoArgs, weak cached function, cached special methods).
-- Julian Rueth (2014-03-19): added ``key`` parameter
+- William Stein: initial version, (inspired by conversation with Justin Walker)
+- Mike Hansen: added doctests and made it work with class methods.
+- Willem Jan Palenstijn: add CachedMethodCaller for binding cached methods to
+  instances.
+- Tom Boothby: added DiskCachedFunction.
+- Simon King: improved performance, more doctests, cython version,
+  CachedMethodCallerNoArgs, weak cached function, cached special methods.
+- Julian Rueth (2014-03-19, 2014-05-09): added ``key`` parameter, allow caching
+  for unhashable elements
 
 EXAMPLES:
 
@@ -406,6 +407,60 @@ easier method::
     sage: timeit("a = Q.f(2,3)")   # random
     625 loops, best of 3: 931 ns per loop
 
+Some immutable objects (such as `p`-adic numbers) cannot implement a
+reasonable hash function because their ``==`` operator has been
+modified to return ``True`` for objects which might behave differently
+in some computations::
+
+    sage: K.<a> = Qq(9)
+    sage: b = a.add_bigoh(1)
+    sage: c = a + 3
+    sage: b
+    a + O(3)
+    sage: c
+    a + 3 + O(3^20)
+    sage: b == c
+    True
+    sage: b == a
+    True
+    sage: c == a
+    False
+
+If such objects defined a non-trivial hash function, this would break
+caching in many places. However, such objects should still be usable
+in caches. This can be achieved by defining an appropriate method
+``_cache_key``::
+
+    sage: hash(b)
+    Traceback (most recent call last):
+    ...
+    TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+    sage: @cached_method
+    ....: def f(x): return x == a
+    sage: f(b)
+    True
+    sage: f(c) # if b and c were hashable, this would return True
+    False
+
+    sage: b._cache_key()
+    (..., ((0, 1),), 0, 1)
+    sage: c._cache_key()
+    (..., ((0, 1), (1,)), 0, 20)
+
+.. NOTE::
+
+    This attribute will only be accessed if the object itself
+    is not hashable.
+
+An implementation must make sure that for elements ``a`` and ``b``,
+if ``a != b``, then also ``a._cache_key() != b._cache_key()``.
+In practice this means that the ``_cache_key`` should always include
+the parent as its first argument::
+
+    sage: S.<a> = Qq(4)
+    sage: d = a.add_bigoh(1)
+    sage: b._cache_key() == d._cache_key() # this would be True if the parents were not included
+    False
 """
 ########################################################################
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -419,6 +474,7 @@ easier method::
 ########################################################################
 from function_mangling import ArgumentFixer
 import os
+from os.path import relpath,normpath,commonprefix
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
 
 import sage.misc.weak_dict
@@ -465,6 +521,50 @@ def _cached_function_unpickle(module,name):
     """
     return getattr(__import__(module, fromlist=['']),name)
 
+def _cache_key(o):
+    r"""
+    Helper function to return a hashable key for ``o`` which can be used for
+    caching.
+
+    This function is intended for objects which are not hashable such as
+    `p`-adic numbers. The difference from calling an object's ``_cache_key``
+    attribute directly, is that it also works for tuples and unpacks them
+    recursively (if necessary, i.e., if they are not hashable).
+
+    EXAMPLES::
+
+        sage: from sage.misc.cachefunc import _cache_key
+        sage: K.<u> = Qq(9)
+        sage: a = K(1); a
+        1 + O(3^20)
+        sage: _cache_key(a)
+        (..., ((1,),), 0, 20)
+
+    This function works if ``o`` is a tuple. In this case it unpacks its
+    entries recursively::
+
+        sage: o = (1, 2, (3, a))
+        sage: _cache_key(o)
+        (1, 2, (3, (..., ((1,),), 0, 20)))
+
+    Note that tuples are only partially unpacked if some of its entries are
+    hashable::
+
+        sage: o = (1/2, a)
+        sage: _cache_key(o)
+        (1/2, (..., ((1,),), 0, 20))
+    """
+    try:
+        hash(o)
+        return o
+    except TypeError:
+        if isinstance(o, sage.structure.sage_object.SageObject):
+            o = o._cache_key()
+        if isinstance(o,tuple):
+            return tuple(_cache_key(item) for item in o)
+        else:
+            return o
+
 cdef class CachedFunction(object):
     """
     Create a cached version of a function, which only recomputes
@@ -487,7 +587,8 @@ cdef class CachedFunction(object):
         def f(...):
             ....
 
-    The inputs to the function must be hashable.
+    The inputs to the function must be hashable or they must define
+    :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
     EXAMPLES::
 
@@ -543,7 +644,8 @@ cdef class CachedFunction(object):
             def f(...):
                 ....
 
-        The inputs to the function must be hashable.
+        The inputs to the function must be hashable or they must define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
         TESTS::
 
@@ -682,6 +784,14 @@ cdef class CachedFunction(object):
                ALGORITHM: Uses Singular, Magma (if available), Macaulay2 (if
                available), or a toy implementation.
 
+        Test that :trac:`15184` is fixed::
+
+            sage: from sage.misc.sageinspect import sage_getfile
+            sage: type(I.groebner_basis)
+            <type 'sage.misc.cachefunc.CachedMethodCaller'>
+            sage: os.path.exists(sage_getfile(I.groebner_basis))
+            True        
+
         """
         from sage.misc.sageinspect import _extract_embedded_position
         f = self.f
@@ -691,14 +801,23 @@ cdef class CachedFunction(object):
                 sourcelines = sage_getsourcelines(f)
                 from sage.env import SAGE_SRC, SAGE_LIB
                 filename = sage_getfile(f)
-                # The following is a heuristics to get
-                # the file name of the cached function
-                # or method
-                if filename.startswith(SAGE_SRC):
-                    filename = filename[len(SAGE_SRC):]
-                elif filename.startswith(SAGE_LIB):
-                    filename = filename[len(SAGE_LIB):]
-                file_info = "File: %s (starting at line %d)\n"%(filename,sourcelines[1])
+                
+                #it would be nice if we could be sure that SAGE_SRC and
+                #SAGE_LIB were already normalized (e.g. not end in a slash)
+                S=normpath(SAGE_SRC)
+                L=normpath(SAGE_LIB)
+                if commonprefix([filename,S]) == S:
+                    filename = relpath(filename,S)
+                elif commonprefix([filename,L]) == L:
+                    filename = relpath(filename,L)
+                #this is a rather expensive way of getting the line number, because
+                #retrieving the source requires reading the source file and in many
+                #cases this is not required (in cython it's embedded in the docstring,
+                #on code objects you'll find it in co_filename and co_firstlineno)
+                #however, this hasn't been factored out yet in sageinspect
+                #and the logic in sage_getsourcelines is rather intricate.
+                file_info = "File: {} (starting at line {})".format(filename,sourcelines[1])+os.linesep
+
                 doc = file_info+doc
             except IOError:
                 pass
@@ -775,6 +894,24 @@ cdef class CachedFunction(object):
             sage: a is number_of_partitions(10^5)
             True
 
+        Check that :trac:`16316` has been fixed, i.e., caching works for
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
+
+            sage: @cached_function
+            ....: def f(x): return x+x
+            sage: K.<u> = Qq(4)
+            sage: x = K(1,1); x
+            1 + O(2)
+            sage: y = K(1,2); y
+            1 + O(2^2)
+            sage: x == y
+            True
+            sage: f(x) is f(x)
+            True
+            sage: f(y) is not f(x)
+            True
+
         """
         # We shortcut a common case of no arguments
         if args or kwds:
@@ -790,7 +927,11 @@ cdef class CachedFunction(object):
                 k = self._default_key = self._fix_to_pos()
 
         try:
-            return (<dict>self.cache)[k]
+            try:
+                return (<dict>self.cache)[k]
+            except TypeError: # k is not hashable
+                k = (_cache_key,_cache_key(k))
+                return (<dict>self.cache)[k]
         except KeyError:
             w = self.f(*args, **kwds)
             self.cache[k] = w
@@ -828,10 +969,34 @@ cdef class CachedFunction(object):
             6
             sage: a.f.is_in_cache(3,y=0)
             True
+
+        TESTS:
+
+        Check that :trac:`16316` has been fixed, i.e., caching works for
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
+
+            sage: @cached_function
+            ....: def f(x): return x
+            sage: K.<u> = Qq(4)
+            sage: x = K(1,1); x
+            1 + O(2)
+            sage: f.is_in_cache(x)
+            False
+            sage: f(x)
+            1 + O(2)
+            sage: f.is_in_cache(x)
+            True
+
         """
         if self._argument_fixer is None:
             self.argfix_init()
-        return self._fix_to_pos(*args, **kwds) in (<dict>self.cache)
+        k = self._fix_to_pos(*args, **kwds)
+        try:
+            return k in (<dict>self.cache)
+        except TypeError: # k is not hashable
+            k = (_cache_key,_cache_key(k))
+            return k in <dict>self.cache
 
     def set_cache(self, value, *args, **kwds):
         """
@@ -851,6 +1016,21 @@ cdef class CachedFunction(object):
             sage: g(5)
             17
 
+        TESTS:
+
+        Check that :trac:`16316` has been fixed, i.e., caching works for
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
+
+            sage: @cached_function
+            ....: def f(x): return x
+            sage: K.<u> = Qq(4)
+            sage: x = K(1,1); x
+            1 + O(2)
+            sage: f.set_cache(x,x)
+            sage: f.is_in_cache(x)
+            True
+
         DEVELOPER NOTE:
 
         Is there a way to use the following intuitive syntax?
@@ -863,7 +1043,15 @@ cdef class CachedFunction(object):
         """
         if self._argument_fixer is None:
             self.argfix_init()
-        (<dict>self.cache)[self._fix_to_pos(*args, **kwds)] = value
+        k = self._fix_to_pos(*args, **kwds)
+        try:
+            (<dict>self.cache)[k] = value
+        except TypeError: # k is not hashable
+            k = (_cache_key, _cache_key(k))
+            # to make sure that this key does not get confused with the key of
+            # a hashable object, such keys include _cache_key which is
+            # certainly not stored in the dictionary otherwise.
+            (<dict>self.cache)[k] = value
 
     def get_key(self, *args, **kwds):
         """
@@ -922,6 +1110,14 @@ cdef class CachedFunction(object):
         Cache values for a number of inputs.  Do the computation
         in parallel, and only bother to compute values that we
         haven't already cached.
+
+        INPUT:
+
+        - ``arglist`` -- list (or iterables) of arguments for which
+          the method shall be precomputed.
+
+        - ``num_processes`` -- number of processes used by
+          :func:`~sage.parallel.decorate.parallel`
 
         EXAMPLES::
 
@@ -997,7 +1193,8 @@ cdef class WeakCachedFunction(CachedFunction):
     """
     def __init__(self, f, classmethod=False, name=None, key=None):
         """
-        The inputs to the function must be hashable.
+        The inputs to the function must be hashable or they must define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`.
         The outputs to the function must be weakly referenceable.
 
         TESTS::
@@ -1057,6 +1254,26 @@ cdef class WeakCachedFunction(CachedFunction):
             sage: a = f()
             doing a computation
 
+        Check that :trac:`16316` has been fixed, i.e., caching works for
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
+
+            sage: from sage.misc.cachefunc import weak_cached_function
+            sage: @weak_cached_function
+            ....: def f(x): return x+x
+            sage: K.<u> = Qq(4)
+            sage: R.<t> = K[]
+            sage: x = t + K(1,1); x
+            (1 + O(2^20))*t + 1 + O(2)
+            sage: y = t + K(1,2); y
+            (1 + O(2^20))*t + 1 + O(2^2)
+            sage: x == y
+            True
+            sage: f(x) is f(x)
+            True
+            sage: f(y) is not f(x)
+            True
+
         """
         # We shortcut a common case of no arguments
         if args or kwds:
@@ -1072,7 +1289,11 @@ cdef class WeakCachedFunction(CachedFunction):
                 k = self._default_key = self._fix_to_pos()
 
         try:
-            return self.cache[k]
+            try:
+                return self.cache[k]
+            except TypeError: # k is not hashable
+                k = (_cache_key,_cache_key(k))
+                return self.cache[k]
         except KeyError:
             w = self.f(*args, **kwds)
             self.cache[k] = w
@@ -1108,10 +1329,33 @@ cdef class WeakCachedFunction(CachedFunction):
             sage: f.is_in_cache(5)
             False
 
+        TESTS:
+
+        Check that :trac:`16316` has been fixed, i.e., caching works for
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
+
+            sage: from sage.misc.cachefunc import weak_cached_function
+            sage: @weak_cached_function
+            ....: def f(x): return x
+            sage: K.<u> = Qq(4)
+            sage: R.<t> = K[]
+            sage: f.is_in_cache(t)
+            False
+            sage: f(t)
+            (1 + O(2^20))*t
+            sage: f.is_in_cache(t)
+            True
+
         """
         if self._argument_fixer is None:
             self.argfix_init()
-        return self._fix_to_pos(*args, **kwds) in self.cache
+        k = self._fix_to_pos(*args, **kwds)
+        try:
+            return k in self.cache
+        except TypeError: # k is not hashable
+            k = (_cache_key,_cache_key(k))
+            return k in self.cache
 
     def set_cache(self, value, *args, **kwds):
         """
@@ -1133,11 +1377,33 @@ cdef class WeakCachedFunction(CachedFunction):
             sage: f(5)
             Integer Ring
 
+        TESTS:
+
+        Check that :trac:`16316` has been fixed, i.e., caching works for
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
+
+            sage: from sage.misc.cachefunc import weak_cached_function
+            sage: @weak_cached_function
+            ....: def f(x): return x
+            sage: K.<u> = Qq(4)
+            sage: R.<t> = K[]
+            sage: f.set_cache(t,t)
+            sage: f.is_in_cache(t)
+            True
+
         """
         if self._argument_fixer is None:
             self.argfix_init()
-        self.cache[self._fix_to_pos(*args, **kwds)] = value
-
+        k = self._fix_to_pos(*args, **kwds)
+        try:
+            self.cache[k] = value
+        except TypeError: # k is not hashable
+            k = (_cache_key,_cache_key(k))
+            # to make sure that this key does not get confused with the key of
+            # a hashable object, such keys include _cache_key which is
+            # certainly not stored in the dictionary otherwise.
+            self.cache[k] = value
 
 weak_cached_function = decorator_keywords(WeakCachedFunction)
 
@@ -1545,6 +1811,27 @@ cdef class CachedMethodCaller(CachedFunction):
             sage: b = Foo(3)
             sage: a.f(b.f)
             2
+
+        Check that :trac:`16316` has been fixed, i.e., caching works for
+        immutable unhashable objects which define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
+
+            sage: K.<u> = Qq(4)
+            sage: class A(object):
+            ....:   @cached_method
+            ....:   def f(self, x): return x+x
+            sage: a = A()
+            sage: x = K(1,1); x
+            1 + O(2)
+            sage: y = K(1,2); y
+            1 + O(2^2)
+            sage: x == y
+            True
+            sage: a.f(x) is a.f(x)
+            True
+            sage: a.f(y) is not a.f(x)
+            True
+
         """
         if self._instance is None:
             # cached method bound to a class
@@ -1586,7 +1873,11 @@ cdef class CachedMethodCaller(CachedFunction):
                 else:
                     k = self._default_key = self._fix_to_pos()
         try:
-            return cache[k]
+            try:
+                return cache[k]
+            except TypeError: # k is not hashable
+                k = (_cache_key,_cache_key(k))
+                return cache[k]
         except KeyError:
             w = self._cachedmethod._instance_call(self._instance, *args, **kwds)
             cache[k] = w
@@ -1702,13 +1993,28 @@ cdef class CachedMethodCaller(CachedFunction):
         parent or element class of a category (:trac:`11115`).
         See :class:`CachedMethodCaller` for examples.
 
+        Verify that :trac:`16337` has been resolved::
+
+            sage: class Foo:
+            ....:     @cached_method(key=lambda self,y: y+1)
+            ....:     def f(self, y):
+            ....:         return y - 1
+            sage: class Bar:
+            ....:     f = Foo.f
+
+            sage: b = Bar()
+            sage: b.f(0)
+            -1
+            sage: b.f.cache
+            {1: -1}
+
         """
         # This is for Parents or Elements that do not allow attribute assignment
         try:
             return (<dict>inst.__cached_methods)[self._cachedmethod._cachedfunc.__name__]
         except (AttributeError,TypeError,KeyError):
             pass
-        Caller = CachedMethodCaller(self._cachedmethod, inst, cache=self._cachedmethod._get_instance_cache(inst), inst_in_key=self._inst_in_key, name=self._cachedmethod._cachedfunc.__name__)
+        Caller = CachedMethodCaller(self._cachedmethod, inst, cache=self._cachedmethod._get_instance_cache(inst), inst_in_key=self._inst_in_key, name=self._cachedmethod._cachedfunc.__name__, key=self.key)
         try:
             setattr(inst,self._cachedmethod._cachedfunc.__name__, Caller)
             return Caller
@@ -1722,6 +2028,46 @@ cdef class CachedMethodCaller(CachedFunction):
         except AttributeError as msg:
             pass
         return Caller
+
+    def precompute(self, arglist, num_processes=1):
+        """
+        Cache values for a number of inputs.  Do the computation
+        in parallel, and only bother to compute values that we
+        haven't already cached.
+
+        INPUT:
+
+        - ``arglist`` -- list (or iterables) of arguments for which
+          the method shall be precomputed.
+
+        - ``num_processes`` -- number of processes used by
+          :func:`~sage.parallel.decorate.parallel`
+
+        EXAMPLES::
+
+            sage: class Foo(object):
+            ....:     @cached_method
+            ....:     def f(self, i):
+            ....:         return i^2
+            sage: foo = Foo()
+            sage: foo.f(3)
+            9
+            sage: foo.f(1)
+            1
+            sage: foo.f.precompute(range(2), 2)
+            sage: foo.f.cache
+            {((0,), ()): 0, ((1,), ()): 1, ((3,), ()): 9}
+        """
+        from sage.parallel.decorate import parallel, normalize_input
+        P = parallel(num_processes)(self._instance_call)
+        has_key = self.cache.has_key
+        if self._argument_fixer is None:
+            self.argfix_init()
+        get_key = self._fix_to_pos
+        new = lambda x: not has_key(get_key(*x[0],**x[1]))
+        arglist = filter(new, map(normalize_input, arglist))
+        for ((args,kwargs), val) in P(arglist):
+            self.set_cache(val, *args, **kwargs)
 
 cdef class CachedMethodCallerNoArgs(CachedFunction):
     """
@@ -2036,9 +2382,10 @@ cdef class CachedMethod(object):
 
     .. NOTE::
 
-        For proper behavior, the method must be a pure function
-        (no side effects). Arguments to the method must be hashable
-        or transformed into something hashable using ``key``.
+        For proper behavior, the method must be a pure function (no side
+        effects). Arguments to the method must be hashable or transformed into
+        something hashable using ``key`` or they must define
+        :meth:`sage.structure.sage_object.SageObject._cache_key`.
 
     EXAMPLES::
 
@@ -2223,7 +2570,7 @@ cdef class CachedMethod(object):
         :meth:`sage.misc.superseded.deprecated_function_alias`::
 
             sage: a.g() is a.f()
-            doctest:1: DeprecationWarning: g is deprecated. Please use f instead.
+            doctest:...: DeprecationWarning: g is deprecated. Please use f instead.
             See http://trac.sagemath.org/57 for details.
             True
             sage: Foo.g(a) is a.f()
@@ -2295,6 +2642,19 @@ cdef class CachedMethod(object):
             True
             sage: a.g is a.g
             True
+
+        Verify that :trac:`16337` has been resolved::
+
+            sage: class Foo:
+            ....:     @cached_method(key=lambda self, x:x+1)
+            ....:     def f(self, x=0):
+            ....:         return x
+
+            sage: a = Foo()
+            sage: a.f(0)
+            0
+            sage: a.f.cache
+            {1: 0}
 
         """
         # This is for Parents or Elements that do not allow attribute assignment:
@@ -2387,6 +2747,8 @@ cdef class CachedSpecialMethod(CachedMethod):
     The hash is computed only once, subsequent calls will use the value from
     the cache. This was implemented in :trac:`12601`.
 
+    ::
+
         sage: hash(c)       # indirect doctest
         compute hash
         5
@@ -2413,6 +2775,20 @@ cdef class CachedSpecialMethod(CachedMethod):
             5
             sage: hash(c)
             5
+
+        Verify that :trac:`16337` has been resolved::
+
+            sage: class Foo:
+            ....:     @cached_method(key=lambda self, x:x+1)
+            ....:     def __hash__(self, x=0):
+            ....:         return x
+
+            sage: a = Foo()
+            sage: a.__hash__(0)
+            0
+            sage: a.__hash__.cache
+            {1: 0}
+
         """
         # This is for Parents or Elements that do not allow attribute assignment:
         cdef str name
@@ -2450,7 +2826,8 @@ cdef class CachedSpecialMethod(CachedMethod):
                 self.nargs = 2 # don't need the exact number
                 Caller = CachedMethodCaller(self, inst,
                                             cache=self._get_instance_cache(inst),
-                                            name=name)
+                                            name=name,
+                                            key=self._cachedfunc.key)
         elif self.nargs == 1:
             Caller = CachedMethodCallerNoArgs(inst, f, name=name)
         else:
@@ -2505,6 +2882,19 @@ def cached_method(f, name=None, key=None):
         sage: c.f(4) is c.f(4)
         True
 
+    Different instances have distinct caches::
+
+        sage: d = C()
+        sage: d.f(4) is c.f(4)
+        computing cached method
+        False
+        sage: d.f.clear_cache()
+        sage: c.f(4)
+        8
+        sage: d.f(4)
+        computing cached method
+        8
+
     Using cached methods for the hash and other special methods was
     implemented in :trac:`12601`, by means of :class:`CachedSpecialMethod`. We
     show that it is used behind the scenes::
@@ -2534,15 +2924,17 @@ cdef class CachedInParentMethod(CachedMethod):
     This way of caching works only if
 
     - the instances *have* a parent, and
-    - the instances are hashable (they are part of the cache key).
+    - the instances are hashable (they are part of the cache key) or they
+      define :meth:`sage.structure.sage_object.SageObject._cache_key`
 
     NOTE:
 
-    For proper behavior, the method must be a pure function (no side
-    effects). If this decorator is used on a method, it will have
-    identical output on equal elements. This is since the element is
-    part of the hash key. Arguments to the method and the instance
-    it is assigned to must be hashable.
+    For proper behavior, the method must be a pure function (no side effects).
+    If this decorator is used on a method, it will have identical output on
+    equal elements. This is since the element is part of the hash key.
+    Arguments to the method must be hashable or define
+    :meth:`sage.structure.sage_object.SageObject._cache_key`.  The instance it
+    is assigned to must be hashable.
 
     Examples can be found at :mod:`~sage.misc.cachefunc`.
 

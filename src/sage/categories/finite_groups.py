@@ -2,63 +2,35 @@ r"""
 FiniteGroups
 """
 #*****************************************************************************
-#  Copyright (C) 2010 Nicolas M. Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2010-2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
-from sage.categories.finite_monoids import FiniteMonoids
-from sage.categories.groups import Groups
+from sage.categories.category_with_axiom import CategoryWithAxiom
 
-class FiniteGroups(Category):
+class FiniteGroups(CategoryWithAxiom):
     r"""
-    The category of (multiplicative) finite groups.
+    The category of finite (multiplicative) groups.
 
     EXAMPLES::
 
-        sage: FiniteGroups()
+        sage: C = FiniteGroups(); C
         Category of finite groups
-        sage: FiniteGroups().super_categories()
-        [Category of groups, Category of finite monoids]
-        sage: FiniteGroups().example()
+        sage: C.super_categories()
+        [Category of finite monoids, Category of groups]
+        sage: C.example()
         General Linear Group of degree 2 over Finite Field of size 3
 
     TESTS::
 
-        sage: C = FiniteGroups()
-        sage: TestSuite(C).run(verbose = True)
-        running ._test_category() . . . pass
-        running ._test_category_graph() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_pickling() . . . pass
-
-        sage: G = FiniteGroups().example()
-        sage: G.category()
-        Category of finite groups
-        sage: TestSuite(G).run(skip = "_test_enumerated_set_iter_list")
-
-    TODO: define an iterator compatible with GAP's list method
-    Does GAP provide such an iterator?
+        sage: TestSuite(C).run()
     """
-    @cached_method
-    def super_categories(self):
-        r"""
-        Returns a list of the (immediate) super categories of ``self``.
-
-        EXAMPLES::
-
-            sage: FiniteGroups().super_categories()
-            [Category of groups, Category of finite monoids]
-
-        """
-        return [Groups(), FiniteMonoids()]
 
     def example(self):
         """
-        Returns an example of finite group, as per
+        Return an example of finite group, as per
         :meth:`Category.example`.
 
         EXAMPLES::
@@ -83,6 +55,22 @@ class FiniteGroups(Category):
 
                 sage: A = AlternatingGroup(4)
                 sage: A.semigroup_generators()
+                Family ((2,3,4), (1,2,3))
+            """
+            return self.group_generators()
+
+        def monoid_generators(self):
+            """
+            Return monoid generators for ``self``.
+
+            For finite groups, the group generators are also monoid
+            generators. Hence, this default implementation calls
+            :meth:`~sage.categories.groups.Groups.ParentMethods.group_generators`.
+
+            EXAMPLES::
+
+                sage: A = AlternatingGroup(4)
+                sage: A.monoid_generators()
                 Family ((2,3,4), (1,2,3))
             """
             return self.group_generators()
@@ -144,11 +132,9 @@ class FiniteGroups(Category):
             if connecting_set is None:
                 connecting_set = self.gens()
             else:
-                try:
-                    for g in connecting_set:
-                        assert g in self
-                except AssertionError:
-                    raise RuntimeError("Each element of the connecting set must be in the group!")
+                for g in connecting_set:
+                    if not g in self:
+                        raise RuntimeError("Each element of the connecting set must be in the group!")
                 connecting_set = [self(g) for g in connecting_set]
             from sage.graphs.all import DiGraph
             arrows = {}

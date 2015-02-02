@@ -79,7 +79,7 @@ class Gnuplot(SageObject):
         self('set terminal x11')
         cmd = cmd.replace('^','**')
         self(cmd)
-        if file != None:
+        if file is not None:
             if file[-4:] == '.png':
                 self('set terminal png medium')
             else:

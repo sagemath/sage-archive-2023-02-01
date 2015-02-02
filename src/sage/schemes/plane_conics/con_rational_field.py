@@ -176,7 +176,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             M *= lcm([ t.denominator() for t in M.list() ])
             pt = qfsolve(M)
             if pt in ZZ:
-                if self._local_obstruction == None:
+                if self._local_obstruction is None:
                     self._local_obstruction = pt
                 if point or obstruction:
                     return False, pt
@@ -235,7 +235,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
                 raise TypeError("p (=%s) needs to be a prime of base field " \
                                  "B ( =`QQ`) in is_locally_solvable" % p)
         if hilbert_symbol(a, b, p) == -1:
-            if self._local_obstruction == None:
+            if self._local_obstruction is None:
                 self._local_obstruction = p
             return False
         return True
@@ -269,14 +269,14 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
         obs0 = []
         obs1 = []
         if infinite:
-            if read_cache and self._infinite_obstructions != None:
+            if read_cache and self._infinite_obstructions is not None:
                 obs0 = self._infinite_obstructions
             else:
                 if not self.is_locally_solvable(-1):
                     obs0 = [-1]
                 self._infinite_obstructions = obs0
         if finite:
-            if read_cache and self._finite_obstructions != None:
+            if read_cache and self._finite_obstructions is not None:
                 obs1 = self._finite_obstructions
             else:
                 candidates = []
@@ -364,7 +364,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
         else:
             if not self.is_smooth():
                 raise ValueError("The conic self (=%s) is not smooth, hence does not have a parametrization." % self)
-            if point == None:
+            if point is None:
                 point = self.rational_point()
             point = Sequence(point)
             Q = PolynomialRing(QQ, 'x,y')

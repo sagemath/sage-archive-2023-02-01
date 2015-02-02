@@ -5,7 +5,7 @@ Kirillov-Reshetikhin tableaux are rectangular tableaux with `r` rows and
 `s` columns that naturally arise under the bijection between rigged
 configurations and tableaux [RigConBijection]_. They are in bijection with
 the elements of the Kirillov-Reshetikhin crystal `B^{r,s}` under the (inverse)
-filling map. They do not have to satisfy the semistandard row or column
+filling map [OSS13]_ [SchScr]_. They do not have to satisfy the semistandard row or column
 restrictions. These tensor products are the result from the bijection from
 rigged configurations [RigConBijection]_.
 
@@ -16,6 +16,12 @@ AUTHORS:
 
 - Travis Scrimshaw (2012-01-03): Initial version
 - Travis Scrimshaw (2012-11-14): Added bijection to KR crystals
+
+REFERENCES:
+
+.. [OSS13] Masato Okado, Reiho Sakamoto, and Anne Schilling.
+   *Affine crystal structure on rigged configurations of type* `D_n^{(1)}`.
+   J. Algebraic Combinatorics, **37** (2013). 571-599. :arxiv:`1109.3523`.
 """
 
 #*****************************************************************************
@@ -479,6 +485,54 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         """
         return KashiwaraNakashimaTableaux(self._cartan_type, self._r, self._s)
 
+    def classical_decomposition(self):
+        """
+        Return the classical crystal decomposition of ``self``.
+
+        EXAMPLES::
+
+            sage: crystals.KirillovReshetikhin(['D', 4, 1], 2, 2, model='KR').classical_decomposition()
+            The crystal of tableaux of type ['D', 4] and shape(s) [[], [1, 1], [2, 2]]
+        """
+        return self.kirillov_reshetikhin_crystal().classical_decomposition()
+
+    def tensor(self, *crystals, **options):
+        """
+        Return the tensor product of ``self`` with ``crystals``.
+
+        If ``crystals`` is a list of (a tensor product of) KR tableaux, this
+        returns a
+        :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A', 3, 1], 2, 2, model='KR')
+            sage: TP = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[1,3],[3,1]])
+            sage: K.tensor(TP, K)
+            Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1]
+             and factor(s) ((2, 2), (1, 3), (3, 1), (2, 2))
+
+            sage: C = crystals.KirillovReshetikhin(['A',3,1], 3, 1, model='KN')
+            sage: K.tensor(K, C)
+            Full tensor product of the crystals
+             [Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and shape (2, 2),
+              Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and shape (2, 2),
+              Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(3,1)]
+        """
+        ct = self._cartan_type
+        from sage.combinat.rigged_configurations.tensor_product_kr_tableaux \
+                import TensorProductOfKirillovReshetikhinTableaux
+        if all(isinstance(B, (KirillovReshetikhinTableaux, TensorProductOfKirillovReshetikhinTableaux))
+               and B.cartan_type() == ct for B in crystals):
+            dims = [[self._r, self._s]]
+            for B in crystals:
+                if isinstance(B, TensorProductOfKirillovReshetikhinTableaux):
+                    dims += B.dims
+                elif isinstance(B, KirillovReshetikhinTableaux):
+                    dims.append([B._r, B._s])
+            return TensorProductOfKirillovReshetikhinTableaux(ct, dims)
+        return super(KirillovReshetikhinTableaux, self).tensor(*crystals, **options)
+
 class KRTableauxRectangle(KirillovReshetikhinTableaux):
     r"""
     Kirillov-Reshetkhin tableaux `B^{r,s}` whose module generator is a single
@@ -619,7 +673,7 @@ class KRTableauxTypeVertical(KirillovReshetikhinTableaux):
 
         # Step 3 - Add the final column
         if c > -1:
-            val = (self._r + x - 1) / 2
+            val = (self._r + x - 1) // 2
             temp_list = [-x - j for j in range(self._r - val)]
             for j in range(val):
                 temp_list.append(val - j)
@@ -1302,6 +1356,78 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             return self.to_kirillov_reshetikhin_crystal().phi0()
         return TensorProductOfRegularCrystalsElement.phi(self, i)
 
+    def lusztig_involution(self):
+        r"""
+        Return the result of the classical Lusztig involution on ``self``.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 3, model='KR')
+            sage: mg = KRT.module_generators[1]
+            sage: mg.lusztig_involution()
+            [[-2, -2, 1], [-1, -1, 2]]
+            sage: elt = mg.f_string([2,1,3,2]); elt
+            [[3, -2, 1], [4, -1, 2]]
+            sage: elt.lusztig_involution()
+            [[-4, -2, 1], [-3, -1, 2]]
+        """
+        Cl = self.parent().cartan_type().classical()
+        I = Cl.index_set()
+        aut = Cl.opposition_automorphism()
+        hw = self.to_highest_weight(I)[1]
+        hw.reverse()
+        return self.to_lowest_weight(I)[0].e_string(aut[i] for i in hw)
+
+    def left_split(self):
+        r"""
+        Return the image of ``self`` under the left column splitting map.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 3, model='KR')
+            sage: mg = KRT.module_generators[1]; mg.pp()
+              1 -2  1
+              2 -1  2
+            sage: ls = mg.left_split(); ls.pp()
+              1 (X)  -2  1
+              2      -1  2
+            sage: ls.parent()
+            Tensor product of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and factor(s) ((2, 1), (2, 2))
+        """
+        P = self.parent()
+        if P._s == 1:
+            raise ValueError("cannot split a single column")
+        from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import \
+                TensorProductOfKirillovReshetikhinTableaux
+        r = P._r
+        TP = TensorProductOfKirillovReshetikhinTableaux(P._cartan_type, [[r, 1], [r, P._s-1]])
+        lf = TP.crystals[0](*(self[:r]))
+        rf = TP.crystals[1](*(self[r:]))
+        return TP(lf, rf)
+
+    def right_split(self):
+        r"""
+        Return the image of ``self`` under the right column splitting map.
+
+        Let `\ast` denote the :meth:`Lusztig involution<lusztig_involution>`,
+        and `\mathrm{ls}` as the :meth:`left splitting map<left_split>`.
+        The right splitting map is defined as
+        `\mathrm{rs} := \ast \circ \mathrm{ls} \circ \ast`.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 3, model='KR')
+            sage: mg = KRT.module_generators[1]; mg.pp()
+              1 -2  1
+              2 -1  2
+            sage: ls = mg.right_split(); ls.pp()
+             -2  1 (X)   1
+             -1  2       2
+            sage: ls.parent()
+            Tensor product of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and factor(s) ((2, 2), (2, 1))
+        """
+        return self.lusztig_involution().left_split().lusztig_involution()
+
 KirillovReshetikhinTableaux.Element = KirillovReshetikhinTableauxElement
 
 class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
@@ -1366,7 +1492,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
         """
         if i == 0: # Don't need to half it since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.epsilon(self, i)
-        return KirillovReshetikhinTableauxElement.epsilon(self, i) / 2
+        return KirillovReshetikhinTableauxElement.epsilon(self, i) // 2
 
     def phi(self, i):
         r"""
@@ -1382,7 +1508,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
         """
         if i == 0: # Don't need to half it since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.phi(self, i)
-        return KirillovReshetikhinTableauxElement.phi(self, i) / 2
+        return KirillovReshetikhinTableauxElement.phi(self, i) // 2
 
     @cached_method
     def to_array(self, rows=True):
@@ -1439,6 +1565,35 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
                 ret_list.append(col)
 
         return ret_list
+
+    def left_split(self):
+        """
+        Return the image of ``self`` under the left column splitting map.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 4, 3, model='KR')
+            sage: elt = KRT(-3,-4,2,1,-3,-4,2,1,-2,-4,3,1); elt.pp()
+              1  1  1
+              2  2  3
+             -4 -4 -4
+             -3 -3 -2
+            sage: elt.left_split().pp()
+              1 (X)   1  1
+              2       2  3
+             -4      -4 -4
+             -3      -3 -2
+        """
+        P = self.parent()
+        if P._s == 1:
+            raise ValueError("cannot split a single column")
+        from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import \
+                TensorProductOfKirillovReshetikhinTableaux
+        h = P._cartan_type.classical().rank()
+        TP = TensorProductOfKirillovReshetikhinTableaux(P._cartan_type, [[P._r, 1], [P._r, P._s-1]])
+        lf = TP.crystals[0](*(self[:h]))
+        rf = TP.crystals[1](*(self[h:]))
+        return TP(lf, rf)
 
 KRTableauxBn.Element = KRTableauxSpinElement
 KRTableauxSpin.Element = KRTableauxSpinElement

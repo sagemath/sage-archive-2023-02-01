@@ -311,7 +311,7 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
         - Add a non-trivial example in the doctest here!
     """
     ## Recompute compartments if none are passed.
-    if compartments == None:
+    if compartments is None:
         compartments = canonical_2_adic_compartments(genus_symbol_quintuple_list)
 
     symbol = genus_symbol_quintuple_list

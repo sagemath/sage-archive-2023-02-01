@@ -67,7 +67,10 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     Sage knows certain categorical information about this algebra::
 
         sage: Sym.category()
-        Join of Category of graded hopf algebras over Rational Field and Category of monoids with realizations and Category of coalgebras over Rational Field with realizations
+        Join of Category of hopf algebras over Rational Field
+            and Category of graded algebras over Rational Field
+            and Category of monoids with realizations
+            and Category of coalgebras over Rational Field with realizations
 
     Notice that ``Sym`` is an *abstract* algebra.  This reflects the fact that
     there are multiple natural bases.  To work with specific
@@ -264,7 +267,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     and restriction, respectively. The Schur functions can also be interpreted
     as characters of `GL_n`, see `Partitions and Schur functions`__.
 
-    __ ../../../../thematic_tutorials/lie/lie_basics.html#partitions-and-schur-polynomials
+    __ ../../../../../thematic_tutorials/lie/lie_basics.html#partitions-and-schur-polynomials
 
     .. rubric:: The omega involution
 
@@ -1356,7 +1359,7 @@ class SymmetricaConversionOnBasis:
 
         EXAMPLES::
 
-            sage: Sym = SymmetricFunctions(QQ[x])
+            sage: Sym = SymmetricFunctions(QQ['x'])
             sage: p = Sym.p(); s = Sym.s()
             sage: def t(x) : [(p,c)] = x; return [ (p,2*c), (p.conjugate(), c) ]
             sage: f = sage.combinat.sf.sf.SymmetricaConversionOnBasis(t, p, s)
@@ -1370,7 +1373,7 @@ class SymmetricaConversionOnBasis:
 
     def __call__(self, partition):
         """
-            sage: Sym = SymmetricFunctions(QQ[x])
+            sage: Sym = SymmetricFunctions(QQ['x'])
             sage: p = Sym.p(); s = Sym.s()
             sage: p[1] + s[1]                           # indirect doctest
             2*p[1]

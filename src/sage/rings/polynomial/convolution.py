@@ -50,7 +50,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.misc.functional import parent
+from sage.structure.all import parent
 from math import log, ceil
 
 

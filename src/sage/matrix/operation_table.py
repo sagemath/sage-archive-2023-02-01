@@ -369,7 +369,7 @@ class OperationTable(SageObject):
         # Determine the elements of S, specified or not
         # If elements are given, we check if they are all in S
         # Note: there exist listable infinite objects (like ZZ)
-        if (elements == None):
+        if (elements is None):
             if hasattr(S, 'is_finite'):
                 if not(S.is_finite()):
                     raise ValueError('%s is infinite' % S)

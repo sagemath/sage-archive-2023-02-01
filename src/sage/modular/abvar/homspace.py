@@ -174,7 +174,7 @@ AUTHORS:
 from copy import copy
 
 from sage.categories.homset import HomsetWithBase, End
-from sage.misc.functional import parent
+from sage.structure.all import parent
 from sage.misc.lazy_attribute import lazy_attribute
 
 import abvar as abelian_variety
@@ -739,10 +739,12 @@ class EndomorphismSubring(Homspace, Ring):
             sage: E = J0(11).endomorphism_ring()
             sage: type(E)
             <class 'sage.modular.abvar.homspace.EndomorphismSubring_with_category'>
-            sage: E.category()
-            Join of Category of rings and Category of hom sets in Category of sets
             sage: E.homset_category()
             Category of modular abelian varieties over Rational Field
+            sage: E.category()
+            Category of endsets of modular abelian varieties over Rational Field
+            sage: E in Rings()
+            True
             sage: TestSuite(E).run(skip=["_test_prod"])
 
         TESTS:
@@ -753,13 +755,23 @@ class EndomorphismSubring(Homspace, Ring):
             sage: sage.modular.abvar.homspace.EndomorphismSubring(J1(12345))
             Endomorphism ring of Abelian variety J1(12345) of dimension 5405473
 
+        :trac:`16275` removed the custom ``__reduce__`` method, since
+        :meth:`Homset.__reduce__` already implements appropriate
+        unpickling by construction::
+
+            sage: E.__reduce__.__module__
+            'sage.categories.homset'
+            sage: E.__reduce__()
+            (<function Hom at ...>,
+             (Abelian variety J0(11) of dimension 1,
+              Abelian variety J0(11) of dimension 1,
+              Category of modular abelian varieties over Rational Field,
+             False))
         """
         self._J = A.ambient_variety()
         self._A = A
 
         # Initialise self with the correct category.
-        # TODO: a category should be able to specify the appropriate
-        # category for its endomorphism sets
         # We need to initialise it as a ring first
         if category is None:
             homset_cat = A.category()
@@ -767,26 +779,13 @@ class EndomorphismSubring(Homspace, Ring):
             homset_cat = category
         # Remark: Ring.__init__ will automatically form the join
         # of the category of rings and of homset_cat
-        Ring.__init__(self, A.base_ring(), category=homset_cat)
+        Ring.__init__(self, A.base_ring(), category=homset_cat.Endsets())
         Homspace.__init__(self, A, A, cat=homset_cat)
-        self._refine_category_(Rings())
         if gens is None:
             self._gens = None
         else:
             self._gens = tuple([ self._get_matrix(g) for g in gens ])
         self._is_full_ring = gens is None
-
-    def __reduce__(self):
-        """
-        Used in pickling.
-
-        EXAMPLES::
-
-            sage: E = J0(31).endomorphism_ring()
-            sage: loads(dumps(E)) == E
-            True
-        """
-        return End, (self.domain(),self.domain().category())
 
     def _repr_(self):
         """

@@ -311,8 +311,8 @@ class RealInterval(UniqueRepresentation, Parent):
              sage: sorted([I1, I2])
              [(0, 5], (1, 3]]
         """
-        return cmp([self._lower, self._lower_closed, self._upper, self._upper_closed],
-                   [other._lower, other._lower_closed, other._upper, other._upper_closed])
+        return cmp([self._lower, not self._lower_closed, self._upper, self._upper_closed],
+                   [other._lower, not other._lower_closed, other._upper, other._upper_closed])
         
     element_class = LazyFieldElement
 

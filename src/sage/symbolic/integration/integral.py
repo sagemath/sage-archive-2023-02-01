@@ -541,7 +541,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integrate(f(x), x, 1, 2, algorithm="fricas")  # optional - fricas
         -1/2*pi + arctan(1/2) + arctan(2) + arctan(5) + arctan(8)
         sage: integrate(f(x), x, 1, 2, algorithm="sympy")
-        -1/2*pi + arctan(1/2) + arctan(2) + arctan(5) + arctan(8)
+        -1/2*pi + arctan(8) + arctan(5) + arctan(2) + arctan(1/2)
 
     ALIASES: integral() and integrate() are the same.
 

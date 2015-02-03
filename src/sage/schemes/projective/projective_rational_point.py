@@ -114,8 +114,15 @@ def enum_projective_rational_field(X,B):
 
     - John Cremona and Charlie Turner (06-2010)
     """
-    if is_Scheme(X):
+    from sage.schemes.projective.projective_space import is_ProjectiveSpace
+    if(is_Scheme(X)):
+        if (not is_ProjectiveSpace(X.ambient_space())):
+            raise TypeError("Ambient space must be projective space over the rational field")
         X = X(X.base_ring())
+    else:
+        if (not is_ProjectiveSpace(X.codomain().ambient_space())):
+            raise TypeError("Codomain must be projective space over the rational field")
+
     n = X.codomain().ambient_space().ngens()
     zero = (0,) * n
     pts = []
@@ -166,8 +173,15 @@ def enum_projective_number_field(X,B):
         sage: enum_projective_number_field(X,3)
         [(1 : 1)]
     """
-    if is_Scheme(X):
+    from sage.schemes.projective.projective_space import is_ProjectiveSpace
+    if(is_Scheme(X)):
+        if (not is_ProjectiveSpace(X.ambient_space())):
+            raise TypeError("Ambient space must be projective space over a number field")
         X = X(X.base_ring())
+    else:
+        if (not is_ProjectiveSpace(X.codomain().ambient_space())):
+            raise TypeError("Codomain must be projective space over a number field")
+
     R = X.codomain().ambient_space()
 
     pts = []
@@ -239,8 +253,15 @@ def enum_projective_finite_field(X):
 
     - John Cremona and Charlie Turner (06-2010).
     """
-    if is_Scheme(X):
+    from sage.schemes.projective.projective_space import is_ProjectiveSpace
+    if(is_Scheme(X)):
+        if (not is_ProjectiveSpace(X.ambient_space())):
+            raise TypeError("Ambient space must be projective space over a finite")
         X = X(X.base_ring())
+    else:
+        if (not is_ProjectiveSpace(X.codomain().ambient_space())):
+            raise TypeError("Codomain must be projective space over a finite field")
+
     n = X.codomain().ambient_space().ngens()-1
     F = X.value_ring()
     pts = []

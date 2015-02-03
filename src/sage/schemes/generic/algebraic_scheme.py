@@ -1466,7 +1466,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
             sage: E = EllipticCurve('37a')
             sage: E.rational_points(bound=8)
-            [(-1 : -1 : 1), (-1 : 0 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 0), (1/4 : -5/8 : 1), (1/4 : -3/8 : 1), (1 : -1 : 1), (1 : 0 : 1), (2 : -3 : 1), (2 : 2 : 1)]
+            [(-1 : -1 : 1), (-1 : 0 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 0), (1/4 : -5/8 : 1),
+            (1/4 : -3/8 : 1), (1 : -1 : 1), (1 : 0 : 1), (2 : -3 : 1), (2 : 2 : 1)]
 
         For a small finite field, the complete set of points can be
         enumerated. ::
@@ -1499,7 +1500,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         if F is None:
             F = self.base_ring()
         X = self(F)
-        if F in NumberFields() or is_RationalField(F) or F == ZZ:
+        if F in NumberFields() or F == ZZ:
             if not bound > 0:
                 raise TypeError("A positive bound (= %s) must be specified."%bound)
             try:

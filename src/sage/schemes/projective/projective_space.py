@@ -920,8 +920,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
     def points_of_bounded_height(self,bound):
         r"""
-        Returns an iterator of the points in self of absolute height of at most the given bound. Bound check is strict for the rational field. Requires self
-        to be projective space over a number field.
+        Returns an iterator of the points in self of absolute height of at most the given bound. Bound check
+        is strict for the rational field. Requires self to be projective space over a number field. Uses the
+        Doyle-Krumm algorithm for computing algebraic numbers up to a given height [Doyle-Krumm].
 
         INPUT:
 
@@ -945,10 +946,14 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2,'v'), 2)
             sage: len(list(P.points_of_bounded_height(6)))
             133
+
+        REFERENCES:
+
+        ..  [Doyle-Krumm] John R. Doyle and David Krumm, Computing algebraic
+            numbers of bounded height, :arxiv:`1111.4963` (2013).
         """
-        ftype = False # stores whether the field is a number field or the rational field
         if (is_RationalField(self.base_ring())):
-            ftype = False
+            ftype = False # stores whether the field is a number field or the rational field
         elif (self.base_ring() in NumberFields()): # true for rational field as well, so check is_RationalField first
             ftype = True
         else:

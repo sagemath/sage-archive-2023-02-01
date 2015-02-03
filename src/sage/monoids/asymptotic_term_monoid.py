@@ -774,13 +774,37 @@ class TermWithCoefficient(GenericTerm):
         r"""
         See :class:`TermWithCoefficient` for more information.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage:  # todo: examples
+        First, we define some parent monoids::
+
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: PG.<x> = agg.GrowthGroupPower()
+            sage: CT1 = atm.TermWithCoefficientMonoid(PG, QQ)
+            sage: CT2 = atm.TermWithCoefficientMonoid(PG, RR)
+
+        The coefficients have to be from the given coefficient ring::
+
+            sage: t = CT1(x, sqrt(2))
+            Traceback (most recent call last):
+            ...
+            ValueError: sqrt(2) is not in Rational Field
+            sage: t = CT2(x, sqrt(2)); t
+            Asymptotic Term with coefficient sqrt(2) and growth x
+
+        For technical reasons, the coefficient 0 is not allowed::
+
+            sage: t = CT1(x^42, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: 0 is not a valid coefficient
         """
         if coefficient not in parent.coefficient_ring:
             raise ValueError("%s is not in %s" % (coefficient,
                                                   parent.coefficient_ring))
+        elif coefficient == 0:
+            raise ValueError("0 is not a valid coefficient")
         else:
             self.coefficient = coefficient
         super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)

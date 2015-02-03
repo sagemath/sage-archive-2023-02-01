@@ -10543,9 +10543,13 @@ cdef class Expression(CommutativeRingElement):
             sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
             -sum((-1)^(-j + k)*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
             sage: forget()
+
+        Check that :trac:`16176` is fixed::
+
+            sage: n = var('n')
+            sage: sum(log(1-1/n^2),n,2,oo)
+            -log(2)
         """
-
-
         from sage.calculus.calculus import symbolic_sum
         return symbolic_sum(self, *args, **kwds)
 

@@ -8184,10 +8184,12 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_full(self):
         """
-        Apply simplify_factorial, simplify_trig, simplify_rational,
-        simplify_log, and again simplify_rational to self (in that order).
+        Apply ``simplify_factorial``, ``simplify_trig``,
+        ``simplify_rational``, ``simplify_log``, again
+        ``simplify_rational``, and then ``expand_sum``
+        to self (in that order).
 
-        ALIAS: simplify_full and full_simplify are the same.
+        ALIAS: ``simplify_full`` and ``full_simplify`` are the same.
 
         EXAMPLES::
 
@@ -8261,6 +8263,9 @@ cdef class Expression(CommutativeRingElement):
         x = x.simplify_rectform()
         x = x.simplify_trig()
         x = x.simplify_rational()
+        x = x.simplify_log('one')
+        x = x.simplify_rational()
+        x = x.expand_sum()
         return x
 
     full_simplify = simplify_full
@@ -8731,6 +8736,34 @@ cdef class Expression(CommutativeRingElement):
         return self.parent()(self._maxima_().makefact().factcomb().minfactorial())
 
     factorial_simplify = simplify_factorial
+
+    def expand_sum(self):
+        r"""
+        For every symbolic sum in the given expression, try to expand it,
+        symbolically or numerically.
+        
+        While symbolic sum expressions with constant limits are evaluated
+        immediately on the command line, unevaluated sums of this kind can
+        result from, e.g., substitution of limit variables. 
+
+        INPUT:
+
+        - ``self`` - symbolic expression
+
+        EXAMPLES::
+        
+            sage: (k,n) = var('k,n')
+            sage: ex = sum(abs(-k*k+n),k,1,n)(n=8); ex
+            sum(abs(-k^2 + 8), k, 1, 8)
+            sage: ex.expand_sum()
+            162
+            sage: f(x,k) = sum((2/n)*(sin(n*x)*(-1)^(n+1)), n, 1, k)
+            sage: f(x,2)
+            -2*sum((-1)^n*sin(n*x)/n, n, 1, 2)
+            sage: f(x,2).expand_sum()
+            -sin(2*x) + 2*sin(x)
+        """
+        return self.parent()(self._maxima_().simplify_sum())
 
     def canonicalize_radical(self):
         r"""

@@ -10,6 +10,9 @@ from sage.misc.sage_unittest import TestSuite
 
 sys_modules = sys.modules
 
+from sage.misc.lazy_import import LazyImport
+have_same_parent = LazyImport('sage.structure.element', 'have_same_parent', deprecation=17533)
+
 # change to import zlib to use zlib instead; but this
 # slows down loading any data stored in the other format
 import zlib; comp = zlib
@@ -429,15 +432,20 @@ cdef class SageObject:
         tester.assert_(category.is_subcategory(Objects()))
         tester.assert_(self in category)
 
-##     def category(self):
-##         try:
-##             return self.__category
-##         except AttributeError:
-##             from sage.categories.all import Objects
-##             return Objects()
+    def parent(self):
+        """
+        Return the type of ``self`` to support the coercion framework.
 
-##     def _set_category(self, C):
-##         self.__category = C
+        EXAMPLES::
+
+            sage: t = log(sqrt(2) - 1) + log(sqrt(2) + 1); t
+            log(sqrt(2) + 1) + log(sqrt(2) - 1)
+            sage: u = t.maxima_methods()
+            sage: u.parent()
+            <class 'sage.symbolic.maxima_wrapper.MaximaWrapper'>
+        """
+        return type(self)
+
 
     #############################################################################
     # Test framework
@@ -825,26 +833,6 @@ cdef class SageObject:
     def _pari_init_(self):
         from sage.interfaces.gp import gp
         return self._interface_init_(gp)
-
-
-######################################################
-# A python-accessible version of the one in coerce.pxi
-# Where should it be?
-
-def have_same_parent(self, other):
-    """
-    EXAMPLES::
-
-        sage: from sage.structure.sage_object import have_same_parent
-        sage: have_same_parent(1, 3)
-        True
-        sage: have_same_parent(1, 1/2)
-        False
-        sage: have_same_parent(gap(1), gap(1/2))
-        True
-    """
-    from sage.structure.coerce import parent
-    return parent(self) == parent(other)
 
 ##################################################################
 
@@ -1549,4 +1537,3 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     print "Failed to unpickle %s objects."%j
     if debug:
         return tracebacks
-

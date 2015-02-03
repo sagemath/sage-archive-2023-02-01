@@ -15,7 +15,6 @@ PSF or ZPL. i.e Python Software Foundation License or Zope Public License
 == SPKG Maintainers ==
 
  * Jaap Spies, (j.spies@hccnet.nl)
- * Michael Abshoff
 
 == Upstream Contact ==
  * Phillip J. Eby (distutils-sig@python org)

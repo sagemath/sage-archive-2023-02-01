@@ -63,7 +63,8 @@ from log import log_html, log_dvi, log_text
 
 from mathml import mathml
 
-from defaults import set_default_variable_name
+from defaults import (set_default_variable_name,
+                        series_precision, set_series_precision)
 
 from sage_eval import sage_eval, sageobj
 

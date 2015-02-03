@@ -2781,7 +2781,7 @@ cdef class BooleanMonomial(MonoidElement):
 
 cdef inline BooleanMonomial new_BM(parent, BooleanPolynomialRing ring):
     cdef BooleanMonomial m
-    m = <BooleanMonomial>PY_NEW(BooleanMonomial)
+    m = <BooleanMonomial>BooleanMonomial.__new__(BooleanMonomial)
     m._parent = parent
     m._ring = ring
     return m
@@ -2842,7 +2842,7 @@ cdef inline BooleanMonomialVariableIterator new_BMVI_from_BooleanMonomial(\
     monomial.
     """
     cdef BooleanMonomialVariableIterator m
-    m = <BooleanMonomialVariableIterator>PY_NEW(BooleanMonomialVariableIterator)
+    m = <BooleanMonomialVariableIterator>BooleanMonomialVariableIterator.__new__(BooleanMonomialVariableIterator)
     m.parent = monom._parent
     m._ring = monom._ring
     m.obj = monom
@@ -2893,7 +2893,7 @@ cdef inline BooleanMonomialIterator new_BMI_from_BooleanMonomial(BooleanMonomial
     Construct a new BooleanMonomialIterator
     """
     cdef BooleanMonomialIterator m
-    m = <BooleanMonomialIterator>PY_NEW(BooleanMonomialIterator)
+    m = <BooleanMonomialIterator>BooleanMonomialIterator.__new__(BooleanMonomialIterator)
     m._iter = monom._pbmonom.begin()
     m._end  = monom._pbmonom.end()
     m.obj = monom
@@ -4891,7 +4891,7 @@ cdef inline BooleanPolynomialIterator new_BPI_from_BooleanPolynomial(BooleanPoly
     Construct a new BooleanMonomialIterator
     """
     cdef BooleanPolynomialIterator m
-    m = <BooleanPolynomialIterator>PY_NEW(BooleanPolynomialIterator)
+    m = <BooleanPolynomialIterator>BooleanPolynomialIterator.__new__(BooleanPolynomialIterator)
     m.obj = f
     m._iter = f._pbpoly.orderedBegin()
     m._end = f._pbpoly.orderedEnd()
@@ -5258,7 +5258,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
 cdef inline BooleanPolynomial new_BP(BooleanPolynomialRing parent):
     cdef BooleanPolynomial p
-    p = <BooleanPolynomial>PY_NEW(BooleanPolynomial)
+    p = <BooleanPolynomial>BooleanPolynomial.__new__(BooleanPolynomial)
     p._parent = parent
     return p
 
@@ -5928,7 +5928,7 @@ cdef inline BooleSet new_BS_from_PBSet(PBSet juice, BooleanPolynomialRing ring):
     Construct a new BooleSet
     """
     cdef BooleSet s
-    s = <BooleSet>PY_NEW(BooleSet)
+    s = <BooleSet>BooleSet.__new__(BooleSet)
     s._pbset = juice
     s._ring = ring
 
@@ -5976,7 +5976,7 @@ cdef inline BooleSetIterator new_BSI_from_PBSetIter(BooleSet s):
     Construct a new BooleSetIterator
     """
     cdef BooleSetIterator m
-    m = <BooleSetIterator>PY_NEW(BooleSetIterator)
+    m = <BooleSetIterator>BooleSetIterator.__new__(BooleSetIterator)
     m._ring = s._ring
     m._parent = m._ring._monom_monoid
     m.obj = s
@@ -6201,7 +6201,7 @@ cdef class BooleanPolynomialVector:
 cdef inline BooleanPolynomialVector new_BPV_from_PBPolyVector(\
         BooleanPolynomialRing parent, PBPolyVector juice):
     cdef BooleanPolynomialVector m
-    m = <BooleanPolynomialVector>PY_NEW(BooleanPolynomialVector)
+    m = <BooleanPolynomialVector>BooleanPolynomialVector.__new__(BooleanPolynomialVector)
     m._vec = juice
     m._parent = parent
     return m
@@ -6229,7 +6229,7 @@ cdef inline BooleanPolynomialVectorIterator new_BPVI_from_PBPolyVectorIter(\
     Construct a new BooleanPolynomialVectorIterator
     """
     cdef BooleanPolynomialVectorIterator m
-    m = <BooleanPolynomialVectorIterator>PY_NEW(BooleanPolynomialVectorIterator)
+    m = <BooleanPolynomialVectorIterator>BooleanPolynomialVectorIterator.__new__(BooleanPolynomialVectorIterator)
     m._parent = vec._parent
     m.obj = vec
     m._iter = vec._vec.begin()
@@ -7128,7 +7128,7 @@ cdef inline CCuddNavigator new_CN_from_PBNavigator(PBNavigator juice,
     Construct a new CCuddNavigator
     """
     cdef CCuddNavigator n
-    n = <CCuddNavigator>PY_NEW(CCuddNavigator)
+    n = <CCuddNavigator>CCuddNavigator.__new__(CCuddNavigator)
     n._pbnav = juice
     n._pbind = pbind
     return n
@@ -7678,7 +7678,7 @@ cdef BooleanPolynomialRing BooleanPolynomialRing_from_PBRing(PBRing _ring):
     Get BooleanPolynomialRing from C++-implementation
     """
     cdef int i,j
-    cdef BooleanPolynomialRing self = PY_NEW(BooleanPolynomialRing)
+    cdef BooleanPolynomialRing self = BooleanPolynomialRing.__new__(BooleanPolynomialRing)
 
     cdef int n = _ring.nVariables()
 

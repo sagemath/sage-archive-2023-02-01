@@ -7138,12 +7138,6 @@ cdef do_karatsuba(left, right, Py_ssize_t K_threshold,Py_ssize_t start_l, Py_ssi
     return bd + ac
 
 
-cpdef Polynomial_generic_dense _new_constant_dense_poly(list coeffs, Parent P, sample):
-    cdef Polynomial_generic_dense f = <Polynomial_generic_dense>PY_NEW_SAME_TYPE(sample)
-    f._parent = P
-    f.__coeffs = coeffs
-    return f
-
 cdef class Polynomial_generic_dense(Polynomial):
     """
     A generic dense polynomial.
@@ -7218,7 +7212,8 @@ cdef class Polynomial_generic_dense(Polynomial):
             self.__coeffs = x
 
     cdef Polynomial_generic_dense _new_c(self, list coeffs, Parent P):
-        cdef Polynomial_generic_dense f = <Polynomial_generic_dense>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef Polynomial_generic_dense f = <Polynomial_generic_dense>t.__new__(t)
         f._parent = P
         f.__coeffs = coeffs
         return f

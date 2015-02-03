@@ -213,7 +213,7 @@ cdef class PolynomialRealDense(Polynomial):
     cdef PolynomialRealDense _new(self, Py_ssize_t degree):
         cdef Py_ssize_t i
         cdef int prec = self._base_ring.__prec
-        cdef PolynomialRealDense f = <PolynomialRealDense>PY_NEW(PolynomialRealDense)
+        cdef PolynomialRealDense f = <PolynomialRealDense>PolynomialRealDense.__new__(PolynomialRealDense)
         f._parent = self._parent
         f._base_ring = self._base_ring
         f._degree = degree

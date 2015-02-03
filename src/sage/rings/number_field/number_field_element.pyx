@@ -177,8 +177,8 @@ cdef class NumberFieldElement(FieldElement):
         Quickly creates a new initialized NumberFieldElement with the same
         parent as self.
         """
-        cdef NumberFieldElement x
-        x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef NumberFieldElement x = <NumberFieldElement>t.__new__(t)
         x._parent = self._parent
         x.__fld_numerator = self.__fld_numerator
         x.__fld_denominator = self.__fld_denominator
@@ -446,7 +446,8 @@ cdef class NumberFieldElement(FieldElement):
             else:
                 return self.polynomial()(new_parent.gen()**rel)
 
-        cdef NumberFieldElement x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef NumberFieldElement x = <NumberFieldElement>t.__new__(t)
         x._parent = <ParentWithBase>new_parent
         x.__fld_numerator, x.__fld_denominator = new_parent.polynomial_ntl()
         x.__denominator = self.__denominator
@@ -4252,8 +4253,8 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
             sage: O.1 * O.1 * O.1
             -18
         """
-        cdef OrderElement_absolute x
-        x = <OrderElement_absolute>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef OrderElement_absolute x = <OrderElement_absolute>t.__new__(t)
         x._parent = self._parent
         x._number_field = self._parent.number_field()
         x.__fld_numerator = self.__fld_numerator
@@ -4392,8 +4393,8 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
             sage: parent(c) == O
             True
         """
-        cdef OrderElement_relative x
-        x = <OrderElement_relative>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef OrderElement_relative x = <OrderElement_relative>t.__new__(t)
         x._parent = self._parent
         x._number_field = self._parent.number_field()
         x.__fld_numerator = self.__fld_numerator

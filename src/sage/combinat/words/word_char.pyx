@@ -210,7 +210,8 @@ cdef class WordDatatype_char(WordDatatype):
         TO DISCUSS: in Integer (sage.rings.integer) this method is actually an
         external function. But we might want to have several possible inheritance.
         """
-        cdef WordDatatype_char other = PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef WordDatatype_char other = t.__new__(t)
         other._data = data
         other._master = master # can be None
         other._is_slice = 0 if master is None else 1

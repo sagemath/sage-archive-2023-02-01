@@ -214,7 +214,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef Rational x
-        x = PY_NEW(Rational)
+        x = Rational.__new__(Rational)
         mpq_set(x.value, self._matrix[i][j])
         return x
 
@@ -1205,7 +1205,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_add(s, s, self._matrix[row][c])
             mpq_mul(pr, pr, s)
         cdef Rational _pr
-        _pr = PY_NEW(Rational)
+        _pr = Rational.__new__(Rational)
         mpq_set(_pr.value, pr)
         mpq_clear(s)
         mpq_clear(pr)
@@ -2629,7 +2629,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t j
         from sage.modules.free_module import FreeModule
         parent = FreeModule(self._base_ring, self._ncols)
-        cdef Vector_rational_dense v = PY_NEW(Vector_rational_dense)
+        cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._ncols, parent)
         for j in range(self._ncols):
             mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[i][j])
@@ -2663,7 +2663,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t j
         from sage.modules.free_module import FreeModule
         parent = FreeModule(self._base_ring, self._nrows)
-        cdef Vector_rational_dense v = PY_NEW(Vector_rational_dense)
+        cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._nrows, parent)
         for j in range(self._nrows):
             mpq_init(v._entries[j]); mpq_set(v._entries[j], self._matrix[j][i])

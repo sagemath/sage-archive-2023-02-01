@@ -283,7 +283,7 @@ cdef class ntl_ZZX:
             sage: ntl.ZZX(range(5)) + ntl.ZZX(range(6))
             [0 2 4 6 8 5]
         """
-        cdef ntl_ZZX r = PY_NEW(ntl_ZZX)
+        cdef ntl_ZZX r = ntl_ZZX.__new__(ntl_ZZX)
         if not PY_TYPE_CHECK(self, ntl_ZZX):
             self = ntl_ZZX(self)
         if not PY_TYPE_CHECK(other, ntl_ZZX):
@@ -297,7 +297,7 @@ cdef class ntl_ZZX:
             sage: ntl.ZZX(range(5)) - ntl.ZZX(range(6))
             [0 0 0 0 0 -5]
         """
-        cdef ntl_ZZX r = PY_NEW(ntl_ZZX)
+        cdef ntl_ZZX r = ntl_ZZX.__new__(ntl_ZZX)
         if not PY_TYPE_CHECK(self, ntl_ZZX):
             self = ntl_ZZX(self)
         if not PY_TYPE_CHECK(other, ntl_ZZX):
@@ -311,7 +311,7 @@ cdef class ntl_ZZX:
             sage: ntl.ZZX(range(5)) * ntl.ZZX(range(6))
             [0 0 1 4 10 20 30 34 31 20]
         """
-        cdef ntl_ZZX r = PY_NEW(ntl_ZZX)
+        cdef ntl_ZZX r = ntl_ZZX.__new__(ntl_ZZX)
         if not PY_TYPE_CHECK(self, ntl_ZZX):
             self = ntl_ZZX(self)
         if not PY_TYPE_CHECK(other, ntl_ZZX):
@@ -367,7 +367,7 @@ cdef class ntl_ZZX:
             sage: f % g
             [20 25]
         """
-        cdef ntl_ZZX r = PY_NEW(ntl_ZZX)
+        cdef ntl_ZZX r = ntl_ZZX.__new__(ntl_ZZX)
         if not PY_TYPE_CHECK(self, ntl_ZZX):
             self = ntl_ZZX(self)
         if not PY_TYPE_CHECK(other, ntl_ZZX):
@@ -563,7 +563,7 @@ cdef class ntl_ZZX:
             sage: f.content()
             0
         """
-        cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ r = ntl_ZZ.__new__(ntl_ZZ)
         ZZX_content(r.x, self.x)
         return r
 
@@ -717,7 +717,7 @@ cdef class ntl_ZZX:
             sage: f.leading_coefficient()
             0
         """
-        cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ r = ntl_ZZ.__new__(ntl_ZZ)
         r.x = ZZX_LeadCoeff(self.x)
         return r
 
@@ -733,7 +733,7 @@ cdef class ntl_ZZX:
             sage: f.constant_term()
             0
         """
-        cdef ntl_ZZ r = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ r = ntl_ZZ.__new__(ntl_ZZ)
         r.x = ZZX_ConstTerm(self.x)
         return r
 

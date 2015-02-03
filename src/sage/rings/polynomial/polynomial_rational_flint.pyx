@@ -95,7 +95,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f + g           # indirect doctest
             2/3*t^2 - 1/2*t + 2
         """
-        cdef Polynomial_rational_flint res = PY_NEW(Polynomial_rational_flint)
+        cdef Polynomial_rational_flint res = Polynomial_rational_flint.__new__(Polynomial_rational_flint)
         res._parent = self._parent
         res._is_gen = 0
         return res
@@ -123,7 +123,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             ValueError: invalid literal for int() with base 10: '2.1'
 
         """
-        cdef Polynomial_rational_flint res = PY_NEW(Polynomial_rational_flint)
+        cdef Polynomial_rational_flint res = Polynomial_rational_flint.__new__(Polynomial_rational_flint)
         res._parent = P
         res._is_gen = <char>0
         if PY_TYPE_CHECK(x, int):
@@ -384,7 +384,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f[1:3]                             # indirect doctest
             1/2*t^2 + t
         """
-        cdef Rational z = PY_NEW(Rational)
+        cdef Rational z = Rational.__new__(Rational)
         cdef Polynomial_rational_flint res = self._new()
         cdef bint do_sig = _do_sig(self.__poly)
         if isinstance(n, slice):
@@ -475,13 +475,13 @@ cdef class Polynomial_rational_flint(Polynomial):
                 sig_off()
                 return f
             if isinstance(a, Rational):
-                r = PY_NEW(Rational)
+                r = Rational.__new__(Rational)
                 sig_on()
                 fmpq_poly_evaluate_mpq(r.value, self.__poly, (<Rational> a).value)
                 sig_off()
                 return r
             if isinstance(a, Integer):
-                r = PY_NEW(Rational)
+                r = Rational.__new__(Rational)
                 sig_on()
                 fmpq_poly_evaluate_mpz(r.value, self.__poly, (<Integer> a).value)
                 sig_off()
@@ -1213,7 +1213,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             -3*t^3 - 1
         """
         cdef Polynomial_integer_dense_flint num = \
-                                         PY_NEW(Polynomial_integer_dense_flint)
+                                         Polynomial_integer_dense_flint.__new__(Polynomial_integer_dense_flint)
         parent = ZZ[self.variable_name()]
         sig_on()
         Polynomial_integer_dense_flint.__init__(num, parent, x=None, \
@@ -1334,7 +1334,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.resultant(h)
             0
         """
-        cdef Rational res = PY_NEW(Rational)
+        cdef Rational res = Rational.__new__(Rational)
         cdef fmpq_t t
         fmpq_init(t)
         sig_on()
@@ -1387,7 +1387,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         elif length == 2:
             return True
         else:
-            primitive = PY_NEW(Polynomial_integer_dense_flint)
+            primitive = Polynomial_integer_dense_flint.__new__(Polynomial_integer_dense_flint)
             parent = ZZ[self.variable_name()]
             sig_on()
             Polynomial_integer_dense_flint.__init__(primitive, parent, \

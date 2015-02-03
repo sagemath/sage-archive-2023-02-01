@@ -74,7 +74,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         Quickly creates a new initialized Polynomial_integer_dense_flint
         with the correct parent and _is_gen == 0.
         """
-        cdef Polynomial_integer_dense_flint x = PY_NEW(Polynomial_integer_dense_flint)
+        cdef Polynomial_integer_dense_flint x = Polynomial_integer_dense_flint.__new__(Polynomial_integer_dense_flint)
         x._parent = self._parent
         x._is_gen = 0
         return x
@@ -95,7 +95,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             2
 
         """
-        cdef Polynomial_integer_dense_flint x = PY_NEW(Polynomial_integer_dense_flint)
+        cdef Polynomial_integer_dense_flint x = Polynomial_integer_dense_flint.__new__(Polynomial_integer_dense_flint)
         x._parent = P
         x._is_gen = 0
         if not PY_TYPE_CHECK(a, Integer):

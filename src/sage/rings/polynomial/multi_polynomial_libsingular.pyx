@@ -5353,7 +5353,7 @@ cdef inline MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, p
     polynomial, so it is your repsonsiblity to make a copy if the
     Singular data structure is used elsewhere.
     """
-    cdef MPolynomial_libsingular p = PY_NEW(MPolynomial_libsingular)
+    cdef MPolynomial_libsingular p = MPolynomial_libsingular.__new__(MPolynomial_libsingular)
     p._parent = <ParentWithBase>parent
     p._parent_ring = singular_ring_reference(parent._ring)
     p._poly = juice

@@ -108,7 +108,7 @@ from free_module_element import vector
 cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):
         cdef Vector_modn_dense y
-        y = PY_NEW(Vector_modn_dense)
+        y = Vector_modn_dense.__new__(Vector_modn_dense)
         y._init(self._degree, self._parent, self._p)
         return y
 
@@ -367,7 +367,7 @@ def unpickle_v0(parent, entries, degree, p):
     #    make_FreeModuleElement_generic_dense_v1
     # and changed the reduce method below.
     cdef Vector_modn_dense v
-    v = PY_NEW(Vector_modn_dense)
+    v = Vector_modn_dense.__new__(Vector_modn_dense)
     v._init(degree, parent, p)
     for i from 0 <= i < degree:
         v._entries[i] = entries[i]
@@ -375,7 +375,7 @@ def unpickle_v0(parent, entries, degree, p):
 
 def unpickle_v1(parent, entries, degree, p, is_mutable):
     cdef Vector_modn_dense v
-    v = PY_NEW(Vector_modn_dense)
+    v = Vector_modn_dense.__new__(Vector_modn_dense)
     v._init(degree, parent, p)
     for i from 0 <= i < degree:
         v._entries[i] = entries[i]

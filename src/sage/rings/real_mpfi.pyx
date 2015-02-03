@@ -1442,19 +1442,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         return self
 
-    def parent(self):
-        """
-        Return the parent of ``self``.
-
-        EXAMPLES::
-
-            sage: R = RealIntervalField()
-            sage: a = R('1.2456')
-            sage: a.parent()
-            Real Interval Field with 53 bits of precision
-        """
-        return self._parent
-
     # MPFR had an elaborate "truncation" scheme to avoid printing
     # inaccurate-looking results; this has been removed for MPFI,
     # because I think it's less confusing to get such results than to

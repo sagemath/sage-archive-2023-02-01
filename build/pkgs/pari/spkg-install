@@ -187,6 +187,13 @@ install()
         exit 1
     fi
 
+    # Copy anal.h
+    cp -f "src/language/anal.h" "$SAGE_LOCAL/include/pari/anal.h"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error copying anal.h"
+        exit 1
+    fi
+
     cd "$CUR"
 
     if [ "$UNAME" = "Darwin" ]; then

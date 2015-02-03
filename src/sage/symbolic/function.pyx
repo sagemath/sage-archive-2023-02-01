@@ -15,6 +15,7 @@ Classes for symbolic functions
 
 from ginac cimport *
 
+from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
@@ -808,6 +809,46 @@ cdef class GinacFunction(BuiltinFunction):
         self._ginac_name = ginac_name
         BuiltinFunction.__init__(self, name, nargs, latex_name, conversions,
                 evalf_params_first=evalf_params_first)
+
+    def __call__(self, *args, **kwds):
+        """
+        Wrapper around ``BuiltinFunction.__call__()`` which converts
+        Python ``int``s which are returned by Ginac to Sage Integers.
+
+        This is needed to fix :trac:`10133`, where Ginac evaluates
+        ``sin(0)`` to the Python int ``0``::
+
+            sage: from sage.symbolic.function import BuiltinFunction
+            sage: out = BuiltinFunction.__call__(sin, 0)
+            sage: out, parent(out)
+            (0, <type 'int'>)
+
+        With this wrapper we have::
+
+            sage: out = sin(0)
+            sage: out, parent(out)
+            (0, Integer Ring)
+
+        However, if all inputs are Python types, we do not convert::
+
+            sage: out = sin(int(0))
+            sage: (out, parent(out))
+            (0, <type 'int'>)
+            sage: out = arctan2(int(0), float(1))
+            sage: (out, parent(out))
+            (0, <type 'int'>)
+            sage: out = arctan2(int(0), RR(1))
+            sage: (out, parent(out))
+            (0, Integer Ring)
+        """
+        res = super(GinacFunction, self).__call__(*args, **kwds)
+
+        # Convert to Integer if the output was of type "int" and any of
+        # the inputs was a Sage Element
+        if isinstance(res, int) and any(isinstance(x, Element) for x in args):
+            return smallInteger(res)
+        else:
+            return res
 
     cdef _is_registered(self):
         # Since this is function is defined in C++, it is already in

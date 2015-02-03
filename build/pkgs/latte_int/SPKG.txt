@@ -2,14 +2,12 @@
 
 == Description ==
 
-LattE (Lattice point Enumeration) Integrale solves  the problems of counting lattice points in and integration over convex polytopes.
+LattE (Lattice point Enumeration) Integrale solves the problems of counting
+lattice points in and integration over convex polytopes.
 
 == License ==
-LattE Integrale is released under a GPL v3 license.
 
-== SPKG Maintainers ==
-
-Dima Pasechnik
+GPLv2
 
 == Upstream Contact ==
 
@@ -19,17 +17,3 @@ Matthias Köppe, UC Davis, CA, USA
 
 GMP (MPIR), 4ti2, NTL, cddlib.
 
-=== latte-int-1.7.1 (Dima Pasechnik, Oct 9, 2014) ===
- * bump up to 1.7.1, fix spkg-install (cf #17136),
- * switch to the new spkg layout
-
-=== latte-int-1.6 (Dima Pasechnik, Sept 9, 2013) ===
- * Initial version
-
-== Special Update/Build Instructions ==
- * the upstream tarball is extracted from the tarball of tarballs bundle latte-integrale at
-   https://www.math.ucdavis.edu/~latte/software/packages/latte_current/
- * the name should be changed from latte-int-* to latte_int-* to reflect the Sage package
-   naming; not only for the tarball itself, but also for its contents; i.e. you should
-   untar latte-int-*.tar.gz somewhere, move latte-int-*/ to latte_int-*/, and make the tarball
-   again.

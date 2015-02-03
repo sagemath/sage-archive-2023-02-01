@@ -148,12 +148,13 @@ To dig deeper, you can inspect the log::
 
     [user@localhost sage]$ git log
 
-By default, this lists all commits in reverse chronological order. If
-you find your branch to be in the wrong place, you can use the ``git
-reset --hard`` command to reset it to something else; see
-:ref:`section-git-recovery` for details.
+By default, this lists all commits in reverse chronological order.
 
+- If you find your branch to be in the wrong place, see the
+  :ref:`section-git-recovery` section.
 
+- Many programs are available to help you visualize the history tree
+  better. ``tig`` is a very nice text-mode such tool.
 
 .. _section-walkthrough-add-edit:
 

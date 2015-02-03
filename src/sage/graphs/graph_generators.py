@@ -623,7 +623,7 @@ class GraphGenerators():
 ###########################################################################
 
     def __call__(self, vertices=None, property=lambda x: True, augment='edges',
-        size=None, deg_seq=None, degree_sequence=None, loops=False, implementation='c_graph',
+        size=None, degree_sequence=None, loops=False, implementation='c_graph',
         sparse=True, copy = True):
         """
         Accesses the generator of isomorphism class representatives.
@@ -673,12 +673,6 @@ class GraphGenerators():
         from sage.misc.superseded import deprecation
         from copy import copy as copyfun
 
-        if deg_seq is not None:
-            deprecation(11927, "The argument name deg_seq is deprecated. It will be "
-                        "removed in a future release of Sage. So, please use "
-                        "degree_sequence instead.")
-        if degree_sequence is None:
-            degree_sequence=deg_seq
         if degree_sequence is not None:
             if vertices is None:
                 raise NotImplementedError
@@ -1908,7 +1902,6 @@ class GraphGenerators():
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
     RandomHolmeKim           = staticmethod(sage.graphs.generators.random.RandomHolmeKim)
-    RandomInterval           = staticmethod(sage.graphs.generators.random.RandomInterval) # deprecated
     RandomIntervalGraph      = staticmethod(sage.graphs.generators.random.RandomIntervalGraph)
     RandomLobster            = staticmethod(sage.graphs.generators.random.RandomLobster)
     RandomNewmanWattsStrogatz = staticmethod(sage.graphs.generators.random.RandomNewmanWattsStrogatz)

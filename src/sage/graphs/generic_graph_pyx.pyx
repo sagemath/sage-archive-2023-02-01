@@ -18,6 +18,7 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
+include "sage/data_structures/binary_matrix.pxi"
 
 # import from Python standard library
 from sage.misc.prandom import random
@@ -1280,3 +1281,68 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
 
     return (True,output)
 
+def transitive_reduction_acyclic(G):
+    r"""
+    Returns the transitive reduction of an acyclic digraph
+
+    INPUT:
+
+    - ``G`` -- an acyclic digraph.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.generic_graph_pyx import transitive_reduction_acyclic
+        sage: G = posets.BooleanLattice(4).hasse_diagram()
+        sage: G == transitive_reduction_acyclic(G.transitive_closure())
+        True
+    """
+    cdef int  n = G.order()
+    cdef dict v_to_int = {vv: i for i, vv in enumerate(G.vertices())}
+    cdef int  u, v, i
+
+    cdef list linear_extension
+
+    is_acyclic, linear_extension = G.is_directed_acyclic(certificate=True)
+    if not is_acyclic:
+        raise ValueError("The graph is not directed acyclic")
+
+    linear_extension.reverse()
+
+    cdef binary_matrix_t closure
+
+    # Build the transitive closure of G
+    #
+    # A point is reachable from u if it is one of its neighbours, or if it is
+    # reachable from one of its neighbours.
+    binary_matrix_init(closure, n, n)
+    for uu in linear_extension:
+        u = v_to_int[uu]
+        for vv in G.neighbors_out(uu):
+            v = v_to_int[vv]
+            binary_matrix_set1(closure, u, v)
+            bitset_or(closure.rows[u], closure.rows[u], closure.rows[v])
+
+    # Build the transitive reduction of G
+    #
+    # An edge uv belongs to the transitive reduction of G if no outneighbor of u
+    # can reach v (except v itself, of course).
+    linear_extension.reverse()
+    cdef list useful_edges = []
+    for uu in linear_extension:
+        u = v_to_int[uu]
+        for vv in G.neighbors_out(uu):
+            v = v_to_int[vv]
+            bitset_difference(closure.rows[u], closure.rows[u], closure.rows[v])
+        for vv in G.neighbors_out(uu):
+            v = v_to_int[vv]
+            if binary_matrix_get(closure, u, v):
+                useful_edges.append((uu, vv))
+
+    from sage.graphs.digraph import DiGraph
+    reduced = DiGraph()
+    reduced.add_edges(useful_edges)
+    reduced.add_vertices(linear_extension)
+
+    binary_matrix_free(closure)
+
+    return reduced

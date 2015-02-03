@@ -12,7 +12,7 @@ Free modules
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.structure.parent import Parent
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 from sage.structure.indexed_generators import IndexedGenerators
 from sage.modules.free_module_element import vector
 from sage.misc.misc import repr_lincomb

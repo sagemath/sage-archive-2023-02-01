@@ -202,12 +202,14 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Test ``sage --info [packages]``, unless this is a binary (bdist)
     distribution which doesn't ship spkgs::
 
-        sage: out, err, ret = test_executable(["sage", "--info", "sqlalchemy"])
+        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
         sage: print out
-        Found local metadata for sqlalchemy-...
-        = SQLAlchemy =
+        Found local metadata for sqlite-...
+        = SQLite =
         ...
-        SQLAlchemy is the Python SQL toolkit...
+        SQLite is a software library that implements a self-contained,
+        serverless, zero-configuration, transactional SQL database engine.
+        ...
         sage: err
         ''
         sage: ret

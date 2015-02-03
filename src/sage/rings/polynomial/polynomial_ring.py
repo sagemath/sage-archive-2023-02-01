@@ -469,6 +469,17 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return self.base_ring().is_integral_domain(proof)
 
+    def is_unique_factorization_domain(self, proof = True):
+        """
+        EXAMPLES::
+
+            sage: ZZ['x'].is_unique_factorization_domain()
+            True
+            sage: Integers(8)['x'].is_unique_factorization_domain()
+            False
+        """
+        return self.base_ring().is_unique_factorization_domain(proof)
+
     def is_noetherian(self):
         return self.base_ring().is_noetherian()
 

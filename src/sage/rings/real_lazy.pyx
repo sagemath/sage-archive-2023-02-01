@@ -1318,7 +1318,7 @@ cdef class LazyNamedUnop(LazyUnop):
         """
         arg = self._arg.eval(R)
         cdef bint has_extra_args = self._extra_args is not None and len(self._extra_args) > 0
-        if PY_TYPE_CHECK_EXACT(R, type):
+        if type(R) is type:
             f = getattr(math, self._op)
             if has_extra_args:
                 return f(arg, *self._extra_args)
@@ -1706,7 +1706,7 @@ cdef class LazyWrapperMorphism(Morphism):
         """
         cdef LazyWrapper e = <LazyWrapper>PY_NEW(LazyWrapper)
         e._parent = self._codomain
-        if PY_TYPE_CHECK_EXACT(x, LazyWrapper):
+        if type(x) is LazyWrapper:
             e._value = (<LazyWrapper>x)._value
         else:
             e._value = x

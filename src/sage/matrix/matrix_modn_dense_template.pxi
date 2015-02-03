@@ -504,12 +504,12 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             v = self._matrix[i]
             for j in range(self._ncols):
                 x = entries[k]
-                if PY_TYPE_CHECK_EXACT(x, int):
+                if type(x) is int:
                     tmp = (<long>x) % p
                     v[j] = tmp + (tmp<0)*p
-                elif PY_TYPE_CHECK_EXACT(x, IntegerMod_int) and (<IntegerMod_int>x)._parent is R:
+                elif type(x) is IntegerMod_int and (<IntegerMod_int>x)._parent is R:
                     v[j] = <celement>(<IntegerMod_int>x).ivalue
-                elif PY_TYPE_CHECK_EXACT(x, Integer):
+                elif type(x) is Integer:
                     if coerce:
                         v[j] = mpz_fdiv_ui((<Integer>x).value, p)
                     else:

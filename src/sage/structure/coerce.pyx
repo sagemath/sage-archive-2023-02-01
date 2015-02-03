@@ -136,7 +136,7 @@ cdef bint is_Integer(x):
     global _Integer
     if _Integer is None:
         from sage.rings.integer import Integer as _Integer
-    return PY_TYPE_CHECK_EXACT(x, _Integer) or PY_TYPE_CHECK_EXACT(x, int)
+    return type(x) is _Integer or type(x) is int
 
 cdef class CoercionModel_cache_maps(CoercionModel):
     """
@@ -977,13 +977,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 return self.canonical_coercion(x, y)
 
         # Allow coercion of 0 even if no coercion from Z
-        if is_Integer(x) and not x and not PY_TYPE_CHECK_EXACT(yp, type):
+        if is_Integer(x) and not x and type(yp) is not type:
             try:
                 return yp(0), y
             except Exception:
                 self._record_exception()
 
-        if is_Integer(y) and not y and not PY_TYPE_CHECK_EXACT(xp, type):
+        if is_Integer(y) and not y and type(xp) is not type:
             try:
                 return x, xp(0)
             except Exception:

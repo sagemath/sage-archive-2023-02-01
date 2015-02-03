@@ -5722,7 +5722,7 @@ cdef class RRtoRR(Map):
         """
         cdef RealField_class parent = <RealField_class>self._codomain
         cdef RealNumber y = empty_RealNumber(parent)
-        if PY_TYPE_CHECK_EXACT(x, RealLiteral):
+        if type(x) is RealLiteral:
             mpfr_set_str(y.value, (<RealLiteral>x).literal, (<RealLiteral>x).base, parent.rnd)
         else:
             mpfr_set(y.value, (<RealNumber>x).value, parent.rnd)

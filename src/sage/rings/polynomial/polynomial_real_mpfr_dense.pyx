@@ -113,15 +113,15 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_init2(coeffs[i], prec)
                 self._degree += 1
                 a = x[i]
-                if PY_TYPE_CHECK_EXACT(a, RealNumber):
+                if type(a) is RealNumber:
                     mpfr_set(coeffs[i], (<RealNumber>a).value, rnd)
-                elif PY_TYPE_CHECK_EXACT(a, int):
+                elif type(a) is int:
                     mpfr_set_si(coeffs[i], PyInt_AS_LONG(a), rnd)
-                elif PY_TYPE_CHECK_EXACT(a, float):
+                elif type(a) is float:
                     mpfr_set_d(coeffs[i], PyFloat_AS_DOUBLE(a), rnd)
-                elif PY_TYPE_CHECK_EXACT(a, Integer):
+                elif type(a) is Integer:
                     mpfr_set_z(coeffs[i], (<Integer>a).value, rnd)
-                elif PY_TYPE_CHECK_EXACT(a, Rational):
+                elif type(a) is Rational:
                     mpfr_set_q(coeffs[i], (<Rational>a).value, rnd)
                 else:
                     a = self._base_ring(a)

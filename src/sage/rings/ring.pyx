@@ -66,17 +66,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-from cpython.bool cimport *
-
-from types import GeneratorType
-
-from sage.misc.lazy_attribute import lazy_class_attribute
-from sage.misc.superseded import deprecation
+from sage.misc.cachefunc import cached_method
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.category_object import check_default_category
-from sage.misc.prandom import randint, randrange
+from sage.misc.prandom import randint
 from sage.categories.rings import Rings
 from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.integral_domains import IntegralDomains
@@ -1176,6 +1170,60 @@ cdef class Ring(ParentWithGens):
             M = IdealMonoid(self)
             self.__ideal_monoid = M
             return M
+
+    @cached_method
+    def epsilon(self):
+        """
+        Return the precision error of elements in this ring.
+
+        EXAMPLES::
+
+            sage: RDF.epsilon()
+            2.220446049250313e-16
+            sage: ComplexField(53).epsilon()
+            2.22044604925031e-16
+            sage: RealField(10).epsilon()
+            0.0020
+
+        For exact rings, zero is returned::
+
+            sage: ZZ.epsilon()
+            0
+
+        This also works over derived rings::
+
+            sage: RR['x'].epsilon()
+            2.22044604925031e-16
+            sage: QQ['x'].epsilon()
+            0
+
+        For the symbolic ring, there is no reasonable answer::
+
+            sage: SR.epsilon()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        one = self.one()
+        try:
+            return one.ulp()
+        except AttributeError:
+            pass
+
+        try:
+            eps = one.real().ulp()
+        except AttributeError:
+            pass
+        else:
+            return self(eps)
+
+        B = self._base
+        if B is not None and B is not self:
+            eps = self.base_ring().epsilon()
+            return self(eps)
+        if self.is_exact():
+            return self.zero()
+        raise NotImplementedError
 
 cdef class CommutativeRing(Ring):
     """

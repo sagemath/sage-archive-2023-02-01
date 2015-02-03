@@ -318,7 +318,7 @@ def lower_bound(G):
         Traceback (most recent call last):
         ...
         ValueError: The (di)graph can have at most 31 vertices.
-    
+
     """
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
@@ -515,7 +515,7 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
         3
 
     Digraphs with multiple strongly connected components::
-        
+
         sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
         sage: D = digraphs.Path(8)
         sage: print vertex_separation(D)
@@ -533,7 +533,6 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
         sage: D.add_edge(0, 8)
         sage: print vertex_separation(D)
         (3, [8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3])
-        
 
     TESTS:
 
@@ -544,7 +543,7 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
         Traceback (most recent call last):
         ...
         ValueError: Algorithm "SuperFast" has not been implemented yet. Please contribute.
-   
+
     Given anything else than a Graph or a DiGraph::
 
         sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
@@ -558,15 +557,16 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
 
     if isinstance(G, DiGraph):
 
+        # Strongly connected components:
+        #
         # We decompose the graph into strongly connected components, solve the
         # problem on each strongly connected subgraph, and order partial
         # solutions in the inverse order of the topological sort of the digraph
         # of the strongly connected components. The vertex separation is the
         # maximum over all these subgraphs.
-        scc_digraph = G.strongly_connected_components_digraph()
 
-        if scc_digraph.order()>1:
-
+        if not G.is_strongly_connected():
+            scc_digraph = G.strongly_connected_components_digraph()
             vs, L = 0, []
             for V in scc_digraph.topological_sort()[::-1]:
 
@@ -579,10 +579,11 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
                     # recursive call to get its vertex separation and
                     # corresponding ordering
                     D = G.subgraph(V)
-                    vsD,LD = vertex_separation(D, algorithm=algorithm,
-                                               cut_off=cut_off,
-                                               upper_bound=upper_bound,
-                                               verbose=verbose)
+                    vsD,LD = vertex_separation(D,
+                                               algorithm   = algorithm,
+                                               cut_off     = cut_off,
+                                               upper_bound = upper_bound,
+                                               verbose     = verbose)
 
                     if vsD==-1:
                         # We have not been able to find a solution. This case
@@ -602,7 +603,6 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
 
     elif not isinstance(G, Graph):
         raise ValueError('The parameter must be a Graph or a DiGraph.')
-
 
     if algorithm == "exponential":
         return vertex_separation_exp(G, verbose = verbose)
@@ -963,7 +963,7 @@ def width_of_path_decomposition(G, L):
         raise ValueError("The input linear vertex ordering L is not valid for G.")
 
     neighbors = G.neighbors_out if G.is_directed() else G.neighbors
-    
+
     vsL = 0
     S = set()
     neighbors_of_S_in_V_minus_S = set()
@@ -1157,7 +1157,6 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
 
     return vs, seq
 
-
 ##########################################
 # Branch and Bound for vertex separation #
 ##########################################
@@ -1241,8 +1240,8 @@ def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
         sage: vs, seq = VS.vertex_separation_BAB(G); vs
         2
 
-    The vertex separation of MycielskiGraph(5) is 10::
-    
+    The vertex separation of ``MycielskiGraph(5)`` is 10::
+
         sage: from sage.graphs.graph_decompositions import vertex_separation as VS
         sage: G = graphs.MycielskiGraph(5)
         sage: vs, seq = VS.vertex_separation_BAB(G); vs
@@ -1258,7 +1257,7 @@ def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
         10
         sage: vs, seq = VS.vertex_separation_BAB(G, cut_off=9); vs
         10
-    
+
     Testing for the existence of a solution with width strictly less than ``upper_bound``::
 
         sage: from sage.graphs.graph_decompositions import vertex_separation as VS
@@ -1323,7 +1322,7 @@ def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
     # 3*n + 2. We use another binary matrix as a pool of bitsets.
     cdef binary_matrix_t bm_pool
     binary_matrix_init(bm_pool, 3*n+2, n)
-    
+
     cdef int * prefix    = <int *>sage_malloc(n * sizeof(int))
     cdef int * positions = <int *>sage_malloc(n * sizeof(int))
     if prefix==NULL or positions==NULL:
@@ -1529,7 +1528,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
         if delta_i >= upper_bound:
             break
-        
+
         # We extend the current prefix with vertex i and explore the branch
         bitset_union(b_tmp, loc_b_pref_and_neigh,  H.rows[i])
         bitset_discard(b_tmp, i)

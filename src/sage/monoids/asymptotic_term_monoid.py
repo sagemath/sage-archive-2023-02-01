@@ -877,6 +877,43 @@ class TermWithCoefficient(GenericTerm):
         return result
 
 
+    def _le_(self, other):
+        r"""
+        Return whether the asymptotic term with coefficient ``self``
+        is of lesser or equal growth as the asymptotic term with
+        coefficient ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term with coefficient to be
+          compared to ``self``.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: PG.<x> = agg.GrowthGroupPower()
+            sage: ET = atm.ExactTermMonoid(PG, QQ)
+            sage: t1, t2, t3 = ET(x, 5), ET(x^2, 3), ET(x^2, 42)
+            sage: t1 <= t2
+            True
+            sage: t2 <= t1
+            False
+            sage: t2 <= t3
+            True
+            sage: t3 <= t2
+            False
+        """
+        if self.growth == other.growth:
+            return self.coefficient <= other.coefficient
+        else:
+            return super(TermWithCoefficient, self)._le_(other)
+
+
 class TermWithCoefficientMonoid(GenericTermMonoid):
     r"""
     This class implements the base structure for parents of

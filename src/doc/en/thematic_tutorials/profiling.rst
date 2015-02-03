@@ -69,16 +69,11 @@ further inspection::
 For more information on ``%prun``, see ``prun?`` or `this page
 <http://ipython.org/ipython-doc/dev/interactive/magics.html#magic-prun>`_.
 
-**Visualize the call graph:** you can easily save the information from ``%prun``
-to a file: ::
+**Visualize the statistics:** you can obtain a more graphical output with
+`RunSnake <http://www.vrplumber.com/programming/runsnakerun/>`_ and Sage's
+function :func:`runsnake`::
 
-  sage: import cProfile
-  sage: cProfile.run("random_prime(2**500)", filename="/tmp/profile.prof")
-
-You can now visualize it with an external software like `RunSnake
-<https://pypi.python.org/pypi/RunSnakeRun>`_::
-
-  [user@localhost ~] runsnake /tmp/profile.prof
+  sage: runsnake('random_prime(2**500)')
 
 Python-level line-by-line profiling: %lprun
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

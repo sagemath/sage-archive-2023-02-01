@@ -563,7 +563,7 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
     
     elif isinstance(G, DiGraph):
         if not G.is_strongly_connected():
-            # We decompose the graph into strongly connected components and
+            # We decompose the digraph into strongly connected components and
             # arrange them in the inverse order of the topological sort of the
             # digraph of the strongly connected components.
             scc_digraph = G.strongly_connected_components_digraph()
@@ -589,10 +589,10 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
                 # We build the (strongly) connected subgraph and do a recursive
                 # call to get its vertex separation and corresponding ordering
                 H = G.subgraph(V)
-                vsH,LH = vertex_separation(H, algorithm=algorithm,
-                                           cut_off=cut_off,
-                                           upper_bound=upper_bound,
-                                           verbose=verbose)
+                vsH,LH = vertex_separation(H, algorithm = algorithm,
+                                           cut_off      = cut_off,
+                                           upper_bound  = upper_bound,
+                                           verbose      = verbose)
 
                 if vsH==-1:
                     # We have not been able to find a solution. This case

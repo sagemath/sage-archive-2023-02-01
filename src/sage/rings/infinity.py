@@ -879,7 +879,6 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
             sage: import sympy
             sage: sympy.sympify(unsigned_infinity)
             zoo
-            sage: import sympy
             sage: gamma(-3)._sympy_() is sympy.factorial(-2)
             True
             sage: gamma(-3) is sympy.factorial(-2)._sage_()

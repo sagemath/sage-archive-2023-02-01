@@ -555,55 +555,62 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
 
-    if isinstance(G, DiGraph):
-
-        # Strongly connected components:
-        #
-        # We decompose the graph into strongly connected components, solve the
-        # problem on each strongly connected subgraph, and order partial
-        # solutions in the inverse order of the topological sort of the digraph
-        # of the strongly connected components. The vertex separation is the
-        # maximum over all these subgraphs.
-
+    CC = []
+    if isinstance(G, Graph):
+        if not G.is_connected():
+            # We decompose the graph into connected components.
+            CC = G.connected_components()
+    
+    elif isinstance(G, DiGraph):
         if not G.is_strongly_connected():
+            # We decompose the graph into strongly connected components and
+            # arrange them in the inverse order of the topological sort of the
+            # digraph of the strongly connected components.
             scc_digraph = G.strongly_connected_components_digraph()
-            vs, L = 0, []
-            for V in scc_digraph.topological_sort()[::-1]:
+            CC = scc_digraph.topological_sort()[::-1]
 
-                if len(V)==1:
-                    # We can directly add this vertex to the solution
-                    L.extend(V)
-
-                else:
-                    # We build the strongly connected subgraph and do a
-                    # recursive call to get its vertex separation and
-                    # corresponding ordering
-                    D = G.subgraph(V)
-                    vsD,LD = vertex_separation(D,
-                                               algorithm   = algorithm,
-                                               cut_off     = cut_off,
-                                               upper_bound = upper_bound,
-                                               verbose     = verbose)
-
-                    if vsD==-1:
-                        # We have not been able to find a solution. This case
-                        # happens when a too low upper bound is given.
-                        return -1, []
-
-                    # We update the vertex separation and ordering
-                    vs = max(vs, vsD)
-                    L.extend(LD)
-
-                    # We also update the cut_off parameter that could speed up
-                    # resolution for other components (used when
-                    # algorithm=="BAB")
-                    cut_off = max(cut_off, vs)
-
-            return vs, L
-
-    elif not isinstance(G, Graph):
+    else:
         raise ValueError('The parameter must be a Graph or a DiGraph.')
 
+
+    if CC:
+        # The graph has several (strongly) connected components. We solve the
+        # problem on each of them and order partial solutions in the same order
+        # than in list CC. The vertex separation is the maximum over all these
+        # subgraphs.
+        vs, L = 0, []
+        for V in CC:
+
+            if len(V)==1:
+                # We can directly add this vertex to the solution
+                L.extend(V)
+
+            else:
+                # We build the (strongly) connected subgraph and do a recursive
+                # call to get its vertex separation and corresponding ordering
+                H = G.subgraph(V)
+                vsH,LH = vertex_separation(H, algorithm=algorithm,
+                                           cut_off=cut_off,
+                                           upper_bound=upper_bound,
+                                           verbose=verbose)
+
+                if vsH==-1:
+                    # We have not been able to find a solution. This case
+                    # happens when a too low upper bound is given.
+                    return -1, []
+
+                # We update the vertex separation and ordering
+                vs = max(vs, vsH)
+                L.extend(LH)
+
+                # We also update the cut_off parameter that could speed up
+                # resolution for other components (used when algorithm=="BAB")
+                cut_off = max(cut_off, vs)
+
+        return vs, L
+
+
+    # We have a (strongly) connected graph and we call the desired algorithm
     if algorithm == "exponential":
         return vertex_separation_exp(G, verbose = verbose)
 

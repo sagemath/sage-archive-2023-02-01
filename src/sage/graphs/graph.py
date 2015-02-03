@@ -41,7 +41,7 @@ graphs.
     :widths: 30, 70
     :delim: |
 
-    :meth:`~Graph.is_AT_free` | Tests whether the current graph is asteroidal triple free.
+    :meth:`~Graph.is_asteroidal_triple_free` | Tests whether the current graph is asteroidal triple free.
     :meth:`~Graph.is_prime` | Tests whether the current graph is prime.
     :meth:`~Graph.is_split` | Returns ``True`` if the graph is a Split graph, ``False`` otherwise.
     :meth:`~Graph.is_triangle_free` | Returns whether ``self`` is triangle-free.

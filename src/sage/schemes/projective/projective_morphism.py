@@ -1159,12 +1159,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.is_morphism()
             True
         """
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        if is_ProjectiveSpace(self.domain().ambient_space()) is False or is_ProjectiveSpace(self.codomain().ambient_space()) is False:
-            raise NotImplementedError
+
         R = self.coordinate_ring()
         F = self._polys
-        defpolys = self.domain().defining_polynomials()
+        defpolys = list(self.domain().defining_polynomials())
         if R.base_ring().is_field():
             J = R.ideal(F + defpolys)
         else:

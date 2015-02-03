@@ -774,11 +774,6 @@ class AffineSpace_field(AffineSpace_generic):
             sage: A.<x,y> = AffineSpace(NumberField(u^2 - 2,'v'), 2)
             sage: len(list(A.points_of_bounded_height(6)))
             121
-
-        REFERENCES:
-
-        ..  [Doyle-Krumm] John R. Doyle and David Krumm, Computing algebraic
-            numbers of bounded height, :arxiv:`1111.4963` (2013).
         """
         if (is_RationalField(self.base_ring())):
             ftype = False # stores whether field is a number field or the rational field

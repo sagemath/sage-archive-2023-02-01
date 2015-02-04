@@ -36,6 +36,7 @@ from sage.structure.element import Element, is_InfinityElement
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
 from sage.matrix.matrix import is_Matrix
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 
 class Cusps_class(ParentWithBase):
     """
@@ -169,20 +170,7 @@ class Cusps_class(ParentWithBase):
         """
         return Cusp(0, parent=self)
 
-    def zero_element(self):
-        r"""
-        Deprecated. Use .zero() instead.
-
-        TESTS::
-
-            sage: Cusps.zero_element()
-            doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead.
-            See http://trac.sagemath.org/17694 for details.
-            0
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17694, ".zero_element() is deprecated. Use .zero() instead.")
-        return self.zero()
+    zero_element = deprecated_function_alias(17694, zero)
 
 Cusps = Cusps_class()
 

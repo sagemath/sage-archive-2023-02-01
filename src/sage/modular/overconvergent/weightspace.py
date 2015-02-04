@@ -68,6 +68,7 @@ from sage.rings.all import ZZ, QQ, divisors, IntegerModRing, Qp, Infinity
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 from sage.rings.padics.precision_error import PrecisionError
 import weakref
 
@@ -211,21 +212,7 @@ class WeightSpace_class(ParentWithBase):
         """
         return self(0)
 
-    def zero_element(self):
-        r"""
-        Deprecated. Use :meth:`zero` instead.
-
-        TESTS::
-
-            sage: W = pAdicWeightSpace(17)
-            sage: W.zero_element()
-            doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead.
-            See http://trac.sagemath.org/17694 for details.
-            0
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17694, ".zero_element() is deprecated. Use .zero() instead.")
-        return self.zero()
+    zero_element = deprecated_function_alias(17694, zero)
 
     def prime(self):
         r"""

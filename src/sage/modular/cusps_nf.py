@@ -86,6 +86,7 @@ List representatives for Gamma_0(N) - equivalence classes of cusps:
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecated_function_alias
 
 _nfcusps_cache = {}
 
@@ -373,22 +374,7 @@ class NFCuspsSpace(ParentWithBase):
         """
         return self(0)
 
-    def zero_element(self):
-        r"""
-        Deprecated. Use :meth:`zero` instead.
-
-        TESTS::
-
-             sage: k.<a> = NumberField(x^2 + 5)
-             sage: kCusps = NFCusps(k)
-             sage: kCusps.zero_element()
-             doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead.
-             See http://trac.sagemath.org/17694 for details.
-             Cusp [0: 1] of Number Field in a with defining polynomial x^2 + 5
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17694, ".zero_element() is deprecated. Use .zero() instead.")
-        return self.zero()
+    zero_element = deprecated_function_alias(17694, zero)
 
     def number_field(self):
         """

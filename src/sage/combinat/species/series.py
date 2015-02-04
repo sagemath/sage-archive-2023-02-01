@@ -34,6 +34,7 @@ from sage.rings.all import Integer
 from sage.misc.misc import prod
 from functools import partial
 from sage.misc.misc import repr_lincomb, is_iterator
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
@@ -211,8 +212,19 @@ class LazyPowerSeriesRing(Algebra):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: L.zero()
             0
+
+        TESTS:
+
+        Check that the method `zero_element` raises a warning (:trac:`17694`)::
+
+            sage: L.zero_element()
+            doctest:...: DeprecationWarning: zero_element is deprecated. Please use zero instead.
+            See http://trac.sagemath.org/17694 for details.
+            0
         """
         return self(self.base_ring().zero())
+
+    zero_element = deprecated_function_alias(17694, zero)
 
     def identity_element(self):
         """

@@ -177,6 +177,7 @@ classical) does not apply.
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.misc         import verbose
 from sage.misc.cachefunc    import cached_method
+from sage.misc.superseded   import deprecated_function_alias
 from sage.modular.all       import (DirichletGroup, trivial_character, EtaProduct,
                                     j_invariant_qexp, hecke_operator_on_qexp)
 from sage.modular.arithgroup.all import (Gamma1, is_Gamma0, is_Gamma1)
@@ -737,21 +738,7 @@ class OverconvergentModularFormsSpace(Module_old):
         """
         return self(0)
 
-    def zero_element(self):
-        r"""
-        Deprecated. Use :meth:`zero` instead.
-
-        TESTS::
-
-            sage: K.<w> = Qp(13).extension(x^2-13); M = OverconvergentModularForms(13, 20, radius=1/2, base_ring=K)
-            sage: K.zero_element()
-            doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead
-            See http://trac.sagemath.org/17694 for details.
-            0
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17694, ".zero_element() is deprecated. Use .zero() instead")
-        return self.zero()
+    zero_element = deprecated_function_alias(17694, zero)
 
     def _coerce_from_ocmf(self, f):
         r"""

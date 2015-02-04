@@ -118,12 +118,12 @@ class Monoids(CategoryWithAxiom):
 
                 sage: S = Monoids().example()
                 sage: S.one_element()
-                doctest:...: DeprecationWarning: .one() is deprecated. Please use .one() instead.
+                doctest:...: DeprecationWarning: .one_element() is deprecated. Please use .one() instead.
                 See http://trac.sagemath.org/17694 for details.
                 ''
             """
             from sage.misc.superseded import deprecation
-            deprecation(17694, ".one() is deprecated. Please use .one() instead.")
+            deprecation(17694, ".one_element() is deprecated. Please use .one() instead.")
             return self.one()
 
         def semigroup_generators(self):

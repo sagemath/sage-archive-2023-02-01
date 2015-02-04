@@ -273,6 +273,12 @@ def have_same_parent(left, right):
     Return ``True`` if and only if ``left`` and ``right`` have the
     same parent.
 
+    .. WARNING::
+
+        This function assumes that at least one of the arguments is a
+        Sage :class:`Element`. When in doubt, use the slower
+        ``parent(left) is parent(right)`` instead.
+
     EXAMPLES::
 
         sage: from sage.structure.element import have_same_parent

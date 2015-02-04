@@ -1824,7 +1824,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef Integer z = <Integer>PY_NEW(Integer)
         cdef long yy, res
-        if PY_TYPE(x) is PY_TYPE(y):
+        if type(x) is type(y):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError, "Integer division by zero"
             if mpz_size((<Integer>x).value) > 100000:
@@ -2914,7 +2914,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef long yy, res
 
         # first case: Integer % Integer
-        if PY_TYPE(x) is PY_TYPE(y):
+        if type(x) is type(y):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError, "Integer modulo by zero"
             if mpz_size((<Integer>x).value) > 100000:

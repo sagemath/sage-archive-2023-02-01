@@ -1401,7 +1401,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 #print "found1", action
                 return action
 
-        if PY_TYPE(R) == <void *>type:
+        if type(R) is type:
             sageR = py_scalar_parent(R)
             if sageR is not None:
                 action = self.discover_action(sageR, S, op, s=s)
@@ -1410,7 +1410,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                         action = PrecomposedAction(action, sageR._internal_coerce_map_from(R), None)
                     return action
 
-        if PY_TYPE(S) == <void *>type:
+        if type(S) is type:
             sageS = py_scalar_parent(S)
             if sageS is not None:
                 action = self.discover_action(R, sageS, op, r=r)

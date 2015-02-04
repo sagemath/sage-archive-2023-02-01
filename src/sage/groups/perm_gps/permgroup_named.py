@@ -546,7 +546,7 @@ class SymmetricGroup(PermutationGroup_symalt):
             Symmetric group algebra of order 4 over Rational Field
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-        return SymmetricGroupAlgebra(base_ring, len(self._domain))
+        return SymmetricGroupAlgebra(base_ring, len(self._domain), self)
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):

@@ -5888,6 +5888,19 @@ class StandardPermutations_n(Permutations):
         """
         return self.element_class(self, sample(xrange(1,self.n+1), self.n))
 
+    def algebra(self, R):
+        """
+        Return the symmetric group algebra corresponding to ``self``
+        over ``R``.
+
+        EXAMPLES::
+
+            sage: Permutations(4).algebra(QQ)
+            Symmetric group algebra of order 4 over Rational Field
+        """
+        from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
+        return SymmetricGroupAlgebra(R, self.n, self)
+
 #############################
 # Constructing Permutations #
 #############################

@@ -1275,85 +1275,77 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def is_square(self, root=False):
         """
         Returns whether or not polynomial is square. If the optional
-        argument root is True, then also returns the square root (or None,
-        if the polynomial is not square).
+        argument ``root`` is set to ``True, then also returns the square root
+        (or ``None``, if the polynomial is not square).
 
         INPUT:
-
 
         -  ``root`` - whether or not to also return a square
            root (default: False)
 
-
         OUTPUT:
-
 
         -  ``bool`` - whether or not a square
 
-        -  ``object`` - (optional) an actual square root if
+        -  ``root`` - (optional) an actual square root if
            found, and None otherwise.
 
 
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(QQ)
+            sage: (x^2 + 2*x + 1).is_square()
+            True
+            sage: (x^4 + 2*x^3 - x^2 - 2*x + 1).is_square(root=True)
+            (True, x^2 + x - 1)
+
             sage: f = 12*(x+1)^2 * (x+3)^2
-            sage: S.<y> = PolynomialRing(RR)
-            sage: g = 12*(y+1)^2 * (y+3)^2
             sage: f.is_square()
             False
             sage: f.is_square(root=True)
             (False, None)
-            sage: g.is_square()
-            True
+
             sage: h = f/3; h
             4*x^4 + 32*x^3 + 88*x^2 + 96*x + 36
             sage: h.is_square(root=True)
             (True, 2*x^2 + 8*x + 6)
 
+            sage: S.<y> = PolynomialRing(RR)
+            sage: g = 12*(y+1)^2 * (y+3)^2
+
+            sage: g.is_square()
+            True
+
         TESTS:
 
-        Make sure ticket #9093 is fixed::
+        Make sure ticket trac:`9093` is fixed::
 
             sage: R(1).is_square()
             True
-            sage: R(4/9).is_square()
-            True
+            sage: R(4/9).is_square(root=True)
+            (True, 2/3)
             sage: R(-1/3).is_square()
             False
             sage: R(0).is_square()
             True
         """
-        if self.degree() < 0:
-            if root:
-                return True, self
-            else:
-                return True
-        from sage.rings.arith import gcd
-        R = self.base_ring()
-        P = self.parent()
+        if self.is_zero():
+            return (True, self) if root else True
+
         try:
             f = self.squarefree_decomposition()
         except NotImplementedError:
             f = self.factor()
-        u = R(f.unit())
-        # are all powers in the factorization even?
-        if (gcd([a[1] for a in f])%2 == 0
-            # is the unit a square?
-            and u.is_square()):
-            # build square root
-            g = P(u.sqrt())
+
+        u = self.parent().base_ring()(f.unit())
+
+        if all(a[1]%2==0 for a in f) and u.is_square():
+            g = u.sqrt()
             for a in f:
                 g *= a[0]**(a[1]/2)
-            if root:
-                return True, g
-            else:
-                return True
+            return (True,g) if root else True
         else:
-            if root:
-                return False, None
-            else:
-                return False
+            return (False,None) if root else False
 
     def any_root(self, ring=None, degree=None, assume_squarefree=False):
         """
@@ -6826,13 +6818,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             elif selfminus.is_cyclotomic():
                 return True
 
-        # third case, we need to factorise
-        ff1 = f1.factor()
-        if len(ff1) == 1 and ff1[0][1] == 2 and ff1[0][0].is_cyclotomic():
-            return True
-
-        # otherwise not cyclotomic
-        return False
+        # third case, we need to take a square root
+        ans, ff1 = f1.is_square(True)
+        return ans and ff1.is_cyclotomic()
 
     def homogenize(self, var='h'):
         r"""

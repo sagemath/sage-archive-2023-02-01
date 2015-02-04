@@ -6710,17 +6710,27 @@ cdef class Polynomial(CommutativeAlgebraElement):
             R = R.change_ring(f.codomain())
         return R(dict([(k,f(v)) for (k,v) in self.dict().items()]))
 
-    def is_cyclotomic(self):
+    def is_cyclotomic(self, certificate=False):
         r"""
-        Return ``True`` if ``self`` is a cyclotomic polynomial.
+        Return ``True`` if ``self`` is a cyclotomic polynomial. If
+        ``certificate`` is ``True``, the result is ``0`` if ``self`` is not
+        cyclotomic, and ``n`` if ``self`` is the n-th cyclotomic polynomial.
 
         A cyclotomic polynomial is a monic, irreducible polynomial such that
         all roots are roots of unity.
+
+        TODO:
+
+        Calling ``poliscyclo()`` from libpari would be much faster. See 
+        ticket #17730. 
 
         ALGORITHM:
 
         The first cyclotomic polynomial ``x-1`` is treated apart,
         otherwise the first algorithm of [BD89]_ is used.
+
+        If ``certificate`` is ``True``, the function ``poliscyclo`` of GP is
+        called.
 
         EXAMPLES:
 
@@ -6733,6 +6743,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
             sage: (x^2 - 1).is_cyclotomic()
             False
+            sage: (x^2 + x + 1).is_cyclotomic(certificate=True)
+            3
+            sage: (x^2 - x + 1).is_cyclotomic(certificate=True)
+            0
 
         Test first 100 cyclotomic polynomials::
 
@@ -6765,6 +6779,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
            for cyclotomic polynomials, Symbolic and Algebraic Computation (1989)
            pp. 244 -- 251, :doi:`10.1007/3-540-51084-2_22`
         """
+        if certificate:
+            return self.__gp__().poliscyclo()
+
         if self.base_ring().characteristic() != 0:
             raise NotImplementedError("not implemented in non-zero characteristic")
         if self.base_ring() != ZZ:

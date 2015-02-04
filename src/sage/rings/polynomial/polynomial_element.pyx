@@ -6722,7 +6722,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         .. TODO::
 
             Calling ``poliscyclo()`` from libpari would be much faster. See
-            ticket #17730.
+            :trac:`17730`.
 
         ALGORITHM:
 

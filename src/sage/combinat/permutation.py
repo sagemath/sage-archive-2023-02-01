@@ -143,8 +143,8 @@ Below are listed all methods and classes defined in this file.
     :class:`Arrangements_msetk` |
     :class:`Arrangements_setk` |
     :class:`StandardPermutations_all` |
+    :class:`StandardPermutations_n_abstract` |
     :class:`StandardPermutations_n` |
-    :class:`GroupStandardPermutations_n` |
     :class:`StandardPermutations_descents` |
     :class:`StandardPermutations_recoilsfiner` |
     :class:`StandardPermutations_recoilsfatter` |
@@ -1291,9 +1291,6 @@ class Permutation(CombinatorialObject, Element):
         from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
         return AlternatingSignMatrix(self.to_matrix().rows())
 
-    # FIXME: This can return the wrong parent and we need to be more careful
-    #   about that. Also we should probably change this to _mul_ and use the
-    #   coercion framework for permutations.
     def __mul__(self, rp):
         """
         TESTS::
@@ -5316,6 +5313,16 @@ class Permutations_set(Permutations):
                 raise ValueError("Invalid permutation")
 
     def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+        """
+        for p in Permutations_set._fast_iter(self._set):
+            yield self.element_class(self, p)
+
+    @staticmethod
+    def _fast_iter(S):
         r"""
         Algorithm based on:
         http://marknelson.us/2002/03/01/next-permutation/
@@ -5332,12 +5339,11 @@ class Permutations_set(Permutations):
             sage: [ p for p in Permutations([])] # indirect doctest
             [[]]
         """
-        s = self._set
-        n = len(s)
-        lset = list(s)
-        set_list = sorted(map(lambda x: lset.index(x), lset))
+        n = len(S)
+        lset = list(S)
+        set_list = sorted([lset.index(x) for x in lset])
 
-        yield self.element_class(self, [lset[x] for x in set_list])
+        yield [lset[x] for x in set_list]
 
         if n <= 1:
             return
@@ -5377,7 +5383,7 @@ class Permutations_set(Permutations):
                 i -= 1
 
             #Yield the permutation
-            yield self.element_class(self, [lset[x] for x in set_list])
+            yield [lset[x] for x in set_list]
 
     def cardinality(self):
         """
@@ -5730,7 +5736,7 @@ class StandardPermutations_all(Permutations):
         """
         n = 0
         while True:
-            for p in StandardPermutations_n(n):
+            for p in Permutations_set._fast_iter(range(1, n+1)):
                 yield self.element_class(self, p)
             n += 1
 
@@ -5788,23 +5794,8 @@ class StandardPermutations_n_abstract(Permutations):
             sage: [p for p in Permutations(3)]
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
-        for p in Permutations_set(range(1,self.n+1)):
+        for p in Permutations_set._fast_iter(range(1, self.n+1)):
             yield self.element_class(self, p)
-
-    def cardinality(self):
-        """
-        Return the number of permutations of size `n`, which is `n!`.
-
-        EXAMPLES::
-
-            sage: Permutations(0).cardinality()
-            1
-            sage: Permutations(3).cardinality()
-            6
-            sage: Permutations(4).cardinality()
-            24
-        """
-        return factorial(self.n)
 
     def identity(self):
         r"""
@@ -5818,6 +5809,8 @@ class StandardPermutations_n_abstract(Permutations):
             []
         """
         return self.element_class(self, range(1,self.n+1))
+
+    one = identity
 
     def unrank(self, r):
         """
@@ -5861,24 +5854,16 @@ class StandardPermutations_n_abstract(Permutations):
         """
         return self.element_class(self, sample(xrange(1,self.n+1), self.n))
 
-    def algebra(self, R):
-        """
-        Return the symmetric group algebra corresponding to ``self``
-        over ``R``.
-
-        EXAMPLES::
-
-            sage: Permutations(4).algebra(QQ)
-            Symmetric group algebra of order 4 over Rational Field
-        """
-        from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-        return SymmetricGroupAlgebra(R, self.n, self)
-
 class StandardPermutations_n(StandardPermutations_n_abstract):
     r"""
     Permutations of the set `\{1, 2, \ldots, n\}`.
 
     These are also called permutations of size `n` or the symmetric group.
+
+    .. TODO::
+
+        Have a :meth:`reduced_word` which works in both multiplication
+        conventions.
     """
     def __init__(self, n):
         """
@@ -5886,7 +5871,10 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
         TESTS::
 
-            sage: TestSuite(Permutations(5)).run()
+            sage: P = Permutations(5)
+            sage: P.global_options(mult='r2l')
+            sage: TestSuite(P).run()
+            sage: P.global_options.reset()
         """
         cat = FiniteWeylGroups() & FiniteEnumeratedSets()
         StandardPermutations_n_abstract.__init__(self, n, category=cat)
@@ -5900,17 +5888,20 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         """
         return "Standard permutations of %s"%self.n
 
-    def one(self):
+    def cardinality(self):
         """
-        Return the identity element of ``self``.
+        Return the number of permutations of size `n`, which is `n!`.
 
         EXAMPLES::
 
-            sage: P = Permutations(5)
-            sage: P.one()
-            [1, 2, 3, 4, 5]
+            sage: Permutations(0).cardinality()
+            1
+            sage: Permutations(3).cardinality()
+            6
+            sage: Permutations(4).cardinality()
+            24
         """
-        return self.element_class(self, range(1, self.n+1))
+        return factorial(self.n)
 
     def gens(self):
         """
@@ -5947,7 +5938,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         If the size of ``nu`` is smaller than the size of permutations in
         ``self``, then some fixed points are added.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: PP = Permutations(5)
             sage: PP.element_in_conjugacy_classes([2,2])
@@ -6026,6 +6017,95 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         g[i-1] = i+1
         g[i] = i
         return self.element_class(self, g)
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Permutations(4)
+            sage: P._an_element_()
+            [1, 3, 4, 2]
+        """
+        return self.prod(self.gens())
+
+    class Element(Permutation):
+        def has_left_descent(self, i):
+            """
+            Check if ``i`` is a left descent of ``self``.
+
+            EXAMPLES::
+
+                sage: P = Permutations(4)
+                sage: x = P([3, 2, 4, 1])
+                sage: x.descents()    # This uses a different convention right now...
+                [1, 3]
+                sage: [i for i in P.index_set() if x.has_left_descent(i)]
+                [1, 3]
+            """
+            if self.parent().global_options['mult'] != 'l2r':
+                self = self.inverse()
+            return self[i-1] > self[i]
+
+        def has_right_descent(self, i):
+            """
+            Check if ``i`` is a right descent of ``self``.
+
+            EXAMPLES::
+
+                sage: P = Permutations(4)
+                sage: x = P([3, 2, 4, 1])
+                sage: (~x).descents()    # This uses a different convention right now...
+                [1, 2]
+                sage: [i for i in P.index_set() if x.has_right_descent(i)]
+                [1, 2]
+            """
+            if self.parent().global_options['mult'] != 'r2l':
+                self = self.inverse()
+            return self[i-1] > self[i]
+
+        def __mul__(self, other):
+            r"""
+            Multiply ``self`` and ``other``.
+
+            EXAMPLES::
+
+                sage: P = Permutations(4)
+                sage: P.simple_reflection(1) * Permutation([6,5,4,3,2,1])
+                [5, 6, 4, 3, 2, 1]
+            """
+            if (not isinstance(other, StandardPermutations_n.Element)
+                or self.parent() != other.parent()):
+                return Permutation.__mul__(self, other)
+            return self._mul_(other)
+
+        def _mul_(self, other):
+            r"""
+            Multiply ``self`` and ``other``.
+
+            EXAMPLES::
+
+                sage: P = Permutations(4)
+                sage: P.prod(P.gens()).parent() is P
+                True
+            """
+            p = list(Permutation.__mul__(self, other))
+            return self.__class__(self.parent(), p)
+
+        @combinatorial_map(order=2, name='inverse')
+        def inverse(self):
+            r"""
+            Return the inverse of ``self``.
+
+            EXAMPLES::
+            """
+            w = range(len(self))
+            for i,j in enumerate(self):
+                w[j-1] = i+1
+            return self.__class__(self.parent(), w)
+
+        __invert__ = inverse
 
 # This causes a crash
 #    class Element(Permutation, MultiplicativeGroupElement):
@@ -6543,7 +6623,7 @@ def descents_composition_list(dc):
          [4, 3, 5, 1, 2],
          [5, 3, 4, 1, 2]]
     """
-    return map(lambda p: p.inverse(), StandardPermutations_recoils(dc).list())
+    return [p.inverse() for p in StandardPermutations_recoils(dc)]
 
 def descents_composition_first(dc):
     r"""
@@ -7545,7 +7625,7 @@ class StandardPermutations_avoiding_132(StandardPermutations_avoiding_generic):
             return
 
         elif self.n < 3:
-            for p in StandardPermutations_n(self.n):
+            for p in Permutations_set._fast_iter(range(1, self.n+1)):
                 yield self.element_class(self, p)
             return
 
@@ -7606,12 +7686,12 @@ class StandardPermutations_avoiding_123(StandardPermutations_avoiding_generic):
             return
 
         elif self.n < 3:
-            for p in StandardPermutations_n(self.n):
+            for p in Permutations_set._fast_iter(range(1, self.n+1)):
                 yield self.element_class(self, p)
             return
 
         elif self.n == 3:
-            for p in StandardPermutations_n(self.n):
+            for p in Permutations_set._fast_iter(range(1, self.n+1)):
                 if p != [1, 2, 3]:
                     yield self.element_class(self, p)
             return

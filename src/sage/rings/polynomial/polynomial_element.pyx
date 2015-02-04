@@ -6719,10 +6719,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         A cyclotomic polynomial is a monic, irreducible polynomial such that
         all roots are roots of unity.
 
-        TODO:
+        .. TODO::
 
-        Calling ``poliscyclo()`` from libpari would be much faster. See 
-        ticket #17730. 
+            Calling ``poliscyclo()`` from libpari would be much faster. See
+            ticket #17730.
 
         ALGORITHM:
 
@@ -6745,7 +6745,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
             sage: (x^2 + x + 1).is_cyclotomic(certificate=True)
             3
-            sage: (x^2 - x + 1).is_cyclotomic(certificate=True)
+            sage: (x^2 + 2*x + 1).is_cyclotomic(certificate=True)
             0
 
         Test first 100 cyclotomic polynomials::
@@ -6779,9 +6779,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
            for cyclotomic polynomials, Symbolic and Algebraic Computation (1989)
            pp. 244 -- 251, :doi:`10.1007/3-540-51084-2_22`
         """
-        if certificate:
-            return self.__gp__().poliscyclo()
-
         if self.base_ring().characteristic() != 0:
             raise NotImplementedError("not implemented in non-zero characteristic")
         if self.base_ring() != ZZ:
@@ -6790,6 +6787,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             except TypeError:
                 return False
             return f.is_cyclotomic()
+
+        if certificate:
+            return self._gp_().poliscyclo()
 
         if not self.is_monic():
             return False

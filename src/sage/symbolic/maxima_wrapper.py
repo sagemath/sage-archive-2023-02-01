@@ -110,7 +110,9 @@ class MaximaWrapper(SageObject):
             sage: t = log(sqrt(2) - 1) + log(sqrt(2) + 1); t
             log(sqrt(2) + 1) + log(sqrt(2) - 1)
             sage: u = t.maxima_methods()
-            sage: SR(u) is t # indirect doctest
+            sage: u._symbolic_(SR) is t
+            True
+            sage: SR(u) is t  # indirect doctest
             True
         """
         return parent(self._exp)

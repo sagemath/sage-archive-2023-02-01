@@ -501,7 +501,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         Return the tensor product of ``self`` with ``crystals``.
 
         If ``crystals`` is a list of (a tensor product of) KR tableaux, this
-        returns a :class:`TensorProductOfKirillovReshetikhinTableaux`.
+        returns a
+        :class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`.
 
         EXAMPLES::
 

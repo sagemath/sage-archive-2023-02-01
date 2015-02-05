@@ -127,7 +127,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
                 for k, x in entries.iteritems():
                     w = R(x)
                     if w != 0:
-                        v[k] = w
+                        i, j = k
+                        v[(int(i),int(j))] = w
                 entries = v
             except TypeError:
                 raise TypeError, "Unable to coerce entries to %s"%R

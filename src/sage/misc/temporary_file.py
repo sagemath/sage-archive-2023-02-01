@@ -234,6 +234,11 @@ class atomic_write:
       entering the ``with`` statement. Otherwise, the temporary file is
       initially empty.
 
+    - ``mode`` -- (default: ``0o666``) mode bits for the file. The
+      temporary file is created with mode ``mode & ~umask`` and the
+      resulting file will also have these permissions (unless the
+      mode bits of the file were changed manually).
+
     EXAMPLES::
 
         sage: from sage.misc.temporary_file import atomic_write
@@ -298,6 +303,21 @@ class atomic_write:
         sage: open(target_file, "r").read()
         'Newest contents'
 
+    We check the permission bits of the new file. Note that the old
+    permissions do not matter::
+
+        sage: os.chmod(target_file, 0o600)
+        sage: _ = os.umask(0o022)
+        sage: with atomic_write(target_file) as f:
+        ....:     pass
+        sage: oct(os.stat(target_file).st_mode & 0o777)
+        '644'
+        sage: _ = os.umask(0o077)
+        sage: with atomic_write(target_file, mode=0o777) as f:
+        ....:     pass
+        sage: oct(os.stat(target_file).st_mode & 0o777)
+        '700'
+
     Test writing twice to the same target file. The outermost ``with``
     "wins"::
 
@@ -309,7 +329,7 @@ class atomic_write:
         sage: open(target_file, "r").read()
         '>>> AAA'
     """
-    def __init__(self, target_filename, append=False):
+    def __init__(self, target_filename, append=False, mode=0o666):
         """
         TESTS::
 
@@ -325,6 +345,9 @@ class atomic_write:
         self.target = os.path.realpath(target_filename)
         self.tmpdir = os.path.dirname(self.target)
         self.append = append
+        # Remove umask bits from mode
+        umask = os.umask(0); os.umask(umask)
+        self.mode = mode & (~umask)
 
     def __enter__(self):
         """
@@ -346,6 +369,7 @@ class atomic_write:
         """
         self.tempfile = tempfile.NamedTemporaryFile(dir=self.tmpdir, delete=False)
         self.tempname = self.tempfile.name
+        os.chmod(self.tempname, self.mode)
         if self.append:
             try:
                 r = open(self.target).read()
@@ -375,9 +399,12 @@ class atomic_write:
             sage: os.path.exists(tempname)
             False
         """
-        # Close the file (Python allows closing a closed file, so it's
-        # okay if the user already closed it).
-        self.tempfile.close()
+        # Flush the file contents to disk (to be safe even if the
+        # system crashes) and close the file.
+        if not self.tempfile.closed:
+            self.tempfile.flush()
+            os.fsync(self.tempfile.fileno())
+            self.tempfile.close()
 
         if exc_type is None:
             # Success: move temporary file to target file

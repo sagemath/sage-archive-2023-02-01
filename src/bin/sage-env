@@ -461,6 +461,7 @@ if [ -z "$CC" ]; then
     # See http://trac.sagemath.org/sage_trac/ticket/12820
     if [ "$SAGE_BUILD_TOOLCHAIN" = yes ] && [ "$UNAME" = Darwin ] && [ `uname -r | cut -d. -f1` -ge 11 ]; then
         CC=`which clang 2>/dev/null`
+        CXX=`which clang++ 2>/dev/null`
     fi
 fi
 if [ -z "$CC" ]; then
@@ -552,7 +553,15 @@ if [ "$LDFLAGS" = "" ]; then
     LDFLAGS=""          && export LDFLAGS
 fi
 
-if [ "$CXXFLAGS" = "" ]; then
+if [ -z "$CFLAGS" ]; then
+    unset CFLAGS
+fi
+
+if [ -z "$CXXFLAGS" ]; then
+    unset CXXFLAGS
+fi
+
+if [ -n "$CFLAGS" -a -z "$CXXFLAGS" ]; then
     export CXXFLAGS="$CFLAGS"
 fi
 

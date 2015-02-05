@@ -1,5 +1,5 @@
 r"""
-Partitions
+Integer partitions
 
 A partition `p` of a nonnegative integer `n` is a
 non-increasing list of positive integers (the *parts* of the
@@ -4921,6 +4921,114 @@ class Partitions(UniqueRepresentation, Parent):
             return len(x) == 0 or (x[-1] in NN and
                                    all(x[i] in NN and x[i] >= x[i+1] for i in xrange(len(x)-1)))
 
+    def subset(self, *args, **kwargs):
+        r"""
+        Return ``self`` if no arguments are given, otherwise raises a
+        ``ValueError``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, starting=[3,1]); P
+            Partitions of the integer 5 starting with [3, 1]
+            sage: P.subset()
+            Partitions of the integer 5 starting with [3, 1]
+            sage: P.subset(ending=[3,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid combination of arguments
+        """
+        if len(args) != 0 or len(kwargs) != 0:
+            raise ValueError("Invalid combination of arguments")
+        return self
+
+class Partitions_all(Partitions):
+    """
+    Class of all partitions.
+
+    TESTS::
+
+        sage: TestSuite( sage.combinat.partition.Partitions_all() ).run()
+    """
+
+    def __init__(self):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: P = Partitions()
+            sage: P.category()
+            Category of infinite enumerated sets
+            sage: Partitions().cardinality()
+            +Infinity
+            sage: TestSuite(P).run()
+        """
+        Partitions.__init__(self, is_infinite=True)
+
+    def subset(self, size=None, **kwargs):
+        """
+        Returns the subset of partitions of a given size and additional
+        keyword arguments.
+
+        EXAMPLES::
+
+            sage: P = Partitions()
+            sage: P.subset(4)
+            Partitions of the integer 4
+        """
+        if size is None:
+            return self
+        return Partitions(size, **kwargs)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: Partitions() # indirect doctest
+            Partitions
+        """
+        return "Partitions"
+
+    def __iter__(self):
+        """
+        An iterator for all partitions.
+
+        EXAMPLES::
+
+            sage: p = Partitions()
+            sage: it = p.__iter__()
+            sage: [it.next() for i in range(10)]
+            [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [4], [3, 1], [2, 2]]
+        """
+        n = 0
+        while True:
+            for p in ZS1_iterator(n):
+                yield self.element_class(self, p)
+            n += 1
+
+    def __reversed__(self):
+        """
+        A reversed iterator for all partitions.
+
+        This reverse iterates through partitions of fixed `n` and incrementing
+        `n` after reaching the end.
+
+        EXAMPLES::
+
+            sage: p = Partitions()
+            sage: revit = p.__reversed__()
+            sage: [revit.next() for i in range(10)]
+            [[], [1], [1, 1], [2], [1, 1, 1], [2, 1], [3], [1, 1, 1, 1], [2, 1, 1], [2, 2]]
+        """
+        n = 0
+        while True:
+            for p in reversed(list(ZS1_iterator(n))):
+                yield self.element_class(self, p)
+            n += 1
+
+
     def from_frobenius_coordinates(self, frobenius_coordinates):
         """
         Returns a partition from a pair of sequences of Frobenius coordinates.
@@ -5103,113 +5211,6 @@ class Partitions(UniqueRepresentation, Parent):
             new_w += [ w[i][j] for j in range(lq,lw)]
         new_w.sort(reverse=True)
         return self.element_class(self, [new_w[i]+i for i in range(len(new_w))])
-
-    def subset(self, *args, **kwargs):
-        r"""
-        Return ``self`` if no arguments are given, otherwise raises a
-        ``ValueError``.
-
-        EXAMPLES::
-
-            sage: P = Partitions(5, starting=[3,1]); P
-            Partitions of the integer 5 starting with [3, 1]
-            sage: P.subset()
-            Partitions of the integer 5 starting with [3, 1]
-            sage: P.subset(ending=[3,1])
-            Traceback (most recent call last):
-            ...
-            ValueError: Invalid combination of arguments
-        """
-        if len(args) != 0 or len(kwargs) != 0:
-            raise ValueError("Invalid combination of arguments")
-        return self
-
-class Partitions_all(Partitions):
-    """
-    Class of all partitions.
-
-    TESTS::
-
-        sage: TestSuite( sage.combinat.partition.Partitions_all() ).run()
-    """
-
-    def __init__(self):
-        """
-        Initialize ``self``.
-
-        TESTS::
-
-            sage: P = Partitions()
-            sage: P.category()
-            Category of infinite enumerated sets
-            sage: Partitions().cardinality()
-            +Infinity
-            sage: TestSuite(P).run()
-        """
-        Partitions.__init__(self, is_infinite=True)
-
-    def subset(self, size=None, **kwargs):
-        """
-        Returns the subset of partitions of a given size and additional
-        keyword arguments.
-
-        EXAMPLES::
-
-            sage: P = Partitions()
-            sage: P.subset(4)
-            Partitions of the integer 4
-        """
-        if size is None:
-            return self
-        return Partitions(size, **kwargs)
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        TESTS::
-
-            sage: Partitions() # indirect doctest
-            Partitions
-        """
-        return "Partitions"
-
-    def __iter__(self):
-        """
-        An iterator for all partitions.
-
-        EXAMPLES::
-
-            sage: p = Partitions()
-            sage: it = p.__iter__()
-            sage: [it.next() for i in range(10)]
-            [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [4], [3, 1], [2, 2]]
-        """
-        n = 0
-        while True:
-            for p in ZS1_iterator(n):
-                yield self.element_class(self, p)
-            n += 1
-
-    def __reversed__(self):
-        """
-        A reversed iterator for all partitions.
-
-        This reverse iterates through partitions of fixed `n` and incrementing
-        `n` after reaching the end.
-
-        EXAMPLES::
-
-            sage: p = Partitions()
-            sage: revit = p.__reversed__()
-            sage: [revit.next() for i in range(10)]
-            [[], [1], [1, 1], [2], [1, 1, 1], [2, 1], [3], [1, 1, 1, 1], [2, 1, 1], [2, 2]]
-        """
-        n = 0
-        while True:
-            for p in reversed(list(ZS1_iterator(n))):
-                yield self.element_class(self, p)
-            n += 1
 
 class Partitions_all_bounded(Partitions):
 

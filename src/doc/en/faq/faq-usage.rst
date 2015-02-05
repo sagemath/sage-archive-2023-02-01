@@ -8,25 +8,41 @@ FAQ: Using Sage
 How do I get started?
 """""""""""""""""""""
 
-You can try out Sage without downloading anything. Go to
-http://www.sagenb.org and set up a free account. If you log in, you
-will be working on a free Sage notebook server that will work
-identically to the one you get with Sage. To download a pre-built
-binary Sage distribution, visit the page
-http://www.sagemath.org/download.html and click on the link for the
-binary for your operating system. The source code of Sage is also
-available for you to download and use. Go to
-http://www.sagemath.org/download-source.html to download the tar
-archive for any release of Sage. Previous releases of Sage are
-available at http://www.sagemath.org/src-old.
+You can try out Sage without downloading anything:
 
-The Sage notebook runs within a web browser. You can run Sage in a
-browser that is not the system default. To do so, issue the following
-command ::
+* **SageMathCloud™:** Go to http://cloud.sagemath.org and set up a free
+  account.
 
-    env SAGE_BROWSER=opera /usr/bin/sage -notebook
+  If you log in, you will access to the latest version of Sage and to
+  many other software.
 
-either from the command prompt or as a menu command for Sage.
+* **Sage cell:** A "once-off" version of Sage, available for doing one
+  computation at a time. http://sagecell.sagemath.org/
+
+* **Sagenb:** some public Sage notebook server allow you to create a free
+  account.
+
+  If you log in, you will be working on a free Sage notebook server that will
+  work identically to the one you get within Sage. The server http://sagenb.org
+  is one such, though it runs an older version of Sage and is scheduled to be
+  retired in the future in favor of the SageMathCloud.
+
+To download a **pre-built binary** Sage distribution, visit
+http://sagemath.org/download.html and click on the link for the binary for your
+operating system.
+
+The **source code** of Sage is also available for you to download and use. Go to
+http://www.sagemath.org/download-source.html to download the tar archive for any
+release of Sage.
+
+The Sage notebook runs within a web browser. To start the notebook,
+issue the following command in a terminal, if ``sage`` is in your ``PATH`` ::
+
+    sage -notebook
+
+You can also run it from the command line of sage::
+
+    sage: notebook() # not tested
 
 
 What are Sage's prerequisites?
@@ -368,22 +384,6 @@ and to reload it, you would just do ::
     my_stuff = load(DATA + "my_stuff")
 
 
-I get an error from jsMath or the math symbols don't look right when displaying in the notebook.
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-If you see the error ::
-
-    It looks like jsMath failed to set up properly (error code -7). I will try to keep going, but it could get ugly.
-
-you have not installed the TeX fonts which help jsMath render
-beautiful typeset mathematics. To get the nice TeX display with
-jsMath, please download a set of fonts from here from
-http://www.math.union.edu/~dpvc/jsMath/download/jsMath-fonts.html.
-If you are on Linux/Unix, ignore the instructions on the page and just
-unzip the fonts into your ``~/.fonts`` directory. You can also install
-the ``jsmath-fonts`` package.
-
-
 Does Sage contain a function similar to Mathematica's ToCharacterCode[]?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -550,17 +550,6 @@ tracking the issue at
 so stay tuned.
 
 
-I am using Mac OS X. Where do I put the jsMath "font" directory to eliminate the red box?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-See http://www.math.union.edu/~dpvc/jsMath/download/jsMath-fonts.html
-where it says::
-
-    For Mac OS X users: download and unpack the archive, then drag
-    the fonts to your Library/Fonts folder (or to the FontBook, or
-    just double-click them and press the "install" button).
-
-
 The show command for plotting 3-D objects does not work.
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -666,6 +655,21 @@ then reboot. See
 `this page <http://www.macosxhints.com/article.php?story=20050709233920660>`_
 for more details.
 
+How do I plot the cube root (or other odd roots) for negative input?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+This is one of the most frequently asked questions.  There are several
+methods mentioned in the plot documentation, but this one is easiest::
+
+    sage: plot(sign(x)*abs(x)^(1/3),-1,1)
+    Graphics object consisting of 1 graphics primitive
+
+The *reason* this is necessary is that Sage returns complex numbers
+for odd roots of negative numbers when numerically approximated, which
+is a `standard convention <http://en.wikipedia.org/wiki/Cube_root#Complex_numbers>`_.
+
+    sage: N((-1)^(1/3))
+    0.500000000000000 + 0.866025403784439*I
 
 How do I use the bitwise XOR operator in Sage?
 """"""""""""""""""""""""""""""""""""""""""""""
@@ -702,8 +706,7 @@ Another option, which sneaks around the Sage
 preparser, is ::
 
     sage: def xor(a, b):
-    ...       return eval("%s^%s" % (a, b))
-    ...
+    ....:     return eval("%s^%s" % (a, b))
     sage: xor(3, 8)
     11
 
@@ -736,3 +739,18 @@ It is because of how functions are defined in Sage with the
 make this mistake inside of an ``if`` statement, you will get a
 ``SyntaxError`` before anything else goes wrong. So in this case,
 there is no problem.
+
+
+How do I use a different browser with the Sage notebook?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+You will need to do this from the command line.  Just run a command like this.
+
+* Linux (assuming you have Sage in ``/usr/bin``)::
+
+    env SAGE_BROWSER=opera /usr/bin/sage -notebook
+
+* Mac (assuming you are in the directory of your downloaded Sage)::
+
+    SAGE_BROWSER='open -a Firefox' ./sage -notebook
+    SAGE_BROWSER='open -a Google\ Chrome' ./sage -notebook

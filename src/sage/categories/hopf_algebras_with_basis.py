@@ -115,7 +115,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         """
         Returns an example of algebra with basis::
 
-            sage: HopfAlgebrasWithBasis(QQ[x]).example()
+            sage: HopfAlgebrasWithBasis(QQ['x']).example()
             An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Univariate Polynomial Ring in x over Rational Field
 
         An other group can be specified as optional argument::

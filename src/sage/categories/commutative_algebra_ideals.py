@@ -19,7 +19,7 @@ class CommutativeAlgebraIdeals(Category_ideal):
 
     EXAMPLES::
 
-        sage: C = CommutativeAlgebraIdeals(QQ[x])
+        sage: C = CommutativeAlgebraIdeals(QQ['x'])
         sage: C
         Category of commutative algebra ideals in Univariate Polynomial Ring in x over Rational Field
     """
@@ -47,7 +47,7 @@ class CommutativeAlgebraIdeals(Category_ideal):
 
         TESTS::
 
-            sage: TestSuite(CommutativeAlgebraIdeals(QQ[x])).run()
+            sage: TestSuite(CommutativeAlgebraIdeals(QQ['x'])).run()
         """
         # TODO: replace by ``A in CommutativeAlgebras(*)`` once a
         # suitable mantra has been implemented for this.
@@ -61,7 +61,7 @@ class CommutativeAlgebraIdeals(Category_ideal):
         """
         EXAMPLES::
 
-            sage: CommutativeAlgebraIdeals(QQ[x]).algebra()
+            sage: CommutativeAlgebraIdeals(QQ['x']).algebra()
             Univariate Polynomial Ring in x over Rational Field
         """
         return self.ambient()
@@ -70,7 +70,7 @@ class CommutativeAlgebraIdeals(Category_ideal):
         """
         EXAMPLES::
 
-            sage: CommutativeAlgebraIdeals(QQ[x]).super_categories()
+            sage: CommutativeAlgebraIdeals(QQ['x']).super_categories()
             [Category of algebra ideals in Univariate Polynomial Ring in x over Rational Field]
         """
         R = self.algebra()

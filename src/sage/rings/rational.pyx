@@ -3723,12 +3723,19 @@ cdef class Z_to_Q(Morphism):
 
         EXAMPLES::
 
-            sage: QQ.coerce_map_from(ZZ).section()
+            sage: f = QQ.coerce_map_from(ZZ).section(); f
             Generic map:
               From: Rational Field
               To:   Integer Ring
+
+        This map is a morphism in the category of sets with partial
+        maps (see :trac:`15618`)::
+
+            sage: f.parent()
+            Set of Morphisms from Rational Field to Integer Ring in Category of sets with partial maps
         """
-        return Q_to_Z(self._codomain, self.domain())
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        return Q_to_Z(self._codomain.Hom(self.domain(), category=SetsWithPartialMaps()))
 
 cdef class Q_to_Z(Map):
     r"""

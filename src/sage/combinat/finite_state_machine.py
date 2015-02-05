@@ -9022,12 +9022,17 @@ class FiniteStateMachine(SageObject):
                 'covariance': c*variable + SR(1).Order()}
 
 
-    def moments_waiting_time(self, is_zero=None, expectation_only=False):
+    def moments_waiting_time(self, test=bool, is_zero=None,
+                             expectation_only=False):
         r"""
         If ``self`` is a Markov chain, return the expectation and variance
         of the number of steps until first writing ``True``.
 
         INPUT:
+
+        - ``test`` -- (default: ``bool``) a callable deciding whether
+          an output label is to be considered True. By default, the
+          standard conversion to boolean is used.
 
         - ``is_zero`` -- (default: ``None``) a callable deciding
           whether an expression for a probability is zero. By default,
@@ -9054,8 +9059,7 @@ class FiniteStateMachine(SageObject):
         ``expectation_only=True``).
 
         Expectation and variance of the number of steps until first
-        writing ``True`` (or anything else evaluating to ``True``
-        when converted to a boolean).
+        writing ``True`` (as determined by the parameter ``test``).
 
         ALGORITHM:
 
@@ -9097,6 +9101,14 @@ class FiniteStateMachine(SageObject):
                 sage: T.moments_waiting_time(expectation_only=True)
                 2
 
+            In the following, we replace the output ``0`` by ``-1`` and
+            demonstrate the use of the parameter ``test``::
+
+                sage: T.delete_transition((0, 0, 1/2, 0))
+                sage: T.add_transition((0, 0, 1/2, -1))
+                Transition from 0 to 0: 1/2|-1
+                sage: T.moments_waiting_time(test=lambda x: x<0)
+                {'expectation': 2, 'variance': 2}
 
         #.  Make sure that the transducer is actually a Markov
             chain. Although this is checked by the code, unexpected
@@ -9329,7 +9341,8 @@ class FiniteStateMachine(SageObject):
             ....:                initial_states=[0],
             ....:                on_duplicate_transition=\
             ....:                    duplicate_transition_add_input)
-            sage: T.moments_waiting_time(lambda e: e in (p + q - 1)*R)
+            sage: T.moments_waiting_time(
+            ....:     is_zero=lambda e: e in (p + q - 1)*R)
             {'expectation': +Infinity, 'variance': +Infinity}
         """
         from sage.modules.free_module_element import vector
@@ -9354,7 +9367,7 @@ class FiniteStateMachine(SageObject):
         def entry(transition):
             word_out = transition.word_out
             if len(word_out) == 0 or (
-                len(word_out) == 1 and not word_out[0]):
+                len(word_out) == 1 and not test(word_out[0])):
                 return transition.word_in[0]
             else:
                 return 0

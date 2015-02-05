@@ -202,6 +202,7 @@ ordering with prefix `P+v`. So we can greedily extend the prefix with vertices
 satisfying the conditions which results in a significant reduction of the search
 space.
 
+
 **The algorithm:**
 
 Given the current prefix `P` and the current upper bound `UB` (either an input
@@ -220,6 +221,19 @@ steps:
 
 If a lower bound is passed to the algorithm, it will stop as soon as a solution
 with cost equal to that lower bound is found.
+
+
+**Storing prefixes**
+
+If for a prefix `P\in {\cal L}(S)` we have `c(P)<\min_{L\in{\cal L}_P(V)} c(L)`,
+then no prefix `P'\in \in {\cal L}(S)` can lead to a better solution. Also, the
+branch-and-bound algorithm should avoid visiting branches starting with such a
+prefix `P'`. To do so, we store in a table for each visited branch starting with
+prefix `P` a couple `(b, c(P))`, where `b==True` if `c(P)<\min_{L\in{\cal
+L}_P(V)} c(L)` and `b==False` otherwise. See [CMN14]_ for more details.
+
+Since the table can have very large size, users are allowed to control the
+maximum length and the maximum number of stored prefixes.
 
 
 REFERENCES
@@ -364,7 +378,8 @@ def lower_bound(G):
 # Front end methods for path decomposition and vertex separation #
 ##################################################################
 
-def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, verbose = False):
+def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, verbose = False,
+                      enable_prefix_storage=True, max_prefix_length=20, max_prefix_number=10**6):
     r"""
     Returns the pathwidth of the given graph and the ordering of the vertices
     resulting in a corresponding path decomposition.
@@ -401,6 +416,20 @@ def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, ver
 
     - ``verbose`` (boolean) -- whether to display information on the
       computations.
+
+    - ``enable_prefix_storage`` -- (default: ``True``) enable to store
+      prefixes. This helps reducing the number of visited branches of the
+      branch-and-bound tree and so reducing the overall computation
+      time. However, it may requires significant more memory space to store all
+      prefixes. This parameter is used only when ``algorithm=="BAB"``.
+
+    - ``max_prefix_length`` -- (default: 20) limits the length of the stored
+      prefixes to prevent storing too many prefixes. This parameter is used only
+      when ``algorithm=="BAB"`` and ``enable_prefix_storage==True``.
+
+    - ``max_prefix_number`` -- (default: 10**6) upper bound on the number of
+      stored prefixes used to prevent using too much memory. This parameter is
+      used only when ``algorithm=="BAB"`` and ``enable_prefix_storage==True``.
 
     OUTPUT:
 
@@ -451,7 +480,8 @@ def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, ver
                              upper_bound=upper_bound, verbose=verbose)
 
 
-def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verbose = False):
+def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verbose = False,
+                      enable_prefix_storage=True, max_prefix_length=20, max_prefix_number=10**6):
     r"""
     Returns an optimal ordering of the vertices and its cost for
     vertex-separation.
@@ -488,6 +518,20 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
 
     - ``verbose`` (boolean) -- whether to display information on the
       computations.
+
+    - ``enable_prefix_storage`` -- (default: ``True``) enable to store
+      prefixes. This helps reducing the number of visited branches of the
+      branch-and-bound tree and so reducing the overall computation
+      time. However, it may requires significant more memory space to store all
+      prefixes. This parameter is used only when ``algorithm=="BAB"``.
+
+    - ``max_prefix_length`` -- (default: 20) limits the length of the stored
+      prefixes to prevent storing too many prefixes. This parameter is used only
+      when ``algorithm=="BAB"`` and ``enable_prefix_storage==True``.
+
+    - ``max_prefix_number`` -- (default: 10**6) upper bound on the number of
+      stored prefixes used to prevent using too much memory. This parameter is
+      used only when ``algorithm=="BAB"`` and ``enable_prefix_storage==True``.
 
     OUTPUT:
 
@@ -1009,7 +1053,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     documentation <sage.graphs.graph_decompositions.vertex_separation>` for more
     details on this MILP formulation.
 
-    INPUTS:
+    INPUT:
 
     - ``G`` -- a Graph or a DiGraph
 
@@ -1168,7 +1212,13 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
 # Branch and Bound for vertex separation #
 ##########################################
 
-def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
+def vertex_separation_BAB(G,
+                          cut_off               = None,
+                          upper_bound           = None,
+                          enable_prefix_storage = True,
+                          max_prefix_length     = 20,
+                          max_prefix_number     = 10**6,
+                          verbose               = False):
     r"""
     Branch and Bound algorithm for the vertex separation.
 
@@ -1178,7 +1228,7 @@ def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
     DiGraph. See the documentation of the
     :mod:`~sage.graphs.graph_decompositions.vertex_separation` module.
 
-    INPUTS:
+    INPUT:
 
     - ``G`` -- a Graph or a DiGraph.
 
@@ -1193,7 +1243,23 @@ def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
       However, if the given upper bound is too low, the algorithm may not be
       able to find a solution.
 
-    OUTPUTS:
+    - ``enable_prefix_storage`` -- (default: ``True``) enable to store
+      prefixes. This helps reducing the number of visited branches of the
+      branch-and-bound tree and so reducing the overall computation
+      time. However, it may requires significant more memory space to store all
+      prefixes.
+
+    - ``max_prefix_length`` -- (default: 20) limits the length of the stored
+      prefixes to prevent storing too many prefixes. This parameter is used only
+      when ``enable_prefix_storage==True``.
+
+    - ``max_prefix_number`` -- (default: 10**6) upper bound on the number of
+      stored prefixes used to prevent using too much memory. This parameter is
+      used only when ``enable_prefix_storage==True``.
+
+    - ``verbose`` -- (default: False) display some information when set to True.
+
+    OUTPUT:
 
     - ``width`` -- the computed vertex separation
 
@@ -1276,6 +1342,19 @@ def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
         sage: vs, seq = VS.vertex_separation_BAB(G, cut_off=11, upper_bound=10); vs
         -1
 
+    Changing the parameters of the prefix storage::
+
+        sage: from sage.graphs.graph_decompositions import vertex_separation as VS
+        sage: G = graphs.MycielskiGraph(5)
+        sage: vs, seq = VS.vertex_separation_BAB(G, enable_prefix_storage=False); vs
+        10
+        sage: vs, seq = VS.vertex_separation_BAB(G, enable_prefix_storage=True); vs
+        10
+        sage: vs, seq = VS.vertex_separation_BAB(G, enable_prefix_storage=True, max_prefix_length=3); vs
+        10
+        sage: vs, seq = VS.vertex_separation_BAB(G, enable_prefix_storage=True, max_prefix_number=5); vs
+        10
+
     TESTS:
 
     Giving anything else than a Graph or a DiGraph::
@@ -1346,6 +1425,9 @@ def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
 
     cdef int width = upper_bound
     cdef list order = list()
+    cdef PrefixStorage PS = PrefixStorage(enable_prefix_storage = enable_prefix_storage,
+                                          max_prefix_length     = max_prefix_length,
+                                          max_prefix_number     = max_prefix_number)
 
     try:
         # ==> Call the cython method
@@ -1361,7 +1443,9 @@ def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
                                         cut_off                   = cut_off,
                                         upper_bound               = upper_bound,
                                         current_cost              = 0,
-                                        bm_pool                   = bm_pool )
+                                        bm_pool                   = bm_pool,
+                                        PS                        = PS,
+                                        verbose                   = verbose)
 
         sig_off()
 
@@ -1369,6 +1453,8 @@ def vertex_separation_BAB(G, cut_off=None, upper_bound=None):
         order = [int_to_vertex[best_seq[i]] for i in range(n)]
 
     finally:
+        if verbose:
+            print 'Stored prefixes: {}'.format(len(PS))
         sage_free(prefix)
         sage_free(positions)
         binary_matrix_free(H)
@@ -1397,11 +1483,13 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
                                  int             cut_off,
                                  int             upper_bound,
                                  int             current_cost,
-                                 binary_matrix_t bm_pool):
+                                 binary_matrix_t bm_pool,
+                                 PrefixStorage   PS,
+                                 bint            verbose):
     r"""
     Branch and Bound algorithm for the process number and the vertex separation.
 
-    INPUTS:
+    INPUT:
 
     - ``H`` -- a binary matrix storing the adjacency of the (di)graph
 
@@ -1437,8 +1525,15 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
       ``n``. Each rows is a bitset of size ``n``. This data structure is used as
       a pool of initialized bitsets. Each call of this method needs 3 bitsets
       for local operations, so it uses rows ``[3*level,3*level+2]``.
+
+    - ``PS`` -- an object of class PrefixStorage used to store prefixes.
+
+    - ``verbose`` -- (default: False) display some information when set to True.
     """
     cdef int i
+
+    if PS.is_known_prefix(prefix, level, current_cost):
+        return upper_bound
 
     # ==> Test termination
 
@@ -1446,6 +1541,8 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
         if current_cost < upper_bound:
             for i in range(n):
                 best_seq[i] = prefix[i]
+            if verbose:
+                print "New upper bound: {}".format(current_cost)
 
         return current_cost
 
@@ -1507,6 +1604,8 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
         if current_cost < upper_bound:
             for i in range(n):
                 best_seq[i] = prefix[i]
+            if verbose:
+                print "New upper bound: {}".format(current_cost)
 
         return current_cost
 
@@ -1528,7 +1627,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
 
     # ==> Recursion
-
+    cdef bint is_improved = False
     for delta_i, i in delta:
 
         delta_i = max(current_cost, delta_i)
@@ -1553,14 +1652,113 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
                                          cut_off                   = cut_off,
                                          upper_bound               = upper_bound,
                                          current_cost              = delta_i,
-                                         bm_pool                   = bm_pool )
+                                         bm_pool                   = bm_pool,
+                                         PS                        = PS,
+                                         verbose                   = verbose )
 
         bitset_discard(loc_b_prefix, i)
 
         if cost_i < upper_bound:
             upper_bound = cost_i
+            is_improved = True
+            if verbose:
+                print "New upper bound: {}".format(current_cost)
             if upper_bound <= cut_off:
                 # We are satisfied with current solution.
                 break
 
+    PS.update(prefix, level, current_cost, upper_bound, is_improved)
+
     return upper_bound
+
+#===============================================================================
+#===== Prefix Storage for BAB ==================================================
+#===============================================================================
+
+cdef class PrefixStorage:
+    cdef int max_prefix_length
+    cdef int max_prefix_number
+    cdef int current_prefix_number
+    cdef dict PT
+    cdef bint is_on
+
+    def __init__(self, bint enable_prefix_storage=True, int max_prefix_length=4, int max_prefix_number=10**6):
+        """
+        """
+        self.is_on = enable_prefix_storage
+        self.max_prefix_length = max_prefix_length
+        self.max_prefix_number = max_prefix_number
+        self.PT = dict()
+        self.current_prefix_number = 0
+
+    def __dealloc__(self):
+        """
+        """
+
+    def __len__(self):
+        return self.current_prefix_number
+
+    cdef turn_on(self):
+        """
+        """
+        self.is_on = True
+
+    cdef turn_off(self):
+        """
+        """
+        self.is_on = False
+
+
+    cdef bint is_known_prefix(self, int *prefix, int size, int cost):
+        """
+        Return True if the prefix is already stored and that branches starting
+        with a prefix on the same set of vertices cannot leat to better
+        solutions.
+ 
+        Let S=V(prefix) be the vertices in 'prefix'. We have |S|=='size'.
+
+        If S is already in self.PT, it means that a prefix P such that S==V(P)
+        has already been tested. Let b and c(P) be the values recorded for P.
+
+        If 'cost' <= c(P), we cannot find a better solution starting with
+        'prefix'. We return True to stop the exploration for this prefix.
+
+        If b==True, it means that any ordering starting with a prefix P' such
+        that S==V(P') has a cost strictly larger than c(P). Therefore, there is
+        no need to explore the branch. We return True.
+
+        If b==False, it means that the best ordering starting with prefix P that
+        we have found so far has cost <= c(P). It is therefore possible that
+        another ordering of the vertices in S may lead to a better solution.
+
+        Now, if S is not in self.PT, we record the values [True, 'cost']. The
+        value of b may later be changed to False, at the end of the exploration
+        of the branch with prefix prefix, if the best found solution has cost
+        'cost'.
+        """
+        if not self.is_on or size<1 or size>self.max_prefix_length:
+            return False
+
+        cdef int i
+        cdef frozenset my_prefix = frozenset([prefix[i] for i in range(size)])
+
+        if my_prefix in self.PT:
+            return self.PT[my_prefix][0]
+
+        return False
+
+
+    cdef update(self, int *prefix, int size, int cost, int upper_bound, bint is_improved):
+        """
+        This method updates the value b stored for the vertices in 'prefix'.
+ 
+        We set b to False if the upper_bound has been improved and is now equal
+        to c('prefix'). In such a case, other prefixes on the same set
+        S=V('prefix') of vertices may lead to a better solution. Otherwise, we
+        set b to True, indicating that no better solution can be found with
+        another prefix P such that V(P)==S.
+        """
+        cdef int i
+        if self.is_on:
+
+            self.PT[ frozenset(prefix[i] for i in range(size)) ] = [not (is_improved and cost==upper_bound), cost]

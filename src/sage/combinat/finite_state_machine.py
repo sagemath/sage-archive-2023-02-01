@@ -9029,13 +9029,15 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``is_zero`` -- by default (``is_zero==None``), checking for
-          zero is simply done by
+        - ``is_zero`` -- (default: ``None``) a callable deciding
+          whether an expression for a probability is zero. By default,
+          checking for zero is simply done by
           :meth:`~sage.structure.element.Element.is_zero`.  This
           parameter can be used to provide a more sophisticated check
           for zero, e.g. in the case of symbolic probabilities, see
           the examples below. This parameter is passed on to
-          :meth:`is_Markov_chain`.
+          :meth:`is_Markov_chain`. This parameter only affects the
+          input of the Markov chain.
 
         - ``expectation_only`` -- (default: ``False``) if set, the
           variance is not computed (in order to save time). By default,

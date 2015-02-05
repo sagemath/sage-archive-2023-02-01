@@ -1532,7 +1532,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     """
     cdef int i
 
-    if PS.is_known_prefix(prefix, level, current_cost):
+    if PS.is_known_prefix(prefix, level):
         return upper_bound
 
     # ==> Test termination
@@ -1654,7 +1654,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
                                          current_cost              = delta_i,
                                          bm_pool                   = bm_pool,
                                          PS                        = PS,
-                                         verbose                   = verbose )
+                                         verbose                   = verbose)
 
         bitset_discard(loc_b_prefix, i)
 
@@ -1709,19 +1709,16 @@ cdef class PrefixStorage:
         self.is_on = False
 
 
-    cdef bint is_known_prefix(self, int *prefix, int size, int cost):
+    cdef bint is_known_prefix(self, int *prefix, int size):
         """
         Return True if the prefix is already stored and that branches starting
         with a prefix on the same set of vertices cannot leat to better
-        solutions.
+        solutions. Otherwise return False.
  
         Let S=V(prefix) be the vertices in 'prefix'. We have |S|=='size'.
 
         If S is already in self.PT, it means that a prefix P such that S==V(P)
         has already been tested. Let b and c(P) be the values recorded for P.
-
-        If 'cost' <= c(P), we cannot find a better solution starting with
-        'prefix'. We return True to stop the exploration for this prefix.
 
         If b==True, it means that any ordering starting with a prefix P' such
         that S==V(P') has a cost strictly larger than c(P). Therefore, there is
@@ -1731,10 +1728,7 @@ cdef class PrefixStorage:
         we have found so far has cost <= c(P). It is therefore possible that
         another ordering of the vertices in S may lead to a better solution.
 
-        Now, if S is not in self.PT, we record the values [True, 'cost']. The
-        value of b may later be changed to False, at the end of the exploration
-        of the branch with prefix prefix, if the best found solution has cost
-        'cost'.
+        Now, if S is not in self.PT, we return False.
         """
         if not self.is_on or size<1 or size>self.max_prefix_length:
             return False

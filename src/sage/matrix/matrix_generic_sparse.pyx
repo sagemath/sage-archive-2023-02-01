@@ -117,6 +117,31 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
     def __init__(self, parent, entries=None, coerce=True, copy=True):
         r"""
+        Create a sparse matrix over the given base ring.
+
+        INPUT:
+
+        - ``parent`` -- a matrix space
+
+        - ``entries`` -- * a Python dictionary whose items have the
+                           form ``(i, j): x``, where ``0 <= i < nrows``,
+                           ``0 <= j < ncols``, and ``x`` is coercible to
+                           an integer.  The ``i,j`` entry of ``self`` is
+                           set to ``x``.  The ``x``'s can be ``0``.
+                         * Alternatively, entries can be a list of *all*
+                           the entries of the sparse matrix, read
+                           row-by-row from top to bottom (so they would
+                           be mostly 0).
+
+        - ``coerce`` (default: ``True``) -- whether the entries
+          should be coerced into the base ring before being
+          entered into the matrix
+
+        - ``copy`` (default: ``True``) -- whether the list or
+          dictionary ``entries`` (not the single entries
+          themselves!) should be copied before being
+          entered into the matrix
+
         TESTS::
 
             sage: R.<a> = PolynomialRing(ZZ,'a')
@@ -163,6 +188,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             [0 0]
             [0 1]
         """
+        cdef Py_ssize_t i, j
+        matrix.Matrix.__init__(self, parent)
         matrix.Matrix.__init__(self, parent)
         R = self._base_ring
         self._zero = R.zero_element()

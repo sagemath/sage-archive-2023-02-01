@@ -138,10 +138,10 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     assert(n>0)
 
     try:
-        m = len(F)
+        len(F)
     except AttributeError:
         F = F.gens()
-        m = len(F)
+        len(F)
 
     P = iter(F).next().parent()
     K = P.base_ring()
@@ -159,7 +159,7 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
 
     if not isinstance(solver, SatSolver):
         solver_kwds = {}
-        for k,v in kwds.iteritems():
+        for k, v in kwds.iteritems():
             if k.startswith("s_"):
                 solver_kwds[k[2:]] = v
 
@@ -172,14 +172,14 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
 
     if not isinstance(converter, ANF2CNFConverter):
         converter_kwds = {}
-        for k,v in kwds.iteritems():
+        for k, v in kwds.iteritems():
             if k.startswith("c_"):
                 converter_kwds[k[2:]] = v
 
         converter = converter(solver, P, **converter_kwds)
 
     phi = converter(F)
-    rho = dict( (phi[i],i) for i in range(len(phi)) )
+    rho = dict((phi[i], i) for i in range(len(phi)))
 
     S = []
 
@@ -187,25 +187,25 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
         s = solver()
 
         if s:
-            S.append( dict( (x, K(s[rho[x]])) for x in target_variables ) )
+            S.append(dict((x, K(s[rho[x]])) for x in target_variables))
 
             if n is not None and len(S) == n:
                 break
 
-            exclude_solution = tuple(-rho[x]  if s[rho[x]] else rho[x] for x in target_variables)
+            exclude_solution = tuple(-rho[x] if s[rho[x]] else rho[x] for x in target_variables)
             solver.add_clause(exclude_solution)
 
         else:
             try:
                 learnt = solver.learnt_clauses(unitary_only=True)
                 if learnt:
-                    S.append( dict((phi[abs(i)-1],K(i<0)) for i in learnt) )
+                    S.append(dict((phi[abs(i)-1], K(i<0)) for i in learnt))
                 else:
-                    S.append( s )
+                    S.append(s)
                     break
             except (AttributeError, NotImplementedError):
                 # solver does not support recovering learnt clauses
-                S.append( s )
+                S.append(s)
                 break
 
     if len(S) == 1:
@@ -216,6 +216,7 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     elif S[-1] is False:
             return S[0:-1]
     return S
+
 
 def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=False, **kwds):
     """
@@ -295,10 +296,10 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
         []
     """
     try:
-        m = len(F)
+        len(F)
     except AttributeError:
         F = F.gens()
-        m = len(F)
+        len(F)
 
     P = iter(F).next().parent()
     K = P.base_ring()
@@ -309,7 +310,7 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
         from sage.sat.solvers.cryptominisat import CryptoMiniSat as solver
 
     solver_kwds = {}
-    for k,v in kwds.iteritems():
+    for k, v in kwds.iteritems():
         if k.startswith("s_"):
             solver_kwds[k[2:]] = v
 
@@ -321,15 +322,14 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
         from sage.sat.converters.polybori import CNFEncoder as converter
 
     converter_kwds = {}
-    for k,v in kwds.iteritems():
+    for k, v in kwds.iteritems():
         if k.startswith("c_"):
             converter_kwds[k[2:]] = v
 
     converter = converter(solver, P, **converter_kwds)
 
-
     phi = converter(F)
-    rho = dict( (phi[i],i) for i in range(len(phi)) )
+    rho = dict((phi[i], i) for i in range(len(phi)))
 
     s = solver()
 
@@ -340,7 +340,7 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
         for c in solver.learnt_clauses():
             if len(c) <= max_learnt_length:
                 try:
-                    learnt.append( converter.to_polynomial(c) )
+                    learnt.append(converter.to_polynomial(c))
                 except (ValueError, NotImplementedError, AttributeError):
                     # the solver might have learnt clauses that contain CNF
                     # variables which have no correspondence to variables in our
@@ -352,4 +352,3 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
     if interreduction:
         learnt = learnt.ideal().interreduced_basis()
     return learnt
-

@@ -17,7 +17,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.structure.element import AlgebraElement, get_coercion_model
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 from copy import copy
 import operator
 from sage.categories.rings import Rings

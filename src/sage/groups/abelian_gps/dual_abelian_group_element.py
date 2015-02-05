@@ -57,7 +57,6 @@ from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.rings.arith import *
 from sage.misc.misc import prod
-from sage.misc.functional import exp
 from sage.rings.complex_field import is_ComplexField
 from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
 from functools import reduce
@@ -162,7 +161,7 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
             from sage.symbolic.constants import pi
             I = F.gen()
             PI = F(pi)
-            ans = prod([exp(2*PI*I*expsX[i]*expsg[i]/order[i]) for i in range(len(expsX))])
+            ans = prod([(2*PI*I*expsX[i]*expsg[i]/order[i]).exp() for i in range(len(expsX))])
             return ans
         ans = F(1)  ## assumes F is the cyclotomic field
         zeta = F.gen()

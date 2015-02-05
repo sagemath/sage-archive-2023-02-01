@@ -15,6 +15,7 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 from cpython.int cimport *
 from cpython.number cimport *
+from sage.structure.element cimport parent_c
 include "coerce.pxi"
 
 from coerce_exceptions import CoercionException

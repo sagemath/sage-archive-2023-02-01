@@ -41,7 +41,6 @@ Basic arithmetic with c-integers.
 
 # The int definitions
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/libs/pari/decl.pxi"
 

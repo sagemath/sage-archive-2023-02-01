@@ -667,7 +667,7 @@ class A000009(SloaneSequence):
         while True:
             k += 1
             p *= (1+x**k)
-            yield ZZ(p.coeffs()[k])
+            yield ZZ(p.coefficients(sparse=False)[k])
 
     def _precompute(self, how_many=50):
         """

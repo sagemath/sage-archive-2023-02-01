@@ -319,7 +319,7 @@ We can now calculate the next terms::
 
 or calculate, more or less instantaneously, the 100-th coefficient::
 
-    sage: C.series(z, 101).coeff(z,100)
+    sage: C.series(z, 101).coefficient(z,100)
     227508830794229349661819540395688853956041682601541047340
 
 It is unfortunate to have to recalculate everything if at some point we

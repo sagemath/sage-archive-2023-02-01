@@ -1021,19 +1021,6 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         mpfr_set (y.value, self.value.im, (<RealField_class>y._parent).rnd)
         return y
 
-    def parent(self):
-        """
-        Return the complex field containing the number.
-
-        EXAMPLES::
-
-            sage: C = MPComplexField()
-            sage: a = C(1.2456, 987.654)
-            sage: a.parent()
-            Complex Field with 53 bits of precision
-        """
-        return self._parent
-
     def str(self, int base=10, int truncate=True):
         """
         Return a string of ``self``.

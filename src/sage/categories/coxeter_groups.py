@@ -18,7 +18,7 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.groups import Groups
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 from sage.misc.flatten import flatten
 from copy import copy
 

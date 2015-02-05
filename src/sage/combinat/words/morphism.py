@@ -2829,7 +2829,7 @@ class WordMorphism(SageObject):
             I = [self.domain().alphabet().rank(letter)]
 
         last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coeffs()
+        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
         while coefs[last_coef] == 0:
             last_coef += 1
         V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)
@@ -2855,7 +2855,7 @@ class WordMorphism(SageObject):
         if self.is_primitive():
             return self.domain().alphabet().list()
         last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coeffs()
+        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
         while coefs[last_coef] == 0:
             last_coef += 1
         V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)

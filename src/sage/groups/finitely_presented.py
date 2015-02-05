@@ -128,6 +128,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+import types
 
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
@@ -146,6 +147,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.functions.generalized import sign
 from sage.matrix.constructor import matrix
+from sage.groups.generic import structure_description
 
 class FinitelyPresentedGroupElement(FreeGroupElement):
     """
@@ -1479,3 +1481,4 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         """
         return RewritingSystem(self)
 
+FinitelyPresentedGroup.structure_description = types.MethodType(structure_description, None, FinitelyPresentedGroup)

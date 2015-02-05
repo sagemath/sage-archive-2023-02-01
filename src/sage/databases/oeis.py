@@ -10,7 +10,9 @@ order to:
 
 AUTHORS:
 
-    - Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
+- Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
+
+- Vincent Delecroix (2014): modifies continued fractions because of trac:`14567`
 
 EXAMPLES::
 
@@ -95,7 +97,7 @@ primes ?
 ::
 
     sage: x = var('x') ; f(x) = e^(e^x - 1)
-    sage: L = [a*factorial(b) for a,b in taylor(f(x), x, 0, 20).coeffs()] ; L
+    sage: L = [a*factorial(b) for a,b in taylor(f(x), x, 0, 20).coefficients()] ; L
     [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147, 115975, 678570, 4213597,
     27644437, 190899322, 1382958545, 10480142147, 82864869804, 682076806159,
     5832742205057, 51724158235372]
@@ -928,7 +930,7 @@ class OEISSequence(SageObject):
 
             sage: s = oeis._imaginary_sequence('nonn,cofr')
             sage: s.natural_object().parent()
-            Field of all continued fractions
+            QQ as continued fractions
 
             sage: s = oeis._imaginary_sequence('nonn')
             sage: s.natural_object().parent()

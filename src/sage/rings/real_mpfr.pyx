@@ -1769,19 +1769,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return ZZ(0)
 
-    def parent(self):
-        """
-        Return the parent of ``self``.
-
-        EXAMPLES::
-
-            sage: R = RealField()
-            sage: a = R('1.2456')
-            sage: a.parent()
-            Real Field with 53 bits of precision
-        """
-        return self._parent
-
     def str(self, int base=10, no_sci=None, e=None, int truncate=1, bint skip_zeroes=0):
         """
         Return a string representation of ``self``.
@@ -3156,7 +3143,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpf('-1.5')
         """
         if prec is not None:
-            return self.n(prec=prec)._mpmath_()
+            return RealField(prec)(self)._mpmath_()
         from sage.libs.mpmath.all import make_mpf
         return make_mpf(mpfr_to_mpfval(self.value))
 
@@ -3769,7 +3756,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def is_integer(self):
         """
-        Return ``True`` if this number is a integer
+        Return ``True`` if this number is a integer.
 
         EXAMPLES::
         
@@ -3778,7 +3765,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(0.1).is_integer()
             False
         """
-        return self in ZZ
+        return mpfr_integer_p(self.value) != 0
 
     def __nonzero__(self):
         """
@@ -4991,23 +4978,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_off()
         return x
 
-    def lngamma(self):
-        r"""
-        This method is deprecated, please use :meth:`.log_gamma` instead.
-
-        See the :meth:`.log_gamma` method for documentation and examples.
-
-        EXAMPLES::
-
-            sage: RR(6).lngamma()
-            doctest:...: DeprecationWarning: The method lngamma() is deprecated. Use log_gamma() instead.
-            See http://trac.sagemath.org/6992 for details.
-            4.78749174278205
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
-        return self.log_gamma()
-
     def log_gamma(self):
         """
         Return the logarithm of gamma of ``self``.
@@ -5413,6 +5383,47 @@ cdef class RealLiteral(RealNumber):
             return RealLiteral(self._parent, self.literal[1:], self.base)
         else:
             return RealLiteral(self._parent, '-'+self.literal, self.base)
+
+    def _numerical_approx(self, prec=53, algorithm=None):
+        """
+        Convert ``self`` to a ``RealField`` with ``prec`` bits of
+        precision.
+
+        INPUT:
+
+        - ``prec`` -- (default: 53) a precision in bits
+
+        - ``algorithm`` -- ignored
+
+        OUTPUT:
+
+        A ``RealNumber`` with ``prec`` bits of precision.
+
+        EXAMPLES::
+
+            sage: (1.3)._numerical_approx()
+            1.30000000000000
+            sage: n(1.3, 120)
+            1.3000000000000000000000000000000000
+
+        Compare with::
+
+            sage: RealField(120)(RR(13/10))
+            1.3000000000000000444089209850062616
+            sage: n(RR(13/10), 120)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot approximate to a precision of 120 bits, use at most 53 bits
+
+        The result is a non-literal::
+
+            sage: type(1.3)
+            <type 'sage.rings.real_mpfr.RealLiteral'>
+            sage: type(n(1.3))
+            <type 'sage.rings.real_mpfr.RealNumber'>
+        """
+        return RealField(prec)(self.literal)
+
 
 RR = RealField()
 

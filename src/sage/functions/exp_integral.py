@@ -42,21 +42,18 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2011 Benjamin Jones <benjaminfjones@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import division
+
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
-from sage.structure.coerce import parent
+from sage.structure.all import parent
 from sage.libs.mpmath import utils as mpmath_utils
 mpmath_utils_call = mpmath_utils.call # eliminate some overhead in _evalf_
 
@@ -175,9 +172,15 @@ class Function_exp_integral_e(BuiltinFunction):
             exp_integral_e(1.00000000000000, x)
             sage: exp_integral_e(x, 1.0)
             exp_integral_e(x, 1.00000000000000)
-            sage: exp_integral_e(1.0, 1.0)
-            0.219383934395520
+            sage: exp_integral_e(3, 0)
+            1/2
 
+        TESTS:
+
+        Check that Python ints work (:trac:`14766`)::
+
+            sage: exp_integral_e(int(3), 0)
+            0.5
         """
         z_zero = False
         # special case: z == 0 and n > 1
@@ -212,6 +215,8 @@ class Function_exp_integral_e(BuiltinFunction):
         """
         EXAMPLES::
 
+            sage: exp_integral_e(1.0, 1.0)
+            0.219383934395520
             sage: N(exp_integral_e(1, 1+I))
             0.000281624451981418 - 0.179324535039359*I
             sage: exp_integral_e(1, RealField(100)(1))
@@ -952,8 +957,8 @@ class Function_cos_integral(BuiltinFunction):
 
             sage: N(cos_integral(1e23)) < 1e-20
             True
-            sage: N(cos_integral(1e-10), digits=30)
-            -22.4486352650389235918737540487
+            sage: N(cos_integral(10^-10), digits=30)
+            -22.4486352650389239795759024568
             sage: cos_integral(ComplexField(100)(I))
             0.83786694098020824089467857943 + 1.5707963267948966192313216916*I
 
@@ -1102,8 +1107,8 @@ class Function_sinh_integral(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: N(sinh_integral(1e-10), digits=30)
-            1.00000000000000003643219731550e-10
+            sage: N(sinh_integral(10^-10), digits=30)
+            1.00000000000000000000055555556e-10
             sage: sinh_integral(ComplexField(100)(I))
             0.94608307036718301494135331382*I
 
@@ -1229,8 +1234,8 @@ class Function_cosh_integral(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: N(cosh_integral(1e-10), digits=30)
-            -22.4486352650389235918737540487
+            sage: N(cosh_integral(10^-10), digits=30)
+            -22.4486352650389239795709024568
             sage: cosh_integral(ComplexField(100)(I))
             0.33740392290096813466264620389 + 1.5707963267948966192313216916*I
 

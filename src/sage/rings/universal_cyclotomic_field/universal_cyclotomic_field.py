@@ -299,7 +299,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import FieldElement, Element
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 
 from sage.categories.morphism import SetMorphism
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps

@@ -6669,20 +6669,24 @@ class FiniteStateMachine(SageObject):
           - ``direct`` -- The composition is calculated directly.
 
             There can be arbitrarily many initial and final states,
-            but the input and output labels must have length 1.
+            but the input and output labels must have length `1`.
 
-            WARNING: The output of other is fed into self.
+            .. WARNING::
+
+                The output of ``other`` is fed into ``self``.
 
           - ``explorative`` -- An explorative algorithm is used.
 
             The input alphabet of self has to be specified.
 
-            WARNING: The output of ``other`` is fed into ``self``.
+            .. WARNING::
+
+                The output of ``other`` is fed into ``self``.
 
           If algorithm is ``None``, then the algorithm is chosen
           automatically (at the moment always ``direct``, except when
           there are output words of ``other`` or input words of ``self``
-          of length greater than 1).
+          of length greater than `1`).
 
         OUTPUT:
 
@@ -6723,7 +6727,9 @@ class FiniteStateMachine(SageObject):
 
         The following example has output of length `> 1`, so the
         explorative algorithm has to be used (and is selected
-        automatically). ::
+        automatically).
+
+        ::
 
             sage: F = Transducer([('A', 'B', 1, [1, 0]), ('B', 'B', 1, 1),
             ....:                 ('B', 'B', 0, 0)],
@@ -6773,7 +6779,10 @@ class FiniteStateMachine(SageObject):
             sage: Hd == He
             True
 
-        Here is a non-deterministic example with intermediate output length `>1`. ::
+        Here is a non-deterministic example with intermediate output
+        length `>1`.
+
+        ::
 
             sage: F = Transducer([(1, 1, 1, ['a', 'a']), (1, 2, 1, 'b'),
             ....:                 (2, 1, 2, 'a'), (2, 2, 2, 'b')],
@@ -6845,7 +6854,9 @@ class FiniteStateMachine(SageObject):
             sage: Hd = G.composition(F, algorithm='direct')
 
         In the following examples, we compose transducers and automata
-        and check whether the types are correct. ::
+        and check whether the types are correct.
+
+        ::
 
             sage: from sage.combinat.finite_state_machine import (
             ....:     is_Automaton, is_Transducer)
@@ -7071,7 +7082,7 @@ class FiniteStateMachine(SageObject):
                for t in second.iter_transitions()):
             second = second.split_transitions()
 
-        F = first.empty_copy(new_class=self.__class__)
+        F = first.empty_copy(new_class=second.__class__)
         new_initial_states = itertools.product(
             first.iter_initial_states(),
             second.iter_initial_states())
@@ -7093,7 +7104,7 @@ class FiniteStateMachine(SageObject):
                                               "leads to "
                                               "non-deterministic final "
                                               "output." % state)
-                if len(final_output_second) >= 1:
+                if final_output_second:
                     state.is_final = True
                     state.final_word_out = final_output_second[0][2]
 

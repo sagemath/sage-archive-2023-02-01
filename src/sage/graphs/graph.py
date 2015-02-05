@@ -1452,7 +1452,7 @@ class Graph(GenericGraph):
 
             if not loops and any(u in neighb for u,neighb in data.iteritems()):
                 if loops is False:
-                    u = (u for u,neighb in data.iteritems() if u in neighb).next()
+                    u = next(u for u,neighb in data.iteritems() if u in neighb)
                     raise ValueError("The graph was built with loops=False but input data has a loop at {}.".format(u))
                 loops = True
             if loops is None:
@@ -1486,7 +1486,7 @@ class Graph(GenericGraph):
                         if loops is None:
                             loops = True
                         elif loops is False:
-                            u = (u for u,neighb in data.iteritems() if u in neighb).next()
+                            u = next(u for u,neighb in data.iteritems() if u in neighb)
                             raise ValueError("The graph was built with loops=False but input data has a loop at {}.".format(u))
                         break
                 if loops is None:

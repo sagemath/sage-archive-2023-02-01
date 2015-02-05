@@ -745,11 +745,11 @@ class ContinuedFraction_base(SageObject):
 
             sage: cf = continued_fraction(pi)
             sage: i = iter(cf)
-            sage: [i.next() for _ in xrange(10)]
+            sage: [next(i) for _ in xrange(10)]
             [3, 7, 15, 1, 292, 1, 1, 1, 2, 1]
-            sage: [i.next() for _ in xrange(10)]
+            sage: [next(i) for _ in xrange(10)]
             [3, 1, 14, 2, 1, 1, 2, 2, 2, 2]
-            sage: [i.next() for _ in xrange(10)]
+            sage: [next(i) for _ in xrange(10)]
             [1, 84, 2, 1, 1, 15, 3, 13, 1, 4]
         """
         yield self.quotient(0)

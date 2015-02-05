@@ -189,6 +189,8 @@ class GenericTerm(MonoidElement):
                 return self.growth == other.growth
             else:
                 return False
+        else:
+            return False
 
 
     def absorb(self, other):

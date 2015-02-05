@@ -8759,6 +8759,25 @@ cdef class Expression(CommutativeRingElement):
             -2*sum((-1)^n*sin(n*x)/n, n, 1, 2)
             sage: f(x,2).expand_sum()
             -sin(2*x) + 2*sin(x)
+
+        We can use this to do floating-point approximation as well::
+
+            sage: (k,n) = var('k,n')
+            sage: f(n)=sum(sqrt(abs(-k*k+n)),k,1,n)
+            sage: f(n=8)
+            sum(sqrt(abs(-k^2 + 8)), k, 1, 8)
+            sage: f(8).expand_sum()
+            sqrt(41) + sqrt(17) + 2*sqrt(14) + 3*sqrt(7) + 2*sqrt(2) + 3
+            sage: f(8).expand_sum().n()
+            31.7752256945384
+
+        See :trac:`9424` for making the following no longer raise
+        an error::
+
+            sage: f(8).n()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot evaluate symbolic expression numerically
         """
         return self.parent()(self._maxima_().simplify_sum())
 

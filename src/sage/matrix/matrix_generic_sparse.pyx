@@ -188,8 +188,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             [0 0]
             [0 1]
         """
-        cdef Py_ssize_t i, j
-        matrix.Matrix.__init__(self, parent)
         matrix.Matrix.__init__(self, parent)
         R = self._base_ring
         self._zero = R.zero_element()

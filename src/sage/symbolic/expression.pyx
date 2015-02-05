@@ -8185,8 +8185,7 @@ cdef class Expression(CommutativeRingElement):
     def simplify_full(self):
         """
         Apply :meth:`simplify_factorial`, :meth:`simplify_rectform`,
-        :meth:`simplify_trig`, :meth:`simplify_rational`,
-        :meth:`simplify_log`, again :meth:`simplify_rational`, and
+        :meth:`simplify_trig`, :meth:`simplify_rational`, and
         then :meth:`expand_sum` to self (in that order).
 
         ALIAS: ``simplify_full`` and ``full_simplify`` are the same.
@@ -8262,8 +8261,6 @@ cdef class Expression(CommutativeRingElement):
         x = x.simplify_factorial()
         x = x.simplify_rectform()
         x = x.simplify_trig()
-        x = x.simplify_rational()
-        x = x.simplify_log('one')
         x = x.simplify_rational()
         x = x.expand_sum()
         return x

@@ -56,6 +56,9 @@ cimport free_module_element
 
 from free_module_element import vector
 
+from sage.libs.gmp.mpz cimport *
+
+
 cdef inline _Integer_from_mpz(mpz_t e):
     cdef Integer z = PY_NEW(Integer)
     mpz_set(z.value, e)
@@ -167,9 +170,6 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             True
         """
         return free_module_element.FreeModuleElement.__hash__(self)
-
-    def __len__(self):
-        return self._degree
 
     def __setitem__(self, i, value):
         """

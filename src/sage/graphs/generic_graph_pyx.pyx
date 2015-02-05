@@ -18,7 +18,7 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
-include "sage/misc/binary_matrix.pxi"
+include "sage/data_structures/binary_matrix.pxi"
 
 # import from Python standard library
 from sage.misc.prandom import random
@@ -1315,14 +1315,12 @@ def transitive_reduction_acyclic(G):
     # A point is reachable from u if it is one of its neighbours, or if it is
     # reachable from one of its neighbours.
     binary_matrix_init(closure, n, n)
-    binary_matrix_fill(closure, 0)
     for uu in linear_extension:
         u = v_to_int[uu]
         for vv in G.neighbors_out(uu):
             v = v_to_int[vv]
             binary_matrix_set1(closure, u, v)
-            for i in range(closure.width):
-                closure.rows[u][i] |= closure.rows[v][i]
+            bitset_or(closure.rows[u], closure.rows[u], closure.rows[v])
 
     # Build the transitive reduction of G
     #
@@ -1334,8 +1332,7 @@ def transitive_reduction_acyclic(G):
         u = v_to_int[uu]
         for vv in G.neighbors_out(uu):
             v = v_to_int[vv]
-            for i in range(closure.width):
-                closure.rows[u][i] &= ~closure.rows[v][i]
+            bitset_difference(closure.rows[u], closure.rows[u], closure.rows[v])
         for vv in G.neighbors_out(uu):
             v = v_to_int[vv]
             if binary_matrix_get(closure, u, v):

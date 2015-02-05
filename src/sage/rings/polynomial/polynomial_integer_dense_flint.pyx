@@ -707,38 +707,72 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     @coerce_binop
     def xgcd(self, right):
         """
-        This function can't in general return ``(g,s,t)`` as above,
-        since they need not exist.  Instead, over the integers, we
-        first multiply `g` by a divisor of the resultant of `a/g` and
-        `b/g`, up to sign, and return ``g, u, v`` such that
-        ``g = s*self + s*right``.  But note that this `g` may be a
-        multiple of the gcd.
+        Return a triple ``(g,s,t)`` such that `g = s*self + t*right` and such
+        that `g` is the `gcd` of ``self`` and ``right`` up to a divisor of the
+        resultant of ``self`` and ``other``.
+
+        As integer polynomials do not form a principal ideal domain, it is not
+        always possible given `a` and `b` to find a pair `s,t` such that
+        `gcd(a,b) = sa + tb`. Take `a=x+2` and `b=x+4` as an example for which the
+        gcd is `1` but the best you can achieve in the Bezout identity is `2`.
 
         If ``self`` and ``right`` are coprime as polynomials over the
         rationals, then ``g`` is guaranteed to be the resultant of
-        self and right, as a constant polynomial.
+        ``self`` and ``right``, as a constant polynomial.
 
         EXAMPLES::
 
             sage: P.<x> = PolynomialRing(ZZ)
+
+            sage: (x+2).xgcd(x+4)
+            (2, -1, 1)
+            sage: (x+2).resultant(x+4)
+            2
+            sage: (x+2).gcd(x+4)
+            1
+
             sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
             sage: g, u, v = F.xgcd(G)
             sage: g, u, v
             (27*x^2 + 54, 1, -x^2 - 3*x - 9)
             sage: u*F + v*G
             27*x^2 + 54
-            sage: x.xgcd(P(0))
+
+            sage: zero = P(0)
+            sage: x.xgcd(zero)
             (x, 1, 0)
-            sage: f = P(0)
-            sage: f.xgcd(x)
+            sage: zero.xgcd(x)
             (x, 0, 1)
+
             sage: F = (x-3)^3; G = (x-15)^2
             sage: g, u, v = F.xgcd(G)
             sage: g, u, v
             (2985984, -432*x + 8208, 432*x^2 + 864*x + 14256)
             sage: u*F + v*G
             2985984
+
+        TESTS:
+
+        Check that :trac:`17675` is fixed::
+
+            sage: R.<x> = ZZ['x']
+            sage: R(2).xgcd(R(2))
+            (2, 0, 1)
+            sage: R.zero().xgcd(R(2))
+            (2, 0, 1)
+            sage: R(2).xgcd(R.zero())
+            (2, 1, 0)
         """
+        # trivial cases first
+        if self.is_zero():
+            return (right, Integer(0), Integer(1))
+        elif right.is_zero():
+            return (self, Integer(1), Integer(0))
+        elif self.is_constant() and right.is_constant():
+            # this case is needed as the behavior of the function fmpz_poly_xgcd
+            # in FLINT is not defined with constant input
+            return self.constant_coefficient().xgcd(right.constant_coefficient())
+
         cdef Polynomial_integer_dense_flint ss = self._new()
         cdef Polynomial_integer_dense_flint tt = self._new()
         cdef fmpz_t r
@@ -1055,6 +1089,13 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             -339
             sage: f.discriminant(proof=False)
             -339
+
+        TESTS:
+
+        Confirm that :trac:`17603` has been applied::
+
+            sage: f.disc()
+            -339
         """
         cdef ZZX_c ntl_poly
         cdef ZZ_c* temp
@@ -1068,6 +1109,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         return x
 
+    # Alias for discriminant
+    disc = discriminant
 
     def _pari_(self, variable=None):
         """

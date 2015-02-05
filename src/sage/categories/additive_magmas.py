@@ -18,7 +18,7 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.sets_cat import Sets
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 
 class AdditiveMagmas(Category_singleton):
     """

@@ -206,10 +206,9 @@ class CFiniteSequence(FractionFieldElement):
                 den = x ** (-self._off) * den
 
             # determine start values (may be different from _get_item_ values)
-            R = LaurentSeriesRing(QQ, 'x')
-            rem = num % den
             alen = max(self._deg, num.degree() + 1)
-            R.set_default_prec(alen)
+            R = LaurentSeriesRing(QQ, 'x', default_prec=alen)
+            rem = num % den
             if den != 1:
                 self._a = R(num / den).list()
                 self._aa = R(rem / den).list()[:self._deg]  # needed for _get_item_
@@ -592,8 +591,7 @@ class CFiniteSequence(FractionFieldElement):
             sage: type(s)
             <type 'sage.rings.laurent_series_ring_element.LaurentSeries'>
         """
-        R = LaurentSeriesRing(QQ, 'x')
-        R.set_default_prec(n)
+        R = LaurentSeriesRing(QQ, 'x', default_prec=n)
         return R(self.ogf())
 
     @staticmethod

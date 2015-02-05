@@ -2719,6 +2719,21 @@ cdef class Matroid(SageObject):
         """
         return self.dual().flats(r)
 
+    def lattice_of_flats(self):
+        """
+        Return the lattice of flats of the matroid.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.lattice_of_flats()
+            Finite lattice containing 16 elements
+        """
+        from sage.combinat.posets.lattices import LatticePoset
+        F = [X for i in range(self.rank() + 1)
+             for X in self.flats(i)]
+        return LatticePoset((F, lambda x, y: x < y))
+
     cpdef hyperplanes(self):
         """
         Return the set of hyperplanes of the matroid.

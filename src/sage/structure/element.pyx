@@ -227,8 +227,14 @@ def parent(x):
 
     - ``x`` -- an element
 
-    OUTPUT: the parent of ``x`` if it exists, otherwise the Python type
-    of ``x``.
+    OUTPUT:
+
+    - if ``x`` is a Sage :class:`Element`, return ``x.parent()``.
+
+    - if ``x`` has a ``parent`` method and ``x`` does not have an
+      ``__int__`` or ``__float__`` method, return ``x.parent()``.
+
+    - otherwise, return ``type(x)``.
 
     .. SEEALSO::
 
@@ -287,6 +293,17 @@ def have_same_parent(left, right):
         sage: have_same_parent(1, 1/2)
         False
         sage: have_same_parent(gap(1), gap(1/2))
+        True
+
+    These have different types but the same parent::
+
+        sage: a = RLF(2)
+        sage: b = exp(a)
+        sage: type(a)
+        <type 'sage.rings.real_lazy.LazyWrapper'>
+        sage: type(b)
+        <type 'sage.rings.real_lazy.LazyNamedUnop'>
+        sage: have_same_parent(a, b)
         True
     """
     return have_same_parent_c(left, right)

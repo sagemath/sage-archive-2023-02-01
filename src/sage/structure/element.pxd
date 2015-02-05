@@ -5,7 +5,8 @@ from cpython.number cimport PyNumber_Check
 cdef inline parent_c(x):
     if isinstance(x, Element):
         return (<Element>x)._parent
-    if PyNumber_Check(x):  # Fast check for int and float
+    # Fast check for "number" types, including int and float
+    if PyNumber_Check(x):
         return type(x)
     try:
         p = x.parent

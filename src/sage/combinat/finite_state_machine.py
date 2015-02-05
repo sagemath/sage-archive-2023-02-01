@@ -9045,10 +9045,13 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        A dictionary consisting of
+        A dictionary (if ``expectation_only=False``) consisting of
 
         - ``expectation``,
-        - ``variance``
+        - ``variance``.
+
+        Otherwise, just the expectation is returned (no dictionary for
+        ``expectation_only=True``).
 
         Expectation and variance of the number of steps until first
         writing ``True`` (or anything else evaluating to ``True``

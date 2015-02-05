@@ -5493,6 +5493,13 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         ...
         ValueError: base (=63) must be an integer between 2 and 62
 
+    The rounding mode is respected in all cases::
+
+        sage: RealNumber("1.5", rnd="RNDU").parent()
+        Real Field with 53 bits of precision and rounding RNDU
+        sage: RealNumber("1.50000000000000000000000000000000000000", rnd="RNDU").parent()
+        Real Field with 130 bits of precision and rounding RNDU
+
     TESTS::
 
         sage: RealNumber('.000000000000000000000000000000001').prec()
@@ -5514,9 +5521,8 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     if base < 2 or base > 62:
         raise ValueError("base (=%s) must be an integer between 2 and 62"%base)
 
-    if base == 10 and min_prec == 53 and len(s) <= 15:
+    if base == 10 and min_prec == 53 and len(s) <= 15 and rnd == "RNDN":
         R = RR
-
     else:
         # For bases 15 and up, treat 'e' as digit
         if base <= 14 and ('e' in s or 'E' in s):

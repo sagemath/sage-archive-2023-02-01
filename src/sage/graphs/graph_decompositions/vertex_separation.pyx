@@ -476,8 +476,9 @@ def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, ver
     if not isinstance(G, Graph):
         raise ValueError("The parameter must be a Graph.")
 
-    return vertex_separation(G, algorithm=algorithm, cut_off=cut_off,
-                             upper_bound=upper_bound, verbose=verbose)
+    return vertex_separation(G, algorithm=algorithm, cut_off=cut_off, upper_bound=upper_bound,
+                             verbose=verbose, enable_prefix_storage=enable_prefix_storage,
+                             max_prefix_length=max_prefix_length, max_prefix_number=max_prefix_number)
 
 
 def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verbose = False,
@@ -1661,8 +1662,6 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
         if cost_i < upper_bound:
             upper_bound = cost_i
             is_improved = True
-            if verbose:
-                print "New upper bound: {}".format(current_cost)
             if upper_bound <= cut_off:
                 # We are satisfied with current solution.
                 break
@@ -1714,11 +1713,11 @@ cdef class PrefixStorage:
         Return True if the prefix is already stored and that branches starting
         with a prefix on the same set of vertices cannot leat to better
         solutions. Otherwise return False.
- 
+
         Let S=V(prefix) be the vertices in 'prefix'. We have |S|=='size'.
 
         If S is already in self.PT, it means that a prefix P such that S==V(P)
-        has already been tested. Let b and c(P) be the values recorded for P.
+        has already been tested. Let b be the value recorded for P.
 
         If b==True, it means that any ordering starting with a prefix P' such
         that S==V(P') has a cost strictly larger than c(P). Therefore, there is
@@ -1737,22 +1736,29 @@ cdef class PrefixStorage:
         cdef frozenset my_prefix = frozenset([prefix[i] for i in range(size)])
 
         if my_prefix in self.PT:
-            return self.PT[my_prefix][0]
+            return self.PT[my_prefix]
 
         return False
 
 
     cdef update(self, int *prefix, int size, int cost, int upper_bound, bint is_improved):
         """
-        This method updates the value b stored for the vertices in 'prefix'.
- 
-        We set b to False if the upper_bound has been improved and is now equal
-        to c('prefix'). In such a case, other prefixes on the same set
+        This method updates the value stored for the vertices in 'prefix'.
+
+        We store False if the upper_bound has been improved and is now equal to
+        c('prefix'). In such a case, other prefixes on the same set
         S=V('prefix') of vertices may lead to a better solution. Otherwise, we
-        set b to True, indicating that no better solution can be found with
-        another prefix P such that V(P)==S.
+        store True, indicating that no better solution can be found with another
+        prefix P such that V(P)==S.
         """
         cdef int i
         if self.is_on:
 
-            self.PT[ frozenset(prefix[i] for i in range(size)) ] = [not (is_improved and cost==upper_bound), cost]
+            my_prefix = frozenset(prefix[i] for i in range(size))
+
+            if my_prefix in self.PT:
+                self.PT[my_prefix] = not (is_improved and cost==upper_bound)
+
+            elif self.current_prefix_number<self.max_prefix_number:
+                self.PT[my_prefix] = not (is_improved and cost==upper_bound)
+                self.current_prefix_number += 1

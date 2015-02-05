@@ -19,13 +19,11 @@ Functions
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-from sage.structure.sequence import Sequence
-from sage.rings.infinity import PlusInfinity
-
 from sage.sat.solvers import SatSolver
 from sage.sat.converters import ANF2CNFConverter
 
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+
 
 def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     """
@@ -147,10 +145,10 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     K = P.base_ring()
 
     if target_variables is None:
-      target_variables = Sequence(F).variables()
+        target_variables = PolynomialSequence(F).variables()
     else:
-      target_variables = Sequence(target_variables).variables()
-      assert(set(target_variables).issubset(set(P.gens())))
+        target_variables = PolynomialSequence(target_variables).variables()
+        assert(set(target_variables).issubset(set(P.gens())))
 
     # instantiate the SAT solver
 

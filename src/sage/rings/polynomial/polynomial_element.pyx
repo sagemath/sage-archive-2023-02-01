@@ -1275,7 +1275,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def is_square(self, root=False):
         """
         Returns whether or not polynomial is square. If the optional
-        argument ``root`` is set to ``True, then also returns the square root
+        argument ``root`` is set to ``True``, then also returns the square root
         (or ``None``, if the polynomial is not square).
 
         INPUT:

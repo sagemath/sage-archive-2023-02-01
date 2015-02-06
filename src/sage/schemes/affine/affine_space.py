@@ -743,6 +743,47 @@ class AffineSpace_field(AffineSpace_generic):
         """
         return SchemeMorphism_polynomial_affine_space_field(*args, **kwds)
 
+    def weil_restriction(self):
+        r"""
+        Compute the Weil restriction of this affine space over some extension
+        field.  If the field is a finite field, then this computes
+        the Weil restriction to the prime subfield.
+
+        OUTPUT: Affine space of dimension ``d * self.dimension_relative()``
+            over the base field of ``self.base_ring()``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^5-2)
+            sage: AK.<x,y> = AffineSpace(K,2)
+            sage: AK.weil_restriction()
+            Affine Space of dimension 10 over Rational Field
+            sage: R.<x> = K[]
+            sage: L.<v> = K.extension(x^2+1)
+            sage: AL.<x,y> = AffineSpace(L,2)
+            sage: AL.weil_restriction()
+            Affine Space of dimension 4 over Number Field in w with defining
+            polynomial x^5 - 2
+        """
+        try:
+            X = self.__weil_restriction
+        except AttributeError:
+            L = self.base_ring()
+            if L.is_finite():
+                d = L.degree()
+                K = L.prime_subfield()
+            else:
+                d = L.relative_degree()
+                K = L.base_field()
+
+            if d == 1:
+                X = self
+            else:
+                X = AffineSpace(K,d*self.dimension_relative(),'z')
+            self.__weil_restriction = X
+        return X
+
 class AffineSpace_finite_field(AffineSpace_field):
     def _point(self, *args, **kwds):
         """

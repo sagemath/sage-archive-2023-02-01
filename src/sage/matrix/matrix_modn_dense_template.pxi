@@ -2427,7 +2427,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
           row1 + t \* row2 where g = sa + tb
         """
         cdef int p = <int>self.p
-        cdef celement * row1_p, * row2_p
+        cdef celement *row1_p
+        cdef celement *row2_p
         cdef celement tmp
         cdef int g, s, t, v, w
         cdef Py_ssize_t nc, i
@@ -2587,7 +2588,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             [34 19 14 11 35 30 35 34 25 33]
         """
         cdef celement p
-        cdef celement *v_from, *v_to
+        cdef celement *v_from
+        cdef celement *v_to
 
         p = self.p
         v_from = self._matrix[row_from]
@@ -2826,7 +2828,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         cdef int ndigits = len(str(self.p))
 
         cdef Py_ssize_t i, n
-        cdef char *s, *t
+        cdef char *s
+        cdef char *t
 
         if self._nrows == 0 or self._ncols == 0:
             data = ''

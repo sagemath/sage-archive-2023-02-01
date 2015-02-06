@@ -1419,7 +1419,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             3 + O(w^6)
         """
         cdef ZZ_pX_c high_shifter, high_shifter2
-        cdef ZZ_pX_Modulus_c *modulus, modulus_up
+        cdef ZZ_pX_Modulus_c *modulus
+        cdef ZZ_pX_Modulus_c modulus_up
         cdef ntl_ZZ_pContext_class c
         cdef PowComputer_ZZ_pX_small_Eis sm
         cdef PowComputer_ZZ_pX_big_Eis big

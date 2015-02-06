@@ -373,7 +373,8 @@ cdef class ParametricSurface(IndexFaceSet):
         #   |   |
         #   3 - 2
 
-        cdef face_c *face, *last_face
+        cdef face_c *face
+        cdef face_c *last_face
 
         for i from 0 <= i < n:
             for j from 0 <= j < m:
@@ -408,7 +409,8 @@ cdef class ParametricSurface(IndexFaceSet):
         # Now we see if it wraps around or is otherwise enclosed
         cdef bint enclosed = 1
 
-        cdef face_c *first, *last
+        cdef face_c *first
+        cdef face_c *last
         for j from 0 <= j < m:
             first = &self._faces[j]
             last  = &self._faces[(n-1)*m+j]

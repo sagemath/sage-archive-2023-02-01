@@ -500,7 +500,8 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         if ZZX_IsZero(self.__poly):
             return self, self
 
-        cdef ZZX_c *q, *r
+        cdef ZZX_c *q
+        cdef ZZX_c *r
         cdef Polynomial_integer_dense_ntl qq = self._new()
         cdef Polynomial_integer_dense_ntl rr = self._new()
         cdef int divisible
@@ -604,7 +605,8 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: u*F + v*G
             2985984
         """
-        cdef ZZX_c *s, *t
+        cdef ZZX_c *s
+        cdef ZZX_c *t
         cdef ZZ_c *r
 
         ZZX_xgcd(&self.__poly, &(<Polynomial_integer_dense_ntl>right).__poly, &r, &s, &t, 1)    # proof = 1

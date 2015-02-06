@@ -536,7 +536,8 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef Py_ssize_t i, j, ix, face_ix
         cdef int part
         cdef point_c P
-        cdef face_c *face, *new_face
+        cdef face_c *face
+        cdef face_c *new_face
         cdef IndexFaceSet face_set
 
         cdef int *partition = <int *>sage_malloc(sizeof(int) * self.fcount)

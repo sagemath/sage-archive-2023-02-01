@@ -974,7 +974,8 @@ cdef class NCPolynomialRing_plural(Ring):
         """
         cdef poly *res
         cdef ring *r = self._ring
-        cdef number *n, *denom
+        cdef number *n
+        cdef number *denom
 
         if not <ParentWithBase>self is f._parent:
             f = self._coerce_c(f)
@@ -1238,7 +1239,8 @@ cdef class NCPolynomialRing_plural(Ring):
         """
         cdef int i
         cdef ring *r
-        cdef poly *p, *q
+        cdef poly *p
+        cdef poly *q
 
         if h._parent is not g._parent:
             g = (<NCPolynomialRing_plural>h._parent)._coerce_c(g)
@@ -1318,7 +1320,8 @@ def unpickle_NCPolynomial_plural(NCPolynomialRing_plural R, d):
 
     """
     cdef ring *r = R._ring
-    cdef poly *m, *p
+    cdef poly *m
+    cdef poly *p
     cdef int _i, _e
     p = p_ISet(0,r)
     rChangeCurrRing(r)

@@ -62,7 +62,6 @@ from sage.rings.rational_field     import QQ
 from sage.rings.real_mpfr          import RealField_class,RealField
 from sage.rings.real_mpfi          import RealIntervalField_class
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
-from sage.schemes.projective.projective_space import is_ProjectiveSpace
 from sage.symbolic.constants       import e
 from copy import copy
 from sage.parallel.ncpus           import ncpus
@@ -1343,17 +1342,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.primes_of_bad_reduction()
             [5, 37, 2239, 304432717]
         """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if is_ProjectiveSpace(self.domain()) is False or is_ProjectiveSpace(self.codomain()) is False:
             raise NotImplementedError
         K = FractionField(self.codomain().base_ring())
-        #The primes of bad reduction are the support of the resultant for number fields of deg > 1  
+        #The primes of bad reduction are the support of the resultant for number fields
         if K in NumberFields() and K != QQ:
             F = copy(self)
             F.normalize_coordinates()
             return (K(F.resultant()).support())
         else:
             raise TypeError("Base Ring must be number field or number field ring")
-        #For the rationals, we can use grobner basis
+        #For the rationals, we can use groebner basis, as it is quicker in practice
         R = self.coordinate_ring()
         F = self._polys
 

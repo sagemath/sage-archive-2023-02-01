@@ -1603,7 +1603,6 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     import subprocess
     if subprocess.call('command -v gcc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         raise RuntimeError('Unable to run because gcc cannot be found')
-    from sage.misc.misc import SAGE_ROOT
     from sage.interfaces.tides import genfiles_mintides
     from sage.misc.temporary_file import tmp_dir
     tempdir = tmp_dir()
@@ -1710,7 +1709,6 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     import subprocess
     if subprocess.call('command -v gcc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         raise RuntimeError('Unable to run because gcc cannot be found')
-    from sage.misc.misc import SAGE_ROOT
     from sage.interfaces.tides import genfiles_mpfr
     from sage.functions.other import ceil
     from sage.functions.log import log

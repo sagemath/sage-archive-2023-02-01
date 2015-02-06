@@ -141,7 +141,7 @@ from sage.groups.abelian_gps.values import AbelianGroupWithValues_class
 from sage.structure.sequence import Sequence
 from sage.structure.proof.proof import get_flag
 from sage.libs.pari.all import pari
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.rings.integer_ring import ZZ
 
 class UnitGroup(AbelianGroupWithValues_class):

@@ -53,7 +53,8 @@ from sage.misc.prandom import randint
 import sage.schemes.elliptic_curves.constructor as elliptic
 from sql_db import SQLDatabase, verify_column
 from sage.misc.package import is_package_installed
-from sage.misc.misc import SAGE_SHARE, walltime
+from sage.env import SAGE_SHARE
+from sage.misc.all import walltime
 
 import re
 import string
@@ -1659,7 +1660,7 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
         Traceback (most recent call last):
         ...
         ValueError: Desired database (='should not exist') does not exist
-        sage: from sage.misc.misc import SAGE_SHARE
+        sage: from sage.env import SAGE_SHARE
         sage: os.path.isfile(os.path.join(SAGE_SHARE,'cremona','should_not_exist.db'))
         False
     """

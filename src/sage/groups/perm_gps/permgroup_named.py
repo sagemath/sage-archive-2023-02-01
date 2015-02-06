@@ -2576,7 +2576,7 @@ class PSL(PermutationGroup_plg):
             raise ValueError("Degree must be 2.")
         F = self.base_ring()
         q = F.order()
-        from sage.misc.misc import SAGE_EXTCODE
+        from sage.env import SAGE_EXTCODE
         gapcode = SAGE_EXTCODE + '/gap/joyner/hurwitz_crv_rr_sp.gap'
         gap.eval('Read("'+gapcode+'")')
         mults = gap.eval("ram_module_hurwitz("+str(q)+")")
@@ -2620,7 +2620,7 @@ class PSL(PermutationGroup_plg):
             raise ValueError("Degree must be 2.")
         F = self.base_ring()
         q = F.order()
-        from sage.misc.misc import SAGE_EXTCODE
+        from sage.env import SAGE_EXTCODE
         gapcode = SAGE_EXTCODE + '/gap/joyner/modular_crv_rr_sp.gap'
         gap.eval('Read("'+gapcode+'")')
         mults = gap.eval("ram_module_X("+str(q)+")")

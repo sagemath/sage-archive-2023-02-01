@@ -251,7 +251,7 @@ def construct_skeleton(database):
     skeleton = {}
     cur = database.__connection__.cursor()
     exe = cur.execute("SELECT name FROM sqlite_master WHERE TYPE='table'")
-    from sage.misc.misc import SAGE_SHARE
+    from sage.env import SAGE_SHARE
     for table in exe.fetchall():
         skeleton[table[0]] = {}
         exe1 = cur.execute("PRAGMA table_info(%s)"%table[0])

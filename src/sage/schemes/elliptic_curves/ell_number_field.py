@@ -95,7 +95,7 @@ import ell_point
 import sage.matrix.all as matrix
 from sage.rings.ring import Ring
 from sage.rings.arith import gcd, prime_divisors
-from sage.misc.misc import prod
+from sage.misc.all import prod
 import ell_torsion
 from ell_generic import is_EllipticCurve
 

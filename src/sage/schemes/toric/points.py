@@ -39,7 +39,7 @@ EXAMPLES::
 from copy import copy
 
 from sage.combinat.cartesian_product import CartesianProduct
-from sage.misc.misc import powerset, prod
+from sage.misc.all import powerset, prod
 from sage.misc.cachefunc import cached_method
 
 

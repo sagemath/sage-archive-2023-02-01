@@ -94,7 +94,7 @@ from expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement, AsciiArtString)
 
 
-from sage.misc.misc import verbose, DOT_SAGE
+from sage.env import DOT_SAGE
 
 COMMANDS_CACHE = '%s/mupad_commandlist_cache.sobj'%DOT_SAGE
 PROMPT = ">>"

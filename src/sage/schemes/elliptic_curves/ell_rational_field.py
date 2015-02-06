@@ -81,7 +81,7 @@ from sage.rings.all import (
     IntegerRing, RealField,
     ComplexField, RationalField)
 
-import sage.misc.misc as misc
+import sage.misc.all as misc
 from sage.misc.all import verbose
 
 from sage.misc.functional import log

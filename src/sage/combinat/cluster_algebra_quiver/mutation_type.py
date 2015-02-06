@@ -1227,7 +1227,7 @@ def load_data(n):
     """
     import os.path
     import cPickle
-    from sage.misc.misc import DOT_SAGE, SAGE_SHARE
+    from sage.env import DOT_SAGE, SAGE_SHARE
     relative_filename = 'cluster_algebra_quiver/mutation_classes_%s.dig6'%n
     getfilename = lambda path: os.path.join(path,relative_filename)
     # we check

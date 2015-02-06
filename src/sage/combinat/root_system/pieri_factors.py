@@ -12,7 +12,7 @@ Pieri Factors
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.constant_function import ConstantFunction
-from sage.misc.misc import prod, attrcall
+from sage.misc.all import prod, attrcall
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation

@@ -1281,15 +1281,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
         INPUT:
 
         -  ``root`` - whether or not to also return a square
-           root (default: False)
+           root (default: ``False``)
 
         OUTPUT:
 
         -  ``bool`` - whether or not a square
 
         -  ``root`` - (optional) an actual square root if
-           found, and None otherwise.
-
+           found, and ``None`` otherwise.
 
         EXAMPLES::
 
@@ -1318,7 +1317,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS:
 
-        Make sure ticket trac:`9093` is fixed::
+        Make sure :trac:`9093` is fixed::
 
             sage: R(1).is_square()
             True
@@ -1339,13 +1338,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         u = self.parent().base_ring()(f.unit())
 
-        if all(a[1]%2==0 for a in f) and u.is_square():
+        if all(a[1] % 2 == 0 for a in f) and u.is_square():
             g = u.sqrt()
             for a in f:
-                g *= a[0]**(a[1]/2)
-            return (True,g) if root else True
+                g *= a[0] ** (a[1] / 2)
+            return (True, g) if root else True
         else:
-            return (False,None) if root else False
+            return (False, None) if root else False
 
     def any_root(self, ring=None, degree=None, assume_squarefree=False):
         """

@@ -24,9 +24,8 @@ The two commands ``time`` and :mod:`timeit <sage.misc.sage_timeit_class>` measur
   sage: %timeit p=random_prime(2**500)
   1 loops, best of 3: 334 ms per loop
 
-Note that while ``%time`` only runs the command once, :mod:`timeit
-<sage.misc.sage_timeit_class>` tries to return a more meaningful value over
-several runs.
+Note that while ``%time`` only runs the command once, ``%timeit`` tries to
+return a more meaningful value over several runs.
 
 For more information on :mod:`timeit <sage.misc.sage_timeit_class>`, `click here
 <https://docs.python.org/2/library/timeit.html>`_

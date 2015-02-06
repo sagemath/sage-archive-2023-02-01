@@ -1381,6 +1381,16 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Rational Field
+
+        Bug #17740::
+
+            sage: cm.discover_action(GF(5)['x'], ZZ, operator.div)
+            Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in x over Finite Field of size 5
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Finite Field of size 5
+            sage: cm.bin_op(GF(5)['x'].gen(), 7, operator.div).parent()
+            Univariate Polynomial Ring in x over Finite Field of size 5
         """
         #print "looking", R, <int><void *>R, op, S, <int><void *>S
 
@@ -1431,30 +1441,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         if op is div:
             # Division on right is the same acting on right by inverse, if it is so defined.
-            # To return such an action, we need to verify that it would be an action for the mul
-            # operator, but the action must be over a parent containing inverse elements.
-            from sage.rings.ring import is_Ring
-            if is_Ring(S):
-                try:
-                    K = S._pseudo_fraction_field()
-                except (TypeError, AttributeError, NotImplementedError):
-                    K = None
-            elif PY_TYPE_CHECK(S, Parent):
-                K = S
-            else:
-                # python scalar case handled recursively above
-                K = None
-
-            if K is not None:
-                action = self.get_action(R, K, mul)
-                if action is not None and action.actor() is K:
-                    try:
-                        action = ~action
-                        if K is not S:
-                            action = PrecomposedAction(action, None, K._internal_coerce_map_from(S))
-                        return action
-                    except TypeError: # action may not be invertible
-                        self._record_exception()
+            try:
+                right_mul = self.get_action(R, S, mul)
+                if isinstance(right_mul, RightModuleAction):
+                    return ~right_mul
+            except TypeError: # action may not be invertible
+                self._record_exception()
 
         return None
 

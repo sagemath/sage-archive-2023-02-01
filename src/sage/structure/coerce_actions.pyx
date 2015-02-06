@@ -17,6 +17,7 @@ from cpython.int cimport *
 from cpython.number cimport *
 include "coerce.pxi"
 
+from sage.categories.action import InverseAction, PrecomposedAction
 from coerce_exceptions import CoercionException
 
 cdef extern from *:
@@ -386,6 +387,50 @@ cdef class ModuleAction(Action):
         """
         return self.underlying_set()
 
+    def __invert__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.structure.coerce_actions import RightModuleAction
+            sage: x = ZZ['x'].gen()
+            sage: A = ~RightModuleAction(QQ, QQ['x']); A
+            Right inverse action by Rational Field on Univariate Polynomial Ring in x over Rational Field
+            sage: A(x, 2)
+            1/2*x
+
+            sage: A = ~RightModuleAction(QQ, ZZ['x']); A
+            Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
+            sage: A(x, 2)
+            1/2*x
+
+            sage: A = ~RightModuleAction(ZZ, ZZ['x']); A
+            Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+            sage: A(x, 2)
+            1/2*x
+
+            sage: A = ~RightModuleAction(ZZ, GF(5)['x']); A
+            Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in x over Finite Field of size 5
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Finite Field of size 5
+            sage: A(x, 2)
+            3*x
+        """
+        R = self.G if self.connecting is None else self.connecting.codomain()
+        K = R._pseudo_fraction_field()
+        if K is self.G:
+            return InverseAction(self)
+        else:
+            module_action = type(self)(K, self.codomain())
+            if self.connecting is None and K is not R:
+                connecting = K.coerce_map_from(R)
+            else:
+                connecting = self.connecting
+            left, right = (connecting, None) if self._is_left else (None, connecting)
+            return PrecomposedAction(InverseAction(module_action), left, right)
 
 
 cdef class LeftModuleAction(ModuleAction):

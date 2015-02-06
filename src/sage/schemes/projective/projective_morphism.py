@@ -1150,12 +1150,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.is_morphism()
             True
 
-        ::
+        Map that is not morphism on projective space, but is over a subscheme::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
-            sage: X = P.subscheme([x^2 - z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(RR,2)
+            sage: X = P.subscheme([x*y + y*z])
             sage: H = Hom(X,X)
-            sage: f= H([x^2 + z^2, 3*y^2, z^2 - 2*x^2])
+            sage: f = H([x*z-y*z,x^2-y^2,z^2])
             sage: f.is_morphism()
             True
         """

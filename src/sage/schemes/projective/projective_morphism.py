@@ -56,13 +56,13 @@ from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.fraction_field     import FractionField
 from sage.rings.integer_ring       import ZZ
-from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
 from sage.rings.rational_field     import QQ
 from sage.rings.real_mpfr          import RealField_class,RealField
 from sage.rings.real_mpfi          import RealIntervalField_class
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
+from sage.schemes.projective.projective_space import is_ProjectiveSpace
 from sage.symbolic.constants       import e
 from copy import copy
 from sage.parallel.ncpus           import ncpus
@@ -1323,7 +1323,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.primes_of_bad_reduction()
             [2, 3, 7, 13, 31]
 
-        A number field ::
+        A number field example ::
 
             sage: R.<z> = QQ[]
             sage: K.<a> = NumberField(z^2 - 2)
@@ -1343,15 +1343,17 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.primes_of_bad_reduction()
             [5, 37, 2239, 304432717]
         """
-
+        if is_ProjectiveSpace(self.domain()) is False or is_ProjectiveSpace(self.codomain()) is False:
+            raise NotImplementedError
         K = FractionField(self.codomain().base_ring())
-        BR = self.base_ring()
-        if BR in NumberFields() and BR != QQ:
+        #The primes of bad reduction are the support of the resultant for number fields of deg > 1  
+        if K in NumberFields() and K != QQ:
             F = copy(self)
             F.normalize_coordinates()
             return (K(F.resultant()).support())
-        elif BR not in NumberFields() and not is_NumberFieldOrder(BR):
-            raise TypeError("Base Ring must be number field or number field ring") 
+        else:
+            raise TypeError("Base Ring must be number field or number field ring")
+        #For the rationals, we can use grobner basis
         R = self.coordinate_ring()
         F = self._polys
 

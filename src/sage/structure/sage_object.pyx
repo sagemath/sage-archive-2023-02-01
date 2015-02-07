@@ -306,6 +306,12 @@ cdef class SageObject:
         version of Sage it was created.
 
         This only works on Python classes that derive from SageObject.
+
+        TESTS::
+
+            sage: v = DiGraph().version()
+            doctest:... DeprecationWarning: version() is deprecated.
+            See http://trac.sagemath.org/2536 for details.
         """
         from sage.misc.superseded import deprecation
         deprecation(2536, 'version() is deprecated.')
@@ -373,6 +379,12 @@ cdef class SageObject:
         reload.
 
         The database directory is ``$HOME/.sage/db``
+
+        TESTS::
+
+            sage: SageObject().db("Test")
+            doctest:... DeprecationWarning: db() is deprecated.
+            See http://trac.sagemath.org/2536 for details.
         """
         from sage.misc.superseded import deprecation
         deprecation(2536, 'db() is deprecated.')

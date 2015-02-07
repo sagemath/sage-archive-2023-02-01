@@ -1182,11 +1182,15 @@ class MatrixMorphism(MatrixMorphism_abstract):
 
     INPUT:
 
-    -  ``parent`` - a homspace
+    -  ``parent`` -- a homspace
 
-    -  ``A`` - matrix or a :class:`MatrixMorphism_abstract` instance
+    -  ``A`` -- matrix or a :class:`MatrixMorphism_abstract` instance
+
+    -  ``copy_matrix`` -- (default: ``True``) make an immutable copy of
+       the matrix ``A`` if it is mutable; if ``False``, then this makes
+       ``A`` immutable
     """
-    def __init__(self, parent, A):
+    def __init__(self, parent, A, copy_matrix=True):
         """
         Initialize ``self``.
 
@@ -1210,8 +1214,9 @@ class MatrixMorphism(MatrixMorphism_abstract):
         if A.ncols() != parent.codomain().rank():
                 raise ArithmeticError("number of columns of matrix (={}) must equal rank of codomain (={})".format(A.ncols(), parent.codomain().rank()))
         if A.is_mutable():
-            from copy import copy
-            A = copy(A)
+            if copy_matrix:
+                from copy import copy
+                A = copy(A)
             A.set_immutable()
         self._matrix = A
         MatrixMorphism_abstract.__init__(self, parent)

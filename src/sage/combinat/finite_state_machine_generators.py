@@ -896,6 +896,52 @@ class TransducerGenerators(object):
                  ((-1, 2), [0]),
                  ((1, 2), [1])]
 
+        -   Abelian complexity of the paperfolding sequence::
+
+                sage: T = transducers.Recursion([
+                ....:     f(4*n) == f(2*n),
+                ....:     f(4*n+2) == f(2*n+1)+1,
+                ....:     f(16*n+1) == f(8*n+1),
+                ....:     f(16*n+5) == f(4*n+1)+2,
+                ....:     f(16*n+11) == f(4*n+3)+2,
+                ....:     f(16*n+15) == f(2*n+2)+1,
+                ....:     f(1) == 2, f(0) == 0]
+                ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
+                ....:     f, n, 2)
+                sage: T.transitions()
+                [Transition from (0, 0) to (0, 1): 0|-,
+                 Transition from (0, 0) to (1, 1): 1|-,
+                 Transition from (0, 1) to (0, 1): 0|0,
+                 Transition from (0, 1) to (1, 1): 1|1,
+                 Transition from (1, 1) to (1, 2): 0|-,
+                 Transition from (1, 1) to (3, 2): 1|-,
+                 Transition from (1, 2) to (1, 3): 0|-,
+                 Transition from (1, 2) to (5, 3): 1|-,
+                 Transition from (3, 2) to (3, 3): 0|-,
+                 Transition from (3, 2) to (7, 3): 1|-,
+                 Transition from (1, 3) to (1, 3): 0|0,
+                 Transition from (1, 3) to (1, 1): 1|2,
+                 Transition from (5, 3) to (1, 2): 0|2,
+                 Transition from (5, 3) to (1, 1): 1|2,
+                 Transition from (3, 3) to (1, 1): 0|2,
+                 Transition from (3, 3) to (3, 2): 1|2,
+                 Transition from (7, 3) to (1, 1): 0|2,
+                 Transition from (7, 3) to (2, 1): 1|1,
+                 Transition from (2, 1) to (1, 1): 0|1,
+                 Transition from (2, 1) to (2, 1): 1|0]
+                sage: for s in T.iter_states():
+                ....:     print s, s.final_word_out
+                (0, 0) [0]
+                (0, 1) [0]
+                (1, 1) [2]
+                (1, 2) [2]
+                (3, 2) [2, 2]
+                (1, 3) [2]
+                (5, 3) [2, 2]
+                (3, 3) [2, 2]
+                (7, 3) [2, 2]
+                (2, 1) [1, 2]
+
         .. TODO::
 
             Extend the method to

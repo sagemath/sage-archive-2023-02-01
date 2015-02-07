@@ -717,10 +717,11 @@ cdef init_libsingular():
         lib = os.environ['SAGE_LOCAL']+"/lib/libsingular."+extension
         if os.path.exists(lib):
             handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
+            if not handle:
+                print dlerror()
             break
 
     if handle == NULL:
-        print dlerror()
         raise ImportError, "cannot load libSINGULAR library"
 
     # load SINGULAR

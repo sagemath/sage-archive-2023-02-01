@@ -1311,7 +1311,7 @@ class TransducerGenerators(object):
         for rule in rules:
             for m in range(max_K - rule.K + 1):
                 for ell in range(base**m):
-                    R = rule.r + 2**rule.K * ell
+                    R = rule.r + base**rule.K * ell
                     if residues[rule.K + m][R] is not None:
                         raise ValueError(
                             "Conflicting rules congruent to %d modulo %d."

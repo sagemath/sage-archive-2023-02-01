@@ -41,8 +41,8 @@ Here is a list of the Sage manuals and the corresponding files to edit:
    ``SAGE_ROOT/src/doc/fr/tutorial``
 
 
-Editing the Manuals
-===================
+Building the Manuals
+====================
 
 If, for example, you want to change the Sage tutorial, then you should
 start by modifying the files in

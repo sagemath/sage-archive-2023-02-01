@@ -858,20 +858,6 @@ cdef class RealDoubleElement(FieldElement):
         """
         return Integer(self._value)
 
-    def parent(self):
-        """
-        Return the real double field, which is the parent of ``self``.
-
-        EXAMPLES::
-
-            sage: a = RDF(2.3)
-            sage: a.parent()
-            Real Double Field
-            sage: parent(a)
-            Real Double Field
-        """
-        return self._parent
-
     def _interface_init_(self, I=None):
         """
         Return ``self`` formatted as a string, suitable as input to another

@@ -894,6 +894,78 @@ class BipartiteGraph(Graph):
             kwds["pos"] = pos
         return Graph.plot(self, *args, **kwds)
 
+    def matching_polynomial(self, algorithm="Godsil", name=None):
+        r"""
+        Computes the matching polynomial.
+
+        If `p(G, k)` denotes the number of `k`-matchings (matchings with `k` edges)
+        in `G`, then the *matching polynomial* is defined as [Godsil93]_:
+
+        .. MATH::
+
+            \mu(x)=\sum_{k \geq 0} (-1)^k p(G,k) x^{n-2k}
+
+        INPUT:
+
+        - ``algorithm`` - a string which must be either "Godsil" (default)
+          or "rook"; "rook" is usually faster for larger graphs.
+
+        - ``name`` - optional string for the variable name in the polynomial.
+
+        EXAMPLE::
+
+            sage: BipartiteGraph(graphs.CubeGraph(3)).matching_polynomial()
+            x^8 - 12*x^6 + 42*x^4 - 44*x^2 + 9
+
+        ::
+
+            sage: x = polygen(ZZ)
+            sage: g = BipartiteGraph(graphs.CompleteBipartiteGraph(16, 16))
+            sage: factorial(16)*laguerre(16,x^2) == g.matching_polynomial(algorithm='rook')
+            True
+
+        Compute the matching polynomial of a line with `60` vertices::
+
+            sage: from sage.functions.orthogonal_polys import chebyshev_U
+            sage: g = graphs.trees(60).next()
+            sage: chebyshev_U(60, x/2) == BipartiteGraph(g).matching_polynomial(algorithm='rook')
+            True
+
+        The matching polynomial of a tree graphs is equal to its characteristic
+        polynomial::
+
+            sage: g = graphs.RandomTree(20)
+            sage: p = g.characteristic_polynomial()
+            sage: p == BipartiteGraph(g).matching_polynomial(algorithm='rook')
+            True
+
+        TESTS::
+
+            sage: g = BipartiteGraph(matrix.ones(4,3))
+            sage: g.matching_polynomial()
+            x^7 - 12*x^5 + 36*x^3 - 24*x
+            sage: g.matching_polynomial(algorithm="rook")
+            x^7 - 12*x^5 + 36*x^3 - 24*x
+        """
+        if algorithm == "Godsil":
+            return Graph.matching_polynomial(self, complement=False, name=name)
+        elif algorithm == "rook":
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            A = self.reduced_adjacency_matrix()
+            a = A.rook_vector()
+            m = A.nrows()
+            n = A.ncols()
+            b = [0]*(m + n + 1)
+            for i in range(min(m, n) + 1):
+                b[m + n - 2*i] = a[i]*(-1)**i
+            if name is None:
+                name = 'x'
+            K = PolynomialRing(A.base_ring(), name)
+            p = K(b)
+            return p
+        else:
+            raise ValueError('algorithm must be one of "Godsil" or "rook".')
+
     def load_afile(self, fname):
         r"""
         Loads into the current object the bipartite graph specified in the

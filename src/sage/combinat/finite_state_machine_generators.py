@@ -742,10 +742,16 @@ class TransducerGenerators(object):
         INPUT:
 
         - ``recursions`` -- list or iterable of equations. Each
-          equation has the form ``f(base^K * n + r) == f(base^k * n +
-          s) + t`` for some integers ``0 <= k < K``, ``r`` and some
-          ``t`` or of the form ``f(r) == t`` for some integer ``r``
-          and some ``t``.
+          equation has either the form
+
+          - ``f(base^K * n + r) == f(base^k * n + s) + t`` for some
+            integers ``0 <= k < K``, ``r`` and some ``t``---valid for
+            all ``n`` such that the arguments on both sides are
+            non-negative---
+
+          or the form
+
+          - ``f(r) == t`` for some integer ``r`` and some ``t``.
 
         - ``function`` -- symbolic function ``f`` occuring in the
           recursions.
@@ -848,16 +854,47 @@ class TransducerGenerators(object):
                 ....:     f, n, 2)
                 sage: T.transitions()
                 [Transition from (0, 0) to (0, 0): 0|0,
-                 Transition from (0, 0) to (1, 1): 1|-,
+                 Transition from (0, 0) to (1, 1): 1|0,
                  Transition from (1, 1) to (0, 0): 0|1,
                  Transition from (1, 1) to (1, 0): 1|1,
-                 Transition from (1, 0) to (1, 1): 0|-,
+                 Transition from (1, 0) to (1, 1): 0|0,
                  Transition from (1, 0) to (1, 0): 1|0]
                 sage: [(s.label(), s.final_word_out)
                 ....:  for s in T.iter_final_states()]
                 [((0, 0), [0]),
-                 ((1, 1), [1, 0]),
-                 ((1, 0), [1, 0])]
+                 ((1, 1), [1]),
+                 ((1, 0), [1])]
+
+        -   Here is an artificial example where some of the `s` are
+            negative::
+
+                sage: function('f')
+                f
+                sage: var('n')
+                n
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n-1) + 1,
+                ....:     f(2*n) == f(n),
+                ....:     f(1) == 1,
+                ....:     f(0) == 0], f, n, 2)
+                sage: T.transitions()
+                [Transition from (0, 0) to (0, 0): 0|0,
+                 Transition from (0, 0) to (1, 1): 1|0,
+                 Transition from (1, 1) to (-1, 1): 0|1,
+                 Transition from (1, 1) to (0, 0): 1|1,
+                 Transition from (-1, 1) to (-1, 2): 0|0,
+                 Transition from (-1, 1) to (1, 2): 1|0,
+                 Transition from (-1, 2) to (-1, 1): 0|1,
+                 Transition from (-1, 2) to (0, 0): 1|1,
+                 Transition from (1, 2) to (-1, 2): 0|1,
+                 Transition from (1, 2) to (1, 2): 1|1]
+                sage: [(s.label(), s.final_word_out)
+                ....:  for s in T.iter_final_states()]
+                [((0, 0), [0]),
+                 ((1, 1), [1]),
+                 ((-1, 1), [0]),
+                 ((-1, 2), [0]),
+                 ((1, 2), [1])]
 
         .. TODO::
 
@@ -874,7 +911,12 @@ class TransducerGenerators(object):
 
         ALGORITHM:
 
-        See [HKP2015]_, Section 6.
+        See [HKP2015]_, Section 6. However, there are also recursion
+        transitions for states of level `<\kappa` if the recursion rules
+        allow such a transition. Furthermore, the intermediate step of a
+        non-deterministic transducer is left out by implicitly using
+        recursion transitions. The well-posedness is checked in a
+        truncated version of the recursion digraph.
 
         REFERENCES:
 
@@ -1066,21 +1108,31 @@ class TransducerGenerators(object):
                 ....:                        f(42) == 42], f, n, 2)
                 Traceback (most recent call last):
                 ...
-                ValueError: Superfluous initial condition for 42.
+                ValueError: Superfluous initial values for [42].
 
-            The following is an indication of a missing initial
-            condition::
+            ::
 
                 sage: transducers.Recursion([f(2*n + 1) == f(n) + 1,
                 ....:                        f(2*n) == f(n - 2) + 4,
                 ....:                        f(0) == 0], f, n, 2)
                 Traceback (most recent call last):
                 ...
-                ValueError: The finite state machine contains a cycle
-                starting at state (-2, 0) with input label 0 and no
-                final state.
+                ValueError: Missing initial values for [2].
+
+            Here is an example of a transducer with a conflicting rule
+            (it cannot hold for `n = 0`)::
+
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n - 1),
+                ....:     f(2*n) == f(n) + 1,
+                ....:     f(1) == 1,
+                ....:     f(0) == 0], f, n, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: Conflicting recursion for [0].
         """
         from sage.functions.log import log
+        from sage.graphs.digraph import DiGraph
 
         Rule = collections.namedtuple('Rule', ['K', 'r', 'k', 's', 't'])
         RuleRight = collections.namedtuple('Rule', ['k', 's', 't'])
@@ -1230,43 +1282,174 @@ class TransducerGenerators(object):
                              "to %s modulo %s." % (missing_residues,
                                                    base**max_K))
 
-        def transition_function((carry, look_ahead), input):
-            current = carry + input * base**look_ahead
-            K = look_ahead + 1
-            R = current % base**K
-            rule = residues[K][R]
-            if rule is not None:
-                n = (current - R) / base**K
-                new_carry = n * base**rule.k + rule.s
-                return ((new_carry, rule.k), rule.t)
-            return ((current, K), [])
+        required_initial_values = set()
+
+        def recursion_transition(carry, level, force_nonnegative_target):
+            """
+            Compute recursion transition leaving state ``(carry, level)``.
+
+            INPUT:
+
+            - ``carry`` -- integer
+
+            - ``level`` -- integer
+
+            - ``force_nonnegative_target`` -- boolean. If ``True``, only
+              recursion transitions leading to a non-negative carry is
+              returned.
+
+            OUTPUT:
+
+            A tuple ``((new_carry, new_level), output)`` if a recursion
+            transition matching the specifications exists; otherwise,
+            ``None``.
+            """
+            if level >= max_K:
+                K = max_K
+            else:
+                K = level
+            m, r = ZZ(carry).quo_rem(base**K)
+            rule = residues[K][r]
+            if rule is None:
+                return None
+            new_carry = base**rule.k * m + rule.s
+            new_level = rule.k + level - K
+            if new_carry + base**new_level < 0:
+                return None
+            if new_carry < 0 and force_nonnegative_target:
+                return None
+            if new_carry < 0 and carry >= 0:
+                required_initial_values.add(carry)
+            return (new_carry, new_level), rule.t
+
+        def recursion_transitions(carry, level, force_nonnegative_target):
+            """
+            Compute the target and output of a maximal path of
+            recursion transitions starting at state ``(carry, level)``.
+
+            INPUT:
+
+            - ``carry`` -- integer
+
+            - ``level`` -- integer
+
+            - ``force_nonnegative_target`` -- boolean. If ``True``, only
+              recursion transitions leading to a non-negative carry are
+              allowed.
+
+            OUTPUT:
+
+            A tuple ``((new_carry, new_level), output)``.
+            """
+
+            (c, j) = (carry, level)
+            output = coerce_output(0)
+            while True:
+                transition = recursion_transition(
+                    c, j, force_nonnegative_target)
+                if transition is None:
+                    break
+                (c, j) = transition[0]
+                output += transition[1]
+
+            return ((c, j), output)
+
+        def transition_function((state_carry, state_level), input):
+            ((carry, level), output) = recursion_transitions(
+                state_carry, state_level, False)
+            # no more recursion transition is possible,
+            # so this is now a storing transition
+            carry += input * base**level
+            level += 1
+            # We now may proceed along recursion transitions
+            # as long as the carries stay non-negative.
+            ((carry, level), new_output) = recursion_transitions(
+                carry, level, True)
+            return ((carry, level), output + new_output)
 
         T = Transducer(transition_function,
                        initial_states=[(0, 0)],
                        input_alphabet=input_alphabet)
 
-        for key, value in initial_values.iteritems():
-            found = False
-            for state in T.iter_states():
-                if state.label()[0] == key:
-                    state.is_final = True
-                    state.final_word_out = value
-                    found = True
-            if not found:
-                raise ValueError("Superfluous initial condition for %s."
-                                 % key)
+        def edge_recursion_digraph(n):
+            """
+            Compute the list of outgoing edges of ``n`` in the recursion digraph.
 
-        T.construct_final_word_out(0)
+            INPUT:
 
-        missing_initial_conditions = [
-            state.label()
-            for state in T.iter_states()
-            if not state.is_final]
-        if missing_initial_conditions:
-            # this does not currently deal with cycles which
-            # will be more frequent.
-            raise ValueError("Missing initial conditions for %s."
-                             % (missing_initial_conditions,))
+            - ``n`` -- integer.
+
+            OUTPUT:
+
+            A list ``[(A(n), label)]`` if `A(n)<\infty`; otherwise an empty list.
+            """
+            m, r = ZZ(n).quo_rem(base**max_K)
+            rule = residues[max_K][r]
+            result = base**rule.k * m + rule.s
+            if result >= 0:
+                return [(result, rule.t)]
+            else:
+                return []
+
+        def f(n):
+            "Compute f(n) as defined by the recursion"
+            if n in initial_values:
+                return initial_values[n]
+            [(m, offset)] = edge_recursion_digraph(n)
+            return offset + f(m)
+
+        carries = set(state.label()[0] for state in T.iter_states())
+
+        recursion_digraph = DiGraph(
+            {carry: dict(edge_recursion_digraph(carry))
+             for carry in carries
+             if carry >= 0})
+
+        initial_values_set = set(initial_values.iterkeys())
+
+        missing_initial_values = required_initial_values.difference(
+            initial_values_set)
+
+        if missing_initial_values:
+            raise ValueError(
+                "Missing initial values for %s." %
+                sorted(list(missing_initial_values)))
+
+        for cycle in recursion_digraph.all_simple_cycles():
+            assert cycle[0] is cycle[-1]
+            cycle_set = set(cycle)
+            intersection = cycle_set.intersection(initial_values_set)
+            if not intersection:
+                raise ValueError(
+                    "Missing initial condition for one of %s." %
+                    cycle[1:])
+            if len(intersection) > 1:
+                raise ValueError(
+                    "Too many initial conditions, only give one of %s." %
+                    cycle[1:])
+            required_initial_values.update(intersection)
+            output_sum = sum(edge[2]
+                             for edge in recursion_digraph.\
+                                 outgoing_edge_iterator(cycle[1:]))
+            if output_sum:
+                raise ValueError(
+                    "Conflicting recursion for %s." %
+                    cycle[1:])
+
+        superfluous_initial_values = initial_values_set.difference(
+            required_initial_values)
+
+        if superfluous_initial_values:
+            raise ValueError(
+                "Superfluous initial values for %s." %
+                sorted(list(superfluous_initial_values)))
+
+        for state in T.iter_states():
+            state.is_final = True
+            if state.label()[0] >= 0:
+                state.final_word_out = f(state.label()[0])
+            else:
+                state.final_word_out = ZZ(0)
 
         return T
 

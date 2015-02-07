@@ -196,7 +196,7 @@ L}_{P+v}(V)} c(L)` holds in two (non exhaustive) cases:
         &v\in N^+(S)\text{ and }N^+(v)\setminus(S\cup N^+(S)) = \{w\}
     \end{align}\right.
 
-In other words, if we find a vertex `v` satisfying above conditions, the best
+In other words, if we find a vertex `v` satisfying the above conditions, the best
 possible ordering with prefix `P` has the same cost as the best possible
 ordering with prefix `P+v`. So we can greedily extend the prefix with vertices
 satisfying the conditions which results in a significant reduction of the search
@@ -223,17 +223,18 @@ If a lower bound is passed to the algorithm, it will stop as soon as a solution
 with cost equal to that lower bound is found.
 
 
-**Storing prefixes**
+**Storing prefixes:**
 
-If for a prefix `P\in {\cal L}(S)` we have `c(P)<\min_{L\in{\cal L}_P(V)} c(L)`,
-then no prefix `P'\in {\cal L}(S)` can lead to a better solution. Also, the
-branch-and-bound algorithm should avoid visiting branches starting with such a
-prefix `P'`. To do so, we store in a table, for each set `S` associated with a
-visited branch starting with prefix `P\in {\cal L}(S)`, a boolean that we set to
-``True`` if `c(P)<\min_{L\in{\cal L}_P(V)} c(L)` and ``False`` otherwise. See
-[CMN14]_ for more details.
+If for a prefix `P` we have `c(P)<\min_{L\in{\cal L}_P(V)} c(L)=C`, then for any
+permutation `P'` of `P` we have `\min_{L\in{\cal L}_{P'}(V)} c(L)\geq C`.
 
-Since the table can have very large size, users are allowed to control the
+Thus, given such a prefix `P` there is no need to explore any of the orderings
+starting with one of its permutations. To do so, we store `P` (as a set of
+vertices) in a dictionary, and associate to it a boolean that we set to ``True``
+if `c(P)<\min_{L\in{\cal L}_P(V)} c(L)` and ``False`` otherwise. See [CMN14]_
+for more details.
+
+Since the dictionary can have very large size, users are allowed to control the
 maximum length and the maximum number of stored prefixes.
 
 
@@ -256,7 +257,7 @@ REFERENCES
   Denmark, pages 46-58, June 2014,
   http://hal.inria.fr/hal-00943549/document
 
-AUTHORS
+Authors
 -------
 
 - Nathann Cohen (2011-10): Initial version and exact exponential algorithm
@@ -266,7 +267,7 @@ AUTHORS
 - David Coudert (2015-01): BAB formulation and tests functions
 
 
-METHODS
+Methods
 -------
 """
 
@@ -1434,7 +1435,7 @@ def vertex_separation_BAB(G,
 
     finally:
         if verbose:
-            print 'Stored prefixes: {}'.format(len(PS))
+            print 'Stored prefixes: {}'.format(PS.current_prefix_number)
         sage_free(prefix)
         sage_free(positions)
         binary_matrix_free(H)
@@ -1658,34 +1659,14 @@ cdef class PrefixStorage:
     cdef int max_prefix_number
     cdef int current_prefix_number
     cdef dict PT
-    cdef bint is_on
 
     def __init__(self, int max_prefix_length=20, int max_prefix_number=10**6):
         """
         """
-        self.is_on = max_prefix_length>0 and max_prefix_number>0
         self.max_prefix_length = max_prefix_length
         self.max_prefix_number = max_prefix_number
         self.PT = dict()
         self.current_prefix_number = 0
-
-    def __dealloc__(self):
-        """
-        """
-
-    def __len__(self):
-        return self.current_prefix_number
-
-    cdef turn_on(self):
-        """
-        """
-        self.is_on = True
-
-    cdef turn_off(self):
-        """
-        """
-        self.is_on = False
-
 
     cdef bint is_known_prefix(self, int *prefix, int size):
         """
@@ -1705,7 +1686,7 @@ cdef class PrefixStorage:
         we have found so far has cost c(P). It is therefore possible that
         another ordering of the vertices in S may lead to a better solution.
         """
-        if not self.is_on or size<1 or size>self.max_prefix_length:
+        if size<1 or size>self.max_prefix_length:
             return False
 
         cdef int i
@@ -1715,7 +1696,6 @@ cdef class PrefixStorage:
             return self.PT[my_prefix]
 
         return False
-
 
     cdef update(self, int *prefix, int size, int cost, int upper_bound, bint is_improved):
         """
@@ -1728,13 +1708,11 @@ cdef class PrefixStorage:
         prefix P such that V(P)==S.
         """
         cdef int i
-        if self.is_on:
+        if size>0 and size<=self.max_prefix_length:
 
             my_prefix = frozenset(prefix[i] for i in range(size))
 
-            if my_prefix in self.PT:
-                self.PT[my_prefix] = not (is_improved and cost==upper_bound)
-
-            elif self.current_prefix_number<self.max_prefix_number:
-                self.PT[my_prefix] = not (is_improved and cost==upper_bound)
+            if my_prefix not in self.PT:
                 self.current_prefix_number += 1
+
+            self.PT[my_prefix] = not (is_improved and cost==upper_bound)

@@ -534,12 +534,12 @@ class Permutation(CombinatorialObject, Element):
             if l and (isinstance(l[0], (int,Integer)) or len(l[0]) > 0):
                 if isinstance(l[0], tuple):
                     n = max(max(x) for x in l)
-                    l = from_cycles(n, [list(x) for x in l])
+                    return from_cycles(n, [list(x) for x in l])
                 else:
                     n = max(l)
-                    l = from_cycles(n, [list(l)])
+                    return from_cycles(n, [list(l)])
             elif len(l) <= 1:
-                l = []
+                return Permutations()([])
             else:
                 raise ValueError("cannot convert l (= %s) to a Permutation"%l)
 
@@ -2388,6 +2388,10 @@ class Permutation(CombinatorialObject, Element):
 
         See :meth:`reduced_words` for the definition of reduced words and
         a way to compute them all.
+
+        .. WARNING::
+
+            This does not respect the multiplication convention.
 
         EXAMPLES::
 

@@ -533,7 +533,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             :meth:`retract_direct_product`, :meth:`retract_okounkov_vershik`
         """
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m, self.basis_keys())
+        RSm = SymmetricGroupAlgebra(self.base_ring(), m, self.basis().keys())
         pairs = []
         for (p, coeff) in f.monomial_coefficients().iteritems():
             p_ret = p.retract_plain(m)
@@ -589,7 +589,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             :meth:`retract_plain`, :meth:`retract_okounkov_vershik`
         """
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m, self.basis_keys())
+        RSm = SymmetricGroupAlgebra(self.base_ring(), m, self.basis().keys())
         dct = {}
         for (p, coeff) in f.monomial_coefficients().iteritems():
             p_ret = p.retract_direct_product(m)
@@ -641,7 +641,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             :meth:`retract_plain`, :meth:`retract_direct_product`
         """
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m, self.basis_keys())
+        RSm = SymmetricGroupAlgebra(self.base_ring(), m, self.basis().keys())
         dct = {}
         for (p, coeff) in f.monomial_coefficients().iteritems():
             p_ret = p.retract_okounkov_vershik(m)

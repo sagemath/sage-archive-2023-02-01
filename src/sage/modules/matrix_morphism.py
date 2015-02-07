@@ -729,7 +729,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             [0 0 0]
             [0 0 0]
         """
-        return self._matrix
+        return self.matrix()
 
     def rank(self):
         r"""
@@ -1209,6 +1209,10 @@ class MatrixMorphism(MatrixMorphism_abstract):
             raise ArithmeticError("number of rows of matrix (={}) must equal rank of domain (={})".format(A.nrows(), parent.domain().rank()))
         if A.ncols() != parent.codomain().rank():
                 raise ArithmeticError("number of columns of matrix (={}) must equal rank of codomain (={})".format(A.ncols(), parent.codomain().rank()))
+        if A.is_mutable():
+            from copy import copy
+            A = copy(A)
+            A.set_immutable()
         self._matrix = A
         MatrixMorphism_abstract.__init__(self, parent)
 
@@ -1218,8 +1222,8 @@ class MatrixMorphism(MatrixMorphism_abstract):
 
         INPUT:
 
-        - ``side`` - default:``'left'`` - the side of the matrix
-          where a vector is placed to effect the morphism (function).
+        - ``side`` -- (default: ``'left'``) the side of the matrix
+          where a vector is placed to effect the morphism (function)
 
         OUTPUT:
 

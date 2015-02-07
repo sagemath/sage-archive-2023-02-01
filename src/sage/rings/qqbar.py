@@ -1960,8 +1960,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         sage: nfI^2
         -1
         sage: sum = nfrt2 + nfrt3 + nfI + nfz3; sum
-        -a^5 + a^4 + a^3 - 2*a^2 + a - 1     # 32-bit
-        2*a^6 - a^5 - a^4 + a^3 - 2*a^2 + a  # 64-bit
+        -a^5 + a^4 + a^3 - 2*a^2 + a - 1
         sage: hom(sum)
         2.646264369941973? + 1.866025403784439?*I
         sage: hom(sum) == rt2 + rt3 + qqI + z3

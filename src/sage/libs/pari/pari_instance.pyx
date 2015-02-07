@@ -22,6 +22,7 @@ AUTHORS:
 
 - Jeroen Demeyer (2014-02-09): upgrade to PARI 2.7 (#15767)
 
+- Jeroen Demeyer (2014-09-19): upgrade to PARI 2.8 (#16997)
 
 EXAMPLES::
 
@@ -409,10 +410,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
            you get the error message "not enough precomputed primes",
            increase this parameter.
         """
-        if bot:
+        if avma:
             return  # pari already initialized.
-
-        global top, bot
 
         # The size here doesn't really matter, because we will allocate
         # our own stack anyway. We ask PARI not to set up signal and
@@ -430,7 +429,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         init_memory_functions()
 
         # Free the PARI stack and allocate our own (using Cython)
-        pari_free(<void*>bot); bot = 0
+        pari_mainstack_free(pari_mainstack)
+        pari_mainstack.vbot = 0
         init_stack(size)
 
         # Set printing functions
@@ -475,8 +475,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         # We deliberately use low-level functions to minimize the
         # chances that something goes wrong here (for example, if we
         # are out of memory).
-        global avma, top, bot
-        printf("top =  %p\navma = %p\nbot =  %p\nsize = %lu\n", top, avma, bot, <unsigned long>(top) - <unsigned long>(bot))
+        printf("top =  %p\navma = %p\nbot =  %p\nsize = %lu\n", pari_mainstack.top, avma, pari_mainstack.bot, <unsigned long>pari_mainstack.rsize)
         fflush(stdout)
 
     def __dealloc__(self):
@@ -494,12 +493,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         indirect doctest. See the discussion at :trac:`13741`.
 
         """
-        if bot:
-            sage_free(<void*>bot)
-        global top, bot, avma
-        top = 0
-        bot = 0
-        avma = 0
+        sage_free(<void*>pari_mainstack.vbot)
+        pari_mainstack.rsize = 0
+        pari_mainstack.vsize = 0
+        pari_mainstack.bot = 0
+        pari_mainstack.vbot = 0
+        pari_mainstack.top = 0
         pari_close()
 
     def __repr__(self):
@@ -603,9 +602,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_catch_sig_off()`` block.
 
         """
-        global top, avma
+        global avma
         if _signals.sig_on_count <= 1:
-            avma = top
+            avma = pari_mainstack.top
         pari_catch_sig_off()
 
     cdef inline gen new_gen(self, GEN x):
@@ -1006,8 +1005,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             1000000
 
         """
-        global top, bot
-        return (<size_t>(top) - <size_t>(bot))
+        return pari_mainstack.rsize
 
     def _allocate_huge_mem(self):
         r"""
@@ -1042,17 +1040,17 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
             sage: pari.allocatemem(4096, silent=True)
             sage: pari._setup_failed_retry()
-            sage: try:  # Any result is fine as long as it's not a segfault
-            ....:     a = pari('2^1000000')
-            ....: except MemoryError:
-            ....:     pass
+            sage: a = pari('2^1000000')
+            Traceback (most recent call last):
+            ...
+            MemoryError: Unable to enlarge PARI stack (instead, kept the stack at ... bytes)
             sage: pari.allocatemem(10^6, silent=True)
         """
-        global top
-        # Pretend top is at a very high address
-        top = <pari_sp>(<size_t>(-16))
+        # Pretend that the stack is much larger than it actually is,
+        # JUST FOR TESTING!
+        pari_mainstack.rsize = <size_t>(-16)
 
-    def allocatemem(self, s=0, silent=False):
+    def allocatemem(self, long s=0, silent=False):
         r"""
         Change the PARI stack space to the given size (or double the
         current size if ``s`` is `0`).
@@ -1119,7 +1117,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.stacksize()
             16777216
         """
-        s = long(s)
         if s < 0:
             raise ValueError("Stack size must be nonnegative")
         init_stack(s)
@@ -1452,8 +1449,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         EXAMPLES::
 
             sage: pari.setrand(50)
-            sage: a = pari.getrand(); a
-            Vecsmall([...])
+            sage: a = pari.getrand()
             sage: pari.setrand(a)
             sage: a == pari.getrand()
             True
@@ -1462,10 +1458,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         Check that invalid inputs are handled properly (:trac:`11825`)::
 
-            sage: pari.setrand(0)
-            Traceback (most recent call last):
-            ...
-            PariError: incorrect type in setrand (t_INT)
             sage: pari.setrand("foobar")
             Traceback (most recent call last):
             ...
@@ -1486,12 +1478,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         EXAMPLES::
 
-            sage: pari.setrand(50)
-            sage: a = pari.getrand(); a
-            Vecsmall([...])
-            sage: pari.setrand(a)
-            sage: a == pari.getrand()
-            True
+            sage: a = pari.getrand()
+            sage: a.type()
+            't_INT'
         """
         pari_catch_sig_on()
         return self.new_gen(getrand())
@@ -1551,23 +1540,35 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
                     k = k + 1
         return A
 
-    def genus2red(self, Q, P):
+    def genus2red(self, P, P0=None):
         """
-        Let Q,P be polynomials with integer coefficients. Determine
-        the reduction at p > 2 of the (proper, smooth) hyperelliptic
-        curve C/Q: y^2+Qy = P, of  genus 2. (The special fiber X_p of
-        the minimal regular model X of C over Z.)
+        Let `P` be a polynomial with integer coefficients.
+        Determines the reduction of the (proper, smooth) genus 2
+        curve `C/\QQ`, defined by the hyperelliptic equation `y^2 = P`.
+        The special syntax ``genus2red([P,Q])`` is also allowed, where
+        the polynomials `P` and `Q` have integer coefficients, to
+        represent the model `y^2 + Q(x)y = P(x)`.
 
         EXAMPLES::
 
             sage: x = polygen(QQ)
+            sage: pari.genus2red([-5*x^5, x^3 - 2*x^2 - 2*x + 1])
+            [1416875, [2, -1; 5, 4; 2267, 1], x^6 - 240*x^4 - 2550*x^3 - 11400*x^2 - 24100*x - 19855, [[2, [2, [Mod(1, 2)]], []], [5, [1, []], ["[V] page 156", [3]]], [2267, [2, [Mod(432, 2267)]], ["[I{1-0-0}] page 170", []]]]]
+
+        This is the old deprecated syntax::
+
             sage: pari.genus2red(x^3 - 2*x^2 - 2*x + 1, -5*x^5)
+            doctest:...: DeprecationWarning: The 2-argument version of genus2red() is deprecated, use genus2red(P) or genus2red([P,Q]) instead
+            See http://trac.sagemath.org/16997 for details.
             [1416875, [2, -1; 5, 4; 2267, 1], x^6 - 240*x^4 - 2550*x^3 - 11400*x^2 - 24100*x - 19855, [[2, [2, [Mod(1, 2)]], []], [5, [1, []], ["[V] page 156", [3]]], [2267, [2, [Mod(432, 2267)]], ["[I{1-0-0}] page 170", []]]]]
         """
-        cdef gen t0 = objtogen(Q)
-        cdef gen t1 = objtogen(P)
+        if P0 is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(16997, 'The 2-argument version of genus2red() is deprecated, use genus2red(P) or genus2red([P,Q]) instead')
+            P = [P0, P]
+        cdef gen t0 = objtogen(P)
         pari_catch_sig_on()
-        return self.new_gen(genus2red(t0.g, t1.g, NULL))
+        return self.new_gen(genus2red(t0.g, NULL))
 
 
 cdef int init_stack(size_t requested_size) except -1:
@@ -1576,9 +1577,9 @@ cdef int init_stack(size_t requested_size) except -1:
     function should not be called directly, use ``pari.allocatemem()``
     instead.
     """
-    global top, bot, avma
+    global avma
 
-    cdef size_t old_size = <size_t>(top) - <size_t>(bot)
+    cdef size_t old_size = pari_mainstack.rsize
 
     cdef size_t new_size
     cdef size_t max_size = <size_t>(-1)
@@ -1609,10 +1610,15 @@ cdef int init_stack(size_t requested_size) except -1:
     # If this is non-zero, the size we failed to allocate
     cdef size_t failed_size = 0
 
+    cdef pari_sp bot  # New stack
     try:
         # Free the current stack
-        if bot:
-            libc.stdlib.free(<void*>bot)
+        libc.stdlib.free(<void*>pari_mainstack.vbot)
+        pari_mainstack.rsize = 0
+        pari_mainstack.vsize = 0
+        pari_mainstack.bot = 0
+        pari_mainstack.vbot = 0
+        pari_mainstack.top = 0
 
         # Allocate memory for new stack.
         bot = <pari_sp> libc.stdlib.malloc(new_size)
@@ -1637,12 +1643,15 @@ cdef int init_stack(size_t requested_size) except -1:
                 new_size = (new_size/32)*16
 
         if not bot:
-            top = 0
             avma = 0
             raise SystemError("Unable to allocate PARI stack, all subsequent PARI computations will crash")
 
-        top = bot + new_size
-        avma = top
+        pari_mainstack.rsize = new_size
+        pari_mainstack.vsize = 0
+        pari_mainstack.bot = bot
+        pari_mainstack.vbot = bot
+        pari_mainstack.top = bot + new_size
+        avma = pari_mainstack.top
 
         if failed_size:
             raise MemoryError("Unable to allocate %s bytes for the PARI stack (instead, allocated %s bytes)"%(failed_size, new_size))

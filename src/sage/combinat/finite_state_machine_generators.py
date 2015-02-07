@@ -896,7 +896,8 @@ class TransducerGenerators(object):
                  ((-1, 2), [0]),
                  ((1, 2), [1])]
 
-        -   Abelian complexity of the paperfolding sequence::
+        -   Abelian complexity of the paperfolding sequence
+            (cf. [HKP2015]_, Example 2.8)::
 
                 sage: T = transducers.Recursion([
                 ....:     f(4*n) == f(2*n),
@@ -941,6 +942,8 @@ class TransducerGenerators(object):
                 (3, 3) [4]
                 (7, 3) [4]
                 (2, 1) [3]
+                sage: list(sum(T(n.bits())) for n in srange(1, 21))
+                [2, 3, 4, 3, 4, 5, 4, 3, 4, 5, 6, 5, 4, 5, 4, 3, 4, 5, 6, 5]
 
         .. TODO::
 

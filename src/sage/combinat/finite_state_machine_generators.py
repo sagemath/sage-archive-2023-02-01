@@ -1308,6 +1308,11 @@ class TransducerGenerators(object):
 
         residues = [[None for r in range(base**k)]
                     for k in range(max_K + 1)]
+
+        # Aim: residues[K][R] = RuleRight(k, s, t)
+        # if and only if 
+        # f(base^K n + R) = f(base^k n + s) + t
+
         for rule in rules:
             for m in range(max_K - rule.K + 1):
                 for ell in range(base**m):
@@ -1317,7 +1322,7 @@ class TransducerGenerators(object):
                             "Conflicting rules congruent to %d modulo %d."
                             % (R, base**(rule.K + m)))
                     residues[rule.K + m][R] = RuleRight(k=rule.k + m,
-                                                        s=rule.s * base**m,
+                                                        s=rule.s + ell * base**rule.k,
                                                         t=rule.t)
 
         missing_residues = [R

@@ -4,11 +4,9 @@
 Creating a Tutorial from a Worksheet
 ====================================
 
-Sage has a number of thematic tutorials, especially those developed by the
-`sage-combinat group <http://combinat.sagemath.org/doc/thematic_tutorials/index-sage-combinat.html>`_.
-Sage has everything needed to take a worksheet created in the
-`Sage notebook <https://github.com/sagemath/sagenb>`_ (sagenb) and then
-create a tutorial.
+Sage has a number of `thematic tutorials <index.html>`_ and contains everything
+needed to turn a worksheet created in the `Sage notebook
+<https://github.com/sagemath/sagenb>`_ (sagenb) into a tutorial.
 
 * Once you have created a worksheet and are satisfied with the text and
   computations, download it to a directory.
@@ -36,18 +34,14 @@ using the Mac app and have placed it in your Applications directory.
 
   This will create an ``.rst`` file along with a subdirectory of image
   files (which may be empty if there are no images).
-  
+
   You can find help for ``sws2rst`` with the command
   ``sage --sws2rst -h`` once you have installed beautifulsoup.
 
-* In principle, such a file could be added directly to the documentation;
-  see :ref:`section-add-file`.  If you add it to one of the manuals or
-  the list of thematic tutorials, be sure to edit the ``toctree`` file
-  as well, and put the line ``.. _tutorial-name:`` at the start of your
-  file with the same listing as in the ``index.rst`` file.
-
-  However, you probably want to check whether it looks right first.  So
-  next we will compile this file to html documentation.
+* In principle, such a file could be added directly to Sage's documentation (see
+  the `developer's manual <../developer/index.html>`_). However, you probably
+  want to check whether it looks right first. So next we will compile this file
+  to html documentation.
 
   * Follow the instructions of ``sage --sws2rst --sphinxify``.  First,
     we will open a Sage shell session, where all appropriate Sage

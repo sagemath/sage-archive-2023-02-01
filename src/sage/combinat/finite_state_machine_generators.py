@@ -872,6 +872,16 @@ class TransducerGenerators(object):
             - output words of length `> 1`---currently, some
               work-around with a symbolic function would somehow work.
 
+        ALGORITHM:
+
+        See [HKP2015]_, Section 6.
+
+        REFERENCES:
+
+        .. [HKP2015] Clemens Heuberger, Sara Kropf and Helmut Prodinger,
+           *Output sum of transducers: Limiting distribution and periodic
+           fluctuation*, :arxiv:`1502.01412`.
+
         TESTS:
 
             The following tests check that the equations are well-formed::

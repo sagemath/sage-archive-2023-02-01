@@ -1408,7 +1408,7 @@ def vertex_separation_BAB(G,
 
     cdef int width = upper_bound
     cdef list order = list()
-    cdef dict prefix_storage = dict()
+    cdef set prefix_storage = set()
 
     try:
         # ==> Call the cython method
@@ -1467,7 +1467,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
                                  int             upper_bound,
                                  int             current_cost,
                                  binary_matrix_t bm_pool,
-                                 dict            prefix_storage,
+                                 set             prefix_storage,
                                  int             max_prefix_length,
                                  int             max_prefix_number,
                                  bint            verbose):
@@ -1511,9 +1511,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
       a pool of initialized bitsets. Each call of this method needs 3 bitsets
       for local operations, so it uses rows ``[3*level,3*level+2]``.
 
-    - ``prefix_storage`` -- dictionary used to store prefixes. We use a
-      ``dictionary`` instead of a ``set`` because it is faster to test that a
-      ``frozenset`` is a key of a dictionary than a member of a set.
+    - ``prefix_storage`` -- set used to store prefixes.
 
     - ``max_prefix_length`` -- maximum length of the stored prefixes to prevent
       storing too many prefixes.
@@ -1675,6 +1673,6 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     # prefix P' on the same set S=V(P) of vertices can lead to a better
     # solution.
     if level<=max_prefix_length and current_cost<upper_bound and len(prefix_storage)<max_prefix_number:
-        prefix_storage[frozen_prefix] = True
+        prefix_storage.add(frozen_prefix)
     
     return upper_bound

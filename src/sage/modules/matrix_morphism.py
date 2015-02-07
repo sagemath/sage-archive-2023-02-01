@@ -728,6 +728,24 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: matrix(x)
             [0 0 0]
             [0 0 0]
+
+        TESTS:
+
+        ``matrix(x)`` is immutable::
+
+            sage: H = Hom(QQ^3, QQ^2)
+            sage: phi = H(matrix(QQ, 3, 2, list(reversed(range(6))))); phi
+            Vector space morphism represented by the matrix:
+            [5 4]
+            [3 2]
+            [1 0]
+            Domain: Vector space of dimension 3 over Rational Field
+            Codomain: Vector space of dimension 2 over Rational Field
+            sage: A = phi.matrix()
+            sage: A[1, 1] = 19
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
         """
         return self.matrix()
 

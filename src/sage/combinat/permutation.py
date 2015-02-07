@@ -206,6 +206,10 @@ AUTHORS:
   exposing and documenting methods for global-independent
   multiplication.
 
+- Travis Scrimshaw (2014-02-05): Made :class:`StandardPermutations_n` a
+  finite Weyl group to make it more uniform with :class:`SymmetricGroup`.
+  Added ability to compute the conjugacy classes.
+
 Classes and methods
 ===================
 """
@@ -230,7 +234,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.finite_weyl_groups import FiniteWeylGroups
-from sage.structure.element import Element, MultiplicativeGroupElement
+from sage.categories.finite_permutation_groups import FinitePermutationGroups
+from sage.structure.element import Element
 from sage.structure.list_clone import ClonableArray
 from sage.structure.global_options import GlobalOptions
 
@@ -503,7 +508,7 @@ class Permutation(CombinatorialObject, Element):
         #if l is a string, then assume it is in cycle notation
         elif isinstance(l, str):
             if l == "()" or l == "":
-                return from_cycles(0,[])
+                return from_cycles(0, [])
             cycles = l.split(")(")
             cycles[0] = cycles[0][1:]
             cycles[-1] = cycles[-1][:-1]
@@ -511,7 +516,7 @@ class Permutation(CombinatorialObject, Element):
             for c in cycles:
                 cycle_list.append(map(int, c.split(",")))
 
-            return from_cycles(max([max(c) for c in cycle_list]), cycle_list)
+            return from_cycles(max(max(c) for c in cycle_list), cycle_list)
 
         #if l is a pair of standard tableaux or a pair of lists
         elif isinstance(l, (tuple, list)) and len(l) == 2 and \
@@ -521,22 +526,20 @@ class Permutation(CombinatorialObject, Element):
             all(isinstance(x, list) for x in l):
             P,Q = map(tableau.Tableau, l)
             return RSK_inverse(P, Q, 'permutation')
-
         # if it's a tuple or nonempty list of tuples, also assume cycle
         # notation
         elif isinstance(l, tuple) or \
-             (isinstance(l, list) and len(l) > 0 and
+             (isinstance(l, list) and l and
              all(isinstance(x, tuple) for x in l)):
-            if len(l) >= 1 and (isinstance(l[0],(int,Integer)) or len(l[0]) > 0):
+            if l and (isinstance(l[0], (int,Integer)) or len(l[0]) > 0):
                 if isinstance(l[0], tuple):
-                    n = max( map(max, l) )
-                    return from_cycles(n, map(list, l))
+                    n = max(max(x) for x in l)
+                    l = from_cycles(n, [list(x) for x in l])
                 else:
                     n = max(l)
-                    l = [list(l)]
-                    return from_cycles(n, l)
+                    l = from_cycles(n, [list(l)])
             elif len(l) <= 1:
-                return Permutations()([])
+                l = []
             else:
                 raise ValueError("cannot convert l (= %s) to a Permutation"%l)
 
@@ -551,7 +554,7 @@ class Permutation(CombinatorialObject, Element):
 
         INPUT:
 
-        - ``l`` -- a list of ``int`` variables.
+        - ``l`` -- a list of ``int`` variables
 
         - ``check_input`` (boolean) -- whether to check that input is
           correct. Slows the function down, but ensures that nothing bad
@@ -570,7 +573,7 @@ class Permutation(CombinatorialObject, Element):
             sage: Permutation([1,2,4,-1])
             Traceback (most recent call last):
             ...
-            ValueError: The elements must be strictly positive integers.
+            ValueError: the elements must be strictly positive integers
             sage: Permutation([1,2,4,5])
             Traceback (most recent call last):
             ...
@@ -578,26 +581,22 @@ class Permutation(CombinatorialObject, Element):
             5. Some element may be repeated, or an element is missing, but there
             is something wrong with its length.
         """
-        Element.__init__(self, parent)
+        l = list(l)
         if check_input:
-            l = list(l)
             # Is input a list of positive integers ?
             for i in l:
                 try:
-                    i=int(i)
+                    i = int(i)
                 except TypeError:
-                    raise ValueError("The elements must be integer variables")
+                    raise ValueError("the elements must be integer variables")
                 if i < 1:
-                    print i
-                    raise ValueError("The elements must be strictly positive integers.")
-
+                    raise ValueError("the elements must be strictly positive integers")
 
             sorted_copy = list(l)
 
             # Empty list ?
-            if len(sorted_copy) == 0:
+            if not sorted_copy:
                 CombinatorialObject.__init__(self, l)
-
 
             else:
                 sorted_copy.sort()
@@ -622,6 +621,8 @@ class Permutation(CombinatorialObject, Element):
                 CombinatorialObject.__init__(self, l)
         else:
             CombinatorialObject.__init__(self, l)
+
+        Element.__init__(self, parent)
 
     def __setstate__(self, state):
         r"""
@@ -739,7 +740,7 @@ class Permutation(CombinatorialObject, Element):
         if display == "reduced_word":
             let = self.parent().global_options['generator_name']
             redword = self.reduced_word()
-            if len(redword) == 0:
+            if not redword:
                 return self.parent().global_options['latex_empty_str']
             return " ".join("%s_{%s}"%(let, i) for i in redword)
         if display == "twoline":
@@ -5317,6 +5318,15 @@ class Permutations_set(Permutations):
         Iterate over ``self``.
 
         EXAMPLES::
+
+            sage: S = Permutations(['c','a','t'])
+            sage: S.list()
+            [['c', 'a', 't'],
+             ['c', 't', 'a'],
+             ['a', 'c', 't'],
+             ['a', 't', 'c'],
+             ['t', 'c', 'a'],
+             ['t', 'a', 'c']]
         """
         for p in Permutations_set._fast_iter(self._set):
             yield self.element_class(self, p)
@@ -5757,7 +5767,7 @@ class StandardPermutations_n_abstract(Permutations):
             category = FiniteEnumeratedSets()
         Permutations.__init__(self, category=category)
 
-    def __call__(self, x):
+    def __call__(self, x, check_input=True):
         """
         A close variant of ``__call__`` which just attempts to extend the
         permutation to the correct size before constructing the element.
@@ -5768,7 +5778,7 @@ class StandardPermutations_n_abstract(Permutations):
         """
         if len(x) < self.n:
             x = list(x) + range(len(x)+1, self.n+1)
-        return super(StandardPermutations_n_abstract, self).__call__(x)
+        return super(StandardPermutations_n_abstract, self).__call__(x, check_input=True)
 
     def __contains__(self, x):
         """
@@ -5876,7 +5886,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: TestSuite(P).run()
             sage: P.global_options.reset()
         """
-        cat = FiniteWeylGroups() & FiniteEnumeratedSets()
+        cat = FiniteWeylGroups() & FinitePermutationGroups()
         StandardPermutations_n_abstract.__init__(self, n, category=cat)
 
     def _repr_(self):
@@ -5960,6 +5970,92 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             l.append(i+1)
         return self.element_class(self, l)
 
+    def conjugacy_classes_representatives(self):
+        """
+        Return a complete list of representatives of conjugacy classes
+        in ``self``.
+
+        Let `S_n` be the symmetric group on `n` letters. The conjugacy
+        classes are indexed by partitions `\lambda` of `n`. The ordering
+        of the conjugacy classes is reverse lexicographic order of
+        the partitions.
+
+        EXAMPLES::
+
+            sage: G = Permutations(5)
+            sage: G.conjugacy_classes_representatives()
+            [[1, 2, 3, 4, 5],
+             [2, 1, 3, 4, 5],
+             [2, 1, 4, 3, 5],
+             [2, 3, 1, 4, 5],
+             [2, 3, 1, 5, 4],
+             [2, 3, 4, 1, 5],
+             [2, 3, 4, 5, 1]]
+
+        TESTS:
+
+        Check some border cases::
+
+            sage: S = Permutations(0)
+            sage: S.conjugacy_classes_representatives()
+            [[]]
+            sage: S = Permutations(1)
+            sage: S.conjugacy_classes_representatives()
+            [[1]]
+        """
+        from sage.combinat.partition import Partitions_n
+        return [ self.element_in_conjugacy_classes(la)
+                 for la in reversed(Partitions_n(self.n)) ]
+
+    def conjugacy_classes_iterator(self):
+        """
+        Iterate over the conjugacy classes of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Permutations(4)
+            sage: list(G.conjugacy_classes_iterator()) == G.conjugacy_classes()
+            True
+        """
+        from sage.combinat.partition import Partitions_n
+        from sage.groups.perm_gps.symgp_conjugacy_class import PermutationsConjugacyClass
+        for la in reversed(Partitions_n(self.n)):
+            yield PermutationsConjugacyClass(self, la)
+
+    def conjugacy_classes(self):
+        """
+        Return a list of the conjugacy classes of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Permutations(4)
+            sage: G.conjugacy_classes()
+            [Conjugacy class of cycle type [1, 1, 1, 1] in Standard permutations of 4,
+             Conjugacy class of cycle type [2, 1, 1] in Standard permutations of 4,
+             Conjugacy class of cycle type [2, 2] in Standard permutations of 4,
+             Conjugacy class of cycle type [3, 1] in Standard permutations of 4,
+             Conjugacy class of cycle type [4] in Standard permutations of 4]
+        """
+        return list(self.conjugacy_classes_iterator())
+
+    def conjugacy_class(self, g):
+        r"""
+        Return the conjugacy class of ``g`` in ``self``.
+
+        INPUT:
+
+        - ``g`` -- a partition or an element of ``self``
+
+        EXAMPLES::
+
+            sage: G = Permutations(5)
+            sage: g = G([2,3,4,1,5])
+            sage: G.conjugacy_class(g)
+            Conjugacy class of cycle type [4, 1] in Standard permutations of 5
+        """
+        from sage.groups.perm_gps.symgp_conjugacy_class import PermutationsConjugacyClass
+        return PermutationsConjugacyClass(self, g)
+
     def algebra(self, base_ring):
         """
         Return the symmetric group algebra associated to ``self``.
@@ -6035,11 +6131,18 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             """
             Check if ``i`` is a left descent of ``self``.
 
+            .. WARNING::
+
+                The methods :meth:`descents` and :meth:`idescents` behave
+                differently than their Weyl group counterparts. In
+                particular, the indexing is 0-based. This could lead to
+                errors, instead, construct the descent set as in the example.
+
             EXAMPLES::
 
                 sage: P = Permutations(4)
                 sage: x = P([3, 2, 4, 1])
-                sage: x.descents()    # This uses a different convention right now...
+                sage: x.descents() # known bug - different indices
                 [1, 3]
                 sage: [i for i in P.index_set() if x.has_left_descent(i)]
                 [1, 3]
@@ -6052,11 +6155,18 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             """
             Check if ``i`` is a right descent of ``self``.
 
+            .. WARNING::
+
+                The methods :meth:`descents` and :meth:`idescents` behave
+                differently than their Weyl group counterparts. In
+                particular, the indexing is 0-based. This could lead to
+                errors, instead, construct the descent set as in the example.
+
             EXAMPLES::
 
                 sage: P = Permutations(4)
                 sage: x = P([3, 2, 4, 1])
-                sage: (~x).descents()    # This uses a different convention right now...
+                sage: (~x).descents() # known bug - different indices
                 [1, 2]
                 sage: [i for i in P.index_set() if x.has_right_descent(i)]
                 [1, 2]
@@ -6099,6 +6209,13 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             Return the inverse of ``self``.
 
             EXAMPLES::
+
+                sage: P = Permutations(4)
+                sage: w0 = P([4,3,2,1])
+                sage: w0.inverse() == w0
+                True
+                sage: w0.inverse().parent() is P
+                True
             """
             w = range(len(self))
             for i,j in enumerate(self):
@@ -6107,27 +6224,12 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
         __invert__ = inverse
 
-# This causes a crash
-#    class Element(Permutation, MultiplicativeGroupElement):
-#        def __mul__(self, other):
-#            r"""
-#            Multiply ``self`` and ``other``.
-#
-#            EXAMPLES::
-#
-#                sage: P = Permutations(4)
-#                sage: P.prod(P.gens()).parent() is P
-#                True
-#            """
-#            p = list(super(Permutation, self).__mul__(other))
-#            return self.element_class(self, p)
-#
-#        _mul_ = __mul__
-
 #############################
 # Constructing Permutations #
 #############################
-def from_permutation_group_element(pge):
+
+# TODO: Make this a coercion
+def from_permutation_group_element(pge, parent=None):
     """
     Return a :class:`Permutation` given a :class:`PermutationGroupElement`
     ``pge``.
@@ -6142,7 +6244,10 @@ def from_permutation_group_element(pge):
     if not isinstance(pge, PermutationGroupElement):
         raise TypeError("pge (= %s) must be a PermutationGroupElement"%pge)
 
-    return Permutation(pge.domain())
+    if parent is None:
+        parent = Permutations( len(pge.domain()) )
+
+    return parent(pge.domain())
 
 def from_rank(n, rank):
     r"""
@@ -6179,9 +6284,9 @@ def from_rank(n, rank):
         factoradic[n-j] = Integer(rank % j)
         rank = int(rank) // j
 
-    return from_lehmer_code(factoradic)
+    return from_lehmer_code(factoradic, Permutations(n))
 
-def from_inversion_vector(iv):
+def from_inversion_vector(iv, parent=None):
     r"""
     Return the permutation corresponding to inversion vector ``iv``.
 
@@ -6205,9 +6310,11 @@ def from_inversion_vector(iv):
     for i,ivi in enumerate(iv):
         p[open_spots.pop(ivi)] = i+1
 
-    return Permutations()(p)
+    if parent is None:
+        parent = Permutations()
+    return parent(p)
 
-def from_cycles(n, cycles):
+def from_cycles(n, cycles, parent=None):
     r"""
     Return the permutation in the `n`-th symmetric group whose decomposition
     into disjoint cycles is ``cycles``.
@@ -6253,7 +6360,10 @@ def from_cycles(n, cycles):
         ...
         ValueError: You claimed that this was a permutation on 1...4 but it contains 18
     """
-    p = range(1,n+1)
+    if parent is None:
+        parent = Permutations(n)
+
+    p = range(1, n+1)
 
     # Is it really a permutation on 1...n ?
     flattened_and_sorted = []
@@ -6262,8 +6372,8 @@ def from_cycles(n, cycles):
     flattened_and_sorted.sort()
 
     # Empty input
-    if len(flattened_and_sorted) == 0:
-        return Permutations()(p)
+    if not flattened_and_sorted:
+        return parent(p, check_input=False)
 
     # Only positive elements
     if int(flattened_and_sorted[0]) < 1:
@@ -6276,7 +6386,7 @@ def from_cycles(n, cycles):
                          str(n)+" but it contains "+str(flattened_and_sorted[-1]))
 
     # Disjoint cycles ?
-    previous = flattened_and_sorted[0]-1
+    previous = flattened_and_sorted[0] - 1
     for i in flattened_and_sorted:
         if i == previous:
             raise ValueError("An element appears twice. It should not.")
@@ -6291,18 +6401,18 @@ def from_cycles(n, cycles):
             p[cycle[i]-1] = cycle[i+1]
         p[cycle[-1]-1] = first
 
-    return Permutations()(p)
+    return parent(p, check_input=False)
 
-def from_lehmer_code(lehmer):
+def from_lehmer_code(lehmer, parent=None):
     r"""
     Return the permutation with Lehmer code ``lehmer``.
 
     EXAMPLES::
 
         sage: import sage.combinat.permutation as permutation
-        sage: Permutation([2,1,5,4,3]).to_lehmer_code()
+        sage: lc = Permutation([2,1,5,4,3]).to_lehmer_code(); lc
         [1, 0, 2, 1, 0]
-        sage: permutation.from_lehmer_code(_)
+        sage: permutation.from_lehmer_code(lc)
         [2, 1, 5, 4, 3]
     """
     p = []
@@ -6310,9 +6420,11 @@ def from_lehmer_code(lehmer):
     for ivi in lehmer:
         p.append(open_spots.pop(ivi))
 
-    return Permutations()(p)
+    if parent is None:
+        parent = Permutations()
+    return parent(p)
 
-def from_reduced_word(rw):
+def from_reduced_word(rw, parent=None):
     r"""
     Return the permutation corresponding to the reduced word ``rw``.
 
@@ -6329,15 +6441,18 @@ def from_reduced_word(rw):
         sage: permutation.from_reduced_word([])
         []
     """
+    if parent is None:
+        parent = Permutations()
+
     if not rw:
-        return Permutations()([])
+        return parent([])
 
     p = [i+1 for i in range(max(rw)+1)]
 
     for i in rw:
         (p[i-1], p[i]) = (p[i], p[i-1])
 
-    return Permutations()(p)
+    return parent(p)
 
 def bistochastic_as_sum_of_permutations(M, check = True):
     r"""

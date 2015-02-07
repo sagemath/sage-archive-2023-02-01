@@ -716,6 +716,21 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         raise NotImplementedError("this method must be overridden in the extension class")
 
+    def _matrix_(self):
+        """
+        EXAMPLES:
+
+        Check that this works with the :func:`matrix` function
+        (:trac:`16844`)::
+
+            sage: H = Hom(ZZ^2, ZZ^3)
+            sage: x = H.an_element()
+            sage: matrix(x)
+            [0 0 0]
+            [0 0 0]
+        """
+        return self._matrix
+
     def rank(self):
         r"""
         Returns the rank of the matrix representing this morphism.

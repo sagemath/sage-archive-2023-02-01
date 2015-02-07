@@ -1408,7 +1408,7 @@ def vertex_separation_BAB(G,
 
     cdef int width = upper_bound
     cdef list order = list()
-    cdef PrefixStorage PS = PrefixStorage(max_prefix_length=max_prefix_length, max_prefix_number=max_prefix_number)
+    cdef dict prefix_storage = dict()
 
     try:
         # ==> Call the cython method
@@ -1425,7 +1425,9 @@ def vertex_separation_BAB(G,
                                         upper_bound               = upper_bound,
                                         current_cost              = 0,
                                         bm_pool                   = bm_pool,
-                                        PS                        = PS,
+                                        prefix_storage            = prefix_storage,
+                                        max_prefix_length         = max_prefix_length,
+                                        max_prefix_number         = max_prefix_number,
                                         verbose                   = verbose)
 
         sig_off()
@@ -1435,7 +1437,7 @@ def vertex_separation_BAB(G,
 
     finally:
         if verbose:
-            print 'Stored prefixes: {}'.format(PS.current_prefix_number)
+            print 'Stored prefixes: {}'.format(len(prefix_storage))
         sage_free(prefix)
         sage_free(positions)
         binary_matrix_free(H)
@@ -1465,7 +1467,9 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
                                  int             upper_bound,
                                  int             current_cost,
                                  binary_matrix_t bm_pool,
-                                 PrefixStorage   PS,
+                                 dict            prefix_storage,
+                                 int             max_prefix_length,
+                                 int             max_prefix_number,
                                  bint            verbose):
     r"""
     Branch and Bound algorithm for the process number and the vertex separation.
@@ -1507,14 +1511,19 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
       a pool of initialized bitsets. Each call of this method needs 3 bitsets
       for local operations, so it uses rows ``[3*level,3*level+2]``.
 
-    - ``PS`` -- an object of class PrefixStorage used to store prefixes.
+    - ``prefix_storage`` -- dictionary used to store prefixes. We use a
+      ``dictionary`` instead of a ``set`` because it is faster to test that a
+      ``frozenset`` is a key of a dictionary than a member of a set.
+
+    - ``max_prefix_length`` -- maximum length of the stored prefixes to prevent
+      storing too many prefixes.
+
+    - ``max_prefix_number`` -- upper bound on the number of stored prefixes used
+      to prevent using too much memory.
 
     - ``verbose`` -- (default: False) display some information when set to True.
     """
     cdef int i
-
-    if PS.is_known_prefix(prefix, level):
-        return upper_bound
 
     # ==> Test termination
 
@@ -1526,6 +1535,20 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
                 print "New upper bound: {}".format(current_cost)
 
         return current_cost
+
+
+    # ==> Test if the prefix is in prefix_storage
+    #
+    # The set S of vertices of a prefix P is in prefix_storage if the branch
+    # with prefix P is such that c(P)<\min_{L\in{\cal L}_P(V)} c(L). In such
+    # case, there is no need to continue exploration for the current branch.
+    cdef frozenset frozen_prefix
+
+    if level<=max_prefix_length:
+        frozen_prefix = frozenset([prefix[i] for i in range(level)])
+        if frozen_prefix in prefix_storage:
+            return upper_bound
+
 
     cdef int delta_i, j, v, select_it
     cdef list delta = list()
@@ -1608,7 +1631,6 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
 
     # ==> Recursion
-    cdef bint is_improved = False
     for delta_i, i in delta:
 
         delta_i = max(current_cost, delta_i)
@@ -1634,85 +1656,25 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
                                          upper_bound               = upper_bound,
                                          current_cost              = delta_i,
                                          bm_pool                   = bm_pool,
-                                         PS                        = PS,
+                                         prefix_storage            = prefix_storage,
+                                         max_prefix_length         = max_prefix_length,
+                                         max_prefix_number         = max_prefix_number,
                                          verbose                   = verbose)
 
         bitset_discard(loc_b_prefix, i)
 
         if cost_i < upper_bound:
             upper_bound = cost_i
-            is_improved = True
             if upper_bound <= cut_off:
                 # We are satisfied with current solution.
                 break
 
-    PS.update(prefix, level, current_cost, upper_bound, is_improved)
-
+    # ==> Update prefix_storage
+    #
+    # If the prefix P is such that c(P)<\min_{L\in{\cal L}_P(V)} c(L), no other
+    # prefix P' on the same set S=V(P) of vertices can lead to a better
+    # solution.
+    if level<=max_prefix_length and current_cost<upper_bound and len(prefix_storage)<max_prefix_number:
+        prefix_storage[frozen_prefix] = True
+    
     return upper_bound
-
-#===============================================================================
-#===== Prefix Storage for BAB ==================================================
-#===============================================================================
-
-cdef class PrefixStorage:
-    cdef int max_prefix_length
-    cdef int max_prefix_number
-    cdef int current_prefix_number
-    cdef dict PT
-
-    def __init__(self, int max_prefix_length=20, int max_prefix_number=10**6):
-        """
-        """
-        self.max_prefix_length = max_prefix_length
-        self.max_prefix_number = max_prefix_number
-        self.PT = dict()
-        self.current_prefix_number = 0
-
-    cdef bint is_known_prefix(self, int *prefix, int size):
-        """
-        Return True if the prefix is already stored and that branches starting
-        with a prefix on the same set of vertices cannot leat to better
-        solutions. Otherwise return False.
-
-        If the set S of vertices in 'prefix' is already in self.PT, it means
-        that a prefix P such that S==V(P) has already been tested. Let b be the
-        value recorded for P.
-
-        If b==True, it means that any ordering starting with a prefix P' such
-        that S==V(P') has a cost strictly larger than c(P). Therefore, there is
-        no need to explore the branch. We return True.
-
-        If b==False, it means that the best ordering starting with prefix P that
-        we have found so far has cost c(P). It is therefore possible that
-        another ordering of the vertices in S may lead to a better solution.
-        """
-        if size<1 or size>self.max_prefix_length:
-            return False
-
-        cdef int i
-        cdef frozenset my_prefix = frozenset([prefix[i] for i in range(size)])
-
-        if my_prefix in self.PT:
-            return self.PT[my_prefix]
-
-        return False
-
-    cdef update(self, int *prefix, int size, int cost, int upper_bound, bint is_improved):
-        """
-        This method updates the value stored for the vertices in 'prefix'.
-
-        We store False if the upper_bound has been improved and is now equal to
-        c('prefix'). In such a case, other prefixes on the same set
-        S=V('prefix') of vertices may lead to a better solution. Otherwise, we
-        store True, indicating that no better solution can be found with another
-        prefix P such that V(P)==S.
-        """
-        cdef int i
-        if size>0 and size<=self.max_prefix_length:
-
-            my_prefix = frozenset(prefix[i] for i in range(size))
-
-            if my_prefix not in self.PT:
-                self.current_prefix_number += 1
-
-            self.PT[my_prefix] = not (is_improved and cost==upper_bound)

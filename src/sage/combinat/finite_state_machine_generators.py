@@ -909,16 +909,16 @@ class TransducerGenerators(object):
                 ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
                 ....:     f, n, 2)
                 sage: T.transitions()
-                [Transition from (0, 0) to (0, 1): 0|-,
-                 Transition from (0, 0) to (1, 1): 1|-,
+                [Transition from (0, 0) to (0, 1): 0|0,
+                 Transition from (0, 0) to (1, 1): 1|0,
                  Transition from (0, 1) to (0, 1): 0|0,
                  Transition from (0, 1) to (1, 1): 1|1,
-                 Transition from (1, 1) to (1, 2): 0|-,
-                 Transition from (1, 1) to (3, 2): 1|-,
-                 Transition from (1, 2) to (1, 3): 0|-,
-                 Transition from (1, 2) to (5, 3): 1|-,
-                 Transition from (3, 2) to (3, 3): 0|-,
-                 Transition from (3, 2) to (7, 3): 1|-,
+                 Transition from (1, 1) to (1, 2): 0|0,
+                 Transition from (1, 1) to (3, 2): 1|0,
+                 Transition from (1, 2) to (1, 3): 0|0,
+                 Transition from (1, 2) to (5, 3): 1|0,
+                 Transition from (3, 2) to (3, 3): 0|0,
+                 Transition from (3, 2) to (7, 3): 1|0,
                  Transition from (1, 3) to (1, 3): 0|0,
                  Transition from (1, 3) to (1, 1): 1|2,
                  Transition from (5, 3) to (1, 2): 0|2,
@@ -935,12 +935,12 @@ class TransducerGenerators(object):
                 (0, 1) [0]
                 (1, 1) [2]
                 (1, 2) [2]
-                (3, 2) [2, 2]
+                (3, 2) [4]
                 (1, 3) [2]
-                (5, 3) [2, 2]
-                (3, 3) [2, 2]
-                (7, 3) [2, 2]
-                (2, 1) [1, 2]
+                (5, 3) [4]
+                (3, 3) [4]
+                (7, 3) [4]
+                (2, 1) [3]
 
         .. TODO::
 

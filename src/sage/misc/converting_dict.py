@@ -13,7 +13,7 @@ AUTHORS:
 
 EXAMPLES:
 
-A `KeyConvertingDict` will apply a conversion function to all method
+A ``KeyConvertingDict`` will apply a conversion function to all method
 arguments which are keys::
 
     sage: from sage.misc.converting_dict import KeyConvertingDict
@@ -90,6 +90,10 @@ class KeyConvertingDict(dict):
             sage: d["3"] = 42
             sage: d.items()
             [(3, 42)]
+            sage: KeyConvertingDict(int, {"5": 7}).items()
+            [(5, 7)]
+            sage: KeyConvertingDict(int, [("9", 99)]).items()
+            [(9, 99)]
         """
         super(KeyConvertingDict, self).__init__()
         self.key_conversion_function = key_conversion_function

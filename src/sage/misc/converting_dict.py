@@ -16,7 +16,7 @@ EXAMPLES:
 A `KeyConvertingDict` will apply a conversion function to all method
 arguments which are keys::
 
-    sage: from sage.structure.converting_dict import KeyConvertingDict
+    sage: from sage.misc.converting_dict import KeyConvertingDict
     sage: d = KeyConvertingDict(int)
     sage: d["3"] = 42
     sage: d.items()
@@ -68,7 +68,7 @@ class KeyConvertingDict(dict):
 
     EXAMPLES::
 
-        sage: from sage.structure.converting_dict import KeyConvertingDict
+        sage: from sage.misc.converting_dict import KeyConvertingDict
         sage: d = KeyConvertingDict(int)
         sage: d["3"] = 42
         sage: d.items()
@@ -85,7 +85,7 @@ class KeyConvertingDict(dict):
 
         EXAMPLES::
 
-            sage: from sage.structure.converting_dict import KeyConvertingDict
+            sage: from sage.misc.converting_dict import KeyConvertingDict
             sage: d = KeyConvertingDict(int)
             sage: d["3"] = 42
             sage: d.items()
@@ -106,7 +106,7 @@ class KeyConvertingDict(dict):
 
         EXAMPLES::
 
-            sage: from sage.structure.converting_dict import KeyConvertingDict
+            sage: from sage.misc.converting_dict import KeyConvertingDict
             sage: d = KeyConvertingDict(int)
             sage: d[3] = 42
             sage: d["3"]
@@ -126,7 +126,7 @@ class KeyConvertingDict(dict):
 
         EXAMPLES::
 
-            sage: from sage.structure.converting_dict import KeyConvertingDict
+            sage: from sage.misc.converting_dict import KeyConvertingDict
             sage: d = KeyConvertingDict(int)
             sage: d["3"] = 42
             sage: d.items()
@@ -145,7 +145,7 @@ class KeyConvertingDict(dict):
 
         EXAMPLES::
 
-            sage: from sage.structure.converting_dict import KeyConvertingDict
+            sage: from sage.misc.converting_dict import KeyConvertingDict
             sage: d = KeyConvertingDict(int)
             sage: d[3] = 42
             sage: del d["3"]
@@ -165,7 +165,7 @@ class KeyConvertingDict(dict):
 
         EXAMPLES::
 
-            sage: from sage.structure.converting_dict import KeyConvertingDict
+            sage: from sage.misc.converting_dict import KeyConvertingDict
             sage: d = KeyConvertingDict(int)
             sage: d[3] = 42
             sage: "3" in d
@@ -187,7 +187,7 @@ class KeyConvertingDict(dict):
 
         EXAMPLES::
 
-            sage: from sage.structure.converting_dict import KeyConvertingDict
+            sage: from sage.misc.converting_dict import KeyConvertingDict
             sage: d = KeyConvertingDict(int)
             sage: d[3] = 42
             sage: d.has_key("3")
@@ -210,7 +210,7 @@ class KeyConvertingDict(dict):
 
         EXAMPLES::
 
-            sage: from sage.structure.converting_dict import KeyConvertingDict
+            sage: from sage.misc.converting_dict import KeyConvertingDict
             sage: d = KeyConvertingDict(int)
             sage: d[3] = 42
             sage: d.pop("3")
@@ -240,7 +240,7 @@ class KeyConvertingDict(dict):
 
         EXAMPLES::
 
-            sage: from sage.structure.converting_dict import KeyConvertingDict
+            sage: from sage.misc.converting_dict import KeyConvertingDict
             sage: d = KeyConvertingDict(int)
             sage: d.setdefault("3")
             sage: d.items()
@@ -263,7 +263,7 @@ class KeyConvertingDict(dict):
 
         EXAMPLES::
 
-            sage: from sage.structure.converting_dict import KeyConvertingDict
+            sage: from sage.misc.converting_dict import KeyConvertingDict
             sage: d = KeyConvertingDict(int)
             sage: d.update([("3",1),(4,2)])
             sage: d[3]

@@ -2367,7 +2367,7 @@ class MPolynomialIdeal_singular_repr(
           else:
             raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
 
-        from sage.structure.converting_dict import KeyConvertingDict
+        from sage.misc.converting_dict import KeyConvertingDict
         V = []
         for t in T:
             Vbar = _variety([P(f) for f in t], [])

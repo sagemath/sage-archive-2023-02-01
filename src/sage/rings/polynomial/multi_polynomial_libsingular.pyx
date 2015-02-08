@@ -598,8 +598,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         Coercion from symbolic variables::
 
-            sage: x,y,z = var('x,y,z')
-            sage: R = QQ[x,y,z]
+            sage: R = QQ['x,y,z']
+            sage: var('x')
+            x
             sage: R(x)
             x
 
@@ -2102,7 +2103,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 y += c*mul([ x[i]**m[i] for i in m.nonzero_positions()])
             return y
 
-        cdef poly *res
+        cdef poly *res    # ownership will be transferred to us in the next line
         singular_polynomial_call(&res, self._poly, _ring, coerced_x, MPolynomial_libsingular_get_element)
         res_parent = get_coercion_model().common_parent(parent._base, *x)
 
@@ -2110,8 +2111,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             return res_parent(0)
         if p_LmIsConstant(res, _ring):
             sage_res = si2sa( p_GetCoeff(res, _ring), _ring, parent._base )
+            p_Delete(&res, _ring)            # sage_res contains copy
         else:
-            sage_res = new_MP(parent, res)
+            sage_res = new_MP(parent, res)   # pass on ownership of res to sage_res
+
         if parent(sage_res) is not res_parent:
             sage_res = res_parent(sage_res)
         return sage_res

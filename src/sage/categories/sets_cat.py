@@ -2121,7 +2121,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
                 """
                 EXAMPLES::
 
-                    sage: A = Sets().WithRealizations().example(QQ[x]); A
+                    sage: A = Sets().WithRealizations().example(QQ['x']); A
                     The subset algebra of {1, 2, 3} over Univariate Polynomial Ring in x over Rational Field
                     sage: class ANewRealizationOfA(CombinatorialFreeModule):
                     ...       pass

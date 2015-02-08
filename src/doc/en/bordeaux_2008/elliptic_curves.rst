@@ -195,8 +195,8 @@ unpublished papers of Wuthrich and me.
 ::
 
     sage: E = EllipticCurve('11a1')
-    sage: E.sha().bound()           # so only 2,3,5 could divide sha
-    [2, 3, 5]
+    sage: E.sha().bound()            # so only 2 could divide sha
+    [2]
     sage: E = EllipticCurve('37a1')  # so only 2 could divide sha
     sage: E.sha().bound()
     ([2], 1)

@@ -21,7 +21,6 @@ AUTHORS:
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/gmp.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
@@ -451,19 +450,17 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         if name is None:
             name = self.parent().variable_name()
         cdef long i
-        cdef mpz_t coef
-        mpz_init(coef)
+        cdef Integer coef = PY_NEW(Integer)
         all = []
         for i from fmpz_poly_degree(self.__poly) >= i >= 0:
-            fmpz_poly_get_coeff_mpz(coef, self.__poly, i)
-            sign = mpz_sgn(coef)
-            if sign:
-                if sign > 0:
+            fmpz_poly_get_coeff_mpz(coef.value, self.__poly, i)
+            if coef:
+                if coef > 0:
                     sign_str = '+'
-                    coeff_str = mpz_to_str(coef)
+                    coeff_str = str(coef)
                 else:
                     sign_str = '-'
-                    coeff_str = mpz_to_str(coef)[1:]
+                    coeff_str = str(coef)[1:]
                 if i > 0:
                     if coeff_str == '1':
                         coeff_str = ''
@@ -480,7 +477,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                     PyList_Append(all, " %s %s%s" % (sign_str, coeff_str, name))
                 else:
                     PyList_Append(all, " %s %s" % (sign_str, coeff_str))
-        mpz_clear(coef)
         if len(all) == 0:
             return '0'
         leading = all[0]

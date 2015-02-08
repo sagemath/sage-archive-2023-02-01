@@ -39,6 +39,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.number_fields import NumberFields
 from sage.categories.homset        import Hom
 from sage.functions.all            import sqrt
 from sage.libs.pari.gen            import PariError
@@ -280,7 +281,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def __eq__(self, right):
         """
-        Tests the equality of two projective spaces.
+        Tests the equality of two projective morphisms.
 
         INPUT:
 
@@ -292,32 +293,43 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: P1.<x,y> = ProjectiveSpace(RR,1)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1==P2
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2 - 2*x*y + z*x, z^2 -y^2 , 5*z*y])
+            sage: g = H([x^2, y^2, z^2])
+            sage: f == g
             False
 
             ::
 
-            sage: R.<x,y> = QQ[]
-            sage: P1 = ProjectiveSpace(R)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1==P2
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P2.<u,v> = ProjectiveSpace(CC, 1)
+            sage: H = End(P)
+            sage: H2 = End(P2)
+            sage: f = H([x^2 - 2*x*y, y^2])
+            sage: g = H2([u^2 - 2*u*v, v^2])
+            sage: f == g
+            False
+
+            ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 2*x*y, y^2])
+            sage: g = H([x^2*y - 2*x*y^2, y^3])
+            sage: f == g
             True
         """
         if not isinstance(right, SchemeMorphism_polynomial):
             return False
-        else:
-            n = len(self._polys)
-            for i in range(0, n):
-                for j in range(i + 1, n):
-                    if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
-                        return False
-        return True
+        if self.parent() != right.parent():
+            return False
+        n = len(self._polys)
+        return all([self[i]*right[j] == self[j]*right[i] for i in range(0, n) for j in range(i+1, n)])
 
     def __ne__(self, right):
         """
-        Tests the inequality of two projective spaces.
+        Tests the inequality of two projective morphisms.
 
         INPUT:
 
@@ -329,27 +341,30 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: P1.<x,y> = ProjectiveSpace(RR,1)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1!=P2
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^3 - 2*x^2*y , 5*x*y^2])
+            sage: g = f.change_ring(GF(7))
+            sage: f != g
             True
 
             ::
 
-            sage: R.<x,y> = QQ[]
-            sage: P1 = ProjectiveSpace(R)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1!=P2
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = Hom(P, P)
+            sage: f = H([x^2 - 2*x*y + z*x, z^2 -y^2 , 5*z*y])
+            sage: f != f
             False
         """
         if not isinstance(right, SchemeMorphism_polynomial):
             return True
-        else:
-            n = len(self._polys)
-            for i in range(0, n):
-                for j in range(i + 1, n):
-                    if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
-                        return True
+        if self.parent() != right.parent():
+            return True
+        n = len(self._polys)
+        for i in range(0, n):
+            for j in range(i + 1, n):
+                if self._polys[i] * right._polys[j] != self._polys[j] * right._polys[i]:
+                    return True
         return False
 
     def scale_by(self, t):
@@ -1010,6 +1025,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               x0^2 - x1^2
               Defn: Defined on coordinates by sending (x0, x1) to
                     (x1^2/x0, x1^2/x0)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 2*x*y, y^2])
+            sage: f.dehomogenize(0).homogenize(0) == f
+            True
         """
         #the dehomogenizations are stored for future use.
         try:
@@ -1658,10 +1681,21 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             11.0020998412042
             sage: f.normalize_coordinates()
             sage: f.height_difference_bound()
-            10.7632079329219
+            10.3089526606443
+
+       A number field example::
+
+            sage: R.<x> = QQ[]
+            sage: K.<c> = NumberField(x^3 - 2)
+            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: H = End(P)
+            sage: f = H([1/(c+1)*x^2+c*y^2,210*x*y,10000*z^2])
+            sage: f.height_difference_bound()
+            11.0020998412042
         """
-        if self.domain().base_ring() != ZZ and self.domain().base_ring() != QQ:
-            raise NotImplementedError("Must be over ZZ or QQ")
+        FF = FractionField(self.domain().base_ring()) #lift will only work over fields, so coercing into FF
+        if not FF in NumberFields():
+            raise NotImplementedError("Fraction field of the base ring must be a number field")
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if prec is None:
@@ -1675,26 +1709,24 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         U = self.global_height(prec) + R(binomial(N + d, d)).log()
         #compute lower bound - from explicit polynomials of Nullstellensatz
         CR = self.domain().coordinate_ring()
-        CR = CR.change_ring(QQ) #.lift() only works over fields
+        CR = CR.change_ring(FF)
         I = CR.ideal(self.defining_polynomials())
         MCP = []
         for k in range(N + 1):
             CoeffPolys = (CR.gen(k) ** D).lift(I)
             Res = 1
-            h = 1
             for j in range(len(CoeffPolys)):
                 if CoeffPolys[j] != 0:
                     for i in range(len(CoeffPolys[j].coefficients())):
                         Res = lcm(Res, abs(CoeffPolys[j].coefficients()[i].denominator()))
-                        h = max(h, abs(CoeffPolys[j].coefficients()[i].numerator()))
-            MCP.append([Res, Res * h]) #since we need to clear denominators
-        maxh = 1
+            h = max([c.global_height() for g in CoeffPolys for c in (Res*g).coefficients()])
+            MCP.append([Res, h]) #since we need to clear denominators
+        maxh = 0
         gcdRes = 0
         for k in range(len(MCP)):
             gcdRes = gcd(gcdRes, MCP[k][0])
             maxh = max(maxh, MCP[k][1])
-        L = abs(R(gcdRes / ((N + 1) * binomial(N + D - d, D - d) * maxh)).log())
-
+        L = abs( R(gcdRes).log() - R((N + 1) * binomial(N + D - d, D - d)).log() - maxh)
         C = max(U, L) #height difference dh(P) - L <= h(f(P)) <= dh(P) +U
         return(C / (d - 1))
 

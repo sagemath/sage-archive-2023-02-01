@@ -23,7 +23,7 @@ import sage.rings.complex_field
 import sage.rings.complex_number
 import sage.rings.real_mpfr
 from sage.structure.element import parent
-from sage.misc.misc import prod, union
+from sage.misc.all import prod, union
 from sage.rings.real_mpfi import RealIntervalField
 
 import fast_arith
@@ -3079,7 +3079,7 @@ def CRT_vectors(X, moduli):
     if n != len(moduli):
         raise ValueError("number of moduli must equal length of X")
     a = CRT_basis(moduli)
-    modulus = misc.prod(moduli)
+    modulus = prod(moduli)
     return [sum([a[i]*X[i][j] for i in range(n)]) % modulus for j in range(len(X[0]))]
 
 def binomial(x, m, **kwds):
@@ -3264,7 +3264,7 @@ def binomial(x, m, **kwds):
         P = type(x)
     if m < 0:
         return P(0)
-    return misc.prod([x-i for i in xrange(m)])/factorial(m)
+    return prod([x-i for i in xrange(m)])/factorial(m)
 
 def multinomial(*ks):
     r"""
@@ -4353,7 +4353,7 @@ def falling_factorial(x, a):
     if (isinstance(a, (integer.Integer, int, long)) or
         (isinstance(a, sage.symbolic.expression.Expression) and
          a.is_integer())) and a >= 0:
-        return misc.prod([(x - i) for i in range(a)], z=x.parent()(1))
+        return prod([(x - i) for i in range(a)], z=x.parent()(1))
     from sage.functions.all import gamma
     return gamma(x+1) / gamma(x-a+1)
 
@@ -4441,7 +4441,7 @@ def rising_factorial(x, a):
     if (isinstance(a, (integer.Integer, int, long)) or
         (isinstance(a, sage.symbolic.expression.Expression) and
          a.is_integer())) and a >= 0:
-        return misc.prod([(x + i) for i in range(a)], z=x.parent()(1))
+        return prod([(x + i) for i in range(a)], z=x.parent()(1))
     from sage.functions.all import gamma
     return gamma(x+a) / gamma(x)
 

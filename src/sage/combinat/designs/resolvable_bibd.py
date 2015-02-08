@@ -553,7 +553,7 @@ def PBD_4_7(v,check=True, existence=False):
         # On these groups a (15+7,{4,7})-PBD is pasted, in such a way that the 7
         # new points are a set of the final PBD
         PBD22 = PBD_4_7(15+7)
-        S = (SS for SS in PBD22 if len(SS) == 7).next() # a set of size 7
+        S = next(SS for SS in PBD22 if len(SS) == 7) # a set of size 7
         PBD22.relabel({v:i for i,v in enumerate([i for i in range(15+7) if i not in S] + S)})
 
         for B in PBD22:

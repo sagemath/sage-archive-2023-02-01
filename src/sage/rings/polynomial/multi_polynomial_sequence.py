@@ -278,7 +278,6 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
     elif isinstance(arg1, MPolynomialIdeal):
         ring, gens = arg1.ring(), arg1.gens()
-
     else:
         gens = list(arg1)
 
@@ -288,7 +287,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
                 raise TypeError("Ring '%s' not supported."%ring)
         else:
             try:
-                e = iter(gens).next()
+                e = next(iter(gens))
             except StopIteration:
                 raise ValueError("Cannot determine ring from provided information.")
 
@@ -311,7 +310,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
                 raise TypeError("Cannot determine ring.")
 
     try:
-        e = iter(gens).next()
+        e = next(iter(gens))
 
         try:
             parts = tuple(map(ring, gens)),

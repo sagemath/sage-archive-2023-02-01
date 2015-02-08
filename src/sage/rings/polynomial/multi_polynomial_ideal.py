@@ -245,7 +245,7 @@ from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import prod, verbose, get_verbose
+from sage.misc.all import prod, verbose, get_verbose
 from sage.misc.method_decorator import MethodDecorator
 
 from sage.rings.integer_ring import ZZ
@@ -1160,7 +1160,7 @@ class MPolynomialIdeal_singular_repr(
                         all_J = iter(all_J)
                         while min_dimension == -1:
                             try:
-                                J = all_J.next()
+                                J = next(all_J)
                             except StopIteration:
                                 min_dimension = n
                                 break
@@ -3089,7 +3089,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             if other_new.groebner_basis.is_in_cache():
                 r = other_new.groebner_basis()
             elif len(other_new._gb_by_ordering) != 0:
-                o, r = other_new._gb_by_ordering.iteritems().next()
+                o, r = next(other_new._gb_by_ordering.iteritems())
                 l = self.change_ring(R.change_ring(order=o)).gens()
             else: # use easy GB otherwise
                 l = self.change_ring(R.change_ring(order="degrevlex")).gens()
@@ -4418,7 +4418,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         variables = iter(intermediate_ring.gens()[1:])
         for _ in xrange(nvars):
-           map_ideal.append(sum([a**i * variables.next() for i in range(r)]))
+           map_ideal.append(sum([a**i * next(variables) for i in range(r)]))
 
         myminpoly = myminpoly(*map_ideal)
 

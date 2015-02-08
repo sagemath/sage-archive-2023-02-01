@@ -96,7 +96,6 @@ Image files in the ``ppm`` format can be used to tile planes or cover
 cylinders or spheres. In this example an image is created and then
 used to tile the plane::
 
-    sage: from sage.misc.misc import tmp_filename
     sage: T = Tachyon(xres=800, yres=600, camera_center=(-2.0,-.1,.3), projection='fisheye', frustum=(-1.0, 1.0, -1.0, 1.0))
     sage: T.texture('t1',color=(0,0,1))
     sage: for ed in cedges:

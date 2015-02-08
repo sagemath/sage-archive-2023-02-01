@@ -1487,7 +1487,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     """
     if dir is None:
         pickle_jar=True
-        from sage.misc.misc import SAGE_EXTCODE
+        from sage.env import SAGE_EXTCODE
         dir = os.path.join(SAGE_EXTCODE,'pickle_jar','pickle_jar.tar.bz2')
     else:
         pickle_jar=False

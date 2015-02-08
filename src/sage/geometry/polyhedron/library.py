@@ -444,7 +444,7 @@ class Polytopes():
         EXAMPLES::
 
             sage: p24 = polytopes.twenty_four_cell()
-            sage: v = p24.vertex_generator().next()
+            sage: v = next(p24.vertex_generator())
             sage: for adj in v.neighbors(): print adj
             A vertex at (-1/2, -1/2, -1/2, 1/2)
             A vertex at (-1/2, -1/2, 1/2, -1/2)

@@ -32,10 +32,10 @@ AUTHORS:
 #*****************************************************************************
 
 
+from sage.misc.all import prod
 from sage.calculus.functions import jacobian
 from sage.categories.homset        import Hom
 from sage.matrix.constructor       import matrix, identity_matrix
-from sage.misc.misc                import prod
 from sage.rings.all                import Integer, moebius
 from sage.rings.arith              import lcm, gcd
 from sage.rings.complex_field      import ComplexField

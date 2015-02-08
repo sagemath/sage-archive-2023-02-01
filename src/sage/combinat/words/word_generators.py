@@ -938,11 +938,11 @@ class WordGenerator(object):
             sage: Word(words._CharacteristicSturmianWord_LetterIterator(cf))
             word: 0100100101001001001010010010010100100101...
         """
-        if cf.next() != 0:
+        if next(cf) != 0:
             raise ValueError("The first term of the continued fraction expansion must be zero.")
         s0 = [1]
         s1 = [0]
-        e = cf.next()
+        e = next(cf)
         if not e >= 1:
             raise ValueError("The second term of the continued fraction expansion must be larger or equal to 1.")
         s1, s0 = s1*(e-1) + s0, s1
@@ -952,7 +952,7 @@ class WordGenerator(object):
                 n += 1
                 yield alphabet[i]
             else:
-                s1, s0 = s1*cf.next() + s0, s1
+                s1, s0 = s1*next(cf) + s0, s1
 
     def KolakoskiWord(self, alphabet=(1,2)):
         r"""
@@ -1300,14 +1300,14 @@ class WordGenerator(object):
         else:
            d = iter(directive_word)
         W = directive_word.parent()
-        w = W(d.next())
+        w = W(next(d))
         n = 0
         while True:
               for x in w[n:]:
                   n += 1
                   yield x
               else:
-                  w = W(w*W(d.next())).palindromic_closure()
+                  w = W(w*W(next(d))).palindromic_closure()
 
     def MinimalSmoothPrefix(self, n):
         r"""
@@ -1630,11 +1630,11 @@ class WordGenerator(object):
         """
         from itertools import tee,izip
         sequence_it,sequence = tee(sequence)
-        m = sequence_it.next()
+        m = next(sequence_it)
         codomain = m.codomain()
         p = codomain.identity_morphism()
         letters_it,letters = tee(letters)
-        precedent_letter = m(letters_it.next())[0]
+        precedent_letter = m(next(letters_it))[0]
 
         yield precedent_letter
         for (i,(m,a)) in enumerate(izip(sequence, letters)):
@@ -1895,7 +1895,7 @@ class WordGenerator(object):
 
         from itertools import tee
         seq_it,seq= tee(seq)
-        m = seq_it.next()
+        m = next(seq_it)
         W = m.codomain()
 
         kwds = {}

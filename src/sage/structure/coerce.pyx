@@ -1441,12 +1441,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         if op is div:
             # Division on right is the same acting on right by inverse, if it is so defined.
-            try:
-                right_mul = self.get_action(R, S, mul)
-                if isinstance(right_mul, RightModuleAction):
+            right_mul = self.get_action(R, S, mul)
+            if isinstance(right_mul, RightModuleAction):
+                try:
                     return ~right_mul
-            except TypeError: # action may not be invertible
-                self._record_exception()
+                except TypeError: # action may not be invertible
+                    self._record_exception()
 
         return None
 

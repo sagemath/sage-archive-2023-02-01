@@ -230,12 +230,10 @@ permutation `P'` of `P` we have `\min_{L\in{\cal L}_{P'}(V)} c(L)\geq C`.
 
 Thus, given such a prefix `P` there is no need to explore any of the orderings
 starting with one of its permutations. To do so, we store `P` (as a set of
-vertices) in a dictionary, and associate to it a boolean that we set to ``True``
-if `c(P)<\min_{L\in{\cal L}_P(V)} c(L)` and ``False`` otherwise. See [CMN14]_
-for more details.
+vertices) to cut branches later. See [CMN14]_ for more details.
 
-Since the dictionary can have very large size, users are allowed to control the
-maximum length and the maximum number of stored prefixes.
+Since the number of stored sets can get very large, one can control the maximum
+length and the maximum number of stored prefixes.
 
 
 REFERENCES
@@ -595,7 +593,7 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
         if not G.is_connected():
             # We decompose the graph into connected components.
             CC = G.connected_components()
-    
+
     elif isinstance(G, DiGraph):
         if not G.is_strongly_connected():
             # We decompose the digraph into strongly connected components and
@@ -1605,7 +1603,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     # with prefix P is such that c(P)<\min_{L\in{\cal L}_P(V)} c(L). In such
     # case, there is no need to continue exploration for the current branch.
     cdef frozenset frozen_prefix
-    
+
     if loc_level<=max_prefix_length:
         frozen_prefix = frozenset([prefix[i] for i in range(loc_level)])
         if frozen_prefix in prefix_storage:

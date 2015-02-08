@@ -1762,7 +1762,7 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         +Infinity
 
         sage: p = L.__iter__()            # optional - database_gap
-        sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()) # optional - database_gap
+        sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p)) # optional - database_gap
         (Transitive group number 1 of degree 0, Transitive group number 1 of degree 1, Transitive group number 1 of degree 2, Transitive group number 1 of degree 3, Transitive group number 2 of degree 3, Transitive group number 1 of degree 4, Transitive group number 2 of degree 4, Transitive group number 3 of degree 4)
 
     TESTS::
@@ -2142,8 +2142,8 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
         +Infinity
 
         sage: p = L.__iter__()            # optional - database_gap
-        sage: (p.next(), p.next(), p.next(), p.next(), # optional - database_gap
-        ...    p.next(), p.next(), p.next(), p.next())
+        sage: (next(p), next(p), next(p), next(p), # optional - database_gap
+        ...    next(p), next(p), next(p), next(p))
         (Trivial group, Trivial group, S(2), A(3), S(3), A(4), S(4), C(5))
 
     TESTS::

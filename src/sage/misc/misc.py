@@ -584,7 +584,6 @@ def cmp_props(left, right, props):
         if c: return c
     return 0
 
-
 def union(x, y=None):
     """
     Return the union of x and y, as a list. The resulting list need not
@@ -1434,15 +1433,15 @@ def ellipsis_iter(*args, **kwds):
     EXAMPLES::
 
         sage: A = ellipsis_iter(1,2,Ellipsis)
-        sage: [A.next() for _ in range(10)]
+        sage: [next(A) for _ in range(10)]
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        sage: A.next()
+        sage: next(A)
         11
         sage: A = ellipsis_iter(1,3,5,Ellipsis)
-        sage: [A.next() for _ in range(10)]
+        sage: [next(A) for _ in range(10)]
         [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
         sage: A = ellipsis_iter(1,2,Ellipsis,5,10,Ellipsis)
-        sage: [A.next() for _ in range(10)]
+        sage: [next(A) for _ in range(10)]
         [1, 2, 3, 4, 5, 10, 11, 12, 13, 14]
 
     TESTS:

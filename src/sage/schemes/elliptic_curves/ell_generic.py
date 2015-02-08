@@ -2778,10 +2778,10 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
         Epi = iter(Ep) # used to iterate through Ep
         # Find P1,P2 which generate the p-torsion:
-        P1 = Epi.next()
-        while P1.is_zero(): P1 = Epi.next()
-        P2 = Epi.next()
-        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = Epi.next()
+        P1 = next(Epi)
+        while P1.is_zero(): P1 = next(Epi)
+        P2 = next(Epi)
+        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = next(Epi)
 
         k = 1
         log_order = 2

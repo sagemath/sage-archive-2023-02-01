@@ -4968,7 +4968,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         part = 0
         (pold, vold) = (0, 0)
         while size != n:
-            (p, v) = chron.next()
+            (p, v) = next(chron)
             if v > vold:
                 size += p
                 if part > 0:
@@ -5307,31 +5307,31 @@ def _ford_fulkerson_chronicle(G, s, t, a):
         False
         sage: a = {(1, 6): 4, (2, 4): 0, (1, 3): 4, (1, 7): 1, (3, 7): 6, (7, 9): 1, (6, 7): 3, (6, 8): 1, (8, 9): 0, (8, 12): 2}
         sage: ffc = _ford_fulkerson_chronicle(G, s, t, a)
-        sage: ffc.next()
+        sage: next(ffc)
         (1, 0)
-        sage: ffc.next()
+        sage: next(ffc)
         (2, 0)
-        sage: ffc.next()
+        sage: next(ffc)
         (2, 1)
-        sage: ffc.next()
+        sage: next(ffc)
         (3, 1)
-        sage: ffc.next()
+        sage: next(ffc)
         (4, 1)
-        sage: ffc.next()
+        sage: next(ffc)
         (5, 1)
-        sage: ffc.next()
+        sage: next(ffc)
         (5, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (6, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (7, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (8, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (9, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (10, 2)
-        sage: ffc.next()
+        sage: next(ffc)
         (11, 2)
     """
     from sage.graphs.digraph import DiGraph

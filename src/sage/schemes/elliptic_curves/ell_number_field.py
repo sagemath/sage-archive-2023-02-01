@@ -2745,7 +2745,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         PI = K.primes_of_degree_one_iter()
         while True:
-            P = PI.next()
+            P = next(PI)
             if P.norm() > maxnorm: break
             if not P.divides(N):
                 if E1.reduction(P).cardinality() != E2.reduction(P).cardinality():
@@ -2776,7 +2776,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 OP = K.residue_field(P)
                 if E1.change_ring(OP).cardinality() != E2.change_ring(OP).cardinality():
                     return False
-            P = PI.next()
+            P = next(PI)
 
         # Finally we compute the full isogeny class of E1 and check if
         # E2 is isomorphic to any curve in the class:

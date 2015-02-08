@@ -1508,7 +1508,7 @@ class Magma(Expect):
             x*y^3
             ]
         """
-        P = iter(L).next().parent()
+        P = next(iter(L)).parent()
         Pn = self(P).name()
         k = P.base_ring()
         if k.degree() > 1:
@@ -2236,9 +2236,9 @@ class MagmaElement(ExpectElement):
             Full Vector space of degree 2 over GF(3)
             sage: w = V.__iter__(); w                           # optional - magma
             <generator object __iter__ at ...>
-            sage: w.next()                                      # optional - magma
+            sage: next(w)                                       # optional - magma
             (0 0)
-            sage: w.next()                                      # optional - magma
+            sage: next(w)                                       # optional - magma
             (1 0)
             sage: list(w)                                       # optional - magma
             [(2 0), (0 1), (1 1), (2 1), (0 2), (1 2), (2 2)]

@@ -199,15 +199,15 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = WeylGroup(["A",2,1])
                 sage: g = iter(W)
-                sage: g.next()
+                sage: next(g)
                 [1 0 0]
                 [0 1 0]
                 [0 0 1]
-                sage: g.next()
+                sage: next(g)
                 [-1  1  1]
                 [ 0  1  0]
                 [ 0  0  1]
-                sage: g.next()
+                sage: next(g)
                 [ 0 -1  2]
                 [ 1 -1  1]
                 [ 0  0  1]

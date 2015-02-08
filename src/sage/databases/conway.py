@@ -74,7 +74,7 @@ class DictInMapping(collections.Mapping):
         TESTS::
 
             sage: from sage.databases.conway import DictInMapping
-            sage: iter(DictInMapping({'foo': 'bar'})).next()
+            sage: next(iter(DictInMapping({'foo': 'bar'})))
             'foo'
         """
         return iter(self._store)
@@ -174,9 +174,9 @@ class ConwayPolynomials(collections.Mapping):
 
             sage: c = ConwayPolynomials()
             sage: itr = iter(c)
-            sage: itr.next()
+            sage: next(itr)
             (65537, 4)
-            sage: itr.next()
+            sage: next(itr)
             (2, 1)
         """
         for a,b in self._store.iteritems():

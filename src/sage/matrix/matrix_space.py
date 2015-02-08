@@ -731,11 +731,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         ::
 
             sage: i = iter(ZZ)
-            sage: i.next()
+            sage: next(i)
             0
-            sage: i.next()
+            sage: next(i)
             1
-            sage: i.next()
+            sage: next(i)
             -1
 
         Some more examples::
@@ -808,7 +808,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
             sage: MS = MatrixSpace(ZZ, 2, 3)
             sage: i = iter(MS)
-            sage: a = [ i.next() for _ in range(6) ]
+            sage: a = [ next(i) for _ in range(6) ]
             sage: a[0]
             [0 0 0]
             [0 0 0]
@@ -860,13 +860,13 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             #through and yield the matrices by "weight", which is
             #the total number of iterations that need to be done
             #on the base ring to reach the matrix.
-            base_elements = [ base_iter.next() ]
+            base_elements = [ next(base_iter) ]
             weight = 0
             while True:
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries):
                     yield self(entries=[base_elements[i] for i in iv])
                 weight += 1
-                base_elements.append( base_iter.next() )
+                base_elements.append( next(base_iter) )
         else:
             #In the finite case, we do a similar thing except that
             #the "weight" of each entry is bounded by the number

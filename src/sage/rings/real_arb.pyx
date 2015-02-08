@@ -192,18 +192,16 @@ cdef class RealBallField_class(Parent):
         r"""
         Return a coercion map from `S` to ``self``, or ``True``, or ``None.``
 
-        Currently, the only coercion is from :class:`RealIntervalField_class`.
+        Currently, there is no coercion.
 
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
             sage: RealBallField()._coerce_map_from_(RIF) # optional - arb
-            True
+            False
             sage: RealBallField()._coerce_map_from_(SR) # optional - arb
             False
         """
-        if isinstance(S, RealIntervalField_class):
-            return True
         return False
 
     def _element_constructor_(self, *args, **kwds):

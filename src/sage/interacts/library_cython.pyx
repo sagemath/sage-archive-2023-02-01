@@ -16,7 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.misc import prod
+from sage.misc.all import prod
 
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/cdefs.pxi'

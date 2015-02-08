@@ -140,7 +140,7 @@ REFERENCE:
 
 import bz2, os
 
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 
 class SteinWatkinsIsogenyClass:
     def __init__(self, conductor):

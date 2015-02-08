@@ -76,7 +76,7 @@ from sage.rings.arith import gcd
 from matrix2 import cmp_pivots, decomp_seq
 from matrix0 import Matrix as Matrix_base
 
-from sage.misc.misc import verbose, get_verbose, prod
+from sage.misc.all import verbose, get_verbose, prod
 
 #########################################################
 # PARI C library

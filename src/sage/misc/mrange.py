@@ -10,15 +10,17 @@ AUTHORS:
 - Jon Hanke
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
-import misc
+from sage.misc.all import prod
 
 def _len(L):
     """
@@ -581,7 +583,7 @@ class xmrange:
         for i in sizes:
             if i <= 0:
                 return 0
-        return misc.prod(sizes, 1)
+        return prod(sizes, 1)
 
     def __iter__(self):
         return _xmrange(self.sizes, self.typ)

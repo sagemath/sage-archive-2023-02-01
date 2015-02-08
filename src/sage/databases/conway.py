@@ -20,7 +20,7 @@ Frank Luebeck's tables of Conway polynomials over finite fields
 #*****************************************************************************
 
 import collections, os
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 
 _CONWAYDATA = os.path.join(SAGE_SHARE, 'conway_polynomials',
         'conway_polynomials.sobj')

@@ -373,7 +373,7 @@ Methods
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
 from sage.misc.unknown import Unknown
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 
 #*****************************************************************************
 #      Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
@@ -833,8 +833,7 @@ class GraphClasses(UniqueRepresentation):
 
         EXAMPLE::
 
-            sage: import os
-            sage: from sage.misc.misc import SAGE_SHARE
+            sage: from sage.env import SAGE_SHARE
             sage: graph_classes._parse_db(os.path.join(SAGE_SHARE,'graphs'))
         """
         import xml.etree.cElementTree as ET

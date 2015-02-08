@@ -221,10 +221,11 @@ PROMPT = ">>>"
 SAGE_REF = "_sage_ref"
 SAGE_REF_RE = re.compile('%s\d+'%SAGE_REF)
 
+from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
 import sage.misc.sage_eval
 
-INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj'%sage.misc.misc.DOT_SAGE
+INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
 
 
 EXTCODE_DIR = None
@@ -243,7 +244,7 @@ def extcode_dir():
     if not EXTCODE_DIR:
         import shutil
         tmp = sage.misc.temporary_file.tmp_dir()
-        shutil.copytree('%s/magma/'%sage.misc.misc.SAGE_EXTCODE, tmp + '/data')
+        shutil.copytree('%s/magma/'%SAGE_EXTCODE, tmp + '/data')
         EXTCODE_DIR = "%s/data/"%tmp
     return EXTCODE_DIR
 

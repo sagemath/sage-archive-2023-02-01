@@ -1664,7 +1664,7 @@ class Graph(GenericGraph):
         elif format == 'elliptic_curve_congruence':
             from sage.rings.arith import lcm, prime_divisors
             from sage.rings.fast_arith import prime_range
-            from sage.misc.misc import prod
+            from sage.misc.all import prod
             for i in xrange(self.order()):
                 for j in xrange(i):
                     E = curves[i]

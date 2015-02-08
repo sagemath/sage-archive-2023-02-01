@@ -1509,7 +1509,7 @@ def preparse_file_named(name):
     Preparse file named \code{name} (presumably a .sage file), outputting to a
     temporary file.  Returns name of temporary file.
     """
-    from sage.misc.misc import tmp_filename
+    from sage.misc.temporary_file import tmp_filename
     tmpfilename = tmp_filename(os.path.basename(name)) + '.py'
     out = open(tmpfilename, 'w')
     preparse_file_named_to_stream(name, out)

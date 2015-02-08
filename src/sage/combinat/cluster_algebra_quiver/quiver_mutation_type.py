@@ -2247,7 +2247,8 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     if types in possible_types[1:]:
         data.update(_construct_exceptional_mutation_classes(n))
 
-    from sage.misc.misc import DOT_SAGE, sage_makedirs
+    from sage.env import DOT_SAGE
+    from sage.misc.misc import sage_makedirs
     types_path = os.path.join(DOT_SAGE, 'cluster_algebra_quiver')
     types_file = os.path.join(types_path,'mutation_classes_%s.dig6'%n)
     sage_makedirs(types_path)

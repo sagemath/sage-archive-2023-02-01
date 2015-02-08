@@ -306,7 +306,7 @@ import sage.rings.arith as arith
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
 from sage.combinat import combinat
-from sage.misc.misc import prod
+from sage.misc.all import prod
 import sage.interfaces.gap as gap
 
 # This one should be here!

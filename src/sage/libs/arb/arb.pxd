@@ -18,3 +18,5 @@ cdef extern from "arb.h":
      void arb_set_ui(arb_t x, unsigned long y)
      void arb_digamma(arb_t y, const arb_t x, long prec)
      void arb_zeta(arb_t z, const arb_t s, long prec)
+
+     char * arb_get_str(const arb_t x, long n, unsigned long flags)

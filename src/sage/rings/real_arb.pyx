@@ -26,6 +26,7 @@ from sage.libs.arb.arb cimport *
 from sage.libs.arb.arf cimport arf_t, arf_get_mpfr
 from sage.libs.arb.fmpr cimport fmpr_t, fmpr_init, fmpr_clear, fmpr_get_mpfr
 from sage.libs.arb.mag cimport mag_t, mag_get_fmpr
+from sage.libs.flint.flint cimport flint_free
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
 from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, GMP_RNDN
 from sage.misc.cachefunc import weak_cached_function
@@ -130,7 +131,7 @@ cdef class RealBallField_class(Parent):
         sage: from sage.rings.real_arb import RealBallField # optional - arb
         sage: RBF = RealBallField() # optional - arb; indirect doctest
         sage: RBF(1) # optional - arb
-        1.00000000000000 +- 0.000000000000000
+        1.000000000000000
 
     TESTS::
 
@@ -163,7 +164,7 @@ cdef class RealBallField_class(Parent):
             sage: from sage.rings.real_arb import RealBallField # optional - arb
             sage: RBF = RealBallField() # optional - arb
             sage: RBF(1) # optional - arb
-            1.00000000000000 +- 0.000000000000000
+            1.000000000000000
         """
         if precision < 2:
             raise ValueError("Precision must be at least 2.")
@@ -213,7 +214,7 @@ cdef class RealBallField_class(Parent):
             sage: from sage.rings.real_arb import RealBallField # optional: arb
             sage: RBF = RealBallField() # optional: arb
             sage: RBF(RIF(1)) # optional: arb; indirect doctest
-            1.00000000000000 +- 0.000000000000000
+            1.000000000000000
         """
         return self.element_class(self, *args, **kwds)
 
@@ -240,6 +241,8 @@ cdef class RealBall(Element):
         sage: from sage.rings.real_arb import RealBallField # optional - arb
         sage: a = RealBallField()(RIF(1))                     # optional - arb; indirect doctest
         sage: b = a.psi()                         # optional - arb
+        sage: b                                   # optional - arb
+        [-0.577215664901533 +/- 3.85e-16]
         sage: b._interval()        # optional - arb
         -0.577215664901533?
     """
@@ -260,7 +263,7 @@ cdef class RealBall(Element):
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
             sage: RealBallField()(RIF(1)) # optional - arb; indirect doctest
-            1.00000000000000 +- 0.000000000000000
+            1.000000000000000
         """
         arb_init(self.value)
 
@@ -304,9 +307,9 @@ cdef class RealBall(Element):
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
             sage: RealBallField()(RIF(0, 1))                  # optional - arb; indirect doctest
-            0.500000000000000 +- 0.500000000931323
+            [+/- 1.01]
             sage: RealBallField()(1)                          # optional - arb
-            1.00000000000000 +- 0.000000000000000
+            1.000000000000000
             sage: RealBallField()(x)                          # optional - arb
             Traceback (most recent call last):
             ...
@@ -354,33 +357,20 @@ cdef class RealBall(Element):
 
            sage: from sage.rings.real_arb import RealBallField # optional - arb
            sage: RealBallField()(RIF(1.9, 2))  # optional - arb
-           1.95000000000000 +- 0.0500000001047738
+           [2e+0 +/- 0.101]
         """
-        cdef RealNumber midpoint
-        cdef RealNumber radius
-        cdef fmpr_t radius_fmpr
-        cdef long precision
-        cdef RealField_class RR
+        cdef char* c_result
+        cdef bytes py_string
 
-        precision = (<RealBallField_class> self._parent).precision
-        RR = RealField(precision)
+        c_result = arb_get_str(self.value,
+                               ((<RealBallField_class> self._parent).precision * 31) // 100,
+                               0)
+        try:
+            py_string = c_result
+        finally:
+            flint_free(c_result)
 
-        midpoint = RR(0)
-        radius = RR(0)
-
-        arf_get_mpfr(midpoint.value,
-                     arb_midref(self.value),
-                     GMP_RNDN)
-
-        fmpr_init(radius_fmpr)
-        mag_get_fmpr(radius_fmpr,
-                     arb_radref(self.value))
-        fmpr_get_mpfr(radius.value,
-                      radius_fmpr,
-                      GMP_RNDN)
-        fmpr_clear(radius_fmpr)
-
-        return "%s +- %s" % (midpoint, radius)
+        return py_string
 
     cpdef RealIntervalFieldElement _interval(self):
         """
@@ -427,8 +417,8 @@ cdef class RealBall(Element):
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
             sage: a = RealBallField()(RIF(1))                     # optional - arb
-            sage: a.psi()._interval()  # optional - arb
-            -0.577215664901533?
+            sage: a.psi()  # optional - arb
+            [-0.577215664901533 +/- 3.85e-16]
         """
 
         cdef RealBall result

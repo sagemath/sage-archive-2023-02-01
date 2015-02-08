@@ -46,6 +46,10 @@ from sage.env import SAGE_DOC, SAGE_SRC
 # of by MathJax -- and nonmath, which should be done always.
 math_substitutes = [ # don't forget leading backslash '\\'
     ('\\to', '-->'),
+    ('\\left', ''),
+    ('\\right', ''),
+    ('\\bigl', ''),
+    ('\\bigr', ''),
     ('\\leq', '<='),
     ('\\geq', '>='),
     ('\\le', '<='),
@@ -54,10 +58,13 @@ math_substitutes = [ # don't forget leading backslash '\\'
     ('\\ldots', '...'),
     ('\\dots', '...'),
     ('\\cdot', ' *'),
+    ('\\ast', ' *'),
     (' \\times', ' x'),
     ('\\times', ' x'),
     ('\\backslash','\\'),
     ('\\mapsto', ' |--> '),
+    ('\\lvert', '|'),
+    ('\\rvert', '|'),
 ]
 nonmath_substitutes = [
     ('\\_','_'),
@@ -178,6 +185,8 @@ def detex(s, embedded=False):
         'a, b, c, ..., z\n'
         sage: detex(r'`a, b, c, \ldots, z`', embedded=True)
         '`a, b, c, \\ldots, z`'
+        sage: detex(r'`\left(\lvert x\ast y \rvert\right]`')
+        '(| x * y |]\n'
     """
     s = _rmcmd(s, 'url')
     s = _rmcmd(s, 'code')

@@ -88,8 +88,7 @@ across Sage, (3) ease of use, (4) readability of code.
 We will take addition of RingElements as an example; all other
 operators and classes are similar. There are three relevant functions,
 with subtly differing names (``add`` vs.  ``iadd``, single vs. double
-underscores), one of which has both a Python and a Cython version
-(note the ``def`` vs. ``cpdef``).
+underscores).
 
 - **def RingElement.__add__**
 
@@ -111,14 +110,6 @@ underscores), one of which has both a Python and a Cython version
 
    This is the function you should override to implement addition in a
    subclass of ``RingElement``.
-
-   .. warning::
-
-      In a *Cython* class, this has to be overridden as a ``cpdef``;
-      otherwise, it won't get called. It is especially important to keep
-      this in mind whenever you move a class down from Python to Cython.
-
-      In *Python*, this has to be overridden as a ``def``.
 
    The two arguments to this function are guaranteed to have the **same
    parent**. Its return value **must** have the **same parent** as its

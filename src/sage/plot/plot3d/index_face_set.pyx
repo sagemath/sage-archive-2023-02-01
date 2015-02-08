@@ -349,7 +349,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         else:
             self.face_indices = <int *> sage_realloc(self.face_indices, sizeof(int) * icount)
         if (self.vs == NULL and vcount > 0) or (self.face_indices == NULL and icount > 0) or (self._faces == NULL and fcount > 0):
-            raise MemoryError("Out of memory allocating triangulation for %s" % type(self))
+            raise MemoryError, "Out of memory allocating triangulation for %s" % type(self)
 
     def _clean_point_list(self):
         # TODO: There is still wasted space where quadrilaterals were
@@ -357,7 +357,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         # not worth bothering with
         cdef int* point_map = <int *>sage_malloc(sizeof(int) * self.vcount)
         if point_map == NULL:
-            raise MemoryError("Out of memory cleaning up for %s" % type(self))
+            raise MemoryError, "Out of memory cleaning up for %s" % type(self)
         memset(point_map, 0, sizeof(int) * self.vcount)  # TODO: sage_calloc
         cdef Py_ssize_t i, j
         cdef face_c *face
@@ -397,7 +397,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef int* point_counts = <int *>sage_malloc(sizeof(int) * (self.vcount * 2 + 1))
         # For each vertex, get number of faces
         if point_counts == NULL:
-            raise MemoryError("Out of memory in _seperate_creases for %s" % type(self))
+            raise MemoryError, "Out of memory in _seperate_creases for %s" % type(self)
         cdef int* running_point_counts = &point_counts[self.vcount]
         memset(point_counts, 0, sizeof(int) * self.vcount)
         for i from 0 <= i < self.fcount:
@@ -418,7 +418,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef face_c** point_faces = <face_c **>sage_malloc(sizeof(face_c*) * total)
         if point_faces == NULL:
             sage_free(point_counts)
-            raise MemoryError("Out of memory in _seperate_creases for %s" % type(self))
+            raise MemoryError, "Out of memory in _seperate_creases for %s" % type(self)
         sig_on()
         memset(point_counts, 0, sizeof(int) * self.vcount)
         for i from 0 <= i < self.fcount:
@@ -459,7 +459,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                     sage_free(point_faces)
                     self.vcount = self.fcount = self.icount = 0 # so we don't get segfaults on bad points
                     sig_off()
-                    raise MemoryError("Out of memory in _seperate_creases for %s, CORRUPTED" % type(self))
+                    raise MemoryError, "Out of memory in _seperate_creases for %s, CORRUPTED" % type(self)
                 ix = self.vcount
                 running = 0
                 for i from 0 <= i < self.vcount - start:

@@ -424,6 +424,19 @@ cdef class ModuleAction(Action):
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Finite Field of size 5
+
+            sage: A = ~RightModuleAction(ZZ['y'], ZZ['x']['y']['z']['w']); A
+            Right inverse action by Fraction Field of Univariate Polynomial Ring in y
+                over Univariate Polynomial Ring in x
+                over Integer Ring
+            on Univariate Polynomial Ring in w
+                over Univariate Polynomial Ring in z
+                over Univariate Polynomial Ring in y
+                over Univariate Polynomial Ring in x
+                over Integer Ring
+            with precomposition on right by Conversion via FractionFieldElement map:
+              From: Univariate Polynomial Ring in y over Integer Ring
+              To:   Fraction Field of Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring
         """
         K = self.G._pseudo_fraction_field()
         if K is self.G:

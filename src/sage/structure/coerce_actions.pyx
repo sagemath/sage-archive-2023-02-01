@@ -418,17 +418,33 @@ cdef class ModuleAction(Action):
               To:   Finite Field of size 5
             sage: A(x, 2)
             3*x
+
+            sage: A = ~RightModuleAction(ZZ, GF(5)['x']['y']); A
+            Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Finite Field of size 5
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Finite Field of size 5
         """
-        R = self.G if self.connecting is None else self.connecting.codomain()
-        K = R._pseudo_fraction_field()
+        K = self.G._pseudo_fraction_field()
         if K is self.G:
             return InverseAction(self)
         else:
+            # Try to find a suitable ring between G and R in which to compute
+            # the inverse.
+            from sage.categories.pushout import construction_tower, pushout
+            R = self.G if self.connecting is None else self.connecting.codomain()
+            K = pushout(self.G._pseudo_fraction_field(), R)
+            if K is None:
+                K = R._pseudo_fraction_field()
+            for _, Ri in reversed(construction_tower(K)):
+                if not Ri.has_coerce_map_from(self.G):
+                    continue
+                Ki = Ri._pseudo_fraction_field()
+                if Ki is Ri:
+                    K = Ki
+                    break
             module_action = type(self)(K, self.codomain())
-            if self.connecting is None and K is not R:
-                connecting = K.coerce_map_from(R)
-            else:
-                connecting = self.connecting
+            connecting = K.coerce_map_from(self.G)
             left, right = (connecting, None) if self._is_left else (None, connecting)
             return PrecomposedAction(InverseAction(module_action), left, right)
 

@@ -1382,7 +1382,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Integer Ring
               To:   Rational Field
 
-        Bug #17740::
+        Bug :trac:`17740`::
 
             sage: cm.discover_action(GF(5)['x'], ZZ, operator.div)
             Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in x over Finite Field of size 5

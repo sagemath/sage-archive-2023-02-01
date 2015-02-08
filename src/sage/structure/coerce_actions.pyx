@@ -275,7 +275,7 @@ cdef class ModuleAction(Action):
             Left scalar multiplication by Rational Field on Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring
 
         The following tests against a problem that was relevant during work on
-        trac ticket #9944::
+        :trac:`9944`::
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: S.<x> = PolynomialRing(ZZ, sparse=True)
@@ -400,6 +400,8 @@ cdef class ModuleAction(Action):
 
             sage: A = ~RightModuleAction(QQ, ZZ['x']); A
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
+            sage: A.codomain()
+            Univariate Polynomial Ring in x over Rational Field
             sage: A(x, 2)
             1/2*x
 
@@ -408,6 +410,8 @@ cdef class ModuleAction(Action):
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Rational Field
+            sage: A.codomain()
+            Univariate Polynomial Ring in x over Rational Field
             sage: A(x, 2)
             1/2*x
 

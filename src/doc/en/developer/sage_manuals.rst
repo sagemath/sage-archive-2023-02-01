@@ -185,6 +185,18 @@ In the same vein, you can also add external links of various kinds:
 - MathSciNet: ``:mathscinet:`MR0100971``` adds the link
   :mathscinet:`MR0100971`.
 
+General http-links can be added in a couple of ways. The first method
+is to simply copy and paste the link. ``http://www.sagemath.org`` creates 
+the link http://www.sagemath.org . And if you want to give the link a title 
+you can do this: ```title <http://www.sagemath.org>`_``, which creates the 
+link `title <http://www.sagemath.org>`_.
+
+The latter method in addition to being able to give the link an optional 
+title (just remove the word "title"), lets you put a comma or a period 
+directly after the link, instead of having to put a space between the 
+end of the link and any punctuation that is used after it. The sentence
+above describing the first method was an example of this.
+
 .. note::
 
     Finally, you can check that all links are properly resolved by
@@ -281,8 +293,7 @@ Output Formats
 
 The Sage documentation build system currently supports all of the
 output formats that Sphinx does. For more detailed information, see
-the documentation on builders at http://sphinx.pocoo.org/builders.html
-.
+the documentation on builders at `<http://sphinx.pocoo.org/builders.html>`_.
 
 
 Syntax Highlighting Cython Code

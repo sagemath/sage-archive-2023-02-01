@@ -68,11 +68,11 @@ jmol                        LGPLv2.1+
 lcalc                       GPLv2+
 libfplll                    LGPLv2.1+
 libgap                      GPLv3+
-libm4ri                     GPLv2+
-libm4rie                    GPLv2+
 libpng                      Custom, very similar to zlib
 linbox                      LGPLv2.1+
 lrcalc                      GPLv2+
+m4ri                        GPLv2+
+m4rie                       GPLv2+
 matplotlib                  Matplotlib License (BSD compatible, see below)
 maxima                      See below
 mercurial                   GPLv2+

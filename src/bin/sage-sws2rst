@@ -133,7 +133,7 @@ Once you have made your rst file, what can you do with it?
 
 If this is a file which is likely to become part of the Sage
 standard documentation, you will want to edit the appropriate
-file in $SAGE_ROOT/devel/sage/doc to include your file, or
+file in $SAGE_ROOT/src/doc to include your file, or
 simply include your file as appropriate.
 
 However, you may simply want to make great-looking documentation

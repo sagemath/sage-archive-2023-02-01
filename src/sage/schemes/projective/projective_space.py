@@ -76,6 +76,8 @@ from sage.rings.commutative_ring import is_CommutativeRing
 from sage.categories.fields import Fields
 _Fields = Fields()
 
+from sage.categories.homset import Hom
+
 from sage.misc.all import (latex,
                            prod)
 from sage.structure.parent_gens import normalize_names
@@ -721,7 +723,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
         return AlgebraicScheme_subscheme_projective(self, X)
 
-    def affine_patch(self, i):
+    def affine_patch(self, i, AA = None):
         r"""
         Return the `i^{th}` affine patch of this projective space.
         This is an ambient affine space `\mathbb{A}^n_R,` where
@@ -731,6 +733,9 @@ class ProjectiveSpace_ring(AmbientSpace):
         INPUT:
 
         - ``i`` -- integer between 0 and dimension of self, inclusive.
+
+        - ``AA`` -- (default: None) ambient affine space, this is constructed
+                if it is not given.
 
         OUTPUT:
 
@@ -754,19 +759,33 @@ class ProjectiveSpace_ring(AmbientSpace):
               To:   Projective Space of dimension 5 over Rational Field
               Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4) to
                     (1 : x0 : x1 : x2 : x3 : x4)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.affine_patch(0).projective_embedding(0).codomain() == P
+            True
         """
         i = int(i)   # implicit type checking
         n = self.dimension_relative()
         if i < 0 or i > n:
             raise ValueError("Argument i (= %s) must be between 0 and %s."%(i, n))
         try:
-            return self.__affine_patches[i]
+            A = self.__affine_patches[i]
+            #assume that if you've passed in a new affine space you want to override
+            #the existing patch
+            if AA is None or A == AA:
+                return(A)
         except AttributeError:
             self.__affine_patches = {}
         except KeyError:
             pass
-        from sage.schemes.affine.affine_space import AffineSpace
-        AA = AffineSpace(n, self.base_ring(), names='x')
+        #if no ith patch exists, we may still be here with AA==None
+        if AA == None:
+            from sage.schemes.affine.affine_space import AffineSpace
+            AA = AffineSpace(n, self.base_ring(), names = 'x')
+        elif AA.dimension_relative() != n:
+                raise ValueError("Affine Space must be of the dimension %s"%(n))
         AA._default_embedding_index = i
         phi = AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA
@@ -792,6 +811,38 @@ class ProjectiveSpace_ring(AmbientSpace):
         R = self.base_ring()
         return self([(7 - i) * R.an_element() for i in range(n)] + [R.one()])
 
+    def Lattes_map(self, E, m):
+        r"""
+        Given an elliptic curve `E` and an integer `m` return the Lattes map associated to multiplication by `m`.
+        In other words, the rational map on the quotient `E/\{\pm 1\} \cong \mathbb{P}^1` associated to `[m]:E \to E`.
+
+        INPUT:
+
+        - ``E`` -- an elliptic curve
+        - ``m`` -- an integer
+
+        OUTPUT: an endomorphism of ``self``.
+
+        Examples::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: E = EllipticCurve(QQ,[-1, 0])
+            sage: P.Lattes_map(E,2)
+            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x^4 + 2*x^2*y^2 + y^4 : 4*x^3*y - 4*x*y^3)
+        """
+        if self.dimension_relative() != 1:
+            raise TypeError("Must be dimension 1")
+
+        L = E.multiplication_by_m(m, x_only = True)
+        F = [L.numerator(), L.denominator()]
+        R = self.coordinate_ring()
+        x, y = R.gens()
+        phi = F[0].parent().hom([x],R)
+        F = [phi(F[0]).homogenize(y), phi(F[1]).homogenize(y)*y]
+        H = Hom(self,self)
+        return(H(F))
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -970,8 +1021,14 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
 
             sage: P1=ProjectiveSpace(GF(7),1,'x')
             sage: P1.rational_points_dictionary()
-            {(1 : 0): 7, (0 : 1): 0, (1 : 1): 1, (2 : 1): 2, (3 : 1): 3, (4 : 1): 4,
-            (5 : 1): 5, (6 : 1): 6}
+            {(0 : 1): 0,
+             (1 : 0): 7,
+             (1 : 1): 1,
+             (2 : 1): 2,
+             (3 : 1): 3,
+             (4 : 1): 4,
+             (5 : 1): 5,
+             (6 : 1): 6}
         """
         n = self.dimension_relative()
         R = self.base_ring()

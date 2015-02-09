@@ -79,6 +79,36 @@ class PathSemigroup(UniqueRepresentation, Parent):
     """
     Element = QuiverPath
 
+    @staticmethod
+    def __classcall__(cls, Q):
+        """
+        Normalize the arguments passed to the constructor.
+
+        The normalization consists of making an immutable copy of ``Q``
+        that is made weighted.
+
+        INPUT:
+
+        - a :class:`~sage.graphs.digraph.DiGraph`.
+
+        TESTS::
+
+            sage: G1 = DiGraph({1:{2:['a']}})
+            sage: G2 = DiGraph({1:{2:['b']}})
+            sage: P1 = G1.path_semigroup()
+            sage: P2 = G2.path_semigroup()
+            sage: G1 == G2 # equality of unweighted graphs ignores edge labels
+            True
+            sage: P1.quiver() == P2.quiver() # edge labels no longer ignored
+            False
+            sage: P1 == P2
+            False
+        """
+        # If self is immutable and weighted, then the copy is really cheap:
+        # __copy__ just returns self.
+        Q = Q.copy(immutable=True, weighted=True)
+        return super(PathSemigroup, cls).__classcall__(cls, Q)
+
     def __init__(self, Q):
         """
         Initialize ``self``.
@@ -531,17 +561,21 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
     def quiver(self):
         """
-        Rurn the underlying quiver (i.e., digraph) of this path semigroup.
+        Return the underlying quiver (i.e., digraph) of this path semigroup.
 
         .. NOTE:
 
             The returned digraph always is an immutable copy of the originally
-            given digraph.
+            given digraph that is made weighted.
 
         EXAMPLES::
 
-            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['d']}, 3:{1:['c']}})
+            sage: Q = DiGraph({1:{2:['a','b']}, 2:{3:['d']}, 3:{1:['c']}},
+            ....:             weighted=False)
             sage: F = Q.path_semigroup()
+            sage: F.quiver() == Q
+            False
+            sage: Q.weighted(True)
             sage: F.quiver() == Q
             True
         """

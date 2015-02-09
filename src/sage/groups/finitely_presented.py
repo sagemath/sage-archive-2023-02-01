@@ -589,7 +589,7 @@ class RewritingSystem(object):
                 b^2*a^2    --->    1
 
             sage: k.rules()
-            {b^2*a^2: 1, a^3: 1}
+            {a^3: 1, b^2*a^2: 1}
             sage: k.make_confluent()
             sage: sorted(k.rules().items())
             [(a^-2, a), (a^-1*b^-1, a*b), (a^-1*b, b^-1), (a^2, a^-1),

@@ -103,7 +103,35 @@ class Groups(CategoryWithAxiom):
                 Family ((2,3,4), (1,2,3))
             """
             from sage.sets.family import Family
-            return Family(self.gens())
+            try:
+                return Family(self.gens())
+            except AttributeError:
+                raise NotImplementedError("no generators are implemented for this group")
+
+        def monoid_generators(self):
+            r"""
+            Return the generators of ``self`` as a monoid.
+
+            Let `G` be a group with generating set `X`. In general, the
+            generating set of `G` as a monoid is given by `X \cup X^{-1}`,
+            where `X^{-1}` is the set of inverses of `X`. If `G` is a finite
+            group, then the generating set as a monoid is `X`.
+
+            EXAMPLES::
+
+                sage: A = AlternatingGroup(4)
+                sage: A.monoid_generators()
+                Family ((2,3,4), (1,2,3))
+                sage: F.<x,y> = FreeGroup()
+                sage: F.monoid_generators()
+                Family (x, y, x^-1, y^-1)
+            """
+            G = self.group_generators()
+            from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+            if G not in FiniteEnumeratedSets():
+                raise NotImplementedError("currently only implemented for finitely generated groups")
+            from sage.sets.family import Family
+            return Family(tuple(G) + tuple(~x for x in G))
 
         def _test_inverse(self, **options):
             """

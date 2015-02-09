@@ -66,8 +66,8 @@ diff -durN src.orig/src/compile.lsp.in src/src/compile.lsp.in
  ;;;
  ;;; We do not need the -rpath flag for the library, nor -lecl.
  ;;;
--(let* ((c::*ld-shared-flags* #-msvc "@SHARED_LDFLAGS@ @LDFLAGS@ @SONAME_LDFLAGS@ @CORE_LIBS@ @LIBS@ @FASL_LIBS@"
-+(let* ((c::*ld-shared-flags* #-msvc " @IMPLIB_LDFLAGS@ @SHARED_LDFLAGS@ @LDFLAGS@ @SONAME_LDFLAGS@ @CORE_LIBS@ @LIBS@ @FASL_LIBS@"
+-(let* ((c::*ld-shared-flags* #-msvc "@SHARED_LDFLAGS@ @LDFLAGS@ @SONAME_LDFLAGS@ @CORE_LIBS@ @FASL_LIBS@ @LIBS@"
++(let* ((c::*ld-shared-flags* #-msvc " @IMPLIB_LDFLAGS@ @SHARED_LDFLAGS@ @LDFLAGS@ @SONAME_LDFLAGS@ @CORE_LIBS@ @FASL_LIBS@ @LIBS@"
  			     #+msvc "@SHARED_LDFLAGS@ @LDFLAGS@ @STATICLIBS@ @CLIBS@")
         (c::*cc-flags* (concatenate 'string "-DECL_API -I@true_builddir@/c " c::*cc-flags*))
         (extra-args nil))

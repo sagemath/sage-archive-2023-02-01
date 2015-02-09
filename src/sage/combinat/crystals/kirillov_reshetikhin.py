@@ -613,9 +613,10 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             sage: K.level()
             Traceback (most recent call last):
             ...
-            AssertionError: This crystal is not perfect!
+            ValueError: this crystal is not perfect
         """
-        assert self.is_perfect(), "This crystal is not perfect!"
+        if not self.is_perfect():
+            raise ValueError("this crystal is not perfect")
         return self.s()/self.cartan_type().c()[self.r()]
 
     @cached_method
@@ -723,6 +724,37 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
     """
     Abstract class for all Kirillov-Reshetikhin crystal elements.
     """
+    def _repr_diagram(self):
+        """
+        Return a string representation of ``self`` as a diagram.
+
+        EXAMPLES::
+
+            sage: C = crystals.KirillovReshetikhin(['D',4,1], 2,1)
+            sage: print C(2,1)._repr_diagram()
+              1
+              2
+        """
+        return self.lift()._repr_diagram()
+
+    def pp(self):
+        """
+        Pretty print ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.KirillovReshetikhin(['D',4,1], 2,1)
+            sage: C(2,1).pp()
+              1
+              2
+            sage: C = crystals.KirillovReshetikhin(['B',3,1], 3,3)
+            sage: C.module_generators[0].pp()
+            + (X)   1
+            +
+            +
+        """
+        print(self._repr_diagram())
+
     @cached_method
     def to_kirillov_reshetikhin_tableau(self):
         r"""
@@ -748,6 +780,21 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
             [[1], [-1]]
         """
         return self.parent().kirillov_reshetikhin_tableaux()(self)
+
+    @cached_method
+    def to_tableau(self):
+        r"""
+        Return the :class:`Tableau` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.KirillovReshetikhin(['D',4,1], 2,1)
+            sage: t = C(2,1).to_tableau(); t
+            [[1], [2]]
+            sage: type(t)
+            <class 'sage.combinat.tableau.Tableaux_all_with_category.element_class'>
+        """
+        return self.lift().to_tableau()
 
     def lusztig_involution(self):
         """
@@ -1024,13 +1071,13 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
             sage: b = T(rows=[[2],[-2]])
             sage: pm = K.from_highest_weight_vector_to_pm_diagram(b); pm
             [[1, 1], [0, 0], [0]]
-            sage: pm.__repr__(pretty_printing=True)
+            sage: pm.pp()
             +
             -
             sage: b = T(rows=[])
             sage: pm=K.from_highest_weight_vector_to_pm_diagram(b); pm
             [[0, 2], [0, 0], [0]]
-            sage: pm.__repr__(pretty_printing=True)
+            sage: pm.pp()
 
             sage: hw = [ b for b in T if all(b.epsilon(i)==0 for i in [2,3,4]) ]
             sage: all(K.from_pm_diagram_to_highest_weight_vector(K.from_highest_weight_vector_to_pm_diagram(b)) == b for b in hw)
@@ -1216,10 +1263,10 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
             sage: K = crystals.KirillovReshetikhin(['E',6,1],2,1)
             sage: K.highest_weight_dict()
-            {[[(5, -2, -6), (-6, 2)]]: ((0, 0, 0, 0, 0, 1, -2), 1),
+            {[[(2, -1), (1,)]]: ((-2, 0, 1, 0, 0, 0, 0), 1),
              [[(3, -1, -6), (1,)]]: ((-1, 0, 0, 1, 0, 0, -1), 1),
              [[(6, -2), (-6, 2)]]: ((0, 0, 0, 0, 0, 0, 0), 1),
-             [[(2, -1), (1,)]]: ((-2, 0, 1, 0, 0, 0, 0), 1),
+             [[(5, -2, -6), (-6, 2)]]: ((0, 0, 0, 0, 0, 1, -2), 1),
              []: ((0, 0, 0, 0, 0, 0, 0), 0)}
         """
         hw = [x for x in self.hw_auxiliary() if x.epsilon(1) == 0]
@@ -1237,11 +1284,11 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
             sage: K = crystals.KirillovReshetikhin(['E',6,1],2,1)
             sage: K.highest_weight_dict_inv()
-            {((0, 0, 0, 0, 0, 0, 0), 0): [],
+            {((-2, 0, 1, 0, 0, 0, 0), 1): [[(2, -1), (1,)]],
              ((-1, -1, 0, 0, 0, 1, 0), 1): [[(5, -3), (-1, 3)]],
-             ((0, 0, 0, 0, 0, 0, 0), 1): [[(1, -3), (-1, 3)]],
              ((0, -2, 0, 1, 0, 0, 0), 1): [[(-1,), (-1, 3)]],
-             ((-2, 0, 1, 0, 0, 0, 0), 1): [[(2, -1), (1,)]]}
+             ((0, 0, 0, 0, 0, 0, 0), 0): [],
+             ((0, 0, 0, 0, 0, 0, 0), 1): [[(1, -3), (-1, 3)]]}
         """
         hw = [x for x in self.hw_auxiliary() if x.epsilon(6) == 0]
         dic = dict( ( tuple( [self.affine_weight(x), len(x)] ), x ) for x in hw )
@@ -1276,10 +1323,10 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
             sage: K = crystals.KirillovReshetikhin(['E',6,1],2,1)
             sage: dic = K.promotion_on_highest_weight_vectors()
             sage: dic
-            {[[(5, -2, -6), (-6, 2)]]: [[(2, -1), (1,)]],
+            {[[(2, -1), (1,)]]: [[(-1,), (-1, 3)]],
              [[(3, -1, -6), (1,)]]: [[(5, -3), (-1, 3)]],
              [[(6, -2), (-6, 2)]]: [],
-             [[(2, -1), (1,)]]: [[(-1,), (-1, 3)]],
+             [[(5, -2, -6), (-6, 2)]]: [[(2, -1), (1,)]],
              []: [[(1, -3), (-1, 3)]]}
         """
         dic = self.highest_weight_dict()
@@ -1403,10 +1450,14 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
             {[]: [[1, 1], [0]], [2]: [[0, 0], [2]]}
             sage: K = crystals.KirillovReshetikhin(['C',3,1], 2,2)
             sage: K.ambient_dict_pm_diagrams()
-            {[2, 2]: [[0, 0], [0, 0], [2]], []: [[1, 1], [0, 0], [0]], [2]: [[0, 0], [1, 1], [0]]}
+            {[]: [[1, 1], [0, 0], [0]],
+             [2]: [[0, 0], [1, 1], [0]],
+             [2, 2]: [[0, 0], [0, 0], [2]]}
             sage: K = crystals.KirillovReshetikhin(['C',3,1], 2,3)
             sage: K.ambient_dict_pm_diagrams()
-            {[3, 3]: [[0, 0], [0, 0], [3]], [3, 1]: [[0, 0], [1, 1], [1]], [1, 1]: [[1, 1], [0, 0], [1]]}
+            {[1, 1]: [[1, 1], [0, 0], [1]],
+             [3, 1]: [[0, 0], [1, 1], [1]],
+             [3, 3]: [[0, 0], [0, 0], [3]]}
         """
         list = []
         s = self.s()
@@ -1428,7 +1479,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
 
             sage: K = crystals.KirillovReshetikhin(['C',3,1], 2,2)
             sage: K.ambient_highest_weight_dict()
-            {[]: [[2], [-2]], [2, 2]: [[2, 2], [3, 3]], [2]: [[1, 2], [2, -1]]}
+            {[]: [[2], [-2]], [2]: [[1, 2], [2, -1]], [2, 2]: [[2, 2], [3, 3]]}
         """
         A = self.ambient_dict_pm_diagrams()
         ambient = self.ambient_crystal()
@@ -1444,7 +1495,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
 
             sage: K = crystals.KirillovReshetikhin(['C',3,1], 2,2)
             sage: K.highest_weight_dict()
-            {[2, 2]: [[1, 1], [2, 2]], []: [], [2]: [[1, 1]]}
+            {[]: [], [2]: [[1, 1]], [2, 2]: [[1, 1], [2, 2]]}
         """
         return dict( (x.lift().to_tableau().shape(),x) for x in self.module_generators )
 
@@ -1657,7 +1708,9 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
             {[]: [[1, 1], [0]], [2]: [[0, 0], [2]]}
             sage: K = sage.combinat.crystals.kirillov_reshetikhin.KR_type_A2(C, 2, 2)
             sage: K.ambient_dict_pm_diagrams()
-            {[2, 2]: [[0, 0], [0, 0], [2]], []: [[1, 1], [0, 0], [0]], [2]: [[0, 0], [1, 1], [0]]}
+            {[]: [[1, 1], [0, 0], [0]],
+             [2]: [[0, 0], [1, 1], [0]],
+             [2, 2]: [[0, 0], [0, 0], [2]]}
         """
         list = []
         s = self.s()
@@ -1913,7 +1966,12 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
 
             sage: K = crystals.KirillovReshetikhin(['A',6,2], 2,2)
             sage: K.highest_weight_dict()
-            {[4, 2]: [[1, 1], [2]], [2, 2]: [[1], [2]], []: [], [4]: [[1, 1]], [4, 4]: [[1, 1], [2, 2]], [2]: [[1]]}
+            {[]: [],
+             [2]: [[1]],
+             [2, 2]: [[1], [2]],
+             [4]: [[1, 1]],
+             [4, 2]: [[1, 1], [2]],
+             [4, 4]: [[1, 1], [2, 2]]}
         """
         return dict( (Partition([2*i for i in x.lift().to_tableau().shape()]),x) for x in self.module_generators )
 
@@ -1927,8 +1985,12 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
 
             sage: K = crystals.KirillovReshetikhin(['A',6,2], 2,2)
             sage: K.ambient_highest_weight_dict()
-            {[4, 2]: [[1, 1, 1, 1], [2, 2]], [2, 2]: [[1, 1], [2, 2]], []: [], [4]: [[1, 1, 1, 1]], [4, 4]: [[1, 1, 1, 1], [2, 2, 2, 2]],
-            [2]: [[1, 1]]}
+            {[]: [],
+             [2]: [[1, 1]],
+             [2, 2]: [[1, 1], [2, 2]],
+             [4]: [[1, 1, 1, 1]],
+             [4, 2]: [[1, 1, 1, 1], [2, 2]],
+             [4, 4]: [[1, 1, 1, 1], [2, 2, 2, 2]]}
         """
         return dict( (x.lift().to_tableau().shape(),x) for x in self.ambient_crystal().module_generators )
 
@@ -2181,7 +2243,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
             {(2,): [[1]], (2, 2, 2): [[1], [2], [3]]}
             sage: K = crystals.KirillovReshetikhin(['B',3,1],3,3)
             sage: K.highest_weight_dict()
-            {(3, 3, 3): [+++, [[1], [2], [3]]], (3, 1, 1): [+++, [[1]]]}
+            {(3, 1, 1): [+++, [[1]]], (3, 3, 3): [+++, [[1], [2], [3]]]}
         """
         return dict( (tuple([2*i[1] for i in x.classical_weight()]),x) for x in self.module_generators )
 
@@ -2199,8 +2261,10 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
 
             sage: K = crystals.KirillovReshetikhin(['B',3,1],3,3)
             sage: K.ambient_highest_weight_dict()
-            {(3, 3, 3): [[1, 1, 1], [2, 2, 2], [3, 3, 3]], (3, 1, 1): [[1, 1, 1], [2], [3]],
-            (3, 2, 2): [[1, 1, 1], [2, 2], [3, 3]], (3,): [[1, 1, 1]]}
+            {(3,): [[1, 1, 1]],
+             (3, 1, 1): [[1, 1, 1], [2], [3]],
+             (3, 2, 2): [[1, 1, 1], [2, 2], [3, 3]],
+             (3, 3, 3): [[1, 1, 1], [2, 2, 2], [3, 3, 3]]}
         """
         return dict( (tuple([i[1] for i in x.classical_weight()]),x) for x in self.ambient_crystal().module_generators )
 
@@ -2270,7 +2334,6 @@ class KR_type_BnElement(KirillovReshetikhinGenericCrystalElement):
         sage: type(K.module_generators[0])
         <class 'sage.combinat.crystals.kirillov_reshetikhin.KR_type_Bn_with_category.element_class'>
     """
-
     def e0(self):
         r"""
         Gives `e_0` on self by mapping self to the ambient crystal, calculating `e_0` there and
@@ -2378,7 +2441,7 @@ class KR_type_Cn(KirillovReshetikhinGenericCrystal):
             sage: b = T(rows=[[2, 2], [3, 3], [-3, -1]])
             sage: pm = K.from_highest_weight_vector_to_pm_diagram(b); pm
             [[0, 0], [1, 0], [0, 1], [0]]
-            sage: pm.__repr__(pretty_printing=True)
+            sage: pm.pp()
             .  .
             .  +
             -  -
@@ -2535,6 +2598,40 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
         [[---, []], [+--, []]]]
     """
 
+    def _element_constructor_(self, *args, **options):
+        """
+        Construct an element of ``self``.
+
+        TESTS::
+
+            sage: KRC = crystals.KirillovReshetikhin(['D',4,1], 3, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 3, 3, model='KR')
+            sage: elt = KRC.module_generators[0].f_string([3,2,3,1,2,3]); elt
+            [++-+, [[2], [3], [4], [-2]]]
+            sage: ret = KRT(elt); ret
+            [[1, 1, 2], [2, 3, 3], [4, 4, 4], [-3, -2, -1]]
+            sage: test = KRC(ret); test
+            [++-+, [[2], [3], [4], [-2]]]
+            sage: test == elt
+            True
+        """
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableauxElement
+        if isinstance(args[0], KirillovReshetikhinTableauxElement):
+            elt = args[0]
+            # Check to make sure it can be converted
+            if elt.cartan_type() != self.cartan_type() \
+              or elt.parent().r() != self._r or elt.parent().s() != self._s:
+                raise ValueError("the Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
+
+            to_hw = elt.to_classical_highest_weight()
+            wt = to_hw[0].classical_weight() / 2
+            f_str = reversed(to_hw[1])
+            for x in self.module_generators:
+                if x.classical_weight() == wt:
+                    return x.f_string(f_str)
+            raise ValueError("no matching highest weight element found")
+        return KirillovReshetikhinGenericCrystal._element_constructor_(self, *args, **options)
+
     def classical_decomposition(self):
         r"""
         Specifies the classical crystal underlying the Kirillov-Reshetikhin crystal `B^{n,s}`
@@ -2585,7 +2682,7 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
 
             sage: b = hw[1]
             sage: pm = K.from_highest_weight_vector_to_pm_diagram(b)
-            sage: pm.__repr__(pretty_printing=True)
+            sage: pm.pp()
             .  .
             .  .
             .  .
@@ -2925,8 +3022,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: T = KR.classical_decomposition()
             sage: HW = [t for t in T if t.is_highest_weight([2,3,4])]
             sage: for t in HW:
-            ...     print t, prom[t]
-            ...
+            ....:     print t, prom[t]
             [4, 3, 2, 1] [-1, 4, 3, 2]
             [4, -4, 3, 2] [-4, 4, 3, 2]
             [-1, -4, 3, 2] [-4, 3, 2, 1]
@@ -2936,8 +3032,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: T = KR.classical_decomposition()
             sage: HW = [t for t in T if t.is_highest_weight([2,3,4])]
             sage: for t in HW:
-            ...     print t, prom[t]
-            ...
+            ....:     print t, prom[t]
             [++++, []] [-+++, []]
             [-++-, []] [+++-, []]
         """
@@ -2990,8 +3085,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: T = K.classical_decomposition()
             sage: promotion = K.promotion()
             sage: for t in T:
-            ...     print t, promotion(t)
-            ...
+            ....:     print t, promotion(t)
             [+++-, []] [-++-, []]
             [++-+, []] [-+-+, []]
             [+-++, []] [--++, []]
@@ -3046,24 +3140,28 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
 
 class PMDiagram(CombinatorialObject):
     """
-    Class of `\pm` diagrams. These diagrams are in one-to-one bijection with `X_{n-1}` highest weight vectors
-    in an `X_n` highest weight crystal `X=B,C,D`. See Section 4.1 of A. Schilling, "Combinatorial structure of
-    Kirillov-Reshetikhin crystals of type `D_n(1)`, `B_n(1)`, `A_{2n-1}(2)`", J. Algebra 319 (2008) 2938-2962
-    (arXiv:0704.2046[math.QA]).
+    Class of `\pm` diagrams. These diagrams are in one-to-one bijection with
+    `X_{n-1}` highest weight vectors in an `X_n` highest weight crystal
+    `X=B,C,D`. See Section 4.1 of [Schilling08]_.
 
-    The input is a list `pm = [[a_0,b_0],[a_1,b_1],...,[a_{n-1},b_{n-1}],[b_n]]` of 2-tuples and a last 1-tuple.
-    The tuple `[a_i,b_i]` specifies the number of `a_i` + and `b_i` - in the i-th row of the pm diagram
-    if `n-i` is odd and the number of `a_i` +- pairs above row `i` and `b_i` columns of height `i` not containing
-    any + or - if `n-i` is even.
+    The input is a list `pm = [[a_0,b_0], [a_1,b_1], ...,
+    [a_{n-1},b_{n-1}], [b_n]]` of pairs and a last 1-tuple (or list of
+    length 1). The pair `[a_i,b_i]` specifies the number of `a_i` `+` and
+    `b_i` `-` in the `i`-th row of the `\pm` diagram if `n-i` is odd and the
+    number of `a_i` `\pm` pairs above row `i` and `b_i` columns of height `i`
+    not containing any `+` or `-` if `n-i` is even.
 
-    Setting the option 'from_shapes = True' one can also input a `\pm` diagram in terms of its
-    outer, intermediate and inner shape by specifying a tuple [n, s, outer, intermediate, inner]
-    where `s` is the width of the `\pm` diagram, and 'outer' , 'intermediate',
-    and 'inner' are the outer, intermediate and inner shape, respectively.
+    Setting the option ``from_shapes = True`` one can also input a `\pm`
+    diagram in terms of its outer, intermediate, and inner shape by
+    specifying a list ``[n, s, outer, intermediate, inner]``
+    where ``s`` is the width of the `\pm` diagram, and ``outer``,
+    ``intermediate``, and ``inner`` are the outer, intermediate, and inner
+    shapes, respectively.
 
     EXAMPLES::
 
-        sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[0,1],[1,2],[1]])
+        sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
+        sage: pm = PMDiagram([[0,1],[1,2],[1]])
         sage: pm.pm_diagram
         [[0, 1], [1, 2], [1]]
         sage: pm._list
@@ -3072,32 +3170,34 @@ class PMDiagram(CombinatorialObject):
         2
         sage: pm.width
         5
-        sage: pm.__repr__(pretty_printing=True)
+        sage: pm.pp()
         .  .  .  .
         .  +  -  -
-        sage: sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([2,5,[4,4],[4,2],[4,1]], from_shapes=True)
+        sage: PMDiagram([2,5,[4,4],[4,2],[4,1]], from_shapes=True)
         [[0, 1], [1, 2], [1]]
 
     TESTS::
 
-        sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
-        sage: sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([pm.n, pm.width, pm.outer_shape(), pm.intermediate_shape(), pm.inner_shape()], from_shapes=True) == pm
+        sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
+        sage: pm = PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
+        sage: PMDiagram([pm.n, pm.width, pm.outer_shape(), pm.intermediate_shape(), pm.inner_shape()], from_shapes=True) == pm
         True
-        sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
-        sage: sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([pm.n, pm.width, pm.outer_shape(), pm.intermediate_shape(), pm.inner_shape()], from_shapes=True) == pm
+        sage: pm = PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
+        sage: PMDiagram([pm.n, pm.width, pm.outer_shape(), pm.intermediate_shape(), pm.inner_shape()], from_shapes=True) == pm
         True
     """
-
     def __init__(self, pm_diagram, from_shapes = None):
         r"""
-        Initializes `\pm` diagrams.
+        Initialize ``self``.
 
         TESTS::
 
-           sage: sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[0,1],[1,2],[1]])
-           [[0, 1], [1, 2], [1]]
-           sage: sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([2,5,[4,4],[4,2],[4,1]], from_shapes=True)
-           [[0, 1], [1, 2], [1]]
+            sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
+            sage: pm = PMDiagram([[0,1],[1,2],[1]]); pm
+            [[0, 1], [1, 2], [1]]
+            sage: PMDiagram([2,5,[4,4],[4,2],[4,1]], from_shapes=True)
+            [[0, 1], [1, 2], [1]]
+            sage: TestSuite(pm).run()
         """
         if from_shapes:
             n = pm_diagram[0]
@@ -3117,25 +3217,59 @@ class PMDiagram(CombinatorialObject):
         self._list = [i for a in reversed(pm_diagram) for i in a]
         self.width = sum(i for i in self._list)
 
-    def __repr__(self, pretty_printing = None):
+    def _repr_(self):
         """
-        Turning on pretty printing allows to display the pm diagram as a
-        tableau with the + and - displayed
+        Turning on pretty printing allows to display the `\pm` diagram as a
+        tableau with the `+` and `-` displayed.
 
         EXAMPLES::
 
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,0],[0,1],[2,0],[0,0],[0]])
+            sage: sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,0],[0,1],[2,0],[0,0],[0]])
+            [[1, 0], [0, 1], [2, 0], [0, 0], [0]]
+        """
+        return repr(self.pm_diagram)
+
+    def __repr__(self, pretty_printing=None):
+        """
+        Return a string representation of ``self``.
+
+        This is implemented only for the deprecation warning of the
+        ``pretty_printing`` optional argument.
+
+        TESTS::
+
+            sage: pm = sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,0],[0,1],[2,0],[0,0],[0]])
             sage: pm.__repr__(pretty_printing=True)
+            doctest:...: DeprecationWarning: pretty_printing is deprecated. Use instead pp()
+            See http://trac.sagemath.org/15913 for details.
             .  .  .  +
             .  .  -  -
             +  +
             -  -
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[0,2], [0,0], [0]])
-            sage: pm.__repr__(pretty_printing=True)
-
         """
-        if pretty_printing is None:
-            return repr(self.pm_diagram)
+        if pretty_printing is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(15913, 'pretty_printing is deprecated. Use instead pp()')
+            if pretty_printing is True:
+                return self.pp()
+        return super(PMDiagram, self).__repr__()
+
+    def _repr_diagram(self):
+        """
+        Return a string representation of ``self`` as a diagram.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
+            sage: pm = PMDiagram([[1,0],[0,1],[2,0],[0,0],[0]])
+            sage: print pm._repr_diagram()
+            .  .  .  +
+            .  .  -  -
+            +  +
+            -  -
+            sage: pm = PMDiagram([[0,2], [0,0], [0]])
+            sage: print pm._repr_diagram()
+        """
         t = []
         ish = self.inner_shape() + [0]*self.n
         msh = self.intermediate_shape() + [0]*self.n
@@ -3143,21 +3277,40 @@ class PMDiagram(CombinatorialObject):
         for i in range(self.n):
             t.append(['.']*ish[i]+['+']*(msh[i]-ish[i])+['-']*(osh[i]-msh[i]))
         t=[i for i in t if i!= []]
-        return Tableau(t).pp()
+        return Tableau(t)._repr_diagram()
 
-    def inner_shape(self):
+    def pp(self):
         """
-        Returns the inner shape of the pm diagram
+        Pretty print ``self``.
 
         EXAMPLES::
 
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[0,1],[1,2],[1]])
+            sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
+            sage: pm = PMDiagram([[1,0],[0,1],[2,0],[0,0],[0]])
+            sage: pm.pp()
+            .  .  .  +
+            .  .  -  -
+            +  +
+            -  -
+            sage: pm = PMDiagram([[0,2], [0,0], [0]])
+            sage: pm.pp()
+        """
+        print(self._repr_diagram())
+
+    def inner_shape(self):
+        """
+        Return the inner shape of the pm diagram
+
+        EXAMPLES::
+
+            sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
+            sage: pm = PMDiagram([[0,1],[1,2],[1]])
             sage: pm.inner_shape()
             [4, 1]
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
+            sage: pm = PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
             sage: pm.inner_shape()
             [7, 5, 3, 1]
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
+            sage: pm = PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
             sage: pm.inner_shape()
             [10, 7, 5, 3, 1]
         """
@@ -3169,17 +3322,18 @@ class PMDiagram(CombinatorialObject):
 
     def outer_shape(self):
         """
-        Returns the outer shape of the pm diagram
+        Return the outer shape of the `\pm` diagram
 
         EXAMPLES::
 
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[0,1],[1,2],[1]])
+            sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
+            sage: pm = PMDiagram([[0,1],[1,2],[1]])
             sage: pm.outer_shape()
             [4, 4]
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
+            sage: pm = PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
             sage: pm.outer_shape()
             [8, 8, 4, 4]
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
+            sage: pm = PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
             sage: pm.outer_shape()
             [13, 8, 8, 4, 4]
         """
@@ -3194,23 +3348,24 @@ class PMDiagram(CombinatorialObject):
 
     def intermediate_shape(self):
         """
-        Returns the intermediate shape of the pm diagram (inner shape plus positions of plusses)
+        Return the intermediate shape of the pm diagram (inner shape plus positions of plusses)
 
         EXAMPLES::
 
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[0,1],[1,2],[1]])
+            sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
+            sage: pm = PMDiagram([[0,1],[1,2],[1]])
             sage: pm.intermediate_shape()
             [4, 2]
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
+            sage: pm = PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
             sage: pm.intermediate_shape()
             [8, 6, 4, 2]
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
+            sage: pm = PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
             sage: pm.intermediate_shape()
             [11, 8, 6, 4, 2]
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,0],[0,1],[2,0],[0,0],[0]])
+            sage: pm = PMDiagram([[1,0],[0,1],[2,0],[0,0],[0]])
             sage: pm.intermediate_shape()
             [4, 2, 2]
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1, 0], [0, 0], [0, 0], [0, 0], [0]])
+            sage: pm = PMDiagram([[1, 0], [0, 0], [0, 0], [0, 0], [0]])
             sage: pm.intermediate_shape()
             [1]
         """
@@ -3222,14 +3377,15 @@ class PMDiagram(CombinatorialObject):
 
     def heights_of_minus(self):
         """
-        Returns a list with the heights of all minus in the `\pm` diagram.
+        Return a list with the heights of all minus in the `\pm` diagram.
 
         EXAMPLES::
 
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
+            sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
+            sage: pm = PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
             sage: pm.heights_of_minus()
             [5, 5, 3, 3, 1, 1]
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
+            sage: pm = PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
             sage: pm.heights_of_minus()
             [4, 4, 2, 2]
         """
@@ -3241,14 +3397,15 @@ class PMDiagram(CombinatorialObject):
 
     def heights_of_addable_plus(self):
         """
-        Returns a list with the heights of all addable plus in the `\pm` diagram.
+        Return a list with the heights of all addable plus in the `\pm` diagram.
 
         EXAMPLES::
 
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
+            sage: from sage.combinat.crystals.kirillov_reshetikhin import PMDiagram
+            sage: pm = PMDiagram([[1,2],[1,2],[1,1],[1,1],[1,1],[1]])
             sage: pm.heights_of_addable_plus()
             [1, 1, 2, 3, 4, 5]
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
+            sage: pm = PMDiagram([[1,2],[1,1],[1,1],[1,1],[1]])
             sage: pm.heights_of_addable_plus()
             [1, 2, 3, 4]
         """
@@ -3259,14 +3416,14 @@ class PMDiagram(CombinatorialObject):
 
     def sigma(self):
         """
-        Returns sigma on pm diagrams as needed for the analogue of the Dynkin diagram automorphism
+        Return sigma on pm diagrams as needed for the analogue of the Dynkin diagram automorphism
         that interchanges nodes `0` and `1` for type `D_n(1)`, `B_n(1)`, `A_{2n-1}(2)` for
         Kirillov-Reshetikhin crystals.
 
         EXAMPLES::
 
-            sage: pm=sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[0,1],[1,2],[1]])
-            sage: pm.sigma().pm_diagram
+            sage: pm = sage.combinat.crystals.kirillov_reshetikhin.PMDiagram([[0,1],[1,2],[1]])
+            sage: pm.sigma()
             [[1, 0], [2, 1], [1]]
         """
         pm = self.pm_diagram

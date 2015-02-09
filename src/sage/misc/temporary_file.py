@@ -304,10 +304,10 @@ class atomic_write:
             sage: from sage.misc.temporary_file import atomic_write
             sage: link_to_target = os.path.join(tmp_dir(), "templink")
             sage: os.symlink("/foobar", link_to_target)
-            sage: wvt = atomic_write(link_to_target)
-            sage: print wvt.target
+            sage: aw = atomic_write(link_to_target)
+            sage: print aw.target
             /foobar
-            sage: print wvt.tmpdir
+            sage: print aw.tmpdir
             /
         """
         self.target = os.path.realpath(target_filename)
@@ -327,9 +327,9 @@ class atomic_write:
         TESTS::
 
             sage: from sage.misc.temporary_file import atomic_write
-            sage: wvt = atomic_write(tmp_filename())
-            sage: with wvt as f:
-            ....:     os.path.dirname(wvt.target) == os.path.dirname(f.name)
+            sage: aw = atomic_write(tmp_filename())
+            sage: with aw as f:
+            ....:     os.path.dirname(aw.target) == os.path.dirname(f.name)
             True
         """
         self.tempfile = tempfile.NamedTemporaryFile(dir=self.tmpdir, delete=False)

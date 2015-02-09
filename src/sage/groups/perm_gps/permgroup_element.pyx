@@ -72,7 +72,6 @@ from sage.interfaces.gap import is_GapElement
 from sage.interfaces.expect import is_ExpectElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
-from sage.misc.superseded import deprecated_function_alias
 
 import operator
 
@@ -934,8 +933,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         from sage.combinat.permutation import Permutation
         return Permutation(self._gap_list()).cycle_string()
-
-    list = deprecated_function_alias(14319, domain)
 
     cpdef domain(self):
         """

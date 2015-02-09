@@ -355,20 +355,20 @@ maxima used by the calculus package is different than the one in
 the interactive interpreter.
 
 Check to see that the problem with the variables method mentioned
-in Trac ticket #3779 is actually fixed::
+in :trac:`3779` is actually fixed::
 
     sage: f = function('F',x)
     sage: diff(f*SR(1),x)
     D[0](F)(x)
 
-Doubly ensure that Trac #7479 is working::
+Doubly ensure that :trac:`7479` is working::
 
     sage: f(x)=x
     sage: integrate(f,x,0,1)
     1/2
 
 Check that the problem with Taylor expansions of the gamma function
-(Trac #9217) is fixed::
+(:trac:`9217`) is fixed::
 
     sage: taylor(gamma(1/3+x),x,0,3)
     -1/432*((72*euler_gamma^3 + 36*euler_gamma^2*(sqrt(3)*pi + 9*log(3)) +
@@ -445,11 +445,15 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
 
     - ``b`` - upper endpoint of the sum
 
-    - ``algorithm`` - (default: 'maxima')  one of
-      - 'maxima' - use Maxima (the default)
-      - 'maple' - (optional) use Maple
-      - 'mathematica' - (optional) use Mathematica
-      - 'giac' - (optional) use Giac
+    - ``algorithm`` - (default: ``'maxima'``)  one of
+
+      - ``'maxima'`` - use Maxima (the default)
+
+      - ``'maple'`` - (optional) use Maple
+
+      - ``'mathematica'`` - (optional) use Mathematica
+
+      - ``'giac'`` - (optional) use Giac
 
     EXAMPLES::
 
@@ -594,7 +598,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
 
     TESTS:
 
-    Trac #10564 is fixed::
+    :trac:`10564` is fixed::
 
         sage: sum (n^3 * x^n, n, 0, infinity)
         (x^3 + 4*x^2 + x)/(x^4 - 4*x^3 + 6*x^2 - 4*x + 1)
@@ -758,7 +762,7 @@ def nintegral(ex, x, a, b,
     Now numerically integrating, we see why the answer is wrong::
 
         sage: f.nintegrate(x,0,1)
-        (-480.00000000000006, 5.329070518200754e-12, 21, 0)
+        (-480.0000000000001, 5.329070518200754e-12, 21, 0)
 
     It is just because every floating point evaluation of return -480.0
     in floating point.
@@ -767,13 +771,13 @@ def nintegral(ex, x, a, b,
     to high precision::
 
         sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
-        '2.565728500561051482917356396 E-127'        # 32-bit
-        '2.5657285005610514829173563961304785900 E-127'    # 64-bit
+        '2.565728500561051482917356396 E-127'            # 32-bit
+        '2.5657285005610514829173563961304785900 E-127'  # 64-bit
         sage: old_prec = gp.set_real_precision(50)
         sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
         '2.5657285005610514829173563961304785900147709554020 E-127'
         sage: gp.set_real_precision(old_prec)
-        50
+        57
 
     Note that the input function above is a string in PARI syntax.
     """
@@ -1071,9 +1075,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: f(x=I)
         (-I + 1)^I
         sage: CDF(f(x=I))
-        2.06287223508 + 0.74500706218*I
+        2.0628722350809046 + 0.7450070621797239*I
         sage: CDF(f.limit(x = I))
-        2.06287223508 + 0.74500706218*I
+        2.0628722350809046 + 0.7450070621797239*I
 
     Notice that Maxima may ask for more information::
 
@@ -1473,7 +1477,7 @@ def at(ex, *args, **kwds):
         s^2*laplace(f(t), t, s) - s*f(0) - D[0](f)(0)
 
     We can also accept a non-keyword list of expression substitutions,
-    like Maxima does, :trac:`12796`::
+    like Maxima does (:trac:`12796`)::
 
         sage: from sage.calculus.calculus import at
         sage: f = function('f')
@@ -1782,12 +1786,12 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     TESTS:
 
-    Trac #8459 fixed::
+    :trac:`8459` fixed::
 
         sage: maxima('3*li[2](u)+8*li[33](exp(u))').sage()
         8*polylog(33, e^u) + 3*polylog(2, u)
 
-    Check if #8345 is fixed::
+    Check if :trac:`8345` is fixed::
 
         sage: assume(x,'complex')
         sage: t = x.conjugate()

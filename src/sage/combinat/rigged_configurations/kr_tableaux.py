@@ -5,7 +5,7 @@ Kirillov-Reshetikhin tableaux are rectangular tableaux with `r` rows and
 `s` columns that naturally arise under the bijection between rigged
 configurations and tableaux [RigConBijection]_. They are in bijection with
 the elements of the Kirillov-Reshetikhin crystal `B^{r,s}` under the (inverse)
-filling map. They do not have to satisfy the semistandard row or column
+filling map [OSS13]_ [SchScr]_. They do not have to satisfy the semistandard row or column
 restrictions. These tensor products are the result from the bijection from
 rigged configurations [RigConBijection]_.
 
@@ -16,6 +16,12 @@ AUTHORS:
 
 - Travis Scrimshaw (2012-01-03): Initial version
 - Travis Scrimshaw (2012-11-14): Added bijection to KR crystals
+
+REFERENCES:
+
+.. [OSS13] Masato Okado, Reiho Sakamoto, and Anne Schilling.
+   *Affine crystal structure on rigged configurations of type* `D_n^{(1)}`.
+   J. Algebraic Combinatorics, **37** (2013). 571-599. :arxiv:`1109.3523`.
 """
 
 #*****************************************************************************
@@ -489,6 +495,42 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             The crystal of tableaux of type ['D', 4] and shape(s) [[], [1, 1], [2, 2]]
         """
         return self.kirillov_reshetikhin_crystal().classical_decomposition()
+
+    def tensor(self, *crystals, **options):
+        """
+        Return the tensor product of ``self`` with ``crystals``.
+
+        If ``crystals`` is a list of (a tensor product of) KR tableaux, this
+        returns a :class:`TensorProductOfKirillovReshetikhinTableaux`.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A', 3, 1], 2, 2, model='KR')
+            sage: TP = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[1,3],[3,1]])
+            sage: K.tensor(TP, K)
+            Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1]
+             and factor(s) ((2, 2), (1, 3), (3, 1), (2, 2))
+
+            sage: C = crystals.KirillovReshetikhin(['A',3,1], 3, 1, model='KN')
+            sage: K.tensor(K, C)
+            Full tensor product of the crystals
+             [Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and shape (2, 2),
+              Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and shape (2, 2),
+              Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(3,1)]
+        """
+        ct = self._cartan_type
+        from sage.combinat.rigged_configurations.tensor_product_kr_tableaux \
+                import TensorProductOfKirillovReshetikhinTableaux
+        if all(isinstance(B, (KirillovReshetikhinTableaux, TensorProductOfKirillovReshetikhinTableaux))
+               and B.cartan_type() == ct for B in crystals):
+            dims = [[self._r, self._s]]
+            for B in crystals:
+                if isinstance(B, TensorProductOfKirillovReshetikhinTableaux):
+                    dims += B.dims
+                elif isinstance(B, KirillovReshetikhinTableaux):
+                    dims.append([B._r, B._s])
+            return TensorProductOfKirillovReshetikhinTableaux(ct, dims)
+        return super(KirillovReshetikhinTableaux, self).tensor(*crystals, **options)
 
 class KRTableauxRectangle(KirillovReshetikhinTableaux):
     r"""

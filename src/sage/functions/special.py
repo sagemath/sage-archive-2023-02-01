@@ -184,7 +184,8 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 .. warning::
 
    SciPy's versions are poorly documented and seem less
-   accurate than the Maxima and PARI versions.
+   accurate than the Maxima and PARI versions; typically they are limited
+   by hardware floats precision.
 """
 
 #*****************************************************************************
@@ -208,7 +209,7 @@ from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
-from sage.rings.all import ZZ, RR, RDF
+from sage.rings.all import ZZ, RR, RDF, CDF
 from sage.functions.other import real, imag, log_gamma
 from sage.symbolic.function import BuiltinFunction, is_inexact
 from sage.symbolic.expression import Expression
@@ -236,7 +237,7 @@ def _init():
 
         sage: from sage.functions.special import airy_ai
         sage: airy_ai(1.0)
-        0.135292416313
+        0.1352924163128814
         sage: sage.functions.special._done
         True
     """
@@ -256,7 +257,7 @@ def meval(x):
 
         sage: from sage.functions.special import airy_ai
         sage: airy_bi(1.0)
-        1.20742359495
+        1.207423594952871
     """
     return maxima(x).sage()
 
@@ -303,11 +304,11 @@ class MaximaFunction(BuiltinFunction):
         TESTS:
 
         Check if complex numbers in the arguments are converted to maxima
-        correctly :trac:`7557`::
+        correctly (see :trac:`7557`)::
 
             sage: t = f(1.2+2*I*elliptic_kc(1-.5),.5)
-            sage: t._maxima_init_(maxima)
-            '0.88771548861927...*%i'
+            sage: t._maxima_init_(maxima)  # abs tol 1e-13
+            '0.88771548861928029 - 1.7301614091485560e-15*%i'
             sage: t.n() # abs tol 1e-13
             0.887715488619280 - 1.79195288804672e-15*I
 
@@ -526,11 +527,7 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
         if prec != 53:
             raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
-        ans = str(scipy.special.hyperu(float(alpha),float(beta),float(x)))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        return RDF(scipy.special.hyperu(float(alpha),float(beta),float(x)))
     elif algorithm=='pari':
         from sage.libs.pari.all import pari
         R = RealField(prec)
@@ -556,7 +553,7 @@ def spherical_bessel_J(n, var, algorithm="maxima"):
     """
     if algorithm=="scipy":
         from scipy.special.specfun import sphj
-        return sphj(int(n), float(var))[1][-1]
+        return CDF(sphj(int(n), float(var))[1][-1])
     elif algorithm == 'maxima':
         _init()
         return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
@@ -578,11 +575,7 @@ def spherical_bessel_Y(n,var, algorithm="maxima"):
     """
     if algorithm=="scipy":
         import scipy.special
-        ans = str(scipy.special.sph_yn(int(n),float(var)))
-        ans = ans.replace("(","")
-        ans = ans.replace(")","")
-        ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        return CDF(scipy.special.sph_yn(int(n),float(var)))
     elif algorithm == 'maxima':
         _init()
         return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))

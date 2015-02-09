@@ -2,9 +2,6 @@ from sage.libs.mpfr cimport *
 
 include 'sage/ext/cdefs.pxi'
 
-ctypedef mpz_t mpz_srcptr
-ctypedef mpq_t mpq_srcptr
-
 cdef extern from "mpfi.h":
     ctypedef struct __mpfi_struct:
         __mpfr_struct left

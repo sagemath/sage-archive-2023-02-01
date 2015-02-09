@@ -61,7 +61,7 @@ important ones are, probably, ray accessing methods::
     N(-1,  0, 0)
     in 3-d lattice N
     sage: rays.set()
-    frozenset([N(1, 0, 0), N(-1, 0, 0), N(0, 1, 0), N(0, 0, 1), N(0, -1, 0)])
+    frozenset({N(-1, 0, 0), N(0, -1, 0), N(0, 0, 1), N(0, 1, 0), N(1, 0, 0)})
     sage: rays.matrix()
     [ 0  0  1]
     [ 0  1  0]
@@ -945,6 +945,7 @@ class IntegralRayCollection(SageObject,
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.plot()
+            Graphics object consisting of 9 graphics primitives
         """
         tp = ToricPlotter(options, self.lattice().degree(), self.rays())
         return tp.plot_lattice() + tp.plot_rays() + tp.plot_generators()
@@ -2861,13 +2862,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: halfplane = Cone([(1,0), (0,1), (-1,0)])
             sage: halfplane.line_set()
-            doctest:...: DeprecationWarning:
-            line_set(...) is deprecated, please use lines().set() instead!
+            doctest:...: DeprecationWarning: line_set(...) is deprecated, please use lines().set() instead!
             See http://trac.sagemath.org/12544 for details.
-            frozenset([N(1, 0)])
+            frozenset({N(1, 0)})
             sage: fullplane = Cone([(1,0), (0,1), (-1,-1)])
             sage: fullplane.line_set()
-            frozenset([N(0, 1), N(1, 0)])
+            frozenset({N(0, 1), N(1, 0)})
         """
         deprecation(12544, "line_set(...) is deprecated, "
                     "please use lines().set() instead!")
@@ -2947,6 +2947,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.plot()
+            Graphics object consisting of 9 graphics primitives
         """
         # What to do with 3-d cones in 5-d? Use some projection method?
         deg = self.lattice().degree()

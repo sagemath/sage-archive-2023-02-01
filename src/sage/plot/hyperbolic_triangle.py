@@ -141,10 +141,12 @@ def hyperbolic_triangle(a, b, c, **options):
     `-1/2+i\sqrt{3}/2`::
 
          sage: hyperbolic_triangle(0, -1/2+I*sqrt(3)/2, 1/2+I*sqrt(3)/2)
+         Graphics object consisting of 1 graphics primitive
 
     A hyperbolic triangle with coordinates 0, 1 and 2+i and a dashed line::
 
          sage: hyperbolic_triangle(0, 1, 2+i, fill=true, rgbcolor='red', linestyle='--')
+         Graphics object consisting of 1 graphics primitive
     """
     from sage.plot.all import Graphics
     g = Graphics()

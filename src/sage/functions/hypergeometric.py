@@ -86,7 +86,9 @@ Computing terms and series::
 Plotting::
 
     sage: plot(hypergeometric([1, 1], [3, 3, 3], x), x, -30, 30)
+    Graphics object consisting of 1 graphics primitive
     sage: complex_plot(hypergeometric([x], [], 2), (-1, 1), (-1, 1))
+    Graphics object consisting of 1 graphics primitive
 
 Numeric evaluation::
 

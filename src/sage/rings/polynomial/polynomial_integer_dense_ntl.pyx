@@ -201,7 +201,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
                 else:
                     if not PY_TYPE_CHECK(a, Integer):
                         a = ZZ(a)
-                    mpz_to_ZZ(&y, &(<Integer>a).value)
+                    mpz_to_ZZ(&y, (<Integer>a).value)
                     ZZX_SetCoeff(self.__poly, i, y)
             return
 
@@ -234,7 +234,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             else:
                 if not PY_TYPE_CHECK(a, Integer):
                     a = ZZ(a)
-                mpz_to_ZZ(&y, &(<Integer>a).value)
+                mpz_to_ZZ(&y, (<Integer>a).value)
                 ZZX_SetCoeff(self.__poly, i, y)
 
 
@@ -261,7 +261,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef ZZ_c y
         cdef Integer z = PY_NEW(Integer)
         ZZX_content(y, self.__poly)
-        ZZ_to_mpz(&z.value, &y)
+        ZZ_to_mpz(z.value, &y)
         return z
 
 
@@ -324,7 +324,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             else:
                 # Note that the NTL documentation blesses this direct access of the "rep" member in ZZX.txt.
                 #  Check the "Miscellany" section.
-                ZZ_to_mpz(&z.value, &self.__poly.rep.elts()[n])
+                ZZ_to_mpz(z.value, &self.__poly.rep.elts()[n])
             return z
 
     def _repr(self, name=None, bint latex=False):
@@ -609,7 +609,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
         ZZX_xgcd(&self.__poly, &(<Polynomial_integer_dense_ntl>right).__poly, &r, &s, &t, 1)    # proof = 1
         cdef Integer rr = PY_NEW(Integer)
-        ZZ_to_mpz(&rr.value, r)
+        ZZ_to_mpz(rr.value, r)
         cdef Polynomial_integer_dense_ntl ss = self._new()
         cdef Polynomial_integer_dense_ntl tt = self._new()
         ss.__poly = s[0]
@@ -660,7 +660,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef Polynomial_integer_dense_ntl x = self._new()
         cdef ZZ_c _right
 
-        mpz_to_ZZ(&_right, &(<Integer>right).value)
+        mpz_to_ZZ(&_right, (<Integer>right).value)
         ZZX_mul_ZZ(x.__poly, self.__poly, _right)
         return x
 
@@ -680,7 +680,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef Polynomial_integer_dense_ntl x = self._new()
         cdef ZZ_c _right
 
-        mpz_to_ZZ(&_right, &(<Integer>right).value)
+        mpz_to_ZZ(&_right, (<Integer>right).value)
         ZZX_mul_ZZ(x.__poly, self.__poly, _right)
         return x
 
@@ -733,7 +733,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             raise IndexError, "n must be >= 0"
         value = Integer(value)
         cdef ZZ_c y
-        mpz_to_ZZ(&y, &(<Integer>value).value)
+        mpz_to_ZZ(&y, (<Integer>value).value)
         ZZX_SetCoeff(self.__poly, n, y)
 
 
@@ -802,7 +802,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         """
         cdef ZZ_c* temp = ZZX_discriminant(&self.__poly, proof)
         cdef Integer x = PY_NEW(Integer)
-        ZZ_to_mpz(&x.value, temp)
+        ZZ_to_mpz(x.value, temp)
         ZZ_delete(temp)
         return x
 
@@ -1086,6 +1086,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef Polynomial_integer_dense_ntl _other = <Polynomial_integer_dense_ntl>(self.parent()._coerce_(other))
         cdef ZZ_c* temp = ZZX_resultant(&self.__poly, &_other.__poly, proof)
         cdef Integer x = PY_NEW(Integer)
-        ZZ_to_mpz(&x.value, temp)
+        ZZ_to_mpz(x.value, temp)
         ZZ_delete(temp)
         return x

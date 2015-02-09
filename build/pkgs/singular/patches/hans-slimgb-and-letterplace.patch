@@ -1,0 +1,224 @@
+diff --git a/kernel/kstd2.cc b/kernel/kstd2.cc
+index 0b82a6e..d2eb18d 100644
+--- a/kernel/kstd2.cc
++++ b/kernel/kstd2.cc
+@@ -1702,7 +1702,7 @@ ideal bbaShift(ideal F, ideal Q,intvec *w,intvec *hilb,kStrategy strat, int upto
+       enterpairsShift(strat->P.p,strat->sl,strat->P.ecart,pos,strat, strat->tl,uptodeg,lV);
+       //      enterpairsShift(vw,strat->sl,strat->P.ecart,pos,strat, strat->tl,uptodeg,lV);
+       // posInS only depends on the leading term
+-      strat->enterS(strat->P, pos, strat, strat->tl);
++      strat->enterS(strat->P, pos, strat, -1);
+ 
+       if (hilb!=NULL) khCheck(Q,w,hilb,hilbeledeg,hilbcount,strat);
+ //      Print("[%d]",hilbeledeg);
+diff --git a/kernel/kutil.cc b/kernel/kutil.cc
+index 846fbf3..5f56272 100644
+--- a/kernel/kutil.cc
++++ b/kernel/kutil.cc
+@@ -790,7 +790,7 @@ BOOLEAN kTest (kStrategy strat)
+   }
+ 
+   // test L
+-  if (strat->L != NULL)
++  if ((strat->L != NULL) && (strat->S_2_R[0]!=-1))
+   {
+     for (i=0; i<=strat->Ll; i++)
+     {
+@@ -840,10 +840,10 @@ BOOLEAN kTest_TS(kStrategy strat)
+   // test strat->R, strat->T[i].i_r
+   for (i=0; i<=strat->tl; i++)
+   {
+-    if (strat->T[i].i_r < 0 || strat->T[i].i_r > strat->tl)
++    if (strat->T[i].i_r < -1 || strat->T[i].i_r > strat->tl)
+       return dReportError("strat->T[%d].i_r == %d out of bounds", i,
+                           strat->T[i].i_r);
+-    if (strat->R[strat->T[i].i_r] != &(strat->T[i]))
++    if ((strat->T[i].i_r!=-1) && (strat->R[strat->T[i].i_r] != &(strat->T[i])))
+       return dReportError("T[%d].i_r with R out of sync", i);
+   }
+   // test containment of S inT
+@@ -854,7 +854,7 @@ BOOLEAN kTest_TS(kStrategy strat)
+       j = kFindInT(strat->S[i], strat->T, strat->tl);
+       if (j < 0)
+         return dReportError("S[%d] not in T", i);
+-      if (strat->S_2_R[i] != strat->T[j].i_r)
++      if ((strat->S_2_R[i]!=-1) && (strat->S_2_R[i] != strat->T[j].i_r))
+         return dReportError("S_2_R[%d]=%d != T[%d].i_r=%d\n",
+                             i, strat->S_2_R[i], j, strat->T[j].i_r);
+     }
+@@ -862,15 +862,18 @@ BOOLEAN kTest_TS(kStrategy strat)
+   // test strat->L[i].i_r1
+   for (i=0; i<=strat->Ll; i++)
+   {
+-    if (strat->L[i].p1 != NULL && strat->L[i].p2)
++    if ((strat->L[i].p1 != NULL) && (strat->L[i].p2!=NULL))
+     {
+-      if (strat->L[i].i_r1 < 0 ||
+-          strat->L[i].i_r1 > strat->tl ||
+-          strat->L[i].T_1(strat)->p != strat->L[i].p1)
+-        return dReportError("L[%d].i_r1 out of sync", i);
+-      if (strat->L[i].i_r2 < 0 ||
+-          strat->L[i].i_r2 > strat->tl ||
+-          strat->L[i].T_2(strat)->p != strat->L[i].p2);
++      if (strat->L[i].i_r1!=-1)
++      {
++        if (strat->L[i].i_r1 < 0 ||
++            strat->L[i].i_r1 > strat->tl ||
++            strat->L[i].T_1(strat)->p != strat->L[i].p1)
++          return dReportError("L[%d].i_r1 out of sync", i);
++        if (strat->L[i].i_r2 < 0 ||
++            strat->L[i].i_r2 > strat->tl ||
++            strat->L[i].T_2(strat)->p != strat->L[i].p2);
++      }
+     }
+     else
+     {
+@@ -6947,12 +6950,11 @@ void updateSShift(kStrategy strat,int uptodeg,int lV)
+     h.GetTP(); // creates correct t_p
+     /*puts the elements of S with their shifts to T*/
+     //    int atT, int uptodeg, int lV)
+-    strat->S_2_R[i] = strat->tl + 1; // the el't with shift 0 will be inserted first
++    strat->S_2_R[i] = -1;
+     // need a small check for above; we insert >=1 elements
+     // insert this check into kTest_TS ?
+     enterTShift(h,strat,atT,uptodeg,lV);
+   }
+-  /* what about setting strat->tl? */
+ }
+ #endif
+ 
+@@ -7439,17 +7441,11 @@ void enterOnePairShift (poly q, poly p, int ecart, int isFromQ, kStrategy strat,
+ 
+     /* TEMPORARILY DISABLED FOR SHIFTS because there's no i*/
+     /* at the beginning we DO NOT set atR = -1 ANYMORE*/
+-    if ( (atR >= 0) && (shiftcount==0) && (ifromS >=0) )
+-    {
+-      Lp.i_r1 = kFindInT(Lp.p1,strat); //strat->S_2_R[ifromS];
+-      Lp.i_r2 = atR;
+-    }
+-    else
+     {
+       /* END _ TEMPORARILY DISABLED FOR SHIFTS */
+       Lp.i_r1 = -1;
+       Lp.i_r2 = -1;
+-     }
++    }
+     strat->initEcartPair(&Lp,q,p,ecartq,ecart);
+ 
+     if (TEST_OPT_INTSTRATEGY)
+diff --git a/kernel/tgb.cc b/kernel/tgb.cc
+index d1dc3b5..b3b977c 100644
+--- a/kernel/tgb.cc
++++ b/kernel/tgb.cc
+@@ -495,7 +495,7 @@ wlen_type pELength (poly p, slimgb_alg * c, ring r)
+   return s;
+ }
+ 
+-wlen_type kEBucketLength (kBucket * b, poly lm, int sugar, slimgb_alg * ca)
++wlen_type kEBucketLength (kBucket * b, poly lm, slimgb_alg * ca)
+ {
+   wlen_type s = 0;
+   if(lm == NULL)
+@@ -509,11 +509,6 @@ wlen_type kEBucketLength (kBucket * b, poly lm, int sugar, slimgb_alg * ca)
+     return bucket_guess (b);
+   }
+   int d = ca->pTotaldegree (lm);
+-#if 0
+-  assume (sugar >= d);
+-  s = 1 + (bucket_guess (b) - 1) * (sugar - d + 1);
+-  return s;
+-#else
+ 
+   //int d=pTotaldegree(lm,ca->r);
+   int i;
+@@ -533,7 +528,6 @@ wlen_type kEBucketLength (kBucket * b, poly lm, int sugar, slimgb_alg * ca)
+     }
+   }
+   return s;
+-#endif
+ }
+ 
+ static inline int pELength (poly p, slimgb_alg * c, int l)
+@@ -631,7 +625,7 @@ wlen_type red_object::guess_quality (slimgb_alg * c)
+       }
+ #endif
+       //FIXME:not quadratic
+-      wlen_type erg = kEBucketLength (this->bucket, this->p, this->sugar, c);
++      wlen_type erg = kEBucketLength (this->bucket, this->p, c);
+       //erg*=cs;//for quadratic
+       erg *= cs;
+       if(TEST_V_COEFSTRAT)
+@@ -645,7 +639,7 @@ wlen_type red_object::guess_quality (slimgb_alg * c)
+   {
+     if(c->eliminationProblem)
+       //if (false)
+-      s = kEBucketLength (this->bucket, this->p, this->sugar, c);
++      s = kEBucketLength (this->bucket, this->p, c);
+     else
+       s = bucket_guess (bucket);
+   }
+@@ -2877,10 +2871,6 @@ static void go_on (slimgb_alg * c)
+     buf[j].sev = pGetShortExpVector (p[j]);
+     buf[j].bucket = kBucketCreate (currRing);
+     p_Test (p[j], c->r);
+-    if(c->eliminationProblem)
+-    {
+-      buf[j].sugar = c->pTotaldegree_full (p[j]);
+-    }
+     int len = pLength (p[j]);
+     kBucketInit (buf[j].bucket, buf[j].p, len);
+     buf[j].initial_quality = buf[j].guess_quality (c);
+@@ -4359,10 +4349,6 @@ multi_reduction_lls_trick (red_object * los, int losl, slimgb_alg * c,
+     int j = erg.reduce_by;
+     int old_length = c->strat->lenS[j]; // in view of S
+     los[bp].p = p;
+-    if(c->eliminationProblem)
+-    {
+-      los[bp].sugar = c->pTotaldegree_full (p);
+-    }
+     kBucketInit (los[bp].bucket, p, old_length);
+     wlen_type qal = pQuality (clear_into, c, new_length);
+     int pos_in_c = -1;
+@@ -4522,8 +4508,6 @@ multi_reduction_find (red_object * los, int losl, slimgb_alg * c, int startf,
+   {
+     assume ((i == losl - 1) || (pLmCmp (los[i].p, los[i + 1].p) <= 0));
+     assume (is_valid_ro (los[i]));
+-    assume ((!(c->eliminationProblem))
+-            || (los[i].sugar >= c->pTotaldegree (los[i].p)));
+     j = kFindDivisibleByInS_easy (strat, los[i]);
+     if(j >= 0)
+     {
+@@ -4914,10 +4898,6 @@ void simple_reducer::reduce (red_object * r, int l, int u)
+   for(i = l; i <= u; i++)
+   {
+     this->do_reduce (r[i]);
+-    if(c->eliminationProblem)
+-    {
+-      r[i].sugar = si_max (r[i].sugar, reducer_deg);
+-    }
+   }
+   for(i = l; i <= u; i++)
+   {
+@@ -4969,10 +4949,6 @@ void multi_reduce_step (find_erg & erg, red_object * r, slimgb_alg * c)
+       //p_Content(red, c->r);
+     }
+     pNormalize (red);
+-    if(c->eliminationProblem)
+-    {
+-      r[rn].sugar = c->pTotaldegree_full (red);
+-    }
+ 
+     if((!(erg.fromS)) && (TEST_V_UPTORADICAL))
+     {
+diff --git a/kernel/tgb_internal.h b/kernel/tgb_internal.h
+index f7d68c2..9334410 100644
+--- a/kernel/tgb_internal.h
++++ b/kernel/tgb_internal.h
+@@ -294,7 +294,6 @@ class red_object
+   kBucket_pt bucket;
+   poly p;
+   unsigned long sev;
+-  int sugar;
+   void flatten();
+   void validate();
+   wlen_type initial_quality;

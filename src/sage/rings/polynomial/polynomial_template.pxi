@@ -96,7 +96,8 @@ cdef class Polynomial_template(Polynomial):
             sage: P(map(GF(2),[1,0,1]))
             x^2 + 1
         """
-        cdef celement *gen, *monomial
+        cdef celement *gen
+        cdef celement *monomial
         cdef Py_ssize_t deg
 
         Polynomial.__init__(self, parent, is_gen=is_gen)

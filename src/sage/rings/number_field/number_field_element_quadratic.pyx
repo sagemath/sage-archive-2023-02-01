@@ -192,11 +192,11 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         else:
             NumberFieldElement_absolute.__init__(self, parent, f)
             # poly is in gen (which may not be sqrt(d))
-            self._ntl_coeff_as_mpz(&self.a, 0)
-            self._ntl_coeff_as_mpz(&self.b, 1)
+            self._ntl_coeff_as_mpz(self.a, 0)
+            self._ntl_coeff_as_mpz(self.b, 1)
             if mpz_cmp_ui(self.a, 0) or mpz_cmp_ui(self.b, 0):
                 gen = parent.gen()  # should this be cached?
-                self._ntl_denom_as_mpz(&self.denom)
+                self._ntl_denom_as_mpz(self.denom)
                 if mpz_cmp_ui(self.b, 0):
                     mpz_mul(self.a, self.a, gen.denom)
                     mpz_addmul(self.a, self.b, gen.a)
@@ -465,43 +465,43 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         x = <NumberFieldElement_absolute>PY_NEW(NumberFieldElement_absolute)
 
-        mpz_to_ZZ(&elt_den, &(self.denom))
+        mpz_to_ZZ(&elt_den, self.denom)
 
         mpz_init(tmp_mpz)
 
         ## set the two terms in the polynomial
         if n == 4:
-            mpz_to_ZZ(&tmp_coeff, &(self.a))
+            mpz_to_ZZ(&tmp_coeff, self.a)
             ZZX_SetCoeff(elt_num, 0, tmp_coeff)
-            mpz_to_ZZ(&tmp_coeff, &(self.b))
+            mpz_to_ZZ(&tmp_coeff, self.b)
             ZZX_SetCoeff(elt_num, 1, tmp_coeff)
 
         elif n == 3:
             ## num[0] = a + b
             mpz_add(tmp_mpz, tmp_mpz, self.a)
             mpz_add(tmp_mpz, tmp_mpz, self.b)
-            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            mpz_to_ZZ(&tmp_coeff, tmp_mpz)
             ZZX_SetCoeff(elt_num, 0, tmp_coeff)
 
             ## num[1] = 2*b
             mpz_sub(tmp_mpz, tmp_mpz, self.a)
             tmp_const = 2
             mpz_mul_si(tmp_mpz, tmp_mpz, tmp_const)
-            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            mpz_to_ZZ(&tmp_coeff, tmp_mpz)
             ZZX_SetCoeff(elt_num, 1, tmp_coeff)
 
         elif n == 6:
             ## num[0] = a - b
             mpz_add(tmp_mpz, tmp_mpz, self.a)
             mpz_sub(tmp_mpz, tmp_mpz, self.b)
-            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            mpz_to_ZZ(&tmp_coeff, tmp_mpz)
             ZZX_SetCoeff(elt_num, 0, tmp_coeff)
 
             ## num[1] = 2*b
             mpz_sub(tmp_mpz, tmp_mpz, self.a)
             tmp_const = -2
             mpz_mul_si(tmp_mpz, tmp_mpz, tmp_const)
-            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            mpz_to_ZZ(&tmp_coeff, tmp_mpz)
             ZZX_SetCoeff(elt_num, 1, tmp_coeff)
 
         mpz_clear(tmp_mpz)
@@ -833,7 +833,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: fibonacci(10)*phi < fibonacci(11)
             True
             sage: RDF(fibonacci(10)*phi)
-            88.9918693812
+            88.99186938124421
             sage: fibonacci(11)
             89
             sage: l = [-2, phi+3, 2*phi-1, 2*phi-5, 0, -phi+2, fibonacci(20)*phi - fibonacci(21)]
@@ -841,7 +841,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: l
             [-2, 2*phi - 5, 6765*phi - 10946, 0, -phi + 2, 2*phi - 1, phi + 3]
             sage: map(RDF, l)
-            [-2.0, -1.7639320225, -6.61069607304e-05, 0.0, 0.38196601125, 2.2360679775, 4.61803398875]
+            [-2.0, -1.7639320225002102, -6.610696073039435e-05, 0.0, 0.3819660112501051, 2.23606797749979, 4.618033988749895]
+
+        ::
 
             sage: L.<psi> = NumberField(x^2-x-1, 'psi', embedding=-0.618)
             sage: psi < 0
@@ -851,7 +853,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: fibonacci(10)*psi < -fibonacci(9)
             False
             sage: RDF(fibonacci(10)*psi)
-            -33.9918693812
+            -33.99186938124422
             sage: fibonacci(9)
             34
             sage: l = [-1, psi, 0, fibonacci(20)*psi + fibonacci(19), 3*psi+2]
@@ -859,7 +861,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: l
             [-1, psi, 0, 6765*psi + 4181, 3*psi + 2]
             sage: map(RDF, l)
-            [-1.0, -0.61803398875, 0.0, 6.61069607304e-05, 0.14589803375]
+            [-1.0, -0.6180339887498949, 0.0, 6.610696073039435e-05, 0.1458980337503153]
 
         For a field with no specified embedding the comparison uses the standard
         embedding::

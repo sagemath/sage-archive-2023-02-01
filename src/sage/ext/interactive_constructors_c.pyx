@@ -58,8 +58,8 @@ def inject_on(verbose=True):
                 sage: z^3 + 3
                 z^3 + 3
 
-         (2) Add code to do it to devel/sage/sage/ext/interactive_constructors_c.pyx,
-             rebuild Sage (with sage -br), and send William Stein a patch :-).
+         (2) Add code to do it to src/sage/ext/interactive_constructors_c.pyx,
+             rebuild Sage (with sage -br), and send a patch to sage-devel :-).
     """
     global _verbose
     _verbose = verbose

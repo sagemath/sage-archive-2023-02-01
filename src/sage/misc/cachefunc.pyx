@@ -429,14 +429,14 @@ in some computations::
 If such objects defined a non-trivial hash function, this would break
 caching in many places. However, such objects should still be usable
 in caches. This can be achieved by defining an appropriate method
-``_cache_key``.
+``_cache_key``::
 
     sage: hash(b)
     Traceback (most recent call last):
     ...
     TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
     sage: @cached_method
-    ....: def f(x): return x==a
+    ....: def f(x): return x == a
     sage: f(b)
     True
     sage: f(c) # if b and c were hashable, this would return True
@@ -474,6 +474,7 @@ the parent as its first argument::
 ########################################################################
 from function_mangling import ArgumentFixer
 import os
+from os.path import relpath,normpath,commonprefix
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
 
 import sage.misc.weak_dict
@@ -783,6 +784,14 @@ cdef class CachedFunction(object):
                ALGORITHM: Uses Singular, Magma (if available), Macaulay2 (if
                available), or a toy implementation.
 
+        Test that :trac:`15184` is fixed::
+
+            sage: from sage.misc.sageinspect import sage_getfile
+            sage: type(I.groebner_basis)
+            <type 'sage.misc.cachefunc.CachedMethodCaller'>
+            sage: os.path.exists(sage_getfile(I.groebner_basis))
+            True        
+
         """
         from sage.misc.sageinspect import _extract_embedded_position
         f = self.f
@@ -792,14 +801,23 @@ cdef class CachedFunction(object):
                 sourcelines = sage_getsourcelines(f)
                 from sage.env import SAGE_SRC, SAGE_LIB
                 filename = sage_getfile(f)
-                # The following is a heuristics to get
-                # the file name of the cached function
-                # or method
-                if filename.startswith(SAGE_SRC):
-                    filename = filename[len(SAGE_SRC):]
-                elif filename.startswith(SAGE_LIB):
-                    filename = filename[len(SAGE_LIB):]
-                file_info = "File: %s (starting at line %d)\n"%(filename,sourcelines[1])
+                
+                #it would be nice if we could be sure that SAGE_SRC and
+                #SAGE_LIB were already normalized (e.g. not end in a slash)
+                S=normpath(SAGE_SRC)
+                L=normpath(SAGE_LIB)
+                if commonprefix([filename,S]) == S:
+                    filename = relpath(filename,S)
+                elif commonprefix([filename,L]) == L:
+                    filename = relpath(filename,L)
+                #this is a rather expensive way of getting the line number, because
+                #retrieving the source requires reading the source file and in many
+                #cases this is not required (in cython it's embedded in the docstring,
+                #on code objects you'll find it in co_filename and co_firstlineno)
+                #however, this hasn't been factored out yet in sageinspect
+                #and the logic in sage_getsourcelines is rather intricate.
+                file_info = "File: {} (starting at line {})".format(filename,sourcelines[1])+os.linesep
+
                 doc = file_info+doc
             except IOError:
                 pass
@@ -878,7 +896,7 @@ cdef class CachedFunction(object):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: @cached_function
             ....: def f(x): return x+x
@@ -887,7 +905,7 @@ cdef class CachedFunction(object):
             1 + O(2)
             sage: y = K(1,2); y
             1 + O(2^2)
-            sage: x==y
+            sage: x == y
             True
             sage: f(x) is f(x)
             True
@@ -956,7 +974,7 @@ cdef class CachedFunction(object):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: @cached_function
             ....: def f(x): return x
@@ -1002,7 +1020,7 @@ cdef class CachedFunction(object):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: @cached_function
             ....: def f(x): return x
@@ -1230,7 +1248,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1241,7 +1259,7 @@ cdef class WeakCachedFunction(CachedFunction):
             (1 + O(2^20))*t + 1 + O(2)
             sage: y = t + K(1,2); y
             (1 + O(2^20))*t + 1 + O(2^2)
-            sage: x==y
+            sage: x == y
             True
             sage: f(x) is f(x)
             True
@@ -1307,7 +1325,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1355,7 +1373,7 @@ cdef class WeakCachedFunction(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: from sage.misc.cachefunc import weak_cached_function
             sage: @weak_cached_function
@@ -1788,18 +1806,18 @@ cdef class CachedMethodCaller(CachedFunction):
 
         Check that :trac:`16316` has been fixed, i.e., caching works for
         immutable unhashable objects which define
-        :meth:`sage.structure.sage_object.SageObject._cache_key`.
+        :meth:`sage.structure.sage_object.SageObject._cache_key`::
 
             sage: K.<u> = Qq(4)
             sage: class A(object):
             ....:   @cached_method
             ....:   def f(self, x): return x+x
-            sage: a=A()
+            sage: a = A()
             sage: x = K(1,1); x
             1 + O(2)
             sage: y = K(1,2); y
             1 + O(2^2)
-            sage: x==y
+            sage: x == y
             True
             sage: a.f(x) is a.f(x)
             True

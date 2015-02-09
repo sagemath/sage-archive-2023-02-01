@@ -676,6 +676,19 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             a
             sage: type(_)
             <class 'sage.groups.free_group.FreeGroup_class_with_category.element_class'>
+
+        Check that conversion between free groups follow the convention that
+        names are preserved::
+
+            sage: F = FreeGroup('a,b')
+            sage: G = FreeGroup('b,a')
+            sage: G(F.gen(0))
+            a
+            sage: F(G.gen(0))
+            b
+            sage: a,b = F.gens()
+            sage: G(a^2*b^-3*a^-1)
+            a^2*b^-3*a^-1
         """
         if len(args)!=1:
             return self.element_class(self, *args, **kwds)
@@ -686,9 +699,13 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             P = x.parent()
         except AttributeError:
             return self.element_class(self, x, **kwds)
-        if hasattr(P, '_freegroup_'):
-            if P.FreeGroup() is self:
-                return self.element_class(self, x.Tietze(), **kwds)
+        if isinstance(P, FreeGroup_class):
+            names = set(P._names[abs(i)-1] for i in x.Tietze())
+            if names.issubset(self._names):
+                return self([i.sign()*(self._names.index(P._names[abs(i)-1])+1)
+                             for i in x.Tietze()])
+            else:
+                raise ValueError('generators of %s not in the group'%x)
         return self.element_class(self, x, **kwds)
 
     def abelian_invariants(self):

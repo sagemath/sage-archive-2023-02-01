@@ -920,8 +920,7 @@ def atomic_basis(n, basis, **kwds):
         degrees = degrees_etc.keys()
         for sigma in restricted_partitions(n, degrees, no_repeats=True):
             big_list = [degrees_etc[part] for part in sigma]
-            big_list.sort(cmp = lambda x, y: cmp(sorting_pair(x[0], x[1], basis),
-                                                 sorting_pair(y[0], y[1], basis)))
+            big_list.sort(key=lambda x: sorting_pair(x[0], x[1], basis))
             # reverse = True)
             # arnon: sort like wall, then reverse end result
             if basis.find('arnon') >= 0:
@@ -1063,8 +1062,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
                         mono.append(((s, t+1), pow))
             P_result.append(mono)
         for p_mono in P_result:
-            p_mono.sort(cmp = lambda x, y: cmp(sorting_pair(x[0][0], x[0][1], basis),
-                                               sorting_pair(y[0][0], y[0][1], basis)))
+            p_mono.sort(key=lambda x: sorting_pair(x[0][0], x[0][1], basis))
             deg = n - 2*dim*(p-1)
             q_degrees = [1+2*(p-1)*d for d in
                          xi_degrees((deg - 1)//(2*(p-1)), p)] + [1]

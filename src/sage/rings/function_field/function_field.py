@@ -1301,12 +1301,13 @@ class RationalFunctionField(FunctionField):
     def random_element(self, *args, **kwds):
         """
         Create a random element of this rational function field.
-        Parameters are passed onto the random_element method of the
+
+        Parameters are passed to the random_element method of the
         underlying fraction field.
 
         EXAMPLES::
 
-            sage: FunctionField(QQ,'alpha').random_element()
+            sage: FunctionField(QQ,'alpha').random_element()   # random
             (-1/2*alpha^2 - 4)/(-12*alpha^2 + 1/2*alpha - 1/95)
         """
         return self(self._field.random_element(*args, **kwds))

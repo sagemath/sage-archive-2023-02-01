@@ -309,11 +309,11 @@ cdef class CGraph:
             ...
             RuntimeError: Requested vertex is past twice the allocated range: use realloc.
         """
-        if k >= (2 * self.active_vertices.size):
+        if k >= (2 * <int>self.active_vertices.size):
             raise RuntimeError(
                 "Requested vertex is past twice the allocated range: "
                 "use realloc.")
-        if (k >= self.active_vertices.size or
+        if (k >= <int>self.active_vertices.size or
             (k == -1 and self.active_vertices.size == self.num_verts)):
             self.realloc(2 * self.active_vertices.size)
         return self.add_vertex_unsafe(k)

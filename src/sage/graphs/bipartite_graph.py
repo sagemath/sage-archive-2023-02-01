@@ -92,16 +92,16 @@ class BipartiteGraph(Graph):
         sage: B == G
         True
         sage: B.left
-        set([0, 1, 2, 3])
+        {0, 1, 2, 3}
         sage: B.right
-        set([4, 5, 6])
+        {4, 5, 6}
         sage: B = BipartiteGraph({0:[5,6], 1:[4,5], 2:[4,6], 3:[4,5,6]})
         sage: B == G
         True
         sage: B.left
-        set([0, 1, 2, 3])
+        {0, 1, 2, 3}
         sage: B.right
-        set([4, 5, 6])
+        {4, 5, 6}
 
     You can specify a partition using ``partition`` argument. Note that if such graph
     is not bipartite, then Sage will raise an error. However, if one specifies
@@ -118,7 +118,7 @@ class BipartiteGraph(Graph):
 
         sage: B = BipartiteGraph(P, partition, check=False)
         sage: B.left
-        set([0, 1, 2, 3, 4])
+        {0, 1, 2, 3, 4}
         sage: B.show()
 
       ::
@@ -458,9 +458,9 @@ class BipartiteGraph(Graph):
             sage: G.vertices()
             [0, 1]
             sage: G.left
-            set([0])
+            {0}
             sage: G.right
-            set([1])
+            {1}
 
         TESTS:
 
@@ -542,9 +542,9 @@ class BipartiteGraph(Graph):
             sage: bg.add_vertices([6,7,8], right=[True, False, True])
             sage: bg.add_vertices([9,10,11], right=True)
             sage: bg.left
-            set([0, 1, 2, 3, 5, 7])
+            {0, 1, 2, 3, 5, 7}
             sage: bg.right
-            set([4, 6, 8, 9, 10, 11])
+            {4, 6, 8, 9, 10, 11}
 
         TEST::
 
@@ -566,7 +566,7 @@ class BipartiteGraph(Graph):
             ...
             RuntimeError: Cannot add duplicate vertex to other partition.
             sage: (bg.left, bg.right)
-            (set([0, 1, 2]), set([]))
+            ({0, 1, 2}, set())
         """
         # sanity check on partition specifiers
         if left and right:  # also triggered if both lists are specified
@@ -630,12 +630,12 @@ class BipartiteGraph(Graph):
             sage: B
             Bipartite cycle graph: graph on 3 vertices
             sage: B.left
-            set([2])
+            {2}
             sage: B.edges()
             [(1, 2, None), (2, 3, None)]
             sage: B.delete_vertex(3)
             sage: B.right
-            set([1])
+            {1}
             sage: B.edges()
             [(1, 2, None)]
             sage: B.delete_vertex(0)
@@ -696,9 +696,9 @@ class BipartiteGraph(Graph):
             sage: B
             Bipartite cycle graph: graph on 2 vertices
             sage: B.left
-            set([2])
+            {2}
             sage: B.right
-            set([1])
+            {1}
             sage: B.edges()
             [(1, 2, None)]
             sage: B.delete_vertices([0])
@@ -813,7 +813,7 @@ class BipartiteGraph(Graph):
 
             sage: B = BipartiteGraph(graphs.CycleGraph(4))
             sage: B.bipartition()
-            (set([0, 2]), set([1, 3]))
+            ({0, 2}, {1, 3})
         """
         return (self.left, self.right)
 
@@ -863,6 +863,7 @@ class BipartiteGraph(Graph):
 
             sage: B = BipartiteGraph(graphs.CycleGraph(20))
             sage: B.plot()
+            Graphics object consisting of 41 graphics primitives
         """
         if "pos" not in kwds:
             kwds["pos"] = None

@@ -4,6 +4,9 @@ Rigged Configurations
 .. toctree::
    :maxdepth: 1
 
+   ../sage/combinat/rigged_configurations/rc_crystal
+   ../sage/combinat/rigged_configurations/rc_infinity
+
    ../sage/combinat/rigged_configurations/rigged_configurations
    ../sage/combinat/rigged_configurations/rigged_configuration_element
 

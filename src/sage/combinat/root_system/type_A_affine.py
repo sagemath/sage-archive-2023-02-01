@@ -202,3 +202,22 @@ class CartanType(CartanType_standard_untwisted_affine):
         """
         return self
 
+    def _default_folded_cartan_type(self):
+        """
+        Return the default folded Cartan type.
+
+        In general, this just returns ``self`` in ``self`` with `\sigma` as
+        the identity map.
+
+        EXAMPLES::
+
+            sage: CartanType(['A',1,1])._default_folded_cartan_type()
+            ['A', 1, 1] as a folding of ['A', 3, 1]
+            sage: CartanType(['A',3,1])._default_folded_cartan_type()
+            ['A', 3, 1] as a folding of ['A', 3, 1]
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        if self.n == 1:
+            return CartanTypeFolded(self, ['A', 3, 1], [[0,2], [1,3]])
+        return CartanTypeFolded(self, self, [[i] for i in self.index_set()])
+

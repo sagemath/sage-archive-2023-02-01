@@ -214,7 +214,8 @@ Behind the scenes what happens is the following::
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-import os, re
+import os
+import re
 import base64
 
 implicit_mul_level = False
@@ -251,7 +252,23 @@ def implicit_multiplication(level=None):
         implicit_mul_level = level
 
 def isalphadigit_(s):
-    return s.isalpha() or s.isdigit() or s=="_"
+    """
+    Return ``True`` if ``s`` is a non-empty string of alphabetic characters
+    or a non-empty string of digits or just a single ``_``
+
+    EXAMPLES::
+
+        sage: from sage.misc.preparser import isalphadigit_
+        sage: isalphadigit_('abc')
+        True
+        sage: isalphadigit_('123')
+        True
+        sage: isalphadigit_('_')
+        True
+        sage: isalphadigit_('a123')
+        False
+    """
+    return s.isalpha() or s.isdigit() or s == "_"
 
 keywords = """
 and       del       from      not       while
@@ -297,7 +314,7 @@ def strip_string_literals(code, state=None):
         sage: s
         '[%(L1)s, %(L2)s, %(L3)s, %(L4)s]'
         sage: literals
-        {'L4': '"d\\""', 'L2': '"b"', 'L3': "'c'", 'L1': "'a'"}
+        {'L1': "'a'", 'L2': '"b"', 'L3': "'c'", 'L4': '"d\\""'}
         sage: print s % literals
         ['a', "b", 'c', "d\""]
         sage: print strip_string_literals(r'-"\\\""-"\\"-')[0]
@@ -961,6 +978,11 @@ def preparse_generators(code):
 
         sage: preparse_generators(";  R.<x>=ZZ[];")
         ";  R = ZZ['x']; (x,) = R._first_ngens(1);"
+
+    See :trac:`16731` ::
+
+        sage: preparse_generators('R.<x> = ')
+        'R.<x> = '
     """
     new_code = []
     last_end = 0
@@ -969,7 +991,9 @@ def preparse_generators(code):
         ident, obj, gens, other_objs, constructor = m.groups()
         gens = [v.strip() for v in gens.split(',')]
         constructor = constructor.rstrip()
-        if constructor[-1] == ')':
+        if len(constructor) == 0:
+            pass   # SyntaxError will be raised by Python later
+        elif constructor[-1] == ')':
             if '(' not in constructor:
                 raise SyntaxError("Mismatched ')'")
             opening = constructor.rindex('(')
@@ -1183,11 +1207,6 @@ def preparse_file(contents, globals=None, numeric_literals=True):
 
     if globals is None:
         globals = {}
-
-    # We keep track of which files have been loaded so far
-    # in order to avoid a recursive load that would result
-    # in creating a massive file and crashing.
-    loaded_files = []
 
     # This is a hack, since when we use @parallel to parallelize code,
     # the numeric literals that are factored out do not get copied
@@ -1427,8 +1446,9 @@ def is_loadable_filename(filename):
     return False
 
 def load_cython(name):
+    """
+    """
     import cython
-    cur = os.path.abspath(os.curdir)
     try:
         mod, dir  = cython.cython(name, compile_message=True, use_cache=True)
     except (IOError, OSError, RuntimeError) as msg:
@@ -1701,11 +1721,8 @@ def load(filename, globals, attach=False):
         sage: sage.misc.preparser.load(t, globals())
         2
     """
-    def exec_file_is(fpath):
-        """ To be run before any exec/execfile call """
-        if attach:
-            from sage.misc.attached_files import add_attached_file
-            add_attached_file(fpath)
+    if attach:
+        from sage.misc.attached_files import add_attached_file
 
     try:
         filename = eval(filename, globals)
@@ -1755,8 +1772,11 @@ def load(filename, globals, attach=False):
                 % filename)
 
     if fpath.endswith('.py'):
-        exec_file_is(fpath)
-        execfile(fpath, globals)
+        if attach:
+            add_attached_file(fpath)
+        with open(fpath) as f:
+            code = compile(f.read(), fpath, 'exec')
+            exec(code, globals)
     elif fpath.endswith('.sage'):
         from sage.misc.attached_files import load_attach_mode
         load_debug_mode, attach_debug_mode = load_attach_mode()
@@ -1765,15 +1785,20 @@ def load(filename, globals, attach=False):
             # code snippets. Use preparse_file_named to make
             # the file name appear in the traceback as well.
             # See Trac 11812.
-            exec_file_is(fpath)
-            execfile(preparse_file_named(fpath), globals)
+            if attach:
+                add_attached_file(fpath)
+            with open(preparse_file_named(fpath)) as f:
+                code = compile(f.read(), preparse_file_named(fpath), 'exec')
+                exec(code, globals)
         else:
             # Preparse in memory only for speed.
-            exec_file_is(fpath)
-            exec preparse_file(open(fpath).read()) + "\n" in globals
+            if attach:
+                add_attached_file(fpath)
+            exec(preparse_file(open(fpath).read()) + "\n", globals)
     elif fpath.endswith('.spyx') or fpath.endswith('.pyx'):
-        exec_file_is(fpath)
-        exec load_cython(fpath) in globals
+        if attach:
+            add_attached_file(fpath)
+        exec(load_cython(fpath), globals)
     elif fpath.endswith('.m'):
         # Assume magma for now, though maybe .m is used by maple and
         # mathematica too, and we should really analyze the file
@@ -1810,4 +1835,3 @@ def load_wrap(filename, attach=False):
     """
     return 'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("{}"),globals(),{})'.format(
         base64.b64encode(filename), attach)
-

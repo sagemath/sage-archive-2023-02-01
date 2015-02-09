@@ -225,19 +225,25 @@ class ProjectiveCurve_generic(Curve_generic_projective):
             sage: R.<x, y, z> = QQ[]
             sage: C = Curve(x^3 - y^2*z)
             sage: C.plot()
+            Graphics object consisting of 1 graphics primitive
 
         The other affine patches of the same curve::
 
             sage: C.plot(patch=0)
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=1)
+            Graphics object consisting of 1 graphics primitive
 
         An elliptic curve::
 
             sage: E = EllipticCurve('101a')
             sage: C = Curve(E)
             sage: C.plot()
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=0)
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=1)
+            Graphics object consisting of 1 graphics primitive
 
         A hyperelliptic curve::
 
@@ -245,8 +251,11 @@ class ProjectiveCurve_generic(Curve_generic_projective):
             sage: f = 4*x^5 - 30*x^3 + 45*x - 22
             sage: C = HyperellipticCurve(f)
             sage: C.plot()
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=0)
+            Graphics object consisting of 1 graphics primitive
             sage: C.plot(patch=1)
+            Graphics object consisting of 1 graphics primitive
         """
         # if user hasn't specified a favourite affine patch, take the
         # one avoiding "infinity", i.e. the one corresponding to the

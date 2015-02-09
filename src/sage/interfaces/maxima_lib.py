@@ -76,6 +76,7 @@ from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
 
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
+ecl_eval("(setf *compile-verbose* NIL)")
 ecl_eval("(setf *load-verbose* NIL)")
 ecl_eval("(require 'maxima)")
 ecl_eval("(in-package :maxima)")
@@ -709,16 +710,12 @@ class MaximaLib(MaximaAbstract):
         ::
 
             sage: integrate(cos(x + abs(x)), x)
-            -1/4*(2*x - sin(2*x))*real_part(sgn(x)) + 1/2*x + 1/4*sin(2*x)
+            -1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x
 
-        Note that the last example yielded the same answer in a
-        simpler form in earlier versions of Maxima (<= 5.29.1), namely
-        ``-1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x``.  This
-        is because Maxima no longer simplifies ``realpart(signum(x))``
-        to ``signum(x)``::
+        The last example relies on the following simplification::
 
             sage: maxima("realpart(signum(x))")
-            'realpart(signum(x))
+            signum(x)
 
         An example from sage-support thread e641001f8b8d1129::
 
@@ -928,6 +925,15 @@ class MaximaLib(MaximaAbstract):
             sage: l = (3^n + (-2)^n) / (3^(n+1) + (-2)^(n+1))
             sage: l.limit(n=oo)
             1/3
+
+        The following limit computation used to incorrectly return 0
+        or infinity, depending on the domain (see :trac:`15033`)::
+
+            sage: m = sage.calculus.calculus.maxima
+            sage: _ = m.eval('domain: real')   # much faster than 'domain: complex'
+            sage: limit(gamma(x + 1/2)/(sqrt(x)*gamma(x)), x=infinity)
+            1
+            sage: _ = m.eval('domain: complex')
 
         """
         try:

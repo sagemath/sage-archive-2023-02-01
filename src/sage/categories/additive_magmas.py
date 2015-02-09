@@ -492,7 +492,7 @@ class AdditiveMagmas(Category_singleton):
                 sage: C.super_categories()
                 [Category of additive magmas, Category of Cartesian products of sets]
                 sage: C.axioms()
-                frozenset([])
+                frozenset()
             """
             return [AdditiveMagmas()]
 
@@ -586,7 +586,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: C.extra_super_categories();
                     [Category of additive commutative additive magmas]
                     sage: C.axioms()
-                    frozenset(['AdditiveCommutative'])
+                    frozenset({'AdditiveCommutative'})
                 """
                 return [AdditiveMagmas().AdditiveCommutative()]
 
@@ -850,7 +850,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: C.extra_super_categories();
                     [Category of additive unital additive magmas]
                     sage: C.axioms()
-                    frozenset(['AdditiveUnital'])
+                    frozenset({'AdditiveUnital'})
                 """
                 return [AdditiveMagmas().AdditiveUnital()]
 

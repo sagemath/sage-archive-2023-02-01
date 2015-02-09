@@ -55,9 +55,7 @@ class SageTimeitResult():
     If the third argument is not a Python integer, a ``TypeError`` is raised::
 
         sage: SageTimeitResult( (1, 2, 3, 4, 's') )
-        Traceback (most recent call last):
-        ...
-        TypeError: * wants int
+        <repr(<sage.misc.sage_timeit.SageTimeitResult at 0x...>) failed: TypeError: * wants int>
 
     """
     def __init__(self, stats, series=None):
@@ -152,6 +150,7 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
         2.9258728027343752e-07
         sage: t = stats.TimeSeries(s.series)
         sage: t.scale(10^6).plot_histogram(bins=20,figsize=[12,6], ymax=2)
+        Graphics object consisting of 20 graphics primitives
 
 
     The input expression can contain newlines (but doctests cannot, so
@@ -223,7 +222,7 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     ns = {}
     if not globals_dict:
         globals_dict = globals()
-    exec code in globals_dict, ns
+    exec(code, globals_dict, ns)
     timer.inner = ns["inner"]
 
 

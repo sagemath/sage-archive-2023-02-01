@@ -9031,7 +9031,7 @@ class FiniteStateMachine(SageObject):
         INPUT:
 
         - ``test`` -- (default: ``bool``) a callable deciding whether
-          an output label is to be considered True. By default, the
+          an output label is to be considered ``True``. By default, the
           standard conversion to boolean is used.
 
         - ``is_zero`` -- (default: ``None``) a callable deciding

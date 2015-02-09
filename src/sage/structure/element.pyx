@@ -115,9 +115,9 @@ underscores).
    parent**. Its return value **must** have the **same parent** as its
    arguments.
 
-   If you want to add two objects from Python, and you know that their
-   parents are the same object, you are encouraged to call this function
-   directly, instead of using ``x + y``.
+   If you want to add two objects and you know that their parents are
+   the same object, you are encouraged to call this function directly,
+   instead of using ``x + y``.
 
 For speed, there are also *inplace* versions of the arithmetic commands.
 **Do not** call them directly, they may mutate the object and will be called

@@ -1206,21 +1206,20 @@ class TransducerGenerators(object):
                                  % equation)
             assert len(equation.operands()) == 2, \
                 "%s is not an equation with two operands." % equation
-            (left_side, right_side) = equation.operands()
+            left_side, right_side = equation.operands()
 
             if left_side.operator() != function:
                 raise ValueError("%s is not an evaluation of %s."
                                  % (left_side, function))
-            if len(left_side.operands()) !=1:
+            if len(left_side.operands()) != 1:
                 raise ValueError("%s does not have one argument." %
-                                 (left_side, ))
+                                 (left_side,))
 
             try:
-                polynomial_left=base_ring[var](left_side.operands()[0])
+                polynomial_left = base_ring[var](left_side.operands()[0])
             except:
                 raise ValueError("Could not convert %s to a polynomial "
-                                 "in %s." % (left_side.operands()[0],
-                                            var))
+                                 "in %s." % (left_side.operands()[0], var))
             if polynomial_left in base_ring and is_scalar(right_side):
                 initial_values[polynomial_left] = coerce_output(right_side)
                 return
@@ -1267,9 +1266,9 @@ class TransducerGenerators(object):
             if next_function.operator() != function:
                 raise ValueError("%s is not an evaluation of %s."
                                  % (next_function, function))
-            if len(next_function.operands()) !=1:
+            if len(next_function.operands()) != 1:
                 raise ValueError("%s does not have exactly one argument."
-                                 % (next_function, ))
+                                 % (next_function,))
 
             try:
                 polynomial_right = base_ring[var](next_function.operands()[0])
@@ -1290,7 +1289,7 @@ class TransducerGenerators(object):
                                  % (base_power_k, base))
             if k < 0:
                 raise ValueError("%s is less than 1."
-                                 % (base_power_k, ))
+                                 % (base_power_k,))
             if k >= K:
                 raise ValueError("%d is greater or equal than %d."
                                  % (base_power_k, base_power_K))
@@ -1302,7 +1301,6 @@ class TransducerGenerators(object):
 
             rule = Rule(K=K,r=r, k=k, s=s, t=coerce_output(t))
             rules.append(rule)
-
 
         for equation in recursions:
             parse_equation(equation)
@@ -1344,12 +1342,12 @@ class TransducerGenerators(object):
 
             INPUT:
 
-            - ``carry`` -- integer
+            - ``carry`` -- integer.
 
-            - ``level`` -- integer
+            - ``level`` -- integer.
 
             - ``force_nonnegative_target`` -- boolean. If ``True``, only
-              recursion transitions leading to a non-negative carry is
+              recursion transitions leading to a non-negative carry are
               returned.
 
             OUTPUT:
@@ -1383,9 +1381,9 @@ class TransducerGenerators(object):
 
             INPUT:
 
-            - ``carry`` -- integer
+            - ``carry`` -- integer.
 
-            - ``level`` -- integer
+            - ``level`` -- integer.
 
             - ``force_nonnegative_target`` -- boolean. If ``True``, only
               recursion transitions leading to a non-negative carry are
@@ -1395,7 +1393,6 @@ class TransducerGenerators(object):
 
             A tuple ``((new_carry, new_level), output)``.
             """
-
             (c, j) = (carry, level)
             output = coerce_output(0)
             while True:
@@ -1446,7 +1443,9 @@ class TransducerGenerators(object):
                 return []
 
         def f(n):
-            "Compute f(n) as defined by the recursion"
+            """
+            Compute f(n) as defined by the recursion
+            """
             if n in initial_values:
                 return initial_values[n]
             [(m, offset)] = edge_recursion_digraph(n)

@@ -187,6 +187,8 @@ def detex(s, embedded=False):
         '`a, b, c, \\ldots, z`'
         sage: detex(r'`\left(\lvert x\ast y \rvert\right]`')
         '(| x * y |]\n'
+        sage: detex(r'`\left(\leq\le`')
+        '(<=<=\n'
     """
     s = _rmcmd(s, 'url')
     s = _rmcmd(s, 'code')

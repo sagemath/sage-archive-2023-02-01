@@ -170,9 +170,7 @@ from sage.libs.flint.fmpz cimport fmpz_get_mpz
 from sage.libs.flint.fmpz_mat cimport *
 
 from sage.libs.pari.gen cimport gen, objtogen
-from sage.libs.pari.handle_error cimport pari_error_string, \
-        _pari_init_error_handling, _pari_check_warning, \
-        _pari_handle_exception, _pari_err_recover
+from sage.libs.pari.handle_error cimport _pari_init_error_handling
 
 # so Galois groups are represented in a sane way
 # See the polgalois section of the PARI users manual.
@@ -370,24 +368,6 @@ cdef void sage_puts(char* s):
 cdef void sage_flush():
     sys.stdout.flush()
 
-cdef PariOUT sage_pariErr
-
-cdef void sage_pariErr_putchar(char c):
-    cdef char s[2]
-    s[0] = c
-    s[1] = 0
-    global pari_error_string
-    pari_error_string += str(s)
-    pari_set_last_newline(1)
-
-cdef void sage_pariErr_puts(char *s):
-    global pari_error_string
-    pari_error_string += str(s)
-    pari_set_last_newline(1)
-
-cdef void sage_pariErr_flush():
-    pass
-
 
 @cython.final
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
@@ -456,11 +436,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pariOut.putch = sage_putchar
         pariOut.puts = sage_puts
         pariOut.flush = sage_flush
-
-        pariErr = &sage_pariErr
-        pariErr.putch = sage_pariErr_putchar
-        pariErr.puts = sage_pariErr_puts
-        pariErr.flush = sage_pariErr_flush
 
         # Display only 15 digits
         self._real_precision = 15

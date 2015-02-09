@@ -140,15 +140,15 @@ import operator
 
 import sys
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
 from libc.stdint cimport uint64_t
+cimport sage.structure.element
+from sage.structure.element cimport Element, EuclideanDomainElement, parent_c
 include "sage/ext/python_debug.pxi"
-include "../structure/coerce.pxi"   # for parent_c
 include "sage/libs/pari/decl.pxi"
 from sage.rings.rational cimport Rational
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
@@ -192,12 +192,6 @@ cdef object numpy_object_interface = {'typestr': '|O'}
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
-
-def init_mpz_globals():
-    init_mpz_globals_c()
-
-def clear_mpz_globals():
-    clear_mpz_globals_c()
 
 cdef int set_mpz(Integer self, mpz_t value):
     mpz_set(self.value, value)
@@ -475,25 +469,28 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     integers. It derives from the ``Element`` class, so
     integers can be used as ring elements anywhere in Sage.
 
-    Integer() interprets numbers and strings that begin with 0 as octal
-    numbers, and numbers and strings that begin with 0x as hexadecimal
-    numbers.
+    Integer() interprets strings that begin with ``0o`` as octal numbers,
+    strings that begin with ``0x`` as hexadecimal numbers and strings
+    that begin with ``0b`` as binary numbers.
 
-        The class ``Integer`` is implemented in Cython, as a
-        wrapper of the GMP ``mpz_t`` integer type.
+    The class ``Integer`` is implemented in Cython, as a wrapper of the
+    GMP ``mpz_t`` integer type.
 
     EXAMPLES::
 
-        sage: Integer(010)
-        8
-        sage: Integer(0x10)
-        16
-        sage: Integer(10)
-        10
+        sage: Integer(123)
+        123
+        sage: Integer("123")
+        123
+
+    Sage Integers support :pep:`3127` literals::
+
         sage: Integer('0x12')
         18
-        sage: Integer('012')
-        10
+        sage: Integer('-0o12')
+        -10
+        sage: Integer('+0b101010')
+        42
 
     Conversion from PARI::
 
@@ -535,7 +532,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ('sage')
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x (=sage) to an integer
+            TypeError: unable to convert 'sage' to an integer
             sage: Integer('zz',36).str(36)
             'zz'
             sage: ZZ('0x3b').str(16)
@@ -661,7 +658,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int paritype
         cdef Py_ssize_t j
         cdef object otmp
-        cdef unsigned int ibase
 
         cdef Element lift
 
@@ -708,15 +704,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     except AttributeError:
                         pass
 
-                elif PyString_Check(x) or PY_TYPE_CHECK(x,unicode):
-                    if base < 0 or base > 36:
-                        raise ValueError, "`base` (=%s) must be between 2 and 36."%base
-                    ibase = base
-                    xs = x
-                    if xs[0] == c'+':
-                        xs += 1
-                    if mpz_set_str(self.value, xs, ibase) != 0:
-                        raise TypeError, "unable to convert x (=%s) to an integer"%x
+                elif isinstance(x, basestring):
+                    mpz_set_str_python(self.value, x, base)
                     return
 
                 elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
@@ -3029,7 +3018,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         elif PY_TYPE_CHECK_EXACT(other, Integer):
             if mpz_sgn((<Integer>other).value) == 0:
                 raise ZeroDivisionError, "Integer division by zero"
-            if mpz_size((<Integer>x).value) > 100000:
+            if mpz_size(self.value) > 100000:
                 sig_on()
                 mpz_fdiv_qr(q.value, r.value, self.value, (<Integer>other).value)
                 sig_off()
@@ -4850,6 +4839,81 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             b = Integer(b)
         return mpz_kronecker(self.value, (<Integer>b).value)
 
+    def class_number(self, proof=True):
+        r"""
+        Returns the class number of the quadratic order with this discriminant.
+
+        INPUT:
+
+        - ``self`` -- an integer congruent to `0` or `1\mod4` which is
+          not a square
+
+        - ``proof`` (boolean, default ``True``) -- if ``False`` then
+          for negative disscriminants a faster algorithm is used by
+          the PARI library which is known to give incorrect results
+          when the class group has many cyclic factors.
+
+        OUTPUT:
+
+        (integer) the class number of the quadratic order with this
+        discriminant.
+
+        .. NOTE::
+
+           This is not always equal to the number of classes of
+           primitive binary quadratic forms of discriminant `D`, which
+           is equal to the narrow class number. The two notions are
+           the same when `D<0`, or `D>0` and the fundamental unit of
+           the order has negative norm; otherwise the number of
+           classes of forms is twice this class number.
+
+        EXAMPLES::
+
+            sage: (-163).class_number()
+            1
+            sage: (-104).class_number()
+            6
+            sage: [((4*n+1),(4*n+1).class_number()) for n in [21..29]]
+            [(85, 2),
+            (89, 1),
+            (93, 1),
+            (97, 1),
+            (101, 1),
+            (105, 2),
+            (109, 1),
+            (113, 1),
+            (117, 1)]
+
+        TESTS:
+
+        The integer must not be a square or an error is raised::
+
+           sage: 100.class_number()
+           Traceback (most recent call last):
+           ...
+           ValueError: class_number not defined for square integers
+
+
+        The integer must be 0 or 1 mod 4 or an error is raised::
+
+           sage: 10.class_number()
+           Traceback (most recent call last):
+           ...
+           ValueError: class_number only defined for integers congruent to 0 or 1 modulo 4
+           sage: 3.class_number()
+           Traceback (most recent call last):
+           ...
+           ValueError: class_number only defined for integers congruent to 0 or 1 modulo 4
+
+
+        """
+        if self.is_square():
+            raise ValueError("class_number not defined for square integers")
+        if not self%4 in [0,1]:
+            raise ValueError("class_number only defined for integers congruent to 0 or 1 modulo 4")
+        flag =  self < 0 and proof
+        return pari(self).qfbclassno(flag).sage()
+
     def radical(self, *args, **kwds):
         r"""
         Return the product of the prime divisors of self. Computing
@@ -5457,10 +5521,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         Output may differ with and without the ``minimal`` option::
 
-            sage: 2._xgcd(-2)
-            (2, 1, 0)
-            sage: 2._xgcd(-2, minimal=True)
-            (2, 0, -1)
+            sage: 5._xgcd(6)
+            (1, -1, 1)
+            sage: 5._xgcd(6, minimal=True)
+            (1, 5, -4)
 
         Exhaustive tests, checking minimality conditions::
 
@@ -5961,6 +6025,151 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError("algorithm must be one of: 'pari', 'mpir'")
 
 
+cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
+    """
+    Wrapper around ``mpz_set_str()`` which supports :pep:`3127`
+    literals.
+
+    If the string is invalid, a ``TypeError`` will be raised.
+
+    INPUT:
+
+    - ``z`` -- A pre-allocated ``mpz_t`` where the result will be
+      stored.
+
+    - ``s`` -- A string to be converted to an ``mpz_t``.
+
+    - ``base`` -- Either 0 or a base between 2 and 36: a base to use
+      for the string conversion. 0 means auto-detect using prefixes.
+
+    EXAMPLES::
+
+        sage: Integer('12345')
+        12345
+        sage: Integer('   -      1  2   3  4   5  ')
+        -12345
+        sage: Integer(u'  -  0x  1  2   3  4   5  ')
+        -74565
+        sage: Integer('-0012345', 16)
+        -74565
+        sage: Integer('+0x12345')
+        74565
+        sage: Integer('0X12345', 16)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0X12345' to an integer
+        sage: Integer('0x12345', 1000)
+        Traceback (most recent call last):
+        ...
+        ValueError: base (=1000) must be 0 or between 2 and 36
+        sage: Integer('0x00DeadBeef')
+        3735928559
+        sage: Integer('0x0x12345')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0x0x12345' to an integer
+        sage: Integer('-0B100')
+        -4
+        sage: Integer('-0B100', 16)
+        -45312
+        sage: Integer('0B12345')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0B12345' to an integer
+
+    Test zeros::
+
+        sage: Integer('')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '' to an integer
+        sage: Integer("0")
+        0
+        sage: Integer("  0O  0  ")  # second character is the letter O
+        0
+        sage: Integer("-00")
+        0
+        sage: Integer("+00000", 4)
+        0
+
+    For octals, the old leading-zero style is deprecated (unless an
+    explicit base is given)::
+
+        sage: Integer('0o12')
+        10
+        sage: Integer('012', 8)
+        10
+        sage: Integer('012')
+        doctest:...: DeprecationWarning: use 0o as octal prefix instead of 0
+        See http://trac.sagemath.org/17413 for details.
+        10
+
+    We disallow signs in unexpected places::
+
+        sage: Integer('+ -0')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '+ -0' to an integer
+        sage: Integer('0o-0')
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert '0o-0' to an integer
+    """
+    cdef int sign = 1
+    cdef int warnoctal = 0
+    cdef char* x = s
+
+    if base != 0 and (base < 2 or base > 36):
+        raise ValueError("base (=%s) must be 0 or between 2 and 36"%base)
+
+    while x[0] == c' ': x += 1  # Strip spaces
+
+    # Check for signs
+    if x[0] == c'-':
+        sign = -1
+        x += 1
+    elif x[0] == c'+':
+        x += 1
+
+    while x[0] == c' ': x += 1  # Strip spaces
+
+    # If no base was given, check for PEP 3127 prefixes
+    if base == 0:
+        if x[0] != c'0':
+            base = 10
+        else:
+            # String starts with "0"
+            if x[1] == c'b' or x[1] == c'B':
+                x += 2
+                base = 2
+            elif x[1] == c'o' or x[1] == c'O':
+                x += 2
+                base = 8
+            elif x[1] == c'x' or x[1] == c'X':
+                x += 2
+                base = 16
+            else:
+                # Give deprecation warning about octals, unless the
+                # number is zero (to allow for "0").
+                base = 8
+                warnoctal = 1
+
+    while x[0] == c' ': x += 1  # Strip spaces
+
+    # Disallow a sign here
+    if x[0] == '-' or x[0] == '+':
+        x = ""  # Force an error below
+
+    assert base >= 2
+    if mpz_set_str(z, x, base) != 0:
+        raise TypeError("unable to convert %r to an integer" % s)
+    if sign < 0:
+        mpz_neg(z, z)
+    if warnoctal and mpz_sgn(z) != 0:
+        from sage.misc.superseded import deprecation
+        deprecation(17413, "use 0o as octal prefix instead of 0")
+
+
 cpdef LCM_list(v):
     """
     Return the LCM of a list v of integers. Elements of v are converted
@@ -6404,7 +6613,6 @@ cdef set_zero_one_elements():
     if initialized: return
     the_integer_ring._zero_element = Integer(0)
     the_integer_ring._one_element = Integer(1)
-    init_mpz_globals()
     initialized = True
 set_zero_one_elements()
 

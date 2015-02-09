@@ -31,7 +31,7 @@ cdef size_t SIZE_T_MAX = -(<size_t> 1)
 def reversed_word_iterator(WordDatatype_char w):
     r"""
     This function exists only because it is not possible to use yield in the
-    special method `__reversed__`.
+    special method ``__reversed__``.
 
     EXAMPLES::
 

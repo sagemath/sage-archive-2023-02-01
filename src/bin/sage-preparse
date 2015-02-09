@@ -11,7 +11,7 @@ AUTHOR:
 
 import os, sys, re
 
-from sage.misc.preparser import preparse_file
+from sage.repl.preparse import preparse_file
 from sage.misc.temporary_file import atomic_write
 
 # The spkg/bin/sage script passes the files to be preparsed as

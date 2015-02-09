@@ -36,6 +36,9 @@ from sage.structure.parent cimport Parent
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 
+# Copied from sage.misc.fast_methods, used in __hash__() below.
+cdef int SIZEOF_VOID_P_SHIFT = 8*sizeof(void *) - 4
+
 cdef class FiniteFieldIterator:
     r"""
     An iterator over a finite field. This should only be used when the field
@@ -51,12 +54,15 @@ cdef class FiniteFieldIterator:
 
         EXAMPLES::
 
-            sage: k = iter(FiniteField(9, 'a', impl='pari_mod')) # indirect doctest
+            sage: k = iter(FiniteField(9, 'a', impl='pari_ffelt')) # indirect doctest
+            sage: isinstance(k, sage.rings.finite_rings.finite_field_base.FiniteFieldIterator)
+            True
+            sage: k = iter(FiniteField(16, 'a', impl='ntl')) # indirect doctest
             sage: isinstance(k, sage.rings.finite_rings.finite_field_base.FiniteFieldIterator)
             True
         """
         self.parent = parent
-        self.iter =iter(self.parent.vector_space())
+        self.iter = iter(self.parent.vector_space())
 
     def __next__(self):
         r"""
@@ -64,7 +70,7 @@ cdef class FiniteFieldIterator:
 
         EXAMPLE::
 
-            sage: k = iter(FiniteField(9, 'a', impl='pari_mod'))
+            sage: k = iter(FiniteField(9, 'a', impl='pari_ffelt'))
             sage: k.next() # indirect doctest
             0
         """
@@ -81,8 +87,8 @@ cdef class FiniteFieldIterator:
             [0, a, a^2, a^3, 2*a^2 + 3*a + 4, 2*a^3 + 3*a^2 + 4*a, 3*a^3 + a^2 + 6*a + 1]
             sage: K.<a> = GF(5^9)
             sage: for x in K:
-            ...       if x == a+3: break
-            ...       print x
+            ....:     if x == a+3: break
+            ....:     print x
             0
             1
             2
@@ -119,6 +125,71 @@ cdef class FiniteField(Field):
         if category is None:
             category = FiniteFields()
         Field.__init__(self, base, names, normalize, category)
+
+    # The methods __hash__ and __richcmp__ below were copied from
+    # sage.misc.fast_methods.WithEqualityById; we cannot inherit from
+    # this since Cython does not support multiple inheritance.
+
+    def __hash__(self):
+        """
+        The hash provided by this class coincides with that of ``<type 'object'>``.
+
+        TESTS::
+
+            sage: F.<a> = FiniteField(2^3)
+            sage: hash(F) == hash(F)
+            True
+            sage: hash(F) == object.__hash__(F)
+            True
+
+        """
+        # This is the default hash function in Python's object.c:
+        cdef long x
+        cdef size_t y = <size_t><void *>self
+        y = (y >> 4) | (y << SIZEOF_VOID_P_SHIFT)
+        x = <long>y
+        if x==-1:
+            x = -2
+        return x
+
+    def __richcmp__(self, other, int m):
+        """
+        Compare ``self`` with ``other``.
+
+        Finite fields compare equal if and only if they are identical.
+        In particular, they are not equal unless they have the same
+        cardinality, modulus, variable name and implementation.
+
+        EXAMPLES::
+
+            sage: x = polygen(GF(3))
+            sage: F = FiniteField(3^2, 'c', modulus=x^2+1)
+            sage: F == F
+            True
+            sage: F == FiniteField(3^3, 'c')
+            False
+            sage: F == FiniteField(3^2, 'c', modulus=x^2+x+2)
+            False
+            sage: F == FiniteField(3^2, 'd')
+            False
+            sage: F == FiniteField(3^2, 'c', impl='pari_ffelt')
+            False
+        """
+        if self is other:
+            if m == 2: # ==
+                return True
+            elif m == 3: # !=
+                return False
+            else:
+                # <= or >= or NotImplemented
+                return m==1 or m==5 or NotImplemented
+        else:
+            if m == 2:
+                return False
+            elif m == 3:
+                return True
+            else:
+                return NotImplemented
 
     def is_perfect(self):
         r"""
@@ -272,38 +343,6 @@ cdef class FiniteField(Field):
         sib.cache(self, v, name)
         return v
 
-    def _cmp_(left, Parent right):
-        """
-        Compares this finite field with other.
-
-        .. WARNING::
-
-            The notation of equality of finite fields in Sage is
-            currently not stable, i.e., it may change in a future version.
-
-        EXAMPLES::
-
-            sage: FiniteField(3**2, 'c') == FiniteField(3**3, 'c') # indirect doctest
-            False
-            sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'c')
-            True
-
-        The variable name is (currently) relevant for comparison of finite
-        fields::
-
-            sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'd')
-            False
-        """
-        if not PY_TYPE_CHECK(right, FiniteField):
-            return cmp(type(left), type(right))
-        c = cmp(left.characteristic(), right.characteristic())
-        if c: return c
-        c = cmp(left.degree(), right.degree())
-        if c: return c
-        # TODO comparing the polynomials themselves would recursively call
-        # this cmp...
-        return cmp(str(left.polynomial()), str(right.polynomial()))
-
     def __iter__(self):
         """
         Return an iterator over the elements of this finite field. This generic
@@ -313,7 +352,7 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: k = FiniteField(8, 'a', impl='pari_mod')
+            sage: k = FiniteField(8, 'a', impl='pari_ffelt')
             sage: i = iter(k); i # indirect doctest
             <sage.rings.finite_rings.finite_field_base.FiniteFieldIterator object at ...>
             sage: i.next()
@@ -758,14 +797,14 @@ cdef class FiniteField(Field):
 
         Although `f` is irreducible over the base field, we can double-check
         whether or not `f` factors in `F` as follows. The command
-        ``F[x](f)`` coerces `f` as a polynomial with coefficients in `F`.
+        ``F['x'](f)`` coerces `f` as a polynomial with coefficients in `F`.
         (Instead of a polynomial with coefficients over the base field.)
 
         ::
 
             sage: f.factor()
             x^2 + 6*x + 3
-            sage: F[x](f).factor()
+            sage: F['x'](f).factor()
             (x + a + 6) * (x + 6*a)
 
         Here is an example with a degree 3 extension::
@@ -814,8 +853,6 @@ cdef class FiniteField(Field):
             x
             sage: GF(13^2, 'a', impl="givaro", modulus=x^2+2).modulus()
             x^2 + 2
-            sage: GF(13^2, 'a', impl="pari_mod", modulus=x^2+2).modulus()
-            x^2 + 2
             sage: GF(13^2, 'a', impl="pari_ffelt", modulus=x^2+2).modulus()
             x^2 + 2
         """
@@ -852,7 +889,7 @@ cdef class FiniteField(Field):
 
         EXAMPLES::
 
-            sage: k.<a> = FiniteField(9, impl='pari_mod')
+            sage: k.<a> = FiniteField(9)
             sage: k.polynomial('x')
             x^2 + 2*x + 2
             sage: k.polynomial()
@@ -971,18 +1008,6 @@ cdef class FiniteField(Field):
             V = sage.modules.all.VectorSpace(self.prime_subfield(),self.degree())
             self.__vector_space = V
             return V
-
-    def __hash__(self):
-        r"""
-        Return a hash of this finite field.
-
-        EXAMPLES::
-
-            sage: hash(GF(17))
-            -1709973406 # 32-bit
-            9088054599082082 # 64-bit
-        """
-        return hash("GF") + hash(self.order())
 
     cpdef _coerce_map_from_(self, R):
         r"""

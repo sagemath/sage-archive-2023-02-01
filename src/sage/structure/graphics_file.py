@@ -203,9 +203,7 @@ class GraphicsFile(SageObject):
         with it.
         """
         from sage.misc.temporary_file import graphics_filename
-        ext = Mime.extension(self.mime())
-        if sage.doctest.DOCTEST_MODE:
-            return
+        ext = "." + Mime.extension(self.mime())
         self.save_as(graphics_filename(ext=ext))
 
 

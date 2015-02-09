@@ -121,6 +121,7 @@ cdef class Ring(ParentWithGens):
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
         running ._test_euclidean_degree() . . . pass
+        running ._test_gcd_vs_xgcd() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -1518,9 +1519,11 @@ cdef class IntegralDomain(CommutativeRing):
 
         EXAMPLES::
 
-            sage: ZZ.is_integral_domain(); QQ.is_integral_domain(); ZZ[x].is_integral_domain()
+            sage: ZZ.is_integral_domain()
             True
+            sage: QQ.is_integral_domain()
             True
+            sage: ZZ['x'].is_integral_domain()
             True
             sage: R = ZZ.quotient(ZZ.ideal(10)); R.is_integral_domain()
             False

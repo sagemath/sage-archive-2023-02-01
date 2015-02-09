@@ -1174,7 +1174,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
             sage: W = Words('ab')
             sage: it = W.iter_morphisms()
-            sage: for _ in range(7): it.next()
+            sage: for _ in range(7): next(it)
             WordMorphism: a->a, b->a
             WordMorphism: a->a, b->b
             WordMorphism: a->b, b->a
@@ -1187,7 +1187,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
             sage: W = Words('ab')
             sage: it = W.iter_morphisms(min_length=0)
-            sage: for _ in range(7): it.next()
+            sage: for _ in range(7): next(it)
             WordMorphism: a->, b->
             WordMorphism: a->a, b->
             WordMorphism: a->b, b->
@@ -1299,7 +1299,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             WordMorphism: x->, y->bb, z->a
             WordMorphism: x->, y->bb, z->b
             sage: it = W.iter_morphisms(codomain=Y)
-            sage: for _ in range(10): it.next()
+            sage: for _ in range(10): next(it)
             WordMorphism: a->x, b->x
             WordMorphism: a->x, b->y
             WordMorphism: a->x, b->z

@@ -106,7 +106,7 @@ underscores).
   for ``__add__`` itself). This is because Python has optimised calling
   protocols for such special functions.
 
--  **cpdef RingElement._add_** vs. **def RingElement._add_**
+-  **def RingElement._add_**
 
    This is the function you should override to implement addition in a
    subclass of ``RingElement``.

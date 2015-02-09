@@ -90,21 +90,21 @@ operators and classes are similar. There are three relevant functions,
 with subtly differing names (``add`` vs.  ``iadd``, single vs. double
 underscores).
 
-- **def RingElement.__add__**
+-  **def RingElement.__add__**
 
-  This function is called by Python or Cython when the binary "+" operator
-  is encountered. It **assumes** that at least one of its arguments is a
-  RingElement; only a really twisted programmer would violate this
-  condition. It has a fast pathway to deal with the most common case
-  where the arguments have the same parent. Otherwise, it uses the coercion
-  module to work out how to make them have the same parent. After any
-  necessary coercions have been performed, it calls ``_add_`` to dispatch to
-  the correct underlying addition implementation.
-
-  Note that although this function is declared as ``def``, it doesn't have the
-  usual overheads associated with Python functions (either for the caller or
-  for ``__add__`` itself). This is because Python has optimised calling
-  protocols for such special functions.
+   This function is called by Python or Cython when the binary "+" operator
+   is encountered. It **assumes** that at least one of its arguments is a
+   RingElement; only a really twisted programmer would violate this
+   condition. It has a fast pathway to deal with the most common case
+   where the arguments have the same parent. Otherwise, it uses the coercion
+   module to work out how to make them have the same parent. After any
+   necessary coercions have been performed, it calls ``_add_`` to dispatch to
+   the correct underlying addition implementation.
+   
+   Note that although this function is declared as ``def``, it doesn't have the
+   usual overheads associated with Python functions (either for the caller or
+   for ``__add__`` itself). This is because Python has optimised calling
+   protocols for such special functions.
 
 -  **def RingElement._add_**
 

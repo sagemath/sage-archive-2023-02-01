@@ -119,6 +119,9 @@ underscores).
    the same object, you are encouraged to call this function directly,
    instead of using ``x + y``.
 
+   When implementing ``_add_`` in a Cython extension class, use
+   ``cpdef _add_`` instead of ``def _add_``.
+
 For speed, there are also *inplace* versions of the arithmetic commands.
 **Do not** call them directly, they may mutate the object and will be called
 when and only when it has been determined that the old object will no longer

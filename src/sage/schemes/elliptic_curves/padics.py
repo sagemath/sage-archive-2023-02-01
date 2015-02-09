@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Miscellaneous p-adic functions
+Miscellaneous `p`-adic functions
 
-p-adic functions from ell_rational_field.py, moved here to reduce
+`p`-adic functions from ell_rational_field.py, moved here to reduce
 crowding in that file.
 """
 
@@ -165,7 +165,7 @@ def padic_lseries(self, p, normalize='L_ratio', use_eclib=True):
 
 def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
     r"""
-    Computes the cyclotomic p-adic regulator of this curve.
+    Computes the cyclotomic `p`-adic regulator of this curve.
 
 
     INPUT:

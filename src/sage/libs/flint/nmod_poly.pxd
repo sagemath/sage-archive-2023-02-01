@@ -1,9 +1,4 @@
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
-
-from sage.libs.flint.flint cimport *
-
-from flint import *
 
 cdef extern from "flint/nmod_poly.h":
     ctypedef unsigned long mp_bitcnt_t
@@ -20,7 +15,7 @@ cdef extern from "flint/nmod_poly.h":
         long length
         nmod_t mod
 
-    ctypedef nmod_poly_struct* nmod_poly_t
+    ctypedef nmod_poly_struct[1] nmod_poly_t
 
     ctypedef struct nmod_poly_factor_struct:
         nmod_poly_t p
@@ -28,7 +23,7 @@ cdef extern from "flint/nmod_poly.h":
         long num
         long alloc
 
-    ctypedef nmod_poly_factor_struct* nmod_poly_factor_t
+    ctypedef nmod_poly_factor_struct[1] nmod_poly_factor_t
 
     # Memory management
     cdef void nmod_poly_init(nmod_poly_t poly, mp_limb_t n)

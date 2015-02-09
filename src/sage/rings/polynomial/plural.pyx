@@ -707,7 +707,7 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: H.relations()
             {z*x: x*z + 2*x, z*y: y*z - 2*y}
             sage: H.relations(add_commutative=True)
-            {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y}
+            {y*x: x*y, z*x: x*z + 2*x, z*y: y*z - 2*y}
 
         """
         if add_commutative:
@@ -2151,7 +2151,7 @@ cdef class NCPolynomial_plural(RingElement):
 
             sage: f = (2*x*y^3*z^2 + (7)*x^2 + (3))
             sage: f.dict()
-            {(0, 0, 0): 3, (2, 0, 0): 7, (1, 2, 3): 2}
+            {(0, 0, 0): 3, (1, 2, 3): 2, (2, 0, 0): 7}
         """
         cdef poly *p
         cdef ring *r

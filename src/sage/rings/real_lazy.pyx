@@ -102,7 +102,7 @@ cdef class LazyField(Field):
             sage: a = CLF.pi() * CLF.I(); a
             3.141592653589794?*I
             sage: CDF(a)
-            3.14159265359*I
+            3.141592653589793*I
         """
         if name in named_constants:
             return LazyConstant(self, name)
@@ -760,7 +760,7 @@ cdef class LazyFieldElement(FieldElement):
             5.0
             sage: a = CLF(-1)^(1/4)
             sage: CDF(a)
-            0.707106781187 + 0.707106781187*I
+            0.7071067811865476 + 0.7071067811865475*I
         """
         return self.eval(R)
 
@@ -1456,7 +1456,7 @@ cdef class LazyConstant(LazyFieldElement):
             sage: from sage.rings.real_lazy import LazyConstant
             sage: a = LazyConstant(RLF, 'e')
             sage: RDF(a) # indirect doctest
-            2.71828182846
+            2.718281828459045
             sage: a = LazyConstant(CLF, 'I')
             sage: CC(a)
             1.00000000000000*I

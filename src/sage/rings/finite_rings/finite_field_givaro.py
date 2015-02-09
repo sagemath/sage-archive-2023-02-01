@@ -79,14 +79,14 @@ class FiniteField_givaro(FiniteField):
 
     Three different representations are possible::
 
-        sage: sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(9,repr='poly').gen()
+        sage: FiniteField(9, 'a', impl='givaro', repr='poly').gen()
         a
-        sage: sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(9,repr='int').gen()
+        sage: FiniteField(9, 'a', impl='givaro', repr='int').gen()
         3
-        sage: sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(9,repr='log').gen()
+        sage: FiniteField(9, 'a', impl='givaro', repr='log').gen()
         1
     """
-    def __init__(self, q, name="a",  modulus=None, repr="poly", cache=False):
+    def __init__(self, q, name="a", modulus=None, repr="poly", cache=False):
         """
         Initialize ``self``.
 
@@ -126,18 +126,16 @@ class FiniteField_givaro(FiniteField):
 
         if modulus is None or modulus == 'conway':
             if k == 1:
-                modulus = 'random' # this will use the gfq_factory_pk function.
+                modulus = 'random'
             elif ConwayPolynomials().has_polynomial(p, k):
+                from sage.misc.superseded import deprecation
+                deprecation(16930, "constructing a FiniteField_givaro without giving a polynomial as modulus is deprecated, use the more general FiniteField constructor instead")
                 from sage.rings.finite_rings.conway_polynomials import conway_polynomial
                 modulus = conway_polynomial(p, k)
             elif modulus is None:
                 modulus = 'random'
             else:
                 raise ValueError("Conway polynomial not found")
-
-        from sage.rings.polynomial.polynomial_element import is_Polynomial
-        if is_Polynomial(modulus):
-            modulus = modulus.list()
 
         self._cache = Cache_givaro(self, p, k, modulus, repr, cache)
 
@@ -280,9 +278,8 @@ class FiniteField_givaro(FiniteField):
         Univariate polynomials coerce into finite fields by evaluating
         the polynomial at the field's generator::
 
-            sage: from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
             sage: R.<x> = QQ[]
-            sage: k, a = FiniteField_givaro(5^2, 'a').objgen()
+            sage: k, a = FiniteField(5^2, 'a', impl='givaro').objgen()
             sage: k(R(2/3))
             4
             sage: k(x^2)
@@ -295,12 +292,11 @@ class FiniteField_givaro(FiniteField):
             sage: k(x^25)
             a
 
-            sage: Q, q = FiniteField_givaro(5^3,'q').objgen()
+            sage: Q, q = FiniteField(5^3, 'q', impl='givaro').objgen()
             sage: L = GF(5)
             sage: LL.<xx> = L[]
             sage: Q(xx^2 + 2*xx + 4)
             q^2 + 2*q + 4
-
 
         Multivariate polynomials only coerce if constant::
 
@@ -314,7 +310,6 @@ class FiniteField_givaro(FiniteField):
             ...
             ZeroDivisionError: division by zero in finite field.
 
-
         PARI elements are interpreted as finite field elements; this PARI
         flexibility is (absurdly!) liberal::
 
@@ -326,16 +321,27 @@ class FiniteField_givaro(FiniteField):
             sage: k(pari('Mod(1,3)*a^20'))
             a^7 + a^5 + a^4 + a^2
 
+        We can coerce from PARI finite field implementations::
+
+            sage: K.<a> = GF(3^10, impl="givaro")
+            sage: a^20
+            2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
+            sage: L.<b> = GF(3^10, impl="pari_mod")
+            sage: K(b^20)
+            2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
+            sage: M.<c> = GF(3^10, impl="pari_ffelt")
+            sage: K(c^20)
+            2*a^9 + 2*a^8 + a^7 + 2*a^5 + 2*a^4 + 2*a^3 + 1
+
         GAP elements need to be finite field elements::
 
-            sage: from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
             sage: x = gap('Z(13)')
-            sage: F = FiniteField_givaro(13)
+            sage: F = FiniteField(13, impl='givaro')
             sage: F(x)
             2
             sage: F(gap('0*Z(13)'))
             0
-            sage: F = FiniteField_givaro(13^2)
+            sage: F = FiniteField(13^2, 'a', impl='givaro')
             sage: x = gap('Z(13)')
             sage: F(x)
             2
@@ -380,7 +386,7 @@ class FiniteField_givaro(FiniteField):
             Traceback (most recent call last):
             ...
             IndexError: only one generator
-            sage: F = sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro(31)
+            sage: F = FiniteField(31, impl='givaro')
             sage: F.gen()
             1
         """

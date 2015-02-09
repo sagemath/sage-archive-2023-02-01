@@ -46,9 +46,9 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
             sage: RootSystem(['D',4]).ambient_space().simple_roots()
             Finite family {1: (1, -1, 0, 0), 2: (0, 1, -1, 0), 3: (0, 0, 1, -1), 4: (0, 0, 1, 1)}
-
         """
-        assert(i in self.index_set())
+        if i not in self.index_set():
+            raise ValueError("{} is not in the index set".format(i))
         return self.root(i-1, i, 0, 1) if i < self.n else self.root(self.n-2, self.n-1, 0, 0)
 
     def positive_roots(self):
@@ -109,7 +109,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: RootSystem(['D',4]).ambient_space().fundamental_weights()
             Finite family {1: (1, 0, 0, 0), 2: (1, 1, 0, 0), 3: (1/2, 1/2, 1/2, -1/2), 4: (1/2, 1/2, 1/2, 1/2)}
         """
-        assert(i in self.index_set())
+        if i not in self.index_set():
+            raise ValueError("{} is not in the index set".format(i))
         n = self.dimension()
         if i == n:
             return  self.sum(self.monomial(j) for j in range(n)) / 2

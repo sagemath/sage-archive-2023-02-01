@@ -49,7 +49,7 @@ corresponding to the highest weight `\Lambda_1`)::
 It has a single highest weight element::
 
     sage: C.highest_weight_vectors()
-    [1]
+    (1,)
 
 A crystal is an enumerated set (see :class:`EnumeratedSets`); and we
 can count and list its elements in the usual way::
@@ -76,6 +76,7 @@ documentations)::
 One can get (currently) crude plotting via::
 
     sage: Tab.plot()
+    Graphics object consisting of 52 graphics primitives
 
 If dot2tex is installed, one can obtain nice latex pictures via::
 

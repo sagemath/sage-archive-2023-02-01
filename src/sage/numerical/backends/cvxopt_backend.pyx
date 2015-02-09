@@ -402,13 +402,10 @@ cdef class CVXOPTBackend(GenericBackend):
             sage: p.row_bounds(4)
             (None, 2)
         """
-        if names is not None:
-            for i in range(number):
-                self.add_linear_constraint( zip(range(self.ncols()+1),[0]*(self.ncols()+1) ), lower_bound, upper_bound, names)
-        else:
-            for i in range(number):
-                self.add_linear_constraint( zip(range(self.ncols()+1),[0]*(self.ncols()+1) ), lower_bound, upper_bound)
-
+        for i in range(number):
+            self.add_linear_constraint(zip(range(self.ncols()+1),[0]*(self.ncols()+1)), 
+                                       lower_bound, upper_bound, 
+                                       name=None if names is None else names[i])
 
     cpdef int solve(self) except -1:
         """
@@ -879,10 +876,9 @@ cdef class CVXOPTBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
-            sage: p.add_linear_constraints(1, 2, None, names="Empty constraint 1")
+            sage: p.add_linear_constraints(1, 2, None, names=["Empty constraint 1"])
             sage: p.row_name(0)
             'Empty constraint 1'
-
         """
         if self.row_name_var[index] is not None:
             return self.row_name_var[index]

@@ -3101,11 +3101,16 @@ class Partition(CombinatorialObject, Element):
             [1, 2, 1]
             sage: Partition([3,2,2,1]).to_exp(5)
             [1, 2, 1, 0, 0]
+
+        TESTS::
+
+            sage: [parent(x) for x in Partition([3,2,2,1]).to_exp(5)]
+            [Integer Ring, Integer Ring, Integer Ring, Integer Ring, Integer Ring]
         """
         p = self
         if len(p) > 0:
             k = max(k, p[0])
-        a = [ 0 ] * (k)
+        a = [ZZ.zero()] * k
         for i in p:
             a[i-1] += 1
         return a
@@ -4557,9 +4562,6 @@ class Partition(CombinatorialObject, Element):
         inside_contents = [self.content(*c) for c in self.corners()]
         return sum(abs(variable+c) for c in outside_contents)\
                        -sum(abs(variable+c) for c in inside_contents)
-
-from sage.misc.superseded import deprecated_function_alias
-Partition_class = deprecated_function_alias(13605, Partition)
 
 ##############
 # Partitions #

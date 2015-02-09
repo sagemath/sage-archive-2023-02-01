@@ -193,7 +193,10 @@ class DeltaComplex(GenericCellComplex):
       ``d``-simplices, as a list::
 
         sage: P.cells()
-        {0: ((), ()), 1: ((1, 0), (1, 0), (0, 0)), 2: ((1, 0, 2), (0, 1, 2)), -1: ((),)}
+        {-1: ((),),
+         0: ((), ()),
+         1: ((1, 0), (1, 0), (0, 0)),
+         2: ((1, 0, 2), (0, 1, 2))}
 
     - ``data`` may be a dictionary indexed by integers.  For each
       integer `n`, the entry with key `n` is the list of
@@ -204,7 +207,10 @@ class DeltaComplex(GenericCellComplex):
         ...                       [(1,0,2), (0, 1, 2)] ])
         sage: cells_dict = P.cells()
         sage: cells_dict
-        {0: ((), ()), 1: ((1, 0), (1, 0), (0, 0)), 2: ((1, 0, 2), (0, 1, 2)), -1: ((),)}
+        {-1: ((),),
+         0: ((), ()),
+         1: ((1, 0), (1, 0), (0, 0)),
+         2: ((1, 0, 2), (0, 1, 2))}
         sage: DeltaComplex(cells_dict)
         Delta complex with 2 vertices and 8 simplices
         sage: P == DeltaComplex(cells_dict)
@@ -414,10 +420,10 @@ class DeltaComplex(GenericCellComplex):
 
             sage: line = delta_complexes.Simplex(1) # an edge
             sage: line.cells()
-            {0: ((), ()), 1: ((0, 1),), -1: ((),)}
+            {-1: ((),), 0: ((), ()), 1: ((0, 1),)}
             sage: ends = line.subcomplex({0: (0, 1)})
             sage: ends.cells()
-            {0: ((), ()), -1: ((),)}
+            {-1: ((),), 0: ((), ())}
             sage: line.homology(subcomplex=ends)
             {0: 0, 1: Z}
         """
@@ -512,10 +518,16 @@ class DeltaComplex(GenericCellComplex):
 
             sage: S2 = delta_complexes.Sphere(2)
             sage: S2.cells()
-            {0: ((), (), ()), 1: ((0, 1), (0, 2), (1, 2)), 2: ((0, 1, 2), (0, 1, 2)), -1: ((),)}
+            {-1: ((),),
+             0: ((), (), ()),
+             1: ((0, 1), (0, 2), (1, 2)),
+             2: ((0, 1, 2), (0, 1, 2))}
             sage: A = S2.subcomplex({1: [0,2]}) # one edge
             sage: S2.cells(subcomplex=A)
-            {0: (None, None, None), 1: (None, (0, 2), None), 2: ((0, 1, 2), (0, 1, 2)), -1: (None,)}
+            {-1: (None,),
+             0: (None, None, None),
+             1: (None, (0, 2), None),
+             2: ((0, 1, 2), (0, 1, 2))}
         """
         cells = self._cells_dict.copy()
         if subcomplex is None:
@@ -1282,9 +1294,9 @@ class DeltaComplex(GenericCellComplex):
 
             sage: T = delta_complexes.Torus()
             sage: T._epi_from_standard_simplex()[1]
-            {(2, 0): 2, (1, 0): 1, (2, 1): 0}
+            {(1, 0): 1, (2, 0): 2, (2, 1): 0}
             sage: T._epi_from_standard_simplex()[0]
-            {(2,): 0, (0,): 0, (1,): 0}
+            {(0,): 0, (1,): 0, (2,): 0}
         """
         if dim is None:
             dim = self.dimension()

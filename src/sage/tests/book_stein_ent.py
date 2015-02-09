@@ -48,6 +48,7 @@ sage: prime_pi(100)
 sage: prime_pi(3000000)
 216816
 sage: plot(prime_pi, 1,1000, rgbcolor=(0,0,1))
+Graphics object consisting of 1 graphics primitive
 sage: P = plot(Li, 2,10000, rgbcolor='purple')
 sage: Q = plot(prime_pi, 2,10000, rgbcolor='black')
 sage: R = plot(sqrt(x)*log(x),2,10000,rgbcolor='red')
@@ -157,6 +158,7 @@ sage: log(3.0)
 sage: log(19683.0) / log(3.0)
 9.00000000000000
 sage: plot(log, 0.1,10, rgbcolor=(0,0,1))
+Graphics object consisting of 1 graphics primitive
 sage: p = 53
 sage: R = Integers(p)
 sage: a = R.multiplicative_generator()
@@ -164,6 +166,7 @@ sage: v = sorted([(a^n, n) for n in range(p-1)])
 sage: G = plot(point(v,pointsize=50,rgbcolor=(0,0,1)))
 sage: H = plot(line(v,rgbcolor=(0.5,0.5,0.5)))
 sage: G + H
+Graphics object consisting of 2 graphics primitives
 sage: q = 93450983094850938450983409623
 sage: q.is_prime()
 True
@@ -512,6 +515,7 @@ sage: E
 Elliptic Curve defined by y^2  = x^3 + x over
 Finite Field of size 37
 sage: E.plot(pointsize=45)
+Graphics object consisting of 1 graphics primitive
 sage: E = EllipticCurve([-5,4])
 sage: P = E([1,0]); Q = E([0,2])
 sage: P + Q

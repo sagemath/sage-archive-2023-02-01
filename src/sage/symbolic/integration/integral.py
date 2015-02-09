@@ -116,6 +116,8 @@ class IndefiniteIntegral(BuiltinFunction):
             sage: f = function('f')
             sage: print_latex(f(x),x)
             '\\int f\\left(x\\right)\\,{d x}'
+            sage: latex(integrate(tan(x)/x, x))
+            \int \frac{\tan\left(x\right)}{x}\,{d x}
         """
         from sage.misc.latex import latex
         if not is_SymbolicVariable(x):
@@ -236,8 +238,8 @@ class DefiniteIntegral(BuiltinFunction):
             sage: f = function('f')
             sage: print_latex(f(x),x,0,1)
             '\\int_{0}^{1} f\\left(x\\right)\\,{d x}'
-            sage: latex(integrate(1/(1+sqrt(x)),x,0,1))
-            \int_{0}^{1} \frac{1}{\sqrt{x} + 1}\,{d x}
+            sage: latex(integrate(tan(x)/x, x, 0, 1))
+            \int_{0}^{1} \frac{\tan\left(x\right)}{x}\,{d x}
         """
         from sage.misc.latex import latex
         if not is_SymbolicVariable(x):
@@ -309,7 +311,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
         raise TypeError('only one endpoint was given!')
     return f, v, a, b
 
-def integrate(expression, v=None, a=None, b=None, algorithm=None):
+def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     r"""
     Returns the indefinite integral with respect to the variable
     `v`, ignoring the constant of integration. Or, if endpoints
@@ -341,6 +343,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
        - 'sympy' - use sympy (also in Sage)
 
        - 'mathematica_free' - use http://integrals.wolfram.com/
+
+    To prevent automatic evaluation use the ``hold`` argument.
 
      EXAMPLES::
 
@@ -384,6 +388,16 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         -2
         sage: integral(sin(x), (y, pi, 2*pi))
         pi*sin(x)
+
+    Using the ``hold`` parameter it is possible to prevent automatic
+    evaluation, which can then be evaluated via :meth:`simplify`::
+
+        sage: integral(x^2, x, 0, 3)
+        9
+        sage: a = integral(x^2, x, 0, 3, hold=True) ; a
+        integrate(x^2, x, 0, 3)
+        sage: a.simplify()
+        9
 
     Constraints are sometimes needed::
 
@@ -456,13 +470,13 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
                  x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                              2                 Pi
         sage: print f.integral(x)
-        x*y^z + 1/8*sqrt(pi)*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x))
+        x*y^z + 1/16*sqrt(pi)*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) - (I - 1)*sqrt(2)*erf(sqrt(-I)*x) + (I + 1)*sqrt(2)*erf((-1)^(1/4)*x))
 
     Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
     over the internet (does NOT require a Mathematica license!)::
 
-        sage: _ = var('x, y, z')   # optional - internet
-        sage: f = sin(x^2) + y^z   # optional - internet
+        sage: _ = var('x, y, z')
+        sage: f = sin(x^2) + y^z
         sage: f.integrate(x, algorithm="mathematica_free")   # optional - internet
         x*y^z + sqrt(1/2)*sqrt(pi)*fresnels(sqrt(2)*x/sqrt(pi))
 
@@ -482,10 +496,10 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
 
     We integrate the above function in Maple now::
 
-        sage: g = maple(f); g                             # optional - maple
-        sin(x^2)+y^z
-        sage: g.integrate(x)                              # optional - maple
-        1/2*2^(1/2)*Pi^(1/2)*FresnelS(2^(1/2)/Pi^(1/2)*x)+y^z*x
+        sage: g = maple(f); g.sort()         # optional - maple
+        y^z+sin(x^2)
+        sage: g.integrate(x).sort()          # optional - maple
+        x*y^z+1/2*2^(1/2)*Pi^(1/2)*FresnelS(2^(1/2)/Pi^(1/2)*x)
 
     We next integrate a function with no closed form integral. Notice
     that the answer comes back as an expression that contains an
@@ -502,7 +516,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     ::
 
         sage: integral(e^(-x^2),(x, 0, 0.1))
-        0.0562314580091*sqrt(pi)
+        0.05623145800914245*sqrt(pi)
 
     ALIASES: integral() and integrate() are the same.
 
@@ -559,7 +573,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         Is 50015104*y^2-50015103 positive, negative or zero?
         sage: assume(y>1)
         sage: res = integral(f,x,0.0001414, 1.); res
-        -2*y*arctan(0.0001414/y) + 2*y*arctan(1/y) + log(y^2 + 1.0) - 0.0001414*log(y^2 + 1.999396e-08) - 1.9997172
+        -2*y*arctan(0.0001414/y) + 2*y*arctan(1/y) + log(y^2 + 1.0) - 0.0001414*log(y^2 + 1.9993959999999997e-08) - 1.9997172
         sage: nres = numerical_integral(f.subs(y=2), 0.0001414, 1.); nres
         (1.4638323264144..., 1.6251803529759...e-14)
         sage: res.subs(y=2).n()
@@ -590,12 +604,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         ...
         ValueError: invalid input (x, 1, 2, 3) - please use variable, with or without two endpoints
 
-    Note that this used to be the test, but it is
-    actually divergent (though Maxima as yet does
-    not say so)::
+    Note that this used to be the test, but it is actually divergent
+    (though Maxima currently returns the principal value)::
 
         sage: integrate(t*cos(-theta*t),(t,-oo,oo))
-        integrate(t*cos(t*theta), t, -Infinity, +Infinity)
+        0
 
     Check if :trac:`6189` is fixed::
 
@@ -678,7 +691,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     Check that :trac:`11737` is fixed::
 
         sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
-        0.285736646322858
+        0.285736646322853
 
     Check that :trac:`14209` is fixed::
 
@@ -694,8 +707,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
             raise ValueError("Unknown algorithm: %s" % algorithm)
         return integrator(expression, v, a, b)
     if a is None:
-        return indefinite_integral(expression, v)
+        return indefinite_integral(expression, v, hold=hold)
     else:
-        return definite_integral(expression, v, a, b)
+        return definite_integral(expression, v, a, b, hold=hold)
 
 integral = integrate

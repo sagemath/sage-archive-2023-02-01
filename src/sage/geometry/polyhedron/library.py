@@ -19,7 +19,7 @@ REFERENCES:
 ########################################################################
 
 
-from sage.rings.all import Integer, QQ, ZZ, RDF
+from sage.rings.all import Integer, RR, QQ, ZZ, RDF
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.combinat.permutation import Permutations
@@ -121,27 +121,41 @@ class Polytopes():
     @rename_keyword(deprecation=11634, field='base_ring')
     def regular_polygon(self, n, base_ring=QQ):
         """
-        Return a regular polygon with n vertices.  Over the rational
+        Return a regular polygon with `n` vertices.  Over the rational
         field the vertices may not be exact.
 
         INPUT:
 
         - ``n`` -- a positive integer, the number of vertices.
 
-        - ``field`` -- either ``QQ`` or ``RDF``.
+        - ``base_ring`` -- a ring in which the coordinates will lie.
 
         EXAMPLES::
 
             sage: octagon = polytopes.regular_polygon(8)
             sage: len(octagon.vertices())
             8
+            sage: polytopes.regular_polygon(3).vertices()
+            (A vertex at (-125283617/144665060, -500399958596723/1000799917193445),
+             A vertex at (0, 1),
+             A vertex at (94875313/109552575, -1000799917193444/2001599834386889))
+            sage: polytopes.regular_polygon(3, base_ring=RealField(100)).vertices()
+            (A vertex at (0.00000000000000000000000000000, 1.0000000000000000000000000000),
+             A vertex at (0.86602540378443864676372317075, -0.50000000000000000000000000000),
+             A vertex at (-0.86602540378443864676372317076, -0.50000000000000000000000000000))
+            sage: polytopes.regular_polygon(3, base_ring=RealField(10)).vertices()
+            (A vertex at (0.00, 1.0),
+             A vertex at (0.87, -0.50),
+             A vertex at (-0.86, -0.50))
         """
-        npi = 3.14159265359
+        try:
+            omega = 2*base_ring.pi()/n
+        except AttributeError:
+            omega = 2*RR.pi()/n
         verts = []
         for i in range(n):
-            t = 2*npi*i/n
-            verts.append([sin(t),cos(t)])
-        verts = [[base_ring(RDF(x)) for x in y] for y in verts]
+            t = omega*i
+            verts.append([base_ring(t.sin()), base_ring(t.cos())])
         return Polyhedron(vertices=verts, base_ring=base_ring)
 
 
@@ -174,7 +188,7 @@ class Polytopes():
 
         INPUT:
 
-        - ``dim_n`` -- The dimension of the cross-polytope, a positive
+        - ``dim_n`` -- The dimension of the simplex, a positive
           integer.
 
         - ``project`` -- Optional argument, whether to project
@@ -582,6 +596,7 @@ class Polytopes():
             sage: perm4
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 24 vertices
             sage: polytopes.permutahedron(5).show()    # long time
+            Graphics3d Object
         """
         verts = range(1,n+1)
         verts = Permutations(verts).list()

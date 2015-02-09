@@ -17,7 +17,6 @@ A collection of posets and lattices.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
 from sage.combinat.permutation import Permutations, Permutation
@@ -156,9 +155,16 @@ class Posets(object):
         return Poset((range(n), []))
 
     @staticmethod
-    def PentagonPoset(facade = False):
+    def PentagonPoset(facade = None):
         """
-        Returns the "pentagon poset".
+        Returns the Pentagon poset.
+
+        INPUT:
+
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`). The
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor).
 
         EXAMPLES::
 
@@ -167,8 +173,13 @@ class Posets(object):
             sage: P.cover_relations()
             [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
 
-        This lattice and the diamond poset on 5 elements are the two
-        smallest lattices which are not distributive::
+        This is smallest lattice that is not modular::
+
+            sage: P.is_modular()
+            False
+
+        This poset and the :meth:`DiamondPoset` are the two smallest
+        lattices which are not distributive::
 
             sage: P.is_distributive()
             False
@@ -180,22 +191,30 @@ class Posets(object):
         return p
 
     @staticmethod
-    def DiamondPoset(n, facade = False):
+    def DiamondPoset(n, facade = None):
         """
-        Returns the lattice of rank two containing ``n`` elements.
+        Return the lattice of rank two containing ``n`` elements.
+
+        INPUT:
+
+        - ``n`` - number of vertices, an integer at least 3.
+
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`). The
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor).
 
         EXAMPLES::
 
             sage: Posets.DiamondPoset(7)
             Finite lattice containing 7 elements
         """
+        if n <= 2:
+            raise ValueError("n must be an integer at least 3.")
         c = [[n-1] for x in range(n)]
         c[0] = [x for x in range(1,n-1)]
         c[n-1] = []
-        if n > 2:
-            return LatticePoset(c, facade = facade)
-        else:
-            return Poset(c, facade = facade)
+        return LatticePoset(c, facade = facade)
 
     @staticmethod
     def IntegerCompositions(n):
@@ -347,6 +366,7 @@ class Posets(object):
             ...
             ValueError: probability must be between 0 and 1, not -0.5
         """
+        from sage.misc.prandom import random
         try:
             n = Integer(n)
         except TypeError:
@@ -364,7 +384,7 @@ class Posets(object):
         D.add_vertices(range(n))
         for i in range(n):
             for j in range(n):
-                if random.random() < p:
+                if random() < p:
                     D.add_edge(i,j)
                     if not D.is_directed_acyclic():
                         D.delete_edge(i,j)

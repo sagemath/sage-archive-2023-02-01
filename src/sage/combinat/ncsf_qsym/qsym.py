@@ -2716,8 +2716,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         `\mathrm{QSym}` is a polynomial algebra. (The proof is correct
         but rests upon an unproven claim that the lexicographically
         largest term of the `n`-th shuffle power of a Lyndon word is
-        the `n`-fold concatenatenation of this Lyndon word with
-        itself, occuring `n!` times in that shuffle power. But this
+        the `n`-fold concatenation of this Lyndon word with
+        itself, occurring `n!` times in that shuffle power. But this
         can be deduced from Section 2 of [Rad1979]_.) More precisely,
         he showed that `\mathrm{QSym}` is generated, as a free
         commutative `\mathbf{k}`-algebra, by the elements
@@ -2951,7 +2951,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: l(toy_to_self_cache)
                 []
                 sage: def toy_gen_function(I):
-                ....:     xs = flatten([i // gcd(I) for i in I] * gcd(I))
+                ....:     xs = [i // gcd(I) for i in I] * gcd(I)
                 ....:     return M[xs]
                 sage: HWL._precompute_cache(0, toy_to_self_cache,
                 ....:                          toy_from_self_cache,
@@ -2975,21 +2975,25 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: l(toy_to_self_cache)
                 [([], [([], 1)]), ([1], [([1], 1)]), ([1, 1], [([2], 1)]), ([2], [([1, 1], 1), ([2], -2)])]
 
-            This can be seen to form another `\ZZ`-basis of
-            `\mathrm{QSym}`, although it is not clear whether it has
-            any better properties than Hazewinkel's Lambda one.
+            This appears to form another `\ZZ`-basis of
+            `\mathrm{QSym}`, but the appearance is deceiving: it
+            fails to span the degree-`9` part of `\mathrm{QSym}`.
+            (The corresponding computation is not tested as it takes
+            a few minutes.) We have not checked if it spans
+            `\mathrm{QSym}` over `\QQ`.
             """
             # Much of this code is adapted from sage/combinat/sf/dual.py
             base_ring = self.base_ring()
-            zero = base_ring(0)
+            zero = base_ring.zero()
 
             # Handle the n == 0 case separately
             if n == 0:
                 part = self._indices([])
-                to_self_cache[ part ] = { part: base_ring(1) }
-                from_self_cache[ part ] = { part: base_ring(1) }
-                transition_matrices[n] = matrix(base_ring, [[1]])
-                inverse_transition_matrices[n] = matrix(base_ring, [[1]])
+                one = base_ring.one()
+                to_self_cache[ part ] = { part: one }
+                from_self_cache[ part ] = { part: one }
+                transition_matrices[n] = matrix(base_ring, [[one]])
+                inverse_transition_matrices[n] = matrix(base_ring, [[one]])
                 return
 
             compositions_n = Compositions(n).list()
@@ -3038,7 +3042,14 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             #
             # TODO: The way given in Hazewinkel's [Haz2004]_ paper might
             # be faster.
-            inverse_transition = ~transition_matrix_n
+            inverse_transition = (~transition_matrix_n).change_ring(base_ring)
+            # Note that we don't simply write
+            # "inverse_transition = ~transition_matrix_n" because that
+            # tends to cast the entries of the matrix into a quotient
+            # field even if this is unnecessary.
+
+            # TODO: This still looks fragile when the base ring is weird!
+            # Possibly work over ZZ in this method?
 
             for i in range(len_compositions_n):
                 self_coeffs = {}

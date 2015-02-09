@@ -54,6 +54,7 @@ viewer::
 
     sage: from sage.games.quantumino import show_pentaminos
     sage: show_pentaminos()
+    Graphics3d Object
 
 To solve the puzzle where the pentamino numbered 12 is put aside::
 
@@ -63,6 +64,7 @@ To solve the puzzle where the pentamino numbered 12 is put aside::
     Quantumino state where the following pentamino is put aside :
     Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (2, 1, 1)], Color: blue
     sage: s.show3d()                                      # long time (<1s)
+    Graphics3d Object
 
 To remove the frame::
 
@@ -75,6 +77,7 @@ To solve the puzzle where the pentamino numbered 7 is put aside::
     Quantumino state where the following pentamino is put aside :
     Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (0, 2, 1), (1, 0, 0)], Color: orange
     sage: s.show3d()                                      # long time (<1s)
+    Graphics3d Object
 
 The solution is iterable. This may be used to explicitly list the positions of each
 pentamino::
@@ -479,6 +482,7 @@ class QuantuminoSolver(SageObject):
             Quantumino state where the following pentamino is put aside :
             Polyomino: [(0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0), (1, 1, 0)], Color: yellow
             sage: s.show3d()                                     # long time (< 1s)
+            Graphics3d Object
 
         The explicit solution::
 

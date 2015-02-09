@@ -292,7 +292,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
                 ans.append([])
             for i from 0 <= i < self.prime_pow.deg:
                 ZZ_coeff.x = ZZ_p_rep(ZZ_pX_coeff(shifter, i))
-                ZZ_to_mpz(&coeff.value, &ZZ_coeff.x)
+                ZZ_to_mpz(coeff.value, &ZZ_coeff.x)
                 L = printer.base_p_list(coeff, pos)
                 for j from 0 <= j < prec:
                     if j < len(L):
@@ -325,7 +325,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
                         ZZ_p_add(tmp, ZZ_to_ZZ_p(holder.x), ZZ_pX_coeff(shifter, j))
                         ZZ_pX_SetCoeff(shifter, j, tmp)
                         ZZ_negate(holder.x, holder.x)
-                    ZZ_to_mpz(&list_elt.value, &holder.x)
+                    ZZ_to_mpz(list_elt.value, &holder.x)
                     ans.append(list_elt)
                 i += self.prime_pow.e
                 if i >= prec:

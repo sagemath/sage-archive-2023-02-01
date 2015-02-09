@@ -286,14 +286,16 @@ def is_SymmetricFunctionAlgebra(x):
 
 def zee(part):
     r"""
-    Return the size of the centralizer of permutations of cycle type ``part``.
+    Return the size of the centralizer of any permutation of cycle type
+    ``part``.
 
-    Note that the size of the centralizer is the inner product between `p(part)` and
-    itself where `p` is the power-sum symmetric functions.
+    Note that the size of the centralizer is the inner product between
+    ``p(part)`` and itself, where `p` is the power-sum symmetric
+    functions.
 
     INPUT:
 
-    -  ``part`` -- an integer partition (for example, [2,1,1])
+    - ``part`` -- an integer partition (for example, ``[2,1,1]``)
 
     OUTPUT:
 
@@ -2097,8 +2099,9 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         OUTPUT:
 
-        - The coproduct acting on ``elt``, the result is an element of the
-          tensor squared of the basis ``self``
+        - The image of ``elt`` under the comultiplication (=coproduct)
+          of the coalgebra of symmetric functions. The result is an
+          element of the tensor squared of the basis ``self``.
 
         EXAMPLES::
 
@@ -4150,6 +4153,123 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                if all( i % n == 0 for i in lam )}
         result_in_h_basis = h._from_dict(dct)
         return parent(result_in_h_basis)
+
+    def bernstein_creation_operator(self, n):
+        r"""
+        Return the image of ``self`` under the `n`-th Bernstein creation
+        operator.
+
+        Let `n` be an integer. The `n`-th Bernstein creation operator
+        `\mathbf{B}_n` is defined as the endomorphism of the space
+        `Sym` of symmetric functions which sends every `f` to
+
+        .. MATH::
+
+            \sum_{i \geq 0} (-1)^i h_{n+i} e_i^\perp,
+
+        where usual notations are in place (`h` stands for the complete
+        homogeneous symmetric functions, `e` for the elementary ones,
+        and `e_i^\perp` means skewing (:meth:`skew_by`) by `e_i`).
+
+        This has been studied in [BBSSZ2012]_, section 2.2, where the
+        following rule is given for computing `\mathbf{B}_n` on a
+        Schur function: If `(\alpha_1, \alpha_2, \ldots, \alpha_n)` is
+        an `n`-tuple of integers (positive or not), then
+
+        .. MATH::
+
+            \mathbf{B}_n s_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}
+            = s_{(n, \alpha_1, \alpha_2, \ldots, \alpha_n)}.
+
+        Here, `s_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}` is the
+        "Schur function" associated to the `n`-tuple
+        `(\alpha_1, \alpha_2, \ldots, \alpha_n)`, and defined by
+        literally applying the Jacobi-Trudi identity, i.e., by
+
+        .. MATH::
+
+            s_{(\alpha_1, \alpha_2, \ldots, \alpha_n)}
+            = \det \left( (h_{\alpha_i - i + j})_{i, j = 1, 2, \ldots, n} \right).
+
+        This notion of a Schur function clearly extends the classical
+        notion of Schur function corresponding to a partition, but is
+        easily reduced to the latter (in fact, for any `n`-tuple
+        `\alpha` of integers, one easily sees that `s_\alpha` is
+        either `0` or minus-plus a Schur function corresponding to a
+        partition; and it is easy to determine which of these is the
+        case and find the partition by a combinatorial algorithm).
+
+        EXAMPLES:
+
+        Let us check that what this method computes agrees with the
+        definition::
+
+            sage: Sym = SymmetricFunctions(ZZ)
+            sage: e = Sym.e()
+            sage: h = Sym.h()
+            sage: s = Sym.s()
+            sage: def bernstein_creation_by_def(n, f):
+            ....:     # `n`-th Bernstein creation operator applied to `f`
+            ....:     # computed according to its definition.
+            ....:     res = f.parent().zero()
+            ....:     if not f:
+            ....:         return res
+            ....:     max_degree = max(sum(m) for m, c in f)
+            ....:     for i in range(max_degree + 1):
+            ....:         if n + i >= 0:
+            ....:             res += (-1) ** i * h[n + i] * f.skew_by(e[i])
+            ....:     return res
+            sage: all( bernstein_creation_by_def(n, s[l]) == s[l].bernstein_creation_operator(n)
+            ....:      for n in range(-2, 3) for l in Partitions(4) )
+            True
+            sage: all( bernstein_creation_by_def(n, s[l]) == s[l].bernstein_creation_operator(n)
+            ....:      for n in range(-3, 4) for l in Partitions(3) )
+            True
+            sage: all( bernstein_creation_by_def(n, e[l]) == e[l].bernstein_creation_operator(n)
+            ....:      for n in range(-3, 4) for k in range(3) for l in Partitions(k) )
+            True
+
+        Some examples::
+
+            sage: s[3,2].bernstein_creation_operator(3)
+            s[3, 3, 2]
+            sage: s[3,2].bernstein_creation_operator(1)
+            -s[2, 2, 2]
+            sage: h[3,2].bernstein_creation_operator(-2)
+            h[2, 1]
+            sage: h[3,2].bernstein_creation_operator(-1)
+            h[2, 1, 1] - h[2, 2] - h[3, 1]
+            sage: h[3,2].bernstein_creation_operator(0)
+            -h[3, 1, 1] + h[3, 2]
+            sage: h[3,2].bernstein_creation_operator(1)
+            -h[2, 2, 2] + h[3, 2, 1]
+            sage: h[3,2].bernstein_creation_operator(2)
+            -h[3, 3, 1] + h[4, 2, 1]
+        """
+        # We use the formula for the Bernstein creation operator on
+        # a Schur function given in the docstring.
+        from sage.combinat.partition import _Partitions
+        parent = self.parent()
+        s = parent.realization_of().schur()
+        res = s.zero()
+        for m, c in s(self): # m = monomial (= corresponding partition), c = coefficient
+            # Add ``c * s[m].bernstein_creation_operator()`` to ``res``.
+            # There is a simple combinatorial algorithm for this (using
+            # the Jacobi-Trudi formula), which returns either 0 or
+            # minus-plus a single Schur function.
+            for j, p in enumerate(m + [0]):
+                # The "+ [0]" is important and corresponds to moving the ``n``
+                # to the very end!
+                if n == p - j - 1:
+                    break
+                if n > p - j - 1:
+                    if n + j < 0:
+                        break
+                    m_new = [k - 1 for k in m[:j]] + [n + j] + m[j:]
+                    m_new = _Partitions(m_new)
+                    res += (-1) ** j * c * s[m_new]
+                    break
+        return parent(res)
 
     def _expand(self, condition, n, alphabet = 'x'):
         r"""

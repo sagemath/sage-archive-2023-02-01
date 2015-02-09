@@ -96,7 +96,7 @@ class MPolynomial_element(MPolynomial):
 
             sage: P.<x,y,z> = PolynomialRing(QQbar)
             sage: x + QQbar.random_element() # indirect doctest
-            x + 4
+            x - 4
         """
         return "%s"%self.__element
 
@@ -760,9 +760,18 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             raise ValueError("You must pass a dictionary list or monomial.")
         return self.parent()(self.element().polynomial_coefficient(looking_for))
 
-    def exponents(self):
+    def exponents(self, as_ETuples=True):
         """
         Return the exponents of the monomials appearing in self.
+
+        INPUT:
+
+        - as_ETuples (default: ``True``): return the list of exponents as a list
+          of ETuples.
+
+        OUTPUT:
+
+        Return the list of exponents as a list of ETuples or tuples.
 
         EXAMPLES::
 
@@ -770,16 +779,30 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f = a^3 + b + 2*b^2
             sage: f.exponents()
             [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
+
+        Be default the list of exponents is a list of ETuples::
+
+            sage: type(f.exponents()[0])
+            <type 'sage.rings.polynomial.polydict.ETuple'>
+            sage: type(f.exponents(as_ETuples=False)[0])
+            <type 'tuple'>
         """
         try:
-            return self.__exponents
+            exp = self.__exponents
+            if as_ETuples:
+                return exp
+            else:
+                return [tuple(e) for e in exp]
         except AttributeError:
             self.__exponents = self.element().dict().keys()
             try:
                 self.__exponents.sort(cmp=self.parent().term_order().compare_tuples, reverse=True)
             except AttributeError:
                 pass
-            return self.__exponents
+            if as_ETuples:
+                return self.__exponents
+            else:
+                return [tuple(e) for e in self.__exponents]
 
     def is_unit(self):
         """

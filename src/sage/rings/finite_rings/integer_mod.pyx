@@ -1720,9 +1720,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         if value < 0 or mpz_cmp_si(self.__modulus.sageInteger.value, value) >= 0:
             mpz_mod(self.value, self.value, self.__modulus.sageInteger.value)
 
-    cdef mpz_t* get_value(IntegerMod_gmp self):
-        return &self.value
-
     def __lshift__(IntegerMod_gmp self, k):
         r"""
         Performs a left shift by ``k`` bits.

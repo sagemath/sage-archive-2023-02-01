@@ -82,6 +82,8 @@ class FunctionDiracDelta(BuiltinFunction):
         dirac_delta(0)
         sage: dirac_delta(x)
         dirac_delta(x)
+        sage: integrate(dirac_delta(x), x, -1, 1, algorithm='sympy')
+        1
 
     REFERENCES:
 
@@ -109,10 +111,13 @@ class FunctionDiracDelta(BuiltinFunction):
 
             sage: loads(dumps(dirac_delta(x)))
             dirac_delta(x)
+            sage: dirac_delta(x)._sympy_()
+            DiracDelta(x)
         """
         BuiltinFunction.__init__(self, "dirac_delta", latex_name=r"\delta",
                                    conversions=dict(maxima='delta',
-                                    mathematica='DiracDelta'))
+                                                  mathematica='DiracDelta',
+                                                  sympy='DiracDelta'))
 
     def _eval_(self, x):
         """
@@ -554,10 +559,14 @@ class FunctionKroneckerDelta(BuiltinFunction):
             0
             sage: kronecker_delta(1,1)
             1
+            sage: y = var('y')
+            sage: kronecker_delta(x, y)._sympy_()
+            KroneckerDelta(x, y)
         """
         BuiltinFunction.__init__(self, "kronecker_delta", nargs=2,
                                         conversions=dict(maxima='kron_delta',
-                                        mathematica='KroneckerDelta'))
+                                        mathematica='KroneckerDelta',
+                                        sympy='KroneckerDelta'))
 
     def _eval_(self, m, n):
         """

@@ -1811,9 +1811,9 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Fano()
             sage: M.loops()
-            frozenset([])
+            frozenset()
             sage: (M / ['a', 'b']).loops()
-            frozenset(['f'])
+            frozenset({'f'})
         """
         return self._closure(set())
 
@@ -2046,9 +2046,9 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Fano().dual()
             sage: M.coloops()
-            frozenset([])
+            frozenset()
             sage: (M \ ['a', 'b']).coloops()
-            frozenset(['f'])
+            frozenset({'f'})
         """
         return self._coclosure(set())
 
@@ -2641,14 +2641,13 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Fano()
             sage: sorted([M._flags(1)])
-            [[[frozenset(['a']), set(['a']),
-            frozenset(['c', 'b', 'e', 'd', 'g', 'f'])], [frozenset(['b']),
-            set(['b']), frozenset(['c', 'e', 'd', 'g', 'f'])],
-            [frozenset(['c']), set(['c']), frozenset(['e', 'd', 'g', 'f'])],
-            [frozenset(['d']), set(['d']), frozenset(['e', 'g', 'f'])],
-            [frozenset(['e']), set(['e']), frozenset(['g', 'f'])],
-            [frozenset(['f']), set(['f']), frozenset(['g'])],
-            [frozenset(['g']), set(['g']), frozenset([])]]]
+            [[[frozenset({'a'}), {'a'}, frozenset({'b', 'c', 'd', 'e', 'f', 'g'})],
+              [frozenset({'b'}), {'b'}, frozenset({'c', 'd', 'e', 'f', 'g'})],
+              [frozenset({'c'}), {'c'}, frozenset({'d', 'e', 'f', 'g'})],
+              [frozenset({'d'}), {'d'}, frozenset({'e', 'f', 'g'})],
+              [frozenset({'e'}), {'e'}, frozenset({'f', 'g'})],
+              [frozenset({'f'}), {'f'}, frozenset({'g'})],
+              [frozenset({'g'}), {'g'}, frozenset()]]]
         """
         if r < 0:
             return []
@@ -3831,7 +3830,7 @@ cdef class Matroid(SageObject):
             sage: M = matroids.named_matroids.Fano()
             sage: M.modular_cut([M.groundset()]).difference(
             ....:                               [frozenset(M.groundset())])
-            set([])
+            set()
         """
         final_list = set()
         temp_list = set([self.closure(X) for X in subsets])  # Checks validity
@@ -4411,7 +4410,7 @@ cdef class Matroid(SageObject):
             sage: setprint(M.max_weight_independent())
             {0, 1}
             sage: M.max_weight_coindependent(X=[], weights={})
-            frozenset([])
+            frozenset()
         """
         if X is None:
             X = self.groundset()
@@ -4493,7 +4492,7 @@ cdef class Matroid(SageObject):
             sage: setprint(M.max_weight_coindependent())
             {0, 1, 2, 3, 4, 5}
             sage: M.max_weight_coindependent(X=[], weights={})
-            frozenset([])
+            frozenset()
         """
         if X is None:
             X = self.groundset()

@@ -268,7 +268,7 @@ def cm_orders(h, proof=None):
         sage: len(v)
         29
         sage: set([hilbert_class_polynomial(D*f^2).degree() for D,f in v])
-        set([2])
+        {2}
 
     Any degree up to 100 is implemented, but may be prohibitively slow::
 
@@ -531,6 +531,67 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
 
     return T
 
+def is_cm_j_invariant(j):
+    """
+    Returns whether or not this is a CM `j`-invariant.
+
+    INPUT:
+
+    - ``j`` -- an element of a number field `K`
+
+    OUTPUT:
+
+    A pair (bool, (d,f)) which is either (False, None) if `j` is not a
+    CM j-invariant or (True, (d,f)) if `j` is the `j`-invariant of the
+    immaginary quadratic order of discriminant `D=df^2` where `d` is
+    the associated fundamental discriminant and `f` the index.
+
+    .. note::
+
+       The current implementation makes use of the classification of
+       all orders of class number up to 100, and hence will raise an
+       error if `j` is an algebraic integer of degree greater than
+       this.  It would be possible to implement a more general
+       version, using the fact that `d` must be supported on the
+       primes dividing the discriminant of the minimal polynomial of
+       `j`.
+
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.cm import is_cm_j_invariant
+        sage: is_cm_j_invariant(0)
+        (True, (-3, 1))
+        sage: is_cm_j_invariant(8000)
+        (True, (-8, 1))
+
+        sage: K.<a> = QuadraticField(5)
+        sage: is_cm_j_invariant(282880*a + 632000)
+        (True, (-20, 1))
+        sage: K.<a> = NumberField(x^3 - 2)
+        sage: is_cm_j_invariant(31710790944000*a^2 + 39953093016000*a + 50337742902000)
+        (True, (-3, 6))
+
+    TESTS::
+
+        sage: from sage.schemes.elliptic_curves.cm import is_cm_j_invariant
+        sage: all([is_cm_j_invariant(j) == (True, (d,f)) for d,f,j in cm_j_invariants_and_orders(QQ)])
+        True
+
+    """
+    from sage.rings.all import NumberFieldElement
+    if not isinstance(j, NumberFieldElement) and not j in QQ:
+        raise NotImplementedError("is_cm_j_invariant() is only implemented for number field elements")
+    if not j.is_integral():
+        return False, None
+    h = 1 if j in QQ else j.absolute_minpoly().degree()
+    if h>100:
+        raise NotImplementedError("CM data only available for class numbers up to 100")
+    for d,f in cm_orders(h):
+        pol = hilbert_class_polynomial(d*f**2)
+        if pol(j)==0:
+            return True, (d,f)
+    return False, None
 
 
 

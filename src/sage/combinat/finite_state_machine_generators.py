@@ -967,12 +967,6 @@ class TransducerGenerators(object):
         recursion transitions. The well-posedness is checked in a
         truncated version of the recursion digraph.
 
-        REFERENCES:
-
-        .. [HKP2015] Clemens Heuberger, Sara Kropf and Helmut Prodinger,
-           *Output sum of transducers: Limiting distribution and periodic
-           fluctuation*, :arxiv:`1502.01412`.
-
         TESTS:
 
             The following tests check that the equations are well-formed::

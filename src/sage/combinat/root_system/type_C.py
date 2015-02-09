@@ -62,7 +62,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: RootSystem(['C',3]).ambient_space().simple_roots()
             Finite family {1: (1, -1, 0), 2: (0, 1, -1), 3: (0, 0, 2)}
         """
-        assert(i in self.index_set())
+        if i not in self.index_set():
+            raise ValueError("{} is not in the index set".format(i))
         return self.root(i-1, i,0,1) if i < self.n else self.root(self.n-1, self.n-1, 0, 0)
 
     def positive_roots(self):

@@ -55,8 +55,6 @@ from sage.ext.fast_callable import fast_callable
 from sage.functions.log import log, exp
 from sage.symbolic.all import SR
 
-from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
-
 class UnionOfIntervals:
     r"""
     A class representing a finite union of closed intervals in
@@ -997,19 +995,19 @@ class EllipticCurveCanonicalHeight:
             9
             sage: E.conductor().norm().factor()
             2^10 * 20921
-            sage: p1,p2 = K.primes_above(20921)
+            sage: p1, p2 = K.primes_above(20921)
             sage: E.local_data(p1)
-            Local data at Fractional ideal (40*i + 139):
-            Reduction type: good
-            ...
-            sage: H.e_p(p1)
-            20815
-            sage: E.local_data(p2)
             Local data at Fractional ideal (-40*i + 139):
             Reduction type: bad split multiplicative
             ...
-            sage: H.e_p(p2)
+            sage: H.e_p(p1)
             20920
+            sage: E.local_data(p2)
+            Local data at Fractional ideal (40*i + 139):
+            Reduction type: good
+            ...
+            sage: H.e_p(p2)
+            20815
         """
         kp = self.K.residue_field(p)
         if self.E.has_bad_reduction(p):
@@ -1457,7 +1455,7 @@ class EllipticCurveCanonicalHeight:
 
             sage: fk, err = E.height_function().fk_intervals(N=10, domain=CDF)
             sage: fk(z)
-            -1.82543539306 - 2.49336319993*I
+            -1.8254353930604... - 2.493363199928...*I
         """
         if v is None:
             if self.K is QQ:
@@ -1704,6 +1702,8 @@ class EllipticCurveCanonicalHeight:
             sage: H.complex_intersection_is_empty([H.B(n,0.03) for n in [1..6]],v)
             True
         """
+        from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
+
         b2 = v(self.E.b2())
         # Note that we normalise w1, w2 differently from [TT]_!
         w2, w1 = self.E.period_lattice(v).normalised_basis()
@@ -1800,7 +1800,7 @@ class EllipticCurveCanonicalHeight:
         This curve does have a point of good reduction whose canonical
         point is approximately 1.68::
 
-            sage: P = E.gens()[0]
+            sage: P = E.gens(lim3=5)[0]
             sage: P.height()
             1.68038085233673
             sage: P.has_good_reduction()
@@ -1886,7 +1886,7 @@ class EllipticCurveCanonicalHeight:
 
             sage: E = EllipticCurve([1, 0, 1, 421152067, 105484554028056]) # 60490d1
             sage: E.height_function().min_gr(.0001, 5)
-            1.98684388147
+            1.98684388146518
 
         Example 10.1 from [TT]_ (where a lower bound of 0.18 was
         given)::
@@ -1895,7 +1895,7 @@ class EllipticCurveCanonicalHeight:
             sage: E = EllipticCurve([0,0,0,91-26*i,-144-323*i])
             sage: H = E.height_function()
             sage: H.min_gr(0.1,4) # long time (8.1s)
-            0.162104944331
+            0.1621049443313762
 
         Example 10.2 from [TT]_::
 
@@ -1903,7 +1903,7 @@ class EllipticCurveCanonicalHeight:
             sage: E = EllipticCurve([0,1-i,i,-i,0])
             sage: H = E.height_function()
             sage: H.min_gr(0.01,5)
-            0.0150437964347
+            0.015043796434657225
 
         In this example the point `P=(0,0)` has height 0.023 so our
         lower bound is quite good::
@@ -1972,7 +1972,7 @@ class EllipticCurveCanonicalHeight:
 
             sage: E = EllipticCurve([1, 0, 1, 421152067, 105484554028056]) # 60490d1
             sage: E.height_function().min(.0001, 5)
-            0.00112632873099
+            0.0011263287309893311
 
         Example 10.1 from [TT]_ (where a lower bound of 0.18 was
         given)::
@@ -1981,7 +1981,7 @@ class EllipticCurveCanonicalHeight:
             sage: E = EllipticCurve([0,0,0,91-26*i,-144-323*i])
             sage: H = E.height_function()
             sage: H.min(0.1,4) # long time (8.1s)
-            0.162104944331
+            0.1621049443313762
 
         Example 10.2 from [TT]_::
 
@@ -1989,7 +1989,7 @@ class EllipticCurveCanonicalHeight:
             sage: E = EllipticCurve([0,1-i,i,-i,0])
             sage: H = E.height_function()
             sage: H.min(0.01,5) # long time (4s)
-            0.0150437964347
+            0.015043796434657225
 
         In this example the point `P=(0,0)` has height 0.023 so our
         lower bound is quite good::
@@ -2012,7 +2012,7 @@ class EllipticCurveCanonicalHeight:
             sage: E = EllipticCurve('37a')
             sage: h = E.height_function()
             sage: h.min(.01, 5)
-            0.0398731805749
+            0.03987318057488725
             sage: E.gen(0).height()
             0.0511114082399688
 
@@ -2020,12 +2020,12 @@ class EllipticCurveCanonicalHeight:
 
             sage: K.<a> = QuadraticField(-5)
             sage: E.change_ring(K).height_function().min(0.5, 10) # long time (8s)
-            0.0441941738242
+            0.04419417382415922
 
             sage: E = EllipticCurve('389a')
             sage: h = E.height_function()
             sage: h.min(0.1, 5)
-            0.0573127527003
+            0.05731275270029196
             sage: [P.height() for P in E.gens()]
             [0.686667083305587, 0.327000773651605]
 

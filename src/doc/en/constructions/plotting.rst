@@ -40,6 +40,7 @@ You can plot piecewise-defined functions:
     sage: f4 = lambda x:sin(2*x)
     sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
     sage: f.plot()
+    Graphics object consisting of 4 graphics primitives
 
 Other function plots can be produced as well:
 
@@ -93,6 +94,7 @@ A blue conchoid of Nicomedes:
     sage: L = [[1+5*cos(pi/2+pi*i/100), tan(pi/2+pi*i/100)*\
     ...   (1+5*cos(pi/2+pi*i/100))] for i in range(1,100)]
     sage: line(L, rgbcolor=(1/4,1/8,3/4))
+    Graphics object consisting of 1 graphics primitive
 
 A blue hypotrochoid (3 leaves):
 
@@ -102,6 +104,7 @@ A blue hypotrochoid (3 leaves):
     sage: L = [[n*cos(pi*i/100)+h*cos((n/b)*pi*i/100),\
     ...   n*sin(pi*i/100)-h*sin((n/b)*pi*i/100)] for i in range(200)]
     sage: line(L, rgbcolor=(1/4,1/4,3/4))
+    Graphics object consisting of 1 graphics primitive
 
 A blue hypotrochoid (4 leaves):
 
@@ -111,6 +114,7 @@ A blue hypotrochoid (4 leaves):
     sage: L = [[n*cos(pi*i/100)+h*cos((n/b)*pi*i/100),\
     ...   n*sin(pi*i/100)-h*sin((n/b)*pi*i/100)] for i in range(200)]
     sage: line(L, rgbcolor=(1/4,1/4,3/4))
+    Graphics object consisting of 1 graphics primitive
 
 A red limaçon of Pascal:
 
@@ -119,6 +123,7 @@ A red limaçon of Pascal:
     sage: L = [[sin(pi*i/100)+sin(pi*i/50),-(1+cos(pi*i/100)+cos(pi*i/50))]\
     ...   for i in range(-100,101)]
     sage: line(L, rgbcolor=(1,1/4,1/2))
+    Graphics object consisting of 1 graphics primitive
 
 A light green trisectrix of Maclaurin:
 
@@ -127,6 +132,7 @@ A light green trisectrix of Maclaurin:
     sage: L = [[2*(1-4*cos(-pi/2+pi*i/100)^2),10*tan(-pi/2+pi*i/100)*\
     ...   (1-4*cos(-pi/2+pi*i/100)^2)] for i in range(1,100)]
     sage: line(L, rgbcolor=(1/4,1,1/8))
+    Graphics object consisting of 1 graphics primitive
 
 
 A green lemniscate of Bernoulli (we omit i==100 since that would give a 0 division error):
@@ -136,6 +142,7 @@ A green lemniscate of Bernoulli (we omit i==100 since that would give a 0 divisi
     sage: v = [(1/cos(-pi/2+pi*i/100), tan(-pi/2+pi*i/100)) for i in range(1,200) if i!=100 ]
     sage: L = [(a/(a^2+b^2), b/(a^2+b^2)) for a,b in v]
     sage: line(L, rgbcolor=(1/4,3/4,1/8))
+    Graphics object consisting of 1 graphics primitive
 
 
 .. index:: plot;curve using surf

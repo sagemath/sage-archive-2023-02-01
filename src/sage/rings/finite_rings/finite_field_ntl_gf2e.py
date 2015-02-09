@@ -21,9 +21,7 @@ def late_import():
     """
     if "GF2" in globals():
         return
-    global ResidueField_generic, is_FiniteField, exists_conway_polynomial, conway_polynomial, Cache_ntl_gf2e, GF, GF2, is_Polynomial
-    import sage.rings.residue_field
-    ResidueField_generic = sage.rings.residue_field.ResidueField_generic
+    global is_FiniteField, exists_conway_polynomial, conway_polynomial, Cache_ntl_gf2e, GF, GF2, is_Polynomial
 
     import sage.rings.finite_rings.finite_field_base
     is_FiniteField = sage.rings.finite_rings.finite_field_base.is_FiniteField

@@ -1586,25 +1586,6 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
         else:
             _Latex_prefs._option['mathjax_avoid'] = L
 
-    # Couldn't use deprecated_function_alias for this because of circular imports.
-    def jsmath_avoid_list(self, L=None):
-        """
-        Deprecated. Use :meth:`mathjax_avoid_list` instead.
-
-        EXAMPLES::
-
-            sage: latex.jsmath_avoid_list()
-            doctest:...: DeprecationWarning: Use mathjax_avoid_list instead.
-            See http://trac.sagemath.org/13508 for details.
-            []
-        """
-        from superseded import deprecation
-        deprecation(13508, 'Use mathjax_avoid_list instead.')
-        if L is None:
-            return _Latex_prefs._option['mathjax_avoid']
-        else:
-            _Latex_prefs._option['mathjax_avoid'] = L
-
     def add_to_mathjax_avoid_list(self, s):
         r"""nodetex
         Add to the list of strings which signal that MathJax should not
@@ -1632,22 +1613,6 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
         current = latex.mathjax_avoid_list()
         if s not in current:
             _Latex_prefs._option['mathjax_avoid'].append(s)
-
-    # Couldn't use deprecated_function_alias for this because of circular imports.
-    def add_to_jsmath_avoid_list(self, s):
-        """
-        Deprecated. Use :meth:`add_to_mathjax_avoid_list` instead.
-
-        EXAMPLES::
-
-            sage: latex.add_to_jsmath_avoid_list('\\text')
-            doctest:...: DeprecationWarning: Use add_to_mathjax_avoid_list instead.
-            See http://trac.sagemath.org/13508 for details.
-            sage: latex.mathjax_avoid_list([])  # reset list to default
-        """
-        from superseded import deprecation
-        deprecation(13508, 'Use add_to_mathjax_avoid_list instead.')
-        self.add_to_mathjax_avoid_list(s)
 
     def engine(self, e = None):
         r"""
@@ -2519,7 +2484,7 @@ def pretty_print_default(enable=True):
         'foo'
     """
     import sys
-    sys.displayhook.set_display('typeset' if enable else 'simple')
+    sys.displayhook.formatter.set_display('typeset' if enable else 'simple')
 
 
 common_varnames = ['alpha',

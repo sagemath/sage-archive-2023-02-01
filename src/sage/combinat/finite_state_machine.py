@@ -9025,8 +9025,9 @@ class FiniteStateMachine(SageObject):
     def moments_waiting_time(self, test=bool, is_zero=None,
                              expectation_only=False):
         r"""
-        If ``self`` is a Markov chain, return the expectation and variance
-        of the number of steps until first writing ``True``.
+        If this finite state machine acts as a Markov chain, return
+        the expectation and variance of the number of steps until
+        first writing ``True``.
 
         INPUT:
 

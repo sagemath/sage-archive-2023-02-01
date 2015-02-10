@@ -2911,6 +2911,69 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         g = self._preperiodic_points_to_cyclegraph(preper)
         return(g)
 
+    def connected_rational_component(self,P,n=0):
+        r"""
+        Computes the connected component of a rational preperiodic point `P` of ``self``.
+
+        INPUT:
+        - ``P`` - A rational preperiodic point of ``self``
+        - ``n`` - Maximum distance from `P` to branch out. A value of 0 indicates no bound. Default: 0
+
+        OUTPUT:
+        - a list of points that are either forward images or preimages of `P`
+
+        Examples::
+
+            sage: R.<x>=PolynomialRing(QQ)
+            sage: K.<w>= NumberField(x^3+1/4*x^2-41/16*x+23/64)
+            sage: PS.<x,y> = ProjectiveSpace(1,K)
+            sage: H = End(PS)
+            sage: f = H([x^2 - 29/16*y^2,y^2])
+            sage: P = PS([w,1])
+            sage: f.connected_rational_component(P)
+            [(w : 1), (w^2 - 29/16 : 1), (-w^2 - w + 25/16 : 1), (w^2 + w - 25/16 : 1),
+            (-w : 1), (-w^2 + 29/16 : 1), (-w - 1/2 : 1), (w + 1/2 : 1), (w^2 - 21/16 : 1),
+            (-w^2 + 21/16 : 1), (-w^2 - w + 33/16 : 1), (w^2 + w - 33/16 : 1)]
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(2,QQ)
+            sage: H = End(PS)
+            sage: f = H([x^2 - 21/16*z^2,y^2-2*z^2,z^2])
+            sage: P = PS([17/16,7/4,1])
+            sage: f.connected_rational_component(P,3)
+            [(17/16 : 7/4 : 1), (-47/256 : 17/16 : 1), (-83807/65536 : -223/256 : 1), (17/16 : -7/4 : 1),
+            (-17/16 : -7/4 : 1), (-17/16 : 7/4 : 1), (1386468673/4294967296 : -81343/65536 : 1),
+            (47/256 : -17/16 : 1), (47/256 : 17/16 : 1), (-47/256 : -17/16 : 1), (-1/2 : -1/2 : 1),
+            (-1/2 : 1/2 : 1), (1/2 : 1/2 : 1), (1/2 : -1/2 : 1)]
+        """
+        points = [[],[]] # list of points and a list of their corresponding levels
+        points[0].append(P)
+        points[1].append(0)
+
+        nextPoints = []
+        nextPoints.append(P)
+
+        level = 1
+        while True:
+            newPoints = []
+            for Q in nextPoints:
+                # forward image
+                newPoints.append(self(Q))
+                # preimages
+                newPoints.extend(self.rational_preimages(Q))
+            del nextPoints[:]
+            for Q in newPoints:
+                if (Q not in points[0]):
+                    points[0].append(Q)
+                    points[1].append(level)
+                    nextPoints.append(Q)
+            if ((level + 1 > n and n != 0) or len(nextPoints) == 0):
+                break
+            level = level + 1
+
+        return points[0]
+
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
 

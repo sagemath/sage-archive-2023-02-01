@@ -157,9 +157,11 @@ class OrdinaryGeneratingSeries(LazyPowerSeries):
 @cached_function
 def ExponentialGeneratingSeriesRing(R):
     """
-    Return the ring of exponential generating series. Note that this
-    is just a :class:`LazyPowerSeriesRing` whose elements have some
-    extra methods.
+    Return the ring of exponential generating series over ``R``.
+
+    Note that is is just a
+    :class:`LazyPowerSeriesRing` whose elements have
+    some extra methods.
 
     EXAMPLES::
 
@@ -297,16 +299,46 @@ factorial_stream = Stream(factorial_gen())
 
 @cached_function
 def CycleIndexSeriesRing(R):
-    """
-    Returns the ring of cycle index series. Note that is is just a
-    LazyPowerSeriesRing whose elements have some extra methods.
+    r"""
+    Return the ring of cycle index series over ``R``.
+
+    This is the ring of formal power series `\Lambda[X]`, where
+    `\Lambda` is the ring of symmetric functions over ``R`` in the
+    `p`-basis. Its purpose is to house the cycle index series of
+    species (in a somewhat nonstandard notation tailored to Sage):
+    If `F` is a species, then the *cycle index series* of `F` is
+    defined to be the formal power series
+
+    .. MATH::
+
+        \sum_{n \geq 0} \frac{1}{n!} (\sum_{\sigma \in S_n}
+        \operatorname{fix} F[\sigma]
+        \prod_{z \text{ is a cycle of } \sigma}
+        p_{\text{length of } z}) X^n
+        \in \Lambda_\QQ [X],
+
+    where `\operatorname{fix} F[\sigma]` denotes the number of
+    fixed points of the permutation `F[\sigma]` of `F[n]`. We
+    notice that this power series is "equigraded" (meaning that
+    its `X^n`-coefficient is homogeneous of degree `n`). A more
+    standard convention in combinatorics would be to use
+    `x_i` instead of `p_i`, and drop the `X` (that is, evaluate
+    the above power series at `X = 1`); but this would be more
+    difficult to implement in Sage, as it would be an element
+    of a power series ring in infinitely many variables.
+
+    Note that is is just a :class:`LazyPowerSeriesRing` (whose base
+    ring is `\Lambda`) whose elements have some extra methods.
+
+    The 
 
     EXAMPLES::
 
         sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
         sage: R = CycleIndexSeriesRing(QQ); R
         Cycle Index Series Ring over Symmetric Functions over Rational Field in the powersum basis
-        sage: R([1]).coefficients(4)
+        sage: R([1]).coefficients(4) # This is not combinatorially
+        ....:                        # meaningful.
         [1, 1, 1, 1]
 
     TESTS: We test to make sure that caching works.
@@ -354,7 +386,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(p)
+            sage: CIS = CycleIndexSeriesRing(QQ)
             sage: f = CIS([0, p([1]), 2*p([1,1]), 3*p([2,1])])
             sage: f.count([1])
             1
@@ -374,7 +406,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(p)
+            sage: CIS = CycleIndexSeriesRing(QQ)
             sage: f = CIS([0, p([1]), 2*p([1,1]),3*p([2,1])])
             sage: f.coefficient_cycle_type([1])
             1
@@ -409,7 +441,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(p)
+            sage: CIS = CycleIndexSeriesRing(QQ)
             sage: f = CIS([p([]), p([1]), p([2]), p.zero()])
             sage: f.stretch(3).coefficients(10)
             [p[], 0, 0, p[3], 0, 0, p[6], 0, 0, 0]
@@ -422,8 +454,9 @@ class CycleIndexSeries(LazyPowerSeries):
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(p)
-            sage: f = CIS([p([1])])
+            sage: CIS = CycleIndexSeriesRing(QQ)
+            sage: f = CIS([p([1])]) # This is the power series whose all coefficients
+            ....:                   # are p[1]. Not combinatorially meaningful!
             sage: g = f._stretch_gen(2,0)
             sage: [next(g) for i in range(10)]
             [p[2], 0, p[2], 0, p[2], 0, p[2], 0, p[2], 0]
@@ -564,7 +597,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         .. [BLL] F. Bergeron, G. Labelle, and P. Leroux.
            "Combinatorial species and tree-like structures".
-	       Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
+           Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
         .. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
            "Introduction to the Theory of Species of Structures", March 14, 2008.
            http://bergeron.math.uqam.ca/Site/bergeron_anglais_files/livre_combinatoire.pdf

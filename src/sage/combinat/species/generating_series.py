@@ -330,8 +330,6 @@ def CycleIndexSeriesRing(R):
     Note that is is just a :class:`LazyPowerSeriesRing` (whose base
     ring is `\Lambda`) whose elements have some extra methods.
 
-    The 
-
     EXAMPLES::
 
         sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing

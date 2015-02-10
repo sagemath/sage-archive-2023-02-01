@@ -1347,58 +1347,61 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             raise NotImplementedError
         K = FractionField(self.codomain().base_ring())
         #The primes of bad reduction are the support of the resultant for number fields
-        if K in NumberFields() and K != QQ:
-            F = copy(self)
-            F.normalize_coordinates()
-            return (K(F.resultant()).support())
+
+        if K in NumberFields():
+            if K != QQ:
+                F = copy(self)
+                F.normalize_coordinates()
+                return (K(F.resultant()).support())
+            else:
+                #For the rationals, we can use groebner basis, as it is quicker in practice
+                R = self.coordinate_ring()
+                F = self._polys
+
+                if R.base_ring().is_field():
+                    J = R.ideal(F)
+                else:
+                    S = PolynomialRing(R.base_ring().fraction_field(), R.gens(), R.ngens())
+                    J = S.ideal([S.coerce(F[i]) for i in range(R.ngens())])
+                if J.dimension() > 0:
+                    raise TypeError("Not a morphism.")
+                #normalize to coefficients in the ring not the fraction field.
+                F = [F[i] * lcm([F[j].denominator() for j in range(len(F))]) for i in range(len(F))]
+
+                #move the ideal to the ring of integers
+                if R.base_ring().is_field():
+                    S = PolynomialRing(R.base_ring().ring_of_integers(), R.gens(), R.ngens())
+                    F = [F[i].change_ring(R.base_ring().ring_of_integers()) for i in range(len(F))]
+                    J = S.ideal(F)
+                else:
+                    J = R.ideal(F)
+                GB = J.groebner_basis()
+                badprimes = []
+
+                #get the primes dividing the coefficients of the monomials x_i^k_i
+                for i in range(len(GB)):
+                    LT = GB[i].lt().degrees()
+                    power = 0
+                    for j in range(R.ngens()):
+                        if LT[j] != 0:
+                            power += 1
+                    if power == 1:
+                        badprimes = badprimes + GB[i].lt().coefficients()[0].support()
+                badprimes = sorted(set(badprimes))
+
+                #check to return only the truly bad primes
+                if check == True:
+                    index = 0
+                    while index < len(badprimes):  #figure out which primes are really bad primes...
+                        S = PolynomialRing(GF(badprimes[index]), R.gens(), R.ngens())
+                        J = S.ideal([S.coerce(F[j]) for j in range(R.ngens())])
+                        if J.dimension() == 0:
+                            badprimes.pop(index)
+                        else:
+                            index += 1
+                return(badprimes)
         else:
             raise TypeError("Base Ring must be number field or number field ring")
-        #For the rationals, we can use groebner basis, as it is quicker in practice
-        R = self.coordinate_ring()
-        F = self._polys
-
-        if R.base_ring().is_field():
-            J = R.ideal(F)
-        else:
-            S = PolynomialRing(R.base_ring().fraction_field(), R.gens(), R.ngens())
-            J = S.ideal([S.coerce(F[i]) for i in range(R.ngens())])
-        if J.dimension() > 0:
-            raise TypeError("Not a morphism.")
-        #normalize to coefficients in the ring not the fraction field.
-        F = [F[i] * lcm([F[j].denominator() for j in range(len(F))]) for i in range(len(F))]
-
-        #move the ideal to the ring of integers
-        if R.base_ring().is_field():
-            S = PolynomialRing(R.base_ring().ring_of_integers(), R.gens(), R.ngens())
-            F = [F[i].change_ring(R.base_ring().ring_of_integers()) for i in range(len(F))]
-            J = S.ideal(F)
-        else:
-            J = R.ideal(F)
-        GB = J.groebner_basis()
-        badprimes = []
-
-        #get the primes dividing the coefficients of the monomials x_i^k_i
-        for i in range(len(GB)):
-            LT = GB[i].lt().degrees()
-            power = 0
-            for j in range(R.ngens()):
-                if LT[j] != 0:
-                    power += 1
-            if power == 1:
-                badprimes = badprimes + GB[i].lt().coefficients()[0].support()
-        badprimes = sorted(set(badprimes))
-
-        #check to return only the truly bad primes
-        if check == True:
-            index = 0
-            while index < len(badprimes):  #figure out which primes are really bad primes...
-                S = PolynomialRing(GF(badprimes[index]), R.gens(), R.ngens())
-                J = S.ideal([S.coerce(F[j]) for j in range(R.ngens())])
-                if J.dimension() == 0:
-                    badprimes.pop(index)
-                else:
-                    index += 1
-        return(badprimes)
 
     def conjugate(self, M):
         r"""

@@ -1111,8 +1111,7 @@ class TransducerGenerators(object):
           rings. The output labels are converted into the first ring of
           the list in which they are contained. If they are not
           contained in any ring, they remain in whatever ring they are
-          after parsing the recursions, typically the symbolic ring or
-          Python ``int``.
+          after parsing the recursions, typically the symbolic ring.
 
         OUTPUT:
 

@@ -734,7 +734,8 @@ class TransducerGenerators(object):
                           with_final_word_out=[0])
 
     def Recursion(self, recursions, function, var, base,
-                  input_alphabet=None, output_rings=[ZZ, QQ]):
+                  input_alphabet=None, word_function=None,
+                  is_zero=None,  output_rings=[ZZ, QQ]):
         """
         Return a transducer realizing the given recursion when reading
         the digit expansion with base ``base``.
@@ -765,6 +766,20 @@ class TransducerGenerators(object):
           is an integer, ``input_alphabet`` is chosen to be
           ``range(base.abs())``.
 
+        - ``word_function`` -- (default: ``None``) a symbolic function.
+          If not ``None``, ``word_function(arg1, ..., argn)`` in a symbolic
+          recurrence relation is interpreted as a transition with output
+          ``[arg1, ..., argn]``. This could not be entered in a symbolic
+          recurrence relation because lists do not coerce into the
+          :class:`~sage.symbolic.ring.SymbolicRing`.
+
+        - ``is_zero`` -- (default: ``None``) a callable. The recursion
+          relations are only well-posed if there is no cycle with
+          non-zero output and input consisting of zeros. This parameter
+          is used to determine whether the output of such a cycle is
+          non-zero. By default, the output must evaluate to ``False`` as
+          a boolean.
+
         - ``output_rings`` -- (default: ``[ZZ, QQ]``) a list of
           rings. The output labels are coerced in the first ring of
           the list in which they are contained. If they are not
@@ -776,9 +791,11 @@ class TransducerGenerators(object):
 
         A transducer ``T``.
 
-        The transducer is constructed such that ``T(expansion) ==
-        f(n)`` if ``expansion`` is the digit expansion of ``n`` to the
-        base ``base`` with the given input alphabet as set of digits.
+        The transducer is constructed such that ``T(expansion) == f(n)``
+        if ``expansion`` is the digit expansion of ``n`` to the base
+        ``base`` with the given input alphabet as set of digits. Here,
+        the ``+`` on the right hand side of the recurrence relation is
+        interpreted as the concatenation of words.
 
         The formal equations and initial conditions in the recursion
         have to be selected such that ``f`` is uniquely defined.
@@ -797,18 +814,18 @@ class TransducerGenerators(object):
                 ....:     f(0) == 0],
                 ....:     f, n, 2)
                 sage: T.transitions()
-                [Transition from (0, 0) to (0, 0): 0|0,
+                [Transition from (0, 0) to (0, 0): 0|-,
                  Transition from (0, 0) to (0, 0): 1|1]
 
             As no ``output_rings`` have been specified, the output labels
             are coerced into ``ZZ``::
 
                 sage: for t in T.transitions():
-                ....:     print t.word_out[0].parent()
-                Integer Ring
-                Integer Ring
-                sage: T.states()[0].final_word_out[0].parent()
-                Integer Ring
+                ....:     print [x.parent() for x in t.word_out]
+                []
+                [Integer Ring]
+                sage: [x.parent() for x in T.states()[0].final_word_out]
+                []
 
             In contrast, if ``output_rings`` is set to the empty list, the
             results are not coerced::
@@ -818,14 +835,12 @@ class TransducerGenerators(object):
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
                 ....:     f, n, 2, output_rings=[])
-                sage: T.transitions()[0].word_out[0].parent()
-                Traceback (most recent call last):
-                ...
-                AttributeError: 'int' object has no attribute 'parent'
-                sage: T.transitions()[1].word_out[0].parent()
-                Symbolic Ring
-                sage: T.states()[0].final_word_out[0].parent()
-                Symbolic Ring
+                sage: for t in T.transitions():
+                ....:     print [x.parent() for x in t.word_out]
+                []
+                [Symbolic Ring]
+                sage: [x.parent() for x in T.states()[0].final_word_out]
+                []
 
             Finally, we use a somewhat questionable coercion::
 
@@ -835,9 +850,9 @@ class TransducerGenerators(object):
                 ....:     f(0) == 0],
                 ....:     f, n, 2, output_rings=[GF(5)])
                 sage: for t in T.transitions():
-                ....:     print t.word_out[0], t.word_out[0].parent()
-                0 Finite Field of size 5
-                1 Finite Field of size 5
+                ....:     print [x.parent() for x in t.word_out]
+                []
+                [Finite Field of size 5]
 
         -   The following example computes the Hamming weight of the
             non-adjacent form, cf. the :wikipedia:`Non-adjacent_form`. ::
@@ -853,17 +868,62 @@ class TransducerGenerators(object):
                 ....:     f(0) == 0],
                 ....:     f, n, 2)
                 sage: T.transitions()
-                [Transition from (0, 0) to (0, 0): 0|0,
-                 Transition from (0, 0) to (1, 1): 1|0,
+                [Transition from (0, 0) to (0, 0): 0|-,
+                 Transition from (0, 0) to (1, 1): 1|-,
                  Transition from (1, 1) to (0, 0): 0|1,
                  Transition from (1, 1) to (1, 0): 1|1,
-                 Transition from (1, 0) to (1, 1): 0|0,
-                 Transition from (1, 0) to (1, 0): 1|0]
+                 Transition from (1, 0) to (1, 1): 0|-,
+                 Transition from (1, 0) to (1, 0): 1|-]
                 sage: [(s.label(), s.final_word_out)
                 ....:  for s in T.iter_final_states()]
-                [((0, 0), [0]),
+                [((0, 0), []),
                  ((1, 1), [1]),
                  ((1, 0), [1])]
+
+        -   The following example computes the non-adjacent form from the
+            binary expansion, cf. the :wikipedia:`Non-adjacent_form`. In
+            contrast to the previous example, we actually compute the
+            expansion, not only the weight.
+
+            We have to write the output `0` when converting an even number.
+            This cannot be encoded directly by an equation in the symbolic
+            ring, because ``f(2*n) == f(n) + 0`` would be equivalent to
+            ``f(2*n) == f(n)`` and an empty output would be written.
+            Therefore, we wrap the output in the symbolic function ``w``
+            and use the parameter ``word_function`` to announce that.
+
+            Similarly, we use ``w(-1, 0)`` to write an output word of
+            length `2` in one interation. Finally, we write ``f(0) == w()``
+            to write an empty word upon completion.
+
+            Moreover, there is a cycle with output ``[0]`` which---from
+            the point of view of this method---is a contradicting recursion.
+            We override this by the parameter ``is_zero``. ::
+
+                sage: var('n')
+                n
+                sage: function('f w')
+                (f, w)
+                sage: T = transducers.Recursion([
+                ....:      f(2*n) == f(n) + w(0),
+                ....:      f(4*n + 1) == f(n) + w(1, 0),
+                ....:      f(4*n + 3) == f(n+1) + w(-1, 0),
+                ....:      f(0) == w()],
+                ....:      f, n, 2,
+                ....:      word_function=w,
+                ....:      is_zero=lambda x: sum(x).is_zero())
+                sage: T.transitions()
+                [Transition from (0, 0) to (0, 0): 0|0,
+                 Transition from (0, 0) to (1, 1): 1|-,
+                 Transition from (1, 1) to (0, 0): 0|1,0,
+                 Transition from (1, 1) to (1, 0): 1|-1,0,
+                 Transition from (1, 0) to (1, 1): 0|-,
+                 Transition from (1, 0) to (1, 0): 1|0]
+                sage: for s in T.iter_states():
+                ....:     print s, s.final_word_out
+                (0, 0) []
+                (1, 1) [1, 0]
+                (1, 0) [1, 0]
 
         -   Here is an artificial example where some of the `s` are
             negative::
@@ -878,19 +938,19 @@ class TransducerGenerators(object):
                 ....:     f(1) == 1,
                 ....:     f(0) == 0], f, n, 2)
                 sage: T.transitions()
-                [Transition from (0, 0) to (0, 0): 0|0,
-                 Transition from (0, 0) to (1, 1): 1|0,
+                [Transition from (0, 0) to (0, 0): 0|-,
+                 Transition from (0, 0) to (1, 1): 1|-,
                  Transition from (1, 1) to (-1, 1): 0|1,
                  Transition from (1, 1) to (0, 0): 1|1,
-                 Transition from (-1, 1) to (-1, 2): 0|0,
-                 Transition from (-1, 1) to (1, 2): 1|0,
+                 Transition from (-1, 1) to (-1, 2): 0|-,
+                 Transition from (-1, 1) to (1, 2): 1|-,
                  Transition from (-1, 2) to (-1, 1): 0|1,
                  Transition from (-1, 2) to (0, 0): 1|1,
                  Transition from (1, 2) to (-1, 2): 0|1,
                  Transition from (1, 2) to (1, 2): 1|1]
                 sage: [(s.label(), s.final_word_out)
                 ....:  for s in T.iter_final_states()]
-                [((0, 0), [0]),
+                [((0, 0), []),
                  ((1, 1), [1]),
                  ((-1, 1), [0]),
                  ((-1, 2), [0]),
@@ -910,17 +970,17 @@ class TransducerGenerators(object):
                 ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
                 ....:     f, n, 2)
                 sage: T.transitions()
-                [Transition from (0, 0) to (0, 1): 0|0,
-                 Transition from (0, 0) to (1, 1): 1|0,
-                 Transition from (0, 1) to (0, 1): 0|0,
+                [Transition from (0, 0) to (0, 1): 0|-,
+                 Transition from (0, 0) to (1, 1): 1|-,
+                 Transition from (0, 1) to (0, 1): 0|-,
                  Transition from (0, 1) to (1, 1): 1|1,
-                 Transition from (1, 1) to (1, 2): 0|0,
-                 Transition from (1, 1) to (3, 2): 1|0,
-                 Transition from (1, 2) to (1, 3): 0|0,
-                 Transition from (1, 2) to (5, 3): 1|0,
-                 Transition from (3, 2) to (3, 3): 0|0,
-                 Transition from (3, 2) to (7, 3): 1|0,
-                 Transition from (1, 3) to (1, 3): 0|0,
+                 Transition from (1, 1) to (1, 2): 0|-,
+                 Transition from (1, 1) to (3, 2): 1|-,
+                 Transition from (1, 2) to (1, 3): 0|-,
+                 Transition from (1, 2) to (5, 3): 1|-,
+                 Transition from (3, 2) to (3, 3): 0|-,
+                 Transition from (3, 2) to (7, 3): 1|-,
+                 Transition from (1, 3) to (1, 3): 0|-,
                  Transition from (1, 3) to (1, 1): 1|2,
                  Transition from (5, 3) to (1, 2): 0|2,
                  Transition from (5, 3) to (1, 1): 1|2,
@@ -929,19 +989,19 @@ class TransducerGenerators(object):
                  Transition from (7, 3) to (1, 1): 0|2,
                  Transition from (7, 3) to (2, 1): 1|1,
                  Transition from (2, 1) to (1, 1): 0|1,
-                 Transition from (2, 1) to (2, 1): 1|0]
+                 Transition from (2, 1) to (2, 1): 1|-]
                 sage: for s in T.iter_states():
                 ....:     print s, s.final_word_out
-                (0, 0) [0]
-                (0, 1) [0]
+                (0, 0) []
+                (0, 1) []
                 (1, 1) [2]
                 (1, 2) [2]
-                (3, 2) [4]
+                (3, 2) [2, 2]
                 (1, 3) [2]
-                (5, 3) [4]
-                (3, 3) [4]
-                (7, 3) [4]
-                (2, 1) [3]
+                (5, 3) [2, 2]
+                (3, 3) [2, 2]
+                (7, 3) [2, 2]
+                (2, 1) [1, 2]
                 sage: list(sum(T(n.bits())) for n in srange(1, 21))
                 [2, 3, 4, 3, 4, 5, 4, 3, 4, 5, 6, 5, 4, 5, 4, 3, 4, 5, 6, 5]
 
@@ -953,10 +1013,7 @@ class TransducerGenerators(object):
 
             - non-positive residues, e.g. allow ``f(4*n - 1) == f(n) - 1``,
 
-            - higher dimensions,
-
-            - output words of length `> 1`---currently, some
-              work-around with a symbolic function would somehow work.
+            - higher dimensions.
 
         ALGORITHM:
 
@@ -1177,6 +1234,8 @@ class TransducerGenerators(object):
         from sage.functions.log import log
         from sage.graphs.digraph import DiGraph
 
+        if is_zero is None:
+            is_zero = lambda x: not x
         Rule = collections.namedtuple('Rule', ['K', 'r', 'k', 's', 't'])
         RuleRight = collections.namedtuple('Rule', ['k', 's', 't'])
         initial_values = {}
@@ -1193,6 +1252,14 @@ class TransducerGenerators(object):
                 if output in ring:
                     return ring(output)
             return(output)
+
+        def to_list(output):
+            if output == 0:
+                return []
+            elif word_function is not None and output.operator() == word_function:
+                return list(map(coerce_output, output.operands()))
+            else:
+                return [coerce_output(output)]
 
         def parse_equation(equation):
             if equation.operator() != operator.eq:
@@ -1215,7 +1282,7 @@ class TransducerGenerators(object):
                 raise ValueError("Could not convert %s to a polynomial "
                                  "in %s." % (left_side.operands()[0], var))
             if polynomial_left in base_ring and is_scalar(right_side):
-                initial_values[polynomial_left] = coerce_output(right_side)
+                initial_values[polynomial_left] = to_list(right_side)
                 return
 
             if polynomial_left.degree() != 1:
@@ -1293,7 +1360,7 @@ class TransducerGenerators(object):
             assert equation == parsed_equation, \
                 "Parsing of %s failed for unknown reasons." % (equation,)
 
-            rule = Rule(K=K,r=r, k=k, s=s, t=coerce_output(t))
+            rule = Rule(K=K,r=r, k=k, s=s, t=to_list(t))
             rules.append(rule)
 
         for equation in recursions:
@@ -1305,7 +1372,7 @@ class TransducerGenerators(object):
                     for k in range(max_K + 1)]
 
         # Aim: residues[K][R] = RuleRight(k, s, t)
-        # if and only if 
+        # if and only if
         # f(base^K n + R) = f(base^k n + s) + t
 
         for rule in rules:
@@ -1388,7 +1455,7 @@ class TransducerGenerators(object):
             A tuple ``((new_carry, new_level), output)``.
             """
             (c, j) = (carry, level)
-            output = coerce_output(0)
+            output = []
             while True:
                 transition = recursion_transition(
                     c, j, force_nonnegative_target)
@@ -1450,7 +1517,8 @@ class TransducerGenerators(object):
         recursion_digraph = DiGraph(
             {carry: dict(edge_recursion_digraph(carry))
              for carry in carries
-             if carry >= 0})
+             if carry >= 0},
+            multiedges=False)
 
         initial_values_set = set(initial_values.iterkeys())
 
@@ -1475,10 +1543,12 @@ class TransducerGenerators(object):
                     "Too many initial conditions, only give one of %s." %
                     cycle[1:])
             required_initial_values.update(intersection)
-            output_sum = sum(edge[2]
-                             for edge in recursion_digraph.\
-                                 outgoing_edge_iterator(cycle[1:]))
-            if output_sum:
+            output_sum = reduce(operator.add,
+                                [edge[2]
+                                 for edge in recursion_digraph.\
+                                     outgoing_edge_iterator(cycle[1:])],
+                                [])
+            if not is_zero(output_sum):
                 raise ValueError(
                     "Conflicting recursion for %s." %
                     cycle[1:])

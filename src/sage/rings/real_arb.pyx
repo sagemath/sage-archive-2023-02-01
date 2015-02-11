@@ -1,5 +1,5 @@
 r"""
-Arbitrary Precision Real Intervals using Arb
+Arbitrary precision real intervals using Arb
 
 AUTHORS:
 
@@ -35,7 +35,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long precision):
     """
-    Convert an ``mpfi`` to an ``arb``.
+    Convert an MPFI interval to an Arb ball.
 
     INPUT:
 
@@ -44,10 +44,6 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long pre
     - ``source`` -- an ``mpfi_t``.
 
     - ``precision`` -- an integer `\ge 2`.
-
-    OUTPUT:
-
-    None.
     """
     cdef mpfr_t left
     cdef mpfr_t right
@@ -68,7 +64,7 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long pre
 
 cdef void arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision):
     """
-    Convert an ``arb`` to an ``mpfi``.
+    Convert an Arb ball to an MPFI interval.
 
     INPUT:
 
@@ -97,7 +93,8 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision
 
 class RealBallField(UniqueRepresentation, Parent):
     r"""
-    The field of real balls.
+    An approximation of the field of real numbers using mid-rad intervals, also
+    known as balls.
 
     INPUT:
 
@@ -160,10 +157,6 @@ class RealBallField(UniqueRepresentation, Parent):
         r"""
         String representation of ``self``.
 
-        INPUT:
-
-        None.
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
@@ -176,8 +169,6 @@ class RealBallField(UniqueRepresentation, Parent):
 
     def _coerce_map_from_(self, S):
         r"""
-        Return a coercion map from `S` to ``self``, or ``True``, or ``None.``
-
         Currently, there is no coercion.
 
         EXAMPLES::
@@ -213,14 +204,6 @@ cdef class RealBall(Element):
     Hold one ``arb_t`` of the `Arb library
     <http://fredrikj.net/arb/>`_
 
-    INPUT:
-
-    None.
-
-    OUTPUT:
-
-    None.
-
     EXAMPLES::
 
         sage: from sage.rings.real_arb import RealBallField # optional - arb
@@ -236,14 +219,6 @@ cdef class RealBall(Element):
         """
         Allocate memory for the encapsulated value.
 
-        INPUT:
-
-        None.
-
-        OUTPUT:
-
-        None.
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
@@ -255,14 +230,6 @@ cdef class RealBall(Element):
     def __dealloc__(self):
         """
         Deallocate memory of the encapsulated value.
-
-        INPUT:
-
-        None.
-
-        OUTPUT:
-
-        None.
 
         EXAMPLES::
 
@@ -282,11 +249,6 @@ cdef class RealBall(Element):
 
         - ``x`` -- (default: ``None``) ``None`` or a
           :class:`RealIntervalFieldElement`.
-
-
-        OUTPUT:
-
-        None.
 
         EXAMPLES::
 
@@ -318,7 +280,7 @@ cdef class RealBall(Element):
 
     cdef RealBall _new(self):
         """
-        Return a new real ball element with parent ``self``.
+        Return a new real ball element with the same parent as ``self``.
         """
         cdef RealBall x
         x = PY_NEW(RealBall)
@@ -328,10 +290,6 @@ cdef class RealBall(Element):
     def _repr_(self):
         """
         Return a string representation of ``self``.
-
-        INPUT:
-
-        Nothing.
 
         OUTPUT:
 
@@ -360,10 +318,6 @@ cdef class RealBall(Element):
         """
         Return :class:`RealIntervalFieldElement` of the same value.
 
-        INPUT:
-
-        None.
-
         OUTPUT:
 
         A :class:`RealIntervalFieldElement`.
@@ -389,10 +343,6 @@ cdef class RealBall(Element):
         """
         Compute the digamma function with argument self.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
         An :class:`RealBall`.
@@ -412,3 +362,4 @@ cdef class RealBall(Element):
         arb_digamma(result.value, self.value,
                     self._parent.precision)
         return result
+

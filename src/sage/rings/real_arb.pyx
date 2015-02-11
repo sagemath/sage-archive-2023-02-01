@@ -29,10 +29,9 @@ from sage.libs.arb.mag cimport mag_t, mag_get_fmpr
 from sage.libs.flint.flint cimport flint_free
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
 from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, GMP_RNDN
-from sage.misc.cachefunc import weak_cached_function
 from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
-
+from sage.structure.unique_representation import UniqueRepresentation
 
 cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long precision):
     """
@@ -96,35 +95,13 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision
     mpfr_clear(right)
 
 
-@weak_cached_function
-def RealBallField(unsigned long precision=53):
-    r"""
-    Return the :class:`real ball field <RealBallField_class>`
-    with the given precision.
-
-    INPUT:
-
-    - ``precision`` -- an integer `\ge 2`.
-
-    EXAMPLES::
-
-        sage: from sage.rings.real_arb import RealBallField # optional - arb
-        sage: RBF = RealBallField() # optional - arb
-        sage: RealBallField() is RBF # optional - arb
-        True
-    """
-    return RealBallField_class(precision)
-
-cdef class RealBallField_class(Parent):
+class RealBallField(UniqueRepresentation, Parent):
     r"""
     The field of real balls.
 
     INPUT:
 
     - ``precision`` -- an integer `\ge 2`.
-
-    Do not construct this class directly, but use
-    :func:`RealBallField` instead.
 
     EXAMPLES::
 
@@ -143,15 +120,23 @@ cdef class RealBallField_class(Parent):
         Traceback (most recent call last):
         ...
         ValueError: Precision must be at least 2.
-        sage: from sage.rings.real_arb import RealBallField_class # optional - arb
-        sage: R1 = RealBallField_class(53) # optional - arb
-        sage: R2 = RealBallField_class(53) # optional - arb
-        sage: R1 is R2 # optional - arb
-        False
     """
     Element = RealBall
 
-    def __init__(self, unsigned long precision=53):
+    @staticmethod
+    def __classcall__(cls, unsigned long precision=53):
+        r"""
+        Normalize the arguments for caching.
+
+        TESTS::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField(53) is RealBallField() # optional - arb
+            True
+        """
+        return super(RealBallField, cls).__classcall__(cls, precision)
+
+    def __init__(self, precision):
         r"""
         Initialize the real ball field.
 
@@ -168,7 +153,7 @@ cdef class RealBallField_class(Parent):
         """
         if precision < 2:
             raise ValueError("Precision must be at least 2.")
-        super(RealBallField_class, self).__init__(categories=[sage.categories.sets_cat.Sets])
+        super(RealBallField, self).__init__(categories=[sage.categories.sets_cat.Sets])
         self.precision = precision
 
     def _repr_(self):
@@ -189,7 +174,7 @@ cdef class RealBallField_class(Parent):
         """
         return "Real ball field with %d bits precision" % self.precision
 
-    cpdef _coerce_map_from_(self, S):
+    def _coerce_map_from_(self, S):
         r"""
         Return a coercion map from `S` to ``self``, or ``True``, or ``None.``
 
@@ -287,7 +272,7 @@ cdef class RealBall(Element):
         """
         arb_clear(self.value)
 
-    def __init__(self, RealBallField_class parent, x=None):
+    def __init__(self, parent, x=None):
         """
         Initialize the :class:`RealBall` using ``x``.
 
@@ -322,15 +307,14 @@ cdef class RealBall(Element):
 
         if not isinstance(x, RealIntervalFieldElement):
             try:
-                x = RealIntervalField(
-                    (<RealBallField_class> self._parent).precision)(x)
+                x = RealIntervalField(self._parent.precision)(x)
             except TypeError:
                 raise TypeError("x must be None or a "
                             "RealIntervalFieldElement.")
 
         mpfi_to_arb(self.value,
                     (<RealIntervalFieldElement> x).value,
-                    (<RealBallField_class> self._parent).precision)
+                    self._parent.precision)
 
     cdef RealBall _new(self):
         """
@@ -363,7 +347,7 @@ cdef class RealBall(Element):
         cdef bytes py_string
 
         c_result = arb_get_str(self.value,
-                               ((<RealBallField_class> self._parent).precision * 31) // 100,
+                               (self._parent.precision * 31) // 100,
                                0)
         try:
             py_string = c_result
@@ -394,10 +378,10 @@ cdef class RealBall(Element):
 
         cdef RealIntervalFieldElement result
 
-        result = RealIntervalField((<RealBallField_class> self._parent).precision)(0)
+        result = RealIntervalField(self._parent.precision)(0)
         arb_to_mpfi(result.value,
                     self.value,
-                    (<RealBallField_class> self._parent).precision)
+                    self._parent.precision)
 
         return result
 
@@ -426,5 +410,5 @@ cdef class RealBall(Element):
         result = self._new()
 
         arb_digamma(result.value, self.value,
-                    (<RealBallField_class> self._parent).precision)
+                    self._parent.precision)
         return result

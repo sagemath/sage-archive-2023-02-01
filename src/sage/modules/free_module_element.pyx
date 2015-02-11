@@ -892,6 +892,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         Converts self to a numpy array.
 
+        INPUT:
+
+        - ``dtype`` -- the `numpy dtype <http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_
+                       of the returned array
+
         EXAMPLES::
 
             sage: v = vector([1,2,3])

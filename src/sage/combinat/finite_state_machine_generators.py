@@ -1063,7 +1063,7 @@ class TransducerGenerators(object):
     def Recursion(self, recursions, function, var, base,
                   input_alphabet=None, word_function=None,
                   is_zero=None,  output_rings=[ZZ, QQ]):
-        """
+        r"""
         Return a transducer realizing the given recursion when reading
         the digit expansion with base ``base``.
 
@@ -1188,6 +1188,30 @@ class TransducerGenerators(object):
                  ((1, 1), [1]),
                  ((1, 0), [1])]
 
+            As we are interested in the weight only, we also output `1`
+            for numbers congruent to `3` mod `4`. The actual expansion
+            is computed in the next example.
+
+            Consider the example of `29=(100\bar 101)_2` (as usual,
+            the digit `-1` is denoted by `\bar 1` and digits are
+            written from the most significant digit at the left to the
+            least significant digit at the right; for the transducer,
+            we have to give the digits in the reverse order)::
+
+                sage: NAF = [1, 0, -1, 0, 0, 1]
+                sage: ZZ(NAF, base=2)
+                29
+                sage: binary_expansion = 29.digits(base=2)
+                sage: binary_expansion
+                [1, 0, 1, 1, 1]
+                sage: T(binary_expansion)
+                [1, 1, 1]
+                sage: sum(T(binary_expansion))
+                3
+
+            Indeed, the given non-adjacent form has three non-zero
+            digits.
+
         -   The following example computes the non-adjacent form from the
             binary expansion, cf. the :wikipedia:`Non-adjacent_form`. In
             contrast to the previous example, we actually compute the
@@ -1232,6 +1256,11 @@ class TransducerGenerators(object):
                 (0, 0) []
                 (1, 1) [1, 0]
                 (1, 0) [1, 0]
+
+            We again consider the example of `n=29`::
+
+                sage: T(29.digits(base=2))
+                [1, 0, -1, 0, 0, 1, 0]
 
         -   Here is an artificial example where some of the `s` are
             negative::

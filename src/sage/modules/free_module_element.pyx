@@ -2565,7 +2565,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def curl(self, variables=None):
         """
-        Return the curl of this three-dimensional vector function.
+        Return the curl of this two-dimensional or three-dimensional
+        vector function.
 
         EXAMPLES::
 
@@ -2595,18 +2596,34 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v(x, y, z) = (-y, x, 0)
             sage: v.curl()
             (x, y, z) |--> (0, 0, 2)
+
+        In two-dimensions, this returns a scalar value::
+
+            sage: R.<x,y> = QQ[]
+            sage: vector([-y, x]).curl()
+            2
         """
-        if len(self) != 3:
-            raise TypeError("curl only defined for 3 dimensions")
-        if variables is None:
-            variables = self._variables()
-        if len(variables) != 3:
-            raise ValueError("exactly 3 variables must be provided")
-        x, y, z = variables
-        Fx, Fy, Fz = self
-        return self.parent([Fz.derivative(y) - Fy.derivative(z),
-                            Fx.derivative(z) - Fz.derivative(x),
-                            Fy.derivative(x) - Fx.derivative(y)])
+        if len(self) == 3:
+            if variables is None:
+                variables = self._variables()
+            if len(variables) != 3:
+                raise ValueError("exactly 3 variables must be provided")
+            x, y, z = variables
+            Fx, Fy, Fz = self
+            return self.parent([Fz.derivative(y) - Fy.derivative(z),
+                                Fx.derivative(z) - Fz.derivative(x),
+                                Fy.derivative(x) - Fx.derivative(y)])
+
+        if len(self) == 2:
+            if variables is None:
+                variables = self._variables()
+            if len(variables) != 2:
+                raise ValueError("exactly 2 variables must be provided")
+            x, y = variables
+            Fx, Fy = self
+            return Fy.derivative(x) - Fx.derivative(y)
+
+        raise TypeError("curl only defined for 2 or 3 dimensions")
 
     def element(self):
         """

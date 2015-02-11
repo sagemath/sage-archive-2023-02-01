@@ -165,7 +165,7 @@ class RealBallField(UniqueRepresentation, Parent):
             sage: RealBallField(106) # optional - arb
             Real ball field with 106 bits precision
         """
-        return "Real ball field with %d bits precision" % self.precision
+        return "Real ball field with {} bits precision".format(self.precision)
 
     def _coerce_map_from_(self, S):
         r"""
@@ -283,7 +283,7 @@ cdef class RealBall(Element):
         Return a new real ball element with the same parent as ``self``.
         """
         cdef RealBall x
-        x = PY_NEW(RealBall)
+        x = RealBall.__new__(RealBall)
         x._parent = self._parent
         return x
 

@@ -736,7 +736,7 @@ class TransducerGenerators(object):
     RecursionRule = collections.namedtuple('RecursionRule',
                                            ['K', 'r', 'k', 's', 't'])
 
-    def _parse_recursion_equation_(self, equation, function, var, base,
+    def _parse_recursion_equation_(self, equation, base, function, var,
                                    word_function=None, output_rings=[ZZ, QQ]):
         """
         Parse one equation as admissible in :meth:`~.Recursion`.
@@ -754,11 +754,11 @@ class TransducerGenerators(object):
 
           - ``f(r) == t`` for some integer ``r`` and some ``t``.
 
+        - ``base`` -- see :meth:`~Recursion`.
+
         - ``function`` -- see :meth:`~Recursion`.
 
         - ``var`` -- see :meth:`~Recursion`.
-
-        - ``base`` -- see :meth:`~Recursion`.
 
         - ``output_rings`` -- see :meth:`~Recursion`.
 
@@ -775,18 +775,18 @@ class TransducerGenerators(object):
             f
             sage: transducers._parse_recursion_equation_(
             ....:     f(8*n + 7) == f(2*n + 3) + 5,
-            ....:     f, n, 2)
+            ....:     2, f, n)
             RecursionRule(K=3, r=7, k=1, s=3, t=[5])
             sage: transducers._parse_recursion_equation_(
             ....:     f(42) == 5,
-            ....:     f, n, 2)
+            ....:     2, f, n)
             {42: [5]}
 
         TESTS:
 
             The following tests check that the equations are well-formed::
 
-                sage: transducers._parse_recursion_equation_(f(4*n + 1), f, n, 2)
+                sage: transducers._parse_recursion_equation_(f(4*n + 1), 2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: f(4*n + 1) is not an equation with ==.
@@ -794,7 +794,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(n) + 1 == f(2*n),
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: f(n) + 1 is not an evaluation of f.
@@ -802,7 +802,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n, 5) == 3,
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: f(2*n, 5) does not have one argument.
@@ -810,7 +810,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(1/n) == f(n) + 3,
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ....:
                 ValueError: Could not convert 1/n to a polynomial in n.
@@ -818,7 +818,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(n^2 + 5) == 3,
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: n^2 + 5 is not a polynomial of degree 1.
@@ -826,7 +826,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(3*n + 5) == f(n) + 7,
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 3 is not a power of 2.
@@ -834,7 +834,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(n + 5) == f(n) + 7,
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1 is less than 2.
@@ -842,7 +842,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n + 5) == f(n) + 7,
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 0 <= 5 < 2 does not hold.
@@ -851,7 +851,7 @@ class TransducerGenerators(object):
 
                 sage: transducers._parse_recursion_equation_(
                 ....:     f(2*n + 1) == f(n + 1) + f(n) + 2,
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: f(n + 1) + f(n) + 2 does not contain
@@ -860,7 +860,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n + 1) == sin(n) + 2,
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: sin(n) + 2 does not contain exactly one
@@ -869,7 +869,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n + 1) == f(n) + n + 2,
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: n + 2 contains n.
@@ -877,7 +877,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n + 1) == sin(n),
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: sin(n) is not an evaluation of f.
@@ -885,7 +885,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n + 1) == f(n, 2),
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: f(n, 2) does not have exactly one argument.
@@ -893,7 +893,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n + 1) == f(1/n),
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1/n is not a polynomial in n.
@@ -901,7 +901,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n + 1) == f(n^2 + 5),
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: n^2 + 5 is not a polynomial of degree 1.
@@ -909,7 +909,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n + 1) == f(n^2 + 5),
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: n^2 + 5 is not a polynomial of degree 1.
@@ -917,7 +917,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n + 1) == f(3*n + 5),
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 3 is not a power of 2.
@@ -925,7 +925,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n + 1) == f((1/2)*n + 5),
-                ....:     f, n, QQ(2))
+                ....:     QQ(2), f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 1/2 is less than 1.
@@ -933,7 +933,7 @@ class TransducerGenerators(object):
             ::
 
                 sage: transducers._parse_recursion_equation_(f(2*n + 1) == f(2*n + 5),
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: 2 is greater or equal than 2.
@@ -1060,7 +1060,7 @@ class TransducerGenerators(object):
         return rule
 
 
-    def Recursion(self, recursions, function, var, base,
+    def Recursion(self, recursions, base, function=None, var=None,
                   input_alphabet=None, word_function=None,
                   is_zero=None,  output_rings=[ZZ, QQ]):
         r"""
@@ -1081,12 +1081,17 @@ class TransducerGenerators(object):
 
           - ``f(r) == t`` for some integer ``r`` and some ``t``.
 
+          Alternatively, an equation may be replaced by a
+          ``transducers.RecursionRule`` with the attributes ``K``,
+          ``r``, ``k``, ``s``, ``t`` as above or a tuple ``(r, t)``.
+          Note that ``t`` *must* be a list in this case.
+
+        - ``base`` -- base of the digit expansion.
+
         - ``function`` -- symbolic function ``f`` occuring in the
           recursions.
 
         - ``var`` -- symbolic variable.
-
-        - ``base`` -- base of the digit expansion.
 
         - ``input_alphabet`` -- (default: ``None``) a list of digits
           to be used as the input alphabet. If ``None`` and the base
@@ -1140,7 +1145,7 @@ class TransducerGenerators(object):
                 ....:     f(3*n + 2) == f(n) + 1,
                 ....:     f(3*n) == f(n),
                 ....:     f(0) == 0],
-                ....:     f, n, 3)
+                ....:     3, f, n)
                 sage: T.transitions()
                 [Transition from (0, 0) to (0, 0): 0|-,
                  Transition from (0, 0) to (0, 0): 1|1,
@@ -1174,7 +1179,7 @@ class TransducerGenerators(object):
                 ....:     f(4*n + 3) == f(n + 1) + 1,
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 sage: T.transitions()
                 [Transition from (0, 0) to (0, 0): 0|-,
                  Transition from (0, 0) to (1, 1): 1|-,
@@ -1241,7 +1246,7 @@ class TransducerGenerators(object):
                 ....:      f(4*n + 1) == f(n) + w(1, 0),
                 ....:      f(4*n + 3) == f(n+1) + w(-1, 0),
                 ....:      f(0) == w()],
-                ....:      f, n, 2,
+                ....:      2, f, n,
                 ....:      word_function=w,
                 ....:      is_zero=lambda x: sum(x).is_zero())
                 sage: T.transitions()
@@ -1262,6 +1267,20 @@ class TransducerGenerators(object):
                 sage: T(29.digits(base=2))
                 [1, 0, -1, 0, 0, 1, 0]
 
+            The same transducer can also be entered bypassing the
+            symbolic equations::
+
+                sage: R = transducers.RecursionRule
+                sage: TR = transducers.Recursion([
+                ....:       R(K=1, r=0, k=0, s=0, t=[0]),
+                ....:       R(K=2, r=1, k=0, s=0, t=[1, 0]),
+                ....:       R(K=2, r=3, k=0, s=1, t=[-1, 0]),
+                ....:       (0, [])],
+                ....:       2,
+                ....:       is_zero=lambda x: sum(x).is_zero())
+                sage: TR == T
+                True
+
         -   Here is an artificial example where some of the `s` are
             negative::
 
@@ -1273,7 +1292,7 @@ class TransducerGenerators(object):
                 ....:     f(2*n + 1) == f(n-1) + 1,
                 ....:     f(2*n) == f(n),
                 ....:     f(1) == 1,
-                ....:     f(0) == 0], f, n, 2)
+                ....:     f(0) == 0], 2, f, n)
                 sage: T.transitions()
                 [Transition from (0, 0) to (0, 0): 0|-,
                  Transition from (0, 0) to (1, 1): 1|-,
@@ -1305,7 +1324,7 @@ class TransducerGenerators(object):
                 ....:     f(16*n+15) == f(2*n+2)+1,
                 ....:     f(1) == 2, f(0) == 0]
                 ....:     + [f(16*n+jj) == f(2*n+1)+2 for jj in [3,7,9,13]],
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 sage: T.transitions()
                 [Transition from (0, 0) to (0, 1): 0|-,
                  Transition from (0, 0) to (1, 1): 1|-,
@@ -1354,7 +1373,7 @@ class TransducerGenerators(object):
                 ....:     f(2*n + 1) == f(n) + 1,
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 2],
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 sage: for t in T.transitions():
                 ....:     print [x.parent() for x in t.word_out]
                 []
@@ -1369,7 +1388,7 @@ class TransducerGenerators(object):
                 ....:     f(2*n + 1) == f(n) + 1,
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 2],
-                ....:     f, n, 2, output_rings=[])
+                ....:     2, f, n, output_rings=[])
                 sage: for t in T.transitions():
                 ....:     print [x.parent() for x in t.word_out]
                 []
@@ -1383,7 +1402,7 @@ class TransducerGenerators(object):
                 ....:     f(2*n + 1) == f(n) + 1,
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
-                ....:     f, n, 2, output_rings=[GF(5)])
+                ....:     2, f, n, output_rings=[GF(5)])
                 sage: for t in T.transitions():
                 ....:     print [x.parent() for x in t.word_out]
                 []
@@ -1418,7 +1437,7 @@ class TransducerGenerators(object):
                 sage: function('f')
                 f
                 sage: transducers.Recursion([f(2*n) == f(n)],
-                ....:     f, n, 2)
+                ....:     2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: Missing recursions for input congruent to
@@ -1429,7 +1448,7 @@ class TransducerGenerators(object):
                 sage: transducers.Recursion([f(2*n + 1) == f(n),
                 ....:                        f(4*n) == f(2*n) + 1,
                 ....:                        f(2*n) == f(n) +1],
-                ....:                       f, n, 2)
+                ....:                       2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: Conflicting rules congruent to 0 modulo 4.
@@ -1439,7 +1458,7 @@ class TransducerGenerators(object):
                 sage: transducers.Recursion([f(2*n + 1) == f(n) + 1,
                 ....:                        f(2*n) == f(n),
                 ....:                        f(0) == 0,
-                ....:                        f(42) == 42], f, n, 2)
+                ....:                        f(42) == 42], 2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: Superfluous initial values for [42].
@@ -1448,7 +1467,7 @@ class TransducerGenerators(object):
 
                 sage: transducers.Recursion([f(2*n + 1) == f(n) + 1,
                 ....:                        f(2*n) == f(n - 2) + 4,
-                ....:                        f(0) == 0], f, n, 2)
+                ....:                        f(0) == 0], 2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: Missing initial values for [2].
@@ -1460,7 +1479,7 @@ class TransducerGenerators(object):
                 ....:     f(2*n + 1) == f(n - 1),
                 ....:     f(2*n) == f(n) + 1,
                 ....:     f(1) == 1,
-                ....:     f(0) == 0], f, n, 2)
+                ....:     f(0) == 0], 2, f, n)
                 Traceback (most recent call last):
                 ...
                 ValueError: Conflicting recursion for [0].
@@ -1478,14 +1497,19 @@ class TransducerGenerators(object):
 
 
         for equation in recursions:
-            parsed = self._parse_recursion_equation_(
-                equation, function, var, base, word_function, output_rings)
-            if isinstance(parsed, dict):
-                initial_values.update(parsed)
-            elif isinstance(parsed, self.RecursionRule):
-                rules.append(parsed)
+            if isinstance(equation, self.RecursionRule):
+                rules.append(equation)
+            elif isinstance(equation, tuple) and len(equation) == 2:
+                initial_values[equation[0]] = equation[1]
             else:
-                assert False
+                parsed = self._parse_recursion_equation_(
+                    equation, base, function, var, word_function, output_rings)
+                if isinstance(parsed, dict):
+                    initial_values.update(parsed)
+                elif isinstance(parsed, self.RecursionRule):
+                    rules.append(parsed)
+                else:
+                    assert False
 
         max_K = max(rule.K for rule in rules)
 

@@ -1162,44 +1162,6 @@ class TransducerGenerators(object):
             the equation ``f(3*n) == f(n)`` means that no output is added to
             ``f(n)``.
 
-            As no ``output_rings`` have been specified, the output labels
-            are converted into ``ZZ``::
-
-                sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
-                []
-                [Integer Ring]
-                [Integer Ring]
-                sage: [x.parent() for x in T.states()[0].final_word_out]
-                []
-
-            In contrast, if ``output_rings`` is set to the empty list, the
-            results are not converted::
-
-                sage: T = transducers.Recursion([
-                ....:     f(2*n + 1) == f(n) + 1,
-                ....:     f(2*n) == f(n),
-                ....:     f(0) == 0],
-                ....:     f, n, 2, output_rings=[])
-                sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
-                []
-                [Symbolic Ring]
-                sage: [x.parent() for x in T.states()[0].final_word_out]
-                []
-
-            Finally, we use a somewhat questionable conversion::
-
-                sage: T = transducers.Recursion([
-                ....:     f(2*n + 1) == f(n) + 1,
-                ....:     f(2*n) == f(n),
-                ....:     f(0) == 0],
-                ....:     f, n, 2, output_rings=[GF(5)])
-                sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
-                []
-                [Finite Field of size 5]
-
         -   The following example computes the Hamming weight of the
             non-adjacent form, cf. the :wikipedia:`Non-adjacent_form`. ::
 
@@ -1350,6 +1312,53 @@ class TransducerGenerators(object):
                 (2, 1) [1, 2]
                 sage: list(sum(T(n.bits())) for n in srange(1, 21))
                 [2, 3, 4, 3, 4, 5, 4, 3, 4, 5, 6, 5, 4, 5, 4, 3, 4, 5, 6, 5]
+
+        -   We now demonstrate the use of the ``output_rings``
+            parameter.  If no ``output_rings`` are specified, the
+            output labels are converted into ``ZZ``::
+
+                sage: function('f')
+                f
+                sage: var('n')
+                n
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n) + 1,
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 2],
+                ....:     f, n, 2)
+                sage: for t in T.transitions():
+                ....:     print [x.parent() for x in t.word_out]
+                []
+                [Integer Ring]
+                sage: [x.parent() for x in T.states()[0].final_word_out]
+                [Integer Ring]
+
+            In contrast, if ``output_rings`` is set to the empty list, the
+            results are not converted::
+
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n) + 1,
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 2],
+                ....:     f, n, 2, output_rings=[])
+                sage: for t in T.transitions():
+                ....:     print [x.parent() for x in t.word_out]
+                []
+                [Symbolic Ring]
+                sage: [x.parent() for x in T.states()[0].final_word_out]
+                [Symbolic Ring]
+
+            Finally, we use a somewhat questionable conversion::
+
+                sage: T = transducers.Recursion([
+                ....:     f(2*n + 1) == f(n) + 1,
+                ....:     f(2*n) == f(n),
+                ....:     f(0) == 0],
+                ....:     f, n, 2, output_rings=[GF(5)])
+                sage: for t in T.transitions():
+                ....:     print [x.parent() for x in t.word_out]
+                []
+                [Finite Field of size 5]
 
         .. TODO::
 

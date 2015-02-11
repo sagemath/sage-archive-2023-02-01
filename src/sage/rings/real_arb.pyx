@@ -275,7 +275,7 @@ cdef class RealBall(Element):
             sage: RealBallField()(x)                          # optional - arb
             Traceback (most recent call last):
             ...
-            TypeError: x must be None or a RealIntervalFieldElement.
+            TypeError: unable to convert to a RealIntervalFieldElement
         """
         super(RealBall, self).__init__(parent)
 
@@ -286,8 +286,7 @@ cdef class RealBall(Element):
             try:
                 x = RealIntervalField(self._parent.precision)(x)
             except TypeError:
-                raise TypeError("x must be None or a "
-                            "RealIntervalFieldElement.")
+                raise TypeError("unable to convert to a RealIntervalFieldElement")
 
         mpfi_to_arb(self.value,
                     (<RealIntervalFieldElement> x).value,

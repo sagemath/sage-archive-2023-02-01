@@ -1,5 +1,5 @@
---- bliss-0.72/graph.cc	2011-05-12 15:29:46.000000000 +0200
-+++ /tmp/bliss-0.72/graph.cc	2015-01-28 13:40:42.289179859 +0100
+--- src/graph.cc	2015-02-11 13:20:39.922021355 +0100
++++ src-patched/graph_new.cc	2015-02-11 13:20:15.546020960 +0100
 @@ -1920,6 +1920,7 @@
  Digraph::Digraph(const unsigned int nof_vertices)
  {

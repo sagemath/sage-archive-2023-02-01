@@ -1091,7 +1091,7 @@ class TransducerGenerators(object):
         - ``input_alphabet`` -- (default: ``None``) a list of digits
           to be used as the input alphabet. If ``None`` and the base
           is an integer, ``input_alphabet`` is chosen to be
-          ``range(base.abs())``.
+          ``srange(base.abs())``.
 
         - ``word_function`` -- (default: ``None``) a symbolic function.
           If not ``None``, ``word_function(arg1, ..., argn)`` in a symbolic
@@ -1409,6 +1409,7 @@ class TransducerGenerators(object):
                 ValueError: Conflicting recursion for [0].
         """
         from sage.graphs.digraph import DiGraph
+        from sage.misc.misc import srange
 
         if is_zero is None:
             is_zero = lambda x: not x
@@ -1416,7 +1417,7 @@ class TransducerGenerators(object):
         initial_values = {}
         rules = []
         if input_alphabet is None and base in ZZ:
-            input_alphabet = list(range(base.abs()))
+            input_alphabet = list(srange(base.abs()))
 
 
         for equation in recursions:

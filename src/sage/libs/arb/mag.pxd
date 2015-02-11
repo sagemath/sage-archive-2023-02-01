@@ -7,6 +7,8 @@ cdef extern from "mag.h":
     ctypedef mag_struct * mag_ptr
     ctypedef const mag_struct * mag_srcptr
 
+    long MAG_BITS
+
     void mag_init(mag_t x)
     void mag_clear(mag_t x)
     void mag_init_set(mag_t x, const mag_t y)

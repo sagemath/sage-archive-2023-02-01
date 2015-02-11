@@ -2,12 +2,12 @@ from sage.libs.arb.arb cimport arb_t
 from sage.libs.mpfi cimport mpfi_t
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport Element
+from sage.structure.element cimport RingElement
 
 cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision)
 cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -1
 
-cdef class RealBall(Element):
+cdef class RealBall(RingElement):
     cdef arb_t value
     cdef RealBall _new(self)
     cpdef RealIntervalFieldElement _interval(self)

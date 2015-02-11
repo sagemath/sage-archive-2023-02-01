@@ -11,6 +11,13 @@ documentation for more details.
 
 You may have to run ``sage -i arb`` to use the arb library.
 
+Parts of the documentation for this module are copied or adapted from
+Arb's own documentation, licenced under the GNU General Public License
+version 2, or later.
+
+Comparison
+==========
+
 .. WARNING::
 
     Identical :class:`RealBall` objects are understood to give
@@ -18,9 +25,6 @@ You may have to run ``sage -i arb`` to use the arb library.
     to improve performance.  For example, setting ``z = x*x`` sets `z`
     to a ball enclosing the set `\{t^2 : t \in x\}` and not the
     (generally larger) set `\{tu : t \in x, u \in x\}`.
-
-Comparison
-==========
 
 Two elements are equal if and only if they are the same object
 or if both are exact and equal::
@@ -81,6 +85,12 @@ A ball ``left`` is less than a ball ``right`` if all elements of
     sage: a >= b # optional - arb
     False
 
+TESTS::
+
+    sage: from sage.rings.real_arb import RBF
+    sage: (RBF(pi) * identity_matrix(QQ, 3)).parent()
+    Full MatrixSpace of 3 by 3 dense matrices over Real ball field with 53 bits precision
+
 Classes and Methods
 ===================
 """
@@ -97,16 +107,29 @@ include 'sage/ext/interrupt.pxi'
 include "sage/ext/python.pxi"
 include "sage/ext/stdsage.pxi"
 
-import sage.categories.sets_cat
-from sage.libs.arb.arb cimport *
-from sage.libs.arb.arf cimport arf_t, arf_get_mpfr
-from sage.libs.arb.mag cimport mag_t
-from sage.libs.flint.flint cimport flint_free
-from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
-from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, GMP_RNDN
+import operator
+
+import sage.symbolic.constants
+
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
-from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
 from sage.structure.unique_representation import UniqueRepresentation
+
+cimport sage.rings.integer
+cimport sage.rings.rational
+cimport sage.structure.element
+
+from sage.libs.arb.arb cimport *
+from sage.libs.arb.arf cimport arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag
+from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS
+from sage.libs.flint.flint cimport flint_free
+from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_set_mpz, fmpz_clear
+from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
+from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
+from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, GMP_RNDN, MPFR_PREC_MIN
+from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
+from sage.structure.element cimport Element, ModuleElement, RingElement
 
 cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     """
@@ -148,10 +171,6 @@ cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -
     - ``source`` -- an ``arb_t``.
 
     - ``precision`` -- an integer `\ge 2`.
-
-    OUTPUT:
-
-    None.
 
     EXAMPLES::
 
@@ -213,21 +232,16 @@ class RealBallField(UniqueRepresentation, Parent):
         sage: RBF(1) # optional - arb
         1.000000000000000
 
-    TESTS::
+    ::
 
-        sage: RealBallField(0) # optional - arb
-        Traceback (most recent call last):
-        ...
-        ValueError: Precision must be at least 2.
-        sage: RealBallField(1) # optional - arb
-        Traceback (most recent call last):
-        ...
-        ValueError: Precision must be at least 2.
+        sage: from sage.rings.real_arb import RBF
+        sage: (1/2*RBF(1)) + AA(sqrt(2)) - 1 + polygen(QQ, x)
+        x + [0.914213562373095 +/- 4.10e-16]
     """
     Element = RealBall
 
     @staticmethod
-    def __classcall__(cls, long precision=53):
+    def __classcall__(cls, long precision=53, category=None):
         r"""
         Normalize the arguments for caching.
 
@@ -237,9 +251,9 @@ class RealBallField(UniqueRepresentation, Parent):
             sage: RealBallField(53) is RealBallField() # optional - arb
             True
         """
-        return super(RealBallField, cls).__classcall__(cls, precision)
+        return super(RealBallField, cls).__classcall__(cls, precision, category)
 
-    def __init__(self, precision):
+    def __init__(self, precision, category):
         r"""
         Initialize the real ball field.
 
@@ -253,10 +267,22 @@ class RealBallField(UniqueRepresentation, Parent):
             sage: RBF = RealBallField() # optional - arb
             sage: RBF(1) # optional - arb
             1.000000000000000
+            sage: RealBallField(0) # optional - arb
+            Traceback (most recent call last):
+            ...
+            ValueError: Precision must be at least 2.
+            sage: RealBallField(1) # optional - arb
+            Traceback (most recent call last):
+            ...
+            ValueError: Precision must be at least 2.
         """
         if precision < 2:
             raise ValueError("Precision must be at least 2.")
-        super(RealBallField, self).__init__(categories=[sage.categories.sets_cat.Sets])
+        super(RealBallField, self).__init__(
+                #category=category or sage.categories.magmas_and_additive_magmas.MagmasAndAdditiveMagmas().Infinite(),
+                # FIXME: RBF is not even associative, but CompletionFunctor only works with rings.
+                category=category or sage.categories.rings.Rings().Infinite(),
+                element_constructor=RealBall)
         self._prec = precision
 
     def _repr_(self):
@@ -273,45 +299,68 @@ class RealBallField(UniqueRepresentation, Parent):
         """
         return "Real ball field with {} bits precision".format(self._prec)
 
-    def _coerce_map_from_(self, S):
+    def _coerce_map_from_(self, other):
         r"""
-        Currently, there is no coercion.
+        Parents that canonically coerce into real ball fields include:
+
+        - some exact or lazy parents representing subsets of the reals, such as
+          `ZZ`, `QQ`, `AA`, and `RLF`;
+
+        - real ball fields with a larger precision.
+
+        TESTS::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField().has_coerce_map_from(RealBallField(54))
+            True
+            sage: RealBallField().has_coerce_map_from(RealBallField(52))
+            False
+            sage: RealBallField().has_coerce_map_from(RIF) # optional - arb
+            False
+            sage: RealBallField().has_coerce_map_from(SR) # optional - arb
+            False
+            sage: RealBallField().has_coerce_map_from(RR) # optional - arb
+            False
+        """
+        from sage.rings.qqbar import AA
+        from sage.rings.real_lazy import RLF
+        if isinstance(other, RealBallField):
+            return (other._prec >= self._prec)
+        elif (other is ZZ) or (other is QQ) or (other is AA) or (other is RLF):
+            return True
+        else:
+            return False
+
+    def gens(self):
+        r"""
+        EXAMPLE::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField().gens()
+            (1.000000000000000,)
+        """
+        return (self.one(),)
+
+    def construction(self):
+        """
+        Return the construction of a real ball field as a completion of the
+        rationals.
 
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
-            sage: RealBallField()._coerce_map_from_(RIF) # optional - arb
-            False
-            sage: RealBallField()._coerce_map_from_(SR) # optional - arb
-            False
+            sage: RBF = RealBallField(42) # optional - arb
+            sage: functor, base = RBF.construction()
+            sage: functor, base
+            (Completion[+Infinity], Rational Field)
+            sage: functor(base) is RBF
+            True
         """
-        return False
-
-    def _element_constructor_(self, *args, **kwds):
-        r"""
-        Construct a :class:`RealBall`.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_arb import RealBallField # optional: arb
-            sage: RBF = RealBallField() # optional: arb
-            sage: RBF(RIF(1)) # optional: arb; indirect doctest
-            1.000000000000000
-        """
-        return self.element_class(self, *args, **kwds)
-
-    def _an_element_(self):
-        r"""
-        Construct an element.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_arb import RealBallField # optional: arb
-            sage: RBF = RealBallField() # optional: arb
-            sage: RBF._an_element_() # optional: arb; indirect doctest
-            [0.3333333333333333 +/- 1.49e-17]
-        """
-        return self(1.0/3)
+        from sage.categories.pushout import CompletionFunctor
+        functor = CompletionFunctor(sage.rings.infinity.Infinity,
+                                    self._prec,
+                                    {'type': 'Ball'})
+        return functor, QQ
 
     def precision(self):
         """
@@ -333,18 +382,6 @@ class RealBallField(UniqueRepresentation, Parent):
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
             sage: RealBallField().is_exact() # optional - arb
-            False
-        """
-        return False
-
-    def is_finite(self):
-        """
-        Real ball fields are infinite.
-
-        EXAMPLES::
-
-            sage: from sage.rings.real_arb import RealBallField # optional - arb
-            sage: RealBallField().is_finite() # optional - arb
             False
         """
         return False
@@ -377,7 +414,7 @@ cdef inline bint _do_sig(long prec):
 cdef inline long prec(RealBall ball):
     return ball._parent._prec
 
-cdef class RealBall(Element):
+cdef class RealBall(RingElement):
     """
     Hold one ``arb_t`` of the `Arb library
     <http://fredrikj.net/arb/>`_
@@ -425,39 +462,129 @@ cdef class RealBall(Element):
 
         - ``parent`` -- a :class:`RealBallField`.
 
-        - ``x`` -- (default: ``None``) ``None`` or a
-          :class:`~sage.rings.real_mpfi.RealIntervalFieldElement`.
+        - ``x`` -- (default: ``None``) see examples below.
 
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
-            sage: RealBallField()(RIF(0, 1))                  # optional - arb; indirect doctest
+            sage: RBF = RealBallField()
+            sage: RBF()
+            0
+
+        One can create exact real balls using elements of various exact parents,
+        or using floating-point numbers::
+
+            sage: RBF(3)
+            3.000000000000000
+            sage: RBF(3r)
+            3.000000000000000
+            sage: RBF(1/3)
+            [0.3333333333333333 +/- 7.04e-17]
+            sage: RBF(3.14)
+            [3.140000000000000 +/- 1.25e-16]
+
+        Note that integers and floating-point numbers are ''not'' rounded to
+        the parent's precision::
+
+            sage: b = RBF(11111111111111111111111111111111111111111111111); b
+            [1.111111111111111e+46 +/- 1.12e+30]
+            sage: b.mid().exact_rational()
+            11111111111111111111111111111111111111111111111
+
+        Similarly, converting a real ball from one real ball field to another
+        (with a different precision) only changes the way it is displayed and
+        the precision of operations involving it, not the actual representation
+        of its center::
+
+            sage: RBF100 = RealBallField(100)
+            sage: b100 = RBF100(1/3); b100
+            [0.333333333333333333333333333333 +/- 4.65e-31]
+            sage: b53 = RBF(b100); b53
+            [0.3333333333333333 +/- 3.34e-17]
+            sage: RBF100(b53)
+            [0.333333333333333333333333333333 +/- 4.65e-31]
+
+        Special values are supported::
+
+            sage: RBF(oo).mid(), RBF(-oo).mid(), RBF(unsigned_infinity).mid()
+            (+infinity, -infinity, 0.000000000000000)
+            sage: RBF(NaN)
+            nan
+
+        Anything that is convertible to a real interval can also be used to
+        construct a real ball::
+
+            sage: RBF(RIF(0, 1))                  # optional - arb; indirect doctest
             [+/- 1.01]
-            sage: RealBallField()(1)                          # optional - arb
+            sage: RBF(1)                          # optional - arb
             1.000000000000000
-            sage: RealBallField()(x)                          # optional - arb
+            sage: RBF(x)                          # optional - arb
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert to a RealIntervalFieldElement
+            TypeError: unable to convert x to a RealIntervalFieldElement
+
         """
+        # TODO: init from mid+rad
+        # TODO: perhaps dissociate basic constructors (here) from conversions
+        #       (→ element_constructor)?
+        cdef fmpz_t tmpz
+        cdef fmpq_t tmpq
+        cdef arf_t  tmpr
+
         super(RealBall, self).__init__(parent)
 
         if x is None:
             return
 
-        if not isinstance(x, RealIntervalFieldElement):
-            try:
-                x = RealIntervalField(prec(self))(x)
-            except TypeError:
-                raise TypeError("unable to convert to a RealIntervalFieldElement")
+        elif isinstance(x, RealBall):
+            arb_set(self.value, (<RealBall> x).value) # no rounding!
+        elif isinstance(x, int):
+            arb_set_si(self.value, PyInt_AS_LONG(x)) # no rounding!
+        elif isinstance(x, sage.rings.integer.Integer):
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> x).value)
+            arb_set_fmpz(self.value, tmpz)
+            fmpz_clear(tmpz)
+        elif isinstance(x, sage.rings.rational.Rational):
+            fmpq_init(tmpq)
+            fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> x).value)
+            arb_set_fmpq(self.value, tmpq, prec(self))
+            fmpq_clear(tmpq)
+        elif isinstance(x, RealNumber):
+            arf_init(tmpr)
+            arf_set_mpfr(tmpr, (<RealNumber> x).value)
+            arb_set_arf(self.value, tmpr) # no rounding!
+            arf_clear(tmpr)
+        elif isinstance(x, sage.rings.infinity.AnInfinity):
+            if isinstance(x, sage.rings.infinity.PlusInfinity):
+                arb_pos_inf(self.value)
+            elif isinstance(x, sage.rings.infinity.MinusInfinity):
+                arb_neg_inf(self.value)
+            else:
+                arb_zero_pm_inf(self.value)
+        elif isinstance(x, sage.symbolic.constants.NotANumber):
+            arb_indeterminate(self.value)
 
-        mpfi_to_arb(self.value,
-                    (<RealIntervalFieldElement> x).value,
-                    prec(self))
+        else:
+            if not isinstance(x, RealIntervalFieldElement):
+                try:
+                    x = RealIntervalField(prec(self))(x)
+                except TypeError:
+                    raise TypeError("unable to convert {} to a RealIntervalFieldElement".format(x))
+            mpfi_to_arb(self.value,
+                        (<RealIntervalFieldElement> x).value,
+                        prec(self))
 
     cdef RealBall _new(self):
         """
         Return a new real ball element with the same parent as ``self``.
+
+        TESTS::
+
+            sage: from sage.rings.real_arb import RealBallField
+            sage: RealBallField()(2)**2 # indirect doctest
+            4.000000000000000
+
         """
         cdef RealBall x
         x = RealBall.__new__(RealBall)
@@ -504,12 +631,9 @@ cdef class RealBall(Element):
             sage: a._interval()        # optional - arb
             2
         """
-
         cdef RealIntervalFieldElement result
-
         result = RealIntervalField(prec(self))(0)
         arb_to_mpfi(result.value, self.value, prec(self))
-
         return result
 
     # Comparisons and predicates
@@ -723,6 +847,282 @@ cdef class RealBall(Element):
         arb_clear(difference)
         return result
 
+    # Center and radius
+
+    def mid(self):
+        """
+        Return the center of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField(16)(1/3).mid()
+            0.3333
+            sage: RealBallField(16)(1/3).mid().parent()
+            Real Field with 15 bits of precision
+        """
+        cdef long mid_prec = arb_bits(self.value) or prec(self)
+        if mid_prec < MPFR_PREC_MIN:
+            mid_prec = MPFR_PREC_MIN
+        cdef RealField_class mid_field = RealField(mid_prec)
+        cdef RealNumber mid = RealNumber(mid_field, None)
+        if _do_sig(mid_prec): sig_on()
+        cdef int rnd = arf_get_mpfr(mid.value, arb_midref(self.value), GMP_RNDN)
+        if _do_sig(mid_prec): sig_off()
+        if rnd != 0:
+            raise OverflowError("Unable to represent the center of this ball within the exponent range of RealNumbers")
+        return mid
+
+    def rad(self):
+        """
+        Return the radius of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField()(1/3).rad()
+            5.5511151e-17
+            sage: RealBallField()(1/3).rad().parent()
+            Real Field with 30 bits of precision
+        """
+        cdef RealField_class rad_field = RealField(MAG_BITS)
+        cdef RealNumber rad = RealNumber(rad_field, None)
+        cdef arf_t tmp
+        arf_init(tmp)
+        arf_set_mag(tmp, arb_radref(self.value))
+        cdef int rnd = arf_get_mpfr(rad.value, tmp, GMP_RNDN)
+        arf_clear(tmp)
+        if rnd != 0:
+            raise OverflowError("Unable to represent the radius of this ball within the exponent range of RealNumbers")
+        return rad
+
+    # Precision
+
+    def round(self):
+        """
+        Return a copy of this ball with center rounded to the precision of the
+        parent.
+
+        .. SEEALSO:: :meth:`trim`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: b = RBF(pi.n(100))
+            sage: b.mid()
+            3.141592653589793238462643383
+            sage: b.round().mid()
+            3.1415926535898
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_set_round(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def trim(self):
+        """
+        Return a trimmed copy of this ball.
+
+        Round `self` to a number of bits equal to the accuracy of `self` (as
+        indicated by its radius), plus a few guard bits. The resulting ball is
+        guaranteed to contain `self`, but is more economical if `self` has less
+        than full accuracy.
+
+        .. SEEALSO:: :meth:`round`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: b = RBF(RIF(3.1415,3.1416))
+            sage: b.mid()
+            3.14155000000000
+            sage: b.trim().mid()
+            3.14155000
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_trim(res.value, self.value)
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    # Arithmetic
+
+    def __neg__(self):
+        """
+        Return the opposite of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: -RBF(1/3)
+            [-0.3333333333333333 +/- 7.04e-17]
+        """
+        cdef RealBall res = self._new()
+        arb_neg(res.value, self.value)
+        return res
+
+    def __invert__(self):
+        """
+        Return the inverse of this ball.
+
+        The result is guaranteed to contain the inverse of any point of the
+        input ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: ~RBF(5)
+            [0.2000000000000000 +/- 4.45e-17]
+            sage: ~RBF(0)
+            [+/- inf]
+            sage: RBF(RIF(-0.1,0.1))
+            [+/- 0.101]
+
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_inv(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    cpdef ModuleElement _add_(self, ModuleElement other):
+        """
+        Return the sum of two balls, rounded to the ambient field's precision.
+
+        The resulting ball is guaranteed to contain the sums of any two points
+        of the respective input balls.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1) + RBF(1/3)
+            [1.333333333333333 +/- 5.37e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_add(res.value, self.value, (<RealBall> other).value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    cpdef ModuleElement _sub_(self, ModuleElement other):
+        """
+        Return the difference of two balls, rounded to the ambient field's
+        precision.
+
+        The resulting ball is guaranteed to contain the differences of any two
+        points of the respective input balls.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1) - RBF(1/3)
+            [0.666666666666667 +/- 5.37e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_sub(res.value, self.value, (<RealBall> other).value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    cpdef RingElement _mul_(self, RingElement other):
+        """
+        Return the product of two balls, rounded to the ambient field's
+        precision.
+
+        The resulting ball is guaranteed to contain the products of any two
+        points of the respective input balls.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(-2) * RBF(1/3)
+            [-0.666666666666667 +/- 4.82e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_mul(res.value, self.value, (<RealBall> other).value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    cpdef RingElement _div_(self, RingElement other):
+        """
+        Return the quotient of two balls, rounded to the ambient field's
+        precision.
+
+        The resulting ball is guaranteed to contain the quotients of any two
+        points of the respective input balls.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(pi)/RBF(e)
+            [1.15572734979092 +/- 2.49e-15]
+            sage: RBF(2)/RBF(0)
+            [+/- inf]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_div(res.value, self.value, (<RealBall> other).value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def __pow__(base, expo, _):
+        """
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(e)^17
+            [24154952.753575 +/- 3.79e-7]
+            sage: RBF(e)^(-1)
+            [0.367879441171442 +/- 4.80e-16]
+            sage: RBF(e)^(1/2)
+            [1.648721270700128 +/- 5.63e-16]
+            sage: RBF(e)^RBF(pi)
+            [23.140692632779 +/- 3.08e-13]
+
+        ::
+
+            sage: RBF(-1)^(1/3)
+            nan
+            sage: RBF(0)^(-1)
+            [+/- inf]
+            sage: RBF(-e)**RBF(pi)
+            nan
+
+        TESTS::
+
+            sage: RBF(e)**(2r)
+            [7.38905609893065 +/- 5.88e-15]
+            sage: RBF(e)**(-1r)
+            [0.367879441171442 +/- 4.80e-16]
+        """
+        cdef fmpz_t tmpz
+        if not isinstance(base, RealBall):
+            return sage.structure.element.bin_op(base, expo, operator.pow)
+        cdef RealBall self = base
+        cdef RealBall res = self._new()
+        if isinstance(expo, int) and expo > 0:
+            if _do_sig(prec(self)): sig_on()
+            arb_pow_ui(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(expo, sage.rings.integer.Integer):
+            if _do_sig(prec(self)): sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> expo).value)
+            arb_pow_fmpz(res.value, self.value, tmpz, prec(self))
+            fmpz_clear(tmpz)
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(expo, RealBall):
+            if _do_sig(prec(self)): sig_on()
+            arb_pow(res.value, self.value, (<RealBall> expo).value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+        else:
+            return sage.structure.element.bin_op(base, expo, operator.pow)
+        return res
+
+    # Special functions
+
     cpdef RealBall psi(self):
         """
         Compute the digamma function with argument self.
@@ -739,13 +1139,10 @@ cdef class RealBall(Element):
             [-0.577215664901533 +/- 3.85e-16]
         """
 
-        cdef RealBall result
-
-        result = self._new()
-
+        cdef RealBall result = self._new()
         if _do_sig(prec(self)): sig_on()
         arb_digamma(result.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
-
         return result
 
+RBF = RealBallField()

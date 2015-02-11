@@ -19,6 +19,8 @@ You may have to run ``sage -i arb`` to use the arb library.
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
+
+include 'sage/ext/interrupt.pxi'
 include "sage/ext/stdsage.pxi"
 
 import sage.categories.sets_cat
@@ -198,6 +200,17 @@ class RealBallField(UniqueRepresentation, Parent):
         return self._element_constructor_(self)
 
 
+cdef inline bint _do_sig(unsigned long prec):
+    """
+    Whether signal handlers should be installed for calls to arb.
+
+    TESTS::
+
+        sage: from sage.rings.real_arb import RealBallField # optional - arb
+        sage: _ = RealBallField()(1).psi() # optional - arb; indirect doctest
+        sage: _ = RealBallField(1500)(1).psi() # optional - arb
+    """
+    return (prec > 1000)
 
 cdef class RealBall(Element):
     """
@@ -359,7 +372,9 @@ cdef class RealBall(Element):
 
         result = self._new()
 
-        arb_digamma(result.value, self.value,
-                    self._parent.precision)
+        if _do_sig(self._parent.precision): sig_on()
+        arb_digamma(result.value, self.value, self._parent.precision)
+        if _do_sig(self._parent.precision): sig_off()
+
         return result
 

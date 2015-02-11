@@ -1128,20 +1128,39 @@ class TransducerGenerators(object):
 
         EXAMPLES:
 
-        -   The following example computes the binary sum of digits. ::
+        -   The following example computes the Hamming weight of the
+            ternary expansion of integers. ::
 
                 sage: function('f')
                 f
                 sage: var('n')
                 n
                 sage: T = transducers.Recursion([
-                ....:     f(2*n + 1) == f(n) + 1,
-                ....:     f(2*n) == f(n),
+                ....:     f(3*n + 1) == f(n) + 1,
+                ....:     f(3*n + 2) == f(n) + 1,
+                ....:     f(3*n) == f(n),
                 ....:     f(0) == 0],
-                ....:     f, n, 2)
+                ....:     f, n, 3)
                 sage: T.transitions()
                 [Transition from (0, 0) to (0, 0): 0|-,
-                 Transition from (0, 0) to (0, 0): 1|1]
+                 Transition from (0, 0) to (0, 0): 1|1,
+                 Transition from (0, 0) to (0, 0): 2|1]
+
+            To illustrate what this transducer does, we consider the
+            example of `n=601`::
+
+                sage: ternary_expansion = 601.digits(base=3)
+                sage: ternary_expansion
+                [1, 2, 0, 1, 1, 2]
+                sage: weight_sequence = T(ternary_expansion)
+                sage: weight_sequence
+                [1, 1, 1, 1, 1]
+                sage: sum(weight_sequence)
+                5
+
+            Note that the digit zero does not show up in the output because
+            the equation ``f(3*n) == f(n)`` means that no output is added to
+            ``f(n)``.
 
             As no ``output_rings`` have been specified, the output labels
             are converted into ``ZZ``::
@@ -1149,6 +1168,7 @@ class TransducerGenerators(object):
                 sage: for t in T.transitions():
                 ....:     print [x.parent() for x in t.word_out]
                 []
+                [Integer Ring]
                 [Integer Ring]
                 sage: [x.parent() for x in T.states()[0].final_word_out]
                 []

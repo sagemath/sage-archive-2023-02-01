@@ -841,14 +841,6 @@ class TransducerGenerators(object):
 
             ::
 
-                sage: transducers._parse_recursion_equation_(f(2*n + 5) == f(n) + 7,
-                ....:     2, f, n)
-                Traceback (most recent call last):
-                ...
-                ValueError: 0 <= 5 < 2 does not hold.
-
-            ::
-
                 sage: transducers._parse_recursion_equation_(
                 ....:     f(2*n + 1) == f(n + 1) + f(n) + 2,
                 ....:     2, f, n)
@@ -997,9 +989,6 @@ class TransducerGenerators(object):
         if K < 1:
             raise ValueError("%d is less than %d."
                              % (base_power_K, base))
-        if not 0 <= r < base_power_K:
-            raise ValueError("0 <= %d < %d does not hold."
-                             % (r, base_power_K))
 
         if right_side.operator() == operator.add:
             function_calls = [o for o in right_side.operands()
@@ -1176,7 +1165,7 @@ class TransducerGenerators(object):
                 n
                 sage: T = transducers.Recursion([
                 ....:     f(4*n + 1) == f(n) + 1,
-                ....:     f(4*n + 3) == f(n + 1) + 1,
+                ....:     f(4*n - 1) == f(n) + 1,
                 ....:     f(2*n) == f(n),
                 ....:     f(0) == 0],
                 ....:     2, f, n)
@@ -1244,7 +1233,7 @@ class TransducerGenerators(object):
                 sage: T = transducers.Recursion([
                 ....:      f(2*n) == f(n) + w(0),
                 ....:      f(4*n + 1) == f(n) + w(1, 0),
-                ....:      f(4*n + 3) == f(n+1) + w(-1, 0),
+                ....:      f(4*n - 1) == f(n) + w(-1, 0),
                 ....:      f(0) == w()],
                 ....:      2, f, n,
                 ....:      word_function=w,
@@ -1274,7 +1263,7 @@ class TransducerGenerators(object):
                 sage: TR = transducers.Recursion([
                 ....:       R(K=1, r=0, k=0, s=0, t=[0]),
                 ....:       R(K=2, r=1, k=0, s=0, t=[1, 0]),
-                ....:       R(K=2, r=3, k=0, s=1, t=[-1, 0]),
+                ....:       R(K=2, r=-1, k=0, s=0, t=[-1, 0]),
                 ....:       (0, [])],
                 ....:       2,
                 ....:       is_zero=lambda x: sum(x).is_zero())
@@ -1414,8 +1403,6 @@ class TransducerGenerators(object):
 
             - non-integral bases,
 
-            - non-positive residues, e.g. allow ``f(4*n - 1) == f(n) - 1``,
-
             - higher dimensions.
 
         ALGORITHM:
@@ -1520,7 +1507,13 @@ class TransducerGenerators(object):
         # if and only if
         # f(base^K n + R) = f(base^k n + s) + t
 
-        for rule in rules:
+        for given_rule in rules:
+            q, remainder = given_rule.r.quo_rem(base**given_rule.K)
+            rule=self.RecursionRule(K=given_rule.K,
+                                    r=remainder,
+                                    k=given_rule.k,
+                                    s=given_rule.s - base**given_rule.k*q,
+                                    t=given_rule.t)
             for m in range(max_K - rule.K + 1):
                 for ell in range(base**m):
                     R = rule.r + base**rule.K * ell

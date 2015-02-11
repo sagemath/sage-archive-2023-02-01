@@ -943,7 +943,7 @@ class TransducerGenerators(object):
         def is_scalar(expression):
             return var not in expression.variables()
 
-        def coerce_output(output):
+        def convert_output(output):
             for ring in output_rings:
                 if output in ring:
                     return ring(output)
@@ -953,9 +953,9 @@ class TransducerGenerators(object):
             if output == 0:
                 return []
             elif word_function is not None and output.operator() == word_function:
-                return list(map(coerce_output, output.operands()))
+                return list(map(convert_output, output.operands()))
             else:
-                return [coerce_output(output)]
+                return [convert_output(output)]
 
         base_ring = base.parent()
 
@@ -1108,7 +1108,7 @@ class TransducerGenerators(object):
           a boolean.
 
         - ``output_rings`` -- (default: ``[ZZ, QQ]``) a list of
-          rings. The output labels are coerced in the first ring of
+          rings. The output labels are converted into the first ring of
           the list in which they are contained. If they are not
           contained in any ring, they remain in whatever ring they are
           after parsing the recursions, typically the symbolic ring or
@@ -1145,7 +1145,7 @@ class TransducerGenerators(object):
                  Transition from (0, 0) to (0, 0): 1|1]
 
             As no ``output_rings`` have been specified, the output labels
-            are coerced into ``ZZ``::
+            are converted into ``ZZ``::
 
                 sage: for t in T.transitions():
                 ....:     print [x.parent() for x in t.word_out]
@@ -1155,7 +1155,7 @@ class TransducerGenerators(object):
                 []
 
             In contrast, if ``output_rings`` is set to the empty list, the
-            results are not coerced::
+            results are not converted::
 
                 sage: T = transducers.Recursion([
                 ....:     f(2*n + 1) == f(n) + 1,
@@ -1169,7 +1169,7 @@ class TransducerGenerators(object):
                 sage: [x.parent() for x in T.states()[0].final_word_out]
                 []
 
-            Finally, we use a somewhat questionable coercion::
+            Finally, we use a somewhat questionable conversion::
 
                 sage: T = transducers.Recursion([
                 ....:     f(2*n + 1) == f(n) + 1,

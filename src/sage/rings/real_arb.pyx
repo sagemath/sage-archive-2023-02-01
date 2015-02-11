@@ -119,6 +119,8 @@ class RealBallField(UniqueRepresentation, Parent):
         Traceback (most recent call last):
         ...
         ValueError: Precision must be at least 2.
+        sage: RealBallField(2)
+        Real ball field with 2 bits default precision
     """
     Element = RealBall
 
@@ -163,11 +165,11 @@ class RealBallField(UniqueRepresentation, Parent):
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
             sage: RealBallField() # optional - arb
-            Real ball field with 53 bits precision
+            Real ball field with 53 bits default precision
             sage: RealBallField(106) # optional - arb
-            Real ball field with 106 bits precision
+            Real ball field with 106 bits default precision
         """
-        return "Real ball field with {} bits precision".format(self.precision)
+        return "Real ball field with {} bits default precision".format(self.precision)
 
     def _coerce_map_from_(self, S):
         r"""

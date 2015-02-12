@@ -1727,6 +1727,13 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             mpz_set(self.value, value)
 
     cdef void set_from_long(self, long value):
+        r"""        
+        EXAMPLES::
+
+        sage: p = next_prime(2^32)
+        sage: GF(p)(int(p+1))
+        1
+        """        
         cdef sage.rings.integer.Integer modulus
         mpz_set_si(self.value, value)
         if value < 0 or mpz_cmp_si(self.__modulus.sageInteger.value, value) <= 0:

@@ -2193,62 +2193,100 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
 #####################################################
 #### combinatorial sets/lists
 
-def tuples(S,k):
+def tuples(S, k, algorithm='itertools'):
     """
     Return a list of all `k`-tuples of elements of a given set ``S``.
 
     This function accepts the set ``S`` in the form of any iterable
-    (list, tuple or iterator), and returns a list of `k`-tuples
-    (themselves encoded as lists). If ``S`` contains duplicate entries,
-    then you should expect the method to return tuples multiple times!
+    (list, tuple or iterator), and returns a list of `k`-tuples.
+    If ``S`` contains duplicate entries, then you should expect the
+    method to return tuples multiple times!
 
     Recall that `k`-tuples are ordered (in the sense that two `k`-tuples
     differing in the order of their entries count as different) and
     can have repeated entries (even if ``S`` is a list with no
     repetition).
 
+    INPUT:
+
+    - ``S`` -- the base set
+    - ``k`` -- the length of the tuples
+    - ``algorithm`` -- can be one of the following:
+
+      * ``'itertools'`` - (default) use python's itertools
+      * ``'native'`` - use a native Sage implementation
+
+    .. NOTE::
+
+        The ordering of the list of tuples differs for the algorithms.
+
     EXAMPLES::
 
         sage: S = [1,2]
         sage: tuples(S,3)
-        [[1, 1, 1], [2, 1, 1], [1, 2, 1], [2, 2, 1], [1, 1, 2], [2, 1, 2], [1, 2, 2], [2, 2, 2]]
+        [(1, 1, 1), (1, 1, 2), (1, 2, 1), (1, 2, 2),
+         (2, 1, 1), (2, 1, 2), (2, 2, 1), (2, 2, 2)]
         sage: mset = ["s","t","e","i","n"]
-        sage: tuples(mset,2)
-        [['s', 's'], ['t', 's'], ['e', 's'], ['i', 's'], ['n', 's'], ['s', 't'], ['t', 't'],
-         ['e', 't'], ['i', 't'], ['n', 't'], ['s', 'e'], ['t', 'e'], ['e', 'e'], ['i', 'e'],
-         ['n', 'e'], ['s', 'i'], ['t', 'i'], ['e', 'i'], ['i', 'i'], ['n', 'i'], ['s', 'n'],
-         ['t', 'n'], ['e', 'n'], ['i', 'n'], ['n', 'n']]
-
-    The Set(...) comparisons are necessary because finite fields are
-    not enumerated in a standard order.
+        sage: tuples(mset, 2)
+        [('s', 's'), ('s', 't'), ('s', 'e'), ('s', 'i'), ('s', 'n'),
+         ('t', 's'), ('t', 't'), ('t', 'e'), ('t', 'i'), ('t', 'n'),
+         ('e', 's'), ('e', 't'), ('e', 'e'), ('e', 'i'), ('e', 'n'),
+         ('i', 's'), ('i', 't'), ('i', 'e'), ('i', 'i'), ('i', 'n'),
+         ('n', 's'), ('n', 't'), ('n', 'e'), ('n', 'i'), ('n', 'n')]
 
     ::
 
         sage: K.<a> = GF(4, 'a')
-        sage: mset = [x for x in K if x!=0]
-        sage: tuples(mset,2)
-        [[a, a], [a + 1, a], [1, a], [a, a + 1], [a + 1, a + 1], [1, a + 1], [a, 1], [a + 1, 1], [1, 1]]
+        sage: mset = [x for x in K if x != 0]
+        sage: tuples(mset, 2)
+        [(a, a), (a, a + 1), (a, 1), (a + 1, a), (a + 1, a + 1),
+         (a + 1, 1), (1, a), (1, a + 1), (1, 1)]
+
+    We check that the implementations agree (up to ordering)::
+
+        sage: tuples(S, 3, 'native')
+        [(1, 1, 1), (2, 1, 1), (1, 2, 1), (2, 2, 1),
+         (1, 1, 2), (2, 1, 2), (1, 2, 2), (2, 2, 2)]
+
+    Lastly we check on a multiset::
+
+        sage: S = [1,1,2]
+        sage: sorted(tuples(S, 3)) == sorted(tuples(S, 3, 'native'))
+        True
 
     AUTHORS:
 
     - Jon Hanke (2006-08)
     """
-    import copy
-    if k<=0:
-        return [[]]
-    if k==1:
-        return [[x] for x in S]
-    ans = []
-    for s in S:
-        for x in tuples(S,k-1):
-            y = copy.copy(x)
-            y.append(s)
-            ans.append(y)
-    return ans
+    if algorithm == 'itertools':
+        import itertools
+        return list(itertools.product(S, repeat=k))
+    if algorithm == 'native':
+        if k <= 0:
+            return [()]
+        if k == 1:
+            return [(x,) for x in S]
+        ans = []
+        for s in S:
+            for x in tuples(S, k-1, 'native'):
+                y = list(x)
+                y.append(s)
+                ans.append(tuple(y))
+        return ans
+    raise ValueError('invalid algorithm')
 
-def number_of_tuples(S, k):
+def number_of_tuples(S, k, algorithm='naive'):
     """
     Return the size of ``tuples(S,k)``. Wraps GAP's ``NrTuples``.
+
+    INPUT:
+
+    - ``S`` -- the base set
+    - ``k`` -- the length of the tuples
+    - ``algorithm`` -- can be one of the following:
+
+      * ``'naive'`` - (default) use the naive counting `|S|^k`
+      * ``'gap'`` - wraps GAP's ``NrTuples``
 
     EXAMPLES::
 
@@ -2259,8 +2297,14 @@ def number_of_tuples(S, k):
         sage: number_of_tuples(S,2)
         25
     """
-    ans=gap.eval("NrTuples(%s,%s)"%(S,ZZ(k)))
-    return ZZ(ans)
+    if algorithm == 'naive':
+        return ZZ( len(set(S)) )**k # The set is there to avoid duplicates
+    if algorithm == 'gap':
+        k = ZZ(k)
+        from sage.libs.gap.libgap import libgap
+        S = libgap.eval(str(S))
+        return libgap.NrTuples(S, k).sage()
+    raise ValueError('invalid algorithm')
 
 def unordered_tuples(S, k, algorithm='itertools'):
     """
@@ -2315,8 +2359,10 @@ def unordered_tuples(S, k, algorithm='itertools'):
         import itertools
         return list(itertools.combinations_with_replacement(sorted(set(S)), k))
     if algorithm == 'gap':
-        ans = gap.eval("UnorderedTuples(%s,%s)"%(S,ZZ(k)))
-        return map(tuple, eval(ans))
+        k = ZZ(k)
+        from sage.libs.gap.libgap import libgap
+        S = libgap.eval(str(S))
+        return [tuple(x) for x in libgap.UnorderedTuples(S, k).sage()]
     raise ValueError('invalid algorithm')
 
 def number_of_unordered_tuples(S,k):

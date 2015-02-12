@@ -395,7 +395,6 @@ class HighestWeightCrystals(Category_singleton):
 
         pass
 
-
     class TensorProducts(TensorProductsCategory):
         """
         The category of highest weight crystals constructed by tensor

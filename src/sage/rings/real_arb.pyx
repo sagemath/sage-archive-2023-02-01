@@ -35,7 +35,7 @@ from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
 from sage.structure.unique_representation import UniqueRepresentation
 
-cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long precision):
+cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     """
     Convert an MPFI interval to an Arb ball.
 
@@ -64,7 +64,7 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const unsigned long pre
     mpfr_clear(left)
     mpfr_clear(right)
 
-cdef void arb_to_mpfi(mpfi_t target, arb_t source, const unsigned long precision):
+cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision):
     """
     Convert an Arb ball to an MPFI interval.
 
@@ -123,7 +123,7 @@ class RealBallField(UniqueRepresentation, Parent):
     Element = RealBall
 
     @staticmethod
-    def __classcall__(cls, unsigned long precision=53):
+    def __classcall__(cls, long precision=53):
         r"""
         Normalize the arguments for caching.
 
@@ -200,7 +200,7 @@ class RealBallField(UniqueRepresentation, Parent):
         return self._element_constructor_(self)
 
 
-cdef inline bint _do_sig(unsigned long prec):
+cdef inline bint _do_sig(long prec):
     """
     Whether signal handlers should be installed for calls to arb.
 

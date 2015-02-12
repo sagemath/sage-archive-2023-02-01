@@ -1,9 +1,32 @@
 """
 TODO: run all examples and tests
 """
+from sage.misc.cachefunc import cached_method
+from sage.misc.misc import verbose
+from sage.structure.sage_object import SageObject
+from sage.rings.integer import Integer
+
 from collections import defaultdict
 from urllib import urlopen, urlencode
 import re
+
+# Combinatoral collections
+from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
+from sage.combinat.binary_tree import BinaryTree
+from sage.combinat.core import Core
+from sage.combinat.dyck_word import DyckWord
+from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPattern
+from sage.graphs.graph import Graph
+from sage.combinat.composition import Composition
+from sage.combinat.partition import Partition
+from sage.combinat.ordered_tree import OrderedTree
+from sage.combinat.parking_functions import ParkingFunction
+from sage.combinat.perfect_matching import PerfectMatching
+from sage.combinat.permutation import Permutation
+from sage.combinat.posets.posets import Poset
+from sage.combinat.tableau import SemistandardTableau, StandardTableau
+from sage.combinat.set_partition import SetPartition
 
 findstat_url = 'http://www.findstat.org/'
 findstat_url_result = findstat_url + "StatisticFinder/Result/"
@@ -694,9 +717,9 @@ class FindStatStatistic(SageObject):
         vals2 = vals[2::3]
         constructor = self.constructor()
         if constructor is None:
-            return {obj: ZZ(val) for (obj, val) in zip(vals0, vals2)}
+            return {obj: Integer(val) for (obj, val) in zip(vals0, vals2)}
         else:
-            return {constructor(obj): ZZ(val) for (obj, val) in zip(vals0, vals2)}
+            return {constructor(obj): Integer(val) for (obj, val) in zip(vals0, vals2)}
 
     def code(self):
         r"""
@@ -713,18 +736,18 @@ class FindStatStatistic(SageObject):
         EXAMPLES::
 
             sage: f = findstat(45) ; f                      # optional -- internet
-        St000045: The number of linear extensions of the tree. 
+            St000045: The number of linear extensions of the tree. 
 
             sage: print f.code()                            # optional -- internet
-def hook_product(tree):
-    if(not tree):
-        return 1
-    hl = hook_product(tree[0])
-    hr = hook_product(tree[1])
-    return hl*hr*tree.node_number()
-    
-def linear_extensions(tree):
-    return factorial(tree.node_number()-1)/hook_product(tree[0])/hook_product(tree[1])
+            def hook_product(tree):
+                if(not tree):
+                    return 1
+                hl = hook_product(tree[0])
+                hr = hook_product(tree[1])
+                return hl*hr*tree.node_number()
+
+            def linear_extensions(tree):
+                return factorial(tree.node_number()-1)/hook_product(tree[0])/hook_product(tree[1])
 
             sage: exec(f.code()) # not tested DANGEROUS
             sage: all(linear_extensions(key) == val for (key, val) in f.first_terms().iteritems())
@@ -747,7 +770,7 @@ def linear_extensions(tree):
 
         EXAMPLES::
 
-            sage: f = findstat(45)                          # optional -- internet
+            sage: f = findstat(45)                      # optional -- internet
             sage: f                                     # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
@@ -773,9 +796,9 @@ def linear_extensions(tree):
 
         EXAMPLES::
 
-            sage: f = findstat(45)                          # optional -- internet
-            sage: f.first_terms()                  # optional -- internet
-            sage: f(BinaryTrees(4).an_element())                                  # optional -- internet
+            sage: f = findstat(45)                      # optional -- internet
+            sage: f.first_terms()                       # optional -- internet
+            sage: f(BinaryTrees(4).an_element())        # optional -- internet
             3
 
         ::
@@ -804,14 +827,13 @@ def linear_extensions(tree):
 
     def __eq__(self,other):
         r"""
-
-        Returns ``True`` if ``self`` is equal to ``other`` and
+        Return ``True`` if ``self`` is equal to ``other`` and
         ``False`` otherwise.  Two statistics are considered equal if
         they have the same FindStat id.
 
         INPUT:
 
-        - ``other`` - a findstat sequence.
+        - ``other`` -- a FindStat statistic
 
         OUTPUT:
 
@@ -827,19 +849,17 @@ def linear_extensions(tree):
             sage: s = findstat._imaginary_sequence()
             sage: s == findstat._imaginary_sequence()
             True
-
         """
         return self.id() == other.id()
 
     def __ne__(self, other):
         r"""
-
-        Returns ``True`` if ``self`` has a different FindStat id than ``other`` and
-        ``False`` otherwise.
+        Return ``True`` if ``self`` has a different FindStat id than ``other``
+        and ``False`` otherwise.
 
         INPUT:
 
-        - ``other`` - a findstat sequence.
+        - ``other`` -- a findstat sequence
 
         OUTPUT:
 
@@ -864,11 +884,11 @@ def linear_extensions(tree):
 
         OUTPUT:
 
-        - tuple of strings (with fancy formatting).
+        - tuple of strings (with fancy formatting)
 
         EXAMPLES::
 
-            sage: w = findstat(7540) ; w                    # optional -- internet
+            sage: w = findstat(7540) ; w                # optional -- internet
             A007540: Wilson primes: primes p such that (p-1)! == -1 (mod p^2).
 
             sage: w.references()                        # optional -- internet
@@ -898,7 +918,7 @@ def linear_extensions(tree):
 
         EXAMPLES::
 
-            sage: f = findstat(45) ; f                      # optional -- internet
+            sage: f = findstat(45) ; f                  # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.url()                               # optional -- internet
@@ -918,7 +938,7 @@ def linear_extensions(tree):
 
         EXAMPLES::
 
-            sage: f = findstat(45) ; f                      # optional -- internet, webbrowser
+            sage: f = findstat(45) ; f                  # optional -- internet, webbrowser
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.browse()                            # optional -- internet, webbrowser
@@ -932,3 +952,4 @@ def linear_extensions(tree):
         webbrowser.open(self.url())
 
 findstat = FindStat()
+

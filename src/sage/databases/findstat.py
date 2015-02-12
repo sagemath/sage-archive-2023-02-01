@@ -152,7 +152,7 @@ class FindStat:
             sage: fibo = _[0]                           # optional -- internet
     """
 
-    def __call__(self, query, max_results=3, first_result=0):
+    def __call__(self, query, collection=None):
         r"""
         See the documentation of :class:`FindStat`.
 
@@ -164,14 +164,21 @@ class FindStat:
             TypeError: __call__() takes at least 2 arguments (1 given)
         """
         if isinstance(query, str):
-            if re.match('^St[0-9]{6}$',query):
+            if collection is None:
+                if re.match('^St[0-9]{6}$',query):
+                    return self.find_by_id(query)
+                else:
+                    raise ValueError("The value %s is not a valid statistic identifier." %query)
+                    #                 return self.find_by_description(query, max_results, first_result)
+            else:
+                raise ValueError("When providing an identifier, do not provide a collection.")
+        elif isinstance(query, (int, Integer)):
+            if collection is None:
                 return self.find_by_id(query)
             else:
-                return self.find_by_description(query, max_results, first_result)
-        elif isinstance(query, (int, Integer)):
-            return self.find_by_id(query)
-        elif isinstance(query, (list, tuple)):
-            return self.find_by_subsequence(query, max_results, first_result)
+                raise ValueError("When providing an identifier, do not provide a collection.")
+        elif isinstance(query, dict):
+            return self.find_by_values(query, collection)
 
     def __repr__(self):
         r"""

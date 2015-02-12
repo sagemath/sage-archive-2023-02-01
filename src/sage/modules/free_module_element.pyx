@@ -938,13 +938,20 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             85070591730234615847396907784232501250
             sage: wn.dot(wn)        # overflow
             2
+
+        Numpy can give rather obscure errors; we wrap these to give a bit of context::
+
+            sage: vector([1, 1/2, QQ['x'].0]).numpy(dtype=float)
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not convert vector over Univariate Polynomial Ring in x over Rational Field to numpy array of type <type 'float'>: setting an array element with a sequence.
         """
         from numpy import array
         try:
             return array(self, dtype=dtype)
         except ValueError as e:
             raise ValueError(
-                "Could not convert vector to numpy array of type %s: %s" % (dtype, e))
+                "Could not convert vector over %s to numpy array of type %s: %s" % (self.base_ring(), dtype, e))
 
     def __hash__(self):
         """

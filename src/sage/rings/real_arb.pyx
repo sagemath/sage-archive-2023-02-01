@@ -359,7 +359,7 @@ cdef class RealBall(Element):
 
         OUTPUT:
 
-        An :class:`RealBall`.
+        A :class:`RealBall`.
 
         EXAMPLES::
 

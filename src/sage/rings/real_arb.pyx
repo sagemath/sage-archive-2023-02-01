@@ -328,7 +328,7 @@ cdef class RealBall(Element):
 
     cpdef RealIntervalFieldElement _interval(self):
         """
-        Return :class:`RealIntervalFieldElement` of the same value.
+        Return a :mod:`real interval <sage.rings.real_mpfr>` containing this ball.
 
         OUTPUT:
 

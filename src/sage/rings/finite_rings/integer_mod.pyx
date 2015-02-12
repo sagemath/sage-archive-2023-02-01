@@ -1730,9 +1730,9 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         r"""        
         EXAMPLES::
 
-        sage: p = next_prime(2^32)
-        sage: GF(p)(int(p+1))
-        1
+            sage: p = next_prime(2^32)
+            sage: GF(p)(int(p+1))
+            1
         """        
         cdef sage.rings.integer.Integer modulus
         mpz_set_si(self.value, value)

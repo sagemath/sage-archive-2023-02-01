@@ -119,7 +119,7 @@ class RealBallField(UniqueRepresentation, Parent):
         Traceback (most recent call last):
         ...
         ValueError: Precision must be at least 2.
-        sage: RealBallField(2)
+        sage: RealBallField(2) # optional - arb
         Real ball field with 2 bits default precision
     """
     Element = RealBall

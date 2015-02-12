@@ -419,6 +419,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         # error handlers.
         pari_init_opts(10000, maxprime, INIT_DFTm)
 
+        # Disable PARI's stack overflow checking which is incompatible
+        # with multi-threading.
+        pari_stackcheck_init(NULL)
+
         _pari_init_error_handling()
 
         # pari_init_opts() overrides MPIR's memory allocation functions,

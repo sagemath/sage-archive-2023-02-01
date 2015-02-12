@@ -940,6 +940,10 @@ class Permutation(CombinatorialObject, Element):
         """
         Return the permutation ``self`` as a list of disjoint cycles.
 
+        The cycles are returned in the order of increasing smallest
+        elements, and each cycle is returned as a tuple which starts
+        with its smallest element.
+
         If ``singletons=False`` is given, the list does not contain the
         singleton cycles.
 
@@ -949,6 +953,9 @@ class Permutation(CombinatorialObject, Element):
             [(1, 2), (3,), (4,)]
             sage: Permutation([2,1,3,4]).to_cycles(singletons=False)
             [(1, 2)]
+
+            sage: Permutation([4,1,5,2,6,3]).to_cycles()
+            [(1, 4, 2), (3, 5, 6)]
 
         The algorithm is of complexity `O(n)` where `n` is the size of the
         given permutation.
@@ -995,7 +1002,7 @@ class Permutation(CombinatorialObject, Element):
 
         l = self[:]
 
-        #Go through until we've considered every number between 1 and len(p)
+        #Go through until we've considered every number between 1 and len(l)
         for i in range(len(l)):
             if l[i] == False:
                 continue
@@ -2225,7 +2232,7 @@ class Permutation(CombinatorialObject, Element):
             q^5 + 2*q^4 + 3*q^3 + 3*q^2 + 2*q + 1
 
         We check the statement in [CC13]_ that the posets
-        `C_{[1,3,1,1]} = C_{[1,3,2]}`::
+        `C_{[1,3,1,1]}` and `C_{[1,3,2]}` are isomorphic::
 
             sage: l2 = [p for p in P if [len(t) for t in p.to_cycles()] == [1,3,1,1]]
             sage: l2 = [p.forget_cycles().inverse() for p in l2]

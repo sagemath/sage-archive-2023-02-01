@@ -430,7 +430,8 @@ ext_modules = [
               libraries = ['gmp']),
 
     Extension('sage.graphs.base.static_dense_graph',
-              sources = ['sage/graphs/base/static_dense_graph.pyx']),
+              sources = ['sage/graphs/base/static_dense_graph.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.graphs.base.static_sparse_graph',
               sources = ['sage/graphs/base/static_sparse_graph.pyx'],

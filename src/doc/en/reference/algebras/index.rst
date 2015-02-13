@@ -25,7 +25,7 @@ Algebras
    sage/algebras/free_algebra_quotient
    sage/algebras/free_algebra_quotient_element
 
-   sage/algebras/group_algebra_new
+   sage/algebras/group_algebra
 
    sage/algebras/iwahori_hecke_algebra
    sage/algebras/iwahori_hecke_algebra

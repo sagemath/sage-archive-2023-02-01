@@ -5,12 +5,12 @@
 
 import os, sys
 
-if not os.environ.has_key("SAGE_ROOT"):
+if "SAGE_ROOT" not in os.environ:
     raise RuntimeError("The environment variable SAGE_ROOT must be set.")
 SAGE_SPKG_INST=os.environ.get("SAGE_SPKG_INST",
         os.path.join(os.environ["SAGE_ROOT"],'spkg','installed'))
 
-if not os.environ.has_key("SAGE_SERVER"):
+if "SAGE_SERVER" not in os.environ:
     sys.stderr.write("The environment variable SAGE_SERVER must be set.\n")
     sys.exit(1)
 

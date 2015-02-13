@@ -212,6 +212,9 @@ cdef inline bint _do_sig(long prec):
     """
     return (prec > 1000)
 
+cdef inline long prec(RealBall ball):
+    return ball._parent.precision
+
 cdef class RealBall(Element):
     """
     Hold one ``arb_t`` of the `Arb library
@@ -288,7 +291,7 @@ cdef class RealBall(Element):
 
         mpfi_to_arb(self.value,
                     (<RealIntervalFieldElement> x).value,
-                    self._parent.precision)
+                    prec(self))
 
     cdef RealBall _new(self):
         """
@@ -316,9 +319,7 @@ cdef class RealBall(Element):
         cdef char* c_result
         cdef bytes py_string
 
-        c_result = arb_get_str(self.value,
-                               (self._parent.precision * 31) // 100,
-                               0)
+        c_result = arb_get_str(self.value, (prec(self) * 31) // 100, 0)
         try:
             py_string = c_result
         finally:
@@ -344,10 +345,8 @@ cdef class RealBall(Element):
 
         cdef RealIntervalFieldElement result
 
-        result = RealIntervalField(self._parent.precision)(0)
-        arb_to_mpfi(result.value,
-                    self.value,
-                    self._parent.precision)
+        result = RealIntervalField(prec(self))(0)
+        arb_to_mpfi(result.value, self.value, prec(self))
 
         return result
 
@@ -371,9 +370,9 @@ cdef class RealBall(Element):
 
         result = self._new()
 
-        if _do_sig(self._parent.precision): sig_on()
-        arb_digamma(result.value, self.value, self._parent.precision)
-        if _do_sig(self._parent.precision): sig_off()
+        if _do_sig(prec(self)): sig_on()
+        arb_digamma(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
 
         return result
 

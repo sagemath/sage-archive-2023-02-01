@@ -76,8 +76,8 @@ __builtins__.__import__ = old_import
 for data in all_modules.values():
      data['parents'] = set( index_to_parent.get(i,None) for i in data['parents'] )
 
-module_by_speed = sorted([ (data['time'], module, data)
-                           for module,data in all_modules.iteritems() ])
+module_by_speed = sorted(( (data['time'], module, data)
+                           for module,data in all_modules.items() ))
 
 
 def print_separator():

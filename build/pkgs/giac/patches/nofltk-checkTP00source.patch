@@ -1,0 +1,11 @@
+--- a/check/TP00-sol.cas	2014-07-02 15:06:55.000000000 +0200
++++ b/check/TP00-sol.cas	2015-02-13 11:39:11.000000000 +0100
+@@ -67,7 +67,7 @@
+ a:=exp(2*I*Pi/n);
+ S:=seq(point(a^i,display=point_width_3+blue),i=1..n):
+ /* Un cercle  passe par 3 sommets ssi  il coincide avec le cercle £unite. Donc si l'angle au centre n'est pas multiple de (2IPi/n) c'est bon. */
+-f:=(i,j,k)->if k=1 then segment(a^i,a^j) else seq(arc(a^i,a^j,l/k),l=1..k) fi;
++f:=(i,j,k)->if k=1 then segment(a^i,a^j,color=56) else seq(arc(a^i,a^j,l/k,color=56),l=1..k) fi;
+ G:=[[1,3,1],[1,2,3],[2,4,2],[2,3,1],[3,5,3],[3,4,1],[4,1,2]]:
+ S;seq(f(op(l)),l=G); #op pour enlever les crochets
+ /*  -------------------------------------EXERCICE-----------------------------------------*/

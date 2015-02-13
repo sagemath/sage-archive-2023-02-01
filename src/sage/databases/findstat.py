@@ -1,14 +1,40 @@
 """
 TODO: run all examples and tests
+
+sage: l = [findstat(i) for i in range(1,234)]
+sage: l_code = [s for s in l if s.code(security_warning=False)[:13] == "def statistic"]
+sage: bad = []; err = [];
+sage: for s in l_code:
+....:     print s
+....:     exec(preparse(s.code(security_warning=False)))
+....:     try:
+....:         good = all(statistic(key) == s(key) for key in s.first_terms().keys()[:10])
+....:         print good
+....:         if not good:
+....:             bad += [s]
+....:     except:
+....:         print "ERROR"
+....:         err += [s] 
+....:     print
+....: 
+
+TODO:
+
+* allow advanced queries
+* should find_by_values return statistics or strings?
 """
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
+from sage.databases.oeis import FancyTuple
 
+from string import join
+from ast import literal_eval
 from collections import defaultdict
 from urllib import urlopen, urlencode
 import re
+import webbrowser
 
 # Combinatoral collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
@@ -31,6 +57,7 @@ from sage.combinat.set_partition import SetPartition
 findstat_url = 'http://www.findstat.org/'
 findstat_url_result = findstat_url + "StatisticFinder/Result/"
 findstat_url_submit = findstat_url + 'StatisticsDatabase/NewStatistic/'
+findstat_url_edit = findstat_url + 'StatisticsDatabase/EditStatistic/'
 findstat_url_downloads = 'http://downloads.findstat.org/'
 
 def _fetch(url):
@@ -109,70 +136,52 @@ class FindStat:
         sage: FindStat
         The Combinatorial Statistic Finder (http://findstat.org/)
 
-    A particular sequence can be called by its St-number or number::
+    A particular statistic can be called by its St-number or number::
 
-        sage: findstat('St000045')                          # optional -- internet
+        sage: findstat('St000045')                   # optional -- internet
+        St000045: The number of linear extensions of the tree. 
 
-        sage: findstat(45)                                  # optional -- internet
+        sage: findstat(3)                            # optional -- internet
+        St000003: The number of [[/StandardTableaux|standard Young tableaux]] of the partition.
 
     The database can be searched by providing a dictionary::
 
         sage: stat = {pi: pi.length() for pi in Permutations(3)}
         sage: search = findstat(stat, "Permutations") ; search    # optional -- internet
-        0: 
-        1: 
-        2: 
+        0: ('St000018', [], '6')
+        1: ('St000004', ['inversion-number to major-index bijection'], '6')
+        2: ('St000067', ['to alternating sign matrix'], '6')
+        3: ('St000224', ['first fundamental transformation'], '6')
+        4: ('St000008', ['inversion-number to major-index bijection', 'descent composition'], '6')
+        5: ('St000059', ['inversion-number to major-index bijection', 'Robinson-Schensted recording tableau'], '6')
+        6: ('St000153', ['reverse', 'first fundamental transformation'], '6')
+        7: ('St000156', ['inverse first fundamental transformation', 'foata_bijection'], '6')
+        8: ('St000174', ['to alternating sign matrix', 'to semistandard tableau'], '6')
 
-        sage: fibo = search[0]                         # optional -- internet
+        Each result is a triple consisting of the index of the
+        statistic as a string, a list of strings naming some maps,
+        and a number which says how many of the values submitted
+        agree with the values in the database, when applying the maps
+        in the given order to the object (here: the permutation) and
+        then computing the statistic on the result
 
-        sage: fibo.description()                               # optional -- internet
-        'Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.'
+        sage: s = findstat(search[5][0]); s
+        St000059: The inversion number of a standard Young tableau as defined by Haglund and Stevens. [1]  
 
-        sage: fibo.values()                        # optional -- internet
-        (0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987,
-        1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393,
-        196418, 317811, 514229, 832040, 1346269, 2178309, 3524578, 5702887,
-        9227465, 14930352, 24157817, 39088169)
+        We can access the description of a statistic.
 
-        sage: fibo.references()[0]                # optional -- internet
-        'A039834'
+        sage: print s.description()                        # optional -- internet
+        The inversion number of a standard Young tableau as defined by Haglund and Stevens. [1]  
 
-        sage: fibo == findstat(45)                          # optional -- internet
-        True
+        Their inversion number is the total number of inversion pairs for the tableau.  An inversion pair is defined as a pair of cells (a,b), (x,y) such that the content of (x,y) is greater than the content of (a,b) and (x,y) is north of the inversion path of (a,b), where the inversion path is defined in detail in [1].
+
+        We can access references provided.
+        sage: s.references()
+        0: [1] J. Haglund and L. Stevens, An Extension of the Foata Map to Standard Young Tableaux, October, 2006
 
         TODO:
-    The database can be searched by description::
+        A full-text search should also be available
 
-        sage: oeis('prime gap factorization', max_results=4)                # optional -- internet
-        0: A073491: Numbers having no prime gaps in their factorization.
-        1: A073490: Number of prime gaps in factorization of n.
-        2: A073492: Numbers having at least one prime gap in their factorization.
-        3: A073493: Numbers having exactly one prime gap in their factorization.
-
-
-        TODO:
-    .. WARNING::
-
-        The following will fetch the OEIS database twice (once for searching the
-        database, and once again for creating the sequence ``fibo``)::
-
-            sage: oeis([1,2,3,5,8,13])                  # optional -- internet
-            0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
-            2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
-
-            sage: fibo = oeis('A000045')                # optional -- internet
-
-        Do not do this, it is slow, it costs bandwidth and server resources !
-        Instead, do the following, to reuse the result of the search to create
-        the sequence::
-
-            sage: oeis([1,2,3,5,8,13])                  # optional -- internet
-            0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
-            2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
-
-            sage: fibo = _[0]                           # optional -- internet
     """
 
     def __call__(self, query, collection=None):
@@ -219,7 +228,7 @@ class FindStat:
 
         INPUT:
 
-        - ``ident`` - a string representing the St-number of the sequence
+        - ``ident`` - a string representing the St-number of the statistic
           or an integer representing its number.
 
         OUTPUT:
@@ -251,11 +260,11 @@ class FindStat:
         stats = [(m.start(), m.groups()) for m in re.finditer(stat_re, text)]
         for (end, (stat, quality)) in stats:
             maps = [m.groups()[0] for m in re.finditer(maps_re, text[start:end])]
-            result += [(stat, maps, quality)]
+            result += [(stat, maps, Integer(quality))]
             start = end
         return result
 
-    def find_by_values(self, statistic, collection, depth="2", debug=False):
+    def find_by_values(self, statistic, collection, depth="2"):
         r"""
         Search for FindStat statistics with the given values applying at most ``depth`` maps.
 
@@ -265,28 +274,23 @@ class FindStat:
 
         OUTPUT:
 
-        - a tuple (with fancy formatting) of at most ``max_results`` OEIS
-          sequences. Those sequences can be used without the need to fetch the
+        - a tuple (with fancy formatting) of FindStat statistics.
+          Those statistics can be used without the need to fetch the
           database again.
 
         EXAMPLES::
 
         sage: stat = {pi: pi.length() for pi in Permutations(3)}
         sage: findstat.find_by_values(stat, "Permutations")
-        [('St000018', [], '6'),
-        ('St000004', ['inversion-number to major-index bijection'], '6'),
-        ('St000067', ['to alternating sign matrix'], '6'),
-        ('St000008',
-        ['inversion-number to major-index bijection', 'descent composition'],
-        '6'),
-        ('St000059',
-        ['inversion-number to major-index bijection',
-        'Robinson-Schensted recording tableau'],
-        '6'),
-        ('St000153', ['reverse', 'first fundamental transformation'], '6'),
-        ('St000156',
-        ['inverse first fundamental transformation', 'foata_bijection'],
-        '6')]
+        0: ('St000018', [], '6')
+        1: ('St000004', ['inversion-number to major-index bijection'], '6')
+        2: ('St000067', ['to alternating sign matrix'], '6')
+        3: ('St000224', ['first fundamental transformation'], '6')
+        4: ('St000008', ['inversion-number to major-index bijection', 'descent composition'], '6')
+        5: ('St000059', ['inversion-number to major-index bijection', 'Robinson-Schensted recording tableau'], '6')
+        6: ('St000153', ['reverse', 'first fundamental transformation'], '6')
+        7: ('St000156', ['inverse first fundamental transformation', 'foata_bijection'], '6')
+        8: ('St000174', ['to alternating sign matrix', 'to semistandard tableau'], '6')
         
         sage: stat = {pi: randint(0,10) for pi in Permutations(3)}
         sage: findstat(stat, "Permutations")
@@ -295,32 +299,33 @@ class FindStat:
         import urllib, urllib2
 
         url = findstat_url_result + collection + "/"
-        if debug:
-            print url
 
         # the spaces in " => " are important!
         stat_str = join([str(a) + " => " + str(b) 
                          for (a,b) in sorted(statistic.items())], " \n")
         values = urllib.urlencode({"freedata": stat_str, "depth": depth})
-        if debug:
-            print values
+
+        _ = verbose("Fetching URL %s with encoded data %s..." %(url, values), caller_name='FindStat')
 
         request = urllib2.Request(url, data=values)
-        if debug:
-            print request
+
+        _ = verbose("Requesting %ss..." %request, caller_name='FindStat')
+
         response = urllib2.urlopen(request)
-        if debug:
-            print response.info()
+
+        _ = verbose("Response was %ss..." %response.info(), caller_name='FindStat')
+
         result_html = response.read()
         download_idx = result_html.find("Download your result")
-        if debug:
-            print "index", download_idx
+
+        _ = verbose("Download link at position %s..." %download_idx, caller_name='FindStat')
+
         if download_idx == -1:
             return []
         else:
             link = findstat_url + result_html[download_idx-76:download_idx-18]
-            if debug:
-                print link
+            
+            _ = verbose("Download link is %s..." %link, caller_name='FindStat')
             result_text = urllib2.urlopen(link).read()
             return FancyTuple(self._parse(result_text))
 
@@ -332,14 +337,12 @@ class FindStat:
 
             sage: findstat.browse()                         # optional -- webbrowser
         """
-        import webbrowser
         webbrowser.open(findstat_url)
 
     def submit(code=None):
         r"""
         Open the FindStat web page for submissions in a browser.
         """
-        import webbrowser
         webbrowser.open(findstat_url_submit)
         
 
@@ -434,32 +437,10 @@ class FindStatStatistic(SageObject):
     r"""
     The class of FindStat statistics.
 
-    This class implements FindStat statistics. Such sequences are
+    This class implements FindStat statistics. Such statistics are
     produced from a string in the FindStat format. They are usually
     produced by calls to the FindStat database, represented by the
     class :class:`FindStat`.
-
-    .. NOTE::
-
-        Since some sequences do not start with index 0, there is a difference
-        between calling and getting item, see :meth:`__call__` for more details
-        ::
-
-            sage: sfibo = oeis('A039834')               # optional -- internet
-            sage: sfibo.first_terms()[:10]              # optional -- internet
-            (1, 1, 0, 1, -1, 2, -3, 5, -8, 13)
-
-            sage: sfibo(-2)                             # optional -- internet
-            1
-            sage: sfibo(3)                              # optional -- internet
-            2
-            sage: sfibo.offsets()                       # optional -- internet
-            (-2, 6)
-
-            sage: sfibo[0]                              # optional -- internet
-            1
-            sage: sfibo[6]                              # optional -- internet
-            -3
 
     .. automethod:: __call__
     """
@@ -484,27 +465,27 @@ class FindStatStatistic(SageObject):
 
     # we set up a dictionary from FindStat collections to sage constructors
     _findstat_collections = {
-        'Alternating sign matrices': AlternatingSignMatrix,
-        'Binary trees': BinaryTree,
-        'Cores': Core,
-        'Dyck paths': DyckWord,
-        'Finite Cartan types': CartanType,
-        'Gelfand-Tsetlin patterns': GelfandTsetlinPattern,
-        'Graphs': Graph,
-        'Integer compositions': Composition,
-        'Integer partitions': Partition,
-        'Ordered trees': OrderedTree,
-        'Parking functions': ParkingFunction,
-        'Perfect matchings': PerfectMatching,
-        'Permutations': Permutation,
-        'Posets': Poset,
-        'Semistandard tableaux': SemistandardTableau,
-        'Set partitions': SetPartition,
-        'Standard tableaux': StandardTableau}
+        'Alternating sign matrices': lambda x: AlternatingSignMatrix(literal_eval(x)),
+        'Binary trees': lambda x: BinaryTree(literal_eval(x)),
+        'Cores': lambda x: Core(literal_eval(x)),
+        'Dyck paths': lambda x: DyckWord(literal_eval(x)),
+        'Finite Cartan types': lambda x: CartanType(literal_eval(x)),
+        'Gelfand-Tsetlin patterns': lambda x: GelfandTsetlinPattern(literal_eval(x)),
+        'Graphs': lambda x: Graph(literal_eval(x)),
+        'Integer compositions': lambda x: Composition(literal_eval(x)),
+        'Integer partitions': lambda x: Partition(literal_eval(x)),
+        'Ordered trees': lambda x: OrderedTree(literal_eval(x)),
+        'Parking functions': lambda x: ParkingFunction(literal_eval(x)),
+        'Perfect matchings': lambda x: PerfectMatching(literal_eval(x)),
+        'Permutations': lambda x: Permutation(literal_eval(x)),
+        'Posets': lambda x: Poset(literal_eval(x)),
+        'Semistandard tableaux': lambda x: SemistandardTableau(literal_eval(x)),
+        'Set partitions': lambda x: SetPartition(x.replace('{','[').replace('}',']')),
+        'Standard tableaux': lambda x: StandardTableau(literal_eval(x))}
 
     def __init__(self, entry):
         r"""
-        Initializes a FindStat sequence.
+        Initializes a FindStat statistic.
 
         TESTS::
 
@@ -528,7 +509,7 @@ class FindStatStatistic(SageObject):
 
     def id(self, format='St'):
         r"""
-        The ID of the sequence ``self`` is the St-number that identifies
+        The ID of the statistic ``self`` is the St-number that identifies
         ``self``.
 
         INPUT:
@@ -543,11 +524,9 @@ class FindStatStatistic(SageObject):
         EXAMPLES::
 
             sage: f = findstat(45) ; f                      # optional -- internet
-            A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-
+            St000045: The number of linear extensions of the tree. 
             sage: f.id()                                # optional -- internet
-            'A000045'
-
+            'St000045'
             sage: f.id(format='int')                    # optional -- internet
             45
 
@@ -562,11 +541,11 @@ class FindStatStatistic(SageObject):
         if format == 'St':
             return self._fields[FindStatStatistic._field_id]
         elif format == 'int':
-            return Integer(self._id[1:].lstrip("0"))
+            return Integer(self._fields[FindStatStatistic._field_id][2:].lstrip("0"))
 
     def raw_entry(self):
         r"""
-        Return the raw entry of the sequence ``self``, in the FindStat format.
+        Return the raw entry of the statistic ``self``, in the FindStat format.
 
         OUTPUT:
 
@@ -574,10 +553,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: f = findstat(45) ; f                      # optional -- internet
-
-            sage: print f.raw_entry()                   # optional -- internet
-            ...
+            sage: print findstat(45).raw_entry()                   # optional -- internet
 
         TESTS::
 
@@ -597,9 +573,16 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: f = findstat(45) ; f                      # optional -- internet
-
-            sage: f.description()                              # optional -- internet
+            sage: print findstat(45).description()                              # optional -- internet
+            The number of linear extensions of the tree. 
+            
+            Also, the number of increasing / decreasing binary trees labelled by $1, \dots, n$ of this shape.
+            
+            Also, the size of the sylvester class corresponding to this tree when the Tamari order is seen as a quotient poset of the right weak order on permutations. 
+            
+            Also, the number of permutations which give this tree shape when inserted in a binary search tree.
+            
+            Also, the number of permutations which increasing / decreasing tree is of this shape.
 
         TESTS::
 
@@ -619,9 +602,8 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: f = findstat(45) ; f                      # optional -- internet
-
-            sage: f.description()                              # optional -- internet
+            sage: findstat(45).name()                              # optional -- internet
+            'The number of linear extensions of the tree. '
 
         TESTS::
 
@@ -634,7 +616,7 @@ class FindStatStatistic(SageObject):
 
     def author(self):
         r"""
-        Returns the author of the sequence in the encyclopedia.
+        Returns the author of the statistic in the encyclopedia.
 
         OUTPUT:
 
@@ -642,11 +624,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: f = findstat(45) ; f                      # optional -- internet
-            A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-
-            sage: f.author()                            # optional -- internet
-            '_N. J. A. Sloane_.'
+            sage: findstat(45).author()                            # optional -- internet
 
         TESTS::
 
@@ -654,6 +632,7 @@ class FindStatStatistic(SageObject):
             sage: s.author()
             'Anonymous.'
         """
+        raise NotImplementedError
         return self._fields["XXX"]
 
     @cached_method
@@ -667,9 +646,26 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: f = findstat(45) ; f.constructor()                      # optional -- internet
+            sage: findstat(45).constructor()                      # optional -- internet
+            <class 'sage.combinat.binary_tree.BinaryTree'>
         """
-        return FindStatStatistic._findstat_collections.get(self._fields[FindStatStatistic._field_coll], None)
+        return FindStatStatistic._findstat_collections.get(self.collection(), None)
+
+    def collection(self):
+        r"""
+        Returns the sage constructor corresponding to the combinatorial collection, or `None`.
+
+        OUTPUT:
+
+        - string.
+
+        EXAMPLES::
+
+            sage: findstat(45).constructor()                      # optional -- internet
+            <class 'sage.combinat.binary_tree.BinaryTree'>
+        """
+        return self._fields[FindStatStatistic._field_coll]
+
 
     @cached_method
     def first_terms(self):
@@ -681,8 +677,10 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: f = findstat(45)                          # optional -- internet
-            sage: f.first_terms()                  # optional -- internet
+            sage: f = findstat(2); f                  # optional -- internet
+            St000002: The number of occurrences of the pattern $[1,2,3]$ inside a permutation of length at least 3.
+            sage: f.first_terms()[Permutation([1, 2, 4, 3])]
+            2
 
         TESTS::
 
@@ -694,19 +692,6 @@ class FindStatStatistic(SageObject):
             sage: s.first_terms(5, absolute_value=True)
             (1, 1, 1, 1, 1)
 
-            sage: s = findstat._imaginary_sequence(keywords='full')
-            sage: s(40)
-            Traceback (most recent call last):
-            ...
-            TypeError: You found a sign inconsistency, please contact FINDSTAT
-
-            sage: s = findstat._imaginary_sequence(keywords='sign,full')
-            sage: s(40)
-            1
-
-            sage: s = findstat._imaginary_sequence(keywords='nonn,full')
-            sage: s(42)
-            1
         """
         vals = self._fields[FindStatStatistic._field_vals].split()
         # elements with index
@@ -721,13 +706,18 @@ class FindStatStatistic(SageObject):
         else:
             return {constructor(obj): Integer(val) for (obj, val) in zip(vals0, vals2)}
 
-    def code(self):
+    def code(self, security_warning=True):
         r"""
         Returns the contents of the field for the code for the statistic as a string.
 
         Warning: although it may be desirable to execute this code,
         be aware of the fact that it is user contributed code.  It
-        could kill your computer.
+        could kill your computer.  Therefore, this method prepends
+        the following two lines to the contents of the field, when
+        ``security_warning`` is ``True``:
+
+        print "Warning: this is user contributed code, potentially killing your computer"
+        raise StandardError
 
         OUTPUT:
 
@@ -735,10 +725,10 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: f = findstat(45) ; f                      # optional -- internet
-            St000045: The number of linear extensions of the tree. 
+            sage: print findstat(45).code()                            # optional -- internet
+            print "Warning: this is user contributed code, potentially killing your computer"
+            raise StandardError
 
-            sage: print f.code()                            # optional -- internet
             def hook_product(tree):
                 if(not tree):
                     return 1
@@ -749,20 +739,24 @@ class FindStatStatistic(SageObject):
             def linear_extensions(tree):
                 return factorial(tree.node_number()-1)/hook_product(tree[0])/hook_product(tree[1])
 
-            sage: exec(f.code()) # not tested DANGEROUS
+            sage: exec(f.code()) # not tested #### DANGEROUS ####
             sage: all(linear_extensions(key) == val for (key, val) in f.first_terms().iteritems())
 
         TESTS::
 
             sage: s = findstat._imaginary_sequence()
-            sage: s.author()
+            sage: s.code()
             'Anonymous.'
         """
-        return self._fields[FindStatStatistic._field_code]
+        if security_warning:
+            s = 'raise StandardError("This is user contributed code, potentially killing your computer!")'
+            return s + '\r\n' + self._fields[FindStatStatistic._field_code]
+        else:
+            return self._fields[FindStatStatistic._field_code]
 
     def _repr_(self):
         r"""
-        Prints the sequence number and a short summary of this sequence.
+        Prints the statistic number and a short summary of this statistic.
 
         OUTPUT:
 
@@ -770,9 +764,8 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: f = findstat(45)                      # optional -- internet
-            sage: f                                     # optional -- internet
-            A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
+            sage: findstat(45)                      # optional -- internet
+            St000045: The number of linear extensions of the tree. 
 
         TESTS::
 
@@ -796,10 +789,11 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: f = findstat(45)                      # optional -- internet
-            sage: f.first_terms()                       # optional -- internet
-            sage: f(BinaryTrees(4).an_element())        # optional -- internet
-            3
+            sage: f=findstat(2); f
+            St000002: The number of occurrences of the pattern $[1,2,3]$ inside a permutation of length at least 3.
+
+            sage: f(Permutation([1,2,4,3,5]))        # optional -- internet
+            7
 
         ::
 
@@ -859,7 +853,7 @@ class FindStatStatistic(SageObject):
 
         INPUT:
 
-        - ``other`` -- a findstat sequence
+        - ``other`` -- a findstat statistic
 
         OUTPUT:
 
@@ -880,7 +874,7 @@ class FindStatStatistic(SageObject):
 
     def references(self):
         r"""
-        Return a tuple of references associated to the sequence ``self``.
+        Return a tuple of references associated to the statistic ``self``.
 
         OUTPUT:
 
@@ -888,14 +882,12 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: w = findstat(7540) ; w                # optional -- internet
-            A007540: Wilson primes: primes p such that (p-1)! == -1 (mod p^2).
+            sage: w = findstat(21) ; w                # optional -- internet
+            St000021: The number of descents of a permutation.
 
             sage: w.references()                        # optional -- internet
-            0: A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.
-            1: C. Clawson, Mathematical Mysteries, Plenum Press, 1996, p. 180.
-            2: Edgar Costa, Robert Gerbicz, and David Harvey, <a href="http://arxiv.org/abs/1209.3436">A search for Wilson primes</a>, 2012
-            ...
+            0: [[/Permutations/Descents]]
+            1: [[oeis:A008292]]
 
             sage: _[0]                                  # optional -- internet
             'A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.'
@@ -910,7 +902,7 @@ class FindStatStatistic(SageObject):
 
     def url(self):
         r"""
-        Return the URL of the page associated to the sequence ``self``.
+        Return the URL of the page associated to the statistic ``self``.
 
         OUTPUT:
 
@@ -918,11 +910,8 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: f = findstat(45) ; f                  # optional -- internet
-            A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-
-            sage: f.url()                               # optional -- internet
-            'http://findstat.org/A000045'
+            sage: findstat(45).url()                               # optional -- internet
+            'http://www.findstat.org/St000045'
 
         TESTS::
 
@@ -934,22 +923,33 @@ class FindStatStatistic(SageObject):
 
     def browse(self):
         r"""
-        Open the FindStat web page associated to the sequence ``self`` in a browser.
+        Open the FindStat web page associated to the statistic ``self`` in a browser.
 
         EXAMPLES::
 
-            sage: f = findstat(45) ; f                  # optional -- internet, webbrowser
-            A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-
-            sage: f.browse()                            # optional -- internet, webbrowser
+            sage: findstat(45).browse()                            # optional -- internet, webbrowser
 
         TESTS::
 
             sage: s = findstat._imaginary_sequence()        # optional -- webbrowser
             sage: s.browse()                            # optional -- webbrowser
         """
-        import webbrowser
         webbrowser.open(self.url())
 
-findstat = FindStat()
+    def edit(self):
+        r"""
+        Open the FindStat web page for editing the statistic ``self`` in a browser.
 
+        EXAMPLES::
+
+            sage: findstat(45).browse()                            # optional -- internet, webbrowser
+
+        TESTS::
+
+            sage: s = findstat._imaginary_sequence()        # optional -- webbrowser
+            sage: s.browse()                            # optional -- webbrowser
+        """
+        webbrowser.open(findstat_url_edit + self.id())
+
+
+findstat = FindStat()

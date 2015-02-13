@@ -54,7 +54,7 @@ AUTHOR:
 import sage.categories.morphism
 import sage.categories.homset
 import sage.matrix.all as matrix
-from   sage.structure.all import Sequence
+from sage.structure.all import Sequence, parent
 
 def is_MatrixMorphism(x):
     """
@@ -142,7 +142,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             TypeError: [1, 1] must be coercible into Vector space of dimension 3 over Rational Field
         """
         try:
-            if not hasattr(x, 'parent') or x.parent() != self.domain():
+            if parent(x) is not self.domain():
                 x = self.domain()(x)
         except TypeError:
             raise TypeError("%s must be coercible into %s"%(x,self.domain()))

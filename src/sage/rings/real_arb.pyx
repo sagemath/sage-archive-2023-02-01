@@ -153,7 +153,7 @@ class RealBallField(UniqueRepresentation, Parent):
         if precision < 2:
             raise ValueError("Precision must be at least 2.")
         super(RealBallField, self).__init__(categories=[sage.categories.sets_cat.Sets])
-        self.precision = precision
+        self._prec = precision
 
     def _repr_(self):
         r"""
@@ -167,7 +167,7 @@ class RealBallField(UniqueRepresentation, Parent):
             sage: RealBallField(106) # optional - arb
             Real ball field with 106 bits precision
         """
-        return "Real ball field with {} bits precision".format(self.precision)
+        return "Real ball field with {} bits precision".format(self._prec)
 
     def _coerce_map_from_(self, S):
         r"""
@@ -199,6 +199,18 @@ class RealBallField(UniqueRepresentation, Parent):
     def _an_element_(self):
         return self._element_constructor_(self)
 
+    def precision(self):
+        """
+        Return the bit precision used for operations on elements of this field.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField().precision() # optional - arb
+            53
+        """
+        return self._prec
+
 
 cdef inline bint _do_sig(long prec):
     """
@@ -213,7 +225,7 @@ cdef inline bint _do_sig(long prec):
     return (prec > 1000)
 
 cdef inline long prec(RealBall ball):
-    return ball._parent.precision
+    return ball._parent._prec
 
 cdef class RealBall(Element):
     """
@@ -285,7 +297,7 @@ cdef class RealBall(Element):
 
         if not isinstance(x, RealIntervalFieldElement):
             try:
-                x = RealIntervalField(self._parent.precision)(x)
+                x = RealIntervalField(prec(self))(x)
             except TypeError:
                 raise TypeError("unable to convert to a RealIntervalFieldElement")
 

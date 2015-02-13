@@ -3,6 +3,8 @@
 #  called with one argument which meight be either "installed" or "standard" or
 #  "optional" or "experimental".
 
+from __future__ import print_function
+
 import os, sys
 
 if "SAGE_ROOT" not in os.environ:
@@ -25,7 +27,7 @@ def get_remote_package_list(category):
     import urllib, urllib2, urlparse
 
     PKG_SERVER = urlparse.urljoin(os.environ['SAGE_SERVER'],'packages')
-    print "Using Sage Server %s"%PKG_SERVER
+    print("Using Sage Server {}".format(PKG_SERVER))
 
     url_path = os.path.join('packages', category, 'list')
     url = urlparse.urljoin(PKG_SERVER, urllib.pathname2url(url_path))
@@ -33,17 +35,19 @@ def get_remote_package_list(category):
     try:
         pkg_list_file = urllib2.urlopen(url)
     except (OSError, IOError) as msg:
-        print msg
-        print "\n\n"
-        print "*"*80
-        print "\n\n"
-        print "Error contacting %s. Try using an alternative server."%url
-        print "For example, from the bash prompt try typing\n"
-        print "   export SAGE_SERVER=http://sage.scipy.org/sage/\n"
-        print "then try again."
-        print "\n\n"
-        print "*"*80
-        print "\n\n"
+        print(msg)
+        print("\n\n")
+        print("*"*80)
+        print("\n\n")
+        print("Error contacting {}. Try using an alternative server.".format(url))
+        print("For example, from the bash prompt try typing")
+        print()
+        print("   export SAGE_SERVER=http://sage.scipy.org/sage/")
+        print()
+        print("then try again.")
+        print("\n\n")
+        print("*"*80)
+        print("\n\n")
         sys.exit(1)
 
     result = [line.strip() for line in pkg_list_file.readlines()]
@@ -62,7 +66,7 @@ except OSError:
     installed = set([])
 
 if category == 'installed':
-    print '\n'.join(installed)
+    print(*installed, sep='\n')
     sys.exit(0)
 
 def split_pkgname(name):
@@ -79,7 +83,9 @@ installed_version = dict([ split_pkgname(pkg) for pkg in installed ])
 
 available_version = dict([ split_pkgname(pkg) for pkg in get_remote_package_list(category)])
 
-print "\n%s packages:\n" % (category[0].upper() + category[1:])
+print()
+print("{} packages:".format(category[0].upper() + category[1:]))
+print()
 
 for pkg_name in sorted(available_version.keys()):
 
@@ -92,7 +98,8 @@ for pkg_name in sorted(available_version.keys()):
     # Some packages don't have a (proper) version at all:
     fullname = pkg_name + ('-' + may if len(may) else "")
 
-    print "%s %s %s" % (fullname, "."*(40-len(fullname)), status) 
+    print("{:.<40} {}".format(fullname + " ", status))
 
-print "\nType 'sage -i package_name' to download and install a package."
+print()
+print("Type 'sage -i package_name' to download and install a package.")
 

@@ -177,4 +177,4 @@ def num_threads():
 
     return (num_threads, num_threads_parallel, num_cores)
 
-print "%i %i %i"%num_threads()
+print(*num_threads())

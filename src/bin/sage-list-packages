@@ -24,16 +24,22 @@ def get_remote_package_list(category):
 
     - ``category`` -- can be either "standard", "optional" or "experimental".
     """
-    import urllib, urllib2, urlparse
+    try:
+        from urllib.parse import urljoin
+        from urllib.request import pathname2url, urlopen
+    except ImportError:
+        from urlparse import urljoin
+        from urllib import pathname2url
+        from urllib2 import urlopen
 
-    PKG_SERVER = urlparse.urljoin(os.environ['SAGE_SERVER'],'packages')
+    PKG_SERVER = urljoin(os.environ['SAGE_SERVER'],'packages')
     print("Using Sage Server {}".format(PKG_SERVER))
 
     url_path = os.path.join('packages', category, 'list')
-    url = urlparse.urljoin(PKG_SERVER, urllib.pathname2url(url_path))
+    url = urljoin(PKG_SERVER, pathname2url(url_path))
 
     try:
-        pkg_list_file = urllib2.urlopen(url)
+        pkg_list_file = urlopen(url)
     except (OSError, IOError) as msg:
         print(msg)
         print("\n\n")

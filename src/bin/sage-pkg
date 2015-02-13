@@ -90,22 +90,12 @@ Proceeding anyway..."""
         else:
             spkg_txt = "File is missing"
 
-        p = Popen("cd '%s' && hg diff" % dir, shell=True, stdout=PIPE, stderr=PIPE)
-        std_out, std_err = p.communicate()
-        if len(std_err) != 0:
-            hgrepo_txt = "Error reading repository"
-        elif len(std_out) != 0:
-            hgrepo_txt = "Unchecked in changes"
-        else:
-            hgrepo_txt = "Good"
-
         print """
 Created package %(file)s.
 
     NAME: %(name)s
  VERSION: %(version)s
     SIZE: %(size)s
- HG REPO: %(hgrepo)s
 SPKG.txt: %(spkg)s
 
 Please test this package using
@@ -113,7 +103,7 @@ Please test this package using
    sage -f %(file)s
 
 immediately.""" % {'file': file, 'name': name, 'version': version, 'size': size,
-           'hgrepo': hgrepo_txt, 'spkg': spkg_txt},
+           'spkg': spkg_txt},
         if options.no_compress:
             print ""
             print ""

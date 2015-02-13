@@ -211,6 +211,42 @@ class RealBallField(UniqueRepresentation, Parent):
         """
         return self._prec
 
+    def is_exact(self):
+        """
+        Real ball fields are not exact.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField().is_exact() # optional - arb
+            False
+        """
+        return False
+
+    def is_finite(self):
+        """
+        Real ball fields are infinite.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField().is_finite() # optional - arb
+            False
+        """
+        return False
+
+    def characteristic(self):
+        """
+        Real ball fields have characteristic zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RealBallField().characteristic() # optional - arb
+            0
+        """
+        return 0
+
 
 cdef inline bint _do_sig(long prec):
     """

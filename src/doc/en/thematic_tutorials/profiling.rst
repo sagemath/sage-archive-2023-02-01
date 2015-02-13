@@ -15,7 +15,8 @@ performances of a piece of code. For more general information on profiling, see
 How long does it take? %time and %timeit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The two commands ``time`` and :mod:`timeit <sage.misc.sage_timeit_class>` measure the time it takes to run a command::
+The two commands ``%time`` and ``%timeit`` measure the time it takes to run a
+command::
 
   sage: %time p=random_prime(2**500)
   CPU times: user 440 ms, sys: 0 ns, total: 440 ms
@@ -27,7 +28,7 @@ The two commands ``time`` and :mod:`timeit <sage.misc.sage_timeit_class>` measur
 Note that while ``%time`` only runs the command once, ``%timeit`` tries to
 return a more meaningful value over several runs.
 
-For more information on :mod:`timeit <sage.misc.sage_timeit_class>`, `click here
+For more information on ``%timeit``, `click here
 <https://docs.python.org/2/library/timeit.html>`_
 
 Python-level function calls: %prun

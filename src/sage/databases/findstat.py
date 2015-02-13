@@ -480,7 +480,7 @@ class FindStatStatistic(SageObject):
         'Permutations': lambda x: Permutation(literal_eval(x)),
         'Posets': lambda x: Poset(literal_eval(x)),
         'Semistandard tableaux': lambda x: SemistandardTableau(literal_eval(x)),
-        'Set partitions': lambda x: SetPartition(x.replace('{','[').replace('}',']')),
+        'Set partitions': lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']'))),
         'Standard tableaux': lambda x: StandardTableau(literal_eval(x))}
 
     def __init__(self, entry):

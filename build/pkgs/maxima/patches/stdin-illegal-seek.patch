@@ -14,10 +14,9 @@ committer Andrej Vodopivec <andrej.vodopivec@gmail.com> 1423041512 +0100
 
     mread-synerr: don't report line/column for errors from user input.
 
-diff --git a/src/nparse.lisp b/src/nparse.lisp
-index aad7e48..5a48b08 100644
---- a/src/nparse.lisp
-+++ b/src/nparse.lisp
+diff -ru src/src/nparse.lisp b/src/nparse.lisp
+--- src/src/nparse.lisp	2014-11-19 06:00:09.000000000 +0100
++++ b/src/nparse.lisp	2015-02-13 10:12:49.107785016 +0100
 @@ -37,8 +37,10 @@
  (defmvar $report_synerr_info t "If T, report the syntax error details from all sources; otherwise, only report details from standard-input.")
  

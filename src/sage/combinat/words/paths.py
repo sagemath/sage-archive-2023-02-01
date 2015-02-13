@@ -59,6 +59,8 @@ use ``help(p)``::
     Methods inherited from FiniteWordPath_all:
     ...
     This only works on Python classes that derive from SageObject.
+    ...
+    See http://trac.sagemath.org/2536 for details.
 
 Since p is a finite word, many functions from the word library are available::
 

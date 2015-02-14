@@ -33,6 +33,7 @@ Algebras
    sage/algebras/affine_nil_temperley_lieb
 
    sage/algebras/hall_algebra
+   sage/algebras/jordan_algebra
 
    sage/algebras/quatalg/quaternion_algebra
 

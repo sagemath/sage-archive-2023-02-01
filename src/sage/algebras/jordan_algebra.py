@@ -35,9 +35,8 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     - `(xy)(xx) = x(y(xx))` (the Jordan identity).
 
     These axioms imply that a Jordan algebra is power-associative and the
-    following generalization of Jordan's identity holds:
+    following generalization of Jordan's identity holds [Jacobson71]_:
     `(x^m y) x^n = x^m (y x^n)` for all `m, n \in \ZZ_{>0}`.
-    .. TODO:: Reference please!
 
     Let `A` be an associative algebra over a ring `R` in which 2 is
     invertible. We construct a Jordan algebra `A^+` by defining
@@ -136,6 +135,9 @@ class JordanAlgebra(Parent, UniqueRepresentation):
 
     .. [Chu2012] Cho-Ho Chu. *Jordan Structures in Geometry and Analysis*.
        Cambridge University Press, New York. 2012. IBSN 978-1-107-01617-0.
+
+    .. [McCrimmon78] K. McCrimmon. *Jordan algebras and their applications*.
+       Bull. Amer. Math. Soc. **84** 1978.
     """
     @staticmethod
     def __classcall_private__(self, arg0, arg1=None, names=None):
@@ -498,10 +500,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
 
         def _lmul_(self, other):
             """
-            Multiply ``self`` and ``other`` by the left action.
-
-            .. TODO:: What exactly does this do? What is the "left action"?
-                      Shouldn't it do precisely the same as ``_mul_`??
+            Multiply ``self`` by the scalar ``other`` with ``self``
+            on the left.
 
             EXAMPLES::
 
@@ -842,9 +842,8 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
 
         def _lmul_(self, other):
             """
-            Multiply ``self`` and ``other`` by the left action.
-
-            .. TODO:: Again, please explain what this means.
+            Multiply ``self`` by the scalar ``other`` with ``self``
+            on the left.
 
             EXAMPLES::
 

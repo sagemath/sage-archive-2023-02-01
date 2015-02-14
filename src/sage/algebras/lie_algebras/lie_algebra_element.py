@@ -221,6 +221,8 @@ class LieAlgebraElementWrapper(ElementWrapper):
         return self.__class__(self.parent(), self.value - rhs.value)
 
     # This seems to work with 2 underscores and I don't understand why...
+    # We let the universal enveloping algebra handle the rest if both
+    #   arguments are non-zero
     def __mul__(self, x):
         """
         If we are multiplying two non-zero elements, automatically
@@ -254,7 +256,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
             sage: y * 1/2
             1/2*y
         """
-        # This was copied and IDK if it still applies:
+        # This was copied and IDK if it still applies (TCS):
         # With the current design, the coercion model does not have
         # enough information to detect apriori that this method only
         # accepts scalars; so it tries on some elements(), and we need

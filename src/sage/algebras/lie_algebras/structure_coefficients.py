@@ -83,23 +83,17 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L1 is L2
             True
         """
-        if isinstance(names, str):
-            names = tuple(names.split(','))
+        names, index_set = _standardize_names_index_set(names, index_set)
 
         s_coeff = LieAlgebraWithStructureCoefficients._standardize_s_coeff(s_coeff)
         if len(s_coeff) == 0:
             return AbelianLieAlgebra(R, names, index_set, **kwds)
 
-        if names is None:
-            if index_set is None:
-                raise ValueError("either the names or the index set must be specified")
-            if len(index_set) <= 1:
-                return AbelianLieAlgebra(R, names, index_set, **kwds)
-        elif len(names) <= 1:
+        if (names is None and len(index_set) <= 1) or len(names) <= 1:
             return AbelianLieAlgebra(R, names, index_set, **kwds)
 
         return super(LieAlgebraWithStructureCoefficients, cls).__classcall__(
-            cls, R, s_coeff, tuple(names), index_set, **kwds)
+            cls, R, s_coeff, names, index_set, **kwds)
 
     @staticmethod
     def _standardize_s_coeff(s_coeff):

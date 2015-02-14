@@ -49,7 +49,7 @@ from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import FreeModule, span
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
-from sage.sets.family import Family
+from sage.sets.family import Family, AbstractFamily
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 
 class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
@@ -170,6 +170,8 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
     - :wikipedia:`Lie_algebra`
     """
+    # This works because it is an abstract base class and this
+    #    __classcall_private__ will only be called when calling LieAlgebra
     @staticmethod
     def __classcall_private__(cls, R=None, arg0=None, arg1=None, names=None,
                               index_set=None, abelian=False, **kwds):
@@ -189,7 +191,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
         assoc = kwds.get("associative", None)
         if assoc is not None:
-            return LieAlgebraFromAssociative(assoc, names, index_set)
+            return LieAlgebraFromAssociative(assoc, names=names, index_set=index_set)
 
         # Parse the remaining arguments
         # -----
@@ -258,12 +260,54 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             # Construct the free Lie algebra from polynomials in the
             #   free (associative unital) algebra
             # TODO: Change this to accept an index set once FreeAlgebra accepts one
-            F = FreeAlgebra(R, names, len(names))
-            return LieAlgebraFromAssociative(F.gens(), names, index_set)
+            F = FreeAlgebra(R, names)
+            return LieAlgebraFromAssociative(list(F.algebra_generators()),
+                                             names, index_set)
 
-        raise NotImplementedError("the free Lie algebra has not been implemented, see trac ticket #16823")
+        raise NotImplementedError("the free Lie algebra has only been implemented using polynomials in the free algebra, see trac ticket #16823")
 
-    # TODO: Should this inherit from IndexedGenerators?
+    @staticmethod
+    def _standardize_names_index_set(names=None, index_set=None, ngens=None):
+        """
+        Standardize the ``names`` and ``index_set`` for a Lie algebra.
+
+        .. TODO::
+
+            This function could likely be generalized for any parent
+            inheriting from :class:`IndexedGenerators` and (potentially)
+            having ``names``. Should this method be moved to
+            :class:`IndexedGenerators`?
+        """
+        if index_set is None:
+            if names is None:
+                raise ValueError("either the names of the generators"
+                                 " or the index set must be specified")
+            # If only the names are specified, then we make the indexing set
+            #   be the names
+            index_set = tuple(names)
+
+        if isinstance(names, str):
+            names = tuple(names.split(','))
+        elif names is not None:
+            names = tuple(names)
+
+        if isinstance(index_set, (tuple, list)):
+            index_set = FiniteEnumeratedSet(index_set)
+
+        if names is not None:
+            if index_set is not None and len(names) != index_set.cardinality():
+                raise ValueError("the number of names must equal"
+                                 " the size of the indexing set")
+            if ngens is not None and len(names) != ngens:
+                raise ValueError("the number of names must equal the number of generators")
+        elif ngens is not None and index_set.cardinality() != ngens:
+            raise ValueError("the size of the indexing set must equal"
+                             " the number of generators")
+
+        return names, index_set
+
+    # TODO: Should this inherit from IndexedGenerators or should this
+    #   be a subclass?
     def __init__(self, R, names=None, index_set=None, category=None):
         """
         The Lie algebra.
@@ -286,21 +330,6 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             Category of finite dimensional lie algebras with basis over Rational Field
         """
         category = LieAlgebras(R).or_subcategory(category)
-        if index_set is None:
-            if names is None:
-                raise ValueError("either the names of the generators"
-                                 " or the index set must be specified")
-            index_set = tuple(names)
-
-        if isinstance(index_set, (tuple, list)):
-            index_set = FiniteEnumeratedSet(index_set)
-
-        if isinstance(names, str):
-            names = tuple(names.split(','))
-
-        #if names is None and index_set.cardinality() < infinity \
-        #        and all(isinstance(i, str) for i in index_set):
-        #    names = index_set
 
         self._indices = index_set
         Parent.__init__(self, base=R, names=names, category=category)
@@ -318,13 +347,13 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             True
         """
         if isinstance(x, list) and len(x) == 2:
-            return self.bracket(self(x[0]), self(x[1]))
-        if isinstance(x, self.element_class) and x.parent() is self:
-            return x
+            return self(x[0])._bracket_(self(x[1]))
+
         if x in self.base_ring():
             if x != 0:
                 raise ValueError("can only convert the scalar 0 into a Lie algebra element")
             return self.zero()
+
         return self.element_class(self, x)
 
     def __getitem__(self, x):
@@ -391,8 +420,6 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             0
         """
         return self.element_class(self, {})
-
-    zero_element = zero
 
     # TODO: Find a better place for this method?
     # TODO: Use IndexedGenerators?
@@ -611,7 +638,6 @@ class InfinitelyGeneratedLieAlgebra(LieAlgebra):
         """
         return infinity
 
-# TODO: Implement a version for infinite set of generators?
 class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
     """
     A Lie algebra whose elements are from an associative algebra and whose
@@ -704,7 +730,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
         True
     """
     @staticmethod
-    def __classcall_private__(cls, gens, names=None, index_set=None, category=None):
+    def __classcall_private__(cls, gens, names=None, index_set=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -719,38 +745,58 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
         """
         if isinstance(gens, Parent):
             A = gens
-            gens = gens.gens()
+            ngens = None
+            # Parse possible generators (i.e., a basis) from the parent
+            try:
+                gens = A.basis()
+
+                if index_set is None:
+                    try:
+                        index_set = gens.keys()
+                    except (AttributeError, ValueError):
+                        pass
+                if names is None:
+                    try:
+                        names = A.variable_names()
+                    except ValueError:
+                        pass
+            except (AttributeError, NotImplementedError):
+                pass
+
+        elif isinstance(gens, AbstractFamily):
+            if index_set is None:
+                index_set = gens.keys()
+            if gens.cardinality() < float('inf'):
+                gens = tuple([gens[i] for i in gens.keys()])
+                ngens = len(gens)
+
         elif isinstance(gens, dict):
             if index_set is None:
                 index_set = gens.keys()
             gens = gens.values()
+            ngens = len(gens)
         else: # Assume it is list-like
             A = gens[0].parent()
             gens = tuple(gens)
+            ngens = len(gens)
 
-        if isinstance(names, str):
-            names = tuple(names.split(','))
-        elif isinstance(names, (tuple, list)):
-            names = tuple(names)
+        names, index_set = _standardize_names_index_set(names, index_set, ngens)
 
-        if names is not None and len(names) != len(gens):
-            raise ValueError("the number of names must equal the number of generators")
-        if index_set is not None and len(index_set) != len(gens):
-            raise ValueError("the number of names must equal the number of generators")
+        if gens is not A: # If we have a generating set
+            # Make sure all the generators have the same parent of A
+            gens = tuple(map(A, gens))
 
-        gens = tuple(map(A, gens)) # Make sure all the generators have the same parent
-        try:
-            # Try to make things, such as matrices, immutable (since we need to hash them)
-            for g in gens:
-                g.set_immutable()
-        except AttributeError:
-            pass
-
-        # TODO: We should strip axioms from the category of the base ring,
-        #   such as FiniteDimensional, WithBasis and standardize
+        if ngens:
+            try:
+                # Try to make things, such as matrices, immutable
+                #    since we need to hash them
+                for g in gens:
+                    g.set_immutable()
+            except AttributeError:
+                pass
 
         return super(LieAlgebraFromAssociative, cls).__classcall__(cls,
-                     gens, names, index_set)
+                     gens, names=names, index_set=index_set)
 
     def __init__(self, gens, names=None, index_set=None, category=None):
         """
@@ -760,19 +806,35 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
 
             sage: G = SymmetricGroup(3)
             sage: S = GroupAlgebra(G, QQ)
-            sage: L.<x,y> = LieAlgebra(associative=S)
+            sage: L = LieAlgebra(associative=S)
             sage: TestSuite(L).run()
         """
-        self._assoc = gens[0].parent()
-        FinitelyGeneratedLieAlgebra.__init__(self, self._assoc.base_ring(),
-                                             names, index_set, category)
-        if isinstance(gens, dict):
-            F = Family(self._indices, lambda i: self.element_class(self, gens[i]))
+        if isinstance(gens, Parent):
+            gens = None
+            self._assoc = gens
         else:
+            self._assoc = gens[0].parent()
+        R = self._assoc.base_ring()
+
+        # We strip the following axioms from the category of the assoc. algebra:
+        #   FiniteDimensional and WithBasis
+        category = LieAlgebras(R).or_subcategory(category)
+        if 'FiniteDimensional' in self._assoc.category().axioms():
+            category = category.FiniteDimensional()
+        if 'WithBasis' in self._assoc.category().axioms():
+            category = category.WithBasis()
+
+        FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, category)
+
+        if isinstance(gens, tuple):
             F = Family({self._indices[i]: self.element_class(self, v)
                         for i,v in enumerate(gens)})
+        elif gens is not None: # It is a family
+            F = Family(self._indices, lambda i: self.element_class(self, gens[i]),
+                       name="generator map")
         self._gens = F
-        # TODO: Do we want to store the original generators?
+        # We don't need to store the original generators because we can
+        #   get them from lifting this object's generators
 
         # We construct the lift map in order to register the coercion
         #   here since the UEA already exists
@@ -813,19 +875,20 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
         EXAMPLES::
 
             sage: G = SymmetricGroup(3)
-            sage: S = GroupAlgebra(G, QQ)
-            sage: L.<x,y> = LieAlgebra(associative=S)
+            sage: A = G.group_algebra(QQ)
+            sage: L = LieAlgebra(associative=S)
+            sage: x,y = S.algebra_generators()
             sage: elt = L(x - y); elt
             -(1,2) + (1,2,3)
             sage: elt.parent() is L
             True
+            sage: elt == L(x) - L(y)
+            True
             sage: L([x, y])
             (2,3) - (1,3)
         """
-        if isinstance(x, LieAlgebraElement) and x.parent() is self:
-            return x
         if isinstance(x, list) and len(x) == 2:
-            return LieAlgebra._element_constructor_(self, x)
+            return self(x[0])._bracket_(self(x[1]))
         return self.element_class(self, self._assoc(x))
 
     def _construct_UEA(self):
@@ -836,7 +899,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
 
             sage: G = SymmetricGroup(3)
             sage: S = GroupAlgebra(G, QQ)
-            sage: L.<x,y> = LieAlgebra(associative=S)
+            sage: L = LieAlgebra(associative=S)
             sage: L._construct_UEA() is S
             True
         """
@@ -850,7 +913,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
 
             sage: G = SymmetricGroup(3)
             sage: S = GroupAlgebra(G, QQ)
-            sage: L.<x,y> = LieAlgebra(associative=S)
+            sage: L = LieAlgebra(associative=S)
             sage: L.lie_algebra_generators()
             Finite family {'y': (1,2), 'x': (1,2,3)}
         """
@@ -867,6 +930,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
             x
         """
         if i not in self._indices:
+            #return self(self._assoc.monomial(i))
             raise ValueError("not an index")
         return self._gens[i]
 
@@ -881,11 +945,12 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
             4*x
         """
         if i not in self._indices:
+            #return self(self._assoc.term(i, c))
             raise ValueError("not an index")
         return c * self._gens[i]
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return `0`.
 
@@ -894,12 +959,10 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
             sage: G = SymmetricGroup(3)
             sage: S = GroupAlgebra(G, QQ)
             sage: L.<x,y> = LieAlgebra(associative=S)
-            sage: L.zero_element()
+            sage: L.zero()
             0
         """
         return self.element_class(self, self._assoc.zero())
-
-    zero = zero_element
 
     def is_abelian(self):
         """

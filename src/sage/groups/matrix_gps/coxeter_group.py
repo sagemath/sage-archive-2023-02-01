@@ -694,7 +694,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             A Coxeter system `(W, S)` has a root system defined as
             `\{ w(\alpha_s) \}_{w \in W}` and we define the positive
             (resp. negative) roots `\alpha = \sum_{s \in S} c_s \alpha_s`
-            by all `c_s \geq 0` (resp.`c_s \leq 0`). In particular, we note
+            by all `c_s \geq 0` (resp. `c_s \leq 0`). In particular, we note
             that if `\ell(w s) > \ell(w)` then `w(\alpha_s) > 0` and if
             `\ell(ws) < \ell(w)` then `w(\alpha_s) < 0`.
             Thus `i \in I` is a right descent if `w(\alpha_{s_i}) < 0`

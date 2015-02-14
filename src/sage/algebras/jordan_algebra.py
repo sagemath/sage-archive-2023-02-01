@@ -17,34 +17,30 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import AlgebraElement
 from sage.categories.magmatic_algebras import MagmaticAlgebras
-from sage.categories.algebras import Algebras
-from sage.categories.algebras_with_basis import AlgebrasWithBasis
-from sage.categories.commutative_algebras import CommutativeAlgebras
-from sage.categories.rings import Rings
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.all import QQ
 from sage.matrix.matrix import is_Matrix
 from sage.modules.free_module import FreeModule
 from sage.sets.family import Family
-from copy import copy
 
 class JordanAlgebra(Parent, UniqueRepresentation):
     r"""
     A Jordan algebra.
 
-    A *Jordan algebra* is an algebra over a ring `R` whose multiplication
-    satisfies the following axioms:
+    A *Jordan algebra* is a magmatic algebra (over a commutative ring
+    `R`) whose multiplication satisfies the following axioms:
 
     - `xy = yx`, and
     - `(xy)(xx) = x(y(xx))` (the Jordan identity).
 
-    These axiom imply that a Jordan algebra is power-associative and the
-    following generalization of Jordan's identity: `(x^m y) x^n = x^m (yx^n)`
-    for all `m, n \in \ZZ_{>0}`.
+    These axioms imply that a Jordan algebra is power-associative and the
+    following generalization of Jordan's identity holds:
+    `(x^m y) x^n = x^m (y x^n)` for all `m, n \in \ZZ_{>0}`.
+    .. TODO:: Reference please!
 
-    Let `A` be an associative algebra over a ring `R` of characteristic
-    not equal to 2. We construct a Jordan algebra `A^+` by considering
+    Let `A` be an associative algebra over a ring `R` in which 2 is
+    invertible. We construct a Jordan algebra `A^+` by defining
     the multiplication as
 
     .. MATH::
@@ -60,12 +56,13 @@ class JordanAlgebra(Parent, UniqueRepresentation):
 
     Jordan algebras can also be constructed from a module `M` over `R` with
     a symmetric bilinear form `(\cdot, \cdot)`. We begin with the module
-    `M^* = R \cdot 1 \oplus M` and define multiplication in `M^*` by
+    `M^* = R \oplus M` and define multiplication in `M^*` by
 
     .. MATH::
 
         (\alpha + x) \circ (\beta + y) =
-        \bigl( \alpha \beta + (x,y) \bigr) \cdot 1 + \beta x + \alpha y
+        \underbrace{\alpha \beta + (x,y)}_{\in R}
+        + \underbrace{\beta x + \alpha y}_{\in M}
 
     where `\alpha, \beta \in R` and `x,y \in M`.
 
@@ -76,7 +73,7 @@ class JordanAlgebra(Parent, UniqueRepresentation):
 
     EXAMPLES:
 
-    We consider the base algebra `A` as the free algebra on 3 generators::
+    We let the base algebra `A` be the free algebra on 3 generators::
 
         sage: F.<x,y,z> = FreeAlgebra(QQ)
         sage: J = JordanAlgebra(F); J
@@ -213,11 +210,11 @@ class SpecialJordanAlgebra(JordanAlgebra):
             Category of commutative unital algebras with basis over Rational Field
         """
         R = A.base_ring()
-        if A not in MagmaticAlgebras(R).Associative():
+        C = MagmaticAlgebras(R)
+        if A not in C.Associative():
             raise ValueError("A is not an associative algebra")
 
         self._A = A
-        C = MagmaticAlgebras(R)
         cat = C.Commutative()
         if A in C.Unital():
             cat = cat.Unital()
@@ -502,6 +499,9 @@ class SpecialJordanAlgebra(JordanAlgebra):
         def _lmul_(self, other):
             """
             Multiply ``self`` and ``other`` by the left action.
+
+            .. TODO:: What exactly does this do? What is the "left action"?
+                      Shouldn't it do precisely the same as ``_mul_`??
 
             EXAMPLES::
 
@@ -804,7 +804,7 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
 
         def _sub_(self, other):
             """
-            Subtract ``self`` and ``other``.
+            Subtract ``other`` from ``self``.
 
             EXAMPLES::
 
@@ -843,6 +843,8 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
         def _lmul_(self, other):
             """
             Multiply ``self`` and ``other`` by the left action.
+
+            .. TODO:: Again, please explain what this means.
 
             EXAMPLES::
 
@@ -906,7 +908,7 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             Return the result of the bar involution of ``self``.
 
             The bar involution `\bar{\cdot}` is the linear mapping defined by
-            `\bar{1} = 1` and `\bar{x} = -x` for `x \in M.
+            `\bar{1} = 1` and `\bar{x} = -x` for `x \in M`.
 
             EXAMPLES::
 

@@ -1537,7 +1537,7 @@ def prec_seq():
     EXAMPLE::
 
         sage: g = sage.rings.qqbar.prec_seq()
-        sage: [g.next(), g.next(), g.next()]
+        sage: [next(g), next(g), next(g)]
         [64, 128, 256]
     """
     # XXX Should do some testing to see where the efficiency breaks are
@@ -1571,7 +1571,7 @@ def tail_prec_seq():
 
         sage: from sage.rings.qqbar import tail_prec_seq
         sage: g = tail_prec_seq()
-        sage: [g.next(), g.next(), g.next()]
+        sage: [next(g), next(g), next(g)]
         [256, 512, 1024]
     """
     bits = 256

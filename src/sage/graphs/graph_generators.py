@@ -792,11 +792,11 @@ class GraphGenerators():
         to contain it.  ::
 
             sage: gen = graphs.nauty_geng("2") # optional nauty
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Graph on 2 vertices
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Graph on 2 vertices
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Traceback (most recent call last):
             ...
             StopIteration: Exhausted list of graphs from nauty geng
@@ -822,7 +822,7 @@ class GraphGenerators():
         successful initiation.  ::
 
             sage: gen = graphs.nauty_geng("4", debug=True) # optional nauty
-            sage: print gen.next() # optional nauty
+            sage: print next(gen) # optional nauty
             >A nauty-geng -d0D3 n=4 e=0-6
         """
         import subprocess
@@ -837,7 +837,7 @@ class GraphGenerators():
         gen = sp.stdout
         while True:
             try:
-                s = gen.next()
+                s = next(gen)
             except StopIteration:
                 raise StopIteration("Exhausted list of graphs from nauty geng")
             G = graph.Graph(s[:-1], format='graph6')
@@ -1094,9 +1094,9 @@ class GraphGenerators():
         Buckminster Fullerene:  ::
 
             sage: gen = graphs.fullerenes(60, ipr=True)  # optional buckygen
-            sage: gen.next()  # optional buckygen
+            sage: next(gen)  # optional buckygen
             Graph on 60 vertices
-            sage: gen.next()  # optional buckygen
+            sage: next(gen)  # optional buckygen
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1105,7 +1105,7 @@ class GraphGenerators():
         graph. ::
 
             sage: gen = graphs.fullerenes(20)  # optional buckygen
-            sage: g = gen.next()  # optional buckygen
+            sage: g = next(gen)  # optional buckygen
             sage: g.is_isomorphic(graphs.DodecahedralGraph()) # optional buckygen
             True
             sage: g.get_embedding()  # optional buckygen
@@ -1203,9 +1203,9 @@ class GraphGenerators():
         a graph on just 10 vertices:  ::
 
             sage: gen = graphs.fusenes(2)  # optional benzene
-            sage: gen.next()  # optional benzene
+            sage: next(gen)  # optional benzene
             Graph on 10 vertices
-            sage: gen.next()  # optional benzene
+            sage: next(gen)  # optional benzene
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1489,7 +1489,7 @@ class GraphGenerators():
         graph. ::
 
             sage: gen = graphs.triangulations(6, only_eulerian=True)  # optional plantri
-            sage: g = gen.next()                                      # optional plantri
+            sage: g = next(gen)                                       # optional plantri
             sage: g.is_isomorphic(graphs.OctahedralGraph())           # optional plantri
             True
 
@@ -1513,7 +1513,7 @@ class GraphGenerators():
 
         The minimum connectivity can be at most the minimum degree::
 
-            sage: gen = graphs.triangulations(10, minimum_degree=3, minimum_connectivity=5).next()  # optional plantri
+            sage: gen = next(graphs.triangulations(10, minimum_degree=3, minimum_connectivity=5))  # optional plantri
             Traceback (most recent call last):
             ...
             ValueError: Minimum connectivity can be at most the minimum degree.
@@ -1640,10 +1640,10 @@ class GraphGenerators():
         The cube is the only 3-connected planar quadrangulation on 8 vertices::
 
             sage: gen = graphs.quadrangulations(8, minimum_connectivity=3)  # optional plantri
-            sage: g = gen.next()                                            # optional plantri
+            sage: g = next(gen)                                            # optional plantri
             sage: g.is_isomorphic(graphs.CubeGraph(3))                      # optional plantri
             True
-            sage: gen.next()                                                # optional plantri
+            sage: next(gen)                                                # optional plantri
             Traceback (most recent call last):
             ...
             StopIteration

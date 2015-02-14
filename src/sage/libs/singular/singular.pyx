@@ -24,8 +24,6 @@ cdef extern from "limits.h":
 
 import os
 
-from sage.misc.misc_c import is_64_bit
-
 from sage.libs.singular.decl cimport intvec
 from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT
 from sage.libs.singular.decl cimport singular_options, singular_verbose_options

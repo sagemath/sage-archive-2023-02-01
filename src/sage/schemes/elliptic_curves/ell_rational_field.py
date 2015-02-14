@@ -81,7 +81,7 @@ from sage.rings.all import (
     IntegerRing, RealField,
     ComplexField, RationalField)
 
-import sage.misc.misc as misc
+import sage.misc.all as misc
 from sage.misc.all import verbose
 
 from sage.misc.functional import log
@@ -4111,7 +4111,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         If the curve has square-free conductor then it is already minimal (see :trac:`14060`)::
 
-            sage: E = cremona_optimal_curves([2*3*5*7*11]).next()
+            sage: E = next(cremona_optimal_curves([2*3*5*7*11]))
             sage: (E, 1) == E.minimal_quadratic_twist()
             True
 

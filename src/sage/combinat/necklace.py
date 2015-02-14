@@ -27,7 +27,7 @@ from sage.combinat.composition import Composition
 from sage.combinat.combinat import CombinatorialClass
 from sage.rings.arith import euler_phi,factorial, divisors, gcd
 from sage.rings.integer import Integer
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.combinat.misc import DoublyLinkedList
 
 def Necklaces(content):

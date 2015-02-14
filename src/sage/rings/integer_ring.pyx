@@ -32,24 +32,15 @@ other types will also coerce to the integers, when it makes sense.
 """
 
 #*****************************************************************************
-#
-#   Sage
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-###########################################################################
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
@@ -70,8 +61,8 @@ from sage.categories.basic import EuclideanDomains
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
-
 from sage.structure.sequence import Sequence
+from sage.misc.misc_c import prod
 
 cimport integer
 cimport rational
@@ -1328,7 +1319,6 @@ def IntegerRing():
     """
     return ZZ
 
-import sage.misc.misc
 def crt_basis(X, xgcd=None):
     r"""
     Compute and return a Chinese Remainder Theorem basis for the list ``X``
@@ -1391,16 +1381,16 @@ def crt_basis(X, xgcd=None):
     if len(X) == 0:
         return []
 
-    P = sage.misc.misc.prod(X)
+    P = prod(X)
 
     Y = []
     # 2. Compute extended GCD's
     ONE=X[0].parent()(1)
     for i in range(len(X)):
         p = X[i]
-        prod = P//p
-        g,s,t = p.xgcd(prod)
+        others = P//p
+        g,s,t = p.xgcd(others)
         if g != ONE:
-            raise ArithmeticError, "The elements of the list X must be coprime in pairs."
-        Y.append(t*prod)
+            raise ArithmeticError("the elements of the list X must be coprime in pairs")
+        Y.append(t*others)
     return Y

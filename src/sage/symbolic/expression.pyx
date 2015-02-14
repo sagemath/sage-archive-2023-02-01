@@ -10484,7 +10484,7 @@ cdef class Expression(CommutativeRingElement):
             -a/(q - 1)
 
         A divergent geometric series.  Do not forget
-        to forget your assumptions::
+        to `forget` your assumptions::
 
             sage: forget()
             sage: assume(q > 1)
@@ -10508,17 +10508,47 @@ cdef class Expression(CommutativeRingElement):
             sage: (binomial(n,k)*x^k).sum(k, 0, n, algorithm = 'maple')      # optional - maple
             (x + 1)^n
 
+        .. note::
+
+           #. Sage can currently only understand a subset of the output of Maxima, Maple and
+              Mathematica, so even if the chosen backend can perform the summation the
+              result might not be convertable into a usable Sage expression.
+
+        TESTS:
+
         Check that the sum in :trac:`10682` is done right::
 
             sage: sum(binomial(n,k)*k^2, k, 2, n)
             1/4*(n^2 + n)*2^n - n
 
-        .. note::
+        This sum used to give a wrong result (:trac:`9635`) but
+        now gives correct results with all relevant assumptions::
 
-           #. Sage can currently only understand a subset of the output of Maxima, Maple and
-              Mathematica, so even if the chosen backend can perform the summation the
-              result might not be convertable into a Sage expression.
+            sage: (n,k,j)=var('n,k,j')
+            sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
+            -sum((-1)^(-j + k)*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
+            sage: assume(j>-1)
+            sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
+            1
+            sage: forget()
+            sage: assume(n>=j)
+            sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
+            -sum((-1)^(-j + k)*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
+            sage: forget()
+            sage: assume(j==-1)
+            sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
+            1
+            sage: forget()
+            sage: assume(j<-1)
+            sage: sum(binomial(n,k)*binomial(k-1,j)*(-1)**(k-1-j),k,j+1,n)
+            -sum((-1)^(-j + k)*binomial(k - 1, j)*binomial(n, k), k, j + 1, n)
+            sage: forget()
 
+        Check that :trac:`16176` is fixed::
+
+            sage: n = var('n')
+            sage: sum(log(1-1/n^2),n,2,oo)
+            -log(2)
         """
         from sage.calculus.calculus import symbolic_sum
         return symbolic_sum(self, *args, **kwds)

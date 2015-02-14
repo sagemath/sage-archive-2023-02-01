@@ -262,9 +262,9 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: T = ProductProjectiveSpaces([1,1],QQ,'x')
             sage: P = T([2,1,0,1])
             sage: iter = P.__iter__()
-            sage: iter.next()
+            sage: next(iter)
             2
-            sage: iter.next()
+            sage: next(iter)
             1
             sage: list(P)
             [2, 1, 0, 1]

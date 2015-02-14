@@ -137,7 +137,7 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
         F = F.gens()
         m = len(F)
 
-    P = iter(F).next().parent()
+    P = next(iter(F)).parent()
     K = P.base_ring()
 
     if target_variables is None:
@@ -283,7 +283,7 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
         F = F.gens()
         m = len(F)
 
-    P = iter(F).next().parent()
+    P = next(iter(F)).parent()
     K = P.base_ring()
 
     # instantiate the SAT solver

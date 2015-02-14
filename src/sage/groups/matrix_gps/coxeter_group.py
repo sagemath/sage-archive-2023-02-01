@@ -281,54 +281,24 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         We check that :trac:`16630` is fixed::
 
-            sage: CoxeterGroup(['D',4]).category()
-            Category of finite coxeter groups
             sage: CoxeterGroup(['D',4], base_ring=QQ).category()
             Category of finite coxeter groups
             sage: CoxeterGroup(['H',4], base_ring=QQbar).category()
             Category of finite coxeter groups
-            sage: CoxeterGroup(['A',2]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['B',2]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['A',3]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['B',3]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['A',4]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['B',4]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['A',5]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['B',5]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['D',2]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['D',3]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['D',5]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['E',6]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['E',7]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['E',8]).category()
-            Category of finite coxeter groups
+            sage: F = CoxeterGroups().Finite()
+            sage: all(CoxeterGroup([letter,i]) in F
+            ....:     for i in range(2,5) for letter in ['A','B','D'])
+            True
+            sage: all(CoxeterGroup(['E',i]) in F for i in range(6,9))
+            True
             sage: CoxeterGroup(['F',4]).category()
             Category of finite coxeter groups
             sage: CoxeterGroup(['G',2]).category()
             Category of finite coxeter groups
-            sage: CoxeterGroup(['H',3]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['H',4]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['I',2]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['I',3]).category()
-            Category of finite coxeter groups
-            sage: CoxeterGroup(['I',4]).category()
-            Category of finite coxeter groups
+            sage: all(CoxeterGroup(['H',i]) in F for i in range(3,5))
+            True
+            sage: all(CoxeterGroup(['I',i]) in F for i in range(2,5))
+            True
         """
         self._matrix = coxeter_matrix
         self._index_set = index_set
@@ -361,8 +331,38 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         category = CoxeterGroups()
         # Now we shall see if the group is finite, and, if so, refine
         # the category to ``category.Finite()``.
+        is_finite = self._finite_recognition()
+        if is_finite:
+            category = category.Finite()
+        FinitelyGeneratedMatrixGroup_generic.__init__(self, n, base_ring,
+                                                      gens, category=category)
+
+    def _finite_recognition(self):
+        """
+        Return ``True`` if and only if the type is finite.
+
+        This is an auxiliary function used during the initialisation.
+
+        EXAMPLES:
+
+        An infinite one::
+
+            sage: F = CoxeterGroups().Finite()
+            sage: W = CoxeterGroup([[1,3,2],[3,1,-1],[2,-1,1]])
+            sage: W in F  # indirect doctest
+            False
+
+        Some finite ones::
+
+            sage: CoxeterGroup(['D',4], base_ring=QQ) in F  # indirect doctest
+            True
+            sage: CoxeterGroup(['H',4]) in F  # indirect doctest
+            True
+        """
         # First, we build the Coxeter graph of the group, without
         # the edge labels.
+        coxeter_matrix = self._matrix
+        n = ZZ(coxeter_matrix.nrows())
         MS3 = MatrixSpace(ZZ, n, sparse=True)
         MC3 = MS3._get_matrix_class()
         adjmat = MC3(MS3, entries={(i, j): 1 for i in range(n) for j in range(n)
@@ -496,10 +496,8 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                     continue
                 finite = False
                 break
-        if finite:
-            category = category.Finite()
-        FinitelyGeneratedMatrixGroup_generic.__init__(self, n, base_ring,
-                                                      gens, category=category)
+        return finite
+
 
     def _repr_(self):
         """
@@ -611,7 +609,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
     def is_finite(self):
         """
-        Returns ``True`` if this group is finite.
+        Return ``True`` if this group is finite.
 
         EXAMPLES::
 

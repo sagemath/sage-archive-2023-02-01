@@ -1160,6 +1160,67 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    # Comparisons and predicates
+
+    def is_zero(self):
+        """
+        Return nonzero iff the midpoint and radius of this ball are both zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(0).is_zero()
+            True
+            sage: RBF(0, rad=0.25r).is_zero()
+            False
+
+        """
+        return bool(arb_is_zero(self.value))
+
+    def is_nonzero(self):
+        """
+        Return nonzero iff zero is not contained in the interval represented
+        by this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(pi).is_nonzero()
+            True
+            sage: RBF(1, rad=2.r).is_nonzero()
+            False
+        """
+        return bool(arb_is_nonzero(self.value))
+
+    def is_finite(self):
+        """
+        Return nonzero iff the midpoint and radius of this ball are both
+        finite floating-point numbers, i.e. not infinities or NaN.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: (RBF(2)^(2^1000)).is_finite()
+            True
+            sage: RBF(oo).is_finite()
+            False
+        """
+        return bool(arb_is_finite(self.value))
+
+    def is_exact(self):
+        """
+        Return nonzero iff the radius of this ball is zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).is_exact()
+            True
+            sage: RBF(pi).is_exact()
+            False
+        """
+        return bool(arb_is_exact(self.value))
+
     # Arithmetic
 
     def __neg__(self):

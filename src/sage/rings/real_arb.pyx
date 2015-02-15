@@ -1011,14 +1011,34 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def accuracy(self):
+        """
+        Return the effective relative accuracy of this ball measured in bits.
+
+        The accuracy is defined as the difference between the position of the
+        top bit in the midpoint and the top bit in the radius and , minus one.
+        The result is clamped between plus/minus `ARF_PREC_EXACT`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(pi).accuracy()
+            51
+            sage: RBF(1).accuracy()
+            9223372036854775807
+            sage: RBF(NaN).accuracy()
+            -9223372036854775807
+        """
+        return arb_rel_accuracy_bits(self.value)
+
     def trim(self):
         """
         Return a trimmed copy of this ball.
 
-        Round `self` to a number of bits equal to the accuracy of `self` (as
-        indicated by its radius), plus a few guard bits. The resulting ball is
-        guaranteed to contain `self`, but is more economical if `self` has less
-        than full accuracy.
+        Round `self` to a number of bits equal to the :meth:`accuracy` of
+        `self` (as indicated by its radius), plus a few guard bits. The
+        resulting ball is guaranteed to contain `self`, but is more economical
+        if `self` has less than full accuracy.
 
         .. SEEALSO:: :meth:`round`
 

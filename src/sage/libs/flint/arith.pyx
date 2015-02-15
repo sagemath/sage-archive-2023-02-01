@@ -14,6 +14,7 @@ from fmpz cimport *
 from fmpq cimport *
 from arith cimport *
 
+
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
@@ -144,6 +145,25 @@ def dedekind_sum(p, q):
 
     fmpz_clear(p_fmpz)
     fmpz_clear(q_fmpz)
+    fmpq_clear(s_fmpq)
+
+    return s
+
+def harmonic_number(unsigned long n):
+    """
+    Returns the harmonic number ``H_n``.
+
+    EXAMPLES::
+    """
+    s = Rational(0)
+    cdef fmpq_t s_fmpq
+
+    fmpq_init(s_fmpq)
+
+    arith_harmonic_number(s_fmpq, n)
+
+    fmpq_get_mpq((<Rational>s).value, s_fmpq)
+
     fmpq_clear(s_fmpq)
 
     return s

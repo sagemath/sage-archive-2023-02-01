@@ -21,7 +21,7 @@ from other import ( ceil, floor, gamma, psi, factorial, beta, binomial,
                     arg, real_part, real,
                     imag_part, imag, imaginary, conjugate)
 
-from log import (exp, log, ln, polylog, dilog, lambert_w)
+from log import (exp, log, ln, polylog, dilog, lambert_w, harmonic_number)
 
 
 from transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,

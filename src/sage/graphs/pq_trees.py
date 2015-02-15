@@ -685,6 +685,28 @@ class P(PQ):
 
                 return PARTIAL, False
 
+    def cardinality(self):
+        r"""
+        Return the number of orderings allowed by the structure.
+
+        EXAMPLE::
+
+            sage: from sage.graphs.pq_trees import P, Q
+            sage: p = P([[0,3], [1,2], [2,3], [2,4], [4,0],[2,8], [2,9]])
+            sage: p.cardinality()
+            5040
+            sage: p.set_contiguous(3)
+            (1, True)
+            sage: p.cardinality()
+            1440
+        """
+        from math import factorial
+        n = factorial(self.number_of_children())
+        for c in self._children:
+            if isinstance(c,PQ):
+                n = n*c.cardinality()
+        return n
+
 class Q(PQ):
     r"""
     A Q-Tree is a PQ-Tree whose children are
@@ -976,3 +998,20 @@ class Q(PQ):
 
             return (PARTIAL, not seen_right_end)
 
+    def cardinality(self):
+        r"""
+        Return the number of orderings allowed by the structure.
+
+        EXAMPLE::
+
+            sage: from sage.graphs.pq_trees import P, Q
+            sage: q = Q([[0,3], [1,2], [2,3], [2,4], [4,0],[2,8], [2,9]])
+            sage: q.cardinality()
+            5040
+        """
+        n = 1
+        for c in self._children:
+            if isinstance(c,PQ):
+                n = n*c.cardinality()
+
+        return n if (self.number_of_children() == 1) else 2*n

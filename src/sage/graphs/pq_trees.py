@@ -264,11 +264,10 @@ class PQ:
             {2, 3}
             ('P', [{2, 4}, {8, 2}, {9, 2}])
         """
-
         for i in self._children:
             yield i
 
-    def cardinality(self):
+    def number_of_children(self):
         r"""
         Returns the number of children of ``self``
 
@@ -276,7 +275,7 @@ class PQ:
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])
-            sage: p.cardinality()
+            sage: p.number_of_children()
             3
         """
         return len(self._children)
@@ -418,7 +417,7 @@ class PQ:
             sage: p.flatten()
             ('P', [{2, 4}, {8, 2}, {9, 2}])
         """
-        if self.cardinality() == 1:
+        if self.number_of_children() == 1:
             return flatten(self._children[0])
         else:
             self._children = [flatten(x) for x in self._children]
@@ -519,7 +518,6 @@ class P(PQ):
             ValueError: Impossible
 
         """
-
         ###############################################################
         # Defining Variables :                                        #
         #                                                             #
@@ -562,9 +560,8 @@ class P(PQ):
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
 
-        if (n_PARTIAL_ALIGNED + n_PARTIAL_UNALIGNED > 2 or
-            (n_PARTIAL_UNALIGNED >= 1 and n_EMPTY != self.cardinality() -1)):
-
+        if (n_PARTIAL_ALIGNED > 2 or
+            (n_PARTIAL_UNALIGNED >= 1 and n_EMPTY != self.number_of_children() -1)):
             raise ValueError(impossible_msg)
 
         # From now on, there are at most two pq-trees which are partially filled
@@ -578,11 +575,11 @@ class P(PQ):
         #########################################################
 
         # All the children are FULL
-        elif n_FULL == self.cardinality():
+        elif n_FULL == self.number_of_children():
             return FULL, True
 
         # All the children are empty
-        elif n_EMPTY == self.cardinality():
+        elif n_EMPTY == self.number_of_children():
             return EMPTY, True
 
         # There is a PARTIAL UNALIGNED element (and all the others are
@@ -595,11 +592,10 @@ class P(PQ):
         # empty, we just reorder the set to put it at the right end
 
         elif (n_PARTIAL_ALIGNED == 1 and
-              n_EMPTY == self.cardinality()-1):
+              n_EMPTY == self.number_of_children()-1):
 
             self._children = set_EMPTY + set_PARTIAL_ALIGNED
             return (PARTIAL, ALIGNED)
-
 
         ################################################################
         # 2/2                                                          #
@@ -639,7 +635,6 @@ class P(PQ):
 
                     subtree = set_PARTIAL_ALIGNED[0]
                     new.extend(subtree.simplify(v, right = ALIGNED))
-
 
                 # Then the full elements, if any, in a P-tree (we can
                 # permute any two of them while keeping all the
@@ -749,11 +744,7 @@ class Q(PQ):
             Traceback (most recent call last):
             ...
             ValueError: Impossible
-
-
         """
-
-
         #################################################################
         # Guidelines :                                                  #
         #                                                               #
@@ -827,7 +818,7 @@ class Q(PQ):
         ###################################################################
 
         if (f_seq[self._children[-1]] == (EMPTY, ALIGNED) or
-            (f_seq[self._children[-1]] == (PARTIAL, ALIGNED) and n_FULL == self.cardinality() - 1)):
+            (f_seq[self._children[-1]] == (PARTIAL, ALIGNED) and n_FULL == self.number_of_children() - 1)):
 
             # We reverse the order of the elements in the SET only. Which means that they are still aligned to the right !
             self._children.reverse()
@@ -844,8 +835,8 @@ class Q(PQ):
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
 
-        if (n_PARTIAL_ALIGNED + n_PARTIAL_UNALIGNED > 2 or
-            (n_PARTIAL_UNALIGNED >= 1 and n_EMPTY != self.cardinality() -1)):
+        if (n_PARTIAL_ALIGNED > 2 or
+            (n_PARTIAL_UNALIGNED >= 1 and n_EMPTY != self.number_of_children() -1)):
 
             raise ValueError(impossible_msg)
 
@@ -853,11 +844,11 @@ class Q(PQ):
         # If there is one which is not aligned to the right, all the others are empty
 
         # First trivial case, no checking neded
-        elif n_FULL == self.cardinality():
+        elif n_FULL == self.number_of_children():
             return FULL, True
 
         # Second trivial case, no checking needed
-        elif n_EMPTY == self.cardinality():
+        elif n_EMPTY == self.number_of_children():
             return EMPTY, True
 
         # Third trivial case, no checking needed
@@ -869,7 +860,7 @@ class Q(PQ):
         # the set to put it at the right end
 
         elif (n_PARTIAL_ALIGNED == 1 and
-              n_EMPTY == self.cardinality()-1):
+              n_EMPTY == self.number_of_children()-1):
 
             if set_PARTIAL_ALIGNED[0] == self._children[-1]:
                 return (PARTIAL, ALIGNED)

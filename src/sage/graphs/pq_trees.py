@@ -312,7 +312,7 @@ class PQ:
             sage: print p
             ('Q', [{1, 2}, {2, 3}, ('P', [{2, 4}, {8, 2}, {9, 2}])])
         """
-        return str((("P" if self.is_P() else "Q"),self._children))
+        return str((("P" if isinstance(self,P) else "Q"),self._children))
 
     def simplify(self, v, left = False, right = False):
         r"""
@@ -366,7 +366,7 @@ class PQ:
         if sum([left, right]) !=1:
             raise ValueError("Exactly one of left or right must be specified")
 
-        if self.is_Q():
+        if isinstance(self,Q):
             l = []
             for c in self._children:
                 if (isinstance(c,PQ)          and  # Is c partial?
@@ -422,35 +422,6 @@ class PQ:
         else:
             self._children = [flatten(x) for x in self._children]
             return self
-
-
-    def is_P(self):
-        r"""
-        Tests whether ``self`` is a `P`-Tree
-
-        EXAMPLE::
-
-            sage: from sage.graphs.pq_trees import P, Q
-            sage: P([[0,1],[2,3]]).is_P()
-            True
-            sage: Q([[0,1],[2,3]]).is_P()
-            False
-        """
-        return isinstance(self,P)
-
-    def is_Q(self):
-        r"""
-        Tests whether ``self`` is a `Q`-Tree
-
-        EXAMPLE::
-
-            sage: from sage.graphs.pq_trees import P, Q
-            sage: Q([[0,1],[2,3]]).is_Q()
-            True
-            sage: P([[0,1],[2,3]]).is_Q()
-            False
-        """
-        return isinstance(self,Q)
 
 class P(PQ):
     r"""

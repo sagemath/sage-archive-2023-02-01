@@ -1527,6 +1527,90 @@ cdef class RealBall(RingElement):
             return sage.structure.element.bin_op(base, expo, operator.pow)
         return res
 
+    def sqrt(self):
+        """
+        Return the square root of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(2).sqrt()
+            [1.414213562373095 +/- 2.99e-16]
+            sage: RBF(-1/3).sqrt()
+            nan
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_sqrt(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def sqrtpos(self):
+        """
+        Return the square root of this ball, assuming that it represents a
+        nonnegative number.
+
+        Any negative numbers in the input interval are discarded, and the
+        output ball does not contain any negative numbers (unless the radius is
+        infinite).
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(2).sqrtpos()
+            [1.414213562373095 +/- 2.99e-16]
+            sage: RBF(-1/3).sqrtpos()
+            0
+            sage: RBF(0, rad=2.r).sqrtpos()
+            [+/- 1.42]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_sqrtpos(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def rsqrt(self):
+        """
+        Return the reciprocal square root of ``self``.
+
+        At high precision, this is faster than computing a square root.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(2).rsqrt()
+            [0.707106781186547 +/- 5.73e-16]
+            sage: RBF(0).rsqrt()
+            nan
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_rsqrt(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def sqrt1pm1(self):
+        """
+        Return `\sqrt{1+\mathrm{self}}-1`, computed accurately when ``self`` is
+        close to zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: eps = RBF(10^(-20))
+            sage: (1 + eps).sqrt() - 1
+            [+/- 1.12e-16]
+            sage: eps.sqrt1pm1()
+            [5.00000000000000e-21 +/- 2.54e-36]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_sqrt1pm1(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+
     # Special functions
 
     cpdef RealBall psi(self):

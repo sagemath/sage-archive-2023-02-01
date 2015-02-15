@@ -1263,6 +1263,95 @@ cdef class RealBall(RingElement):
         """
         return bool(arb_overlaps(self.value, other.value))
 
+    def contains_exact(self, other):
+        """
+        Returns nonzero *iff* the given number (or ball) ``other`` is contained
+        in the interval represented by ``self``.
+
+        If ``self`` is contains NaN, this function always returns nonzero (as
+        it could represent anything, and in particular could represent all the
+        points included in ``other``). If ``other`` contains NaN and ``self``
+        does not, it always returns zero.
+
+        Use ``other in self`` for a test that works for a wider range of inputs
+        but may return false negatives.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: b = RBF(1)
+            sage: b.contains_exact(1)
+            True
+            sage: b.contains_exact(QQ(1))
+            True
+            sage: b.contains_exact(1.)
+            True
+            sage: b.contains_exact(b)
+            True
+
+        ::
+
+            sage: RBF(1/3).contains_exact(1/3)
+            True
+            sage: RBF(sqrt(2)).contains_exact(sqrt(2))
+            Traceback (most recent call last):
+            ...
+            TypeError
+
+        TESTS::
+
+            sage: b.contains_exact(1r)
+            True
+
+        """
+        cdef fmpz_t tmpz
+        cdef fmpq_t tmpq
+        if _do_sig(prec(self)): sig_on()
+        try:
+            if isinstance(other, RealBall):
+                res = arb_contains(self.value, (<RealBall> other).value)
+            elif isinstance(other, int):
+                res = arb_contains_si(self.value, PyInt_AS_LONG(other))
+            elif isinstance(other, sage.rings.integer.Integer):
+                fmpz_init(tmpz)
+                fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> other).value)
+                res = arb_contains_fmpz(self.value, tmpz)
+                fmpz_clear(tmpz)
+            elif isinstance(other, sage.rings.rational.Rational):
+                fmpq_init(tmpq)
+                fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> other).value)
+                res = arb_contains_fmpq(self.value, tmpq)
+                fmpq_clear(tmpq)
+            elif isinstance(other, RealNumber):
+                res = arb_contains_mpfr(self.value, (<RealNumber> other).value)
+            else:
+                raise TypeError
+        finally:
+            if _do_sig(prec(self)): sig_off()
+        return bool(res)
+
+    def __contains__(self, other):
+        """
+        Return True if ``other`` can be verified to be contained in ``self``.
+
+        The test is done using interval arithmetic with a precision determined
+        by the parent of ``self`` and may return false negatives.
+
+        .. SEEALSO:: :meth:`contains_exact`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF, RealBallField
+            sage: sqrt(2) in RBF(sqrt(2))
+            True
+
+        A false negative::
+
+            sage: sqrt(2) in RBF(RealBallField(100)(sqrt(2)))
+            False
+        """
+        return self.contains_exact(self._parent(other))
+
     # Arithmetic
 
     def __neg__(self):

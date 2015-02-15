@@ -804,12 +804,16 @@ cdef class RealBall(RingElement):
         if (field.rnd == GMP_RNDN or
                 field.rnd == GMP_RNDZ and arb_contains_zero(self.value)):
             mid = RealNumber(field, None)
+            sig_str("unable to convert to MPFR (exponent out of range?)")
             arf_get_mpfr(mid.value, arb_midref(self.value), field.rnd)
+            sig_off()
             return mid
         else:
             left = RealNumber(field, None)
             right = RealNumber(field, None)
+            sig_str("unable to convert to MPFR (exponent out of range?)")
             arb_get_interval_mpfr(left.value, right.value, self.value)
+            sig_off()
             if field.rnd == GMP_RNDD:
                 return left
             elif field.rnd == GMP_RNDU:
@@ -1043,11 +1047,19 @@ cdef class RealBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: from sage.rings.real_arb import RealBallField, RBF # optional - arb
             sage: RealBallField(16)(1/3).mid()
             0.3333
             sage: RealBallField(16)(1/3).mid().parent()
             Real Field with 15 bits of precision
+
+        ::
+
+            sage: b = RBF(2)^(2^1000)
+            sage: b.mid()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: unable to convert to MPFR (exponent out of range?)
         """
         cdef long mid_prec = arb_bits(self.value) or prec(self)
         if mid_prec < MPFR_PREC_MIN:

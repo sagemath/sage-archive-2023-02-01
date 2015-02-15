@@ -128,6 +128,7 @@ from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_set_mpz, fmpz_clear
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
 from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, GMP_RNDN, MPFR_PREC_MIN
+from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
@@ -145,6 +146,8 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     """
     cdef mpfr_t left
     cdef mpfr_t right
+
+    if _do_sig(precision): sig_on()
 
     mpfr_init2(left, precision)
     mpfr_init2(right, precision)
@@ -214,7 +217,6 @@ cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -
     finally:
         mpfr_clear(left)
         mpfr_clear(right)
-
 
 class RealBallField(UniqueRepresentation, Parent):
     r"""
@@ -454,15 +456,20 @@ cdef class RealBall(RingElement):
         """
         arb_clear(self.value)
 
-    def __init__(self, parent, x=None):
+    def __init__(self, parent, mid=None, rad=None):
         """
-        Initialize the :class:`RealBall` using ``x``.
+        Initialize the :class:`RealBall` using ``mid``.
 
         INPUT:
 
         - ``parent`` -- a :class:`RealBallField`.
 
-        - ``x`` -- (default: ``None``) see examples below.
+        - ``mid`` (optional) --  ball midpoint, see examples below. If omitted,
+          initialize the ball to zero, ignoring the ``rad`` argument.
+
+        - ``rad`` (optional) -- a :class:`RealDoubleElement`, ball radius. If
+          the midpoint is not exactly representable in floating-point, the
+          radius is adjusted to account for the roundoff error.
 
         EXAMPLES::
 
@@ -482,6 +489,13 @@ cdef class RealBall(RingElement):
             [0.3333333333333333 +/- 7.04e-17]
             sage: RBF(3.14)
             [3.140000000000000 +/- 1.25e-16]
+
+        ::
+
+            sage: RBF(3, 0.125r)
+            [3e+0 +/- 0.126]
+            sage: RBF(pi, 0.125r)
+            [3e+0 +/- 0.267]
 
         Note that integers and floating-point numbers are ''not'' rounded to
         the parent's precision::
@@ -530,50 +544,82 @@ cdef class RealBall(RingElement):
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
         cdef arf_t  tmpr
+        cdef mag_t  tmpm
 
         super(RealBall, self).__init__(parent)
 
-        if x is None:
+        if mid is None:
             return
 
-        elif isinstance(x, RealBall):
-            arb_set(self.value, (<RealBall> x).value) # no rounding!
-        elif isinstance(x, int):
-            arb_set_si(self.value, PyInt_AS_LONG(x)) # no rounding!
-        elif isinstance(x, sage.rings.integer.Integer):
+        elif isinstance(mid, RealBall):
+            arb_set(self.value, (<RealBall> mid).value) # no rounding!
+        elif isinstance(mid, int):
+            arb_set_si(self.value, PyInt_AS_LONG(mid)) # no rounding!
+        elif isinstance(mid, sage.rings.integer.Integer):
+            if _do_sig(prec(self)): sig_on()
             fmpz_init(tmpz)
-            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> x).value)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> mid).value) # no rounding!
             arb_set_fmpz(self.value, tmpz)
             fmpz_clear(tmpz)
-        elif isinstance(x, sage.rings.rational.Rational):
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(mid, sage.rings.rational.Rational):
+            if _do_sig(prec(self)): sig_on()
             fmpq_init(tmpq)
-            fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> x).value)
+            fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> mid).value)
             arb_set_fmpq(self.value, tmpq, prec(self))
             fmpq_clear(tmpq)
-        elif isinstance(x, RealNumber):
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(mid, RealNumber):
+            if _do_sig(prec(self)): sig_on()
             arf_init(tmpr)
-            arf_set_mpfr(tmpr, (<RealNumber> x).value)
+            arf_set_mpfr(tmpr, (<RealNumber> mid).value)
             arb_set_arf(self.value, tmpr) # no rounding!
             arf_clear(tmpr)
-        elif isinstance(x, sage.rings.infinity.AnInfinity):
-            if isinstance(x, sage.rings.infinity.PlusInfinity):
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(mid, sage.rings.infinity.AnInfinity):
+            if isinstance(mid, sage.rings.infinity.PlusInfinity):
                 arb_pos_inf(self.value)
-            elif isinstance(x, sage.rings.infinity.MinusInfinity):
+            elif isinstance(mid, sage.rings.infinity.MinusInfinity):
                 arb_neg_inf(self.value)
             else:
                 arb_zero_pm_inf(self.value)
-        elif isinstance(x, sage.symbolic.constants.NotANumber):
-            arb_indeterminate(self.value)
 
         else:
-            if not isinstance(x, RealIntervalFieldElement):
+            if _do_sig(prec(self)): sig_on()
+            if isinstance(mid, sage.symbolic.constants.Constant):
+                if isinstance(mid, sage.symbolic.constants.NotANumber):
+                    arb_indeterminate(self.value)
+                elif isinstance(mid, sage.symbolic.constants.Pi):
+                    arb_const_pi(self.value, prec(self))
+                elif isinstance(mid, sage.symbolic.constants.E):
+                    arb_const_e(self.value, prec(self))
+                elif isinstance(mid, sage.symbolic.constants.Log2):
+                    arb_const_log2(self.value, prec(self))
+                elif isinstance(mid, sage.symbolic.constants.Catalan):
+                    arb_const_catalan(self.value, prec(self))
+                elif isinstance(mid, sage.symbolic.constants.Khinchin):
+                    arb_const_khinchin(self.value, prec(self))
+                elif isinstance(mid, sage.symbolic.constants.Glaisher):
+                    arb_const_glaisher(self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+            if not isinstance(mid, RealIntervalFieldElement):
                 try:
-                    x = RealIntervalField(prec(self))(x)
+                    mid = RealIntervalField(prec(self))(mid)
                 except TypeError:
-                    raise TypeError("unable to convert {} to a RealIntervalFieldElement".format(x))
+                    raise TypeError("unable to convert {} to a RealIntervalFieldElement".format(mid))
             mpfi_to_arb(self.value,
-                        (<RealIntervalFieldElement> x).value,
+                        (<RealIntervalFieldElement> mid).value,
                         prec(self))
+
+        if rad is not None:
+            if isinstance(rad, float):
+                mag_init(tmpm)
+                mag_set_d(tmpm, PyFloat_AS_DOUBLE(rad))
+                mag_add(arb_radref(self.value), arb_radref(self.value), tmpm)
+                mag_clear(tmpm)
+            else:
+                raise TypeError("rad should be a Python float")
+
 
     cdef RealBall _new(self):
         """

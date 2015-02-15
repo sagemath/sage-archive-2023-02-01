@@ -9,8 +9,34 @@ these have different capabilities for what they can display.
 To implement a new display backend, you need to subclass
 :class:`BackendBase`. All backend-specific handlig of rich output
 should be in :meth:`~BackendBase.displayhook` and
-:meth:`~BackendBase.display_immediately`.
+:meth:`~BackendBase.display_immediately`. See :class:`BackendSimple`
+for an absolutely minimal example of a functioning backend.
 
+You declare the types of rich output that your backend can handle in
+:meth:`~BackendBase.supported_output`. There are two ways to then
+display specific output types in your own backend.
+
+* Directly use one of the existing output containers listed in :mod:
+  :mod:`sage.repl.rich_output.output_catalog`. That is, test for the
+  rich output type in :meth:`~BackendBase.display_immediately` and
+  handle it.
+
+* Subclass the rich output container to attach your backend-specific
+  functionality. Then :meth:`~BackendBase.display_immediately` will
+  receive instances of your subclass. See
+  :class:`~sage.repl.rich_output.backend_test.BackendTest` for an
+  example of how this is done.
+
+You can also mix both ways of implementing different rich output types.
+
+EXAMPLES::
+
+    sage: from sage.repl.rich_output.backend_base import BackendSimple
+    sage: backend = BackendSimple()
+    sage: plain_text = backend.plain_text_formatter(range(10));  plain_text
+    OutputPlainText container
+    sage: backend.displayhook(plain_text, plain_text)
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 """
 
 #*****************************************************************************
@@ -31,7 +57,7 @@ class BackendBase(SageObject):
         """
         Return string representation of the backend
 
-        Every concrete backend must implement this method.
+        Every backend must implement this method.
 
         OUTPUT:
 
@@ -44,9 +70,9 @@ class BackendBase(SageObject):
             sage: backend._repr_()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: derived classes must implement this method
         """
-        raise NotImplementedError
+        raise NotImplementedError('derived classes must implement this method')
 
     def get_display_manager(self):
         """
@@ -76,18 +102,34 @@ class BackendBase(SageObject):
         Hook that will be called once before the backend is used for the
         first time.
 
+        The default implementation does nothing.
+
         INPUT:
 
         - ``kwds`` -- optional keyword arguments that are passed
           through by the
           :meth:`~sage.repl.rich_output.display_manager.DisplayManager.switch_backend`
           method.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: backend.install()
         """
         pass
 
     def uninstall(self):
         """
-        Hook that will be called once before the backend is removed.
+        Hook that will be called once right before the backend is removed.
+
+        The default implementation does nothing.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: backend.uninstall()
         """
         pass
 
@@ -95,10 +137,22 @@ class BackendBase(SageObject):
         """
         Return the backend's display preferences
 
+        Override this method to change the default preferences when
+        using your backend.
+
         OUTPUT:
 
         Instance of
         :class:`~sage.repl.rich_output.preferences.DisplayPreferences`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: backend.default_preferences()
+            Display preferences:
+            * graphics is not specified
+            * text is not specified
         """
         from sage.repl.rich_output.preferences import DisplayPreferences
         return DisplayPreferences()
@@ -107,13 +161,28 @@ class BackendBase(SageObject):
         """
         Return the outputs that are supported by the backend.
 
+        Subclasses must implement this method.
+
         OUTPUT:
 
         Iterable of output container classes, that is, subclass of
         :class:`~sage.repl.rich_output.output_basic.OutputBase`).
         The order is ignored.
+
+        You may return backend-specific subclasses of existing output
+        containers. This allows you to attach backend-specifc
+        functionality to the output container.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: backend.supported_output()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: derived classes must implement this method
         """
-        raise NotImplementedError
+        raise NotImplementedError('derived classes must implement this method')
 
     def max_width(self):
         """
@@ -289,19 +358,25 @@ class BackendBase(SageObject):
         """
         Set the ``_`` builtin variable.
 
+        By default, this sets the special ``_`` variable. Backends
+        that organize the history differently (e.g. IPython) can
+        override this method.
+
         INPUT:
 
         - ``obj`` -- result of the most recent evaluation.
 
-        Typically this sets the special ``_`` variable. Backends that
-        organize the history differently (e.g. IPython) can override
-        this method.
-
         EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: backend.set_underscore_variable(123)
+            sage: _
+            123
 
             sage: 'foo'
             'foo'
-            sage: _
+            sage: _     # indirect doctest
             'foo'
         """
         import __builtin__
@@ -318,6 +393,8 @@ class BackendBase(SageObject):
         displayhook is that Sage already converted the value to the
         most suitable rich output container.
 
+        Derived classes must implement this method.
+        
         INPUT:
 
         - ``plain_text`` -- instance of
@@ -337,6 +414,17 @@ class BackendBase(SageObject):
         the display manager's
         :meth:`~sage.repl.rich_output.display_manager.DisplayManager.displayhook`
         method.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_basic import OutputPlainText
+            sage: plain_text = OutputPlainText.example()
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: backend.displayhook(plain_text, plain_text)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: derived classes must implement this method
         """
         return self.display_immediately(plain_text, rich_output)
 
@@ -347,12 +435,33 @@ class BackendBase(SageObject):
         This method is similar to the rich output :meth:`displayhook`,
         except that it can be invoked at any time. Typically, it ends
         up being called by :meth:`sage.plot.graphics.Graphics.show`.
+
+        Derived classes must implement this method.
         
         INPUT:
 
         Same as :meth:`displayhook`.
+
+        OUTPUT:
+
+        This method may return something so you can implement
+        :meth:`displayhook` by calling this method. However, when
+        called by the display manager any potential return value is
+        discarded: There is no way to return anything without
+        returning to the command prompt.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_basic import OutputPlainText
+            sage: plain_text = OutputPlainText.example()
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: backend.display_immediately(plain_text, plain_text)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: derived classes must implement this method
         """
-        raise NotImplementedError
+        raise NotImplementedError('derived classes must implement this method')
 
 
 class BackendSimple(BackendBase):
@@ -386,9 +495,45 @@ class BackendSimple(BackendBase):
         return 'simple'
 
     def supported_output(self):
+        """
+        Return the outputs that are supported by the backend.
+
+        OUTPUT:
+
+        Iterable of output container classes, that is, subclass of
+        :class:`~sage.repl.rich_output.output_basic.OutputBase`).
+        This backend only supports the plain text output container.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendSimple
+            sage: backend = BackendSimple()
+            sage: backend.supported_output()
+            {<class 'sage.repl.rich_output.output_basic.OutputPlainText'>}
+        """
         from sage.repl.rich_output.output_basic import OutputPlainText
         return set([OutputPlainText])
 
     def display_immediately(self, plain_text, rich_output):
+        """
+        Show output without going back to the command line prompt.
+
+        INPUT:
+
+        Same as :meth:`~BackendBase.displayhook`.
+
+        OUTPUT:
+
+        This backend returns nothing, it just prints to stdout.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_basic import OutputPlainText
+            sage: plain_text = OutputPlainText.example()
+            sage: from sage.repl.rich_output.backend_base import BackendSimple
+            sage: backend = BackendSimple()
+            sage: backend.display_immediately(plain_text, plain_text)
+            Example plain text output
+        """
         print(rich_output.text.get())
 

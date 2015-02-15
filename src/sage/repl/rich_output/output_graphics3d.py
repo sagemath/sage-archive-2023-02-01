@@ -1,7 +1,19 @@
 # -*- encoding: utf-8 -*-
 r"""
 Three-Dimensional Graphics Output Types
+
+This module defines the rich output types for 3-d scenes.
 """
+
+#*****************************************************************************
+#       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 import os
 
@@ -160,6 +172,10 @@ class OutputSceneLightwave(OutputBase):
     def __init__(self, obj, mtl):
         """
         Lightwave Scene
+
+        The lightwave format consists of two files, an ``.obj`` file
+        defining the geometry data (mesh points, normal vectors, ...)
+        together with a ``.mtl`` file defining texture data.
         
         INPUT:
 

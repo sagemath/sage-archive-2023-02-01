@@ -1,13 +1,25 @@
 # -*- encoding: utf-8 -*-
 r"""
 Graphics Output Types
+
+This module defines the rich output types for 2-d images, both vector
+and raster graphics.
 """
+
+#*****************************************************************************
+#       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 import os
 
 from sage.repl.rich_output.output_basic import OutputBase
 from sage.repl.rich_output.buffer import OutputBuffer
-
 
 
 class OutputImagePng(OutputBase):
@@ -20,6 +32,21 @@ class OutputImagePng(OutputBase):
 
             Every backend that is capable of displaying any kind of
             graphics is supposed to support the PNG format at least.
+
+        INPUT:
+
+        - ``png`` --
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
+          a string (bytes) can be passed directly which will then be
+          converted into an
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. The
+          PNG image data.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputImagePng
+            sage: OutputImagePng.example()  # indirect doctest
+            OutputImagePng container
         """
         self.png = OutputBuffer(png)
 
@@ -55,7 +82,22 @@ class OutputImageGif(OutputBase):
 
     def __init__(self, gif):
         """
-        GIF Image
+        GIF Image (possibly animated)
+
+        INPUT:
+
+        - ``gif`` --
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
+          a string (bytes) can be passed directly which will then be
+          converted into an
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. The
+          GIF image data.
+        
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputImageGif
+            sage: OutputImageGif.example()   # indirect doctest
+            OutputImageGif container
         """
         self.gif = OutputBuffer(gif)
 
@@ -92,6 +134,21 @@ class OutputImageJpg(OutputBase):
     def __init__(self, jpg):
         """
         JPEG Image
+
+        INPUT:
+
+        - ``jpeg`` --
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
+          a string (bytes) can be passed directly which will then be
+          converted into an
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. The
+          JPEG image data.
+        
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputImageJpg
+            sage: OutputImageJpg.example()   # indirect doctest
+            OutputImageJpg container
         """
         self.jpg = OutputBuffer(jpg)
 
@@ -128,6 +185,21 @@ class OutputImageSvg(OutputBase):
     def __init__(self, svg):
         """
         SVG Image
+
+        INPUT:
+
+        - ``SVG`` --
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
+          a string (bytes) can be passed directly which will then be
+          converted into an
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. The
+          SVG image data.
+        
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputImageSvg
+            sage: OutputImageSvg.example()   # indirect doctest
+            OutputImageSvg container
         """
         self.svg = OutputBuffer(svg)
 
@@ -164,6 +236,21 @@ class OutputImagePdf(OutputBase):
     def __init__(self, pdf):
         """
         PDF Image
+
+        INPUT:
+
+        - ``pdf`` --
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
+          a string (bytes) can be passed directly which will then be
+          converted into an
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. The
+          PDF data.
+        
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputImagePdf
+            sage: OutputImagePdf.example()   # indirect doctest
+            OutputImagePdf container
         """
         self.pdf = OutputBuffer(pdf)
 
@@ -200,6 +287,21 @@ class OutputImageDvi(OutputBase):
     def __init__(self, dvi):
         """
         DVI Image
+
+        INPUT:
+
+        - ``dvi`` --
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. Alternatively,
+          a string (bytes) can be passed directly which will then be
+          converted into an
+          :class:`~sage.repl.rich_output.buffer.OutputBuffer`. The
+          DVI data.
+        
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_catalog import OutputImageDvi
+            sage: OutputImageDvi.example()     # indirect doctest
+            OutputImageDvi container
         """
         self.dvi = OutputBuffer(dvi)
 

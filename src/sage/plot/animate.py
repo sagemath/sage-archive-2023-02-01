@@ -643,15 +643,26 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
     def show(self, delay=20, iterations=0):
         r"""
-        Show this animation.
+        Show this animation immediately.
+
+        This method attempts to display the graphics immediately,
+        without waiting for the currently running code (if any) to
+        return to the command line. Be careful, calling it from within
+        a loop will potentially launch a large number of external
+        viewer programs.
 
         INPUT:
 
-        -  ``delay`` - (default: 20) delay in hundredths of a
+        -  ``delay`` -- (default: 20) delay in hundredths of a
            second between frames
 
-        -  ``iterations`` - integer (default: 0); number of
+        -  ``iterations`` -- integer (default: 0); number of
            iterations of animation. If 0, loop forever.
+
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`save` if you
+        want to save the figure as an image.
 
         .. note::
 

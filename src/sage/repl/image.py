@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 """
 Sage Wrapper for Bitmap Images
 
@@ -20,6 +21,16 @@ EXAMPLES::
     sage: type(img)
     <class 'sage.repl.image.Image'>
 """
+
+#*****************************************************************************
+#       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 import PIL.Image
 from sage.structure.sage_object import SageObject
@@ -238,6 +249,11 @@ class Image(SageObject):
         return to the command line. Be careful, calling it from within
         a loop will potentially launch a large number of external
         viewer programs.
+
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`save` if you
+        want to save the figure as an image.
 
         EXAMPLES::
 

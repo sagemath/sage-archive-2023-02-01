@@ -23,6 +23,13 @@ from sage.repl.rich_output.output_catalog import *
 class BackendIPython(BackendBase):
     """
     Common base for the IPython UIs
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.backend_ipython import BackendIPython
+        sage: BackendIPython()._repr_()
+        Traceback (most recent call last):
+        NotImplementedError: derived classes must implement this method
     """
 
     def install(self, **kwds):
@@ -31,10 +38,20 @@ class BackendIPython(BackendBase):
 
         INPUT:
 
-        - ``shell`` -- the IPython shell.
+        - ``shell`` -- keyword argument. The IPython shell.
 
         No tests since switching away from the doctest rich output
         backend will break the doctests.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPython
+            sage: backend = BackendIPython()
+            sage: shell = get_test_shell();
+            sage: backend.install(shell=shell)
+            sage: shell.run_cell('1+1')
+            2
         """
         shell = kwds['shell']
         from sage.repl.display.formatter import SageDisplayFormatter
@@ -46,6 +63,19 @@ class BackendIPython(BackendBase):
         Set the ``_`` builtin variable.
         
         Since IPython handles the history itself, this does nothing.
+
+        INPUT:
+
+        - ``obj`` -- anything.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPython
+            sage: backend = BackendIPython()
+            sage: backend.set_underscore_variable(123)
+            sage: _
+            0
         """
         pass
 
@@ -53,12 +83,53 @@ class BackendIPython(BackendBase):
 class BackendIPythonCommandline(BackendIPython):
     """
     Backend for the IPython Command Line
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+        sage: BackendIPythonCommandline()
+        IPython command line
     """
 
     def _repr_(self):
+        """
+        Return a string representation
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend._repr_()
+            'IPython command line'
+        """
         return 'IPython command line'
     
     def supported_output(self):
+        """
+        Return the outputs that are supported by the IPython commandline backend.
+
+        OUTPUT:
+
+        Iterable of output container classes, that is, subclass of
+        :class:`~sage.repl.rich_output.output_basic.OutputBase`).
+        The order is ignored.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: supp = backend.supported_output();  supp     # random output
+            set([<class 'sage.repl.rich_output.output_graphics.OutputImageGif'>, 
+                 ...,
+                 <class 'sage.repl.rich_output.output_graphics.OutputImagePng'>])
+            sage: from sage.repl.rich_output.output_basic import OutputMathJax
+            sage: OutputMathJax in supp
+            True
+        """
         return set([
             OutputPlainText, OutputAsciiArt, OutputMathJax,
             OutputImagePng, OutputImageGif,
@@ -67,6 +138,38 @@ class BackendIPythonCommandline(BackendIPython):
         ])
 
     def displayhook(self, plain_text, rich_output):
+        """
+        Backend implementation of the displayhook
+        
+        INPUT:
+
+        - ``plain_text`` -- instance of
+          :class:`~sage.repl.rich_output.output_basic.OutputPlainText`. The
+          plain text version of the output.
+
+        - ``rich_output`` -- instance of an output container class
+          (subclass of
+          :class:`~sage.repl.rich_output.output_basic.OutputBase`). Guaranteed
+          to be one of the output containers returned from
+          :meth:`supported_output`, possibly the same as
+          ``plain_text``.
+
+        OUTPUT:
+
+        The IPython commandline display hook returns the IPython
+        display data, a pair of dictionaries. The first dictionary
+        contains mime types as keys and the respective output as
+        value. The second dictionary is metadata.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_basic import OutputPlainText
+            sage: plain_text = OutputPlainText.example()
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend.displayhook(plain_text, plain_text)
+            ({u'text/plain': 'Example plain text output'}, {})
+        """
         if isinstance(rich_output, OutputPlainText):
             return ({u'text/plain': rich_output.text.get()}, {})
         elif isinstance(rich_output, OutputAsciiArt):
@@ -99,6 +202,30 @@ class BackendIPythonCommandline(BackendIPython):
             raise TypeError('rich_output type not supported')
 
     def display_immediately(self, plain_text, rich_output):
+        """
+        Show output without going back to the command line prompt.
+
+        This method is similar to the rich output :meth:`displayhook`,
+        except that it can be invoked at any time. On the Sage command
+        line it launches viewers just like :meth:`displayhook`.
+        
+        INPUT:
+
+        Same as :meth:`displayhook`.
+
+        OUTPUT:
+
+        This method does not return anything.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_basic import OutputPlainText
+            sage: plain_text = OutputPlainText.example()
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend.display_immediately(plain_text, plain_text)
+            Example plain text output
+        """
         formatdata, metadata = self.displayhook(plain_text, rich_output)
         print(formatdata[u'text/plain'])
 
@@ -143,7 +270,9 @@ class BackendIPythonCommandline(BackendIPython):
 
         INPUT:
 
-        - ``output_jmol`` -- 
+        - ``output_jmol`` --
+          :class:`~sage.repl.rich_output.output_graphics3d.OutputSceneJmol`. The
+          scene to launch Jmol with.
 
         - ``plain_text`` -- string. The plain text representation.
 
@@ -178,7 +307,9 @@ class BackendIPythonCommandline(BackendIPython):
 
         INPUT:
 
-        - ``output_lightwave`` -- 
+        - ``output_lightwave`` --
+          :class:`~sage.repl.rich_output.output_graphics3d.OutputSceneLightwave`. The
+          scene to launch Java3d with.
 
         - ``plain_text`` -- string. The plain text representation.
 
@@ -207,6 +338,12 @@ class BackendIPythonCommandline(BackendIPython):
 class BackendIPythonNotebook(BackendIPython):
     """
     Backend for the IPython Notebook
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+        sage: BackendIPythonNotebook()
+        IPython notebook
     """
 
     def _repr_(self):
@@ -227,13 +364,73 @@ class BackendIPythonNotebook(BackendIPython):
         return 'IPython notebook'
     
     def supported_output(self):
+        """
+        Return the outputs that are supported by the IPython notebook backend.
+
+        OUTPUT:
+
+        Iterable of output container classes, that is, subclass of
+        :class:`~sage.repl.rich_output.output_basic.OutputBase`).
+        The order is ignored.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+            sage: backend = BackendIPythonNotebook()
+            sage: supp = backend.supported_output();  supp     # random output
+            set([<class 'sage.repl.rich_output.output_graphics.OutputPlainText'>, 
+                 ...,
+                 <class 'sage.repl.rich_output.output_graphics.OutputImagePdf'>])
+            sage: from sage.repl.rich_output.output_basic import OutputMathJax
+            sage: OutputMathJax in supp
+            True
+
+        The IPython notebook cannot display gif images, see
+        https://github.com/ipython/ipython/issues/2115 ::
+
+            sage: from sage.repl.rich_output.output_graphics import OutputImageGif
+            sage: OutputImageGif in supp
+            False
+        """
         return set([
             OutputPlainText, OutputAsciiArt, OutputMathJax,
             OutputImagePng, OutputImageJpg,
             OutputImageSvg, OutputImagePdf, 
         ])
 
-    def display_immediately(self, plain_text, rich_output):
+    def displayhook(self, plain_text, rich_output):
+        """
+        Backend implementation of the displayhook
+        
+        INPUT:
+
+        - ``plain_text`` -- instance of
+          :class:`~sage.repl.rich_output.output_basic.OutputPlainText`. The
+          plain text version of the output.
+
+        - ``rich_output`` -- instance of an output container class
+          (subclass of
+          :class:`~sage.repl.rich_output.output_basic.OutputBase`). Guaranteed
+          to be one of the output containers returned from
+          :meth:`supported_output`, possibly the same as
+          ``plain_text``.
+
+        OUTPUT:
+
+        The IPython notebook display hook returns the IPython
+        display data, a pair of dictionaries. The first dictionary
+        contains mime types as keys and the respective output as
+        value. The second dictionary is metadata.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_basic import OutputPlainText
+            sage: plain_text = OutputPlainText.example()
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+            sage: backend = BackendIPythonNotebook()
+            sage: backend.displayhook(plain_text, plain_text)
+            ({u'text/plain': 'Example plain text output'}, {})
+        """
         if isinstance(rich_output, OutputPlainText):
             return ({u'text/plain': rich_output.text.get()}, {})
         elif isinstance(rich_output, OutputAsciiArt):
@@ -262,3 +459,33 @@ class BackendIPythonNotebook(BackendIPython):
         else:
             raise TypeError('rich_output type not supported')
 
+        
+    def display_immediately(self, plain_text, rich_output):
+        """
+        Show output immediately.
+
+        This method is similar to the rich output :meth:`displayhook`,
+        except that it can be invoked at any time.
+
+        .. TODO::
+
+            This does not work currently.
+        
+        INPUT:
+
+        Same as :meth:`displayhook`.
+
+        OUTPUT:
+
+        This method does not return anything.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.output_basic import OutputPlainText
+            sage: plain_text = OutputPlainText.example()
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+            sage: backend = BackendIPythonNotebook()
+            sage: backend.display_immediately(plain_text, plain_text)
+            ({u'text/plain': 'Example plain text output'}, {})
+        """
+        return self.displayhook(plain_text, rich_output)

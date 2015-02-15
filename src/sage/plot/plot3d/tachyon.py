@@ -509,6 +509,11 @@ class Tachyon(SageObject):
         a loop will potentially launch a large number of external
         viewer programs.
 
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`save` if you
+        want to save the figure as an image.
+
         EXAMPLES:
         
         This example demonstrates how the global Sage verbosity setting 

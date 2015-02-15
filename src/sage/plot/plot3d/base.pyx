@@ -1306,6 +1306,11 @@ end_scene""" % (render_params.antialiasing,
         -  ``**kwds`` -- other options, which make sense for particular
            rendering engines
 
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`save` if you
+        want to save the figure as an image.
+
         CHANGING DEFAULTS: Defaults can be uniformly changed by importing a
         dictionary and changing it. For example, here we change the default
         so images display without a frame instead of with one::

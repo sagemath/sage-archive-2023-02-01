@@ -907,6 +907,11 @@ class MathematicaElement(ExpectElement):
 
         - ``ImageSize`` -- integer. The size of the resulting image.
 
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`save` if you
+        want to save the figure as an image.
+
         EXAMPLES::
 
             sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica

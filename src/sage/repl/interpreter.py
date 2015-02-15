@@ -552,7 +552,9 @@ def get_test_shell():
     Returns a IPython shell that can be used in testing the functions
     in this module.
 
-    :returns: an IPython shell
+    OUTPUT: 
+
+    An IPython shell
 
     EXAMPLES::
 

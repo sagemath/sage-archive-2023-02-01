@@ -1520,6 +1520,11 @@ class Graphics(SageObject):
             in the figure.  This requires LaTeX, dvipng and Ghostscript to
             be installed.
 
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`save` if you
+        want to save the figure as an image.
+
         EXAMPLES::
 
             sage: c = circle((1,1), 1, color='red')
@@ -3512,6 +3517,11 @@ class GraphicsArray(SageObject):
 
         -  ``frame`` - (default: False) draw a frame around the
            image
+
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`save` if you
+        want to save the figure as an image.
 
         EXAMPLES:
 

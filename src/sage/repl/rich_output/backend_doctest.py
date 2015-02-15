@@ -34,6 +34,10 @@ class BackendDoctest(BackendBase):
         """
         Return a string representation.
 
+        OUTPUT:
+
+        String.
+
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_doctest import BackendDoctest
@@ -53,7 +57,8 @@ class BackendDoctest(BackendBase):
 
         INPUT:
 
-        None of the optional keyword arguments are used.
+        None of the optional keyword arguments are used in the doctest
+        backend.
 
         EXAMPLES::
         
@@ -89,7 +94,8 @@ class BackendDoctest(BackendBase):
         OUTPUT:
 
         Set of subclasses of
-        :class:`~sage.repl.rich_output.output_basic.OutputBase`.
+        :class:`~sage.repl.rich_output.output_basic.OutputBase`, the
+        supported output container types.
 
         EXAMPLES::
 
@@ -112,6 +118,19 @@ class BackendDoctest(BackendBase):
         """
         Display object from displayhook
 
+        INPUT:
+
+        - ``plain_text`` -- instance of
+          :class:`~sage.repl.rich_output.output_basic.OutputPlainText`. The
+          plain text version of the output.
+
+        - ``rich_output`` -- instance of an output container class
+          (subclass of
+          :class:`~sage.repl.rich_output.output_basic.OutputBase`). Guaranteed
+          to be one of the output containers returned from
+          :meth:`supported_output`, possibly the same as
+          ``plain_text``.
+
         EXAMPLES:
 
         This ends up calling the displayhook::
@@ -120,6 +139,11 @@ class BackendDoctest(BackendBase):
             sage: plt
             Graphics object consisting of 1 graphics primitive
             sage: plt.show()
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: dm.displayhook(plt)       # indirect doctest
+            Graphics object consisting of 1 graphics primitive
         """
         self.validate(rich_output)
         if any(isinstance(rich_output, cls) for cls in 
@@ -131,6 +155,10 @@ class BackendDoctest(BackendBase):
     def display_immediately(self, plain_text, rich_output):
         """
         Display object immediately
+
+        INPUT:
+
+        Same as :meth:`displayhook`.
 
         EXAMPLES:
 
@@ -145,6 +173,10 @@ class BackendDoctest(BackendBase):
             sage: plt
             Graphics object consisting of 1 graphics primitive
             sage: plt.show()
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: dm.display_immediately(plt)   # indirect doctest
         """
         self.validate(rich_output)
         if any(isinstance(rich_output, cls) for cls in 

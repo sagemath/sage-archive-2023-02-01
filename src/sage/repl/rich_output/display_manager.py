@@ -24,6 +24,16 @@ EXAMPLES::
     The Sage display manager using the doctest backend
 """
 
+#*****************************************************************************
+#       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 import warnings
 
 from sage.structure.sage_object import SageObject
@@ -35,6 +45,14 @@ from sage.repl.rich_output.output_basic import (
 class DisplayException(Exception):
     """
     Base exception for all rich output-related exceptions.
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.display_manager import DisplayException
+        sage: raise DisplayException('foo')
+        Traceback (most recent call last):
+        ...
+        DisplayException: foo
     """
     pass
 
@@ -48,6 +66,14 @@ class OutputTypeException(DisplayException):
     containers of a suitable type depending on the displayed Python
     object. This exception indicates that there is a mistake in the
     backend and it returned the wrong type of output container.
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.display_manager import OutputTypeException
+        sage: raise OutputTypeException('foo')
+        Traceback (most recent call last):
+        ...
+        OutputTypeException: foo
     """
     pass
 
@@ -59,6 +85,15 @@ class RichReprWarning(UserWarning):
     value, possibly ``None`` to indicate that no rich output can be
     generated. But it may not raise an exception as it is very
     confusing for the user if the displayhook fails.
+
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.display_manager import RichReprWarning
+        sage: raise RichReprWarning('foo')
+        Traceback (most recent call last):
+        ...
+        RichReprWarning: foo
     """
     pass
 
@@ -73,7 +108,15 @@ class restricted_output(object):
 
         - ``display_manager`` -- the display manager.
 
-        - ``output_classes`` -- iterable of 
+        - ``output_classes`` -- iterable of
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.display_manager import (
+            ....:     get_display_manager, restricted_output)
+            sage: dm = get_display_manager()
+            sage: restricted_output(dm, [dm.types.OutputPlainText])
+            <sage.repl.rich_output.display_manager.restricted_output object at 0x...>
         """
         self._display_manager = display_manager
         self._output_classes = frozenset(output_classes)
@@ -100,6 +143,15 @@ class restricted_output(object):
     def __exit__(self, exception_type, value, traceback):
         """
         Exit the restricted output context
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.display_manager import (
+            ....:     get_display_manager, restricted_output)
+            sage: dm = get_display_manager()
+            sage: with restricted_output(dm, [dm.types.OutputPlainText]):
+            ....:     assert len(dm.supported_output()) == 1
+            sage: assert len(dm.supported_output()) > 1
         """
         self._display_manager._supported_output = self._original
         
@@ -173,7 +225,12 @@ class DisplayManager(SageObject):
         Catalog of all output container types.
 
         Note that every output type must be registered in
-        :mod:`sage.repl.rich_output.catalog`.
+        :mod:`sage.repl.rich_output.output_catalog`.
+
+        OUTPUT:
+
+        Returns the :mod:`sage.repl.rich_output.output_catalog`
+        module.
 
         EXAMPLES::
 
@@ -202,6 +259,23 @@ class DisplayManager(SageObject):
         OUTPUT:
 
         The previous backend.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendSimple
+            sage: simple = BackendSimple()
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager();  dm
+            The Sage display manager using the doctest backend
+
+            sage: previous = dm.switch_backend(simple)
+            sage: dm
+            The Sage display manager using the simple backend
+
+        Restore the doctest backend::
+
+            sage: dm.switch_backend(previous) is simple
+            True
         """
         from sage.repl.rich_output.backend_base import BackendBase
         if not isinstance(backend, BackendBase):
@@ -255,7 +329,26 @@ class DisplayManager(SageObject):
         ``backend_class``.
 
         This is, for example, used by the Sage IPython display
-        formatter to ensure that the ipython backend is in use.
+        formatter to ensure that the IPython backend is in use.
+
+        INPUT:
+
+        - ``backend_class`` -- type of a backend class.
+
+        OUTPUT:
+
+        This method returns nothing. A ``RuntimeError`` is raised if
+        ``backend_class`` is not the type of the current backend.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendSimple
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: dm.check_backend_class(BackendSimple)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: check failed: current backend is invalid
         """
         if not isinstance(self._backend, backend_class):
             raise RuntimeError('check failed: current backend is invalid')
@@ -274,6 +367,11 @@ class DisplayManager(SageObject):
         The underlying container class that it was derived from.
         
         EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: dm._demote_output_class(dm.types.OutputPlainText)
+            <class 'sage.repl.rich_output.output_basic.OutputPlainText'>
         """
         from sage.repl.rich_output.output_basic import OutputBase
         if not issubclass(output_class, OutputBase):
@@ -423,9 +521,11 @@ class DisplayManager(SageObject):
             sage: class Foo(SageObject):
             ....:     def _rich_repr_(self, display_manager, **kwds):
             ....:         raise ValueError('reason')
-            sage: Foo()
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: dm._call_rich_repr(Foo(), {})
             doctest:...: RichReprWarning: Exception in _rich_repr_ while displaying object: reason
-            <class '__main__.Foo'>
         """
         if rich_repr_kwds:
             # do not ignore errors from invalid options

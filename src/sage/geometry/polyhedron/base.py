@@ -694,6 +694,12 @@ class Polyhedron_base(Element):
         - ``kwds`` -- optional keyword arguments. See :meth:`plot` for
           the description of available options.
 
+        OUTPUT:
+
+        This method does not return anything. Use :meth:`plot` if you
+        want to generate a graphics object that can be saved or
+        further transformed.
+
         EXAMPLES::
 
             sage: square = polytopes.n_cube(2)

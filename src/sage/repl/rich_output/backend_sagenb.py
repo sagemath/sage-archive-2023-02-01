@@ -7,7 +7,9 @@ This module defines the IPython backends for
 
 EXAMPLES:
 
-Install the SageNB displayhook while doctesting for the rest of this file::
+Install the SageNB displayhook while doctesting for the rest of this
+file. This somewhat odd incantation is how SageNB installed its
+displayhook before::
 
     sage: from sage.misc.displayhook import DisplayHook
     sage: import sys
@@ -35,6 +37,7 @@ filenames::
     sage: Graphics()
     sage: os.path.exists('sage0.png')
     True
+    sage: os.remove('sage0.png')
 """
 
 #*****************************************************************************
@@ -86,7 +89,7 @@ def world_readable(filename):
 
 class SageNbOutputSceneJmol(OutputSceneJmol):
     """
-    Adapt Jmol output for SageNB.
+    Adapt Jmol rich output container for SageNB.
 
     For legacy reasons, SageNB expects Jmol files saved under strange
     names. This class takes care of that.
@@ -189,30 +192,69 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
         return '{0}/.jmol_images/{1}.jmol.png'.format(directory, filename)
 
     def save_launch_script(self):
-        import sagenb
+        """
+        Save the Jmol launch script
+        
+        See :meth:`sagenb_launch_script_filename`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_sagenb import SageNbOutputSceneJmol
+            sage: j = SageNbOutputSceneJmol.example()
+            sage: os.path.exists('sage0-size32.jmol')
+            False
+            sage: j.save_launch_script()
+            sage: os.path.exists('sage0-size32.jmol')
+            True
+        """
+        from sagenb.notebook.interact import SAGE_CELL_ID
         path = 'cells/{0}/{1}'.format(
-            sagenb.notebook.interact.SAGE_CELL_ID,
+            SAGE_CELL_ID,
             self.scene_zip_filename())
-        if DOCTEST_MODE:
-            print("Saved launch script as {0}".format(
-                self.sagenb_launch_script_filename()))
-        else:
-            with open(self.sagenb_launch_script_filename(), 'w') as f:
-                f.write('set defaultdirectory "{0}"\n'.format(path))
-                f.write('script SCRIPT\n')
-            world_readable(self.sagenb_launch_script_filename())
+        with open(self.sagenb_launch_script_filename(), 'w') as f:
+            f.write('set defaultdirectory "{0}"\n'.format(path))
+            f.write('script SCRIPT\n')
+        world_readable(self.sagenb_launch_script_filename())
 
     def save_preview(self):
+        """
+        Save the preview PNG image
+        
+        See :meth:`preview_filename`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_sagenb import SageNbOutputSceneJmol
+            sage: j = SageNbOutputSceneJmol.example()
+            sage: import shutil
+            sage: shutil.rmtree('.jmol_images', ignore_errors=True)
+            sage: j.save_preview()
+            sage: os.listdir('.jmol_images')
+            ['sage1-size32.jmol.png']
+        """
         from sage.misc.misc import sage_makedirs
         sage_makedirs('.jmol_images')
-        if DOCTEST_MODE:
-            print("Saved preview png as {0}".format(
-                self.preview_filename()))
-        else:
-            self.preview_png.save_as(self.preview_filename())
-            world_readable(self.preview_filename())
+        self.preview_png.save_as(self.preview_filename())
+        world_readable(self.preview_filename())
     
     def embed(self):
+        """
+        Save all files necessary to embed jmol
+        
+        EXAMPLES:
+
+        Switch to a new empty temporary directory::
+
+            sage: os.chdir(tmp_dir())
+
+            sage: from sage.repl.rich_output.backend_sagenb import SageNbOutputSceneJmol
+            sage: j = SageNbOutputSceneJmol.example()
+            sage: j.embed()
+            sage: sorted(os.listdir('.'))
+            ['.jmol_images', 'sage0-size32-....jmol.zip', 'sage0-size32.jmol']
+            sage: sorted(os.listdir('.jmol_images'))
+            ['sage0-size32.jmol.png']
+        """
         self.save_preview()
         self.save_launch_script()
         self.scene_zip.save_as(self.scene_zip_filename())
@@ -222,9 +264,44 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
 class BackendSageNB(BackendBase):
 
     def _repr_(self):
+        """
+        Return the string representation
+        
+        OUTPUT:
+
+        String
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_sagenb import BackendSageNB
+            sage: backend = BackendSageNB()
+            sage: backend._repr_()
+            'SageNB'
+        """
         return 'SageNB'
     
     def supported_output(self):
+        """
+        Return the outputs that are supported by the SageNB backend.
+
+        OUTPUT:
+
+        Iterable of output container classes, that is, subclass of
+        :class:`~sage.repl.rich_output.output_basic.OutputBase`).
+        The order is ignored.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_sagenb import BackendSageNB
+            sage: backend = BackendSageNB()
+            sage: supp = backend.supported_output();  supp     # random output
+            set([<class 'sage.repl.rich_output.output_graphics.OutputPlainText'>, 
+                 ...,
+                 <class 'sage.repl.rich_output.output_graphics.OutputCanvas3d'>])
+            sage: from sage.repl.rich_output.output_basic import OutputMathJax
+            sage: OutputMathJax in supp
+            True
+        """
         return set([
             OutputPlainText, OutputAsciiArt, OutputMathJax,
             OutputImagePng, OutputImageGif, OutputImageJpg,
@@ -235,14 +312,33 @@ class BackendSageNB(BackendBase):
 
     def display_immediately(self, plain_text, rich_output):
         """
-        Display object immediately
+        Show output without waiting for the prompt.
+
+        INPUT:
+
+        - ``plain_text`` -- instance of
+          :class:`~sage.repl.rich_output.output_basic.OutputPlainText`. The
+          plain text version of the output.
+
+        - ``rich_output`` -- instance of an output container class
+          (subclass of
+          :class:`~sage.repl.rich_output.output_basic.OutputBase`). Guaranteed
+          to be one of the output containers returned from
+          :meth:`supported_output`, possibly the same as
+          ``plain_text``.
+
+        OUTPUT:
+
+        This method does not return anything.
 
         EXAMPLES:
 
-            sage: from sage.repl.rich_output import get_display_manager
-            sage: dm = get_display_manager()
-            sage: dm
-            The Sage display manager using the SageNB backend
+            sage: from sage.repl.rich_output.output_basic import OutputPlainText
+            sage: plain_text = OutputPlainText.example()
+            sage: from sage.repl.rich_output.backend_sagenb import BackendSageNB
+            sage: backend = BackendSageNB()
+            sage: backend.display_immediately(plain_text, plain_text)
+            Example plain text output
         """
         if any(isinstance(rich_output, cls) for cls in 
                [OutputPlainText, OutputAsciiArt, OutputMathJax]):
@@ -291,7 +387,8 @@ class BackendSageNB(BackendBase):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: rich_output = dm.types.OutputImagePng.example()
-            sage: os.remove('sage0.png')
+            sage: os.path.exists('sage0.png')
+            False
             sage: dm._backend.embed_image(rich_output.png, '.png')
             sage: os.path.exists('sage0.png')
             True

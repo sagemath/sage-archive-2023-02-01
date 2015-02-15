@@ -74,6 +74,21 @@ class SageDisplayFormatter(DisplayFormatter):
     def __init__(self, *args, **kwds):
         """
         This is where the Sage rich objects are translated to IPython
+ 
+        INPUT/OUTPUT:
+
+        See the IPython documentation.
+
+        EXAMPLES:
+
+        This is part of how Sage works with the IPython output
+        system. It cannot be used in doctests::
+
+            sage: from sage.repl.display.formatter import SageDisplayFormatter
+            sage: fmt = SageDisplayFormatter()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: check failed: current backend is invalid
         """
         super(SageDisplayFormatter, self).__init__(*args, **kwds)
         from sage.repl.rich_output.display_manager import get_display_manager
@@ -84,6 +99,10 @@ class SageDisplayFormatter(DisplayFormatter):
     def format(self, obj, include=None, exclude=None):
         """
         Use the Sage rich output instead of IPython
+
+        INPUT/OUTPUT:
+
+        See the IPython documentation.
 
         EXAMPLES::
 
@@ -127,6 +146,10 @@ class SagePlainTextFormatter(PlainTextFormatter):
         In particular, it correctly print lists of matrices or other
         objects (see
         :meth:`sage.structure.parent.Parent._repr_option`).
+ 
+        INPUT/OUTPUT:
+
+        See the IPython documentation.
 
         EXAMPLES::
     

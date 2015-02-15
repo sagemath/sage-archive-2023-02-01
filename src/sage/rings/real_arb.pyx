@@ -124,10 +124,11 @@ from sage.libs.arb.arb cimport *
 from sage.libs.arb.arf cimport arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag
 from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS
 from sage.libs.flint.flint cimport flint_free
-from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_set_mpz, fmpz_clear
+from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
-from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, GMP_RNDN, MPFR_PREC_MIN
+from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, mpfr_sgn, MPFR_PREC_MIN
+from sage.libs.mpfr cimport GMP_RNDN, GMP_RNDU, GMP_RNDD, GMP_RNDZ
 from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -707,6 +708,8 @@ cdef class RealBall(RingElement):
 
         return py_string
 
+    # Conversions
+
     cpdef RealIntervalFieldElement _interval(self):
         """
         Return a :mod:`real interval <sage.rings.real_mpfr>` containing this ball.
@@ -726,6 +729,100 @@ cdef class RealBall(RingElement):
         result = RealIntervalField(prec(self))(0)
         arb_to_mpfi(result.value, self.value, prec(self))
         return result
+
+    def _integer_(self, _):
+        """
+        Check that this ball contains a single integer and return that integer.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: ZZ(RBF(1, rad=0.1r))
+            1
+            sage: ZZ(RBF(1, rad=1.0r))
+            Traceback (most recent call last):
+            ...
+            ValueError: [+/- 2.01] does not contain a unique integer
+            sage: ZZ(RBF(pi))
+            Traceback (most recent call last):
+            ...
+            ValueError: [3.141592653589793 +/- 5.61e-16] does not contain a unique integer
+
+        """
+        cdef sage.rings.integer.Integer res
+        cdef fmpz_t tmp
+        fmpz_init(tmp)
+        try:
+            if arb_get_unique_fmpz(tmp, self.value):
+                res = sage.rings.integer.Integer.__new__(sage.rings.integer.Integer)
+                fmpz_get_mpz(res.value, tmp)
+            else:
+                raise ValueError("{} does not contain a unique integer".format(self))
+        finally:
+            fmpz_clear(tmp)
+        return res
+
+    def _mpfr_(self, RealField_class field):
+        """
+        Convert this real ball to a real number.
+
+        This attempts to do something sensible for all rounding modes, as
+        illustrated below.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: mypi = RBF(pi)
+            sage: RR(mypi)
+            3.14159265358979
+            sage: Reals(rnd='RNDU')(mypi)
+            3.14159265358980
+            sage: Reals(rnd='RNDD')(mypi)
+            3.14159265358979
+            sage: Reals(rnd='RNDZ')(mypi)
+            3.14159265358979
+            sage: Reals(rnd='RNDZ')(-mypi)
+            -3.14159265358979
+            sage: Reals(rnd='RNDU')(-mypi)
+            -3.14159265358979
+
+        ::
+
+            sage: b = RBF(RIF(-1/2, 1))
+            sage: RR(b)
+            0.250000000000000
+            sage: Reals(rnd='RNDU')(b)
+            1.00000000093133
+            sage: Reals(rnd='RNDD')(b)
+            -0.500000000931323
+            sage: Reals(rnd='RNDZ')(b)
+            0.250000000000000
+        """
+        cdef RealNumber left, mid, right
+        cdef long prec = field.precision()
+        cdef int sl, sr
+        if (field.rnd == GMP_RNDN or
+                field.rnd == GMP_RNDZ and arb_contains_zero(self.value)):
+            mid = RealNumber(field, None)
+            arf_get_mpfr(mid.value, arb_midref(self.value), field.rnd)
+            return mid
+        else:
+            left = RealNumber(field, None)
+            right = RealNumber(field, None)
+            arb_get_interval_mpfr(left.value, right.value, self.value)
+            if field.rnd == GMP_RNDD:
+                return left
+            elif field.rnd == GMP_RNDU:
+                return right
+            elif field.rnd == GMP_RNDZ:
+                sl, sr = mpfr_sgn(left.value), mpfr_sgn(left.value)
+                if sr > 0 and sl > 0:
+                    return left
+                elif sr < 0 and sl < 0:
+                    return right
+                else:
+                    return field(0)
+        raise ValueError("unknown rounding mode")
 
     # Comparisons and predicates
 
@@ -956,13 +1053,7 @@ cdef class RealBall(RingElement):
         if mid_prec < MPFR_PREC_MIN:
             mid_prec = MPFR_PREC_MIN
         cdef RealField_class mid_field = RealField(mid_prec)
-        cdef RealNumber mid = RealNumber(mid_field, None)
-        if _do_sig(mid_prec): sig_on()
-        cdef int rnd = arf_get_mpfr(mid.value, arb_midref(self.value), GMP_RNDN)
-        if _do_sig(mid_prec): sig_off()
-        if rnd != 0:
-            raise OverflowError("Unable to represent the center of this ball within the exponent range of RealNumbers")
-        return mid
+        return self._mpfr_(mid_field)
 
     def rad(self):
         """

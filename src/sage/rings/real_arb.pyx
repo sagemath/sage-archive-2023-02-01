@@ -1221,6 +1221,48 @@ cdef class RealBall(RingElement):
         """
         return bool(arb_is_exact(self.value))
 
+    def identical(self, RealBall other):
+        """
+        Return nonzero iff ``self`` and ``other`` are equal as balls, i.e.
+        have both the same midpoint and radius.
+
+        Note that this is not the same thing as testing whether both ``self``
+        and ``other`` certainly represent the same real number, unless either
+        ``self`` or ``other`` is exact (and neither contains NaN). To test
+        whether both operands might represent the same mathematical quantity,
+        use :meth:`overlaps` or :meth:`contains`, depending on the
+        circumstance.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).identical(RBF(3)-RBF(2))
+            True
+            sage: RBF(1, rad=0.25r).identical(RBF(1, rad=0.25r))
+            True
+            sage: RBF(1).identical(RBF(1, rad=0.25r))
+            False
+        """
+        return bool(arb_equal(self.value, other.value))
+
+    def overlaps(self, RealBall other):
+        """
+        Return nonzero iff ``self`` and ``other`` have some point in common.
+
+        If either ``self`` or ``other`` contains NaN, this method always
+        returns nonzero (as a NaN could be anything, it could in particular
+        contain any number that is included in the other operand).
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(pi).overlaps(RBF(pi) + 2**(-100))
+            True
+            sage: RBF(pi).overlaps(RBF(3))
+            False
+        """
+        return bool(arb_overlaps(self.value, other.value))
+
     # Arithmetic
 
     def __neg__(self):

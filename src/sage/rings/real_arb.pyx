@@ -305,7 +305,7 @@ class RealBallField(UniqueRepresentation, Parent):
         Parents that canonically coerce into real ball fields include:
 
         - some exact or lazy parents representing subsets of the reals, such as
-          `ZZ`, `QQ`, `AA`, and `RLF`;
+          ``ZZ``, ``QQ``, ``AA``, and ``RLF``;
 
         - real ball fields with a larger precision.
 
@@ -1017,7 +1017,7 @@ cdef class RealBall(RingElement):
 
         The accuracy is defined as the difference between the position of the
         top bit in the midpoint and the top bit in the radius and , minus one.
-        The result is clamped between plus/minus `ARF_PREC_EXACT`.
+        The result is clamped between plus/minus ``ARF_PREC_EXACT``.
 
         EXAMPLES::
 
@@ -1035,10 +1035,10 @@ cdef class RealBall(RingElement):
         """
         Return a trimmed copy of this ball.
 
-        Round `self` to a number of bits equal to the :meth:`accuracy` of
-        `self` (as indicated by its radius), plus a few guard bits. The
-        resulting ball is guaranteed to contain `self`, but is more economical
-        if `self` has less than full accuracy.
+        Round ``self`` to a number of bits equal to the :meth:`accuracy` of
+        ``self`` (as indicated by its radius), plus a few guard bits. The
+        resulting ball is guaranteed to contain ``self``, but is more economical
+        if ``self`` has less than full accuracy.
 
         .. SEEALSO:: :meth:`round`
 

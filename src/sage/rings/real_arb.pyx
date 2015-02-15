@@ -1610,6 +1610,325 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    # Elementary functions
+
+    def log(self):
+        """
+        Return the natural logarithm of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(2).log()
+            [0.6931471805599453 +/- 4.34e-17]
+            sage: RBF(-1/3).log()
+            nan
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_log(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def log1p(self):
+        """
+        Return ``log(1 + self)``, computed accurately when ``self`` is close to
+        zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: eps = RBF(1e-30)
+            sage: (1 + eps).log()
+            [+/- 2.23e-16]
+            sage: eps.log1p()
+            [1.00000000000000e-30 +/- 2.68e-46]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_log1p(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def exp(self):
+        """
+        Return the exponential of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).exp()
+            [2.718281828459045 +/- 5.41e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_exp(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def expm1(self):
+        """
+        Return ``exp(self) - 1``, computed accurately when ``self`` is close to
+        zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: eps = RBF(1e-30)
+            sage: exp(eps) - 1
+            [+/- 3.16e-30]
+            sage: eps.expm1()
+            [1.000000000000000e-30 +/- 8.34e-47]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_expm1(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def sin(self):
+        """
+        Return the sine of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(pi).sin()
+            [+/- 5.68e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_sin(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def cos(self):
+        """
+        Return the cosine of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(pi).cos()
+            [-1.00000000000000 +/- 6.69e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_cos(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def tan(self):
+        """
+        Return the tangent of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).tan()
+            [1.557407724654902 +/- 3.26e-16]
+            sage: RBF(pi/2).tan()
+            [+/- inf]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_tan(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def cot(self):
+        """
+        Return the cotangent of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).cot()
+            [0.642092615934331 +/- 4.79e-16]
+            sage: RBF(pi).cot()
+            [+/- inf]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_cot(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def asin(self):
+        """
+        Return the arcsine of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).asin()
+            [1.570796326794897 +/- 6.65e-16]
+            sage: RBF(1, rad=.125r).asin()
+            nan
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_asin(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def acos(self):
+        """
+        Return the arccosine of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).acos()
+            0
+            sage: RBF(1, rad=.125r).acos()
+            nan
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_acos(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def atan(self):
+        """
+        Return the arctangent of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).atan()
+            [0.785398163397448 +/- 3.91e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_atan(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def sinh(self):
+        """
+        Return the hyperbolic sine of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).sinh()
+            [1.175201193643801 +/- 6.18e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_sinh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def cosh(self):
+        """
+        Return the hyperbolic cosine of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).cosh()
+            [1.543080634815244 +/- 5.28e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_cosh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def tanh(self):
+        """
+        Return the hyperbolic tangent of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).tanh()
+            [0.761594155955765 +/- 2.81e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_tanh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def coth(self):
+        """
+        Return the hyperbolic cotangent of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).coth()
+            [1.313035285499331 +/- 4.97e-16]
+            sage: RBF(0).coth()
+            [+/- inf]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_coth(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def asinh(self):
+        """
+        Return the inverse hyperbolic sine of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1).asinh()
+            [0.881373587019543 +/- 1.87e-16]
+            sage: RBF(0).asinh()
+            0
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_asinh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def acosh(self):
+        """
+        Return the inverse hyperbolic cosine of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(2).acosh()
+            [1.316957896924817 +/- 6.61e-16]
+            sage: RBF(1).acosh()
+            0
+            sage: RBF(0).acosh()
+            nan
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_acosh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def atanh(self):
+        """
+        Return the inverse hyperbolic tangent of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(0).atanh()
+            0
+            sage: RBF(1/2).atanh()
+            [0.549306144334055 +/- 3.32e-16]
+            sage: RBF(1).atanh()
+            nan
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_atanh(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
 
     # Special functions
 

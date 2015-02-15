@@ -194,6 +194,7 @@ cdef extern from "arb.h":
 
     void arb_asinh(arb_t z, const arb_t x, long prec)
     void arb_acosh(arb_t z, const arb_t x, long prec)
+    void arb_atanh(arb_t z, const arb_t x, long prec)
     void arb_const_pi(arb_t z, long prec)
     void arb_const_sqrt_pi(arb_t z, long prec)
     void arb_const_log_sqrt2pi(arb_t z, long prec)

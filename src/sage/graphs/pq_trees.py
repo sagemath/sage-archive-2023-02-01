@@ -689,6 +689,10 @@ class P(PQ):
         r"""
         Return the number of orderings allowed by the structure.
 
+        .. SEEALSO::
+
+            :meth:`orderings` -- iterate over all admissible orderings
+
         EXAMPLE::
 
             sage: from sage.graphs.pq_trees import P, Q
@@ -706,6 +710,33 @@ class P(PQ):
             if isinstance(c,PQ):
                 n = n*c.cardinality()
         return n
+
+    def orderings(self):
+        r"""
+        Iterate over all orderings of the sets allowed by the structure.
+
+        .. SEEALSO::
+
+            :meth:`cardinality` -- return the number of orderings
+
+        EXAMPLES::
+
+            sage: from sage.graphs.pq_trees import P, Q
+            sage: p = P([[2,4], [1,2], [0,8], [0,5]])
+            sage: for o in p.orderings():
+            ....:    print o
+            ({2, 4}, {1, 2}, {0, 8}, {0, 5})
+            ({2, 4}, {1, 2}, {0, 5}, {0, 8})
+            ({2, 4}, {0, 8}, {1, 2}, {0, 5})
+            ({2, 4}, {0, 8}, {0, 5}, {1, 2})
+            ...
+
+        """
+        from itertools import permutations, product
+        for p in permutations(self._children):
+            for o in product(*[x.orderings() if isinstance(x,PQ) else [x]
+                               for x in p]):
+                yield o
 
 class Q(PQ):
     r"""
@@ -1002,12 +1033,16 @@ class Q(PQ):
         r"""
         Return the number of orderings allowed by the structure.
 
+        .. SEEALSO::
+
+            :meth:`orderings` -- iterate over all admissible orderings
+
         EXAMPLE::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: q = Q([[0,3], [1,2], [2,3], [2,4], [4,0],[2,8], [2,9]])
             sage: q.cardinality()
-            5040
+            2
         """
         n = 1
         for c in self._children:
@@ -1015,3 +1050,32 @@ class Q(PQ):
                 n = n*c.cardinality()
 
         return n if (self.number_of_children() == 1) else 2*n
+
+    def orderings(self):
+        r"""
+        Iterates over all orderings of the sets allowed by the structure
+
+        .. SEEALSO::
+
+            :meth:`cardinality` -- return the number of orderings
+
+
+        EXAMPLES::
+
+            sage: from sage.graphs.pq_trees import P, Q
+            sage: q = Q([[2,4], [1,2], [0,8], [0,5]])
+            sage: for o in q.orderings():
+            ....:    print o
+            ({2, 4}, {1, 2}, {0, 8}, {0, 5})
+            ({0, 5}, {0, 8}, {1, 2}, {2, 4})
+        """
+        if len(self._children) == 1:
+            c = self._children[0]
+            for o in (c.orderings() if isinstance(c,PQ) else [o]):
+                yield o
+        else:
+            from itertools import product
+            for o in product(*[x.orderings() if isinstance(x,PQ) else [x]
+                               for x in self._children]):
+                yield o
+                yield o[::-1]

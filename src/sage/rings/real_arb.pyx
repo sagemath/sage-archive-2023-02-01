@@ -283,8 +283,7 @@ class RealBallField(UniqueRepresentation, Parent):
         super(RealBallField, self).__init__(
                 #category=category or sage.categories.magmas_and_additive_magmas.MagmasAndAdditiveMagmas().Infinite(),
                 # FIXME: RBF is not even associative, but CompletionFunctor only works with rings.
-                category=category or sage.categories.rings.Rings().Infinite(),
-                element_constructor=RealBall)
+                category=category or sage.categories.rings.Rings().Infinite())
         self._prec = precision
 
     def _repr_(self):
@@ -332,6 +331,50 @@ class RealBallField(UniqueRepresentation, Parent):
             return True
         else:
             return False
+
+    def _element_constructor_(self, mid=None, rad=None):
+        """
+        Convert ``mid`` to an element of this real ball field, perhaps
+        non-canonically.
+
+        In addition to the inputs supported by
+        :meth:`ElementConstructor.__init__`,
+        anything that is convertible to a real interval can also be used to
+        construct a real ball::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(RIF(0, 1))                  # optional - arb; indirect doctest
+            [+/- 1.01]
+            sage: RBF(1)                          # optional - arb
+            1.000000000000000
+            sage: RBF(x)                          # optional - arb
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x to a RealIntervalFieldElement
+
+        Various symbolic constants can be converted without going through real
+        intervals. (This is faster and yields tighter error bounds.) ::
+
+            sage: RBF(e)
+            [2.718281828459045 +/- 5.49e-16]
+            sage: RBF(pi)
+            [3.141592653589793 +/- 5.62e-16]
+        """
+        try:
+            return self.element_class(self, mid, rad)
+        except TypeError:
+            pass
+
+        try:
+            return self.element_class(self, mid.pyobject(), rad)
+        except (AttributeError, TypeError):
+            pass
+
+        try:
+            mid = RealIntervalField(self._prec)(mid)
+        except TypeError:
+            raise TypeError("unable to convert {} to a RealIntervalFieldElement".format(mid))
+        return self.element_class(self, mid, rad)
 
     def gens(self):
         r"""
@@ -458,7 +501,7 @@ cdef class RealBall(RingElement):
 
     def __init__(self, parent, mid=None, rad=None):
         """
-        Initialize the :class:`RealBall` using ``mid``.
+        Initialize the :class:`RealBall`.
 
         INPUT:
 
@@ -525,22 +568,22 @@ cdef class RealBall(RingElement):
             sage: RBF(NaN)
             nan
 
-        Anything that is convertible to a real interval can also be used to
-        construct a real ball::
+        TESTS::
 
-            sage: RBF(RIF(0, 1))                  # optional - arb; indirect doctest
-            [+/- 1.01]
-            sage: RBF(1)                          # optional - arb
-            1.000000000000000
-            sage: RBF(x)                          # optional - arb
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert x to a RealIntervalFieldElement
-
+            sage: from sage.rings.real_arb import RealBall
+            sage: RealBall(RBF, sage.symbolic.constants.Pi())
+            [3.141592653589793 +/- 5.62e-16]
+            sage: RealBall(RBF, sage.symbolic.constants.Log2())
+            [0.693147180559945 +/- 4.06e-16]
+            sage: RealBall(RBF, sage.symbolic.constants.Catalan())
+            [0.915965594177219 +/- 9.43e-17]
+            sage: RealBall(RBF, sage.symbolic.constants.Khinchin())
+            [2.685452001065306 +/- 6.82e-16]
+            sage: RealBall(RBF, sage.symbolic.constants.Glaisher())
+            [1.282427129100623 +/- 6.02e-16]
+            sage: RealBall(RBF, sage.symbolic.constants.e)
+            [2.718281828459045 +/- 5.49e-16]
         """
-        # TODO: init from mid+rad
-        # TODO: perhaps dissociate basic constructors (here) from conversions
-        #       (→ element_constructor)?
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
         cdef arf_t  tmpr
@@ -583,16 +626,13 @@ cdef class RealBall(RingElement):
                 arb_neg_inf(self.value)
             else:
                 arb_zero_pm_inf(self.value)
-
-        else:
+        elif isinstance(mid, sage.symbolic.constants.Constant):
             if _do_sig(prec(self)): sig_on()
-            if isinstance(mid, sage.symbolic.constants.Constant):
+            try:
                 if isinstance(mid, sage.symbolic.constants.NotANumber):
                     arb_indeterminate(self.value)
                 elif isinstance(mid, sage.symbolic.constants.Pi):
                     arb_const_pi(self.value, prec(self))
-                elif isinstance(mid, sage.symbolic.constants.E):
-                    arb_const_e(self.value, prec(self))
                 elif isinstance(mid, sage.symbolic.constants.Log2):
                     arb_const_log2(self.value, prec(self))
                 elif isinstance(mid, sage.symbolic.constants.Catalan):
@@ -601,15 +641,20 @@ cdef class RealBall(RingElement):
                     arb_const_khinchin(self.value, prec(self))
                 elif isinstance(mid, sage.symbolic.constants.Glaisher):
                     arb_const_glaisher(self.value, prec(self))
+                else:
+                    raise TypeError("unsupported constant")
+            finally:
+                if _do_sig(prec(self)): sig_off()
+        elif isinstance(mid, sage.symbolic.constants_c.E):
+            if _do_sig(prec(self)): sig_on()
+            arb_const_e(self.value, prec(self))
             if _do_sig(prec(self)): sig_off()
-            if not isinstance(mid, RealIntervalFieldElement):
-                try:
-                    mid = RealIntervalField(prec(self))(mid)
-                except TypeError:
-                    raise TypeError("unable to convert {} to a RealIntervalFieldElement".format(mid))
+        elif isinstance(mid, RealIntervalFieldElement):
             mpfi_to_arb(self.value,
-                        (<RealIntervalFieldElement> mid).value,
-                        prec(self))
+                (<RealIntervalFieldElement> mid).value,
+                prec(self))
+        else:
+            raise TypeError("unsupported midpoint type")
 
         if rad is not None:
             if isinstance(rad, float):
@@ -1103,7 +1148,7 @@ cdef class RealBall(RingElement):
 
             sage: from sage.rings.real_arb import RBF
             sage: RBF(pi)/RBF(e)
-            [1.15572734979092 +/- 2.49e-15]
+            [1.155727349790922 +/- 8.49e-16]
             sage: RBF(2)/RBF(0)
             [+/- inf]
         """
@@ -1119,13 +1164,13 @@ cdef class RealBall(RingElement):
 
             sage: from sage.rings.real_arb import RBF
             sage: RBF(e)^17
-            [24154952.753575 +/- 3.79e-7]
+            [24154952.753575 +/- 3.47e-7]
             sage: RBF(e)^(-1)
-            [0.367879441171442 +/- 4.80e-16]
+            [0.367879441171442 +/- 4.52e-16]
             sage: RBF(e)^(1/2)
-            [1.648721270700128 +/- 5.63e-16]
+            [1.648721270700128 +/- 5.00e-16]
             sage: RBF(e)^RBF(pi)
-            [23.140692632779 +/- 3.08e-13]
+            [23.1406926327793 +/- 9.20e-14]
 
         ::
 
@@ -1139,9 +1184,9 @@ cdef class RealBall(RingElement):
         TESTS::
 
             sage: RBF(e)**(2r)
-            [7.38905609893065 +/- 5.88e-15]
+            [7.38905609893065 +/- 4.75e-15]
             sage: RBF(e)**(-1r)
-            [0.367879441171442 +/- 4.80e-16]
+            [0.367879441171442 +/- 4.52e-16]
         """
         cdef fmpz_t tmpz
         if not isinstance(base, RealBall):

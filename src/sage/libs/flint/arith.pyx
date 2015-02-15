@@ -154,6 +154,11 @@ def harmonic_number(unsigned long n):
     Returns the harmonic number ``H_n``.
 
     EXAMPLES::
+
+        sage: from sage.libs.flint.arith import harmonic_number
+        sage: n = 500 + randint(0,500)
+        sage: bool( sum(1/k for k in range(1,n+1)) == harmonic_number(n) )
+        True
     """
     s = Rational(0)
     cdef fmpq_t s_fmpq

@@ -36,7 +36,7 @@ from sage.categories.finite_dimensional_lie_algebras_with_basis import FiniteDim
 
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
-from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra
+from sage.algebras.lie_algebras.lie_algebra import LieAlgebra, FinitelyGeneratedLieAlgebra
 #from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
 #from sage.algebras.lie_algebras.ideal import LieAlgebraIdeal
 #from sage.algebras.lie_algebras.quotient import QuotientLieAlgebra
@@ -83,7 +83,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L1 is L2
             True
         """
-        names, index_set = _standardize_names_index_set(names, index_set)
+        names, index_set = LieAlgebra._standardize_names_index_set(names, index_set)
 
         s_coeff = LieAlgebraWithStructureCoefficients._standardize_s_coeff(s_coeff)
         if len(s_coeff) == 0:
@@ -283,7 +283,17 @@ class AbelianLieAlgebra(LieAlgebraWithStructureCoefficients):
         sage: L.bracket(x, y)
         0
     """
-    def __init__(self, R, names=None, index_set=None, **kwds):
+    @staticmethod
+    def __classcall_private__(cls, R, names=None, index_set=None, **kwds):
+        """
+        Normalize input to ensure a unique representation.
+
+        TESTS::
+        """
+        names, index_set = LieAlgebra._standardize_names_index_set(names, index_set)
+        return super(AbelianLieAlgebra, cls).__classcall__(cls, R, names, index_set, **kwds)
+
+    def __init__(self, R, names, index_set, **kwds):
         """
         Initialize ``self``.
 

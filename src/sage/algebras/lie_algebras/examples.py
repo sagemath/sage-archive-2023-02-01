@@ -70,7 +70,7 @@ def cross_product(R, names=['X', 'Y', 'Z']):
         sage: L.structure_coefficients()
         Finite family {('X', 'Y'): Z, ('X', 'Z'): -Y, ('Y', 'Z'): X}
     """
-    L = three_dimensional(R, 1, 1, 1, 0, names)
+    L = three_dimensional(R, 1, 1, 1, 0, names=names)
     L.rename("Lie algebra of RR^3 under cross product over {}".format(R))
     return L
 
@@ -107,10 +107,10 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
 
     if n == 0:
         from sage.algebras.lie_algebras.structure_coefficients import AbelianLieAlgebra
-        return AbelianLieAlgebra(R, names)
+        return AbelianLieAlgebra(R, names=names)
 
     if n == 1:
-        L = three_dimensional(R, 0, 1, 0, 0, names) # Strictly upper triangular matrices
+        L = three_dimensional(R, 0, 1, 0, 0, names=names) # Strictly upper triangular matrices
         L.rename("Lie algebra of 3x3 strictly upper triangular matrices over {}".format(R))
         return L
 
@@ -183,7 +183,7 @@ def sl(R, n, representation='bracket'):
         E = MS([[0,1],[0,0]])
         F = MS([[0,0],[1,0]])
         H = MS([[1,0],[0,-1]])
-        L = LieAlgebraFromAssociative([E, F, H], ['E', 'F', 'H'])
+        L = LieAlgebraFromAssociative(MS, [E, F, H], ['E', 'F', 'H'])
         L.rename("sl2 as a matrix Lie algebra over {}".format(R))
     elif representation == 'bracket':
         L = three_dimensional_by_rank(R, 3, names=['E', 'F', 'H'])
@@ -211,12 +211,12 @@ def affine_transformations_line(R, names=['X', 'Y'], representation='bracket'):
         one = R.one()
         gens = tuple(MS({(0,i):one}) for i in range(2))
         from sage.algebras.lie_algebras.lie_algebra import LieAlgebraFromAssociative
-        return LieAlgebraFromAssociative(gens, names)
+        return LieAlgebraFromAssociative(MS, gens, names=names)
     X = names[0]
     Y = names[1]
     from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
     s_coeff = {(X,Y): {Y:R.one()}}
-    L = LieAlgebraWithStructureCoefficients(R, s_coeff, names)
+    L = LieAlgebraWithStructureCoefficients(R, s_coeff, names=names)
     L.rename("Lie algebra of affine transformations of a line over {}".format(R))
     return L
 
@@ -292,7 +292,7 @@ def upper_triangluar_matrices(R, n):
     names += tuple('t{}'.format(i) for i in range(n))
     gens = [MS({(i,i+1):one}) for i in range(n-1)]
     gens += [MS({(i,i):one}) for i in range(n)]
-    L = LieAlgebraFromAssociative(gens, names)
+    L = LieAlgebraFromAssociative(MS, gens, names=names)
     L.rename("Lie algebra of {}-dimensional upper triangular matrices over {}".format(n, L.base_ring()))
     return L
 
@@ -312,7 +312,7 @@ def strictly_upper_triangular_matrices(R, n):
     one = R.one()
     names = tuple('n{}'.format(i) for i in range(n-1))
     gens = tuple(MS({(i,i+1):one}) for i in range(n-1))
-    L = LieAlgebraFromAssociative(gens, names)
+    L = LieAlgebraFromAssociative(MS, gens, names=names)
     L.rename("Lie algebra of {}-dimensional strictly upper triangular matrices over {}".format(n, L.base_ring()))
     return L
 

@@ -10,6 +10,71 @@ This is a rudimentary binding to the optional `Arb library
 documentation for more details.
 
 You may have to run ``sage -i arb`` to use the arb library.
+
+Comparison
+==========
+
+Two elements are equal if and only if they are the same object
+or if both are exact and equal::
+
+    sage: from sage.rings.real_arb import RealBallField # optional - arb
+    sage: RBF = RealBallField() # optional - arb
+    sage: a = RBF(1) # optional - arb
+    sage: b = RBF(1) # optional - arb
+    sage: a is b # optional - arb
+    False
+    sage: a == b # optional - arb
+    True
+    sage: a = RBF(1/3) # optional - arb
+    sage: b = RBF(1/3) # optional - arb
+    sage: a.is_exact() # optional - arb
+    False
+    sage: b.is_exact() # optional - arb
+    False
+    sage: a is b # optional - arb
+    False
+    sage: a == b # optional - arb
+    False
+
+A ball is non-zero if and only if it does not contain zero. ::
+
+    sage: a = RBF(RIF(-0.5, 0.5)) # optional - arb
+    sage: bool(a) # optional - arb
+    False
+    sage: a != 0 # optional - arb
+    False
+    sage: b = RBF(1/3) # optional - arb
+    sage: bool(b) # optional - arb
+    True
+    sage: b != 0 # optional - arb
+    True
+
+A ball ``left`` is less than a ball ``right`` if all elements of ``left`` are less
+than all elements of ``right``. ::
+
+    sage: a = RBF(RIF(1, 2)) # optional - arb
+    sage: b = RBF(RIF(3, 4)) # optional - arb
+    sage: a < b # optional - arb
+    True
+    sage: a <= b # optional - arb
+    True
+    sage: a > b # optional - arb
+    False
+    sage: a >= b # optional - arb
+    False
+    sage: a = RBF(RIF(1, 3)) # optional - arb
+    sage: b = RBF(RIF(2, 4)) # optional - arb
+    sage: a < b # optional - arb
+    False
+    sage: a <= b # optional - arb
+    False
+    sage: a > b # optional - arb
+    False
+    sage: a >= b # optional - arb
+    False
+
+Classes and Methods
+===================
 """
 #*****************************************************************************
 # Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
@@ -21,6 +86,7 @@ You may have to run ``sage -i arb`` to use the arb library.
 #*****************************************************************************
 
 include 'sage/ext/interrupt.pxi'
+include "sage/ext/python.pxi"
 include "sage/ext/stdsage.pxi"
 
 import sage.categories.sets_cat
@@ -401,7 +467,7 @@ cdef class RealBall(Element):
 
     def is_zero(self):
         """
-        Return nonzero iff the midpoint and radius of this ball are both zero.
+        Return ``True`` iff the midpoint and radius of this ball are both zero.
 
         EXAMPLES::
 
@@ -412,27 +478,27 @@ cdef class RealBall(Element):
             sage: RBF(RIF(-0.5, 0.5)).is_zero() # optional - arb
             False
         """
-        return bool(arb_is_zero(self.value))
+        return arb_is_zero(self.value)
 
-    def is_nonzero(self):
+    def __nonzero__(self):
         """
-        Return nonzero iff zero is not contained in the interval represented
+        Return ``True`` iff zero is not contained in the interval represented
         by this ball.
 
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField # optional - arb
             sage: RBF = RealBallField() # optional - arb
-            sage: RBF(pi).is_nonzero() # optional - arb
+            sage: bool(RBF(pi)) # optional - arb
             True
-            sage: RBF(RIF(-0.5, 0.5)).is_nonzero() # optional - arb
+            sage: bool(RBF(RIF(-0.5, 0.5))) # optional - arb
             False
         """
-        return bool(arb_is_nonzero(self.value))
+        return arb_is_nonzero(self.value)
 
     def is_exact(self):
         """
-        Return nonzero iff the radius of this ball is zero.
+        Return ``True`` iff the radius of this ball is zero.
 
         EXAMPLES::
 
@@ -443,7 +509,172 @@ cdef class RealBall(Element):
             sage: RBF(RIF(0.1, 0.2)).is_exact() # optional - arb
             False
         """
-        return bool(arb_is_exact(self.value))
+        return arb_is_exact(self.value)
+
+    def __richcmp__(left, right, int op):
+        """
+        Compare ``left`` and ``right``.
+
+        For more information, see :mod:`sage.rings.real_arb`.
+
+        EXAMPLES::
+
+                sage: from sage.rings.real_arb import RealBallField # optional - arb
+                sage: RBF = RealBallField() # optional - arb
+                sage: a = RBF(1) # optional - arb
+                sage: b = RBF(1) # optional - arb
+                sage: a is b # optional - arb
+                False
+                sage: a == b # optional - arb
+                True
+                sage: a = RBF(1/3) # optional - arb
+                sage: a.is_exact() # optional - arb
+                False
+                sage: b = RBF(1/3) # optional - arb
+                sage: b.is_exact() # optional - arb
+                False
+                sage: a == b # optional - arb
+                False
+        """
+        return (<Element>left)._richcmp(right, op)
+
+    cdef _richcmp_c_impl(left, Element right, int op):
+        """
+        Compare ``left`` and ``right``.
+
+        For more information, see :mod:`sage.rings.real_arb`.
+
+        EXAMPLES::
+
+                sage: from sage.rings.real_arb import RealBallField # optional - arb
+                sage: RBF = RealBallField() # optional - arb
+                sage: a = RBF(1) # optional - arb
+                sage: b = RBF(1) # optional - arb
+                sage: a is b # optional - arb
+                False
+                sage: a == b # optional - arb
+                True
+
+        TESTS:
+
+            Balls whose intersection consists of one point::
+
+                sage: a = RBF(RIF(1, 2)) # optional - arb
+                sage: b = RBF(RIF(2, 4)) # optional - arb
+                sage: a < b # optional - arb
+                False
+                sage: a > b # optional - arb
+                False
+                sage: a <= b # optional - arb
+                False
+                sage: a >= b # optional - arb
+                False
+                sage: a == b # optional - arb
+                False
+                sage: a != b # optional - arb
+                False
+
+            Balls with non-trivial intersection::
+
+                sage: a = RBF(RIF(1, 4)) # optional - arb
+                sage: a = RBF(RIF(2, 5)) # optional - arb
+                sage: a < b # optional - arb
+                False
+                sage: a <= b # optional - arb
+                False
+                sage: a > b # optional - arb
+                False
+                sage: a >= b # optional - arb
+                False
+                sage: a == b # optional - arb
+                False
+                sage: a != b # optional - arb
+                False
+
+            One ball contained in another::
+
+                sage: a = RBF(RIF(1, 4)) # optional - arb
+                sage: b = RBF(RIF(2, 3)) # optional - arb
+                sage: a < b # optional - arb
+                False
+                sage: a <= b # optional - arb
+                False
+                sage: a > b # optional - arb
+                False
+                sage: a >= b # optional - arb
+                False
+                sage: a == b # optional - arb
+                False
+                sage: a != b # optional - arb
+                False
+
+            Disjoint balls::
+
+                sage: a = RBF(1/3) # optional - arb
+                sage: b = RBF(1/2) # optional - arb
+                sage: a < b # optional - arb
+                True
+                sage: a <= b # optional - arb
+                True
+                sage: a > b # optional - arb
+                False
+                sage: a >= b # optional - arb
+                False
+                sage: a == b # optional - arb
+                False
+                sage: a != b # optional - arb
+                True
+
+            Exact elements::
+
+                sage: a = RBF(2) # optional - arb
+                sage: b = RBF(2) # optional - arb
+                sage: a.is_exact() # optional - arb
+                True
+                sage: b.is_exact() # optional - arb
+                True
+                sage: a < b # optional - arb
+                False
+                sage: a <= b # optional - arb
+                True
+                sage: a > b # optional - arb
+                False
+                sage: a >= b # optional - arb
+                True
+                sage: a == b # optional - arb
+                True
+                sage: a != b # optional - arb
+                False
+        """
+        cdef RealBall lt, rt
+        cdef arb_t difference
+
+        lt = left
+        rt = right
+
+        if op == Py_EQ:
+            if lt is rt:
+                return True
+            if not arb_is_exact(lt.value) or not arb_is_exact(rt.value):
+                return False
+            return arb_equal(lt.value, rt.value)
+
+        arb_init(difference)
+        arb_sub(difference, lt.value, rt.value, prec(lt))
+
+        if op == Py_NE:
+            result = arb_is_nonzero(difference)
+        elif op == Py_GT:
+            result = arb_is_positive(difference)
+        elif op == Py_GE:
+            result = arb_is_nonnegative(difference)
+        elif op == Py_LT:
+            result = arb_is_negative(difference)
+        elif op == Py_LE:
+            result = arb_is_nonpositive(difference)
+
+        arb_clear(difference)
+        return result
 
     cpdef RealBall psi(self):
         """

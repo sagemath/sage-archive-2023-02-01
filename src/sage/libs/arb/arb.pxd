@@ -21,6 +21,13 @@ cdef extern from "arb.h":
 
      char * arb_get_str(const arb_t x, long n, unsigned long flags)
 
-     int arb_is_zero(const arb_t x)
-     int arb_is_nonzero(const arb_t x)
-     int arb_is_exact(const arb_t x)
+     void arb_sub(arb_t z, const arb_t x, const arb_t y, long prec)
+
+     bint arb_is_zero(const arb_t x)
+     bint arb_is_nonzero(const arb_t x)
+     bint arb_is_exact(const arb_t x)
+     bint arb_equal(const arb_t x, const arb_t y)
+     bint arb_is_positive(const arb_t x)
+     bint arb_is_nonnegative(const arb_t x)
+     bint arb_is_negative(const arb_t x)
+     bint arb_is_nonpositive(const arb_t x)

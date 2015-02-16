@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 r"""
 The free Pre-Lie algebras
 
 AUTHORS:
 
-- Florent Hivert, Frederic Chapoton (2011)
+- Florent Hivert, Frédéric Chapoton (2011)
 """
 
 #*****************************************************************************
@@ -77,24 +78,24 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
     def _repr_(self):
         """
-        Returns the string representation of ``self``.
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
             sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: FreePreLieAlgebra(QQ) #indirect doctest
+            sage: FreePreLieAlgebra(QQ)  # indirect doctest
             Free PreLie algebra on one generator ['@'] over Rational Field
         """
         if self.__ngens == 1:
             gen = "one generator"
         else:
-            gen = "%s generators" % self.__ngens
-        return "Free PreLie algebra on " + gen + " %s over %s" % (
-            self._alphabet.list(), self.base_ring())
+            gen = "{} generators".format(self.__ngens)
+        s = "Free PreLie algebra on {} {} over {}"
+        return s.format(self._alphabet.list(), gen, self.base_ring())
 
     def gen(self, i):
         r"""
-        The ``i``-th generator of the algebra.
+        Return the ``i``-th generator of the algebra.
 
         INPUT:
 
@@ -146,7 +147,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
     def degree_on_basis(self, t):
         """
-        Return the degree of a rooted tree in the free Pre-Lie algebra
+        Return the degree of a rooted tree in the free Pre-Lie algebra.
 
         This is the number of vertices.
 
@@ -162,7 +163,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
     def some_elements(self):
         """
-        Returns some elements of the free pre-Lie algebra.
+        Return some elements of the free pre-Lie algebra.
 
         EXAMPLES::
 
@@ -178,7 +179,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
     def pre_Lie_product_on_basis(self, x, y):
         """
-        Returns the pre-Lie product of two trees.
+        Return the pre-Lie product of two trees.
 
         EXAMPLES::
 
@@ -194,7 +195,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
     @lazy_attribute
     def pre_Lie_product(self):
         """
-        This computes the pre-Lie product
+        Return the pre-Lie product.
 
         EXAMPLES::
 
@@ -212,7 +213,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
     def nap_product_on_basis(self, x, y):
         """
-        Returns the nap product of two trees.
+        Return the nap product of two trees.
 
         EXAMPLES::
 
@@ -228,7 +229,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
     @lazy_attribute
     def nap_product(self):
         """
-        This computes the nap product
+        Return the nap product.
 
         EXAMPLES::
 
@@ -381,7 +382,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
     class Element(CombinatorialFreeModuleElement):
         def __lt__(self, other):
             r"""
-            Shortcut for the prelie product
+            Shortcut for the prelie product using the symbol ``<``.
 
             EXAMPLES::
 
@@ -391,7 +392,9 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
                 sage: a < a
                 B[[[]]]
 
-            .. warning:: Due to priority rules for operators, term must be put
+            .. WARNING::
+
+                Due to priority rules for operators, term must be put
                 within parentheses inside sum, product... For example you must
                 write::
 

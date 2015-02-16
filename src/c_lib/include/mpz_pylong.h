@@ -4,6 +4,10 @@
 #include <Python.h>
 #include <gmp.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* mpz -> pylong conversion */
 PyObject * mpz_get_pylong(mpz_srcptr z);
 
@@ -16,4 +20,7 @@ int mpz_set_pylong(mpz_ptr z, PyObject * ll);
 /* mpz python hash */
 long mpz_pythonhash (mpz_srcptr z);
 
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 #endif

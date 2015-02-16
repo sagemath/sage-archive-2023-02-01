@@ -28,6 +28,7 @@ from sage.rings.rational cimport Rational
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
+from sage.libs.ntl.ntl_ZZ cimport PyLong_to_ZZ
 
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
@@ -106,7 +107,7 @@ cdef class ntl_ZZ_p:
             elif PyInt_Check(v):
                 self.x = int_to_ZZ_p(v)
             elif PyLong_Check(v):
-                ZZ_set_pylong(temp, v)
+                PyLong_to_ZZ(&temp, v)
                 self.x = ZZ_to_ZZ_p(temp)
             elif isinstance(v, Integer):
                 (<Integer>v)._to_ZZ(&temp)

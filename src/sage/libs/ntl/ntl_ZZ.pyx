@@ -20,10 +20,11 @@ include "sage/ext/random.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
-from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
-from sage.rings.integer_ring cimport IntegerRing_class
+
+cdef extern from "mpz_pylong.h":
+    cdef int mpz_set_pylong(mpz_t dst, src) except -1
 
 ZZ_sage = IntegerRing()
 
@@ -84,7 +85,7 @@ cdef class ntl_ZZ:
         elif PyInt_Check(v):
             ZZ_conv_from_int(self.x, PyInt_AS_LONG(v))
         elif PyLong_Check(v):
-            ZZ_set_pylong(self.x, v)
+            PyLong_to_ZZ(&self.x, v)
         elif PY_TYPE_CHECK(v, Integer):
             self.set_from_sage_int(v)
         elif v is not None:
@@ -486,3 +487,14 @@ def randomBits(long n):
     ZZ_RandomBits(ans.x, n)
     sig_off()
     return ans
+
+
+cdef void PyLong_to_ZZ(ZZ_c* z, value):
+    """
+    Convert ``value`` (which must be a Python ``long``) to NTL.
+    """
+    cdef mpz_t t
+    mpz_init(t)
+    mpz_set_pylong(t, value)
+    mpz_to_ZZ(z, t)
+    mpz_clear(t)

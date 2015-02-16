@@ -143,11 +143,20 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
     def normalize(self):
         r"""
-        Normalize ``self``
+        Normalize ``self``.
 
         There should be no need to call ``normalize`` directly as it
         is called automatically upon creation and cloning or
-        modification.
+        modification (by ``NormalizedClonableList``).
+
+        The normalization has a recursive definition. It means first
+        that every sub-tree is itself normalized, and also that
+        sub-trees are sorted. Here the sort is performed according to
+        the rank function.
+
+        Consider the quotient map that sends a planar rooted tree to
+        the associated "abstract" rooted tree. This function is a
+        section of this map. This is used to work with rooted trees.
 
         EXAMPLES::
 

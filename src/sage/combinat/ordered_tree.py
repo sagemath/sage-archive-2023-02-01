@@ -521,36 +521,58 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     _cayley_ranker = sage.combinat.ranker.on_fly()
 
     @cached_method
-    def cayley_normalize(self):
+    def normalize(self, inplace=False):
         """
-        sage: (OrderedTree([[],[[]]]).cayley_normalize() ==
-        ...    OrderedTree([[[]],[]]).cayley_normalize())
-        True
-        """
-        rank, unrank = self._cayley_ranker
-        with self.clone() as res:
-            resl = res._get_list()
-            for i in range(len(resl)):
-                resl[i] = resl[i].cayley_normalize()
-            resl.sort(key = rank)
-        return unrank(rank(res))
+        Return the normalized tree of ``self``.
 
-    # TODO !!!
-    def cayley_normalize_in_place(self):
-        """
-        In place cayley normalization
+        INPUT:
+
+        - ``inplace`` -- boolean, (default ``False``) if ``True``,
+          then ``self`` is modified and nothing returned. Otherwise
+          the normalized tree is returned.
+
+        The normalization has a recursive definition. It means first
+        that every sub-tree is itself normalized, and also that
+        sub-trees are sorted. Here the sort is performed according to
+        the rank function.
+
+        Consider the quotient map that sends a planar rooted tree to
+        the associated "abstract" rooted tree. This function is a
+        section of this map. This is used to work with rooted trees.
 
         EXAMPLES::
 
-            sage: (OrderedTree([[],[[]]]).cayley_normalize() ==
-            ...    OrderedTree([[[]],[]]).cayley_normalize())
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.normalize() == tb.normalize()
             True
+            sage: ta == tb
+            False
+
+        An example with inplace normalization::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.normalize(inplace=True); ta
+            [[], [[]]]
+            sage: tb.normalize(inplace=True); tb
+            [[], [[]]]
         """
         rank, unrank = self._cayley_ranker
-        resl = self._get_list()
-        for i in range(len(resl)):
-            resl[i] = resl[i].cayley_normalized()
-        resl.sort(key = rank)
+        if not inplace:
+            with self.clone() as res:
+                resl = res._get_list()
+                for i in range(len(resl)):
+                    resl[i] = resl[i].normalize()
+                resl.sort(key=rank)
+            return unrank(rank(res))
+        else:
+            resl = self._get_list()
+            for i in range(len(resl)):
+                resl[i] = resl[i].normalize()
+            resl.sort(key=rank)
 
 
 # Abstract class to serve as a Factory no instance are created.

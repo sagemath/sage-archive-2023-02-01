@@ -67,16 +67,13 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 #########################################################
 # PARI C library
 from sage.libs.pari.gen cimport gen
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz
 
 import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 include "sage/libs/pari/decl.pxi"
 include "sage/libs/pari/pari_err.pxi"
-
-cdef extern from "convert.h":
-    cdef void t_INT_to_ZZ( mpz_t value, long *g )
 
 #########################################################
 
@@ -3461,8 +3458,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         pari_catch_sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage integer e
-        cdef Integer e = Integer()
-        t_INT_to_ZZ(e.value, d)
+        cdef Integer e = <Integer>PY_NEW(Integer)
+        INT_to_mpz(e.value, d)
         pari.clear_stack()
         return e
 
@@ -5335,7 +5332,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             B = self.new_matrix(nrows=H_nc)
         for i in range(self._ncols):
             for j in range(H_nc):
-                t_INT_to_ZZ(tmp, gcoeff(H, i+1, H_nc-j))
+                INT_to_mpz(tmp, gcoeff(H, i+1, H_nc-j))
                 fmpz_set_mpz(fmpz_mat_entry(B._matrix,j,self._ncols-i-1),tmp)
         mpz_clear(tmp)
         return B

@@ -28,8 +28,7 @@ include "sage/libs/pari/decl.pxi"
 
 import sage.rings.finite_rings.integer_mod
 from sage.libs.pari.gen cimport gen as pari_gen
-cdef extern from "convert.h":
-    cdef void t_INT_to_ZZ( mpz_t value, GEN g )
+from sage.libs.pari.pari_instance cimport INT_to_mpz
 from sage.rings.padics.common_conversion cimport get_ordp, get_preccap
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity
@@ -100,7 +99,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             pari_tmp = (<pari_gen>x).g
             if typ(pari_tmp) == t_INT:
                 x = PY_NEW(Integer)
-                t_INT_to_ZZ((<Integer>x).value, pari_tmp)
+                INT_to_mpz((<Integer>x).value, pari_tmp)
             elif typ(pari_tmp) == t_FRAC:
                 x = Rational(x)
         elif not (PY_TYPE_CHECK(x, Integer) or \

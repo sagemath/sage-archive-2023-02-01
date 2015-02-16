@@ -172,11 +172,8 @@ cdef extern from "mpz_longlong.h":
     cdef void mpz_set_longlong(mpz_t dst, long long src)
     cdef void mpz_set_ulonglong(mpz_t dst, unsigned long long src)
 
-cdef extern from "convert.h":
-    cdef void t_INT_to_ZZ( mpz_t value, long *g )
-
 from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz
 from sage.libs.flint.ulong_extras cimport *
 
 import sage.rings.infinity
@@ -244,7 +241,7 @@ cdef set_from_pari_gen(Integer self, pari_gen x):
             raise TypeError, "Unable to coerce PARI %s to an Integer"%x
 
     # Now we have a true PARI integer, convert it to Sage
-    t_INT_to_ZZ(self.value, (<pari_gen>x).g)
+    INT_to_mpz(self.value, (<pari_gen>x).g)
 
 
 def _test_mpz_set_longlong(long long v):

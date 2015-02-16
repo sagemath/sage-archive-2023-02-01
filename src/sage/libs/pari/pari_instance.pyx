@@ -1647,3 +1647,30 @@ cdef int init_stack(size_t requested_size) except -1:
     finally:
         sig_unblock()
         sig_off()
+
+
+cdef inline void INT_to_mpz(mpz_ptr value, GEN g):
+    """
+    Store a PARI ``t_INT`` as an ``mpz_t``.
+    """
+    if typ(g) != t_INT:
+        pari_err(e_TYPE, <char*>"conversion to mpz", g)
+
+    cdef long size = lgefint(g) - 2
+    mpz_import(value, size, -1, sizeof(long), 0, 0, int_LSW(g))
+
+    if signe(g) < 0:
+        mpz_neg(value, value)
+
+cdef void INTFRAC_to_mpq(mpq_ptr value, GEN g):
+    """
+    Store a PARI ``t_INT`` or ``t_FRAC`` as an ``mpq_t``.
+    """
+    if typ(g) == t_FRAC:
+        INT_to_mpz(mpq_numref(value), gel(g, 1))
+        INT_to_mpz(mpq_denref(value), gel(g, 2))
+    elif typ(g) == t_INT:
+        INT_to_mpz(mpq_numref(value), g)
+        mpz_set_ui(mpq_denref(value), 1)
+    else:
+        pari_err(e_TYPE, <char*>"conversion to mpq", g)

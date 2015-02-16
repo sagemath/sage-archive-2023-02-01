@@ -63,7 +63,7 @@ from integer cimport Integer
 
 import sage.libs.pari.pari_instance
 from sage.libs.pari.gen cimport gen as pari_gen
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz, INTFRAC_to_mpq
 
 from integer_ring import ZZ
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
@@ -89,11 +89,6 @@ cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '
 cdef object numpy_int64_interface = {'typestr': '=i8'}
 cdef object numpy_object_interface = {'typestr': '|O'}
 cdef object numpy_double_interface = {'typestr': '=f8'}
-
-cdef extern from "convert.h":
-    ctypedef long* GEN
-    void t_FRAC_to_QQ ( mpq_t value, GEN g )
-    void t_INT_to_ZZ ( mpz_t value, GEN g )
 
 
 cdef extern from "mpz_pylong.h":
@@ -533,11 +528,8 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         elif isinstance(x, pari_gen):
             x = x.simplify()
-            if typ((<pari_gen>x).g) == t_FRAC:
-                t_FRAC_to_QQ(self.value, (<pari_gen>x).g)
-            elif typ((<pari_gen>x).g) == t_INT:
-                t_INT_to_ZZ(mpq_numref(self.value), (<pari_gen>x).g)
-                mpz_set_si(mpq_denref(self.value), 1)
+            if is_rational_t(typ((<pari_gen>x).g)):
+                INTFRAC_to_mpq(self.value, (<pari_gen>x).g)
             else:
                 a = integer.Integer(x)
                 mpz_set(mpq_numref(self.value), a.value)

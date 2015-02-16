@@ -1,5 +1,5 @@
 r"""
-Rooted (Cayley, Unordered) Trees
+Rooted (Unordered) Trees
 
 AUTHORS:
 
@@ -72,6 +72,14 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         [[], [[]]]
         sage: RootedTree([[[]], []])
         [[], [[]]]
+
+    One can also enter a rooted tree by using a simple numerical
+    encoding of rooted trees::
+
+        sage: from sage.combinat.abstract_tree import from_hexacode
+        sage: RT = RootedTrees()
+        sage: from_hexacode('31010200', RT)
+        [[[]], [[]], [[], []]]
     """
     # Standard auto-parent trick
     __metaclass__ = ClasscallMetaclass

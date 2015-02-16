@@ -303,13 +303,13 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: S8 = SymmetricGroup(8)
             sage: S8.index_set()
-            [1, 2, 3, 4, 5, 6, 7]
+            (1, 2, 3, 4, 5, 6, 7)
 
             sage: S = SymmetricGroup([3,1,4,5])
             sage: S.index_set()
-            [3, 1, 4]
+            (3, 1, 4)
         """
-        return self.domain()[:-1]
+        return tuple(self.domain()[:-1])
 
     def __cmp__(self, x):
         """
@@ -546,7 +546,7 @@ class SymmetricGroup(PermutationGroup_symalt):
             Symmetric group algebra of order 4 over Rational Field
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-        return SymmetricGroupAlgebra(base_ring, len(self._domain))
+        return SymmetricGroupAlgebra(base_ring, len(self._domain), self)
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):

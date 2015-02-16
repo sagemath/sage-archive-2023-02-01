@@ -39,4 +39,12 @@ cdef void NTL_error_callback(const char* s, void* context):
     sig_error()
 
 def setup_NTL_error_callback():
+    """
+    Setup the NTL error handler callback.
+
+    EXAMPLES:
+
+        sage: from sage.libs.ntl.error import setup_NTL_error_callback
+        sage: setup_NTL_error_callback()
+    """
     SetErrorCallbackFunction(NTL_error_callback, NULL)

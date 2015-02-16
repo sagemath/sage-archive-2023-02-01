@@ -27,15 +27,15 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 @cached_function
 def number_of_rooted_trees(n):
-    """
-    Number of rooted trees with `n` nodes
+    r"""
+    Return the number of rooted trees with `n` nodes.
 
     Compute the number `a(n)` of rooted trees with `n` nodes using the
     recursive formula ([SL000081]_):
 
     .. math::
 
-        a(n+1) = (1/n) * sum_{k=1..n} ( sum_{d|k} d*a(d) ) * a(n-k+1)
+        a(n+1) = 1/n \sum_{k=1}^{n} ( \sum_{d|k} d a(d) ) a(n-k+1)
 
     EXAMPLES::
 
@@ -78,7 +78,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
         sage: from sage.combinat.abstract_tree import from_hexacode
         sage: RT = RootedTrees()
-        sage: from_hexacode('31010200', RT)
+        sage: from_hexacode('32001010', RT)
         [[[]], [[]], [[], []]]
     """
     # Standard auto-parent trick
@@ -192,7 +192,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
     def is_empty(self):
         r"""
-        Return if ``self`` is the empty tree
+        Return if ``self`` is the empty tree.
 
         For rooted trees, returns always ``False``
 
@@ -213,7 +213,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
     def graft_list(self, other):
         """
-        Return the list of trees obtained by grafting ``other`` on ``self``
+        Return the list of trees obtained by grafting ``other`` on ``self``.
 
         This is useful for free pre-Lie algebras.
 
@@ -240,7 +240,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
     def graft_on_root(self, other):
         """
-        Return the tree obtained by grafting ``other`` on the root of ``self``
+        Return the tree obtained by grafting ``other`` on the root of ``self``.
 
         This is useful for free Nap algebras.
 
@@ -366,7 +366,7 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
 
     def unlabelled_trees(self):
         """
-        Returns the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -377,7 +377,7 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
 
     def labelled_trees(self):
         """
-        Returns the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -494,7 +494,7 @@ class RootedTrees_size(RootedTrees):
 
     def check_element(self, el, check=True):
         r"""
-        Check that a given tree actually belongs to ``self``
+        Check that a given tree actually belongs to ``self``.
 
         EXAMPLES::
 
@@ -511,7 +511,7 @@ class RootedTrees_size(RootedTrees):
 
     def cardinality(self):
         r"""
-        Return the cardinality of ``self``
+        Return the cardinality of ``self``.
 
         EXAMPLES::
 
@@ -574,13 +574,13 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
     """
     Labelled rooted trees
 
-    A labelled rooted tree is a rooted tree with a label attached at each node
+    A labelled rooted tree is a rooted tree with a label attached at each node.
 
     INPUT:
 
     - ``children`` -- a list or tuple or more generally any iterable
-                      of trees or object convertible to trees
-    - ``label`` -- any Sage object default to ``None``
+      of trees or object convertible to trees
+    - ``label`` -- any Sage object (default is ``None``)
 
     EXAMPLES::
 
@@ -593,13 +593,13 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
         sage: LabelledRootedTree([[],[[], []]], label = 3)
         3[None[], None[None[], None[]]]
 
-    Children are reordered in a session dependant order:
+    Children are reordered in a session dependant order::
 
         sage: y = LabelledRootedTree([], label = 5); x
         3[]
-        sage: xyy2 = LabelledRootedTree((x, y, y), label = 2); xyy2 #random
+        sage: xyy2 = LabelledRootedTree((x, y, y), label = 2); xyy2  #random
         2[3[], 5[], 5[]]
-        sage: yxy2 = LabelledRootedTree((y, x, y), label = 2); yxy2 #random
+        sage: yxy2 = LabelledRootedTree((y, x, y), label = 2); yxy2  #random
         2[3[], 5[], 5[]]
         sage: xyy2 == yxy2
         True
@@ -652,7 +652,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
 class LabelledRootedTrees(UniqueRepresentation, Parent):
     """
     This is a parent stub to serve as a factory class for trees with various
-    labels constraints
+    labels constraints.
 
     EXAMPLES::
 
@@ -688,7 +688,7 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
 
     def cardinality(self):
         """
-        Returns the cardinality of `self`
+        Return the cardinality of ``self``.
 
         EXAMPLE::
 
@@ -699,7 +699,7 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         """
-        Returns a labelled tree
+        Return a labelled tree.
 
         EXAMPLE::
 
@@ -714,7 +714,7 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
 
     def unlabelled_trees(self):
         """
-        Returns the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``.
 
         EXAMPLES::
 
@@ -725,7 +725,7 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
 
     def labelled_trees(self):
         """
-        Returns the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``.
 
         EXAMPLES::
 

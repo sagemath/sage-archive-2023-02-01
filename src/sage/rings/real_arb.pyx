@@ -387,7 +387,7 @@ cdef class RealBall(Element):
         - ``parent`` -- a :class:`RealBallField`.
 
         - ``x`` -- (default: ``None``) ``None`` or a
-          :class:`RealIntervalFieldElement`.
+          :class:`~sage.rings.real_mpfi.RealIntervalFieldElement`.
 
         EXAMPLES::
 
@@ -456,7 +456,7 @@ cdef class RealBall(Element):
 
         OUTPUT:
 
-        A :class:`RealIntervalFieldElement`.
+        A :class:`~sage.rings.real_mpfi.RealIntervalFieldElement`.
 
         EXAMPLES::
 

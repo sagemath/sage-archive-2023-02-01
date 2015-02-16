@@ -868,7 +868,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "harmonic_number", nargs=2)
 
-    def __call__(self, *args, **kwds):
+    def __call__(self, z, m=1, **kwds):
         r"""
         Custom call method allows the user to pass one argument or two. If
         one argument is passed, we assume it is ``z`` and that ``m=1``.
@@ -882,12 +882,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             sage: harmonic_number(x,2)
             harmonic_number(x, 2)
         """
-        if len(args) == 2:
-            return BuiltinFunction.__call__(self, *args, **kwds)
-        elif len(args) == 1:
-            return BuiltinFunction.__call__(self, args[0], 1, **kwds)
-        else:
-            raise TypeError("harmonic_number takes either one or two arguments.")
+        return BuiltinFunction.__call__(self, z, m, **kwds)
 
     def _eval_(self, z, m):
         """

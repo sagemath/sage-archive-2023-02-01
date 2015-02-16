@@ -1311,6 +1311,9 @@ class Link:
         d = D.all_simple_cycles()
         for i in d:
             del i[0]
+        for i in d:
+            if len(i) == 1 and i[0] < 0:
+                d.remove(i)
         return d
 
     def writhe(self):

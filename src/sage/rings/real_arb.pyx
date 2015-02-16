@@ -26,8 +26,7 @@ include "sage/ext/stdsage.pxi"
 import sage.categories.sets_cat
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.arf cimport arf_t, arf_get_mpfr
-from sage.libs.arb.fmpr cimport fmpr_t, fmpr_init, fmpr_clear, fmpr_get_mpfr
-from sage.libs.arb.mag cimport mag_t, mag_get_fmpr
+from sage.libs.arb.mag cimport mag_t
 from sage.libs.flint.flint cimport flint_free
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
 from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, GMP_RNDN

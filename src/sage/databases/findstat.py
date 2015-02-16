@@ -1,27 +1,18 @@
 """
-TODO: run all examples and tests
-
-sage: l = [findstat(i) for i in range(1,234)]
-sage: l_code = [s for s in l if s.code(security_warning=False)[:13] == "def statistic"]
-sage: bad = []; err = [];
-sage: for s in l_code:
-....:     print s
-....:     exec(preparse(s.code(security_warning=False)))
-....:     try:
-....:         good = all(statistic(key) == s(key) for key in s.first_terms().keys()[:10])
-....:         print good
-....:         if not good:
-....:             bad += [s]
-....:     except:
-....:         print "ERROR"
-....:         err += [s] 
-....:     print
-....: 
-
 TODO:
 
-* allow advanced queries
-* should find_by_values return statistics or strings?
+* check which import statements are needed
+* include tests (a la OEIS)
+* allow advanced queries, i.e., search for distribution and in-between
+* for statistics: do we want to "call" them on an object, or rather have a getitem method?
+  currently, it's call:
+
+            sage: f=findstat(2); f
+            St000002: The number of occurrences of the pattern $[1,2,3]$ inside a permutation of length at least 3.
+
+            sage: f(Permutation([1,2,4,3,5]))        # optional -- internet
+            7
+
 """
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
@@ -47,10 +38,10 @@ from sage.graphs.graph import Graph
 from sage.combinat.composition import Composition
 from sage.combinat.partition import Partition
 from sage.combinat.ordered_tree import OrderedTree
-from sage.combinat.parking_functions import ParkingFunction
+from sage.combinat.parking_functions import ParkingFunction, ParkingFunction_class
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.permutation import Permutation
-from sage.combinat.posets.posets import Poset
+from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.combinat.tableau import SemistandardTableau, StandardTableau
 from sage.combinat.set_partition import SetPartition
 
@@ -101,7 +92,7 @@ class FindStat:
       - a string representing a FindStat ID (e.g. 'St000045').
       - an integer representing a FindStat ID (e.g. 45).
       - a dictionary representing the statistic on a combinatorial
-        collection, and a string naming the collection.
+        collection, and optionally a string naming the collection.
 
     TODO:
       - a string, representing the ID of a collection.
@@ -147,35 +138,32 @@ class FindStat:
     The database can be searched by providing a dictionary::
 
         sage: stat = {pi: pi.length() for pi in Permutations(3)}
-        sage: search = findstat(stat, "Permutations") ; search    # optional -- internet
-        0: ('St000018', [], '6')
-        1: ('St000004', ['inversion-number to major-index bijection'], '6')
-        2: ('St000067', ['to alternating sign matrix'], '6')
-        3: ('St000224', ['first fundamental transformation'], '6')
-        4: ('St000008', ['inversion-number to major-index bijection', 'descent composition'], '6')
-        5: ('St000059', ['inversion-number to major-index bijection', 'Robinson-Schensted recording tableau'], '6')
-        6: ('St000153', ['reverse', 'first fundamental transformation'], '6')
-        7: ('St000156', ['inverse first fundamental transformation', 'foata_bijection'], '6')
-        8: ('St000174', ['to alternating sign matrix', 'to semistandard tableau'], '6')
+        sage: search = findstat(stat) ; search    # optional -- internet
+        0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 6)
+        1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., ['inversion-number to major-index bijection'], 6)
+        2: (St000067: The inversion number of the alternating sign matrix., ['to alternating sign matrix'], 6)
+        3: (St000224: The sorting index of a permutation., ['first fundamental transformation'], 6)
+        4: (St000008: The major index of the composition., ['inversion-number to major-index bijection', 'descent composition'], 6)
+        5: (St000059: The inversion number of a standard Young tableau as defined by Haglund and Stevens. [1]  , ['inversion-number to major-index bijection', 'Robinson-Schensted recording tableau'], 6)
+        6: (St000153: The number of adjacent cycles of a permutation., ['reverse', 'first fundamental transformation'], 6)
+        7: (St000156: The Denert index of a permutation., ['inverse first fundamental transformation', 'foata_bijection'], 6)
+        8: (St000174: The flush statistic on semistandard tableaux., ['to alternating sign matrix', 'to semistandard tableau'], 6)
 
-        Each result is a triple consisting of the index of the
-        statistic as a string, a list of strings naming some maps,
-        and a number which says how many of the values submitted
-        agree with the values in the database, when applying the maps
-        in the given order to the object (here: the permutation) and
-        then computing the statistic on the result
+        Each result is a triple consisting of the statistic, a list
+        of strings naming certain maps, and a number which says how
+        many of the values submitted agree with the values in the
+        database, when applying the maps in the given order to the
+        object (here: the permutation) and then computing the
+        statistic on the result.
 
-        sage: s = findstat(search[5][0]); s
-        St000059: The inversion number of a standard Young tableau as defined by Haglund and Stevens. [1]  
+        We can access the description of a statistic as follows:
 
-        We can access the description of a statistic.
-
-        sage: print s.description()                        # optional -- internet
+        sage: s = search[5][0]; print s.description()                        # optional -- internet
         The inversion number of a standard Young tableau as defined by Haglund and Stevens. [1]  
 
         Their inversion number is the total number of inversion pairs for the tableau.  An inversion pair is defined as a pair of cells (a,b), (x,y) such that the content of (x,y) is greater than the content of (a,b) and (x,y) is north of the inversion path of (a,b), where the inversion path is defined in detail in [1].
 
-        We can access references provided.
+        We can access references provided as follows:
         sage: s.references()
         0: [1] J. Haglund and L. Stevens, An Extension of the Foata Map to Standard Young Tableaux, October, 2006
 
@@ -183,8 +171,7 @@ class FindStat:
         A full-text search should also be available
 
     """
-
-    def __call__(self, query, collection=None):
+    def __call__(self, query, collection=None, depth=2, max_values=200):
         r"""
         See the documentation of :class:`FindStat`.
 
@@ -210,7 +197,7 @@ class FindStat:
             else:
                 raise ValueError("When providing an identifier, do not provide a collection.")
         elif isinstance(query, dict):
-            return self.find_by_values(query, collection)
+            return self.find_by_values(query, collection, depth, max_values)
 
     def __repr__(self):
         r"""
@@ -236,11 +223,6 @@ class FindStat:
         - The FindStat statistic whose St-number or number corresponds to
           ``ident``.
 
-        EXAMPLES::
-
-            sage: findstat.find_by_id('St000040')            # optional -- internet
-
-            sage: findstat.find_by_id(40)                   # optional -- internet
         """
         if not isinstance(ident, str):
             ident = str(ident)
@@ -260,11 +242,11 @@ class FindStat:
         stats = [(m.start(), m.groups()) for m in re.finditer(stat_re, text)]
         for (end, (stat, quality)) in stats:
             maps = [m.groups()[0] for m in re.finditer(maps_re, text[start:end])]
-            result += [(stat, maps, Integer(quality))]
+            result += [(findstat(stat), maps, Integer(quality))]
             start = end
         return result
 
-    def find_by_values(self, statistic, collection, depth="2"):
+    def find_by_values(self, statistic, collection, depth, max_values):
         r"""
         Search for FindStat statistics with the given values applying at most ``depth`` maps.
 
@@ -278,47 +260,44 @@ class FindStat:
           Those statistics can be used without the need to fetch the
           database again.
 
-        EXAMPLES::
-
-        sage: stat = {pi: pi.length() for pi in Permutations(3)}
-        sage: findstat.find_by_values(stat, "Permutations")
-        0: ('St000018', [], '6')
-        1: ('St000004', ['inversion-number to major-index bijection'], '6')
-        2: ('St000067', ['to alternating sign matrix'], '6')
-        3: ('St000224', ['first fundamental transformation'], '6')
-        4: ('St000008', ['inversion-number to major-index bijection', 'descent composition'], '6')
-        5: ('St000059', ['inversion-number to major-index bijection', 'Robinson-Schensted recording tableau'], '6')
-        6: ('St000153', ['reverse', 'first fundamental transformation'], '6')
-        7: ('St000156', ['inverse first fundamental transformation', 'foata_bijection'], '6')
-        8: ('St000174', ['to alternating sign matrix', 'to semistandard tableau'], '6')
-        
-        sage: stat = {pi: randint(0,10) for pi in Permutations(3)}
-        sage: findstat(stat, "Permutations")
-        []
         """
         import urllib, urllib2
 
-        url = findstat_url_result + collection + "/"
+        if collection is None:
+            collection = FindStatCollection(statistic.keys()[0])
+        else:
+            collection = FindStatCollection(collection)
+
+        # we want at most max_values values
+        # sorting by length of the string representation is not a good idea for cores.
+        to_str = collection.to_string()
+        keys = sorted(statistic.keys(), key=lambda x: len(to_str(x)))[:max_values]
+        stat = {to_str(key): str(statistic[key]) for key in keys}
+
+        url = findstat_url_result + collection.url_name() + "/"
 
         # the spaces in " => " are important!
-        stat_str = join([str(a) + " => " + str(b) 
-                         for (a,b) in sorted(statistic.items())], " \n")
-        values = urllib.urlencode({"freedata": stat_str, "depth": depth})
+        stat_str = join([a + " => " + b for (a, b) in stat.items()], " \n")
+        _ = verbose("Sending data to Findstat %s" %stat_str, caller_name='FindStat')
+        values = urllib.urlencode({"freedata": stat_str, "depth": str(depth)})
 
-        _ = verbose("Fetching URL %s with encoded data %s..." %(url, values), caller_name='FindStat')
+        _ = verbose("Fetching URL %s with encoded data %s" %(url, values), caller_name='FindStat')
 
         request = urllib2.Request(url, data=values)
 
-        _ = verbose("Requesting %ss..." %request, caller_name='FindStat')
+        _ = verbose("Requesting %s" %request, caller_name='FindStat')
 
         response = urllib2.urlopen(request)
 
-        _ = verbose("Response was %ss..." %response.info(), caller_name='FindStat')
+        _ = verbose("Response was %s" %response.info(), caller_name='FindStat')
 
         result_html = response.read()
+
+        _ = verbose("Result was %s" %result_html, level = 2, caller_name='FindStat')
+
         download_idx = result_html.find("Download your result")
 
-        _ = verbose("Download link at position %s..." %download_idx, caller_name='FindStat')
+        _ = verbose("Download link at position %s" %download_idx, caller_name='FindStat')
 
         if download_idx == -1:
             return []
@@ -463,26 +442,6 @@ class FindStatStatistic(SageObject):
     _field_refs = 'References'
     _field_vals = 'Statistic values'
 
-    # we set up a dictionary from FindStat collections to sage constructors
-    _findstat_collections = {
-        'Alternating sign matrices': lambda x: AlternatingSignMatrix(literal_eval(x)),
-        'Binary trees': lambda x: BinaryTree(literal_eval(x)),
-        'Cores': lambda x: Core(literal_eval(x)),
-        'Dyck paths': lambda x: DyckWord(literal_eval(x)),
-        'Finite Cartan types': lambda x: CartanType(literal_eval(x)),
-        'Gelfand-Tsetlin patterns': lambda x: GelfandTsetlinPattern(literal_eval(x)),
-        'Graphs': lambda x: Graph(literal_eval(x)),
-        'Integer compositions': lambda x: Composition(literal_eval(x)),
-        'Integer partitions': lambda x: Partition(literal_eval(x)),
-        'Ordered trees': lambda x: OrderedTree(literal_eval(x)),
-        'Parking functions': lambda x: ParkingFunction(literal_eval(x)),
-        'Perfect matchings': lambda x: PerfectMatching(literal_eval(x)),
-        'Permutations': lambda x: Permutation(literal_eval(x)),
-        'Posets': lambda x: Poset(literal_eval(x)),
-        'Semistandard tableaux': lambda x: SemistandardTableau(literal_eval(x)),
-        'Set partitions': lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']'))),
-        'Standard tableaux': lambda x: StandardTableau(literal_eval(x))}
-
     def __init__(self, entry):
         r"""
         Initializes a FindStat statistic.
@@ -521,22 +480,6 @@ class FindStatStatistic(SageObject):
         - if ``format`` is set to 'St', returns a string of the form 'St000123'.
         - if ``format`` is set to 'int' returns an integer of the form 123.
 
-        EXAMPLES::
-
-            sage: f = findstat(45) ; f                      # optional -- internet
-            St000045: The number of linear extensions of the tree. 
-            sage: f.id()                                # optional -- internet
-            'St000045'
-            sage: f.id(format='int')                    # optional -- internet
-            45
-
-        TESTS::
-
-            sage: s = findstat._imaginary_sequence()
-            sage: s.id()
-            'A999999'
-            sage: s.id(format='int')
-            999999
         """
         if format == 'St':
             return self._fields[FindStatStatistic._field_id]
@@ -554,12 +497,64 @@ class FindStatStatistic(SageObject):
         EXAMPLES::
 
             sage: print findstat(45).raw_entry()                   # optional -- internet
+            *****************************************************************************
+            *       www.FindStat.org - The Combinatorial Statistic Finder               *
+            *                                                                           *
+            *       Copyright (C) 2013 Chris Berg <chrisjamesberg@gmail.com>            *
+            *                          Christian Stump <christian.stump@gmail.com>      *
+            *                                                                           *
+            *    This information is distributed in the hope that it will be useful,    *
+            *    but WITHOUT ANY WARRANTY; without even the implied warranty of         *
+            *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                   *
+            *****************************************************************************
+            
+            -----------------------------------------------------------------------------
+            Statistic identifier: St000045
+            
+            -----------------------------------------------------------------------------
+            Collection: Binary trees
+            
+            -----------------------------------------------------------------------------
+            Description: The number of linear extensions of the tree. 
+            
+            Also, the number of increasing / decreasing binary trees labelled by $1, \dots, n$ of this shape.
+            
+            Also, the size of the sylvester class corresponding to this tree when the Tamari order is seen as a quotient poset of the right weak order on permutations. 
+            
+            Also, the number of permutations which give this tree shape when inserted in a binary search tree.
+            
+            Also, the number of permutations which increasing / decreasing tree is of this shape.
+            
+            -----------------------------------------------------------------------------
+            References: [1] D. E. Knuth. The art of computer programming. Volume 3. Addison-Wesley Publishing
+            Co., Reading, Mass.-London-Don Mills, Ont., 1973. Sorting and searching, Addison-Wesley
+            Series in Computer Science and Information Processing
+            
+            [2] A. Bjorner and M. Wachs, q-Hook length formulas for forests, J. Combin. Theory Ser. A 52 (1989) 165–187.
+            
+            [3] F. Hivert, J.-C. Novelli, and J.-Y. Thibon. The algebra of binary search trees. Theoret. Comput. Sci.,339(1):129–165, 2005. [[arXiv:abs/math/0401089]]
+            
+            
+            -----------------------------------------------------------------------------
+            Code:
+            def hook_product(tree):
+                if(not tree):
+                    return 1
+                hl = hook_product(tree[0])
+                hr = hook_product(tree[1])
+                return hl*hr*tree.node_number()
+                
+            def linear_extensions(tree):
+                return factorial(tree.node_number()-1)/hook_product(tree[0])/hook_product(tree[1])
+            
+            -----------------------------------------------------------------------------
+            Statistic values:
+            
+            [.,[.,[.,.]]]             => 1
+            [.,[[.,.],.]]             => 1
 
-        TESTS::
 
-            sage: s = findstat._imaginary_sequence()
-            sage: s.raw_entry() == findstat._imaginary_entry('sign,easy')
-            True
+
         """
         return self._raw
 
@@ -584,11 +579,6 @@ class FindStatStatistic(SageObject):
             
             Also, the number of permutations which increasing / decreasing tree is of this shape.
 
-        TESTS::
-
-            sage: s = findstat._imaginary_sequence()
-            sage: s.name()
-            'The opposite of twice the characteristic sequence of 42 plus one, starting from 38.'
         """
         return self._fields[FindStatStatistic._field_desc]
 
@@ -605,11 +595,6 @@ class FindStatStatistic(SageObject):
             sage: findstat(45).name()                              # optional -- internet
             'The number of linear extensions of the tree. '
 
-        TESTS::
-
-            sage: s = findstat._imaginary_sequence()
-            sage: s.name()
-            'The opposite of twice the characteristic sequence of 42 plus one, starting from 38.'
         """
         return self._fields[FindStatStatistic._field_desc].partition(FindStatStatistic._field_separator3)[0]
 
@@ -626,34 +611,14 @@ class FindStatStatistic(SageObject):
 
             sage: findstat(45).author()                            # optional -- internet
 
-        TESTS::
-
-            sage: s = findstat._imaginary_sequence()
-            sage: s.author()
-            'Anonymous.'
         """
         raise NotImplementedError
         return self._fields["XXX"]
 
     @cached_method
-    def constructor(self):
-        r"""
-        Returns the sage constructor corresponding to the combinatorial collection, or `None`.
-
-        OUTPUT:
-
-        - string.
-
-        EXAMPLES::
-
-            sage: findstat(45).constructor()                      # optional -- internet
-            <class 'sage.combinat.binary_tree.BinaryTree'>
-        """
-        return FindStatStatistic._findstat_collections.get(self.collection(), None)
-
     def collection(self):
         r"""
-        Returns the sage constructor corresponding to the combinatorial collection, or `None`.
+        Returns the FindStat collection corresponding to the combinatorial collection, or `None`.
 
         OUTPUT:
 
@@ -661,11 +626,10 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(45).constructor()                      # optional -- internet
-            <class 'sage.combinat.binary_tree.BinaryTree'>
+            sage: findstat(45).collection()                      # optional -- internet
+            Binary trees
         """
-        return self._fields[FindStatStatistic._field_coll]
-
+        return FindStatCollection(self._fields[FindStatStatistic._field_coll])
 
     @cached_method
     def first_terms(self):
@@ -682,16 +646,6 @@ class FindStatStatistic(SageObject):
             sage: f.first_terms()[Permutation([1, 2, 4, 3])]
             2
 
-        TESTS::
-
-            sage: s = findstat._imaginary_sequence()
-            sage: s.first_terms()
-            (1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
-            sage: s.first_terms(5)
-            (1, 1, 1, 1, -1)
-            sage: s.first_terms(5, absolute_value=True)
-            (1, 1, 1, 1, 1)
-
         """
         vals = self._fields[FindStatStatistic._field_vals].split()
         # elements with index
@@ -700,11 +654,11 @@ class FindStatStatistic(SageObject):
         # 1 mod 3 should always be "=>"
         # 2 mod 3 are the values
         vals2 = vals[2::3]
-        constructor = self.constructor()
-        if constructor is None:
+        from_str = self.collection().from_string()
+        if from_str is None:
             return {obj: Integer(val) for (obj, val) in zip(vals0, vals2)}
         else:
-            return {constructor(obj): Integer(val) for (obj, val) in zip(vals0, vals2)}
+            return {from_str(obj): Integer(val) for (obj, val) in zip(vals0, vals2)}
 
     def code(self, security_warning=True):
         r"""
@@ -739,14 +693,6 @@ class FindStatStatistic(SageObject):
             def linear_extensions(tree):
                 return factorial(tree.node_number()-1)/hook_product(tree[0])/hook_product(tree[1])
 
-            sage: exec(f.code()) # not tested #### DANGEROUS ####
-            sage: all(linear_extensions(key) == val for (key, val) in f.first_terms().iteritems())
-
-        TESTS::
-
-            sage: s = findstat._imaginary_sequence()
-            sage: s.code()
-            'Anonymous.'
         """
         if security_warning:
             s = 'raise StandardError("This is user contributed code, potentially killing your computer!")'
@@ -754,7 +700,7 @@ class FindStatStatistic(SageObject):
         else:
             return self._fields[FindStatStatistic._field_code]
 
-    def _repr_(self):
+    def __repr__(self):
         r"""
         Prints the statistic number and a short summary of this statistic.
 
@@ -766,12 +712,6 @@ class FindStatStatistic(SageObject):
 
             sage: findstat(45)                      # optional -- internet
             St000045: The number of linear extensions of the tree. 
-
-        TESTS::
-
-            sage: s = findstat._imaginary_sequence()
-            sage: s
-            A999999: The opposite of twice the characteristic sequence of 42 plus one, starting from 38.
         """
         return "%s: %s" % (self.id(), self.name())
 
@@ -810,12 +750,12 @@ class FindStatStatistic(SageObject):
             ValueError: Sequence A999999 is not defined (or known) for index 2
         """
         vals = self.first_terms()
-        constructor = self.constructor()
         if isinstance(obj, str):
-            if constructor is None:
+            from_str = self.collection().from_string()
+            if from_str is None:
                 return vals[obj]
             else:
-                return vals[constructor(obj)]
+                return vals[from_str(obj)]
         else:
             return vals[obj]
 
@@ -892,11 +832,6 @@ class FindStatStatistic(SageObject):
             sage: _[0]                                  # optional -- internet
             'A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.'
 
-        TESTS::
-
-            sage: s = findstat._imaginary_sequence()
-            sage: s.references()[1]
-            'Lewis Carroll, The Hunting of the Snark.'
         """
         return FancyTuple(self._fields[FindStatStatistic._field_refs].split(FindStatStatistic._field_separator4))
 
@@ -913,11 +848,6 @@ class FindStatStatistic(SageObject):
             sage: findstat(45).url()                               # optional -- internet
             'http://www.findstat.org/St000045'
 
-        TESTS::
-
-            sage: s = findstat._imaginary_sequence()
-            sage: s.url()
-            'http://findstat.org/A999999'
         """
         return findstat_url + self.id()
 
@@ -928,11 +858,6 @@ class FindStatStatistic(SageObject):
         EXAMPLES::
 
             sage: findstat(45).browse()                            # optional -- internet, webbrowser
-
-        TESTS::
-
-            sage: s = findstat._imaginary_sequence()        # optional -- webbrowser
-            sage: s.browse()                            # optional -- webbrowser
         """
         webbrowser.open(self.url())
 
@@ -942,14 +867,109 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(45).browse()                            # optional -- internet, webbrowser
+            sage: findstat(45).edit()                            # optional -- internet, webbrowser
+
+        """
+        webbrowser.open(findstat_url_edit + self.id())
+
+class FindStatCollection():
+    r"""
+    The class of FindStat collections.
+
+    .. automethod:: __call__
+    """
+    # we set up a dictionary from FindStat collections to url's, sage objects, their string representations and sage constructors of the latter
+    _findstat_collections = {
+        'Alternating sign matrices': ("AlternatingSignMatrices", AlternatingSignMatrix, lambda x: str(map(list,list(x._matrix))), lambda x: AlternatingSignMatrix(literal_eval(x))),
+        'Binary trees':              ("BinaryTrees",             BinaryTree,            str,                              lambda x: BinaryTree(x)),
+        'Cores':                     ("Cores",                   Core,                  
+                                      lambda X: "( "+X._repr_()+", "+str(X.k())+" )",
+                                      lambda x: Core(literal_eval(x)[0],literal_eval(x)[1])),
+        'Dyck paths':                ("DyckPaths",               DyckWord,              lambda x: str(list(DyckWord(x))), lambda x: DyckWord(literal_eval(x))),
+#        'Finite Cartan types':       ("FiniteCartanType",        CartanType,            str,                              lambda x: CartanType(literal_eval(x))),
+        'Gelfand-Tsetlin patterns':  ("GelfandTsetlinPatterns",  GelfandTsetlinPattern, str,                              lambda x: GelfandTsetlinPattern(literal_eval(x))),
+        'Graphs':                    ("Graphs",                  
+                                      Graph,                 
+                                      lambda X: str((sorted(X.canonical_label().edges(False)), X.num_verts())),
+                                      lambda x: Graph([range(literal_eval(x)[1]), lambda i,j: (i,j) in literal_eval(x)[0] or (j,i) in literal_eval(x)[0]], immutable=True)),
+        'Integer compositions':      ("IntegerCompositions",     Composition,           str,                              lambda x: Composition(literal_eval(x))),
+        'Integer partitions':        ("IntegerPartitions",       Partition,             str,                              lambda x: Partition(literal_eval(x))),
+        'Ordered trees':             ("OrderedTrees",            OrderedTree,           str,                              lambda x: OrderedTree(literal_eval(x))),
+        'Parking functions':         ("ParkingFunctions",        ParkingFunction_class, str,                              lambda x: ParkingFunction(literal_eval(x))),
+        'Perfect matchings':         ("PerfectMatchings",        PerfectMatching,       str,                              lambda x: PerfectMatching(literal_eval(x))),
+        'Permutations':              ("Permutations",            Permutation,           str,                              lambda x: Permutation(literal_eval(x))),
+        'Posets':                    ("Posets",                  FinitePoset,           lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),                                                                       lambda x: Poset((range(literal_eval(x)[1]), literal_eval(x)[0]))),
+        'Semistandard tableaux':     ("SemistandardTableaux",    SemistandardTableau,   str,                              lambda x: SemistandardTableau(literal_eval(x))),
+        'Set partitions':            ("SetPartitions",           SetPartition,          str,                              lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']')))),
+        'Standard tableaux':         ("StandardTableaux",        StandardTableau,       str,                              lambda x: StandardTableau(literal_eval(x)))}
+
+    def __init__(self, entry):
+        r"""
+        Initializes a FindStat collection from
+        
+        * a string, eg. 'Dyck paths'
+        * a sage object
 
         TESTS::
 
-            sage: s = findstat._imaginary_sequence()        # optional -- webbrowser
-            sage: s.browse()                            # optional -- webbrowser
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: c = FindStatCollection('Dyck paths'); c               # optional -- internet
+            Dyck paths
+
         """
-        webbrowser.open(findstat_url_edit + self.id())
+        if isinstance(entry, str):
+            # we should make this case insensitive, and generally more flexible 
+            value = FindStatCollection._findstat_collections.get(entry, None)
+            if value == None:
+                raise ValueError, "unknown collection '" + entry + "'"
+            else:
+                self._name = entry
+                (self._url_name, self._sagename, self._to_str, self._from_str) = value
+        else:
+            bad = True
+            for (key, value) in FindStatCollection._findstat_collections.iteritems():
+                if isinstance(entry, value[1]):
+                    self._name = key
+                    (self._url_name, self._sagename, self._to_str, self._from_str) = value
+                    bad = False
+            if bad:
+                raise ValueError, "Could not find FindStat collection for " + str(entry)
+
+    def url_name(self):
+        return self._url_name
+
+    def to_string(self):
+        r"""
+
+        returns a function that converts a sage object into a FindStat string
+        """
+        return self._to_str
+
+    def from_string(self):
+        r"""
+        Returns the sage constructor corresponding to the combinatorial collection, or `None`.
+
+        OUTPUT:
+
+        - string or `None`.
+
+        """
+        return self._from_str
+
+    def __repr__(self):
+        r"""
+        Prints the name of the collection
+
+        OUTPUT:
+
+        - string.
+
+        EXAMPLES::
+
+            sage: FindStatCollection("Binary trees")                      # optional -- internet
+            Binary trees
+        """
+        return self._name
 
 
 findstat = FindStat()

@@ -262,7 +262,17 @@ class RealBallField(UniqueRepresentation, Parent):
         return self.element_class(self, *args, **kwds)
 
     def _an_element_(self):
-        return self._element_constructor_(self)
+        r"""
+        Construct an element.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField # optional: arb
+            sage: RBF = RealBallField() # optional: arb
+            sage: RBF._an_element_() # optional: arb; indirect doctest
+            [0.3333333333333333 +/- 1.49e-17]
+        """
+        return self(1.0/3)
 
     def precision(self):
         """

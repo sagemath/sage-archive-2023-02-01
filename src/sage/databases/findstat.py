@@ -3,7 +3,6 @@ TODO:
 
 * check which import statements are needed
 * include tests (a la OEIS)
-* allow advanced queries, i.e., search for distribution and in-between
 * for statistics: do we want to "call" them on an object, or rather have a getitem method?
   currently, it's call:
 
@@ -102,7 +101,9 @@ class FindStat:
         should be as many values as objects, and optionally a string
         naming the collection
 
-
+      - a single pair of the form (list of objects, list of values),
+        with as many objects as values, and optionally a string
+        naming the collection
 
     TODO:
       - a string, representing the ID of a collection.
@@ -209,8 +210,12 @@ class FindStat:
         elif isinstance(query, dict):
             return self.find_by_values([([key], [value]) for (key, value) in query.iteritems()], collection, depth, max_values)
 
-        elif isinstance(query, list):
-            stat = [(key, value) if isinstance(key, list) else ([key], [value]) for (key, value) in query]
+        elif isinstance(query, (list, tuple)):
+            if (len(query) == 2 and isinstance(query[1], (list, tuple)) and
+                query[1] != "" and isinstance(query[1][0], (int,Integer))):
+                stat = [(query[0], query[1])]
+            else:
+                stat = [(key, value) if isinstance(key, list) else ([key], [value]) for (key, value) in query]
             return self.find_by_values(stat, collection, depth, max_values)
 
     def __repr__(self):

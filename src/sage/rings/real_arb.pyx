@@ -397,6 +397,54 @@ cdef class RealBall(Element):
 
         return result
 
+    # Comparisons and predicates
+
+    def is_zero(self):
+        """
+        Return nonzero iff the midpoint and radius of this ball are both zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RBF = RealBallField() # optional - arb
+            sage: RBF(0).is_zero() # optional - arb
+            True
+            sage: RBF(RIF(-0.5, 0.5)).is_zero() # optional - arb
+            False
+        """
+        return bool(arb_is_zero(self.value))
+
+    def is_nonzero(self):
+        """
+        Return nonzero iff zero is not contained in the interval represented
+        by this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RBF = RealBallField() # optional - arb
+            sage: RBF(pi).is_nonzero() # optional - arb
+            True
+            sage: RBF(RIF(-0.5, 0.5)).is_nonzero() # optional - arb
+            False
+        """
+        return bool(arb_is_nonzero(self.value))
+
+    def is_exact(self):
+        """
+        Return nonzero iff the radius of this ball is zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RBF = RealBallField() # optional - arb
+            sage: RBF(1).is_exact() # optional - arb
+            True
+            sage: RBF(RIF(0.1, 0.2)).is_exact() # optional - arb
+            False
+        """
+        return bool(arb_is_exact(self.value))
+
     cpdef RealBall psi(self):
         """
         Compute the digamma function with argument self.

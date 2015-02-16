@@ -427,7 +427,7 @@ class Permutation(CombinatorialObject, Element):
         sage: p = Permutation((1, 2, 5)); p
         [2, 5, 3, 4, 1]
         sage: type(p)
-        <class 'sage.combinat.permutation.StandardPermutations_all_with_category.element_class'>
+        <class 'sage.combinat.permutation.StandardPermutations_n_with_category.element_class'>
 
     Construction from a string in cycle notation::
 
@@ -5934,10 +5934,10 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             ([2, 1],)
             sage: P = Permutations(1)
             sage: P.gens()
-            ([1],)
+            ()
         """
         if self.n <= 1:
-            return (self.one(),)
+            return ()
         if self.n == 2:
             return (self.element_class(self, [2,1]),)
         c = range(2, self.n+1)

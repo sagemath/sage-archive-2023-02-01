@@ -928,8 +928,8 @@ ext_modules = [
         ##
         ###################################
 
-    Extension('sage.libs.ntl.handle_error',
-              sources = ["sage/libs/ntl/handle_error.pyx"],
+    Extension('sage.libs.ntl.error',
+              sources = ["sage/libs/ntl/error.pyx"],
               libraries = ["ntl", "gmp", "gmpxx"],
               language='c++'),
 

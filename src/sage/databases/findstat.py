@@ -90,9 +90,19 @@ class FindStat:
     - ``query`` - it can be:
 
       - a string representing a FindStat ID (e.g. 'St000045').
+
       - an integer representing a FindStat ID (e.g. 45).
-      - a dictionary representing the statistic on a combinatorial
+
+      - a dictionary from sage objects to integer values 
+        representing the statistic on a combinatorial
         collection, and optionally a string naming the collection.
+
+      - a list of pairs of the form (object, value) or (list of
+        objects, list of values), where in the latter case, there
+        should be as many values as objects, and optionally a string
+        naming the collection
+
+
 
     TODO:
       - a string, representing the ID of a collection.
@@ -197,7 +207,11 @@ class FindStat:
             else:
                 raise ValueError("When providing an identifier, do not provide a collection.")
         elif isinstance(query, dict):
-            return self.find_by_values(query, collection, depth, max_values)
+            return self.find_by_values([([key], [value]) for (key, value) in query.iteritems()], collection, depth, max_values)
+
+        elif isinstance(query, list):
+            stat = [(key, value) if isinstance(key, list) else ([key], [value]) for (key, value) in query]
+            return self.find_by_values(stat, collection, depth, max_values)
 
     def __repr__(self):
         r"""
@@ -252,7 +266,9 @@ class FindStat:
 
         INPUT:
 
-        - ``values`` - a dictionary
+        - ``statistic`` - a list of pairs of the form (list of objects, list of values),
+                          each containing as many values as objects.
+        - ``collection`` - a collection (possibly as a string) or None
 
         OUTPUT:
 
@@ -264,20 +280,27 @@ class FindStat:
         import urllib, urllib2
 
         if collection is None:
-            collection = FindStatCollection(statistic.keys()[0])
+            collection = FindStatCollection(statistic[0][0][0])
         else:
             collection = FindStatCollection(collection)
 
-        # we want at most max_values values
-        # sorting by length of the string representation is not a good idea for cores.
-        to_str = collection.to_string()
-        keys = sorted(statistic.keys(), key=lambda x: len(to_str(x)))[:max_values]
-        stat = {to_str(key): str(statistic[key]) for key in keys}
-
         url = findstat_url_result + collection.url_name() + "/"
 
-        # the spaces in " => " are important!
-        stat_str = join([a + " => " + b for (a, b) in stat.items()], " \n")
+        # we want at most max_values objects but we currently don't check this.
+        # moreover, we want the "smallest" max_values objects!
+#        to_size = collection.to_size()
+        to_str = collection.to_string()
+#        keys = sorted(statistic.keys(), key=to_size)[:max_values]
+#        stat = {to_str(key): str(statistic[key]) for key in keys}
+        stat = [(map(to_str, keys), str(values)[1:-1]) for (keys, values) in statistic]
+
+        stat_str = join([join(keys, "\n") + "\n====> " + values for (keys, values) in stat], "\n")
+
+# the following was for single values
+#
+# the spaces in " => " are important!
+#        stat_str = join([a + " => " + b for (keys, values) in stat], " \n")
+
         _ = verbose("Sending data to Findstat %s" %stat_str, caller_name='FindStat')
         values = urllib.urlencode({"freedata": stat_str, "depth": str(depth)})
 
@@ -878,30 +901,78 @@ class FindStatCollection():
 
     .. automethod:: __call__
     """
-    # we set up a dictionary from FindStat collections to url's, sage objects, their string representations and sage constructors of the latter
+    # we set up a dictionary from FindStat collections to 
+    # * url's as needed by FindStat, 
+    # * sage objects
+    # * a method to get the size of the sage object
+    # * the (FindStat) string representations of the sage object
+    # * sage constructors of the FindStat string representation
     _findstat_collections = {
-        'Alternating sign matrices': ("AlternatingSignMatrices", AlternatingSignMatrix, lambda x: str(map(list,list(x._matrix))), lambda x: AlternatingSignMatrix(literal_eval(x))),
-        'Binary trees':              ("BinaryTrees",             BinaryTree,            str,                              lambda x: BinaryTree(x)),
-        'Cores':                     ("Cores",                   Core,                  
+        'Alternating sign matrices': ("AlternatingSignMatrices", AlternatingSignMatrix, 
+                                      lambda x: x.to_matrix().nrows(),
+                                      lambda x: str(map(list,list(x._matrix))), 
+                                      lambda x: AlternatingSignMatrix(literal_eval(x))),
+        'Binary trees':              ("BinaryTrees",             BinaryTree,            
+                                      lambda x: x.node_number(),
+                                      str, 
+                                      lambda x: BinaryTree(x)),
+        'Cores':                     ("Cores",                   Core,
+                                      lambda x: x.k(),
                                       lambda X: "( "+X._repr_()+", "+str(X.k())+" )",
                                       lambda x: Core(literal_eval(x)[0],literal_eval(x)[1])),
-        'Dyck paths':                ("DyckPaths",               DyckWord,              lambda x: str(list(DyckWord(x))), lambda x: DyckWord(literal_eval(x))),
+        'Dyck paths':                ("DyckPaths",               DyckWord,              
+                                      lambda x: x.length(),
+                                      lambda x: str(list(DyckWord(x))), 
+                                      lambda x: DyckWord(literal_eval(x))),
 #        'Finite Cartan types':       ("FiniteCartanType",        CartanType,            str,                              lambda x: CartanType(literal_eval(x))),
-        'Gelfand-Tsetlin patterns':  ("GelfandTsetlinPatterns",  GelfandTsetlinPattern, str,                              lambda x: GelfandTsetlinPattern(literal_eval(x))),
-        'Graphs':                    ("Graphs",                  
-                                      Graph,                 
+        'Gelfand-Tsetlin patterns':  ("GelfandTsetlinPatterns",  GelfandTsetlinPattern, 
+                                      len,
+                                      str,                              
+                                      lambda x: GelfandTsetlinPattern(literal_eval(x))),
+        'Graphs':                    ("Graphs",                  Graph,                 
+                                      lambda x: x.num_verts(),
                                       lambda X: str((sorted(X.canonical_label().edges(False)), X.num_verts())),
                                       lambda x: Graph([range(literal_eval(x)[1]), lambda i,j: (i,j) in literal_eval(x)[0] or (j,i) in literal_eval(x)[0]], immutable=True)),
-        'Integer compositions':      ("IntegerCompositions",     Composition,           str,                              lambda x: Composition(literal_eval(x))),
-        'Integer partitions':        ("IntegerPartitions",       Partition,             str,                              lambda x: Partition(literal_eval(x))),
-        'Ordered trees':             ("OrderedTrees",            OrderedTree,           str,                              lambda x: OrderedTree(literal_eval(x))),
-        'Parking functions':         ("ParkingFunctions",        ParkingFunction_class, str,                              lambda x: ParkingFunction(literal_eval(x))),
-        'Perfect matchings':         ("PerfectMatchings",        PerfectMatching,       str,                              lambda x: PerfectMatching(literal_eval(x))),
-        'Permutations':              ("Permutations",            Permutation,           str,                              lambda x: Permutation(literal_eval(x))),
-        'Posets':                    ("Posets",                  FinitePoset,           lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),                                                                       lambda x: Poset((range(literal_eval(x)[1]), literal_eval(x)[0]))),
-        'Semistandard tableaux':     ("SemistandardTableaux",    SemistandardTableau,   str,                              lambda x: SemistandardTableau(literal_eval(x))),
-        'Set partitions':            ("SetPartitions",           SetPartition,          str,                              lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']')))),
-        'Standard tableaux':         ("StandardTableaux",        StandardTableau,       str,                              lambda x: StandardTableau(literal_eval(x)))}
+        'Integer compositions':      ("IntegerCompositions",     Composition,           
+                                      lambda x: x.size(),
+                                      str,                              
+                                      lambda x: Composition(literal_eval(x))),
+        'Integer partitions':        ("IntegerPartitions",       Partition,             
+                                      lambda x: x.size(),
+                                      str,                              
+                                      lambda x: Partition(literal_eval(x))),
+        'Ordered trees':             ("OrderedTrees",            OrderedTree,           
+                                      lambda x: x.node_number(),
+                                      str,                              
+                                      lambda x: OrderedTree(literal_eval(x))),
+        'Parking functions':         ("ParkingFunctions",        ParkingFunction_class, 
+                                      len,
+                                      str,                              
+                                      lambda x: ParkingFunction(literal_eval(x))),
+        'Perfect matchings':         ("PerfectMatchings",        PerfectMatching,       
+                                      lambda x: x.size(),
+                                      str,                              
+                                      lambda x: PerfectMatching(literal_eval(x))),
+        'Permutations':              ("Permutations",            Permutation,           
+                                      lambda x: x.size(),
+                                      str,                              
+                                      lambda x: Permutation(literal_eval(x))),
+        'Posets':                    ("Posets",                  FinitePoset,           
+                                      lambda x: x.cardinality(),
+                                      lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),                                                                       
+                                      lambda x: Poset((range(literal_eval(x)[1]), literal_eval(x)[0]))),
+        'Semistandard tableaux':     ("SemistandardTableaux",    SemistandardTableau,   
+                                      lambda x: x.size(),
+                                      str,                              
+                                      lambda x: SemistandardTableau(literal_eval(x))),
+        'Set partitions':            ("SetPartitions",           SetPartition,          
+                                      lambda x: x.size(),
+                                      str,                              
+                                      lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']')))),
+        'Standard tableaux':         ("StandardTableaux",        StandardTableau,       
+                                      lambda x: x.size(),
+                                      str,                              
+                                      lambda x: StandardTableau(literal_eval(x)))}
 
     def __init__(self, entry):
         r"""
@@ -924,19 +995,27 @@ class FindStatCollection():
                 raise ValueError, "unknown collection '" + entry + "'"
             else:
                 self._name = entry
-                (self._url_name, self._sagename, self._to_str, self._from_str) = value
+                (self._url_name, self._sagename, self._to_size, self._to_str, self._from_str) = value
         else:
             bad = True
             for (key, value) in FindStatCollection._findstat_collections.iteritems():
                 if isinstance(entry, value[1]):
                     self._name = key
-                    (self._url_name, self._sagename, self._to_str, self._from_str) = value
+                    (self._url_name, self._sagename, self._to_size, self._to_str, self._from_str) = value
                     bad = False
             if bad:
                 raise ValueError, "Could not find FindStat collection for " + str(entry)
 
     def url_name(self):
         return self._url_name
+
+    def to_size(self):
+        r"""
+
+        returns a function that returns the FindStat size of a sage object
+        """
+        return self._to_size
+
 
     def to_string(self):
         r"""

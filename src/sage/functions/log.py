@@ -17,6 +17,7 @@ from sage.rings.complex_double import CDF
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.rings.rational import Rational
 
 class Function_exp(GinacFunction):
     def __init__(self):
@@ -832,7 +833,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
     Check the defining integral. at a random integer::
 
         sage: n=randint(10,100)
-        sage: integrate((1-x^n)/(1-x),x,0,1)==harmonic_number(n)
+        sage: bool(integrate((1-x^n)/(1-x),x,0,1) == harmonic_number(n))
         True
 
     There are several special values which are automatically simplified::
@@ -904,13 +905,21 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             zeta(5) - 0.650300133161038
             sage: harmonic_number(5,0.1).n()
             0.386627621982332
+            sage: harmonic_number(Qp(5)(10))
+            4*5^-1 + 2 + 2*5 + 4*5^2 + 3*5^3 + 5^4 + 4*5^5 + 4*5^6 + 5^7 + 4*5^8 + 3*5^9 + 5^10 + 4*5^11 + 4*5^12 + 5^13 + 4*5^14 + 3*5^15 + 5^16 + 4*5^17 + 4*5^18 + O(5^19)
         """
         if m == 0:
             return z
         elif m == 1:
             return harmonic_m1._eval_(z)
-        elif m in ZZ and z in ZZ:
-            return sum(QQ(1)/(k**m) for k in range(1,z+1))
+        elif isinstance(m, Integer):
+            from sage.misc.misc import srange
+            try:
+                _ = ZZ(z)
+            except TypeError:
+                pass
+            else:
+                return sum(1/(k**m) for k in srange(1,z+1))
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
         """
@@ -954,6 +963,32 @@ class Function_harmonic_number_generalized(BuiltinFunction):
         else:
             maxima_z=str(z)
         return "gen_harmonic_number(%s,%s)" % (maxima_z, maxima_n) # swap arguments
+
+    def _derivative_(self, n, m, diff_param=None):
+        """
+        The derivative of `H_{n,m}`.
+
+        EXAMPLES::
+
+            sage: k,m,n = var('k,m,n')
+            sage: sum(1/k, k, 1, x).diff(x)
+            1/6*pi^2 - harmonic_number(x, 2)
+            sage: harmonic_number(x, 1).diff(x)
+            1/6*pi^2 - harmonic_number(x, 2)
+            sage: harmonic_number(n, m).diff(n)
+            -m*(harmonic_number(n, m + 1) - zeta(m + 1))
+            sage: harmonic_number(n, m).diff(m)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate harmonic_number in the second parameter
+        """
+        from sage.functions.transcendental import zeta
+        if diff_param == 1:
+            raise ValueError("cannot differentiate harmonic_number in the second parameter")
+        if m==1:
+            return harmonic_m1(n).diff()
+        else:
+            return m*(zeta(m+1) - harmonic_number(n, m+1))
 
     def _print_(self, z, m):
         """
@@ -1002,8 +1037,19 @@ class Function_harmonic_number(BuiltinFunction):
 
         H_{s}=\int_0^1\frac{1-x^s}{1-x}
 
+    If the argument is an integer greater than `2^20` no rational
+    evaluation is done, in order to allow for high-precision floating
+    point computation using `.n()`.
+
+        EXAMPLES::
+
+        sage: harmonic_number(3**20)
+        harmonic_number(3486784401)
+        sage: harmonic_number(3**20).n(200)
+        22.54946143840712528804418450...
+
     See the docstring for :meth:`Function_harmonic_number_generalized`.
-    
+
     This class exists as callback for ``harmonic_number`` returned by Maxima.
     """
 
@@ -1035,7 +1081,7 @@ class Function_harmonic_number(BuiltinFunction):
             sage: harmonic_number(2*x)
             harmonic_number(2*x)
         """
-        if z in ZZ:
+        if isinstance(z, Integer):
             if z == 0:
                 return Integer(0)
             elif z == 1:
@@ -1044,11 +1090,11 @@ class Function_harmonic_number(BuiltinFunction):
                 import sage.libs.flint.arith as flint_arith
                 return flint_arith.harmonic_number(z)
             # fall through if flint cannot handle argument
-        elif z in QQ:
+        elif isinstance(z, Rational):
             from sage.calculus.calculus import symbolic_sum
             from sage.symbolic.ring import SR
             from sage.rings.infinity import infinity
-            x = SR('x')
+            x = SR.var('x')
             return z*symbolic_sum(1/x/(z+x),x,1,infinity)
 
     def _evalf_(self, z, parent=None, algorithm='mpmath'):

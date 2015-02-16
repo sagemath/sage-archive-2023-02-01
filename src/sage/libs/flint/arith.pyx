@@ -165,9 +165,11 @@ def harmonic_number(unsigned long n):
 
     fmpq_init(s_fmpq)
 
+    sig_on()
     arith_harmonic_number(s_fmpq, n)
 
     fmpq_get_mpq((<Rational>s).value, s_fmpq)
+    sig_off()
 
     fmpq_clear(s_fmpq)
 

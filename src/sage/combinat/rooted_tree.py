@@ -7,11 +7,10 @@ AUTHORS:
 """
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.ranker import on_fly
-from sage.combinat.abstract_tree import (
-    AbstractClonableTree, AbstractLabelledClonableTree)
+from sage.combinat.abstract_tree import (AbstractClonableTree,
+                                         AbstractLabelledClonableTree)
 from sage.misc.cachefunc import cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
@@ -24,7 +23,6 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.structure.list_clone import NormalizedClonableList
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-import sage.structure.set_factories as factories
 
 
 @cached_function
@@ -247,114 +245,74 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         return resu
 
 
-class RootedTreesFactory(factories.SetFactory):
+class RootedTrees(UniqueRepresentation, Parent):
     """
     Factory class for rooted trees
-    """
 
-    def __call__(self, n=(), policy=None):
+    INPUT:
+
+    - ``size`` -- (optional) an integer
+
+    OUPUT:
+
+    - the set of all rooted trees (of the given ``size`` if specified)
+
+    EXAMPLES::
+
+        sage: RootedTrees()
+        Rooted trees
+
+        sage: RootedTrees(2)
+        Rooted trees with 2 nodes
+    """
+    @staticmethod
+    def __classcall_private__(cls, n=None):
         """
         TESTS::
 
-            sage: from sage.combinat.rooted_tree import RootedTrees_all, RootedTrees_size
+            sage: from sage.combinat.rooted_tree import (RootedTrees_all,
+            ....:    RootedTrees_size)
             sage: RootedTrees(2) is RootedTrees_size(2)
             True
             sage: RootedTrees(5).cardinality()
             9
             sage: RootedTrees() is RootedTrees_all()
             True
-        """
-        if policy is None:
-            policy = self._default_policy
-
-        if n == ():
-            return RootedTrees_all(policy)
-        elif isinstance(n, (Integer, int)) and n >= 0:
-            return RootedTrees_size(n, policy)
-        msg = "Do not know how to compute {}({})".format(self, n)
-        raise NotImplementedError(msg)
-
-        # try:
-        #     from sage.combinat.partition import Partition
-        #     lst = Partition(n)
-        # except ValueError:
-        #     raise NotImplementedError("Don't know how to compute %%(%s)"%(
-        #         self, n))
-        # else:
-        #     return RootedTrees_part(lst, policy)
-
-    def add_constraints(self, cons, (n, st)):
-        """
-        EXAMPLES::
-
-            sage: RootedTrees.add_constraints((), ((3,), {}))
-            (3,)
-            sage: RootedTrees.add_constraints((3,), ((), {}))
-            (3,)
-        """
-        return cons + n
-
-    @lazy_attribute
-    def _default_policy(self):
-        r"""
-        TESTS::
-
-            sage: from sage.combinat.rooted_tree import RootedTreesFactory
-            sage: RT = RootedTreesFactory()
-            sage: RT._default_policy
-            Set factory policy for <class 'sage.combinat.rooted_tree.RootedTree'> with parent Rooted trees[=Rooted tree set factory(())]
-        """
-        return factories.TopMostParentPolicy(self, (), RootedTree)
-
-    def __repr__(self):
-        """
-        TESTS::
-
-            sage: from sage.combinat.rooted_tree import RootedTreesFactory
-            sage: RootedTreesFactory()
-            Rooted tree set factory
-        """
-        return "Rooted tree set factory"
-
-RootedTrees = RootedTreesFactory()
-
-
-class RootedTrees_all(factories.ParentWithSetFactory,
-                      DisjointUnionEnumeratedSets):
-    """
-    TESTS::
-
-        sage: sum(x^len(t) for t in
-        ...       set(RootedTree(t) for t in OrderedTrees(6)))
-        x^5 + x^4 + 3*x^3 + 6*x^2 + 9*x
-        sage: sum(x^len(t) for t in RootedTrees(6))
-        x^5 + x^4 + 3*x^3 + 6*x^2 + 9*x
-    """
-    @staticmethod
-    def __classcall_private__(cls, policy=RootedTrees._default_policy):
-        """
-        Input normalization
 
         TESTS::
 
-            sage: from sage.combinat.rooted_tree import RootedTrees_all
-            sage: RootedTrees() is RootedTrees_all()
-            True
+            sage: RootedTrees(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a positive integer
         """
-        return super(RootedTrees_all, cls).__classcall__(cls, policy)
+        if n is None:
+            return RootedTrees_all()
+        else:
+            if not (isinstance(n, (Integer, int)) and n >= 1):
+                raise ValueError("n must be a positive integer")
+            return RootedTrees_size(Integer(n))
 
-    def __init__(self, policy=RootedTrees._default_policy):
+
+class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
+
+    def __init__(self):
         """
         TESTS::
+
+           sage: from sage.combinat.rooted_tree import RootedTrees_all
+
+            sage: sum(x**len(t) for t in
+            ....:     set(RootedTree(t) for t in OrderedTrees(6)))
+            x^5 + x^4 + 3*x^3 + 6*x^2 + 9*x
+            sage: sum(x**len(t) for t in RootedTrees(6))
+            x^5 + x^4 + 3*x^3 + 6*x^2 + 9*x
 
             sage: TestSuite(RootedTrees()).run()
         """
-        factories.ParentWithSetFactory.__init__(self, (), policy,
-                                                category=InfiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(
-            self, Family(NonNegativeIntegers(), self._of_size),
-            facade=True, keepkey=False,
-            category=self.category())
+            self, Family(NonNegativeIntegers(), RootedTrees_size),
+            facade=True, keepkey=False)
 
     def _repr_(self):
         r"""
@@ -365,32 +323,29 @@ class RootedTrees_all(factories.ParentWithSetFactory,
         """
         return "Rooted trees"
 
-    def _of_size(self, size):
-        r"""
-        The sub-enumerated set of trees of a given size
+    def __contains__(self, x):
+        """
+        TESTS::
 
-        Passed to :class:DisjointUnionEnumeratedSets
+            sage: S = RootedTrees()
+            sage: 1 in S
+            False
+            sage: S([]) in S
+            True
+        """
+        return isinstance(x, self.element_class)
+
+    def __call__(self, x=None, *args, **keywords):
+        """
+        Ensure that ``None`` instead of ``0`` is passed by default.
 
         TESTS::
 
-            sage: RootedTrees()._of_size(4)
-            Rooted trees with 4 nodes
+            sage: B = RootedTrees()
+            sage: B([])
+            []
         """
-        return RootedTrees_size(size, policy=self.facade_policy())
-
-    def check_element(self, el, check):
-        r"""
-        Check that a given tree actually belongs to ``self``
-
-        See :class:`sage.structure.set_factories.ParentWithSetFactory`
-
-        TESTS::
-
-            sage: RT = RootedTrees()
-            sage: RT([[],[]])     # indirect doctest
-            [[], []]
-        """
-        pass
+        return super(RootedTrees, self).__call__(x, *args, **keywords)
 
     def unlabelled_trees(self):
         """
@@ -424,40 +379,40 @@ class RootedTrees_all(factories.ParentWithSetFactory,
         """
         return LabelledRootedTrees()
 
+    def _element_constructor_(self, *args, **keywords):
+        """
+        EXAMPLES::
 
-class RootedTrees_size(factories.ParentWithSetFactory, UniqueRepresentation):
+            sage: B = RootedTrees()
+            sage: B._element_constructor_([])
+            []
+            sage: B([[],[]]) # indirect doctest
+            [[], []]
+        """
+        return self.element_class(self, *args, **keywords)
+
+    Element = RootedTree
+
+
+class RootedTrees_size(RootedTrees):
     """
     The enumerated set of rooted trees with a given number of nodes
 
-    EXAMPLES::
+    TESTS::
+
+        sage: from sage.combinat.rooted_tree import RootedTrees_size
+        sage: for i in range(1, 6): TestSuite(RootedTrees_size(i)).run()
 
     """
-    @staticmethod
-    def __classcall_private__(cls, n, policy=RootedTrees._default_policy):
-        """
-        Input normalization
-
-        TESTS::
-
-            sage: from sage.combinat.rooted_tree import RootedTrees_size
-            sage: RootedTrees(4) is RootedTrees_size(4)
-            True
-            sage: RootedTrees_size(4) is RootedTrees_size(int(4))
-            True
-        """
-        return super(RootedTrees_size, cls).__classcall__(
-            cls, Integer(n), policy)
-
-    def __init__(self, n, policy):
+    def __init__(self, n):
         """
         TESTS::
 
-            sage: for i in range(0, 6):
+            sage: for i in range(1, 6):
             ....:     TestSuite(RootedTrees(i)).run()
         """
+        super(RootedTrees_size, self).__init__(category=FiniteEnumeratedSets())
         self._n = n
-        factories.ParentWithSetFactory.__init__(self, (n,), policy,
-                                                category=FiniteEnumeratedSets())
 
     def _repr_(self):
         r"""
@@ -468,6 +423,27 @@ class RootedTrees_size(factories.ParentWithSetFactory, UniqueRepresentation):
         """
         return "Rooted trees with {} nodes".format(self._n)
 
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: S = RootedTrees(3)
+            sage: 1 in S
+            False
+            sage: S([[],[]]) in S
+            True
+        """
+        return isinstance(x, self.element_class) and x.node_number() == self._n
+
+    def _an_element_(self):
+        """
+        TESTS::
+
+            sage: RootedTrees(4).an_element()  # indirect doctest
+            [[[[]]]]
+        """
+        return self.first()
+
     def __iter__(self):
         """
         An iterator for ``self``
@@ -475,8 +451,6 @@ class RootedTrees_size(factories.ParentWithSetFactory, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.combinat.rooted_tree import *
-            sage: RootedTrees(0).list()
-            []
             sage: RootedTrees(1).list()
             [[]]
             sage: RootedTrees(2).list()
@@ -484,9 +458,7 @@ class RootedTrees_size(factories.ParentWithSetFactory, UniqueRepresentation):
             sage: RootedTrees(3).list()
             [[[[]]], [[], []]]
         """
-        if self._n == 0:
-            pass
-        elif self._n == 1:
+        if self._n == 1:
             yield self._element_constructor_([])
         else:
             from sage.combinat.partition import Partitions
@@ -496,7 +468,7 @@ class RootedTrees_size(factories.ParentWithSetFactory, UniqueRepresentation):
                 mults = part.to_exp_dict()
                 choices = []
                 for p, mp in mults.items():
-                    lp = self.__class__(p, self.policy()).list()
+                    lp = self.__class__(p).list()
                     new_choice = MultichooseNK(len(lp), mp).map(
                         lambda l: [lp[i] for i in l]).list()
                     choices.append(new_choice)
@@ -507,8 +479,6 @@ class RootedTrees_size(factories.ParentWithSetFactory, UniqueRepresentation):
         r"""
         Check that a given tree actually belongs to ``self``
 
-        See :class:`sage.structure.set_factories.ParentWithSetFactory`
-
         EXAMPLES::
 
             sage: RT3 = RootedTrees(3)
@@ -517,10 +487,10 @@ class RootedTrees_size(factories.ParentWithSetFactory, UniqueRepresentation):
             sage: RT3([[],[],[]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Wrong number of nodes
+            ValueError: wrong number of nodes
         """
         if el.node_number() != self._n:
-            raise ValueError("Wrong number of nodes")
+            raise ValueError("wrong number of nodes")
 
     def cardinality(self):
         r"""
@@ -532,10 +502,55 @@ class RootedTrees_size(factories.ParentWithSetFactory, UniqueRepresentation):
             1
             sage: RootedTrees(3).cardinality()
             2
-            sage: RootedTrees(0).cardinality()
-            0
         """
         return number_of_rooted_trees(self._n)
+
+    @lazy_attribute
+    def _parent_for(self):
+        """
+        The parent of the elements generated by ``self``.
+
+        TESTS::
+
+            sage: S = RootedTrees(3)
+            sage: S._parent_for
+            Rooted trees
+        """
+        return RootedTrees_all()
+
+    @lazy_attribute
+    def element_class(self):
+        """
+        TESTS::
+
+            sage: S = RootedTrees(3)
+            sage: S.element_class
+            <class 'sage.combinat.rooted_tree.RootedTrees_all_with_category.element_class'>
+            sage: S.first().__class__ == RootedTrees().first().__class__
+            True
+        """
+        return self._parent_for.element_class
+
+    def _element_constructor_(self, *args, **keywords):
+        """
+        EXAMPLES::
+
+            sage: S = RootedTrees(2)
+            sage: S([])   # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong number of nodes
+            sage: S([[]])   # indirect doctest
+            [[]]
+
+            sage: S = RootedTrees(1)   # indirect doctest
+            sage: S([])
+            []
+        """
+        res = self.element_class(self._parent_for, *args, **keywords)
+        if res.node_number() != self._n:
+            raise ValueError("wrong number of nodes")
+        return res
 
 
 class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
@@ -679,16 +694,6 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
         t1 = LT([t, t], label=42)
         t2 = LT([[]], label=5)
         return LT([t, t1, t2], label="toto")
-
-    def _element_constructor_(self, *args, **keywords):
-        """
-        EXAMPLES::
-
-            sage: T = LabelledRootedTrees()
-            sage: T([], label=2)     # indirect doctest
-            2[]
-        """
-        return self.element_class(self, *args, **keywords)
 
     def unlabelled_trees(self):
         """

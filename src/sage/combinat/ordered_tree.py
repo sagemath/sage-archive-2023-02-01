@@ -28,7 +28,6 @@ from sage.rings.integer import Integer
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
-from sage.misc.cachefunc import cached_method
 
 
 class OrderedTree(AbstractClonableTree, ClonableList):
@@ -716,7 +715,6 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
         return self.element_class(self, *args, **keywords)
 
     Element = OrderedTree
-
 
 
 from sage.misc.lazy_attribute import lazy_attribute

@@ -22,6 +22,12 @@ from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.misc.cachefunc import cached_method
+from sage.categories.sets_cat import Sets, EmptySetError
+from sage.rings.integer import Integer
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
 
 
 class OrderedTree(AbstractClonableTree, ClonableList):
@@ -511,12 +517,63 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         children.reverse()
         return OrderedTree(children)
 
-from sage.categories.sets_cat import Sets, EmptySetError
-from sage.rings.integer import Integer
-from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.sets.family import Family
-from sage.misc.cachefunc import cached_method
+    import sage.combinat.ranker
+    _cayley_ranker = sage.combinat.ranker.on_fly()
+
+    @cached_method
+    def normalize(self, inplace=False):
+        """
+        Return the normalized tree of ``self``.
+
+        INPUT:
+
+        - ``inplace`` -- boolean, (default ``False``) if ``True``,
+          then ``self`` is modified and nothing returned. Otherwise
+          the normalized tree is returned.
+
+        The normalization has a recursive definition. It means first
+        that every sub-tree is itself normalized, and also that
+        sub-trees are sorted. Here the sort is performed according to
+        the rank function.
+
+        Consider the quotient map that sends a planar rooted tree to
+        the associated "abstract" rooted tree. This function is a
+        section of this map. This is used to work with rooted trees.
+
+        EXAMPLES::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.normalize() == tb.normalize()
+            True
+            sage: ta == tb
+            False
+
+        An example with inplace normalization::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.normalize(inplace=True); ta
+            [[], [[]]]
+            sage: tb.normalize(inplace=True); tb
+            [[], [[]]]
+        """
+        rank, unrank = self._cayley_ranker
+        if not inplace:
+            with self.clone() as res:
+                resl = res._get_list()
+                for i in range(len(resl)):
+                    resl[i] = resl[i].normalize()
+                resl.sort(key=rank)
+            return unrank(rank(res))
+        else:
+            resl = self._get_list()
+            for i in range(len(resl)):
+                resl[i] = resl[i].normalize()
+            resl.sort(key=rank)
+
 
 # Abstract class to serve as a Factory no instance are created.
 class OrderedTrees(UniqueRepresentation, Parent):
@@ -587,6 +644,7 @@ class OrderedTrees(UniqueRepresentation, Parent):
             True
         """
         return self([])
+
 
 class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
     """
@@ -659,7 +717,7 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
     def labelled_trees(self):
         """
-        Return the set of unlabelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -679,7 +737,6 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
         return self.element_class(self, *args, **keywords)
 
     Element = OrderedTree
-
 
 
 from sage.misc.lazy_attribute import lazy_attribute

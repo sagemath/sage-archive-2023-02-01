@@ -233,6 +233,7 @@ Comprehensive Module list
     sage/combinat/root_system/weight_space
     sage/combinat/root_system/weyl_characters
     sage/combinat/root_system/weyl_group
+    sage/combinat/rooted_tree
     sage/combinat/rsk
     sage/combinat/schubert_polynomial
     sage/combinat/set_partition

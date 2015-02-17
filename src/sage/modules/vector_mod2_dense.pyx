@@ -514,8 +514,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         cdef Py_ssize_t i
         cdef list v = [0]*d
         K = self.base_ring()
-        z = K.zero_element()
-        o = K.one_element()
+        z = K.zero()
+        o = K.one()
         cdef list switch = [z,o]
         for i in range(d):
             v[i] = switch[mzd_read_bit(self._entries, 0, i)]

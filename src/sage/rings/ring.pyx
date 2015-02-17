@@ -379,7 +379,7 @@ cdef class Ring(ParentWithGens):
                 break
 
         if len(gens) == 0:
-            gens = [self.zero_element()]
+            gens = [self.zero()]
 
         if coerce:
             #print [type(g) for g in gens]
@@ -571,7 +571,7 @@ cdef class Ring(ParentWithGens):
 
         """
         if self._zero_ideal is None:
-            I = Ring.ideal(self, [self.zero_element()], coerce=False)
+            I = Ring.ideal(self, [self.zero()], coerce=False)
             self._zero_ideal = I
             return I
         return self._zero_ideal
@@ -677,22 +677,22 @@ cdef class Ring(ParentWithGens):
         """
         return self.quotient(I, names)
 
-    def zero_element(self):
+    def zero(self):
         """
         Return the zero element of this ring (cached).
 
         EXAMPLES::
 
-            sage: ZZ.zero_element()
+            sage: ZZ.zero()
             0
-            sage: QQ.zero_element()
+            sage: QQ.zero()
             0
-            sage: QQ['x'].zero_element()
+            sage: QQ['x'].zero()
             0
 
         The result is cached::
 
-            sage: ZZ.zero_element() is ZZ.zero_element()
+            sage: ZZ.zero() is ZZ.zero()
             True
         """
         if self._zero_element is None:
@@ -701,24 +701,22 @@ cdef class Ring(ParentWithGens):
             return x
         return self._zero_element
 
-    zero = zero_element # transitional
-
-    def one_element(self):
+    def one(self):
         """
         Return the one element of this ring (cached), if it exists.
 
         EXAMPLES::
 
-            sage: ZZ.one_element()
+            sage: ZZ.one()
             1
-            sage: QQ.one_element()
+            sage: QQ.one()
             1
-            sage: QQ['x'].one_element()
+            sage: QQ['x'].one()
             1
 
         The result is cached::
 
-            sage: ZZ.one_element() is ZZ.one_element()
+            sage: ZZ.one() is ZZ.one()
             True
         """
         if self._one_element is None:
@@ -726,8 +724,6 @@ cdef class Ring(ParentWithGens):
             self._one_element = x
             return x
         return self._one_element
-
-    one = one_element # Transitional
 
     def is_commutative(self):
         """

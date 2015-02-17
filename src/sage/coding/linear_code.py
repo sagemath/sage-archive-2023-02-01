@@ -3041,16 +3041,13 @@ class LinearCode(module.Module):
         EXAMPLES::
 
             sage: C = codes.HammingCode(3, GF(2))
-            sage: C.zero_element()
+            sage: C.zero()
             (0, 0, 0, 0, 0, 0, 0)
             sage: C.sum(()) # indirect doctest
             (0, 0, 0, 0, 0, 0, 0)
             sage: C.sum((C.gens())) # indirect doctest
             (1, 1, 1, 1, 1, 1, 1)
         """
-        # Note that self.sum() calls self.zero_element(), which in turn
-        # calls self.zero(). So, only this method needs to be implemented
-        # for the other two to work.
         v = 0*self.__gens[0]
         v.set_immutable()
         return v

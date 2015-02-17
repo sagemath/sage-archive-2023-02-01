@@ -153,7 +153,7 @@ class Rings(CategoryWithAxiom):
                 sage: R.quo(x^2+1).is_zero()
                 False
             """
-            return self.one_element() == self.zero_element()
+            return self.one() == self.zero()
 
         def bracket(self, x, y):
             """

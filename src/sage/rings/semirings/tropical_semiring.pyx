@@ -621,37 +621,35 @@ class TropicalSemiring(Parent, UniqueRepresentation):
     Element = TropicalSemiringElement
 
     @cached_method
-    def zero_element(self):
+    def zero(self):
         """
         Return the (tropical) additive identity element `+\infty`.
 
         EXAMPLES::
 
             sage: T = TropicalSemiring(QQ)
-            sage: T.zero_element()
+            sage: T.zero()
             +infinity
         """
         return self.element_class(self, None)
 
-    zero = zero_element
-    infinity = zero_element
-    additive_identity = zero_element
+    infinity = zero
+    additive_identity = zero
 
     @cached_method
-    def one_element(self):
+    def one(self):
         """
         Return the (tropical) multiplicative identity element `0`.
 
         EXAMPLES::
 
             sage: T = TropicalSemiring(QQ)
-            sage: T.one_element()
+            sage: T.one()
             0
         """
-        return self.element_class(self, self.base().zero_element())
+        return self.element_class(self, self.base().zero())
 
-    one = one_element
-    multiplicative_identity = one_element
+    multiplicative_identity = one
 
     def gens(self):
         """
@@ -663,7 +661,7 @@ class TropicalSemiring(Parent, UniqueRepresentation):
             sage: T.gens()
             (1, +infinity)
         """
-        return (self.element_class(self, self.base().one_element()), self.infinity())
+        return (self.element_class(self, self.base().one()), self.infinity())
 
 cdef class TropicalToTropical(Map):
     """

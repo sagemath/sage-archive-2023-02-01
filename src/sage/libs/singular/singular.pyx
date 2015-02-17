@@ -229,13 +229,13 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
     cdef object ret
 
     if naIsZero(n):
-        return base.zero_element()
+        return base.zero()
     elif naIsOne(n):
-        return base.one_element()
+        return base.one()
     z = (<lnumber*>n).z
 
     a = base.gen()
-    ret = base.zero_element()
+    ret = base.zero()
 
     while z:
         c = <long>napGetCoeff(z)

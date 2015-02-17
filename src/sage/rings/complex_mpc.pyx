@@ -371,7 +371,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             2.00000000000000 + 3.00000000000000*I
         """
         if x is None:
-            return self.zero_element()
+            return self.zero()
         # We implement __call__ to gracefully accept the second argument.
         if im is not None:
             x = x, im

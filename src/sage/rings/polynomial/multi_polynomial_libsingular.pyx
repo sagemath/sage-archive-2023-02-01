@@ -3279,7 +3279,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: P = QQ['x,y']
             sage: x = var('x')
-            sage: parent(P.zero_element() / x)
+            sage: parent(P.zero() / x)
             Symbolic Ring
 
         We are catching overflows::
@@ -5137,7 +5137,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Miguel Marco
         """
         if self.is_zero():
-            return self.parent().zero_element()
+            return self.parent().zero()
         n = self.degree(variable)
         d = self.derivative(variable)
         k = d.degree(variable)

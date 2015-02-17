@@ -551,7 +551,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         P = self._parent
 
         cdef Polynomial_zmod_flint s0 = self._new()
-        cdef Polynomial_zmod_flint t0 = P.one_element()
+        cdef Polynomial_zmod_flint t0 = P.one()
         cdef Polynomial_zmod_flint s1 = m
         cdef Polynomial_zmod_flint t1 = self%m
 

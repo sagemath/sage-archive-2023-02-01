@@ -4293,7 +4293,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             R = RealField(prec)
         if self.is_zero():
-            return R.zero_element()
+            return R.zero()
         return R(self).abs().log()
 
     cdef bint _is_power_of(Integer self, Integer n):

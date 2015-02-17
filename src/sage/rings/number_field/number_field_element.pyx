@@ -1007,7 +1007,7 @@ cdef class NumberFieldElement(FieldElement):
             R = RealField(prec)
 
         if self.is_zero():
-            return R.zero_element()
+            return R.zero()
         val = self.valuation(P)
         nP = P.residue_class_degree()*P.absolute_ramification_index()
         return R(P.absolute_norm()) ** (-R(val) / R(nP))
@@ -2511,7 +2511,7 @@ cdef class NumberFieldElement(FieldElement):
         if self.__multiplicative_order is not None:
             return self.__multiplicative_order
 
-        one = self.number_field().one_element()
+        one = self.number_field().one()
         infinity = sage.rings.infinity.infinity
 
         if self == one:
@@ -3038,9 +3038,9 @@ cdef class NumberFieldElement(FieldElement):
         if self.valuation(P) >= 0: ## includes the case self=0
             from sage.rings.real_mpfr import RealField
             if prec is None:
-                return RealField().zero_element()
+                return RealField().zero()
             else:
-                return RealField(prec).zero_element()
+                return RealField(prec).zero()
         ht = self.abs_non_arch(P,prec).log()
         if not weighted:
             return ht
@@ -3101,8 +3101,8 @@ cdef class NumberFieldElement(FieldElement):
         emb = K.places(prec=prec)[i]
         a = emb(self).abs()
         Kv = emb.codomain()
-        if a <= Kv.one_element():
-            return Kv.zero_element()
+        if a <= Kv.one():
+            return Kv.zero()
         ht = a.log()
         from sage.rings.real_mpfr import is_RealField
         if weighted and not is_RealField(Kv):
@@ -3160,7 +3160,7 @@ cdef class NumberFieldElement(FieldElement):
         else:
             R = RealField(prec)
         if self.is_zero():
-            return R.zero_element()
+            return R.zero()
         return R(self.denominator_ideal().absolute_norm()).log()
 
     def global_height_arch(self, prec=None):
@@ -3188,7 +3188,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         r,s = self.number_field().signature()
         hts = [self.local_height_arch(i, prec, weighted=True) for i in range(r+s)]
-        return sum(hts, hts[0].parent().zero_element())
+        return sum(hts, hts[0].parent().zero())
 
     def global_height(self, prec=None):
         """

@@ -415,7 +415,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: f.coefficients()
             [1, 1, -10/3]
         """
-        zero = self.parent().base_ring().zero_element()
+        zero = self.parent().base_ring().zero()
         return [c for c in self.list() if c != zero]
 
     def exponents(self):
@@ -429,7 +429,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: f.exponents()
             [1, 2, 3]
         """
-        zero = self.parent().base_ring().zero_element()
+        zero = self.parent().base_ring().zero()
         l = self.list()
         return [i for i in range(len(l)) if l[i] != zero]
 

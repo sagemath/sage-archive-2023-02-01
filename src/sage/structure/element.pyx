@@ -906,7 +906,7 @@ cdef class Element(SageObject):
             sage: (v+w).__nonzero__()
             False
         """
-        return self != self._parent.zero_element()
+        return self != self._parent.zero()
 
     def is_zero(self):
         """
@@ -1568,7 +1568,7 @@ cdef class MonoidElement(Element):
             raise ValueError("negative number of powers requested")
         elif n == 0:
             return []
-        x = self._parent.one_element()
+        x = self._parent.one()
         l = [x]
         for i in xrange(n - 1):
             x = x * self
@@ -1643,9 +1643,12 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         return self * ~right
 
     def __invert__(self):
+        r"""
+        Return the inverse of ``self``.
+        """
         if self.is_one():
             return self
-        return 1/self
+        return self.parent().one()/self
 
 
 def is_RingElement(x):
@@ -1657,7 +1660,7 @@ def is_RingElement(x):
 cdef class RingElement(ModuleElement):
     ##################################################
     def is_one(self):
-        return self == self._parent.one_element()
+        return self == self._parent.one()
 
     ##################################
     # Fast long add/sub path.
@@ -1942,7 +1945,7 @@ cdef class RingElement(ModuleElement):
             raise ValueError("negative number of powers requested")
         elif n == 0:
             return []
-        x = self._parent.one_element()
+        x = self._parent.one()
         l = [x]
         for i in xrange(n - 1):
             x = x * self
@@ -3182,7 +3185,7 @@ cdef class FieldElement(CommutativeRingElement):
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = R.quo(y^2 + 1)
             sage: S.is_field = lambda : False
-            sage: F = Frac(S); u = F.one_element()
+            sage: F = Frac(S); u = F.one()
             sage: u.quo_rem(u)
             (1, 0)
         """

@@ -704,10 +704,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: P = BooleanPolynomialRing(3,'x,y,z')
             sage: F = GF(2)
-            sage: p = P(F.zero_element())
+            sage: p = P(F.zero())
             sage: p.is_zero()
             True
-            sage: p = P(F.one_element())
+            sage: p = P(F.one())
             sage: p.is_one()
             True
 
@@ -1511,15 +1511,15 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             z = zeros
         else:
             z = sum([prod([x[i] for i in xrange(n) if v[i]],
-                          self.one_element()) for v in zeros],
-                    self.zero_element())
+                          self.one()) for v in zeros],
+                    self.zero())
             z = z.set()
         if PY_TYPE_CHECK(ones, BooleSet):
             o = ones
         else:
             o = sum([prod([x[i] for i in xrange(n) if v[i]],
-                          self.one_element()) for v in ones],
-                    self.zero_element())
+                          self.one()) for v in ones],
+                    self.zero())
             o = o.set()
         return interpolate_smallest_lex(z, o)
 
@@ -3033,7 +3033,7 @@ cdef class BooleanPolynomial(MPolynomial):
         if left:
             return new_BP_from_PBPoly(self._parent, self._pbpoly)
         else:
-            return self._parent.zero_element()
+            return self._parent.zero()
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         """
@@ -3572,7 +3572,7 @@ cdef class BooleanPolynomial(MPolynomial):
 
         ::
 
-            sage: P.one_element().is_one()
+            sage: P.one().is_one()
             True
 
         ::
@@ -3597,7 +3597,7 @@ cdef class BooleanPolynomial(MPolynomial):
         EXAMPLE::
 
             sage: P.<x,y> = BooleanPolynomialRing(2)
-            sage: P.one_element().is_unit()
+            sage: P.one().is_unit()
             True
 
         ::
@@ -3684,12 +3684,12 @@ cdef class BooleanPolynomial(MPolynomial):
 
         ::
 
-            sage: P.zero_element().vars_as_monomial()
+            sage: P.zero().vars_as_monomial()
             1
 
         ::
 
-            sage: P.one_element().vars_as_monomial()
+            sage: P.one().vars_as_monomial()
             1
 
         TESTS::
@@ -3724,16 +3724,16 @@ cdef class BooleanPolynomial(MPolynomial):
 
         ::
 
-            sage: P.zero_element().variables()
+            sage: P.zero().variables()
             ()
 
         ::
 
-            sage: P.one_element().variables()
+            sage: P.one().variables()
             ()
         """
         P = self.parent()
-        o = P.one_element()
+        o = P.one()
         if self is o or self == o:
             return tuple()
         return tuple(self.vars_as_monomial())
@@ -3966,7 +3966,7 @@ cdef class BooleanPolynomial(MPolynomial):
 
         ::
 
-            sage: len(P.one_element())
+            sage: len(P.one())
             1
 
         ::
@@ -3976,7 +3976,7 @@ cdef class BooleanPolynomial(MPolynomial):
 
         ::
 
-            sage: len(P.zero_element())
+            sage: len(P.zero())
             0
         """
         return self._pbpoly.length()
@@ -4610,8 +4610,8 @@ cdef class BooleanPolynomial(MPolynomial):
             B = self.parent()
             n = B.ngens()
             x = B.gens()
-            one = B.one_element()
-            zero = B.zero_element()
+            one = B.one()
+            zero = B.zero()
             s = sum([prod([x[i] for i in reversed(range(n)) if v[i]], one)
                      for v in s], zero)
             s = s.set()

@@ -1230,10 +1230,10 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: P.monomial_pairwise_prime(x^2*z^3, x1^4) # not tested
             True
 
-            sage: P.monomial_pairwise_prime((2)*x^3*y^2, Q.zero_element()) # not tested
+            sage: P.monomial_pairwise_prime((2)*x^3*y^2, Q.zero()) # not tested
             True
 
-            sage: P.monomial_pairwise_prime(2*P.one_element(),x)
+            sage: P.monomial_pairwise_prime(2*P.one(),x)
             False
         """
         cdef int i
@@ -1693,7 +1693,7 @@ cdef class NCPolynomial_plural(RingElement):
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
-            sage: I = H.ideal([y^2, x^2, z^2-H.one_element()],coerce=False)
+            sage: I = H.ideal([y^2, x^2, z^2-H.one()],coerce=False)
 
         The result of reduction is not the normal form, if one reduces
         by a list of polynomials::

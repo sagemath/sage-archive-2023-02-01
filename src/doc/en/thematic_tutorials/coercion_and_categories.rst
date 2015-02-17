@@ -170,7 +170,6 @@ This base class provides a lot more methods than a general parent::
      'list',
      'ngens',
      'one',
-     'one_element',
      'order',
      'prime_subfield',
      'principal_ideal',
@@ -180,7 +179,6 @@ This base class provides a lot more methods than a general parent::
      'random_element',
      'unit_ideal',
      'zero',
-     'zero_element',
      'zero_ideal',
      'zeta',
      'zeta_order']
@@ -340,7 +338,7 @@ This gives rise to the following code::
     ....:     def __init__(self, parent,n,d=None):
     ....:         B = parent.base()
     ....:         if d is None:
-    ....:             d = B.one_element()
+    ....:             d = B.one()
     ....:         if n not in B or d not in B:
     ....:             raise ValueError("Numerator and denominator must be elements of %s"%B)
     ....:         # Numerator and denominator should not just be "in" B,
@@ -609,7 +607,7 @@ does not work, yet::
 .. end of output
 
 The reason is that the ``sum`` method starts with the return value of
-``P.zero_element()``, which defaults to ``P(0)``\---but the conversion of
+``P.zero()``, which defaults to ``P(0)``\---but the conversion of
 integers into ``P`` is not implemented, yet.
 
 Implementing the category framework for the elements
@@ -642,9 +640,9 @@ This little change provides several benefits:
       sage: P(1), P(2,3)
       ((1):(1), (2):(3))
 
-- There is a method ``zero_element`` returning the expected result::
+- There is a method ``zero`` returning the expected result::
 
-      sage: P.zero_element()
+      sage: P.zero()
       (0):(1)
 
 - The ``sum`` method mentioned above suddenly works::
@@ -695,9 +693,9 @@ In particular, these elements are instances of that new dynamic class::
     them as instances of ``self.__class__`` in the arithmetic methods of
     ``MyElement``.
 
-``P.zero_element()`` defaults to returning ``P(0)`` and thus returns an
+``P.zero()`` defaults to returning ``P(0)`` and thus returns an
 instance of ``P.element_class``. Since ``P.sum([...])`` starts the summation with
-``P.zero_element()`` and the class of the sum only depends on the first
+``P.zero()`` and the class of the sum only depends on the first
 summand, by our implementation, we have::
 
     sage: type(a)
@@ -1808,7 +1806,7 @@ Appendix: The complete code
             B = parent.base()
             if d is None:
                 # The default denominator is one
-                d = B.one_element()
+                d = B.one()
             # verify that both numerator and denominator belong to the base
             if n not in B or d not in B:
                 raise ValueError("Numerator and denominator must be elements of %s"%B)

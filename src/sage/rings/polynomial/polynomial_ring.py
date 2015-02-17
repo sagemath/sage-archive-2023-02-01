@@ -785,7 +785,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             # of the polynomial ring canonically coerce into codomain.
             # Since poly rings are free, any image of the gen
             # determines a homomorphism
-            codomain.coerce(self.base_ring().one_element())
+            codomain.coerce(self.base_ring().one())
         except TypeError:
             return False
         return True
@@ -1229,7 +1229,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Refer to monics() for full documentation.
         """
         base = self.base_ring()
-        for coeffs in sage.misc.mrange.xmrange_iter([[base.one_element()]]+[base]*of_degree):
+        for coeffs in sage.misc.mrange.xmrange_iter([[base.one()]]+[base]*of_degree):
             # Each iteration returns a *new* list!
             # safe to mutate the return
             coeffs.reverse()
@@ -1248,7 +1248,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Refer to polynomials() for full documentation.
         """
         base = self.base_ring()
-        base0 = base.zero_element()
+        base0 = base.zero()
         for leading_coeff in base:
             if leading_coeff != base0:
                 for lt1 in sage.misc.mrange.xmrange_iter([base]*(of_degree)):

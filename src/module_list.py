@@ -2080,9 +2080,6 @@ ext_modules = [
     Extension('sage.structure.sage_object',
               sources = ['sage/structure/sage_object.pyx']),
 
-    Extension('sage.structure.wrapper_parent',
-              sources = ['sage/structure/wrapper_parent.pyx']),
-
     ################################
     ##
     ## sage.symbolic

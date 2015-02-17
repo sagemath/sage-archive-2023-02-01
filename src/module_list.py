@@ -157,26 +157,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.categories.action',
-              sources = ['sage/categories/action.pyx']),
-
-    Extension('sage.categories.category_cy_helper',
-              sources = ['sage/categories/category_cy_helper.pyx']),
-
-    Extension('sage.categories.category_singleton',
-              sources = ['sage/categories/category_singleton.pyx']),
-
-    Extension('sage.categories.functor',
-              sources = ['sage/categories/functor.pyx']),
-
-    Extension('sage.categories.map',
-              sources = ['sage/categories/map.pyx']),
-
-    Extension('sage.categories.morphism',
-              sources = ['sage/categories/morphism.pyx']),
-
-    Extension('sage.categories.examples.semigroups_cython',
-              sources = ['sage/categories/examples/semigroups_cython.pyx']),
+    Extension('*', ['sage/categories/**/*.pyx']),
 
     ################################
     ##
@@ -184,18 +165,13 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.coding.binary_code',
-              sources = ['sage/coding/binary_code.pyx'],
-              libraries = ['gmp']),
-
     Extension('sage.coding.codecan.codecan',
               sources = ['sage/coding/codecan/codecan.pyx'],
               libraries = ['gmp', 'flint'],
               include_dirs = ['sage/groups/perm_gps/partn_ref2/'],
               depends = flint_depends),
 
-    Extension('sage.coding.codecan.autgroup_can_label',
-          sources = ['sage/coding/codecan/autgroup_can_label.pyx']),
+    Extension('*', ['sage/coding/**/*.pyx']),
 
     ################################
     ##
@@ -299,25 +275,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.ext.c_lib',
-              sources = ['sage/ext/c_lib.pyx']),
-
-    Extension('sage.ext.fast_callable',
-              sources = ['sage/ext/fast_callable.pyx']),
-
-    Extension('sage.ext.fast_eval',
-              sources = ['sage/ext/fast_eval.pyx']),
-
-    Extension('sage.ext.interactive_constructors_c',
-              sources = ['sage/ext/interactive_constructors_c.pyx']),
-
-    Extension('sage.ext.multi_modular',
-              sources = ['sage/ext/multi_modular.pyx'],
-              extra_compile_args = ['-std=c99'],
-              libraries=['gmp']),
-
-    Extension('sage.ext.pselect',
-              sources = ['sage/ext/pselect.pyx']),
+    Extension('*', ['sage/ext/*.pyx']),
 
     ################################
     ##

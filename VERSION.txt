@@ -1,1 +1,1 @@
-Sage version 6.5.rc3, released 2015-02-13
+Sage version 6.5, released 2015-02-17

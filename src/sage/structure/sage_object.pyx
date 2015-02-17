@@ -18,11 +18,8 @@ have_same_parent = LazyImport('sage.structure.element', 'have_same_parent', depr
 import zlib; comp = zlib
 import bz2; comp_other = bz2
 
-base=None
 
 cdef process(s):
-    if base is not None and not os.path.isabs(s):
-        s = os.path.join(base,s)
     if s[-5:] != '.sobj':
         return s + '.sobj'
     else:
@@ -841,25 +838,12 @@ def load(*filename, compress=True, verbose=True):
     r"""
     Load Sage object from the file with name filename, which will have
     an ``.sobj`` extension added if it doesn't have one.  Or, if the input
-    is a filename ending in ``.py``, ``.pyx``, or ``.sage``, load that
-    file into the current running session. If the filename ends in
-    ``.f`` or ``.f90``, it is compiled as Fortran code and loaded.
+    is a filename ending in ``.py``, ``.pyx``, ``.sage``, ``.spyx``,
+    ``.f``, ``.f90`` or ``.m``, load that file into the current running
+    session.
     
     Loaded files are not loaded into their own namespace, i.e., this is
     much more like Python's ``execfile`` than Python's ``import``.
-
-    .. NOTE::
-
-       There is also a special Sage command (that is not
-       available in Python) called load that you use by typing
-
-       ::
-
-          sage: load filename.sage           # not tested
-
-       The documentation below is not for that command.  The
-       documentation for load is almost identical to that for attach.
-       Type attach? for help on attach.
 
     This function also loads a ``.sobj`` file over a network by
     specifying the full URL.  (Setting ``verbose = False`` suppresses
@@ -904,14 +888,15 @@ def load(*filename, compress=True, verbose=True):
     """
     import sage.repl.load
     if len(filename) != 1:
-        v = [load(file, compress=True, verbose=True) for file in filename]
-        ret = False
+        v = [load(file, compress=compress, verbose=verbose) for file in filename]
+        # Return v if one of the filenames refers to an object and not
+        # a loadable filename.
         for file in filename:
             if not sage.repl.load.is_loadable_filename(file):
-                ret = True
-        return v if ret else None
-    else:
-        filename = filename[0]
+                return v
+        return
+
+    filename = filename[0]
 
     if sage.repl.load.is_loadable_filename(filename):
         sage.repl.load.load(filename, globals())
@@ -923,11 +908,6 @@ def load(*filename, compress=True, verbose=True):
         from sage.misc.remote_file import get_remote_file
         filename = get_remote_file(filename, verbose=verbose)
         tmpfile_flag = True
-    elif lower.endswith('.f') or lower.endswith('.f90'):
-        from sage.misc.inline_fortran import fortran
-        with open(filename) as f:
-            fortran(f.read(), globals())
-        return
     else:
         tmpfile_flag = False
         filename = process(filename)
@@ -949,7 +929,7 @@ def load(*filename, compress=True, verbose=True):
 def save(obj, filename=None, compress=True, **kwds):
     """
     Save ``obj`` to the file with name ``filename``, which will have an
-    ``.sobj`` extension added if it doesn't have one, or if ``obj``
+    ``.sobj`` extension added if it doesn't have one and if ``obj``
     doesn't have its own ``save()`` method, like e.g. Python tuples.
 
     For image objects and the like (which have their own ``save()`` method),
@@ -998,10 +978,8 @@ def save(obj, filename=None, compress=True, **kwds):
     # Add '.sobj' if the filename currently has no extension
     # and also if the object doesn't have its own save() method (#11577)
     # since we otherwise assume below it is an image object:
-    if (os.path.splitext(filename)[1] == ''
-        or (os.path.splitext(filename)[1] != '.sobj'
-             and not hasattr(obj,"save"))):
-        filename += '.sobj'
+    if not os.path.splitext(filename)[1] or not hasattr(obj, "save"):
+        filename = process(filename)
 
     if filename.endswith('.sobj'):
         try:

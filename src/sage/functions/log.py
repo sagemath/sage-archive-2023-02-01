@@ -1037,17 +1037,6 @@ class Function_harmonic_number(BuiltinFunction):
 
         H_{s}=\int_0^1\frac{1-x^s}{1-x}
 
-    If the argument is an integer greater than `2^20` no rational
-    evaluation is done, in order to allow for high-precision floating
-    point computation using `.n()`.
-
-        EXAMPLES::
-
-        sage: harmonic_number(3**20)
-        harmonic_number(3486784401)
-        sage: harmonic_number(3**20).n(200)
-        22.54946143840712528804418450...
-
     See the docstring for :meth:`Function_harmonic_number_generalized`.
 
     This class exists as callback for ``harmonic_number`` returned by Maxima.
@@ -1086,10 +1075,9 @@ class Function_harmonic_number(BuiltinFunction):
                 return Integer(0)
             elif z == 1:
                 return Integer(1)
-            elif z < 2**20:
+            else:
                 import sage.libs.flint.arith as flint_arith
                 return flint_arith.harmonic_number(z)
-            # fall through if flint cannot handle argument
         elif isinstance(z, Rational):
             from sage.calculus.calculus import symbolic_sum
             from sage.symbolic.ring import SR

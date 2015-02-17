@@ -38,26 +38,42 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         sage: P = FreePreLieAlgebra(ZZ, 'abc'); P
         Free PreLie algebra on 3 generators ['a', 'b', 'c'] over Integer Ring
     """
+    @staticmethod
+    def __classcall_private__(cls, R, names):
+        """
+        Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
+            sage: F1 = FreePreLieAlgebra(QQ, 'xyz')
+            sage: F2 = FreePreLieAlgebra(QQ, ['x','y','z'])
+            sage: F3 = FreePreLieAlgebra(QQ, Alphabet('xyz'))
+            sage: F1 is F2 and F1 is F3
+            True
+        """
+        return super(FreePreLieAlgebra, cls).__classcall__(cls, R,
+                                                           Alphabet(names))
+
     def __init__(self, R, names=None):
         """
         EXAMPLES::
 
             sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ); A
+            sage: A = FreePreLieAlgebra(QQ, '@'); A
             Free PreLie algebra on one generator ['@'] over Rational Field
             sage: TestSuite(A).run()
         """
         if R not in Rings():
             raise TypeError("argument R must be a ring")
-        if names is None:
+        if len(names) == 1:
             Trees = RootedTrees()
-            names = ['@']
         else:
             Trees = LabelledRootedTrees()
         # on aurait besoin ici de LabelledRootedTrees(names)
         # pour restreindre les etiquettes aux valeurs autorisees
 
-        self._alphabet = Alphabet(names)
+        self._alphabet = names
         self.__ngens = self._alphabet.cardinality()
         CombinatorialFreeModule.__init__(self, R, Trees,
                                          latex_prefix="",
@@ -83,7 +99,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: FreePreLieAlgebra(QQ)  # indirect doctest
+            sage: FreePreLieAlgebra(QQ, '@')  # indirect doctest
             Free PreLie algebra on one generator ['@'] over Rational Field
         """
         if self.__ngens == 1:
@@ -104,7 +120,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ)
+            sage: A = FreePreLieAlgebra(QQ,'@')
             sage: F = FreePreLieAlgebra(ZZ,'xyz')
             sage: F.gen(0)
             B[x[]]
@@ -116,7 +132,8 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         """
         n = self.__ngens
         if i < 0 or not i < n:
-            raise IndexError("argument i (= %s) must be between 0 and %s" % (i, n - 1))
+            m = "argument i (= {}) must be between 0 and {}".format(i, n - 1)
+            raise IndexError(m)
         return self.algebra_generators()[i]
 
     @cached_method
@@ -158,7 +175,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ)
+            sage: A = FreePreLieAlgebra(QQ,'@')
             sage: RT = A.basis().keys()
             sage: A.degree_on_basis(RT([RT([])]))
             2
@@ -172,14 +189,27 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ)
+            sage: A = FreePreLieAlgebra(QQ,'@')
             sage: A.some_elements()
             [B[[]], B[[[]]], B[[[], [[]]]] + B[[[[[]]]]],
-            B[[[], []]] + B[[[[]]]]]
+            B[[[], []]] + B[[[[]]]], B[[]]]
+
+        With several generators::
+
+            sage: A = FreePreLieAlgebra(QQ,'xy')
+            sage: A.some_elements()
+            [B[x[]],
+            B[x[x[]]],
+            B[x[x[], x[x[]]]] + B[x[x[x[x[]]]]],
+            B[x[x[], x[]]] + B[x[x[x[]]]],
+            B[y[]]]
         """
         o = self.gen(0)
         x = o < o
-        return [o, x, x < x, x < o]
+        y = o
+        for w in self.gens():
+            y = (y < w)
+        return [o, x, x < x, x < o, w]
 
     def pre_Lie_product_on_basis(self, x, y):
         """
@@ -191,7 +221,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ)
+            sage: A = FreePreLieAlgebra(QQ,'@')
             sage: RT = A.basis().keys()
             sage: x = RT([RT([])])
             sage: A.pre_Lie_product_on_basis(x, x)
@@ -207,7 +237,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ)
+            sage: A = FreePreLieAlgebra(QQ,'@')
             sage: RT = A.basis().keys()
             sage: x = A(RT([RT([])]))
             sage: A.pre_Lie_product(x, x)
@@ -228,7 +258,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ)
+            sage: A = FreePreLieAlgebra(QQ,'@')
             sage: RT = A.basis().keys()
             sage: x = RT([RT([])])
             sage: A.nap_product_on_basis(x, x)
@@ -244,7 +274,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-            sage: A = FreePreLieAlgebra(QQ)
+            sage: A = FreePreLieAlgebra(QQ,'@')
             sage: RT = A.basis().keys()
             sage: x = A(RT([RT([])]))
             sage: A.nap_product(x, x)
@@ -397,7 +427,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             EXAMPLES::
 
                 sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
-                sage: A = FreePreLieAlgebra(QQ)
+                sage: A = FreePreLieAlgebra(QQ,'@')
                 sage: a = A.gen(0)
                 sage: a < a
                 B[[[]]]

@@ -4,7 +4,7 @@ TODO:
 * check which import statements are needed
 * include tests (a la OEIS)
 * include full text search
-* truncate input by size - how can I do that for distribution search?
+* truncate input by size - how could we do that for distribution search?
 * check statistics on m-Dyck paths
 * get code for a composition of maps
 * for statistics: do we want to "call" them on an object, or rather have a getitem method?
@@ -53,6 +53,8 @@ findstat_url_result = findstat_url + "StatisticFinder/Result/"
 findstat_url_submit = findstat_url + 'StatisticsDatabase/NewStatistic/'
 findstat_url_edit = findstat_url + 'StatisticsDatabase/EditStatistic/'
 findstat_url_downloads = 'http://downloads.findstat.org/'
+# the number of values FindStat allows to search for at most
+findstat_max_values = 200
 
 def _fetch(url):
     r"""
@@ -186,7 +188,7 @@ class FindStat:
         A full-text search should also be available
 
     """
-    def __call__(self, query, collection=None, depth=2, max_values=200):
+    def __call__(self, query, collection=None, depth=2):
         r"""
         See the documentation of :class:`FindStat`.
 
@@ -215,7 +217,7 @@ class FindStat:
         elif isinstance(query, dict):
             # values must be lists because otherwise we get a trailing comma
             stat = [(key, list(value)) if isinstance(value, (list, tuple)) else ([key], [value]) for (key, value) in query.iteritems()]
-            return self.find_by_values(stat, collection, depth, max_values)
+            return self.find_by_values(stat, collection, depth)
 
         elif isinstance(query, (list, tuple)):
             if (len(query) == 2 and isinstance(query[1], (list, tuple)) and
@@ -223,7 +225,7 @@ class FindStat:
                 stat = [(query[0], list(query[1]))]
             else:
                 stat = [(key, list(value)) if isinstance(value, (list, tuple)) else ([key], [value]) for (key, value) in query]
-            return self.find_by_values(stat, collection, depth, max_values)
+            return self.find_by_values(stat, collection, depth)
 
     def __repr__(self):
         r"""
@@ -272,7 +274,7 @@ class FindStat:
             start = end
         return result
 
-    def find_by_values(self, statistic, collection, depth, max_values):
+    def find_by_values(self, statistic, collection, depth):
         r"""
         Search for FindStat statistics with the given values applying at most ``depth`` maps.
 
@@ -291,6 +293,9 @@ class FindStat:
         """
         import urllib, urllib2
 
+        if sum(len(values) for (keys, values) in statistic) > findstat_max_values:
+            raise ValueError, "FindStat allows to search for at most " + str(findstat_max_values) + " values."
+
         if collection is None:
             collection = FindStatCollection(statistic[0][0][0])
         else:
@@ -298,12 +303,7 @@ class FindStat:
 
         url = findstat_url_result + collection.url_name() + "/"
 
-        # we want at most max_values objects but we currently don't check this.
-        # moreover, we want the "smallest" max_values objects!
-#        to_size = collection.to_size()
         to_str = collection.to_string()
-#        keys = sorted(statistic.keys(), key=to_size)[:max_values]
-#        stat = {to_str(key): str(statistic[key]) for key in keys}
         stat = [(map(to_str, keys), str(values)[1:-1]) for (keys, values) in statistic]
 
         stat_str = join([join(keys, "\n") + "\n====> " + values for (keys, values) in stat], "\n")
@@ -936,7 +936,10 @@ class FindStatCollection():
                                       lambda x: x.length(),
                                       lambda x: str(list(DyckWord(x))), 
                                       lambda x: DyckWord(literal_eval(x))),
-#        'Finite Cartan types':       ("FiniteCartanType",        CartanType,            str,                              lambda x: CartanType(literal_eval(x))),
+        'Finite Cartan types':       ("FiniteCartanType",        CartanType,            
+                                      None,                              
+                                      None,
+                                      None),
         'Gelfand-Tsetlin patterns':  ("GelfandTsetlinPatterns",  GelfandTsetlinPattern, 
                                       len,
                                       str,                              
@@ -1061,6 +1064,76 @@ class FindStatCollection():
             Binary trees
         """
         return self._name
+
+    def name(self):
+        r"""
+        returns the name of the collection
+
+        OUTPUT:
+
+        - string.
+
+        EXAMPLES::
+
+            sage: FindStatCollection("Binary trees")                      # optional -- internet
+            Binary trees
+        """
+        return self._name
+
+
+    def __eq__(self,other):
+        r"""
+        Return ``True`` if ``self`` is equal to ``other`` and
+        ``False`` otherwise.  Two collections are considered equal if
+        they have the same FindStat name.
+
+        INPUT:
+
+        - ``other`` -- a FindStat collection or a string
+
+        OUTPUT:
+
+        - boolean.
+
+        EXAMPLES::
+
+            sage: findstat(1).collection() == "Permutations"   # optional -- internet
+            True
+
+        TESTS::
+
+            sage: s = findstat._imaginary_sequence()
+            sage: s == findstat._imaginary_sequence()
+            True
+        """
+        return self._name == str(other)
+
+    def __ne__(self, other):
+        r"""
+        Return ``True`` if ``self`` has a different FindStat id than ``other``
+        and ``False`` otherwise.
+
+        INPUT:
+
+        - ``other`` -- a findstat statistic
+
+        OUTPUT:
+
+        - boolean.
+
+        EXAMPLES::
+
+            sage: findstat([1,2,3,5,8,13])[0] != findstat(40)   # optional -- internet
+            True
+
+        TESTS::
+
+            sage: s = findstat._imaginary_sequence()
+            sage: s != findstat._imaginary_sequence()
+            False
+        """
+        return not self.__eq__(other)
+
 
 
 findstat = FindStat()

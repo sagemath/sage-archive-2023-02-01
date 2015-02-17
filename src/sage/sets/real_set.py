@@ -302,14 +302,21 @@ class RealInterval(UniqueRepresentation, Parent):
         
         EXAMPLES::
 
-             sage: I1 = RealSet.open_closed(1, 3)[0];  I1
-             (1, 3]
-             sage: I2 = RealSet.open_closed(0, 5)[0];  I2
-             (0, 5]
-             sage: cmp(I1, I2)
-             1
-             sage: sorted([I1, I2])
-             [(0, 5], (1, 3]]
+            sage: I1 = RealSet.open_closed(1, 3)[0];  I1
+            (1, 3]
+            sage: I2 = RealSet.open_closed(0, 5)[0];  I2
+            (0, 5]
+            sage: cmp(I1, I2)
+            1
+            sage: sorted([I1, I2])
+            [(0, 5], (1, 3]]
+
+        TESTS:
+
+        Check if a bug in sorting is fixed (:trac:`17714`)::
+
+            sage: RealSet((0, 1),[1, 1],(1, 2))
+            (0, 2)
         """
         return cmp([self._lower, not self._lower_closed, self._upper, self._upper_closed],
                    [other._lower, not other._lower_closed, other._upper, other._upper_closed])

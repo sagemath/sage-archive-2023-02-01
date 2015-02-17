@@ -3,6 +3,10 @@ TODO:
 
 * check which import statements are needed
 * include tests (a la OEIS)
+* include full text search
+* truncate input by size - how can I do that for distribution search?
+* check statistics on m-Dyck paths
+* get code for a composition of maps
 * for statistics: do we want to "call" them on an object, or rather have a getitem method?
   currently, it's call:
 
@@ -207,15 +211,18 @@ class FindStat:
                 return self.find_by_id(query)
             else:
                 raise ValueError("When providing an identifier, do not provide a collection.")
+
         elif isinstance(query, dict):
-            return self.find_by_values([([key], [value]) for (key, value) in query.iteritems()], collection, depth, max_values)
+            # values must be lists because otherwise we get a trailing comma
+            stat = [(key, list(value)) if isinstance(value, (list, tuple)) else ([key], [value]) for (key, value) in query.iteritems()]
+            return self.find_by_values(stat, collection, depth, max_values)
 
         elif isinstance(query, (list, tuple)):
             if (len(query) == 2 and isinstance(query[1], (list, tuple)) and
-                query[1] != "" and isinstance(query[1][0], (int,Integer))):
-                stat = [(query[0], query[1])]
+                query[1] != "" and isinstance(query[1][0], (int, Integer))):
+                stat = [(query[0], list(query[1]))]
             else:
-                stat = [(key, value) if isinstance(key, list) else ([key], [value]) for (key, value) in query]
+                stat = [(key, list(value)) if isinstance(value, (list, tuple)) else ([key], [value]) for (key, value) in query]
             return self.find_by_values(stat, collection, depth, max_values)
 
     def __repr__(self):

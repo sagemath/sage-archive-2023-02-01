@@ -44,6 +44,8 @@ lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra')
 
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra')
 
+lazy_import('sage.algebras.jordan_algebra', 'JordanAlgebra')
+
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')
 
 from clifford_algebra import CliffordAlgebra, ExteriorAlgebra

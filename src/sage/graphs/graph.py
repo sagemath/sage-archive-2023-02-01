@@ -3892,6 +3892,11 @@ class Graph(GenericGraph):
             sage: G.plot(vertex_colors=H)
             Graphics object consisting of 16 graphics primitives
 
+        .. PLOT::
+
+            g = Graph("Fooba")
+            sphinx_plot(g.plot(partition=g.coloring()))
+
         TESTS::
 
             sage: G.coloring(algorithm="foo")
@@ -3979,6 +3984,11 @@ class Graph(GenericGraph):
            sage: g = graphs.PappusGraph()
            sage: g.matching(algorithm="LP", value_only=True)
            9.0
+
+        .. PLOT::
+
+            g = graphs.PappusGraph()
+            sphinx_plot(g.plot(edge_colors={"red":g.matching()}))
 
         TESTS:
 
@@ -5698,6 +5708,11 @@ class Graph(GenericGraph):
             sage: C = graphs.PetersenGraph()
             sage: len(C.independent_set(algorithm = "MILP"))
             4
+
+        .. PLOT::
+
+            g = graphs.PetersenGraph()
+            sphinx_plot(g.plot(partition=[g.independent_set()]))
         """
         my_cover = self.vertex_cover(algorithm=algorithm, value_only=value_only, reduction_rules=reduction_rules, solver=solver, verbosity=verbosity)
         if value_only:
@@ -5773,6 +5788,11 @@ class Graph(GenericGraph):
            sage: g = graphs.PappusGraph()
            sage: g.vertex_cover(value_only=True)
            9
+
+        .. PLOT::
+
+            g = graphs.PappusGraph()
+            sphinx_plot(g.plot(partition=[g.vertex_cover()]))
 
         TESTS:
 

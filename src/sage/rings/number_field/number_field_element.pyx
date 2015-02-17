@@ -1730,7 +1730,7 @@ cdef class NumberFieldElement(FieldElement):
             TypeError: An embedding into RR or CC must be specified.
         """
         if (PY_TYPE_CHECK(base, NumberFieldElement) and
-            (PY_TYPE_CHECK(exp, Integer) or PY_TYPE_CHECK_EXACT(exp, int) or exp in ZZ)):
+            (PY_TYPE_CHECK(exp, Integer) or type(exp) is int or exp in ZZ)):
             return generic_power_c(base, exp, None)
         else:
             cbase, cexp = canonical_coercion(base, exp)

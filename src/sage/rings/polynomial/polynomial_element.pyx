@@ -1715,12 +1715,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pow(f, 10**7, h)
             4*x*t^3 + 2*x*t^2 + 4*x*t + 4
         """
-        if not PY_TYPE_CHECK_EXACT(right, Integer) or \
-                PY_TYPE_CHECK_EXACT(right, int):
-                    try:
-                        right = Integer(right)
-                    except TypeError:
-                        raise TypeError("non-integral exponents not supported")
+        if type(right) is not Integer:
+            try:
+                right = Integer(right)
+            except TypeError:
+                raise TypeError("non-integral exponents not supported")
 
         if self.degree() <= 0:
             return self.parent()(self[0]**right)

@@ -141,7 +141,7 @@ cdef bint is_Integer(x):
     global _Integer
     if _Integer is None:
         from sage.rings.integer import Integer as _Integer
-    return PY_TYPE_CHECK_EXACT(x, _Integer) or PY_TYPE_CHECK_EXACT(x, int)
+    return type(x) is _Integer or type(x) is int
 
 # for override testing
 cdef extern from "descrobject.h":
@@ -2481,9 +2481,9 @@ cdef class Parent(category_object.CategoryObject):
             else:
                 raise TypeError("_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
-            if (PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap) or
-                  PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap_unique) or
-                  PY_TYPE_CHECK_EXACT(mor, NamedConvertMap)) and not mor._force_use:
+            if (type(mor) is DefaultConvertMap or
+                  type(mor) is DefaultConvertMap_unique or
+                  type(mor) is NamedConvertMap) and not mor._force_use:
                 # If there is something better in the list, try to return that instead
                 # This is so, for example, _coerce_map_from_ can return True but still
                 # take advantage of the _populate_coercion_lists_ data.

@@ -512,7 +512,7 @@ cdef class WordDatatype_char(WordDatatype):
         cdef WordDatatype_char w = self
         cdef size_t i, rest
 
-        if PY_TYPE_CHECK_EXACT(exp, Rational):
+        if type(exp) is Rational:
             if w._length % exp.denominator():
                 raise ValueError("undefined")
             i = exp.floor()

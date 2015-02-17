@@ -546,9 +546,14 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
                 return Vector_complex_double_dense(V, scipy.ifft(self._vector_numpy))
 
 
-    def numpy(self):
+    def numpy(self, dtype=None):
         """
         Return numpy array corresponding to this vector.
+
+        INPUT:
+
+        - ``dtype`` -- if specified, the `numpy dtype <http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_
+                       of the returned array.
 
         EXAMPLES::
 
@@ -564,9 +569,23 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: v = vector(RDF,0)
             sage: v.numpy()
             array([], dtype=float64)
+
+        A numpy dtype may be requested manually::
+
+            sage: import numpy
+            sage: v = vector(CDF, 3, range(3))
+            sage: v.numpy()
+            array([ 0.+0.j,  1.+0.j,  2.+0.j])
+            sage: v.numpy(dtype=numpy.float64)
+            array([ 0.,  1.,  2.])
+            sage: v.numpy(dtype=numpy.float32)
+            array([ 0.,  1.,  2.], dtype=float32)
         """
-        from copy import copy
-        return copy(self._vector_numpy)
+        if dtype is None or dtype is self._vector_numpy.dtype:
+            from copy import copy
+            return copy(self._vector_numpy)
+        else:
+            return super(Vector_double_dense, self).numpy(dtype)
 
     cdef _replace_self_with_numpy(self,cnumpy.ndarray numpy_array):
         """

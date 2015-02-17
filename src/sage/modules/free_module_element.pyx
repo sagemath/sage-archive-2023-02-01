@@ -948,6 +948,71 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         v = ','.join([a._magma_init_(magma) for a in self.list()])
         return '%s![%s]' % (R.name(), v)
 
+    def numpy(self, dtype=object):
+        """
+        Converts self to a numpy array.
+
+        INPUT:
+
+        - ``dtype`` -- the `numpy dtype <http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_
+                       of the returned array
+
+        EXAMPLES::
+
+            sage: v = vector([1,2,3])
+            sage: v.numpy()
+            array([1, 2, 3], dtype=object)
+            sage: v.numpy() * v.numpy()
+            array([1, 4, 9], dtype=object)
+
+            sage: vector(QQ, [1, 2, 5/6]).numpy()
+            array([1, 2, 5/6], dtype=object)
+
+        By default the ``object`` `dtype <http://docs.scipy.org/doc/numpy/reference/arrays.dtypes.html>`_ is used.
+        Alternatively, the desired dtype can be passed in as a parameter::
+
+            sage: v = vector(QQ, [1, 2, 5/6])
+            sage: v.numpy()
+            array([1, 2, 5/6], dtype=object)
+            sage: v.numpy(dtype=float)
+            array([ 1.        ,  2.        ,  0.83333333])
+            sage: v.numpy(dtype=int)
+            array([1, 2, 0])
+            sage: import numpy
+            sage: v.numpy(dtype=numpy.uint8)
+            array([1, 2, 0], dtype=uint8)
+
+        Passing a dtype of None will let numpy choose a native type, which can
+        be more efficient but may have unintended consequences::
+
+            sage: v.numpy(dtype=None)
+            array([ 1.        ,  2.        ,  0.83333333])
+
+            sage: w = vector(ZZ, [0, 1, 2^63 -1]); w
+            (0, 1, 9223372036854775807)
+            sage: wn = w.numpy(dtype=None); wn
+            array([                  0,                   1, 9223372036854775807]...)
+            sage: wn.dtype
+            dtype('int64')
+            sage: w.dot_product(w)
+            85070591730234615847396907784232501250
+            sage: wn.dot(wn)        # overflow
+            2
+
+        Numpy can give rather obscure errors; we wrap these to give a bit of context::
+
+            sage: vector([1, 1/2, QQ['x'].0]).numpy(dtype=float)
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not convert vector over Univariate Polynomial Ring in x over Rational Field to numpy array of type <type 'float'>: setting an array element with a sequence.
+        """
+        from numpy import array
+        try:
+            return array(self, dtype=dtype)
+        except ValueError as e:
+            raise ValueError(
+                "Could not convert vector over %s to numpy array of type %s: %s" % (self.base_ring(), dtype, e))
+
     def __hash__(self):
         """
         Return hash of this vector.  Only mutable vectors are hashable.

@@ -91,7 +91,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         else:
             gen = "{} generators".format(self.__ngens)
         s = "Free PreLie algebra on {} {} over {}"
-        return s.format(self._alphabet.list(), gen, self.base_ring())
+        return s.format(gen, self._alphabet.list(), self.base_ring())
 
     def gen(self, i):
         r"""

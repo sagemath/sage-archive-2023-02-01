@@ -190,10 +190,10 @@ L}_{P+v}(V)} c(L)` holds in two (non exhaustive) cases:
 
 .. MATH::
 
-    \text{or} \left\{ \begin{align}
-        &N^+(v)\subseteq S\cup N^+(S)\\
-        &v\in N^+(S)\text{ and }N^+(v)\setminus(S\cup N^+(S)) = \{w\}
-    \end{align}\right.
+    \text{or} \begin{cases}
+    N^+(v)\subseteq S\cup N^+(S)\\
+    v\in N^+(S)\text{ and }N^+(v)\setminus(S\cup N^+(S)) = \{w\}
+    \end{cases}
 
 In other words, if we find a vertex `v` satisfying above conditions, the best
 possible ordering with prefix `P` has the same cost as the best possible

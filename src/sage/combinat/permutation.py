@@ -4840,7 +4840,7 @@ class Permutations(Parent, UniqueRepresentation):
         sage: p.cardinality()
         88
         sage: p.random_element()
-        [1, 3, 5, 4, 2]
+        [5, 1, 2, 4, 3]
     """
     @staticmethod
     def __classcall_private__(cls, n=None, k=None, **kwargs):
@@ -5332,72 +5332,8 @@ class Permutations_set(Permutations):
              ['t', 'c', 'a'],
              ['t', 'a', 'c']]
         """
-        for p in Permutations_set._fast_iter(self._set):
+        for p in itertools.permutations(self._set, len(self._set)):
             yield self.element_class(self, p)
-
-    @staticmethod
-    def _fast_iter(S):
-        r"""
-        Algorithm based on:
-        http://marknelson.us/2002/03/01/next-permutation/
-
-        EXAMPLES::
-
-            sage: [ p for p in Permutations(['c','a','t'])] # indirect doctest
-            [['c', 'a', 't'],
-             ['c', 't', 'a'],
-             ['a', 'c', 't'],
-             ['a', 't', 'c'],
-             ['t', 'c', 'a'],
-             ['t', 'a', 'c']]
-            sage: [ p for p in Permutations([])] # indirect doctest
-            [[]]
-        """
-        n = len(S)
-        lset = list(S)
-        set_list = sorted([lset.index(x) for x in lset])
-
-        yield [lset[x] for x in set_list]
-
-        if n <= 1:
-            return
-
-        while True:
-            one = n - 2
-            two = n - 1
-            j   = n - 1
-
-            #starting from the end, find the first o such that
-            #set_list[o] < set_list[o+1]
-            while two > 0 and set_list[one] >= set_list[two]:
-                one -= 1
-                two -= 1
-
-            if two == 0:
-                return
-
-            #starting from the end, find the first j such that
-            #set_list[j] > set_list[one]
-            while set_list[j] <= set_list[one]:
-                j -= 1
-
-            #Swap positions one and j
-            t = set_list[one]
-            set_list[one] = set_list[j]
-            set_list[j] = t
-
-
-            #Reverse the list between two and last
-            i = int((n - two)/2)-1
-            #set_list = set_list[:two] + [x for x in reversed(set_list[two:])]
-            while i >= 0:
-                t = set_list[ i + two ]
-                set_list[ i + two ] = set_list[n-1 - i]
-                set_list[n-1 - i] = t
-                i -= 1
-
-            #Yield the permutation
-            yield [lset[x] for x in set_list]
 
     def cardinality(self):
         """
@@ -5750,7 +5686,7 @@ class StandardPermutations_all(Permutations):
         """
         n = 0
         while True:
-            for p in Permutations_set._fast_iter(range(1, n+1)):
+            for p in itertools.permutations(range(1, n+1), n):
                 yield self.element_class(self, p)
             n += 1
 
@@ -5799,6 +5735,40 @@ class StandardPermutations_n_abstract(Permutations):
         """
         return Permutations.__contains__(self, x) and len(x) == self.n
 
+class StandardPermutations_n(StandardPermutations_n_abstract):
+    r"""
+    Permutations of the set `\{1, 2, \ldots, n\}`.
+
+    These are also called permutations of size `n` or the symmetric group.
+
+    .. TODO::
+
+        Have a :meth:`reduced_word` which works in both multiplication
+        conventions.
+    """
+    def __init__(self, n):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: P = Permutations(5)
+            sage: P.global_options(mult='r2l')
+            sage: TestSuite(P).run()
+            sage: P.global_options.reset()
+        """
+        cat = FiniteWeylGroups() & FinitePermutationGroups()
+        StandardPermutations_n_abstract.__init__(self, n, category=cat)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: Permutations(3)
+            Standard permutations of 3
+        """
+        return "Standard permutations of %s"%self.n
+
     def __iter__(self):
         """
         EXAMPLES::
@@ -5808,7 +5778,7 @@ class StandardPermutations_n_abstract(Permutations):
             sage: [p for p in Permutations(3)]
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
-        for p in Permutations_set._fast_iter(range(1, self.n+1)):
+        for p in itertools.permutations(range(1, self.n+1), self.n):
             yield self.element_class(self, p)
 
     def identity(self):
@@ -5867,40 +5837,6 @@ class StandardPermutations_n_abstract(Permutations):
             [1, 2, 4, 3]
         """
         return self.element_class(self, sample(xrange(1,self.n+1), self.n))
-
-class StandardPermutations_n(StandardPermutations_n_abstract):
-    r"""
-    Permutations of the set `\{1, 2, \ldots, n\}`.
-
-    These are also called permutations of size `n` or the symmetric group.
-
-    .. TODO::
-
-        Have a :meth:`reduced_word` which works in both multiplication
-        conventions.
-    """
-    def __init__(self, n):
-        """
-        Initialize ``self``.
-
-        TESTS::
-
-            sage: P = Permutations(5)
-            sage: P.global_options(mult='r2l')
-            sage: TestSuite(P).run()
-            sage: P.global_options.reset()
-        """
-        cat = FiniteWeylGroups() & FinitePermutationGroups()
-        StandardPermutations_n_abstract.__init__(self, n, category=cat)
-
-    def _repr_(self):
-        """
-        TESTS::
-
-            sage: Permutations(3)
-            Standard permutations of 3
-        """
-        return "Standard permutations of %s"%self.n
 
     def cardinality(self):
         """
@@ -7744,13 +7680,13 @@ class StandardPermutations_avoiding_132(StandardPermutations_avoiding_generic):
             return
 
         elif self.n < 3:
-            for p in Permutations_set._fast_iter(range(1, self.n+1)):
+            for p in itertools.permutations(range(1, self.n+1), self.n):
                 yield self.element_class(self, p)
             return
 
         elif self.n == 3:
-            for p in StandardPermutations_n(self.n):
-                if p != [1, 3, 2]:
+            for p in itertools.permutations(range(1, self.n+1), self.n):
+                if p != (1, 3, 2):
                     yield self.element_class(self, p)
             return
 
@@ -7805,13 +7741,13 @@ class StandardPermutations_avoiding_123(StandardPermutations_avoiding_generic):
             return
 
         elif self.n < 3:
-            for p in Permutations_set._fast_iter(range(1, self.n+1)):
+            for p in itertools.permutations(range(1, self.n+1), self.n):
                 yield self.element_class(self, p)
             return
 
         elif self.n == 3:
-            for p in Permutations_set._fast_iter(range(1, self.n+1)):
-                if p != [1, 2, 3]:
+            for p in itertools.permutations(range(1, self.n+1), self.n):
+                if p != (1, 2, 3):
                     yield self.element_class(self, p)
             return
 

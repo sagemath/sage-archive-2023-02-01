@@ -134,6 +134,10 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             Integer Ring
             sage: A.algebra_generators()
             Family (B[f[]], B[g[]], B[h[]])
+
+            sage: A = FreePreLieAlgebra(QQ, ['x1','x2'])
+            sage: A.algebra_generators()
+            Family (B[x1[]], B[x2[]])
         """
         Trees = self.basis().keys()
         return Family([self.monomial(Trees([], a)) for a in self._alphabet])
@@ -181,6 +185,9 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         """
         Return the pre-Lie product of two trees.
 
+        This is the sum over all graftings of the root of `y` over a vertex
+        of `x`. The root of the resulting trees is the root of `x`.
+
         EXAMPLES::
 
             sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
@@ -214,6 +221,9 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
     def nap_product_on_basis(self, x, y):
         """
         Return the nap product of two trees.
+
+        This is the grafting of the root of `y` over the root
+        of `x`. The root of the resulting tree is the root of `x`.
 
         EXAMPLES::
 

@@ -303,7 +303,7 @@ cdef class NumberFieldElement(FieldElement):
             return
 
         elif isinstance(f, NumberFieldElement):
-            if PY_TYPE(self) is PY_TYPE(f):
+            if type(self) is type(f):
                 self.__numerator = (<NumberFieldElement>f).__numerator
                 self.__denominator = (<NumberFieldElement>f).__denominator
                 return

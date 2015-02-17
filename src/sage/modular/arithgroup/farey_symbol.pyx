@@ -145,6 +145,7 @@ cdef class Farey:
     """
     cdef cpp_farey *this_ptr
     cdef object group
+    cdef object _pmats_to_gens
 
     def __cinit__(self, group, data=None):
         r"""
@@ -154,6 +155,7 @@ cdef class Farey:
             FareySymbol(Congruence Subgroup Gamma0(23))
         """
         self.group = group
+        self._pmats_to_gens = None
         # if data is present we want to restore
         if data is not None:
             sig_on()
@@ -203,6 +205,92 @@ cdef class Farey:
 
         """
         del self.this_ptr
+
+    def get_pmats_to_gens(self):
+        r'''
+        Obtain the translation table from pairing matrices
+        to generators (cached).
+
+        OUTPUT: a list where the i-th entry is a nonzero integer k,
+                such that if k > 0 then the i-th pairing matrix is (up to sign)
+                the (k-1)th generator and, if k < 0, then the i-th pairing
+                matrix is (up to sign) the inverse of the (-k-1)th generator.
+
+        EXAMPLES::
+
+        sage: F = Gamma0(40).farey_symbol()
+        sage: table = F.get_pmats_to_gens()
+        sage: table[12]
+        -2
+        sage: F.pairing_matrices()[12]
+        [  3  -1]
+        [ 40 -13]
+        sage: F.generators()[1]**-1
+        [ -3   1]
+        [-40  13]
+        '''
+        if self._pmats_to_gens is not None:
+            return self._pmats_to_gens
+        gens = self.generators()
+        pairs = self.pairing_matrices()
+        ans = []
+        for pm in pairs:
+            a, b, c, d = pm.matrix().list()
+            try:
+                ans.append(1 + gens.index(SL2Z([a, b, c, d])))
+                continue
+            except ValueError:
+                pass
+            try:
+                ans.append(1 + gens.index(SL2Z([-a, -b, -c, -d])))
+                continue
+            except ValueError:
+                pass
+            try:
+                ans.append(-(1+gens.index(SL2Z([d, -b, -c, a]))))
+                continue
+            except ValueError:
+                pass
+            try:
+                ans.append(-(1 + gens.index(SL2Z([-d, b, c, -a]))))
+                continue
+            except ValueError:
+                pass
+        assert len(ans) == len(pairs)
+        self._pmats_to_gens = ans
+        return ans
+
+    def word_problem(self,M):
+        r"""
+        Solves the word problem (up to sign) using this Farey symbol.
+
+        INPUT: An element M of SL2Z.
+
+        OUTPUT: The Tietze representation of M in the generators of self,
+                up to sign.
+
+        EXAMPLES::
+
+        sage: F = Gamma0(30).farey_symbol()
+        sage: gens = F.generators()
+        sage: g = gens[3] * gens[10] * gens[8]**-1 * gens[5]
+        sage: g
+        [-628597   73008]
+        [-692130   80387]
+        sage: wd = F.word_problem(g)
+        sage: wd
+        [4, 11, -9, 6]
+        """
+        cdef Integer a = M.d()
+        cdef Integer b = -M.b()
+        cdef Integer c = -M.c()
+        cdef Integer d = M.a()
+        sig_on()
+        result = self.this_ptr.word_problem(a.value, b.value, c.value, d.value)
+        sig_off()
+        result.reverse()
+        pmats_to_gens = self.get_pmats_to_gens()
+        return [pmats_to_gens[o-1] if o > 0 else -pmats_to_gens[-o-1] for o in result]
 
     def __contains__(self, M):
         r"""

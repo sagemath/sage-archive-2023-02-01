@@ -33,6 +33,7 @@ Miscellaneous
    sage/misc/unknown
    sage/misc/func_persist
    sage/misc/sage_eval
+   sage/misc/sage_input
    sage/misc/random_testing
    sage/misc/sageinspect
    sage/misc/sagedoc

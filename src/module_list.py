@@ -2109,11 +2109,6 @@ ext_modules = [
     Extension('sage.tests.interrupt',
               sources = ['sage/tests/interrupt.pyx', 'sage/tests/c_lib.c']),
 
-    Extension('sage.tests.parallel',
-              sources = ['sage/tests/parallel.pyx'],
-              extra_compile_args=["-fopenmp"],
-              extra_link_args=["-fopenmp"]),
-
     Extension('sage.tests.stl_vector',
               sources = ['sage/tests/stl_vector.pyx'],
               libraries = ['gmp'],

@@ -121,7 +121,7 @@ from copy import deepcopy
 from cpython.dict cimport *
 from cpython.weakref cimport *
 from cpython.list cimport *
-
+from cpython.object cimport PyObject_Hash
 from cpython cimport Py_XINCREF, Py_XDECREF
 
 cdef extern from "Python.h":
@@ -142,8 +142,6 @@ cdef extern from "Python.h":
     #strategy according to Cython/Includes/cpython/__init__.pxd
     PyObject* PyWeakref_GetObject(PyObject * wr)
     int PyList_SetItem(object list, Py_ssize_t index,PyObject * item) except -1
-    #this one's just missing.
-    long PyObject_Hash(object obj) except -1
 
 cdef PyObject* PyDict_GetItemWithError(dict op, object key) except? NULL:
     cdef PyDictEntry* ep

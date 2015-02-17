@@ -74,10 +74,11 @@ try:
                 func_address = int(str(gdb_value.address).split()[0], 0)
 
             source_desc, lineno = self.get_source_desc(frame)
-            a = ', '.join('%s=%s' % (name, val) for name, val in func_args)
-            print('#%-2d 0x%016x in %s(%s)' % (index, func_address, func_name, a), end=' ')
+            a = ', '.join('{}={}'.format(name, val) for name, val in func_args)
+            print('#{:<2d} {:#016x} in {}({})'
+                  .format(index, func_address, func_name, a), end=' ')
             if source_desc.filename is not None:
-                print('at %s:%s' % (source_desc.filename, lineno), end=' ')
+                print('at {}:{}'.format(source_desc.filename, lineno), end=' ')
             print()
             try:
                 source = source_desc.get_source(lineno - 5, lineno + 5,

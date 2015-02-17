@@ -35,12 +35,12 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     - `(xy)(xx) = x(y(xx))` (the Jordan identity).
 
     These axioms imply that a Jordan algebra is power-associative and the
-    following generalization of Jordan's identity holds [Jacobson71]_:
+    following generalization of Jordan's identity holds [Albert47]_:
     `(x^m y) x^n = x^m (y x^n)` for all `m, n \in \ZZ_{>0}`.
 
-    Let `A` be an associative algebra over a ring `R` in which 2 is
-    invertible. We construct a Jordan algebra `A^+` by defining
-    the multiplication as
+    Let `A` be an associative algebra over a ring `R` in which `2` is
+    invertible. We construct a Jordan algebra `A^+` with ground set `A`
+    by defining the multiplication as
 
     .. MATH::
 
@@ -54,8 +54,9 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     are called *special*. All other Jordan algebras are called *exceptional*.
 
     Jordan algebras can also be constructed from a module `M` over `R` with
-    a symmetric bilinear form `(\cdot, \cdot)`. We begin with the module
-    `M^* = R \oplus M` and define multiplication in `M^*` by
+    a symmetric bilinear form `(\cdot, \cdot) : R \times R \to M`.
+    We begin with the module `M^* = R \oplus M` and define multiplication
+    in `M^*` by
 
     .. MATH::
 
@@ -68,7 +69,8 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     INPUT:
 
     Can be either an associative algebra `A` or a symmetric bilinear
-    form (possibly with a base ring argument) given as a matrix.
+    form given as a matrix (possibly followed by, or preceded by, a base
+    ring argument)
 
     EXAMPLES:
 
@@ -103,7 +105,7 @@ class JordanAlgebra(Parent, UniqueRepresentation):
 
         sage: m = matrix([[-2,3],[3,4]])
         sage: J.<a,b,c> = JordanAlgebra(m); J
-        Jordan algebra over Integer Ring given by the symmetric blinear form:
+        Jordan algebra over Integer Ring given by the symmetric bilinear form:
         [-2  3]
         [ 3  4]
         sage: a
@@ -126,6 +128,18 @@ class JordanAlgebra(Parent, UniqueRepresentation):
         sage: (x*y)*(x*x) == x*(y*(x*x))
         True
 
+    The base ring, while normally inferred from the matrix, can also
+    be explicitly specified::
+
+        sage: J.<a,b,c> = JordanAlgebra(m, QQ); J
+        Jordan algebra over Rational Field given by the symmetric bilinear form:
+        [-2  3]
+        [ 3  4]
+        sage: J.<a,b,c> = JordanAlgebra(QQ, m); J # either order work
+        Jordan algebra over Rational Field given by the symmetric bilinear form:
+        [-2  3]
+        [ 3  4]
+
     REFERENCES:
 
     - :wikipedia:`Jordan_algebra`
@@ -138,6 +152,10 @@ class JordanAlgebra(Parent, UniqueRepresentation):
 
     .. [McCrimmon78] K. McCrimmon. *Jordan algebras and their applications*.
        Bull. Amer. Math. Soc. **84** 1978.
+
+    .. [Albert47] A. A. Albert, *A Structure Theory for Jordan Algebras*.
+       Annals of Mathematics, Second Series, Vol. 48, No. 3
+       (Jul., 1947), pp. 546--567.
     """
     @staticmethod
     def __classcall_private__(self, arg0, arg1=None, names=None):
@@ -165,6 +183,9 @@ class JordanAlgebra(Parent, UniqueRepresentation):
             False
             sage: J2 is J3
             True
+            sage: J4 = JordanAlgebra(ZZ, m)
+            sage: J1 is J4
+            True
             sage: m = matrix(QQ, [[0,1],[1,1]])
             sage: J1 = JordanAlgebra(m)
             sage: J1 is J2
@@ -180,7 +201,6 @@ class JordanAlgebra(Parent, UniqueRepresentation):
                 if arg0.base_ring().characteristic() == 2:
                     raise ValueError("the base ring cannot have characteristic 2")
                 return SpecialJordanAlgebra(arg0, names)
-
             arg0, arg1 = arg0.base_ring(), arg0
         elif is_Matrix(arg0):
             arg0, arg1 = arg1, arg0
@@ -190,6 +210,8 @@ class JordanAlgebra(Parent, UniqueRepresentation):
             raise ValueError("the bilinear form is not symmetric")
         if arg0.characteristic() == 2:
             raise ValueError("the base ring cannot have characteristic 2")
+            # TODO: Do we want this? The Jordan algebra of a symmetric
+            # bilinear form works fine in characteristic 2.
 
         arg1 = arg1.change_ring(arg0) # This makes a copy
         arg1.set_immutable()
@@ -220,10 +242,10 @@ class SpecialJordanAlgebra(JordanAlgebra):
         cat = C.Commutative()
         if A in C.Unital():
             cat = cat.Unital()
-            self._no_generic_basering_coercion = True # Remove once 16492 is fixed
+            self._no_generic_basering_coercion = True
+            # Remove the preceding line once :trac:`16492` is fixed
         if A in C.WithBasis():
             cat = cat.WithBasis()
-            self.basis = self.algebra_generators
         if A in C.FiniteDimensional():
             cat = cat.FiniteDimensional()
 
@@ -272,6 +294,21 @@ class SpecialJordanAlgebra(JordanAlgebra):
         return self.element_class(self, self._A.an_element())
 
     @cached_method
+    def basis(self):
+        """
+        Return the basis of ``self``.
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ)
+            sage: J = JordanAlgebra(F)
+            sage: J.basis()
+            Lazy family (Term map(i))_{i in Free monoid on 3 generators (x, y, z)}
+        """
+        B = self._A.basis()
+        return Family(B.keys(), lambda x: self.element_class(self, B[x]), name="Term map")
+
+    @cached_method
     def algebra_generators(self):
         """
         Return the algebra generators of ``self``.
@@ -285,6 +322,10 @@ class SpecialJordanAlgebra(JordanAlgebra):
         """
         B = self._A.basis()
         return Family(B.keys(), lambda x: self.element_class(self, B[x]), name="Generator map")
+        # Alternatively, maybe set up `algebra_generators` as an alias
+        # for `basis`? We only need to make sure that a class
+        # overriding `algebra_generators` will not end up changing
+        # `basis` too.
 
     # TODO: Keep this until we can better handle R.<...> shorthand
     def gens(self):
@@ -469,7 +510,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
 
         def _sub_(self, other):
             """
-            Subtract ``self`` and ``other``.
+            Subtract ``other`` from ``self``.
 
             EXAMPLES::
 
@@ -497,11 +538,12 @@ class SpecialJordanAlgebra(JordanAlgebra):
             y = other._x
             # This is safer than dividing by 2
             return self.__class__(self.parent(), (x*y + y*x) * ~QQ(2))
+            # TODO: But this is broken over, say, GF(3). Why not divide
+            # by 2?
 
         def _lmul_(self, other):
             """
-            Multiply ``self`` by the scalar ``other`` with ``self``
-            on the left.
+            Multiply ``self`` by the scalar ``other`` on the left.
 
             EXAMPLES::
 
@@ -515,7 +557,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
 
         def _rmul_(self, other):
             """
-            Multiply ``self`` and ``other`` by the right action.
+            Multiply ``self`` and the scalar ``other`` by the right
+            action.
 
             EXAMPLES::
 
@@ -555,11 +598,11 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
 
             sage: m = matrix([[-2,3],[3,4]])
             sage: JordanAlgebra(m)
-            Jordan algebra over Integer Ring given by the symmetric blinear form:
+            Jordan algebra over Integer Ring given by the symmetric bilinear form:
             [-2  3]
             [ 3  4]
         """
-        return "Jordan algebra over {} given by the symmetric blinear" \
+        return "Jordan algebra over {} given by the symmetric bilinear" \
                " form:\n{}".format(self.base_ring(), self._form)
 
     def _element_constructor_(self, *args):

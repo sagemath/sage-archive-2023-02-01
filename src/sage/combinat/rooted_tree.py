@@ -5,7 +5,6 @@ AUTHORS:
 
 - Florent Hivert (2011): initial revision
 """
-
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.ranker import on_fly
@@ -147,11 +146,16 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             children = [self.__class__(parent, x) for x in children]
         NormalizedClonableList.__init__(self, parent, children, check=check)
 
-    _cayley_ranker = on_fly()
+    _unordered_ranker = on_fly()
 
     def normalize(self):
         r"""
         Normalize ``self``.
+
+        This function is at the core of the implementation of rooted
+        (unordered) trees. The underlying structure is provided by
+        ordered rooted trees. Every rooted tree is represented by a
+        normalized element in the set of its planar embeddings.
 
         There should be no need to call ``normalize`` directly as it
         is called automatically upon creation and cloning or
@@ -161,10 +165,6 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         that every sub-tree is itself normalized, and also that
         sub-trees are sorted. Here the sort is performed according to
         the rank function.
-
-        Consider the quotient map that sends a planar rooted tree to
-        the associated "abstract" rooted tree. This function is a
-        section of this map. This is used to work with rooted trees.
 
         EXAMPLES::
 
@@ -178,7 +178,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             sage: rt1._get_list() is rt2._get_list()
             True
         """
-        rank, unrank = self._cayley_ranker
+        rank, unrank = self._unordered_ranker
         self._require_mutable()
         for st in self:
             assert st.is_immutable(), "Subtree {} is not normalized".format(st)
@@ -352,17 +352,17 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
         """
         return isinstance(x, self.element_class)
 
-    def __call__(self, x=None, *args, **keywords):
-        """
-        Ensure that ``None`` instead of ``0`` is passed by default.
+    # def __call__(self, x=[], *args, **keywords):
+    #     """
+    #     Ensure that ``[]`` is passed by default.
 
-        TESTS::
+    #     TESTS::
 
-            sage: B = RootedTrees()
-            sage: B([])
-            []
-        """
-        return super(RootedTrees, self).__call__(x, *args, **keywords)
+    #         sage: B = RootedTrees()
+    #         sage: B()
+    #         []
+    #     """
+    #     return super(RootedTrees, self).__call__(x, *args, **keywords)
 
     def unlabelled_trees(self):
         """
@@ -580,6 +580,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
 
     - ``children`` -- a list or tuple or more generally any iterable
       of trees or object convertible to trees
+
     - ``label`` -- any Sage object (default is ``None``)
 
     EXAMPLES::
@@ -651,8 +652,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
 
 class LabelledRootedTrees(UniqueRepresentation, Parent):
     """
-    This is a parent stub to serve as a factory class for trees with various
-    labels constraints.
+    This is a parent stub to serve as a factory class for labelled rooted trees
 
     EXAMPLES::
 
@@ -666,6 +666,10 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
         2[3[], 3[], 3[]]
         sage: y.parent() is LRT
         True
+
+    .. TODO::
+
+        add the possibility to restrict the labels to a fixed set.
     """
     def __init__(self, category=None):
         """
@@ -679,6 +683,8 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
 
     def _repr_(self):
         """
+        Return the string representation of ``self``.
+
         TESTS::
 
             sage: LabelledRootedTrees()   # indirect doctest
@@ -704,13 +710,13 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
         EXAMPLE::
 
             sage: LabelledRootedTrees().an_element()   # indirect doctest
-            toto[3[], 42[3[], 3[]], 5[None[]]]
+            alpha[3[], 42[3[], 3[]], 5[None[]]]
         """
         LT = self._element_constructor_
         t = LT([], label=3)
         t1 = LT([t, t], label=42)
         t2 = LT([[]], label=5)
-        return LT([t, t1, t2], label="toto")
+        return LT([t, t1, t2], label="alpha")
 
     def unlabelled_trees(self):
         """

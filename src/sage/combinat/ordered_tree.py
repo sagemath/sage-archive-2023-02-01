@@ -518,11 +518,11 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         return OrderedTree(children)
 
     import sage.combinat.ranker
-    _cayley_ranker = sage.combinat.ranker.on_fly()
+    _unordered_ranker = sage.combinat.ranker.on_fly()
 
     @cached_method
     def normalize(self, inplace=False):
-        """
+        r"""
         Return the normalized tree of ``self``.
 
         INPUT:
@@ -536,9 +536,9 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         sub-trees are sorted. Here the sort is performed according to
         the rank function.
 
-        Consider the quotient map that sends a planar rooted tree to
-        the associated "abstract" rooted tree. This function is a
-        section of this map. This is used to work with rooted trees.
+        Consider the quotient map `\pi` that sends a planar rooted tree to
+        the associated "abstract" rooted tree. This function computes the
+        composite `s \circ \pi`, where `s` is a section of `\pi`.
 
         EXAMPLES::
 
@@ -560,7 +560,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             sage: tb.normalize(inplace=True); tb
             [[], [[]]]
         """
-        rank, unrank = self._cayley_ranker
+        rank, unrank = self._unordered_ranker
         if not inplace:
             with self.clone() as res:
                 resl = res._get_list()

@@ -517,8 +517,63 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         children.reverse()
         return OrderedTree(children)
 
-    import sage.combinat.ranker
-    _unordered_ranker = sage.combinat.ranker.on_fly()
+    def dendrog_cmp(self, other):
+        r"""
+        Return `-1` if ``self`` is smaller than ``other`` in the
+        dendrographical order; return `0` if they are equal;
+        return `1` if ``other`` is smaller.
+
+        The dendrographical order is a total order on the set of
+        ordered rooted trees; it is defined recursively as
+        follows: An ordered rooted tree `T` with children
+        `T_1, T_2, \ldots, T_a` is smaller than an
+        ordered rooted tree `S` with children
+        `S_1, S_2, \ldots, S_b` if either `a < b` or (`a = b`
+        and there exists a `1 \leq i \leq a` such that
+        `T_1 = S_1, T_2 = S_2, \ldots, T_{i-1} = S_{i-1}` and
+        `T_i < S_i`.
+
+        INPUT:
+
+        - ``other``: an ordered binary tree.
+
+        OUTPUT:
+
+        `-1`, if ``smaller < other`` with respect to the
+        dendrographical order.
+        `0`, if ``smaller == other``.
+        `1`, if ``smaller > other`` with respect to the
+        dendrographical order.
+
+        EXAMPLES::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([])
+            sage: tb = OT([[], [], [[], []]])
+            sage: tc = OT([[], [[], []], []])
+            sage: td = OT([[[], []], [], []])
+            sage: te = OT([[], []])
+            sage: tf = OT([[], [], []])
+            sage: tg = OT([[[], []], [[], []]])
+            sage: l = [ta, tb, tc, td, te, tf, tg]
+            sage: [l[i].dendrog_cmp(l[j]) for i in range(7) for j in range(7)]
+            [0, -1, -1, -1, -1, -1, -1,
+             1, 0, -1, -1, 1, 1, 1,
+             1, 1, 0, -1, 1, 1, 1,
+             1, 1, 1, 0, 1, 1, 1,
+             1, -1, -1, -1, 0, -1, -1,
+             1, -1, -1, -1, 1, 0, 1,
+             1, -1, -1, -1, 1, -1, 0]
+        """
+        if len(self) < len(other):
+            return -1
+        if len(self) > len(other):
+            return 1
+        for (a, b) in zip(self, other):
+            comp = a.dendrog_cmp(b)
+            if comp != 0:
+                return comp
+        return 0
 
     @cached_method
     def normalize(self, inplace=False):
@@ -549,6 +604,8 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             True
             sage: ta == tb
             False
+            sage: ta.normalize()
+            [[], [[]]]
 
         An example with inplace normalization::
 
@@ -560,19 +617,20 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             sage: tb.normalize(inplace=True); tb
             [[], [[]]]
         """
-        rank, unrank = self._unordered_ranker
+        def dendrog_cmp(a, b):
+            return a.dendrog_cmp(b)
         if not inplace:
             with self.clone() as res:
                 resl = res._get_list()
                 for i in range(len(resl)):
                     resl[i] = resl[i].normalize()
-                resl.sort(key=rank)
-            return unrank(rank(res))
+                resl.sort(cmp=dendrog_cmp)
+            return res
         else:
             resl = self._get_list()
             for i in range(len(resl)):
                 resl[i] = resl[i].normalize()
-            resl.sort(key=rank)
+            resl.sort(cmp=dendrog_cmp)
 
 
 # Abstract class to serve as a Factory no instance are created.

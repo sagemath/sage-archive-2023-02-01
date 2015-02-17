@@ -234,8 +234,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: b + b # indirect doctest
             2*b
         """
-        cdef NumberFieldElement_quadratic x
-        x = <NumberFieldElement_quadratic>PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef NumberFieldElement_quadratic x = <NumberFieldElement_quadratic>t.__new__(t)
         x._parent = self._parent
         x.standard_embedding = self.standard_embedding
         x.D = self.D
@@ -463,7 +463,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef mpz_t tmp_mpz
         cdef long tmp_const
 
-        x = <NumberFieldElement_absolute>PY_NEW(NumberFieldElement_absolute)
+        x = <NumberFieldElement_absolute>NumberFieldElement_absolute.__new__(NumberFieldElement_absolute)
 
         mpz_to_ZZ(&elt_den, self.denom)
 
@@ -552,7 +552,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: a._coefficients()
             [0, 1]
         """
-        cdef Rational ad = <Rational>PY_NEW(Rational), bd = <Rational>PY_NEW(Rational)
+        cdef Rational ad = <Rational>Rational.__new__(Rational)
+        cdef Rational bd = <Rational>Rational.__new__(Rational)
         if mpz_cmp_ui(self.a, 0) == 0:
             mpq_set_ui(ad.value, 0, 1)
         else:
@@ -1358,7 +1359,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if mpz_cmp_ui(self.b, 0)!=0:
             raise TypeError("Unable to coerce %s to a rational" % self)
         else:
-            res = <Rational>PY_NEW(Rational)
+            res = <Rational>Rational.__new__(Rational)
             mpz_set(mpq_numref(res.value), self.a)
             mpz_set(mpq_denref(res.value), self.denom)
             mpq_canonicalize(res.value)
@@ -1392,7 +1393,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if mpz_sgn(self.D.value) > 0:
             return self  # totally real
         else:
-            res = <Rational>PY_NEW(Rational)
+            res = <Rational>Rational.__new__(Rational)
             mpz_set(mpq_numref(res.value), self.a)
             mpz_set(mpq_denref(res.value), self.denom)
             mpq_canonicalize(res.value)
@@ -1436,7 +1437,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         """
         if mpz_sgn(self.D.value) > 0:
-            return PY_NEW(Rational)  # = 0
+            return Rational.__new__(Rational)  # = 0
         embedding =  self._parent.coerce_embedding()
         cdef Integer negD = -self.D
         cdef NumberFieldElement_quadratic q = <NumberFieldElement_quadratic>self._new()
@@ -1448,7 +1449,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             # D = -1 is the most common case we'll see here
             if embedding is None:
                 raise ValueError("Embedding must be specified.")
-            res = <Rational>PY_NEW(Rational)
+            res = <Rational>Rational.__new__(Rational)
             if mpz_cmp_ui(negD.value, 1) == 0:
                 mpz_set(mpq_numref(res.value), self.b)
             else:
@@ -1491,7 +1492,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         # In terms of the generator...
         cdef NumberFieldElement_quadratic gen = self.number_field().gen()  # should this be cached?
-        cdef Rational const = <Rational>PY_NEW(Rational), lin = <Rational>PY_NEW(Rational)
+        cdef Rational const = <Rational>Rational.__new__(Rational)
+        cdef Rational lin = <Rational>Rational.__new__(Rational)
         ad, bd = self.parts()
         if not self:
             return []
@@ -1597,7 +1599,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             2
         """
         # trace = 2*self.a / self.denom
-        cdef Rational res = <Rational>PY_NEW(Rational)
+        cdef Rational res = <Rational>Rational.__new__(Rational)
         if mpz_odd_p(self.denom):
             mpz_mul_2exp(mpq_numref(res.value), self.a, 1)
             mpz_set(mpq_denref(res.value), self.denom)
@@ -1648,7 +1650,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             ValueError: no way to embed L into parent's base ring K
 
         """
-        cdef Rational res = <Rational>PY_NEW(Rational)
+        cdef Rational res = <Rational>Rational.__new__(Rational)
 
         if K is None or K == QQ:
         # norm = (a^2 - d b^2) / self.denom^2

@@ -49,7 +49,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             <type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
         """
         cdef Vector_mod2_dense y
-        y = PY_NEW(Vector_mod2_dense)
+        y = Vector_mod2_dense.__new__(Vector_mod2_dense)
         y._init(self._degree, self._parent)
         return y
 
@@ -532,7 +532,7 @@ def unpickle_v0(parent, entries, degree, is_mutable):
     """
     # If you think you want to change this function, don't.
     cdef Vector_mod2_dense v
-    v = PY_NEW(Vector_mod2_dense)
+    v = Vector_mod2_dense.__new__(Vector_mod2_dense)
     v._init(degree, parent)
     cdef int xi
 

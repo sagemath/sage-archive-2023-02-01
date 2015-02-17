@@ -307,8 +307,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
 
     cdef _new_c_from_long(self, long value):
-        cdef IntegerMod_abstract x
-        x = <IntegerMod_abstract>PY_NEW(<object>PY_TYPE(self))
+        cdef type t = type(self)
+        cdef IntegerMod_abstract x = <IntegerMod_abstract>t.__new__(t)
         if PY_TYPE_CHECK(x, IntegerMod_gmp):
             mpz_init((<IntegerMod_gmp>x).value) # should be done by the new method
         x._parent = self._parent
@@ -1722,7 +1722,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     cdef IntegerMod_gmp _new_c(self):
         cdef IntegerMod_gmp x
-        x = PY_NEW(IntegerMod_gmp)
+        x = IntegerMod_gmp.__new__(IntegerMod_gmp)
         mpz_init(x.value)
         x.__modulus = self.__modulus
         x._parent = self._parent
@@ -2228,7 +2228,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         self.set_from_mpz(z.value)
 
     def _make_new_with_parent_c(self, parent): #ParentWithBase parent):
-        cdef IntegerMod_int x = PY_NEW(IntegerMod_int)
+        cdef IntegerMod_int x = IntegerMod_int.__new__(IntegerMod_int)
         x._parent = parent
         x.__modulus = parent._pyx_order
         x.ivalue = self.ivalue
@@ -2237,7 +2237,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     cdef IntegerMod_int _new_c(self, int_fast32_t value):
         if self.__modulus.table is not None:
             return self.__modulus.lookup(value)
-        cdef IntegerMod_int x = PY_NEW(IntegerMod_int)
+        cdef IntegerMod_int x = IntegerMod_int.__new__(IntegerMod_int)
         x._parent = self._parent
         x.__modulus = self.__modulus
         x.ivalue = value
@@ -2367,7 +2367,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
 
     def __copy__(IntegerMod_int self):
-        cdef IntegerMod_int x = PY_NEW(IntegerMod_int)
+        cdef IntegerMod_int x = IntegerMod_int.__new__(IntegerMod_int)
         x._parent = self._parent
         x.__modulus = self.__modulus
         x.ivalue = self.ivalue
@@ -3110,7 +3110,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     cdef IntegerMod_int64 _new_c(self, int_fast64_t value):
         cdef IntegerMod_int64 x
-        x = PY_NEW(IntegerMod_int64)
+        x = IntegerMod_int64.__new__(IntegerMod_int64)
         x.__modulus = self.__modulus
         x._parent = self._parent
         x.ivalue = value

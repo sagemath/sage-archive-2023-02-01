@@ -109,7 +109,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: (2*x+1).monic() #indirect doctest
             x + 3
         """
-        cdef Polynomial_template e = <Polynomial_template>PY_NEW(self.__class__)
+        cdef type t = self.__class__
+        cdef Polynomial_template e = <Polynomial_template>t.__new__(t)
         nmod_poly_init(&e.x, self._parent.modulus())
         e._parent = self._parent
         e._cparent = self._cparent
@@ -139,7 +140,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             ValueError: invalid literal for int() with base 10: '4.1'
 
         """
-        cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
+        cdef type t = self.__class__
+        cdef Polynomial_template r = <Polynomial_template>t.__new__(t)
         r._parent = P
         r._cparent = get_cparent(P)
         nmod_poly_init(&r.x, nmod_poly_modulus(&self.x))
@@ -235,6 +237,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: f[-5:50] == f
             True
         """
+        cdef type t
         cdef unsigned long c = 0
         cdef Polynomial_template r
         if isinstance(i, slice):
@@ -246,7 +249,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             x = (<Polynomial_template>self)._parent.gen()
             v = [self[t] for t from start <= t < stop]
 
-            r = <Polynomial_template>PY_NEW(self.__class__)
+            t = self.__class__
+            r = <Polynomial_template>t.__new__(t)
             Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
             return r << start
         else:
@@ -438,7 +442,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         """
         cdef Polynomial_zmod_flint _other = <Polynomial_zmod_flint>self._parent._coerce_(other)
 
-        cdef Polynomial_zmod_flint r = <Polynomial_zmod_flint>PY_NEW(self.__class__)
+        cdef type t = self.__class__
+        cdef Polynomial_zmod_flint r = <Polynomial_zmod_flint>t.__new__(t)
         r._parent = (<Polynomial_zmod_flint>self)._parent
         r._cparent = (<Polynomial_zmod_flint>self)._cparent
 

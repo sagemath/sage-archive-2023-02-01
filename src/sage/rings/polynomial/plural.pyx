@@ -2688,7 +2688,7 @@ cdef inline NCPolynomial_plural new_NCP(NCPolynomialRing_plural parent,
         z
 
     """
-    cdef NCPolynomial_plural p = PY_NEW(NCPolynomial_plural)
+    cdef NCPolynomial_plural p = NCPolynomial_plural.__new__(NCPolynomial_plural)
     p._parent = <ParentWithBase>parent
     p._poly = juice
     p_Normalize(p._poly, parent._ring)
@@ -2734,7 +2734,7 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
     """
     assert( rw.is_commutative() )
 
-    cdef MPolynomialRing_libsingular self = <MPolynomialRing_libsingular>PY_NEW(MPolynomialRing_libsingular)
+    cdef MPolynomialRing_libsingular self = <MPolynomialRing_libsingular>MPolynomialRing_libsingular.__new__(MPolynomialRing_libsingular)
 
     self._ring = rw._ring
 
@@ -2806,7 +2806,7 @@ cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
 
     assert( not rw.is_commutative() )
 
-    cdef NCPolynomialRing_plural self = <NCPolynomialRing_plural>PY_NEW(NCPolynomialRing_plural)
+    cdef NCPolynomialRing_plural self = <NCPolynomialRing_plural>NCPolynomialRing_plural.__new__(NCPolynomialRing_plural)
     self._ring = rw._ring
 
     wrapped_ring = wrap_ring(self._ring)

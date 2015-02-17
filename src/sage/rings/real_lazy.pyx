@@ -679,13 +679,13 @@ cdef class LazyFieldElement(FieldElement):
         return hash(complex(self))
 
     cdef LazyFieldElement _new_wrapper(self, value):
-        cdef LazyWrapper e = <LazyWrapper>PY_NEW(LazyWrapper)
+        cdef LazyWrapper e = <LazyWrapper>LazyWrapper.__new__(LazyWrapper)
         e._parent = self._parent
         e._value = value
         return e
 
     cdef LazyFieldElement _new_binop(self, LazyFieldElement left, LazyFieldElement right, op):
-        cdef LazyBinop e = <LazyBinop>PY_NEW(LazyBinop)
+        cdef LazyBinop e = <LazyBinop>LazyBinop.__new__(LazyBinop)
         e._parent = self._parent
         e._left = left
         e._right = right
@@ -693,7 +693,7 @@ cdef class LazyFieldElement(FieldElement):
         return e
 
     cdef LazyFieldElement _new_unop(self, LazyFieldElement arg, op):
-        cdef LazyUnop e = <LazyUnop>PY_NEW(LazyUnop)
+        cdef LazyUnop e = <LazyUnop>LazyUnop.__new__(LazyUnop)
         e._parent = self._parent
         e._op = op
         e._arg = arg
@@ -1704,7 +1704,7 @@ cdef class LazyWrapperMorphism(Morphism):
             sage: f(x)._value
             20
         """
-        cdef LazyWrapper e = <LazyWrapper>PY_NEW(LazyWrapper)
+        cdef LazyWrapper e = <LazyWrapper>LazyWrapper.__new__(LazyWrapper)
         e._parent = self._codomain
         if PY_TYPE_CHECK_EXACT(x, LazyWrapper):
             e._value = (<LazyWrapper>x)._value

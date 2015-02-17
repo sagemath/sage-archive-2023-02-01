@@ -62,7 +62,7 @@ Elements typically define a method ``_new_c``, e.g.,
 
     cdef _new_c(self, defining data):
         cdef FreeModuleElement_generic_dense x
-        x = PY_NEW(FreeModuleElement_generic_dense)
+        x = FreeModuleElement_generic_dense.__new__(FreeModuleElement_generic_dense)
         x._parent = self._parent
         x._entries = v
 

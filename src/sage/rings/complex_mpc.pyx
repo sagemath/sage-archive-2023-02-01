@@ -321,7 +321,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         Return a new complex number with parent ``self`.
         """
         cdef MPComplexNumber z
-        z = PY_NEW(MPComplexNumber)
+        z = MPComplexNumber.__new__(MPComplexNumber)
         z._parent = self
         mpc_init2(z.value, self.__prec)
         z.init = 1
@@ -709,7 +709,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         Return a new complex number with same parent as ``self``.
         """
         cdef MPComplexNumber z
-        z = PY_NEW(MPComplexNumber)
+        z = MPComplexNumber.__new__(MPComplexNumber)
         z._parent = self._parent
         mpc_init2(z.value, (<MPComplexField_class>self._parent).__prec)
         z.init = 1

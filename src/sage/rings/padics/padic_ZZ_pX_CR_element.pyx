@@ -1509,7 +1509,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: w^5 + 1 # indirect doctest
             1 + w^5 + O(w^25)
         """
-        cdef pAdicZZpXCRElement ans = PY_NEW(pAdicZZpXCRElement)
+        cdef pAdicZZpXCRElement ans = pAdicZZpXCRElement.__new__(pAdicZZpXCRElement)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         if relprec > 0:
@@ -1546,7 +1546,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         if self.relprec == 0:
             return make_ZZpXCRElement, (self.parent(), None, ordp, relprec, 0)
         self.prime_pow.restore_context_capdiv(self.relprec)
-        cdef ntl_ZZ_pX holder = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX holder = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         holder.c = self.prime_pow.get_context_capdiv(self.relprec)
         holder.x = self.unit
         return make_ZZpXCRElement, (self.parent(), holder, ordp, relprec, 0)
@@ -2075,7 +2075,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 raise ValueError, "valuation overflow"
             ans.ordp = mpz_get_si(tmp)
             mpz_clear(tmp)
-        cdef ntl_ZZ rZZ = PY_NEW(ntl_ZZ)
+        cdef ntl_ZZ rZZ = ntl_ZZ.__new__(ntl_ZZ)
         mpz_to_ZZ(&rZZ.x, right.value)
         sig_on()
         if mpz_sgn(right.value) < 0:
@@ -2457,7 +2457,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         if self.relprec == 0:
             raise ValueError, "self == 0"
         self.prime_pow.restore_context_capdiv(self.relprec)
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         ans.c = self.prime_pow.get_context_capdiv(self.relprec)
         ans.x = self.unit
         return ans
@@ -2523,8 +2523,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 little_shift = self.prime_pow.e - little_shift
             ctx = self.prime_pow.get_context_capdiv(self.relprec + little_shift)
         ctx.restore_c()
-        cdef pAdicZZpXCRElement dummy = PY_NEW(pAdicZZpXCRElement)
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        cdef pAdicZZpXCRElement dummy = pAdicZZpXCRElement.__new__(pAdicZZpXCRElement)
+        cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
         cdef Integer ans_k = PY_NEW(Integer)
         dummy.unit = self.unit
         dummy.prime_pow = self.prime_pow

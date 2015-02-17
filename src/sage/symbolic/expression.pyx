@@ -11024,16 +11024,17 @@ cdef get_dynamic_class_for_function(unsigned serial):
     return cls
 
 cdef Expression new_Expression_from_GEx(parent, GEx juice):
+    cdef type cls
     cdef Expression nex
     cdef unsigned serial
     if is_exactly_a_function(juice):
         # if the function defines any dynamic methods these are made
         # available through a dynamic class
-        cls = get_dynamic_class_for_function(ex_to_function(juice).get_serial())
+        cls = <type>get_dynamic_class_for_function(ex_to_function(juice).get_serial())
     else:
         cls = Expression
 
-    nex = <Expression>PY_NEW(cls)
+    nex = <Expression>cls.__new__(cls)
     GEx_construct_ex(&nex._gobj, juice)
     nex._parent = parent
     return nex
@@ -11090,7 +11091,7 @@ cdef inline ExpressionIterator new_ExpIter_from_Expression(Expression ex):
     # The const_iterator in GiNaC just keeps an integer index to the current
     # subexpression. We do the same here, to avoid the trouble of having to
     # mess with C++ class constructors/destructors.
-    cdef ExpressionIterator m = <ExpressionIterator>PY_NEW(ExpressionIterator)
+    cdef ExpressionIterator m = <ExpressionIterator>ExpressionIterator.__new__(ExpressionIterator)
     m._ex = ex
     m._ind = 0
     m._len  = ex._gobj.nops()

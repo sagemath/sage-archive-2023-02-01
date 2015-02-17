@@ -46,7 +46,7 @@ cdef class TropicalSemiringElement(RingElement):
         Return a new tropical semiring element with parent ``self`.
         """
         cdef TropicalSemiringElement x
-        x = PY_NEW(TropicalSemiringElement)
+        x = TropicalSemiringElement.__new__(TropicalSemiringElement)
         x._parent = self._parent
         x._val = self._val
         return x

@@ -564,7 +564,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         Return a new real number with parent ``self``.
         """
         cdef RealIntervalFieldElement x
-        x = PY_NEW(RealIntervalFieldElement)
+        x = RealIntervalFieldElement.__new__(RealIntervalFieldElement)
         x._parent = self
         mpfi_init2(x.value, self.__prec)
         x.init = 1
@@ -1118,7 +1118,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         Return a new real interval with same parent as ``self``.
         """
         cdef RealIntervalFieldElement x
-        x = PY_NEW(RealIntervalFieldElement)
+        x = RealIntervalFieldElement.__new__(RealIntervalFieldElement)
         x._parent = self._parent
         mpfi_init2(x.value, (<RealIntervalField_class>self._parent).__prec)
         x.init = 1

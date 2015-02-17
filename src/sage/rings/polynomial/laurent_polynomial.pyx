@@ -1395,7 +1395,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x*y
         """
         cdef LaurentPolynomial_mpair ans
-        ans = PY_NEW(LaurentPolynomial_mpair)
+        ans = LaurentPolynomial_mpair.__new__(LaurentPolynomial_mpair)
         ans._parent = self._parent
         return ans
 

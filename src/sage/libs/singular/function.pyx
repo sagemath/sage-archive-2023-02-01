@@ -1824,7 +1824,7 @@ def list_of_functions(packages=False):
 
 #cdef ring*?
 cdef inline RingWrap new_RingWrap(ring* r):
-    cdef RingWrap ring_wrap_result = PY_NEW(RingWrap)
+    cdef RingWrap ring_wrap_result = RingWrap.__new__(RingWrap)
     ring_wrap_result._ring = r
     ring_wrap_result._ring.ref += 1
 

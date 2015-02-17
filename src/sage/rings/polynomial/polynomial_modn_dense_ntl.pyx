@@ -624,7 +624,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         self.c = ntl.c
 
     cdef Polynomial_dense_modn_ntl_zz _new(self):
-        cdef Polynomial_dense_modn_ntl_zz y = <Polynomial_dense_modn_ntl_zz>PY_NEW(Polynomial_dense_modn_ntl_zz)
+        cdef Polynomial_dense_modn_ntl_zz y = <Polynomial_dense_modn_ntl_zz>Polynomial_dense_modn_ntl_zz.__new__(Polynomial_dense_modn_ntl_zz)
         y.c = self.c
         y._parent = self._parent
         return y
@@ -1202,7 +1202,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
 
     cdef Polynomial_dense_modn_ntl_ZZ _new(self):
-        cdef Polynomial_dense_modn_ntl_ZZ y = <Polynomial_dense_modn_ntl_ZZ>PY_NEW(Polynomial_dense_modn_ntl_ZZ)
+        cdef Polynomial_dense_modn_ntl_ZZ y = <Polynomial_dense_modn_ntl_ZZ>Polynomial_dense_modn_ntl_ZZ.__new__(Polynomial_dense_modn_ntl_ZZ)
         y.c = self.c
         y._parent = self._parent
         return y

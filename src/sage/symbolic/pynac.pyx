@@ -60,7 +60,7 @@ cdef public object ex_to_pyExpression(GEx juice):
     Used to pass parameters to custom power and series functions.
     """
     cdef Expression nex
-    nex = <Expression>PY_NEW(Expression)
+    nex = <Expression>Expression.__new__(Expression)
     GEx_construct_ex(&nex._gobj, juice)
     nex._parent = ring.SR
     return nex

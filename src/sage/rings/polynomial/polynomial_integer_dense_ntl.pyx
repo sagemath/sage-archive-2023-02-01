@@ -83,7 +83,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Quickly creates a new initialized Polynomial_integer_dense_ntl
         with the correct parent and _is_gen == 0.
         """
-        cdef Polynomial_integer_dense_ntl x = PY_NEW(Polynomial_integer_dense_ntl)
+        cdef Polynomial_integer_dense_ntl x = Polynomial_integer_dense_ntl.__new__(Polynomial_integer_dense_ntl)
         x._parent = self._parent
         x._is_gen = 0
         return x

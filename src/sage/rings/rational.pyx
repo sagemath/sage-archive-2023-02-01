@@ -114,7 +114,7 @@ cdef inline void set_from_Integer(Rational self, integer.Integer other):
 
 cdef object Rational_mul_(Rational a, Rational b):
     cdef Rational x
-    x = <Rational> PY_NEW(Rational)
+    x = <Rational> Rational.__new__(Rational)
 
     sig_on()
     mpq_mul(x.value, a.value, b.value)
@@ -124,7 +124,7 @@ cdef object Rational_mul_(Rational a, Rational b):
 
 cdef object Rational_div_(Rational a, Rational b):
     cdef Rational x
-    x = <Rational> PY_NEW(Rational)
+    x = <Rational> Rational.__new__(Rational)
 
     sig_on()
     mpq_div(x.value, a.value, b.value)
@@ -134,7 +134,7 @@ cdef object Rational_div_(Rational a, Rational b):
 
 cdef Rational_add_(Rational self, Rational other):
     cdef Rational x
-    x = <Rational> PY_NEW(Rational)
+    x = <Rational> Rational.__new__(Rational)
     sig_on()
     mpq_add(x.value, self.value, other.value)
     sig_off()
@@ -142,7 +142,7 @@ cdef Rational_add_(Rational self, Rational other):
 
 cdef Rational_sub_(Rational self, Rational other):
     cdef Rational x
-    x = <Rational> PY_NEW(Rational)
+    x = <Rational> Rational.__new__(Rational)
 
     sig_on()
     mpq_sub(x.value, self.value, other.value)
@@ -750,7 +750,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             False
         """
         cdef Rational z
-        z = <Rational> PY_NEW(Rational)
+        z = <Rational> Rational.__new__(Rational)
         mpq_set(z.value, self.value)
         return z
 
@@ -1694,11 +1694,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             raise ValueError, "p must be at least 2."
         if mpq_sgn(self.value) == 0:
             import sage.rings.infinity
-            u = PY_NEW(Rational)
+            u = Rational.__new__(Rational)
             mpq_set_ui(u.value, 1, 1)
             return (sage.rings.infinity.infinity, u)
         v = PY_NEW(integer.Integer)
-        u = PY_NEW(Rational)
+        u = Rational.__new__(Rational)
         sig_on()
         mpz_set_ui(v.value, mpz_remove(mpq_numref(u.value), mpq_numref(self.value), p.value))
         sig_off()
@@ -1826,7 +1826,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             from sage.functions.other import _do_sqrt
             return _do_sqrt(self, prec=prec, all=all)
 
-        cdef Rational z = <Rational> PY_NEW(Rational)
+        cdef Rational z = <Rational> Rational.__new__(Rational)
         cdef mpz_t tmp
         cdef int non_square = 0
 
@@ -2166,7 +2166,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             5/6
         """
         cdef Rational x
-        x = <Rational> PY_NEW(Rational)
+        x = <Rational> Rational.__new__(Rational)
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
@@ -2192,7 +2192,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         # self and right are guaranteed to be Integers
         cdef Rational x
-        x = <Rational> PY_NEW(Rational)
+        x = <Rational> Rational.__new__(Rational)
         mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
 
@@ -2219,7 +2219,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             -2/3
         """
         cdef Rational x
-        x = <Rational> PY_NEW(Rational)
+        x = <Rational> Rational.__new__(Rational)
         mpq_neg(x.value, self.value)
         return x
 
@@ -2233,7 +2233,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             3/7
         """
         cdef Rational x
-        x = <Rational> PY_NEW(Rational)
+        x = <Rational> Rational.__new__(Rational)
         if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
              mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
             # We only use the signal handler (to enable ctrl-c out) in case
@@ -2281,7 +2281,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
             raise ZeroDivisionError, "Rational division by zero"
         cdef Rational x
-        x = <Rational> PY_NEW(Rational)
+        x = <Rational> Rational.__new__(Rational)
         mpq_div(x.value, self.value, (<Rational>right).value)
         return x
 
@@ -2321,7 +2321,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if self.is_zero():
             raise ZeroDivisionError, "rational division by zero"
         cdef Rational x
-        x = <Rational> PY_NEW(Rational)
+        x = <Rational> Rational.__new__(Rational)
         mpq_inv(x.value, self.value)
         return x
 
@@ -2472,7 +2472,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                     return self if n % 2 else -self
             raise RuntimeError("exponent must be at most %s" % sys.maxsize)
 
-        cdef Rational x = <Rational> PY_NEW(Rational)
+        cdef Rational x = <Rational> Rational.__new__(Rational)
 
         if nn == 0:
             mpq_set_si(x.value, 1, 1)
@@ -2545,7 +2545,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             4/17
         """
         cdef Rational x
-        x = <Rational> PY_NEW(Rational)
+        x = <Rational> Rational.__new__(Rational)
         mpq_neg(x.value, self.value)
         return x
 
@@ -2581,7 +2581,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             4/17
         """
         cdef Rational x
-        x = <Rational> PY_NEW(Rational)
+        x = <Rational> Rational.__new__(Rational)
         mpq_abs(x.value, self.value)
         return x
 
@@ -3386,7 +3386,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         Return ``self * 2^exp``.
         """
         cdef Rational x
-        x = <Rational> PY_NEW(Rational)
+        x = <Rational> Rational.__new__(Rational)
         sig_on()
         if exp < 0:
             mpq_div_2exp(x.value,self.value,-exp)
@@ -3434,7 +3434,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         Return ``self / 2^exp``.
         """
         cdef Rational x
-        x = <Rational> PY_NEW(Rational)
+        x = <Rational> Rational.__new__(Rational)
         sig_on()
         if exp < 0:
             mpq_mul_2exp(x.value,self.value,-exp)
@@ -3823,7 +3823,7 @@ cdef class Z_to_Q(Morphism):
             2
         """
         cdef Rational rat
-        rat = <Rational> PY_NEW(Rational)
+        rat = <Rational> Rational.__new__(Rational)
         mpq_set_z(rat.value, (<integer.Integer>x).value)
         return rat
 
@@ -3934,7 +3934,7 @@ cdef class int_to_Q(Morphism):
             14
         """
         cdef Rational rat
-        rat = <Rational> PY_NEW(Rational)
+        rat = <Rational> Rational.__new__(Rational)
         mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
         return rat
 

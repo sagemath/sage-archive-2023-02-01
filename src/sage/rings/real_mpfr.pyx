@@ -464,14 +464,14 @@ cdef class RealField_class(sage.rings.ring.Field):
         ParentWithGens.__init__(self, self, tuple([]), False, category = Fields())
 
         # hack, we cannot call the constructor here
-        rn = PY_NEW(RealNumber)
+        rn = RealNumber.__new__(RealNumber)
         rn._parent = self
         mpfr_init2(rn.value, self.__prec)
         rn.init = 1
         mpfr_set_d(rn.value, 0.0, self.rnd)
         self._zero_element = rn
 
-        rn = PY_NEW(RealNumber)
+        rn = RealNumber.__new__(RealNumber)
         rn._parent = self
         mpfr_init2(rn.value, self.__prec)
         rn.init = 1
@@ -485,7 +485,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         Return a new real number with parent ``self``.
         """
         cdef RealNumber x
-        x = <RealNumber>PY_NEW(RealNumber)
+        x = <RealNumber>RealNumber.__new__(RealNumber)
         x._parent = self
         mpfr_init2(x.value, self.__prec)
         x.init = 1
@@ -1285,7 +1285,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Return a new real number with same parent as self.
         """
         cdef RealNumber x
-        x = <RealNumber>PY_NEW(RealNumber)
+        x = <RealNumber>RealNumber.__new__(RealNumber)
         x._parent = self._parent
         mpfr_init2(x.value, (<RealField_class>self._parent).__prec)
         x.init = 1
@@ -5681,7 +5681,7 @@ cdef inline RealNumber empty_RealNumber(RealField_class parent):
         True
     """
 
-    cdef RealNumber y = <RealNumber>PY_NEW(RealNumber)
+    cdef RealNumber y = <RealNumber>RealNumber.__new__(RealNumber)
     y._parent = parent
     mpfr_init2(y.value, parent.__prec)
     y.init = 1

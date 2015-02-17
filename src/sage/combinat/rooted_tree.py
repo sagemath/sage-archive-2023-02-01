@@ -135,14 +135,24 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         """
         TESTS::
 
-            sage: t1 = RootedTrees(4)([[],[[]]])
+            sage: RT4 = RootedTrees(4)
+            sage: t1 = RT4([[],[[]]])
             sage: TestSuite(t1).run()
+
+        Some bad inputs are refused::
+
+            sage: RT4(69)
+            Traceback (most recent call last):
+            ...
+            TypeError: input (69) is not a valid tree
         """
+        try:
+            children = list(children)
+        except TypeError:
+            raise TypeError("input ({}) is not a valid tree".format(children))
         tst = (children.__class__ is self.__class__
                and children.parent() == parent)
-        if tst:
-            children = list(children)
-        else:
+        if not tst:
             children = [self.__class__(parent, x) for x in children]
         NormalizedClonableList.__init__(self, parent, children, check=check)
 
@@ -215,6 +225,11 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         """
         Return the list of trees obtained by grafting ``other`` on ``self``.
 
+        Here grafting means that one takes the disjoint union of
+        ``self`` and ``other``, and add one edge from the root of
+        other to a vertex of ``self``. The root of the resulting
+        tree is the root of ``self``.
+
         This is useful for free pre-Lie algebras.
 
         EXAMPLES::
@@ -241,6 +256,11 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
     def graft_on_root(self, other):
         """
         Return the tree obtained by grafting ``other`` on the root of ``self``.
+
+        Here grafting means that one takes the disjoint union of
+        ``self`` and ``other``, and add one edge from the root of
+        other to the root of ``self``. The root of the resulting
+        tree is the root of ``self``.
 
         This is useful for free Nap algebras.
 
@@ -352,18 +372,6 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
         """
         return isinstance(x, self.element_class)
 
-    # def __call__(self, x=[], *args, **keywords):
-    #     """
-    #     Ensure that ``[]`` is passed by default.
-
-    #     TESTS::
-
-    #         sage: B = RootedTrees()
-    #         sage: B()
-    #         []
-    #     """
-    #     return super(RootedTrees, self).__call__(x, *args, **keywords)
-
     def unlabelled_trees(self):
         """
         Return the set of unlabelled trees associated to ``self``.
@@ -419,7 +427,6 @@ class RootedTrees_size(RootedTrees):
 
         sage: from sage.combinat.rooted_tree import RootedTrees_size
         sage: for i in range(1, 6): TestSuite(RootedTrees_size(i)).run()
-
     """
     def __init__(self, n):
         """
@@ -465,6 +472,10 @@ class RootedTrees_size(RootedTrees):
         """
         An iterator for ``self``
 
+        This generates the rooted trees of given size. The algorithm
+        first picks a partition for the sizes of subtrees, then picks
+        appropriate tuples of smaller trees.
+
         EXAMPLES::
 
             sage: from sage.combinat.rooted_tree import *
@@ -495,6 +506,8 @@ class RootedTrees_size(RootedTrees):
     def check_element(self, el, check=True):
         r"""
         Check that a given tree actually belongs to ``self``.
+
+        This just checks the number of vertices.
 
         EXAMPLES::
 

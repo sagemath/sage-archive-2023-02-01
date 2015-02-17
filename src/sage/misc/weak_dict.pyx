@@ -952,7 +952,8 @@ cdef class WeakValueDictionary(dict):
             [0, 1, 2, 3, 5, 6, 7, 8, 9]
 
         """
-        cdef PyObject *key, *wr
+        cdef PyObject *key
+        cdef PyObject *wr
         cdef Py_ssize_t pos = 0
         try:
             self._enter_iter()
@@ -1057,7 +1058,8 @@ cdef class WeakValueDictionary(dict):
             <9>
 
         """
-        cdef PyObject *key, *wr
+        cdef PyObject *key
+        cdef PyObject *wr
         cdef Py_ssize_t pos = 0
         try:
             self._enter_iter()
@@ -1157,7 +1159,8 @@ cdef class WeakValueDictionary(dict):
             [9] <9>
 
         """
-        cdef PyObject *key, *wr
+        cdef PyObject *key
+        cdef PyObject *wr
         cdef Py_ssize_t pos = 0
         try:
             self._enter_iter()

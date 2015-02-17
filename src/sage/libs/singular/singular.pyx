@@ -352,7 +352,12 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
     """
     """
     if _ring != currRing: rChangeCurrRing(_ring)
-    cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *coeff
+    cdef number *apow1
+    cdef number *apow2
     cdef int b = - _ring.ch
 
     a = naPar(1)
@@ -386,7 +391,12 @@ cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
     """
     if _ring != currRing: rChangeCurrRing(_ring)
     cdef int i
-    cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *coeff
+    cdef number *apow1
+    cdef number *apow2
     cdef GF2X_c rep = GF2E_rep(elem.x)
 
     if GF2X_deg(rep) >= 1:
@@ -421,7 +431,12 @@ cdef number *sa2si_GFq_generic(object elem, ring *_ring):
     """
     """
     cdef int i
-    cdef number *n1, *n2, *a, *coeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *coeff
+    cdef number *apow1
+    cdef number *apow2
     elem = elem.polynomial()
 
     if _ring != currRing: rChangeCurrRing(_ring)
@@ -457,7 +472,13 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     """
     """
     cdef int i
-    cdef number *n1, *n2, *a, *nlCoeff, *naCoeff, *apow1, *apow2
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *nlCoeff
+    cdef number *naCoeff
+    cdef number *apow1
+    cdef number *apow2
     elem = list(elem)
 
     if _ring != currRing: rChangeCurrRing(_ring)

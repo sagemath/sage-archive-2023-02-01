@@ -186,7 +186,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             [ 9 12 15]
         """
         cdef Py_ssize_t i
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
         cdef Integer _x
         _x = Integer(right)
@@ -199,7 +200,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         cdef Py_ssize_t i, j
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
 
         M = Matrix_integer_sparse.__new__(Matrix_integer_sparse, self._parent, None, None, None)
@@ -213,7 +215,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
         cdef Py_ssize_t i, j
-        cdef mpz_vector* self_row, *M_row
+        cdef mpz_vector *self_row
+        cdef mpz_vector *M_row
         cdef Matrix_integer_sparse M
 
         M = Matrix_integer_sparse.__new__(Matrix_integer_sparse, self._parent, None, None, None)

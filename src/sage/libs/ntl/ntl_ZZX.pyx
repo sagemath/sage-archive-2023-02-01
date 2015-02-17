@@ -391,7 +391,8 @@ cdef class ntl_ZZX:
            sage: q*g + r == f
            True
         """
-        cdef ZZX_c *r, *q
+        cdef ZZX_c *r
+        cdef ZZX_c *q
         sig_on()
         try:
             ZZX_quo_rem(&self.x, &other.x, &r, &q)
@@ -605,7 +606,8 @@ cdef class ntl_ZZX:
             sage: g.pseudo_quo_rem(f)
             ([-1 3], [2])
         """
-        cdef ZZX_c *r, *q
+        cdef ZZX_c *r
+        cdef ZZX_c *q
         sig_on()
         try:
             ZZX_pseudo_quo_rem(&self.x, &other.x, &r, &q)
@@ -675,7 +677,8 @@ cdef class ntl_ZZX:
         """
         proof = proof_flag(proof)
 
-        cdef ZZX_c *s, *t
+        cdef ZZX_c *s
+        cdef ZZX_c *t
         cdef ZZ_c *r
         sig_on()
         try:

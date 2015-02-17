@@ -309,7 +309,15 @@ cdef class SageObject:
         version of Sage it was created.
 
         This only works on Python classes that derive from SageObject.
+
+        TESTS::
+
+            sage: v = DiGraph().version()
+            doctest:... DeprecationWarning: version() is deprecated.
+            See http://trac.sagemath.org/2536 for details.
         """
+        from sage.misc.superseded import deprecation
+        deprecation(2536, 'version() is deprecated.')
         try:
             return self.__version
         except AttributeError:
@@ -374,24 +382,17 @@ cdef class SageObject:
         reload.
 
         The database directory is ``$HOME/.sage/db``
+
+        TESTS::
+
+            sage: SageObject().db("Test")
+            doctest:... DeprecationWarning: db() is deprecated.
+            See http://trac.sagemath.org/2536 for details.
         """
-        #if name is None:
-        #    name = self._db_name()
+        from sage.misc.superseded import deprecation
+        deprecation(2536, 'db() is deprecated.')
         from sage.misc.all import SAGE_DB
         return self.dump('%s/%s'%(SAGE_DB,name), compress=compress)
-
-##     def _db_name(self):
-##         t = str(type(self)).split()[-1][1:-2]
-##         try:
-##             d = str(self._defining_params_())
-##         except AttributeError:
-##             d = str(self)
-##         d = '_'.join(d.split())
-##         from sage.misc.all import SAGE_DB
-##         if not os.path.exists('%s/%s'%(SAGE_DB, t)):
-##             os.makedirs(t)
-##         return '%s/%s'%(t, d)
-
 
     #############################################################################
     # Category theory / structure

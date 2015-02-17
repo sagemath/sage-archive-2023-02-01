@@ -54,7 +54,7 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     are called *special*. All other Jordan algebras are called *exceptional*.
 
     Jordan algebras can also be constructed from a module `M` over `R` with
-    a symmetric bilinear form `(\cdot, \cdot) : R \times R \to M`.
+    a symmetric bilinear form `(\cdot, \cdot) : M \times M \to R`.
     We begin with the module `M^* = R \oplus M` and define multiplication
     in `M^*` by
 

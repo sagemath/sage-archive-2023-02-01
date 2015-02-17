@@ -1278,6 +1278,20 @@ cdef class LaurentSeries(AlgebraElement):
         t = u.parent().gen()
         return t**(self.__n) * u
 
+    def inverse(self):
+        """
+        Return the inverse of self, i.e., self^(-1).
+
+        EXAMPLES::
+
+            sage: R.<t> = LaurentSeriesRing(ZZ)
+            sage: t.inverse()
+            t^-1
+            sage: (1-t).inverse()
+            1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + ...
+        """
+        return self.__invert__()
+
     def __call__(self, *x, **kwds):
         """
         Compute value of this Laurent series at x.

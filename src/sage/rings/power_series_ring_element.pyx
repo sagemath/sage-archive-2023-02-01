@@ -1068,6 +1068,22 @@ cdef class PowerSeries(AlgebraElement):
 
         return self._parent(current, prec=prec)
 
+    def inverse(self):
+        """
+        Return the inverse of self, i.e., self^(-1).
+
+        EXAMPLES::
+
+            sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+            sage: t.inverse()
+            t^-1
+            sage: type(_)
+            <type 'sage.rings.laurent_series_ring_element.LaurentSeries'>
+            sage: (1-t).inverse()
+            1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + ...
+        """
+        return self.__invert__()
+
     def valuation_zero_part(self):
         r"""
         Factor self as as `q^n \cdot (a_0 + a_1 q + \cdots)` with

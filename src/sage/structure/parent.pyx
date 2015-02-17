@@ -94,7 +94,7 @@ This came up in some subtle bug once::
 
 """
 
-cimport element
+from element cimport parent_c
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from sage.structure.debug_options import debug
@@ -115,22 +115,6 @@ from sage.structure.misc cimport AttributeErrorMessage
 cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
 dummy_attribute_error = AttributeError(dummy_error_message)
 
-# TODO: define this once?
-
-cdef object elt_parent = None
-
-cdef inline parent_c(x):
-    if PY_TYPE_CHECK(x, element.Element):
-        return (<element.Element>x)._parent
-#    elif hasattr(x, 'parent'):
-#        return x.parent()
-#    else:
-#        return <object>PY_TYPE(x)
-    else:
-        try:
-            return x.parent()
-        except AttributeError:
-            return <object>PY_TYPE(x)
 
 cdef _record_exception():
     from element import get_coercion_model

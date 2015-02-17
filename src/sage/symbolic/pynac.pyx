@@ -27,7 +27,7 @@ include "sage/gsl/gsl_sf_result.pxi"
 include "sage/gsl/gsl_gamma.pxi"
 
 
-from sage.structure.element import Element
+from sage.structure.element cimport Element, parent_c
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -38,7 +38,7 @@ from sage.rings.all import CC
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 from sage.symbolic.substitution_map cimport SubstitutionMap, new_SubstitutionMap_from_GExMap
 from sage.symbolic.function import get_sfunction_from_serial
-from sage.symbolic.function cimport Function, parent_c
+from sage.symbolic.function cimport Function
 from sage.symbolic.constants_c cimport PynacConstant
 
 import ring
@@ -727,8 +727,6 @@ cdef public unsigned py_get_serial_for_new_sfunction(stdstring &s,
 #################################################################
 # Modular helpers
 #################################################################
-
-from sage.structure.element cimport Element
 
 cdef public int py_get_parent_char(object o) except -1:
     if isinstance(o, Element):

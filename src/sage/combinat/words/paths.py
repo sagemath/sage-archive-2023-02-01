@@ -1706,8 +1706,10 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
         INPUT:
 
-        - ``options`` - (dictionary, default: {'rgbcolor': 'blue'} graphic
+        - ``options`` - dictionary, default: {'rgbcolor': 'blue'} graphic
           options for the arrow
+
+        If the start is the same as the end, a single point is returned.
 
         EXAMPLES::
 
@@ -1716,18 +1718,19 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: p = P('aaaccaccacacacaccccccbbdd'); p
             Path: aaaccaccacacacaccccccbbdd
             sage: R = p.plot() + p.plot_directive_vector()
-            sage: show(R, axes=False, aspect_ratio=1)
+            sage: R.plot(axes=False, aspect_ratio=1)
+            Graphics object consisting of 4 graphics primitives
 
         TESTS:
 
         A closed path::
 
             sage: P('acbd').plot_directive_vector()
-            Graphics object consisting of 0 graphics primitives
+            Graphics object consisting of 1 graphics primitive
         """
         start = self.start_point()
         end = self.end_point()
-        if (start == end) :
+        if (start == end):
             G = point(start, pointsize=10, **options)
         else:
             G = arrow(start, end, **options)

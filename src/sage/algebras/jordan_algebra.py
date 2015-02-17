@@ -208,10 +208,6 @@ class JordanAlgebra(Parent, UniqueRepresentation):
         # arg0 is the base ring and arg1 is a matrix
         if not arg1.is_symmetric():
             raise ValueError("the bilinear form is not symmetric")
-        if arg0.characteristic() == 2:
-            raise ValueError("the base ring cannot have characteristic 2")
-            # TODO: Do we want this? The Jordan algebra of a symmetric
-            # bilinear form works fine in characteristic 2.
 
         arg1 = arg1.change_ring(arg0) # This makes a copy
         arg1.set_immutable()
@@ -308,24 +304,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
         B = self._A.basis()
         return Family(B.keys(), lambda x: self.element_class(self, B[x]), name="Term map")
 
-    @cached_method
-    def algebra_generators(self):
-        """
-        Return the algebra generators of ``self``.
-
-        EXAMPLES::
-
-            sage: F.<x,y,z> = FreeAlgebra(QQ)
-            sage: J = JordanAlgebra(F)
-            sage: J.algebra_generators()
-            Lazy family (Generator map(i))_{i in Free monoid on 3 generators (x, y, z)}
-        """
-        B = self._A.basis()
-        return Family(B.keys(), lambda x: self.element_class(self, B[x]), name="Generator map")
-        # Alternatively, maybe set up `algebra_generators` as an alias
-        # for `basis`? We only need to make sure that a class
-        # overriding `algebra_generators` will not end up changing
-        # `basis` too.
+    algebra_generators = basis
 
     # TODO: Keep this until we can better handle R.<...> shorthand
     def gens(self):
@@ -533,13 +512,18 @@ class SpecialJordanAlgebra(JordanAlgebra):
                 sage: a,b,c = map(J, F.gens())
                 sage: (a + 2*b) * (c - b)
                 -1/2*x*y + 1/2*x*z - 1/2*y*x - 2*y^2 + y*z + 1/2*z*x + z*y
+
+                sage: F.<x,y,z> = FreeAlgebra(GF(3))
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
+                sage: (a + 2*b) * (c - b)
+                x*y + 2*x*z + y*x + y^2 + y*z + 2*z*x + z*y
             """
             x = self._x
             y = other._x
             # This is safer than dividing by 2
-            return self.__class__(self.parent(), (x*y + y*x) * ~QQ(2))
-            # TODO: But this is broken over, say, GF(3). Why not divide
-            # by 2?
+            R = self.parent().base_ring()
+            return self.__class__(self.parent(), (x*y + y*x) * ~R(2))
 
         def _lmul_(self, other):
             """

@@ -6300,6 +6300,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 True
                 sage: w0.inverse().parent() is P
                 True
+                sage: P([3,2,4,1]).inverse()
+                [4, 2, 1, 3]
             """
             w = range(len(self))
             for i,j in enumerate(self):

@@ -351,6 +351,9 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.graphs.asteroidal_triples',
+              sources = ['sage/graphs/asteroidal_triples.pyx']),
+
     Extension('sage.graphs.chrompoly',
               sources = ['sage/graphs/chrompoly.pyx'],
               libraries = ['gmp']),

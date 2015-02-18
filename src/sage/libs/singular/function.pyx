@@ -103,7 +103,7 @@ from sage.interfaces.singular import get_docstring
 from sage.misc.misc import get_verbose
 
 from sage.structure.sequence import Sequence, Sequence_generic
-from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence, PolynomialSequence_generic
 
 cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
     """
@@ -556,7 +556,7 @@ cdef class Converter(SageObject):
             elif isinstance(a, Sequence_generic)\
                 and all_singular_poly_wrapper(a):
                 v = self.append_ideal(ring.ideal(a))
-            elif isinstance(a, PolynomialSequence):
+            elif isinstance(a, PolynomialSequence_generic):
                 v = self.append_ideal(ring.ideal(a))
             elif isinstance(a, Sequence_generic)\
                 and all_vectors(a):

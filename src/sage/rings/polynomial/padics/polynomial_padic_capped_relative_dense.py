@@ -320,14 +320,14 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
 
     def content(self):
         """
-        Computes the content of ``self``.
+        Compute the content of this polynomial.
 
         OUTPUT:
 
-        If ``self`` is zero, return ``self`` as an element of the base
-        ring.
-        Otherwise, since the content is only defined up to a unit, return
-        the content as `p^k` with maximal precision.
+        If this is the zero polynomial, return the constant coefficient.
+        Otherwise, since the content is only defined up to a unit, return the
+        content as `\pi^k` with maximal precision where `k` is the minimal
+        valuation of any of the coefficients.
 
         EXAMPLES::
 
@@ -355,24 +355,28 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: (2*fp).content()
             2 + O(2^11)
 
-        Over a field, the content is the base ring's one unless it is zero::
+        Over a field it would be sufficient to return only zero or one, as the
+        content is only defined up to multiplication with a unit. However, we
+        return `\pi^k` where `k` is the minimal valuation of any coefficient::
 
             sage: K = Qp(13,7)
             sage: R.<t> = K[]
-            sage: f = 13^7*t^3 + K(169,4)*t - 13^4
+            sage: f = 13^7*t^3 + K(169,4)*t - 13^-4
             sage: f.content()
-            1 + O(13^7)
+            13^-4 + O(13^3)
             sage: f = R.zero()
             sage: f.content()
             0
             sage: f = R(K(0,3))
             sage: f.content()
             O(13^3)
+            sage: f = 13*t^3 + K(0,1)*t
+            sage: f.content()
+            13 + O(13^8)
+
         """
         if self.is_zero():
             return self[0]
-        if self.base_ring().is_field():
-            return self.base_ring().one()
         if self._normalized:
             return self.base_ring()(self.base_ring().prime_pow(self._valbase))
         if self._valaddeds is None:

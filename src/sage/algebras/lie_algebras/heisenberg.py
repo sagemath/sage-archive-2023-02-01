@@ -223,7 +223,8 @@ class HeisenbergAlgebra_fd:
         d['z'] = self.z()
         return Family(d)
 
-class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract, FinitelyGeneratedLieAlgebra):
+class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract,
+                        FinitelyGeneratedLieAlgebra):
     """
     A Heisenberg algebra defined using structure coefficients.
 
@@ -265,7 +266,8 @@ class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract, Finite
         """
         HeisenbergAlgebra_fd.__init__(self, n)
         names = ['p%s'%i for i in range(1,n+1)] + ['q%s'%i for i in range(1,n+1)] #+ ['z']
-        FinitelyGeneratedLieAlgebra.__init__(self, R, names,
+        names = tuple(names)
+        FinitelyGeneratedLieAlgebra.__init__(self, R, names=names, index_set=names,
             category=LieAlgebras(R).FiniteDimensional().WithBasis())
         HeisenbergAlgebra_abstract.__init__(self, names)
 
@@ -431,8 +433,8 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         names = tuple('p%s'%i for i in range(1,n+1))
         names = names + tuple('q%s'%i for i in range(1,n+1)) + ('z',)
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()
-        LieAlgebraFromAssociative.__init__(self, p + q + (MS({(0,n+1):one}),),
-                                           names=names, category=cat)
+        LieAlgebraFromAssociative.__init__(self, MS, p + q + (MS({(0,n+1):one}),),
+                                           names=names, index_set=names, category=cat)
 
     def _repr_(self):
         """

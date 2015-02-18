@@ -232,7 +232,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
 
             sage: G = SymmetricGroup(3)
             sage: S = GroupAlgebra(G, QQ)
-            sage: L.<x,y> = LieAlgebra(associative=S)
+            sage: L.<x,y> = LieAlgebra(associative=S.gens())
             sage: x*y - y*x
             (2,3) - (1,3)
         """

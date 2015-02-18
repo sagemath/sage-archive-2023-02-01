@@ -5797,7 +5797,7 @@ class StandardPermutations_n_abstract(Permutations):
         """
         if len(x) < self.n:
             x = list(x) + range(len(x)+1, self.n+1)
-        return super(StandardPermutations_n_abstract, self).__call__(x, check_input=True)
+        return super(StandardPermutations_n_abstract, self).__call__(x, check_input=check_input)
 
     def __contains__(self, x):
         """
@@ -5818,7 +5818,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
     r"""
     Permutations of the set `\{1, 2, \ldots, n\}`.
 
-    These are also called permutations of size `n` or the symmetric group.
+    These are also called permutations of size `n`, or the elements
+    of the `n`-th symmetric group.
 
     .. TODO::
 
@@ -6071,6 +6072,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: g = G([2,3,4,1,5])
             sage: G.conjugacy_class(g)
             Conjugacy class of cycle type [4, 1] in Standard permutations of 5
+            sage: G.conjugacy_class(Partition([2, 1, 1, 1]))
+            Conjugacy class of cycle type [2, 1, 1, 1] in Standard permutations of 5
         """
         from sage.groups.perm_gps.symgp_conjugacy_class import PermutationsConjugacyClass
         return PermutationsConjugacyClass(self, g)
@@ -6093,6 +6096,8 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         """
         Return the index set for the descents of the symmetric group ``self``.
 
+        This is `\{ 1, 2, \ldots, n-1 \}`, where ``self`` is `S_n`.
+
         EXAMPLES::
 
             sage: P = Permutations(8)
@@ -6103,7 +6108,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
     def cartan_type(self):
         r"""
-        Return the Cartan type of ``self``
+        Return the Cartan type of ``self``.
 
         The symmetric group `S_n` is a Coxeter group of type `A_{n-1}`.
 
@@ -6114,11 +6119,13 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         """
         from sage.combinat.root_system.cartan_type import CartanType
         return CartanType(['A', self.n - 1])
+        # TODO: Is the answer OK for n = 0 ?
 
     def simple_reflection(self, i):
         r"""
-        For `i` in the index set of ``self``, this returns the
-        elementary transposition `s_i = (i,i+1)`.
+        For `i` in the index set of ``self`` (that is, for `i` in
+        `\{ 1, 2, \ldots, n-1 \}`, where ``self`` is `S_n`), this
+        returns the elementary transposition `s_i = (i,i+1)`.
 
         EXAMPLES::
 
@@ -6231,7 +6238,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 The methods :meth:`descents` and :meth:`idescents` behave
                 differently than their Weyl group counterparts. In
                 particular, the indexing is 0-based. This could lead to
-                errors, instead, construct the descent set as in the example.
+                errors. Instead, construct the descent set as in the example.
 
             EXAMPLES::
 

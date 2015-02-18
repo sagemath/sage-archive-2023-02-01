@@ -8,20 +8,12 @@ integer.
 The elements are :func:`Dyck paths<sage.combinat.dyck_word.DyckWord>`
 in the `(a \times b)`-rectangle. The order relation depends on `m`.
 
-To use the provided functionality, you should import Tamari lattices
-by typing::
-
-    sage: from sage.combinat.tamari_lattices import TamariLattice
-
-or::
+To use the provided functionality, you should import Generalized
+Tamari lattices by typing::
 
     sage: from sage.combinat.tamari_lattices import GeneralizedTamariLattice
 
 EXAMPLES::
-
-    sage: from sage.combinat.tamari_lattices import TamariLattice
-    sage: TamariLattice(3)
-    Finite lattice containing 5 elements
 
     sage: from sage.combinat.tamari_lattices import GeneralizedTamariLattice
     sage: GeneralizedTamariLattice(3,2)
@@ -29,7 +21,15 @@ EXAMPLES::
     sage: GeneralizedTamariLattice(4,3)
     Finite lattice containing 5 elements
 
-.. seealso::
+The classical **Tamari lattices** are special cases of this construction and
+are also available directly using the catalogue of posets, as follows.
+
+EXAMPLES::
+
+    sage: posets.TamariLattice(3)
+    Finite lattice containing 5 elements
+
+.. SEEALSO::
 
     For more detailed information see :meth:`TamariLattice`,
     :meth:`GeneralizedTamariLattice`.
@@ -246,8 +246,7 @@ def TamariLattice(n):
 
     EXAMPLES::
 
-        sage: from sage.combinat.tamari_lattices import TamariLattice
-        sage: TamariLattice(3)
+        sage: posets.TamariLattice(3)
         Finite lattice containing 5 elements
     """
     return GeneralizedTamariLattice(n + 1, n, 1)

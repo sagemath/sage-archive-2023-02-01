@@ -961,13 +961,13 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
 
                 sage: m = matrix([[0,1],[1,1]])
                 sage: J.<a,b,c> = JordanAlgebra(m)
-                sage: x = 4*a - b + 3*c
+                sage: x = 4*a - b + 3*c; x
+                4 + (-1, 3)
                 sage: x.norm()
-                19
+                13
             """
-            return self._s * self._s + (self._v * self.parent()._form
+            return self._s * self._s - (self._v * self.parent()._form
                                         * self._v.column())[0]
-            # TODO: The + in this formula belies the docstring. Please choose one.
 
         def bar(self):
             r"""

@@ -69,7 +69,7 @@ from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
 
 
-class RealInterval(UniqueRepresentation, Parent):
+class InternalRealInterval(UniqueRepresentation, Parent):
 
     def __init__(self, lower, lower_closed, upper, upper_closed, check=True):
         """
@@ -372,7 +372,7 @@ class RealInterval(UniqueRepresentation, Parent):
         """
         lower_closed = (self._lower != minus_infinity)
         upper_closed = (self._upper != infinity)
-        return RealInterval(self._lower, lower_closed, self._upper, upper_closed)
+        return InternalRealInterval(self._lower, lower_closed, self._upper, upper_closed)
         
     def interior(self):
         """
@@ -391,7 +391,7 @@ class RealInterval(UniqueRepresentation, Parent):
             sage: RealSet.closed_open(0, oo)[0].interior()
             (0, +oo)
         """
-        return RealInterval(self._lower, False, self._upper, False)
+        return InternalRealInterval(self._lower, False, self._upper, False)
         
     def is_connected(self, other):
         """
@@ -497,7 +497,7 @@ class RealInterval(UniqueRepresentation, Parent):
             assert(cmp_uu == 0)
             upper = self._upper
             upper_closed = self._upper_closed or other._upper_closed
-        return RealInterval(lower, lower_closed, upper, upper_closed)
+        return InternalRealInterval(lower, lower_closed, upper, upper_closed)
 
     def intersection(self, other):
         """
@@ -560,7 +560,7 @@ class RealInterval(UniqueRepresentation, Parent):
         if lower > upper:
             lower = upper = RLF(0)
             lower_closed = upper_closed = False
-        return RealInterval(lower, lower_closed, upper, upper_closed)
+        return InternalRealInterval(lower, lower_closed, upper, upper_closed)
 
     def contains(self, x):
         """
@@ -631,11 +631,11 @@ class RealSet(UniqueRepresentation, Parent):
         for arg in args:
             if isinstance(arg, tuple):
                 lower, upper = RealSet._prep(*arg)
-                intervals.append(RealInterval(lower, False, upper, False))
+                intervals.append(InternalRealInterval(lower, False, upper, False))
             elif isinstance(arg, list):
                 lower, upper = RealSet._prep(*arg)
-                intervals.append(RealInterval(lower, True, upper, True))
-            elif isinstance(arg, RealInterval):
+                intervals.append(InternalRealInterval(lower, True, upper, True))
+            elif isinstance(arg, InternalRealInterval):
                 intervals.append(arg)
             elif isinstance(arg, RealSet):
                 intervals.extend(arg._intervals)
@@ -929,7 +929,7 @@ class RealSet(UniqueRepresentation, Parent):
             (0, 1)
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(RealInterval(lower, False, upper, False))
+        return RealSet(InternalRealInterval(lower, False, upper, False))
 
     @staticmethod
     def closed(lower, upper):
@@ -951,7 +951,7 @@ class RealSet(UniqueRepresentation, Parent):
             [0, 1]
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(RealInterval(lower, True, upper, True))
+        return RealSet(InternalRealInterval(lower, True, upper, True))
 
     @staticmethod
     def point(p):
@@ -972,7 +972,7 @@ class RealSet(UniqueRepresentation, Parent):
             (0, 1)
         """
         p = RealSet._prep(p)
-        return RealSet(RealInterval(p, True, p, True))
+        return RealSet(InternalRealInterval(p, True, p, True))
     
     @staticmethod
     def open_closed(lower, upper):
@@ -995,7 +995,7 @@ class RealSet(UniqueRepresentation, Parent):
             (0, 1]
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(RealInterval(lower, False, upper, True))
+        return RealSet(InternalRealInterval(lower, False, upper, True))
 
     @staticmethod
     def closed_open(lower, upper):
@@ -1018,7 +1018,7 @@ class RealSet(UniqueRepresentation, Parent):
             [0, 1)
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(RealInterval(lower, True, upper, False))
+        return RealSet(InternalRealInterval(lower, True, upper, False))
 
     @staticmethod
     def unbounded_below_closed(bound):
@@ -1039,7 +1039,7 @@ class RealSet(UniqueRepresentation, Parent):
             (-oo, 1]
         """
         bound = RealSet._prep(bound)
-        return RealSet(RealInterval(minus_infinity, False, bound, True))
+        return RealSet(InternalRealInterval(minus_infinity, False, bound, True))
 
     @staticmethod
     def unbounded_below_open(bound):
@@ -1060,7 +1060,7 @@ class RealSet(UniqueRepresentation, Parent):
             (-oo, 1)
         """
         bound = RealSet._prep(bound)
-        return RealSet(RealInterval(RLF(minus_infinity), False, RLF(bound), False))
+        return RealSet(InternalRealInterval(RLF(minus_infinity), False, RLF(bound), False))
 
     @staticmethod
     def unbounded_above_closed(bound):
@@ -1082,7 +1082,7 @@ class RealSet(UniqueRepresentation, Parent):
             [1, +oo)
         """
         bound = RealSet._prep(bound)
-        return RealSet(RealInterval(RLF(bound), True, RLF(infinity), False))
+        return RealSet(InternalRealInterval(RLF(bound), True, RLF(infinity), False))
 
     @staticmethod
     def unbounded_above_open(bound):
@@ -1104,7 +1104,7 @@ class RealSet(UniqueRepresentation, Parent):
             (1, +oo)
         """
         bound = RealSet._prep(bound)
-        return RealSet(RealInterval(RLF(bound), False, RLF(infinity), False))
+        return RealSet(InternalRealInterval(RLF(bound), False, RLF(infinity), False))
 
     def union(self, *other):
         """
@@ -1261,16 +1261,16 @@ class RealSet(UniqueRepresentation, Parent):
         intervals = []
         if self.inf() != minus_infinity:
             first = self._intervals[0]
-            intervals.append(RealInterval(RLF(minus_infinity), False, 
+            intervals.append(InternalRealInterval(RLF(minus_infinity), False,
                                           first._lower, first.lower_open()))
         if self.sup() != infinity:
             last = self._intervals[-1]
-            intervals.append(RealInterval(last._upper, last.upper_open(), 
+            intervals.append(InternalRealInterval(last._upper, last.upper_open(),
                                           RLF(infinity), False))
         for i in range(1,n):
             prev = self._intervals[i-1]
             next = self._intervals[i]
-            i = RealInterval(prev._upper, prev.upper_open(),
+            i = InternalRealInterval(prev._upper, prev.upper_open(),
                              next._lower, next.lower_open())
             intervals.append(i)
         return RealSet(*intervals)

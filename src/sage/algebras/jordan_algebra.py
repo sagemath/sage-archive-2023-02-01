@@ -593,6 +593,11 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
         """
         Construct an element of ``self`` from ``s``.
 
+        Here ``s`` can be a pair of an element of `R` and an
+        element of `M`, or an element of `R`, or an element of
+        `M`, or an element of a(nother) Jordan algebra given
+        by a symmetric bilinear form.
+
         EXAMPLES::
 
             sage: m = matrix([[0,1],[1,1]])
@@ -601,10 +606,42 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             2 + (0, 0)
             sage: J((-4, (2, 5)))
             -4 + (2, 5)
+            sage: J((-4, (ZZ^2)((2, 5))))
+            -4 + (2, 5)
             sage: J(2, (-2, 3))
+            2 + (-2, 3)
+            sage: J(2, (ZZ^2)((-2, 3)))
             2 + (-2, 3)
             sage: J(-1, 1, 0)
             -1 + (1, 0)
+            sage: J((ZZ^2)((1, 3)))
+            0 + (1, 3)
+
+            sage: m = matrix([[2]])
+            sage: J = JordanAlgebra(m)
+            sage: J(2)
+            2 + (0)
+            sage: J((-4, (2,)))
+            -4 + (2)
+            sage: J(2, (-2,))
+            2 + (-2)
+            sage: J(-1, 1)
+            -1 + (1)
+            sage: J((ZZ^1)((3,)))
+            0 + (3)
+
+            sage: m = Matrix(QQ, [])
+            sage: J = JordanAlgebra(m)
+            sage: J(2)
+            2 + ()
+            sage: J((-4, ()))
+            -4 + ()
+            sage: J(2, ())
+            2 + ()
+            sage: J(-1)
+            -1 + ()
+            sage: J((ZZ^0)(()))
+            0 + ()
         """
         R = self.base_ring()
         if len(args) == 1:
@@ -637,6 +674,9 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
     def basis(self):
         """
         Return a basis of ``self``.
+
+        The basis returned begins with the unity of `R` and continues with
+        the standard basis of `M`.
 
         EXAMPLES::
 
@@ -861,7 +901,6 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
                 21 + (6, 2)
             """
             P = self.parent()
-            # This is safer than dividing by 2
             return self.__class__(P,
                                   self._s * other._s
                                    + (self._v * P._form * other._v.column())[0],
@@ -869,8 +908,7 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
 
         def _lmul_(self, other):
             """
-            Multiply ``self`` by the scalar ``other`` with ``self``
-            on the left.
+            Multiply ``self`` by the scalar ``other`` on the left.
 
             EXAMPLES::
 
@@ -883,7 +921,8 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
 
         def _rmul_(self, other):
             """
-            Multiply ``self`` and ``other`` by the right action.
+            Multiply ``self`` with the scalar ``other`` by the right
+            action.
 
             EXAMPLES::
 
@@ -928,13 +967,15 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             """
             return self._s * self._s + (self._v * self.parent()._form
                                         * self._v.column())[0]
+            # TODO: The + in this formula belies the docstring. Please choose one.
 
         def bar(self):
             r"""
             Return the result of the bar involution of ``self``.
 
-            The bar involution `\bar{\cdot}` is the linear mapping defined by
-            `\bar{1} = 1` and `\bar{x} = -x` for `x \in M`.
+            The bar involution `\bar{\cdot}` is the `R`-linear
+            endomorphism of `M^*` defined by `\bar{1} = 1` and
+            `\bar{x} = -x` for `x \in M`.
 
             EXAMPLES::
 

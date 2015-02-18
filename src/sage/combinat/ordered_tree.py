@@ -517,6 +517,63 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         children.reverse()
         return OrderedTree(children)
 
+    import sage.combinat.ranker
+    _unordered_ranker = sage.combinat.ranker.on_fly()
+
+    @cached_method
+    def normalize(self, inplace=False):
+        r"""
+        Return the normalized tree of ``self``.
+
+        INPUT:
+
+        - ``inplace`` -- boolean, (default ``False``) if ``True``,
+          then ``self`` is modified and nothing returned. Otherwise
+          the normalized tree is returned.
+
+        The normalization has a recursive definition. It means first
+        that every sub-tree is itself normalized, and also that
+        sub-trees are sorted. Here the sort is performed according to
+        the rank function.
+
+        Consider the quotient map `\pi` that sends a planar rooted tree to
+        the associated "abstract" rooted tree. This function computes the
+        composite `s \circ \pi`, where `s` is a section of `\pi`.
+
+        EXAMPLES::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.normalize() == tb.normalize()
+            True
+            sage: ta == tb
+            False
+
+        An example with inplace normalization::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.normalize(inplace=True); ta
+            [[], [[]]]
+            sage: tb.normalize(inplace=True); tb
+            [[], [[]]]
+        """
+        rank, unrank = self._unordered_ranker
+        if not inplace:
+            with self.clone() as res:
+                resl = res._get_list()
+                for i in range(len(resl)):
+                    resl[i] = resl[i].normalize()
+                resl.sort(key=rank)
+            return unrank(rank(res))
+        else:
+            resl = self._get_list()
+            for i in range(len(resl)):
+                resl[i] = resl[i].normalize()
+            resl.sort(key=rank)
+
     def dendrog_cmp(self, other):
         r"""
         Return `-1` if ``self`` is smaller than ``other`` in the
@@ -524,8 +581,8 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         return `1` if ``other`` is smaller.
 
         The dendrographical order is a total order on the set of
-        ordered rooted trees; it is defined recursively as
-        follows: An ordered rooted tree `T` with children
+        unlabelled ordered rooted trees; it is defined recursively
+        as follows: An ordered rooted tree `T` with children
         `T_1, T_2, \ldots, T_a` is smaller than an
         ordered rooted tree `S` with children
         `S_1, S_2, \ldots, S_b` if either `a < b` or (`a = b`
@@ -535,15 +592,21 @@ class OrderedTree(AbstractClonableTree, ClonableList):
 
         INPUT:
 
-        - ``other``: an ordered binary tree.
+        - ``other``: an ordered rooted tree.
 
         OUTPUT:
 
         `-1`, if ``smaller < other`` with respect to the
         dendrographical order.
-        `0`, if ``smaller == other``.
+        `0`, if ``smaller == other`` (as unlabelled ordered
+        rooted trees).
         `1`, if ``smaller > other`` with respect to the
         dendrographical order.
+
+        .. NOTE::
+
+            It is possible to provide labelled trees to this
+            method; however, their labels are ignored.
 
         EXAMPLES::
 
@@ -576,9 +639,10 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         return 0
 
     @cached_method
-    def normalize(self, inplace=False):
+    def dendrog_normalize(self, inplace=False):
         r"""
-        Return the normalized tree of ``self``.
+        Return the normalized tree of the *unlabelled* ordered rooted
+        tree ``self`` with respect to the dendrographical order.
 
         INPUT:
 
@@ -586,25 +650,28 @@ class OrderedTree(AbstractClonableTree, ClonableList):
           then ``self`` is modified and nothing returned. Otherwise
           the normalized tree is returned.
 
-        The normalization has a recursive definition. It means first
-        that every sub-tree is itself normalized, and also that
-        sub-trees are sorted. Here the sort is performed according to
-        the rank function.
+        The normalized tree of an unlabelled ordered rooted tree
+        `T` is an unlabelled ordered rooted tree defined recursively
+        as follows: We first replace all children of `T` by their
+        normalized trees; then, we reorder these children in weakly
+        increasing order with respect to the dendrographical order
+        (:meth:`dendrog_cmp`).
 
-        Consider the quotient map `\pi` that sends a planar rooted tree to
-        the associated "abstract" rooted tree. This function computes the
-        composite `s \circ \pi`, where `s` is a section of `\pi`.
+        This can be viewed as an alternative to :meth:`dendrog` for
+        the case of unlabelled ordered rooted trees. It has the
+        advantage of giving path-independent results, which can be
+        used for doctesting output.
 
         EXAMPLES::
 
             sage: OT = OrderedTree
             sage: ta = OT([[],[[]]])
             sage: tb = OT([[[]],[]])
-            sage: ta.normalize() == tb.normalize()
+            sage: ta.dendrog_normalize() == tb.dendrog_normalize()
             True
             sage: ta == tb
             False
-            sage: ta.normalize()
+            sage: ta.dendrog_normalize()
             [[], [[]]]
 
         An example with inplace normalization::
@@ -612,9 +679,9 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             sage: OT = OrderedTree
             sage: ta = OT([[],[[]]])
             sage: tb = OT([[[]],[]])
-            sage: ta.normalize(inplace=True); ta
+            sage: ta.dendrog_normalize(inplace=True); ta
             [[], [[]]]
-            sage: tb.normalize(inplace=True); tb
+            sage: tb.dendrog_normalize(inplace=True); tb
             [[], [[]]]
         """
         def dendrog_cmp(a, b):
@@ -623,13 +690,13 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             with self.clone() as res:
                 resl = res._get_list()
                 for i in range(len(resl)):
-                    resl[i] = resl[i].normalize()
+                    resl[i] = resl[i].dendrog_normalize()
                 resl.sort(cmp=dendrog_cmp)
             return res
         else:
             resl = self._get_list()
             for i in range(len(resl)):
-                resl[i] = resl[i].normalize()
+                resl[i] = resl[i].dendrog_normalize()
             resl.sort(cmp=dendrog_cmp)
 
 

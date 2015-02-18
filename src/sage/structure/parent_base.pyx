@@ -49,7 +49,7 @@ def is_ParentWithBase(x):
     """
     Return True if x is a parent object with base.
     """
-    return bool(isinstance(x, ParentWithBase))
+    return isinstance(x, ParentWithBase)
 
 cdef class ParentWithBase(parent_old.Parent):
     """

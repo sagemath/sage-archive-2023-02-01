@@ -1683,7 +1683,7 @@ class FSMState(SageObject):
 
         A string.
 
-        TESTS:
+        TESTS::
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: FSMState('A')._repr_()

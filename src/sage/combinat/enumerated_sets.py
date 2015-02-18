@@ -97,6 +97,7 @@ Trees
 - :ref:`sage.combinat.abstract_tree`
 - :ref:`sage.combinat.ordered_tree`
 - :ref:`sage.combinat.binary_tree`
+- :ref:`sage.combinat.rooted_tree`
 
 Enumerated sets related to graphs
 ---------------------------------

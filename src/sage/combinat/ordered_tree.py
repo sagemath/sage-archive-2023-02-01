@@ -22,6 +22,12 @@ from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.misc.cachefunc import cached_method
+from sage.categories.sets_cat import Sets, EmptySetError
+from sage.rings.integer import Integer
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
 
 
 class OrderedTree(AbstractClonableTree, ClonableList):
@@ -511,12 +517,121 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         children.reverse()
         return OrderedTree(children)
 
-from sage.categories.sets_cat import Sets, EmptySetError
-from sage.rings.integer import Integer
-from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.sets.family import Family
-from sage.misc.cachefunc import cached_method
+    def dendrog_cmp(self, other):
+        r"""
+        Return `-1` if ``self`` is smaller than ``other`` in the
+        dendrographical order; return `0` if they are equal;
+        return `1` if ``other`` is smaller.
+
+        The dendrographical order is a total order on the set of
+        ordered rooted trees; it is defined recursively as
+        follows: An ordered rooted tree `T` with children
+        `T_1, T_2, \ldots, T_a` is smaller than an
+        ordered rooted tree `S` with children
+        `S_1, S_2, \ldots, S_b` if either `a < b` or (`a = b`
+        and there exists a `1 \leq i \leq a` such that
+        `T_1 = S_1, T_2 = S_2, \ldots, T_{i-1} = S_{i-1}` and
+        `T_i < S_i`.
+
+        INPUT:
+
+        - ``other``: an ordered binary tree.
+
+        OUTPUT:
+
+        `-1`, if ``smaller < other`` with respect to the
+        dendrographical order.
+        `0`, if ``smaller == other``.
+        `1`, if ``smaller > other`` with respect to the
+        dendrographical order.
+
+        EXAMPLES::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([])
+            sage: tb = OT([[], [], [[], []]])
+            sage: tc = OT([[], [[], []], []])
+            sage: td = OT([[[], []], [], []])
+            sage: te = OT([[], []])
+            sage: tf = OT([[], [], []])
+            sage: tg = OT([[[], []], [[], []]])
+            sage: l = [ta, tb, tc, td, te, tf, tg]
+            sage: [l[i].dendrog_cmp(l[j]) for i in range(7) for j in range(7)]
+            [0, -1, -1, -1, -1, -1, -1,
+             1, 0, -1, -1, 1, 1, 1,
+             1, 1, 0, -1, 1, 1, 1,
+             1, 1, 1, 0, 1, 1, 1,
+             1, -1, -1, -1, 0, -1, -1,
+             1, -1, -1, -1, 1, 0, 1,
+             1, -1, -1, -1, 1, -1, 0]
+        """
+        if len(self) < len(other):
+            return -1
+        if len(self) > len(other):
+            return 1
+        for (a, b) in zip(self, other):
+            comp = a.dendrog_cmp(b)
+            if comp != 0:
+                return comp
+        return 0
+
+    @cached_method
+    def normalize(self, inplace=False):
+        r"""
+        Return the normalized tree of ``self``.
+
+        INPUT:
+
+        - ``inplace`` -- boolean, (default ``False``) if ``True``,
+          then ``self`` is modified and nothing returned. Otherwise
+          the normalized tree is returned.
+
+        The normalization has a recursive definition. It means first
+        that every sub-tree is itself normalized, and also that
+        sub-trees are sorted. Here the sort is performed according to
+        the rank function.
+
+        Consider the quotient map `\pi` that sends a planar rooted tree to
+        the associated "abstract" rooted tree. This function computes the
+        composite `s \circ \pi`, where `s` is a section of `\pi`.
+
+        EXAMPLES::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.normalize() == tb.normalize()
+            True
+            sage: ta == tb
+            False
+            sage: ta.normalize()
+            [[], [[]]]
+
+        An example with inplace normalization::
+
+            sage: OT = OrderedTree
+            sage: ta = OT([[],[[]]])
+            sage: tb = OT([[[]],[]])
+            sage: ta.normalize(inplace=True); ta
+            [[], [[]]]
+            sage: tb.normalize(inplace=True); tb
+            [[], [[]]]
+        """
+        def dendrog_cmp(a, b):
+            return a.dendrog_cmp(b)
+        if not inplace:
+            with self.clone() as res:
+                resl = res._get_list()
+                for i in range(len(resl)):
+                    resl[i] = resl[i].normalize()
+                resl.sort(cmp=dendrog_cmp)
+            return res
+        else:
+            resl = self._get_list()
+            for i in range(len(resl)):
+                resl[i] = resl[i].normalize()
+            resl.sort(cmp=dendrog_cmp)
+
 
 # Abstract class to serve as a Factory no instance are created.
 class OrderedTrees(UniqueRepresentation, Parent):
@@ -587,6 +702,7 @@ class OrderedTrees(UniqueRepresentation, Parent):
             True
         """
         return self([])
+
 
 class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
     """
@@ -659,7 +775,7 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
     def labelled_trees(self):
         """
-        Return the set of unlabelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -679,7 +795,6 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
         return self.element_class(self, *args, **keywords)
 
     Element = OrderedTree
-
 
 
 from sage.misc.lazy_attribute import lazy_attribute

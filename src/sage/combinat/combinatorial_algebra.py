@@ -61,12 +61,11 @@ algebra.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#from sage.algebras.algebra import Algebra
-#from sage.algebras.algebra_element import AlgebraElement
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.misc import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.categories.all import AlgebrasWithBasis
+from sage.structure.element import Element
 
 # TODO: migrate this completely to the combinatorial free module + categories framework
 
@@ -218,7 +217,7 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
         R = self.base_ring()
         eclass = self._element_class
         #Coerce elements of the base ring
-        if not hasattr(x, 'parent'):
+        if not isinstance(x, Element):
             x = R(x)
         if x.parent() == R:
             if x == R(0):

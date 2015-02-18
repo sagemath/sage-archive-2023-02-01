@@ -323,7 +323,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         base_field = base_ring.fraction_field()
         MS2 = MatrixSpace(base_field, n, sparse=True)
         MC2 = MS2._get_matrix_class()
-        self._bilinear = MC2(MS2, entries={(i, j): val(coxeter_matrix[i, j]) / base_ring(-2)
+        self._bilinear = MC2(MS2, entries={(i, j): val(coxeter_matrix[i, j]) / base_field(-2)
                                            for i in range(n) for j in range(n)
                                            if coxeter_matrix[i, j] != 2},
                              coerce=True, copy=True)

@@ -5,7 +5,6 @@ TODO:
 * include tests (a la OEIS)
 * include full text search
 * truncate input by size - how could we do that for distribution search?
-* check statistics on m-Dyck paths
 * get code for a composition of maps
 * for statistics: do we want to "call" them on an object, or rather have a getitem method?
   currently, it's call:
@@ -35,7 +34,7 @@ from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
 from sage.combinat.binary_tree import BinaryTree
 from sage.combinat.core import Core
 from sage.combinat.dyck_word import DyckWord
-from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.root_system.cartan_type import CartanType_abstract
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPattern
 from sage.graphs.graph import Graph
 from sage.combinat.composition import Composition
@@ -314,7 +313,7 @@ class FindStat:
 #        stat_str = join([a + " => " + b for (keys, values) in stat], " \n")
 
         _ = verbose("Sending data to Findstat %s" %stat_str, caller_name='FindStat')
-        values = urllib.urlencode({"freedata": stat_str, "depth": str(depth)})
+        values = urllib.urlencode({"freedata": stat_str, "depth": str(depth), "caller": "Sage"})
 
         _ = verbose("Fetching URL %s with encoded data %s" %(url, values), caller_name='FindStat')
 
@@ -936,10 +935,10 @@ class FindStatCollection():
                                       lambda x: x.length(),
                                       lambda x: str(list(DyckWord(x))), 
                                       lambda x: DyckWord(literal_eval(x))),
-        'Finite Cartan types':       ("FiniteCartanType",        CartanType,            
-                                      None,                              
-                                      None,
-                                      None),
+        'Finite Cartan types':       ("FiniteCartanType",        CartanType_abstract,            
+                                      lambda x: x.rank(),
+                                      str,
+                                      lambda x: CartanType(*literal_eval(str(x)))),
         'Gelfand-Tsetlin patterns':  ("GelfandTsetlinPatterns",  GelfandTsetlinPattern, 
                                       len,
                                       str,                              
@@ -1018,6 +1017,7 @@ class FindStatCollection():
                     self._name = key
                     (self._url_name, self._sagename, self._to_size, self._to_str, self._from_str) = value
                     bad = False
+                    break
             if bad:
                 raise ValueError, "Could not find FindStat collection for " + str(entry)
 

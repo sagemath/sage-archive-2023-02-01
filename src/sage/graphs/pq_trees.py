@@ -180,18 +180,12 @@ def reorder_sets(sets):
         sage: print ordered
         [{0, 1, 2}, {1, 2, 3}, {2, 3, 4}, {3, 4, 5}, {4, 5, 6}, {5, 6, 7}, {8, 6, 7}, {8, 9, 7}, {8, 9, 10}, {9, 10, 11}, {10, 11, 12}, {11, 12, 13}, {12, 13, 14}, {13, 14, 15}]
     """
-
-    if len(sets) == 1:
+    if len(sets) <= 2:
         return sets
 
-    s = set([])
-
-    for ss in sets:
-        for i in ss:
-            s.add(i)
+    s = set().union(*sets) # union of the sets
 
     tree = P(sets)
-
 
     for i in s:
         tree.set_contiguous(i)
@@ -352,10 +346,10 @@ class PQ:
 
         INPUT:
 
-        - ``left, right`` (booleans) -- whether ``v`` is aligned to the
+        - ``left, right`` (boolean) -- whether ``v`` is aligned to the
           right or to the left
 
-        - ``v```-- an element of the ground set
+        - ``v``-- an element of the ground set
 
         OUTPUT:
 
@@ -449,17 +443,14 @@ class PQ:
 
 class P(PQ):
     r"""
-    A P-Tree is a PQ-Tree whose children are
-    not ordered (they can be permuted in any way)
+    A P-Tree is a PQ-Tree whose children can be permuted in any way.
+
+    For more information, see the documentation of :mod:`sage.graphs.pq_trees`.
     """
     def set_contiguous(self, v):
         r"""
-        Updates ``self`` so that its sets containing ``v`` are
+        Updates ``self`` so that the sets containing ``v`` are
         contiguous for any admissible permutation of its subtrees.
-
-        This function also ensures, whenever possible,
-        that all the sets containing ``v`` are located on an interval
-        on the right side of the ordering.
 
         INPUT:
 
@@ -511,8 +502,8 @@ class P(PQ):
             Traceback (most recent call last):
             ...
             ValueError: Impossible
-
         """
+
         ###############################################################
         # Defining Variables :                                        #
         #                                                             #
@@ -549,8 +540,7 @@ class P(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = dict(map(lambda x_y: (x_y[0], len(x_y[1])),
-                          sorting.iteritems()))
+        counts = {x:len(y) for x,y in sorting.iteritems()}
 
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
@@ -624,7 +614,6 @@ class P(PQ):
 
                 new = []
 
-
                 # add the partial element, if any
                 if n_PARTIAL_ALIGNED == 1:
 
@@ -650,10 +639,9 @@ class P(PQ):
             # interval of sets containing v to the right
 
             else:
-
                 new = []
 
-                # The second partal element is aligned to the right
+                # The second partial element is aligned to the right
                 # while, as we want to put it at the end of the
                 # interval, it should be aligned to the left
                 set_PARTIAL_ALIGNED[1].reverse()
@@ -735,18 +723,15 @@ class P(PQ):
 
 class Q(PQ):
     r"""
-    A Q-Tree is a PQ-Tree whose children are
-    ordered up to reversal
+    A Q-Tree is a PQ-Tree whose children are ordered up to reversal
+
+    For more information, see the documentation of :mod:`sage.graphs.pq_trees`.
     """
 
     def set_contiguous(self, v):
         r"""
-        Updates ``self`` so that its sets containing ``v`` are
+        Updates ``self`` so that the sets containing ``v`` are
         contiguous for any admissible permutation of its subtrees.
-
-        This function also ensures, whenever possible,
-        that all the sets containing ``v`` are located on an interval
-        on the right side of the ordering.
 
         INPUT:
 
@@ -842,8 +827,7 @@ class Q(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = dict(map(lambda x_y: (x_y[0], len(x_y[1])),
-                          sorting.iteritems()))
+        counts = {x:len(y) for x,y in sorting.iteritems()}
 
         ###################################################################
         #                                                                 #
@@ -871,14 +855,12 @@ class Q(PQ):
             # We reverse the order of the elements in the SET only. Which means that they are still aligned to the right !
             self._children.reverse()
 
-
         #########################################################
         # 1/2                                                   #
         #                                                       #
         # Several easy cases where we can decide without paying #
         # attention                                             #
         #########################################################
-
 
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
@@ -916,13 +898,12 @@ class Q(PQ):
             else:
                 return (PARTIAL, UNALIGNED)
 
-
         ##############################################################
         # 2/2                                                        #
         #                                                            #
         # We iteratively consider all the children, and check        #
         # that the elements containing v are indeed                  #
-        # locate on an interval.                                     #
+        # located on an interval.                                    #
         #                                                            #
         # We are also interested in knowing whether this interval is #
         # aligned to the right                                       #

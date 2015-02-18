@@ -30,7 +30,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 
 from sage.categories.algebras import Algebras
-from sage.categories.lie_algebras import LieAlgebras
+from sage.categories.lie_algebras import LieAlgebras, LiftMorphism
 from sage.categories.rings import Rings
 from sage.categories.morphism import Morphism, SetMorphism
 from sage.categories.map import Map
@@ -277,6 +277,11 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             having ``names``. Should this method be moved to
             :class:`IndexedGenerators`?
         """
+        if isinstance(names, str):
+            names = tuple(names.split(','))
+        elif names is not None:
+            names = tuple(names)
+
         if index_set is None:
             if names is None:
                 raise ValueError("either the names of the generators"
@@ -284,11 +289,6 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             # If only the names are specified, then we make the indexing set
             #   be the names
             index_set = tuple(names)
-
-        if isinstance(names, str):
-            names = tuple(names.split(','))
-        elif names is not None:
-            names = tuple(names)
 
         if isinstance(index_set, (tuple, list)):
             index_set = FiniteEnumeratedSet(index_set)
@@ -661,6 +661,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
 
         sage: R.<a,b> = PolynomialRing(QQ)
         sage: L = LieAlgebra(associative=R)
+        sage: x, y = L(a), L(b)
         sage: L.bracket(x, y)
         0
 
@@ -675,7 +676,8 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
         sage: L.bracket(x-y, L.bracket(x,y))
         a^2*b - 2*a*b*a + a*b^2 + b*a^2 - 2*b*a*b + b^2*a
 
-    We can also use a subset of the generators to use in our Lie algebra::
+    We can also use a subset of the generators to use as a generating set
+    of the Lie algebra::
 
         sage: R.<a,b,c> = FreeAlgebra(QQ, 3)
         sage: L.<x,y> = LieAlgebra(associative=[a,b])
@@ -739,7 +741,7 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
 
             sage: G = SymmetricGroup(3)
             sage: S = GroupAlgebra(G, QQ)
-            sage: L1 = LieAlgebra(associative=S.gens(), names='x,y')
+            sage: L1 = LieAlgebra(associative=tuple(S.gens()), names=['x','y'])
             sage: L2 = LieAlgebra(associative=[ S(G((1,2,3))), S(G((1,2))) ], names='x,y')
             sage: L1 is L2
             True
@@ -856,9 +858,10 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
         # We don't need to store the original generators because we can
         #   get them from lifting this object's generators
 
-        # We construct the lift map in order to register the coercion
-        #   here since the UEA already exists
-        self.lift
+        # We construct the (custom) lift map in order to register the
+        #   coercion here since the UEA already exists
+        self.lift = LiftMorphismFromAssociative(self, self._assoc)
+        self.lift.register_as_coercion()
 
     def _repr_option(self, key):
         """
@@ -1074,4 +1077,28 @@ class LieAlgebraFromAssociative(FinitelyGeneratedLieAlgebra):
                 Free Algebra on 3 generators (x, y, z) over Rational Field
             """
             return self.value
+
+class LiftMorphismFromAssociative(LiftMorphism):
+    """
+    The natural lifting morphism from a Lie algebra constructed from
+    an associative algebra `A` to `A`.
+    """
+    def preimage(self, x):
+        """
+        Return the preimage of ``x`` under ``self``.
+        """
+        return self.domain().element_class(self.domain(), x)
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+        """
+        return x.value
+
+    def section(self):
+        """
+        Return the section map of ``self``.
+        """
+        return SetMorphism(Hom(self.codomain(), self.domain()),
+                           self.preimage)
 

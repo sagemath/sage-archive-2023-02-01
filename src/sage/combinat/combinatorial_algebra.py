@@ -81,7 +81,8 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
 #         be called directly, but only through the parent combinatorial
 #         algebra's __call__ method.
 
-#         TESTS:
+#         TESTS::
+#
 #             sage: s = SFASchur(QQ)
 #             sage: a = s._element_class(s, {Partition([2,1]):QQ(2)}); a
 #             2*s[2, 1]

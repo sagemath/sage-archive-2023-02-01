@@ -601,9 +601,9 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             2 + (0, 0)
             sage: J((-4, (2, 5)))
             -4 + (2, 5)
-            sage: J(2, (-2, 3)) # known bug - defaults to the base ring morphism #16054
+            sage: J(2, (-2, 3))
             2 + (-2, 3)
-            sage: J(-1, 1, 0) # known bug - defaults to the base ring morphism #16054
+            sage: J(-1, 1, 0)
             -1 + (1, 0)
         """
         R = self.base_ring()

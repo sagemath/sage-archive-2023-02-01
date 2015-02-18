@@ -29,37 +29,33 @@ geral sobre os três principais métodos usados pelo Sage.
    Sage, imprima ``latex()`` do objeto e copie-e-cole o resultado
    no seu documento.
 
-#. A interface Notebook é configurada para usar o `jsMath
-   <http://www.math.union.edu/~dpvc/jsMath/>`_ para representar
-   fórmulas matemáticas de forma clara em um web navegador. O jsMath é
+#. A interface Notebook é configurada para usar o `MathJax
+   <http://www.mathjax.org/>`_ para representar
+   fórmulas matemáticas de forma clara em um web navegador. O MathJax é
    uma coleção de rotinas em JavaScript e fontes associadas.
    Tipicamente esses fontes ficam armazenadas em um servidor e são
    enviadas para o navegador juntamente com a página onde elas estão
    sendo usadas. No caso do Sage, o Notebook está sempre conectado a
    um servidor usado para executar os comando do Sage, e esse servidor
-   também fornece as fontes do jsMath necessárias. Logo não é
+   também fornece as fontes do MathJax necessárias. Logo não é
    necessário configurar nada mais para ter formulas matemáticas
    representadas no seu navegador quando você usa o Notebook do Sage.
 
-   O jsMath é implementado para representar um subconjunto grande,
+   O MathJax é implementado para representar um subconjunto grande,
    mas não completo, do TeX. Ele não suporta objetos como, por
    exemplo, tabelas complicadas e seções, e é focado para
    representar acuradamente pequenas fórmulas em TeX. A
    representação automática de fórmulas matemáticas no Notebook é
    obtida convertendo a representação ``latex()`` de um objeto
    (como descrito acima) em uma forma de HTML mais adequada ao
-   jsMath.
+   MathJax.
 
-   Como o jsMath usa as suas próprias fontes de tamanho variável,
+   Como o MathJax usa as suas próprias fontes de tamanho variável,
    ele é superior a outros métodos que convertem equações, ou
    outros pequenos trechos de TeX, em imagens estáticas.
 
-   O jsMath muito provavelmente vai ser substituído pelo MathJAX,
-   uma tecnologia similar do mesmo autor, que possui suporte
-   extenso de editoras técnicas e sociedades profissionais.
-
 #. Na linha de comando do Sage, ou no Notebook quando o código em
-   LaTeX é complicado demais para o jsMath processar, uma
+   LaTeX é complicado demais para o MathJax processar, uma
    instalação local do LaTeX pode ser usada. O Sage inclui quase
    tudo que você precisa para compilar e usar o Sage, mas uma
    exceção significativa é o TeX. Então nessas situações você
@@ -84,11 +80,11 @@ Aqui nós demonstramos alguns usos básicos da função ``latex()``. ::
     -1 & -1 & -1
     \end{array}\right)
 
-A funcionalidade básica do jsMath é em sua maior parte automática no
+A funcionalidade básica do MathJax é em sua maior parte automática no
 Notebook, mas nós podemos demonstrar esse suporte parcialmente com a
-classe ``jsMath``. A função ``eval`` dessa classe converte um objeto
+classe ``MathJax``. A função ``eval`` dessa classe converte um objeto
 do Sage em sua representação LaTeX e adiciona HTML que por sua vez
-evoca a classe "matemática" do CSS, a qual então emprega o jsMath. ::
+evoca a classe "matemática" do CSS, a qual então emprega o MathJax. ::
 
     sage: from sage.misc.latex import MathJax
     sage: js = MathJax()
@@ -122,19 +118,19 @@ e visualizador, podem ser personalizados (veja
 :ref:`sec-custom-processing`).
 
 No Notebook, o comando ``view(foo)`` cria uma combinação apropriada de
-HTML e CSS para que o jsMath mostre a representação em LaTeX na folha
+HTML e CSS para que o MathJax mostre a representação em LaTeX na folha
 de trabalho. Para o usuário, ele simplesmente cria uma versão
 cuidadosamente formatada do resultado, distinta da saída padrão em
 modo texto do Sage. Nem todo objeto no Sage possui uma representação
-em LaTeX adequada às capacidades limitadas do jsMath. Nesses casos, a
-interpretação pelo jsMath pode ser deixada de lado, e com isso o LaTeX
+em LaTeX adequada às capacidades limitadas do MathJax. Nesses casos, a
+interpretação pelo MathJax pode ser deixada de lado, e com isso o LaTeX
 do sistema é chamado, e o resultado dessa chamada é convertido em uma
 imagem que é inserida na folha de trabalho. Como alterar e controlar
 esse processo é discutido abaixo na seção
 :ref:`sec-custom-generation`.
 
 O comando interno ``pretty_print()`` ilustra a conversão de objetos do
-Sage para HTML que emprega o jsMath no Notebook. ::
+Sage para HTML que emprega o MathJax no Notebook. ::
 
     sage: from sage.misc.latex import pretty_print
     sage: pretty_print(x^12)
@@ -145,9 +141,9 @@ Sage para HTML que emprega o jsMath no Notebook. ::
 O Notebook tem outros dois recursos para empregar o TeX. O primeiro é
 o botão "Typeset" bem acima da primeira célula da folha de trabalho, à
 direita dos quatro menus de opções. Quando selecionado, o resultado de
-qualquer cálculo vai ser interpretado pelo jsMath. Note que esse
+qualquer cálculo vai ser interpretado pelo MathJax. Note que esse
 efeito não é retroativo -- células calculadas anteriormente precisam
-ser recalculadas para ter o resultado representado pelo jsMath.
+ser recalculadas para ter o resultado representado pelo MathJax.
 Essencialmente, selecionar o botão "Typeset" é equivalente a aplicar o
 comando ``view()`` ao resultado de cada célula.
 
@@ -158,7 +154,7 @@ visível, então shift+clique irá abrir um mini processador de texto,
 TinyMCE. Isso permite digitar texto, usando um editor WSISYG para
 criar HTML e CSS. Logo é possível inserir texto formatado para
 complementar a folha de trabalho. Todavia, texto entre símbolos $, ou
-$$, é interpretado pelo jsMath como "inline" ou "display math"
+$$, é interpretado pelo MathJax como "inline" ou "display math"
 espectivamente.
 
 .. _sec-custom-generation:
@@ -221,7 +217,7 @@ obtido redefinindo a macro ``\Bold{}`` que faz parte do Sage. ::
 
 É possível aproveitar os recursos do TeX adicionando novas funções
 (macros em inglês) e novos pacotes. Primeiro, funções individuais podem
-ser adicionadas para serem usadas quando o jsMath interpreta pequenos
+ser adicionadas para serem usadas quando o MathJax interpreta pequenos
 trechos de códigos TeX no Notebook. ::
 
     sage: latex.extra_macros()
@@ -240,7 +236,7 @@ trechos de códigos TeX no Notebook. ::
 
 Macros adicionais usadas dessa forma serão também usadas eventualmente
 se a versão do TeX no seu sistema for usada para lidar com algo muito
-complicado para o jsMath. O comando ``latex_extra_preamble`` é usado
+complicado para o MathJax. O comando ``latex_extra_preamble`` é usado
 para construir o preambulo de um documento completo em LaTeX.
 Ilustramos a seguir como fazer isso. Novamente note a necessidade de
 barras invertidas duplas nas strings do Python. ::
@@ -310,7 +306,7 @@ Personalizando o Processamento em LaTeX
 É também possível controlar qual variação do TeX é usada quando a
 versão do sistema for evocada, logo influenciando também o resultado.
 De forma similar, é também possível controlar quando o Notebook irá
-usar o jsMath (trechos simples em TeX) ou a versão do TeX do sistema
+usar o MathJax (trechos simples em TeX) ou a versão do TeX do sistema
 (expressões mais complicadas).
 
 O comando ``latex.engine()`` pode ser usado para controlar de os
@@ -324,7 +320,7 @@ processador é definido como ``pdflatex``, irá produzir um PDF e o Sage vai
 executar o programa disponível no seu sistema para visualizar arquivos
 PDF (acrobat, okular, evince, etc.).
 
-No Notebook, é necessário interver na decisão de se o jsMath vai
+No Notebook, é necessário interver na decisão de se o MathJax vai
 interpretar trechos em TeX, ou se o LaTeX do sistema deve fazer o
 trabalho se o código em LaTeX for complicado demais. O dispositivo é
 uma lista de strings, que se forem encontradas em um trecho de código
@@ -349,7 +345,7 @@ gerenciada pelos comandos ``latex.add_to_mathjax_avoid_list`` e
 Suponha que uma expressão em LaTeX é produzida no Notebook com o
 comando ``view()`` ou enquanto o botão "Typeset" está selecionado, e
 então reconhecida, através da "lista de comandos a serem evitados no
-jsMath", como necessitando a versão do LaTeX no sistema. Então o
+MathJax", como necessitando a versão do LaTeX no sistema. Então o
 executável selecionado (como especificado por ``latex.engine()``) irá
 processar o código em LaTeX. Todavia, em vez de então abrir um
 visualizador externo (o que é o comportamento na linha de comando), o
@@ -436,8 +432,8 @@ linha de comando do Sage e produzir um PDF com a imagem completa do
 grafo `K_4`.
 
 Para uma experiência semelhante no Notebook, é necessário desabilitar
-o processador jsMath para o código LaTeX do grafo usando a "lista de
-comandos a serem evitados pelo jsMath". Grafos são criados usando o
+o processador MathJax para o código LaTeX do grafo usando a "lista de
+comandos a serem evitados pelo MathJax". Grafos são criados usando o
 ambiente ``tikzpicture``, logo essa uma boa escolha para uma string
 a ser incluída na lista que acabamos de mencionar. Agora,
 ``view(graphs.CompleteGraph(4))`` em uma folha de trabalho deve
@@ -501,7 +497,7 @@ mais informações.
 O tex2sws começa com um documento LaTeX, mas define ambientes
 adicionais para inserir código em Sage. Quando processado com as
 ferramentas adequadas, o resultado é uma folha de trabalho do Sage,
-com conteúdo apropriadamente formatado para o jsMath e com código em
+com conteúdo apropriadamente formatado para o MathJax e com código em
 Sage incorporado como células de entrada. Então um livro texto ou
 artigo pode ser criado em LaTeX, ter blocos de código em Sage
 incluídos, e o documento todo pode ser transformado em uma folha de

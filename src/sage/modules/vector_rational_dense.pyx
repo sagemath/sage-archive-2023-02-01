@@ -99,9 +99,16 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             ...
             MemoryError: cannot allocate ... bytes
             sage: try:
+            ....:     # Note: some malloc() implementations (on OS X
+            ....:     # for example) print stuff when an allocation
+            ....:     # fails.  # We catch this with the ... in the
+            ....:     # doctest result. The * is needed because a
+            ....:     # result cannot start with ...
+            ....:     print "*"
             ....:     Vector_rational_dense(QQ^(2^56))
             ....: except (MemoryError, OverflowError):
             ....:     print "allocation failed"
+            *...
             allocation failed
         """
         self._degree = degree

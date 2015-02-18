@@ -5768,6 +5768,11 @@ class StandardPermutations_n_abstract(Permutations):
     """
     Abstract base class for subsets of permutations of the
     set `\{1, 2, \ldots, n\}`.
+
+    .. WARNING::
+
+        Anyone inheriting from this class should override the
+        ``__contains__`` method.
     """
     def __init__(self, n, category=None):
         """
@@ -6141,16 +6146,39 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         return self.prod(self.gens())
 
     class Element(Permutation):
-        def has_left_descent(self, i):
-            """
+        def has_left_descent(self, i, mult=None):
+            r"""
             Check if ``i`` is a left descent of ``self``.
+
+            A *left descent* of a permutation `\pi \in S_n` means an index
+            `i \in \{ 1, 2, \ldots, n-1 \}` such that
+            `s_i \circ \pi` has smaller length than `\pi`. Here, `\circ`
+            denotes the multiplication of `S_n`. How it is defined depends
+            on the ``mult`` variable in
+            :meth:`Permutations.global_options`. If this variable is set
+            to ``'l2r'``, then the multiplication is defined by the rule
+            `(\alpha \beta) (x) = \beta( \alpha (x) )` for `\alpha,
+            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a left
+            descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
+            satisfying `\pi(i) > \pi(i+1)`. If this variable is set
+            to ``'r2l'``, then the multiplication is defined by the rule
+            `(\alpha \beta) (x) = \alpha( \beta (x) )` for `\alpha,
+            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a left
+            descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
+            satisfying `\pi^{-1}(i) > \pi^{-1}(i+1)`.
+
+            The optional parameter ``mult`` can be set to ``'l2r'`` or
+            ``'r2l'``; if so done, it is used instead of the ``mult``
+            variable in :meth:`Permutations.global_options`. Anyone using
+            this method in a non-interactive environment is encouraged to
+            do so in order to have code behave reliably.
 
             .. WARNING::
 
                 The methods :meth:`descents` and :meth:`idescents` behave
                 differently than their Weyl group counterparts. In
                 particular, the indexing is 0-based. This could lead to
-                errors, instead, construct the descent set as in the example.
+                errors. Instead, construct the descent set as in the example.
 
             EXAMPLES::
 
@@ -6160,14 +6188,43 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 [1, 3]
                 sage: [i for i in P.index_set() if x.has_left_descent(i)]
                 [1, 3]
+                sage: [i for i in P.index_set() if x.has_left_descent(i, mult="l2r")]
+                [1, 3]
+                sage: [i for i in P.index_set() if x.has_left_descent(i, mult="r2l")]
+                [1, 2]
             """
-            if self.parent().global_options['mult'] != 'l2r':
+            if mult is None:
+                mult = self.parent().global_options['mult']
+            if mult != 'l2r':
                 self = self.inverse()
             return self[i-1] > self[i]
 
-        def has_right_descent(self, i):
-            """
+        def has_right_descent(self, i, mult=None):
+            r"""
             Check if ``i`` is a right descent of ``self``.
+
+            A *right descent* of a permutation `\pi \in S_n` means an index
+            `i \in \{ 1, 2, \ldots, n-1 \}` such that
+            `\pi \circ s_i` has smaller length than `\pi`. Here, `\circ`
+            denotes the multiplication of `S_n`. How it is defined depends
+            on the ``mult`` variable in
+            :meth:`Permutations.global_options`. If this variable is set
+            to ``'l2r'``, then the multiplication is defined by the rule
+            `(\alpha \beta) (x) = \beta( \alpha (x) )` for `\alpha,
+            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a right
+            descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
+            satisfying `\pi^{-1}(i) > \pi^{-1}(i+1)`. If this variable is
+            set to ``'r2l'``, then the multiplication is defined by the
+            rule `(\alpha \beta) (x) = \alpha( \beta (x) )` for `\alpha,
+            \beta \in S_n` and `x \in \{ 1, 2, \ldots, n \}`; then, a right
+            descent of `\pi` is an index `i \in \{ 1, 2, \ldots, n-1 \}`
+            satisfying `\pi(i) > \pi(i+1)`.
+
+            The optional parameter ``mult`` can be set to ``'l2r'`` or
+            ``'r2l'``; if so done, it is used instead of the ``mult``
+            variable in :meth:`Permutations.global_options`. Anyone using
+            this method in a non-interactive environment is encouraged to
+            do so in order to have code behave reliably.
 
             .. WARNING::
 
@@ -6184,8 +6241,14 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
                 [1, 2]
                 sage: [i for i in P.index_set() if x.has_right_descent(i)]
                 [1, 2]
+                sage: [i for i in P.index_set() if x.has_right_descent(i, mult="l2r")]
+                [1, 2]
+                sage: [i for i in P.index_set() if x.has_right_descent(i, mult="r2l")]
+                [1, 3]
             """
-            if self.parent().global_options['mult'] != 'r2l':
+            if mult is None:
+                mult = self.parent().global_options['mult']
+            if mult != 'r2l':
                 self = self.inverse()
             return self[i-1] > self[i]
 

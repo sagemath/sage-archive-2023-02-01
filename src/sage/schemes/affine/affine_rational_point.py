@@ -118,14 +118,14 @@ def enum_affine_rational_field(X,B):
         pass
     iters = [ iter(R) for _ in range(n) ]
     for it in iters:
-        it.next()
+        next(it)
     i = 0
     while i < n:
         try:
-            a = ZZ(iters[i].next())
+            a = ZZ(next(iters[i]))
         except StopIteration:
             iters[i] = iter(R) # reset
-            P[i] = iters[i].next() # reset P[i] to 0 and increment
+            P[i] = next(iters[i]) # reset P[i] to 0 and increment
             i += 1
             continue
         m = m.gcd(a)

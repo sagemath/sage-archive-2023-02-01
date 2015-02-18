@@ -4,7 +4,11 @@ Algebras
 .. toctree::
    :maxdepth: 2
 
+   sage/algebras/catalog
+
    sage/algebras/clifford_algebra
+
+   sage/algebras/commutative_dga
 
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_element
@@ -24,8 +28,13 @@ Algebras
    sage/algebras/group_algebra_new
 
    sage/algebras/iwahori_hecke_algebra
+   sage/algebras/iwahori_hecke_algebra
+   sage/algebras/nil_coxeter_algebra
+   sage/algebras/affine_nil_temperley_lieb
 
    sage/algebras/hall_algebra
+
+   sage/algebras/quatalg/quaternion_algebra
 
    sage/algebras/shuffle_algebra
 

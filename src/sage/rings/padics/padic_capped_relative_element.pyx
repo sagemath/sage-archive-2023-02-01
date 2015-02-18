@@ -160,7 +160,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
                 mpz_mul(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(self.ordp))
             return ans
         else:
-            ansr = PY_NEW(Rational)
+            ansr = Rational.__new__(Rational)
             if self.relprec == 0:
                 mpq_set_si(ansr.value, 0, 1)
                 return self

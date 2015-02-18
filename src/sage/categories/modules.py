@@ -75,7 +75,7 @@ class Modules(Category_module):
         sage: Modules == RingModules
         True
 
-        sage: Modules(ZZ[x]).is_abelian()   # see #6081
+        sage: Modules(ZZ['x']).is_abelian()   # see #6081
         True
 
     TESTS::

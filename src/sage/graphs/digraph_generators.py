@@ -485,7 +485,7 @@ class DiGraphGenerators():
         gen = sp.stdout
         while True:
             try:
-                s = gen.next()
+                s = next(gen)
             except StopIteration:
                 raise StopIteration("Exhausted list of graphs from nauty geng")
 

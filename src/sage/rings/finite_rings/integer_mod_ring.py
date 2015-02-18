@@ -45,6 +45,8 @@ AUTHORS:
 - William Stein (2007-04-29): square_roots_of_one
 
 - Simon King (2011-04-21): allow to prescribe a category
+
+- Simon King (2013-09): Only allow to prescribe the category of fields
 """
 
 #*****************************************************************************
@@ -67,7 +69,7 @@ AUTHORS:
 
 import sage.misc.prandom as random
 
-from sage.rings.arith import factor
+from sage.rings.arith import factor, primitive_root
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.field as field
 import integer_mod
@@ -89,7 +91,22 @@ class IntegerModFactory(UniqueFactory):
 
     INPUT:
 
-    -  ``order`` -- integer (default: 0), positive or negative
+    - ``order`` -- integer (default: 0); positive or negative
+    - ``is_field`` -- bool (default: ``False``); assert that
+      the order is prime and hence the quotient ring belongs to
+      the category of fields
+
+    .. NOTE::
+
+        The optional argument ``is_field`` is not part of the cache key.
+        Hence, this factory will create precisely one instance of `\ZZ /
+        n\ZZ`.  However, if ``is_field`` is true, then a previously created
+        instance of the quotient ring will be updated to be in the category of
+        fields.
+
+        **Use with care!** Erroneously putting `\ZZ / n\ZZ` into the category
+        of fields may have consequences that can compromise a whole Sage
+        session, so that a restart will be needed.
 
     EXAMPLES::
 
@@ -109,38 +126,114 @@ class IntegerModFactory(UniqueFactory):
         Ring of integers modulo 18
         sage: Integers() is Integers(0) is ZZ
         True
+
+    .. NOTE::
+
+        Testing whether a quotient ring `\ZZ / n\ZZ` is a field can of
+        course be very costly. By default, it is not tested whether `n`
+        is prime or not, in contrast to
+        :func:`~sage.rings.finite_rings.constructor.GF`. If the user
+        is sure that the modulus is prime and wants to avoid a primality
+        test, (s)he can provide ``category=Fields()`` when constructing
+        the quotient ring, and then the result will behave like a field.
+        If the category is not provided during initialisation, and it is
+        found out later that the ring is in fact a field, then the category
+        will be changed at runtime, having the same effect as providing
+        ``Fields()`` during initialisation.
+
+    EXAMPLES::
+
+        sage: R = IntegerModRing(5)
+        sage: R.category()
+        Join of Category of finite commutative rings
+            and Category of subquotients of monoids
+            and Category of quotients of semigroups
+        sage: R in Fields()
+        True
+        sage: R.category()
+        Join of Category of finite fields
+            and Category of subquotients of monoids
+            and Category of quotients of semigroups
+        sage: S = IntegerModRing(5, is_field=True)
+        sage: S is R
+        True
+
+    .. WARNING::
+
+        If the optional argument ``is_field`` was used by mistake, there is
+        currently no way to revert its impact, even though
+        :meth:`IntegerModRing_generic.is_field` with the optional argument
+        ``proof=True`` would return the correct answer.  So, prescribe
+        ``is_field=True`` only if you know what your are doing!
+
+    EXAMPLES::
+
+        sage: R = IntegerModRing(15, is_field=True)
+        sage: R in Fields()
+        True
+        sage: R.is_field()
+        True
+
+    If the optional argument `proof=True` is provided, primality is tested and
+    the mistaken category assignment is reported::
+
+        sage: R.is_field(proof=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: THIS SAGE SESSION MIGHT BE SERIOUSLY COMPROMISED!
+        The order 15 is not prime, but this ring has been put
+        into the category of fields. This may already have consequences
+        in other parts of Sage. Either it was a mistake of the user,
+        or a probabilitstic primality test has failed.
+        In the latter case, please inform the developers.
+
+    However, the mistaken assignment is not automatically corrected::
+
+        sage: R in Fields()
+        True
+
     """
-    def create_key(self, order=0, category=None):
+    def get_object(self, version, key, extra_args):
+        out = super(IntegerModFactory,self).get_object(version, key, extra_args)
+        category = extra_args.get('category', None)
+        if category is not None:
+            out._refine_category_(category)
+            out._factory_data[3]['category'] = category
+        return out
+
+    def create_key_and_extra_args(self, order=0, is_field=False):
         """
         An integer mod ring is specified uniquely by its order.
 
         EXAMPLES::
 
-            sage: Zmod.create_key(7)
-            7
-            sage: Zmod.create_key(7, Fields())
-            (7, Category of fields)
+            sage: Zmod.create_key_and_extra_args(7)
+            (7, {})
+            sage: Zmod.create_key_and_extra_args(7, True)
+            (7, {'category': Category of fields})
         """
-        if category is None:
-            return order
-        return (order, category)
+        if is_field:
+            from sage.categories.fields import Fields
+            return order, {'category':Fields()}
+        return order, {}
 
-    def create_object(self, version, order):
+    def create_object(self, version, order, **kwds):
         """
         EXAMPLES::
 
             sage: R = Integers(10)
             sage: TestSuite(R).run() # indirect doctest
         """
-        category=None
         if isinstance(order, tuple):
+            # this is for unpickling old data
             order, category = order
+            kwds.setdefault('category', category)
         if order < 0:
             order = -order
         if order == 0:
-            return integer_ring.IntegerRing()
+            return integer_ring.IntegerRing(**kwds)
         else:
-            return IntegerModRing_generic(order,category=category)
+            return IntegerModRing_generic(order, **kwds)
 
 Zmod = Integers = IntegerModRing = IntegerModFactory("IntegerModRing")
 
@@ -173,32 +266,6 @@ default_category = JoinCategory((CommutativeRings(), FiniteEnumeratedSets()))
 ZZ = integer_ring.IntegerRing()
 
 
-def _unit_gens_primecase(p):
-    r"""
-    Return the smallest generator of `(\ZZ/p\ZZ)^*` and its order.
-
-    EXAMPLES::
-
-        sage: from sage.rings.finite_rings.integer_mod_ring import _unit_gens_primecase
-        sage: _unit_gens_primecase(17)
-        (3, 16)
-    """
-    ord = integer.Integer(p - 1)
-    P = ord.prime_divisors()
-    one = integer_mod.Mod(1, p)
-    x = 1
-    while x < p:
-        generator = True
-        z = integer_mod.Mod(x, p)
-        for q in P:
-            if z**(ord//q) == one:
-                generator = False
-                break
-        if generator:
-            return z, ord
-        x += 1
-    assert False, "didn't find primitive root for p={}".format(p)
-
 def _unit_gens_primepowercase(p, r):
     r"""
     Return a list of generators for `(\ZZ/p^r\ZZ)^*` and their orders.
@@ -206,31 +273,25 @@ def _unit_gens_primepowercase(p, r):
     EXAMPLES::
 
         sage: from sage.rings.finite_rings.integer_mod_ring import _unit_gens_primepowercase
+        sage: _unit_gens_primepowercase(2, 3)
+        [(7, 2), (5, 2)]
+        sage: _unit_gens_primepowercase(17, 1)
+        [(3, 16)]
         sage: _unit_gens_primepowercase(3, 3)
         [(2, 18)]
     """
+    pr = p**r
     if p == 2:
         if r == 1:
             return []
         if r == 2:
             return [(integer_mod.Mod(3, 4), integer.Integer(2))]
-        pr = 2**r
         return [(integer_mod.Mod(-1, pr), integer.Integer(2)),
                 (integer_mod.Mod(5, pr), integer.Integer(2**(r - 2)))]
 
     # odd prime
-    if r == 1:
-        return [_unit_gens_primecase(p)]
-    R = IntegerModRing(p**r)
-    x = R(_unit_gens_primecase(p)[0].lift())
-    n = p**(r-2) * (p - 1)
-    b = 0
-    while b < p:
-        z = x + R(b*p)
-        if z**n != R.one_element():
-            return [(z, integer.Integer(p**(r - 1) * (p - 1)))]
-        b += 1
-    assert False, "p={}, r={}, couldn't find generator".format(p, r)
+    return [(integer_mod.Mod(primitive_root(pr, check=False), pr),
+             integer.Integer(p**(r - 1) * (p - 1)))]
 
 
 class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
@@ -242,7 +303,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     - ``order`` -- an integer
 
     - ``category`` -- a subcategory of ``CommutativeRings()`` (the default)
-      (currently only available for subclasses)
 
     OUTPUT:
 
@@ -258,9 +318,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: FF
         Ring of integers modulo 29
         sage: FF.category()
-        Join of Category of finite commutative rings and
-         Category of subquotients of monoids and
-         Category of quotients of semigroups
+        Join of Category of finite commutative rings
+            and Category of subquotients of monoids
+            and Category of quotients of semigroups
         sage: FF.is_field()
         True
         sage: FF.characteristic()
@@ -276,13 +336,14 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: def pow(i): return a**i
         sage: [pow(i) for i in range(16)]
         [1, 2, 4, 8, 16, 3, 6, 12, 24, 19, 9, 18, 7, 14, 28, 27]
+        sage: TestSuite(FF).run()
 
     We have seen above that an integer mod ring is, by default, not
     initialised as an object in the category of fields. However, one
     can force it to be. Moreover, testing containment in the category
     of fields my re-initialise the category of the integer mod ring::
 
-        sage: F19 = IntegerModRing(19, category = Fields())
+        sage: F19 = IntegerModRing(19, is_field=True)
         sage: F19.category().is_subcategory(Fields())
         True
         sage: F23 = IntegerModRing(23)
@@ -292,7 +353,23 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         True
         sage: F23.category().is_subcategory(Fields())
         True
+        sage: TestSuite(F19).run()
+        sage: TestSuite(F23).run()
 
+    By :trac:`15229`, there is a unique instance of the
+    integral quotient ring of a given order. Using the
+    :func:`IntegerModRing` factory twice, and using
+    ``is_field=True`` the second time, will update the
+    category of the unique instance::
+
+        sage: F31a = IntegerModRing(31)
+        sage: F31a.category().is_subcategory(Fields())
+        False
+        sage: F31b = IntegerModRing(31, is_field=True)
+        sage: F31a is F31b
+        True
+        sage: F31a.category().is_subcategory(Fields())
+        True
 
     Next we compute with the integers modulo `16`.
 
@@ -300,9 +377,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
         sage: Z16 = IntegerModRing(16)
         sage: Z16.category()
-        Join of Category of finite commutative rings and
-         Category of subquotients of monoids and
-         Category of quotients of semigroups
+        Join of Category of finite commutative rings
+            and Category of subquotients of monoids
+            and Category of quotients of semigroups
         sage: Z16.is_field()
         False
         sage: Z16.order()
@@ -327,6 +404,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         2
         sage: b.multiplicative_order()
         4
+        sage: TestSuite(Z16).run()
+
+    Saving and loading::
+
+        sage: R = Integers(100000)
+        sage: TestSuite(R).run()  # long time (17s on sage.math, 2011)
 
     Testing ideals and quotients::
 
@@ -355,7 +438,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
             sage: FF = IntegerModRing(29)
             sage: TestSuite(FF).run()
-            sage: F19 = IntegerModRing(19, category = Fields())
+            sage: F19 = IntegerModRing(19, is_field=True)
             sage: TestSuite(F19).run()
             sage: F23 = IntegerModRing(23)
             sage: F23 in Fields()
@@ -371,13 +454,14 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             raise ZeroDivisionError("order must be positive")
         self.__order = order
         self._pyx_order = integer_mod.NativeIntStruct(order)
+        global default_category
         if category is None:
-            from sage.categories.commutative_rings import CommutativeRings
-            from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-            from sage.categories.category import Category
-            category = Category.join([CommutativeRings(), FiniteEnumeratedSets()])
-#            category = default_category
-        # If the category is given then we trust that is it right.
+            category = default_category
+        else:
+            # If the category is given, e.g., as Fields(), then we still
+            # know that the result will also live in default_category.
+            # Hence, we use the join of the default and the given category.
+            category = category.join([category,default_category])
         # Give the generator a 'name' to make quotients work.  The
         # name 'x' is used because it's also used for the ring of
         # integers: see the __init__ method for IntegerRing_class in
@@ -385,9 +469,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order),
                                                     names=('x',),
                                                     category=category)
-        # Calling ParentWithGens is not needed, the job is done in
-        # the quotient ring initialisation.
-        #ParentWithGens.__init__(self, self, category = category)
         # We want that the ring is its own base ring.
         self._base = self
         if cache is None:
@@ -566,8 +647,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
-    @cached_method
-    def is_integral_domain(self, proof = True):
+    def is_integral_domain(self, proof=None):
         """
         Return ``True`` if and only if the order of ``self`` is prime.
 
@@ -577,13 +657,47 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             True
             sage: Integers(389^2).is_integral_domain()
             False
+
+        TESTS:
+
+        Check that :trac:`17453` is fixed::
+
+            sage: R = Zmod(5)
+            sage: R in IntegralDomains()
+            True
         """
-        return self.order().is_prime()
+        return self.is_field(proof)
+
+    def is_unique_factorization_domain(self, proof=None):
+        """
+        Return ``True`` if and only if the order of ``self`` is prime.
+
+        EXAMPLES::
+
+            sage: Integers(389).is_unique_factorization_domain()
+            True
+            sage: Integers(389^2).is_unique_factorization_domain()
+            False
+        """
+        return self.is_field(proof)
 
     @cached_method
-    def is_field(self, proof = True):
-        """
-        Return ``True`` precisely if the order is prime.
+    def is_field(self, proof=None):
+        r"""
+        Return True precisely if the order is prime.
+
+        INPUT:
+
+        - ``proof`` (optional bool or None, default None):
+          If ``False``, then test whether the category of the quotient
+          is a subcategory of ``Fields()``, or do a probabilistic
+          primality test. If ``None``, then test the category and then
+          do a primality test according to the global arithmetic proof
+          settings. If True, do a deterministic primality test.
+
+        If it is found (perhaps probabilistically) that the ring is a field,
+        then the category of the ring is refined to include the category
+        of fields. This may change the Python class of the ring!
 
         EXAMPLES::
 
@@ -593,8 +707,59 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: FF = IntegerModRing(17)
             sage: FF.is_field()
             True
+
+        By :trac:`15229`, the category of the ring is refined,
+        if it is found that the ring is in fact a field::
+
+            sage: R = IntegerModRing(127)
+            sage: R.category()
+            Join of Category of finite commutative rings
+                and Category of subquotients of monoids
+                and Category of quotients of semigroups
+            sage: R.is_field()
+            True
+            sage: R.category()
+            Join of Category of finite fields
+                and Category of subquotients of monoids
+                and Category of quotients of semigroups
+
+        It is possible to mistakenly put `\ZZ/n\ZZ` into the category of fields.
+        In this case, :meth:`is_field` will return True without performing a
+        primality check. However, if the optional argument `proof=True` is
+        provided, primality is tested and the mistake is uncovered in a warning
+        message::
+
+            sage: R = IntegerModRing(21, is_field=True)
+            sage: R.is_field()
+            True
+            sage: R.is_field(proof=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: THIS SAGE SESSION MIGHT BE SERIOUSLY COMPROMISED!
+            The order 21 is not prime, but this ring has been put
+            into the category of fields. This may already have consequences
+            in other parts of Sage. Either it was a mistake of the user,
+            or a probabilitstic primality test has failed.
+            In the latter case, please inform the developers.
+
         """
-        return self.order().is_prime()
+        from sage.categories.fields import Fields
+        if not proof:
+            if self.category().is_subcategory(Fields()):
+                return True
+        is_prime = self.order().is_prime(proof=proof)
+        if is_prime:
+            self._refine_category_(Fields())
+            self._factory_data[3]['category'] = Fields()
+        else:
+            if self.category().is_subcategory(Fields()):
+                raise ValueError("""THIS SAGE SESSION MIGHT BE SERIOUSLY COMPROMISED!
+The order {} is not prime, but this ring has been put
+into the category of fields. This may already have consequences
+in other parts of Sage. Either it was a mistake of the user,
+or a probabilitstic primality test has failed.
+In the latter case, please inform the developers.""".format(self.order()))
+        return is_prime
 
     @cached_method
     def field(self):
@@ -1114,12 +1279,31 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Finite Field of size 11
             sage: Z11 == Z11, Z11 == Z12, Z11 == Z13, Z11 == F
             (True, False, False, False)
+
+        In :trac:`15229`, the following was implemented::
+
+            sage: R1 = IntegerModRing(5)
+            sage: R2 = IntegerModRing(5, is_field=True)
+            sage: R1 is R2    # used to return False
+            True
+            sage: R2 == GF(5)
+            False
+
         """
-        if not isinstance(other, type(self)):   # so that GF(p) =/= Z/pZ
-            return cmp(type(self), type(other))
+        # We want that GF(p) and IntegerModRing(p) evaluate unequal.
+        # However, we can not just compare the types, since the
+        # choice of a different category also changes the type.
+        # But if we go to the base class, we avoid the influence
+        # of the category.
+        try:
+            c = cmp(other.__class__.__base__, self.__class__.__base__)
+        except AttributeError: # __base__ does not always exists
+            c = cmp(type(other), type(self))
+        if c:
+            return c
         return cmp(self.__order, other.__order)
 
-    def unit_gens(self):
+    def unit_gens(self, **kwds):
         r"""
         Returns generators for the unit group `(\ZZ/N\ZZ)^*`.
 
@@ -1144,6 +1328,16 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: IntegerModRing(next_prime(10^30)).unit_gens()
             (5,)
 
+        The choice of generators is affected by the optional keyword
+        ``algorithm``; this can be ``'sage'`` (default) or ``'pari'``.
+        See :meth:`unit_group` for details.
+
+            sage: A = Zmod(55)
+            sage: A.unit_gens(algorithm='sage')
+            (12, 46)
+            sage: A.unit_gens(algorithm='pari')
+            (2, 21)
+
         TESTS::
 
             sage: IntegerModRing(2).unit_gens()
@@ -1152,8 +1346,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             (3,)
             sage: IntegerModRing(8).unit_gens()
             (7, 5)
+
         """
-        return self.unit_group().gens_values()
+        return self.unit_group(**kwds).gens_values()
 
     def unit_group_exponent(self):
         """
@@ -1207,7 +1402,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
           that their orders form a decreasing sequence with respect to
           divisibility.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The output of the algorithms ``'sage'`` and ``'pari'`` can
+        differ in various ways.  In the following example, the same
+        cyclic factors are computed, but in a different order::
 
             sage: A = Zmod(15)
             sage: G = A.unit_group(); G
@@ -1218,6 +1417,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Multiplicative Abelian group isomorphic to C4 x C2
             sage: H.gens_values()
             (7, 11)
+
+        Here are two examples where the cyclic factors are isomorphic,
+        but are ordered differently and have different generators::
 
             sage: A = Zmod(40)
             sage: G = A.unit_group(); G
@@ -1238,6 +1440,42 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Multiplicative Abelian group isomorphic to C16 x C2 x C2
             sage: H.gens_values()
             (133, 31, 65)
+
+        In the following examples, the cyclic factors are not even
+        isomorphic::
+
+            sage: A = Zmod(319)
+            sage: A.unit_group()
+            Multiplicative Abelian group isomorphic to C10 x C28
+            sage: A.unit_group(algorithm='pari')
+            Multiplicative Abelian group isomorphic to C140 x C2
+
+            sage: A = Zmod(30.factorial())
+            sage: A.unit_group()
+            Multiplicative Abelian group isomorphic to C2 x C16777216 x C3188646 x C62500 x C2058 x C110 x C156 x C16 x C18 x C22 x C28
+            sage: A.unit_group(algorithm='pari')
+            Multiplicative Abelian group isomorphic to C20499647385305088000000 x C55440 x C12 x C12 x C4 x C2 x C2 x C2 x C2 x C2 x C2
+
+        TESTS:
+
+        We test the cases where the unit group is trivial::
+
+            sage: A = Zmod(1)
+            sage: A.unit_group()
+            Trivial Abelian group
+            sage: A.unit_group(algorithm='pari')
+            Trivial Abelian group
+            sage: A = Zmod(2)
+            sage: A.unit_group()
+            Trivial Abelian group
+            sage: A.unit_group(algorithm='pari')
+            Trivial Abelian group
+
+            sage: Zmod(3).unit_group(algorithm='bogus')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm 'bogus' for computing the unit group
+
         """
         from sage.groups.abelian_gps.values import AbelianGroupWithValues
         if algorithm == 'sage':
@@ -1255,7 +1493,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             gens = map(self, gens)
             orders = map(integer.Integer, orders)
         else:
-            raise ValueError('unknown algorithm for computing the unit group: {}'.format(algorithm))
+            raise ValueError('unknown algorithm %r for computing the unit group' % algorithm)
         return AbelianGroupWithValues(gens, orders, values_group=self)
 
     def random_element(self, bound=None):

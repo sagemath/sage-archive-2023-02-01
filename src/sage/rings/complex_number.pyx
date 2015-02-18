@@ -121,7 +121,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         parent as ``self``.
         """
         cdef ComplexNumber x
-        x = PY_NEW(ComplexNumber)
+        x = ComplexNumber.__new__(ComplexNumber)
         x._parent = self._parent
         x._prec = self._prec
         x._multiplicative_order = None
@@ -590,7 +590,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             mpc(real='1.0', imag='2.0')
         """
         if prec is not None:
-            return self.n(prec=prec)._mpmath_()
+            from complex_field import ComplexField
+            return ComplexField(prec)(self)._mpmath_()
         from sage.libs.mpmath.all import make_mpc
         re = mpfr_to_mpfval(self.__re)
         im = mpfr_to_mpfval(self.__im)
@@ -2597,7 +2598,7 @@ cdef class CCtoCDF(Map):
             sage: f(exp(pi*CC.0/4))
             0.7071067811865476 + 0.7071067811865475*I
         """
-        cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+        cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
         z._complex.dat[0] = mpfr_get_d((<ComplexNumber>x).__re, GMP_RNDN)
         z._complex.dat[1] = mpfr_get_d((<ComplexNumber>x).__im, GMP_RNDN)
         return z

@@ -109,8 +109,6 @@ import rational_field, integer_ring
 from integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.libs.pari.all import pari
-from sage.misc.functional import sqrt, log
-from sage.rings.arith import integer_ceil as ceil
 from sage.misc.superseded import deprecated_function_alias
 
 from sage.categories.fields import Fields
@@ -417,7 +415,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: f.coefficients()
             [1, 1, -10/3]
         """
-        zero = self.parent().base_ring().zero_element()
+        zero = self.parent().base_ring().zero()
         return [c for c in self.list() if c != zero]
 
     def exponents(self):
@@ -431,7 +429,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: f.exponents()
             [1, 2, 3]
         """
-        zero = self.parent().base_ring().zero_element()
+        zero = self.parent().base_ring().zero()
         l = self.list()
         return [i for i in range(len(l)) if l[i] != zero]
 
@@ -1069,6 +1067,22 @@ cdef class PowerSeries(AlgebraElement):
             current = 2*current - z.truncate(next_prec)
 
         return self._parent(current, prec=prec)
+
+    def inverse(self):
+        """
+        Return the inverse of self, i.e., self^(-1).
+
+        EXAMPLES::
+
+            sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+            sage: t.inverse()
+            t^-1
+            sage: type(_)
+            <type 'sage.rings.laurent_series_ring_element.LaurentSeries'>
+            sage: (1-t).inverse()
+            1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + ...
+        """
+        return self.__invert__()
 
     def valuation_zero_part(self):
         r"""

@@ -989,9 +989,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: sv = A.singular_values()
             sage: sv[0:3]  # tol 1e-14
             [1440.7336659952966, 18.404403413369227, 6.839707797136151]
-            sage: (10^-15 < sv[3] < 10^-13) or sv[3]
+            sage: (sv[3] < 10^-13) or sv[3]
             True
-            sage: (10^-16 < sv[4] < 10^-14) or sv[4]
+            sage: (sv[4] < 10^-14) or sv[4]
             True
 
         A full-rank matrix that is ill-conditioned.  We use this to
@@ -1009,11 +1009,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.condition() > 1.6e16 or A.condition()
             True
 
-            sage: A.singular_values(eps=None)  # abs tol 5e-16
+            sage: A.singular_values(eps=None)  # abs tol 7e-16
             [1.7953720595619975, 0.38027524595503703, 0.04473854875218107, 0.0037223122378911614, 0.0002330890890217751, 1.116335748323284e-05, 4.082376110397296e-07, 1.1228610675717613e-08, 2.2519645713496478e-10, 3.1113486853814003e-12, 2.6500422260778388e-14, 9.87312834948426e-17]
-            sage: A.singular_values(eps='auto')  # abs tol 5e-16
+            sage: A.singular_values(eps='auto')  # abs tol 7e-16
             [1.7953720595619975, 0.38027524595503703, 0.04473854875218107, 0.0037223122378911614, 0.0002330890890217751, 1.116335748323284e-05, 4.082376110397296e-07, 1.1228610675717613e-08, 2.2519645713496478e-10, 3.1113486853814003e-12, 2.6500422260778388e-14, 0.0]
-            sage: A.singular_values(eps=1e-4)  # abs tol 5e-16
+            sage: A.singular_values(eps=1e-4)  # abs tol 7e-16
             [1.7953720595619975, 0.38027524595503703, 0.04473854875218107, 0.0037223122378911614, 0.0002330890890217751, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         With Sage's "verbose" facility, you can compactly see the cutoff
@@ -3878,7 +3878,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: a=matrix([[1, 1e-4r, 1+1e-100jr], [1e-8+3j, 0, 1e-58r]])
+            sage: a = matrix(CDF, [[1, 1e-4r, 1+1e-100jr], [1e-8+3j, 0, 1e-58r]])
             sage: a
             [           1.0         0.0001 1.0 + 1e-100*I]
             [ 1e-08 + 3.0*I            0.0          1e-58]
@@ -3888,9 +3888,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: a.zero_at(1e-4)
             [  1.0   0.0   1.0]
             [3.0*I   0.0   0.0]
-
-
-
         """
         global numpy
         cdef Matrix_double_dense M

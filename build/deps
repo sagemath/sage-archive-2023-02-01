@@ -70,7 +70,6 @@ all-sage: \
      $(INST)/$(MPC) \
      $(INST)/$(MPFI) \
      $(INST)/$(MPFR) \
-     $(INST)/$(MPIR) \
      $(INST)/$(MPMATH) \
      $(INST)/$(NETWORKX) \
      $(INST)/$(NTL) \
@@ -79,6 +78,7 @@ all-sage: \
      $(INST)/$(PARI) \
      $(INST)/$(PEXPECT) \
      $(INST)/$(PILLOW) \
+     $(INST)/$(PIP) \
      $(INST)/$(PKGCONF) \
      $(INST)/$(PKGCONFIG) \
      $(INST)/$(POLYBORI) \
@@ -103,7 +103,6 @@ all-sage: \
      $(INST)/$(SINGULAR) \
      $(INST)/$(SIX) \
      $(INST)/$(SPHINX) \
-     $(INST)/$(SQLALCHEMY) \
      $(INST)/$(SQLITE) \
      $(INST)/$(SYMMETRICA) \
      $(INST)/$(SYMPOW) \
@@ -114,6 +113,7 @@ all-sage: \
      $(INST)/$(ZEROMQ) \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
+     $(INST)/$(SAGE_MP_LIBRARY) \
      $(INST)/sage \
      $(INST)/csage \
      $(EXTCODE) \
@@ -131,7 +131,7 @@ toolchain: $(TOOLCHAIN)
 # See #14168 and #14232.
 toolchain-deps:
 	$(MAKE) $(INST)/$(ZLIB)
-	$(MAKE) $(INST)/$(MPIR)
+	$(MAKE) $(INST)/$(SAGE_MP_LIBRARY)
 	$(MAKE) $(INST)/$(MPFR)
 	$(MAKE) $(INST)/$(MPC)
 	$(MAKE) $(INST)/$(PPL)
@@ -143,12 +143,9 @@ SAGERUNTIME = $(SCRIPTS) $(INST)/sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON)
 ###############################################################################
 # Building the base system
 #
-# This consists of packages which are required for the Sage build system
-# but not for Sage itself.  Since nothing explicitly depends on these,
-# an update of these packages will not trigger a rebuild of every other
-# package during an upgrade, see #13415.
+# This consists of packages which are required for the Sage build system.
 ###############################################################################
-base: $(INST)/prereq $(INST)/$(BZIP2) $(INST)/$(PATCH)
+base: $(INST)/prereq $(INST)/$(BZIP2) $(INST)/$(PATCH) $(INST)/$(PKGCONF)
 
 $(INST)/prereq: ../configure
 	@cd ..; rm -f config.log; ln -s logs/pkgs/config.log config.log; \
@@ -175,10 +172,13 @@ $(INST)/$(BZIP2): $(INST)/prereq $(INST)/$(PKGCONF)
 # Building normal packages
 ###############################################################################
 
-$(INST)/$(ATLAS): $(INST)/$(PYTHON)
+$(INST)/$(SAGE_MP_LIBRARY): $(INST)/$(ICONV)
+	+$(PIPE) "$(SAGE_SPKG) $(SAGE_MP_LIBRARY) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_MP_LIBRARY).log"
+
+$(INST)/$(ATLAS): | $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(ATLAS) 2>&1" "tee -a $(SAGE_LOGS)/$(ATLAS).log"
 
-$(INST)/$(BOEHM_GC): $(INST)/$(PKGCONF)
+$(INST)/$(BOEHM_GC):
 	+$(PIPE) "$(SAGE_SPKG) $(BOEHM_GC) 2>&1" "tee -a $(SAGE_LOGS)/$(BOEHM_GC).log"
 
 $(INST)/$(BOOST_CROPPED):
@@ -190,7 +190,7 @@ $(INST)/$(CLIQUER):
 $(INST)/$(COMBINATORIAL_DESIGNS):
 	+$(PIPE) "$(SAGE_SPKG) $(COMBINATORIAL_DESIGNS) 2>&1" "tee -a $(SAGE_LOGS)/$(COMBINATORIAL_DESIGNS).log"
 
-$(INST)/$(NCURSES): $(INST)/$(PKGCONF)
+$(INST)/$(NCURSES):
 	+$(PIPE) "$(SAGE_SPKG) $(NCURSES) 2>&1" "tee -a $(SAGE_LOGS)/$(NCURSES).log"
 
 $(INST)/$(READLINE): $(INST)/$(NCURSES)
@@ -202,26 +202,24 @@ $(INST)/$(ICONV):
 $(INST)/$(DOCUTILS): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(DOCUTILS) 2>&1" "tee -a $(SAGE_LOGS)/$(DOCUTILS).log"
 
-$(INST)/$(ELLIPTIC_CURVES): $(INST)/$(PYTHON) $(INST)/$(SQLITE)
+$(INST)/$(ELLIPTIC_CURVES): | $(INST)/$(SQLITE) $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(ELLIPTIC_CURVES) 2>&1" "tee -a $(SAGE_LOGS)/$(ELLIPTIC_CURVES).log"
 
 # CONWAY depends on depends on SAGERUNTIME because it runs Sage code to
 # generate a Sage object (.sobj).
-$(INST)/$(CONWAY): $(SAGERUNTIME)
+$(INST)/$(CONWAY): | $(SAGERUNTIME)
 	+$(PIPE) "$(SAGE_SPKG) $(CONWAY) 2>&1" "tee -a $(SAGE_LOGS)/$(CONWAY).log"
 
 $(INST)/$(GRAPHS):
 	+$(PIPE) "$(SAGE_SPKG) $(GRAPHS) 2>&1" "tee -a $(SAGE_LOGS)/$(GRAPHS).log"
 
-$(INST)/$(GLPK): $(INST)/$(MPIR) $(INST)/$(ZLIB)
+$(INST)/$(GLPK): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GLPK) 2>&1" "tee -a $(SAGE_LOGS)/$(GLPK).log"
 
-$(INST)/$(PYTHON): $(INST)/$(ZLIB) $(INST)/$(BZIP2) $(INST)/$(PKGCONF) \
-		   $(INST)/$(READLINE) $(INST)/$(SQLITE) $(INST)/$(LIBPNG)
+$(INST)/$(PYTHON): $(INST)/$(ZLIB) $(INST)/$(READLINE) \
+                   $(INST)/$(SQLITE) $(INST)/$(LIBPNG) \
+                   | $(INST)/$(BZIP2)
 	+$(PIPE) "$(SAGE_SPKG) $(PYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(PYTHON).log"
-
-$(INST)/$(MPIR): $(INST)/$(ICONV)
-	+$(PIPE) "$(SAGE_SPKG) $(MPIR) 2>&1" "tee -a $(SAGE_LOGS)/$(MPIR).log"
 
 $(INST)/$(GSL): $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(GSL) 2>&1" "tee -a $(SAGE_LOGS)/$(GSL).log"
@@ -229,14 +227,14 @@ $(INST)/$(GSL): $(INST)/$(ATLAS)
 $(INST)/$(GF2X):
 	+$(PIPE) "$(SAGE_SPKG) $(GF2X) 2>&1" "tee -a $(SAGE_LOGS)/$(GF2X).log"
 
-$(INST)/$(NTL): $(INST)/$(MPIR) $(INST)/$(GF2X)
+$(INST)/$(NTL): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(GF2X)
 	+$(PIPE) "$(SAGE_SPKG) $(NTL) 2>&1" "tee -a $(SAGE_LOGS)/$(NTL).log"
 
-$(INST)/$(FPLLL): $(INST)/$(MPIR) $(INST)/$(MPFR)
+$(INST)/$(FPLLL): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(FPLLL) 2>&1" "tee -a $(SAGE_LOGS)/$(FPLLL).log"
 
-$(INST)/$(PARI): $(INST)/$(READLINE) $(INST)/$(MPIR) \
-    $(INST)/$(PARI_GALDATA) $(INST)/$(PARI_SEADATA_SMALL)
+$(INST)/$(PARI): $(INST)/$(READLINE) $(INST)/$(SAGE_MP_LIBRARY) \
+    | $(INST)/$(PARI_GALDATA) $(INST)/$(PARI_SEADATA_SMALL)
 	+$(PIPE) "$(SAGE_SPKG) $(PARI) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI).log"
 
 $(INST)/$(PARI_GALDATA):
@@ -244,6 +242,9 @@ $(INST)/$(PARI_GALDATA):
 
 $(INST)/$(PARI_SEADATA_SMALL):
 	+$(PIPE) "$(SAGE_SPKG) $(PARI_SEADATA_SMALL) 2>&1" "tee -a $(SAGE_LOGS)/$(PARI_SEADATA_SMALL).log"
+
+$(INST)/$(PIP): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(PIP) 2>&1" "tee -a $(SAGE_LOGS)/$(PIP).log"
 
 $(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(IPYTHON) \
          $(INST)/$(SCONS) $(INST)/$(BOOST_CROPPED) \
@@ -253,34 +254,34 @@ $(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(IPYTHON) \
 $(INST)/$(POLYTOPES_DB):
 	+$(PIPE) "$(SAGE_SPKG) $(POLYTOPES_DB) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYTOPES_DB).log"
 
-$(INST)/$(PPL): $(INST)/$(MPIR) $(INST)/$(GLPK)
+$(INST)/$(PPL): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(GLPK)
 	+$(PIPE) "$(SAGE_SPKG) $(PPL) 2>&1" "tee -a $(SAGE_LOGS)/$(PPL).log"
 
-$(INST)/$(MPC): $(INST)/$(MPIR) $(INST)/$(MPFR)
+$(INST)/$(MPC): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(MPC) 2>&1" "tee -a $(SAGE_LOGS)/$(MPC).log"
 
-$(INST)/$(MPFR): $(INST)/$(MPIR)
+$(INST)/$(MPFR): $(INST)/$(SAGE_MP_LIBRARY)
 	+$(PIPE) "$(SAGE_SPKG) $(MPFR) 2>&1" "tee -a $(SAGE_LOGS)/$(MPFR).log"
 
-$(INST)/$(MPFI): $(INST)/$(MPIR) $(INST)/$(MPFR)
+$(INST)/$(MPFI): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(MPFI) 2>&1" "tee -a $(SAGE_LOGS)/$(MPFI).log"
 
-$(INST)/$(GIVARO): $(INST)/$(MPIR)
+$(INST)/$(GIVARO): $(INST)/$(SAGE_MP_LIBRARY)
 	+$(PIPE) "$(SAGE_SPKG) $(GIVARO) 2>&1" "tee -a $(SAGE_LOGS)/$(GIVARO).log"
 
 $(INST)/$(GIT): $(INST)/$(ZLIB) $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(GIT) 2>&1" "tee -a $(SAGE_LOGS)/$(GIT).log"
 
-$(INST)/$(FFLASFFPACK): $(INST)/$(MPIR) $(INST)/$(GIVARO) \
+$(INST)/$(FFLASFFPACK): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(GIVARO) \
 	$(INST)/$(GSL) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(FFLASFFPACK) 2>&1" "tee -a $(SAGE_LOGS)/$(FFLASFFPACK).log"
 
-$(INST)/$(LINBOX): $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(GIVARO) \
+$(INST)/$(LINBOX): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(NTL) $(INST)/$(GIVARO) \
                    $(INST)/$(MPFR) $(INST)/$(FPLLL) $(INST)/$(IML) \
                    $(INST)/$(M4RI) $(INST)/$(M4RIE) $(INST)/$(FFLASFFPACK)
 	+$(PIPE) "$(SAGE_SPKG) $(LINBOX) 2>&1" "tee -a $(SAGE_LOGS)/$(LINBOX).log"
 
-$(INST)/$(IML): $(INST)/$(MPIR) $(INST)/$(GSL) $(INST)/$(ATLAS)
+$(INST)/$(IML): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(GSL) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(IML) 2>&1" "tee -a $(SAGE_LOGS)/$(IML).log"
 
 $(INST)/$(PALP):
@@ -301,7 +302,7 @@ $(INST)/$(SYMPOW):
 $(INST)/$(SYMMETRICA):
 	+$(PIPE) "$(SAGE_SPKG) $(SYMMETRICA) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMMETRICA).log"
 
-$(INST)/$(GAP): $(INST)/$(NCURSES) $(INST)/$(READLINE) $(INST)/$(MPIR)
+$(INST)/$(GAP): $(INST)/$(NCURSES) $(INST)/$(READLINE) $(INST)/$(SAGE_MP_LIBRARY)
 	+$(PIPE) "$(SAGE_SPKG) $(GAP) 2>&1" "tee -a $(SAGE_LOGS)/$(GAP).log"
 
 $(INST)/$(LIBGAP): $(INST)/$(GAP)
@@ -330,15 +331,15 @@ $(INST)/$(SQLITE): $(INST)/$(READLINE)
 
 # To build SageTeX, you just need Python, but to test (SAGE_CHECK=yes)
 # SageTeX, you actually need to run Sage, produce plots,...
-$(INST)/$(SAGETEX): $(INST)/$(PYTHON) \
-                    $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(SCIPY) \
-                    $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW) $(INST)/$(TACHYON)
+$(INST)/$(SAGETEX): $(INST)/$(PYTHON) $(INST)/$(MAXIMA) $(INST)/$(SCIPY) \
+                    $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW) $(INST)/$(TACHYON) \
+                    | $(SAGERUNTIME)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGETEX) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGETEX).log"
 
 $(INST)/$(SETUPTOOLS): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(SETUPTOOLS) 2>&1" "tee -a $(SAGE_LOGS)/$(SETUPTOOLS).log"
 
-$(INST)/$(SINGULAR): $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(FLINT) \
+$(INST)/$(SINGULAR): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(NTL) $(INST)/$(FLINT) \
 		     $(INST)/$(READLINE) $(INST)/$(MPFR)
 	+$(PIPE) "$(SAGE_SPKG) $(SINGULAR) 2>&1" "tee -a $(SAGE_LOGS)/$(SINGULAR).log"
 
@@ -357,7 +358,7 @@ $(INST)/$(ZEROMQ):
 $(INST)/$(ZLIB):
 	+$(PIPE) "$(SAGE_SPKG) $(ZLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ZLIB).log"
 
-$(INST)/$(JMOL): $(INST)/$(SAGENB)
+$(INST)/$(JMOL): | $(INST)/$(SAGENB)
 	+$(PIPE) "$(SAGE_SPKG) $(JMOL) 2>&1" "tee -a $(SAGE_LOGS)/$(JMOL).log"
 
 $(INST)/$(FREETYPE): $(INST)/$(LIBPNG)
@@ -382,34 +383,34 @@ $(INST)/$(TORNADO): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(TORNADO) 2>&1" "tee -a $(SAGE_LOGS)/$(TORNADO).log"
 
 $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
-		       $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \
-		       $(INST)/$(GDMODULE) $(INST)/$(DATEUTIL) \
-		       $(INST)/$(PKGCONF) $(INST)/$(PYPARSING) \
-		       $(INST)/$(SETUPTOOLS) $(INST)/$(TORNADO) $(INST)/$(SIX)
+                       $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \
+                       $(INST)/$(GDMODULE) $(INST)/$(DATEUTIL) \
+                       $(INST)/$(PYPARSING) $(INST)/$(SETUPTOOLS) \
+                       $(INST)/$(TORNADO) $(INST)/$(SIX)
 	+$(PIPE) "$(SAGE_SPKG) $(MATPLOTLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(MATPLOTLIB).log"
 
-$(INST)/$(CDDLIB): $(INST)/$(MPIR)
+$(INST)/$(CDDLIB): $(INST)/$(SAGE_MP_LIBRARY)
 	+$(PIPE) "$(SAGE_SPKG) $(CDDLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(CDDLIB).log"
 
-$(INST)/$(GFAN): $(INST)/$(MPIR) $(INST)/$(CDDLIB)
+$(INST)/$(GFAN): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(CDDLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GFAN) 2>&1" "tee -a $(SAGE_LOGS)/$(GFAN).log"
 
 $(INST)/$(TACHYON): $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(TACHYON) 2>&1" "tee -a $(SAGE_LOGS)/$(TACHYON).log"
 
-$(INST)/$(ECM): $(INST)/$(MPIR)
+$(INST)/$(ECM): $(INST)/$(SAGE_MP_LIBRARY)
 	+$(PIPE) "$(SAGE_SPKG) $(ECM) 2>&1" "tee -a $(SAGE_LOGS)/$(ECM).log"
 
-$(INST)/$(RATPOINTS): $(INST)/$(MPIR)
+$(INST)/$(RATPOINTS): $(INST)/$(SAGE_MP_LIBRARY)
 	+$(PIPE) "$(SAGE_SPKG) $(RATPOINTS) 2>&1" "tee -a $(SAGE_LOGS)/$(RATPOINTS).log"
 
-$(INST)/$(ECL): $(INST)/$(MPIR) $(INST)/$(READLINE) $(INST)/$(BOEHM_GC)
+$(INST)/$(ECL): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(READLINE) $(INST)/$(BOEHM_GC)
 	+$(PIPE) "$(SAGE_SPKG) $(ECL) 2>&1" "tee -a $(SAGE_LOGS)/$(ECL).log"
 
 $(INST)/$(MAXIMA): $(INST)/$(ECL)
 	+$(PIPE) "$(SAGE_SPKG) $(MAXIMA) 2>&1" "tee -a $(SAGE_LOGS)/$(MAXIMA).log"
 
-$(INST)/$(R): $(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(READLINE) $(INST)/$(PKGCONF)
+$(INST)/$(R): $(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(READLINE)
 	+$(PIPE) "$(SAGE_SPKG) $(R) 2>&1" "tee -a $(SAGE_LOGS)/$(R).log"
 
 $(INST)/$(RPY): $(INST)/$(PYTHON) $(INST)/$(R)
@@ -421,16 +422,16 @@ $(INST)/$(SYMPY): $(INST)/$(PYTHON) $(INST)/$(MPMATH)
 $(INST)/$(CYTHON): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(CYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(CYTHON).log"
 
-$(INST)/$(FLINTQS): $(INST)/$(MPIR)
+$(INST)/$(FLINTQS): $(INST)/$(SAGE_MP_LIBRARY)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINTQS) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINTQS).log"
 
-$(INST)/$(FLINT): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(NTL)
+$(INST)/$(FLINT): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(MPFR) $(INST)/$(NTL)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINT) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINT).log"
 
 $(INST)/$(ECLIB): $(INST)/$(PARI) $(INST)/$(NTL) $(INST)/$(FLINT)
 	+$(PIPE) "$(SAGE_SPKG) $(ECLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ECLIB).log"
 
-$(INST)/$(M4RI): $(INST)/$(LIBPNG) $(INST)/$(PKGCONF)
+$(INST)/$(M4RI): $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(M4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(M4RI).log"
 
 $(INST)/$(M4RIE): $(INST)/$(M4RI) $(INST)/$(GIVARO) $(INST)/$(NTL)
@@ -438,15 +439,12 @@ $(INST)/$(M4RIE): $(INST)/$(M4RI) $(INST)/$(GIVARO) $(INST)/$(NTL)
 
 # zn_poly really does depend on Python, despite this is far from obvious.
 # The 'configure' script in zn_poly calls Python to make a 'makefile'.
-$(INST)/$(ZNPOLY): $(INST)/$(MPIR) $(INST)/$(PYTHON)
+$(INST)/$(ZNPOLY): $(INST)/$(SAGE_MP_LIBRARY) | $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(ZNPOLY) 2>&1" "tee -a $(SAGE_LOGS)/$(ZNPOLY).log"
 
 $(INST)/$(SAGENB): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PEXPECT) \
                    $(INST)/$(JINJA2) $(INST)/$(SPHINX) $(INST)/$(DOCUTILS)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGENB) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGENB).log"
-
-$(INST)/$(SQLALCHEMY): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
-	+$(PIPE) "$(SAGE_SPKG) $(SQLALCHEMY) 2>&1" "tee -a $(SAGE_LOGS)/$(SQLALCHEMY).log"
 
 $(INST)/$(SPHINX): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(DOCUTILS) \
                    $(INST)/$(JINJA2) $(INST)/$(PYGMENTS)
@@ -461,7 +459,7 @@ $(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 # List all *build-time* dependencies of the Sage library.  These are,
 # on the one hand, programs needed for the build/install process of the
 # Sage library (e.g. JINJA2), and on the
-# other hand all dependencies for Cython files (e.g. PARI, NTL, MPIR).
+# other hand all dependencies for Cython files (e.g. PARI, NTL, SAGE_MP_LIBRARY).
 $(INST)/sage: \
 		 $(INST)/$(ATLAS) \
 		 $(INST)/$(CEPHES) \
@@ -488,7 +486,7 @@ $(INST)/sage: \
 		 $(INST)/$(MPC) \
 		 $(INST)/$(MPFI) \
 		 $(INST)/$(MPFR) \
-		 $(INST)/$(MPIR) \
+		 $(INST)/$(SAGE_MP_LIBRARY) \
 		 $(INST)/$(NTL) \
 		 $(INST)/$(NUMPY) \
 		 $(INST)/$(PARI) \
@@ -509,7 +507,7 @@ $(INST)/sage: \
 	fi
 
 $(INST)/csage: $(INST)/$(SCONS) \
-       $(INST)/$(MPIR) \
+       $(INST)/$(SAGE_MP_LIBRARY) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
        $(INST)/$(PYTHON)
@@ -523,7 +521,7 @@ $(INST)/ccache: $(BASE) $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) ccache 2>&1" "tee -a $(SAGE_LOGS)/ccache.log"
 	touch $(INST)/ccache
 
-$(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
+$(INST)/$(GCC): $(INST)/$(SAGE_MP_LIBRARY) $(INST)/$(MPFR) $(INST)/$(MPC) \
                 $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GCC) 2>&1" "tee -a $(SAGE_LOGS)/$(GCC).log"
 
@@ -533,7 +531,7 @@ $(INST)/$(PILLOW): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 $(INST)/$(PKGCONFIG): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PKGCONFIG) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONFIG).log"
 
-$(INST)/$(NUMPY): $(INST)/$(PYTHON) $(INST)/$(ATLAS) $(INST)/$(PKGCONF)
+$(INST)/$(NUMPY): $(INST)/$(PYTHON) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(NUMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(NUMPY).log"
 
 $(INST)/$(SCIPY): $(INST)/$(ATLAS) $(INST)/$(NUMPY)
@@ -541,8 +539,9 @@ $(INST)/$(SCIPY): $(INST)/$(ATLAS) $(INST)/$(NUMPY)
 
 # matplotlib is needed to test cvxopt (i.e., if SAGE_CHECK=yes). See #12742.
 $(INST)/$(CVXOPT): $(INST)/$(NUMPY) \
-		   $(INST)/$(ATLAS) $(INST)/$(CEPHES) \
-		   $(INST)/$(GSL) $(INST)/$(GLPK) $(INST)/$(MATPLOTLIB)
+                   $(INST)/$(ATLAS) $(INST)/$(CEPHES) \
+                   $(INST)/$(GSL) $(INST)/$(GLPK) \
+                   | $(INST)/$(MATPLOTLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(CVXOPT) 2>&1" "tee -a $(SAGE_LOGS)/$(CVXOPT).log"
 
 $(INST)/$(CEPHES):

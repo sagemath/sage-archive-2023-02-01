@@ -1,32 +1,8 @@
-"""
+r"""
 Root systems
+============
 
-Quickref
---------
-
-- ``T = CartanType(["A", 3]), T.is_finite()``     -- Cartan types
-- ``T.dynkin_diagram(), DynkinDiagram(["G",2])``  -- Dynkin diagrams
-- ``T.cartan_matrix(),  CartanMatrix(["F",4])``   -- Cartan matrices
-- ``RootSystem(T).weight_lattice()``              -- Root systems
-- ``WeylGroup(["B", 6, 1]).simple_reflections()`` -- Affine Weyl groups
-- ``WeylCharacterRing(["D", 4])``                 -- Weyl character rings
-
-Documentation
--------------
-
-- :ref:`sage.combinat.root_system.root_system`    -- This current overview
-- :class:`CartanType`                             -- An introduction to Cartan types
-- :class:`RootSystem`                             -- An introduction to root systems
-- :ref:`sage.combinat.root_system.plot`           -- A root system visualization tutorial
-- The ``Lie Methods and Related Combinatorics`` thematic tutorial
-
-See also
---------
-
-- :class:`CoxeterGroups`, :class:`WeylGroups`, ...-- The categories of Coxeter and Weyl groups
-- :ref:`sage.combinat.crystals.crystals`          -- An introduction to crystals
-- :mod:`.type_A`, :mod:`.type_B_affine`, ...      -- Type specific root system data
-
+See :ref:`sage.combinat.root_system` for an overview.
 """
 #*****************************************************************************
 #       Copyright (C) 2007      Mike Hansen <mhansen@gmail.com>,

@@ -66,7 +66,7 @@ AUTHORS:
 import weakref
 
 import sage.categories.all                  as cat
-import sage.misc.misc                       as misc
+from sage.misc.all import prod
 import sage.misc.prandom                    as random
 import sage.modules.free_module             as free_module
 import sage.modules.free_module_element     as free_module_element
@@ -492,6 +492,15 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: repr(a) # indirect doctest
             'Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1'
 
+        TESTS:
+
+        Dirichlet characters modulo 1 and 2 are printed correctly (see
+        :trac:`17338`)::
+
+            sage: DirichletGroup(1)[0]
+            Dirichlet character modulo 1 of conductor 1
+            sage: DirichletGroup(2)[0]
+            Dirichlet character modulo 2 of conductor 1
         """
         s = 'Dirichlet character modulo %s of conductor %s' % (self.modulus(), self.conductor())
         r = len(self.values_on_gens())
@@ -512,6 +521,16 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G.<a,b> = DirichletGroup(16)
             sage: latex(b)  # indirect doctest
             \hbox{Dirichlet character modulo } 16 \hbox{ of conductor } 16 \hbox{ mapping } 15 \mapsto 1,\ 5 \mapsto \zeta_{4}
+
+        TESTS:
+
+        Dirichlet characters modulo 1 and 2 are printed correctly (see
+        :trac:`17338`)::
+
+            sage: latex(DirichletGroup(1)[0])
+            \hbox{Dirichlet character modulo } 1 \hbox{ of conductor } 1
+            sage: latex(DirichletGroup(2)[0])
+            \hbox{Dirichlet character modulo } 2 \hbox{ of conductor } 1
         """
         from sage.misc.latex import latex
         s = r'\hbox{Dirichlet character modulo } %s \hbox{ of conductor } %s' % (self.modulus(), self.conductor())
@@ -677,7 +696,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             return rings.Integer(1)
         F = arith.factor(self.modulus())
         if len(F) > 1:
-            return misc.mul([d.conductor() for d in self.decomposition()])
+            return prod([d.conductor() for d in self.decomposition()])
         p = F[0][0]
         # When p is odd, and x =/= 1, the conductor is the smallest p**r such that
         #   Order(x) divides EulerPhi(p**r) = p**(r-1)*(p-1).
@@ -724,7 +743,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G(d[0])*G(d[1]) == c
             True
 
-        Conductors that are divisible by various powers of 2 present some problems as the multiplicative group modulo `2^k` is trivial for `k = 1` and non-cyclic for `k \ge 3`::
+        Conductors that are divisible by various powers of 2 present
+        some problems as the multiplicative group modulo `2^k` is
+        trivial for `k = 1` and non-cyclic for `k \ge 3`::
 
             sage: (DirichletGroup(18).0).decomposition()
             [Dirichlet character modulo 2 of conductor 1, Dirichlet character modulo 9 of conductor 9 mapping 2 |--> zeta6]
@@ -1536,13 +1557,13 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         mod = self.__modulus
         if mod == 1:
-            self.__values = [R.one_element()]
+            self.__values = [R.one()]
             return self.__values
         elif mod == 2:
-            self.__values = [R.zero_element(), R.one_element()]
+            self.__values = [R.zero(), R.one()]
             return self.__values
 
-        result_list = [R.zero_element()] * mod
+        result_list = [R.zero()] * mod
         gens = G.unit_gens()
         ngens = len(gens)
         orders = G.integers_mod().unit_group().gens_orders()
@@ -1552,8 +1573,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         val_on_gen = [A(R_values.index(x)) for x in self.values_on_gens()]
 
         exponents = [0] * ngens
-        n = G.integers_mod().one_element()
-        value = A.zero_element()
+        n = G.integers_mod().one()
+        value = A.zero()
 
         final_index = ngens - 1
         stop = orders[-1]
@@ -2296,14 +2317,20 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             sage: G.gen(2)
             Traceback (most recent call last):
             ...
-            IndexError: tuple index out of range
+            IndexError: n(=2) must be between 0 and 1
 
         ::
 
             sage: G.gen(-1)
-            Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4
+            Traceback (most recent call last):
+            ...
+            IndexError: n(=-1) must be between 0 and 1
         """
-        return self.gens()[n]
+        n = int(n)
+        g = self.gens()
+        if n<0 or n>=len(g):
+            raise IndexError("n(=%s) must be between 0 and %s"%(n,len(g)-1))
+        return g[n]
 
     def gens(self):
         """

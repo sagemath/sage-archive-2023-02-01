@@ -1446,8 +1446,20 @@ class FGP_Module_class(Module):
             sage: H.homset_category()
             Category of modules over Integer Ring
 
+        The category is correctly adjusted when constructing Hom sets
+        with more general codomains (see :trac:`16402`)::
+
+            sage: V = ZZ^2
+            sage: W = V.quotient(V.span([[1, 1]]))
+            sage: H = W.Hom(QQ); H
+            Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (0) to Rational Field in Category of commutative additive groups
+            sage: type(H)
+            <class 'sage.categories.homset.Homset_with_category'>
+
         """
-        return FGP_Homset(self, N)
+        if isinstance(N, FGP_Module_class):
+            return FGP_Homset(self, N)
+        return super(FGP_Module_class, self)._Hom_(N, category=category)
 
     def random_element(self, *args, **kwds):
         """

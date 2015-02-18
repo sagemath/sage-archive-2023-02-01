@@ -7,23 +7,17 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-cdef extern from *:
-    double sin(double)
-    double cos(double)
-    double sqrt(double)
 
-#from math import atan2, sin, cos, atan, sqrt, acos
+from libc.math cimport sin, cos, sqrt
 
 include "point_c.pxi"
 
 from sage.rings.real_double import RDF
-# from sage.misc.functional import sqrt, atan, acos
 
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 
 pi = RDF.pi()
-
 
 
 cdef class Transformation:

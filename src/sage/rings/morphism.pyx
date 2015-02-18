@@ -242,11 +242,10 @@ Frobenius on a power series ring over a finite field::
 
 Homomorphism of Laurent series ring::
 
-    sage: R.<t> = LaurentSeriesRing(QQ)
+    sage: R.<t> = LaurentSeriesRing(QQ, 10)
     sage: f = R.hom([t^3 + t]); f
     Ring endomorphism of Laurent Series Ring in t over Rational Field
       Defn: t |--> t + t^3
-    sage: R.set_default_prec(10)
     sage: s = 2/t^2 + 1/(1 + t); s
     2*t^-2 + 1 - t + t^2 - t^3 + t^4 - t^5 + t^6 - t^7 + t^8 - t^9 + O(t^10)
     sage: f(s)
@@ -626,7 +625,7 @@ cdef class RingHomomorphism(RingMap):
             sage: bool(ZZ.hom(R1, [1]))
             False
         """
-        return bool(self.codomain().one_element())
+        return bool(self.codomain().one())
 
     def _repr_type(self):
         """
@@ -1556,6 +1555,21 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             return P(self.__underlying(x.numerator()))/P(self.__underlying(x.denominator()))
         except Exception:
             raise TypeError, "invalid argument %s"%repr(x)
+
+    def is_identity(self):
+        """
+        Return ``True`` if this morphism is the identity morphism.
+
+        EXAMPLES::
+
+            sage: K.<z> = GF(4)
+            sage: phi = End(K)([z^2])
+            sage: R.<t> = K[]
+            sage: psi = End(R)(phi)
+            sage: psi.is_identity()
+            False
+        """
+        return self.__underlying.is_identity() and RingHomomorphism.is_identity(self)
 
 cdef class RingHomomorphism_cover(RingHomomorphism):
     r"""

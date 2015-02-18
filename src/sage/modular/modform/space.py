@@ -1158,7 +1158,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         elif is_PowerSeries(x):
             if x.prec() == PlusInfinity():
                 if x == 0:
-                    return element.ModularFormElement(self, self.free_module().zero_element())
+                    return element.ModularFormElement(self, self.free_module().zero())
                 else:
                     raise TypeError("unable to create modular form from exact non-zero polynomial")
             W = self._q_expansion_module()

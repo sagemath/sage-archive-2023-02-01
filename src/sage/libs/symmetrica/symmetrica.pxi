@@ -172,7 +172,8 @@ cdef extern from 'symmetrica/macro.h':
         INT exist
         INT reihenart
         INT z
-        reihe *x, *y
+        reihe *x
+        reihe *y
         reihe *p
         INT (*eingabefkt)()
         char ope
@@ -432,8 +433,8 @@ cdef void late_import():
     import sage.functions.all
     sqrt = sage.functions.all.sqrt
 
-    import sage.misc.misc
-    prod = sage.misc.misc.prod
+    import sage.misc.all
+    prod = sage.misc.all.prod
 
     import sage.rings.polynomial.polynomial_ring_constructor
     PolynomialRing =  sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing

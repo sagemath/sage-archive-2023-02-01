@@ -2817,7 +2817,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Traceback (most recent call last):
             ...
             TypeError: delta must be <= 1
-            sage: L = X.LLL(delta=1)
+            sage: L = X.LLL(delta=1)    # not tested, will eat lots of ram
             Traceback (most recent call last):
             ...
             RuntimeError: infinite loop in LLL
@@ -4676,12 +4676,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return res
 
 
-    #####################################################################################
+    #################################################################
     # operations with matrices
-    #####################################################################################
-    def stack(self, bottom, subdivide=False):
+    #################################################################
+    cdef _stack_impl(self, bottom):
         r"""
-        Return the matrix self on top of bottom: [ self ] [ bottom ]
+        Return the matrix ``self`` on top of ``bottom``::
+
+            [  self  ]
+            [ bottom ]
 
         EXAMPLES::
 
@@ -4715,44 +4718,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [-----------]
             [ 0  1  2  3]
             [ 4  5  6  7]
-
-        TESTS:
-
-        Stacking a dense matrix atop a sparse one should work::
-
-            sage: M = Matrix(ZZ, 2, 3, range(6))
-            sage: M.is_sparse()
-            False
-            sage: N = diagonal_matrix([10,11,12], sparse=True)
-            sage: N.is_sparse()
-            True
-            sage: P = M.stack(N); P
-            [ 0  1  2]
-            [ 3  4  5]
-            [10  0  0]
-            [ 0 11  0]
-            [ 0  0 12]
-            sage: P.is_sparse()
-            False
         """
-        if hasattr(bottom, '_vector_'):
-            bottom = bottom.row()
-        if self._ncols != bottom.ncols():
-            raise TypeError("number of columns must be the same")
-        if not (self._base_ring is bottom.base_ring()):
-            bottom = bottom.change_ring(self._base_ring)
-        cdef Matrix_integer_dense other = bottom.dense_matrix()
-        cdef Matrix_integer_dense M
-        M = self.new_matrix(nrows = self._nrows + other._nrows, ncols = self.ncols())
-        cdef Py_ssize_t i, j, k
-        for j from 0 <= j < self._ncols:
-            for i from 0 <= i < self._nrows:
-                fmpz_set(fmpz_mat_entry(M._matrix,i,j),fmpz_mat_entry(self._matrix,i,j))
-            for i from 0 <= i < other._nrows:
-                fmpz_set(fmpz_mat_entry(M._matrix,self._nrows + i,j),fmpz_mat_entry(other._matrix,i,j))
-        if subdivide:
-            M._subdivide_on_stack(self, other)
-        return M
+        cdef Matrix_integer_dense other = <Matrix_integer_dense>bottom
+        cdef Matrix_integer_dense Z
+        Z = self.new_matrix(nrows=self._nrows + other._nrows, ncols=self._ncols)
+
+        cdef Py_ssize_t r, c
+        cdef Py_ssize_t nr = self._nrows
+        for r in range(self._nrows):
+            for c in range(self._ncols):
+                fmpz_set(fmpz_mat_entry(Z._matrix, r, c),fmpz_mat_entry(self._matrix, r, c))
+        for r in range(other._nrows):
+            for c in range(other._ncols):
+                fmpz_set(fmpz_mat_entry(Z._matrix, r+nr, c),fmpz_mat_entry(other._matrix, r, c))
+
+        return Z
 
     def augment(self, right, subdivide=False):
         r"""

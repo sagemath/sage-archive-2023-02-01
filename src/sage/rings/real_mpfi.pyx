@@ -211,14 +211,15 @@ interval coerces to plus infinity::
     True
 """
 
-############################################################################
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
+#*****************************************************************************
 #       Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-############################################################################
+#*****************************************************************************
 
 import math # for log
 import sys
@@ -563,7 +564,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         Return a new real number with parent ``self``.
         """
         cdef RealIntervalFieldElement x
-        x = PY_NEW(RealIntervalFieldElement)
+        x = RealIntervalFieldElement.__new__(RealIntervalFieldElement)
         x._parent = self
         mpfi_init2(x.value, self.__prec)
         x.init = 1
@@ -1117,7 +1118,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         Return a new real interval with same parent as ``self``.
         """
         cdef RealIntervalFieldElement x
-        x = PY_NEW(RealIntervalFieldElement)
+        x = RealIntervalFieldElement.__new__(RealIntervalFieldElement)
         x._parent = self._parent
         mpfi_init2(x.value, (<RealIntervalField_class>self._parent).__prec)
         x.init = 1
@@ -1440,19 +1441,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             True
         """
         return self
-
-    def parent(self):
-        """
-        Return the parent of ``self``.
-
-        EXAMPLES::
-
-            sage: R = RealIntervalField()
-            sage: a = R('1.2456')
-            sage: a.parent()
-            Real Interval Field with 53 bits of precision
-        """
-        return self._parent
 
     # MPFR had an elaborate "truncation" scheme to avoid printing
     # inaccurate-looking results; this has been removed for MPFI,
@@ -3689,13 +3677,14 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             mpfi_union(x.value, self.value, other_intv.value)
         return x
 
-    def min(self, _other):
+    def min(self, *_others):
         """
-        Return an interval containing the minimum of ``self`` and ``other``.
+        Return an interval containing the minimum of ``self`` and the
+        arguments.
 
         EXAMPLES::
 
-            sage: a=RIF(-1, 1).min(0).endpoints()
+            sage: a = RIF(-1, 1).min(0).endpoints()
             sage: a[0] == -1.0 and a[1].abs() == 0.0 # in MPFI, the sign of 0.0 is not specified
             True
             sage: RIF(-1, 1).min(pi).endpoints()
@@ -3704,6 +3693,30 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             (-100.000000000000, 1.00000000000000)
             sage: RIF(-1, 1).min(RIF(-100, 0)).endpoints()
             (-100.000000000000, 0.000000000000000)
+            sage: RIF(-1, 1).min(RIF(-100, 2), RIF(-200, -3)).endpoints()
+            (-200.000000000000, -3.00000000000000)
+
+        Note that if the minimum is one of the given elements,
+        that element will be returned. ::
+
+            sage: a = RIF(-1, 1)
+            sage: b = RIF(2, 3)
+            sage: c = RIF(3, 4)
+            sage: c.min(a, b) is a
+            True
+            sage: b.min(a, c) is a
+            True
+            sage: a.min(b, c) is a
+            True
+
+        It might also be convenient to call the method as a function::
+
+            sage: from sage.rings.real_mpfi import RealIntervalFieldElement
+            sage: RealIntervalFieldElement.min(a, b, c) is a
+            True
+            sage: elements = [a, b, c]
+            sage: RealIntervalFieldElement.min(*elements) is a
+            True
 
         The generic min does not always do the right thing::
 
@@ -3711,24 +3724,56 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             0
             sage: min(RIF(-1, 1), RIF(-100, 100)).endpoints()
             (-1.00000000000000, 1.00000000000000)
-        """
-        cdef RealIntervalFieldElement other
-        if isinstance(_other, RealIntervalFieldElement):
-            other = <RealIntervalFieldElement>_other
-        else:
-            other = self._parent(_other)
-        if mpfr_cmp(&self.value.right, &other.value.left) <= 0:
-            return self
-        elif mpfr_cmp(&other.value.right, &self.value.left) <= 0:
-            return other
-        cdef RealIntervalFieldElement x = self._new()
-        mpfr_min(&x.value.left, &self.value.left, &other.value.left, GMP_RNDD)
-        mpfr_min(&x.value.right, &self.value.right, &other.value.right, GMP_RNDU)
-        return x
 
-    def max(self, _other):
+        .. SEEALSO::
+
+            :meth:`~sage.rings.real_mpfi.RealIntervalFieldElement.max`
+
+        TESTS::
+
+            sage: a.min('x')
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert number to real interval.
         """
-        Return an interval containing the maximum of ``self`` and ``other``.
+        cdef RealIntervalFieldElement constructed
+        cdef RealIntervalFieldElement result
+        cdef RealIntervalFieldElement other
+        cdef bint initialized
+
+        initialized = False
+        result = self
+
+        for _other in _others:
+            if isinstance(_other, RealIntervalFieldElement):
+                other = <RealIntervalFieldElement>_other
+            else:
+                other = self._parent(_other)
+
+            if mpfr_cmp(&result.value.right, &other.value.left) <= 0:
+                pass
+            elif mpfr_cmp(&other.value.right, &result.value.left) <= 0:
+                result = other
+            else:
+                if not initialized:
+                    constructed = self._new()
+                    initialized = True
+                mpfr_min(&constructed.value.left,
+                         &result.value.left,
+                         &other.value.left,
+                         GMP_RNDD)
+                mpfr_min(&constructed.value.right,
+                         &result.value.right,
+                         &other.value.right,
+                         GMP_RNDU)
+                result = constructed
+
+        return result
+
+    def max(self, *_others):
+        """
+        Return an interval containing the maximum of ``self`` and the
+        arguments.
 
         EXAMPLES::
 
@@ -3738,6 +3783,30 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             (2.00000000000000, 3.00000000000000)
             sage: RIF(-1, 1).max(RIF(-100, 100)).endpoints()
             (-1.00000000000000, 100.000000000000)
+            sage: RIF(-1, 1).max(RIF(-100, 100), RIF(5, 10)).endpoints()
+            (5.00000000000000, 100.000000000000)
+
+        Note that if the maximum is one of the given elements,
+        that element will be returned. ::
+
+            sage: a = RIF(-1, 1)
+            sage: b = RIF(2, 3)
+            sage: c = RIF(3, 4)
+            sage: c.max(a, b) is c
+            True
+            sage: b.max(a, c) is c
+            True
+            sage: a.max(b, c) is c
+            True
+
+        It might also be convenient to call the method as a function::
+
+            sage: from sage.rings.real_mpfi import RealIntervalFieldElement
+            sage: RealIntervalFieldElement.max(a, b, c) is c
+            True
+            sage: elements = [a, b, c]
+            sage: RealIntervalFieldElement.max(*elements) is c
+            True
 
         The generic max does not always do the right thing::
 
@@ -3745,20 +3814,52 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             0
             sage: max(RIF(-1, 1), RIF(-100, 100)).endpoints()
             (-1.00000000000000, 1.00000000000000)
+
+        .. SEEALSO::
+
+            :meth:`~sage.rings.real_mpfi.RealIntervalFieldElement.min`
+
+        TESTS::
+
+            sage: a.max('x')
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert number to real interval.
         """
+        cdef RealIntervalFieldElement constructed
+        cdef RealIntervalFieldElement result
         cdef RealIntervalFieldElement other
-        if isinstance(_other, RealIntervalFieldElement):
-            other = <RealIntervalFieldElement>_other
-        else:
-            other = self._parent(_other)
-        if mpfr_cmp(&self.value.right, &other.value.left) <= 0:
-            return other
-        elif mpfr_cmp(&other.value.right, &self.value.left) <= 0:
-            return self
-        cdef RealIntervalFieldElement x = self._new()
-        mpfr_max(&x.value.left, &self.value.left, &other.value.left, GMP_RNDD)
-        mpfr_max(&x.value.right, &self.value.right, &other.value.right, GMP_RNDU)
-        return x
+        cdef bint initialized
+
+        initialized = False
+        result = self
+
+        for _other in _others:
+            if isinstance(_other, RealIntervalFieldElement):
+                other = <RealIntervalFieldElement>_other
+            else:
+                other = self._parent(_other)
+
+            if mpfr_cmp(&result.value.right, &other.value.left) <= 0:
+                result = other
+            elif mpfr_cmp(&other.value.right, &result.value.left) <= 0:
+                pass
+            else:
+                if not initialized:
+                    constructed = self._new()
+                    initialized = True
+
+                mpfr_max(&constructed.value.left,
+                         &result.value.left,
+                         &other.value.left,
+                         GMP_RNDD)
+                mpfr_max(&constructed.value.right,
+                         &result.value.right,
+                         &other.value.right,
+                         GMP_RNDU)
+                result = constructed
+
+        return result
 
     ############################
     # Special Functions

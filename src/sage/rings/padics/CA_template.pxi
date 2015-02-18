@@ -95,7 +95,8 @@ cdef class CAElement(pAdicTemplateElement):
             sage: R = ZpCA(5); R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
         """
-        cdef CAElement ans = PY_NEW(self.__class__)
+        cdef type t = self.__class__
+        cdef CAElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         cconstruct(ans.value, ans.prime_pow)
@@ -1361,7 +1362,7 @@ def unpickle_cae_v2(cls, parent, value, absprec):
         sage: a.parent() is R
         True
     """
-    cdef CAElement ans = PY_NEW(cls)
+    cdef CAElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_class?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)

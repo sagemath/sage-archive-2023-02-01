@@ -160,7 +160,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             EXAMPLES::
 
-                sage: s = SymmetricFunctions(QQ[x]).s()
+                sage: s = SymmetricFunctions(QQ['x']).s()
                 sage: len(s([2,1])^8) # long time (~ 4 s)
                 1485
                 sage: len(s([2,1])^9) # long time (~10 s)
@@ -180,10 +180,10 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             With polynomial coefficients, this is actually much *slower*
             (although this should be profiled further; there seems to
             be an unreasonable number of polynomial multiplication involved,
-            besides the fact that 1 * QQ[x].one() currently involves a
+            besides the fact that 1 * QQ['x'].one() currently involves a
             polynomial multiplication)
 
-            #    sage: sage: s = SymmetricFunctions(QQ[x]).s()
+            #    sage: sage: s = SymmetricFunctions(QQ['x']).s()
             #    sage: y = s([2,1])
             #    sage: %timeit y**7
             #    10 loops, best of 3: 18.9 s per loop
@@ -250,7 +250,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
         def scalar(self, x, zee=None):
             """
-            Returns the standard scalar product between ``self`` and `x`.
+            Return the standard scalar product between ``self`` and `x`.
 
             Note that the Schur functions are self-dual with respect to this
             scalar product. They are also lower-triangularly related to the
@@ -258,10 +258,14 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
             INPUT:
 
-            - ``x`` -- an element of the symmetric functions
-            - ``zee`` -- an optional function that specifies the scalar product
-              between two power sum symmetric functions indexed by the same
-              partition.  If ``zee`` is not specified.
+            - ``x`` -- element of the ring of symmetric functions over the
+              same base ring as ``self``
+
+            - ``zee`` -- an optional function on partitions giving
+              the value for the scalar product between the power-sum
+              symmetric function `p_{\mu}` and itself
+              (the default value is the standard
+              :meth:`~sage.combinat.sf.sfa.zee` function)
 
             OUTPUT:
 
@@ -306,7 +310,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             if zee is None:
                 s = self.parent()
                 R = s.base_ring()
-                one = R(1)
+                one = R.one()
                 f = lambda p1, p2: one
                 x = s(x)
                 return s._apply_multi_module_morphism(self, x, f, orthogonal=True)
@@ -469,15 +473,19 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
         def expand(self, n, alphabet='x'):
             """
-            Expands the symmetric function as a symmetric polynomial in `n` variables.
+            Expand the symmetric function ``self`` as a symmetric polynomial
+            in ``n`` variables.
 
             INPUT:
 
-            - ``self`` -- an element of the Schur symmetric function basis
-            - ``n`` -- a positive integer
-            - ``alphabet`` -- a variable for the expansion (default: `x`)
+            - ``n`` -- a nonnegative integer
 
-            OUTPUT: a monomial expansion of an instance of ``self`` in `n` variables
+            - ``alphabet`` -- (default: ``'x'``) a variable for the expansion
+
+            OUTPUT:
+
+            A monomial expansion of ``self`` in the `n` variables
+            labelled by ``alphabet``.
 
             EXAMPLES::
 
@@ -497,6 +505,10 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                 0
                 sage: (s([]) + 2*s([1])).expand(3)
                 2*x0 + 2*x1 + 2*x2 + 1
+                sage: s([1]).expand(0)
+                0
+                sage: (3*s([])).expand(0)
+                3
             """
             condition = lambda part: len(part) > n
             return self._expand(condition, n, alphabet)

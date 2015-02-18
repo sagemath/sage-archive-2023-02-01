@@ -341,12 +341,13 @@ cdef class MarchingCubesTriangles(MarchingCubes):
             ...       cube_marcher.process_slice(x, slices[x, :, :])
             sage: faces = cube_marcher.finish()
             sage: faces[0][0]
-            {'y': -1.1..., 'x': 1.5..., 'z': -0.5...}
+            {'x': 1.555555555555..., 'y': -1.111111111111..., 'z': -0.555555555555...}
 
         We render the isosurface using IndexFaceSet::
 
             sage: from sage.plot.plot3d.index_face_set import IndexFaceSet
             sage: IndexFaceSet([tuple((p['x'], p['y'], p['z']) for p in face) for face in faces])
+            Graphics3d Object
         """
         # We go to a lot of effort to avoid repeating computations.
         # (I hope that the related bookkeeping is actually faster
@@ -675,7 +676,9 @@ cdef class MarchingCubesTriangles(MarchingCubes):
             sage: cube_marcher._update_x_vertices(0, None, slices[0], slices[1], slices[2])
             sage: cube_marcher.process_cubes(slices[0], slices[1])
             sage: cube_marcher.finish()
-            [({'y': 1.0, 'x': 0.0, 'z': 0.5}, {'y': 1.0, 'x': 0.25, 'z': 1.0}, {'y': 0.5, 'x': 0.0, 'z': 1.0})]
+            [({'x': 0.0, 'y': 1.0, 'z': 0.5},
+              {'x': 0.25, 'y': 1.0, 'z': 1.0},
+              {'x': 0.0, 'y': 0.5, 'z': 1.0})]
         """
         cdef np.ndarray[double, ndim=2] left = _left
         cdef np.ndarray[double, ndim=2] right = _right
@@ -774,7 +777,9 @@ cdef class MarchingCubesTriangles(MarchingCubes):
             sage: cube_marcher = MarchingCubesTriangles((0, 1), (0, 1), (0, 1), 0, (10,)*3, smooth=False)
             sage: cube_marcher.add_triangle(VertexInfo(), VertexInfo(), VertexInfo())
             sage: cube_marcher.finish()
-            [({'y': 0.0, 'x': 0.0, 'z': 0.0}, {'y': 0.0, 'x': 0.0, 'z': 0.0}, {'y': 0.0, 'x': 0.0, 'z': 0.0})]
+            [({'x': 0.0, 'y': 0.0, 'z': 0.0},
+              {'x': 0.0, 'y': 0.0, 'z': 0.0},
+              {'x': 0.0, 'y': 0.0, 'z': 0.0})]
         """
 
         if v1 is None or v2 is None or v3 is None:
@@ -840,7 +845,7 @@ cpdef render_implicit(f, xrange, yrange, zrange, plot_points, cube_marchers):
         sage: results = render_implicit(lambda x, y, z: x + y + z, \
         ...                             (0, 1), (0, 1), (0, 1), (10,)*3, [cube_marcher])
         sage: results[0][0]
-        {'y': 0.0, 'x': 1.0, 'z': 0.0}
+        {'x': 1.0, 'y': 0.0, 'z': 0.0}
     """
 
     cdef int nx = plot_points[0]

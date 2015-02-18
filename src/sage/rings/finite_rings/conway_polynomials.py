@@ -141,7 +141,7 @@ class PseudoConwayLattice(SageObject):
 
             sage: PCL = PseudoConwayLattice(5, use_database=False)
             sage: PCL.polynomial(12)
-            x^12 + 2*x^11 + x^10 + 4*x^9 + 4*x^8 + 4*x^7 + x^6 + 4*x^5 + x^4 + 3*x + 2
+            x^12 + 4*x^11 + 2*x^10 + 4*x^9 + 2*x^8 + 2*x^7 + 4*x^6 + x^5 + 2*x^4 + 2*x^2 + x + 2
             sage: PCL.polynomial(6)
             x^6 + x^5 + 4*x^4 + 3*x^3 + 3*x^2 + 2*x + 2
             sage: PCL.polynomial(11)

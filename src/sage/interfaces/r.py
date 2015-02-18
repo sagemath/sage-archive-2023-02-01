@@ -512,9 +512,8 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: print r._source("print.anova")
-            function (x, digits = max(getOption("digits") - 2L, 3L), signif.stars = getOption("show.signif.stars"),
-            ...
+            sage: print r._source("c")
+            function (..., recursive = FALSE)  .Primitive("c")
         """
         if s[-2:] == "()":
             s = s[-2:]
@@ -532,9 +531,8 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: print r.source("print.anova")
-            function (x, digits = max(getOption("digits") - 2L, 3L), signif.stars = getOption("show.signif.stars"),
-            ...
+            sage: print r.source("c")
+            function (..., recursive = FALSE)  .Primitive("c")
         """
         return self._source(s)
 
@@ -701,14 +699,11 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: r.help('print.anova')
-            anova                 package:stats                 R Documentation
-            ...
-                 Chambers, J. M. and Hastie, T. J. (1992) _Statistical Models in
-                 S_, Wadsworth & Brooks/Cole.
+            sage: r.help('c')
+            c                     package:base                     R Documentation
             ...
 
-        .. note::
+            .. note::
 
             This is similar to typing r.command?.
         """

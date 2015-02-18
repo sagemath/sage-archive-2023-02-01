@@ -278,13 +278,13 @@ cdef class MonoDict:
 
         sage: from sage.structure.coerce_dict import MonoDict
         sage: L = MonoDict()
-        sage: a = 'a'; b = 'ab'; c = -15
+        sage: a = 'a'; b = 'ab'; c = '-15'
         sage: L[a] = 1
         sage: L[b] = 2
         sage: L[c] = 3
 
     The key is expected to be a unique object. Hence, the item stored for ``c``
-    can not be obtained by providing another equal number::
+    can not be obtained by providing another equal string::
 
         sage: L[a]
         1
@@ -292,10 +292,10 @@ cdef class MonoDict:
         2
         sage: L[c]
         3
-        sage: L[-15]
+        sage: L['-15']
         Traceback (most recent call last):
         ...
-        KeyError: -15
+        KeyError: '-15'
 
     Not all features of Python dictionaries are available, but iteration over
     the dictionary items is possible::
@@ -303,10 +303,10 @@ cdef class MonoDict:
         sage: # for some reason the following failed in "make ptest"
         sage: # on some installations, see #12313 for details
         sage: sorted(L.iteritems()) # random layout
-        [(-15, 3), ('a', 1), ('ab', 2)]
+        [('-15', 3), ('a', 1), ('ab', 2)]
         sage: # the following seems to be more consistent
         sage: set(L.iteritems())
-        set([('a', 1), ('ab', 2), (-15, 3)])
+        {('-15', 3), ('a', 1), ('ab', 2)}
         sage: del L[c]
         sage: sorted(L.iteritems())
         [('a', 1), ('ab', 2)]

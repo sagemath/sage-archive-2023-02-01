@@ -624,6 +624,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: E = EllipticCurve('389a')
             sage: P = E([-1,1])
             sage: P.plot(pointsize=30, rgbcolor=(1,0,0))
+            Graphics object consisting of 1 graphics primitive
         """
         if self.is_zero():
             return plot.text("$\\infty$", (-3, 3), **args)
@@ -2266,7 +2267,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: E.discriminant().support()
             [Fractional ideal (i + 1),
             Fractional ideal (-i - 2),
-            Fractional ideal (i - 2),
+            Fractional ideal (2*i + 1),
             Fractional ideal (3)]
             sage: [E.tamagawa_exponent(p) for p in E.discriminant().support()]
             [1, 4, 4, 4]
@@ -2651,7 +2652,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 Emin = E.minimal_model()
                 iso = E.isomorphism_to(Emin)
                 P = iso(self)
-                h = Emin.pari_curve(prec=precision).ellheight(P, precision=precision)
+                h = Emin.pari_curve().ellheight(P, precision=precision)
                 height = rings.RealField(precision)(h)
             else:
                 height = (self.non_archimedean_local_height(prec=precision)
@@ -3192,7 +3193,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             E_work = EllipticCurve(ai)  # defined over RR
             pt_pari = pari([emb(x), emb(y)])
         working_prec = precision
-        E_pari = E_work.pari_curve(prec=working_prec)
+        E_pari = E_work.pari_curve()
         log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
 
         while prec_words_to_bits(log_pari.precision()) < precision:
@@ -3206,7 +3207,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 ai = [emb(a) for a in E.a_invariants()]
                 E_work = EllipticCurve(ai)  # defined over RR
                 pt_pari = pari([emb(x), emb(y)])
-            E_pari = E_work.pari_curve(prec=working_prec)
+            E_pari = E_work.pari_curve()
             log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
 
         # normalization step

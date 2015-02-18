@@ -41,14 +41,11 @@ inline void ecl_sig_off()
     sig_off();
 }
 
-inline mpz_t* ecl_mpz_from_bignum(cl_object obj)
-{
-    return obj->big.big_num;
-}
+#define ecl_mpz_from_bignum(obj) ((obj)->big.big_num)
 
-cl_object ecl_bignum_from_mpz(mpz_t* num)
+cl_object ecl_bignum_from_mpz(mpz_t num)
 {
     cl_object z = _ecl_big_register0();
-    mpz_set(ecl_mpz_from_bignum(z),num);
+    mpz_set(ecl_mpz_from_bignum(z), num);
     return _ecl_big_register_copy(z);
 }

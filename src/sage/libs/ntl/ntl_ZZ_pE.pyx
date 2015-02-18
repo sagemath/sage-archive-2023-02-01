@@ -109,6 +109,7 @@ cdef class ntl_ZZ_pE:
         self.c.restore_c()
 
         cdef ZZ_c temp
+        cdef ntl_ZZ_pX tmp_zzpx
         if v is not None:
             sig_on()
             if PY_TYPE_CHECK(v, ntl_ZZ_pE):
@@ -120,7 +121,11 @@ cdef class ntl_ZZ_pE:
                     raise ValueError, "You cannot cast between rings with different moduli"
                 self.x = ZZ_pX_to_ZZ_pE((<ntl_ZZ_pX>v).x)
             elif PY_TYPE_CHECK(v, list) or PY_TYPE_CHECK(v, tuple):
-                self.x = ZZ_pX_to_ZZ_pE((<ntl_ZZ_pX>ntl_ZZ_pX(v, self.c.pc)).x)
+                tmp_zzpx = <ntl_ZZ_pX>ntl_ZZ_pX(v, self.c.pc)
+                # random values without the following restore call
+                # surely because the above call restore things and breaks the modulus
+                self.c.restore_c()
+                self.x = ZZ_pX_to_ZZ_pE(tmp_zzpx.x)
             elif PyInt_Check(v):
                 self.x = long_to_ZZ_pE(v)
             elif PY_TYPE_CHECK(v, ntl_ZZ_p):

@@ -152,19 +152,6 @@ cdef extern from "descrobject.h":
     void* PyCFunction_GET_FUNCTION(object)
     bint PyCFunction_Check(object)
 
-cdef extern from *:
-    Py_ssize_t PyDict_Size(object)
-    Py_ssize_t PyTuple_GET_SIZE(object)
-
-    ctypedef class __builtin__.dict [object PyDictObject]:
-        cdef Py_ssize_t ma_fill
-        cdef Py_ssize_t ma_used
-
-    void* PyDict_GetItem(object, object)
-
-cdef inline Py_ssize_t PyDict_GET_SIZE(o):
-    return (<dict>o).ma_used
-
 ###############################################################################
 #       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>
 #       Copyright (C) 2008 Burcin Erocal   <burcin@erocal.org>
@@ -510,6 +497,7 @@ cdef class Parent(category_object.CategoryObject):
         # needs to be erased now.
         try:
             self.__dict__.__delitem__('element_class')
+            self.__dict__.__delitem__('_abstract_element_class')
         except (AttributeError, KeyError):
             pass
         if debug.refine_category_hash_check and hash_old != hash(self):
@@ -578,6 +566,30 @@ cdef class Parent(category_object.CategoryObject):
             while issubclass(self.__class__, Sets_parent_class):
                 self.__class__ = self.__class__.__base__
 
+    @lazy_attribute
+    def _abstract_element_class(self):
+        """
+        An abstract class for the elements of this parent.
+
+        By default, this is the element class provided by the category
+        of the parent.
+
+        .. SEEALSO::
+
+            - :meth:`sage.categories.homset.Homset._abstract_element_class`
+            - :meth:`element_class`
+            - :meth:`Element.__getattr__`
+
+        EXAMPLES::
+
+            sage: S = Semigroups().example()
+            sage: S.category()
+            Category of semigroups
+            sage: S._abstract_element_class
+            <class 'sage.categories.semigroups.Semigroups.element_class'>
+        """
+        return self.category().element_class
+
     # This probably should go into Sets().Parent
     @lazy_attribute
     def element_class(self):
@@ -609,7 +621,7 @@ cdef class Parent(category_object.CategoryObject):
         if inherit is None:
             inherit = not is_extension_type(cls)
         if inherit:
-            return dynamic_class(name, (cls, self.category().element_class))
+            return dynamic_class(name, (cls, self._abstract_element_class))
         else:
             return cls
 
@@ -779,7 +791,7 @@ cdef class Parent(category_object.CategoryObject):
         its categories, that is from ``EuclideanDomains().parent_class``::
 
             sage: ZZ._test_associativity
-            <bound method EuclideanDomains.parent_class._test_associativity of Integer Ring>
+            <bound method JoinCategory.parent_class._test_associativity of Integer Ring>
             sage: ZZ._test_associativity(verbose = True)
             sage: TestSuite(ZZ).run(verbose = True)
             running ._test_additive_associativity() . . . pass
@@ -800,13 +812,21 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_elements_eq_symmetric() . . . pass
             running ._test_elements_eq_transitive() . . . pass
             running ._test_elements_neq() . . . pass
+            running ._test_enumerated_set_contains() . . . pass
+            running ._test_enumerated_set_iter_cardinality() . . . pass
+            running ._test_enumerated_set_iter_list() . . .Enumerated set too big; skipping test; increase tester._max_runs
+             pass
             running ._test_eq() . . . pass
+            running ._test_euclidean_degree() . . . pass
+            running ._test_gcd_vs_xgcd() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
             running ._test_prod() . . . pass
+            running ._test_quo_rem() . . . pass
             running ._test_some_elements() . . . pass
             running ._test_zero() . . . pass
+            running ._test_zero_divisors() . . . pass
 
             sage: Sets().example().sadfasdf
             Traceback (most recent call last):
@@ -862,13 +882,20 @@ cdef class Parent(category_object.CategoryObject):
             _test_elements_eq_symmetric
             _test_elements_eq_transitive
             _test_elements_neq
+            _test_enumerated_set_contains
+            _test_enumerated_set_iter_cardinality
+            _test_enumerated_set_iter_list
             _test_eq
+            _test_euclidean_degree
+            _test_gcd_vs_xgcd
             _test_not_implemented_methods
             _test_one
             _test_pickling
             _test_prod
+            _test_quo_rem
             _test_some_elements
             _test_zero
+            _test_zero_divisors
             sage: F = GF(9,'a')
             sage: dir(F)
             [..., '__class__', ..., '_test_pickling', ..., 'extension', ...]
@@ -969,7 +996,7 @@ cdef class Parent(category_object.CategoryObject):
           column, or the meaning is lost.
 
         - ``'element_ascii_art'``: same but for the output of the
-          elements. Used in :mod:`sage.misc.displayhook`.
+          elements. Used in :mod:`sage.repl.display.formatter`.
 
         - ``'element_is_atomic'``: the elements print atomically, that
           is, parenthesis are not required when *printing* out any of
@@ -1064,7 +1091,7 @@ cdef class Parent(category_object.CategoryObject):
                 raise NotImplementedError
         cdef Py_ssize_t i
         cdef R = parent_c(x)
-        cdef bint no_extra_args = PyTuple_GET_SIZE(args) == 0 and PyDict_GET_SIZE(kwds) == 0
+        cdef bint no_extra_args = len(args) == 0 and len(kwds) == 0
         if R is self and no_extra_args:
             return x
 
@@ -1293,6 +1320,8 @@ cdef class Parent(category_object.CategoryObject):
         else:
             return (<map.Map>mor)._call_(x)
 
+    # TODO: move this method in EnumeratedSets (.Finite?) as soon as
+    # all Sage enumerated sets are in this category
     def _list_from_iterator_cached(self):
         r"""
         Return a list of the elements of ``self``.
@@ -1330,14 +1359,14 @@ cdef class Parent(category_object.CategoryObject):
             sage: ZZ.list()
             Traceback (most recent call last):
             ...
-            ValueError: since it is infinite, cannot list Integer Ring
+            NotImplementedError: since it is infinite, cannot list Integer Ring
 
         This is the motivation for :trac:`10470` ::
 
             sage: (QQ^2).list()
             Traceback (most recent call last):
             ...
-            ValueError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
+            NotImplementedError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
 
         TESTS:
 
@@ -1396,11 +1425,20 @@ cdef class Parent(category_object.CategoryObject):
             pass
         # if known to be infinite, give up
         # if unsure, proceed (which will hang for an infinite set)
+        #
+        # TODO: The test below should really be:
+        #   if self in Sets().Infinite():
+        # However many infinite parents are not yet declared as such,
+        # which triggers some doctests failure; see e.g. matrix_space.py.
+        # For now we keep the current test as a workaround (see #16239).
+        infinite = False # We do it this way so we can raise a NotImplementedError
         try:
-            if not self.is_finite():
-                raise ValueError('since it is infinite, cannot list %s' % self )
+            if self in Sets().Infinite() or not self.is_finite():
+                infinite = True
         except (AttributeError, NotImplementedError):
             pass
+        if infinite:
+            raise NotImplementedError( 'since it is infinite, cannot list {}'.format(self) )
         the_list = list(self.__iter__())
         try:
             self._list = the_list
@@ -2583,11 +2621,15 @@ cdef class Parent(category_object.CategoryObject):
                 raise TypeError("_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
         if not PY_TYPE_CHECK(S, type) and not PY_TYPE_CHECK(S, Parent):
-            # Sequences is used as a category and a "Parent"
+            # Sequences is not a Parent but a category!! As we would like to
+            # consider them as a parent we consider a workaround by using
+            # Set_PythonType from sage.structure.parent
             from sage.categories.category_types import Sequences
             from sage.structure.coerce_maps import ListMorphism
             if isinstance(S, Sequences):
-                return ListMorphism(S, self.convert_map_from(list))
+                from sage.structure.sequence import Sequence_generic
+                SS = Set_PythonType(Sequence_generic)
+                return ListMorphism(SS, self.convert_map_from(list))
 
         mor = self._generic_convert_map(S)
         return mor
@@ -2988,6 +3030,24 @@ cpdef Parent Set_PythonType(theType):
         return theSet
 
 cdef class Set_PythonType_class(Set_generic):
+    r"""
+    The set of Python objects of a given type.
+
+    EXAMPLES::
+
+        sage: S = sage.structure.parent.Set_PythonType(int)
+        sage: S
+        Set of Python objects of type 'int'
+        sage: int('1') in S
+        True
+        sage: Integer('1') in S
+        False
+
+        sage: sage.structure.parent.Set_PythonType(2)
+        Traceback (most recent call last):
+        ...
+        TypeError: must be intialized with a type, not 2
+    """
 
     cdef _type
 
@@ -2999,8 +3059,22 @@ cdef class Set_PythonType_class(Set_generic):
             sage: S.category()
             Category of sets
         """
+        if not isinstance(theType, type):
+            raise TypeError("must be intialized with a type, not %r" % theType)
         Set_generic.__init__(self, element_constructor=theType, category=Sets())
         self._type = theType
+
+    def __reduce__(self):
+        r"""
+        Pickling support
+
+        TESTS::
+
+            sage: S = sage.structure.parent.Set_PythonType(object)
+            sage: loads(dumps(S))
+            Set of Python objects of type 'object'
+        """
+        return Set_PythonType, (self._type,)
 
     def __call__(self, x):
         """

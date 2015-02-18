@@ -314,11 +314,11 @@ def update(G,B,h):
         sage: R.<x,y,z> = PolynomialRing(QQ,3)
         sage: set_verbose(0)
         sage: update(set(),set(),x*y*z)
-        (set([x*y*z]), set([]))
+        ({x*y*z}, set())
         sage: G,B = update(set(),set(),x*y*z-1)
         sage: G,B = update(G,B,x*y^2-1)
         sage: G,B
-        (set([x*y*z - 1, x*y^2 - 1]), set([(x*y^2 - 1, x*y*z - 1)]))
+        ({x*y*z - 1, x*y^2 - 1}, {(x*y^2 - 1, x*y*z - 1)})
     """
     R = h.parent()
 
@@ -410,13 +410,15 @@ def inter_reduction(Q):
 
         sage: from sage.rings.polynomial.toy_buchberger import inter_reduction
         sage: inter_reduction(set())
-        set([])
+        set()
 
     ::
 
-        sage: (x,y) = QQ['x,y'].gens()
+        sage: P.<x,y> = QQ[]
         sage: reduced = inter_reduction(set([x^2-5*y^2,x^3]))
         sage: reduced == set([x*y^2, x^2-5*y^2])
+        True
+        sage: reduced == inter_reduction(set([2*(x^2-5*y^2),x^3]))
         True
     """
     if not Q:

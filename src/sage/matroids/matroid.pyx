@@ -70,6 +70,8 @@ additional functionality (e.g. linear extensions).
     - :meth:`coflats() <sage.matroids.matroid.Matroid.coflats>`
     - :meth:`hyperplanes() <sage.matroids.matroid.Matroid.hyperplanes>`
     - :meth:`f_vector() <sage.matroids.matroid.Matroid.f_vector>`
+    - :meth:`broken_circuits() <sage.matroids.matroid.Matroid.broken_circuits>`
+    - :meth:`no_broken_circuits_sets() <sage.matroids.matroid.Matroid.no_broken_circuits_sets>`
 
 - Comparison
     - :meth:`is_isomorphic() <sage.matroids.matroid.Matroid.is_isomorphic>`
@@ -113,6 +115,13 @@ additional functionality (e.g. linear extensions).
 - Invariants
     - :meth:`tutte_polynomial() <sage.matroids.matroid.Matroid.tutte_polynomial>`
     - :meth:`flat_cover() <sage.matroids.matroid.Matroid.flat_cover>`
+    
+- Visualization
+    - :meth:`show() <sage.matroids.matroid.Matroid.show>`
+    - :meth:`plot() <sage.matroids.matroid.Matroid.plot>`
+
+- Misc
+    - :meth:`broken_circuit_complex() <sage.matroids.matroid.Matroid.broken_circuit_complex>`
 
 In addition to these, all methods provided by
 :class:`SageObject <sage.structure.sage_object.SageObject>` are available,
@@ -1807,9 +1816,9 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Fano()
             sage: M.loops()
-            frozenset([])
+            frozenset()
             sage: (M / ['a', 'b']).loops()
-            frozenset(['f'])
+            frozenset({'f'})
         """
         return self._closure(set())
 
@@ -2042,9 +2051,9 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Fano().dual()
             sage: M.coloops()
-            frozenset([])
+            frozenset()
             sage: (M \ ['a', 'b']).coloops()
-            frozenset(['f'])
+            frozenset({'f'})
         """
         return self._coclosure(set())
 
@@ -2637,14 +2646,13 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Fano()
             sage: sorted([M._flags(1)])
-            [[[frozenset(['a']), set(['a']),
-            frozenset(['c', 'b', 'e', 'd', 'g', 'f'])], [frozenset(['b']),
-            set(['b']), frozenset(['c', 'e', 'd', 'g', 'f'])],
-            [frozenset(['c']), set(['c']), frozenset(['e', 'd', 'g', 'f'])],
-            [frozenset(['d']), set(['d']), frozenset(['e', 'g', 'f'])],
-            [frozenset(['e']), set(['e']), frozenset(['g', 'f'])],
-            [frozenset(['f']), set(['f']), frozenset(['g'])],
-            [frozenset(['g']), set(['g']), frozenset([])]]]
+            [[[frozenset({'a'}), {'a'}, frozenset({'b', 'c', 'd', 'e', 'f', 'g'})],
+              [frozenset({'b'}), {'b'}, frozenset({'c', 'd', 'e', 'f', 'g'})],
+              [frozenset({'c'}), {'c'}, frozenset({'d', 'e', 'f', 'g'})],
+              [frozenset({'d'}), {'d'}, frozenset({'e', 'f', 'g'})],
+              [frozenset({'e'}), {'e'}, frozenset({'f', 'g'})],
+              [frozenset({'f'}), {'f'}, frozenset({'g'})],
+              [frozenset({'g'}), {'g'}, frozenset()]]]
         """
         if r < 0:
             return []
@@ -2711,6 +2719,21 @@ cdef class Matroid(SageObject):
         """
         return self.dual().flats(r)
 
+    def lattice_of_flats(self):
+        """
+        Return the lattice of flats of the matroid.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.lattice_of_flats()
+            Finite lattice containing 16 elements
+        """
+        from sage.combinat.posets.lattices import LatticePoset
+        F = [X for i in range(self.rank() + 1)
+             for X in self.flats(i)]
+        return LatticePoset((F, lambda x, y: x < y))
+
     cpdef hyperplanes(self):
         """
         Return the set of hyperplanes of the matroid.
@@ -2760,6 +2783,88 @@ cdef class Matroid(SageObject):
             flags = self._extend_flags(flags)
             f_vec.append(len(flags))
         return f_vec
+
+    cpdef broken_circuits(self, ordering=None):
+        r"""
+        Return the list of broken circuits of ``self``.
+
+        A *broken circuit* `B` for is a subset of the ground set under
+        some total ordering `<` such that `B \cup \{ u \}` is a circuit
+        and `u < b` for all `b \in B`.
+
+        INPUT:
+
+        - ``ordering`` -- a total ordering of the groundset given as a list
+
+        EXAMPLES::
+
+            sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
+            sage: M.broken_circuits()
+            frozenset({frozenset({2, 3}), frozenset({4, 5}), frozenset({2, 4, 5})})
+            sage: M.broken_circuits([5,4,3,2,1])
+            frozenset({frozenset({1, 2}), frozenset({3, 4}), frozenset({1, 2, 4})})
+
+        ::
+
+            sage: M = Matroid(circuits=[[1,2,3], [1,4,5], [2,3,4,5]])
+            sage: M.broken_circuits([5,4,3,2,1])
+            frozenset({frozenset({1, 2}), frozenset({1, 4}), frozenset({2, 3, 4})})
+        """
+        if ordering is None:
+            ordering = sorted(self.groundset())
+        else:
+            orderset = frozenset(ordering)
+            if len(orderset) != len(self.groundset()) or orderset != self.groundset():
+                raise ValueError("not an ordering of the ground set")
+            ordering = list(ordering)
+        ret = set()
+        for C in self.circuits():
+            for k in ordering:
+                if k in C:
+                    ret.add(C.difference([k]))
+                    break
+        return frozenset(ret)
+
+    cpdef no_broken_circuits_sets(self, ordering=None):
+        r"""
+        Return the no broken circuits (NBC) sets of ``self``.
+
+        An NBC set is a subset `A` of the ground set under some total
+        ordering `<` such that `A` contains no broken circuit.
+
+        INPUT:
+
+        - ``ordering`` -- a total ordering of the groundset given as a list
+
+        EXAMPLES::
+
+            sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
+            sage: SimplicialComplex(M.no_broken_circuits_sets())
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 3, 4), (1, 3, 5), (1, 2, 5), (1, 2, 4)}
+            sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 4, 5), (2, 3, 5), (1, 3, 5), (2, 4, 5)}
+
+        ::
+
+            sage: M = Matroid(circuits=[[1,2,3], [1,4,5], [2,3,4,5]])
+            sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(2, 3, 5), (1, 3, 5), (2, 4, 5), (3, 4, 5)}
+        """
+        ret = []
+        BC = self.broken_circuits(ordering)
+        for r in range(self.rank() + 1):
+            for I in self.independent_r_sets(r):
+                add = True
+                for b in BC:
+                    if b.issubset(I):
+                        add = False
+                        break
+                if add:
+                    ret.append(I)
+        return ret
 
     # isomorphism and equality
 
@@ -3827,7 +3932,7 @@ cdef class Matroid(SageObject):
             sage: M = matroids.named_matroids.Fano()
             sage: M.modular_cut([M.groundset()]).difference(
             ....:                               [frozenset(M.groundset())])
-            set([])
+            set()
         """
         final_list = set()
         temp_list = set([self.closure(X) for X in subsets])  # Checks validity
@@ -4407,7 +4512,7 @@ cdef class Matroid(SageObject):
             sage: setprint(M.max_weight_independent())
             {0, 1}
             sage: M.max_weight_coindependent(X=[], weights={})
-            frozenset([])
+            frozenset()
         """
         if X is None:
             X = self.groundset()
@@ -4489,7 +4594,7 @@ cdef class Matroid(SageObject):
             sage: setprint(M.max_weight_coindependent())
             {0, 1, 2, 3, 4, 5}
             sage: M.max_weight_coindependent(X=[], weights={})
-            frozenset([])
+            frozenset()
         """
         if X is None:
             X = self.groundset()
@@ -4890,3 +4995,180 @@ cdef class Matroid(SageObject):
         eps = 0.00000001
 
         return [F for F in FF if fsol[F] > 1 - eps]
+        
+    cpdef plot(self, B=None, lineorders=None, pos_method=None,pos_dict=None,save_pos=False):
+        """
+        Return geometric representation as a sage graphics object.
+
+        INPUT:
+
+        - ``B`` -- (optional) a list containing a basis.
+          If internal point placement is used, these elements will be placed as vertices of a triangle.
+        - ``lineorders`` -- (optional) A list of lists where each of the inner lists
+          specify ground set elements in a certain order which will be used to draw the
+          corresponding line in geometric representation (if it exists).
+        - ``pos_method`` -- An integer specifying positioning method.
+            - ``0``: default positioning
+            - ``1``: use pos_dict if it is not ``None``
+            - ``2``: Force directed (Not yet implemented).
+            
+        - ``pos_dict``: A dictionary mapping ground set elements to their (x,y) positions.
+        - ``save_pos``: A boolean indicating that point placements (either internal or user provided) and
+          line orders (if provided) will be cached in the matroid (``M._cached_info``) and can be used for
+          reproducing the geometric representation during the same session
+
+        OUTPUT:
+
+        A sage graphics object of type <class 'sage.plot.graphics.Graphics'> that
+        corresponds to the geometric representation of the matroid
+
+        EXAMPLES::
+
+            sage: M=matroids.named_matroids.Fano()
+            sage: G=M.plot()
+            sage: type(G)
+            <class 'sage.plot.graphics.Graphics'>
+            sage: G.show()
+
+        """
+        import matroids_plot_helpers
+        if pos_method == 1  and pos_dict != None:
+        # check sanity of pos_dict and add it to cached info if sane
+            if matroids_plot_helpers.posdict_is_sane(self, pos_dict) == True: 
+                self._cached_info={'plot_positions':pos_dict, 'lineorders':lineorders}
+        # placeholder for aditional placement methods. Only need to compute positions and update self._cached_info
+        elif pos_method == 2:
+            raise NotImplementedError
+
+        if self._cached_info == None:
+            self._cached_info={'plot_positions':None,'lineorders': None}
+        if 'plot_positions' not in self._cached_info.keys():
+            self._cached_info['plot_positions'] = None
+        if 'lineorders'  not in self._cached_info.keys():
+            self._cached_info['lineorders'] = None
+
+        if self.rank() > 3:
+            raise NotImplementedError
+        elif B == None:
+            B = list(self.basis())
+        elif B != None and self.is_basis(B)==False:
+            return
+        lineorders2=matroids_plot_helpers.lineorders_union(self._cached_info['lineorders'],lineorders)
+        return matroids_plot_helpers.geomrep(self,B,lineorders2,pd=pos_dict, sp=save_pos)
+
+    cpdef show(self,B=None,lineorders=None,pos_method=None,pos_dict=None,save_pos=False,lims=None):
+        """
+        Show the geometric representation of the matroid.
+
+        INPUT:
+
+        - ``B`` -- (optional) a list containing elements of the groundset not in any particular order.
+          If internal point placement is used, these elements will be placed as vertices of a triangle.
+        - ``lineorders`` -- (optional) A list of lists where each of the inner lists
+          specify ground set elements in a certain order which will be used to draw the
+          corresponding line in geometric representation (if it exists).
+        - ``pos_method`` -- An integer specifying positioning method
+            - ``0``: default positioning
+            - ``1``: use pos_dict if it is not ``None``
+            - ``2``: Force directed (Not yet implemented).
+            
+        - ``pos_dict`` -- A dictionary mapping ground set elements to their (x,y) positions.
+        - ``save_pos`` -- A boolean indicating that point placements (either internal or user provided) and
+          line orders (if provided) will be cached in the matroid (``M._cached_info``) and can be used for
+          reproducing the geometric representation during the same session
+        - ``lims`` -- A list of 4 elements ``[xmin,xmax,ymin,ymax]``
+
+        EXAMPLES::
+
+            sage: M=matroids.named_matroids.TernaryDowling3()
+            sage: M.show(B=['a','b','c'])
+            sage: M.show(B=['a','b','c'],lineorders=[['f','e','i']])
+            sage: pos = {'a':(0,0), 'b': (0,1), 'c':(1,0), 'd':(1,1), 'e':(1,-1), 'f':(-1,1), 'g':(-1,-1),'h':(2,0), 'i':(0,2)}
+            sage: M.show(pos_method=1, pos_dict=pos,lims=[-3,3,-3,3])
+        """
+        if self.rank() > 3:
+            raise NotImplementedError
+        elif B == None:
+            B = list(self.basis())
+        elif B != None and self.is_basis(B)==False:
+            return
+        B1=B
+        lineorders1=lineorders
+        pm=pos_method
+        pd=pos_dict
+        sp=save_pos
+        G=self.plot(B1,lineorders1,pm,pd,sp)
+        if lims == None:
+            G.show()
+        else:
+            G.show(xmin=lims[0], xmax=lims[1], ymin=lims[2], ymax=lims[3])
+        return
+
+    cpdef _fix_positions(self,pos_dict=None,lineorders=None):
+        """
+        Cache point positions and line orders without actually plotting
+
+        INPUT:
+
+        - ``pos_dict`` -- (optional) A dictionary mapping ground set elements to their (x,y) positions.
+        - ``lineorders`` -- (optional) A list of lists where each of the inner lists
+          specify ground set elements in a certain order which will be used to draw the
+          corresponding line in geometric representation (if it exists).
+
+        EXAMPLES::
+
+            sage: M=matroids.named_matroids.BetsyRoss()
+            sage: pos={}
+            sage: s="abcde"
+            sage: t="fghij"
+            sage: x=1.61
+            sage: y=1/1.61
+            sage: for i in range(5):
+            ....:         pos[s[i]]=(RR(x*sin(2*pi*i/5)), RR(x*cos(2*pi*i/5)))
+            ....:         pos[t[i]]=(RR(y*sin(2*pi*(i+1/2)/5)), RR(y*cos(2*pi*(i+1/2)/5)))
+            ....:
+            sage: pos['k']=(0,0)
+            sage: M._fix_positions(pos_dict=pos)
+            sage: M._cached_info['lineorders'] is None
+            True
+            sage: M._cached_info['plot_positions']['k']
+            (0, 0)
+        """
+        if self.rank() > 3:
+            raise NotImplementedError
+        # check sanity of pos_dict and add it to cached info if sane
+        if(pos_dict!=None):
+            import matroids_plot_helpers
+            if matroids_plot_helpers.posdict_is_sane(self,pos_dict) ==True:
+                self._cached_info={'plot_positions':pos_dict,'lineorders':lineorders}
+        return
+
+    def broken_circuit_complex(self, ordering=None):
+        r"""
+        Return the broken circuit complex of ``self``.
+
+        The broken circuit complex of a matroid with a total ordering `<`
+        on the ground set is obtained from the
+        :meth:`NBC sets <no_broken_circuits_sets>` under subset inclusion.
+
+        INPUT:
+
+        - ``ordering`` -- a total ordering of the groundset given as a list
+
+        OUTPUT:
+
+        A simplicial complex of the NBC sets under inclusion.
+
+        EXAMPLES::
+
+            sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
+            sage: M.broken_circuit_complex()
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 3, 4), (1, 3, 5), (1, 2, 5), (1, 2, 4)}
+            sage: M.broken_circuit_complex([5,4,3,2,1])
+            Simplicial complex with vertex set (1, 2, 3, 4, 5)
+             and facets {(1, 4, 5), (2, 3, 5), (1, 3, 5), (2, 4, 5)}
+        """
+        from sage.homology.simplicial_complex import SimplicialComplex
+        return SimplicialComplex(self.no_broken_circuits_sets(ordering))
+

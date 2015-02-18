@@ -255,7 +255,7 @@ def max_to_string(s):
         sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_string
         sage: ecl = maxima_lib(cos(x)).ecl()
         sage: max_to_string(ecl)
-        'cos(x)'
+        'cos(_SAGE_VAR_x)'
     """
     return maxprint(s).python()[1:-1]
 
@@ -420,11 +420,13 @@ class MaximaLib(MaximaAbstract):
                 else:
                     statement = line[:ind_semi]
                     line = line[ind_semi+1:]
-                if statement: result = ((result + '\n') if result else '') + max_to_string(maxima_eval("#$%s$"%statement))
+                if statement:
+                    result = ((result + '\n') if result else '') + max_to_string(maxima_eval("#$%s$"%statement))                        
             else:
                 statement = line[:ind_dollar]
                 line = line[ind_dollar+1:]
-                if statement: _ = maxima_eval("#$%s$"%statement)
+                if statement:
+                    _ = maxima_eval("#$%s$"%statement)
         if not reformat:
             return result
         return ''.join([x.strip() for x in result.split()])
@@ -561,14 +563,21 @@ class MaximaLib(MaximaAbstract):
             sage: maxima_lib._create(c,'m')
             'm'
             sage: maxima_lib.get('m')
-            'x+cos(19)'
+            '_SAGE_VAR_x+cos(19)'
             sage: maxima_lib.clear('m')
         """
         name = self._next_var_name() if name is None else name
-        if isinstance(value,EclObject):
-            maxima_eval([[msetq],cadadr("#$%s$#$"%name),value])
-        else:
-            self.set(name, value)
+        try:
+            if isinstance(value,EclObject):
+                maxima_eval([[msetq],cadadr("#$%s$#$"%name),value])
+            else:
+                self.set(name, value)
+        except RuntimeError as error:
+            s = str(error)
+            if "Is" in s: # Maxima asked for a condition
+                self._missing_assumption(s)
+            else:
+                raise
         return name
 
     def _function_class(self):
@@ -651,7 +660,7 @@ class MaximaLib(MaximaAbstract):
             Traceback (most recent call last):
             ...
             ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before integral evaluation
+            constraints; using the 'assume' command before evaluation
             *may* help (example of legal syntax is 'assume(a>0)', see
             `assume?` for more details)
             Is a positive or negative?
@@ -664,7 +673,7 @@ class MaximaLib(MaximaAbstract):
             Traceback (most recent call last):
             ...
             ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before integral evaluation
+            constraints; using the 'assume' command before evaluation
             *may* help (example of legal syntax is 'assume(n>0)',
             see `assume?` for more details)
             Is n equal to -1?
@@ -700,16 +709,12 @@ class MaximaLib(MaximaAbstract):
         ::
 
             sage: integrate(cos(x + abs(x)), x)
-            -1/4*(2*x - sin(2*x))*real_part(sgn(x)) + 1/2*x + 1/4*sin(2*x)
+            -1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x
 
-        Note that the last example yielded the same answer in a
-        simpler form in earlier versions of Maxima (<= 5.29.1), namely
-        ``-1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x``.  This
-        is because Maxima no longer simplifies ``realpart(signum(x))``
-        to ``signum(x)``::
+        The last example relies on the following simplification::
 
             sage: maxima("realpart(signum(x))")
-            'realpart(signum(x))
+            signum(x)
 
         An example from sage-support thread e641001f8b8d1129::
 
@@ -724,7 +729,7 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(sqrt(x + sqrt(x)), x).simplify_radical()
+            sage: integrate(sqrt(x + sqrt(x)), x).canonicalize_radical()
             1/12*((8*x - 3)*x^(1/4) + 2*x^(3/4))*sqrt(sqrt(x) + 1) + 1/8*log(sqrt(sqrt(x) + 1) + x^(1/4)) - 1/8*log(sqrt(sqrt(x) + 1) - x^(1/4))
 
         And :trac:`11594`::
@@ -733,7 +738,7 @@ class MaximaLib(MaximaAbstract):
             4
 
         This definite integral returned zero (incorrectly) in at least
-        maxima-5.23. The correct answer is now given (:trac:`11591`)::
+        Maxima 5.23. The correct answer is now given (:trac:`11591`)::
 
             sage: f = (x^2)*exp(x) / (1+exp(x))^2
             sage: integrate(f, (x, -infinity, infinity))
@@ -752,10 +757,19 @@ class MaximaLib(MaximaAbstract):
             all
             sage: g = integrate(f, x); g
             2/3*sqrt(x^3 + 1) - 1/3*log(sqrt(x^3 + 1) + 1) + 1/3*log(sqrt(x^3 + 1) - 1)
-            sage: (f - g.diff(x)).simplify_radical()
+            sage: (f - g.diff(x)).canonicalize_radical()
             0
             sage: maxima('radexpand: true')
             true
+
+        The following integral was computed incorrectly in versions of
+        Maxima before 5.27 (see :trac:`12947`)::
+
+            sage: a = integrate(x*cos(x^3),(x,0,1/2)).n()
+            sage: a.real()
+            0.124756040961038
+            sage: a.imag().abs() < 3e-17
+            True
 
         """
         try:
@@ -767,10 +781,7 @@ class MaximaLib(MaximaAbstract):
 #            if "divergent" in s or 'Principal Value' in s:
                 raise ValueError("Integral is divergent.")
             elif "Is" in s: # Maxima asked for a condition
-                j = s.find('Is ')
-                s = s[j:]
-                k = s.find(' ', 3)
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[3:k] + ">0)', see `assume?` for more details)\n" + s)
+                self._missing_assumption(s)
             else:
                 raise
 
@@ -783,7 +794,7 @@ class MaximaLib(MaximaAbstract):
         Check that :trac:`16224` is fixed::
 
             sage: k = var('k')
-            sage: sum(x^(2*k)/factorial(2*k), k, 0, oo).simplify_radical()
+            sage: sum(x^(2*k)/factorial(2*k), k, 0, oo).canonicalize_radical()
             cosh(x)
 
         ::
@@ -796,7 +807,7 @@ class MaximaLib(MaximaAbstract):
             Traceback (most recent call last):
             ...
             ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before summation *may* help
+            constraints; using the 'assume' command before evaluation *may* help
             (example of legal syntax is 'assume(abs(q)-1>0)', see `assume?`
             for more details)
             Is abs(q)-1 positive, negative or zero?
@@ -838,6 +849,13 @@ class MaximaLib(MaximaAbstract):
             ...
             RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
 
+        Similar situation for :trac:`12410`::
+
+            sage: x = var('x')
+            sage: sum(1/x*(-1)^x, x, 0, oo)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));
@@ -849,10 +867,7 @@ class MaximaLib(MaximaAbstract):
 #            if "divergent" in s or 'Pole encountered' in s:
                 raise ValueError("Sum is divergent.")
             elif "Is" in s: # Maxima asked for a condition
-                j = s.find('Is ')
-                s = s[j:]
-                k = s.find(' ', 3)
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[3:k] + ">0)', see `assume?` for more details)\n" + s)
+                self._missing_assumption(s)
             else:
                 raise
 
@@ -875,16 +890,15 @@ class MaximaLib(MaximaAbstract):
             Traceback (most recent call last):
             ...
             ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before limit evaluation
-            *may* help (see `assume?` for more details)
+            constraints; using the 'assume' command before evaluation
+            *may* help (example of legal syntax is 'assume(a>0)', see `assume?`
+            for more details)
             Is a positive, negative or zero?
             sage: assume(a>0)
             sage: limit(x^a,x=0)
             Traceback (most recent call last):
             ...
-            ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before limit evaluation
-            *may* help (see `assume?` for more details)
+            ValueError: Computation failed ...
             Is a an integer?
             sage: assume(a,'integer')
             sage: assume(a,'even')  # Yes, Maxima will ask this too
@@ -911,6 +925,15 @@ class MaximaLib(MaximaAbstract):
             sage: l.limit(n=oo)
             1/3
 
+        The following limit computation used to incorrectly return 0
+        or infinity, depending on the domain (see :trac:`15033`)::
+
+            sage: m = sage.calculus.calculus.maxima
+            sage: _ = m.eval('domain: real')   # much faster than 'domain: complex'
+            sage: limit(gamma(x + 1/2)/(sqrt(x)*gamma(x)), x=infinity)
+            1
+            sage: _ = m.eval('domain: complex')
+
         """
         try:
             L=[sr_to_max(SR(a)) for a in [expr,v,a]]
@@ -922,9 +945,7 @@ class MaximaLib(MaximaAbstract):
         except RuntimeError as error:
             s = str(error)
             if "Is" in s: # Maxima asked for a condition
-                j = s.find('Is ')
-                s = s[j:]
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)\n" + s)
+                self._missing_assumption(s)
             else:
                 raise
 
@@ -944,7 +965,32 @@ class MaximaLib(MaximaAbstract):
         elif dir == "minus":
             L.append(max_minus)
         return max_to_sr(maxima_eval(([max_tlimit],L)))
-
+    
+    def _missing_assumption(self,errstr):
+        """
+        Helper function for unified handling of failed computation because an
+        assumption was missing.
+        
+        EXAMPLES::
+        
+            sage: from sage.interfaces.maxima_lib import maxima_lib
+            sage: maxima_lib._missing_assumption('Is xyz a thing?')
+            Traceback (most recent call last):
+            ...
+            ValueError: Computation failed ...
+            Is xyz a thing?
+        """
+        j = errstr.find('Is ')
+        errstr = errstr[j:]
+        jj = 2
+        if errstr[3] == ' ':
+            jj = 3
+        k = errstr.find(' ',jj+1)
+        
+        outstr = "Computation failed since Maxima requested additional constraints; using the 'assume' command before evaluation *may* help (example of legal syntax is 'assume("\
+             + errstr[jj+1:k] +">0)', see `assume?` for more details)\n" + errstr
+        outstr = outstr.replace('_SAGE_VAR_','')
+        raise ValueError(outstr)
 
 def is_MaximaLibElement(x):
     r"""
@@ -974,7 +1020,7 @@ class MaximaLibElement(MaximaAbstractElement):
         sage: maxima_lib(4)
         4
         sage: maxima_lib(log(x))
-        log(x)
+        log(_SAGE_VAR_x)
     """
 
     def ecl(self):
@@ -989,7 +1035,7 @@ class MaximaLibElement(MaximaAbstractElement):
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib(x+cos(19)).ecl()
-            <ECL: ((MPLUS SIMP) ((%COS SIMP) 19) $X)>
+            <ECL: ((MPLUS SIMP) ((%COS SIMP) 19) |$_SAGE_VAR_x|)>
         """
         try:
             return self._ecl
@@ -1115,6 +1161,7 @@ caaadr=EclObject("caaadr")
 cadadr=EclObject("cadadr")
 meval=EclObject("meval")
 NIL=EclObject("NIL")
+lisp_length=EclObject("length")
 
 ## Dictionaries for standard operators
 sage_op_dict = {
@@ -1216,14 +1263,15 @@ max_op_dict[rat]=sage_rat
 
 
 ## Here we build dictionaries for operators needing special conversions.
-ratdisrep=EclObject("ratdisrep")
-mrat=EclObject("MRAT")
-mqapply=EclObject("MQAPPLY")
-max_li=EclObject("$LI")
-max_psi=EclObject("$PSI")
-max_array=EclObject("ARRAY")
-mdiff=EclObject("%DERIVATIVE")
-max_lambert_w=sage_op_dict[sage.functions.log.lambert_w]
+ratdisrep = EclObject("ratdisrep")
+mrat = EclObject("MRAT")
+mqapply = EclObject("MQAPPLY")
+max_li = EclObject("$LI")
+max_psi = EclObject("$PSI")
+max_hyper = EclObject("$%F")
+max_array = EclObject("ARRAY")
+mdiff = EclObject("%DERIVATIVE")
+max_lambert_w = sage_op_dict[sage.functions.log.lambert_w]
 
 def mrat_to_sage(expr):
     r"""
@@ -1247,9 +1295,9 @@ def mrat_to_sage(expr):
         (x, y, z)
         sage: c = maxima_lib((x+y^2+z^9)/x^6+z^8/y).rat()
         sage: c
-        (y*z^9+x^6*z^8+y^3+x*y)/(x^6*y)
+        (_SAGE_VAR_y*_SAGE_VAR_z^9+_SAGE_VAR_x^6*_SAGE_VAR_z^8+_SAGE_VAR_y^3+_SAGE_VAR_x*_SAGE_VAR_y)/(_SAGE_VAR_x^6*_SAGE_VAR_y)
         sage: c.ecl()
-        <ECL: ((MRAT SIMP ($X $Y $Z)
+        <ECL: ((MRAT SIMP (|$_SAGE_VAR_x| |$_SAGE_VAR_y| |$_SAGE_VAR_z|)
         ...>
         sage: mrat_to_sage(c.ecl())
         (x^6*z^8 + y*z^9 + y^3 + x*y)/(x^6*y)
@@ -1279,10 +1327,14 @@ def mqapply_to_sage(expr):
     """
     if caaadr(expr) == max_li:
         return sage.functions.log.polylog(max_to_sr(cadadr(expr)),
-                                           max_to_sr(caddr(expr)))
+                                          max_to_sr(caddr(expr)))
     if caaadr(expr) == max_psi:
         return sage.functions.other.psi(max_to_sr(cadadr(expr)),
-                                         max_to_sr(caddr(expr)))
+                                        max_to_sr(caddr(expr)))
+    if caaadr(expr) == max_hyper:
+        return sage.functions.hypergeometric.hypergeometric(mlist_to_sage(car(cdr(cdr(expr)))),
+                                                            mlist_to_sage(car(cdr(cdr(cdr(expr))))),
+                                                            max_to_sr(car(cdr(cdr(cdr(cdr(expr)))))))
     else:
         op=max_to_sr(cadr(expr))
         max_args=cddr(expr)
@@ -1318,7 +1370,7 @@ def mlist_to_sage(expr):
 
     - ``expr`` - ECL object; a Maxima MLIST expression (i.e., a list)
 
-    OUTPUT: a python list of converted expressions.
+    OUTPUT: a Python list of converted expressions.
 
     EXAMPLES::
 
@@ -1415,7 +1467,8 @@ special_sage_to_max={
     sage.functions.log.polylog : lambda N,X : [[mqapply],[[max_li, max_array],N],X],
     sage.functions.other.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
     sage.functions.other.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
-    sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X]
+    sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X],
+    sage.functions.hypergeometric.hypergeometric : lambda A, B, X : [[mqapply],[[max_hyper, max_array],lisp_length(A.cdr()),lisp_length(B.cdr())],A,B,X]
 }
 
 
@@ -1537,6 +1590,8 @@ def sr_to_max(expr):
             return EclObject(l)
         elif (op in special_sage_to_max):
             return EclObject(special_sage_to_max[op](*[sr_to_max(o) for o in expr.operands()]))
+        elif op == tuple:
+            return EclObject( ([mlist],list(sr_to_max(op) for op in expr.operands())) )
         elif not (op in sage_op_dict):
             # Maxima does some simplifications automatically by default
             # so calling maxima(expr) can change the structure of expr

@@ -16,13 +16,12 @@ if fn.startswith('-'):
     print "Try 'sage -h' for more information."
     sys.exit(1)
 
-binpath = os.path.join(os.environ['SAGE_LOCAL'], 'bin')
 
 if fn.endswith('.sage'):
-    if call(['sage', '-preparse', fn]) != 0:
+    if call(['sage-preparse', fn]) != 0:
         sys.exit(1)
-    os.execv(os.path.join(binpath, 'sage-python'), ['sage-python', fn[:-5] + '.py'] + opts)
+    os.execvp('sage-python', ['sage-python', fn + '.py'] + opts)
 elif fn.endswith('.pyx') or fn.endswith('.spyx'):
-    os.execv(os.path.join(binpath, 'sage-run-cython'), ['sage-run-cython', fn] + opts)
+    os.execvp('sage-run-cython', ['sage-run-cython', fn] + opts)
 else:
-    os.execv(os.path.join(binpath, 'sage-python'), ['sage-python', fn] + opts)
+    os.execvp('sage-python', ['sage-python', fn] + opts)

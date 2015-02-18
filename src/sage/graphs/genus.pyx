@@ -1,11 +1,5 @@
-#*****************************************************************************
-#         Copyright (C) 2010 Tom Boothby <tomas.boothby@gmail.com>
-#
-# Distributed under the terms of the GNU General Public License (GPL v2+)
-#                         http://www.gnu.org/licenses/
-#*****************************************************************************
-
 """
+Genus
 
 This file contains a moderately-optimized implementation to compute the
 genus of simple connected graph.  It runs about a thousand times faster
@@ -33,6 +27,12 @@ described throughout the file.
 
 """
 
+#*****************************************************************************
+#         Copyright (C) 2010 Tom Boothby <tomas.boothby@gmail.com>
+#
+# Distributed under the terms of the GNU General Public License (GPL v2+)
+#                         http://www.gnu.org/licenses/
+#*****************************************************************************
 
 cimport sage.combinat.permutation_cython
 

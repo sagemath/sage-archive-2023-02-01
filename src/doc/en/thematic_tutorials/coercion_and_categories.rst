@@ -5,6 +5,10 @@
 =================================================
 How to implement new algebraic structures in Sage
 =================================================
+
+.. contents::
+   :depth: 3
+
 --------------------------------------
 Sage's category and coercion framework
 --------------------------------------
@@ -15,12 +19,7 @@ Sage's category and coercion framework
     <simon.king@uni-jena.de>
     © 2011/2013
 
-.. toctree::
-   :maxdepth: 2
-
 .. linkall
-
-
 
 The aim of this tutorial is to explain how one can benefit from Sage's
 category framework and coercion model when implementing new algebraic
@@ -405,7 +404,7 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
     57
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    81
+    82
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -1095,7 +1094,7 @@ In particular, the construction functors can be composed::
 
     sage: Poly*Fract
     Poly[x](FractionField(...))
-    sage: (Poly*Fract)(ZZ) is QQ[x]
+    sage: (Poly*Fract)(ZZ) is QQ['x']
     True
 
 .. end of output
@@ -1486,9 +1485,13 @@ Here are the tests that form the test suite of quotient fields::
      '_test_elements_eq_symmetric',
      '_test_elements_eq_transitive',
      '_test_elements_neq',
+     '_test_euclidean_degree',
+     '_test_gcd_vs_xgcd',
      '_test_one', '_test_prod',
+     '_test_quo_rem',
      '_test_some_elements',
-     '_test_zero']
+     '_test_zero',
+     '_test_zero_divisors']
 
 .. end of output
 
@@ -1534,12 +1537,16 @@ Let us see what tests are actually performed::
     running ._test_elements_eq_transitive() . . . pass
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
+    running ._test_euclidean_degree() . . . pass
+    running ._test_gcd_vs_xgcd() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
     running ._test_prod() . . . pass
+    running ._test_quo_rem() . . . pass
     running ._test_some_elements() . . . pass
     running ._test_zero() . . . pass
+    running ._test_zero_divisors() . . . pass
 
 .. end of output
 
@@ -1699,12 +1706,16 @@ interesting.
     running ._test_elements_eq_transitive() . . . pass
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
+    running ._test_euclidean_degree() . . . pass
+    running ._test_gcd_vs_xgcd() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
     running ._test_prod() . . . pass
+    running ._test_quo_rem() . . . pass
     running ._test_some_elements() . . . pass
     running ._test_zero() . . . pass
+    running ._test_zero_divisors() . . . pass
 
 .. end of output
 

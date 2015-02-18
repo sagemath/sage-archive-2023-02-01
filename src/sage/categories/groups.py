@@ -11,10 +11,13 @@ Groups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
+from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 class Groups(CategoryWithAxiom):
     """
@@ -45,6 +48,45 @@ class Groups(CategoryWithAxiom):
         from sage.groups.matrix_gps.linear import GL
         return GL(4,QQ)
 
+    @staticmethod
+    def free(index_set=None, names=None, **kwds):
+        r"""
+        Return the free group.
+
+        INPUT:
+
+        - ``index_set`` -- (optional) an index set for the generators; if
+          an integer, then this represents `\{0, 1, \ldots, n-1\}`
+
+        - ``names`` -- a string or list/tuple/iterable of strings
+          (default: ``'x'``); the generator names or name prefix
+
+        When the index set is an integer or only variable names are given,
+        this returns :class:`~sage.groups.free_group.FreeGroup_class`, which
+        currently has more features due to the interface with GAP than
+        :class:`~sage.groups.indexed_free_group.IndexedFreeGroup`.
+
+        EXAMPLES::
+
+            sage: Groups.free(index_set=ZZ)
+            Free group indexed by Integer Ring
+            sage: Groups().free(ZZ)
+            Free group indexed by Integer Ring
+            sage: Groups().free(5)
+            Free Group on generators {x0, x1, x2, x3, x4}
+            sage: F.<x,y,z> = Groups().free(); F
+            Free Group on generators {x, y, z}
+        """
+        from sage.rings.all import ZZ
+        if index_set in ZZ or (index_set is None and names is not None):
+            from sage.groups.free_group import FreeGroup
+            if names is None:
+                return FreeGroup(index_set, **kwds)
+            return FreeGroup(index_set, names, **kwds)
+
+        from sage.groups.indexed_free_group import IndexedFreeGroup
+        return IndexedFreeGroup(index_set, **kwds)
+
     class ParentMethods:
 
         def group_generators(self):
@@ -61,7 +103,35 @@ class Groups(CategoryWithAxiom):
                 Family ((2,3,4), (1,2,3))
             """
             from sage.sets.family import Family
-            return Family(self.gens())
+            try:
+                return Family(self.gens())
+            except AttributeError:
+                raise NotImplementedError("no generators are implemented for this group")
+
+        def monoid_generators(self):
+            r"""
+            Return the generators of ``self`` as a monoid.
+
+            Let `G` be a group with generating set `X`. In general, the
+            generating set of `G` as a monoid is given by `X \cup X^{-1}`,
+            where `X^{-1}` is the set of inverses of `X`. If `G` is a finite
+            group, then the generating set as a monoid is `X`.
+
+            EXAMPLES::
+
+                sage: A = AlternatingGroup(4)
+                sage: A.monoid_generators()
+                Family ((2,3,4), (1,2,3))
+                sage: F.<x,y> = FreeGroup()
+                sage: F.monoid_generators()
+                Family (x, y, x^-1, y^-1)
+            """
+            G = self.group_generators()
+            from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+            if G not in FiniteEnumeratedSets():
+                raise NotImplementedError("currently only implemented for finitely generated groups")
+            from sage.sets.family import Family
+            return Family(tuple(G) + tuple(~x for x in G))
 
         def _test_inverse(self, **options):
             """
@@ -364,6 +434,57 @@ class Groups(CategoryWithAxiom):
     Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
     #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
 
+    class Commutative(CategoryWithAxiom):
+        """
+        Category of commutative (abelian) groups.
+
+        A group `G` is *commutative* if `xy = yx` for all `x,y \in G`.
+        """
+        @staticmethod
+        def free(index_set=None, names=None, **kwds):
+            r"""
+            Return the free commutative group.
+
+            INPUT:
+
+            - ``index_set`` -- (optional) an index set for the generators; if
+              an integer, then this represents `\{0, 1, \ldots, n-1\}`
+
+            - ``names`` -- a string or list/tuple/iterable of strings
+              (default: ``'x'``); the generator names or name prefix
+
+            EXAMPLES::
+
+                sage: Groups.Commutative.free(index_set=ZZ)
+                Free abelian group indexed by Integer Ring
+                sage: Groups().Commutative().free(ZZ)
+                Free abelian group indexed by Integer Ring
+                sage: Groups().Commutative().free(5)
+                Multiplicative Abelian group isomorphic to Z x Z x Z x Z x Z
+                sage: F.<x,y,z> = Groups().Commutative().free(); F
+                Multiplicative Abelian group isomorphic to Z x Z x Z
+            """
+            from sage.rings.all import ZZ
+            if names is not None:
+                if isinstance(names, str):
+                    if ',' not in names and index_set in ZZ:
+                        names = [names + repr(i) for i in range(index_set)]
+                    else:
+                        names = names.split(',')
+                names = tuple(names)
+                if index_set is None:
+                    index_set = ZZ(len(names))
+                if index_set in ZZ:
+                    from sage.groups.abelian_gps.abelian_group import AbelianGroup
+                    return AbelianGroup(index_set, names=names, **kwds)
+
+            if index_set in ZZ:
+                from sage.groups.abelian_gps.abelian_group import AbelianGroup
+                return AbelianGroup(index_set, **kwds)
+
+            from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
+            return IndexedFreeAbelianGroup(index_set, names=names, **kwds)
+
     class Algebras(AlgebrasCategory):
         r"""
         The category of group algebras over a given base ring.
@@ -433,13 +554,13 @@ class Groups(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: GroupAlgebras(QQ[x]).example()
+                sage: GroupAlgebras(QQ['x']).example()
                 Group algebra of Dihedral group of order 8 as a permutation group over Univariate Polynomial Ring in x over Rational Field
 
             An other group can be specified as optional argument::
 
-                sage: GroupAlgebras(QQ).example(SymmetricGroup(4))
-                Group algebra of Symmetric group of order 4! as a permutation group over Rational Field
+                sage: GroupAlgebras(QQ).example(AlternatingGroup(4))
+                Group algebra of Alternating group of order 4!/2 as a permutation group over Rational Field
             """
             from sage.groups.perm_gps.permgroup_named import DihedralGroup
             if G is None:
@@ -485,14 +606,17 @@ class Groups(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage: GroupAlgebras(QQ).example(SymmetricGroup(10)).algebra_generators()
-                    Finite family {(1,2): B[(1,2)], (1,2,3,4,5,6,7,8,9,10): B[(1,2,3,4,5,6,7,8,9,10)]}
+                    sage: GroupAlgebras(QQ).example(AlternatingGroup(10)).algebra_generators()
+                    Finite family {(1,2,3,4,5,6,7,8,9): B[(1,2,3,4,5,6,7,8,9)], (8,9,10): B[(8,9,10)]}
 
                 .. NOTE::
 
                     This function is overloaded for SymmetricGroupAlgebras
                     to return Permutations and not Elements of the
-                    symmetric group.
+                    symmetric group::
+
+                        sage: GroupAlgebras(QQ).example(SymmetricGroup(10)).algebra_generators()
+                        [[2, 1, 3, 4, 5, 6, 7, 8, 9, 10], [2, 3, 4, 5, 6, 7, 8, 9, 10, 1]]
                 """
                 from sage.sets.family import Family
                 return Family(self.group().gens(), self.term)
@@ -703,4 +827,83 @@ class Groups(CategoryWithAxiom):
                 Z = self.parent().center()
                 return sum(self[i] * Z.basis()[i] for i in Z.basis().keys())
 
+    class CartesianProducts(CartesianProductsCategory):
+        """
+        The category of groups constructed as cartesian products of groups.
+
+        This construction gives the direct product of groups. See
+        :wikipedia:`Direct_product` and :wikipedia:`Direct_product_of_groups`
+        for more information.
+        """
+        def extra_super_categories(self):
+            """
+            A cartesian product of groups is endowed with a natural
+            group structure.
+
+            EXAMPLES::
+
+                sage: C = Groups().CartesianProducts()
+                sage: C.extra_super_categories()
+                [Category of groups]
+                sage: sorted(C.super_categories(), key=str)
+                [Category of Cartesian products of inverse unital magmas,
+                 Category of Cartesian products of monoids,
+                 Category of groups]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+            @cached_method
+            def group_generators(self):
+                """
+                Return the group generators of ``self``.
+
+                EXAMPLES::
+
+                    sage: C5 = CyclicPermutationGroup(5)
+                    sage: C4 = CyclicPermutationGroup(4)
+                    sage: S4 = SymmetricGroup(3)
+                    sage: C = cartesian_product([C5, C4, S4])
+                    sage: C.group_generators()
+                    Family (((1,2,3,4,5), (), ()),
+                            ((), (1,2,3,4), ()),
+                            ((), (), (1,2)),
+                            ((), (), (2,3)))
+
+                We check the other portion of :trac:`16718` is fixed::
+
+                    sage: len(C.j_classes())
+                    1
+
+                An example with an infinitely generated group (a better output
+                is needed)::
+
+                    sage: G = Groups.free([1,2])
+                    sage: H = Groups.free(ZZ)
+                    sage: C = cartesian_product([G, H])
+                    sage: C.monoid_generators()
+                    Lazy family (gen(i))_{i in The cartesian product of (...)}
+                """
+                F = self.cartesian_factors()
+                ids = tuple(G.one() for G in F)
+                def lift(i, gen):
+                    cur = list(ids)
+                    cur[i] = gen
+                    return self._cartesian_product_of_elements(cur)
+                from sage.sets.family import Family
+
+                # Finitely generated
+                cat = FiniteEnumeratedSets()
+                if all(G.group_generators() in cat
+                       or isinstance(G.group_generators(), (tuple, list)) for G in F):
+                    ret = [lift(i, gen) for i,G in enumerate(F) for gen in G.group_generators()]
+                    return Family(ret)
+
+                # Infinitely generated
+                # This does not return a good output, but it is "correct"
+                # TODO: Figure out a better way to do things
+                gens_prod = cartesian_product([Family(G.group_generators(),
+                                                      lambda g: (i, g))
+                                               for i,G in enumerate(F)])
+                return Family(gens_prod, lift, name="gen")
 

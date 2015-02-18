@@ -240,6 +240,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             cat = cat.Unital()
             self._no_generic_basering_coercion = True
             # Remove the preceding line once :trac:`16492` is fixed
+            # Removing this line will also break some of the input formats,
+            #   see :trac:`16054`
         if A in C.WithBasis():
             cat = cat.WithBasis()
         if A in C.FiniteDimensional():

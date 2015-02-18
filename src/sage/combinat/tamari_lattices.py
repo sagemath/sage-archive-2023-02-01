@@ -13,18 +13,15 @@ Tamari lattices by typing::
 
     sage: from sage.combinat.tamari_lattices import GeneralizedTamariLattice
 
-EXAMPLES::
+Then, ::
 
-    sage: from sage.combinat.tamari_lattices import GeneralizedTamariLattice
     sage: GeneralizedTamariLattice(3,2)
     Finite lattice containing 2 elements
     sage: GeneralizedTamariLattice(4,3)
     Finite lattice containing 5 elements
 
 The classical **Tamari lattices** are special cases of this construction and
-are also available directly using the catalogue of posets, as follows.
-
-EXAMPLES::
+are also available directly using the catalogue of posets, as follows::
 
     sage: posets.TamariLattice(3)
     Finite lattice containing 5 elements

@@ -239,7 +239,7 @@ cdef class pAdicFixedModElement(FMElement):
             1
         """
         cdef Integer selfvalue, modulus
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_sgn((<Integer>absprec).value) < 0:
             raise ValueError, "cannot reduce modulo a negative power of p"

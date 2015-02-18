@@ -546,7 +546,7 @@ class ResidueField_generic(Field):
             OK = OK.ring_of_integers()
         else:
             K = K.fraction_field()
-        if PY_TYPE_CHECK(x, Element):
+        if isinstance(x, Element):
             R = (<Element>x)._parent
         elif hasattr(x, 'parent'):
             R = x.parent()

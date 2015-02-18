@@ -648,7 +648,7 @@ cdef class ClonableArray(ClonableElement):
             sage: type(IncreasingArrays()([1,2,3])[:])
             <type 'list'>
         """
-        if PY_TYPE_CHECK(key, slice):
+        if isinstance(key, slice):
             self._list[key.start:key.stop:key.step]
         return self._list[key]
 
@@ -1438,7 +1438,7 @@ cdef class ClonableIntArray(ClonableElement):
         cdef list res
         cdef slice keysl
         # print key
-        if PY_TYPE_CHECK(key, slice):
+        if isinstance(key, slice):
             keysl = <slice> key
             start, stop, step = keysl.indices(self._len)
             res = []

@@ -2197,7 +2197,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         cdef int l = len(x)
 
-        if l == 1 and (PY_TYPE_CHECK(x[0], tuple) or PY_TYPE_CHECK(x[0], list)):
+        if l == 1 and (isinstance(x[0], tuple) or isinstance(x[0], list)):
             x = x[0]
             l = len(x)
 

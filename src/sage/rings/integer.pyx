@@ -406,10 +406,10 @@ def is_Integer(x):
         sage: is_Integer('5')
         False
     """
-    return PY_TYPE_CHECK(x, Integer)
+    return isinstance(x, Integer)
 
 cdef inline Integer as_Integer(x):
-    if PY_TYPE_CHECK(x, Integer):
+    if isinstance(x, Integer):
         return <Integer>x
     else:
         return Integer(x)
@@ -669,7 +669,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # First do all the type-check versions (these are fast to test),
             # except those for which the conversion itself will be slow.
 
-            if PY_TYPE_CHECK(x, Integer):
+            if isinstance(x, Integer):
                 set_from_Integer(self, <Integer>x)
 
             elif PyInt_Check(x):
@@ -685,7 +685,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 else:
                     raise TypeError, "Cannot convert non-integral float to integer"
 
-            elif PY_TYPE_CHECK(x, pari_gen):
+            elif isinstance(x, pari_gen):
                 set_from_pari_gen(self, x)
 
             else:
@@ -695,7 +695,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     set_from_Integer(self, otmp(the_integer_ring))
                     return
 
-                if PY_TYPE_CHECK(x, Element):
+                if isinstance(x, Element):
                     try:
                         lift = x.lift()
                         if lift._parent is the_integer_ring:
@@ -708,12 +708,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     mpz_set_str_python(self.value, x, base)
                     return
 
-                elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
+                elif (isinstance(x, list) or isinstance(x, tuple)) and base > 1:
                     b = the_integer_ring(base)
                     if b == 2: # we use a faster method
                         for j from 0 <= j < len(x):
                             otmp = x[j]
-                            if not PY_TYPE_CHECK(otmp, Integer):
+                            if not isinstance(otmp, Integer):
                                 # should probably also have fast code for Python ints...
                                 otmp = Integer(otmp)
                             if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
@@ -815,7 +815,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__xor__(m)
             1
         """
-        if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
+        if isinstance(x, Integer) and isinstance(y, Integer):
             return (<Integer>x)._xor(y)
         return bin_op(x, y, operator.xor)
 
@@ -918,8 +918,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef int c
         cdef double d
-        if PY_TYPE_CHECK(left, Integer):
-            if PY_TYPE_CHECK(right, Integer):
+        if isinstance(left, Integer):
+            if isinstance(right, Integer):
                 c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
             elif PyInt_CheckExact(right):
                 c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
@@ -1439,7 +1439,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int i
         cdef size_t s
 
-        if PY_TYPE_CHECK(base, Integer):
+        if isinstance(base, Integer):
             _base = <Integer>base
         else:
             _base = Integer(base)
@@ -1951,10 +1951,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             from sage.rings.finite_rings.integer_mod import Mod
             return Mod(self, modulus) ** n
 
-        if not PY_TYPE_CHECK(self, Integer):
+        if not isinstance(self, Integer):
             if isinstance(self, str):
                 return self * n
-            if not PY_TYPE_CHECK(self, int):
+            if not isinstance(self, int):
                 return self ** int(n)
             else:
                 self = Integer(self)        #convert from int to Integer
@@ -2360,7 +2360,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef size_t guess # this will contain the final answer
         cdef bint guess_filled = 0  # this variable is only used in one branch below
         cdef mpz_t z
-        if PY_TYPE_CHECK(m,Integer):
+        if isinstance(m, Integer):
             _m=<Integer>m
         else:
             _m=<Integer>Integer(m)
@@ -4506,7 +4506,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: cputime(t)      # random
             0.02800199999999986
         """
-        if not PY_TYPE_CHECK(n, Integer):
+        if not isinstance(n, Integer):
             n = Integer(n)
         return self._is_power_of(n)
 
@@ -4801,12 +4801,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         cdef long tmp
-        if PY_TYPE_CHECK(b, int):
+        if isinstance(b, int):
             tmp = b
             if (tmp & 1) == 0:
                 raise ValueError, "Jacobi symbol not defined for even b."
             return mpz_kronecker_si(self.value, tmp)
-        if not PY_TYPE_CHECK(b, Integer):
+        if not isinstance(b, Integer):
             b = Integer(b)
         if mpz_even_p((<Integer>b).value):
             raise ValueError, "Jacobi symbol not defined for even b."
@@ -4833,9 +4833,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: a.kronecker(b) == b.kronecker(a)
             True
         """
-        if PY_TYPE_CHECK(b, int):
+        if isinstance(b, int):
             return mpz_kronecker_si(self.value, b)
-        if not PY_TYPE_CHECK(b, Integer):
+        if not isinstance(b, Integer):
             b = Integer(b)
         return mpz_kronecker(self.value, (<Integer>b).value)
 
@@ -5628,7 +5628,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             n = PyInt_AS_LONG(y)
         else:
             # If it's not already an Integer, try to convert it.
-            if not PY_TYPE_CHECK(y, Integer):
+            if not isinstance(y, Integer):
                 try:
                     y = Integer(y)
                 except TypeError:
@@ -5689,7 +5689,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         # note that x need not be self -- int(3) << ZZ(2) will
         # dispatch this function
-        if not PY_TYPE_CHECK(x, Integer):
+        if not isinstance(x, Integer):
             return x << int(y)
         return (<Integer>x)._shift_helper(y, 1)
 
@@ -5719,7 +5719,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         # note that x need not be self -- int(3) >> ZZ(2) will
         # dispatch this function
-        if not PY_TYPE_CHECK(x, Integer):
+        if not isinstance(x, Integer):
             return x >> int(y)
         return (<Integer>x)._shift_helper(y, -1)
 
@@ -5740,7 +5740,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__and__(m)
             2
         """
-        if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
+        if isinstance(x, Integer) and isinstance(y, Integer):
             return (<Integer>x)._and(y)
         return bin_op(x, y, operator.and_)
 
@@ -5759,7 +5759,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__or__(m)
             12
         """
-        if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
+        if isinstance(x, Integer) and isinstance(y, Integer):
             return (<Integer>x)._or(y)
         return bin_op(x, y, operator.or_)
 
@@ -6580,7 +6580,7 @@ cdef hook_fast_tp_functions():
     hook_tp_functions(global_dummy_Integer, NULL, &fast_tp_new, NULL, &fast_tp_dealloc, False)
 
 cdef integer(x):
-    if PY_TYPE_CHECK(x, Integer):
+    if isinstance(x, Integer):
         return x
     return Integer(x)
 

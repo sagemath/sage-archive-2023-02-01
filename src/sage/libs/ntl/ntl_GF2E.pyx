@@ -106,16 +106,16 @@ cdef class ntl_GF2E:
 
         cdef ntl_GF2X _x
 
-        if PY_TYPE_CHECK(x, ntl_GF2X):
+        if isinstance(x, ntl_GF2X):
             GF2E_conv_GF2X(self.x, (<ntl_GF2X>x).x)
 
-        elif PY_TYPE_CHECK(x, int):
+        elif isinstance(x, int):
             GF2E_conv_long(self.x, x)
 
-        elif PY_TYPE_CHECK(x, ntl_ZZ):
+        elif isinstance(x, ntl_ZZ):
             GF2E_conv_ZZ(self.x, (<ntl_ZZ>x).x)
 
-        elif PY_TYPE_CHECK(x, ntl_GF2):
+        elif isinstance(x, ntl_GF2):
             GF2E_conv_GF2(self.x, (<ntl_GF2>x).x)
         else:
             _x = ntl_GF2X(x)
@@ -137,7 +137,7 @@ cdef class ntl_GF2E:
         ################################################
         if modulus is None:
             return
-        if PY_TYPE_CHECK( modulus, ntl_GF2EContext_class ):
+        if isinstance(modulus, ntl_GF2EContext_class):
             self.c = <ntl_GF2EContext_class>modulus
             self.c.restore_c()
             GF2E_construct(&self.x)
@@ -216,7 +216,7 @@ cdef class ntl_GF2E:
             [0 0 1 1 1 0 1 1]
         """
         cdef ntl_GF2E r
-        if not PY_TYPE_CHECK(other, ntl_GF2E):
+        if not isinstance(other, ntl_GF2E):
             other = ntl_GF2E(other,self.c)
         elif self.c is not (<ntl_GF2E>other).c:
             raise ValueError, "You can not perform arithmetic with elements in different fields."
@@ -233,7 +233,7 @@ cdef class ntl_GF2E:
             [0 1 1 1]
         """
         cdef ntl_GF2E r
-        if not PY_TYPE_CHECK(other, ntl_GF2E):
+        if not isinstance(other, ntl_GF2E):
             other = ntl_GF2E(other,self.c)
         elif self.c is not (<ntl_GF2E>other).c:
             raise ValueError, "You can not perform arithmetic with elements in different fields."
@@ -250,7 +250,7 @@ cdef class ntl_GF2E:
             [0 1 1 1]
         """
         cdef ntl_GF2E r
-        if not PY_TYPE_CHECK(other, ntl_GF2E):
+        if not isinstance(other, ntl_GF2E):
             other = ntl_GF2E(other,self.c)
         elif self.c is not (<ntl_GF2E>other).c:
             raise ValueError, "You can not perform arithmetic with elements in different fields."
@@ -267,7 +267,7 @@ cdef class ntl_GF2E:
             [1 0 1 0 0 1 0 1]
         """
         cdef ntl_GF2E r
-        if not PY_TYPE_CHECK(other, ntl_GF2E):
+        if not isinstance(other, ntl_GF2E):
             other = ntl_GF2E(other,self.c)
         elif self.c is not (<ntl_GF2E>other).c:
             raise ValueError, "You can not perform arithmetic with elements in different fields."
@@ -316,7 +316,7 @@ cdef class ntl_GF2E:
         """
         self.c.restore_c()
 
-        if not PY_TYPE_CHECK(other, ntl_GF2E):
+        if not isinstance(other, ntl_GF2E):
             other = ntl_GF2E(other,self.c)
 
         if op != 2 and op != 3:

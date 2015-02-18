@@ -807,9 +807,9 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         - Jason Grout: sparse matrix optimizations
         """
-        if not PY_TYPE_CHECK(rows, list):
+        if not isinstance(rows, list):
             raise TypeError, "rows must be a list of integers"
-        if not PY_TYPE_CHECK(columns, list):
+        if not isinstance(columns, list):
             raise TypeError, "columns must be a list of integers"
 
         cdef Py_ssize_t nrows, ncols,k,r,i,j

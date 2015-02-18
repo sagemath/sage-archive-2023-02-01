@@ -727,9 +727,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 raise ValueError, "Must be in the domain or a list, tuple or string."
 
             permuted = [i[self.perm[j]] for j from 0 <= j < self.n]
-            if PY_TYPE_CHECK(i, tuple):
+            if isinstance(i, tuple):
                 permuted = tuple(permuted)
-            elif PY_TYPE_CHECK(i, str):
+            elif isinstance(i, str):
                 permuted = ''.join(permuted)
             permuted += i[self.n:]
             return permuted

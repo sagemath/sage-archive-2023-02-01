@@ -140,7 +140,7 @@ cpdef is_Polynomial(f):
         sage: is_Polynomial(f)
         False
     """
-    return PY_TYPE_CHECK(f, Polynomial)
+    return isinstance(f, Polynomial)
 
 from polynomial_compiled cimport CompiledPolynomialFunction
 
@@ -223,7 +223,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
           if len(x) == 0:
               return []
           n = max(x.keys())
-          if PY_TYPE_CHECK(n, tuple): # a mpoly dict
+          if isinstance(n, tuple): # a mpoly dict
               n = n[0]
               v = [zero] * (n+1)
               for i, z in x.iteritems():
@@ -659,7 +659,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             while i >= 0:
                 result = result * a + self[i](other_args)
                 i -= 1
-        elif not a and PY_TYPE_CHECK(a, Element) and a.parent().is_exact(): #without the exactness test we can run into trouble with interval fields.
+        elif not a and isinstance(a, Element) and a.parent().is_exact(): #without the exactness test we can run into trouble with interval fields.
             c = self[0]
             return c + c*a
         elif (d < 4 or d > 50000) and self._compiled is None:
@@ -6890,7 +6890,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         x, = self.variables()
 
-        if PY_TYPE_CHECK(var, int) or PY_TYPE_CHECK(var, Integer):
+        if isinstance(var, int) or isinstance(var, Integer):
             if var:
                 raise TypeError, "Variable index %d must be < 1."%var
             else:
@@ -7157,7 +7157,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             return
 
         R = parent.base_ring()
-        if PY_TYPE_CHECK(x, list):
+        if isinstance(x, list):
             if check:
                 self.__coeffs = [R(t) for t in x]
                 self.__normalize()
@@ -7171,7 +7171,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             else:
                 x = x.numerator()
 
-        if PY_TYPE_CHECK(x, Polynomial):
+        if isinstance(x, Polynomial):
             if (<Element>x)._parent is self._parent:
                 x = list(x.list())
             elif R.has_coerce_map_from((<Element>x)._parent):# is R or (<Element>x)._parent == R:
@@ -7188,7 +7188,7 @@ cdef class Polynomial_generic_dense(Polynomial):
                     self.__normalize()
                 return
 
-        elif PY_TYPE_CHECK(x, int) and x == 0:
+        elif isinstance(x, int) and x == 0:
             self.__coeffs = []
             return
 

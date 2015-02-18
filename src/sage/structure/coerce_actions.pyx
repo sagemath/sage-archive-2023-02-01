@@ -285,7 +285,7 @@ cdef class ModuleAction(Action):
             1/x
 
         """
-        Action.__init__(self, G, S, not PY_TYPE_CHECK(self, RightModuleAction), operator.mul)
+        Action.__init__(self, G, S, not isinstance(self, RightModuleAction), operator.mul)
         if not isinstance(G, Parent):
             # only let Parents act
             raise TypeError, "Actor must be a parent."
@@ -489,7 +489,7 @@ cdef class IntegerMulAction(Action):
             sage: act(-3, x-1)
             -3*x + 3
         """
-        if PY_TYPE_CHECK(ZZ, type):
+        if isinstance(ZZ, type):
             from sage.structure.parent import Set_PythonType
             ZZ = Set_PythonType(ZZ)
         if m is None:

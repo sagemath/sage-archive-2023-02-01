@@ -659,10 +659,13 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
         True
 
     Converting labelled into unlabelled rooted trees by
-    forgetting the labels:
+    forgetting the labels, and back (the labels are
+    initialized as ``None``)::
 
-       sage: RootedTree(yxy2)
+       sage: yxy2crude = RootedTree(yxy2); yxy2crude
        [[], [], []]
+       sage: LabelledRootedTree(yxy2crude)
+       None[None[], None[], None[]]
 
     TESTS::
 

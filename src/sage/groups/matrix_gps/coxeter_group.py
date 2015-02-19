@@ -170,7 +170,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         sage: W = CoxeterGroup(['D',5], implementation="reflection")
         sage: W
-        Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
         [1 3 2 2 2]
         [3 1 3 2 2]
         [2 3 1 3 3]
@@ -178,7 +178,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         [2 2 3 2 1]
         sage: W = CoxeterGroup(['H',3], implementation="reflection")
         sage: W
-        Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
@@ -492,12 +492,14 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         EXAMPLES::
 
             sage: CoxeterGroup([[1,3,2],[3,1,3],[2,3,1]])
-            Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+            Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
             [1 3 2]
             [3 1 3]
             [2 3 1]
         """
-        return "Coxeter group over {} with Coxeter matrix:\n{}".format(self.base_ring(), self._matrix)
+        rep = "Finite " if self.is_finite() else ""
+        rep += "Coxeter group over {} with Coxeter matrix:\n{}".format(self.base_ring(), self._matrix)
+        return rep
 
     def index_set(self):
         """
@@ -627,6 +629,25 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         # their ``__init__`` method, so we can just check
         # the category of ``self``.
         return "Finite" in self.category().axioms()
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        If the Coxeter group is finite, this uses an iterator.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup([[1,3],[3,1]])
+            sage: W.cardinality()
+            6
+            sage: W = CoxeterGroup([[1,-1],[-1,1]])
+            sage: W.cardinality()
+            +Infinity
+        """
+        if self.is_finite():
+            return self._cardinality_from_iterator()
+        return infinity
 
     def canonical_representation(self):
         r"""

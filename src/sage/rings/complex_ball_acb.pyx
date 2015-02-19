@@ -86,7 +86,7 @@ cdef class Acb(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.rings.complex_interval_acb import Acb # optional - arb
+        sage: from sage.rings.complex_ball_acb import Acb # optional - arb
         sage: a = Acb(CIF(1, 1))              # optional - arb
         sage: a.ComplexIntervalFieldElement() # optional - arb
         1 + 1*I
@@ -105,9 +105,9 @@ cdef class Acb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_interval_acb import Acb # optional - arb
+            sage: from sage.rings.complex_ball_acb import Acb # optional - arb
             sage: Acb(precision=2) # optional - arb; indirect doctest
-            <type 'sage.rings.complex_interval_acb.Acb'>
+            <type 'sage.rings.complex_ball_acb.Acb'>
         """
         acb_init(self.value)
 
@@ -125,7 +125,7 @@ cdef class Acb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_interval_acb import Acb # optional - arb
+            sage: from sage.rings.complex_ball_acb import Acb # optional - arb
             sage: a = Acb(precision=2) # optional - arb; indirect doctest
             sage: del a # optional - arb
         """
@@ -149,7 +149,7 @@ cdef class Acb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_interval_acb import Acb # optional - arb
+            sage: from sage.rings.complex_ball_acb import Acb # optional - arb
             sage: a = Acb(CIF(0, 1))                  # optional - arb
             sage: b = Acb(1)                          # optional - arb
             Traceback (most recent call last):
@@ -190,7 +190,7 @@ cdef class Acb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_interval_acb import Acb # optional - arb
+            sage: from sage.rings.complex_ball_acb import Acb # optional - arb
             sage: a = Acb(CIF(2, 2))                # optional - arb
             sage: a.ComplexIntervalFieldElement()   # optional - arb
             2 + 2*I

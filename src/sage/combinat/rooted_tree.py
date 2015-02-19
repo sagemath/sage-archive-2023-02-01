@@ -61,13 +61,13 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
     The class for unordered rooted trees.
 
     The *unordered rooted trees* are an inductive datatype defined
-    as follows: An unordered rooted tree is either a leaf
-    (carrying no information), or a multiset of unordered rooted
-    trees. In the latter case, the trees that belong to this
-    multiset are said to be the *children* of the tree.
+    as follows: An unordered rooted tree is a multiset of
+    unordered rooted trees. The trees that belong to this
+    multiset are said to be the *children* of the tree. The tree
+    that has no children is called a *leaf*.
 
     The *labelled rooted trees* (:class:`LabelledRootedTree`)
-    form a subclass of this class.
+    form a subclass of this class; they carry additional data.
 
     One can create a tree from any list (or more generally iterable)
     of trees or objects convertible to a tree.
@@ -80,9 +80,18 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         [[], [[]]]
         sage: RootedTree([[[]], []])
         [[], [[]]]
+        sage: O = OrderedTree([[[]], []]); O
+        [[[]], []]
+        sage: RootedTree(O)  # this is O with the ordering forgotten
+        [[], [[]]]
 
-    One can also enter a rooted tree by using a simple numerical
-    encoding of rooted trees::
+    One can also enter any small rooted tree ("small" meaning that
+    no vertex has more than `15` children) by using a simple
+    numerical encoding of rooted trees, namely, the
+    :func:`~sage.combinat.abstract_tree.from_hexacode` function.
+    (This function actually parametrizes ordered trees, and here
+    we make it parametrize unordered trees by forgetting the
+    ordering.) ::
 
         sage: from sage.combinat.abstract_tree import from_hexacode
         sage: RT = RootedTrees()
@@ -96,12 +105,15 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
     def __classcall_private__(cls, *args, **opts):
         """
         Ensure that rooted trees created by the enumerated sets and directly
-        are the same and that they are instances of :class:`RootedTree`
+        are the same and that they are instances of :class:`RootedTree`.
 
         TESTS::
 
-            sage: from sage.combinat.rooted_tree import RootedTrees_all
+            sage: from sage.combinat.rooted_tree import (RootedTrees_all,
+            ....:    RootedTrees_size)
             sage: issubclass(RootedTrees_all().element_class, RootedTree)
+            True
+            sage: issubclass(RootedTrees_size(3).element_class, RootedTree)
             True
             sage: t0 = RootedTree([[],[[]]])
             sage: t0.parent()
@@ -126,7 +138,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
     @lazy_class_attribute
     def _auto_parent(cls):
         """
-        The automatic parent of the elements of this class
+        The automatic parent of the elements of this class.
 
         When calling the constructor of an element of this class, one needs a
         parent. This class attribute specifies which parent is used.
@@ -137,7 +149,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             Rooted trees
             sage: RootedTree([]).parent()
             Rooted trees
-         """
+        """
         return RootedTrees_all()
 
     def __init__(self, parent=None, children=[], check=True):
@@ -429,7 +441,11 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
 
 class RootedTrees_size(RootedTrees):
     """
-    The enumerated set of rooted trees with a given number of nodes
+    The enumerated set of rooted trees with a given number of nodes.
+
+    The number of nodes of a rooted tree is defined recursively:
+    The number of nodes of a rooted tree with `a` children is `a`
+    plus the sum of the number of nodes of each of these children.
 
     TESTS::
 
@@ -600,13 +616,18 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
 
     More formally:
     The *labelled rooted trees* are an inductive datatype defined
-    as follows: A labelled rooted tree is either a leaf endowed
-    with a label (which can be any object, including ``None``),
-    or a multiset of labelled rooted trees, again endowed with a
-    label (which may and may not be of the same type as the labels
-    of the trees from the multiset). In the latter case, the trees
-    that belong to this multiset are said to be the *children* of
-    the tree.
+    as follows: A labelled rooted tree is a multiset of labelled
+    rooted trees, endowed with a label (which can be any object,
+    including ``None``). The trees that belong to this multiset
+    are said to be the *children* of the tree. (Notice that the
+    labels of these children may and may not be of the same type
+    as the label of the tree). A labelled rooted tree which has
+    no children (so the only information it carries is its label)
+    is said to be a *leaf*.
+
+    Every labelled rooted tree gives rise to an unlabelled rooted
+    tree (:class:`RootedTree`) by forgetting the labels. (This is
+    implemented as a conversion.)
 
     INPUT:
 
@@ -636,6 +657,12 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
         2[3[], 5[], 5[]]
         sage: xyy2 == yxy2
         True
+
+    Converting labelled into unlabelled rooted trees by
+    forgetting the labels:
+
+       sage: RootedTree(yxy2)
+       [[], [], []]
 
     TESTS::
 

@@ -531,13 +531,27 @@ class OrderedTree(AbstractClonableTree, ClonableList):
           then ``self`` is modified and nothing returned. Otherwise
           the normalized tree is returned.
 
-        The normalization has a recursive definition. It means first
-        that every sub-tree is itself normalized, and also that
-        sub-trees are sorted. Here the sort is performed according to
-        the rank function.
+        The normalization of an ordered tree `t` is an ordered tree `s`
+        which has the property that `t` and `s` are isomorphic as
+        *unordered* rooted trees, and that if two ordered trees `t` and
+        `t'` are isomorphic as *unordered* rooted trees, then the
+        normalizations of `t` and `t'` are identical. In other words,
+        normalization is a map from the set of ordered trees to itself
+        which picks a representative from every equivalence class with
+        respect to the relation of "being isomorphic as unordered
+        trees", and maps every ordered tree to the representative
+        chosen from its class. This map is non-deterministically
+        constructed based on the choices of the user. (More
+        specifically, it proceeds recursively by first normalizing
+        every subtree, and then sorting the subtrees. Here the sort is
+        performed according to the rank function which is constructed
+        "on the fly", basically sorting the trees in the order in which
+        they have been first encountered in the given Sage session.
+        See :meth:`dendrog_normalize` for a deterministic alternative
+        that works for unlabelled trees.)
 
         Consider the quotient map `\pi` that sends a planar rooted tree to
-        the associated "abstract" rooted tree. This function computes the
+        the associated unordered rooted tree. Normalization is the
         composite `s \circ \pi`, where `s` is a section of `\pi`.
 
         EXAMPLES::
@@ -588,7 +602,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         `S_1, S_2, \ldots, S_b` if either `a < b` or (`a = b`
         and there exists a `1 \leq i \leq a` such that
         `T_1 = S_1, T_2 = S_2, \ldots, T_{i-1} = S_{i-1}` and
-        `T_i < S_i`.
+        `T_i < S_i`).
 
         INPUT:
 
@@ -651,14 +665,16 @@ class OrderedTree(AbstractClonableTree, ClonableList):
           the normalized tree is returned.
 
         The normalized tree of an unlabelled ordered rooted tree
-        `T` is an unlabelled ordered rooted tree defined recursively
-        as follows: We first replace all children of `T` by their
-        normalized trees; then, we reorder these children in weakly
+        `t` with respect to the dendrographical order is an
+        unlabelled ordered rooted tree defined recursively
+        as follows: We first replace all children of `t` by their
+        normalized trees (with respect to the dendrographical
+        order); then, we reorder these children in weakly
         increasing order with respect to the dendrographical order
         (:meth:`dendrog_cmp`).
 
-        This can be viewed as an alternative to :meth:`dendrog` for
-        the case of unlabelled ordered rooted trees. It has the
+        This can be viewed as an alternative to :meth:`normalize`
+        for the case of unlabelled ordered rooted trees. It has the
         advantage of giving path-independent results, which can be
         used for doctesting output.
 

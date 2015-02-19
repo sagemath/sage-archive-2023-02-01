@@ -287,8 +287,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         """
         with self.clone() as t:
             t.append(other)
-            resu = t
-        return resu
+        return t
 
 
 class RootedTrees(UniqueRepresentation, Parent):
@@ -346,7 +345,7 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
         """
         TESTS::
 
-           sage: from sage.combinat.rooted_tree import RootedTrees_all
+            sage: from sage.combinat.rooted_tree import RootedTrees_all
 
             sage: sum(x**len(t) for t in
             ....:     set(RootedTree(t) for t in OrderedTrees(6)))
@@ -407,7 +406,7 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
             sage: lb
             1[2[], 3[4[], 5[]]]
             sage: lb.__class__
-            <class 'sage.combinat.rooted_tree.LabelledRootedTrees_with_category.element_class'>
+            <class 'sage.combinat.rooted_tree.LabelledRootedTrees_all_with_category.element_class'>
             sage: lb.parent()
             Labelled rooted trees
         """
@@ -614,7 +613,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
     - ``children`` -- a list or tuple or more generally any iterable
       of trees or objects convertible to trees
 
-    - ``label`` -- any Sage object (default is ``None``)
+    - ``label`` -- any hashable Sage object (default is ``None``)
 
     EXAMPLES::
 
@@ -627,7 +626,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
         sage: LabelledRootedTree([[],[[], []]], label = 3)
         3[None[], None[None[], None[]]]
 
-    Children are reordered in a session dependant order::
+    Children are reordered in a session dependent order::
 
         sage: y = LabelledRootedTree([], label = 5); x
         3[]
@@ -659,7 +658,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
             sage: t0.parent()
             Labelled rooted trees
             sage: type(t0)
-            <class 'sage.combinat.rooted_tree.LabelledRootedTrees_with_category.element_class'>
+            <class 'sage.combinat.rooted_tree.LabelledRootedTrees_all_with_category.element_class'>
         """
         return cls._auto_parent.element_class(cls._auto_parent, *args, **opts)
 
@@ -704,6 +703,18 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
 
         add the possibility to restrict the labels to a fixed set.
     """
+    @staticmethod
+    def __classcall_private__(cls, n=None):
+        """
+        TESTS::
+
+            sage: from sage.combinat.rooted_tree import LabelledRootedTrees_all
+            sage: LabelledRootedTrees_all() == LabelledRootedTrees()
+            True
+        """
+        return LabelledRootedTrees_all()
+
+class LabelledRootedTrees_all(LabelledRootedTrees):
     def __init__(self, category=None):
         """
         TESTS::

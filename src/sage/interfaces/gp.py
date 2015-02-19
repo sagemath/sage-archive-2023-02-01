@@ -199,6 +199,7 @@ class Gp(Expect):
         Expect.__init__(self,
                         name = 'pari',
                         prompt = '\\? ',
+                        # --fast so the system gprc isn't read (we configure below)
                         command = "gp --fast --emacs --quiet --stacksize %s"%stacksize,
                         maxread = maxread,
                         server=server,
@@ -214,10 +215,9 @@ class Gp(Expect):
 
     def _start(self, alt_message=None, block_during_init=True):
         Expect._start(self, alt_message, block_during_init)
-        self._eval_line('default(compatible,0);')
         # disable timer
         self._eval_line('default(timer,0);')
-        # disable the break loop, otherwise gp will seem to hand on errors
+        # disable the break loop, otherwise gp will seem to hang on errors
         self._eval_line('default(breakloop,0);')
         # list of directories where gp will look for scripts (only current working directory)
         self._eval_line('default(path,".");')

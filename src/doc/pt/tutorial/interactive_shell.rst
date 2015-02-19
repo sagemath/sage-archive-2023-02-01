@@ -430,10 +430,8 @@ pode usar quaisquer comandos e recursos do IPython. Você pode ler a
   da linha.
 
 Para mais informações, digite ``%quickref`` para ver um guia rápido de
-referência do IPython. Quando este tutorial foi escrito (April 2011),
-o Sage usa a versão 0.9.1 do IPython, e a `documentation for its magic
-commands <http://ipython.scipy.org/doc/rel-0.9.1/html/interactive/reference.html#magic-commands>`_
-está disponível na internet.
+referência do IPython. Quando este tutorial foi escrito (Fevereiro 2015),
+o Sage usa a versão 2.30 do IPython, e a `documentation for its magic commands <http://ipython.org/ipython-doc/dev/interactive/tutorial.html#magic-functions>`_ está disponível na internet.
 
 
 Erros e Exceções

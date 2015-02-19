@@ -29,7 +29,7 @@ Bibliografia
     2004.
 
 ..  [Py] The Python language http://www.python.org/
-    Reference Manual http://docs.python.org/ref/ref.html
+    Reference Manual http://docs.python.org/
 
 ..  [PyDev] Guido, Some Guys, and a Mailing List: How Python is
     Developed,

@@ -509,7 +509,7 @@ conjunto, juntamente com as operações comuns em conjuntos.
 ::
 
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
-    sage: X
+    sage: X   # random
     {1, 19, 'a'}
     sage: Y
     {2/3, 1}

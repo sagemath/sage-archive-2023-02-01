@@ -661,14 +661,14 @@ If this all works, you can then make calls like:
         TESTS::
 
             sage: singular._eval_line_using_file('def a=3;')
-            '< "...";'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('quit;')
             ''
             sage: singular._eval_line_using_file('def a=3;')
             Singular crashed -- automatically restarting.
-            '< "...";'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('quit;')
@@ -762,18 +762,18 @@ If this all works, you can then make calls like:
         TESTS::
 
             sage: singular._eval_line('def a=3;')
-            'def a=3;'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('quit;')
             ''
             sage: singular._eval_line('def a=3;')
             Singular crashed -- automatically restarting.
-            'def a=3;'
+            ''
             sage: singular('a')
             3
             sage: singular.eval('kill a')
-            'kill a;'
+            ''
 
         We are now sending a command that would run forever. But since
         we declare that we are not waiting for a prompt, we can interrupt
@@ -876,8 +876,6 @@ If this all works, you can then make calls like:
                     out = E.before
                 else:
                     out = E.before.rstrip('\n\r')
-                    if out == '':   # match bug with echo
-                        out = line
             else:
                 if self._terminal_echo:
                     out = '\n\r'

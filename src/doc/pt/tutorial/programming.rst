@@ -741,7 +741,7 @@ declara :math:`1 \in \GF{5}` igual a :math:`1 \in \QQ`.
 Otimização (Profiling)
 ======================
 
-Autor desta seção: Martin Albrecht (malb@informatik.uni-bremen.de)
+Autor desta seção: Martin Albrecht (https://martinralbrecht.wordpress.com/)
 
     "Premature optimization is the root of all evil." - Donald Knuth
 

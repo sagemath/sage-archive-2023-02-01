@@ -2,25 +2,25 @@
 Bibliografia
 ************
 
-..  [Cyt] Cython, http://www.cython.org.
+..  [Cyt] Cython, http://www.cython.org/
 
 ..  [Dive] Dive into Python, disponível gratuitamente na internet em
-    http://diveintopython.org.
+    http://diveintopython.net/
 
 ..  [GAP] The GAP Group, GAP - Groups, Algorithms, and
-    Programming, Version 4.4; 2005, http://www.gap-system.org
+    Programming, Version 4.4; 2005, http://www.gap-system.org/
 
 ..  [GAPkg] GAP Packages,
     http://www.gap-system.org/Packages/packages.html
 
-..  [GP] PARI/GP http://pari.math.u-bordeaux.fr/.
+..  [GP] PARI/GP http://pari.math.u-bordeaux.fr/
 
-..  [Ip] The IPython shell http://ipython.scipy.org.
+..  [Ip] The IPython shell http://ipython.scipy.org/
 
 ..  [Jmol] Jmol: an open-source Java viewer for chemical
-    structures in 3D http://www.jmol.org/.
+    structures in 3D http://www.jmol.org/
 
-..  [Mag] Magma http://magma.maths.usyd.edu.au/magma/.
+..  [Mag] Magma http://magma.maths.usyd.edu.au/magma/
 
 ..  [Max] Maxima http://maxima.sf.net/
 
@@ -29,24 +29,23 @@ Bibliografia
     2004.
 
 ..  [Py] The Python language http://www.python.org/
-    Reference Manual http://docs.python.org/ref/ref.html.
+    Reference Manual http://docs.python.org/ref/ref.html
 
 ..  [PyDev] Guido, Some Guys, and a Mailing List: How Python is
     Developed,
-    http://www.python.org/dev/dev_intro.html.
+    http://www.python.org/dev/dev_intro.html
 
 ..  [Pyr] Pyrex,
-    http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/.
+    http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/
 
-..  [PyT] The Python Tutorial http://www.python.org/.
+..  [PyT] The Python Tutorial http://www.python.org/
 
-..  [SA] Sage web site http://www.sagemath.org/.
+..  [SA] Sage web site http://www.sagemath.org/
 
 ..  [Si] G.-M. Greuel, G. Pfister, and H. Schönemann. Singular
     3.0. A Computer Algebra System for Polynomial Computations. Center
     for Computer Algebra, University of Kaiserslautern (2005).
-    http://www.singular.uni-kl.de.
+    http://www.singular.uni-kl.de/
 
 ..  [SJ] William Stein, David Joyner, Sage: System for Algebra and
     Geometry Experimentation, Comm. Computer Algebra {39}(2005)61-64.
-

@@ -21,12 +21,14 @@ Este comando produz um círculo amarelo de raio 1, centrado na origem.
 ::
 
     sage: circle((0,0), 1, rgbcolor=(1,1,0))
+    Graphics object consisting of 1 graphics primitive
 
 Você pode também produzir um círculo preenchido:
 
 ::
 
     sage: circle((0,0), 1, rgbcolor=(1,1,0), fill=True)
+    Graphics object consisting of 1 graphics primitive
 
 Outra possibilidade é criar um círculo atribuindo-o a uma variável;
 isso não cria um gráfico:
@@ -65,6 +67,7 @@ aspect_ratio=1)``.
 ::
 
     sage: plot(cos, (-5,5))
+    Graphics object consisting of 1 graphics primitive
 
 Após especificar uma variável, você também pode criar gráficos
 paramétricos:
@@ -73,6 +76,7 @@ paramétricos:
 
     sage: x = var('x')
     sage: parametric_plot((cos(x),sin(x)^3),(x,0,2*pi),rgbcolor=hue(0.6))
+    Graphics object consisting of 1 graphics primitive
 
 É importante notar que os eixos dos gráficos vão se intersectar apenas
 se a origem estiver no escopo do gráfico, e que valores grandes podem
@@ -81,6 +85,7 @@ ser representados usando notação científica.
 ::
 
     sage: plot(x^2,(x,300,500))
+    Graphics object consisting of 1 graphics primitive
 
 Você pode combinar vários gráficos somando-os:
 
@@ -103,6 +108,7 @@ exemplo, aqui está um "deltoid" verde:
     ....: 2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,3/4,1/2))
     sage: p
+    Graphics object consisting of 1 graphics primitive
 
 Digite ``show(p, axes=false)`` para visualizar isso sem os eixos.
 
@@ -126,6 +132,7 @@ comandos fazem isso:
 
     sage: v = [(sin(x),x) for x in srange(-2*float(pi),2*float(pi),0.1)]
     sage: line(v)
+    Graphics object consisting of 1 graphics primitive
 
 Como a função tangente possui imagem maior do que o seno, se você usar
 o mesmo método para fazer o gráfico da função inversa da função
@@ -145,6 +152,7 @@ funções). Aqui está um exemplo de gráfico de contorno:
 
     sage: f = lambda x,y: cos(x*y)
     sage: contour_plot(f, (-4, 4), (-4, 4))
+    Graphics object consisting of 1 graphics primitive
 
 Gráficos Tridimensionais
 ------------------------
@@ -161,6 +169,7 @@ z`:
 
     sage: x, y = var('x,y')
     sage: plot3d(x^2 + y^2, (x,-2,2), (y,-2,2))
+    Graphics3d Object
 
 Alternativamente, você pode usar ``parametric_plot3d`` para criar o
 gráfico de uma superfície onde cada coordenada `x, y, z` é determinada
@@ -175,6 +184,7 @@ na forma:
     sage: f_y(u, v) = v
     sage: f_z(u, v) = u^2 + v^2
     sage: parametric_plot3d([f_x, f_y, f_z], (u, -2, 2), (v, -2, 2))
+    Graphics3d Object
 
 A terceira forma de fazer um gráfico de uma superfície no Sage é
 usando o comando ``implicit_plot3d``, que cria um gráfico de uma
@@ -186,6 +196,7 @@ expressão usual:
 
     sage: x, y, z = var('x, y, z')
     sage: implicit_plot3d(x^2 + y^2 + z^2 - 4, (x,-2, 2), (y,-2, 2), (z,-2, 2))
+    Graphics3d Object
 
 Aqui estão mais alguns exemplos:
 
@@ -199,6 +210,7 @@ Aqui estão mais alguns exemplos:
     sage: fz = v^2
     sage: parametric_plot3d([fx, fy, fz], (u, -1, 1), (v, -1, 1),
     ....: frame=False, color="yellow")
+    Graphics3d Object
 
 `Cross cap <http://en.wikipedia.org/wiki/Cross-cap>`__:
 
@@ -210,6 +222,7 @@ Aqui estão mais alguns exemplos:
     sage: fz = -tanh((2/3)*(u-pi))*sin(v)
     sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi),
     ....: frame=False, color="red")
+    Graphics3d Object
 
 Toro retorcido:
 
@@ -221,6 +234,7 @@ Toro retorcido:
     sage: fz = sin(u)+2*cos(v)
     sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi),
     ....: frame=False, color="red")
+    Graphics3d Object
 
 Lemniscata:
 
@@ -229,3 +243,4 @@ Lemniscata:
     sage: x, y, z = var('x,y,z')
     sage: f(x, y, z) = 4*x^2 * (x^2 + y^2 + z^2 + z) + y^2 * (y^2 + z^2 - 1)
     sage: implicit_plot3d(f, (x, -0.5, 0.5), (y, -1, 1), (z, -1, 1))
+    Graphics3d Object

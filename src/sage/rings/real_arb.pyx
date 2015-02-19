@@ -129,7 +129,7 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     mpfr_clear(left)
     mpfr_clear(right)
 
-cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision):
+cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except *:
     """
     Convert an Arb ball to an MPFI interval.
 
@@ -167,9 +167,9 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision):
         ....:     'arb_to_mpfi(result.value, arb, 53)',
         ....:     'arb_clear(arb)'
         ....: ]))
-        exception: exponent too large to convert to mpfrException RuntimeError:
-        RuntimeError('Error converting arb to mpfi.
-        Overflow?',) in 'sage.rings.real_arb.arb_to_mpfi' ignored
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Error converting arb to mpfi. Overflow?
     """
     cdef mpfr_t left
     cdef mpfr_t right

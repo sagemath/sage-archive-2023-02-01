@@ -1,6 +1,5 @@
 .. _linear_programming:
 
-
 Linear Programming (Mixed Integer)
 ==================================
 
@@ -15,7 +14,6 @@ constraints.
 
 This is a translation of a chapter from the book
 `Calcul mathematique avec Sage <http://sagebook.gforge.inria.fr>`_.
-
 
 Definition
 ----------
@@ -239,8 +237,8 @@ Using Sage, we will give to our items a random weight::
 
     sage: set_random_seed(685474)
     sage: for o in L:
-    ...       weight[o] = random()
-    ...       usefulness[o] = random()
+    ....:     weight[o] = random()
+    ....:     usefulness[o] = random()
 
 We can now define the MILP itself
 
@@ -340,8 +338,8 @@ Let us write the Sage code of this MILP::
 ::
 
     sage: for v in g:
-    ...       p.add_constraint(sum(matching[e]
-    ...           for e in g.edges_incident(v, labels=False)) <= 1)
+    ....:     p.add_constraint(sum(matching[e]
+    ....:         for e in g.edges_incident(v, labels=False)) <= 1)
 
 .. link
 
@@ -409,17 +407,17 @@ graph, in which all the edges have a capacity of 1::
 ::
 
     sage: for v in g:
-    ...       if v != s and v != t:
-    ...           p.add_constraint(
-    ...               sum(f[(v,u)] for u in g.neighbors_out(v))
-    ...               - sum(f[(u,v)] for u in g.neighbors_in(v)) == 0)
+    ....:     if v != s and v != t:
+    ....:         p.add_constraint(
+    ....:             sum(f[(v,u)] for u in g.neighbors_out(v))
+    ....:             - sum(f[(u,v)] for u in g.neighbors_in(v)) == 0)
 
 .. link
 
 ::
 
     sage: for e in g.edges(labels=False):
-    ...       p.add_constraint(f[e] <= 1)
+    ....:     p.add_constraint(f[e] <= 1)
 
 .. link
 

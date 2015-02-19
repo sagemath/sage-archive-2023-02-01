@@ -1004,16 +1004,16 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
             yield self(P)
             iters = [ iter(R) for _ in range(i) ]
-            for x in iters: x.next() # put at zero
+            for x in iters: next(x) # put at zero
             j = 0
             while j < i:
                 try:
-                    P[j] = iters[j].next()
+                    P[j] = next(iters[j])
                     yield self(P)
                     j = 0
                 except StopIteration:
                     iters[j] = iter(R)  # reset
-                    iters[j].next() # put at zero
+                    next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
             i -= 1
@@ -1069,17 +1069,17 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             D.update({self(P):index})
             index+=1
             iters = [ iter(R) for _ in range(i) ]
-            for x in iters: x.next() # put at zero
+            for x in iters: next(x) # put at zero
             j = 0
             while j < i:
                 try:
-                    P[j] = iters[j].next()
+                    P[j] = next(iters[j])
                     D.update({self(P):index})
                     index+=1
                     j = 0
                 except StopIteration:
                     iters[j] = iter(R)  # reset
-                    iters[j].next() # put at zero
+                    next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
             i -= 1

@@ -503,7 +503,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         return make_permgroup_element_v2, (self._parent, self.domain(), self._parent.domain())
 
     cdef PermutationGroupElement _new_c(self):
-        cdef PermutationGroupElement other = PY_NEW_SAME_TYPE(self)
+        cdef type t = type(self)
+        cdef PermutationGroupElement other = t.__new__(t)
         if HAS_DICTIONARY(self):
             other.__class__ = self.__class__
         other._parent = self._parent
@@ -1448,8 +1449,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g.conjugacy_class()
             Conjugacy class of (1,3,5,2,4) in Dihedral group of order 10 as a permutation group
         """
-        from sage.groups.conjugacy_classes import ConjugacyClassGAP
-        return ConjugacyClassGAP(self.parent(), self)
+        return self.parent().conjugacy_class(self)
 
 
 cdef bint is_valid_permutation(int* perm, int n):

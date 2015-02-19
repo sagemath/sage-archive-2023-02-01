@@ -232,7 +232,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         cdef ComplexDoubleElement z
         cdef double imag = (ymax-ymin)*rstate.c_rand_double() + ymin
         cdef double real = (xmax-xmin)*rstate.c_rand_double() + xmin
-        z = PY_NEW(ComplexDoubleElement)
+        z = ComplexDoubleElement.__new__(ComplexDoubleElement)
         z._complex = gsl_complex_rect(real, imag)
         return z
 
@@ -666,7 +666,7 @@ cdef ComplexDoubleElement new_ComplexDoubleElement():
     Creates a new (empty) :class:`ComplexDoubleElement`.
     """
     cdef ComplexDoubleElement z
-    z = PY_NEW(ComplexDoubleElement)
+    z = ComplexDoubleElement.__new__(ComplexDoubleElement)
     return z
 
 def is_ComplexDoubleElement(x):
@@ -707,7 +707,7 @@ cdef inline ComplexDoubleElement pari_to_cdf(pari_gen g):
         ...
         PariError: incorrect type in gtofp (t_POL)
     """
-    cdef ComplexDoubleElement z = PY_NEW(ComplexDoubleElement)
+    cdef ComplexDoubleElement z = ComplexDoubleElement.__new__(ComplexDoubleElement)
     pari_catch_sig_on()
     if typ(g.g) == t_COMPLEX:
         z._complex = gsl_complex_rect(gtodouble(gel(g.g, 1)), gtodouble(gel(g.g, 2)))
@@ -768,7 +768,7 @@ cdef class ComplexDoubleElement(FieldElement):
         C-level code for creating a :class:`ComplexDoubleElement` from a
         ``gsl_complex``.
         """
-        cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+        cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
         z._complex = x
         return z
 
@@ -1450,21 +1450,6 @@ cdef class ComplexDoubleElement(FieldElement):
 
     imag_part = imag
 
-    def parent(self):
-        """
-        Return the complex double field, which is the parent of ``self``.
-
-        EXAMPLES::
-
-            sage: a = CDF(2,3)
-            sage: a.parent()
-            Complex Double Field
-            sage: parent(a)
-            Complex Double Field
-        """
-        return CDF
-
-
     #######################################################################
     # Elementary Complex Functions
     #######################################################################
@@ -1927,6 +1912,18 @@ cdef class ComplexDoubleElement(FieldElement):
             0.5535743588970452 - 0.4023594781085251*I
         """
         return self._new_c(gsl_complex_arccot(self._complex))
+
+    def arcsec(self):
+        r"""
+        This function returns the complex arcsecant of the complex number
+        `z`, `{\rm arcsec}(z) = {\rm arccos}(1/z)`.
+
+        EXAMPLES::
+
+            sage: CDF(1,1).arcsec()  # rel tol 1e-15
+            1.118517879643706 + 0.5306375309525178*I
+        """
+        return self._new_c(gsl_complex_arcsec(self._complex))
 
 
     #######################################################################
@@ -2473,7 +2470,7 @@ cdef class FloatToCDF(Morphism):
             sage: CDF(2+i) # indirect doctest
             2.0 + 1.0*I
         """
-        cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+        cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
         z._complex = gsl_complex_rect(x, 0)
         return z
 
@@ -2555,7 +2552,7 @@ cdef ComplexDoubleElement ComplexDoubleElement_from_doubles(double re, double im
     Create a new :class:`ComplexDoubleElement` with the specified real and
     imaginary parts.
     """
-    cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+    cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
     z._complex.dat[0] = re
     z._complex.dat[1] = im
     return z

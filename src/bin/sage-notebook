@@ -48,6 +48,7 @@ class NotebookSageNB(object):
                 try:
                     value = ast.literal_eval(x)
                 except StandardError:
+                    value = x
                     logger.debug('cannot evaluate, treat as string')
                 args.append(value)
         return tuple(args), kwds

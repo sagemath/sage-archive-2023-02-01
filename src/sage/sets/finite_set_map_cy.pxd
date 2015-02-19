@@ -29,8 +29,8 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
 
 cdef class FiniteSetMap_Set(FiniteSetMap_MN): pass
 
-cpdef FiniteSetMap_Set FiniteSetMap_Set_from_list(cls, Parent parent, list lst)
-cpdef FiniteSetMap_Set FiniteSetMap_Set_from_dict(cls, Parent parent, dict d)
+cpdef FiniteSetMap_Set FiniteSetMap_Set_from_list(type cls, Parent parent, list lst)
+cpdef FiniteSetMap_Set FiniteSetMap_Set_from_dict(type cls, Parent parent, dict d)
 
 cdef class FiniteSetEndoMap_N(FiniteSetMap_MN): pass
 cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set): pass

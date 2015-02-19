@@ -190,7 +190,7 @@ cdef class ntl_GF2X:
             sage: f*g ## indirect doctest
             [0 1 0 1 1]
         """
-        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
         if not PY_TYPE_CHECK(other, ntl_GF2X):
             other = ntl_GF2X(other)
         GF2X_mul(r.x, self.x, (<ntl_GF2X>other).x)
@@ -207,7 +207,7 @@ cdef class ntl_GF2X:
             ...
             ArithmeticError: self (=[0 0 1]) is not divisible by b (=[1 1])
         """
-        cdef ntl_GF2X q = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X q = ntl_GF2X.__new__(ntl_GF2X)
         cdef int divisible
 
         if not PY_TYPE_CHECK(b, ntl_GF2X):
@@ -227,8 +227,8 @@ cdef class ntl_GF2X:
             sage: a.DivRem( ntl.GF2X(3) )
             ([1 1], [1])
         """
-        cdef ntl_GF2X q = PY_NEW(ntl_GF2X)
-        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X q = ntl_GF2X.__new__(ntl_GF2X)
+        cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
 
         if not PY_TYPE_CHECK(b, ntl_GF2X):
             b = ntl_GF2X(b)
@@ -245,7 +245,7 @@ cdef class ntl_GF2X:
             sage: a // ntl.GF2X(3)
             [1 1]
         """
-        cdef ntl_GF2X q = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X q = ntl_GF2X.__new__(ntl_GF2X)
 
         if not PY_TYPE_CHECK(b, ntl_GF2X):
             b = ntl_GF2X(b)
@@ -262,7 +262,7 @@ cdef class ntl_GF2X:
             sage: a % ntl.GF2X(3)
             [1]
         """
-        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
 
         if not PY_TYPE_CHECK(b, ntl_GF2X):
             b = ntl_GF2X(b)
@@ -279,7 +279,7 @@ cdef class ntl_GF2X:
             sage: g - f
             [1 1 1 1]
         """
-        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
         if not PY_TYPE_CHECK(other, ntl_GF2X):
             other = ntl_GF2X(other)
         GF2X_sub(r.x, self.x, (<ntl_GF2X>other).x)
@@ -292,7 +292,7 @@ cdef class ntl_GF2X:
             sage: f + g ## indirect doctest
             [1 1 1 1]
         """
-        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
         if not PY_TYPE_CHECK(other, ntl_GF2X):
             other = ntl_GF2X(other)
         GF2X_add(r.x, self.x, (<ntl_GF2X>other).x)
@@ -307,7 +307,7 @@ cdef class ntl_GF2X:
             sage: f == -f
             True
         """
-        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
         GF2X_negate(r.x, self.x)
         return r
 
@@ -318,7 +318,7 @@ cdef class ntl_GF2X:
             sage: f**3 ## indirect doctest
             [1 0 1 1 1 0 0 1 1 1]
         """
-        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
         GF2X_power(r.x, self.x, e)
         return r
 
@@ -362,7 +362,7 @@ cdef class ntl_GF2X:
             sage: a << 2
             [0 0 0 0 1]
         """
-        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
         GF2X_LeftShift(r.x, self.x, <long>i)
         return r
 
@@ -380,7 +380,7 @@ cdef class ntl_GF2X:
             sage: a >> 1
             [0 1]
         """
-        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
         GF2X_RightShift(r.x, self.x, <long>offset)
         return r
 
@@ -397,7 +397,7 @@ cdef class ntl_GF2X:
             sage: a.GCD(b)
             [0 1]
         """
-        cdef ntl_GF2X gcd = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X gcd = ntl_GF2X.__new__(ntl_GF2X)
 
         if not PY_TYPE_CHECK(other, ntl_GF2X):
             other = ntl_GF2X(other)
@@ -422,9 +422,9 @@ cdef class ntl_GF2X:
             True
 
         """
-        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
-        cdef ntl_GF2X s = PY_NEW(ntl_GF2X)
-        cdef ntl_GF2X t = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
+        cdef ntl_GF2X s = ntl_GF2X.__new__(ntl_GF2X)
+        cdef ntl_GF2X t = ntl_GF2X.__new__(ntl_GF2X)
 
         if not PY_TYPE_CHECK(other, ntl_GF2X):
             other = ntl_GF2X(other)
@@ -550,7 +550,7 @@ cdef class ntl_GF2X:
             sage: e.coeff(1)
             1
         """
-        cdef ntl_GF2 c = PY_NEW(ntl_GF2)
+        cdef ntl_GF2 c = ntl_GF2.__new__(ntl_GF2)
         c.x = GF2X_coeff(self.x, i)
         return c
 
@@ -562,7 +562,7 @@ cdef class ntl_GF2X:
             sage: e[1]
             1
         """
-        cdef ntl_GF2 c = PY_NEW(ntl_GF2)
+        cdef ntl_GF2 c = ntl_GF2.__new__(ntl_GF2)
         c.x = GF2X_coeff(self.x, i)
         return c
 
@@ -579,7 +579,7 @@ cdef class ntl_GF2X:
             sage: e.LeadCoeff()
             0
         """
-        cdef ntl_GF2 c = PY_NEW(ntl_GF2)
+        cdef ntl_GF2 c = ntl_GF2.__new__(ntl_GF2)
         c.x = GF2X_LeadCoeff(self.x)
         return c
 
@@ -595,7 +595,7 @@ cdef class ntl_GF2X:
             sage: e.ConstTerm()
             0
         """
-        cdef ntl_GF2 c = PY_NEW(ntl_GF2)
+        cdef ntl_GF2 c = ntl_GF2.__new__(ntl_GF2)
         c.x = GF2X_ConstTerm (self.x)
         return c
 
@@ -632,7 +632,7 @@ cdef class ntl_GF2X:
             sage: e.diff()
             [0 0 1]
         """
-        cdef ntl_GF2X d = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X d = ntl_GF2X.__new__(ntl_GF2X)
         d.x = GF2X_diff(self.x)
         return d
 
@@ -649,7 +649,7 @@ cdef class ntl_GF2X:
             sage: e.reverse()
             [1 1 0 1]
         """
-        cdef ntl_GF2X r = PY_NEW(ntl_GF2X)
+        cdef ntl_GF2X r = ntl_GF2X.__new__(ntl_GF2X)
         if hi < -1:
             hi = GF2X_deg(self.x)
         r.x = GF2X_reverse(self.x, hi)

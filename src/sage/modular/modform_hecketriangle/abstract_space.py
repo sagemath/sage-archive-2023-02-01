@@ -24,6 +24,7 @@ from sage.rings.laurent_series_ring import is_LaurentSeriesRing
 from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
+from sage.rings.all import Integer
 
 from sage.misc.cachefunc import cached_method
 
@@ -311,9 +312,8 @@ class FormsSpace_abstract(FormsRing_abstract):
                 and self.coeff_ring().has_coerce_map_from(S)
 
     # Since forms spaces are modules instead of rings
-    # we have to manually define one_element() and one().
+    # we have to manually define one().
     # one() allows to take the power 0 of an element
-    # one_element() allows to take negative powers of elements
     @cached_method
     def one(self):
         r"""
@@ -331,7 +331,6 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.Delta()^0).parent()
             ModularForms(n=3, k=0, ep=1) over Integer Ring
         """
-
         return self.extend_type("holo", ring=True)(1).reduce()
 
     def one_element(self):
@@ -348,9 +347,12 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.Delta()^(-1)).parent()
             MeromorphicModularForms(n=3, k=-12, ep=1) over Integer Ring
             sage: MF.one_element()
+            doctest:...: DeprecationWarning: .one_element() is deprecated. Use .one() instead.
+            See http://trac.sagemath.org/17694 for details.
             1 + O(q^5)
         """
-
+        from sage.misc.superseded import deprecation
+        deprecation(17694, ".one_element() is deprecated. Use .one() instead.")
         return self.one()
 
     def is_ambient(self):
@@ -2153,7 +2155,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
                 column_len = len(q_basis)
                 if (m >= column_len + min_exp):
-                    raise ValueError("Index out of range: m={} >= {}=dimension + min_exp".format(m, size + min_exp))
+                    raise ValueError("Index out of range: m={} >= {}=dimension + min_exp".format(m, column_len + min_exp))
 
                 return q_basis[m - min_exp]
             else:
@@ -2268,9 +2270,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
-        from sage.rings.all import FractionField, PolynomialRing, PowerSeriesRing, prime_range
+        from sage.rings.all import prime_range
         from sage.misc.all import prod
-        from sage.functions.other import factorial
         from warnings import warn
 
         denom_factor = ZZ(denom_factor)
@@ -2336,7 +2337,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                 return ZZ(1/dvalue)**m
 
             hecke_n = self.hecke_n()
-            bad_factors = [fac for fac in factorial(m).factor() if (fac[0] % hecke_n) not in [1, hecke_n-1] and fac[0] > 2]
+            bad_factors = [fac for fac in Integer(m).factorial().factor() if (fac[0] % hecke_n) not in [1, hecke_n-1] and fac[0] > 2]
             bad_factorial = prod([fac[0]**fac[1] for fac in bad_factors])
 
             return ZZ(2**(6*m) * hecke_n**(2*m) * prod([ p**m for p in prime_range(m+1) if hecke_n % p == 0 and p > 2 ]) * bad_factorial)**(cor_exp + 1)

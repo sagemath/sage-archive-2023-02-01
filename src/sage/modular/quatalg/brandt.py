@@ -226,6 +226,7 @@ from sage.algebras.quatalg.quaternion_algebra_cython import rational_matrix_from
 
 from sage.rings.arith import gcd, factor, kronecker_symbol
 from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeModuleElement)
+from sage.modular.dirichlet import TrivialCharacter
 from sage.matrix.all  import MatrixSpace, matrix
 from sage.rings.rational_field import is_RationalField
 from sage.misc.mrange import cartesian_product_iterator
@@ -534,6 +535,17 @@ class BrandtModule_class(AmbientHeckeModule):
             5
         """
         return self.__M
+
+    def character(self):
+        r"""
+        The character of this space. Always trivial.
+
+        EXAMPLE::
+
+            sage: BrandtModule(11,5).character()
+            Dirichlet character modulo 55 of conductor 1 mapping 12 |--> 1, 46 |--> 1
+        """
+        return TrivialCharacter(self.__N*self.__M)
 
     def _repr_(self):
         """

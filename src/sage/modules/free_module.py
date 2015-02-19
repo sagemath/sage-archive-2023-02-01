@@ -1159,7 +1159,7 @@ done from the right side.""")
             return
         R     = self.base_ring()
         iters = [iter(R) for _ in range(len(G))]
-        for x in iters: x.next()     # put at 0
+        for x in iters: next(x)     # put at 0
         zero  = R(0)
         v = [zero for _ in range(len(G))]
         n = 0
@@ -1167,12 +1167,12 @@ done from the right side.""")
         yield z
         while n < len(G):
             try:
-                v[n] = iters[n].next()
+                v[n] = next(iters[n])
                 yield self.linear_combination_of_basis(v)
                 n = 0
             except StopIteration:
                 iters[n] = iter(R)  # reset
-                iters[n].next()     # put at 0
+                next(iters[n])     # put at 0
                 v[n] = zero
                 n += 1
 
@@ -2256,17 +2256,30 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: A * m
             Free module of degree 3 and rank 2 over Integer Ring
             Echelon basis matrix:
-            [1 1 1]
-            [0 3 6]
+            [ 3  0 -3]
+            [ 0  1  2]
             sage: m * A
             Free module of degree 3 and rank 2 over Integer Ring
             Echelon basis matrix:
             [ 3  0 -3]
             [ 0  1  2]
+
+        TESTS:
+
+        Check that :trac:`17705` is fixed::
+
+            sage: V = GF(2)^2
+            sage: W = V.subspace([[1, 0]])
+            sage: x = matrix(GF(2), [[1, 1], [0, 1]])
+            sage: W*x
+            Vector space of degree 2 and dimension 1 over Finite Field of size 2
+            Basis matrix:
+            [1 1]
+
         """
-        if switch_sides:
-            return self.span([v * other for v in self.basis()])
-        return self.span([other * v for v in self.basis()])
+        B = self.basis_matrix()
+        B = other * B if switch_sides else B * other
+        return self.span(B.rows())
 
     def base_field(self):
         """
@@ -4185,19 +4198,16 @@ class FreeModule_ambient(FreeModule_generic):
 
     def __hash__(self):
         """
-        The hash of self.
+        The hash is obtained from the rank and the base ring.
+
+        .. TODO::
+
+            Make pickling so that the hash is available early enough.
 
         EXAMPLES::
 
             sage: V = QQ^7
-            sage: V.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U = QQ^7
-            sage: U.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U is V
+            sage: hash(V) == hash((V.rank(), V.base_ring()))
             True
         """
         try:
@@ -5187,19 +5197,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def __hash__(self):
         """
-        The hash of self.
+        The hash is given by the basis.
 
         EXAMPLES::
 
-            sage: V = QQ^7
-            sage: V.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U = QQ^7
-            sage: U.__hash__()
-            153079684 # 32-bit
-            -3713095619189944444 # 64-bit
-            sage: U is V
+            sage: M = ZZ^3
+            sage: W = M.span_of_basis([[1,2,3],[4,5,6]])
+            sage: hash(W) == hash(W.basis())
             True
         """
         return hash(self.__basis)

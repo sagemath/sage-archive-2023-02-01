@@ -6,10 +6,11 @@ from unique_representation import UniqueRepresentation
 
 from sage_object   import SageObject
 
-from element import (\
+from element import (
     canonical_coercion,
     get_coercion_model,
-    coercion_traceback
+    coercion_traceback,
+    parent
     )
 
 from parent      import Parent

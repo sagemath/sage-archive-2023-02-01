@@ -9,4 +9,4 @@ cdef class gen(sage.structure.element.RingElement):
     cdef pari_sp b
     cdef dict refers_to
 
-cdef gen objtogen(object s)
+cpdef gen objtogen(s)

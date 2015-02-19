@@ -362,7 +362,7 @@ def crun(s, evaluator):
         Using local file ...
     """
     prof = Profiler()
-    from sage.misc.preparser import preparse
+    from sage.repl.preparse import preparse
     py_s = preparse(s)
     prof.start()
     evaluator(py_s)

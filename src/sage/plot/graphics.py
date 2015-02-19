@@ -1508,6 +1508,14 @@ class Graphics(SageObject):
               ``base`` is set to, it will default to 10 and will remain
               unused.
 
+        - ``xmin`` -- starting x value in the rendered figure.
+
+        - ``xmax`` -- ending x value in the rendered figure.
+
+        - ``ymin`` -- starting y value in the rendered figure.
+
+        - ``ymax`` -- ending y value in the rendered figure.
+
         - ``typeset`` -- (default: ``"default"``) string. The type of
           font rendering that should be used for the text. The possible
           values are

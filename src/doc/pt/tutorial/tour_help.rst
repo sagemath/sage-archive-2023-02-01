@@ -197,11 +197,11 @@ ponto-e-vírgula:
     64
 
 Se você quiser que uma única linha de comando seja escrita em mais de
-uma linha, use ``....:`` para quebrar a linha:
+uma linha, use ``\`` para quebrar a linha:
 
 ::
 
-    sage: 2 +
+    sage: 2 + \
     ....:    3
     5
 

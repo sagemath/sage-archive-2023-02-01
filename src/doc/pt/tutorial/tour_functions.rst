@@ -22,6 +22,7 @@ gráficos, mas não podem ser diferenciadas ou integradas.
        sage: f(3)
        9
        sage: plot(f, 0, 2)
+       Graphics object consisting of 1 graphics primitive
 
 Na última linha, observe a sintaxe. Se fosse usado ``plot(f(z), 0,
 2)`` ocorreria um erro, porque ``z`` é uma variável muda na definição
@@ -39,6 +40,7 @@ podem ocasionar erros (veja o item 4 abaixo).
        sage: f(z)
        z^2
        sage: plot(f(z), 0, 2)
+       Graphics object consisting of 1 graphics primitive
 
 Acima, ``f(z)`` é uma expressão simbólica, o próximo item na nossa
 lista.
@@ -61,6 +63,7 @@ integradas.
        sage: type(g)
        <type 'sage.symbolic.expression.Expression'>
        sage: plot(g, 0, 2)
+       Graphics object consisting of 1 graphics primitive
 
 Note que enquanto ``g`` é uma expressão simbólica que pode ser
 evocada, ``g(x)`` é um objeto diferente, embora relacionado, que pode
@@ -78,6 +81,7 @@ embora com algumas ressalvas: veja o item 5 abaixo.
        sage: g(x).derivative()
        2*x
        sage: plot(g(x), 0, 2)
+       Graphics object consisting of 1 graphics primitive
 
 3. Use uma função pré-definida. Essas podem ser representadas em
 gráfico, e com uma pequena ajuda, diferenciadas e integradas.
@@ -87,9 +91,11 @@ gráfico, e com uma pequena ajuda, diferenciadas e integradas.
        sage: type(sin)
        <class 'sage.functions.trig.Function_sin'>
        sage: plot(sin, 0, 2)
+       Graphics object consisting of 1 graphics primitive
        sage: type(sin(x))
        <type 'sage.symbolic.expression.Expression'>
        sage: plot(sin(x), 0, 2)
+       Graphics object consisting of 1 graphics primitive
        
 Por si só, ``sin`` não pode ser diferenciado, pelo menos não para
 produzir ``cos``.
@@ -148,6 +154,7 @@ A solução: não use ``plot(h(x), 0, 4)``; em vez disso, use
 ::
 
        sage: plot(h, 0, 4)
+       Graphics object consisting of 1 graphics primitive
 
 \5. Acidentalmente produzindo uma constante em vez de uma função.
 

@@ -510,15 +510,15 @@ conjunto, juntamente com as operações comuns em conjuntos.
 
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
     sage: X
-    set(['a', 1, 19])
+    {1, 19, 'a'}
     sage: Y
-    set([1, 2/3])
+    {2/3, 1}
     sage: 'a' in X
     True
     sage: 'a' in Y
     False
     sage: X.intersection(Y)
-    set([1])
+    {1}
 
 O Sage também possui o seu próprio tipo de dados para conjuntos que é
 (em alguns casos) implementado usando o tipo nativo do Python, mas

@@ -167,7 +167,9 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
         sage: type(T_CHAR)
         <type 'sage.libs.gap.element.GapElement_String'>
 
-        sage: t = libgap.eval("UnorderedTuples(['a', 'b', 'c'], 2)"); t
+        sage: libgap.eval("['a', 'b', 'c']")   # gap strings are also lists of chars
+        "abc"
+        sage: t = libgap.UnorderedTuples('abc', 2);  t
         [ "aa", "ab", "ac", "bb", "bc", "cc" ]
         sage: t[1]
         "ab"

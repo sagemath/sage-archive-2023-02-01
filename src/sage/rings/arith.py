@@ -2145,15 +2145,14 @@ def rational_reconstruction(a, m, algorithm='fast'):
 
     INPUT:
 
-    - ``a`` - an integer
+    - ``a`` -- an integer
 
-    - ``m`` - a modulus
+    - ``m`` -- a modulus
 
-    - ``algorithm`` - (default: 'fast')
+    - ``algorithm`` -- (default: 'fast')
 
-      - ``'fast'`` - a fast compiled implementation
-
-      - ``'python'`` - a slow pure python implementation
+      - ``'fast'`` - a fast implementation using direct MPIR calls
+        in Cython.
 
     OUTPUT:
 
@@ -2192,95 +2191,37 @@ def rational_reconstruction(a, m, algorithm='fast'):
         sage: rational_reconstruction(400,1000)
         Traceback (most recent call last):
         ...
-        ValueError: Rational reconstruction of 400 (mod 1000) does not exist.
+        ArithmeticError: rational reconstruction of 400 (mod 1000) does not exist
 
     ::
 
-        sage: rational_reconstruction(3,292393, algorithm='python')
+        sage: rational_reconstruction(3, 292393)
         3
         sage: a = Integers(292393)(45/97); a
         204977
-        sage: rational_reconstruction(a,292393, algorithm='python')
+        sage: rational_reconstruction(a, 292393, algorithm='fast')
         45/97
-        sage: a = Integers(292393)(45/97); a
-        204977
-        sage: rational_reconstruction(a,292393, algorithm='fast')
-        45/97
-        sage: rational_reconstruction(293048,292393, algorithm='fast')
+        sage: rational_reconstruction(293048, 292393)
         Traceback (most recent call last):
         ...
-        ValueError: Rational reconstruction of 655 (mod 292393) does not exist.
-        sage: rational_reconstruction(293048,292393, algorithm='python')
+        ArithmeticError: rational reconstruction of 655 (mod 292393) does not exist
+        sage: rational_reconstruction(0, 0)
         Traceback (most recent call last):
         ...
-        ValueError: Rational reconstruction of 655 (mod 292393) does not exist.
-
-    TESTS:
-
-    Check that ticket #9345 is fixed::
-
-        sage: rational_reconstruction(1, 0)
+        ZeroDivisionError: rational reconstruction with zero modulus
+        sage: rational_reconstruction(0, 1, algorithm="foobar")
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: The modulus cannot be zero
-        sage: rational_reconstruction(randint(-10^6, 10^6), 0)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError: The modulus cannot be zero
+        ValueError: unknown algorithm 'foobar'
     """
     if algorithm == 'fast':
         return ZZ(a).rational_reconstruction(m)
     elif algorithm == 'python':
-        return _rational_reconstruction_python(a,m)
+        from sage.misc.superseded import deprecation
+        deprecation(17180, 'The %r algorithm for rational_reconstruction is deprecated' % algorithm)
+        return ZZ(a).rational_reconstruction(m)
     else:
-        raise ValueError("unknown algorithm")
-
-def _rational_reconstruction_python(a,m):
-    """
-    Internal fallback function for rational_reconstruction; see
-    documentation of that function for details.
-
-    INPUT:
-
-    - ``a`` - an integer
-
-    - ``m`` - a modulus
-
-    EXAMPLES::
-
-        sage: from sage.rings.arith import _rational_reconstruction_python
-        sage: _rational_reconstruction_python(20,31)
-        -2/3
-        sage: _rational_reconstruction_python(11323,100000)
-        119/53
-    """
-    a = int(a); m = int(m)
-    a %= m
-    if a == 0 or m==0:
-        return ZZ(0)/ZZ(1)
-    if m < 0:
-        m = -m
-    if a < 0:
-        a = m-a
-    if a == 1:
-        return ZZ(1)/ZZ(1)
-    u = m
-    v = a
-    bnd = math.sqrt(m/2)
-    U = (1,0,u)
-    V = (0,1,v)
-    while abs(V[2]) > bnd:
-        q = U[2]/V[2]  # floor is implicit
-        T = (U[0]-q*V[0], U[1]-q*V[1], U[2]-q*V[2])
-        U = V
-        V = T
-    x = abs(V[1])
-    y = V[2]
-    if V[1] < 0:
-        y *= -1
-    if x <= bnd and GCD(x,y) == 1:
-        return ZZ(y) / ZZ(x)
-    raise ValueError("Rational reconstruction of %s (mod %s) does not exist."%(a,m))
+        raise ValueError("unknown algorithm %r" % algorithm)
 
 def mqrr_rational_reconstruction(u, m, T):
     r"""
@@ -4811,10 +4752,18 @@ def falling_factorial(x, a):
         sage: falling_factorial(x, 4)
         x^4 - 6*x^3 + 11*x^2 - 6*x
 
+    TESTS:
+
     Check that :trac:`14858` is fixed::
 
         sage: falling_factorial(-4, SR(2))
         20
+
+    Check that :trac:`16770` is fixed::
+
+        sage: d = var('d')
+        sage: type(falling_factorial(d, 0))
+        <type 'sage.symbolic.expression.Expression'>
 
     AUTHORS:
 
@@ -4823,7 +4772,7 @@ def falling_factorial(x, a):
     if (isinstance(a, (integer.Integer, int, long)) or
         (isinstance(a, sage.symbolic.expression.Expression) and
          a.is_integer())) and a >= 0:
-        return misc.prod([(x - i) for i in range(a)])
+        return misc.prod([(x - i) for i in range(a)], z=x.parent()(1))
     from sage.functions.all import gamma
     return gamma(x+1) / gamma(x-a+1)
 
@@ -4889,12 +4838,20 @@ def rising_factorial(x, a):
         sage: rising_factorial(x, 4)
         x^4 + 6*x^3 + 11*x^2 + 6*x
 
+    TESTS:
+
     Check that :trac:`14858` is fixed::
 
         sage: bool(rising_factorial(-4, 2) ==
         ....:      rising_factorial(-4, SR(2)) ==
         ....:      rising_factorial(SR(-4), SR(2)))
         True
+
+    Check that :trac:`16770` is fixed::
+
+        sage: d = var('d')
+        sage: type(rising_factorial(d, 0))
+        <type 'sage.symbolic.expression.Expression'>
 
     AUTHORS:
 
@@ -4903,7 +4860,7 @@ def rising_factorial(x, a):
     if (isinstance(a, (integer.Integer, int, long)) or
         (isinstance(a, sage.symbolic.expression.Expression) and
          a.is_integer())) and a >= 0:
-        return misc.prod([(x + i) for i in range(a)])
+        return misc.prod([(x + i) for i in range(a)], z=x.parent()(1))
     from sage.functions.all import gamma
     return gamma(x+a) / gamma(x)
 

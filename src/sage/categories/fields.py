@@ -126,7 +126,10 @@ class Fields(CategoryWithAxiom):
             sage: P.<x> = QQ[]
             sage: Q = P.quotient(x^2+2)
             sage: Q.category()
-            Join of Category of commutative algebras over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups
+            Join of Category of integral domains
+             and Category of commutative algebras over Rational Field
+             and Category of subquotients of monoids
+             and Category of quotients of semigroups
             sage: F = Fields()
             sage: F._contains_helper(Q)
             False
@@ -198,6 +201,33 @@ class Fields(CategoryWithAxiom):
                 True
             """
             return True
+
+        def _gcd_univariate_polynomial(self, f, g):
+            """
+            Return the greatest common divisor of ``f`` and ``g``, as a
+            monic polynomial.
+
+            INPUT:
+
+                - ``f``, ``g`` -- two polynomials defined over ``self``
+
+            .. NOTE::
+
+                This is a helper method for
+                :meth:`sage.rings.polynomial.polynomial_element.Polynomial.gcd`.
+
+            EXAMPLES::
+
+                sage: R.<x> = QQbar[]
+                sage: QQbar._gcd_univariate_polynomial(2*x,2*x^2)
+                x
+
+            """
+            ret = EuclideanDomains().ElementMethods().gcd(f,g)
+            c = ret.leading_coefficient()
+            if c.is_unit():
+                return (1/c)*ret
+            return ret
 
         def is_perfect(self):
             r"""

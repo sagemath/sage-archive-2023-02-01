@@ -28,7 +28,8 @@ useless_chatter = (
     re.compile('^looking for now-outdated files... none found'),
     re.compile('^building \[.*\]: targets for 0 source files that are out of date'),
     re.compile('^loading pickled environment... done'),
-    re.compile('^loading cross citations... done \([0-9]* citations\).')
+    re.compile('^loading cross citations... done \([0-9]* citations\).'),
+    re.compile('WARNING: favicon file \'favicon.ico\' does not exist')
     )
 
 # replacements: pairs of regular expressions and their replacements,
@@ -48,7 +49,6 @@ if 'inventory' in sys.argv:
 
 # warnings: regular expressions (or strings) indicating a problem with
 # docbuilding. Raise an exception if any of these occur.
-
 warnings = (re.compile('Segmentation fault'),
             re.compile('SEVERE'),
             re.compile('ERROR'),
@@ -56,8 +56,17 @@ warnings = (re.compile('Segmentation fault'),
             re.compile('Exception occurred'),
             re.compile('Sphinx error'))
 
+# We want all warnings to actually be errors.
+# Exceptions:
+# - warnings upon building the LaTeX documentation
+# - undefined labels upon the first pass of the compilation: some
+#   cross links may legitimately not yet be resolvable at this point.
 if 'latex' not in sys.argv:
-    warnings += (re.compile('WARNING'),)
+    if 'multidoc_first_pass=1' in sys.argv:
+        # Catch all warnings except 'WARNING: undefined label'
+        warnings += (re.compile('WARNING: (?!undefined label)'),)
+    else:
+        warnings += (re.compile('WARNING:'),)
 
 
 # Do not error out at the first warning, sometimes there is more

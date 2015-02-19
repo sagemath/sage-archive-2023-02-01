@@ -1617,7 +1617,7 @@ class ResidueFiniteField_pari_ffelt(ResidueField_generic, FiniteField_pari_ffelt
 
         EXAMPLES::
 
-        We create an ext_pari residue field::
+        We create a residue field with implementation ``pari_ffelt``::
 
             sage: K.<a> = NumberField(x^3-7)
             sage: P = K.ideal(923478923).factor()[0][0]

@@ -58,7 +58,16 @@ def number_of_rooted_trees(n):
 
 class RootedTree(AbstractClonableTree, NormalizedClonableList):
     r"""
-    The class for unordered rooted trees
+    The class for unordered rooted trees.
+
+    The *unordered rooted trees* are an inductive datatype defined
+    as follows: An unordered rooted tree is either a leaf
+    (carrying no information), or a multiset of unordered rooted
+    trees. In the latter case, the trees that belong to this
+    multiset are said to be the *children* of the tree.
+
+    The *labelled rooted trees* (:class:`LabelledRootedTree`)
+    form a subclass of this class.
 
     One can create a tree from any list (or more generally iterable)
     of trees or objects convertible to a tree.
@@ -585,14 +594,25 @@ class RootedTrees_size(RootedTrees):
 
 class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
     """
-    Labelled rooted trees
+    Labelled rooted trees.
 
-    A labelled rooted tree is a rooted tree with a label attached at each node.
+    A labelled rooted tree is a rooted tree with a label
+    attached at each node.
+
+    More formally:
+    The *labelled rooted trees* are an inductive datatype defined
+    as follows: A labelled rooted tree is either a leaf endowed
+    with a label (which can be any object, including ``None``),
+    or a multiset of labelled rooted trees, again endowed with a
+    label (which may and may not be of the same type as the labels
+    of the trees from the multiset). In the latter case, the trees
+    that belong to this multiset are said to be the *children* of
+    the tree.
 
     INPUT:
 
     - ``children`` -- a list or tuple or more generally any iterable
-      of trees or object convertible to trees
+      of trees or objects convertible to trees
 
     - ``label`` -- any Sage object (default is ``None``)
 

@@ -13,11 +13,11 @@ You may have to run ``sage -i arb`` to use the arb library.
 
 .. WARNING::
 
-    Identical real balls are understood to give permission for algebraic
-    simplification. This assumption is made to improve performance.  For
-    example, setting ``z = x^2`` sets `z` to a ball enclosing the set
-    `\{t^2 : t \in x\}` and not the (generally larger) set `\{tu : t \in
-    x, u \in x\}`.
+    Identical :class:`RealBall` objects are understood to give
+    permission for algebraic simplification. This assumption is made
+    to improve performance.  For example, setting ``z = x*x`` sets `z`
+    to a ball enclosing the set `\{t^2 : t \in x\}` and not the
+    (generally larger) set `\{tu : t \in x, u \in x\}`.
 
 Comparison
 ==========

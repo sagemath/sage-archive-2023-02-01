@@ -74,7 +74,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         Quickly creates a new initialized Polynomial_integer_dense_flint
         with the correct parent and _is_gen == 0.
         """
-        cdef Polynomial_integer_dense_flint x = PY_NEW(Polynomial_integer_dense_flint)
+        cdef Polynomial_integer_dense_flint x = Polynomial_integer_dense_flint.__new__(Polynomial_integer_dense_flint)
         x._parent = self._parent
         x._is_gen = 0
         return x
@@ -95,7 +95,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             2
 
         """
-        cdef Polynomial_integer_dense_flint x = PY_NEW(Polynomial_integer_dense_flint)
+        cdef Polynomial_integer_dense_flint x = Polynomial_integer_dense_flint.__new__(Polynomial_integer_dense_flint)
         x._parent = P
         x._is_gen = 0
         if not PY_TYPE_CHECK(a, Integer):
@@ -195,7 +195,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             # find max degree to allocate only once
             for ii, a in x:
                 # mpoly dict style has tuple keys
-                i = ii[0] if PY_TYPE_CHECK_EXACT(ii, tuple) else ii
+                i = ii[0] if type(ii) is tuple else ii
                 if i < 0:
                     raise ValueError, "Negative monomial degrees not allowed: %s" % i
                 elif i > degree:
@@ -208,8 +208,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 raise OverflowError, "Cannot allocate memory!"
             # now fill them in
             for ii, a in x:
-                i = ii[0] if PY_TYPE_CHECK_EXACT(ii, tuple) else ii
-                if PY_TYPE_CHECK_EXACT(a, int):
+                i = ii[0] if type(ii) is tuple else ii
+                if type(a) is int:
                     sig_on()
                     fmpz_poly_set_coeff_si(self.__poly, i, a)
                     sig_off()
@@ -247,7 +247,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         for i from 0 <= i < len(x):
             a = x[i]
-            if PY_TYPE_CHECK_EXACT(a, int):
+            if type(a) is int:
                 sig_on()
                 fmpz_poly_set_coeff_si(self.__poly, i, a)
                 sig_off()

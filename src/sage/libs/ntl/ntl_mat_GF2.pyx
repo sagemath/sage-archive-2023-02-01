@@ -117,12 +117,12 @@ cdef class ntl_mat_GF2:
 
     cdef ntl_GF2 _new_element(self):
         cdef ntl_GF2 r
-        r = PY_NEW(ntl_GF2)
+        r = ntl_GF2.__new__(ntl_GF2)
         return r
 
     cdef ntl_mat_GF2 _new(self):
         cdef ntl_mat_GF2 r
-        r = PY_NEW(ntl_mat_GF2)
+        r = ntl_mat_GF2.__new__(ntl_mat_GF2)
         r.x.SetDims(self.x.NumRows(),self.x.NumCols())
         return r
 

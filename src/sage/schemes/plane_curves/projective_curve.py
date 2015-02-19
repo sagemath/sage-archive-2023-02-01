@@ -402,8 +402,8 @@ class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
         from sage.rings.polynomial.all import PolynomialRing
         R = PolynomialRing(K,'X')
         X = R.gen()
-        one = K.one_element()
-        zero = K.zero_element()
+        one = K.one()
+        zero = K.zero()
 
         # the point with  Z = 0 = Y
         try:

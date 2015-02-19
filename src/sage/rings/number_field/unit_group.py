@@ -643,6 +643,6 @@ class UnitGroup(AbelianGroupWithValues_class):
            sage: SUK.log(u) == v
            True
         """
-        return prod([u**e for u,e in zip(self.gens_values(),exponents)], self.number_field().one_element())
+        return prod((u**e for u,e in zip(self.gens_values(),exponents)), self.number_field().one())
 
 

@@ -1179,17 +1179,25 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x*z-t*y^2,x^2-y^2,t*z^2])
             sage: f.is_morphism()
             True
+
+        Map that is not morphism on projective space, but is over a subscheme::
+
+            sage: P.<x,y,z> = ProjectiveSpace(RR,2)
+            sage: X = P.subscheme([x*y + y*z])
+            sage: H = Hom(X,X)
+            sage: f = H([x*z-y*z,x^2-y^2,z^2])
+            sage: f.is_morphism()
+            True
         """
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        if is_ProjectiveSpace(self.domain()) is False or is_ProjectiveSpace(self.codomain()) is False:
-            raise NotImplementedError
+
         R = self.coordinate_ring()
         F = self._polys
+        defpolys = list(self.domain().defining_polynomials())
         if R.base_ring().is_field():
-            J = R.ideal(F)
+            J = R.ideal(F + defpolys)
         else:
             S = PolynomialRing(R.base_ring().fraction_field(), R.gens(), R.ngens())
-            J = S.ideal([S.coerce(F[i]) for i in range(R.ngens())])
+            J = S.ideal([S(f) for f in F] + [S(f) for f in defpolys])
         if J.dimension() > 0:
             return False
         else:

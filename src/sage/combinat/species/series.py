@@ -34,6 +34,7 @@ from sage.rings.all import Integer
 from sage.misc.all import prod
 from functools import partial
 from sage.misc.misc import repr_lincomb, is_iterator
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
@@ -121,7 +122,6 @@ class LazyPowerSeriesRing(Algebra):
         """
         return self(x)
 
-
     def __call__(self, x=None, order=unk):
         """
         EXAMPLES::
@@ -203,17 +203,28 @@ class LazyPowerSeriesRing(Algebra):
 
         raise TypeError("do not know how to coerce %s into self"%x)
 
-    def zero_element(self):
+    def zero(self):
         """
         Returns the zero power series.
 
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(QQ)
+            sage: L.zero()
+            0
+
+        TESTS:
+
+        Check that the method `zero_element` raises a warning (:trac:`17694`)::
+
             sage: L.zero_element()
+            doctest:...: DeprecationWarning: zero_element is deprecated. Please use zero instead.
+            See http://trac.sagemath.org/17694 for details.
             0
         """
-        return self(self.base_ring()(0))
+        return self(self.base_ring().zero())
+
+    zero_element = deprecated_function_alias(17694, zero)
 
     def identity_element(self):
         """
@@ -486,7 +497,7 @@ class LazyPowerSeries(AlgebraElement):
             self.order = inf
         self.aorder_changed = aorder_changed
         self.is_initialized = is_initialized
-        self._zero = A.base_ring().zero_element()
+        self._zero = A.base_ring().zero()
         self._name = name
 
     def compute_aorder(*args, **kwargs):

@@ -61,7 +61,7 @@ from sage.libs.gmp.mpq cimport *
 
 
 cdef inline _Rational_from_mpq(mpq_t e):
-    cdef Rational z = PY_NEW(Rational)
+    cdef Rational z = Rational.__new__(Rational)
     mpq_set(z.value, e)
     return z
 
@@ -73,7 +73,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
 
     cdef _new_c(self):
         cdef Vector_rational_dense y
-        y = PY_NEW(Vector_rational_dense)
+        y = Vector_rational_dense.__new__(Vector_rational_dense)
         y._init(self._degree, self._parent)
         return y
 
@@ -222,7 +222,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             ...
             IndexError: index out of range
         """
-        cdef Rational z = PY_NEW(Rational)
+        cdef Rational z = Rational.__new__(Rational)
         if isinstance(i, slice):
             start, stop, step = i.indices(len(self))
             return vector(self.base_ring(), self.list()[start:stop])
@@ -294,7 +294,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         """
         cdef Vector_rational_dense r = right
         cdef Rational z
-        z = PY_NEW(Rational)
+        z = Rational.__new__(Rational)
         cdef mpq_t t
         mpq_init(t)
         mpq_set_si(z.value, 0, 1)
@@ -329,7 +329,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         if PY_TYPE_CHECK(left, Rational):
             a = <Rational>left
         elif PY_TYPE_CHECK(left, Integer):
-            a = <Rational>PY_NEW(Rational)
+            a = <Rational>Rational.__new__(Rational)
             mpq_set_z(a.value, (<Integer>left).value)
         else:
             # should not happen
@@ -348,7 +348,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         if PY_TYPE_CHECK(right, Rational):
             a = <Rational>right
         elif PY_TYPE_CHECK(right, Integer):
-            a = <Rational>PY_NEW(Rational)
+            a = <Rational>Rational.__new__(Rational)
             mpq_set_z(a.value, (<Integer>right).value)
         else:
             # should not happen
@@ -376,7 +376,7 @@ def unpickle_v0(parent, entries, degree):
     #    make_FreeModuleElement_generic_dense_v1
     # and changed the reduce method below.
     cdef Vector_rational_dense v
-    v = PY_NEW(Vector_rational_dense)
+    v = Vector_rational_dense.__new__(Vector_rational_dense)
     v._init(degree, parent)
     cdef Rational z
     for i from 0 <= i < degree:
@@ -387,7 +387,7 @@ def unpickle_v0(parent, entries, degree):
 
 def unpickle_v1(parent, entries, degree, is_mutable):
     cdef Vector_rational_dense v
-    v = PY_NEW(Vector_rational_dense)
+    v = Vector_rational_dense.__new__(Vector_rational_dense)
     v._init(degree, parent)
     cdef Rational z
     for i from 0 <= i < degree:

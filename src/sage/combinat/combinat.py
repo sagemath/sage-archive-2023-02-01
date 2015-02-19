@@ -1104,7 +1104,7 @@ class CombinatorialObject(SageObject):
                 sage: not b
                 Traceback (most recent call last):
                 ...
-                AttributeError: 'NoneType' object has no attribute 'zero_element'
+                AttributeError: 'NoneType' object has no attribute 'zero'
         """
         return bool(self._list)
 

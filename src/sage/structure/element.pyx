@@ -62,7 +62,7 @@ Elements typically define a method ``_new_c``, e.g.,
 
     cdef _new_c(self, defining data):
         cdef FreeModuleElement_generic_dense x
-        x = PY_NEW(FreeModuleElement_generic_dense)
+        x = FreeModuleElement_generic_dense.__new__(FreeModuleElement_generic_dense)
         x._parent = self._parent
         x._entries = v
 
@@ -227,8 +227,14 @@ def parent(x):
 
     - ``x`` -- an element
 
-    OUTPUT: the parent of ``x`` if it exists, otherwise the Python type
-    of ``x``.
+    OUTPUT:
+
+    - if ``x`` is a Sage :class:`Element`, return ``x.parent()``.
+
+    - if ``x`` has a ``parent`` method and ``x`` does not have an
+      ``__int__`` or ``__float__`` method, return ``x.parent()``.
+
+    - otherwise, return ``type(x)``.
 
     .. SEEALSO::
 
@@ -273,6 +279,12 @@ def have_same_parent(left, right):
     Return ``True`` if and only if ``left`` and ``right`` have the
     same parent.
 
+    .. WARNING::
+
+        This function assumes that at least one of the arguments is a
+        Sage :class:`Element`. When in doubt, use the slower
+        ``parent(left) is parent(right)`` instead.
+
     EXAMPLES::
 
         sage: from sage.structure.element import have_same_parent
@@ -281,6 +293,17 @@ def have_same_parent(left, right):
         sage: have_same_parent(1, 1/2)
         False
         sage: have_same_parent(gap(1), gap(1/2))
+        True
+
+    These have different types but the same parent::
+
+        sage: a = RLF(2)
+        sage: b = exp(a)
+        sage: type(a)
+        <type 'sage.rings.real_lazy.LazyWrapper'>
+        sage: type(b)
+        <type 'sage.rings.real_lazy.LazyNamedUnop'>
+        sage: have_same_parent(a, b)
         True
     """
     return have_same_parent_c(left, right)
@@ -906,7 +929,7 @@ cdef class Element(SageObject):
             sage: (v+w).__nonzero__()
             False
         """
-        return self != self._parent.zero_element()
+        return self != self._parent.zero()
 
     def is_zero(self):
         """
@@ -1568,7 +1591,7 @@ cdef class MonoidElement(Element):
             raise ValueError("negative number of powers requested")
         elif n == 0:
             return []
-        x = self._parent.one_element()
+        x = self._parent.one()
         l = [x]
         for i in xrange(n - 1):
             x = x * self
@@ -1643,9 +1666,12 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         return self * ~right
 
     def __invert__(self):
+        r"""
+        Return the inverse of ``self``.
+        """
         if self.is_one():
             return self
-        return 1/self
+        return self.parent().one()/self
 
 
 def is_RingElement(x):
@@ -1657,7 +1683,7 @@ def is_RingElement(x):
 cdef class RingElement(ModuleElement):
     ##################################################
     def is_one(self):
-        return self == self._parent.one_element()
+        return self == self._parent.one()
 
     ##################################
     # Fast long add/sub path.
@@ -1942,7 +1968,7 @@ cdef class RingElement(ModuleElement):
             raise ValueError("negative number of powers requested")
         elif n == 0:
             return []
-        x = self._parent.one_element()
+        x = self._parent.one()
         l = [x]
         for i in xrange(n - 1):
             x = x * self
@@ -3182,7 +3208,7 @@ cdef class FieldElement(CommutativeRingElement):
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = R.quo(y^2 + 1)
             sage: S.is_field = lambda : False
-            sage: F = Frac(S); u = F.one_element()
+            sage: F = Frac(S); u = F.one()
             sage: u.quo_rem(u)
             (1, 0)
         """

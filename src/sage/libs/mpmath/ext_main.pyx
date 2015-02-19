@@ -216,12 +216,12 @@ cdef binop(int op, x, y, MPopts opts):
     if op == OP_ADD:
         if typx == 1 and typy == 1:
             # Real result
-            rr = PY_NEW(mpf)
+            rr = mpf.__new__(mpf)
             MPF_add(&rr.value, &xre, &yre, opts)
             return rr
         else:
             # Complex result
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             MPF_add(&rc.re, &xre, &yre, opts)
             if typx == 1:
                 MPF_set(&rc.im, &yim)
@@ -236,12 +236,12 @@ cdef binop(int op, x, y, MPopts opts):
     elif op == OP_SUB:
         if typx == 1 and typy == 1:
             # Real result
-            rr = PY_NEW(mpf)
+            rr = mpf.__new__(mpf)
             MPF_sub(&rr.value, &xre, &yre, opts)
             return rr
         else:
             # Complex result
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             MPF_sub(&rc.re, &xre, &yre, opts)
             if typx == 1:
                 MPF_neg(&rc.im, &yim)
@@ -256,12 +256,12 @@ cdef binop(int op, x, y, MPopts opts):
     elif op == OP_MUL:
         if typx == 1 and typy == 1:
             # Real result
-            rr = PY_NEW(mpf)
+            rr = mpf.__new__(mpf)
             MPF_mul(&rr.value, &xre, &yre, opts)
             return rr
         else:
             # Complex result
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             if typx == 1:
                 MPF_mul(&rc.re, &yre, &xre, opts)
                 MPF_mul(&rc.im, &yim, &xre, opts)
@@ -283,11 +283,11 @@ cdef binop(int op, x, y, MPopts opts):
     elif op == OP_DIV:
         if typx == 1 and typy == 1:
             # Real result
-            rr = PY_NEW(mpf)
+            rr = mpf.__new__(mpf)
             MPF_div(&rr.value, &xre, &yre, opts)
             return rr
         else:
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             if typy == 1:
                 MPF_div(&rc.re, &xre, &yre, opts)
                 MPF_div(&rc.im, &xim, &yre, opts)
@@ -314,12 +314,12 @@ cdef binop(int op, x, y, MPopts opts):
 
     elif op == OP_POW:
         if typx == 1 and typy == 1:
-            rr = PY_NEW(mpf)
+            rr = mpf.__new__(mpf)
             if not MPF_pow(&rr.value, &xre, &yre, opts):
                 return rr
         if typx == 1: xim = MPF_C_0
         if typy == 1: yim = MPF_C_0
-        rc = PY_NEW(mpc)
+        rc = mpc.__new__(mpc)
         MPF_complex_pow(&rc.re, &rc.im, &xre, &xim, &yre, &yim, opts)
         return rc
 
@@ -329,7 +329,7 @@ cdef binop(int op, x, y, MPopts opts):
         xret = MPF_to_tuple(&xre)
         yret = MPF_to_tuple(&yre)
         v = libmp.mpf_mod(xret, yret, opts.prec, rndmode_to_python(opts.rounding))
-        rr = PY_NEW(mpf)
+        rr = mpf.__new__(mpf)
         MPF_set_tuple(&rr.value, v)
         return rr
 
@@ -499,7 +499,7 @@ cdef class Context:
             0.5
         """
         cdef mpf x
-        x = PY_NEW(mpf)
+        x = mpf.__new__(mpf)
         MPF_set_tuple(&x.value, v)
         return x
 
@@ -512,7 +512,7 @@ cdef class Context:
             (0.5-0.25j)
         """
         cdef mpc x
-        x = PY_NEW(mpc)
+        x = mpc.__new__(mpc)
         MPF_set_tuple(&x.re, v[0])
         MPF_set_tuple(&x.im, v[1])
         return x
@@ -547,11 +547,11 @@ cdef class Context:
             return x
         typx = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, strings)
         if typx == 1:
-            rr = PY_NEW(mpf)
+            rr = mpf.__new__(mpf)
             MPF_set(&rr.value, &tmp_opx_re)
             return rr
         if typx == 2:
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             MPF_set(&rc.re, &tmp_opx_re)
             MPF_set(&rc.im, &tmp_opx_im)
             return rc
@@ -817,7 +817,7 @@ cdef class Context:
             MPF_clear(&tre)
             MPF_clear(&tim)
             if styp == 1:
-                rr = PY_NEW(mpf)
+                rr = mpf.__new__(mpf)
                 MPF_set(&rr.value, &sre)
                 MPF_clear(&sre)
                 MPF_clear(&sim)
@@ -826,7 +826,7 @@ cdef class Context:
                     return ctx._stupid_add(rr, unknown)
                 return rr
             elif styp == 2:
-                rc = PY_NEW(mpc)
+                rc = mpc.__new__(mpc)
                 MPF_set(&rc.re, &sre)
                 MPF_set(&rc.im, &sim)
                 MPF_clear(&sre)
@@ -932,7 +932,7 @@ cdef class Context:
         MPF_clear(&uim)
         MPF_clear(&tmp)
         if styp == 1:
-            rr = PY_NEW(mpf)
+            rr = mpf.__new__(mpf)
             MPF_set(&rr.value, &sre)
             MPF_clear(&sre)
             MPF_clear(&sim)
@@ -941,7 +941,7 @@ cdef class Context:
                 return ctx._stupid_add(rr, unknown)
             return rr
         elif styp == 2:
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             MPF_set(&rc.re, &sre)
             MPF_set(&rc.im, &sim)
             MPF_clear(&sre)
@@ -1207,14 +1207,14 @@ cdef class Context:
         opts = ctx._fun_get_opts(kwargs)
         typx = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, opts, 1)
         if typx == 1:
-            rr = PY_NEW(mpf)
+            rr = mpf.__new__(mpf)
             if MPF_sqrt(&rr.value, &tmp_opx_re, opts):
-                rc = PY_NEW(mpc)
+                rc = mpc.__new__(mpc)
                 MPF_complex_sqrt(&rc.re, &rc.im, &tmp_opx_re, &MPF_C_0, opts)
                 return rc
             return rr
         elif typx == 2:
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             MPF_complex_sqrt(&rc.re, &rc.im, &tmp_opx_re, &tmp_opx_im, opts)
             return rc
         else:
@@ -1243,11 +1243,11 @@ cdef class Context:
         opts = ctx._fun_get_opts(kwargs)
         typx = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, opts, 1)
         if typx == 1:
-            rr = PY_NEW(mpf)
+            rr = mpf.__new__(mpf)
             MPF_exp(&rr.value, &tmp_opx_re, opts)
             return rr
         elif typx == 2:
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             MPF_complex_exp(&rc.re, &rc.im, &tmp_opx_re, &tmp_opx_im, opts)
             return rc
         else:
@@ -1275,7 +1275,7 @@ cdef class Context:
         opts = ctx._fun_get_opts(kwargs)
         typx = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 1)
         if typx == 1:
-            rr = PY_NEW(mpf)
+            rr = mpf.__new__(mpf)
             MPF_cos(&rr.value, &tmp_opx_re, opts)
             return rr
         elif typx == 2:
@@ -1283,7 +1283,7 @@ cdef class Context:
             imv = MPF_to_tuple(&tmp_opx_im)
             cxu = libmp.mpc_cos((rev, imv), opts.prec,
                 rndmode_to_python(opts.rounding))
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             MPF_set_tuple(&rc.re, cxu[0])
             MPF_set_tuple(&rc.im, cxu[1])
             return rc
@@ -1312,7 +1312,7 @@ cdef class Context:
         opts = ctx._fun_get_opts(kwargs)
         typx = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 1)
         if typx == 1:
-            rr = PY_NEW(mpf)
+            rr = mpf.__new__(mpf)
             MPF_sin(&rr.value, &tmp_opx_re, opts)
             return rr
         elif typx == 2:
@@ -1320,7 +1320,7 @@ cdef class Context:
             imv = MPF_to_tuple(&tmp_opx_im)
             cxu = libmp.mpc_sin((rev, imv), opts.prec,
                 rndmode_to_python(opts.rounding))
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             MPF_set_tuple(&rc.re, cxu[0])
             MPF_set_tuple(&rc.im, cxu[1])
             return rc
@@ -1358,24 +1358,24 @@ cdef class Context:
             if 'rounding' in kwargs: opts.rounding = rndmode_from_python(kwargs['rounding'])
         if typx == 1:
             if MPF_sgn(&tmp_opx_re) < 0:
-                rc = PY_NEW(mpc)
+                rc = mpc.__new__(mpc)
                 MPF_log(&rc.re, &tmp_opx_re, opts)
                 MPF_set_pi(&rc.im, opts)
                 return rc
             else:
-                rr = PY_NEW(mpf)
+                rr = mpf.__new__(mpf)
                 MPF_log(&rr.value, &tmp_opx_re, opts)
                 return rr
         elif typx == 2:
             rev = MPF_to_tuple(&tmp_opx_re)
             imv = MPF_to_tuple(&tmp_opx_im)
             cxu = libmp.mpc_log((rev, imv), opts.prec, rndmode_to_python(opts.rounding))
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             MPF_set_tuple(&rc.re, cxu[0])
             MPF_set_tuple(&rc.im, cxu[1])
             return rc
 
-            #rc = PY_NEW(mpc)
+            #rc = mpc.__new__(mpc)
             #MPF_complex_log(&rc.re, &rc.im, &tmp_opx_re, &tmp_opx_im, opts)
             #return rc
         else:
@@ -1446,14 +1446,14 @@ cdef class wrapped_libmp_function:
             rev = MPF_to_tuple(&tmp_opx_re)
             try:
                 reu = self.mpf_f(rev, prec, rounding)
-                rr = PY_NEW(mpf)
+                rr = mpf.__new__(mpf)
                 MPF_set_tuple(&rr.value, reu)
                 return rr
             except libmp.ComplexResult:
                 if global_context.trap_complex:
                     raise
                 cxu = self.mpc_f((rev, libmp.fzero), prec, rounding)
-                rc = PY_NEW(mpc)
+                rc = mpc.__new__(mpc)
                 MPF_set_tuple(&rc.re, cxu[0])
                 MPF_set_tuple(&rc.im, cxu[1])
                 return rc
@@ -1461,7 +1461,7 @@ cdef class wrapped_libmp_function:
             rev = MPF_to_tuple(&tmp_opx_re)
             imv = MPF_to_tuple(&tmp_opx_im)
             cxu = self.mpc_f((rev, imv), prec, rounding)
-            rc = PY_NEW(mpc)
+            rc = mpc.__new__(mpc)
             MPF_set_tuple(&rc.re, cxu[0])
             MPF_set_tuple(&rc.im, cxu[1])
             return rc
@@ -2116,7 +2116,7 @@ cdef class mpf(mpf_base):
             sage: -mpf(2)
             mpf('-2.0')
         """
-        cdef mpf r = PY_NEW(mpf)
+        cdef mpf r = mpf.__new__(mpf)
         MPF_neg(&r.value, &s.value)
         MPF_normalize(&r.value, global_opts)
         return r
@@ -2136,7 +2136,7 @@ cdef class mpf(mpf_base):
             sage: print +x
             0.333333333333333
         """
-        cdef mpf r = PY_NEW(mpf)
+        cdef mpf r = mpf.__new__(mpf)
         MPF_set(&r.value, &s.value)
         MPF_normalize(&r.value, global_opts)
         return r
@@ -2150,7 +2150,7 @@ cdef class mpf(mpf_base):
             sage: abs(mpf(-2))
             mpf('2.0')
         """
-        cdef mpf r = PY_NEW(mpf)
+        cdef mpf r = mpf.__new__(mpf)
         MPF_abs(&r.value, &s.value)
         MPF_normalize(&r.value, global_opts)
         return r
@@ -2164,7 +2164,7 @@ cdef class mpf(mpf_base):
             sage: mpf(2).sqrt()
             mpf('1.4142135623730951')
         """
-        cdef mpf r = PY_NEW(mpf)
+        cdef mpf r = mpf.__new__(mpf)
         MPF_sqrt(&r.value, &s.value, global_opts)
         return r
 
@@ -2510,7 +2510,7 @@ cdef class mpc(mpnumber):
             sage: mp.mpc(1,2).real
             mpf('1.0')
         """
-        cdef mpf r = PY_NEW(mpf)
+        cdef mpf r = mpf.__new__(mpf)
         MPF_set(&r.value, &self.re)
         return r
 
@@ -2523,7 +2523,7 @@ cdef class mpc(mpnumber):
             sage: mp.mpc(1,2).imag
             mpf('2.0')
         """
-        cdef mpf r = PY_NEW(mpf)
+        cdef mpf r = mpf.__new__(mpf)
         MPF_set(&r.value, &self.im)
         return r
 
@@ -2545,7 +2545,7 @@ cdef class mpc(mpnumber):
             sage: -mpc(1,2)
             mpc(real='-1.0', imag='-2.0')
         """
-        cdef mpc r = PY_NEW(mpc)
+        cdef mpc r = mpc.__new__(mpc)
         MPF_neg(&r.re, &s.re)
         MPF_neg(&r.im, &s.im)
         MPF_normalize(&r.re, global_opts)
@@ -2560,7 +2560,7 @@ cdef class mpc(mpnumber):
             sage: mpc(1,2).conjugate()
             mpc(real='1.0', imag='-2.0')
         """
-        cdef mpc r = PY_NEW(mpc)
+        cdef mpc r = mpc.__new__(mpc)
         MPF_set(&r.re, &s.re)
         MPF_neg(&r.im, &s.im)
         MPF_normalize(&r.re, global_opts)
@@ -2582,7 +2582,7 @@ cdef class mpc(mpnumber):
             sage: (+x).real.man
             6004799503160661
         """
-        cdef mpc r = PY_NEW(mpc)
+        cdef mpc r = mpc.__new__(mpc)
         MPF_set(&r.re, &s.re)
         MPF_set(&r.im, &s.im)
         MPF_normalize(&r.re, global_opts)
@@ -2597,7 +2597,7 @@ cdef class mpc(mpnumber):
             sage: abs(mpc(3,4))
             mpf('5.0')
         """
-        cdef mpf r = PY_NEW(mpf)
+        cdef mpf r = mpf.__new__(mpf)
         MPF_hypot(&r.value, &s.re, &s.im, global_opts)
         return r
 
@@ -2634,13 +2634,13 @@ def hypsum_internal(int p, int q, param_types, str ztype, coeffs, z,
     """
     cdef mpf f
     cdef mpc c
-    c = PY_NEW(mpc)
+    c = mpc.__new__(mpc)
     have_complex, magn = MPF_hypsum(&c.re, &c.im, p, q, param_types, \
         ztype, coeffs, z, prec, wp, epsshift, magnitude_check, kwargs)
     if have_complex:
         v = c
     else:
-        f = PY_NEW(mpf)
+        f = mpf.__new__(mpf)
         MPF_set(&f.value, &c.re)
         v = f
     return v, have_complex, magn

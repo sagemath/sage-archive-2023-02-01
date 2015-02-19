@@ -511,7 +511,7 @@ conjunto, juntamente com as operações comuns em conjuntos.
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
     sage: X   # random
     {1, 19, 'a'}
-    sage: Y
+    sage: Y   # random
     {2/3, 1}
     sage: 'a' in X
     True
@@ -528,9 +528,9 @@ usando ``Set(...)``. Por exemplo,
 ::
 
     sage: X = Set([1,19,'a']);   Y = Set([1,1,1, 2/3])
-    sage: X
+    sage: X   # random
     {'a', 1, 19}
-    sage: Y
+    sage: Y   # random
     {1, 2/3}
     sage: X.intersection(Y)
     {1}

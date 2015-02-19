@@ -144,6 +144,32 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision):
     OUTPUT:
 
     None.
+
+    EXAMPLES::
+
+        sage: cython("\n".join([ # optional - arb
+        ....:     '#cinclude $SAGE_ROOT/local/include/flint',
+        ....:     '#clib arb',
+        ....:     'from sage.rings.real_mpfi cimport RealIntervalFieldElement',
+        ....:     'from sage.libs.arb.arb cimport *',
+        ....:     'from sage.rings.real_arb cimport arb_to_mpfi',
+        ....:     'from sage.rings.real_mpfi import RIF',
+        ....:     '',
+        ....:     'cdef extern from "arb.h":',
+        ....:     '    void arb_pow_ui(arb_t y, const arb_t b, unsigned long e, long prec)',
+        ....:     '',
+        ....:     'cdef RealIntervalFieldElement result',
+        ....:     'cdef arb_t arb',
+        ....:     'arb_init(arb)',
+        ....:     'result = RIF(0)',
+        ....:     'arb_set_ui(arb, 65536)',
+        ....:     'arb_pow_ui(arb, arb, 65536**3 * 65535, 53)',
+        ....:     'arb_to_mpfi(result.value, arb, 53)',
+        ....:     'arb_clear(arb)'
+        ....: ]))
+        exception: exponent too large to convert to mpfrException RuntimeError:
+        RuntimeError('Error converting arb to mpfi.
+        Overflow?',) in 'sage.rings.real_arb.arb_to_mpfi' ignored
     """
     cdef mpfr_t left
     cdef mpfr_t right
@@ -151,8 +177,10 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision):
     mpfr_init2(left, precision)
     mpfr_init2(right, precision)
 
+    sig_str("Error converting arb to mpfi. Overflow?")
     arb_get_interval_mpfr(left, right, source)
     mpfi_interv_fr(target, left, right)
+    sig_off()
 
     mpfr_clear(left)
     mpfr_clear(right)

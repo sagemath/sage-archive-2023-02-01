@@ -330,10 +330,13 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         self._bilinear.set_immutable()
         category = CoxeterGroups()
         # Now we shall see if the group is finite, and, if so, refine
-        # the category to ``category.Finite()``.
+        # the category to ``category.Finite()``. Otherwise the group is
+        # infinite and we refine the category to ``category.Infinite()``.
         is_finite = self._finite_recognition()
         if is_finite:
             category = category.Finite()
+        else:
+            category = category.Infinite()
         FinitelyGeneratedMatrixGroup_generic.__init__(self, n, base_ring,
                                                       gens, category=category)
 
@@ -630,19 +633,19 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         # the category of ``self``.
         return "Finite" in self.category().axioms()
 
-    def cardinality(self):
+    def order(self):
         """
-        Return the cardinality of ``self``.
+        Return the order of ``self``.
 
         If the Coxeter group is finite, this uses an iterator.
 
         EXAMPLES::
 
             sage: W = CoxeterGroup([[1,3],[3,1]])
-            sage: W.cardinality()
+            sage: W.order()
             6
             sage: W = CoxeterGroup([[1,-1],[-1,1]])
-            sage: W.cardinality()
+            sage: W.order()
             +Infinity
         """
         if self.is_finite():

@@ -274,8 +274,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         .. warning::
 
            A table of values of the character is made the first time
-           you call this. This table is currently constructed in a
-           somewhat stupid way, though it is still pretty fast.
+           you call this (unless `m` equals -1)
 
         EXAMPLES::
 
@@ -283,6 +282,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e = prod(G.gens(), G(1))
             sage: e
             Dirichlet character modulo 60 of conductor 60 mapping 31 |--> -1, 41 |--> -1, 37 |--> zeta4
+            sage: e(-1)
+            -1
             sage: e(2)
             0
             sage: e(7)
@@ -300,18 +301,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: parent(e(31*37))
             Cyclotomic Field of order 4 and degree 2
         """
-        m = int(m%self.__modulus)
-        try:
-            return self.__values[m]
-        except AttributeError:
-            pass
-
-        val = self.__modulus - 1
-        if m == val:
-            return self.__eval_at_minus_one()
+        m = int(m % self.__modulus)
+        if self.values.is_in_cache() or m != self.__modulus - 1:
+            return self.values()[m]
         else:
-            self.values()  # compute all values
-            return self.__values[m]
+            return self.__eval_at_minus_one()
 
     def change_ring(self, R):
         """
@@ -1495,6 +1489,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         H = DirichletGroup(M, self.base_ring())
         return H(self)
 
+    @cached_method
     def values(self):
         """
         Return a list of the values of this character on each integer
@@ -1543,60 +1538,45 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: chi(1)
             1
         """
-        try:
-            return self.__values
-        except AttributeError:
-            pass
-
-        # Build cache of all values of the Dirichlet character.
-        # I'm going to do it this way, since in my app the modulus
-        # is *always* small and we want to evaluate the character
-        # a *lot*.
         G = self.parent()
         R = G.base_ring()
 
         mod = self.__modulus
         if mod == 1:
-            self.__values = [R.one()]
-            return self.__values
+            return [R.one()]
         elif mod == 2:
-            self.__values = [R.zero(), R.one()]
-            return self.__values
+            return [R.zero(), R.one()]
 
         result_list = [R.zero()] * mod
         gens = G.unit_gens()
-        ngens = len(gens)
         orders = G.integers_mod().unit_group().gens_orders()
 
-        A = rings.IntegerModRing(G.zeta_order())
         R_values = G._zeta_powers
-        val_on_gen = [A(R_values.index(x)) for x in self.values_on_gens()]
+        val_on_gen = self.element()
 
-        exponents = [0] * ngens
+        exponents = [0] * len(orders)
         n = G.integers_mod().one()
-        value = A.zero()
+        value = val_on_gen.base_ring().zero()
 
-        final_index = ngens - 1
-        stop = orders[-1]
-        while exponents[-1] < stop:
+        while True:
             # record character value on n
             result_list[n] = R_values[value]
             # iterate:
             #   increase the exponent vector by 1,
             #   increase n accordingly, and increase value
             i = 0
-            exponents[0] += 1
-            value += val_on_gen[0]
-            n *= gens[0]
-            while i < final_index and exponents[i] >= orders[i]:
-                exponents[i] = 0
-                i += 1
-                exponents[i] += 1
+            while True:
+                try:
+                    exponents[i] += 1
+                except IndexError:  # Done!
+                    return result_list
                 value += val_on_gen[i]
                 n *= gens[i]
+                if exponents[i] < orders[i]:
+                    break
+                exponents[i] = 0
+                i += 1
 
-        self.__values = result_list
-        return self.__values
 
     def values_on_gens(self):
         r"""

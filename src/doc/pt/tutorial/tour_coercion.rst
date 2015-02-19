@@ -14,7 +14,7 @@ forma efetiva e eficiente.
 Note que vamos explicar algumas noções, mas não vamos mostrar aqui
 como implementá-las. Um tutorial voltado à implementação está
 disponível (em inglês) como um 
-`arquivo Sage <http://flask.sagenb.org/home/pub/82/>`_.
+`tutorial temática <http://sagemath.org/doc/thematic_tutorials/coercion_and_categories.html>`_.
 
 Elementos
 ---------
@@ -206,8 +206,8 @@ tipo em C com conversão em Sage!
 
 Aqui se encontra uma breve apresentação. Para uma descrição detalhada
 e informações sobre a implementação, referimos à seção sobre coação no
-manual de referência e para o `arquivo tutorial
-<http://flask.sagenb.org/home/pub/82/>`_.
+manual de referência e para o `tutorial
+<http://sagemath.org/doc/thematic_tutorials/coercion_and_categories.html>`_.
 
 Existem duas possibilidades extremas com respeito à possibilidade de
 fazer aritmética com elementos de *anéis diferentes*:
@@ -382,8 +382,8 @@ parente *canônico* comum que parece ser o mais natural (``QQ['x']`` no
 nosso exemplo). Se várias famílias potencialmente comuns parecem
 igualmente naturais, o Sage *não* vai escolher um deles
 aleatoriamente. Os mecanismos sobre os quais essa escolha se baseia é
-explicado em um `arquivo tutorial
-<http://flask.sagenb.org/home/pub/82/>`_
+explicado em um
+`tutorial <http://sagemath.org/doc/thematic_tutorials/coercion_and_categories.html>`_
 
 Nenhuma coação para um parente comum vai ocorrer no seguinte exemplo:
 

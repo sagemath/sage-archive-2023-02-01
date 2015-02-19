@@ -62,7 +62,7 @@ Instalação
 
 Se você não tem o Sage instalado em um computador e quer apenas
 experimentar alguns comandos, use o Sage através do site
-http://www.sagenb.org.
+http://cloud.sagemath.org.
 
 Veja o guia de instalação do Sage na seção de documentação na página
 principal do Sage [SA]_ para instruções de como instalar o Sage no seu

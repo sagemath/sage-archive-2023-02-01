@@ -459,8 +459,8 @@ Dicionários
 Um dicionário (também chamado as vezes de lista associativa ou "hash
 table") é um mapeamento de objetos em objetos arbitrários. (Exemplos
 de objetos que admitem uma lista associativa são strings e números;
-veja a documentação Python em http://docs.python.org/tut/node7.html e
-http://docs.python.org/lib/typesmapping.html para detalhes).
+veja a documentação Python em https://docs.python.org/3/tutorial/index.html
+para detalhes).
 
 ::
 

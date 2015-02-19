@@ -10,9 +10,7 @@ usá-lo, você precisa "instalá-lo" em seu sistema LaTeX local; aqui
 instalar significa copiar um simples arquivo. Veja :ref:`installation`
 neste tutorial e a seção "Make SageTeX known to TeX" do `Guia de
 instalação do Sage <http://sagemath.org/doc/installation/index.html>`_
-(em inglês) (`este link <../installation/index.html>`_ deve levá-lo a
-uma cópia local do guia de instalação para mais informações de como
-proceder.
+(em inglês).
 
 Aqui vai um breve exemplo de como usar o SageTeX. A documentação
 completa pode ser encontrada em

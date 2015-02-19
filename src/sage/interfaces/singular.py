@@ -590,7 +590,6 @@ class Singular(Expect):
             raise SingularError('Singular error:\n%s'%s)
 
         if get_verbose() > 0:
-            ret = []
             for line in s.splitlines():
                 if line.startswith("//"):
                     print line
@@ -2215,7 +2214,7 @@ def reduce_load_Singular():
     """
     return singular
 
-import os
+
 def singular_console():
     """
     Spawn a new Singular command-line session.
@@ -2550,7 +2549,7 @@ def singular_gb_standard_options(func):
         sage: "basis" in sage_getsource(J.interreduced_basis) #indirect doctest
         True
 
-    The following tests against a bug that was fixed in trac ticket #11298::
+    The following tests against a bug that was fixed in :trac:`11298`::
 
         sage: from sage.misc.sageinspect import sage_getsourcelines, sage_getargspec
         sage: P.<x,y> = QQ[]

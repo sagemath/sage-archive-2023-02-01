@@ -1312,7 +1312,7 @@ class Sets(Category_singleton):
             This method should return an iterable, *not* an iterator.
             """
             try:
-                return [ self.an_element() ]
+                return [self.an_element()]
             except EmptySetError:
                 return []
 
@@ -2141,8 +2141,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
 
                 INPUT:
 
-                - ``shorthands`` -- a list (or iterable) of strings
-                  (default: ['M', 'F'])
+                - ``verbose`` -- boolean (default ``True``) if ``True``, prints the defined shorthands
 
                 EXAMPLES::
 

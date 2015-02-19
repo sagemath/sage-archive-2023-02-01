@@ -11,6 +11,14 @@ documentation for more details.
 
 You may have to run ``sage -i arb`` to use the arb library.
 
+.. WARNING::
+
+    Identical real balls are understood to give permission for algebraic
+    simplification. This assumption is made to improve performance.  For
+    example, setting ``z = x^2`` sets `z` to a ball enclosing the set
+    `\{t^2 : t \in x\}` and not the (generally larger) set `\{tu : t \in
+    x, u \in x\}`.
+
 Comparison
 ==========
 
@@ -49,8 +57,8 @@ A ball is non-zero if and only if it does not contain zero. ::
     sage: b != 0 # optional - arb
     True
 
-A ball ``left`` is less than a ball ``right`` if all elements of ``left`` are less
-than all elements of ``right``. ::
+A ball ``left`` is less than a ball ``right`` if all elements of
+``left`` are less than all elements of ``right``. ::
 
     sage: a = RBF(RIF(1, 2)) # optional - arb
     sage: b = RBF(RIF(3, 4)) # optional - arb

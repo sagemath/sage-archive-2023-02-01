@@ -169,7 +169,7 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except 
         ....: ]))
         Traceback (most recent call last):
         ...
-        RuntimeError: Error converting arb to mpfi. Overflow?
+        ArithmeticError: Error converting arb to mpfi. Overflow?
     """
     cdef mpfr_t left
     cdef mpfr_t right
@@ -177,13 +177,16 @@ cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except 
     mpfr_init2(left, precision)
     mpfr_init2(right, precision)
 
-    sig_str("Error converting arb to mpfi. Overflow?")
-    arb_get_interval_mpfr(left, right, source)
-    mpfi_interv_fr(target, left, right)
-    sig_off()
-
-    mpfr_clear(left)
-    mpfr_clear(right)
+    try:
+        sig_on()
+        arb_get_interval_mpfr(left, right, source)
+        mpfi_interv_fr(target, left, right)
+        sig_off()
+    except RuntimeError:
+        raise ArithmeticError("Error converting arb to mpfi. Overflow?")
+    finally:
+        mpfr_clear(left)
+        mpfr_clear(right)
 
 
 class RealBallField(UniqueRepresentation, Parent):

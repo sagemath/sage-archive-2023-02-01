@@ -134,7 +134,7 @@ doc="""
 Integers
 """
 
-import cython
+cimport cython
 
 import operator
 
@@ -145,7 +145,7 @@ include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
-from libc.stdint cimport uint64_t
+from libc.stdint cimport uint64_t, uintmax_t
 cimport sage.structure.element
 from sage.structure.element cimport Element, EuclideanDomainElement, parent_c
 include "sage/ext/python_debug.pxi"
@@ -2593,6 +2593,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     prime_factors = prime_divisors
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     def divisors(self):
         """
         Returns a list of all positive integer divisors of the integer
@@ -2670,39 +2672,40 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            similar to that of the merge sort algorithm.
         """
         cdef list all, prev, sorted
-        cdef long tip, top
-        cdef long i, j, e, ee
+        cdef Py_ssize_t tip, top
+        cdef Py_ssize_t i, j, e, ee
         cdef Integer apn, p, pn, z, all_tip
 
         if not self:
             raise ValueError, "n must be nonzero"
         f = self.factor()
 
-        # All of the declarations below are for optimizing the long long-sized
+        # All of the declarations below are for optimizing the uintmax_t-sized
         # case.  Operations are performed in C as far as possible without
         # overflow before moving to Python objects.
-        cdef long long p_c, pn_c, apn_c
-        cdef long all_len, sorted_len, prev_len
-        cdef long long* ptr
-        cdef long long* empty_c
-        cdef long long* swap_tmp
-        cdef long long* all_c
-        cdef long long* sorted_c
-        cdef long long* prev_c
+        cdef uintmax_t p_c, pn_c, apn_c
+        cdef Py_ssize_t all_len, sorted_len, prev_len
+        cdef uintmax_t* ptr
+        cdef uintmax_t* empty_c
+        cdef uintmax_t* swap_tmp
+        cdef uintmax_t* all_c
+        cdef uintmax_t* sorted_c
+        cdef uintmax_t* prev_c
 
         # These are used to keep track of whether or not we are able to
-        # perform the operations in machine words. A factor of two safety
-        # margin is added to cover any floating-point rounding issues.
+        # perform the operations in machine words. A factor of 0.999
+        # safety margin is added to cover any floating-point rounding
+        # issues.
         cdef bint fits_c = True
         cdef double cur_max = 1
-        cdef double fits_max = 2.0**(sizeof(long long)*8-2)
+        cdef double fits_max = 0.999 * 2.0 ** (8*sizeof(uintmax_t))
 
-        cdef long divisor_count = 1
+        cdef Py_ssize_t divisor_count = 1
         with cython.overflowcheck(True):
             for p, e in f:
                 # Using *= does not work, see http://trac.cython.org/cython_trac/ticket/825
                 divisor_count = divisor_count * (1 + e)
-            ptr = <long long*>sage_malloc(sizeof(long long) * 3 * divisor_count)
+            ptr = <uintmax_t*>sage_malloc(sizeof(uintmax_t) * 3 * divisor_count)
             if not ptr:
                 raise MemoryError
 
@@ -2718,16 +2721,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 cur_max *= (<double>p)**e
                 if fits_c and cur_max > fits_max:
                     sorted = []
-                    for i from 0 <= i < sorted_len:
+                    for i in range(sorted_len):
                         z = <Integer>PY_NEW(Integer)
-                        mpz_set_longlong(z.value, sorted_c[i])
+                        mpz_set_ux(z.value, sorted_c[i])
                         sorted.append(z)
                     fits_c = False
                     sage_free(ptr)
                     ptr = NULL
     
                 # The two cases below are essentially the same algorithm, one
-                # operating on Integers in Python lists, the other on long longs.
+                # operating on Integers in Python lists, the other on uintmax_t's.
                 if fits_c:
     
                     sig_on()
@@ -2742,7 +2745,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     
                     tip = 0
                     prev_c[prev_len] = prev_c[prev_len-1] * pn_c
-                    for i from 0 <= i < prev_len:
+                    for i in range(prev_len):
                         apn_c = prev_c[i] * pn_c
                         while prev_c[tip] < apn_c:
                             sorted_c[sorted_len] = prev_c[tip]
@@ -2762,7 +2765,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         pn_c *= p_c
                         tip = 0
                         all_c[all_len] = prev_c[prev_len-1] * pn_c
-                        for i from 0 <= i < prev_len:
+                        for i in range(prev_len):
                             apn_c = prev_c[i] * pn_c
                             while all_c[tip] < apn_c:
                                 sorted_c[sorted_len] = all_c[tip]
@@ -2799,9 +2802,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if fits_c:
                 # all the data is in sorted_c
                 sorted = []
-                for i from 0 <= i < sorted_len:
+                for i in range(sorted_len):
                     z = <Integer>PY_NEW(Integer)
-                    mpz_set_longlong(z.value, sorted_c[i])
+                    mpz_set_ux(z.value, sorted_c[i])
                     sorted.append(z)
         finally:
             sage_free(ptr)

@@ -84,6 +84,7 @@ from sage.structure.sequence  import Sequence
 from sage.categories.homset   import Homset, Hom, End
 from sage.rings.all           import Integer
 from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.morphism import is_RingHomomorphism
 from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
@@ -157,7 +158,7 @@ class SchemeMorphism(Element):
         sage: A2.structure_morphism().domain()
         Affine Space of dimension 2 over Rational Field
         sage: A2.structure_morphism().category()
-        Category of hom sets in Category of schemes
+        Category of homsets of schemes
     """
 
     def __init__(self, parent, codomain=None):
@@ -428,7 +429,7 @@ class SchemeMorphism(Element):
 
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.structure_morphism().category()
-            Category of hom sets in Category of schemes
+            Category of homsets of schemes
         """
         return self.parent().category()
 
@@ -665,9 +666,7 @@ class SchemeMorphism_structure_map(SchemeMorphism):
     EXAMPLES::
 
         sage: Spec(ZZ).structure_morphism()    # indirect doctest
-        Scheme morphism:
-          From: Spectrum of Integer Ring
-          To:   Spectrum of Integer Ring
+        Scheme endomorphism of Spectrum of Integer Ring
           Defn: Structure map
     """
     def __init__(self, parent, codomain=None):
@@ -784,7 +783,10 @@ class SchemeMorphism_spec(SchemeMorphism):
 
         The image scheme point.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The following fails because inverse images of prime ideals
+        under ring homomorphisms are not yet implemented::
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: phi = R.hom([QQ(7)])
@@ -793,10 +795,7 @@ class SchemeMorphism_spec(SchemeMorphism):
             sage: f(X.an_element())    # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: Point on Spectrum of Rational Field defined by the
-            Principal ideal (0) of Rational Field fails to convert into the
-            map's domain Spectrum of Rational Field, but a `pushforward`
-            method is not properly implemented
+            NotImplementedError
         """
         # By virtue of argument preprocessing in __call__, we can assume that
         # x is a topological scheme point of self
@@ -1353,6 +1352,17 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                     To:   Affine Space of dimension 2 over Rational Field
                     Defn: Defined on coordinates by sending (x : y) to
                     (x^2, y^2)
+
+            ::
+
+                sage: A.<x,y>=AffineSpace(QQ,2)
+                sage: H=Hom(A,A)
+                sage: f=H([3*x^2/y,y^2/x])
+                sage: f.change_ring(RR)
+                Scheme endomorphism of Affine Space of dimension 2 over Real Field with
+                53 bits of precision
+                Defn: Defined on coordinates by sending (x, y) to
+                        (3.00000000000000*x^2/y, y^2/x)
         """
         T=self.domain().change_ring(R)
 
@@ -1362,7 +1372,12 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             S=self.codomain().change_ring(R)
             H=Hom(T,S)
 
-        G=[f.change_ring(R) for f in self._polys]
+        G = []
+        for f in self._polys:
+            if isinstance(f,FractionFieldElement):
+                G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
+            else:
+                G.append(f.change_ring(R))
         return(H(G,check))
 
 

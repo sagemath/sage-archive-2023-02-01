@@ -34,11 +34,13 @@ AUTHORS:
 
 from sage.calculus.functions import jacobian
 from sage.categories.homset        import Hom
+from sage.matrix.constructor       import matrix, identity_matrix
 from sage.misc.misc                import prod
 from sage.rings.all                import Integer, moebius
 from sage.rings.arith              import lcm, gcd
 from sage.rings.complex_field      import ComplexField
 from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
+from sage.rings.fraction_field     import FractionField
 from sage.rings.integer_ring       import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
@@ -178,6 +180,74 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         # Passes the array of args to _fast_eval
         P = self._fast_eval(x._coords)
         return self.codomain().point(P, check)
+
+    def __eq__(self, right):
+        """
+        Tests the equality of two affine morphisms.
+
+        INPUT:
+
+        - ``right`` - a map on affine space
+
+        OUTPUT:
+
+        - Boolean - True if ``self`` and ``right`` define the same affine map. False otherwise.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: A2.<u,v> = AffineSpace(QQ, 2)
+            sage: H = End(A)
+            sage: H2 = End(A2)
+            sage: f = H([x^2 - 2*x*y, y/(x+1)])
+            sage: g = H2([u^3 - v, v^2])
+            sage: f == g
+            False
+
+            ::
+
+            sage: A.<x,y,z> = AffineSpace(CC, 3)
+            sage: H = End(A)
+            sage: f = H([x^2 - CC.0*x*y + z*x, 1/z^2 - y^2 , 5*x])
+            sage: f == f
+            True
+        """
+        if not isinstance(right, SchemeMorphism_polynomial):
+            return False
+        if self.parent() != right.parent():
+            return False
+        return all([self[i]==right[i] for i in range(len(self._polys))])
+
+    def __ne__(self, right):
+        """
+        Tests the inequality of two affine morphisms.
+
+        INPUT:
+
+        - ``right`` -- a map on affine space
+
+        OUTPUT:
+
+        - Boolean -- True if ``self`` and ``right`` define different affine maps. False otherwise.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(RR, 2)
+            sage: H = End(A)
+            sage: f = H([x^2 - y, y^2])
+            sage: g = H([x^3-x*y, x*y^2])
+            sage: f != g
+            True
+            sage: f != f
+            False
+        """
+        if not isinstance(right, SchemeMorphism_polynomial):
+            return True
+        if self.parent() != right.parent():
+            return True
+        if all([self[i]==right[i] for i in range(len(self._polys))]):
+            return False
+        return True
 
     @lazy_attribute
     def _fastpolys(self):
@@ -351,6 +421,24 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             Polynomial Ring in a over Algebraic Field
               Defn: Defined on coordinates by sending (x0 : x1 : x2) to
                     (1.414213562373095?*x0*x1 : a*x0^2 : x2^2)
+
+        ::
+
+            sage: P.<x,y,z> = AffineSpace(QQ,3)
+            sage: H = End(P)
+            sage: f = H([x^2 - 2*x*y + z*x, z^2 -y^2 , 5*z*y])
+            sage: f.homogenize(2).dehomogenize(2) == f
+            True
+
+        ::
+
+            sage: K.<c> = FunctionField(QQ)
+            sage: A.<x> = AffineSpace(K,1)
+            sage: f = Hom(A,A)([x^2 + c])
+            sage: f.homogenize(1)
+            Scheme endomorphism of Projective Space of dimension 1 over Rational function field in c over Rational Field
+              Defn: Defined on coordinates by sending (x0 : x1) to
+                    (x0^2 + c*x1^2 : x1^2)
         """
         #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n,(tuple,list)):
@@ -381,7 +469,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         F = [S(R(self[i].numerator()*l[i]).subs(D)) for i in range(M)]
 
         #homogenize
-        F.insert(ind[1], S(prod(L).subs(D))) #coerce in case l is a constant
+        F.insert(ind[1], S(R(prod(L)).subs(D))) #coerce in case l is a constant
         try:
             #remove possible gcd of the polynomials
             g = gcd(F)
@@ -457,6 +545,17 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([x^2+CC.0])
             sage: f.dynatomic_polynomial(2)
             x^2 + x + 1.00000000000000 + 1.00000000000000*I
+
+        ::
+
+            sage: K.<c> = FunctionField(QQ)
+            sage: A.<x> = AffineSpace(K,1)
+            sage: f = Hom(A,A)([x^2 + c])
+            sage: f.dynatomic_polynomial(4)
+            x^12 + 6*c*x^10 + x^9 + (15*c^2 + 3*c)*x^8 + 4*c*x^7 + (20*c^3 + 12*c^2 + 1)*x^6
+            + (6*c^2 + 2*c)*x^5 + (15*c^4 + 18*c^3 + 3*c^2 + 4*c)*x^4 + (4*c^3 + 4*c^2 + 1)*x^3
+            + (6*c^5 + 12*c^4 + 6*c^3 + 5*c^2 + c)*x^2 + (c^4 + 2*c^3 + c^2 + 2*c)*x
+            + c^6 + 3*c^5 + 3*c^4 + 3*c^3 + 2*c^2 + 1
         """
         if self.domain() != self.codomain():
             raise TypeError("Must have same domain and codomain to iterate")
@@ -704,7 +803,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     def jacobian (self):
         r"""
         Returns the Jacobian matrix of partial derivitive of ``self`` in which the
-        ``(i,j)`` entry of the Jacobian matrix is the partial derivative ``diff(functions[i], variables[j]``.
+        ``(i,j)`` entry of the Jacobian matrix is the partial derivative ``diff(functions[i], variables[j])``.
 
         OUTPUT:
 
@@ -740,8 +839,88 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             return self.__jacobian
         except AttributeError:
             pass
-        self.__jacobian = jacobian(list(self),self.domain().gens())
+        self.__jacobian = jacobian(list(self),self.domain().ambient_space().gens())
         return self.__jacobian
+
+    def multiplier(self, P, n, check=True):
+        r"""
+        Returns the multiplier of ``self`` at the point ``P`` of period ``n``.
+        ``self`` must be an endomorphism.
+
+        INPUT:
+
+        - ``P`` - a point on domain of ``self``
+
+        - ``n`` - a positive integer, the period of ``P``
+
+        - ``check`` -- verify that ``P`` has period ``n``, Default:True
+
+        OUTPUT:
+
+        - a square matrix of size ``self.codomain().dimension_relative()`` in the ``base_ring`` of ``self``
+
+        EXAMPLES::
+
+            sage: P.<x,y> = AffineSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x^2,y^2])
+            sage: f.multiplier(P([1,1]),1)
+            [2 0]
+            [0 2]
+
+        ::
+
+            sage: P.<x,y,z> = AffineSpace(QQ,3)
+            sage: H = End(P)
+            sage: f = H([x,y^2,z^2 - y])
+            sage: f.multiplier(P([1/2,1,0]),2)
+            [1 0 0]
+            [0 4 0]
+            [0 0 0]
+
+        ::
+
+            sage: P.<x> = AffineSpace(CC,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + 1/2])
+            sage: f.multiplier(P([0.5 + 0.5*I]),1)
+            [1.00000000000000 + 1.00000000000000*I]
+
+        ::
+
+            sage: R.<t> = PolynomialRing(CC,1)
+            sage: P.<x> = AffineSpace(R,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - t^2 + t])
+            sage: f.multiplier(P([-t + 1]),1)
+            [(-2.00000000000000)*t + 2.00000000000000]
+
+        ::
+
+            sage: P.<x,y> = AffineSpace(QQ,2)
+            sage: X=P.subscheme([x^2-y^2])
+            sage: H = End(X)
+            sage: f = H([x^2,y^2])
+            sage: f.multiplier(X([1,1]),1)
+            [2 0]
+            [0 2]
+        """
+        if not self.is_endomorphism():
+            raise TypeError("Must be an endomorphism")
+        if check:
+            if self.nth_iterate(P, n) != P:
+                raise ValueError("%s is not periodic of period %s" % (P, n))
+            if n < 1:
+                raise ValueError("Period must be a positive integer")
+        N = self.domain().ambient_space().dimension_relative()
+        l = identity_matrix(FractionField(self.codomain().base_ring()), N, N)
+        Q = P
+        J = self.jacobian()
+        for i in range(0, n):
+            R = self(Q)
+            l = J(tuple(Q))*l #chain rule matrix multiplication
+            Q = R
+        return l
 
 class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_affine_space):
     pass

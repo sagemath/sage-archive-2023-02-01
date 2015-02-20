@@ -13,8 +13,11 @@ Thematic tutorial document tree
    linear_programming
    numtheory_rsa
    coding_theory
+   polytutorial
    tutorial-programming-python
    tutorial-comprehensions
    tutorial-objects-and-classes
    functional_programming
    coercion_and_categories
+   cython_interface
+   numerical_sage/index

@@ -211,14 +211,15 @@ interval coerces to plus infinity::
     True
 """
 
-############################################################################
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
+#*****************************************************************************
 #       Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-############################################################################
+#*****************************************************************************
 
 import math # for log
 import sys
@@ -229,7 +230,6 @@ include "sage/ext/cdefs.pxi"
 from cpython.mem cimport *
 from cpython.string cimport *
 
-from sage.misc.package import is_package_installed
 cimport sage.rings.ring
 import  sage.rings.ring
 
@@ -4713,12 +4713,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: psi_1.overlaps(-RIF.euler_constant()) # optional - arb
             True
         """
-        if is_package_installed('arb'):
-            from sage.rings.real_arb import Arb
-            return Arb(self).psi().RealIntervalFieldElement()
-        else:
+        try:
+            from sage.rings.real_arb import RealBallField
+        except ImportError:
             raise TypeError("The optional arb package is not installed. "
                             "Consider installing it via 'sage -i arb'")
+        return RealBallField(self.precision())(self).psi()._interval()
 
 # MPFI does not have: agm, erf, gamma, zeta
 #     def agm(self, other):

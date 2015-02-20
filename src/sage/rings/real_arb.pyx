@@ -129,7 +129,7 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     mpfr_clear(left)
     mpfr_clear(right)
 
-cdef void arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except *:
+cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -1:
     """
     Convert an Arb ball to an MPFI interval.
 

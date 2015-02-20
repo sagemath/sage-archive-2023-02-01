@@ -25,7 +25,7 @@ from sage.matrix.constructor import matrix
 from sage.matrix.matrix_generic_sparse cimport Matrix_generic_sparse
 from sage.rings.complex_interval_field import ComplexIntervalField_class, ComplexIntervalField
 from sage.rings.complex_interval cimport ComplexIntervalFieldElement
-from sage.rings.complex_interval_acb cimport (
+from sage.rings.complex_ball_acb cimport (
     ComplexIntervalFieldElement_to_acb,
     acb_to_ComplexIntervalFieldElement)
 
@@ -55,7 +55,7 @@ cdef void matrix_to_acb_mat(acb_mat_t target, source):
                                                source[r][c])
 
 cdef Matrix_generic_dense acb_mat_to_matrix(
-    acb_mat_t source, unsigned long precision):
+    acb_mat_t source, Parent CIF):
     """
     Convert an ``acb_mat_t`` to a matrix containing :class:`ComplexIntervalFieldElement`.
 
@@ -77,7 +77,7 @@ cdef Matrix_generic_dense acb_mat_to_matrix(
 
     return matrix(
                   [[acb_to_ComplexIntervalFieldElement(
-                        acb_mat_entry(source, r, c), precision)
+                        acb_mat_entry(source, r, c), CIF)
                     for c in range(ncols)]
                    for r in range(nrows)])
 
@@ -227,4 +227,4 @@ cdef class Acb_mat(SageObject):
             [0 1]
         """
 
-        return acb_mat_to_matrix(self.value, self._precision_)
+        return acb_mat_to_matrix(self.value, ComplexIntervalField(self._precision_))

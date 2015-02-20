@@ -1,6 +1,8 @@
 from sage.libs.arb.acb cimport acb_t
 from sage.rings.complex_interval cimport ComplexIntervalFieldElement
-from sage.structure.sage_object cimport SageObject
+from sage.rings.real_arb cimport RealBall
+from sage.structure.element cimport Element
+from sage.structure.parent cimport Parent
 
 cdef void ComplexIntervalFieldElement_to_acb(
     acb_t target,
@@ -8,9 +10,11 @@ cdef void ComplexIntervalFieldElement_to_acb(
 
 cdef ComplexIntervalFieldElement acb_to_ComplexIntervalFieldElement(
     const acb_t source,
-    const unsigned long precision)
+    Parent CIF)
 
-cdef class Acb(SageObject):
+cdef class ComplexBall(Element):
     cdef acb_t value
-    cdef unsigned long _precision_
-    cpdef ComplexIntervalFieldElement ComplexIntervalFieldElement(self)
+    cdef ComplexBall _new(self)
+    cpdef ComplexIntervalFieldElement _interval(self)
+    cpdef RealBall real(self)
+    cpdef RealBall imag(self)

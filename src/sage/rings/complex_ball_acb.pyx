@@ -10,6 +10,55 @@ This is a rudimentary binding to the optional `Arb library
 documentation for more details.
 
 You may have to run ``sage -i arb`` to use the arb library.
+
+.. WARNING::
+
+    Identical :class:`ComplexBall` objects are understood to give
+    permission for algebraic simplification. This assumption is made
+    to improve performance. For example, setting ``z = x*x`` sets `z`
+    to a ball enclosing the set `\{t^2 : t \in x\}` and not the
+    (generally larger) set `\{tu : t \in x, u \in x\}`.
+
+Comparison
+==========
+
+Two elements are equal if and only if they are the same object
+or if both are exact and equal::
+
+    sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+    sage: CBF = ComplexBallField() # optional - arb
+    sage: a = CBF(1, 2) # optional - arb
+    sage: b = CBF(1, 2) # optional - arb
+    sage: a is b # optional - arb
+    False
+    sage: a == b # optional - arb
+    True
+    sage: a = CBF(1/3, 1/5) # optional - arb
+    sage: b = CBF(1/3, 1/5) # optional - arb
+    sage: a.is_exact() # optional - arb
+    False
+    sage: b.is_exact() # optional - arb
+    False
+    sage: a is b # optional - arb
+    False
+    sage: a == b # optional - arb
+    False
+
+A ball is non-zero if and only if it does not contain zero. ::
+
+    sage: a = CBF(RIF(-0.5, 0.5)) # optional - arb
+    sage: bool(a) # optional - arb
+    False
+    sage: a != 0 # optional - arb
+    False
+    sage: b = CBF(1/3, 1/5) # optional - arb
+    sage: bool(b) # optional - arb
+    True
+    sage: b != 0 # optional - arb
+    True
+
+Classes and Methods
+===================
 """
 #*****************************************************************************
 # Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
@@ -19,9 +68,20 @@ You may have to run ``sage -i arb`` to use the arb library.
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
+include 'sage/ext/interrupt.pxi'
+include "sage/ext/python.pxi"
+include "sage/ext/stdsage.pxi"
+
+import sage.categories.sets_cat
+from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
+from sage.rings.real_arb import RealBallField
+from sage.structure.unique_representation import UniqueRepresentation
+
+cdef inline bint acb_is_nonzero(const acb_t z):
+    return arb_is_nonzero(&z.real) or arb_is_nonzero(&z.imag)
 
 cdef void ComplexIntervalFieldElement_to_acb(
     acb_t target,
@@ -39,14 +99,14 @@ cdef void ComplexIntervalFieldElement_to_acb(
 
     None.
     """
-    cdef unsigned long precision
+    cdef long precision
     precision = source.parent().precision()
     mpfi_to_arb(&target.real, source.__re, precision)
     mpfi_to_arb(&target.imag, source.__im, precision)
 
 cdef ComplexIntervalFieldElement acb_to_ComplexIntervalFieldElement(
     const acb_t source,
-    const unsigned long precision):
+    Parent CIF):
     """
     Convert an ``acb`` to a :class:`ComplexIntervalFieldElement`.
 
@@ -54,60 +114,225 @@ cdef ComplexIntervalFieldElement acb_to_ComplexIntervalFieldElement(
 
     - ``source`` -- an ``acb_t``
 
-     - ``precision`` -- a positive integer
+     - ``CIF`` -- a complex interval field
 
     OUTPUT:
 
     A :class:`ComplexIntervalFieldElement`.
     """
     cdef ComplexIntervalFieldElement result
+    cdef long precision = CIF.precision()
 
-    result = ComplexIntervalField(precision)(0)
+    result = CIF(0)
     arb_to_mpfi(result.__re, &source.real, precision)
     arb_to_mpfi(result.__im, &source.imag, precision)
     return result
 
-cdef class Acb(SageObject):
+class ComplexBallField(UniqueRepresentation, Parent):
+    r"""
+    An approximation of the field of complex numbers using mid-rad
+    intervals, also known as balls.
+
+    INPUT:
+
+    - ``precision`` -- an integer `\ge 2`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+        sage: CBF = ComplexBallField() # optional - arb; indirect doctest
+        sage: CBF(1) # optional - arb
+        1.000000000000000
+
+    TESTS::
+
+        sage: ComplexBallField(0) # optional - arb
+        Traceback (most recent call last):
+        ...
+        ValueError: Precision must be at least 2.
+        sage: ComplexBallField(1) # optional - arb
+        Traceback (most recent call last):
+        ...
+        ValueError: Precision must be at least 2.
+    """
+    Element = ComplexBall
+
+    @staticmethod
+    def __classcall__(cls, long precision=53):
+        r"""
+        Normalize the arguments for caching.
+
+        TESTS::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: ComplexBallField(53) is ComplexBallField() # optional - arb
+            True
+        """
+        return super(ComplexBallField, cls).__classcall__(cls, precision)
+
+    def __init__(self, precision):
+        r"""
+        Initialize the complex ball field.
+
+        INPUT:
+
+        - ``precision`` -- an integer `\ge 2`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: CBF(1) # optional - arb
+            1.000000000000000
+        """
+        if precision < 2:
+            raise ValueError("Precision must be at least 2.")
+        super(ComplexBallField, self).__init__(categories=[sage.categories.sets_cat.Sets])
+        self._prec = precision
+        self.RealBallField = RealBallField(precision)
+
+    def _repr_(self):
+        r"""
+        String representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: ComplexBallField() # optional - arb
+            Complex ball field with 53 bits precision
+            sage: ComplexBallField(106) # optional - arb
+            Complex ball field with 106 bits precision
+        """
+        return "Complex ball field with {} bits precision".format(self._prec)
+
+    def _coerce_map_from_(self, S):
+        r"""
+        Currently, there is no coercion.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: ComplexBallField()._coerce_map_from_(CIF) # optional - arb
+            False
+            sage: ComplexBallField()._coerce_map_from_(SR) # optional - arb
+            False
+        """
+        return False
+
+    def _element_constructor_(self, *args, **kwds):
+        r"""
+        Construct a :class:`ComplexBall`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional: arb
+            sage: CBF = ComplexBallField() # optional: arb
+            sage: CBF(1) # optional: arb; indirect doctest
+            1.000000000000000
+        """
+        return self.element_class(self, *args, **kwds)
+
+    def _an_element_(self):
+        r"""
+        Construct an element.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional: arb
+            sage: CBF = ComplexBallField() # optional: arb
+            sage: CBF._an_element_() # optional: arb; indirect doctest
+            [0.3333333333333333 +/- 1.49e-17] + [0.1666666666666667 +/- 4.26e-17]*I
+        """
+        return self(1.0/3, 1.0/6)
+
+    def precision(self):
+        """
+        Return the bit precision used for operations on elements of this field.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: ComplexBallField().precision() # optional - arb
+            53
+        """
+        return self._prec
+
+    def is_exact(self):
+        """
+        Complex ball fields are not exact.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: ComplexBallField().is_exact() # optional - arb
+            False
+        """
+        return False
+
+    def is_finite(self):
+        """
+        Complex ball fields are infinite.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: ComplexBallField().is_finite() # optional - arb
+            False
+        """
+        return False
+
+    def characteristic(self):
+        """
+        Complex ball fields have characteristic zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: ComplexBallField().characteristic() # optional - arb
+            0
+        """
+        return 0
+
+
+cdef inline bint _do_sig(long prec):
+    """
+    Whether signal handlers should be installed for calls to arb.
+
+    TESTS::
+
+        sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+    """
+    return (prec > 1000)
+
+cdef inline long prec(ComplexBall ball):
+    return ball._parent._prec
+
+cdef inline Parent real_ball_field(ComplexBall ball):
+    return ball._parent.RealBallField
+
+cdef class ComplexBall(Element):
     """
     Hold one ``acb_t`` of the `Arb library
     <http://fredrikj.net/arb/>`_
 
-    INPUT:
-
-    - ``value`` -- (default: ``None``) ``None`` or a
-      :class:`ComplexIntervalFieldElement`.
-
-    - ``precision`` -- (default: ``0``) a non-negative
-      integer. Must be given unless ``value`` is not ``None``.
-
-    OUTPUT:
-
-    None.
-
     EXAMPLES::
 
-        sage: from sage.rings.complex_ball_acb import Acb # optional - arb
-        sage: a = Acb(CIF(1, 1))              # optional - arb
-        sage: a.ComplexIntervalFieldElement() # optional - arb
+        sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+        sage: a = ComplexBallField()(1, 1) # optional - arb
+        sage: a # optional - arb
+        1.000000000000000 + 1.000000000000000*I
+        sage: a._interval() # optional - arb
         1 + 1*I
     """
     def __cinit__(self):
         """
         Allocate memory for the encapsulated value.
 
-        INPUT:
-
-        None.
-
-        OUTPUT:
-
-        None.
-
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import Acb # optional - arb
-            sage: Acb(precision=2) # optional - arb; indirect doctest
-            <type 'sage.rings.complex_ball_acb.Acb'>
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: ComplexBallField(2)(0) # optional - arb; indirect doctest
+            0
         """
         acb_init(self.value)
 
@@ -115,33 +340,28 @@ cdef class Acb(SageObject):
         """
         Deallocate memory of the encapsulated value.
 
-        INPUT:
-
-        None.
-
-        OUTPUT:
-
-        None.
-
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import Acb # optional - arb
-            sage: a = Acb(precision=2) # optional - arb; indirect doctest
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: a = ComplexBallField(2)(0) # optional - arb; indirect doctest
             sage: del a # optional - arb
         """
         acb_clear(self.value)
 
-    def __init__(self, value=None, unsigned long precision=0):
+    def __init__(self, parent, x=None, y=None):
         """
-        Initialize Acb using value.
+        Initialize the :class:`ComplexBall` using `x` and `y`.
 
         INPUT:
 
-        - ``value`` -- (default: ``None``) ``None`` or a
-          :class:`ComplexIntervalFieldElement`.
+        - ``parent`` -- a :class:`ComplexBallField`.
 
-        - ``precision`` -- (default: ``0``) a non-negative
-          integer. Must be given unless ``value`` is not ``None``.
+        - ``x`` -- (default: ``None``) ``None`` or a
+          :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement` or
+          a :class:`sage.rings.real_arb.RealBall`.
+
+        - ``y`` -- (default: ``None``) ``None`` or a
+          :class:`sage.rings.real_arb.RealBall`.
 
         OUTPUT:
 
@@ -149,40 +369,148 @@ cdef class Acb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import Acb # optional - arb
-            sage: a = Acb(CIF(0, 1))                  # optional - arb
-            sage: b = Acb(1)                          # optional - arb
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: CBF(CIF(0, 1)) # optional - arb
+            1.000000000000000*I
+            sage: CBF(1) # optional - arb
+            1.000000000000000
+            sage: CBF(1, 1) # optional - arb
+            1.000000000000000 + 1.000000000000000*I
+            sage: CBF(x) # optional - arb
             Traceback (most recent call last):
             ...
-            TypeError: value must be None or a ComplexIntervalFieldElement.
-            sage: c = Acb() # optional - arb
-            Traceback (most recent call last):
-            ...
-            TypeError: precision must be given.
+            TypeError: unable to convert to a ComplexIntervalFieldElement
+            sage: RBF = RealBallField() # optional - arb
+            sage: CBF(RBF(1/3)) # optional - arb
+            [0.333333333333333 +/- 3.99e-16]
+            sage: CBF(RBF(1/3), RBF(1/6)) # optional - arb
+            [0.333333333333333 +/- 3.99e-16] + [0.1666666666666667 +/- 8.43e-17]*I
+            sage: CBF(1/3) # optional - arb
+            [0.333333333333333 +/- 3.99e-16]
+            sage: CBF(1/3, 1/6) # optional - arb
+            [0.333333333333333 +/- 3.99e-16] + [0.1666666666666667 +/- 8.43e-17]*I
+            sage: ComplexBallField(106)(1/3, 1/6) # optional - arb
+            [0.3333333333333333333333333333333 +/- 3.85e-32]
+            + [0.16666666666666666666666666666666 +/- 9.24e-33]*I
         """
-        cdef ComplexIntervalFieldElement element
+        super(ComplexBall, self).__init__(parent)
 
-        if value is None:
-            if precision > 0:
-                self._precision_ = precision
+        if x is None:
+            return
+
+        if y is None:
+            # we assume x to be a complex number
+            if isinstance(x, RealBall):
+                arb_set(&self.value.real, (<RealBall> x).value)
+                arb_set_ui(&self.value.imag, 0)
             else:
-                raise TypeError("precision must be given.")
-        elif isinstance(value, ComplexIntervalFieldElement):
-            element = <ComplexIntervalFieldElement> value
-            self._precision_ = value.parent().precision()
-            ComplexIntervalFieldElement_to_acb(self.value, element)
-
+                if not isinstance(x, ComplexIntervalFieldElement):
+                    try:
+                        x = ComplexIntervalField(prec(self))(x)
+                    except TypeError:
+                        raise TypeError("unable to convert to a "
+                                        "ComplexIntervalFieldElement")
+                ComplexIntervalFieldElement_to_acb(self.value,
+                                                   <ComplexIntervalFieldElement> x)
         else:
-            raise TypeError("value must be None or a "
-                            "ComplexIntervalFieldElement.")
+            if not isinstance(x, RealBall):
+                try:
+                    x = real_ball_field(self)(x)
+                except TypeError:
+                    raise TypeError("unable to convert to a "
+                                    "RealBall")
+            if not isinstance(y, RealBall):
+                try:
+                    y = real_ball_field(self)(y)
+                except TypeError:
+                    raise TypeError("unable to convert to a "
+                                    "RealBall")
+            arb_set(&self.value.real, (<RealBall> x).value)
+            arb_set(&self.value.imag, (<RealBall> y).value)
 
-    cpdef ComplexIntervalFieldElement ComplexIntervalFieldElement(self):
+    cdef ComplexBall _new(self):
+        """
+        Return a new complex ball element with the same parent as ``self``.
+        """
+        cdef ComplexBall x
+        x = ComplexBall.__new__(ComplexBall)
+        x._parent = self._parent
+        return x
+
+    cpdef RealBall real(self):
+        """
+        Return the real part of this ball.
+
+        OUTPUT:
+
+        A :class:`RealBall`.
+
+        EXAMPLES::
+
+           sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+           sage: CBF = ComplexBallField() # optional - arb
+           sage: a = CBF(1/3, 1/5) # optional - arb
+           sage: a.real() # optional - arb
+           [0.333333333333333 +/- 3.99e-16]
+        """
+        cdef RealBall r
+        r = real_ball_field(self)(0)
+        arb_set(r.value, &self.value.real)
+        return r
+
+    cpdef RealBall imag(self):
+        """
+        Return the imaginary part of this ball.
+
+        OUTPUT:
+
+        A :class:`RealBall`.
+
+        EXAMPLES::
+
+           sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+           sage: CBF = ComplexBallField() # optional - arb
+           sage: a = CBF(1/3, 1/5) # optional - arb
+           sage: a.imag() # optional - arb
+           [0.2000000000000000 +/- 5.83e-17]
+        """
+        cdef RealBall r
+        r = real_ball_field(self)(0)
+        arb_set(r.value, &self.value.imag)
+        return r
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+           sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+           sage: CBF = ComplexBallField() # optional - arb
+           sage: CBF(1/3) # optional - arb
+           [0.333333333333333 +/- 3.99e-16]
+           sage: CBF(0, 1/3) # optional - arb
+           [0.333333333333333 +/- 3.99e-16]*I
+           sage: ComplexBallField()(1/3, 1/6)  # optional - arb
+           [0.333333333333333 +/- 3.99e-16] + [0.1666666666666667 +/- 8.43e-17]*I
+        """
+        if arb_is_zero(&self.value.imag):
+            return self.real()._repr_()
+        elif arb_is_zero(&self.value.real):
+            return "{}*I".format(self.imag()._repr_())
+        else:
+            return "{} + {}*I".format(self.real()._repr_(),
+                                        self.imag()._repr_())
+
+    cpdef ComplexIntervalFieldElement _interval(self):
         """
         Return :class:`ComplexIntervalFieldElement` of the same value.
-
-        INPUT:
-
-        None.
 
         OUTPUT:
 
@@ -190,10 +518,195 @@ cdef class Acb(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import Acb # optional - arb
-            sage: a = Acb(CIF(2, 2))                # optional - arb
-            sage: a.ComplexIntervalFieldElement()   # optional - arb
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: a = CBF(CIF(2, 2))                # optional - arb
+            sage: a._interval()   # optional - arb
             2 + 2*I
         """
 
-        return acb_to_ComplexIntervalFieldElement(self.value, self._precision_)
+        return acb_to_ComplexIntervalFieldElement(self.value, ComplexIntervalField(prec(self)))
+
+    # Comparisons and predicates
+
+    def is_zero(self):
+        """
+        Return ``True`` iff the midpoint and radius of this ball are both zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: CBF(0).is_zero() # optional - arb
+            True
+            sage: CBF(RIF(-0.5, 0.5)).is_zero() # optional - arb
+            False
+        """
+        return acb_is_zero(self.value)
+
+    def __nonzero__(self):
+        """
+        Return ``True`` iff zero is not contained in the interval represented
+        by this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: bool(CBF(pi, 1/3)) # optional - arb
+            True
+            sage: bool(CBF(RIF(-0.5, 0.5), 1/3)) # optional - arb
+            True
+            sage: bool(CBF(1/3, RIF(-0.5, 0.5))) #optional - arb
+            True
+            sage: bool(CBF(RIF(-0.5, 0.5), RIF(-0.5, 0.5))) #optional - arb
+            False
+        """
+        return acb_is_nonzero(self.value)
+
+    def is_exact(self):
+        """
+        Return ``True`` iff the radius of this ball is zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: CBF(1).is_exact() # optional - arb
+            True
+            sage: CBF(1/3, 1/3).is_exact() # optional - arb
+            False
+        """
+        return acb_is_exact(self.value)
+
+    def __richcmp__(left, right, int op):
+        """
+        Compare ``left`` and ``right``.
+
+        For more information, see :mod:`sage.rings.complex_ball_acb`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: a = CBF(1) # optional - arb
+            sage: b = CBF(1) # optional - arb
+            sage: a is b # optional - arb
+            False
+            sage: a == b # optional - arb
+            True
+            sage: a = CBF(1/3) # optional - arb
+            sage: a.is_exact() # optional - arb
+            False
+            sage: b = CBF(1/3) # optional - arb
+            sage: b.is_exact() # optional - arb
+            False
+            sage: a == b # optional - arb
+            False
+        """
+        return (<Element>left)._richcmp(right, op)
+
+    cdef _richcmp_c_impl(left, Element right, int op):
+        """
+        Compare ``left`` and ``right``.
+
+        For more information, see :mod:`sage.rings.complex_ball_acb`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: a = CBF(1, 2) # optional - arb
+            sage: b = CBF(1, 2) # optional - arb
+            sage: a is b # optional - arb
+            False
+            sage: a == b # optional - arb
+            True
+
+        TESTS:
+
+            Balls whose intersection consists of one point::
+
+                sage: a = CBF(RIF(1, 2), RIF(1, 2)) # optional - arb
+                sage: b = CBF(RIF(2, 4), RIF(2, 4)) # optional - arb
+                sage: a < b # optional - arb
+                Traceback (most recent call last):
+                ...
+                TypeError: No order is defined for ComplexBalls.
+                sage: a > b # optional - arb
+                Traceback (most recent call last):
+                ...
+                TypeError: No order is defined for ComplexBalls.
+                sage: a <= b # optional - arb
+                Traceback (most recent call last):
+                ...
+                TypeError: No order is defined for ComplexBalls.
+                sage: a >= b # optional - arb
+                Traceback (most recent call last):
+                ...
+                TypeError: No order is defined for ComplexBalls.
+                sage: a == b # optional - arb
+                False
+                sage: a != b # optional - arb
+                False
+
+            Balls with non-trivial intersection::
+
+                sage: a = CBF(RIF(1, 4), RIF(1, 4)) # optional - arb
+                sage: a = CBF(RIF(2, 5), RIF(2, 5)) # optional - arb
+                sage: a == b # optional - arb
+                False
+                sage: a != b # optional - arb
+                False
+
+            One ball contained in another::
+
+                sage: a = CBF(RIF(1, 4), RIF(1, 4)) # optional - arb
+                sage: b = CBF(RIF(2, 3), RIF(2, 3)) # optional - arb
+                sage: a == b # optional - arb
+                False
+                sage: a != b # optional - arb
+                False
+
+            Disjoint balls::
+
+                sage: a = CBF(1/3, 1/3) # optional - arb
+                sage: b = CBF(1/5, 1/5) # optional - arb
+                sage: a == b # optional - arb
+                False
+                sage: a != b # optional - arb
+                True
+
+            Exact elements::
+
+                sage: a = CBF(2, 2) # optional - arb
+                sage: b = CBF(2, 2) # optional - arb
+                sage: a.is_exact() # optional - arb
+                True
+                sage: b.is_exact() # optional - arb
+                True
+                sage: a == b # optional - arb
+                True
+                sage: a != b # optional - arb
+                False
+        """
+        cdef ComplexBall lt, rt
+        cdef acb_t difference
+
+        lt = left
+        rt = right
+
+        if op == Py_EQ:
+            return lt is rt or (
+                acb_is_exact(lt.value) and acb_is_exact(rt.value)
+                and acb_equal(lt.value, rt.value))
+
+        if op == Py_NE:
+            acb_init(difference)
+            acb_sub(difference, lt.value, rt.value, prec(lt))
+            result = acb_is_nonzero(difference)
+            acb_clear(difference)
+        elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:
+            raise TypeError("No order is defined for ComplexBalls.")
+
+        return result

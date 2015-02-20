@@ -33,7 +33,8 @@ extern "C" {
 
 static inline size_t mul_overflowcheck(size_t a, size_t b)
 /* Return a*b, checking for overflow. Assume that a > 0.
- * If overflow occurs, return ((size_t)-1). */
+ * If overflow occurs, return ((size_t)-1).
+ * We assume that malloc( (size_t)-1 ) always fails. */
 {
     if (a >= MUL_NO_OVERFLOW || b >= MUL_NO_OVERFLOW)
     {

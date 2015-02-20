@@ -97,7 +97,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             sage: Vector_rational_dense(QQ^(sys.maxsize))
             Traceback (most recent call last):
             ...
-            MemoryError: cannot allocate ... bytes
+            MemoryError: failed to allocate ... bytes
             sage: try:
             ....:     # Note: some malloc() implementations (on OS X
             ....:     # for example) print stuff when an allocation

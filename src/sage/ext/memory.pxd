@@ -27,11 +27,9 @@ cdef inline void* check_allocarray(size_t nmemb, size_t size) except? NULL:
     if nmemb == 0:
         return NULL
     cdef size_t n = mul_overflowcheck(nmemb, size)
-    if n == <size_t>(-1):
-        raise MemoryError("cannot allocate %s * %s bytes" % (nmemb, size))
     cdef void* ret = sage_malloc(n)
     if ret == NULL:
-        raise MemoryError("failed to allocate %s bytes" % n)
+        raise MemoryError("failed to allocate %s * %s bytes" % (nmemb, size))
     return ret
 
 cdef inline void* check_reallocarray(void* ptr, size_t nmemb, size_t size) except? NULL:
@@ -46,11 +44,9 @@ cdef inline void* check_reallocarray(void* ptr, size_t nmemb, size_t size) excep
         sage_free(ptr)
         return NULL
     cdef size_t n = mul_overflowcheck(nmemb, size)
-    if n == <size_t>(-1):
-        raise MemoryError("cannot allocate %s * %s bytes" % (nmemb, size))
     cdef void* ret = sage_realloc(ptr, n)
     if ret == NULL:
-        raise MemoryError("failed to allocate %s bytes" % n)
+        raise MemoryError("failed to allocate %s * %s bytes" % (nmemb, size))
     return ret
 
 cdef inline void* check_malloc(size_t n) except? NULL:

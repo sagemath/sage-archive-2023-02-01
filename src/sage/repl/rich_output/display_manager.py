@@ -608,7 +608,7 @@ class DisplayManager(SageObject):
         
         - ``save_function`` -- callable that can save graphics to a file
           and accepts options like
-          :meth:`sage.plot.graphics.Graphics.save``.
+          :meth:`sage.plot.graphics.Graphics.save`.
 
         - ``save_kwds`` -- dictionary. Keyword arguments that are
           passed to the save function.

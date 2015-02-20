@@ -471,13 +471,9 @@ class BackendIPythonNotebook(BackendIPython):
 
             This does not work currently.
         
-        INPUT:
+        INPUT/OUTPUT:
 
         Same as :meth:`displayhook`.
-
-        OUTPUT:
-
-        This method does not return anything.
 
         EXAMPLES::
 

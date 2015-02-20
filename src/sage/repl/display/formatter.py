@@ -133,20 +133,19 @@ class SagePlainTextFormatter(PlainTextFormatter):
 
     def __init__(self, *args, **kwds):
         r"""
-        Improved plain text formatter.
-
-        .. warning::
-
-            This formatter is usually NOT called. It is part of the
-            IPython output formatting system, but Sage uses its
-            own. Only when :meth:`SageDisplayFormatter.formatter`
-            falls back to IPython's formatter will the
-            :class:`SagePlainTextFormatter` be used.
+        Improved plain text IPython formatter.
 
         In particular, it correctly print lists of matrices or other
         objects (see
         :meth:`sage.structure.parent.Parent._repr_option`).
  
+        .. warning::
+
+            This IPython formatter is NOT used. You could use it to
+            enable Sage formatting in IPython, but Sage uses its own
+            rich output system that is more flexible and supports
+            different backends.
+
         INPUT/OUTPUT:
 
         See the IPython documentation.
@@ -157,11 +156,6 @@ class SagePlainTextFormatter(PlainTextFormatter):
             sage: shell = get_test_shell()
             sage: shell.display_formatter.formatters['text/plain']
             <sage.repl.display.formatter.SagePlainTextFormatter object at 0x...>
-            sage: shell.run_cell('a = identity_matrix(ZZ, 2); [a,a]')
-            [
-            [1 0]  [1 0]
-            [0 1], [0 1]
-            ]
             sage: shell.quit()
         """
         super(SagePlainTextFormatter, self).__init__(*args, **kwds)
@@ -183,30 +177,22 @@ class SagePlainTextFormatter(PlainTextFormatter):
 
         EXAMPLES::
 
-            sage: from sage.repl.rich_output import get_display_manager
-            sage: display_manager = get_display_manager()
-            sage: from sage.repl.interpreter import get_test_shell
-            sage: shell = get_test_shell()
-            sage: fmt = shell.display_formatter.formatters['text/plain']
+            sage: from sage.repl.display.formatter import SagePlainTextFormatter
+            sage: fmt = SagePlainTextFormatter()
             sage: fmt
             <sage.repl.display.formatter.SagePlainTextFormatter object at 0x...>
-            sage: shell.displayhook.compute_format_data(2)
-            ({u'text/plain': '2'}, {})
+            sage: fmt(2)
+            ---- calling ipython formatter ----
+            '2'
             sage: a = identity_matrix(ZZ, 2)
-            sage: shell.displayhook.compute_format_data([a,a])
-            ({u'text/plain': '[\n[1 0]  [1 0]\n[0 1], [0 1]\n]'}, {})
-            sage: display_manager.preferences.text = 'ascii_art'
-            sage: shell.displayhook.compute_format_data([a,a])
-            ({u'text/plain': '[ [1 0]  [1 0] ]\n[ [0 1], [0 1] ]'}, {})
-            sage: i = var('i')
-            sage: shell.displayhook.compute_format_data(sum(i*x^i, i, 0, 10))
-            ({u'text/plain': '    10      9      8      7      6      5      4      3
-              2    \n10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x'},
-             {})
-            sage: del display_manager.preferences.text   # reset to default
-            sage: shell.quit()
+            sage: fmt([a, a])
+            ---- calling ipython formatter ----
+            '[\n[1 0]  [1 0]\n[0 1], [0 1]\n]'
         """
-        print('---- calling ipython formatter ----')
+        from sage.doctest import DOCTEST_MODE
+        if DOCTEST_MODE:
+            # Just to show that this is never executed in any other doctests in the Sage library
+            print('---- calling ipython formatter ----')
         import StringIO
         stream = StringIO.StringIO()
         printer = SagePrettyPrinter(

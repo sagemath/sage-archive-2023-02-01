@@ -6,7 +6,7 @@ Some computations in Sage return bitmap images, for example matrices
 can be turned into bitmaps directly. Note that this is different from
 all plotting functionality, the latter can equally produce vector
 graphics. This module is about bitmaps only, and a shallow wrapper
-around ``PIL.Image``. The only difference is that :class:`SageImage`
+around ``PIL.Image``. The only difference is that :class:`Image`
 is displayed as graphics by the Sage if the UI can.
 
 EXAMPLES::

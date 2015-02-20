@@ -165,6 +165,12 @@ class BackendTest(BackendBase):
             sage: backend = display_manager._backend
             sage: backend.supported_output()
             set([<class 'sage.repl.rich_output.backend_test.TestOutputPlainText'>])
+
+        The output of this method is used by the display manager to
+        set up the actual supported outputs. Compare::
+
+            sage: display_manager.supported_output()
+            frozenset([<class 'sage.repl.rich_output.output_basic.OutputPlainText'>])
         """
         return set([TestOutputPlainText])
 
@@ -186,12 +192,11 @@ class BackendTest(BackendBase):
 
             sage: from sage.repl.rich_output.output_basic import OutputPlainText
             sage: plain_text = OutputPlainText.example()
-            sage: from sage.repl.rich_output.backend_base import BackendBase
-            sage: backend = BackendBase()
+            sage: from sage.repl.rich_output.backend_test import BackendTest
+            sage: backend = BackendTest()
             sage: backend.display_immediately(plain_text, plain_text)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: derived classes must implement this method
+            Example plain text output
+            OutputPlainText container
         """
         plain_text.print_to_stdout()
         if plain_text is not rich_output:

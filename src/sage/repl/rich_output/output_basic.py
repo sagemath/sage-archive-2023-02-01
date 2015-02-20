@@ -271,7 +271,7 @@ class OutputMathJax(OutputBase):
                    r'</script></html>')
 
     def print_to_stdout(self):
-        """
+        r"""
         Write the data to stdout.
 
         This is just a convenience method to help with debugging.

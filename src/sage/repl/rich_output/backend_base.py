@@ -16,7 +16,7 @@ You declare the types of rich output that your backend can handle in
 :meth:`~BackendBase.supported_output`. There are two ways to then
 display specific output types in your own backend.
 
-* Directly use one of the existing output containers listed in :mod:
+* Directly use one of the existing output containers listed in
   :mod:`sage.repl.rich_output.output_catalog`. That is, test for the
   rich output type in :meth:`~BackendBase.display_immediately` and
   handle it.
@@ -166,8 +166,9 @@ class BackendBase(SageObject):
         OUTPUT:
 
         Iterable of output container classes, that is, subclass of
-        :class:`~sage.repl.rich_output.output_basic.OutputBase`).
-        The order is ignored.
+        :class:`~sage.repl.rich_output.output_basic.OutputBase`).  May
+        be a list/tuple/set/frozenset. The order is ignored. Only used
+        internally by the display manager.
 
         You may return backend-specific subclasses of existing output
         containers. This allows you to attach backend-specifc

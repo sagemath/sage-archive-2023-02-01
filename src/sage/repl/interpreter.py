@@ -220,24 +220,90 @@ from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 
 class SageNotebookInteractiveShell(SageShellOverride, InteractiveShell):
+    """
+    IPython Shell for the Sage IPython Notebook
+
+    The doctests are not tested since they would change the current
+    rich output backend away from the doctest rich output backend.
+
+    EXAMPLES::
+
+        sage: from sage.repl.interpreter import SageNotebookInteractiveShell
+        sage: SageNotebookInteractiveShell()   # not tested
+        <sage.repl.interpreter.SageNotebookInteractiveShell object at 0x...>
+    """
 
     def init_display_formatter(self):
+        """
+        Switch to the Sage IPython notebook rich output backend
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import SageNotebookInteractiveShell
+            sage: SageNotebookInteractiveShell().init_display_formatter()   # not tested
+        """
         from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
         backend = BackendIPythonNotebook()
         backend.get_display_manager().switch_backend(backend, shell=self)
 
 
 class SageTerminalInteractiveShell(SageShellOverride, TerminalInteractiveShell):
+    """
+    IPython Shell for the Sage IPython Commandline Interface
+
+    The doctests are not tested since they would change the current
+    rich output backend away from the doctest rich output backend.
+
+    EXAMPLES::
+
+        sage: from sage.repl.interpreter import SageTerminalInteractiveShell
+        sage: SageTerminalInteractiveShell()   # not tested
+        <sage.repl.interpreter.SageNotebookInteractiveShell object at 0x...>
+    """
 
     def init_display_formatter(self):
+        """
+        Switch to the Sage IPython commandline rich output backend
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import SageTerminalInteractiveShell
+            sage: SageTerminalInteractiveShell().init_display_formatter()   # not tested
+        """
         from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
         backend = BackendIPythonCommandline()
         backend.get_display_manager().switch_backend(backend, shell=self)
 
 
 class SageTestShell(SageShellOverride, TerminalInteractiveShell):
+    """
+    Test Shell
+
+    Care must be taken in these doctests to quit the test shell in
+    order to switch back the rich output display backend to the
+    doctest backend.
+
+    EXAMPLES::
+
+        sage: from sage.repl.interpreter import get_test_shell
+        sage: shell = get_test_shell();  shell
+        <sage.repl.interpreter.SageTestShell object at 0x...>
+        sage: shell.quit()
+    """
 
     def init_display_formatter(self):
+        """
+        Switch to the Sage IPython commandline rich output backend
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell();  shell
+            <sage.repl.interpreter.SageTestShell object at 0x...>
+            sage: shell.quit()
+            sage: shell.init_display_formatter()
+            sage: shell.quit()
+        """
         from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
         self._ipython_backend = backend = BackendIPythonCommandline()
         self._display_manager = backend.get_display_manager()
@@ -275,6 +341,17 @@ class SageTestShell(SageShellOverride, TerminalInteractiveShell):
     def _restart(self):
         """
         Restart the test shell (after :meth:`quit`).
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.quit()
+            sage: shell._restart()
+            sage: shell.quit()
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: get_display_manager()
+            The Sage display manager using the doctest backend        
         """
         self._display_manager.switch_backend(self._ipython_backend, shell=self)
 

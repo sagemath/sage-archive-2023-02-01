@@ -195,7 +195,9 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         The normalization has a recursive definition. It means first
         that every sub-tree is itself normalized, and also that
         sub-trees are sorted. Here the sort is performed according to
-        the rank function.
+        the rank function, which is constructed "on the fly" (and is
+        session-dependent). See
+        :meth:`~sage.combinat.ordered_tree.normalize` for details.
 
         EXAMPLES::
 
@@ -225,11 +227,11 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         r"""
         Return if ``self`` is the empty tree.
 
-        For rooted trees, returns always ``False``
+        For rooted trees, this always returns ``False``.
 
         .. NOTE::
 
-            This is not the same as ``bool(t)`` which returns whether
+            This is not the same as ``bool(t)``, which returns whether
             ``t`` has some child or not.
 
         EXAMPLES::
@@ -239,6 +241,11 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             False
             sage: bool(t)
             True
+            sage: t = RootedTrees(1)([])
+            sage: t.is_empty()
+            False
+            sage: bool(t)
+            False
         """
         return False
 
@@ -247,9 +254,11 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         Return the list of trees obtained by grafting ``other`` on ``self``.
 
         Here grafting means that one takes the disjoint union of
-        ``self`` and ``other``, and add one edge from the root of
-        other to a vertex of ``self``. The root of the resulting
-        tree is the root of ``self``.
+        ``self`` and ``other``, chooses a node of ``self``,
+        and adds the root of ``other`` to the list of children of
+        this node. The root of the resulting tree is the root of
+        ``self``. (This can be done for each node of ``self``;
+        this method returns the list of all results.)
 
         This is useful for free pre-Lie algebras.
 
@@ -260,14 +269,33 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             sage: y = RT([x, x])
             sage: x.graft_list(x)
             [[[]]]
-            sage: y.graft_list(x)
+            sage: l = y.graft_list(x); l
             [[[], [], []], [[], [[]]], [[], [[]]]]
+            sage: [parent(i) for i in l]
+            [Rooted trees, Rooted trees, Rooted trees]
+
+        TESTS::
+
+            sage: x = RootedTrees(1)([])
+            sage: y = RootedTrees(3)([x, x])
+            sage: l = y.graft_list(x); l
+            [[[], [], []], [[], [[]]], [[], [[]]]]
+            sage: [parent(i) for i in l]
+            [Rooted trees, Rooted trees, Rooted trees]
+
+            sage: x = RootedTree([[[], []], []])
+            sage: y = RootedTree([[], []])
+            sage: len(uniq(x.graft_list(y)))
+            4
         """
         resu = []
+        # Grafting ``other`` on the root:
         with self.clone() as t:
             t.append(other)
             resu += [t]
         for i, sub in enumerate(self):
+            # Grafting ``other`` on a descendant of the
+            # ``i``-th child:
             for new_sub in sub.graft_list(other):
                 with self.clone() as t:
                     t[i] = new_sub
@@ -279,8 +307,8 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         Return the tree obtained by grafting ``other`` on the root of ``self``.
 
         Here grafting means that one takes the disjoint union of
-        ``self`` and ``other``, and add one edge from the root of
-        other to the root of ``self``. The root of the resulting
+        ``self`` and ``other``, and adds the root of ``other`` to
+        the list of children of ``self``. The root of the resulting
         tree is the root of ``self``.
 
         This is useful for free Nap algebras.
@@ -304,7 +332,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
 class RootedTrees(UniqueRepresentation, Parent):
     """
-    Factory class for rooted trees
+    Factory class for rooted trees.
 
     INPUT:
 
@@ -312,7 +340,8 @@ class RootedTrees(UniqueRepresentation, Parent):
 
     OUPUT:
 
-    - the set of all rooted trees (of the given ``size`` if specified)
+    the set of all rooted trees (of the given size ``size`` if
+    specified)
 
     EXAMPLES::
 
@@ -352,6 +381,11 @@ class RootedTrees(UniqueRepresentation, Parent):
 
 
 class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
+    r"""
+    Class of all (unordered, unlabelled) rooted trees.
+
+    See :class:`RootedTree` for a definition.
+    """
 
     def __init__(self):
         """
@@ -494,7 +528,7 @@ class RootedTrees_size(RootedTrees):
 
     def __iter__(self):
         """
-        An iterator for ``self``
+        An iterator for ``self``.
 
         This generates the rooted trees of given size. The algorithm
         first picks a partition for the sizes of subtrees, then picks
@@ -509,22 +543,22 @@ class RootedTrees_size(RootedTrees):
             [[[]]]
             sage: RootedTrees(3).list()
             [[[[]]], [[], []]]
+            sage: RootedTrees(4).list()
+            [[[[[]]]], [[[], []]], [[], [[]]], [[], [], []]]
         """
         if self._n == 1:
             yield self._element_constructor_([])
         else:
             from sage.combinat.partition import Partitions
-            from sage.combinat.multichoose_nk import MultichooseNK
-            from sage.combinat.cartesian_product import CartesianProduct
+            from itertools import combinations_with_replacement, product
             for part in Partitions(self._n - 1):
                 mults = part.to_exp_dict()
                 choices = []
                 for p, mp in mults.items():
                     lp = self.__class__(p).list()
-                    new_choice = MultichooseNK(len(lp), mp).map(
-                        lambda l: [lp[i] for i in l]).list()
+                    new_choice = [list(z) for z in combinations_with_replacement(lp, mp)]
                     choices.append(new_choice)
-                for c in CartesianProduct(*choices):
+                for c in product(*choices):
                     yield self._element_constructor_(sum(c, []))
 
     def check_element(self, el, check=True):
@@ -678,7 +712,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
     def __classcall_private__(cls, *args, **opts):
         """
         Ensure that trees created by the sets and directly are the same and
-        that they are instances of :class:`LabelledRootedTree`
+        that they are instances of :class:`LabelledRootedTree`.
 
         TESTS::
 
@@ -695,7 +729,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
     @lazy_class_attribute
     def _auto_parent(cls):
         """
-        The automatic parent of the element of this class
+        The automatic parent of the element of this class.
 
         When calling the constructor of an element of this class, one needs a
         parent. This class attribute specifies which parent is used.
@@ -706,7 +740,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
             Labelled rooted trees
             sage: LabelledRootedTree([], label = 3).parent()
             Labelled rooted trees
-         """
+        """
         return LabelledRootedTrees()
 
     _UnLabelled = RootedTree
@@ -714,7 +748,8 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
 
 class LabelledRootedTrees(UniqueRepresentation, Parent):
     """
-    This is a parent stub to serve as a factory class for labelled rooted trees
+    This is a parent stub to serve as a factory class for labelled
+    rooted trees.
 
     EXAMPLES::
 
@@ -745,6 +780,12 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
         return LabelledRootedTrees_all()
 
 class LabelledRootedTrees_all(LabelledRootedTrees):
+    r"""
+    Class of all (unordered) labelled rooted trees.
+
+    See :class:`LabelledRootedTree` for a definition.
+    """
+
     def __init__(self, category=None):
         """
         TESTS::

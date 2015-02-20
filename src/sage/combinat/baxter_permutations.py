@@ -12,8 +12,8 @@ class BaxterPermutations(UniqueRepresentation, Parent):
     permutation patterns `2-41-3` and `3-14-2`. In other words, a
     permutation `\sigma` is a Baxter permutation if for any subword `u
     := u_1u_2u_3u_4` of `\sigma` such that the letters `u_2` and `u_3`
-    are adjacent in `\sigma`, the standardized version of `u` is nor
-    `2413` neither `3142`.
+    are adjacent in `\sigma`, the standardized version of `u` is
+    neither `2413` nor `3142`.
 
     INPUT:
 
@@ -112,25 +112,25 @@ class BaxterPermutations_size(BaxterPermutations):
             b = x[i + 1]
             if a < b:  # Hunting pattern 3-14-2.
                 max_l = 0
-                for j in range(i):
-                    if x[j] > a and x[j] < b and x[j] > max_l:
-                        max_l = x[j]
+                for x_j in x[:i]:
+                    if x_j > a and x_j < b and x_j > max_l:
+                        max_l = x_j
                 min_r = len(x) + 1
-                for j in range(i + 2, len(x)):
-                    if x[j] > a and x[j] < b and x[j] < min_r:
-                        min_r = x[j]
-                if max_l != 0 and min_r != 0 and max_l > min_r:
+                for x_j in x[i+2:]:
+                    if x_j > a and x_j < b and x_j < min_r:
+                        min_r = x_j
+                if max_l > min_r:
                     return False
             else:  # Hunting pattern 2-41-3.
                 min_l = len(x) + 1
-                for j in range(i):
-                    if x[j] < a and x[j] > b and x[j] < min_l:
-                        min_l = x[j]
+                for x_j in x[:i]:
+                    if x_j < a and x_j > b and x_j < min_l:
+                        min_l = x_j
                 max_r = 0
-                for j in range(i + 2, len(x)):
-                    if x[j] < a and x[j] > b and x[j] > max_r:
-                        max_r = x[j]
-                if min_l != 0 and max_r != 0 and min_l < max_r:
+                for x_j in x[i+2:]:
+                    if x_j < a and x_j > b and x_j > max_r:
+                        max_r = x_j
+                if min_l < max_r:
                     return False
         return True
 
@@ -153,12 +153,18 @@ class BaxterPermutations_size(BaxterPermutations):
             sage: [len(BaxterPermutations(n)) for n in xrange(9)]
             [1, 1, 2, 6, 22, 92, 422, 2074, 10754]
 
+        TESTS::
+
+            sage: all(a in BaxterPermutations(n) for n in xrange(9)
+            ....:     for a in BaxterPermutations(n))
+            True
+
         ALGORITHM::
 
         The algorithm using generating trees described in [BBF08]_ is used.
         The idea is that all Baxter permutations of size `n + 1` can be
         obtained by inserting the letter `n + 1` either just before a left
-        to right maximum or just after an right to left maximum of a Baxter
+        to right maximum or just after a right to left maximum of a Baxter
         permutation of size `n`.
 
         REFERENCES::
@@ -168,17 +174,17 @@ class BaxterPermutations_size(BaxterPermutations):
            Seminaire Lotharingien de combinatoire 61A, article B61Ah, 2008.
         """
         if self._n == 0:
-            yield Permutation([])
+            yield Permutations(0)([])
         elif self._n == 1:
-            yield Permutation([1])
+            yield Permutations(1)([1])
         else:
             for b in BaxterPermutations(self._n - 1):
                 # Left to right maxima.
                 for i in [self._n - 2 - i for i in b.reverse().saliances()]:
-                    yield Permutation(b[:i] + [self._n] + b[i:])
+                    yield Permutations(self._n)(b[:i] + [self._n] + b[i:])
                 # Right to left maxima.
                 for i in b.saliances():
-                    yield Permutation(b[:i + 1] + [self._n] + b[i + 1:])
+                    yield Permutations(self._n)(b[:i + 1] + [self._n] + b[i + 1:])
 
     def _an_element_(self):
         """

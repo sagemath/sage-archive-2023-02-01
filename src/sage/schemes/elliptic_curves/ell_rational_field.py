@@ -1574,8 +1574,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: bad_primes = [2,3,5,7,11,13,17,19,48463]
             sage: N = 3455601108357547341532253864901605231198511505793733138900595189472144724781456635380154149870961231592352897621963802238155192936274322687070
             sage: Z = LFunctionZeroSum(E,N)
-            sage: Z.analytic_rank_upper_bound(max_Delta=2.8,adaptive=False, # long time
-            ....: root_number="ignore",bad_primes=bad_primes)               # long time
+            sage: Z.analytic_rank_upper_bound(max_Delta=2.37,adaptive=False, # long time
+            ....: root_number=1,bad_primes=bad_primes,ncpus=2)               # long time
             32
 
         REFERENCES:

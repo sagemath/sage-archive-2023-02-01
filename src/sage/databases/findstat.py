@@ -165,26 +165,39 @@ class FindStat:
         7: (St000156: The Denert index of a permutation., ['inverse first fundamental transformation', 'foata_bijection'], 6)
         8: (St000174: The flush statistic on semistandard tableaux., ['to alternating sign matrix', 'to semistandard tableau'], 6)
 
-        Each result is a triple consisting of the statistic, a list
-        of strings naming certain maps, and a number which says how
-        many of the values submitted agree with the values in the
-        database, when applying the maps in the given order to the
-        object (here: the permutation) and then computing the
-        statistic on the result.
+    Each result is a triple consisting of the statistic, a list of
+    strings naming certain maps, and a number which says how many of
+    the values submitted agree with the values in the database, when
+    applying the maps in the given order to the object (here: the
+    permutation) and then computing the statistic on the result.
 
-        We can access the description of a statistic as follows:
+    We can access the description of a statistic as follows::
 
         sage: s = search[5][0]; print s.description()                        # optional -- internet
         The inversion number of a standard Young tableau as defined by Haglund and Stevens. [1]  
 
         Their inversion number is the total number of inversion pairs for the tableau.  An inversion pair is defined as a pair of cells (a,b), (x,y) such that the content of (x,y) is greater than the content of (a,b) and (x,y) is north of the inversion path of (a,b), where the inversion path is defined in detail in [1].
 
-        We can access references provided as follows:
+    We can access references provided as follows::
+
         sage: s.references()
         0: [1] J. Haglund and L. Stevens, An Extension of the Foata Map to Standard Young Tableaux, October, 2006
 
-        TODO:
-        A full-text search should also be available
+    TODO::
+
+    A full-text search should also be available
+
+    The following should give a sensible error message - we are
+    passing the saliances themselver, not their cardinality::
+
+        sage: stat = {pi: pi.saliances() for pi in Permutations(5)}; findstat(stat)
+        ValueError: FindStat allows to search for at most 200 values.
+
+    Similarly::
+
+        sage: stat = {pi: pi.saliances() for pi in Permutations(4)}; findstat(stat)
+        ValueError: Could not find FindStat collection for 2
+
 
     """
     def __call__(self, query, collection=None, depth=2):
@@ -209,6 +222,8 @@ class FindStat:
                 raise ValueError("When providing an identifier, do not provide a collection.")
         elif isinstance(query, (int, Integer)):
             if collection is None:
+                query = str(query)
+                query = 'St000000'[:-len(query)] + query
                 return self.find_by_id(query)
             else:
                 raise ValueError("When providing an identifier, do not provide a collection.")
@@ -237,13 +252,13 @@ class FindStat:
         """
         return "The Combinatorial Statistics Finder (%s)" % findstat_url
 
+    @cached_method
     def find_by_id(self, ident):
         r"""
 
         INPUT:
 
-        - ``ident`` - a string representing the St-number of the statistic
-          or an integer representing its number.
+        - ``ident`` - a string representing the St-number of the statistic.
 
         OUTPUT:
 
@@ -251,9 +266,6 @@ class FindStat:
           ``ident``.
 
         """
-        if not isinstance(ident, str):
-            ident = str(ident)
-            ident = 'St000000'[:-len(ident)] + ident
         url = findstat_url_downloads + "statistics/" + ident + ".txt"
         statistic = _fetch(url) # we do not do any parsing here!
         return FindStatStatistic(statistic)
@@ -291,6 +303,9 @@ class FindStat:
 
         """
         import urllib, urllib2
+
+        if any(len(keys) != len(values) for (keys, values) in statistic):
+            raise ValueError, "FindStat expects the same number of objects as values!"
 
         if sum(len(values) for (keys, values) in statistic) > findstat_max_values:
             raise ValueError, "FindStat allows to search for at most " + str(findstat_max_values) + " values."

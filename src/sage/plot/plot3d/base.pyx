@@ -241,7 +241,7 @@ cdef class Graphics3d(SageObject):
             # We can only use JMol to generate preview if a jvm is installed
             from sage.repl.rich_output.output_graphics import OutputImagePng
             tachyon = self._rich_repr_tachyon(OutputImagePng, **kwds)
-            tachyon.png.save(preview_png)
+            tachyon.png.save_as(preview_png)
         else:
             # Java needs absolute paths
             script = '''set defaultdirectory "%s"\nscript SCRIPT\n''' % scene_zip

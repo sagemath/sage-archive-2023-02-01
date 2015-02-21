@@ -143,13 +143,13 @@ AUTHORS:
 
 
 include "sage/ext/stdsage.pxi"
+from sage.ext.memory cimport check_reallocarray
 from cpython.list cimport *
 from cpython.int cimport *
 from cpython.ref cimport *
 
 import sage
 from sage.structure.element cimport Element
-from sage.structure.element import Element
 from sage.structure.parent cimport Parent
 
 ############################################################################
@@ -1316,12 +1316,8 @@ cdef class ClonableIntArray(ClonableElement):
         """
         assert size >= 0, "Negative size is forbidden"
         self._is_immutable = False
-        if self._list is NULL:
-            self._len = size
-            self._list = <int *>sage_malloc(sizeof(int) * self._len)
-        else:
-            self._len = size
-            self._list = <int *>sage_realloc(self._list, sizeof(int) * self._len)
+        self._list = <int *>check_reallocarray(self._list, size, sizeof(int))
+        self._len = size
 
     def __dealloc__(self):
         if self._list is not NULL:

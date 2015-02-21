@@ -15,6 +15,8 @@ class BaxterPermutations(UniqueRepresentation, Parent):
     are adjacent in `\sigma`, the standardized version of `u` is
     neither `2413` nor `3142`.
 
+    See [Gir12]_ for a study of Baxter permutations.
+
     INPUT:
 
     - ``n`` -- (default: ``None``) a nonnegative integer, the size of
@@ -32,6 +34,12 @@ class BaxterPermutations(UniqueRepresentation, Parent):
         Baxter permutations of size 5
         sage: BaxterPermutations()
         Baxter permutations
+
+    REFERENCES::
+
+    .. [Gir12] Samuele Giraudo,
+       *Algebraic and combinatorial structures on pairs of twin binary trees*,
+       :arxiv:`1204.4776v1`.
     """
     @staticmethod
     def __classcall_private__(classe, n=None):
@@ -51,6 +59,9 @@ class BaxterPermutations(UniqueRepresentation, Parent):
 class BaxterPermutations_size(BaxterPermutations):
     r"""
     The enumerated set of Baxter permutations of a given size.
+
+    See :class:`BaxterPermutations` for the definition of Baxter
+    permutations.
 
     EXAMPLES::
 
@@ -201,6 +212,17 @@ class BaxterPermutations_size(BaxterPermutations):
         r"""
         Return the number of Baxter permutations of size ``self._n``.
 
+        For any positive integer `n`, the number of Baxter
+        permutations of size `n` equals
+
+        .. MATH::
+
+            \sum_{k=1}^n \dfrac
+            {\binom{n+1}{k-1} \binom{n+1}{k} \binom{n+1}{k+1}}
+            {\binom{n+1}{1} \binom{n+1}{2}} .
+
+        This is sequence A001181 in Sloane's OEIS.
+
         EXAMPLES::
 
             sage: [BaxterPermutations(n).cardinality() for n in xrange(13)]
@@ -219,6 +241,9 @@ class BaxterPermutations_size(BaxterPermutations):
 class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
     r"""
     The enumerated set of all Baxter permutations.
+
+    See :class:`BaxterPermutations` for the definition of Baxter
+    permutations.
 
     EXAMPLES::
 
@@ -275,7 +300,7 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
 
     def to_pair_of_twin_binary_trees(self, p):
         r"""
-        Compute a bijection between Baxter permutations of size ``self._n``
+        Apply a bijection between Baxter permutations of size ``self._n``
         and the set of pairs of twin binary trees with ``self._n`` nodes.
 
         INPUT:
@@ -284,10 +309,18 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
 
         OUTPUT:
 
-        Return the pair of twin binary trees `(T_L, T_R)` where `T_L`
+        The pair of twin binary trees `(T_L, T_R)` where `T_L`
         (resp. `T_R`) is obtained by inserting the letters of ``p`` from
         left to right (resp. right to left) following the the binary search
-        tree insertion algorithm.
+        tree insertion algorithm. This is called the *Baxter P-symbol*
+        in [Gir12]_ Definition 4.1.
+
+        .. NOTE::
+
+            This method only works when ``p`` is a permutation. For words
+            with repeated letters, it would return two "right binary
+            search trees" (in the terminology of [Gir12]_), which conflicts
+            with the definition in [Gir12]_.
 
         EXAMPLES::
 
@@ -303,6 +336,6 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
         right = LabelledBinaryTree(None)
         for a in p:
             left = left.binary_search_insert(a)
-        for a in p.reverse():
+        for a in reversed(p):
             right = right.binary_search_insert(a)
         return (left, right)

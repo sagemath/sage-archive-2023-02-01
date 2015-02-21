@@ -19,6 +19,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef _mod_two(self)
     cdef _pickle_version0(self)
     cdef _unpickle_version0(self, data)
+    cdef _unpickle_version0(self, data)
+    cdef _unpickle_matrix_2x2_version0(self, data)
     cpdef _export_as_string(self, int base=?)
     cdef inline int _init_mpz(self) except -1
     cdef int _init_mpz_impl(self) except -1

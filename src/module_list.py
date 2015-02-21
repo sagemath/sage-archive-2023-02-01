@@ -1041,10 +1041,6 @@ ext_modules = [
     Extension('sage.matrix.matrix_generic_sparse',
               sources = ['sage/matrix/matrix_generic_sparse.pyx']),
 
-    Extension('sage.matrix.matrix_integer_2x2',
-              sources = ['sage/matrix/matrix_integer_2x2.pyx'],
-              libraries = ['gmp']),
-
     Extension('sage.matrix.matrix_integer_dense',
               sources = ['sage/matrix/matrix_integer_dense.pyx'],
               extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,

@@ -111,7 +111,7 @@ class BackendDoctest(BackendBase):
             OutputPlainText, OutputAsciiArt, OutputMathJax,
             OutputImagePng, OutputImageGif, OutputImageJpg, 
             OutputImageSvg, OutputImagePdf, OutputImageDvi,
-            OutputSceneJmol, OutputSceneCanvas3d, OutputSceneLightwave,
+            OutputSceneJmol, OutputSceneCanvas3d, OutputSceneWavefront,
         ])
 
     def displayhook(self, plain_text, rich_output):
@@ -217,7 +217,7 @@ class BackendDoctest(BackendBase):
             sage: backend.validate(dm.types.OutputImagePdf.example())
             sage: backend.validate(dm.types.OutputImageDvi.example())
             sage: backend.validate(dm.types.OutputSceneJmol.example())
-            sage: backend.validate(dm.types.OutputSceneLightwave.example())
+            sage: backend.validate(dm.types.OutputSceneWavefront.example())
             sage: backend.validate(dm.types.OutputSceneCanvas3d.example())
         """
         if isinstance(rich_output, OutputPlainText):
@@ -241,7 +241,7 @@ class BackendDoctest(BackendBase):
         elif isinstance(rich_output, OutputSceneJmol):
             assert rich_output.preview_png.get().startswith('\x89PNG')
             assert rich_output.scene_zip.get().startswith('PK')  # zip archive
-        elif isinstance(rich_output, OutputSceneLightwave):
+        elif isinstance(rich_output, OutputSceneWavefront):
             assert rich_output.obj.get().startswith('mtllib ')
             assert rich_output.mtl.get().startswith('newmtl ')
         elif isinstance(rich_output, OutputSceneCanvas3d):

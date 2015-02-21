@@ -32,6 +32,6 @@ from .output_graphics import (
 
 from .output_graphics3d import (
     OutputSceneJmol,
-    OutputSceneLightwave,
+    OutputSceneWavefront,
     OutputSceneCanvas3d,
 )

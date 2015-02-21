@@ -167,29 +167,29 @@ class OutputSceneCanvas3d(OutputBase):
         return cls(OutputBuffer.from_file(filename))
         
 
-class OutputSceneLightwave(OutputBase):
+class OutputSceneWavefront(OutputBase):
 
     def __init__(self, obj, mtl):
         """
-        Lightwave Scene
+        Wavefront `*.obj` Scene
 
-        The lightwave format consists of two files, an ``.obj`` file
+        The Wavefront format consists of two files, an ``.obj`` file
         defining the geometry data (mesh points, normal vectors, ...)
         together with a ``.mtl`` file defining texture data.
         
         INPUT:
 
-        - ``obj`` -- bytes. The Lightwave obj file format describing
+        - ``obj`` -- bytes. The Wavefront obj file format describing
           the mesh shape.
         
-        - ``mtl`` -- bytes. The Lightwave mtl file format describing
+        - ``mtl`` -- bytes. The Wavefront mtl file format describing
           textures.
 
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.output_catalog import OutputSceneLightwave
-            sage: OutputSceneLightwave.example()
-            OutputSceneLightwave container
+            sage: from sage.repl.rich_output.output_catalog import OutputSceneWavefront
+            sage: OutputSceneWavefront.example()
+            OutputSceneWavefront container
         """
         self.obj = OutputBuffer(obj)
         self.mtl = OutputBuffer(mtl)
@@ -215,8 +215,8 @@ class OutputSceneLightwave(OutputBase):
 
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.output_catalog import OutputSceneLightwave
-            sage: rich_output = OutputSceneLightwave.example()
+            sage: from sage.repl.rich_output.output_catalog import OutputSceneWavefront
+            sage: rich_output = OutputSceneWavefront.example()
             sage: rich_output._check_no_directory('scene.mtl')
             sage: rich_output._check_no_directory('/scene.mtl')
             Traceback (most recent call last):
@@ -239,7 +239,7 @@ class OutputSceneLightwave(OutputBase):
         """
         Return the ``mtllib`` filename
 
-        The ``mtllib`` line in the lightwave file format (``*.obj``)
+        The ``mtllib`` line in the Wavefront file format (``*.obj``)
         is the name of the separate texture file.
 
         OUTPUT:
@@ -249,8 +249,8 @@ class OutputSceneLightwave(OutputBase):
 
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.output_catalog import OutputSceneLightwave
-            sage: rich_output = OutputSceneLightwave.example()
+            sage: from sage.repl.rich_output.output_catalog import OutputSceneWavefront
+            sage: rich_output = OutputSceneWavefront.example()
             sage: rich_output.mtllib()
             'scene.mtl'
         """
@@ -274,9 +274,9 @@ class OutputSceneLightwave(OutputBase):
 
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.output_catalog import OutputSceneLightwave
-            sage: rich_output = OutputSceneLightwave.example();  rich_output
-            OutputSceneLightwave container
+            sage: from sage.repl.rich_output.output_catalog import OutputSceneWavefront
+            sage: rich_output = OutputSceneWavefront.example();  rich_output
+            OutputSceneWavefront container
             sage: obj = rich_output.obj_filename();  obj
             '/.../scene.obj'
             sage: print(open(obj).read())
@@ -320,9 +320,9 @@ class OutputSceneLightwave(OutputBase):
         
         EXAMPLES::
 
-            sage: from sage.repl.rich_output.output_catalog import OutputSceneLightwave
-            sage: rich_output = OutputSceneLightwave.example();  rich_output
-            OutputSceneLightwave container
+            sage: from sage.repl.rich_output.output_catalog import OutputSceneWavefront
+            sage: rich_output = OutputSceneWavefront.example();  rich_output
+            OutputSceneWavefront container
 
             sage: rich_output.obj
             buffer containing 227 bytes
@@ -336,7 +336,7 @@ class OutputSceneLightwave(OutputBase):
         """
         from sage.env import SAGE_EXTCODE
         with_path = lambda x: os.path.join(
-            SAGE_EXTCODE, 'doctest', 'rich_output', 'example_lightwave', x)
+            SAGE_EXTCODE, 'doctest', 'rich_output', 'example_wavefront', x)
         return cls(
             OutputBuffer.from_file(with_path('scene.obj')),
             OutputBuffer.from_file(with_path('scene.mtl')),

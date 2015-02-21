@@ -113,13 +113,13 @@ cdef class Graphics3d(SageObject):
         types = display_manager.types
         can_view_jmol = (types.OutputSceneJmol in display_manager.supported_output())
         can_view_canvas3d  = (types.OutputSceneCanvas3d in display_manager.supported_output())
-        can_view_lightwave = (types.OutputSceneLightwave in display_manager.supported_output())
+        can_view_wavefront = (types.OutputSceneWavefront in display_manager.supported_output())
         viewer = self._extra_kwds.get('viewer', None)
         if viewer == 'java3d':
             from sage.misc.superseded import deprecation
-            deprecation(17234, 'use viewer="lightwave" instead of "java3d"')
+            deprecation(17234, 'use viewer="wavefront" instead of "java3d"')
         # make sure viewer is one of the supported options
-        if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'lightwave']:
+        if viewer not in [None, 'jmol', 'tachyon', 'canvas3d', 'wavefront']:
             import warnings
             warnings.warn('viewer={0} is not supported'.format(viewer))
             viewer = None
@@ -128,7 +128,7 @@ cdef class Graphics3d(SageObject):
             viewer = 'jmol'
         # fall back to 2d image if necessary
         if viewer == 'canvas3d' and not can_view_canvas3d:   viewer = 'jmol'
-        if viewer == 'lightwave' and not can_view_lightwave: viewer = 'jmol'
+        if viewer == 'wavefront' and not can_view_wavefront: viewer = 'jmol'
         if viewer == 'jmol' and not can_view_jmol:           viewer = 'tachyon'
         ### Second, return the corresponding graphics file
         if viewer == 'jmol':
@@ -144,8 +144,8 @@ cdef class Graphics3d(SageObject):
                     return self._rich_repr_tachyon(output_container, **kwds)
         elif viewer == 'canvas3d':
             return self._rich_repr_canvas3d(**kwds)            
-        elif viewer == 'lightwave':
-            return self._rich_repr_lightwave(**kwds)            
+        elif viewer == 'wavefront':
+            return self._rich_repr_wavefront(**kwds)            
         else:
             assert False   # unreachable
 
@@ -254,9 +254,9 @@ cdef class Graphics3d(SageObject):
         preview_png   = OutputBuffer.from_file(preview_png)
         return OutputSceneJmol(scene_zip, preview_png)
 
-    def _rich_repr_lightwave(self, **kwds):
+    def _rich_repr_wavefront(self, **kwds):
         r"""
-        Rich Representation as Lightwave (obj + mtl) Scene
+        Rich Representation as Wavefront (obj + mtl) Scene
 
         INPUT:
 
@@ -265,23 +265,23 @@ cdef class Graphics3d(SageObject):
         OUTPUT:
 
         Instance of
-        :class:`sage.repl.rich_output.output_graphics3d.OutputSceneLightwave`.
+        :class:`sage.repl.rich_output.output_graphics3d.OutputSceneWavefront`.
 
         EXAMPLES::
 
             sage: line = line3d([(0,0,0), (1,1,1)])
-            sage: out = line._rich_repr_lightwave()
+            sage: out = line._rich_repr_wavefront()
             sage: out
-            OutputSceneLightwave container
+            OutputSceneWavefront container
             sage: out.obj.get()
             'mtllib ... 6 2 7 11\nf 7 8 12\nf 8 9 12\nf 9 10 12\nf 10 11 12\nf 11 7 12\n'
             sage: out.mtl.get()
             'newmtl texture...\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 1\n'
         """
-        from sage.repl.rich_output.output_graphics3d import OutputSceneLightwave
+        from sage.repl.rich_output.output_graphics3d import OutputSceneWavefront
         from sage.repl.rich_output.buffer import OutputBuffer
         obj = OutputBuffer('mtllib scene.mtl\n' + self.obj())
-        return OutputSceneLightwave(obj, self.mtl_str())
+        return OutputSceneWavefront(obj, self.mtl_str())
 
     def _rich_repr_canvas3d(self, **kwds):
         r"""

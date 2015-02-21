@@ -5857,9 +5857,26 @@ cdef class Expression(CommutativeRingElement):
             (3*x^35 + 2*y^35)/(x*y)
             sage: parent(fr)
             Fraction Field of Multivariate Polynomial Ring in x, y over Finite Field of size 7
+
+        TESTS:
+
+        Check that :trac:`17736` is fixed::
+
+            sage: a,b,c = var('a,b,c')
+            sage: fr = (1/a).fraction(QQ); fr
+            1/a
+            sage: parent(fr)
+            Fraction Field of Univariate Polynomial Ring in a over Rational Field
+            sage: parent((b/(a+sin(c))).fraction(SR))
+            Fraction Field of Multivariate Polynomial Ring in a, b over Symbolic Ring
         """
-        return self.numerator().polynomial(base_ring)/\
-               self.denominator().polynomial(base_ring)
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.fraction_field import FractionField
+        nu = ring.SR(self.numerator()).polynomial(base_ring)
+        de = ring.SR(self.denominator()).polynomial(base_ring)
+        vars = sorted(set(nu.variables() + de.variables()), key=repr)
+        R = FractionField(PolynomialRing(base_ring, vars))
+        return R(self.numerator())/R(self.denominator())
 
     def power_series(self, base_ring):
         """

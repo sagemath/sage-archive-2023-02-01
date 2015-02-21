@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+shopt -s extglob
 
 GIT_VERSION=r70
 
@@ -19,7 +20,8 @@ fi
 mv three.js-${GIT_VERSION} src
 
 # Delete the 200mb of enclosed examples
-rm -rf src/examples
+# However, keep the examples/js directory (see Trac #17823)
+rm -rf src/examples/!(js)
 
 # repack
 tar czf "$SAGE_ROOT/upstream/threejs-${GIT_VERSION}.tar.gz" src

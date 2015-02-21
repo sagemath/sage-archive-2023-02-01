@@ -28,12 +28,15 @@ cimport sage.rings.fast_arith
 import sage.rings.fast_arith
 cdef sage.rings.fast_arith.arith_int arith_int
 arith_int  = sage.rings.fast_arith.arith_int()
-from sage.matrix.matrix_integer_2x2 cimport Matrix_integer_2x2
+from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.modular.modsym.p1list import lift_to_sl2z
 
 include "sage/ext/cdefs.pxi"
 include 'sage/ext/stdsage.pxi'
 
+from sage.rings.all import ZZ
+ZZ_0 = ZZ.zero()
+ZZ_1 = ZZ.one()
 
 # This is the C version of a function formerly implemented in python in
 # sage.modular.congroup.  It is orders of magnitude faster (e.g., 30
@@ -295,22 +298,22 @@ def generators_helper(coset_reps, level, Mat2Z):
         [21  5], [ 7 -1], [-7  1]
         ]
     """
-    cdef Matrix_integer_2x2 S,T,I,x,y,z,v,vSmod,vTmod
+    cdef Matrix_integer_dense S,T,I,x,y,z,v,vSmod,vTmod
 
-    S = Matrix_integer_2x2(Mat2Z,[0,-1,1,0],False,True)
-    T = Matrix_integer_2x2(Mat2Z,[1,1,0,1],False,True)
-    I = Matrix_integer_2x2(Mat2Z,[1,0,0,1],False,True)
+    S = Matrix_integer_dense(Mat2Z,[ZZ_0,-ZZ_1,ZZ_1,ZZ_0],False,False)
+    T = Matrix_integer_dense(Mat2Z,[ZZ_1,ZZ_1,ZZ_0,ZZ_1],False,False)
+    I = Matrix_integer_dense(Mat2Z,[ZZ_1,ZZ_0,ZZ_0,ZZ_1],False,False)
 
     crs = coset_reps.list()
 #    print [type(lift_to_sl2z(c, d, level)) for c,d in crs]
     try:
-        reps = [Matrix_integer_2x2(Mat2Z,lift_to_sl2z(c, d, level),False,True) for c,d in crs]
+        reps = [Matrix_integer_dense(Mat2Z,lift_to_sl2z(c, d, level),False,True) for c,d in crs]
     except Exception:
         raise ArithmeticError, "Error lifting to SL2Z: level=%s crs=%s" % (level, crs)
     ans = []
     for i from 0 <= i < len(crs):
         x = reps[i]
-        v = Matrix_integer_2x2(Mat2Z,[crs[i][0],crs[i][1],0,0],False,True)
+        v = Matrix_integer_dense(Mat2Z,[crs[i][0],crs[i][1],0,0],False,True)
         vSmod = (v*S)
         vTmod = (v*T)
         y_index = coset_reps.normalize(vSmod[0,0],vSmod[0,1])

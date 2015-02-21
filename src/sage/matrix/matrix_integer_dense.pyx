@@ -12,6 +12,8 @@ AUTHORS:
 - Jeroen Demeyer (October 2014): lots of fixes, see :trac:`17090` and
   :trac:`17094`.
 
+- Vincent Delecroix (February 2015): make it faster, see :trac:`17822`.
+
 EXAMPLES::
 
     sage: a = matrix(ZZ, 3,3, range(9)); a
@@ -52,13 +54,14 @@ TESTS::
 #*****************************************************************************
 
 from libc.stdint cimport int64_t
+from libc.limits cimport ULONG_MAX
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
 from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.rings.arith import previous_prime
-from sage.structure.element import is_Element
+from sage.structure.element cimport Element, generic_power_c
 from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -396,7 +399,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if entries is None:
             x = ZZ(0)
             is_list = 0
-        elif isinstance(entries, (int,long)) or is_Element(entries):
+        elif isinstance(entries, (int,long,Element)):
             try:
                 x = ZZ(entries)
             except TypeError:
@@ -536,7 +539,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self.get_unsafe_mpz(i, j, z.value)
         return z
 
-    cdef void get_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, mpz_t value):
+    cdef inline void get_unsafe_mpz(self, Py_ssize_t i, Py_ssize_t j, mpz_t value):
         """
         Copy entry i,j of the matrix ``self`` to ``value``.
 
@@ -562,7 +565,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         fmpz_get_mpz(value,fmpz_mat_entry(self._matrix, i, j))
 
-    cdef double get_unsafe_double(self, Py_ssize_t i, Py_ssize_t j):
+    cdef inline double get_unsafe_double(self, Py_ssize_t i, Py_ssize_t j):
         """
         Returns (j, i) entry of self as a new Integer.
 
@@ -702,7 +705,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         All memory is allocated for this matrix, but its
         entries have not yet been filled in.
         """
-        cdef object P =  matrix_space.MatrixSpace(ZZ, nrows, ncols, sparse=False)
+        cdef object P
+        if nrows == self._nrows and ncols == self._ncols:
+            P = self._parent
+        else:
+            P = matrix_space.MatrixSpace(ZZ, nrows, ncols, sparse=False)
         cdef Matrix_integer_dense ans = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
         if ans._matrix == NULL:
             raise MemoryError("out of memory allocating a matrix")
@@ -714,21 +721,34 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # x * cdef _sub_
     # x * cdef _mul_
     # x * cdef _cmp_c_impl
-    #   * __neg__
-    #   * __invert__
-    #   * __copy__
+    # x * __neg__
+    # x * __invert__  -> SEE LEVEL 3 FUNCTIONALITIES
+    # x * __copy__
     # x * _multiply_classical
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
     # cdef _mul_(self, Matrix right):
-    # def __neg__(self):
-    # def __invert__(self):
-    # def __copy__(self):
     # def _multiply_classical(left, matrix.Matrix _right):
     # def _list(self):
     # def _dict(self):
+
+    def __copy__(self):
+        r"""
+        Return a copy of this matrix.
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(ZZ,2,3)
+            sage: m = M([1,2,3,3,2,1])
+            sage: mc = m.__copy__()
+            sage: mc == m and mc is not m
+            True
+        """
+        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows, self._ncols)
+        fmpz_mat_set(M._matrix, (<Matrix_integer_dense> self)._matrix)
+        return M
 
     def __nonzero__(self):
         r"""
@@ -757,7 +777,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             False
         """
         return not fmpz_mat_is_zero(self._matrix)
-
 
     def _multiply_linbox(self, Matrix_integer_dense right):
         """
@@ -865,29 +884,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return M
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_(self, sage.structure.element.Matrix right):
-        cdef Py_ssize_t i, j, k, l, nr, nc, snc
-        cdef object parent
+        cdef Matrix_integer_dense M
 
         if self._ncols != right._nrows:
             raise IndexError("Number of columns of self must equal number of rows of right.")
 
-        nr = self._nrows
-        nc = right._ncols
-        snc = self._ncols
-
-        if self._nrows == right._nrows:
-            # self acts on the space of right
-            parent = right.parent()
-        if self._ncols == right._ncols:
-            # right acts on the space of self
-            parent = self.parent()
-        else:
-            parent = self.matrix_space(nr, nc)
-
-        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(parent.nrows(),parent.ncols())
+        M = self._new_uninitialized_matrix(self._nrows, right._ncols)
 
         sig_on()
-        fmpz_mat_mul(M._matrix,self._matrix,(<Matrix_integer_dense>right)._matrix)
+        fmpz_mat_mul(M._matrix, self._matrix, (<Matrix_integer_dense>right)._matrix)
         sig_off()
         return M
 
@@ -901,11 +906,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [   0  3/4  3/2]
             [ 9/4    3 15/4]
         """
-        cdef Py_ssize_t i
         cdef Integer x = Integer(right)
         cdef fmpz_t z
-        cdef Matrix_integer_dense M
-        M = self._new_uninitialized_matrix(self._nrows,self._ncols)
+        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows, self._ncols)
+
         sig_on()
         fmpz_init_set_readonly(z, x.value)
         fmpz_mat_scalar_mul_fmpz(M._matrix, self._matrix, z)
@@ -931,10 +935,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 9 11 13]
             [ 9 11 13]
         """
-        cdef Py_ssize_t i, j
-
-        cdef Matrix_integer_dense M
-        M = self._new_uninitialized_matrix(self._nrows,self._ncols)
+        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows,self._ncols)
 
         sig_on()
         fmpz_mat_add(M._matrix,self._matrix,(<Matrix_integer_dense> right)._matrix)
@@ -954,13 +955,112 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [-2  0  2]
             [ 4  6  8]
         """
-        cdef Py_ssize_t i, j
-
-        cdef Matrix_integer_dense M
-        M = self._new_uninitialized_matrix(self._nrows,self._ncols)
+        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows,self._ncols)
 
         sig_on()
         fmpz_mat_sub(M._matrix,self._matrix,(<Matrix_integer_dense> right)._matrix)
+        sig_off()
+        return M
+
+    def __pow__(sself, n, dummy):
+        r"""
+        Return the ``n``-th power of this matrix.
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(ZZ,3)
+            sage: m = M([1, 1, 1, 2, 1, 1, -3, -2, -1])
+            sage: m ** 3
+            [-3 -2 -1]
+            [-3 -2  0]
+            [ 2  1 -3]
+            sage: m ** -2
+            [ 2 -3 -1]
+            [-4  4  1]
+            [ 1  0  0]
+
+        TESTS::
+
+            sage: m ** 3 == m ** 3r == (~m) ** (-3) == (~m) ** (-3r)
+            True
+
+        The following exponents do not fit in an unsigned long and the
+        multiplication method fall back to the generic power implementation in
+        :mod:`sage.structure.element`::
+
+            sage: m = M.identity_matrix()
+            sage: m ** (2**256)
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: m ** (2r**256r)
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        cdef Matrix_integer_dense self = sself
+
+        if dummy is not None:
+            raise ValueError
+        if self._nrows != self._ncols:
+            raise ArithmeticError("self must be a square matrix")
+
+        cdef unsigned long e
+
+        if isinstance(n,(int,long)):
+            if n < 0:
+                return (~self) ** (-n)
+            try:
+                e = n
+            except OverflowError:
+                # it is very likely that the following will never finish...
+                return generic_power_c(self, n, self._parent.one())
+
+        else:
+            if not isinstance(n, Integer):
+                try:
+                    n = Integer(n)
+                except TypeError:
+                    raise NotImplementedError("non-integral exponents not supported")
+            if mpz_sgn((<Integer>n).value) < 0:
+                return (~self) ** (-n)
+
+            if mpz_cmp_ui((<Integer>n).value, ULONG_MAX) < 1:
+                e = mpz_get_ui((<Integer>n).value)
+            else:
+                # it is very likely that the following will never finish except
+                # if self is nilpotent
+                return generic_power_c(self, n, self._parent.one())
+
+        if e == 0:
+            return self._parent.identity_matrix()
+        if e == 1:
+            return self
+
+        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows, self._ncols)
+        sig_on()
+        fmpz_mat_pow(M._matrix, self._matrix, e)
+        sig_off()
+        return M
+
+    def __neg__(sself):
+        r"""
+        Return the negative of this matrix.
+
+        TESTS::
+
+            sage: a = matrix(ZZ,2,range(4))
+            sage: a.__neg__()
+            [ 0 -1]
+            [-2 -3]
+            sage: -a
+            [ 0 -1]
+            [-2 -3]
+        """
+        cdef Matrix_integer_dense self = sself
+        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows, self._ncols)
+        sig_on()
+        fmpz_mat_neg(M._matrix, self._matrix)
         sig_off()
         return M
 
@@ -1045,7 +1145,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     ########################################################################
     # LEVEL 3 functionality (Optional)
     #    * __deepcopy__
-    #    * __invert__
+    #  x * __invert__
     #    * Matrix windows -- only if you need strassen for that base
     #    * Other functions (list them here):
     #    * Specialized echelon form
@@ -3669,6 +3769,42 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return -M, -den
         else:
             return M, den
+
+    def __invert__(self):
+        r"""
+        Return the inverse of self.
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(ZZ,3)
+            sage: m = M([1,2,3,3,4,5,1,2,-3])
+            sage: ~m
+            [-11/6     1  -1/6]
+            [  7/6  -1/2   1/3]
+            [  1/6     0  -1/6]
+            sage: ~m * m == m * ~m == M.identity_matrix()
+            True
+
+        Note that inverse of determinant one integer matrices do not belong to
+        the same parent::
+
+            sage: (~M.identity_matrix()).parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Rational Field
+
+        This is consistent with::
+
+            sage: (~1).parent()
+            Rational Field
+
+        TESTS::
+
+            sage: ~M.zero_matrix()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Matrix is singular
+        """
+        A,d = self._invert_flint()
+        return A/d
 
     def _solve_right_nonsingular_square(self, B, check_rank=True, algorithm = 'iml'):
         r"""

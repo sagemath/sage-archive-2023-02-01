@@ -5,8 +5,9 @@ Finite State Machines, Automata, Transducers
 This module adds support for finite state machines, automata and
 transducers. See classes :class:`Automaton` and :class:`Transducer`
 (or the more general class :class:`FiniteStateMachine`) and the
-:ref:`examples <finite_state_machine_examples>` below for
-details creating one.
+:ref:`examples <finite_state_machine_examples>` below for details
+creating one. You can also use a :mod:`preconstructed and commonly used one
+<sage.combinat.finite_state_machine_generators>`.
 
 Contents
 ========
@@ -772,6 +773,12 @@ See also methods :meth:`Automaton.process` and
 :class:`FSMTransition`, and the description and examples in
 :class:`FSMProcessIterator` for more information on processing and
 hooks.
+
+REFERENCE:
+
+.. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
+   *Variances and Covariances in the Central Limit Theorem for the Output
+   of a Transducer*, :arxiv:`1404.3680v2`.
 
 AUTHORS:
 
@@ -1682,7 +1689,7 @@ class FSMState(SageObject):
 
         A string.
 
-        TESTS:
+        TESTS::
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: FSMState('A')._repr_()
@@ -7602,7 +7609,7 @@ class FiniteStateMachine(SageObject):
 
         The final components are the only parts of a transducer which
         influence the main terms of the asympotic behaviour of the sum
-        of output labels of a transducer, see [HKP2014]_ and [HKW2014]_.
+        of output labels of a transducer, see [HKP2015]_ and [HKW2014]_.
 
         EXAMPLES::
 
@@ -7628,9 +7635,9 @@ class FiniteStateMachine(SageObject):
 
         REFERENCES:
 
-        .. [HKP2014] Clemens Heuberger, Sara Kropf, and Helmut
-           Prodinger, *Asymptotic analysis of the sum of the output of
-           transducer*, in preparation.
+        .. [HKP2015] Clemens Heuberger, Sara Kropf, and Helmut
+           Prodinger, *Output sum of transducers: Limiting distribution
+           and periodic fluctuation*, :arxiv:`1502.01412`.
         """
         DG = self.digraph()
         condensation = DG.strongly_connected_components_digraph()
@@ -9019,10 +9026,6 @@ class FiniteStateMachine(SageObject):
         See [HKW2014]_, Theorem 3.9.
 
         REFERENCES:
-
-        .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
-           *Variances and Covariances in the Central Limit Theorem for
-           the Output of a Transducer*, :arxiv:`1404.3680v2`.
 
         .. [HP2007] Clemens Heuberger and Helmut Prodinger, *The Hamming
            Weight of the Non-Adjacent-Form under Various Input Statistics*,

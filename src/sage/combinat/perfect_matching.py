@@ -241,7 +241,7 @@ class PerfectMatching(ElementWrapper):
         r"""
         A latex representation of ``self`` using the tikzpicture package.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: P = PerfectMatching([(1,3),(2,5),(4,6)])
             sage: latex(P) #indirect doctest # optional - requires dot2tex

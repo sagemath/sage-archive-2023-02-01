@@ -83,7 +83,7 @@ class AlternatingSignMatrix(Element):
         """
         Initialize ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
             sage: elt = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])

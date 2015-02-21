@@ -3748,7 +3748,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         - Marc Masdeu -- (08/2014) Use FLINT
         """
         if self._nrows != self._ncols:
-            raise TypeError("self must be a square matrix.")
+            raise ArithmeticError("self must be a square matrix.")
 
         cdef Matrix_integer_dense M
         cdef int res

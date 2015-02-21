@@ -472,10 +472,17 @@ the parent as its first argument::
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from cpython cimport PyObject
+
+cdef extern from "methodobject.h":
+    cdef int METH_NOARGS, METH_O
+    cdef int PyCFunction_GetFlags(object op) except -1
+
 from function_mangling import ArgumentFixer
 import os
 from os.path import relpath,normpath,commonprefix
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
+from inspect import isfunction
 
 import sage.misc.weak_dict
 from sage.misc.weak_dict import WeakValueDictionary
@@ -2671,18 +2678,22 @@ cdef class CachedMethod(object):
         # Since we have an optimized version for functions that do not accept arguments,
         # we need to analyse the argspec
         f = (<CachedFunction>self._cachedfunc).f
-        if self.nargs==0:
-            args, varargs, keywords, defaults = sage_getargspec(f)
-            if varargs is None and keywords is None and len(args)<=1:
-                self.nargs = 1
-                Caller = CachedMethodCallerNoArgs(inst, f, name=name)
-            else:
-                self.nargs = 2 # don't need the exact number
-                Caller = CachedMethodCaller(self, inst,
-                                            cache=self._get_instance_cache(inst),
-                                            name=name,
-                                            key=self._cachedfunc.key)
-        elif self.nargs==1:
+        if self.nargs == 0:
+            if isinstance(f, object) and not isfunction(f):
+                try:
+                    if METH_NOARGS&PyCFunction_GetFlags(f.__get__(inst,cls)):
+                        self.nargs = 1
+                    else:
+                        self.nargs = 2
+                except:
+                    pass
+            if self.nargs == 0:
+                args, varargs, keywords, defaults = sage_getargspec(f)
+                if varargs is None and keywords is None and len(args)<=1:
+                    self.nargs = 1
+                else:
+                    self.nargs = 2  # don't need the exact number
+        if self.nargs == 1:
             Caller = CachedMethodCallerNoArgs(inst, f, name=name)
         else:
             Caller = CachedMethodCaller(self, inst,

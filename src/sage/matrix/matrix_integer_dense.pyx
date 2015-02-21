@@ -54,7 +54,6 @@ TESTS::
 #*****************************************************************************
 
 from libc.stdint cimport int64_t
-from libc.limits cimport ULONG_MAX
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
@@ -1025,7 +1024,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if mpz_sgn((<Integer>n).value) < 0:
                 return (~self) ** (-n)
 
-            if mpz_cmp_ui((<Integer>n).value, ULONG_MAX) < 1:
+            if mpz_fits_ulong_p((<Integer>n).value):
                 e = mpz_get_ui((<Integer>n).value)
             else:
                 # it is very likely that the following will never finish except

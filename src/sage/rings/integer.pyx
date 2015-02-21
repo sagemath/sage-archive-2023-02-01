@@ -138,6 +138,7 @@ import sys
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/stdsage.pxi"
+from sage.ext.memory cimport check_allocarray
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
@@ -2635,15 +2636,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: prod(primes_first_n(60)).divisors()
+            sage: prod(primes_first_n(64)).divisors()
             Traceback (most recent call last):
             ...
             OverflowError: value too large
             sage: prod(primes_first_n(58)).divisors()
             Traceback (most recent call last):
             ...
-            OverflowError: value too large  # 32-bit
-            MemoryError                     # 64-bit
+            OverflowError: value too large                                 # 32-bit
+            MemoryError: failed to allocate 288230376151711744 * 24 bytes  # 64-bit
 
         Check for memory leaks and ability to interrupt
         (the ``divisors`` call below allocates about 800 MB every time,
@@ -2701,15 +2702,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             for p, e in f:
                 # Using *= does not work, see http://trac.cython.org/cython_trac/ticket/825
                 divisor_count = divisor_count * (1 + e)
-            ptr = <uintmax_t*>sage_malloc(sizeof(uintmax_t) * 3 * divisor_count)
-            if not ptr:
-                raise MemoryError
+
+        ptr = <uintmax_t*>check_allocarray(divisor_count, 3 * sizeof(uintmax_t))
+        all_c = ptr
+        sorted_c = ptr + divisor_count
+        prev_c = sorted_c + divisor_count
 
         try:
-            all_c = ptr
-            sorted_c = ptr + divisor_count
-            prev_c = sorted_c + divisor_count
-    
             sorted_c[0] = 1
             sorted_len = 1
     
